@@ -119,7 +119,7 @@
       "capability": "Seven current documents and six owner notes plus index",
       "ux": "Review navigation and versioned cards; N/A editor control: documentation deliverable",
       "state": "Synchronized source/mirror revision; N/A app event: documentation revision history",
-      "test": "Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; independent final review still required",
+      "test": "Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; independent final specification/source review approved",
       "performance": "N/A runtime budget: documentation gate, no app performance claim",
       "phase": "P0"
     }

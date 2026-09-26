@@ -578,6 +578,62 @@
       "new": "Packaging uploads only validated image/same-stem caption pairs in the ≤201 MiB provider ZIP. The app manifest is prepared and persisted separately as a durable sidecar, never inserted into that ZIP. Manifest preparation/storage remains included in the existing T01/T02 workload and timing/resource accounting, alongside explicit crop previews and captured resolution; exact permitted provider layout/encoding remains API-U05 qualification.",
       "authorization": "Original Task 7: Authorized FA-01 correction — training manifest boundary; captured in corrections/475e1f5c-0697-46e9-b205-decbb4297f00-FA01.md",
       "reason": "Align PERF WT and §5 with existing UX §8 and ARCH §10 image/caption-only ZIP and separately durable app manifest; retain existing manifest work and every numerical budget/campaign."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "api",
+      "count": 1,
+      "old": "This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals).",
+      "new": "SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals)."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "design-system",
+      "count": 1,
+      "old": "This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals).",
+      "new": "SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals)."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "ux",
+      "count": 1,
+      "old": "This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals).",
+      "new": "SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals)."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "architecture",
+      "count": 1,
+      "old": "This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals).",
+      "new": "SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals)."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "testing",
+      "count": 1,
+      "old": "This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals).",
+      "new": "SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals)."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "performance",
+      "count": 1,
+      "old": "This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals).",
+      "new": "SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals)."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "architecture",
+      "count": 1,
+      "old": "and final assembly review is pending.",
+      "new": "and SPEC-A2 has independent specification/source approval; runtime qualification remains pending."
+    },
+    {
+      "kind": "approval-metadata-closeout",
+      "section": "architecture",
+      "count": 1,
+      "old": "Task 4 is complete; final assembly review is pending.",
+      "new": "Task 4 is complete; SPEC-A2 has independent specification/source approval."
     }
   ],
   "commonTransforms": [
@@ -586,5 +642,120 @@
     "Replace obsolete author-review status with actual source approvals and pending final assembly review.",
     "Move chronological failed/superseded source receipts out of core reading path while preserving exact snapshots.",
     "Relabel only current performance-owner references to PERF-8; no timing, resource, sample or campaign arithmetic changes."
-  ]
+  ],
+  "closeout": {
+    "id": "SPEC-A2-approval-closeout-1",
+    "classification": "Metadata only; SPEC-A2 technical identity unchanged",
+    "reviewedTechnicalCommit": "083579cdb1bfd24e3fdb64f4f051524393e50861",
+    "finalApprovalSnapshot": "approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md",
+    "authorizationSnapshot": "approvals/475e1f5c-0697-46e9-b205-decbb4297f00-closeout.md",
+    "metadataReplacements": [
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "index",
+        "count": 1,
+        "old": "Assembly **SPEC-A2**, 2026-09-26 UTC. Status: ready for independent final specification review; Task 7 is not self-approved. The six input sections have independent source-readiness approval. Implementation remains provisional at the owned qualification gates below. No editor implementation, application tests, benchmarks, package installation, provider calls or deployment are claimed.\n",
+        "new": "Assembly **SPEC-A2**, 2026-09-26 UTC. Status: **independently approved for specification/source readiness** at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861** in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This metadata-only closeout preserves SPEC-A2 technical identity. Task 7 remains review_required for coordinator closeout; user acceptance is separately pending. The six input sections retain their source-readiness approvals. Implementation remains provisional at the owned qualification gates below. No editor implementation, application tests, benchmarks, package installation, provider calls or deployment are claimed.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "index",
+        "count": 1,
+        "old": "| REQ-DOCS | Six standalone notes and portable mirrors; full audit, glossary, qualifications and recovery | Original Task7 + exact inputs/approvals in sync manifest | Seven current documents and six owner notes plus index | Review navigation and versioned cards; N/A editor control: documentation deliverable | Synchronized source/mirror revision; N/A app event: documentation revision history | Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; independent final review still required | N/A runtime budget: documentation gate, no app performance claim | P0 |\n",
+        "new": "| REQ-DOCS | Six standalone notes and portable mirrors; full audit, glossary, qualifications and recovery | Original Task7 + exact inputs/approvals in sync manifest | Seven current documents and six owner notes plus index | Review navigation and versioned cards; N/A editor control: documentation deliverable | Synchronized source/mirror revision; N/A app event: documentation revision history | Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; independent final specification/source review approved | N/A runtime budget: documentation gate, no app performance claim | P0 |\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "index",
+        "count": 1,
+        "old": "| R19 substantive assembly | REQ-DOCS: complete chain, source versions, glossary, qualification owners, mirror/hash checks; final review still pending |\n",
+        "new": "| R19 substantive assembly | REQ-DOCS: complete chain, source versions, glossary, qualification owners, mirror/hash checks; final specification/source review approved |\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "index",
+        "count": 1,
+        "old": "| R20 correct existing tasks/scope | Original seven tasks retained; Tasks 1–6 complete, Task 7 author handoff review_required; no implementation started |\n",
+        "new": "| R20 correct existing tasks/scope | Original seven tasks retained; Tasks 1–6 complete, Task 7 review_required for coordinator closeout after independent approval; no implementation started |\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "index",
+        "count": 1,
+        "old": "| P0 specification | This assembly and original Task 7 final independent review | Exact source/mirror/version/parity checks; 0/4 final wave remains until independent approval; documentation rollback restores matching versions and retains history |\n",
+        "new": "| P0 specification | This assembly and original Task 7 final independent review | Exact source/mirror/version/parity checks; 4/4 final technical wave independently approved; user acceptance remains separate; documentation rollback restores matching versions and retains history |\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "index",
+        "count": 1,
+        "old": "Author documentation checks are recorded in [verification.json](verification.json). Reproduce repository checks with `python3 docs/spec/tools/check_spec.py`; the command uses only the Python standard library and reads these documentation artifacts. It is not an application test or benchmark. Original Task 7 returns **review_required**. The coordinator owns independent final verification and only then task completion. User review of the final assembly is separately pending in the existing [Progress Report](intent://local/upon-build/note/b6884312-45fe-4295-a5a3-70180a701223).\n",
+        "new": "Author documentation checks are recorded in [verification.json](verification.json). Reproduce repository checks with `python3 docs/spec/tools/check_spec.py`; the command uses only the Python standard library and reads these documentation artifacts. It is not an application test or benchmark. Original Task 7 remains **review_required** for coordinator closeout after independent approval. The coordinator confirms this metadata-only synchronization and owns task completion; the author does not change it to complete. User review of the final assembly is separately pending in the existing [Progress Report](intent://local/upon-build/note/b6884312-45fe-4295-a5a3-70180a701223).\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "index",
+        "count": 1,
+        "old": "SPEC-A1 independent review identified FA-01: PERF WT described the app manifest inside the upload ZIP, conflicting with UX §8 and ARCH §10. Under [Task 7 correction authorization](corrections/475e1f5c-0697-46e9-b205-decbb4297f00-FA01.md), PERF-8+A2 now states that only validated image/caption pairs enter the ≤201 MiB provider ZIP and the app manifest remains a separately durable sidecar. Its preparation/storage stays within existing workload and timing/resource accounting. All 60 budget rows and all numerical campaign values are unchanged; the table checker permits only the exact recorded WT wording correction. The [SPEC-A1 independent review](corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md) remains historical review evidence; SPEC-A2 awaits focused independent re-review, with final progress 0/4. No new product decision was required. Remaining runtime/build/provider/font/storage/accessibility/performance limitations are in Q01–Q27. No PR has been published and no implementation phase has been initiated.\n",
+        "new": "SPEC-A1 independent review identified FA-01: PERF WT described the app manifest inside the upload ZIP, conflicting with UX §8 and ARCH §10. Under [Task 7 correction authorization](corrections/475e1f5c-0697-46e9-b205-decbb4297f00-FA01.md), PERF-8+A2 now states that only validated image/caption pairs enter the ≤201 MiB provider ZIP and the app manifest remains a separately durable sidecar. Its preparation/storage stays within existing workload and timing/resource accounting. All 60 budget rows and all numerical campaign values are unchanged; the table checker permits only the exact recorded WT wording correction. The [SPEC-A1 independent review](corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md) remains historical review evidence; SPEC-A2 is independently approved in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md), with final technical progress 4/4 and FA-01 closed. The [closeout authorization](approvals/475e1f5c-0697-46e9-b205-decbb4297f00-closeout.md) limits this update to approval labels/provenance; technical requirements and future qualifications are unchanged. No new product decision was required. Remaining runtime/build/provider/font/storage/accessibility/performance limitations are in Q01–Q27. No PR has been published and no implementation phase has been initiated.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "api",
+        "count": 1,
+        "old": "Assembly revision **API-1.2+A1**, 2026-09-26 UTC. Approved technical baseline: **API-1.2** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n",
+        "new": "Assembly revision **API-1.2+A1**, 2026-09-26 UTC. Approved technical baseline: **API-1.2** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "design-system",
+        "count": 1,
+        "old": "Assembly revision **DS-1.1+A1**, 2026-09-26 UTC. Approved technical baseline: **DS-1.1** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n",
+        "new": "Assembly revision **DS-1.1+A1**, 2026-09-26 UTC. Approved technical baseline: **DS-1.1** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "ux",
+        "count": 1,
+        "old": "Assembly revision **UX-2.2+A1**, 2026-09-26 UTC. Approved technical baseline: **UX-2.2** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n",
+        "new": "Assembly revision **UX-2.2+A1**, 2026-09-26 UTC. Approved technical baseline: **UX-2.2** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "architecture",
+        "count": 1,
+        "old": "Assembly revision **ARCH-1.4+A1**, 2026-09-26 UTC. Approved technical baseline: **ARCH-1.4** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n",
+        "new": "Assembly revision **ARCH-1.4+A1**, 2026-09-26 UTC. Approved technical baseline: **ARCH-1.4** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "architecture",
+        "count": 1,
+        "old": "No blocking user policy decision is invented: all ten accepted policies are bound above. Unknown provider facts and unmeasured engineering qualification stay explicit. Shared technical contracts have source-readiness approval; engineering feasibility still requires the owned qualification gates, and final assembly review is pending.\n",
+        "new": "No blocking user policy decision is invented: all ten accepted policies are bound above. Unknown provider facts and unmeasured engineering qualification stay explicit. Shared technical contracts have source-readiness approval; engineering feasibility still requires the owned qualification gates, and SPEC-A2 has independent specification/source approval; runtime qualification remains pending.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "architecture",
+        "count": 1,
+        "old": "Architecture owns the typed state, rendering contribution, identities/transactions/history/closure and frozen request boundary. UX owns initial controls, explicit review/placement/recovery and accessibility presentation. API owns nested/provider evidence. PERF owns proposed numerical budgets/campaign accounting. The joint source approval is recorded in the index. Task 4 is complete; final assembly review is pending. The exact historical source and review outcomes remain in the linked history snapshots.\n",
+        "new": "Architecture owns the typed state, rendering contribution, identities/transactions/history/closure and frozen request boundary. UX owns initial controls, explicit review/placement/recovery and accessibility presentation. API owns nested/provider evidence. PERF owns proposed numerical budgets/campaign accounting. The joint source approval is recorded in the index. Task 4 is complete; SPEC-A2 has independent specification/source approval. The exact historical source and review outcomes remain in the linked history snapshots.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "testing",
+        "count": 1,
+        "old": "Assembly revision **TEST-1+A1**, 2026-09-26 UTC. Approved technical baseline: **TEST-1** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n",
+        "new": "Assembly revision **TEST-1+A1**, 2026-09-26 UTC. Approved technical baseline: **TEST-1** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n"
+      },
+      {
+        "kind": "approval-metadata-closeout",
+        "section": "performance",
+        "count": 1,
+        "old": "Assembly revision **PERF-8+A2**, 2026-09-26 UTC. Approved technical baseline: **PERF-8** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n",
+        "new": "Assembly revision **PERF-8+A2**, 2026-09-26 UTC. Approved technical baseline: **PERF-8** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n"
+      }
+    ],
+    "validation": "Reverse exactly these replacements and require each of the seven full current documents to equal its approved technical-commit bytes; all other edits are evidence/receipt metadata."
+  }
 }

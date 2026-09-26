@@ -1,6 +1,6 @@
 # Performance Requirements and Metrics
 
-Assembly revision **PERF-8+A2**, 2026-09-26 UTC. Approved technical baseline: **PERF-8** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.
+Assembly revision **PERF-8+A2**, 2026-09-26 UTC. Approved technical baseline: **PERF-8** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.
 
 [Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/1b7b659d-d577-4257-b677-4850bbf86143.md).
 

@@ -1,6 +1,6 @@
 # Testing Strategy
 
-Assembly revision **TEST-1+A1**, 2026-09-26 UTC. Approved technical baseline: **TEST-1** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.
+Assembly revision **TEST-1+A1**, 2026-09-26 UTC. Approved technical baseline: **TEST-1** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.
 
 [Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/d7819c6b-68ff-4d89-835d-9acabe779cae.md).
 

@@ -1,6 +1,6 @@
 # Architecture — Action Model and Event Log
 
-Assembly revision **ARCH-1.4+A1**, 2026-09-26 UTC. Approved technical baseline: **ARCH-1.4** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.
+Assembly revision **ARCH-1.4+A1**, 2026-09-26 UTC. Approved technical baseline: **ARCH-1.4** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.
 
 [Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/c0689bcd-8dca-4ce6-bccb-e538e0a45477.md).
 
@@ -681,7 +681,7 @@ Cost records store currency, unit/rate/source timestamp/hash, dimensions/count/s
 | ARCH-U06 | New-document default for interleaved selected composites is accepted; broader isolated-group replacement remains deferred | UX mirrors CP-1/containment behavior; Architecture owns byte proof, F01/F02 source repairs independently verified in V2; joint source review completed; runtime raster/adoption qualification remains required |
 | ARCH-U07 | Desktop browser/AT/physical IME, DS archives and independent app package pins remain unqualified | DS/Build/UI + Task5 consumer qualification; browser-rendering choice does not establish working behavior |
 
-No blocking user policy decision is invented: all ten accepted policies are bound above. Unknown provider facts and unmeasured engineering qualification stay explicit. Shared technical contracts have source-readiness approval; engineering feasibility still requires the owned qualification gates, and final assembly review is pending.
+No blocking user policy decision is invented: all ten accepted policies are bound above. Unknown provider facts and unmeasured engineering qualification stay explicit. Shared technical contracts have source-readiness approval; engineering feasibility still requires the owned qualification gates, and SPEC-A2 has independent specification/source approval; runtime qualification remains pending.
 
 Coverage: R03/R04 §4; R07 §2–3; R08 §5–6; R09 §6–7/12; R10 §7/9; R11 §8; R12 §10; R13 §6; R14 §2 and DS-1.1 consumption boundary; R17/R18 §11 and PERF-8. Requirements REQ-STATE/LOCAL/TRAIN/OPS/PERF are directly covered; UX and API remain authoritative for their own contracts.
 
@@ -1017,7 +1017,7 @@ Plain returned prompts are valid Fal string outcomes; lack of a supported captio
 
 No new product decision is pending. Genuine engineering qualification remains: exact CanvasKit/WASM/Unicode/CPU raster conversion/font manifests and byte budget; script/bidi/cluster mapping and physical native IME/AT; font parser/resource/embedding validation; incremental raw response scanning and partial salvage; backed-up schema/profile migration; real SQLite/filesystem crash behavior; adapter profile evidence; numerical PERF-8 timing/memory/CI campaign feasibility; Fal structured forwarding and output fidelity. These are named future checks, not grounds to invent provider behavior or weaken editability/exterior preservation.
 
-Architecture owns the typed state, rendering contribution, identities/transactions/history/closure and frozen request boundary. UX owns initial controls, explicit review/placement/recovery and accessibility presentation. API owns nested/provider evidence. PERF owns proposed numerical budgets/campaign accounting. The joint source approval is recorded in the index. Task 4 is complete; final assembly review is pending. The exact historical source and review outcomes remain in the linked history snapshots.
+Architecture owns the typed state, rendering contribution, identities/transactions/history/closure and frozen request boundary. UX owns initial controls, explicit review/placement/recovery and accessibility presentation. API owns nested/provider evidence. PERF owns proposed numerical budgets/campaign accounting. The joint source approval is recorded in the index. Task 4 is complete; SPEC-A2 has independent specification/source approval. The exact historical source and review outcomes remain in the linked history snapshots.
 <a id="s18"></a>
 
 ## 18. ARCH-1.4 focused correction and re-review handoff
