@@ -127,7 +127,7 @@ export class Assets {
     const c=parseCommand(bytes).command;if(c.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');
     const previous=this.db.prepare('SELECT hash,receipt FROM commands WHERE id=?').get(c.commandId);const hash=hashBytes(canonical({protocolVersion:1,command:c}));
     if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(previous.receipt)) as Receipt;}
-    if(this.db.prepare('SELECT id FROM raster_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
+    if(this.db.prepare('SELECT id FROM raster_preparations WHERE id=?').get(c.commandId)||this.db.prepare('SELECT id FROM history_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
     const pending=this.pending(c.commandId);if(pending){if(pending.command.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.paused.delete(c.commandId);this.schedule(true);return null;}
     const body=c.body;if(!('stagingId' in body))throw new StoreError('UNSUPPORTED_COMMAND');
     const s=this.stage(body.stagingId);
@@ -136,7 +136,7 @@ export class Assets {
       // Validate inside the same writer transaction that journals preparation.
       if(s.record.state!=='complete'||body.expectedSha256!==s.record.sha256)return this.commit(bytes,()=>{throw new AssetRejection(s.record.state==='finalized'?'INCOMPATIBLE':'INVALID_INPUT','STAGING_NOT_MATCHING_COMPLETE');});
       if(this.db.prepare('SELECT id FROM asset_preparations WHERE staging_id=?').get(s.record.stagingId))return this.commit(bytes,()=>{throw new AssetRejection('CAPACITY','STAGING_PREPARATION_ACTIVE');});
-      if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
+      if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM history_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
       this.transaction(()=>{this.db.prepare('INSERT INTO asset_preparations VALUES (?,?,?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),canonical({protocolVersion:1,command:c}),randomUUID(),s.record.stagingId,s.record.version,'preparing');this.barrier('preparation-before-commit');});
       this.barrier('preparation-after-commit');this.schedule(true);return null;
     }

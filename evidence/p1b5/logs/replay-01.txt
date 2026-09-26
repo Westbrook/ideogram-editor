@@ -1,0 +1,10 @@
+✔ independent semantic patches and complete retained graph match all branches/checkpoints, pure restart/undo/redo cannot launch raster or network effects (2367.225791ms)
+ℹ {"requiredRootCount":24,"retainedAssetCount":5,"retainedClosureCount":24,"originalHash":"sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9","branchHead":"0a8fc950-ff86-4b53-8485-81bc0bd960df","zeroEffects":{"submit":0,"upload":0,"poll":0,"cancel":0,"fetch":0,"socket":0,"dns":0,"datagram":0}}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2675.383458

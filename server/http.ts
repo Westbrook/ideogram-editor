@@ -17,7 +17,7 @@ const methods: Record<string, readonly string[]> = {
   '/api/v1/session/bootstrap': ['POST'], '/api/v1/session': ['GET'],
   '/api/v1/session/renew': ['POST'], '/api/v1/session/revoke': ['POST'], '/api/v1/capabilities': ['GET'],
 };
-const unavailable = /^\/api\/v1\/(?:commands|events|documents|jobs|assets|bundles|snapshots|protocol-content|recovery)(?:\/|$)/;
+const unavailable = /^\/api\/v1\/(?:commands|events|documents|jobs|assets|bundles|snapshots|protocol-content|recovery|ui|image-previews|image-edit-reviews)(?:\/|$)/;
 
 function securityHeaders(response: ServerResponse, origin: string): void {
   response.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' ${BOOTSTRAP_CSP}; style-src 'self'; style-src-attr 'unsafe-hashes' ${SHELL_STYLE_CSP}; connect-src ${origin}; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
@@ -81,7 +81,7 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
   let rootInvalid = false;
   let closed = false;
   const capabilities: CapabilitiesView = {
-    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 2,
+    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 3,
     credentialConfigured: options.credentialConfigured ?? false,
     storageState: 'unavailable', connectionState: 'unknown', limits: [],
     profiles: [

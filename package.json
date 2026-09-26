@@ -33,7 +33,8 @@
     "test:assets:volume": "npm run build:server && node --import ./tests/session/no-egress.mjs --test tests/assets/volume-fault.mjs",
     "test:raster": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/raster/*.test.mjs",
     "test:raster:browser": "npm run build:server && vite build --config tests/raster/vite.config.ts && playwright test --config tests/raster/playwright.config.ts",
-    "verify:raster": "node tooling/raster/verify-inputs.mjs"
+    "verify:raster": "node tooling/raster/verify-inputs.mjs",
+    "test:history": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/history/*.test.mjs"
   },
   "dependencies": {
     "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",

@@ -1,0 +1,286 @@
+{
+  "attempts": [
+    {
+      "path": "evidence/p1b5/logs/boundaries-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 56,
+      "testFail": 1,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/browser-build-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": true
+    },
+    {
+      "path": "evidence/p1b5/logs/build-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-03.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": true
+    },
+    {
+      "path": "evidence/p1b5/logs/build-04.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": true
+    },
+    {
+      "path": "evidence/p1b5/logs/build-05.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-06.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-07.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-08.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-09.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-10.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-11.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-12.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-13.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-14.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/failure-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 5,
+      "testFail": 1,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/failure-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 6,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/history-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 2,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/history-03.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 4,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/history-04.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 31,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/history-browser-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 2,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/history-browser-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 3,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/history-http-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 2,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/process-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 7,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/process-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 11,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/raster-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 254,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/recovery-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 12,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/replay-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 1,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/review-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 3,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/review-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 4,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/schema-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 12,
+      "testFail": 0,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/typecheck-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/typecheck-02.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": false
+    }
+  ],
+  "failuresRetained": [
+    {
+      "path": "evidence/p1b5/logs/boundaries-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 56,
+      "testFail": 1,
+      "compilerError": false
+    },
+    {
+      "path": "evidence/p1b5/logs/build-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": true
+    },
+    {
+      "path": "evidence/p1b5/logs/build-03.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": true
+    },
+    {
+      "path": "evidence/p1b5/logs/build-04.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": null,
+      "testFail": null,
+      "compilerError": true
+    },
+    {
+      "path": "evidence/p1b5/logs/failure-01.txt",
+      "sourceAttribution": "Intermediate development attempt; no exact final-source claim",
+      "testPass": 5,
+      "testFail": 1,
+      "compilerError": false
+    }
+  ],
+  "corrections": [
+    "TypeScript diagnostics corrected before final build; numbered logs retained.",
+    "Initial history missing-file proof race left ENOENT pending; now rejects MISSING_ASSET under original identity. failure-01 retained; later failure suites pass.",
+    "Initial boundary suite asserted projection schema2; explicit new schema3 assertion corrected. boundaries-01 retained.",
+    "Initial preservation scan used copied reference manifest root; preservation-initial.json retained and preservation.json resolves original complete external archive."
+  ],
+  "finalAttribution": "Only final-gates.json and source-manifest.json establish final-source campaign identity. Tests previously run without exact source manifests remain development observations."
+}

@@ -1,0 +1,171 @@
+P1b.5 IMAGE DOCUMENTS, RETAINED HISTORY AND UI DRAFTS
+
+This contract extends STORE.txt, PROTOCOL.txt, ASSETS.txt and RASTER.txt.
+Approved starting reader: 92e5247ed3279f25292f8e312661bf3b12deffe7, schema5.
+New persisted schema6 capability: image-history-ui-v1. Protocol version remains1;
+projection schema3 adds image/history facts, while old schema2 snapshots remain
+readable. The initial shell is unchanged. Full editor controls belong to P1b.7.
+
+RUN AND REVIEW
+
+Use the existing pinned toolchain; no live sibling packages are imported:
+  export PATH="$PWD/.toolchain/bin:$PATH"
+  npm run typecheck
+  npm run build
+  npm run test:history
+  IE_RECOVERY_OUTPUT=artifacts/p1b5/recovery npx vite build --config tests/recovery/vite.config.ts
+  IE_RECOVERY_OUTPUT=artifacts/p1b5/recovery npx playwright test --config tests/history/playwright.config.ts
+  node tooling/history/gates.mjs
+  node tooling/history/seal-evidence.mjs --verify
+
+The final gate runner records exact changed-source hashes before/after each
+campaign, command arguments, timestamps, exit codes and complete logs. It uses
+an isolated copy for the prior raster browser fixture because that fixture has
+historical evidence paths. It never overwrites the sealed P1b.4 evidence.
+Earlier numbered attempts are preserved as development attempts; they do not
+claim final-source provenance. The final source manifest and final-gates.json
+identify the tested candidate. Independent review remains required.
+
+TYPED WRITER CONTRACT
+
+POST /api/v1/commands uses the existing strict authenticated Command envelope,
+same-command retry, expectedDocumentRevision, expectedVersions and receipt API.
+NewDocument retains its approved typed dimensions/name/root contract. Imports
+require an available, safe, canonical-raster asset from explicit raster approval.
+ExpectedVersions can name document and layer entities; no arbitrary state setter.
+
+Image mutations in src/protocol/history.ts:
+  ImportAsset; ApplyTransform; SetLayerProperties (name, opacity, visibility,
+  lock, approved document-aligned mask reference); DeleteLayer; DuplicateLayer;
+  MoveLayers; CropDocument; ResizeCanvas; ResampleImage; CreateFlattenedCopy.
+Layer identity is stable and never reused, including after deletion or on an
+inactive branch. Changes check document/layer versions and locks. Crop/resize
+change bounds and explicit offsets, preserving originals. Mask remapping is
+explicitly refused; no mask is detached or resized silently. Only normal blend
+and the existing document-luminance-alpha-v1 mask contract are accepted.
+
+Each edit prepares immutable bounded state/patch objects and canonical composite
+pixels through the approved CP-1 raster worker. One document revision and one
+history node publish atomically with all required new asset facts and the final
+receipt. Complete batches stay indivisible in server replay and IndexedDB.
+Preparation stores exact original envelope/hash/operation identity before202.
+Dependencies, file identities, revision/entity/draft fences and review authority
+are checked again immediately before committing. No durable receipt means no
+saved claim. Retrying an unknown request uses its exact ID and original body.
+
+Preparation and approvals:
+  PrepareImageResample names layer/version and desired intrinsic width/height.
+  It prepares a new source asset, retains layer transform/document bounds/mask,
+  and also prepares the actual resulting full-document composite preview.
+  PrepareFlattenedCopy names selected layer IDs, includeHidden, hideOriginals,
+  newLayerId and name. Selected layers compose in document order; the copy is
+  appended at the top with identity transform. Hiding originals is explicit and
+  requires them unlocked. Interleaved grouping equality is not promised: review
+  uses the actual resulting document preview. Originals and old branches remain.
+  ReviewImageEdit returns an owner/session/epoch/expiry-bound review ID/hash.
+  ResampleImage or CreateFlattenedCopy commits that exact frozen preview. Stale
+  document/layer/lock changes cannot apply it. A restart expires uncommitted
+  approval authority; the original command remains queryable and rejects
+  explicitly. A new review and command are needed; no silent re-approval.
+  GET /api/v1/image-previews/:id and /image-edit-reviews/:id are owner-bound.
+
+RETAINED HISTORY AND READS
+
+Image history nodes retain parent, branch, creation revision, operation, before
+and after ImageVersions, semantic forward/inverse patch refs and immutable roots.
+Undo names current historyHead; Redo names the eligible next image node;
+SwitchBranch names the exact recorded branch/image node. All are new revision-
+checked events restoring recorded state and pixel assets, with no decode/raster
+worker/network/provider effects. Undo can return to the empty creation state;
+the creation itself is not undone. Branch switching targets an image-edit node.
+Editing after undo forks while preserving previous branch descendants and bytes.
+Layer version numbers describe their recorded states; document revision always
+advances and fences stale requests even when undo restores an old layer version.
+
+SaveCheckpoint freezes image semantic digest, history head and event high-water.
+Names are never truncated. Existing empty-document checkpoints retain their
+original behavior. Image checkpoints use asynchronous dependency preparation.
+ExportDocument captures the exact document/revision/head at durable enqueue,
+then creates canonical PNG from the retained composite even if another edit
+commits first. It does not advance the document revision. Empty documents export
+explicit transparent pixels. An export's assets remain rooted in its command.
+
+Authenticated reads:
+  GET /api/v1/documents/:id/image                    bounded immutable state
+  GET /api/v1/documents/:id/history?after=<node-id>    at most100 / ~48KiB
+  GET /api/v1/documents/:id/checkpoints?after=<id>    at most100 / ~48KiB
+  GET /api/v1/documents/:id/closure?after=<sha256>     at most100 BlobRefs
+  GET /api/v1/documents/:id/save-status?sessionId=<id>
+The live-retained-closure includes scoped command/history/receipt metadata and
+all transitive originals, masks, derived pixels, hidden/deleted layers, retained
+branches, checkpoints and current draft assets. It is NOT a pinned portable
+copy. P1b.6 must pin a consistent snapshot and bind exact high-water identities.
+No garbage collection, domain pruning or portable-copy writing is introduced.
+Retaining extra superseded UI asset roots is conservative; this is not a space
+reclamation guarantee. Missing/corrupt objects produce explicit recovery/rejection,
+never replacement historical pixels from a current decoder.
+
+SEPARATE UI OWNERSHIP
+
+GET/POST /api/v1/ui/:sessionId uses strict UIRequest/UIReceipt, owned by the
+authenticated client and sessionId, independent expectedUISeq and dedup IDs.
+SetPreferences saves tool, viewport, panel sizes/tab and selected layer IDs.
+Selection removal emits deterministic reconciliation information, rather than
+silently clamping stale targets. FocusRequested is a semantic transcript entry;
+native focus, DOM and modal state are never restored. UI actions are not undo.
+
+SaveDraft references a complete durable opaque-text caption asset plus draft
+ID/generation, target/document/revision and IME composition state. At most64
+current drafts fit a64KiB checkpoint; capacity rejects rather than truncates.
+ClearDraft requires the exact generation. Applying a draft checks saved-unapplied,
+target, revision, generation and non-composing state again at acceptance, then
+marks only that generation applied atomically with the document transaction.
+Latest checkpoints and draft bytes survive compaction of semantic UI events to
+1000/session and7days. Domain events/history/receipts are not subject to that cap.
+
+DraftPersistence in src/state is a browser owner, not an editor control. It
+preserves local text during late preparation, fences generations/lifetimes,
+retains unknown delivery envelopes for exact retry, and labels saved only after
+the matching durable receipt. The UI caller supplies approved caption staging
+and a bounded text reader; checkpoint restore does not eagerly load every draft.
+Full En Reve controls/native input/IME presentation remain P1b.7 responsibilities.
+
+Save status distinguishes pendingCommandCount, draftDirty,
+documentChangedSinceCheckpoint and bundleOutdated. The server counts durable
+preparations and saved-unapplied drafts; the browser must also show its own
+unsent/pending/error drafts. Semantic digest excludes layer version counters,
+so undo to checkpoint content can clear content dirtiness while history roots
+still change. bundleOutdated stays true until P1b.6 introduces a verified copy.
+
+SCHEMA AND FAILURE BOUNDARY
+
+Schema6 migration makes a verified schema5 VACUUM backup, validates tables,
+schema, file hash and immutable manifest, fsyncs and rechecks exact file identity
+before activation. Its compatible rollback reader is exact92e5247e. Prior
+schema3/4/5 backups, originals, receipts, roots, events and pending requests are
+preserved. Tests execute the actual prior92 reader: it refuses schema6 without
+mutation and reads its compatible rollback copy. Future999 refuses before
+writable SQLite settings. Capacity/corruption/SIGKILL boundaries are exercised.
+Never point an older executable at the active schema6 root or rename a backup
+over live data. Use the verified compatible copy and reader for recovery.
+
+The existing shared64 preparation limit, shared IO budget, one raster worker,
+CP-1 coefficients, snapshot target250/tail500, LP-1 wire ceilings and raster
+resource admission remain. Metadata/state capacity is explicit. Resource refusal
+retains original bytes and preparation identity without lower quality. Dead
+approval authority rejects explicitly. SQLite FULL/ENOSPC/restart never yields
+a false saved receipt. Process death is tested; physical power loss is not.
+
+QUALIFICATION LIMITS
+
+This is bounded image-document/history/UI persistence. Later P1b.7 owns editor
+controls, En Reve-first adoption, exact1px splitters and UI review. Native text,
+mask drawing and Composition authoring remain later assigned work. PF-1 belongs
+to P1b.6. Jobs/provider submission remain separate; no provider effects exist here.
+Timing observations include HTTP admission and full preparation-to-client-receipt
+clocks separately, and are NOT formal R20/R21/R22/R23/R31 qualification. There is
+no100k-event/full100-layer/maximum-format, native/platform/accessibility or broader
+memory qualification. A-R01 stays open; the five maximum resource-pending raster
+operations are not successful processing. Preserve all earlier rejected evidence,
+approved preview52219/report4381, report locator/data, vendor inputs and live
+design-system source. Only independent exact-source review can approve P1b.5.

@@ -1,0 +1,11 @@
+✔ previewed intrinsic image resampling creates new pixels only after explicit approval; exact versions survive undo/redo and stale review (1121.441917ms)
+✔ flatten-copy review freezes selected stacking and actual full preview; hide is explicit, originals and branch remain (1636.931291ms)
+✔ review expires on session renewal, locked source refuses hiding and wrong kind cannot apply a prepared image (1179.093834ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4293.113125

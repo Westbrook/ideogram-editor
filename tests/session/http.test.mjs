@@ -40,7 +40,7 @@ test('SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed s
   assert.equal(session.status, 200);
   assert.equal(session.json.clientId, paired.json.clientId);
   const capabilities = await call(server.origin, '/api/v1/capabilities', { headers: readHeaders(cookie) });
-  assert.deepEqual(capabilities.json, { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 2, credentialConfigured: false,
+  assert.deepEqual(capabilities.json, { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 3, credentialConfigured: false,
     storageState: 'ready', connectionState: 'unknown', limits: [], profiles: [
       { id: 'LP-1', version: '1', state: 'unqualified' }, { id: 'LS-1', version: '1', state: 'unqualified' },
       { id: 'EF-1', version: '1', state: 'unavailable' }, { id: 'PF-1', version: '1', state: 'unavailable' }] });

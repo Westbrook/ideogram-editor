@@ -13,7 +13,10 @@ import type { Barrier } from './objects.js';
 import { event as validateEvent } from '../../src/protocol/validate.js';
 import { Assets, AssetRejection } from './assets.js';
 import type { AssetFact } from '../../src/protocol/assets.js';
-import { extendSchema, assetSchema, rasterSchema, approvalSchema } from './schema.js';
+import { Histories } from './history.js';
+import type { HistoryCommit } from './history.js';
+import { UIStore } from './ui.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema } from './schema.js';
 import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
@@ -44,6 +47,8 @@ export class StoreDatabase {
   readonly recovery: RecoveryStore;
   readonly assets: Assets;
   readonly rasters: Rasters;
+  readonly histories: Histories;
+  readonly ui: UIStore;
   private databaseIdentity;
   private rootIdentity;
   private missing: { hash: string; code: string }[] = [];
@@ -63,7 +68,7 @@ export class StoreDatabase {
     try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
     finally { reader.close(); }
     // Unknown future roots are inspected with a read-only connection only.
-    if (![0,1,2,3,4,5].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+    if (![0,1,2,3,4,5,6].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
       kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
     });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
@@ -81,6 +86,7 @@ export class StoreDatabase {
       assetSchema(this.db, root, options.quotaBytes,version===0);
       rasterSchema(this.db, root, options.quotaBytes,version===0);
       approvalSchema(this.db, root, barrier, options.quotaBytes,version===0);
+      historySchema(this.db, root, barrier, options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
@@ -103,7 +109,9 @@ export class StoreDatabase {
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.rasters=new Rasters(this.db,this.objects,this.assets,root,this.epoch,()=>this.fence(this.epoch),barrier,
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
-      this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();});
+      this.ui=new UIStore(this.db,this.objects,this.assets,()=>this.fence(this.epoch),barrier,id=>this.histories.state(id),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitHistory(bytes,build),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();this.histories.schedule();});
       if (options.maxPageCount !== undefined) {
         if (!Number.isSafeInteger(options.maxPageCount) || options.maxPageCount < 1) throw new Error('Invalid test page limit');
         this.db.exec(`PRAGMA max_page_count=${options.maxPageCount}`);
@@ -155,11 +163,11 @@ export class StoreDatabase {
       for(const ref of [event.payload.asset.blob,...event.payload.asset.dependencies])this.db.prepare('INSERT OR IGNORE INTO asset_dependencies VALUES (?,?)').run(event.payload.asset.id,ref.hash);
       return;
     }
-    if(event.type==='StagingTransferReviewPrepared'||event.type==='RasterReviewPrepared'||event.type==='StagingOwnershipTransferred')return;
+    if(event.type==='ImageEditPreviewPrepared'||event.type==='ImageEditReviewPrepared'||event.type==='StagingTransferReviewPrepared'||event.type==='RasterReviewPrepared'||event.type==='StagingOwnershipTransferred')return;
     const next = reduceDocument(this.document(event.documentId!), event);
     this.db.prepare('INSERT INTO documents VALUES (?,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json').run(next.id, canonical(next));
-    if (event.type === 'DocumentCreated') this.db.prepare('INSERT INTO history VALUES (?,?,?)').run(event.payload.history.id, next.id, canonical(event.payload.history));
-    else this.db.prepare('INSERT INTO checkpoints VALUES (?,?,?)').run(event.payload.checkpoint.id, next.id, canonical(event.payload.checkpoint));
+    if (event.type === 'DocumentCreated'||event.type==='ImageEdited') this.db.prepare('INSERT INTO history VALUES (?,?,?)').run(event.payload.history.id, next.id, canonical(event.payload.history));
+    else if(event.type==='CheckpointSaved') this.db.prepare('INSERT INTO checkpoints VALUES (?,?,?)').run(event.payload.checkpoint.id, next.id, canonical(event.payload.checkpoint));
   }
   private rebuild(): void {
     const start = performance.now();
@@ -190,6 +198,16 @@ export class StoreDatabase {
         if (highWater === transactionEnd) activeTransaction = null;
       }
       if (activeTransaction !== null || this.meta('highWater') !== String(highWater)) throw new StoreError('CORRUPT_STORE');
+      // Preview ownership is a private preparation index, not browser authority.
+      // Rebuild it from retained immutable facts even when the domain tail used a
+      // snapshot. Review/session credentials themselves are never replayed.
+      this.db.exec('DELETE FROM image_previews');
+      for(const row of this.db.prepare("SELECT json FROM events_v2 WHERE json_extract(json,'$.type')='ImageEditPreviewPrepared' ORDER BY length(seq),seq").iterate()){
+        const event=JSON.parse(String(row.json));validateEvent(event);
+        if(event.type!=='ImageEditPreviewPrepared')throw new StoreError('CORRUPT_STORE');
+        const owner=this.lookup(event.commandId);if(!owner)throw new StoreError('CORRUPT_STORE');const preview=event.payload.preview;
+        this.db.prepare('INSERT INTO image_previews VALUES (?,?,?,?)').run(preview.previewId,preview.documentId,owner.command.clientId,canonical(preview));
+      }
       this.db.exec('COMMIT');
     } catch (error) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw error; }
     this.replayMs = performance.now() - start;
@@ -216,6 +234,11 @@ export class StoreDatabase {
       const versions = parseExpected(bytes);
       if (canonical(versions) !== Buffer.from(bytes).toString('utf8')) return reject('INVALID_INPUT', 'command.expectedEntityVersions', 'EXPECTED_CANONICAL_JSON');
       for (const entity of versions.entities) {
+        if(entity.entityType==='layer'){
+          const layer=current?.image?this.histories.versionState(current.image).layers.find(l=>l.id===entity.entityId):undefined;
+          if(!layer||layer.version!==entity.version)return reject('STALE_REVISION','command.expectedEntityVersions','LAYER_VERSION_CHANGED');
+          continue;
+        }
         if (entity.entityId !== c.documentId) return reject('INVALID_INPUT', 'command.expectedEntityVersions', 'OUTSIDE_DOCUMENT');
         if (entity.version !== current?.revision) return reject('STALE_REVISION', 'command.expectedEntityVersions', 'ENTITY_CHANGED');
       }
@@ -259,6 +282,7 @@ export class StoreDatabase {
       this.assertPendingIdentity(c.commandId,hash);
       if (this.missingCount) throw new StoreError('CORRUPT_STORE');
       const document = c.documentId ? this.document(c.documentId) : null;
+      if(c.body.type==='SaveCheckpoint'&&document?.image)throw new StoreError('UNSUPPORTED_COMMAND');
       let rejection = this.rejection(c, document);
       let event: DomainEvent | undefined;
       const seq = String(BigInt(this.meta('highWater')) + 1n);
@@ -274,7 +298,7 @@ export class StoreDatabase {
             id: captured.historyId, documentId: created.id, branchId: created.branchId, parent: null,
             forward: { before: null, after: created }, inverse: { before: created, after: null }, roots: [c.expectedEntityVersions] } } };
         } else if(c.body.type==='SaveCheckpoint') event = { ...envelope, type: 'CheckpointSaved', payload: { checkpoint: { id: captured.checkpointId, name: c.body.name,
-          documentId: document!.id, documentRevision: document!.revision, historyHead: document!.historyHead, highWater: this.meta('highWater') } } };
+          documentId: document!.id, documentRevision: document!.revision, historyHead: document!.historyHead, highWater: this.meta('highWater'), ...(document!.image?{image:document!.image}:{}) } } };
         if (Buffer.byteLength(canonical(event)) > 16384) rejection = { code: 'CAPACITY', path: 'command.body', reason: 'EVENT_SIZE_LIMIT', currentRevision: document?.revision ?? null };
       }
       let receipt: Receipt;
@@ -305,7 +329,7 @@ export class StoreDatabase {
   private assertPendingIdentity(id:string,hash:string):void {
     // The acceptance transaction owns this check. HTTP prechecks can race another
     // request that durably reserves the ID while this command is queued.
-    for(const table of ['asset_preparations','raster_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
+    for(const table of ['asset_preparations','raster_preparations','history_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
       if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');}
   }
   private commitAsset(bytes: Uint8Array, build:()=>AssetFact, failure?:()=>void):Receipt {
@@ -347,6 +371,44 @@ export class StoreDatabase {
       this.barrier('asset-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('asset-after-commit');this.recovery.maintain();return receipt;
     }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
   }
+  private commitHistory(bytes:Uint8Array,build:Parameters<HistoryCommit>[1]):Receipt {
+    this.fence(this.epoch);const request=parseCommand(bytes),c=request.command,serialized=canonical(request),hash=hashBytes(serialized);
+    const start=performance.now();this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const prior=this.lookup(c.commandId);if(prior){if(prior.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return prior.receipt;}
+      this.assertPendingIdentity(c.commandId,hash);if(this.missingCount)throw new StoreError('CORRUPT_STORE');
+      let receipt:Receipt;const current=c.documentId?this.document(c.documentId):null;
+      this.db.exec('SAVEPOINT history_effect');
+      try {
+        const frozen=c.body.type==='ExportDocument'?JSON.parse(String(this.db.prepare('SELECT frozen FROM history_preparations WHERE id=?').get(c.commandId)?.frozen??'null')) as Document|null:current;
+        const rejected=this.rejection(c,frozen);if(rejected)throw new AssetRejection(rejected.code,rejected.reason,rejected.currentRevision);
+        if(!current)throw new AssetRejection('INVALID_INPUT','DOCUMENT_REQUIRED');
+        const revision=String(BigInt(current.revision)+1n),result=build(current,revision);
+        if(result.facts.length<1)throw new StoreError('CORRUPT_STORE');
+        if(BigInt(this.meta('highWater'))-BigInt(this.recovery.latest(true)?.seq??'0')+BigInt(result.facts.length)>500n)throw new AssetRejection('CAPACITY','SNAPSHOT_REQUIRED');
+        const first=String(BigInt(this.meta('highWater'))+1n);let seq=BigInt(first);
+        for(const fact of result.facts){
+          const domain=fact.type==='ImageEdited'||fact.type==='HistoryNavigated'||fact.type==='CheckpointSaved';
+          const event:DomainEvent={schemaVersion:1,payloadVersion:1,eventId:randomUUID(),workspaceSeq:String(seq),streamId:domain?current.id:'assets',streamSeq:domain?revision:String(seq),documentId:domain?current.id:null,resultingDocumentRevision:domain?revision:null,
+            commandId:c.commandId,correlationId:c.correlationId,causationId:c.causationId,transactionId:c.transactionId,writerEpoch:this.epoch,recordedAt:new Date().toISOString(),...fact};
+          if(Buffer.byteLength(canonical(event))>16384)throw new AssetRejection('CAPACITY','EVENT_SIZE_LIMIT');validateEvent(event);
+          this.barrier('history-before-event');this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(String(seq),c.transactionId,c.commandId,canonical(event));this.project(event);seq++;
+        }
+        this.setMeta('highWater',String(seq-1n));this.register('command:'+c.commandId,c.expectedEntityVersions);
+        receipt={status:'accepted',commandId:c.commandId,fromSeq:first,toSeq:String(seq-1n),documentRevision:result.documentChanged?revision:result.exportRevision??current.revision,transactionId:c.transactionId};
+        this.db.exec('RELEASE history_effect');
+      }catch(error){
+        this.db.exec('ROLLBACK TO history_effect; RELEASE history_effect');if(!(error instanceof AssetRejection))throw error;
+        const details=this.objects.putMetadata(Buffer.from(canonical({kind:'fields',issues:[{path:'command.body',code:error.reason}]})));this.register('receipt:'+c.commandId,details);
+        receipt={status:'rejected',commandId:c.commandId,code:error.code,currentRevision:current?.revision??null,details};
+        this.db.prepare('DELETE FROM history_preparations WHERE id=?').run(c.commandId);
+      }
+      this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,canonical(receipt));
+      if(c.body.type==='ResampleImage'||c.body.type==='CreateFlattenedCopy')this.barrier('image-edit-before-commit');
+      this.barrier('history-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('history-after-commit');if(c.body.type==='ResampleImage'||c.body.type==='CreateFlattenedCopy')this.barrier('image-edit-after-commit');this.recovery.maintain();
+      this.appendMs.push(performance.now()-start);if(this.appendMs.length>100)this.appendMs.shift();return receipt;
+    }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+  }
   protocolDefaults(): void {
     // A fixed safe precondition value makes the existing narrow commands usable
     // on a new root. This is not arbitrary blob upload or repair of missing roots.
@@ -375,7 +437,7 @@ export class StoreDatabase {
   forgetClient(cookieHash: string) { this.db.prepare('DELETE FROM client_bindings WHERE cookie_hash=?').run(cookieHash); }
   health() {
     this.check(); const fs = statfsSync(this.root,{bigint:true});
-    return { missingCount: this.missingCount, diskWarning: (fs.blocks-fs.bavail)*100n >= fs.blocks*80n, snapshotPressure: this.recovery.snapshotFailure || this.assets.pressure() || this.rasters.pressure() };
+    return { missingCount: this.missingCount, diskWarning: (fs.blocks-fs.bavail)*100n >= fs.blocks*80n, snapshotPressure: this.recovery.snapshotFailure || this.assets.pressure() || this.rasters.pressure() || this.histories.pressure() };
   }
   diagnostics() {
     this.check(); const filesystem = statfsSync(this.root, { bigint: true });
@@ -393,6 +455,7 @@ export class StoreDatabase {
       resources: { ioChunkBytes: 1048576, maxTransfers: 2, admissionOverheadPercent: 25, freeMarginBytes: '1073741824', metadataHeadroomBytes: '67108864', metadataHeadroomPhysicallyPreallocated: false, snapshotTailCeiling: 500 },
       assets: this.assets.diagnostics(),
       rasters: this.rasters.diagnostics(),
+      history: {observations:this.histories.observations},
       observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,
         buildMs: this.recovery.snapshotBuildMs, sliceMaxMs: this.recovery.snapshotSliceMaxMs, activationMs: this.recovery.snapshotActivationMs }, qualification: false },
       processMemory: process.memoryUsage(), sqliteIntegrity: this.db.prepare('PRAGMA quick_check').get() };

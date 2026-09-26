@@ -4,12 +4,15 @@ export function requireValue(value: unknown, message = 'Invalid recovery data'):
 export const id = (v: unknown): v is string => typeof v==='string' && /^[A-Za-z0-9_-]{1,128}$/.test(v);
 export const seq = (v: unknown): v is string => typeof v==='string' && /^(0|[1-9][0-9]*)$/.test(v);
 export function keys(v: any, fields: string[]) { requireValue(v && typeof v==='object' && !Array.isArray(v) && Object.keys(v).length===fields.length && fields.every(k=>Object.hasOwn(v,k))); }
-function blob(v: any) { keys(v,['hash','byteLength','mediaType']); requireValue(/^sha256:[a-f0-9]{64}$/.test(v.hash) && seq(v.byteLength) && typeof v.mediaType==='string'); }
+export function blob(v: any) { keys(v,['hash','byteLength','mediaType']); requireValue(/^sha256:[a-f0-9]{64}$/.test(v.hash) && seq(v.byteLength) && typeof v.mediaType==='string'); }
 export function document(v: any): asserts v is Document {
-  keys(v,['id','revision','branchId','width','height','color','depth','orderedLayerIds','historyHead','checkpoint','compositionVersion']);
+  keys(v,['id','revision','branchId','width','height','color','depth','orderedLayerIds','historyHead','checkpoint','compositionVersion',...(v.image?['image','redo']:[])]);
   requireValue(id(v.id)&&seq(v.revision)&&id(v.branchId)&&id(v.historyHead)&&(v.checkpoint===null||id(v.checkpoint))&&v.compositionVersion===null&&
-    Number.isSafeInteger(v.width)&&Number.isSafeInteger(v.height)&&v.width>0&&v.height>0&&v.width<=8192&&v.height<=8192&&v.width*v.height<=25000000&&v.color==='sRGB'&&v.depth===8&&Array.isArray(v.orderedLayerIds)&&v.orderedLayerIds.length===0);
+    Number.isSafeInteger(v.width)&&Number.isSafeInteger(v.height)&&v.width>0&&v.height>0&&v.width<=8192&&v.height<=8192&&v.width*v.height<=25000000&&v.color==='sRGB'&&v.depth===8&&Array.isArray(v.orderedLayerIds)&&v.orderedLayerIds.length<=100&&v.orderedLayerIds.every(id)&&new Set(v.orderedLayerIds).size===v.orderedLayerIds.length);
+  if(v.image){imageVersion(v.image);requireValue(v.redo===null||id(v.redo));}else requireValue(v.orderedLayerIds.length===0);
 }
+export function imageVersion(v:any){keys(v,['state','semanticDigest','compositeAssetId']);blob(v.state);requireValue(v.state.mediaType==='application/json'&&BigInt(v.state.byteLength)<=65536n&&/^sha256:[a-f0-9]{64}$/.test(v.semanticDigest)&&(v.compositeAssetId===null||id(v.compositeAssetId)));}
+export function imageEditPreview(v:any){keys(v,['previewId','documentId','documentRevision','kind','plan','source','preparedAssetId','after']);requireValue(id(v.previewId)&&id(v.documentId)&&seq(v.documentRevision)&&['resample-image','flattened-copy'].includes(v.kind)&&id(v.preparedAssetId));blob(v.plan);imageVersion(v.source);imageVersion(v.after);}
 export function asset(v:any) {
   const raster=['raster-preview','canonical-raster','canonical-png'].includes(v?.qualification);
   keys(v,['id','version','purpose','blob','dependencies','safety','availability','qualification','measuredMediaType',...(raster?['raster']:[])]);
@@ -57,8 +60,14 @@ export function entity(type: string, value: any) {
   if(type==='asset'){asset(value);return value.version;}
   if(type==='document') { document(value); return value.revision; }
   if(type==='checkpoint') {
-    keys(value,['id','name','documentId','documentRevision','historyHead','highWater']);
+    keys(value,['id','name','documentId','documentRevision','historyHead','highWater',...(value.image?['image']:[])]);if(value.image)imageVersion(value.image);
     requireValue(id(value.id)&&id(value.documentId)&&seq(value.documentRevision)&&id(value.historyHead)&&seq(value.highWater)&&typeof value.name==='string'); return value.documentRevision;
+  }
+  if(type==='history'&&value.kind==='image-edit') {
+    keys(value,['id','documentId','branchId','parent','revision','kind','operation','before','after','forward','inverse','roots']);
+    requireValue(['id','documentId','branchId','parent'].every(k=>id(value[k]))&&seq(value.revision)&&['ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','ResampleImage','CreateFlattenedCopy'].includes(value.operation));
+    imageVersion(value.before);imageVersion(value.after);blob(value.forward);blob(value.inverse);
+    requireValue(Array.isArray(value.roots)&&value.roots.length===4&&canonical(value.roots)===canonical([value.before.state,value.after.state,value.forward,value.inverse]));return value.revision;
   }
   if(type==='history') {
     keys(value,['id','documentId','branchId','parent','forward','inverse','roots']);
@@ -74,9 +83,11 @@ export function event(v: any): asserts v is DomainEvent {
   requireValue(v.schemaVersion===1&&v.payloadVersion===1&&['eventId','streamId','commandId','correlationId','transactionId'].every(k=>id(v[k]))&&
     ['workspaceSeq','streamSeq','writerEpoch'].every(k=>seq(v[k]))&&(v.causationId===null||id(v.causationId))&&typeof v.recordedAt==='string'&&Number.isFinite(Date.parse(v.recordedAt))&&
     new TextEncoder().encode(canonical(v)).length<=16384);
-  if(v.type==='AssetRegistered'||v.type==='StagingTransferReviewPrepared'||v.type==='RasterReviewPrepared'||v.type==='StagingOwnershipTransferred'){
+  if(v.type==='ImageEditPreviewPrepared'||v.type==='ImageEditReviewPrepared'||v.type==='AssetRegistered'||v.type==='StagingTransferReviewPrepared'||v.type==='RasterReviewPrepared'||v.type==='StagingOwnershipTransferred'){
     requireValue(v.documentId===null&&v.resultingDocumentRevision===null&&v.streamId==='assets'&&v.streamSeq===v.workspaceSeq);
-    if(v.type==='AssetRegistered'){keys(v.payload,['asset']);asset(v.payload.asset);}
+    if(v.type==='ImageEditPreviewPrepared'){keys(v.payload,['preview']);imageEditPreview(v.payload.preview);}
+    else if(v.type==='ImageEditReviewPrepared'){keys(v.payload,['reviewId','reviewHash']);requireValue(id(v.payload.reviewId)&&/^sha256:[a-f0-9]{64}$/.test(v.payload.reviewHash));}
+    else if(v.type==='AssetRegistered'){keys(v.payload,['asset']);asset(v.payload.asset);}
     else if(v.type==='StagingTransferReviewPrepared'||v.type==='RasterReviewPrepared'){keys(v.payload,['reviewId','reviewHash']);requireValue(id(v.payload.reviewId)&&/^sha256:[a-f0-9]{64}$/.test(v.payload.reviewHash));}
     else {keys(v.payload,['stagingId','fromClientId','toClientId','version','committedOffset']);requireValue(id(v.payload.stagingId)&&id(v.payload.fromClientId)&&id(v.payload.toClientId)&&seq(v.payload.version)&&seq(v.payload.committedOffset));}
     return;
@@ -85,6 +96,11 @@ export function event(v: any): asserts v is DomainEvent {
   if(v.type==='DocumentCreated') {
     keys(v.payload,['document','history']); document(v.payload.document);entity('history',v.payload.history);
     requireValue(v.documentId===v.payload.document.id&&v.resultingDocumentRevision===v.payload.document.revision&&canonical(v.payload.document)===canonical(v.payload.history.forward.after));
+  } else if(v.type==='ImageEdited'||v.type==='HistoryNavigated') {
+    keys(v.payload,v.type==='ImageEdited'?['document','history']:['document','previousHead','action']);document(v.payload.document);
+    requireValue(v.payload.document.id===v.documentId&&v.payload.document.revision===v.resultingDocumentRevision&&v.payload.document.image);
+    if(v.type==='ImageEdited'){entity('history',v.payload.history);requireValue(v.payload.history.kind==='image-edit'&&v.payload.history.id===v.payload.document.historyHead&&v.payload.history.documentId===v.documentId&&v.payload.history.branchId===v.payload.document.branchId&&canonical(v.payload.history.after)===canonical(v.payload.document.image));}
+    else requireValue(id(v.payload.previousHead)&&['Undo','Redo','SwitchBranch'].includes(v.payload.action));
   } else if(v.type==='CheckpointSaved') {
     keys(v.payload,['checkpoint']);entity('checkpoint',v.payload.checkpoint);requireValue(v.payload.checkpoint.documentId===v.documentId);
   } else throw new Error('Unsupported event');

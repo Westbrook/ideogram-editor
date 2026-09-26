@@ -1,0 +1,101 @@
+{
+  "executedAt": "2026-09-26T08:34:43.998567+00:00",
+  "scope": "Isolated temporary documentation copies only; original files and notes unchanged",
+  "cases": [
+    {
+      "probe": "missing REQ-READY",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "requirements ID coverage"
+    },
+    {
+      "probe": "missing audit disposition",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "A3 disposition coverage"
+    },
+    {
+      "probe": "changed candidate decision",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "DR-1 contract candidateDeletion"
+    },
+    {
+      "probe": "enabled spend cap by default",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "SG-1 contract enabledByDefault"
+    },
+    {
+      "probe": "media credentials leak",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "EF-1 contract mediaCredentials"
+    },
+    {
+      "probe": "removed local route",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1 route inventory"
+    },
+    {
+      "probe": "LP-1 inline-only event page",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1-R1 wire EventPage"
+    },
+    {
+      "probe": "LP-1 missing snapshot content",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1-R1 wire SnapshotDescriptor"
+    },
+    {
+      "probe": "LP-1 missing stage version",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1-R1 wire StagingRecord"
+    },
+    {
+      "probe": "LP-1 missing transfer review precondition",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1-R1 wire ReadinessCommandBody"
+    },
+    {
+      "probe": "LP-1 missing recovery discovery route",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1 route inventory"
+    },
+    {
+      "probe": "LP-1 lost snapshot atomic publication",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1-R1 recovery/auth clause"
+    },
+    {
+      "probe": "LP-1 missing typed error details",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1-R1 wire LocalError"
+    },
+    {
+      "probe": "LP-1 weakened transfer consumer oracle",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "LP-1-R1 consumer oracle PROTO03"
+    },
+    {
+      "probe": "missing new consumer case",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "readiness test row DELETE01"
+    },
+    {
+      "probe": "changed original typed contract",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "original contracts not preserved"
+    },
+    {
+      "probe": "changed original performance budget",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "60 PERF budget rows changed"
+    },
+    {
+      "probe": "changed history",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "input hash spec"
+    },
+    {
+      "probe": "undeclared contract prose",
+      "result": "PASS: checker rejected mutation",
+      "expectedFailure": "A3 undeclared change: architecture"
+    }
+  ]
+}

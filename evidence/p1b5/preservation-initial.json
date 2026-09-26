@@ -1,0 +1,242 @@
+{
+  "at": "2026-09-26T08:35:46.994933+00:00",
+  "priorSeals": [
+    {
+      "manifest": "evidence/p1b4-png-correction/SHA256SUMS",
+      "files": 127,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b1/SHA256SUMS",
+      "files": 38,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1a2-case-alias/SHA256SUMS",
+      "files": 4,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1a1/SHA256SUMS",
+      "files": 18,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b2-receipt-timing/SHA256SUMS",
+      "files": 44,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b3-review-fixes/SHA256SUMS",
+      "files": 27,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b4-schema-correction/SHA256SUMS",
+      "files": 76,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b2-review-fixes/SHA256SUMS",
+      "files": 33,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b2/SHA256SUMS",
+      "files": 53,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1a3/SHA256SUMS",
+      "files": 26,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1a2/SHA256SUMS",
+      "files": 15,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b3/SHA256SUMS",
+      "files": 48,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b4/SHA256SUMS",
+      "files": 166,
+      "failures": []
+    },
+    {
+      "manifest": "evidence/p1b4-schema-correction/reviewer-inputs/SHA256SUMS",
+      "files": 135,
+      "failures": [
+        "admission-results.json",
+        "approval-proof-results.json",
+        "browser-results.json",
+        "consumer-receipt.json",
+        "contention-independent.json",
+        "controlled-results-v2.json",
+        "conversion-approved.png",
+        "conversion-review.png",
+        "fixture-manifest-all.json",
+        "fixture-manifest.json",
+        "fixtures/alpha-lossless.webp-junk.webp",
+        "fixtures/alpha-lossless.webp-unknown-icc.webp",
+        "fixtures/duplicate-idat-stream.png",
+        "fixtures/exif-after-idat.png",
+        "fixtures/icc-after-idat.png",
+        "fixtures/idat-trailing-data.png",
+        "fixtures/independent.png",
+        "fixtures/mask.png",
+        "fixtures/max-webp-lossless.webp-extended.webp",
+        "fixtures/max-webp-lossless.webp-lying-extent.webp",
+        "fixtures/max-webp-lossless.webp-original.webp",
+        "fixtures/max-webp-lossy.webp-extended.webp",
+        "fixtures/max-webp-lossy.webp-lying-extent.webp",
+        "fixtures/max-webp-lossy.webp-original.webp",
+        "fixtures/orientation-6-after.png",
+        "fixtures/srgb-bad-intent.png",
+        "fixtures/srgb-bad-size.png",
+        "fixtures/trns-rgba.png",
+        "fixtures/unknown-critical.png",
+        "fixtures/valid-unknown-icc-after.png",
+        "fixtures/valid-unknown-icc-before.png",
+        "fixtures/white-lossy.webp-junk.webp",
+        "fixtures/white-lossy.webp-unknown-icc.webp",
+        "gate-results.json",
+        "identity-results.json",
+        "independent-results.json",
+        "logs/admission.txt",
+        "logs/approval-proof.txt",
+        "logs/build.txt",
+        "logs/contention.txt",
+        "logs/controlled-v2.txt",
+        "logs/downgrade-gate.txt",
+        "logs/downgrade.txt",
+        "logs/findings-v2.test.txt",
+        "logs/identities.txt",
+        "logs/install.txt",
+        "logs/pixels.txt",
+        "logs/reopen-resources.txt",
+        "logs/resource-aspect-png.png.txt",
+        "logs/resource-max-png.png.txt",
+        "logs/resource-max-progressive-jpeg.jpg.txt",
+        "logs/resource-max-webp-lossless.webp.txt",
+        "logs/resource-max-webp-lossy.webp.txt",
+        "logs/resource-normal-jpeg.jpg.txt",
+        "logs/resource-normal-png.png.txt",
+        "logs/resource-normal-webp-lossless.webp.txt",
+        "logs/resource-normal-webp-lossy.webp.txt",
+        "logs/safety-v2.txt",
+        "logs/test-assets-volume.txt",
+        "logs/test-assets.txt",
+        "logs/test-consumer.txt",
+        "logs/test-protocol.txt",
+        "logs/test-raster-browser.txt",
+        "logs/test-raster.txt",
+        "logs/test-recovery.txt",
+        "logs/test-session.txt",
+        "logs/test-shell.txt",
+        "logs/test-store-volume.txt",
+        "logs/test-store.txt",
+        "logs/typecheck.txt",
+        "logs/valid-png.txt",
+        "logs/verify-raster.txt",
+        "logs/verify-vendor.txt",
+        "measurement-window.json",
+        "pixel-oracles.json",
+        "pixel-results.json",
+        "preflight.json",
+        "preservation-final.json",
+        "probes/admission.mjs",
+        "probes/approval-proof.mjs",
+        "probes/contention.mjs",
+        "probes/controlled-v2.mjs",
+        "probes/downgrade-gate.test.mjs",
+        "probes/downgrade.mjs",
+        "probes/findings-v2.test.mjs",
+        "probes/pixels.mjs",
+        "probes/reopen-resources.mjs",
+        "probes/resources-correction.py",
+        "probes/resources.py",
+        "probes/run-correction-gates.py",
+        "probes/run-independent.py",
+        "probes/safety-v2.mjs",
+        "probes/seal.py",
+        "probes/valid-png.mjs",
+        "probes/valid-png.py",
+        "probes/verify-identities.py",
+        "resource-aspect-png.png.json",
+        "resource-max-png.png.json",
+        "resource-max-progressive-jpeg.jpg.json",
+        "resource-max-webp-lossless.webp.json",
+        "resource-max-webp-lossy.webp.json",
+        "resource-normal-jpeg.jpg.json",
+        "resource-normal-png.png.json",
+        "resource-normal-webp-lossless.webp.json",
+        "resource-normal-webp-lossy.webp.json",
+        "resource-reopen-results.json",
+        "resource-results.json",
+        "safety-results-v2.json",
+        "valid-png-results.json",
+        "valid-png/color0-depth1-adam0.png",
+        "valid-png/color0-depth1-adam1.png",
+        "valid-png/color0-depth2-adam0.png",
+        "valid-png/color0-depth2-adam1.png",
+        "valid-png/color0-depth4-adam0.png",
+        "valid-png/color0-depth4-adam1.png",
+        "valid-png/color0-depth8-adam0.png",
+        "valid-png/color0-depth8-adam1.png",
+        "valid-png/color2-depth8-adam0.png",
+        "valid-png/color2-depth8-adam1.png",
+        "valid-png/color3-depth1-adam0.png",
+        "valid-png/color3-depth1-adam1.png",
+        "valid-png/color3-depth2-adam0.png",
+        "valid-png/color3-depth2-adam1.png",
+        "valid-png/color3-depth4-adam0.png",
+        "valid-png/color3-depth4-adam1.png",
+        "valid-png/color3-depth8-adam0.png",
+        "valid-png/color3-depth8-adam1.png",
+        "valid-png/color4-depth8-adam0.png",
+        "valid-png/color4-depth8-adam1.png",
+        "valid-png/color6-depth8-adam0.png",
+        "valid-png/color6-depth8-adam1.png",
+        "valid-png/manifest.json"
+      ]
+    },
+    {
+      "manifest": "docs/spec/SHA256SUMS",
+      "files": 49,
+      "failures": []
+    },
+    {
+      "manifest": "docs/handoff/SHA256SUMS",
+      "files": 42,
+      "failures": []
+    }
+  ],
+  "unchangedURLs": [
+    {
+      "url": "http://127.0.0.1:52219/?progress-report",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4381/",
+      "status": 200
+    }
+  ],
+  "reportRevisionRead": 134,
+  "openFeedback": [
+    {
+      "id": "439b475b-b1e1-4143-8482-70d37269b0d5",
+      "text": "Conversation-origin user observation, relayed by the coordinator: many visible surfaces in shell85df04f could use en-reve custom elements but still use native/app markup; the user asked whether further adoption is planned. Coordinator source inspection found only button, textarea, split-view and toolbar families registered. Planned disposition: P1b.7 owns suitable shell replacements, applicable upload/history controls and a reviewed inventory of justified native/app-owned exceptions; P1c continues this requirement and the final P1b reviewer checks implementation. This work is pending, not accepted or completed, and does not change historical P1a approval.",
+      "status": "open"
+    },
+    {
+      "id": "74b84eae-f3f8-477b-9320-0f293afc618d",
+      "text": "AUTHOR finding A-R01: During P1b.4 maximum-format testing, 25MP WebP native memory was underestimated. Publication was stopped, but observed RSS exceeded the unchanged 512 MiB cap. Earlier below-512 MiB reservation observations did not establish actual peak-memory compliance and remain historical. Author is correcting pre-allocation admission by parsing encoded dimensions before native metadata and reserving format-specific WebP working memory. Demand that cannot fit must retain original bytes/durable command identity with an explicit outcome, without quality downgrade or ceiling waiver. Candidate correction and affected raster/resource reruns are pending; no fixed status or independent approval. This record is bound to the author observation checkpoint, not an exact source commit; no sealed target has been provided.",
+      "status": "open"
+    }
+  ],
+  "reportModified": false
+}

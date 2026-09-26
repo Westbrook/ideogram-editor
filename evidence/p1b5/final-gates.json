@@ -1,0 +1,819 @@
+{
+  "startedAt": "2026-09-26T08:34:35.495Z",
+  "source": {
+    "base": "92e5247ed3279f25292f8e312661bf3b12deffe7",
+    "branch": "ideogram-editor-p1",
+    "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+    "files": [
+      {
+        "path": "package.json",
+        "bytes": 3703,
+        "sha256": "ef160e26d18a9fcb4613c8961361002255a2825089f10a187157611a245bfae5"
+      },
+      {
+        "path": "server/http.ts",
+        "bytes": 13907,
+        "sha256": "343d1cdababd9cac27211f672c5a1afd472fac13023d0e75386a37a9a92c4615"
+      },
+      {
+        "path": "server/protocol.ts",
+        "bytes": 24663,
+        "sha256": "60a17875d9dc7b607f88ec0cdc64b79b6113d1b7c9187c838e912151d3e96d36"
+      },
+      {
+        "path": "server/storage/assets.ts",
+        "bytes": 27128,
+        "sha256": "c53cf36ef049ef98cf9f3f2525f85dadceced2c1ab392c6dd2debae946ac8945"
+      },
+      {
+        "path": "server/storage/canonical.ts",
+        "bytes": 6409,
+        "sha256": "796ed159a6788520d10f1a72d39c1efcefc9120deff1d0c87e30b3df344d8882"
+      },
+      {
+        "path": "server/storage/database.ts",
+        "bytes": 37447,
+        "sha256": "a1c6616ef8e3de4ded191d0d103ccb3124a3ad5df1fea49042167e15433a7af3"
+      },
+      {
+        "path": "server/storage/history.ts",
+        "bytes": 34001,
+        "sha256": "1493435404e8e3fc27a3bc8acf4c839ec9280f4761de3fd2bbdddae949a4c6e2"
+      },
+      {
+        "path": "server/storage/raster.ts",
+        "bytes": 23873,
+        "sha256": "47593ef81422108b3e6005b0e32161094d6815693921982b9c4a1ec78b1e4381"
+      },
+      {
+        "path": "server/storage/recovery.ts",
+        "bytes": 20551,
+        "sha256": "eac9947e7ff2f71006d6272b9b0bf97fd7592c9bbbb79c64cdb28db7da84fc27"
+      },
+      {
+        "path": "server/storage/schema.ts",
+        "bytes": 23194,
+        "sha256": "8164e8a9e6c7420b4bbf0e3a3d62cd0006c25ea8964100d5e5186cb4502ccae8"
+      },
+      {
+        "path": "server/storage/ui.ts",
+        "bytes": 9578,
+        "sha256": "0ecaafabbc9ac68f30f08ade781d3c364931f3a394b7c9ce5386b789b9860c51"
+      },
+      {
+        "path": "server/storage/worker.ts",
+        "bytes": 7838,
+        "sha256": "eebde08e59c72580e4004ea34f4b9bfda9a3756b7a109c450a858b4a5254c0f7"
+      },
+      {
+        "path": "server/storage/writer.ts",
+        "bytes": 11412,
+        "sha256": "c28df06a6a98f82bd55cffc8b0a9b0e9bda889322be88d7625d0d0a450e9d310"
+      },
+      {
+        "path": "src/protocol/history-validation.ts",
+        "bytes": 4041,
+        "sha256": "661f355b86df665c628960c79cca5d5413216afbc8e98d2eca08fd33ec3ab339"
+      },
+      {
+        "path": "src/protocol/history.ts",
+        "bytes": 4232,
+        "sha256": "f29d2e43ca6059a01902c26c18d1a132cff90fa70e19602cc113ec843f2d7579"
+      },
+      {
+        "path": "src/protocol/store.ts",
+        "bytes": 3054,
+        "sha256": "bd416952ac34ecdb7c2cf213323236be90706d4ff27007b2a73f0e39cfb08135"
+      },
+      {
+        "path": "src/protocol/ui.ts",
+        "bytes": 1435,
+        "sha256": "477f4acc02b1d6130ce46659e03c21064ecffdd3dac8d322abeb6725321cc0f4"
+      },
+      {
+        "path": "src/protocol/validate.ts",
+        "bytes": 13998,
+        "sha256": "06f1e716fdc2062059a764f257e43dcc5e27b82f042791bede757af3dfe0f8af"
+      },
+      {
+        "path": "src/state/draft-persistence.ts",
+        "bytes": 5356,
+        "sha256": "fe337623bf9f0b80324fc25e4fbc19c235af02121878b2f38210a30f7e59b4d7"
+      },
+      {
+        "path": "src/state/projection.ts",
+        "bytes": 1932,
+        "sha256": "ee412ee602952cc011fa466a777342822dca2dd77871de69b9c5de5423df5e63"
+      },
+      {
+        "path": "src/state/recovery-cache.ts",
+        "bytes": 4811,
+        "sha256": "beec41991d5d13e017ce344bef0116b69c9e941e9e87a663ca7654f9d2bd7b4d"
+      },
+      {
+        "path": "src/state/recovery-client.ts",
+        "bytes": 15723,
+        "sha256": "a23ffec4e41b225d355b564a4e7b22b1798f2ddca3378c741e7f504dbc93df76"
+      },
+      {
+        "path": "tests/assets/storage.test.mjs",
+        "bytes": 14164,
+        "sha256": "8fc492d32c25e8e0ce52935beebd8343b0cf87ac12b2cc69e24c8eedf91f7105"
+      },
+      {
+        "path": "tests/history/consumer.spec.ts",
+        "bytes": 9915,
+        "sha256": "e39c0b23d9b674d3f303fc71af569d1324e254457873c37b0e6e713819aeee85"
+      },
+      {
+        "path": "tests/history/failure.test.mjs",
+        "bytes": 7575,
+        "sha256": "cacc755efcec9daf97ba82c9f1d9a35f6aadfcafc07d9045c806fa9c4dff2435"
+      },
+      {
+        "path": "tests/history/http.test.mjs",
+        "bytes": 9809,
+        "sha256": "15f67616c8b35970756a5c09aaadcd208bd21720d012995384092220dc7c6204"
+      },
+      {
+        "path": "tests/history/no-raster.mjs",
+        "bytes": 370,
+        "sha256": "c76f5c734ca26d593d0dd120ccce3c7d0a2e2e9706ba840c9b9ac03377f47450"
+      },
+      {
+        "path": "tests/history/playwright.config.ts",
+        "bytes": 448,
+        "sha256": "8415cb264de28474c52a3d1b74abb007874debefe86da1c0b298a59a732e0fe0"
+      },
+      {
+        "path": "tests/history/process.test.mjs",
+        "bytes": 7644,
+        "sha256": "361c153a4b02626732ec620618ba38f9c41b153d61a9d13f670ed7e4cbb76a15"
+      },
+      {
+        "path": "tests/history/replay.test.mjs",
+        "bytes": 6306,
+        "sha256": "9ad142e4fd757c913ec01ef22f9bb6c6cfec7adf77a62c5baeae0c1d85c9b411"
+      },
+      {
+        "path": "tests/history/review.test.mjs",
+        "bytes": 10322,
+        "sha256": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf"
+      },
+      {
+        "path": "tests/history/schema.test.mjs",
+        "bytes": 14596,
+        "sha256": "23d1a7f2f88b0e20ddfed6f3441cb2120bfbffc7912ece65b9ad4c89c45707e8"
+      },
+      {
+        "path": "tests/history/ui.test.mjs",
+        "bytes": 5872,
+        "sha256": "9e197c06c8708b4b239c4e52711953fc67c6021ef7ce76d9b974754fcb1b9dc9"
+      },
+      {
+        "path": "tests/protocol/recovery.test.mjs",
+        "bytes": 9811,
+        "sha256": "db3d8feff135d7958d9dd0e59b10491eee0ec2c45dccdf63b5c2aab82d063b2f"
+      },
+      {
+        "path": "tests/raster/schema.test.mjs",
+        "bytes": 15244,
+        "sha256": "62f6a13f1089eaa00ae51c9e0d20d4ec8cc6b7718ae7bd9e08686c3898823576"
+      },
+      {
+        "path": "tests/raster/storage.test.mjs",
+        "bytes": 8786,
+        "sha256": "bd445c0f3efe53cd98f53300f029651c00d665e261361499d067cb59b21c1049"
+      },
+      {
+        "path": "tests/recovery/app/main.ts",
+        "bytes": 1646,
+        "sha256": "cdef66afa99be3c2d80a9f5bd60daa0d93112a2e272da9d9d056a4c5ae71dba2"
+      },
+      {
+        "path": "tests/session/http.test.mjs",
+        "bytes": 16354,
+        "sha256": "fd50c8c7bef88146d1a0c1bb144db87a5d7728dace6510ec97c7bfa0034c4148"
+      },
+      {
+        "path": "tooling/HISTORY.txt",
+        "bytes": 10826,
+        "sha256": "a8b58a221210b2b44294199f12a48417ab79fd7bf199595cda3bfbacafd7887e"
+      },
+      {
+        "path": "tooling/history/gates.mjs",
+        "bytes": 3368,
+        "sha256": "e8ae52ab82f02f137af3c7dabc7e8a2170de4348498110625f965ca34365739e"
+      },
+      {
+        "path": "tooling/history/identity.mjs",
+        "bytes": 982,
+        "sha256": "572095a6c3702a0a126a3d3167c104b625d3075c0d2d35f4a3fdcaf4bc317c4e"
+      },
+      {
+        "path": "tooling/history/observe.mjs",
+        "bytes": 3343,
+        "sha256": "37ec154b0f0287aadd16f7cf3b2e30d79b2c3f61586494192b6c6276d2db47f9"
+      },
+      {
+        "path": "tooling/history/raster-browser.mjs",
+        "bytes": 1176,
+        "sha256": "89a69fc5fe8497e520a05d1b879a1eba8eef3f865668cddd6c78d351a0fdfe60"
+      },
+      {
+        "path": "tooling/history/seal-evidence.mjs",
+        "bytes": 1671,
+        "sha256": "44619fb4243d8a433cf92c7a01ef07d6949c4779e5ee0cce7018a16155a9cf93"
+      }
+    ]
+  },
+  "gates": [
+    {
+      "name": "typecheck",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-09-26T08:34:35.548Z",
+      "finishedAt": "2026-09-26T08:34:37.452Z",
+      "elapsedMs": 1903.156708,
+      "exit": 0,
+      "log": "evidence/p1b5/final/typecheck.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "build",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-09-26T08:34:37.513Z",
+      "finishedAt": "2026-09-26T08:34:40.140Z",
+      "elapsedMs": 2627.327333,
+      "exit": 0,
+      "log": "evidence/p1b5/final/build.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "vendor",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "verify:vendor"
+      ],
+      "startedAt": "2026-09-26T08:34:40.252Z",
+      "finishedAt": "2026-09-26T08:34:40.481Z",
+      "elapsedMs": 228.96958299999915,
+      "exit": 0,
+      "log": "evidence/p1b5/final/vendor.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "raster-inputs",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "verify:raster"
+      ],
+      "startedAt": "2026-09-26T08:34:40.529Z",
+      "finishedAt": "2026-09-26T08:34:40.680Z",
+      "elapsedMs": 151.54550000000017,
+      "exit": 0,
+      "log": "evidence/p1b5/final/raster-inputs.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "spec",
+      "executable": "python3",
+      "args": [
+        "docs/spec/tools/check_spec.py"
+      ],
+      "startedAt": "2026-09-26T08:34:40.724Z",
+      "finishedAt": "2026-09-26T08:34:40.897Z",
+      "elapsedMs": 172.98891700000058,
+      "exit": 0,
+      "log": "evidence/p1b5/final/spec.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "spec-mutations",
+      "executable": "python3",
+      "args": [
+        "docs/spec/tools/check_spec_mutations.py"
+      ],
+      "startedAt": "2026-09-26T08:34:40.942Z",
+      "finishedAt": "2026-09-26T08:34:44.001Z",
+      "elapsedMs": 3059.67,
+      "exit": 0,
+      "log": "evidence/p1b5/final/spec-mutations.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "history",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:history"
+      ],
+      "startedAt": "2026-09-26T08:34:44.061Z",
+      "finishedAt": "2026-09-26T08:35:38.010Z",
+      "elapsedMs": 53948.784875,
+      "exit": 0,
+      "log": "evidence/p1b5/final/history.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "raster",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:raster"
+      ],
+      "startedAt": "2026-09-26T08:35:38.081Z",
+      "finishedAt": "2026-09-26T08:36:54.284Z",
+      "elapsedMs": 76202.79324999999,
+      "exit": 0,
+      "log": "evidence/p1b5/final/raster.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "assets",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:assets"
+      ],
+      "startedAt": "2026-09-26T08:36:54.348Z",
+      "finishedAt": "2026-09-26T08:37:22.724Z",
+      "elapsedMs": 28376.15845800002,
+      "exit": 0,
+      "log": "evidence/p1b5/final/assets.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "protocol",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:protocol"
+      ],
+      "startedAt": "2026-09-26T08:37:22.782Z",
+      "finishedAt": "2026-09-26T08:37:44.971Z",
+      "elapsedMs": 22189.14283300002,
+      "exit": 0,
+      "log": "evidence/p1b5/final/protocol.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "session",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:session"
+      ],
+      "startedAt": "2026-09-26T08:37:45.036Z",
+      "finishedAt": "2026-09-26T08:37:49.782Z",
+      "elapsedMs": 4745.354959000018,
+      "exit": 0,
+      "log": "evidence/p1b5/final/session.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "store",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:store"
+      ],
+      "startedAt": "2026-09-26T08:37:49.844Z",
+      "finishedAt": "2026-09-26T08:38:05.698Z",
+      "elapsedMs": 15853.814292000025,
+      "exit": 0,
+      "log": "evidence/p1b5/final/store.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "store-volume",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:store:volume"
+      ],
+      "startedAt": "2026-09-26T08:38:05.765Z",
+      "finishedAt": "2026-09-26T08:38:09.174Z",
+      "elapsedMs": 3408.8110840000154,
+      "exit": 0,
+      "log": "evidence/p1b5/final/store-volume.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "assets-volume",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:assets:volume"
+      ],
+      "startedAt": "2026-09-26T08:38:09.320Z",
+      "finishedAt": "2026-09-26T08:38:12.895Z",
+      "elapsedMs": 3575.492333000002,
+      "exit": 0,
+      "log": "evidence/p1b5/final/assets-volume.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "recovery",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:recovery"
+      ],
+      "startedAt": "2026-09-26T08:38:13.042Z",
+      "finishedAt": "2026-09-26T08:38:30.219Z",
+      "elapsedMs": 17177.08262499998,
+      "exit": 0,
+      "log": "evidence/p1b5/final/recovery.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "history-browser",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/history/playwright.config.ts"
+      ],
+      "startedAt": "2026-09-26T08:38:30.316Z",
+      "finishedAt": "2026-09-26T08:38:37.949Z",
+      "elapsedMs": 7633.485791999992,
+      "exit": 0,
+      "log": "evidence/p1b5/final/history-browser.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "raster-browser",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "tooling/history/raster-browser.mjs"
+      ],
+      "startedAt": "2026-09-26T08:38:38.000Z",
+      "finishedAt": "2026-09-26T08:38:39.510Z",
+      "elapsedMs": 1510.3691249999974,
+      "exit": 0,
+      "log": "evidence/p1b5/final/raster-browser.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "shell",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:shell"
+      ],
+      "startedAt": "2026-09-26T08:38:39.566Z",
+      "finishedAt": "2026-09-26T08:38:47.247Z",
+      "elapsedMs": 7681.657040999999,
+      "exit": 0,
+      "log": "evidence/p1b5/final/shell.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "fresh-consumer",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:consumer"
+      ],
+      "startedAt": "2026-09-26T08:38:47.303Z",
+      "finishedAt": "2026-09-26T08:39:05.817Z",
+      "elapsedMs": 18514.041125000018,
+      "exit": 0,
+      "log": "evidence/p1b5/final/fresh-consumer.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "observations",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "tooling/history/observe.mjs"
+      ],
+      "startedAt": "2026-09-26T08:39:05.863Z",
+      "finishedAt": "2026-09-26T08:39:09.161Z",
+      "elapsedMs": 3297.806749999989,
+      "exit": 0,
+      "log": "evidence/p1b5/final/observations.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "preservation",
+      "executable": "git",
+      "args": [
+        "diff",
+        "--exit-code",
+        "92e5247ed3279f25292f8e312661bf3b12deffe7",
+        "--",
+        "docs",
+        "vendor",
+        "package-lock.json",
+        ".progress-report",
+        "evidence"
+      ],
+      "startedAt": "2026-09-26T08:39:09.209Z",
+      "finishedAt": "2026-09-26T08:39:09.219Z",
+      "elapsedMs": 9.520250000001397,
+      "exit": 0,
+      "log": "evidence/p1b5/final/preservation.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    },
+    {
+      "name": "source-whitespace",
+      "executable": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "server",
+        "src",
+        "tests",
+        "tooling",
+        "package.json"
+      ],
+      "startedAt": "2026-09-26T08:39:09.268Z",
+      "finishedAt": "2026-09-26T08:39:09.280Z",
+      "elapsedMs": 11.185833000054117,
+      "exit": 0,
+      "log": "evidence/p1b5/final/source-whitespace.txt",
+      "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+      "sourceAfter": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15"
+    }
+  ],
+  "qualification": false,
+  "finishedAt": "2026-09-26T08:39:09.302Z",
+  "finalSource": {
+    "base": "92e5247ed3279f25292f8e312661bf3b12deffe7",
+    "branch": "ideogram-editor-p1",
+    "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+    "files": [
+      {
+        "path": "package.json",
+        "bytes": 3703,
+        "sha256": "ef160e26d18a9fcb4613c8961361002255a2825089f10a187157611a245bfae5"
+      },
+      {
+        "path": "server/http.ts",
+        "bytes": 13907,
+        "sha256": "343d1cdababd9cac27211f672c5a1afd472fac13023d0e75386a37a9a92c4615"
+      },
+      {
+        "path": "server/protocol.ts",
+        "bytes": 24663,
+        "sha256": "60a17875d9dc7b607f88ec0cdc64b79b6113d1b7c9187c838e912151d3e96d36"
+      },
+      {
+        "path": "server/storage/assets.ts",
+        "bytes": 27128,
+        "sha256": "c53cf36ef049ef98cf9f3f2525f85dadceced2c1ab392c6dd2debae946ac8945"
+      },
+      {
+        "path": "server/storage/canonical.ts",
+        "bytes": 6409,
+        "sha256": "796ed159a6788520d10f1a72d39c1efcefc9120deff1d0c87e30b3df344d8882"
+      },
+      {
+        "path": "server/storage/database.ts",
+        "bytes": 37447,
+        "sha256": "a1c6616ef8e3de4ded191d0d103ccb3124a3ad5df1fea49042167e15433a7af3"
+      },
+      {
+        "path": "server/storage/history.ts",
+        "bytes": 34001,
+        "sha256": "1493435404e8e3fc27a3bc8acf4c839ec9280f4761de3fd2bbdddae949a4c6e2"
+      },
+      {
+        "path": "server/storage/raster.ts",
+        "bytes": 23873,
+        "sha256": "47593ef81422108b3e6005b0e32161094d6815693921982b9c4a1ec78b1e4381"
+      },
+      {
+        "path": "server/storage/recovery.ts",
+        "bytes": 20551,
+        "sha256": "eac9947e7ff2f71006d6272b9b0bf97fd7592c9bbbb79c64cdb28db7da84fc27"
+      },
+      {
+        "path": "server/storage/schema.ts",
+        "bytes": 23194,
+        "sha256": "8164e8a9e6c7420b4bbf0e3a3d62cd0006c25ea8964100d5e5186cb4502ccae8"
+      },
+      {
+        "path": "server/storage/ui.ts",
+        "bytes": 9578,
+        "sha256": "0ecaafabbc9ac68f30f08ade781d3c364931f3a394b7c9ce5386b789b9860c51"
+      },
+      {
+        "path": "server/storage/worker.ts",
+        "bytes": 7838,
+        "sha256": "eebde08e59c72580e4004ea34f4b9bfda9a3756b7a109c450a858b4a5254c0f7"
+      },
+      {
+        "path": "server/storage/writer.ts",
+        "bytes": 11412,
+        "sha256": "c28df06a6a98f82bd55cffc8b0a9b0e9bda889322be88d7625d0d0a450e9d310"
+      },
+      {
+        "path": "src/protocol/history-validation.ts",
+        "bytes": 4041,
+        "sha256": "661f355b86df665c628960c79cca5d5413216afbc8e98d2eca08fd33ec3ab339"
+      },
+      {
+        "path": "src/protocol/history.ts",
+        "bytes": 4232,
+        "sha256": "f29d2e43ca6059a01902c26c18d1a132cff90fa70e19602cc113ec843f2d7579"
+      },
+      {
+        "path": "src/protocol/store.ts",
+        "bytes": 3054,
+        "sha256": "bd416952ac34ecdb7c2cf213323236be90706d4ff27007b2a73f0e39cfb08135"
+      },
+      {
+        "path": "src/protocol/ui.ts",
+        "bytes": 1435,
+        "sha256": "477f4acc02b1d6130ce46659e03c21064ecffdd3dac8d322abeb6725321cc0f4"
+      },
+      {
+        "path": "src/protocol/validate.ts",
+        "bytes": 13998,
+        "sha256": "06f1e716fdc2062059a764f257e43dcc5e27b82f042791bede757af3dfe0f8af"
+      },
+      {
+        "path": "src/state/draft-persistence.ts",
+        "bytes": 5356,
+        "sha256": "fe337623bf9f0b80324fc25e4fbc19c235af02121878b2f38210a30f7e59b4d7"
+      },
+      {
+        "path": "src/state/projection.ts",
+        "bytes": 1932,
+        "sha256": "ee412ee602952cc011fa466a777342822dca2dd77871de69b9c5de5423df5e63"
+      },
+      {
+        "path": "src/state/recovery-cache.ts",
+        "bytes": 4811,
+        "sha256": "beec41991d5d13e017ce344bef0116b69c9e941e9e87a663ca7654f9d2bd7b4d"
+      },
+      {
+        "path": "src/state/recovery-client.ts",
+        "bytes": 15723,
+        "sha256": "a23ffec4e41b225d355b564a4e7b22b1798f2ddca3378c741e7f504dbc93df76"
+      },
+      {
+        "path": "tests/assets/storage.test.mjs",
+        "bytes": 14164,
+        "sha256": "8fc492d32c25e8e0ce52935beebd8343b0cf87ac12b2cc69e24c8eedf91f7105"
+      },
+      {
+        "path": "tests/history/consumer.spec.ts",
+        "bytes": 9915,
+        "sha256": "e39c0b23d9b674d3f303fc71af569d1324e254457873c37b0e6e713819aeee85"
+      },
+      {
+        "path": "tests/history/failure.test.mjs",
+        "bytes": 7575,
+        "sha256": "cacc755efcec9daf97ba82c9f1d9a35f6aadfcafc07d9045c806fa9c4dff2435"
+      },
+      {
+        "path": "tests/history/http.test.mjs",
+        "bytes": 9809,
+        "sha256": "15f67616c8b35970756a5c09aaadcd208bd21720d012995384092220dc7c6204"
+      },
+      {
+        "path": "tests/history/no-raster.mjs",
+        "bytes": 370,
+        "sha256": "c76f5c734ca26d593d0dd120ccce3c7d0a2e2e9706ba840c9b9ac03377f47450"
+      },
+      {
+        "path": "tests/history/playwright.config.ts",
+        "bytes": 448,
+        "sha256": "8415cb264de28474c52a3d1b74abb007874debefe86da1c0b298a59a732e0fe0"
+      },
+      {
+        "path": "tests/history/process.test.mjs",
+        "bytes": 7644,
+        "sha256": "361c153a4b02626732ec620618ba38f9c41b153d61a9d13f670ed7e4cbb76a15"
+      },
+      {
+        "path": "tests/history/replay.test.mjs",
+        "bytes": 6306,
+        "sha256": "9ad142e4fd757c913ec01ef22f9bb6c6cfec7adf77a62c5baeae0c1d85c9b411"
+      },
+      {
+        "path": "tests/history/review.test.mjs",
+        "bytes": 10322,
+        "sha256": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf"
+      },
+      {
+        "path": "tests/history/schema.test.mjs",
+        "bytes": 14596,
+        "sha256": "23d1a7f2f88b0e20ddfed6f3441cb2120bfbffc7912ece65b9ad4c89c45707e8"
+      },
+      {
+        "path": "tests/history/ui.test.mjs",
+        "bytes": 5872,
+        "sha256": "9e197c06c8708b4b239c4e52711953fc67c6021ef7ce76d9b974754fcb1b9dc9"
+      },
+      {
+        "path": "tests/protocol/recovery.test.mjs",
+        "bytes": 9811,
+        "sha256": "db3d8feff135d7958d9dd0e59b10491eee0ec2c45dccdf63b5c2aab82d063b2f"
+      },
+      {
+        "path": "tests/raster/schema.test.mjs",
+        "bytes": 15244,
+        "sha256": "62f6a13f1089eaa00ae51c9e0d20d4ec8cc6b7718ae7bd9e08686c3898823576"
+      },
+      {
+        "path": "tests/raster/storage.test.mjs",
+        "bytes": 8786,
+        "sha256": "bd445c0f3efe53cd98f53300f029651c00d665e261361499d067cb59b21c1049"
+      },
+      {
+        "path": "tests/recovery/app/main.ts",
+        "bytes": 1646,
+        "sha256": "cdef66afa99be3c2d80a9f5bd60daa0d93112a2e272da9d9d056a4c5ae71dba2"
+      },
+      {
+        "path": "tests/session/http.test.mjs",
+        "bytes": 16354,
+        "sha256": "fd50c8c7bef88146d1a0c1bb144db87a5d7728dace6510ec97c7bfa0034c4148"
+      },
+      {
+        "path": "tooling/HISTORY.txt",
+        "bytes": 10826,
+        "sha256": "a8b58a221210b2b44294199f12a48417ab79fd7bf199595cda3bfbacafd7887e"
+      },
+      {
+        "path": "tooling/history/gates.mjs",
+        "bytes": 3368,
+        "sha256": "e8ae52ab82f02f137af3c7dabc7e8a2170de4348498110625f965ca34365739e"
+      },
+      {
+        "path": "tooling/history/identity.mjs",
+        "bytes": 982,
+        "sha256": "572095a6c3702a0a126a3d3167c104b625d3075c0d2d35f4a3fdcaf4bc317c4e"
+      },
+      {
+        "path": "tooling/history/observe.mjs",
+        "bytes": 3343,
+        "sha256": "37ec154b0f0287aadd16f7cf3b2e30d79b2c3f61586494192b6c6276d2db47f9"
+      },
+      {
+        "path": "tooling/history/raster-browser.mjs",
+        "bytes": 1176,
+        "sha256": "89a69fc5fe8497e520a05d1b879a1eba8eef3f865668cddd6c78d351a0fdfe60"
+      },
+      {
+        "path": "tooling/history/seal-evidence.mjs",
+        "bytes": 1671,
+        "sha256": "44619fb4243d8a433cf92c7a01ef07d6949c4779e5ee0cce7018a16155a9cf93"
+      }
+    ]
+  }
+}

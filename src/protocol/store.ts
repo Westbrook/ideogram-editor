@@ -1,6 +1,7 @@
 // Foundation commands only. The HTTP/session adapter owns authentication; these
 // identities are immutable provenance, never credentials or authority.
 import type { AssetBody, AssetFact } from './assets.js';
+import type { HistoryBody, HistoryFact, ImageVersion } from './history.js';
 import type { RasterBody } from './raster.js';
 export type Seq = string;
 export type BlobRef = { hash: string; byteLength: string; mediaType: string };
@@ -11,7 +12,7 @@ export type Command = {
   schemaVersion: 1; commandId: string; clientId: string; sessionId: string;
   correlationId: string; causationId: string | null; transactionId: string;
   documentId: string | null; expectedDocumentRevision: Seq | null;
-  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody | RasterBody;
+  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody | RasterBody | HistoryBody;
 };
 export type CommandRequest = { protocolVersion: 1; command: Command };
 export type RejectionCode = 'STALE_REVISION' | 'INVALID_INPUT' | 'MISSING_ASSET' | 'CAPACITY' | 'INCOMPATIBLE';
@@ -22,6 +23,7 @@ export type Document = {
   id: string; revision: Seq; branchId: string; width: number; height: number;
   color: 'sRGB'; depth: 8; orderedLayerIds: readonly string[]; historyHead: string;
   checkpoint: string | null; compositionVersion: string | null;
+  image?: ImageVersion; redo?: string | null;
 };
 export type HistoryNode = {
   id: string; documentId: string; branchId: string; parent: string | null;
@@ -31,6 +33,7 @@ export type HistoryNode = {
 export type Checkpoint = {
   id: string; name: string; documentId: string; documentRevision: Seq;
   historyHead: string; highWater: Seq;
+  image?: ImageVersion;
 };
 export type DomainEvent = {
   schemaVersion: 1; payloadVersion: 1; eventId: string; workspaceSeq: Seq;
@@ -40,11 +43,12 @@ export type DomainEvent = {
 } & (
   | { type: 'DocumentCreated'; payload: { document: Document; history: HistoryNode } }
   | { type: 'CheckpointSaved'; payload: { checkpoint: Checkpoint } }
+  | HistoryFact
   | AssetFact
 );
 export type ExpectedVersions = {
   schemaVersion: 1;
-  entities: readonly { entityType: 'document'; entityId: string; version: Seq }[];
+  entities: readonly { entityType: 'document' | 'layer'; entityId: string; version: Seq }[];
 };
 
 // Fixed typed empty precondition manifest provisioned by the HTTP service.

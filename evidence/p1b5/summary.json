@@ -1,0 +1,70 @@
+{
+  "at": "2026-09-26T08:40:37.403657+00:00",
+  "status": "author review_required; exact scoped commit is supplied in task and shared PR Context",
+  "base": "92e5247ed3279f25292f8e312661bf3b12deffe7",
+  "branch": "ideogram-editor-p1",
+  "sourceIdentity": "sha256:fa12c481a21bbd2713eff5c12891caeb67d3674eeea3c812569e2329c72b6d15",
+  "sourceFiles": 44,
+  "sourceManifest": "source-manifest.json",
+  "gates": {
+    "manifest": "final-gates.json",
+    "allPassed": true,
+    "groups": 22,
+    "counts": {
+      "session": 14,
+      "raster": 254,
+      "assets-volume": 1,
+      "recovery": 12,
+      "protocol": 14,
+      "store-volume": 1,
+      "shell": 10,
+      "store": 24,
+      "raster-browser": 1,
+      "history-browser": 3,
+      "assets": 29,
+      "history": 40
+    },
+    "startedAt": "2026-09-26T08:34:35.495Z",
+    "finishedAt": "2026-09-26T08:39:09.302Z"
+  },
+  "taskId": "e928d813-fdd1-467c-803c-ac9cd3c20ccf",
+  "includedReviewerTaskId": "35c8fae6-7073-4e6a-badc-bb7f12e85a32",
+  "implementation": [
+    "Typed image state, layer/version identity and immutable CP-1 composite edits through the sole writer.",
+    "Explicit reviewed intrinsic image resampling and selected/visible flatten-copy preserve originals and exact full-document previews.",
+    "Semantic forward/inverse patches, undo/redo, forked branches and named checkpoints retain exact historical assets; replay/navigation invokes no raster or network effects.",
+    "Frozen revision export and live paged retained closure for the later portable owner.",
+    "Independent UI sequence/checkpoint/draft stream, complete caption bytes, generation/composition/target fences, browser late-preparation/lost-receipt ownership.",
+    "Schema6 explicitly versions new semantics; verified schema5 backup names actual92 rollback reader and preserves all earlier data/receipts/roots/pending identities."
+  ],
+  "verification": [
+    "40 actual history tests, including11 SIGKILL edit/review cases and12 migration cases executing the actual prior reader.",
+    "Literal pixel assertions; mask retention/refusal; flatten-copy restart/export; independent patch application and closure graph checks.",
+    "SQLite FULL leaves no false image/UI receipt; missing/corrupt/replaced dependencies fail explicitly.",
+    "Actual browser IndexedDB batch recovery, snapshot/tail corruption, stale tabs and full draft/lost-receipt tests.",
+    "Inherited254 raster,29 assets,14 protocol,14 session,24 store,12 recovery browser,1 conversion browser,10 shell,2 fresh-consumer and both isolated mounted-volume fault suites."
+  ],
+  "timing": {
+    "httpAdmissionMaxMs": 23.3872080000001,
+    "httpFullReceiptMaxMs": 60.02941699999997,
+    "httpFullOver50": 19,
+    "writerFullReceiptMaxMs": 79.38941699999987,
+    "appendMaxMs": 9.081915999999637
+  },
+  "timingBoundary": "Not formal R20: full HTTP preparation/polling clock and private writer append subclock are recorded separately; commit-ready authority-to-client span was not independently instrumented. No target/ceiling waiver.",
+  "traceability": "traceability.json",
+  "integrationContract": "tooling/HISTORY.txt",
+  "preservation": "preservation.json:1025 prior seals pass; approved52219/report4381 HTTP200; old source/evidence/locator/vendor/doc paths unchanged from base",
+  "attempts": "attempts.json and logs/: all intermediate failed attempts retained without retroactive final-source attribution",
+  "limits": [
+    "Independent reviewer35c8fae6 must approve exact commit; task is review_required and receives no completion credit.",
+    "Initial editor controls/En Reve/native input/exact splitters remain P1b.7; native text/mask/Composition authoring remains later work.",
+    "No portable-copy implementation: closure is explicitly live and P1b.6 must pin a snapshot.",
+    "No formal R20/R21/R22/R23/R31, full100-layer/100k/maximum-envelope, native-peak/platform/accessibility or power-loss qualification.",
+    "A-R01 broader memory qualification and user En Reve UI feedback remain open. The five prior maximum resource-pending operations are not successful processing.",
+    "Server save status covers durable preparations and saved-unapplied drafts; caller must also present unsent/local draft state. bundleOutdated remains true until portable copies exist.",
+    "UI transcript compacts during semantic UI writes; old asset/library roots are conservatively retained. No garbage collection is introduced.",
+    "Branch switching targets image-edit nodes; Undo can restore the empty creation state.",
+    "No PR, remote, CI run, provider call, paid operation, push, deployment or publishing."
+  ]
+}

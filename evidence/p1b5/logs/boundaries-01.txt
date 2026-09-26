@@ -1,0 +1,100 @@
+✔ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (596.340167ms)
+✔ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (715.37725ms)
+✔ stale and expired reviews reject durably; hostile declarations and raw images never become usable (704.970375ms)
+✔ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (703.3925ms)
+✔ SIGKILL upload-before-write preserves only the journaled offset and missing suffix (884.898625ms)
+✔ SIGKILL upload-before-flush preserves only the journaled offset and missing suffix (856.510208ms)
+✔ SIGKILL upload-after-flush preserves only the journaled offset and missing suffix (865.922542ms)
+✔ SIGKILL upload-before-offset-commit preserves only the journaled offset and missing suffix (761.822709ms)
+✔ SIGKILL upload-after-offset-commit preserves only the journaled offset and missing suffix (880.266834ms)
+✔ SIGKILL preparation-before-commit resolves the original finalize identity once (832.91675ms)
+✔ SIGKILL preparation-after-commit resolves the original finalize identity once (822.068958ms)
+✔ SIGKILL finalize-before-flush resolves the original finalize identity once (953.720708ms)
+✔ SIGKILL finalize-after-flush resolves the original finalize identity once (782.268ms)
+✔ SIGKILL finalize-before-rename resolves the original finalize identity once (880.154917ms)
+✔ SIGKILL finalize-after-rename resolves the original finalize identity once (868.707583ms)
+✔ SIGKILL finalize-after-directory-sync resolves the original finalize identity once (785.659417ms)
+✔ SIGKILL finalize-before-register resolves the original finalize identity once (880.283041ms)
+✔ SIGKILL asset-before-commit resolves the original finalize identity once (880.740583ms)
+✔ SIGKILL asset-after-commit resolves the original finalize identity once (796.87825ms)
+✔ SIGKILL transfer-before-commit keeps original owner or transfers exactly once (865.825875ms)
+✔ SIGKILL transfer-after-commit keeps original owner or transfers exactly once (819.323917ms)
+✔ competing HTTP command identities stay exclusive through pending responses and SIGKILL restart (2661.129875ms)
+✔ actual7ef07dd migration preserves all retained tables and verified rollback database (3270.908583ms)
+✔ asset event replay and snapshots keep original bytes and dependencies across restart (2113.725ms)
+✔ staging symlinks are rejected without writing the target, and reservation pressure retains data (234.912125ms)
+✔ journal capacity failure cannot invent a pending command or replace its original rejection (749.75225ms)
+✔ recovery inventory paginates minimal metadata and content pins detect later file changes (5157.849125ms)
+✔ durable preparation waits for shared reader slots and retains original command ownership (413.951541ms)
+✔ malformed owned manifest is a durable rejection and does not strand or accept the pending original (456.342666ms)
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (722.067291ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (945.982208ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2989.026791ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (21.949417ms)
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (886.979209ms)
+✔ a fresh unseeded HTTP root accepts NewDocument with the public fixed empty precondition reference (446.617958ms)
+✔ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (3615.766375ms)
+✔ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (1060.71525ms)
+✔ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (968.49675ms)
+✔ I-P01 SIGKILL during sliced snapshot construction preserves committed receipt and recovers full history (2472.134959ms)
+✔ PROTO04 large complete transaction uses immutable reference; interior cursor rejected and restart replay agrees (1323.538792ms)
+✔ R23 corrupt latest snapshot falls back to prior snapshot, then full log; failed snapshots backpressure only the 500-event tail (7140.140834ms)
+✔ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (1009.014333ms)
+✔ I-P01 warm snapshot admission detects changed bytes and external root metadata; reads verify and recover pinned state (2369.233959ms)
+✖ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (330.271708ms)
+✔ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (312.778875ms)
+✔ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (255.628459ms)
+✔ SEC03: one-use pairing is atomic and expires at precisely five minutes (314.827083ms)
+✔ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (377.467375ms)
+✔ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (420.058125ms)
+✔ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (265.69125ms)
+✔ session boundary: implemented routes stay authenticated, unfinished routes deny access, and keys never reach responses (265.641833ms)
+✔ SEC06: real private root/file permissions, symlink and insecure-root rejection (624.5415ms)
+✔ SEC03/06: root replacement invalidates the running boundary without modifying user data (294.518041ms)
+✔ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (310.857917ms)
+ℹ Host supports case aliases.
+✔ SEC03: actual killed-process restart rejects old cookie, CSRF and unused pairing; leaves root data intact (534.570292ms)
+✔ SEC03/05: trusted static build and synchronous fragment-removal contract before shell resources (277.283834ms)
+✔ Launcher: private fragment goes only to browser callback; executable launch records an OS-selected origin (644.455291ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 56
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63802.596333
+
+✖ failing tests:
+
+test at tests/session/http.test.mjs:18:1
+✖ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (330.271708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      connectionState: 'unknown',
+      credentialConfigured: false,
+      limits: [],
+      profiles: [
+  ...
+      ],
+  +   projectionSchema: 3,
+  -   projectionSchema: 2,
+      protocolVersion: 1,
+      serverVersion: '0.1.0',
+      storageState: 'ready'
+    }
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:43:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 3, credentialConfigured: false, storageState: 'ready', connectionState: 'unknown', limits: [], profiles: [ [Object], [Object], [Object], [Object] ] },
+    expected: { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 2, credentialConfigured: false, storageState: 'ready', connectionState: 'unknown', limits: [], profiles: [ [Object], [Object], [Object], [Object] ] },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

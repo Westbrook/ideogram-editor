@@ -1,0 +1,4 @@
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+server/protocol.ts(222,109): error TS2304: Cannot find name 'path'.
+server/protocol.ts(224,46): error TS2304: Cannot find name 'path'.

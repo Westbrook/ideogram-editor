@@ -1,3 +1,4 @@
+import { isHistoryCommand } from '../src/protocol/history.js';
 import { AssetRoutes } from './assets.js';
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -49,6 +50,12 @@ export class ProtocolRoutes {
     if (path === PREFIX + 'commands') return { allow: ['POST'], kind: 'submit', query: [] };
     if (path === PREFIX + 'events') return { allow: ['GET'], kind: 'events', query: ['after','recoveryId'] };
     if (path === PREFIX + 'events/stream') return { allow: ['GET'], kind: 'stream', query: ['after'] };
+    const history=/^\/api\/v1\/documents\/([^/]+)\/(image|history|checkpoints|save-status|closure)$/.exec(path);
+    if(history){if(!isId(history[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'document-'+history[2],id:history[1],query:history[2]==='save-status'?['sessionId']:['history','checkpoints','closure'].includes(history[2])?['after']:[]};}
+    const imageEdit=/^\/api\/v1\/(image-previews|image-edit-reviews)\/([^/]+)$/.exec(path);
+    if(imageEdit){if(!isId(imageEdit[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:imageEdit[1],id:imageEdit[2],query:[]};}
+    const ui=/^\/api\/v1\/ui\/([^/]+)$/.exec(path);
+    if(ui){if(!isId(ui[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET','POST'],kind:'ui',id:ui[1],query:[]};}
     const match = /^\/api\/v1\/(commands|documents|snapshots|protocol-content|recovery)\/([^/]+)(\/release)?$/.exec(path);
     if (!match) return null;
     if (!isId(match[2])) throw new ProtocolError('MALFORMED_REQUEST');
@@ -105,7 +112,7 @@ export class ProtocolRoutes {
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
       lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
-        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 2, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
+        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 3, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
       if (captured.snapshot && BigInt(after) < BigInt(captured.snapshot.seq)) {
@@ -162,15 +169,26 @@ export class ProtocolRoutes {
         if (previous && previous.command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
         if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));
         else if(['PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
+        else if(isHistoryCommand(command.body.type)&&(command.body.type!=='SaveCheckpoint'||(await this.writer.document(command.documentId!))?.image))await this.writer.historyCommand(bytes,this.assets.auth(current));
         else await this.writer.submit(bytes,this.writer.epoch);
         authenticate();const result=await this.commandResult(command.commandId,current);sendCommandResult(response,result);
+      } else if(route.kind==='image-previews'||route.kind==='image-edit-reviews'){
+        const result=route.kind==='image-previews'?await this.writer.imagePreview(id,this.assets.auth(session)):await this.writer.imageEditReview(id,this.assets.auth(session));authenticate();sendJSON(response,200,result);
+      } else if(route.kind==='ui'){
+        let result;
+        if(request.method==='POST'){const bytes=await readControlBytes(request);const value=parseControlJSON(bytes) as any;if(value?.sessionId!==id)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();result=await this.writer.uiPersist(bytes,this.assets.auth(authenticate()));}
+        else result=await this.writer.uiRead(id,this.assets.auth(session));
+        authenticate();sendJSON(response,200,result);
+      } else if(route.kind.startsWith('document-')){
+        const result=route.kind==='document-image'?await this.writer.imageState(id):route.kind==='document-save-status'?await this.writer.saveStatus(id,params.get('sessionId')??'',this.assets.auth(session)):route.kind==='document-closure'?await this.writer.historyClosure(id,params.get('after')??''):await this.writer.historyPage(id,params.get('after')??'',route.kind==='document-history'?'history':'checkpoints');
+        authenticate();sendJSON(response,200,result);
       } else if (route.kind === 'commands') {
         const result = await this.commandResult(id, session); authenticate();
         sendCommandResult(response,result);
       } else if(route.kind.startsWith('asset-')) await this.assets.handle(request,response,route,params,authenticate,assertRoot);
       else if (route.kind === 'documents') {
         const view = await this.writer.projection(id); if (!view.document) throw new ProtocolError('NOT_FOUND');
-        const result = { protocolVersion: 1, entityVersion: view.document.revision, projectionSchema: 2, highWater: view.highWater,
+        const result = { protocolVersion: 1, entityVersion: view.document.revision, projectionSchema: 3, highWater: view.highWater,
           projection: { kind: 'inline', value: view.document } as any };
         if (Buffer.byteLength(canonical(result)) > 65536) result.projection = { kind: 'content-ref', content: await this.register(await this.writer.safeJSON('document',id), session) };
         authenticate(); sendJSON(response,200,result);

@@ -27,13 +27,13 @@ export class RecoveryStore {
     for (const [type, table] of [['asset','assets'], ['checkpoint','checkpoints'], ['document','documents'], ['history','history']]) {
       for (const row of db.prepare(`SELECT id,json FROM ${table} ORDER BY id`).iterate()) {
         const text = String(row.json); const value = JSON.parse(text);
-        yield { type, id: String(row.id), version: type==='asset'?value.version:type === 'document' ? value.revision : type === 'checkpoint' ? value.documentRevision : value.forward.after.revision, text };
+        yield { type, id: String(row.id), version: type==='asset'?value.version:type === 'document' ? value.revision : type === 'checkpoint' ? value.documentRevision : (value.kind==='image-edit'?value.revision:value.forward.after.revision), text };
       }
     }
   }
   private *snapshotRows(id: string, seq: string, db = this.db): Generator<Buffer> {
     const count = db.prepare('SELECT (SELECT count(*) FROM assets)+(SELECT count(*) FROM documents)+(SELECT count(*) FROM history)+(SELECT count(*) FROM checkpoints) AS n').get()!.n;
-    yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: 2, entityCount: String(count) }) + '\n');
+    yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: 3, entityCount: String(count) }) + '\n');
     for (const entity of this.entities(db)) {
       // Current narrow projections are individually bounded by the event budget.
       // The wire remains part-based so consumers do not depend on that bound.
@@ -179,7 +179,7 @@ export class RecoveryStore {
     let rows = 0n; let entities = 0n; let expected = ''; let key = ''; let previousKey = ''; let part = 0; let parts = 0; let text = ''; let version = '';
     for (const row of this.lines(item.content.blob)) {
       if (rows++ === 0n) {
-        if (row.kind !== 'header' || row.snapshotId !== item.id || row.snapshotSeq !== item.seq || row.projectionSchema !== 2 || !isSeq(row.entityCount)) throw new StoreError('CORRUPT_STORE');
+        if (row.kind !== 'header' || row.snapshotId !== item.id || row.snapshotSeq !== item.seq || ![2,3].includes(row.projectionSchema) || !isSeq(row.entityCount)) throw new StoreError('CORRUPT_STORE');
         expected = row.entityCount; continue;
       }
       if (row.kind !== 'projection-part' || !['asset','document','history','checkpoint'].includes(row.entityType) || !isId(row.entityId) || !isSeq(row.entityVersion) ||
@@ -194,7 +194,7 @@ export class RecoveryStore {
       if (++part === parts) {
         const value = JSON.parse(text);
         if (canonical(value) !== text || value.id !== row.entityId) throw new StoreError('CORRUPT_STORE');
-        const actualVersion = row.entityType==='asset'?value.version:row.entityType === 'document' ? value.revision : row.entityType === 'checkpoint' ? value.documentRevision : value.forward?.after?.revision;
+        const actualVersion = row.entityType==='asset'?value.version:row.entityType === 'document' ? value.revision : row.entityType === 'checkpoint' ? value.documentRevision : (value.kind==='image-edit'?value.revision:value.forward?.after?.revision);
         try { validateEntity(row.entityType,value); } catch { throw new StoreError('CORRUPT_STORE'); }
         projectionHash.update(canonical({ type: row.entityType, id: row.entityId, version, text }) + '\n');
         if (version !== actualVersion) throw new StoreError('CORRUPT_STORE');

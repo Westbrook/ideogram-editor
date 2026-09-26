@@ -1,0 +1,3711 @@
+{
+  "schema": 1,
+  "startedAt": "2026-09-26T08:38:47.403Z",
+  "status": "passed",
+  "fixture": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r",
+  "commands": [
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "--version"
+      ],
+      "startedAt": "2026-09-26T08:38:47.434Z",
+      "elapsedMs": 50.331709000000004,
+      "exit": 0,
+      "stdout": "12.1.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "python3",
+      "args": [
+        "tooling/verify-vendor.py"
+      ],
+      "startedAt": "2026-09-26T08:38:47.485Z",
+      "elapsedMs": 467.956833,
+      "exit": 0,
+      "stdout": "Verified 2155 frozen files and four archives: 37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4\n",
+      "stderr": ""
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "ci"
+      ],
+      "startedAt": "2026-09-26T08:38:47.953Z",
+      "elapsedMs": 4223.932957999999,
+      "exit": 0,
+      "stdout": "\nadded 54 packages in 4s\n",
+      "stderr": "npm warn install-scripts 1 package had install scripts blocked because they are not covered by allowScripts:\nnpm warn install-scripts   fsevents@2.3.3 (install: (install scripts present))\nnpm warn install-scripts\nnpm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "ls",
+        "--all",
+        "--json"
+      ],
+      "startedAt": "2026-09-26T08:38:52.177Z",
+      "elapsedMs": 144.51450000000023,
+      "exit": 0,
+      "stdout": "{\n  \"version\": \"0.1.0\",\n  \"name\": \"ideogram-editor\",\n  \"dependencies\": {\n    \"@en-reve/elements\": {\n      \"version\": \"0.1.0\",\n      \"resolved\": \"file:/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-elements-0.1.0.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"@en-reve/primitives\": {\n          \"version\": \"0.1.0\"\n        },\n        \"@en-reve/styles\": {\n          \"version\": \"0.1.0\"\n        },\n        \"@lit/context\": {\n          \"version\": \"1.1.6\",\n          \"resolved\": \"https://registry.npmjs.org/@lit/context/-/context-1.1.6.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"@lit/reactive-element\": {\n              \"version\": \"2.1.2\"\n            }\n          }\n        },\n        \"lit\": {\n          \"version\": \"3.3.3\"\n        },\n        \"prosemirror-commands\": {\n          \"version\": \"1.7.2\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-commands/-/prosemirror-commands-1.7.2.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"prosemirror-model\": {\n              \"version\": \"1.25.12\"\n            },\n            \"prosemirror-state\": {\n              \"version\": \"1.4.4\"\n            },\n            \"prosemirror-transform\": {\n              \"version\": \"1.12.2\"\n            }\n          }\n        },\n        \"prosemirror-history\": {\n          \"version\": \"1.5.0\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-history/-/prosemirror-history-1.5.0.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"prosemirror-state\": {\n              \"version\": \"1.4.4\"\n            },\n            \"prosemirror-transform\": {\n              \"version\": \"1.12.2\"\n            },\n            \"prosemirror-view\": {\n              \"version\": \"1.42.6\"\n            },\n            \"rope-sequence\": {\n              \"version\": \"1.3.4\",\n              \"resolved\": \"https://registry.npmjs.org/rope-sequence/-/rope-sequence-1.3.4.tgz\",\n              \"overridden\": false\n            }\n          }\n        },\n        \"prosemirror-keymap\": {\n          \"version\": \"1.2.3\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-keymap/-/prosemirror-keymap-1.2.3.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"prosemirror-state\": {\n              \"version\": \"1.4.4\"\n            },\n            \"w3c-keyname\": {\n              \"version\": \"2.2.8\",\n              \"resolved\": \"https://registry.npmjs.org/w3c-keyname/-/w3c-keyname-2.2.8.tgz\",\n              \"overridden\": false\n            }\n          }\n        },\n        \"prosemirror-model\": {\n          \"version\": \"1.25.12\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-model/-/prosemirror-model-1.25.12.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"orderedmap\": {\n              \"version\": \"2.1.1\",\n              \"resolved\": \"https://registry.npmjs.org/orderedmap/-/orderedmap-2.1.1.tgz\",\n              \"overridden\": false\n            }\n          }\n        },\n        \"prosemirror-schema-list\": {\n          \"version\": \"1.5.1\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-schema-list/-/prosemirror-schema-list-1.5.1.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"prosemirror-model\": {\n              \"version\": \"1.25.12\"\n            },\n            \"prosemirror-state\": {\n              \"version\": \"1.4.4\"\n            },\n            \"prosemirror-transform\": {\n              \"version\": \"1.12.2\"\n            }\n          }\n        },\n        \"prosemirror-state\": {\n          \"version\": \"1.4.4\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-state/-/prosemirror-state-1.4.4.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"prosemirror-model\": {\n              \"version\": \"1.25.12\"\n            },\n            \"prosemirror-transform\": {\n              \"version\": \"1.12.2\"\n            },\n            \"prosemirror-view\": {\n              \"version\": \"1.42.6\"\n            }\n          }\n        },\n        \"prosemirror-transform\": {\n          \"version\": \"1.12.2\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-transform/-/prosemirror-transform-1.12.2.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"prosemirror-model\": {\n              \"version\": \"1.25.12\"\n            }\n          }\n        },\n        \"prosemirror-view\": {\n          \"version\": \"1.42.6\",\n          \"resolved\": \"https://registry.npmjs.org/prosemirror-view/-/prosemirror-view-1.42.6.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"prosemirror-model\": {\n              \"version\": \"1.25.12\"\n            },\n            \"prosemirror-state\": {\n              \"version\": \"1.4.4\"\n            },\n            \"prosemirror-transform\": {\n              \"version\": \"1.12.2\"\n            }\n          }\n        }\n      }\n    },\n    \"@en-reve/primitives\": {\n      \"version\": \"0.1.0\",\n      \"resolved\": \"file:/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-primitives-0.1.0.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"lit\": {\n          \"version\": \"3.3.3\"\n        },\n        \"signal-polyfill\": {\n          \"version\": \"0.2.2\"\n        },\n        \"signal-utils\": {\n          \"version\": \"0.21.1\"\n        }\n      }\n    },\n    \"@en-reve/styles\": {\n      \"version\": \"0.1.0\",\n      \"resolved\": \"file:/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-styles-0.1.0.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"@en-reve/tokens\": {\n          \"version\": \"0.1.0\"\n        },\n        \"lit\": {\n          \"version\": \"3.3.3\"\n        }\n      }\n    },\n    \"@en-reve/tokens\": {\n      \"version\": \"0.1.0\",\n      \"resolved\": \"file:/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz\",\n      \"overridden\": false\n    },\n    \"@playwright/test\": {\n      \"version\": \"1.63.0\",\n      \"resolved\": \"https://registry.npmjs.org/@playwright/test/-/test-1.63.0.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"playwright\": {\n          \"version\": \"1.63.0\",\n          \"resolved\": \"https://registry.npmjs.org/playwright/-/playwright-1.63.0.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"playwright-core\": {\n              \"version\": \"1.63.0\",\n              \"resolved\": \"https://registry.npmjs.org/playwright-core/-/playwright-core-1.63.0.tgz\",\n              \"overridden\": false\n            }\n          }\n        }\n      }\n    },\n    \"@types/node\": {\n      \"version\": \"24.13.6\",\n      \"resolved\": \"https://registry.npmjs.org/@types/node/-/node-24.13.6.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"undici-types\": {\n          \"version\": \"7.18.2\",\n          \"resolved\": \"https://registry.npmjs.org/undici-types/-/undici-types-7.18.2.tgz\",\n          \"overridden\": false\n        }\n      }\n    },\n    \"fs-ext\": {\n      \"version\": \"2.1.1\",\n      \"resolved\": \"https://registry.npmjs.org/fs-ext/-/fs-ext-2.1.1.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"nan\": {\n          \"version\": \"2.29.0\",\n          \"resolved\": \"https://registry.npmjs.org/nan/-/nan-2.29.0.tgz\",\n          \"overridden\": true\n        }\n      }\n    },\n    \"lit\": {\n      \"version\": \"3.3.3\",\n      \"resolved\": \"https://registry.npmjs.org/lit/-/lit-3.3.3.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"@lit/reactive-element\": {\n          \"version\": \"2.1.2\",\n          \"resolved\": \"https://registry.npmjs.org/@lit/reactive-element/-/reactive-element-2.1.2.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"@lit-labs/ssr-dom-shim\": {\n              \"version\": \"1.6.0\",\n              \"resolved\": \"https://registry.npmjs.org/@lit-labs/ssr-dom-shim/-/ssr-dom-shim-1.6.0.tgz\",\n              \"overridden\": false\n            }\n          }\n        },\n        \"lit-element\": {\n          \"version\": \"4.2.2\",\n          \"resolved\": \"https://registry.npmjs.org/lit-element/-/lit-element-4.2.2.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"@lit-labs/ssr-dom-shim\": {\n              \"version\": \"1.6.0\"\n            },\n            \"@lit/reactive-element\": {\n              \"version\": \"2.1.2\"\n            },\n            \"lit-html\": {\n              \"version\": \"3.3.3\"\n            }\n          }\n        },\n        \"lit-html\": {\n          \"version\": \"3.3.3\",\n          \"resolved\": \"https://registry.npmjs.org/lit-html/-/lit-html-3.3.3.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"@types/trusted-types\": {\n              \"version\": \"2.0.7\",\n              \"resolved\": \"https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz\",\n              \"overridden\": false\n            }\n          }\n        }\n      }\n    },\n    \"sharp\": {\n      \"version\": \"0.35.4\",\n      \"resolved\": \"https://registry.npmjs.org/sharp/-/sharp-0.35.4.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"@img/colour\": {\n          \"version\": \"1.1.0\",\n          \"resolved\": \"https://registry.npmjs.org/@img/colour/-/colour-1.1.0.tgz\",\n          \"overridden\": false\n        },\n        \"@img/sharp-darwin-arm64\": {\n          \"version\": \"0.35.4\",\n          \"resolved\": \"https://registry.npmjs.org/@img/sharp-darwin-arm64/-/sharp-darwin-arm64-0.35.4.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"@img/sharp-libvips-darwin-arm64\": {\n              \"version\": \"1.3.3\"\n            }\n          }\n        },\n        \"@img/sharp-darwin-x64\": {},\n        \"@img/sharp-freebsd-wasm32\": {},\n        \"@img/sharp-libvips-darwin-arm64\": {\n          \"version\": \"1.3.3\",\n          \"resolved\": \"https://registry.npmjs.org/@img/sharp-libvips-darwin-arm64/-/sharp-libvips-darwin-arm64-1.3.3.tgz\",\n          \"overridden\": false\n        },\n        \"@img/sharp-libvips-darwin-x64\": {},\n        \"@img/sharp-libvips-linux-arm\": {},\n        \"@img/sharp-libvips-linux-arm64\": {},\n        \"@img/sharp-libvips-linux-ppc64\": {},\n        \"@img/sharp-libvips-linux-riscv64\": {},\n        \"@img/sharp-libvips-linux-s390x\": {},\n        \"@img/sharp-libvips-linux-x64\": {},\n        \"@img/sharp-libvips-linuxmusl-arm64\": {},\n        \"@img/sharp-libvips-linuxmusl-x64\": {},\n        \"@img/sharp-linux-arm\": {},\n        \"@img/sharp-linux-arm64\": {},\n        \"@img/sharp-linux-ppc64\": {},\n        \"@img/sharp-linux-riscv64\": {},\n        \"@img/sharp-linux-s390x\": {},\n        \"@img/sharp-linux-x64\": {},\n        \"@img/sharp-linuxmusl-arm64\": {},\n        \"@img/sharp-linuxmusl-x64\": {},\n        \"@img/sharp-webcontainers-wasm32\": {},\n        \"@img/sharp-win32-arm64\": {},\n        \"@img/sharp-win32-ia32\": {},\n        \"@img/sharp-win32-x64\": {},\n        \"detect-libc\": {\n          \"version\": \"2.1.2\",\n          \"resolved\": \"https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz\",\n          \"overridden\": false\n        },\n        \"semver\": {\n          \"version\": \"7.8.5\",\n          \"resolved\": \"https://registry.npmjs.org/semver/-/semver-7.8.5.tgz\",\n          \"overridden\": false\n        }\n      }\n    },\n    \"signal-polyfill\": {\n      \"version\": \"0.2.2\",\n      \"resolved\": \"https://registry.npmjs.org/signal-polyfill/-/signal-polyfill-0.2.2.tgz\",\n      \"overridden\": false\n    },\n    \"signal-utils\": {\n      \"version\": \"0.21.1\",\n      \"resolved\": \"https://registry.npmjs.org/signal-utils/-/signal-utils-0.21.1.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"signal-polyfill\": {\n          \"version\": \"0.2.2\"\n        }\n      }\n    },\n    \"typescript\": {\n      \"version\": \"7.0.2\",\n      \"resolved\": \"https://registry.npmjs.org/typescript/-/typescript-7.0.2.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"@typescript/typescript-aix-ppc64\": {},\n        \"@typescript/typescript-darwin-arm64\": {\n          \"version\": \"7.0.2\",\n          \"resolved\": \"https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.0.2.tgz\",\n          \"overridden\": false\n        },\n        \"@typescript/typescript-darwin-x64\": {},\n        \"@typescript/typescript-freebsd-arm64\": {},\n        \"@typescript/typescript-freebsd-x64\": {},\n        \"@typescript/typescript-linux-arm\": {},\n        \"@typescript/typescript-linux-arm64\": {},\n        \"@typescript/typescript-linux-loong64\": {},\n        \"@typescript/typescript-linux-mips64el\": {},\n        \"@typescript/typescript-linux-ppc64\": {},\n        \"@typescript/typescript-linux-riscv64\": {},\n        \"@typescript/typescript-linux-s390x\": {},\n        \"@typescript/typescript-linux-x64\": {},\n        \"@typescript/typescript-netbsd-arm64\": {},\n        \"@typescript/typescript-netbsd-x64\": {},\n        \"@typescript/typescript-openbsd-arm64\": {},\n        \"@typescript/typescript-openbsd-x64\": {},\n        \"@typescript/typescript-sunos-x64\": {},\n        \"@typescript/typescript-win32-arm64\": {},\n        \"@typescript/typescript-win32-x64\": {}\n      }\n    },\n    \"vite\": {\n      \"version\": \"8.3.1\",\n      \"resolved\": \"https://registry.npmjs.org/vite/-/vite-8.3.1.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"@types/node\": {\n          \"version\": \"24.13.6\"\n        },\n        \"@vitejs/devtools\": {},\n        \"esbuild\": {},\n        \"fsevents\": {\n          \"version\": \"2.3.3\",\n          \"resolved\": \"https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz\",\n          \"overridden\": false\n        },\n        \"jiti\": {},\n        \"less\": {},\n        \"lightningcss\": {\n          \"version\": \"1.33.0\",\n          \"resolved\": \"https://registry.npmjs.org/lightningcss/-/lightningcss-1.33.0.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"detect-libc\": {\n              \"version\": \"2.1.2\"\n            },\n            \"lightningcss-android-arm64\": {},\n            \"lightningcss-darwin-arm64\": {\n              \"version\": \"1.33.0\",\n              \"resolved\": \"https://registry.npmjs.org/lightningcss-darwin-arm64/-/lightningcss-darwin-arm64-1.33.0.tgz\",\n              \"overridden\": false\n            },\n            \"lightningcss-darwin-x64\": {},\n            \"lightningcss-freebsd-x64\": {},\n            \"lightningcss-linux-arm-gnueabihf\": {},\n            \"lightningcss-linux-arm64-gnu\": {},\n            \"lightningcss-linux-arm64-musl\": {},\n            \"lightningcss-linux-x64-gnu\": {},\n            \"lightningcss-linux-x64-musl\": {},\n            \"lightningcss-win32-arm64-msvc\": {},\n            \"lightningcss-win32-x64-msvc\": {}\n          }\n        },\n        \"picomatch\": {\n          \"version\": \"4.0.7\",\n          \"resolved\": \"https://registry.npmjs.org/picomatch/-/picomatch-4.0.7.tgz\",\n          \"overridden\": false\n        },\n        \"postcss\": {\n          \"version\": \"8.5.28\",\n          \"resolved\": \"https://registry.npmjs.org/postcss/-/postcss-8.5.28.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"nanoid\": {\n              \"version\": \"3.3.19\",\n              \"resolved\": \"https://registry.npmjs.org/nanoid/-/nanoid-3.3.19.tgz\",\n              \"overridden\": false\n            },\n            \"picocolors\": {\n              \"version\": \"1.1.1\",\n              \"resolved\": \"https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz\",\n              \"overridden\": false\n            },\n            \"source-map-js\": {\n              \"version\": \"1.2.1\",\n              \"resolved\": \"https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz\",\n              \"overridden\": false\n            }\n          }\n        },\n        \"rolldown\": {\n          \"version\": \"1.2.11\",\n          \"resolved\": \"https://registry.npmjs.org/rolldown/-/rolldown-1.2.11.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"@oxc-project/types\": {\n              \"version\": \"0.151.0\",\n              \"resolved\": \"https://registry.npmjs.org/@oxc-project/types/-/types-0.151.0.tgz\",\n              \"overridden\": false\n            },\n            \"@rolldown/binding-android-arm-eabi\": {},\n            \"@rolldown/binding-android-arm64\": {},\n            \"@rolldown/binding-darwin-arm64\": {\n              \"version\": \"1.2.11\",\n              \"resolved\": \"https://registry.npmjs.org/@rolldown/binding-darwin-arm64/-/binding-darwin-arm64-1.2.11.tgz\",\n              \"overridden\": false\n            },\n            \"@rolldown/binding-darwin-x64\": {},\n            \"@rolldown/binding-freebsd-x64\": {},\n            \"@rolldown/binding-linux-arm-gnueabihf\": {},\n            \"@rolldown/binding-linux-arm64-gnu\": {},\n            \"@rolldown/binding-linux-arm64-musl\": {},\n            \"@rolldown/binding-linux-ppc64-gnu\": {},\n            \"@rolldown/binding-linux-s390x-gnu\": {},\n            \"@rolldown/binding-linux-x64-gnu\": {},\n            \"@rolldown/binding-linux-x64-musl\": {},\n            \"@rolldown/binding-openharmony-arm64\": {},\n            \"@rolldown/binding-win32-arm64-msvc\": {},\n            \"@rolldown/binding-win32-x64-msvc\": {},\n            \"@rolldown/pluginutils\": {\n              \"version\": \"1.0.1\",\n              \"resolved\": \"https://registry.npmjs.org/@rolldown/pluginutils/-/pluginutils-1.0.1.tgz\",\n              \"overridden\": false\n            }\n          }\n        },\n        \"sass-embedded\": {},\n        \"sass\": {},\n        \"stylus\": {},\n        \"sugarss\": {},\n        \"terser\": {},\n        \"tinyglobby\": {\n          \"version\": \"0.2.17\",\n          \"resolved\": \"https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.17.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"fdir\": {\n              \"version\": \"6.5.0\",\n              \"resolved\": \"https://registry.npmjs.org/fdir/-/fdir-6.5.0.tgz\",\n              \"overridden\": false,\n              \"dependencies\": {\n                \"picomatch\": {\n                  \"version\": \"4.0.7\"\n                }\n              }\n            },\n            \"picomatch\": {\n              \"version\": \"4.0.7\"\n            }\n          }\n        },\n        \"tsx\": {},\n        \"yaml\": {}\n      }\n    }\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "python3",
+      "args": [
+        "tooling/verify-vendor.py"
+      ],
+      "startedAt": "2026-09-26T08:38:52.322Z",
+      "elapsedMs": 212.43070799999987,
+      "exit": 0,
+      "stdout": "Verified 2155 frozen files and four archives: 37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4\n",
+      "stderr": ""
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import { realpath, lstat, readFile } from 'node:fs/promises';\n    import { resolve, sep } from 'node:path';\n    const lock = JSON.parse(await readFile('package-lock.json'));\n    for (const [path, value] of Object.entries(lock.packages)) {\n      if (!path) continue;\n      const stat = await lstat(path).catch(error => { if (error.code === 'ENOENT' && value.optional) return null; throw error; });\n      if (!stat) continue;\n      if (stat.isSymbolicLink()) throw new Error('Linked dependency: ' + path);\n      if (!(await realpath(path)).startsWith(resolve('node_modules') + sep)) throw new Error('External dependency: ' + path);\n      const installed = JSON.parse(await readFile(path + '/package.json'));\n      if (installed.version !== value.version) throw new Error('Version mismatch: ' + path);\n    }\n    console.log('Installed graph has no sibling links and matches the lock');\n  "
+      ],
+      "startedAt": "2026-09-26T08:38:52.534Z",
+      "elapsedMs": 32.60924999999952,
+      "exit": 0,
+      "stdout": "Installed graph has no sibling links and matches the lock\n",
+      "stderr": ""
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "typecheck:consumer"
+      ],
+      "startedAt": "2026-09-26T08:38:52.567Z",
+      "elapsedMs": 1014.44175,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "npm notice run ideogram-editor@0.1.0 typecheck:consumer\nnpm notice run tsc --noEmit\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "build:consumer"
+      ],
+      "startedAt": "2026-09-26T08:38:53.582Z",
+      "elapsedMs": 1208.3200830000005,
+      "exit": 0,
+      "stdout": "\n> ideogram-editor@0.1.0 verify:imports\n> node tooling/verify-imports.mjs\n\nVerified 8 consumer en-reve imports against packed public metadata\n\u001b[36mvite v8.3.1 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\ntransforming...\n✓ 564 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/consumer/index.html                                   3.06 kB │ gzip:  0.83 kB\ndist/consumer/.vite/manifest.json                         80.10 kB │ gzip:  8.28 kB\ndist/consumer/build-evidence.json                        105.29 kB │ gzip: 10.53 kB\ndist/consumer/assets/index-DGuFM15G.css                   78.85 kB │ gzip:  8.55 kB\ndist/consumer/assets/icon-CFUU1AdL.js                      0.06 kB │ gzip:  0.08 kB\ndist/consumer/assets/menu-C0q1v7r1.js                      0.06 kB │ gzip:  0.08 kB\ndist/consumer/assets/tree-BW5BuVva.js                      0.06 kB │ gzip:  0.08 kB\ndist/consumer/assets/table-CGEGylV5.js                     0.06 kB │ gzip:  0.08 kB\ndist/consumer/assets/toast-DzYsVkal.js                     0.06 kB │ gzip:  0.08 kB\ndist/consumer/assets/avatar-CTbk9jqH.js                    0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/button-UgHxBcX_.js                    0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/dialog-DeWXK7ki.js                    0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/select-DLeyeA79.js                    0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/switch-7KdO-Qj2.js                    0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/if-defined-Bpc7m8iq.js                0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/toolbar-DgxYWcVr.js                   0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/tooltip-BdPdsk3H.js                   0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/calendar-4_x6ji7_.js                  0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/carousel-DFMDgcWg.js                  0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/checkbox-CMGOIGLh.js                  0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/presence-BKWo7zkx.js                  0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/splitter-C8TzD6mt.js                  0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/menu-item-DMTpSFVt.js                 0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/tree-item-nLw2Q6yX.js                 0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/text-field-C2hVydTi.js                0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/pagination-BG8CDtfR.js                0.07 kB │ gzip:  0.08 kB\ndist/consumer/assets/color-plane-ClD4MspS.js               0.08 kB │ gzip:  0.09 kB\ndist/consumer/assets/chat-message-Ojc0wJOf.js              0.08 kB │ gzip:  0.09 kB\ndist/consumer/assets/color-slider-DgEy7mQB.js              0.08 kB │ gzip:  0.09 kB\ndist/consumer/assets/activity-item-WTXcUY6Q.js             0.08 kB │ gzip:  0.09 kB\ndist/consumer/assets/choice-option-CNWGjMwq.js             0.08 kB │ gzip:  0.08 kB\ndist/consumer/assets/progress-step-SOljMZM_.js             0.08 kB │ gzip:  0.09 kB\ndist/consumer/assets/select-option-BT7GFieG.js             0.08 kB │ gzip:  0.08 kB\ndist/consumer/assets/carousel-slide-Ci6VvoJt.js            0.08 kB │ gzip:  0.09 kB\ndist/consumer/assets/segmented-item-BqS2fVno.js            0.08 kB │ gzip:  0.09 kB\ndist/consumer/assets/menu-io2QlhCx.js                      0.09 kB │ gzip:  0.10 kB\ndist/consumer/assets/button-D2cGkUAF.js                    0.09 kB │ gzip:  0.10 kB\ndist/consumer/assets/text-field-BwkbiqH1.js                0.09 kB │ gzip:  0.11 kB\ndist/consumer/assets/slider-BPXYQ8NT.js                    0.11 kB │ gzip:  0.11 kB\ndist/consumer/assets/popover-CybCI8vN.js                   0.11 kB │ gzip:  0.11 kB\ndist/consumer/assets/date-input-WOd24i9a.js                0.12 kB │ gzip:  0.12 kB\ndist/consumer/assets/switch-BvUPlTxD.js                    0.14 kB │ gzip:  0.14 kB\ndist/consumer/assets/multiselect-B-O6sJeN.js               0.16 kB │ gzip:  0.14 kB\ndist/consumer/assets/select-option-C3wYm4jf.js             0.19 kB │ gzip:  0.16 kB\ndist/consumer/assets/dialog-DHsUDYXG.js                    0.19 kB │ gzip:  0.16 kB\ndist/consumer/assets/drawer-TL0I5dPF.js                    0.20 kB │ gzip:  0.17 kB\ndist/consumer/assets/menu-owner-CRbpq0mM.js                0.21 kB │ gzip:  0.14 kB\ndist/consumer/assets/collection-D5jmrhHK.js                0.24 kB │ gzip:  0.18 kB\ndist/consumer/assets/description-DlmrCUEY.js               0.25 kB │ gzip:  0.19 kB\ndist/consumer/assets/native-surface-C3ngI-D7.js            0.25 kB │ gzip:  0.20 kB\ndist/consumer/assets/navigation-DNp48CRb.js                0.26 kB │ gzip:  0.18 kB\ndist/consumer/assets/checkbox-group-DbJgdZVW.js            0.27 kB │ gzip:  0.21 kB\ndist/consumer/assets/select-chevron-D3HDReCV.js            0.28 kB │ gzip:  0.24 kB\ndist/consumer/assets/directive-BSZPiF1A.js                 0.31 kB │ gzip:  0.23 kB\ndist/consumer/assets/messages-context-Ct6fA-jX.js          0.32 kB │ gzip:  0.25 kB\ndist/consumer/assets/segmented-item-CMRq4HA5.js            0.33 kB │ gzip:  0.25 kB\ndist/consumer/assets/target-size-6XaBR98h.js               0.34 kB │ gzip:  0.22 kB\ndist/consumer/assets/dom-kind-o7gZjmMs.js                  0.36 kB │ gzip:  0.22 kB\ndist/consumer/assets/drawer-DUymuBN-.js                    0.37 kB │ gzip:  0.27 kB\ndist/consumer/assets/value-DV2Z1wzN.js                     0.38 kB │ gzip:  0.25 kB\ndist/consumer/assets/icon-C71ZjmNH.js                      0.43 kB │ gzip:  0.29 kB\ndist/consumer/assets/static-html-RvMYgzIi.js               0.45 kB │ gzip:  0.33 kB\ndist/consumer/assets/reaction.ts-vl9ZutnI.js               0.47 kB │ gzip:  0.32 kB\ndist/consumer/assets/signal-controller-BKIO1-La.js         0.47 kB │ gzip:  0.28 kB\ndist/consumer/assets/hsv-CJgCKgXi.js                       0.48 kB │ gzip:  0.30 kB\ndist/consumer/assets/disclosure-qREhfMFn.js                0.49 kB │ gzip:  0.29 kB\ndist/consumer/assets/skeleton-BkiNcNWf.js                  0.50 kB │ gzip:  0.34 kB\ndist/consumer/assets/focus-Dua56K8v.js                     0.52 kB │ gzip:  0.31 kB\ndist/consumer/assets/toggle-group-DH2bsWDc.js              0.53 kB │ gzip:  0.36 kB\ndist/consumer/assets/spinner-KKztLFgZ.js                   0.55 kB │ gzip:  0.36 kB\ndist/consumer/assets/optional-slot-presence-BGMJEOE2.js    0.57 kB │ gzip:  0.31 kB\ndist/consumer/assets/validation-feedback-Cy3htoWX.js       0.57 kB │ gzip:  0.31 kB\ndist/consumer/assets/link-rules-3xmjCIx-.js                0.58 kB │ gzip:  0.32 kB\ndist/consumer/assets/progress-step-xZA5H8KB.js             0.60 kB │ gzip:  0.37 kB\ndist/consumer/assets/context-Ro94sQrw.js                   0.60 kB │ gzip:  0.34 kB\ndist/consumer/assets/checkbox-CguVO5EN.js                  0.61 kB │ gzip:  0.33 kB\ndist/consumer/assets/editable-field-BizpordK.js            0.63 kB │ gzip:  0.37 kB\ndist/consumer/assets/badge-DRQZv-QX.js                     0.63 kB │ gzip:  0.38 kB\ndist/consumer/assets/search-input-BRLfNaGd.js              0.63 kB │ gzip:  0.36 kB\ndist/consumer/assets/directive-helpers-CH7AkOyP.js         0.64 kB │ gzip:  0.40 kB\ndist/consumer/assets/element-D5eaICWT.js                   0.70 kB │ gzip:  0.39 kB\ndist/consumer/assets/tab-panel-BPG-Fst9.js                 0.71 kB │ gzip:  0.44 kB\ndist/consumer/assets/focus-participant-By0YSzc3.js         0.73 kB │ gzip:  0.33 kB\ndist/consumer/assets/live-BOIXS5oj.js                      0.73 kB │ gzip:  0.43 kB\ndist/consumer/assets/hover-corridor-D8Kuc6ri.js            0.74 kB │ gzip:  0.40 kB\ndist/consumer/assets/default-state-BV2mMTNk.js             0.76 kB │ gzip:  0.33 kB\ndist/consumer/assets/control-size-_t0sScCQ.js              0.76 kB │ gzip:  0.40 kB\ndist/consumer/assets/stack-BP7GmeWL.js                     0.78 kB │ gzip:  0.44 kB\ndist/consumer/assets/choice-option-D6-vnWRM.js             0.87 kB │ gzip:  0.47 kB\ndist/consumer/assets/tab-BEUkzLro.js                       0.87 kB │ gzip:  0.51 kB\ndist/consumer/assets/messages-U2qqEbMk.js                  0.88 kB │ gzip:  0.52 kB\ndist/consumer/assets/textarea-BwU_1YAK.js                  0.90 kB │ gzip:  0.46 kB\ndist/consumer/assets/style-map-3845GT8x.js                 0.93 kB │ gzip:  0.59 kB\ndist/consumer/assets/registration-BdIG3fPt.js              0.94 kB │ gzip:  0.44 kB\ndist/consumer/assets/buttons-DPEo5BPk.js                   0.96 kB │ gzip:  0.42 kB\ndist/consumer/assets/tag-DPjDUNSl.js                       0.99 kB │ gzip:  0.54 kB\ndist/consumer/assets/selection-item-Bkd9vJsp.js            1.01 kB │ gzip:  0.44 kB\ndist/consumer/assets/editor-association-6k6w5nZe.js        1.06 kB │ gzip:  0.53 kB\ndist/consumer/assets/editor-trigger-DS5J0UaV.js            1.09 kB │ gzip:  0.51 kB\ndist/consumer/assets/otp-field-wmpZuetN.js                 1.09 kB │ gzip:  0.63 kB\ndist/consumer/assets/link-BOarz6vR.js                      1.10 kB │ gzip:  0.61 kB\ndist/consumer/assets/draft-TbSd0Lv8.js                     1.12 kB │ gzip:  0.45 kB\ndist/consumer/assets/toggle-button-BAGO4U1_.js             1.14 kB │ gzip:  0.59 kB\ndist/consumer/assets/chat-message-Dealf09f.js              1.16 kB │ gzip:  0.54 kB\ndist/consumer/assets/chat-editor-yr_rO6LF.js               1.17 kB │ gzip:  0.57 kB\ndist/consumer/assets/form-controller-DFZmdqQJ.js           1.19 kB │ gzip:  0.58 kB\ndist/consumer/assets/radio-8letODqX.js                     1.20 kB │ gzip:  0.55 kB\ndist/consumer/assets/preload-helper-BZ1Pz5am.js            1.21 kB │ gzip:  0.69 kB\ndist/consumer/assets/activity-item-CP34PB_o.js             1.24 kB │ gzip:  0.60 kB\ndist/consumer/assets/repeat-BKYaxefn.js                    1.37 kB │ gzip:  0.73 kB\ndist/consumer/assets/avatar-jGTeOfDc.js                    1.38 kB │ gzip:  0.74 kB\ndist/consumer/assets/activity-CtYsKil1.js                  1.41 kB │ gzip:  0.55 kB\ndist/consumer/assets/description-CniNqW43.js               1.43 kB │ gzip:  0.62 kB\ndist/consumer/assets/selection-collection-5ZEi_j9-.js      1.44 kB │ gzip:  0.69 kB\ndist/consumer/assets/swatch-CWia_68O.js                    1.44 kB │ gzip:  0.76 kB\ndist/consumer/assets/element-Dhx2NESy.js                   1.44 kB │ gzip:  0.69 kB\ndist/consumer/assets/popover-rgLgFTs7.js                   1.45 kB │ gzip:  0.70 kB\ndist/consumer/assets/presence-BgloYOI1.js                  1.49 kB │ gzip:  0.74 kB\ndist/consumer/assets/navigation-group-CmQcWqn0.js          1.52 kB │ gzip:  0.76 kB\ndist/consumer/assets/chat-CaqXq_iL.js                      1.55 kB │ gzip:  0.59 kB\ndist/consumer/assets/events-CpcSoZJt.js                    1.56 kB │ gzip:  0.72 kB\ndist/consumer/assets/control-shared-Cimuk1ud.js            1.65 kB │ gzip:  0.60 kB\ndist/consumer/assets/id-reference-B2CjDUR0.js              1.68 kB │ gzip:  0.72 kB\ndist/consumer/assets/inset-action-Ulq9GaFH.js              1.94 kB │ gzip:  0.60 kB\ndist/consumer/assets/popup-measurement-DsNJMV3T.js         2.02 kB │ gzip:  0.90 kB\ndist/consumer/assets/context-provider-DzDXDEUf.js          2.06 kB │ gzip:  0.78 kB\ndist/consumer/assets/editing-controller-DI0Skaqb.js        2.08 kB │ gzip:  0.81 kB\ndist/consumer/assets/progress-bar-BXtGQODq.js              2.13 kB │ gzip:  1.04 kB\ndist/consumer/assets/context-consumer-DCpGU_aV.js          2.17 kB │ gzip:  0.83 kB\ndist/consumer/assets/number-field-B6Mbi8Bm.js              2.33 kB │ gzip:  0.93 kB\ndist/consumer/assets/template-aHMLGvYQ.js                  2.38 kB │ gzip:  1.08 kB\ndist/consumer/assets/rating-C-uAgqPu.js                    2.43 kB │ gzip:  1.10 kB\ndist/consumer/assets/menubar-B2U2l28a.js                   2.46 kB │ gzip:  1.19 kB\ndist/consumer/assets/color-field-D9kmmWog.js               2.49 kB │ gzip:  1.17 kB\ndist/consumer/assets/hover-card-CMm35p3C.js                2.68 kB │ gzip:  0.99 kB\ndist/consumer/assets/alert-Dc71kEMS.js                     2.74 kB │ gzip:  1.22 kB\ndist/consumer/assets/index-wOlzWHpk.js                     2.79 kB │ gzip:  1.33 kB\ndist/consumer/assets/typography-krMVvQp9.js                2.83 kB │ gzip:  0.69 kB\ndist/consumer/assets/focus-DZLziiga.js                     2.84 kB │ gzip:  0.86 kB\ndist/consumer/assets/validation-summary-ChW7LsJD.js        2.98 kB │ gzip:  1.37 kB\ndist/consumer/assets/accordion-item-MgZHie8d.js            3.04 kB │ gzip:  1.33 kB\ndist/consumer/assets/element-DqqwILg6.js                   3.14 kB │ gzip:  1.24 kB\ndist/consumer/assets/presence-group-C9FQOoFf.js            3.26 kB │ gzip:  1.41 kB\ndist/consumer/assets/transcript-DpW1q8H1.js                3.26 kB │ gzip:  1.38 kB\ndist/consumer/assets/chart-BOKs9Awo.js                     3.31 kB │ gzip:  1.58 kB\ndist/consumer/assets/accordion-D-NWjilr.js                 3.40 kB │ gzip:  1.47 kB\ndist/consumer/assets/card-usiqhF2V.js                      3.47 kB │ gzip:  1.28 kB\ndist/consumer/assets/sheet-bjhmmk0q.js                     3.48 kB │ gzip:  1.52 kB\ndist/consumer/assets/toolbar-C7AczBDD.js                   3.49 kB │ gzip:  1.43 kB\ndist/consumer/assets/option-paint-CTPCd_5L.js              3.50 kB │ gzip:  0.87 kB\ndist/consumer/assets/context-menu-DODuP_jZ.js              3.54 kB │ gzip:  1.28 kB\ndist/consumer/assets/action-overflow-Bw8N7XQJ.js           3.65 kB │ gzip:  1.62 kB\ndist/consumer/assets/surfaces-o_fbyXzV.js                  3.74 kB │ gzip:  1.11 kB\ndist/consumer/assets/select-DPLC39cu.js                    3.74 kB │ gzip:  1.51 kB\ndist/consumer/assets/numeric-base-DE4Mr5ZQ.js              3.83 kB │ gzip:  1.34 kB\ndist/consumer/assets/roving-focus-D4BMObBE.js              3.84 kB │ gzip:  1.54 kB\ndist/consumer/assets/navigation-IcQvXKmD.js                3.94 kB │ gzip:  1.54 kB\ndist/consumer/assets/chat-composer-D2CkYGpI.js             4.00 kB │ gzip:  1.57 kB\ndist/consumer/assets/collaboration-BgB2-a7a.js             4.12 kB │ gzip:  1.20 kB\ndist/consumer/assets/media-viewer-C574gV-_.js              4.60 kB │ gzip:  2.11 kB\ndist/consumer/assets/menu-item-Dka8t5OZ.js                 4.68 kB │ gzip:  1.77 kB\ndist/consumer/assets/color-value-DMo3DYlN.js               4.74 kB │ gzip:  2.26 kB\ndist/consumer/assets/surface-motion-Dj7v-MHR.js            4.83 kB │ gzip:  1.31 kB\ndist/consumer/assets/breadcrumbs-pWvB9VvQ.js               5.27 kB │ gzip:  2.22 kB\ndist/consumer/assets/questionnaire-BW9H8Sci.js             5.49 kB │ gzip:  2.01 kB\ndist/consumer/assets/choice-base-D8PmunNX.js               5.53 kB │ gzip:  1.92 kB\ndist/consumer/assets/splitter-Dbg-EhCA.js                  5.55 kB │ gzip:  1.98 kB\ndist/consumer/assets/tabs-SksGf8F3.js                      5.94 kB │ gzip:  2.15 kB\ndist/consumer/assets/form-field-CPyTd1OA.js                6.00 kB │ gzip:  2.00 kB\ndist/consumer/assets/query-builder-Dox1vLWm.js             6.00 kB │ gzip:  2.12 kB\ndist/consumer/assets/carousel-slide-Drb6oZaf.js            6.06 kB │ gzip:  2.08 kB\ndist/consumer/assets/radio-group-BYZVRtiU.js               6.40 kB │ gzip:  2.27 kB\ndist/consumer/assets/progress-steps-Cm7s6Dqp.js            6.51 kB │ gzip:  2.40 kB\ndist/consumer/assets/overlays-CH3Ic9HZ.js                  6.77 kB │ gzip:  1.98 kB\ndist/consumer/assets/press-recipes-Buis-mUX.js             6.77 kB │ gzip:  0.89 kB\ndist/consumer/assets/selection-children-B7xx22um.js        6.81 kB │ gzip:  2.59 kB\ndist/consumer/assets/feedback-DCppVjJz.js                  7.60 kB │ gzip:  1.65 kB\ndist/consumer/assets/color-slider-D81b27YS.js              8.04 kB │ gzip:  2.82 kB\ndist/consumer/assets/dist-DPUsT2rp.js                      8.09 kB │ gzip:  2.56 kB\ndist/consumer/assets/button-rules-nxxtVFD2.js              8.13 kB │ gzip:  1.92 kB\ndist/consumer/assets/editor-toolbar-z3fPlKqg.js            8.25 kB │ gzip:  3.03 kB\ndist/consumer/assets/form-navigation-DvkRzNx3.js           8.30 kB │ gzip:  3.13 kB\ndist/consumer/assets/slider-DLJHOgCP.js                    8.33 kB │ gzip:  2.74 kB\ndist/consumer/assets/toast-region-KNh5kMvc.js              8.41 kB │ gzip:  3.00 kB\ndist/consumer/assets/en-element-D4X0SC2z.js                8.93 kB │ gzip:  2.96 kB\ndist/consumer/assets/dialog-lW2AqvB4.js                    9.29 kB │ gzip:  3.32 kB\ndist/consumer/assets/floating-surface-eLL0PAdS.js          9.30 kB │ gzip:  3.36 kB\ndist/consumer/assets/time-field-CFtfm7fU.js                9.33 kB │ gzip:  3.62 kB\ndist/consumer/assets/command-palette-B53i3eTK.js           9.62 kB │ gzip:  3.59 kB\ndist/consumer/assets/range-slider-B65DxRn4.js              9.72 kB │ gzip:  3.67 kB\ndist/consumer/assets/segmented-control-BdlvE1wd.js        10.03 kB │ gzip:  3.48 kB\ndist/consumer/assets/split-view-BfVs4NI_.js               10.12 kB │ gzip:  3.39 kB\ndist/consumer/assets/commands-ChlB67sW.js                 10.21 kB │ gzip:  2.61 kB\ndist/consumer/assets/color-wheel-BPC7GpVa.js              10.26 kB │ gzip:  3.81 kB\ndist/consumer/assets/table-CTET0gYU.js                    11.18 kB │ gzip:  3.03 kB\ndist/consumer/assets/color-picker-BRlWHvwF.js             11.32 kB │ gzip:  4.10 kB\ndist/consumer/assets/patterns-DRZmGBOR.js                 11.83 kB │ gzip:  2.04 kB\ndist/consumer/assets/color-plane-d4UUXlIY.js              12.06 kB │ gzip:  4.19 kB\ndist/consumer/assets/multiple-choice-Dllm0bcz.js          12.27 kB │ gzip:  4.07 kB\ndist/consumer/assets/selection-Bj4jKfjG.js                12.40 kB │ gzip:  2.71 kB\ndist/consumer/assets/toast-DVKumHi_.js                    13.73 kB │ gzip:  4.58 kB\ndist/consumer/assets/navigation-x_ld63t6.js               14.75 kB │ gzip:  2.41 kB\ndist/consumer/assets/activity-feed-TrjErXmj.js            14.84 kB │ gzip:  4.88 kB\ndist/consumer/assets/file-upload-CO7R2XGe.js              15.20 kB │ gzip:  5.12 kB\ndist/consumer/assets/token-editor-OtheZPSy.js             15.88 kB │ gzip:  5.32 kB\ndist/consumer/assets/data-table-9AL2PmLn.js               16.37 kB │ gzip:  5.54 kB\ndist/consumer/assets/tooltip-JtUNfZPQ.js                  16.97 kB │ gzip:  5.50 kB\ndist/consumer/assets/static-styles-L8VUWJbp.js            17.06 kB │ gzip:  6.55 kB\ndist/consumer/assets/tree-item-DOKFXUl7.js                18.72 kB │ gzip:  5.58 kB\ndist/consumer/assets/element-BxRfAjMw.js                  20.45 kB │ gzip:  6.49 kB\ndist/consumer/assets/date-picker-52A4hcDM.js              20.46 kB │ gzip:  6.05 kB\ndist/consumer/assets/foundations-D2ls3hcT.js              21.09 kB │ gzip:  4.87 kB\ndist/consumer/assets/virtual-collection-SFw3anmZ.js       22.35 kB │ gzip:  7.09 kB\ndist/consumer/assets/pagination-BBBylR43.js               22.36 kB │ gzip:  6.09 kB\ndist/consumer/assets/token-editor-B8twtX0C.js             22.63 kB │ gzip:  7.06 kB\ndist/consumer/assets/carousel-BIM5GItR.js                 24.56 kB │ gzip:  6.88 kB\ndist/consumer/assets/lazy-DCoagGJJ.js                     25.33 kB │ gzip:  6.62 kB\ndist/consumer/assets/calendar-BZXgil_m.js                 27.00 kB │ gzip:  8.06 kB\ndist/consumer/assets/combobox-BzkWv2Mp.js                 27.18 kB │ gzip:  8.21 kB\ndist/consumer/assets/controls-B2O1xmUE.js                 30.21 kB │ gzip:  6.31 kB\ndist/consumer/assets/tree-BqPuDr7M.js                     44.32 kB │ gzip: 12.65 kB\ndist/consumer/assets/rich-text-editor-Bp41fD5v.js         63.25 kB │ gzip: 20.97 kB\ndist/consumer/assets/dist-BpZU6oH1.js                     88.68 kB │ gzip: 26.62 kB\ndist/consumer/assets/dist-ytqzuIeZ.js                     97.49 kB │ gzip: 31.01 kB\n\n\u001b[32m✓ built in 327ms\u001b[39m\n",
+      "stderr": "npm notice run ideogram-editor@0.1.0 build:consumer\nnpm notice run npm run verify:imports && vite build\nnpm warn Unknown env config \"global-ignore-file\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "install",
+        "chromium"
+      ],
+      "startedAt": "2026-09-26T08:38:54.790Z",
+      "elapsedMs": 7140.0461669999995,
+      "exit": 0,
+      "stdout": "Downloading Chrome for Testing 153.0.8010.12 (playwright chromium v1243) from https://cdn.playwright.dev/builds/cft/153.0.8010.12/mac-arm64/chrome-mac-arm64.zip\n|                                                                                |   0% of 182.1 MiB\n|■■■■■■■■                                                                        |  10% of 182.1 MiB\n|■■■■■■■■■■■■■■■■                                                                |  20% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 182.1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 182.1 MiB\nChrome for Testing 153.0.8010.12 (playwright chromium v1243) downloaded to /var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/.browsers/chromium-1243\nDownloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-mac-arm64.zip\n|                                                                                |   1% of 1 MiB\n|■■■■■■■■                                                                        |  10% of 1 MiB\n|■■■■■■■■■■■■■■■■                                                                |  21% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  51% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  71% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 1 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 1 MiB\nFFmpeg (playwright ffmpeg v1011) downloaded to /var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/.browsers/ffmpeg-1011\nDownloading Chrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) from https://cdn.playwright.dev/builds/cft/153.0.8010.12/mac-arm64/chrome-headless-shell-mac-arm64.zip\n|                                                                                |   0% of 94.3 MiB\n|■■■■■■■■                                                                        |  10% of 94.3 MiB\n|■■■■■■■■■■■■■■■■                                                                |  20% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 94.3 MiB\n|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 94.3 MiB\nChrome Headless Shell 153.0.8010.12 (playwright chromium-headless-shell v1243) downloaded to /var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/.browsers/chromium_headless_shell-1243\n",
+      "stderr": ""
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "test:browser"
+      ],
+      "startedAt": "2026-09-26T08:39:01.931Z",
+      "elapsedMs": 3677.0534579999985,
+      "exit": 0,
+      "stdout": "\nRunning 2 tests using 1 worker\n\n  ✓  1 tests/consumer/registration.spec.ts:4:3 › public packed registration, interaction and lazy readiness (auto) (546ms)\n  ✓  2 tests/consumer/registration.spec.ts:4:3 › public packed registration, interaction and lazy readiness (global) (227ms)\n\n  2 passed (3.3s)\n",
+      "stderr": "npm notice run ideogram-editor@0.1.0 test:browser\nnpm notice run playwright test --config tests/consumer/playwright.config.ts\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import { chromium } from '@playwright/test';\n    import { readFile } from 'node:fs/promises';\n    import { createHash } from 'node:crypto';\n    const executable = chromium.executablePath();\n    const browser = await chromium.launch();\n    console.log(JSON.stringify({ version: browser.version(), executable, sha256: createHash('sha256').update(await readFile(executable)).digest('hex'),\n      revisionManifest: JSON.parse(await readFile('node_modules/playwright-core/browsers.json')) }));\n    await browser.close();\n  "
+      ],
+      "startedAt": "2026-09-26T08:39:05.608Z",
+      "elapsedMs": 203.5600000000013,
+      "exit": 0,
+      "stdout": "{\"version\":\"153.0.8010.12\",\"executable\":\"/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/.browsers/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\",\"sha256\":\"8319963f6625accf51c0dd4f55091ceaf9f09ed39e7a52fed4fae12b2a6b668a\",\"revisionManifest\":{\"comment\":\"Do not edit this file, use utils/roll_browser.js\",\"browsers\":[{\"name\":\"chromium\",\"revision\":\"1243\",\"installByDefault\":true,\"browserVersion\":\"153.0.8010.12\",\"title\":\"Chrome for Testing\"},{\"name\":\"chromium-headless-shell\",\"revision\":\"1243\",\"installByDefault\":true,\"browserVersion\":\"153.0.8010.12\",\"title\":\"Chrome Headless Shell\"},{\"name\":\"firefox\",\"revision\":\"1543\",\"installByDefault\":true,\"browserVersion\":\"155.0\",\"title\":\"Firefox\"},{\"name\":\"webkit\",\"revision\":\"2359\",\"installByDefault\":true,\"revisionOverrides\":{\"mac14\":\"2251\",\"mac14-arm64\":\"2251\"},\"browserVersion\":\"26.6\",\"title\":\"WebKit\"},{\"name\":\"ffmpeg\",\"revision\":\"1011\",\"installByDefault\":true},{\"name\":\"winldd\",\"revision\":\"1007\",\"installByDefault\":false},{\"name\":\"android\",\"revision\":\"1001\",\"installByDefault\":false}]}}\n",
+      "stderr": ""
+    }
+  ],
+  "platform": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.6.0"
+  },
+  "toolchain": {
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "nodeArchives": {
+      "darwin-arm64": {
+        "filename": "node-v26.10.0-darwin-arm64.tar.gz",
+        "sha256": "751fdf7439f115d87ee2a8f3f18c065b6151852068e3e666ac60ac2996f75ac9"
+      },
+      "darwin-x64": {
+        "filename": "node-v26.10.0-darwin-x64.tar.gz",
+        "sha256": "ebbe9ab9b58ad6bb54390d6e2c862c1afa7d4475fb7e8ae8146acde211bf70df"
+      },
+      "linux-arm64": {
+        "filename": "node-v26.10.0-linux-arm64.tar.xz",
+        "sha256": "7a6353f63eb3d04765004b4adf172616243e4522434635cb1d26288658b04ab5"
+      },
+      "linux-x64": {
+        "filename": "node-v26.10.0-linux-x64.tar.xz",
+        "sha256": "ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022"
+      }
+    },
+    "npmArchive": {
+      "url": "https://registry.npmjs.org/npm/-/npm-12.1.0.tgz",
+      "integrity": "sha512-Fyhu62pNx70YCs/5+dEmJQTFVmSKwvo5CA0qvBkGDRpob42MJ6G2RQ2tdxeKM4nYnIZDqkYAxEgqtoejn9QGtQ=="
+    }
+  },
+  "isolation": {
+    "freshNodeModules": true,
+    "emptyNpmCache": true,
+    "freshBrowserCache": true,
+    "copiedSiblingSource": false,
+    "upstreamToolchainUsed": false,
+    "limits": "Filesystem isolation by empty directory, exact files and no external package links; not an OS sandbox."
+  },
+  "qualification": "Q12/Q13 bounded consumer smoke only. Adapter, full supported browsers and Q3 I2 remain unqualified.",
+  "installAndVendorElapsedMs": 5049.090625,
+  "buildElapsedMs": 1208.4027920000008,
+  "buildEvidence": {
+    "schema": 1,
+    "workload": "P1a.1 qualification fixture; not the editor W0/W1 workload",
+    "observations": {
+      "D11": {
+        "startupJsRawBytes": 181039,
+        "startupJsGzipBytes": 56324,
+        "cssGzipBytes": 8584
+      }
+    },
+    "qualification": "Unqualified: single artifact, no required campaign or evaluated-module timing",
+    "outputs": [
+      {
+        "file": "assets/index-wOlzWHpk.js",
+        "bytes": 2611,
+        "gzipBytes": 1263,
+        "entry": true,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/buttons-DPEo5BPk.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/element-DqqwILg6.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/tree-BqPuDr7M.js",
+          "assets/preload-helper-BZ1Pz5am.js"
+        ],
+        "modules": [
+          "\u0000vite/modulepreload-polyfill.js",
+          "node_modules/@en-reve/tokens/dist/default.css",
+          "tests/consumer/fixture/main.ts",
+          "tests/consumer/fixture/index.html"
+        ]
+      },
+      {
+        "file": "assets/accordion-D-NWjilr.js",
+        "bytes": 3400,
+        "gzipBytes": 1467,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/dist-DPUsT2rp.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/selection-Bj4jKfjG.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/accordion/template.js",
+          "node_modules/@en-reve/primitives/dist/state/selection.js",
+          "node_modules/@en-reve/elements/dist/accordion/accordion.js",
+          "node_modules/@en-reve/elements/dist/definitions/accordion.js"
+        ]
+      },
+      {
+        "file": "assets/accordion-item-MgZHie8d.js",
+        "bytes": 3041,
+        "gzipBytes": 1333,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/dist-DPUsT2rp.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/selection-Bj4jKfjG.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/accordion-item/template.js",
+          "node_modules/@en-reve/primitives/dist/state/disclosure.js",
+          "node_modules/@en-reve/elements/dist/accordion-item/accordion-item.js",
+          "node_modules/@en-reve/elements/dist/definitions/accordion-item.js"
+        ]
+      },
+      {
+        "file": "assets/action-overflow-Bw8N7XQJ.js",
+        "bytes": 3652,
+        "gzipBytes": 1624,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/controls-B2O1xmUE.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/overflow.js",
+          "node_modules/@en-reve/elements/dist/action-overflow.js",
+          "node_modules/@en-reve/elements/dist/definitions/action-overflow.js"
+        ]
+      },
+      {
+        "file": "assets/activity-CtYsKil1.js",
+        "bytes": 1415,
+        "gzipBytes": 556,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/activity.js"
+        ]
+      },
+      {
+        "file": "assets/activity-feed-TrjErXmj.js",
+        "bytes": 14846,
+        "gzipBytes": 4873,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/collection-D5jmrhHK.js",
+          "assets/virtual-collection-SFw3anmZ.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/collaboration-BgB2-a7a.js",
+          "assets/activity-item-CP34PB_o.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/activity-feed.js",
+          "node_modules/@en-reve/elements/dist/definitions/activity-feed.js"
+        ]
+      },
+      {
+        "file": "assets/activity-item-CP34PB_o.js",
+        "bytes": 1248,
+        "gzipBytes": 603,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/collaboration-BgB2-a7a.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/activity-item.js",
+          "node_modules/@en-reve/elements/dist/definitions/activity-item.js"
+        ]
+      },
+      {
+        "file": "assets/activity-item-WTXcUY6Q.js",
+        "bytes": 84,
+        "gzipBytes": 93,
+        "entry": false,
+        "imports": [
+          "assets/activity-item-CP34PB_o.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/alert-Dc71kEMS.js",
+        "bytes": 2747,
+        "gzipBytes": 1226,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/feedback-DCppVjJz.js",
+          "assets/optional-slot-presence-BGMJEOE2.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/alert/template.js",
+          "node_modules/@en-reve/elements/dist/alert/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/alert.js"
+        ]
+      },
+      {
+        "file": "assets/avatar-CTbk9jqH.js",
+        "bytes": 71,
+        "gzipBytes": 82,
+        "entry": false,
+        "imports": [
+          "assets/avatar-jGTeOfDc.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/avatar-jGTeOfDc.js",
+        "bytes": 1386,
+        "gzipBytes": 743,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/feedback-DCppVjJz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/avatar/template.js",
+          "node_modules/@en-reve/elements/dist/avatar/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/avatar.js"
+        ]
+      },
+      {
+        "file": "assets/badge-DRQZv-QX.js",
+        "bytes": 633,
+        "gzipBytes": 383,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/feedback-DCppVjJz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/badge/template.js",
+          "node_modules/@en-reve/elements/dist/badge/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/badge.js"
+        ]
+      },
+      {
+        "file": "assets/breadcrumbs-pWvB9VvQ.js",
+        "bytes": 5273,
+        "gzipBytes": 2217,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/navigation-x_ld63t6.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/breadcrumbs-projection.js",
+          "node_modules/@en-reve/primitives/dist/templates/breadcrumbs.js",
+          "node_modules/@en-reve/elements/dist/breadcrumbs/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/breadcrumbs.js"
+        ]
+      },
+      {
+        "file": "assets/button-D2cGkUAF.js",
+        "bytes": 95,
+        "gzipBytes": 106,
+        "entry": false,
+        "imports": [
+          "assets/element-DqqwILg6.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/button.js"
+        ]
+      },
+      {
+        "file": "assets/button-UgHxBcX_.js",
+        "bytes": 71,
+        "gzipBytes": 82,
+        "entry": false,
+        "imports": [
+          "assets/button-D2cGkUAF.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/button-rules-nxxtVFD2.js",
+        "bytes": 8131,
+        "gzipBytes": 1924,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/button-rules.js"
+        ]
+      },
+      {
+        "file": "assets/buttons-DPEo5BPk.js",
+        "bytes": 964,
+        "gzipBytes": 420,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/inset-action-Ulq9GaFH.js",
+          "assets/button-rules-nxxtVFD2.js",
+          "assets/control-shared-Cimuk1ud.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/buttons.js"
+        ]
+      },
+      {
+        "file": "assets/calendar-4_x6ji7_.js",
+        "bytes": 75,
+        "gzipBytes": 84,
+        "entry": false,
+        "imports": [
+          "assets/calendar-BZXgil_m.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/calendar-BZXgil_m.js",
+        "bytes": 27007,
+        "gzipBytes": 8035,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/press-recipes-Buis-mUX.js",
+          "assets/option-paint-CTPCd_5L.js",
+          "assets/icon-C71ZjmNH.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/calendar.js",
+          "node_modules/@en-reve/elements/dist/internal/calendar-adapter.js",
+          "node_modules/@en-reve/elements/dist/internal/date-range.js",
+          "node_modules/@en-reve/styles/dist/calendar.js",
+          "node_modules/@en-reve/elements/dist/calendar/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/calendar.js"
+        ]
+      },
+      {
+        "file": "assets/card-usiqhF2V.js",
+        "bytes": 3479,
+        "gzipBytes": 1276,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/optional-slot-presence-BGMJEOE2.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/generated/surface.js",
+          "node_modules/@en-reve/elements/dist/card/template.js",
+          "node_modules/@en-reve/elements/dist/card/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/card.js"
+        ]
+      },
+      {
+        "file": "assets/carousel-BIM5GItR.js",
+        "bytes": 24569,
+        "gzipBytes": 6915,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/buttons-DPEo5BPk.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/collection-D5jmrhHK.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/carousel-slide-Drb6oZaf.js",
+          "assets/tooltip-JtUNfZPQ.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/carousel.js",
+          "node_modules/@en-reve/elements/dist/definitions/carousel.js"
+        ]
+      },
+      {
+        "file": "assets/carousel-DFMDgcWg.js",
+        "bytes": 75,
+        "gzipBytes": 84,
+        "entry": false,
+        "imports": [
+          "assets/carousel-BIM5GItR.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/carousel-slide-Ci6VvoJt.js",
+        "bytes": 86,
+        "gzipBytes": 93,
+        "entry": false,
+        "imports": [
+          "assets/carousel-slide-Drb6oZaf.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/carousel-slide-Drb6oZaf.js",
+        "bytes": 6060,
+        "gzipBytes": 2081,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/context-consumer-DCpGU_aV.js",
+          "assets/context-provider-DzDXDEUf.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/carousel.js",
+          "node_modules/@en-reve/elements/dist/internal/carousel-context.js",
+          "node_modules/@en-reve/elements/dist/carousel-slide.js",
+          "node_modules/@en-reve/elements/dist/definitions/carousel-slide.js"
+        ]
+      },
+      {
+        "file": "assets/chart-BOKs9Awo.js",
+        "bytes": 3319,
+        "gzipBytes": 1576,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/templates/chart.js",
+          "node_modules/@en-reve/elements/dist/chart.js",
+          "node_modules/@en-reve/elements/dist/definitions/chart.js"
+        ]
+      },
+      {
+        "file": "assets/chat-CaqXq_iL.js",
+        "bytes": 1553,
+        "gzipBytes": 591,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/chat.js"
+        ]
+      },
+      {
+        "file": "assets/chat-composer-D2CkYGpI.js",
+        "bytes": 4002,
+        "gzipBytes": 1572,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/optional-slot-presence-BGMJEOE2.js",
+          "assets/chat-CaqXq_iL.js",
+          "assets/chat-editor-yr_rO6LF.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/chat-composer/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/chat-composer.js"
+        ]
+      },
+      {
+        "file": "assets/chat-editor-yr_rO6LF.js",
+        "bytes": 1178,
+        "gzipBytes": 575,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/chat-editor.js"
+        ]
+      },
+      {
+        "file": "assets/chat-message-Dealf09f.js",
+        "bytes": 1166,
+        "gzipBytes": 549,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/chat-CaqXq_iL.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/chat-message/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/chat-message.js"
+        ]
+      },
+      {
+        "file": "assets/chat-message-Ojc0wJOf.js",
+        "bytes": 82,
+        "gzipBytes": 91,
+        "entry": false,
+        "imports": [
+          "assets/chat-message-Dealf09f.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/checkbox-CMGOIGLh.js",
+        "bytes": 75,
+        "gzipBytes": 84,
+        "entry": false,
+        "imports": [
+          "assets/checkbox-CguVO5EN.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/checkbox-CguVO5EN.js",
+        "bytes": 612,
+        "gzipBytes": 339,
+        "entry": false,
+        "imports": [
+          "assets/choice-base-D8PmunNX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/checkbox/index.js",
+          "node_modules/@en-reve/elements/dist/definitions/checkbox.js"
+        ]
+      },
+      {
+        "file": "assets/checkbox-group-DbJgdZVW.js",
+        "bytes": 273,
+        "gzipBytes": 219,
+        "entry": false,
+        "imports": [
+          "assets/multiple-choice-Dllm0bcz.js",
+          "assets/choice-option-D6-vnWRM.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/checkbox-group.js",
+          "node_modules/@en-reve/elements/dist/definitions/checkbox-group.js"
+        ]
+      },
+      {
+        "file": "assets/choice-base-D8PmunNX.js",
+        "bytes": 5538,
+        "gzipBytes": 1927,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/selection-Bj4jKfjG.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/default-state-BV2mMTNk.js",
+          "assets/form-controller-DFZmdqQJ.js",
+          "assets/validation-feedback-Cy3htoWX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/checkbox/template.js",
+          "node_modules/@en-reve/elements/dist/checkbox/choice-base.js"
+        ]
+      },
+      {
+        "file": "assets/choice-option-CNWGjMwq.js",
+        "bytes": 84,
+        "gzipBytes": 89,
+        "entry": false,
+        "imports": [
+          "assets/choice-option-D6-vnWRM.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/choice-option-D6-vnWRM.js",
+        "bytes": 875,
+        "gzipBytes": 474,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/selection-item-Bkd9vJsp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/choice-option.js",
+          "node_modules/@en-reve/elements/dist/definitions/choice-option.js"
+        ]
+      },
+      {
+        "file": "assets/collaboration-BgB2-a7a.js",
+        "bytes": 4123,
+        "gzipBytes": 1209,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/collaboration.js"
+        ]
+      },
+      {
+        "file": "assets/collection-D5jmrhHK.js",
+        "bytes": 240,
+        "gzipBytes": 186,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/collection.js"
+        ]
+      },
+      {
+        "file": "assets/color-field-D9kmmWog.js",
+        "bytes": 2490,
+        "gzipBytes": 1167,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/id-reference-B2CjDUR0.js",
+          "assets/editing-controller-DI0Skaqb.js",
+          "assets/form-field-CPyTd1OA.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/color-field/picker-controller.js",
+          "node_modules/@en-reve/elements/dist/color-field/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/color-field.js"
+        ]
+      },
+      {
+        "file": "assets/color-picker-BRlWHvwF.js",
+        "bytes": 11323,
+        "gzipBytes": 4078,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/context-consumer-DCpGU_aV.js",
+          "assets/messages-context-Ct6fA-jX.js",
+          "assets/color-plane-d4UUXlIY.js",
+          "assets/color-value-DMo3DYlN.js",
+          "assets/color-slider-D81b27YS.js",
+          "assets/text-field-BwkbiqH1.js",
+          "assets/select-DPLC39cu.js",
+          "assets/switch-BvUPlTxD.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/color-picker/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/color-picker.js"
+        ]
+      },
+      {
+        "file": "assets/color-plane-ClD4MspS.js",
+        "bytes": 80,
+        "gzipBytes": 90,
+        "entry": false,
+        "imports": [
+          "assets/color-plane-d4UUXlIY.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/color-plane-d4UUXlIY.js",
+        "bytes": 12063,
+        "gzipBytes": 4182,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/context-consumer-DCpGU_aV.js",
+          "assets/messages-context-Ct6fA-jX.js",
+          "assets/color-value-DMo3DYlN.js",
+          "assets/style-map-3845GT8x.js",
+          "assets/hsv-CJgCKgXi.js",
+          "assets/color-slider-D81b27YS.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/color-picker.js",
+          "node_modules/@en-reve/elements/dist/color-plane.js",
+          "node_modules/@en-reve/elements/dist/definitions/color-plane.js"
+        ]
+      },
+      {
+        "file": "assets/color-slider-D81b27YS.js",
+        "bytes": 8043,
+        "gzipBytes": 2831,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/color-value-DMo3DYlN.js",
+          "assets/style-map-3845GT8x.js",
+          "assets/slider-DLJHOgCP.js",
+          "assets/text-field-BwkbiqH1.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/color-slider.js",
+          "node_modules/@en-reve/elements/dist/color-slider.js",
+          "node_modules/@en-reve/elements/dist/definitions/color-slider.js"
+        ]
+      },
+      {
+        "file": "assets/color-slider-DgEy7mQB.js",
+        "bytes": 82,
+        "gzipBytes": 91,
+        "entry": false,
+        "imports": [
+          "assets/color-slider-D81b27YS.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/color-value-DMo3DYlN.js",
+        "bytes": 4748,
+        "gzipBytes": 2258,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/color-picker/color.js",
+          "node_modules/@en-reve/elements/dist/color-picker/color-value.js"
+        ]
+      },
+      {
+        "file": "assets/color-wheel-BPC7GpVa.js",
+        "bytes": 10264,
+        "gzipBytes": 3791,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/context-consumer-DCpGU_aV.js",
+          "assets/messages-context-Ct6fA-jX.js",
+          "assets/color-value-DMo3DYlN.js",
+          "assets/style-map-3845GT8x.js",
+          "assets/hsv-CJgCKgXi.js",
+          "assets/text-field-BwkbiqH1.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/color-wheel.js",
+          "node_modules/@en-reve/elements/dist/color-wheel.js",
+          "node_modules/@en-reve/elements/dist/definitions/color-wheel.js"
+        ]
+      },
+      {
+        "file": "assets/combobox-BzkWv2Mp.js",
+        "bytes": 27183,
+        "gzipBytes": 8201,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/dist-DPUsT2rp.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/press-recipes-Buis-mUX.js",
+          "assets/option-paint-CTPCd_5L.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/description-CniNqW43.js",
+          "assets/surface-motion-Dj7v-MHR.js",
+          "assets/native-surface-C3ngI-D7.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/editing-controller-DI0Skaqb.js",
+          "assets/draft-TbSd0Lv8.js",
+          "assets/form-field-CPyTd1OA.js",
+          "assets/popup-measurement-DsNJMV3T.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/combobox.js",
+          "node_modules/@en-reve/elements/dist/combobox/model.js",
+          "node_modules/@en-reve/elements/dist/combobox/interaction-controller.js",
+          "node_modules/@en-reve/elements/dist/combobox/position-controller.js",
+          "node_modules/@en-reve/elements/dist/combobox/space-feedback-controller.js",
+          "node_modules/@en-reve/elements/dist/combobox/template.js",
+          "node_modules/@en-reve/elements/dist/combobox/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/combobox.js"
+        ]
+      },
+      {
+        "file": "assets/command-palette-B53i3eTK.js",
+        "bytes": 9623,
+        "gzipBytes": 3574,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/dist-DPUsT2rp.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/commands-ChlB67sW.js",
+          "assets/dialog-lW2AqvB4.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/command-palette/model.js",
+          "node_modules/@en-reve/elements/dist/command-palette/template.js",
+          "node_modules/@en-reve/elements/dist/command-palette/interaction-controller.js",
+          "node_modules/@en-reve/elements/dist/command-palette/viewport-controller.js",
+          "node_modules/@en-reve/elements/dist/command-palette/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/command-palette.js"
+        ]
+      },
+      {
+        "file": "assets/commands-ChlB67sW.js",
+        "bytes": 10219,
+        "gzipBytes": 2611,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/option-paint-CTPCd_5L.js",
+          "assets/surface-motion-Dj7v-MHR.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/commands.js"
+        ]
+      },
+      {
+        "file": "assets/context-Ro94sQrw.js",
+        "bytes": 604,
+        "gzipBytes": 345,
+        "entry": false,
+        "imports": [
+          "assets/context-consumer-DCpGU_aV.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/editor/context.js"
+        ]
+      },
+      {
+        "file": "assets/context-consumer-DCpGU_aV.js",
+        "bytes": 2178,
+        "gzipBytes": 828,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@lit/context/lib/context-request-event.js",
+          "node_modules/@lit/context/lib/create-context.js",
+          "node_modules/@lit/context/lib/context-root.js",
+          "node_modules/@en-reve/elements/dist/internal/context-consumer.js"
+        ]
+      },
+      {
+        "file": "assets/context-menu-DODuP_jZ.js",
+        "bytes": 3549,
+        "gzipBytes": 1281,
+        "entry": false,
+        "imports": [
+          "assets/en-element-D4X0SC2z.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/focus-Dua56K8v.js",
+          "assets/element-BxRfAjMw.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/context-menu.js",
+          "node_modules/@en-reve/elements/dist/definitions/context-menu.js"
+        ]
+      },
+      {
+        "file": "assets/context-provider-DzDXDEUf.js",
+        "bytes": 2069,
+        "gzipBytes": 787,
+        "entry": false,
+        "imports": [
+          "assets/context-consumer-DCpGU_aV.js"
+        ],
+        "modules": [
+          "node_modules/@lit/context/lib/value-notifier.js",
+          "node_modules/@lit/context/lib/controllers/context-provider.js",
+          "node_modules/@en-reve/elements/dist/internal/context-provider.js"
+        ]
+      },
+      {
+        "file": "assets/control-shared-Cimuk1ud.js",
+        "bytes": 1656,
+        "gzipBytes": 600,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/control-size-_t0sScCQ.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/control-shared.js"
+        ]
+      },
+      {
+        "file": "assets/control-size-_t0sScCQ.js",
+        "bytes": 766,
+        "gzipBytes": 398,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/control-size.js"
+        ]
+      },
+      {
+        "file": "assets/controls-B2O1xmUE.js",
+        "bytes": 30218,
+        "gzipBytes": 6304,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/inset-action-Ulq9GaFH.js",
+          "assets/button-rules-nxxtVFD2.js",
+          "assets/control-shared-Cimuk1ud.js",
+          "assets/select-chevron-D3HDReCV.js",
+          "assets/press-recipes-Buis-mUX.js",
+          "assets/option-paint-CTPCd_5L.js",
+          "assets/focus-DZLziiga.js",
+          "assets/description-CniNqW43.js",
+          "assets/surface-motion-Dj7v-MHR.js",
+          "assets/link-rules-3xmjCIx-.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/radio-rules.js",
+          "node_modules/@en-reve/styles/dist/internal/range.js",
+          "node_modules/@en-reve/styles/dist/controls.js"
+        ]
+      },
+      {
+        "file": "assets/data-table-9AL2PmLn.js",
+        "bytes": 16376,
+        "gzipBytes": 5514,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/dist-DPUsT2rp.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/if-defined-Bpc7m8iq.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/reaction.ts-vl9ZutnI.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/collection-D5jmrhHK.js",
+          "assets/virtual-collection-SFw3anmZ.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/checkbox-CguVO5EN.js",
+          "assets/style-map-3845GT8x.js",
+          "assets/table-CTET0gYU.js",
+          "assets/pagination-BBBylR43.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/table.js",
+          "node_modules/@en-reve/primitives/dist/interactions/table.js",
+          "node_modules/@en-reve/primitives/dist/templates/virtual-collection.js",
+          "node_modules/@en-reve/primitives/dist/templates/table.js",
+          "node_modules/@en-reve/elements/dist/data-table/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/data-table.js"
+        ]
+      },
+      {
+        "file": "assets/date-input-WOd24i9a.js",
+        "bytes": 122,
+        "gzipBytes": 125,
+        "entry": false,
+        "imports": [
+          "assets/element-D5eaICWT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/date-input.js"
+        ]
+      },
+      {
+        "file": "assets/date-picker-52A4hcDM.js",
+        "bytes": 19422,
+        "gzipBytes": 5593,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/registration-BdIG3fPt.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/directive-BSZPiF1A.js",
+          "assets/preload-helper-BZ1Pz5am.js",
+          "assets/calendar-BZXgil_m.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/element-D5eaICWT.js",
+          "assets/dialog-DHsUDYXG.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/date-picker-feature.js",
+          "node_modules/lit-html/directives/guard.js",
+          "node_modules/lit/directives/guard.js",
+          "node_modules/@en-reve/elements/dist/date-picker/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/date-picker.js"
+        ]
+      },
+      {
+        "file": "assets/default-state-BV2mMTNk.js",
+        "bytes": 765,
+        "gzipBytes": 332,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/forms-private/default-state.js"
+        ]
+      },
+      {
+        "file": "assets/description-CniNqW43.js",
+        "bytes": 1431,
+        "gzipBytes": 618,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/field-presentation.js",
+          "node_modules/@en-reve/styles/dist/internal/description.js"
+        ]
+      },
+      {
+        "file": "assets/description-DlmrCUEY.js",
+        "bytes": 256,
+        "gzipBytes": 191,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/templates/description.js"
+        ]
+      },
+      {
+        "file": "assets/dialog-DHsUDYXG.js",
+        "bytes": 193,
+        "gzipBytes": 165,
+        "entry": false,
+        "imports": [
+          "assets/button-D2cGkUAF.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/dialog-lW2AqvB4.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/dialog.js"
+        ]
+      },
+      {
+        "file": "assets/dialog-DeWXK7ki.js",
+        "bytes": 71,
+        "gzipBytes": 82,
+        "entry": false,
+        "imports": [
+          "assets/dialog-DHsUDYXG.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/dialog-lW2AqvB4.js",
+        "bytes": 9293,
+        "gzipBytes": 3316,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/typography-krMVvQp9.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/id-reference-B2CjDUR0.js",
+          "assets/overlays-CH3Ic9HZ.js",
+          "assets/native-surface-C3ngI-D7.js",
+          "assets/focus-Dua56K8v.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/dialog/template.js",
+          "node_modules/@en-reve/elements/dist/dialog/trigger-controller.js",
+          "node_modules/@en-reve/elements/dist/dialog/dialog.js"
+        ]
+      },
+      {
+        "file": "assets/directive-BSZPiF1A.js",
+        "bytes": 318,
+        "gzipBytes": 239,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/lit-html/directive.js"
+        ]
+      },
+      {
+        "file": "assets/directive-helpers-CH7AkOyP.js",
+        "bytes": 642,
+        "gzipBytes": 401,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/lit-html/directive-helpers.js"
+        ]
+      },
+      {
+        "file": "assets/disclosure-qREhfMFn.js",
+        "bytes": 495,
+        "gzipBytes": 289,
+        "entry": false,
+        "imports": [
+          "assets/events-CpcSoZJt.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/navigation/disclosure.js"
+        ]
+      },
+      {
+        "file": "assets/dist-BpZU6oH1.js",
+        "bytes": 88686,
+        "gzipBytes": 26242,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/orderedmap/dist/index.js",
+          "node_modules/prosemirror-model/dist/index.js",
+          "node_modules/prosemirror-transform/dist/index.js",
+          "node_modules/prosemirror-state/dist/index.js"
+        ]
+      },
+      {
+        "file": "assets/dist-DPUsT2rp.js",
+        "bytes": 8094,
+        "gzipBytes": 2561,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/signal-polyfill/dist/index.js"
+        ]
+      },
+      {
+        "file": "assets/dist-ytqzuIeZ.js",
+        "bytes": 97494,
+        "gzipBytes": 30681,
+        "entry": false,
+        "imports": [
+          "assets/dist-BpZU6oH1.js"
+        ],
+        "modules": [
+          "node_modules/prosemirror-view/dist/index.js"
+        ]
+      },
+      {
+        "file": "assets/dom-kind-o7gZjmMs.js",
+        "bytes": 366,
+        "gzipBytes": 228,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/dom-kind.js"
+        ]
+      },
+      {
+        "file": "assets/draft-TbSd0Lv8.js",
+        "bytes": 1122,
+        "gzipBytes": 450,
+        "entry": false,
+        "imports": [
+          "assets/dist-DPUsT2rp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/draft.js"
+        ]
+      },
+      {
+        "file": "assets/drawer-DUymuBN-.js",
+        "bytes": 376,
+        "gzipBytes": 270,
+        "entry": false,
+        "imports": [
+          "assets/dialog-lW2AqvB4.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/drawer/drawer.js"
+        ]
+      },
+      {
+        "file": "assets/drawer-TL0I5dPF.js",
+        "bytes": 208,
+        "gzipBytes": 172,
+        "entry": false,
+        "imports": [
+          "assets/button-D2cGkUAF.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/drawer-DUymuBN-.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/drawer.js"
+        ]
+      },
+      {
+        "file": "assets/editable-field-BizpordK.js",
+        "bytes": 632,
+        "gzipBytes": 371,
+        "entry": false,
+        "imports": [
+          "assets/editing-controller-DI0Skaqb.js",
+          "assets/form-field-CPyTd1OA.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/forms-private/editable-field.js"
+        ]
+      },
+      {
+        "file": "assets/editing-controller-DI0Skaqb.js",
+        "bytes": 2089,
+        "gzipBytes": 808,
+        "entry": false,
+        "imports": [
+          "assets/events-CpcSoZJt.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/editing-controller.js"
+        ]
+      },
+      {
+        "file": "assets/editor-association-6k6w5nZe.js",
+        "bytes": 1067,
+        "gzipBytes": 535,
+        "entry": false,
+        "imports": [
+          "assets/en-element-D4X0SC2z.js",
+          "assets/context-consumer-DCpGU_aV.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/editor-association.js"
+        ]
+      },
+      {
+        "file": "assets/editor-toolbar-z3fPlKqg.js",
+        "bytes": 8253,
+        "gzipBytes": 3024,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/context-consumer-DCpGU_aV.js",
+          "assets/messages-context-Ct6fA-jX.js",
+          "assets/text-field-BwkbiqH1.js",
+          "assets/editor-association-6k6w5nZe.js",
+          "assets/context-Ro94sQrw.js",
+          "assets/messages-U2qqEbMk.js",
+          "assets/toolbar-C7AczBDD.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/editor-toolbar.js",
+          "node_modules/@en-reve/elements/dist/definitions/editor-toolbar.js"
+        ]
+      },
+      {
+        "file": "assets/editor-trigger-DS5J0UaV.js",
+        "bytes": 1091,
+        "gzipBytes": 517,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/editor-association-6k6w5nZe.js",
+          "assets/context-Ro94sQrw.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/editor-trigger/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/editor-trigger.js"
+        ]
+      },
+      {
+        "file": "assets/element-BxRfAjMw.js",
+        "bytes": 20456,
+        "gzipBytes": 6481,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/focus-participant-By0YSzc3.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/template-aHMLGvYQ.js",
+          "assets/floating-surface-eLL0PAdS.js",
+          "assets/overlays-CH3Ic9HZ.js",
+          "assets/native-surface-C3ngI-D7.js",
+          "assets/focus-Dua56K8v.js",
+          "assets/popup-measurement-DsNJMV3T.js",
+          "assets/commands-ChlB67sW.js",
+          "assets/roving-focus-D4BMObBE.js",
+          "assets/menu-owner-CRbpq0mM.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/menu/interaction-controller.js",
+          "node_modules/@en-reve/elements/dist/menu/position-controller.js",
+          "node_modules/@en-reve/elements/dist/menu/template.js",
+          "node_modules/@en-reve/elements/dist/menu/element.js"
+        ]
+      },
+      {
+        "file": "assets/element-D5eaICWT.js",
+        "bytes": 706,
+        "gzipBytes": 401,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/editable-field-BizpordK.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/date-input/element.js"
+        ]
+      },
+      {
+        "file": "assets/element-Dhx2NESy.js",
+        "bytes": 1448,
+        "gzipBytes": 697,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/editable-field-BizpordK.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/text-field/element.js"
+        ]
+      },
+      {
+        "file": "assets/element-DqqwILg6.js",
+        "bytes": 3141,
+        "gzipBytes": 1241,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/buttons-DPEo5BPk.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/activity-CtYsKil1.js",
+          "assets/if-defined-Bpc7m8iq.js",
+          "assets/focus-participant-By0YSzc3.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/button/template.js",
+          "node_modules/@en-reve/elements/dist/button/element.js"
+        ]
+      },
+      {
+        "file": "assets/en-element-D4X0SC2z.js",
+        "bytes": 8934,
+        "gzipBytes": 2955,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/registration-BdIG3fPt.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/element-registry.js",
+          "node_modules/@en-reve/elements/dist/internal/child-upgrades.js",
+          "node_modules/@en-reve/elements/dist/element-scope.js",
+          "node_modules/@en-reve/elements/dist/internal/en-element.js"
+        ]
+      },
+      {
+        "file": "assets/events-CpcSoZJt.js",
+        "bytes": 1562,
+        "gzipBytes": 725,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/events.js"
+        ]
+      },
+      {
+        "file": "assets/feedback-DCppVjJz.js",
+        "bytes": 7608,
+        "gzipBytes": 1648,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/activity-CtYsKil1.js",
+          "assets/focus-DZLziiga.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/feedback.js"
+        ]
+      },
+      {
+        "file": "assets/file-upload-CO7R2XGe.js",
+        "bytes": 15202,
+        "gzipBytes": 5107,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/form-controller-DFZmdqQJ.js",
+          "assets/validation-feedback-Cy3htoWX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/file-upload.js",
+          "node_modules/@en-reve/primitives/dist/interactions/file-selection.js",
+          "node_modules/@en-reve/elements/dist/file-upload/drop-controller.js",
+          "node_modules/@en-reve/elements/dist/file-upload/template.js",
+          "node_modules/@en-reve/elements/dist/file-upload/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/file-upload.js"
+        ]
+      },
+      {
+        "file": "assets/floating-surface-eLL0PAdS.js",
+        "bytes": 9302,
+        "gzipBytes": 3342,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/id-reference-B2CjDUR0.js",
+          "assets/overlays-CH3Ic9HZ.js",
+          "assets/native-surface-C3ngI-D7.js",
+          "assets/focus-Dua56K8v.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/overlay-arrow.js",
+          "node_modules/@en-reve/elements/dist/popover/floating-surface.js"
+        ]
+      },
+      {
+        "file": "assets/focus-DZLziiga.js",
+        "bytes": 2848,
+        "gzipBytes": 863,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/button-rules-nxxtVFD2.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/focus.js"
+        ]
+      },
+      {
+        "file": "assets/focus-Dua56K8v.js",
+        "bytes": 521,
+        "gzipBytes": 310,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/dialog/focus.js"
+        ]
+      },
+      {
+        "file": "assets/focus-participant-By0YSzc3.js",
+        "bytes": 737,
+        "gzipBytes": 335,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/focus-participant.js"
+        ]
+      },
+      {
+        "file": "assets/form-controller-DFZmdqQJ.js",
+        "bytes": 1192,
+        "gzipBytes": 582,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/form-controller.js"
+        ]
+      },
+      {
+        "file": "assets/form-field-CPyTd1OA.js",
+        "bytes": 6000,
+        "gzipBytes": 2006,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/default-state-BV2mMTNk.js",
+          "assets/form-controller-DFZmdqQJ.js",
+          "assets/draft-TbSd0Lv8.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/forms-private/form-field.js"
+        ]
+      },
+      {
+        "file": "assets/form-navigation-DvkRzNx3.js",
+        "bytes": 8307,
+        "gzipBytes": 3123,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/collection-D5jmrhHK.js",
+          "assets/selection-children-B7xx22um.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/form-children.js",
+          "node_modules/@en-reve/styles/dist/form-navigation.js"
+        ]
+      },
+      {
+        "file": "assets/foundations-D2ls3hcT.js",
+        "bytes": 21097,
+        "gzipBytes": 4868,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/tokens/dist/defaults.js",
+          "node_modules/@en-reve/tokens/dist/sizing.js",
+          "node_modules/@en-reve/styles/dist/internal/token-values.js",
+          "node_modules/@en-reve/styles/dist/internal/values.js",
+          "node_modules/@en-reve/styles/dist/internal/press.js",
+          "node_modules/@en-reve/styles/dist/internal/focus-core.js",
+          "node_modules/@en-reve/styles/dist/internal/sizing.js",
+          "node_modules/@en-reve/styles/dist/foundations.js"
+        ]
+      },
+      {
+        "file": "assets/hover-card-CMm35p3C.js",
+        "bytes": 2688,
+        "gzipBytes": 991,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/hover-corridor-D8Kuc6ri.js",
+          "assets/popover-rgLgFTs7.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/hover-card.js",
+          "node_modules/@en-reve/elements/dist/definitions/hover-card.js"
+        ]
+      },
+      {
+        "file": "assets/hover-corridor-D8Kuc6ri.js",
+        "bytes": 747,
+        "gzipBytes": 409,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/tooltip/hover-corridor.js"
+        ]
+      },
+      {
+        "file": "assets/hsv-CJgCKgXi.js",
+        "bytes": 481,
+        "gzipBytes": 303,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/color-picker/hsv.js"
+        ]
+      },
+      {
+        "file": "assets/icon-C71ZjmNH.js",
+        "bytes": 430,
+        "gzipBytes": 290,
+        "entry": false,
+        "imports": [
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/feedback-DCppVjJz.js",
+          "assets/template-aHMLGvYQ.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/icon/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/icon.js"
+        ]
+      },
+      {
+        "file": "assets/icon-CFUU1AdL.js",
+        "bytes": 67,
+        "gzipBytes": 80,
+        "entry": false,
+        "imports": [
+          "assets/icon-C71ZjmNH.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/id-reference-B2CjDUR0.js",
+        "bytes": 1684,
+        "gzipBytes": 722,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/id-reference.js"
+        ]
+      },
+      {
+        "file": "assets/if-defined-Bpc7m8iq.js",
+        "bytes": 72,
+        "gzipBytes": 89,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/lit-html/directives/if-defined.js",
+          "node_modules/lit/directives/if-defined.js"
+        ]
+      },
+      {
+        "file": "assets/inset-action-Ulq9GaFH.js",
+        "bytes": 1945,
+        "gzipBytes": 607,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/control-size-_t0sScCQ.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/inset-action.js"
+        ]
+      },
+      {
+        "file": "assets/lazy-DCoagGJJ.js",
+        "bytes": 11893,
+        "gzipBytes": 2983,
+        "entry": false,
+        "imports": [
+          "assets/registration-BdIG3fPt.js",
+          "assets/preload-helper-BZ1Pz5am.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/lazy-loader.js",
+          "node_modules/@en-reve/elements/dist/lazy-manifest.js",
+          "node_modules/@en-reve/elements/dist/lazy.js"
+        ]
+      },
+      {
+        "file": "assets/link-BOarz6vR.js",
+        "bytes": 1109,
+        "gzipBytes": 610,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/control-shared-Cimuk1ud.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/if-defined-Bpc7m8iq.js",
+          "assets/link-rules-3xmjCIx-.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/links.js",
+          "node_modules/@en-reve/elements/dist/link/template.js",
+          "node_modules/@en-reve/elements/dist/link/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/link.js"
+        ]
+      },
+      {
+        "file": "assets/link-rules-3xmjCIx-.js",
+        "bytes": 587,
+        "gzipBytes": 324,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/link-rules.js"
+        ]
+      },
+      {
+        "file": "assets/live-BOIXS5oj.js",
+        "bytes": 738,
+        "gzipBytes": 430,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/directive-BSZPiF1A.js",
+          "assets/directive-helpers-CH7AkOyP.js"
+        ],
+        "modules": [
+          "node_modules/lit-html/directives/live.js",
+          "node_modules/lit/directives/live.js"
+        ]
+      },
+      {
+        "file": "assets/media-viewer-C574gV-_.js",
+        "bytes": 4602,
+        "gzipBytes": 2107,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/carousel-BIM5GItR.js",
+          "assets/dialog-lW2AqvB4.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/media-viewer.js",
+          "node_modules/@en-reve/elements/dist/definitions/media-viewer.js"
+        ]
+      },
+      {
+        "file": "assets/menu-C0q1v7r1.js",
+        "bytes": 67,
+        "gzipBytes": 80,
+        "entry": false,
+        "imports": [
+          "assets/menu-io2QlhCx.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/menu-io2QlhCx.js",
+        "bytes": 93,
+        "gzipBytes": 104,
+        "entry": false,
+        "imports": [
+          "assets/element-BxRfAjMw.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/menu.js"
+        ]
+      },
+      {
+        "file": "assets/menu-item-DMTpSFVt.js",
+        "bytes": 76,
+        "gzipBytes": 89,
+        "entry": false,
+        "imports": [
+          "assets/menu-item-Dka8t5OZ.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/menu-item-Dka8t5OZ.js",
+        "bytes": 4686,
+        "gzipBytes": 1765,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/if-defined-Bpc7m8iq.js",
+          "assets/focus-participant-By0YSzc3.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/template-aHMLGvYQ.js",
+          "assets/commands-ChlB67sW.js",
+          "assets/menu-owner-CRbpq0mM.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/menu-item/template.js",
+          "node_modules/@en-reve/elements/dist/menu-item/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/menu-item.js"
+        ]
+      },
+      {
+        "file": "assets/menu-owner-CRbpq0mM.js",
+        "bytes": 215,
+        "gzipBytes": 149,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/menu-owner.js"
+        ]
+      },
+      {
+        "file": "assets/menubar-B2U2l28a.js",
+        "bytes": 2463,
+        "gzipBytes": 1194,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/menu-item-Dka8t5OZ.js",
+          "assets/menu-io2QlhCx.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/menubar.js",
+          "node_modules/@en-reve/elements/dist/definitions/menubar.js"
+        ]
+      },
+      {
+        "file": "assets/messages-U2qqEbMk.js",
+        "bytes": 880,
+        "gzipBytes": 520,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/messages.js",
+          "node_modules/@en-reve/elements/dist/editor/messages.js"
+        ]
+      },
+      {
+        "file": "assets/messages-context-Ct6fA-jX.js",
+        "bytes": 327,
+        "gzipBytes": 250,
+        "entry": false,
+        "imports": [
+          "assets/context-consumer-DCpGU_aV.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/messages-context.js"
+        ]
+      },
+      {
+        "file": "assets/multiple-choice-Dllm0bcz.js",
+        "bytes": 12278,
+        "gzipBytes": 4071,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/selection-Bj4jKfjG.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/selection-children-B7xx22um.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/live-BOIXS5oj.js",
+          "assets/default-state-BV2mMTNk.js",
+          "assets/form-controller-DFZmdqQJ.js",
+          "assets/patterns-DRZmGBOR.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/multiple-choice.js"
+        ]
+      },
+      {
+        "file": "assets/multiselect-B-O6sJeN.js",
+        "bytes": 168,
+        "gzipBytes": 148,
+        "entry": false,
+        "imports": [
+          "assets/multiple-choice-Dllm0bcz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/multiselect.js",
+          "node_modules/@en-reve/elements/dist/definitions/multiselect.js"
+        ]
+      },
+      {
+        "file": "assets/native-surface-C3ngI-D7.js",
+        "bytes": 257,
+        "gzipBytes": 207,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/native-surface.js"
+        ]
+      },
+      {
+        "file": "assets/navigation-DNp48CRb.js",
+        "bytes": 269,
+        "gzipBytes": 183,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/radio-group/navigation.js"
+        ]
+      },
+      {
+        "file": "assets/navigation-IcQvXKmD.js",
+        "bytes": 3943,
+        "gzipBytes": 1542,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/navigation-x_ld63t6.js",
+          "assets/disclosure-qREhfMFn.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/templates/slotted-navigation.js",
+          "node_modules/@en-reve/elements/dist/navigation/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/navigation.js"
+        ]
+      },
+      {
+        "file": "assets/navigation-group-CmQcWqn0.js",
+        "bytes": 1529,
+        "gzipBytes": 768,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/navigation-x_ld63t6.js",
+          "assets/disclosure-qREhfMFn.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/navigation-group.js",
+          "node_modules/@en-reve/elements/dist/definitions/navigation-group.js"
+        ]
+      },
+      {
+        "file": "assets/navigation-x_ld63t6.js",
+        "bytes": 14753,
+        "gzipBytes": 2399,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/press-recipes-Buis-mUX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/breadcrumbs.js",
+          "node_modules/@en-reve/styles/dist/navigation.js"
+        ]
+      },
+      {
+        "file": "assets/number-field-B6Mbi8Bm.js",
+        "bytes": 2337,
+        "gzipBytes": 932,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/editable-field-BizpordK.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/number-field/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/number-field.js"
+        ]
+      },
+      {
+        "file": "assets/numeric-base-DE4Mr5ZQ.js",
+        "bytes": 3835,
+        "gzipBytes": 1337,
+        "entry": false,
+        "imports": [
+          "assets/foundations-D2ls3hcT.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/selection-Bj4jKfjG.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/default-state-BV2mMTNk.js",
+          "assets/form-controller-DFZmdqQJ.js",
+          "assets/validation-feedback-Cy3htoWX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/slider/numeric-base.js"
+        ]
+      },
+      {
+        "file": "assets/option-paint-CTPCd_5L.js",
+        "bytes": 3503,
+        "gzipBytes": 877,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/press-recipes-Buis-mUX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/option-paint.js"
+        ]
+      },
+      {
+        "file": "assets/optional-slot-presence-BGMJEOE2.js",
+        "bytes": 570,
+        "gzipBytes": 318,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/optional-slot-presence.js"
+        ]
+      },
+      {
+        "file": "assets/otp-field-wmpZuetN.js",
+        "bytes": 1095,
+        "gzipBytes": 635,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/element-Dhx2NESy.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/otp-field.js",
+          "node_modules/@en-reve/elements/dist/definitions/otp-field.js"
+        ]
+      },
+      {
+        "file": "assets/overlays-CH3Ic9HZ.js",
+        "bytes": 6773,
+        "gzipBytes": 1987,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/surface-motion-Dj7v-MHR.js",
+          "assets/id-reference-B2CjDUR0.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/overlay-trigger.js",
+          "node_modules/@en-reve/styles/dist/overlays.js"
+        ]
+      },
+      {
+        "file": "assets/pagination-BBBylR43.js",
+        "bytes": 22362,
+        "gzipBytes": 6077,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/control-shared-Cimuk1ud.js",
+          "assets/buttons-DPEo5BPk.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/template-aHMLGvYQ.js",
+          "assets/style-map-3845GT8x.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/pagination.js",
+          "node_modules/@en-reve/elements/dist/pagination/state.js",
+          "node_modules/@en-reve/elements/dist/pagination/template.js",
+          "node_modules/@en-reve/elements/dist/pagination/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/pagination.js"
+        ]
+      },
+      {
+        "file": "assets/pagination-BG8CDtfR.js",
+        "bytes": 79,
+        "gzipBytes": 83,
+        "entry": false,
+        "imports": [
+          "assets/pagination-BBBylR43.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/patterns-DRZmGBOR.js",
+        "bytes": 11834,
+        "gzipBytes": 2040,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/inset-action-Ulq9GaFH.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/joined-buttons.js",
+          "node_modules/@en-reve/styles/dist/patterns.js"
+        ]
+      },
+      {
+        "file": "assets/popover-CybCI8vN.js",
+        "bytes": 117,
+        "gzipBytes": 119,
+        "entry": false,
+        "imports": [
+          "assets/popover-rgLgFTs7.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/popover.js"
+        ]
+      },
+      {
+        "file": "assets/popover-rgLgFTs7.js",
+        "bytes": 1452,
+        "gzipBytes": 704,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/typography-krMVvQp9.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/floating-surface-eLL0PAdS.js",
+          "assets/native-surface-C3ngI-D7.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/popover/template.js",
+          "node_modules/@en-reve/elements/dist/popover/popover.js"
+        ]
+      },
+      {
+        "file": "assets/popup-measurement-DsNJMV3T.js",
+        "bytes": 2025,
+        "gzipBytes": 903,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/popup-measurement.js"
+        ]
+      },
+      {
+        "file": "assets/preload-helper-BZ1Pz5am.js",
+        "bytes": 1218,
+        "gzipBytes": 688,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "\u0000vite/preload-helper.js"
+        ]
+      },
+      {
+        "file": "assets/presence-BKWo7zkx.js",
+        "bytes": 75,
+        "gzipBytes": 84,
+        "entry": false,
+        "imports": [
+          "assets/presence-BgloYOI1.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/presence-BgloYOI1.js",
+        "bytes": 1492,
+        "gzipBytes": 739,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/collaboration-BgB2-a7a.js",
+          "assets/avatar-jGTeOfDc.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/presence.js",
+          "node_modules/@en-reve/elements/dist/definitions/presence.js"
+        ]
+      },
+      {
+        "file": "assets/presence-group-C9FQOoFf.js",
+        "bytes": 3265,
+        "gzipBytes": 1408,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/collaboration-BgB2-a7a.js",
+          "assets/presence-BgloYOI1.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/presence-group.js",
+          "node_modules/@en-reve/elements/dist/definitions/presence-group.js"
+        ]
+      },
+      {
+        "file": "assets/press-recipes-Buis-mUX.js",
+        "bytes": 6775,
+        "gzipBytes": 891,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/press-recipes.js"
+        ]
+      },
+      {
+        "file": "assets/progress-bar-BXtGQODq.js",
+        "bytes": 2134,
+        "gzipBytes": 1039,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/if-defined-Bpc7m8iq.js",
+          "assets/feedback-DCppVjJz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/progress-bar/template.js",
+          "node_modules/@en-reve/elements/dist/progress-bar/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/progress-bar.js"
+        ]
+      },
+      {
+        "file": "assets/progress-step-SOljMZM_.js",
+        "bytes": 84,
+        "gzipBytes": 93,
+        "entry": false,
+        "imports": [
+          "assets/progress-step-xZA5H8KB.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/progress-step-xZA5H8KB.js",
+        "bytes": 602,
+        "gzipBytes": 374,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/selection-item-Bkd9vJsp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/progress-step/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/progress-step.js"
+        ]
+      },
+      {
+        "file": "assets/progress-steps-Cm7s6Dqp.js",
+        "bytes": 6511,
+        "gzipBytes": 2394,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/buttons-DPEo5BPk.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/progress-step-xZA5H8KB.js",
+          "assets/form-navigation-DvkRzNx3.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/progress-steps/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/progress-steps.js"
+        ]
+      },
+      {
+        "file": "assets/query-builder-Dox1vLWm.js",
+        "bytes": 6002,
+        "gzipBytes": 2123,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/live-BOIXS5oj.js",
+          "assets/select-DPLC39cu.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/query.js",
+          "node_modules/@en-reve/elements/dist/query-builder.js",
+          "node_modules/@en-reve/elements/dist/definitions/query-builder.js"
+        ]
+      },
+      {
+        "file": "assets/questionnaire-BW9H8Sci.js",
+        "bytes": 5495,
+        "gzipBytes": 2005,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/live-BOIXS5oj.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/questionnaire.js",
+          "node_modules/@en-reve/elements/dist/definitions/questionnaire.js"
+        ]
+      },
+      {
+        "file": "assets/radio-8letODqX.js",
+        "bytes": 1200,
+        "gzipBytes": 552,
+        "entry": false,
+        "imports": [
+          "assets/choice-base-D8PmunNX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/radio/index.js",
+          "node_modules/@en-reve/elements/dist/definitions/radio.js"
+        ]
+      },
+      {
+        "file": "assets/radio-group-BYZVRtiU.js",
+        "bytes": 6408,
+        "gzipBytes": 2274,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/selection-Bj4jKfjG.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/default-state-BV2mMTNk.js",
+          "assets/form-controller-DFZmdqQJ.js",
+          "assets/validation-feedback-Cy3htoWX.js",
+          "assets/navigation-DNp48CRb.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/radio-group/template.js",
+          "node_modules/@en-reve/elements/dist/radio-group/index.js",
+          "node_modules/@en-reve/elements/dist/definitions/radio-group.js"
+        ]
+      },
+      {
+        "file": "assets/range-slider-B65DxRn4.js",
+        "bytes": 9724,
+        "gzipBytes": 3663,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/live-BOIXS5oj.js",
+          "assets/default-state-BV2mMTNk.js",
+          "assets/form-controller-DFZmdqQJ.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/interval.js",
+          "node_modules/@en-reve/elements/dist/range-slider.js",
+          "node_modules/@en-reve/elements/dist/definitions/range-slider.js"
+        ]
+      },
+      {
+        "file": "assets/rating-C-uAgqPu.js",
+        "bytes": 2430,
+        "gzipBytes": 1103,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/numeric-base-DE4Mr5ZQ.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/rating/template.js",
+          "node_modules/@en-reve/elements/dist/rating/index.js",
+          "node_modules/@en-reve/elements/dist/definitions/rating.js"
+        ]
+      },
+      {
+        "file": "assets/reaction.ts-vl9ZutnI.js",
+        "bytes": 471,
+        "gzipBytes": 328,
+        "entry": false,
+        "imports": [
+          "assets/dist-DPUsT2rp.js"
+        ],
+        "modules": [
+          "node_modules/signal-utils/dist/subtle/reaction.ts.js"
+        ]
+      },
+      {
+        "file": "assets/registration-BdIG3fPt.js",
+        "bytes": 944,
+        "gzipBytes": 441,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/registration.js"
+        ]
+      },
+      {
+        "file": "assets/repeat-BKYaxefn.js",
+        "bytes": 1375,
+        "gzipBytes": 727,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/directive-BSZPiF1A.js",
+          "assets/directive-helpers-CH7AkOyP.js"
+        ],
+        "modules": [
+          "node_modules/lit-html/directives/repeat.js",
+          "node_modules/lit/directives/repeat.js"
+        ]
+      },
+      {
+        "file": "assets/rich-text-editor-Bp41fD5v.js",
+        "bytes": 63119,
+        "gzipBytes": 20686,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/preload-helper-BZ1Pz5am.js",
+          "assets/context-consumer-DCpGU_aV.js",
+          "assets/context-provider-DzDXDEUf.js",
+          "assets/chat-editor-yr_rO6LF.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/messages-context-Ct6fA-jX.js",
+          "assets/static-html-RvMYgzIi.js",
+          "assets/context-Ro94sQrw.js",
+          "assets/messages-U2qqEbMk.js",
+          "assets/token-editor-OtheZPSy.js",
+          "assets/dist-BpZU6oH1.js"
+        ],
+        "modules": [
+          "node_modules/prosemirror-schema-list/dist/index.js",
+          "node_modules/@en-reve/elements/dist/rich-document.js",
+          "node_modules/@en-reve/elements/dist/rich-text-editor/document.js",
+          "node_modules/@en-reve/elements/dist/rich-text-editor/clipboard.js",
+          "node_modules/@en-reve/elements/dist/rich-text-editor/ranges.js",
+          "node_modules/rope-sequence/dist/index.js",
+          "node_modules/prosemirror-history/dist/index.js",
+          "node_modules/w3c-keyname/index.js",
+          "node_modules/prosemirror-keymap/dist/index.js",
+          "node_modules/prosemirror-commands/dist/index.js",
+          "node_modules/@en-reve/styles/dist/rich-text-editor.js",
+          "node_modules/@en-reve/elements/dist/rich-text-editor/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/rich-text-editor.js"
+        ]
+      },
+      {
+        "file": "assets/roving-focus-D4BMObBE.js",
+        "bytes": 3844,
+        "gzipBytes": 1538,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/roving-focus.js"
+        ]
+      },
+      {
+        "file": "assets/search-input-BRLfNaGd.js",
+        "bytes": 636,
+        "gzipBytes": 361,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/editable-field-BizpordK.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/search-input/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/search-input.js"
+        ]
+      },
+      {
+        "file": "assets/segmented-control-BdlvE1wd.js",
+        "bytes": 10032,
+        "gzipBytes": 3490,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/selection-Bj4jKfjG.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/selection-children-B7xx22um.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/default-state-BV2mMTNk.js",
+          "assets/form-controller-DFZmdqQJ.js",
+          "assets/validation-feedback-Cy3htoWX.js",
+          "assets/navigation-DNp48CRb.js",
+          "assets/segmented-item-CMRq4HA5.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/segmented-control/template.js",
+          "node_modules/@en-reve/elements/dist/segmented-control/pointer.js",
+          "node_modules/@en-reve/elements/dist/segmented-control/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/segmented-control.js"
+        ]
+      },
+      {
+        "file": "assets/segmented-item-BqS2fVno.js",
+        "bytes": 86,
+        "gzipBytes": 94,
+        "entry": false,
+        "imports": [
+          "assets/segmented-item-CMRq4HA5.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/segmented-item-CMRq4HA5.js",
+        "bytes": 334,
+        "gzipBytes": 251,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/selection-item-Bkd9vJsp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/segmented-item/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/segmented-item.js"
+        ]
+      },
+      {
+        "file": "assets/select-DLeyeA79.js",
+        "bytes": 71,
+        "gzipBytes": 82,
+        "entry": false,
+        "imports": [
+          "assets/select-DPLC39cu.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/select-DPLC39cu.js",
+        "bytes": 3747,
+        "gzipBytes": 1515,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/selection-children-B7xx22um.js",
+          "assets/form-field-CPyTd1OA.js",
+          "assets/static-html-RvMYgzIi.js",
+          "assets/select-option-C3wYm4jf.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/select/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/select.js"
+        ]
+      },
+      {
+        "file": "assets/select-chevron-D3HDReCV.js",
+        "bytes": 289,
+        "gzipBytes": 241,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/select-chevron.js"
+        ]
+      },
+      {
+        "file": "assets/select-option-BT7GFieG.js",
+        "bytes": 84,
+        "gzipBytes": 89,
+        "entry": false,
+        "imports": [
+          "assets/select-option-C3wYm4jf.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/select-option-C3wYm4jf.js",
+        "bytes": 191,
+        "gzipBytes": 166,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/selection-item-Bkd9vJsp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/select-option/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/select-option.js"
+        ]
+      },
+      {
+        "file": "assets/selection-Bj4jKfjG.js",
+        "bytes": 12401,
+        "gzipBytes": 2708,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/control-size-_t0sScCQ.js",
+          "assets/press-recipes-Buis-mUX.js",
+          "assets/option-paint-CTPCd_5L.js",
+          "assets/focus-DZLziiga.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/selection.js"
+        ]
+      },
+      {
+        "file": "assets/selection-children-B7xx22um.js",
+        "bytes": 6817,
+        "gzipBytes": 2587,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/selection-children.js"
+        ]
+      },
+      {
+        "file": "assets/selection-collection-5ZEi_j9-.js",
+        "bytes": 1441,
+        "gzipBytes": 696,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/multiple-choice-Dllm0bcz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/selection-collection.js",
+          "node_modules/@en-reve/elements/dist/definitions/selection-collection.js"
+        ]
+      },
+      {
+        "file": "assets/selection-item-Bkd9vJsp.js",
+        "bytes": 1013,
+        "gzipBytes": 448,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/selection-item.js"
+        ]
+      },
+      {
+        "file": "assets/sheet-bjhmmk0q.js",
+        "bytes": 3489,
+        "gzipBytes": 1528,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/dialog-lW2AqvB4.js",
+          "assets/drawer-DUymuBN-.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/sheet.js",
+          "node_modules/@en-reve/elements/dist/definitions/sheet.js"
+        ]
+      },
+      {
+        "file": "assets/signal-controller-BKIO1-La.js",
+        "bytes": 471,
+        "gzipBytes": 279,
+        "entry": false,
+        "imports": [
+          "assets/reaction.ts-vl9ZutnI.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/signal-controller.js"
+        ]
+      },
+      {
+        "file": "assets/skeleton-BkiNcNWf.js",
+        "bytes": 506,
+        "gzipBytes": 343,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/feedback-DCppVjJz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/skeleton/template.js",
+          "node_modules/@en-reve/elements/dist/skeleton/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/skeleton.js"
+        ]
+      },
+      {
+        "file": "assets/slider-BPXYQ8NT.js",
+        "bytes": 114,
+        "gzipBytes": 118,
+        "entry": false,
+        "imports": [
+          "assets/slider-DLJHOgCP.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/slider.js"
+        ]
+      },
+      {
+        "file": "assets/slider-DLJHOgCP.js",
+        "bytes": 8339,
+        "gzipBytes": 2743,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/editing-controller-DI0Skaqb.js",
+          "assets/draft-TbSd0Lv8.js",
+          "assets/numeric-base-DE4Mr5ZQ.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/slider/number.js",
+          "node_modules/@en-reve/elements/dist/slider/template.js",
+          "node_modules/@en-reve/elements/dist/slider/index.js"
+        ]
+      },
+      {
+        "file": "assets/spinner-KKztLFgZ.js",
+        "bytes": 552,
+        "gzipBytes": 367,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/activity-CtYsKil1.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/spinner/template.js",
+          "node_modules/@en-reve/elements/dist/spinner/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/spinner.js"
+        ]
+      },
+      {
+        "file": "assets/split-view-BfVs4NI_.js",
+        "bytes": 10121,
+        "gzipBytes": 3383,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/directive-BSZPiF1A.js",
+          "assets/directive-helpers-CH7AkOyP.js",
+          "assets/surfaces-o_fbyXzV.js",
+          "assets/focus-Dua56K8v.js",
+          "assets/style-map-3845GT8x.js",
+          "assets/splitter-Dbg-EhCA.js"
+        ],
+        "modules": [
+          "node_modules/lit-html/async-directive.js",
+          "node_modules/lit-html/directives/ref.js",
+          "node_modules/lit/directives/ref.js",
+          "node_modules/@en-reve/elements/dist/split-view/template.js",
+          "node_modules/@en-reve/elements/dist/split-view/split-view.js",
+          "node_modules/@en-reve/elements/dist/definitions/split-view.js"
+        ]
+      },
+      {
+        "file": "assets/splitter-C8TzD6mt.js",
+        "bytes": 75,
+        "gzipBytes": 84,
+        "entry": false,
+        "imports": [
+          "assets/splitter-Dbg-EhCA.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/splitter-Dbg-EhCA.js",
+        "bytes": 5556,
+        "gzipBytes": 1971,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/surfaces-o_fbyXzV.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/splitter/owner.js",
+          "node_modules/@en-reve/elements/dist/splitter/template.js",
+          "node_modules/@en-reve/elements/dist/splitter/splitter.js",
+          "node_modules/@en-reve/elements/dist/definitions/splitter.js"
+        ]
+      },
+      {
+        "file": "assets/stack-BP7GmeWL.js",
+        "bytes": 788,
+        "gzipBytes": 446,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/surfaces-o_fbyXzV.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/stack/template.js",
+          "node_modules/@en-reve/elements/dist/stack/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/stack.js"
+        ]
+      },
+      {
+        "file": "assets/static-html-RvMYgzIi.js",
+        "bytes": 453,
+        "gzipBytes": 333,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/lit-html/static.js",
+          "node_modules/lit/static-html.js"
+        ]
+      },
+      {
+        "file": "assets/static-styles-L8VUWJbp.js",
+        "bytes": 17065,
+        "gzipBytes": 6493,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@lit/reactive-element/css-tag.js",
+          "node_modules/@lit/reactive-element/reactive-element.js",
+          "node_modules/lit-html/lit-html.js",
+          "node_modules/lit-element/lit-element.js",
+          "node_modules/lit/index.js",
+          "node_modules/@en-reve/primitives/dist/interactions/static-styles.js"
+        ]
+      },
+      {
+        "file": "assets/style-map-3845GT8x.js",
+        "bytes": 937,
+        "gzipBytes": 593,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/directive-BSZPiF1A.js"
+        ],
+        "modules": [
+          "node_modules/lit-html/directives/style-map.js",
+          "node_modules/lit/directives/style-map.js"
+        ]
+      },
+      {
+        "file": "assets/surface-motion-Dj7v-MHR.js",
+        "bytes": 4839,
+        "gzipBytes": 1318,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/surface-motion.js"
+        ]
+      },
+      {
+        "file": "assets/surfaces-o_fbyXzV.js",
+        "bytes": 3745,
+        "gzipBytes": 1114,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/focus-DZLziiga.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/surfaces.js"
+        ]
+      },
+      {
+        "file": "assets/swatch-CWia_68O.js",
+        "bytes": 1443,
+        "gzipBytes": 767,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/feedback-DCppVjJz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/swatch/model.js",
+          "node_modules/@en-reve/elements/dist/swatch/template.js",
+          "node_modules/@en-reve/elements/dist/swatch/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/swatch.js"
+        ]
+      },
+      {
+        "file": "assets/switch-7KdO-Qj2.js",
+        "bytes": 71,
+        "gzipBytes": 82,
+        "entry": false,
+        "imports": [
+          "assets/switch-BvUPlTxD.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/switch-BvUPlTxD.js",
+        "bytes": 141,
+        "gzipBytes": 142,
+        "entry": false,
+        "imports": [
+          "assets/choice-base-D8PmunNX.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/switch/index.js",
+          "node_modules/@en-reve/elements/dist/definitions/switch.js"
+        ]
+      },
+      {
+        "file": "assets/tab-BEUkzLro.js",
+        "bytes": 878,
+        "gzipBytes": 509,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/selection-Bj4jKfjG.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/tab/template.js",
+          "node_modules/@en-reve/elements/dist/tab/tab.js",
+          "node_modules/@en-reve/elements/dist/definitions/tab.js"
+        ]
+      },
+      {
+        "file": "assets/tab-panel-BPG-Fst9.js",
+        "bytes": 715,
+        "gzipBytes": 448,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/selection-Bj4jKfjG.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/tab-panel/template.js",
+          "node_modules/@en-reve/elements/dist/tab-panel/tab-panel.js",
+          "node_modules/@en-reve/elements/dist/definitions/tab-panel.js"
+        ]
+      },
+      {
+        "file": "assets/table-CGEGylV5.js",
+        "bytes": 69,
+        "gzipBytes": 81,
+        "entry": false,
+        "imports": [
+          "assets/table-CTET0gYU.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/table-CTET0gYU.js",
+        "bytes": 11188,
+        "gzipBytes": 3040,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/dist-DPUsT2rp.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/dom-kind-o7gZjmMs.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/table.js",
+          "node_modules/@en-reve/elements/dist/table/template.js",
+          "node_modules/@en-reve/elements/dist/table/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/table.js"
+        ]
+      },
+      {
+        "file": "assets/tabs-SksGf8F3.js",
+        "bytes": 5948,
+        "gzipBytes": 2147,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/selection-Bj4jKfjG.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/interaction-availability.js",
+          "node_modules/@en-reve/elements/dist/tabs/template.js",
+          "node_modules/@en-reve/elements/dist/tabs/tabs.js",
+          "node_modules/@en-reve/elements/dist/definitions/tabs.js"
+        ]
+      },
+      {
+        "file": "assets/tag-DPjDUNSl.js",
+        "bytes": 991,
+        "gzipBytes": 546,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/patterns-DRZmGBOR.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/tag.js",
+          "node_modules/@en-reve/elements/dist/definitions/tag.js"
+        ]
+      },
+      {
+        "file": "assets/target-size-6XaBR98h.js",
+        "bytes": 346,
+        "gzipBytes": 223,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/internal/target-size.js"
+        ]
+      },
+      {
+        "file": "assets/template-aHMLGvYQ.js",
+        "bytes": 2385,
+        "gzipBytes": 1086,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/icon/template.js"
+        ]
+      },
+      {
+        "file": "assets/text-field-BwkbiqH1.js",
+        "bytes": 99,
+        "gzipBytes": 110,
+        "entry": false,
+        "imports": [
+          "assets/element-Dhx2NESy.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/definitions/text-field.js"
+        ]
+      },
+      {
+        "file": "assets/text-field-C2hVydTi.js",
+        "bytes": 78,
+        "gzipBytes": 89,
+        "entry": false,
+        "imports": [
+          "assets/text-field-BwkbiqH1.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/textarea-BwU_1YAK.js",
+        "bytes": 903,
+        "gzipBytes": 468,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/editable-field-BizpordK.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/textarea/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/textarea.js"
+        ]
+      },
+      {
+        "file": "assets/time-field-CFtfm7fU.js",
+        "bytes": 9331,
+        "gzipBytes": 3610,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/form-field-CPyTd1OA.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/time.js",
+          "node_modules/@en-reve/elements/dist/time-field/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/time-field.js"
+        ]
+      },
+      {
+        "file": "assets/toast-DVKumHi_.js",
+        "bytes": 13730,
+        "gzipBytes": 4579,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/button-D2cGkUAF.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/icon-C71ZjmNH.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/toast-stack.js",
+          "node_modules/@en-reve/styles/dist/toast.js",
+          "node_modules/@en-reve/elements/dist/toast/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/toast.js"
+        ]
+      },
+      {
+        "file": "assets/toast-DzYsVkal.js",
+        "bytes": 69,
+        "gzipBytes": 81,
+        "entry": false,
+        "imports": [
+          "assets/toast-DVKumHi_.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/toast-region-KNh5kMvc.js",
+        "bytes": 8419,
+        "gzipBytes": 3003,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/toast-DVKumHi_.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/create-owned-element.js",
+          "node_modules/@en-reve/elements/dist/toast-region/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/toast-region.js"
+        ]
+      },
+      {
+        "file": "assets/toggle-button-BAGO4U1_.js",
+        "bytes": 1148,
+        "gzipBytes": 591,
+        "entry": false,
+        "imports": [
+          "assets/element-DqqwILg6.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/patterns-DRZmGBOR.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/toggle-button.js",
+          "node_modules/@en-reve/elements/dist/definitions/toggle-button.js"
+        ]
+      },
+      {
+        "file": "assets/toggle-group-DH2bsWDc.js",
+        "bytes": 534,
+        "gzipBytes": 362,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/icon-C71ZjmNH.js",
+          "assets/multiple-choice-Dllm0bcz.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/toggle-group.js",
+          "node_modules/@en-reve/elements/dist/definitions/toggle-group.js"
+        ]
+      },
+      {
+        "file": "assets/token-editor-B8twtX0C.js",
+        "bytes": 22630,
+        "gzipBytes": 7036,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/context-consumer-DCpGU_aV.js",
+          "assets/context-provider-DzDXDEUf.js",
+          "assets/chat-editor-yr_rO6LF.js",
+          "assets/description-DlmrCUEY.js",
+          "assets/messages-context-Ct6fA-jX.js",
+          "assets/static-html-RvMYgzIi.js",
+          "assets/context-Ro94sQrw.js",
+          "assets/messages-U2qqEbMk.js",
+          "assets/token-editor-OtheZPSy.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/token-editor/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/token-editor.js"
+        ]
+      },
+      {
+        "file": "assets/token-editor-OtheZPSy.js",
+        "bytes": 15883,
+        "gzipBytes": 5311,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/control-shared-Cimuk1ud.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/press-recipes-Buis-mUX.js",
+          "assets/option-paint-CTPCd_5L.js",
+          "assets/description-CniNqW43.js",
+          "assets/surface-motion-Dj7v-MHR.js",
+          "assets/chat-editor-yr_rO6LF.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/token-document.js",
+          "node_modules/@en-reve/primitives/dist/interactions/editor-clipboard.js",
+          "node_modules/@en-reve/elements/dist/internal/editor-popup.js",
+          "node_modules/@en-reve/primitives/dist/interactions/editor-extensions.js",
+          "node_modules/@en-reve/styles/dist/token-editor.js"
+        ]
+      },
+      {
+        "file": "assets/toolbar-C7AczBDD.js",
+        "bytes": 3490,
+        "gzipBytes": 1434,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/focus-participant-By0YSzc3.js",
+          "assets/commands-ChlB67sW.js",
+          "assets/roving-focus-D4BMObBE.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/toolbar/template.js",
+          "node_modules/@en-reve/elements/dist/toolbar/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/toolbar.js"
+        ]
+      },
+      {
+        "file": "assets/toolbar-DgxYWcVr.js",
+        "bytes": 73,
+        "gzipBytes": 83,
+        "entry": false,
+        "imports": [
+          "assets/toolbar-C7AczBDD.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/tooltip-BdPdsk3H.js",
+        "bytes": 73,
+        "gzipBytes": 83,
+        "entry": false,
+        "imports": [
+          "assets/tooltip-JtUNfZPQ.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/tooltip-JtUNfZPQ.js",
+        "bytes": 16976,
+        "gzipBytes": 5462,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/id-reference-B2CjDUR0.js",
+          "assets/floating-surface-eLL0PAdS.js",
+          "assets/hover-corridor-D8Kuc6ri.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/tooltip/warmup-group.js",
+          "node_modules/@en-reve/elements/dist/tooltip/template.js",
+          "node_modules/@en-reve/elements/dist/tooltip/position-controller.js",
+          "node_modules/@en-reve/elements/dist/tooltip/tooltip.js",
+          "node_modules/@en-reve/elements/dist/definitions/tooltip.js"
+        ]
+      },
+      {
+        "file": "assets/transcript-DpW1q8H1.js",
+        "bytes": 3266,
+        "gzipBytes": 1388,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/controls-B2O1xmUE.js",
+          "assets/chat-message-Dealf09f.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/transcript.js",
+          "node_modules/@en-reve/elements/dist/definitions/transcript.js"
+        ]
+      },
+      {
+        "file": "assets/tree-BW5BuVva.js",
+        "bytes": 67,
+        "gzipBytes": 80,
+        "entry": false,
+        "imports": [
+          "assets/tree-BqPuDr7M.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/tree-BqPuDr7M.js",
+        "bytes": 44328,
+        "gzipBytes": 12568,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/buttons-DPEo5BPk.js",
+          "assets/value-DV2Z1wzN.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/if-defined-Bpc7m8iq.js",
+          "assets/signal-controller-BKIO1-La.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/tree-item-DOKFXUl7.js",
+          "assets/dom-kind-o7gZjmMs.js",
+          "assets/virtual-collection-SFw3anmZ.js",
+          "assets/repeat-BKYaxefn.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/tree/interaction-controller.js",
+          "node_modules/@en-reve/elements/dist/tree/template.js",
+          "node_modules/@en-reve/elements/dist/tree/data-controller.js",
+          "node_modules/@en-reve/primitives/dist/interactions/tree-operations.js",
+          "node_modules/@en-reve/elements/dist/tree/lazy-controller.js",
+          "node_modules/@en-reve/elements/dist/tree/move-controller.js",
+          "node_modules/@en-reve/elements/dist/tree/data-template.js",
+          "node_modules/@en-reve/elements/dist/tree/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/tree.js"
+        ]
+      },
+      {
+        "file": "assets/tree-item-DOKFXUl7.js",
+        "bytes": 18725,
+        "gzipBytes": 5570,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/target-size-6XaBR98h.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/if-defined-Bpc7m8iq.js",
+          "assets/select-chevron-D3HDReCV.js",
+          "assets/option-paint-CTPCd_5L.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/tree.js",
+          "node_modules/@en-reve/styles/dist/tree.js",
+          "node_modules/@en-reve/elements/dist/tree-item/template.js",
+          "node_modules/@en-reve/elements/dist/tree-item/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/tree-item.js"
+        ]
+      },
+      {
+        "file": "assets/tree-item-nLw2Q6yX.js",
+        "bytes": 76,
+        "gzipBytes": 89,
+        "entry": false,
+        "imports": [
+          "assets/tree-item-DOKFXUl7.js"
+        ],
+        "modules": []
+      },
+      {
+        "file": "assets/typography-krMVvQp9.js",
+        "bytes": 2830,
+        "gzipBytes": 696,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/styles/dist/generated/typography.js"
+        ]
+      },
+      {
+        "file": "assets/validation-feedback-Cy3htoWX.js",
+        "bytes": 570,
+        "gzipBytes": 311,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/forms-private/validation-feedback.js"
+        ]
+      },
+      {
+        "file": "assets/validation-summary-ChW7LsJD.js",
+        "bytes": 2983,
+        "gzipBytes": 1376,
+        "entry": false,
+        "imports": [
+          "assets/static-styles-L8VUWJbp.js",
+          "assets/foundations-D2ls3hcT.js",
+          "assets/en-element-D4X0SC2z.js",
+          "assets/events-CpcSoZJt.js",
+          "assets/repeat-BKYaxefn.js",
+          "assets/form-navigation-DvkRzNx3.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/validation-summary/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/validation-summary.js"
+        ]
+      },
+      {
+        "file": "assets/value-DV2Z1wzN.js",
+        "bytes": 384,
+        "gzipBytes": 257,
+        "entry": false,
+        "imports": [
+          "assets/dist-DPUsT2rp.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/value.js"
+        ]
+      },
+      {
+        "file": "assets/virtual-collection-SFw3anmZ.js",
+        "bytes": 22359,
+        "gzipBytes": 7039,
+        "entry": false,
+        "imports": [
+          "assets/dist-DPUsT2rp.js",
+          "assets/reaction.ts-vl9ZutnI.js",
+          "assets/collection-D5jmrhHK.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/state/virtual-collection.js",
+          "node_modules/@en-reve/primitives/dist/interactions/scroll-into-view.js",
+          "node_modules/@en-reve/primitives/dist/interactions/virtual-collection.js"
+        ]
+      },
+      {
+        "file": "assets/index-DGuFM15G.css",
+        "bytes": 78869,
+        "gzipBytes": 8584,
+        "entry": false,
+        "imports": [],
+        "modules": []
+      }
+    ]
+  },
+  "browser": {
+    "version": "153.0.8010.12",
+    "executable": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r/.browsers/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "sha256": "8319963f6625accf51c0dd4f55091ceaf9f09ed39e7a52fed4fae12b2a6b668a",
+    "revisionManifest": {
+      "comment": "Do not edit this file, use utils/roll_browser.js",
+      "browsers": [
+        {
+          "name": "chromium",
+          "revision": "1243",
+          "installByDefault": true,
+          "browserVersion": "153.0.8010.12",
+          "title": "Chrome for Testing"
+        },
+        {
+          "name": "chromium-headless-shell",
+          "revision": "1243",
+          "installByDefault": true,
+          "browserVersion": "153.0.8010.12",
+          "title": "Chrome Headless Shell"
+        },
+        {
+          "name": "firefox",
+          "revision": "1543",
+          "installByDefault": true,
+          "browserVersion": "155.0",
+          "title": "Firefox"
+        },
+        {
+          "name": "webkit",
+          "revision": "2359",
+          "installByDefault": true,
+          "revisionOverrides": {
+            "mac14": "2251",
+            "mac14-arm64": "2251"
+          },
+          "browserVersion": "26.6",
+          "title": "WebKit"
+        },
+        {
+          "name": "ffmpeg",
+          "revision": "1011",
+          "installByDefault": true
+        },
+        {
+          "name": "winldd",
+          "revision": "1007",
+          "installByDefault": false
+        },
+        {
+          "name": "android",
+          "revision": "1001",
+          "installByDefault": false
+        }
+      ]
+    }
+  },
+  "finishedAt": "2026-09-26T08:39:05.811Z"
+}

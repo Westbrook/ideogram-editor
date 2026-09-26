@@ -1,0 +1,15 @@
+✔ SIGKILL history-preparation-before-commit retains image command identity, complete transaction and exact restart pixels (1625.131458ms)
+✔ SIGKILL history-preparation-after-commit retains image command identity, complete transaction and exact restart pixels (1200.552792ms)
+✔ SIGKILL history-after-proofs retains image command identity, complete transaction and exact restart pixels (1293.421958ms)
+✔ SIGKILL history-before-register retains image command identity, complete transaction and exact restart pixels (1309.599167ms)
+✔ SIGKILL history-before-event retains image command identity, complete transaction and exact restart pixels (1360.536ms)
+✔ SIGKILL history-before-commit retains image command identity, complete transaction and exact restart pixels (1311.720459ms)
+✔ SIGKILL history-after-commit retains image command identity, complete transaction and exact restart pixels (1184.474333ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9593.615916

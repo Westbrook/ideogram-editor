@@ -19,6 +19,7 @@ import { parseControlJSON } from '../control-json.js';
 export const isRasterCommand=(type:string)=>['PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(type);
 type Commit=(bytes:Uint8Array,build:()=>AssetFact,failure?:()=>void)=>Receipt;
 export class Rasters {
+  private documentBusy = false;
   private directory:string;private running:Promise<void>|undefined;private closing=false;private paused=new Set<string>();private worker:Worker|undefined;
   observations:Record<string,unknown>[]=[];private reservedCPU=0;
   private approvalAuth=new Map<string,{auth:AssetAuth;started:number}>();
@@ -66,6 +67,7 @@ export class Rasters {
   command(bytes:Uint8Array,auth:AssetAuth):Receipt|null{
     this.check();const request=parseCommand(bytes),c=request.command,body=c.body,serialized=canonical(request),hash=hashBytes(serialized);if(c.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');
     const previous=this.db.prepare('SELECT hash,receipt FROM commands WHERE id=?').get(c.commandId);if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(previous.receipt));}
+    if(this.db.prepare('SELECT id FROM history_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
     const foreign=this.assets.pending(c.commandId);if(foreign){if(foreign.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');throw new StoreError('CORRUPT_STORE');}
     const pending=this.pending(c.commandId);if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');
     if(body.type==='ApproveRaster'){
@@ -79,13 +81,13 @@ export class Rasters {
     });
     if(!['PrepareRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(body.type))throw new StoreError('UNSUPPORTED_COMMAND');
     if(body.type==='PrepareRaster')this.owner(body.assetId,auth.clientId);
-    if(Number(this.db.prepare('SELECT (SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM asset_preparations) AS n').get()!.n)>=64){this.approvalAuth.delete(c.commandId);throw new StoreError('QUEUE_FULL');}
+    if(Number(this.db.prepare('SELECT (SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM history_preparations) AS n').get()!.n)>=64){this.approvalAuth.delete(c.commandId);throw new StoreError('QUEUE_FULL');}
     this.transaction(()=>{if(this.db.prepare('SELECT hash FROM asset_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');this.db.prepare('INSERT INTO raster_preparations VALUES (?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,randomUUID(),'preparing');this.barrier(body.type==='ApproveRaster'?'raster-approval-preparation-before-commit':'raster-preparation-before-commit');});
     if(body.type==='ApproveRaster'){this.approvalAuth.set(c.commandId,{auth:{...auth},started:performance.now()});this.barrier('raster-approval-preparation-after-commit');}
     this.barrier('raster-preparation-after-commit');this.schedule(true);return null;
   }
   schedule(retry=false){if(this.closing||this.running)return;setImmediate(()=>{
-    if(this.closing||this.running)return;const rows=this.db.prepare("SELECT id FROM raster_preparations WHERE phase='preparing' OR ? ORDER BY id LIMIT 64").all(retry?1:0);
+    if(this.closing||this.running||this.documentBusy)return;const rows=this.db.prepare("SELECT id FROM raster_preparations WHERE phase='preparing' OR ? ORDER BY id LIMIT 64").all(retry?1:0);
     const row=rows.find(r=>!this.paused.has(String(r.id)));if(!row)return;const id=String(row.id),slot='raster:'+id;
     try{this.objects.acquire(slot);}catch{return;}
     this.running=this.prepare(id,slot).catch(()=>{this.paused.add(id);try{this.transaction(()=>this.db.prepare("UPDATE raster_preparations SET phase='waiting-for-resources' WHERE id=?").run(id));}catch{}}).finally(()=>{this.running=undefined;this.reservedCPU=0;this.objects.unreserve(slot);this.objects.release(slot);this.schedule();});
@@ -179,6 +181,31 @@ export class Rasters {
       worker.on('error',()=>{error=new StoreError('CAPACITY');});
       worker.on('exit',()=>{clearInterval(timer);this.worker=undefined;if(error)reject(error);else if(result){result.metrics.supervisorPeakRSS=Math.max(peakRSS,process.memoryUsage().rss);result.metrics.admissionBaselineRSS=baselineRSS;result.metrics.combinedReservedBytes=baselineRSS+result.plan.cpuBytes;resolve(result);}else reject(new StoreError('STORAGE_FAILURE'));});
     });
+  }
+  // Internal document owner uses the SAME worker/admission/pixel pipeline. It
+  // publishes the result only in its atomic image/history acceptance transaction.
+  get documentAvailable(){return !this.running&&!this.documentBusy&&!this.closing;}
+  async prepareDocument(body: Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>, id:string, slot:string, check:()=>void, preparedInput?:Asset) {
+    if(this.running||this.documentBusy||this.closing)throw new StoreError('QUEUE_FULL');
+    this.documentBusy=true;
+    const proofs:{ref:BlobRef;token:string}[]=[];
+    try {
+      const ids=body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:[body.assetId];
+      const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
+      for(const assetId of ids){const a=preparedInput?.id===assetId?preparedInput:this.asset(assetId,true);const info=a.raster!;
+        for(const ref of [info.pixels,info.manifest])if(!proofs.some(p=>p.ref.hash===ref.hash))proofs.push({ref,token:await this.objects.prove(ref,check)});
+        inputs.push({id:assetId,info,path:this.objects.path(info.pixels)});dependencies.push(info.manifest);
+      }
+      const directory=join(this.directory,randomUUID());privateDirectory(directory);
+      const job:RasterJob=body.type==='ComposeRaster'?{type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies}:{type:'export',directory,input:inputs[0],dependencies};
+      const result=await this.compute(job,slot,check);validateManifest(result.manifest);
+      if(hashBytes(canonical(result.manifest))!==result.info.manifest.hash)throw new StoreError('CORRUPT_OBJECT');
+      for(const p of proofs)this.objects.proven(p.ref,p.token);
+      for(const file of result.files)proofs.push({ref:file.ref,token:await this.objects.adoptFile(join(directory,file.name),file.ref,check)});
+      const asset:Asset={id,version:'1',purpose:'image',blob:result.png,dependencies:[result.info.manifest,result.info.pixels],safety:'safe',availability:'available',qualification:body.type==='ExportRaster'?'canonical-png':'canonical-raster',measuredMediaType:'image/png',raster:result.info};
+      validateAsset(asset);return {asset,proofs,metrics:result.metrics};
+    } catch(e){for(const p of proofs)this.objects.releaseProof(p.token);throw e;}
+    finally{this.documentBusy=false;this.reservedCPU=0;this.schedule();}
   }
   diagnostics(){return {preparations:Number(this.db.prepare('SELECT count(*) AS n FROM raster_preparations').get()!.n),approvalAuthorities:this.approvalAuth.size,activeWorkers:this.worker?1:0,reservedCPU:this.reservedCPU,observations:this.observations};}
   pressure(){return !!this.db.prepare("SELECT id FROM raster_preparations WHERE phase='waiting-for-resources' LIMIT 1").get();}

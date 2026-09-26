@@ -1,0 +1,1 @@
+{"httpAdmissionMaxMs":23.3872080000001,"httpFullReceiptMaxMs":60.02941699999997,"httpFullOver50":19,"writerFullReceiptMaxMs":79.38941699999987,"appendMaxMs":9.081915999999637}

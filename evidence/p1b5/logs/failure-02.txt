@@ -1,0 +1,14 @@
+✔ history rejects missing authoritative dependency after proof, preserves old pixels and receipt (1120.431208ms)
+✔ history rejects changed authoritative dependency after proof, preserves old pixels and receipt (1071.882ms)
+✔ history rejects same-byte-replacement authoritative dependency after proof, preserves old pixels and receipt (976.822875ms)
+✔ missing hidden/deleted and historical pixels are explicit recovery, never a re-decode on restart (1099.59425ms)
+✔ actual SQLite FULL at acceptance never publishes image revision and same durable identity retries after restart (1521.474042ms)
+✔ frozen export accepts its recorded revision while a later document edit remains current (975.488459ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6812.345375

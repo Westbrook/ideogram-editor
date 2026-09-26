@@ -1,0 +1,82 @@
+{
+  "at": "2026-09-26T08:37:58.481889+00:00",
+  "task": "e928d813-fdd1-467c-803c-ac9cd3c20ccf",
+  "review": "35c8fae6-7073-4e6a-badc-bb7f12e85a32",
+  "traceability": [
+    {
+      "contract": "ARCH2/5/6: typed image documents and retained semantic versions",
+      "implementation": [
+        "src/protocol/history.ts",
+        "server/storage/history.ts",
+        "src/state/projection.ts"
+      ],
+      "evidence": [
+        "tests/history/http.test.mjs",
+        "tests/history/replay.test.mjs",
+        "tests/history/review.test.mjs"
+      ]
+    },
+    {
+      "contract": "UX3: explicit reviewed resample and flattened copy, retained originals",
+      "implementation": [
+        "server/storage/history.ts",
+        "server/storage/raster.ts"
+      ],
+      "evidence": [
+        "tests/history/review.test.mjs",
+        "tests/history/process.test.mjs"
+      ]
+    },
+    {
+      "contract": "ARCH9: independent content/history/draft/bundle status",
+      "implementation": [
+        "server/storage/history.ts",
+        "server/storage/ui.ts",
+        "src/state/draft-persistence.ts"
+      ],
+      "evidence": [
+        "tests/history/http.test.mjs",
+        "tests/history/ui.test.mjs",
+        "tests/history/consumer.spec.ts"
+      ]
+    },
+    {
+      "contract": "ARCH5.1: separate bounded UI transcript and latest checkpoint",
+      "implementation": [
+        "server/storage/ui.ts"
+      ],
+      "evidence": [
+        "tests/history/ui.test.mjs",
+        "tests/history/consumer.spec.ts",
+        "tests/history/failure.test.mjs"
+      ]
+    },
+    {
+      "contract": "ARCH20/TEST S7 S10-13 PROTO01/02: real durability, atomic recovery and explicit schema migration",
+      "implementation": [
+        "server/storage/schema.ts",
+        "server/storage/database.ts",
+        "server/storage/recovery.ts",
+        "src/state/recovery-cache.ts"
+      ],
+      "evidence": [
+        "tests/history/schema.test.mjs",
+        "tests/history/process.test.mjs",
+        "tests/history/failure.test.mjs",
+        "tests/history/consumer.spec.ts"
+      ]
+    },
+    {
+      "contract": "PERF R20-23/R31: bounded preparation; observational clocks only",
+      "implementation": [
+        "server/storage/history.ts",
+        "server/storage/raster.ts"
+      ],
+      "evidence": [
+        "tooling/history/observe.mjs",
+        "tooling/HISTORY.txt"
+      ],
+      "limits": "No formal PERF, full envelope, 100k, native-peak, supported-platform or power-loss qualification; A-R01 remains open."
+    }
+  ]
+}

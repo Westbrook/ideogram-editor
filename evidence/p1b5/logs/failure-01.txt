@@ -1,0 +1,24 @@
+✖ history rejects missing authoritative dependency after proof, preserves old pixels and receipt (10921.764375ms)
+✔ history rejects changed authoritative dependency after proof, preserves old pixels and receipt (1062.079125ms)
+✔ history rejects same-byte-replacement authoritative dependency after proof, preserves old pixels and receipt (1029.637625ms)
+✔ missing hidden/deleted and historical pixels are explicit recovery, never a re-decode on restart (1235.759375ms)
+✔ actual SQLite FULL at acceptance never publishes image revision and same durable identity retries after restart (1540.295708ms)
+✔ frozen export accepts its recorded revision while a later document edit remains current (996.882792ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16847.264625
+
+✖ failing tests:
+
+test at tests/history/failure.test.mjs:15:71
+✖ history rejects missing authoritative dependency after proof, preserves old pixels and receipt (10921.764375ms)
+  Error: No terminal receipt {"node":"26.10.0","sqlite":{"version":"3.53.4","source":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"},"settings":{"journal_mode":"wal","synchronous":2,"foreign_keys":1,"busy_timeout":250,"fullfsync":1,"checkpoint_fullfsync":1,"page_size":4096,"page_count":77,"max_page_count":4294967294},"writerEpoch":"3","highWater":"7","projectionDigest":"sha256:a6049558535b230910e0aab060971e501d53f764e6596b184e3c0ef265726366","inventory":{"orphanCount":"3","stagingCount":"0"},"missingCount":0,"missing":[],"filesystem":{"type":"26","blockSize":"4096","availableBytes":"653243387904","totalBytes":"1995165736960"},"diskWarning":false,"resources":{"ioChunkBytes":1048576,"maxTransfers":2,"admissionOverheadPercent":25,"freeMarginBytes":"1073741824","metadataHeadroomBytes":"67108864","metadataHeadroomPhysicallyPreallocated":false,"snapshotTailCeiling":500},"assets":{"orphanUploadCount":"0","orphanUploadBytes":"0","committedBytes":"86","failedCount":"0","preparations":"0","stages":"1","reservedBytes":"0","activeTransfers":0,"preparationMs":[]},"rasters":{"preparations":0,"approvalAuthorities":0,"activeWorkers":0,"reservedCPU":0,"observations":[]},"history":{"observations":[{"commandId":"9b1109fc-8e30-41e7-805b-fd512adda015","operation":"SetLayerProperties","fullPreparationMs":55.1842079999999,"error":"ENOENT"}]},"observations":{"appendMs":[],"replayMs":10.80595900000003,"snapshot":{"target":250,"pressure":false,"latest":null,"buildMs":0,"sliceMaxMs":0,"activationMs":0},"qualification":false},"processMemory":{"rss":140034048,"heapTotal":12730368,"heapUsed":9280664,"external":3766817,"arrayBuffers":1195531},"sqliteIntegrity":{"quick_check":"ok"}}
+      at done (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/failure.test.mjs:13:157)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/failure.test.mjs:20:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)

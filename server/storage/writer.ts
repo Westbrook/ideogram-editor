@@ -5,6 +5,8 @@ import { StoreError, safeError } from './errors.js';
 import type { StoreErrorCode } from './errors.js';
 import type { RecoveryStore, StoredContent } from './recovery.js';
 import type { Assets, AssetAuth } from './assets.js';
+import type { Histories } from './history.js';
+import type { UIStore } from './ui.js';
 import type { Rasters } from './raster.js';
 import type { StoreDatabase } from './database.js';
 import { IO_CHUNK } from './objects.js';
@@ -76,6 +78,15 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     assetChunk: (token:string,bytes:Uint8Array,auth:AssetAuth)=>request<ReturnType<Assets['chunk']>>('assetChunk',{token,bytes,auth}),
     assetAbortChunk: (token:string)=>request<void>('assetAbortChunk',{token}),
     assetCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('assetCommand',{bytes,auth}),
+    imagePreview:(id:string,auth:AssetAuth)=>request<ReturnType<Histories['preview']>>('imagePreview',{id,auth}),
+    imageEditReview:(id:string,auth:AssetAuth)=>request<ReturnType<Histories['review']>>('imageEditReview',{id,auth}),
+    historyCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('historyCommand',{bytes,auth}),
+    imageState:(id:string)=>request<ReturnType<Histories['state']>>('imageState',{id}),
+    historyClosure:(id:string,after:string)=>request<ReturnType<Histories['closure']>>('historyClosure',{id,after}),
+    historyPage:(id:string,after:string,kind:'history'|'checkpoints')=>request<ReturnType<Histories['page']>>('historyPage',{id,after,kind}),
+    saveStatus:(id:string,sessionId:string,auth:AssetAuth)=>request<ReturnType<Histories['status']>>('saveStatus',{id,sessionId,auth}),
+    uiRead:(id:string,auth:AssetAuth)=>request<ReturnType<UIStore['read']>>('uiRead',{id,auth}),
+    uiPersist:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<UIStore['persist']>>>('uiPersist',{bytes,auth}),
     rasterCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('rasterCommand',{bytes,auth}),
     rasterReview: (id:string,auth:AssetAuth)=>request<ReturnType<Rasters['review']>>('rasterReview',{id,auth}),
     rasterManifest: (id:string)=>request<ReturnType<Rasters['manifest']>>('rasterManifest',{id}),

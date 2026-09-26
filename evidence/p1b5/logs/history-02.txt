@@ -1,0 +1,14 @@
+npm notice run ideogram-editor@0.1.0 test:history
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/history/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ real import, transform, opacity, undo/redo, retained branch/checkpoint, restart and exact export (1489.875916ms)
+✔ concurrent revisions, deleted identity, locks, masks, crop and canvas bounds are explicit (1688.514542ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3267.40175

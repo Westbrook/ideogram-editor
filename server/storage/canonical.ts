@@ -1,3 +1,5 @@
+import { isHistoryCommand } from '../../src/protocol/history.js';
+import { historyBody } from '../../src/protocol/history-validation.js';
 import { createHash } from 'node:crypto';
 import type { BlobRef, CommandRequest, ExpectedVersions } from '../../src/protocol/store.js';
 import { parseControlJSON } from '../control-json.js';
@@ -41,7 +43,9 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
   validateBlob(c.expectedEntityVersions);
   const body = c.body as Record<string, unknown>;
   if (!body || typeof body !== 'object' || Array.isArray(body)) bad();
-  if (body.type === 'NewDocument') {
+  if (isHistoryCommand(String(body.type))) {
+    try { historyBody(body); } catch { bad(); }
+  } else if (body.type === 'NewDocument') {
     keys(body, ['type', 'width', 'height', 'color', 'depth']);
     if (!Number.isSafeInteger(body.width) || !Number.isSafeInteger(body.height) || !Number.isSafeInteger(body.depth) ||
         typeof body.color !== 'string' || body.color.length > 32) bad();
@@ -78,8 +82,8 @@ export function parseExpected(bytes: Uint8Array): ExpectedVersions {
   const seen = new Set<string>();
   for (const entity of value.entities as unknown[]) {
     keys(entity, ['entityType', 'entityId', 'version']);
-    if (entity.entityType !== 'document' || !isId(entity.entityId) || !isSeq(entity.version) || seen.has(entity.entityId)) bad();
-    seen.add(entity.entityId as string);
+    if (!['document','layer'].includes(String(entity.entityType)) || !isId(entity.entityId) || !isSeq(entity.version) || seen.has(String(entity.entityType)+':'+entity.entityId)) bad();
+    seen.add(String(entity.entityType)+':'+entity.entityId);
   }
   return value as unknown as ExpectedVersions;
 }

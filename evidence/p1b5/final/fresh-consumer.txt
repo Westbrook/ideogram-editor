@@ -1,0 +1,38 @@
+npm notice run ideogram-editor@0.1.0 test:consumer
+npm notice run node tooling/test-consumer.mjs
+pinned-npm-cli --version: 0 (0.05s)
+tooling/verify-vendor.py: 0 (0.47s)
+pinned-npm-cli ci: 0 (4.22s)
+pinned-npm-cli ls --all --json: 0 (0.14s)
+tooling/verify-vendor.py: 0 (0.21s)
+--input-type=module -e 
+    import { realpath, lstat, readFile } from 'node:fs/promises';
+    import { resolve, sep } from 'node:path';
+    const lock = JSON.parse(await readFile('package-lock.json'));
+    for (const [path, value] of Object.entries(lock.packages)) {
+      if (!path) continue;
+      const stat = await lstat(path).catch(error => { if (error.code === 'ENOENT' && value.optional) return null; throw error; });
+      if (!stat) continue;
+      if (stat.isSymbolicLink()) throw new Error('Linked dependency: ' + path);
+      if (!(await realpath(path)).startsWith(resolve('node_modules') + sep)) throw new Error('External dependency: ' + path);
+      const installed = JSON.parse(await readFile(path + '/package.json'));
+      if (installed.version !== value.version) throw new Error('Version mismatch: ' + path);
+    }
+    console.log('Installed graph has no sibling links and matches the lock');
+  : 0 (0.03s)
+pinned-npm-cli run typecheck:consumer: 0 (1.01s)
+pinned-npm-cli run build:consumer: 0 (1.21s)
+node_modules/@playwright/test/cli.js install chromium: 0 (7.14s)
+pinned-npm-cli run test:browser: 0 (3.68s)
+--input-type=module -e 
+    import { chromium } from '@playwright/test';
+    import { readFile } from 'node:fs/promises';
+    import { createHash } from 'node:crypto';
+    const executable = chromium.executablePath();
+    const browser = await chromium.launch();
+    console.log(JSON.stringify({ version: browser.version(), executable, sha256: createHash('sha256').update(await readFile(executable)).digest('hex'),
+      revisionManifest: JSON.parse(await readFile('node_modules/playwright-core/browsers.json')) }));
+    await browser.close();
+  : 0 (0.20s)
+Consumer receipt: /Users/westbrook/Documents/repos/ideogram-edit/artifacts/consumer-USzpSe/consumer-receipt.json
+Isolated consumer retained: /var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-hkzF8r

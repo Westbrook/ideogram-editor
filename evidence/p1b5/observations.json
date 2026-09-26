@@ -1,0 +1,451 @@
+{
+  "at": "2026-09-26T08:39:06.339Z",
+  "qualification": false,
+  "root": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-store-u1bMdV",
+  "limits": "Serial tiny 3x2 fixture on this host, without exclusive-host qualification. Full HTTP clocks include preparation and polling. Writer append is a separate subclock. No UI paint, supported-envelope, R20/R21/R22/R23/R31 or memory qualification.",
+  "targets": {
+    "R20TargetMs": 20,
+    "R20CeilingMs": 50
+  },
+  "http": [
+    {
+      "commandId": "dbd80408-defc-4e4a-8c64-497bdd6d8bd0",
+      "admissionStatus": 202,
+      "admissionMs": 20.81066700000008,
+      "fullReceiptMs": 56.61012500000004
+    },
+    {
+      "commandId": "ff4bb4ba-befb-4305-b9e4-9e870b767ac1",
+      "admissionStatus": 202,
+      "admissionMs": 19.973083000000088,
+      "fullReceiptMs": 56.192375000000084
+    },
+    {
+      "commandId": "3c3a8761-e780-4c02-bffc-e8a18fd9399e",
+      "admissionStatus": 202,
+      "admissionMs": 21.417832999999973,
+      "fullReceiptMs": 53.24037499999997
+    },
+    {
+      "commandId": "689eabfd-852f-4bba-b5b9-ca5606ff7d8e",
+      "admissionStatus": 202,
+      "admissionMs": 20.61775,
+      "fullReceiptMs": 55.396792000000005
+    },
+    {
+      "commandId": "50c6e931-ceea-4bf8-b6ff-e1861b55a272",
+      "admissionStatus": 202,
+      "admissionMs": 19.930707999999868,
+      "fullReceiptMs": 48.05658299999982
+    },
+    {
+      "commandId": "2f32c526-fd2b-4e19-940e-5ac4d839e615",
+      "admissionStatus": 202,
+      "admissionMs": 20.745458999999983,
+      "fullReceiptMs": 51.778458999999884
+    },
+    {
+      "commandId": "9c2521ec-2934-43ef-95e5-d7e35d30fc48",
+      "admissionStatus": 202,
+      "admissionMs": 20.834833000000117,
+      "fullReceiptMs": 50.794208000000026
+    },
+    {
+      "commandId": "7867925d-3000-4eb2-b292-f7962d2b9dc2",
+      "admissionStatus": 202,
+      "admissionMs": 20.139582999999902,
+      "fullReceiptMs": 55.01545800000008
+    },
+    {
+      "commandId": "63be94a2-c718-437e-96d5-21b1e7d8290d",
+      "admissionStatus": 202,
+      "admissionMs": 22.030708000000004,
+      "fullReceiptMs": 57.59770800000001
+    },
+    {
+      "commandId": "48b2241c-a6b6-4432-9168-18e079d0256e",
+      "admissionStatus": 202,
+      "admissionMs": 17.839375000000018,
+      "fullReceiptMs": 56.69095799999991
+    },
+    {
+      "commandId": "0e0a22b7-1b19-44aa-a298-c33e4babd14c",
+      "admissionStatus": 202,
+      "admissionMs": 21.804417000000058,
+      "fullReceiptMs": 58.336500000000115
+    },
+    {
+      "commandId": "84358f9e-91f1-422d-b5a6-699d9ecf6e04",
+      "admissionStatus": 202,
+      "admissionMs": 22.330541999999923,
+      "fullReceiptMs": 58.846874999999955
+    },
+    {
+      "commandId": "ad625dda-8642-42ef-ac38-00a9424d0ab8",
+      "admissionStatus": 202,
+      "admissionMs": 23.3872080000001,
+      "fullReceiptMs": 60.02941699999997
+    },
+    {
+      "commandId": "48a23e34-7107-462a-a439-2dc055f8375e",
+      "admissionStatus": 202,
+      "admissionMs": 22.182999999999993,
+      "fullReceiptMs": 58.0959170000001
+    },
+    {
+      "commandId": "183fcbb0-c8b6-4e9a-832c-57ed0676889f",
+      "admissionStatus": 202,
+      "admissionMs": 15.925709000000097,
+      "fullReceiptMs": 55.62583400000017
+    },
+    {
+      "commandId": "236c4d7c-f187-4f6f-a1cb-c19ea7a10d44",
+      "admissionStatus": 202,
+      "admissionMs": 21.984500000000025,
+      "fullReceiptMs": 54.53479100000004
+    },
+    {
+      "commandId": "00644be8-d26b-42a2-b3e3-73a169e384b3",
+      "admissionStatus": 202,
+      "admissionMs": 21.653583000000026,
+      "fullReceiptMs": 59.141208000000006
+    },
+    {
+      "commandId": "97956cd0-22b8-4af1-893e-b9c000db2c86",
+      "admissionStatus": 202,
+      "admissionMs": 18.463042000000087,
+      "fullReceiptMs": 55.11024999999995
+    },
+    {
+      "commandId": "47d3ee03-d0a5-4c49-ab9d-1bec5e1c2203",
+      "admissionStatus": 202,
+      "admissionMs": 21.236791999999923,
+      "fullReceiptMs": 57.91341699999998
+    },
+    {
+      "commandId": "3fb4d296-0918-45fd-94dc-3c438c8d1e04",
+      "admissionStatus": 202,
+      "admissionMs": 21.608790999999883,
+      "fullReceiptMs": 58.58162500000003
+    }
+  ],
+  "writer": [
+    {
+      "commandId": "da6cdfd1-ccdf-4940-9c0a-44b0833908a2",
+      "fullReceiptMs": 50.06512500000008
+    },
+    {
+      "commandId": "7f97a073-a270-4e8f-97aa-31a8c9c8f12d",
+      "fullReceiptMs": 55.52325000000019
+    },
+    {
+      "commandId": "00983bdc-5b11-4bc0-b916-77fe549abe1a",
+      "fullReceiptMs": 49.56566699999985
+    },
+    {
+      "commandId": "3b3bf5e1-a552-4e60-95fa-0b388ad18bbf",
+      "fullReceiptMs": 52.653249999999844
+    },
+    {
+      "commandId": "014daf92-7a01-4fa0-927b-9efae4a51e41",
+      "fullReceiptMs": 55.06595900000002
+    },
+    {
+      "commandId": "37ab5567-f608-443b-abcc-2194298569a0",
+      "fullReceiptMs": 55.96983300000011
+    },
+    {
+      "commandId": "e73a934d-5243-41c3-bb39-ea663da865e1",
+      "fullReceiptMs": 54.84720799999968
+    },
+    {
+      "commandId": "d504745d-c70f-4fc3-9827-6398e50ce954",
+      "fullReceiptMs": 79.38941699999987
+    },
+    {
+      "commandId": "c98fa62d-5d98-4db4-b33e-29085eed86c3",
+      "fullReceiptMs": 54.035375000000386
+    },
+    {
+      "commandId": "94a78635-f3fd-4d1c-8f2d-7a2f06406faf",
+      "fullReceiptMs": 52.30124999999998
+    },
+    {
+      "commandId": "ca00fa0d-c474-4c1f-80ab-1a84a8867835",
+      "fullReceiptMs": 55.206125000000156
+    },
+    {
+      "commandId": "44fc38d6-7bd0-4b3e-a7c9-5aceb8dd6e73",
+      "fullReceiptMs": 51.97275000000036
+    },
+    {
+      "commandId": "7787c756-187b-4431-9306-6dcf457a3089",
+      "fullReceiptMs": 55.94258300000001
+    },
+    {
+      "commandId": "6867cb75-eafe-4848-9b89-6cd61726ee1e",
+      "fullReceiptMs": 56.354791000000205
+    },
+    {
+      "commandId": "f7d83bde-3d2e-4dae-aa00-06346d329671",
+      "fullReceiptMs": 52.15516600000001
+    },
+    {
+      "commandId": "3d63acfd-42c6-4731-a50e-3b5dfae2f34a",
+      "fullReceiptMs": 62.299375000000055
+    },
+    {
+      "commandId": "36083100-1ffc-41a0-88a1-92e059ca5864",
+      "fullReceiptMs": 53.62362499999972
+    },
+    {
+      "commandId": "97e239e6-b242-4404-8f18-ea401307057d",
+      "fullReceiptMs": 55.23495799999955
+    },
+    {
+      "commandId": "a4be0fd7-a747-4b8b-9a31-fca2c957f033",
+      "fullReceiptMs": 59.44183299999986
+    },
+    {
+      "commandId": "8c61739c-f9f0-4b98-856b-47979518f1f6",
+      "fullReceiptMs": 59.52308300000004
+    }
+  ],
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 198,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "3",
+    "highWater": "47",
+    "projectionDigest": "sha256:03d1da0a232bf29ccd252f73334440c71a751faef159521419fe5cd723103bde",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "652387827712",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "86",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": []
+    },
+    "rasters": {
+      "preparations": 0,
+      "approvalAuthorities": 0,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": []
+    },
+    "history": {
+      "observations": [
+        {
+          "commandId": "da6cdfd1-ccdf-4940-9c0a-44b0833908a2",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 44.98412499999995,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "7f97a073-a270-4e8f-97aa-31a8c9c8f12d",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 49.03041699999994,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "00983bdc-5b11-4bc0-b916-77fe549abe1a",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 45.9939159999999,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "3b3bf5e1-a552-4e60-95fa-0b388ad18bbf",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 48.963874999999916,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "014daf92-7a01-4fa0-927b-9efae4a51e41",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 51.224083000000064,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "37ab5567-f608-443b-abcc-2194298569a0",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 52.0580829999999,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "e73a934d-5243-41c3-bb39-ea663da865e1",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 50.56504099999984,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "d504745d-c70f-4fc3-9827-6398e50ce954",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 75.05312499999991,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "c98fa62d-5d98-4db4-b33e-29085eed86c3",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 50.11750000000029,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "94a78635-f3fd-4d1c-8f2d-7a2f06406faf",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 48.12866699999995,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "ca00fa0d-c474-4c1f-80ab-1a84a8867835",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 51.23116600000003,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "44fc38d6-7bd0-4b3e-a7c9-5aceb8dd6e73",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 48.09045900000001,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "7787c756-187b-4431-9306-6dcf457a3089",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 52.01520900000014,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "6867cb75-eafe-4848-9b89-6cd61726ee1e",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 52.102957999999944,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "f7d83bde-3d2e-4dae-aa00-06346d329671",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 48.03687499999978,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "3d63acfd-42c6-4731-a50e-3b5dfae2f34a",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 58.23429100000021,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "36083100-1ffc-41a0-88a1-92e059ca5864",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 49.198249999999916,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "97e239e6-b242-4404-8f18-ea401307057d",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 50.98900000000003,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "a4be0fd7-a747-4b8b-9a31-fca2c957f033",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 55.21308399999998,
+          "externalEffects": 0
+        },
+        {
+          "commandId": "8c61739c-f9f0-4b98-856b-47979518f1f6",
+          "operation": "SetLayerProperties",
+          "fullPreparationMs": 55.24912499999982,
+          "externalEffects": 0
+        }
+      ]
+    },
+    "observations": {
+      "appendMs": [
+        6.459249999999884,
+        6.450749999999971,
+        5.551124999999956,
+        6.458541999999852,
+        9.081915999999637,
+        8.634167000000161,
+        8.004500000000007,
+        6.342750000000251,
+        8.971125000000029,
+        8.215624999999818,
+        7.879167000000052,
+        7.841625000000022,
+        7.934040999999979,
+        7.635541999999987,
+        7.824334000000363,
+        7.957542000000103,
+        8.08033400000022,
+        7.7967499999999745,
+        7.759333999999853,
+        8.063834000000043
+      ],
+      "replayMs": 15.621791999999914,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 138739712,
+      "heapTotal": 12730368,
+      "heapUsed": 9633616,
+      "external": 4096416,
+      "arrayBuffers": 1525130
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "summary": {
+    "httpAdmissionMaxMs": 23.3872080000001,
+    "httpFullReceiptMaxMs": 60.02941699999997,
+    "httpFullOver50": 19,
+    "writerFullReceiptMaxMs": 79.38941699999987,
+    "appendMaxMs": 9.081915999999637
+  },
+  "status": "passed"
+}
