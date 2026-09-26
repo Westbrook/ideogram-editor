@@ -1,0 +1,5 @@
+{
+  "tests/editor/owned-opfs.ts": "feaf12f4262c7849aff91b8aff5fc4b20d397de209379475183fc27d6acdf979",
+  "tests/editor/owned-opfs.spec.ts": "d83899c260230933ded89b32a796fec2ed524e9919d983b48cd619e242ef9001",
+  "tests/editor/portable.spec.ts": "3be6c4c47f327a7b36579866759a94825ae4e8bdd3eeba7e591dc0026989a5e5"
+}

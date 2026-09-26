@@ -1,0 +1,40 @@
+{
+  "browser": "webkit",
+  "retiredOrigins": [
+    "http://127.0.0.1:55876",
+    "http://127.0.0.1:55913"
+  ],
+  "observations": [
+    {
+      "text": "Failed to load resource: The network connection was lost.",
+      "url": "http://127.0.0.1:55876/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: The network connection was lost.",
+      "url": "http://127.0.0.1:55913/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    }
+  ],
+  "pageErrors": [
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:55876/api/v1/events/stream?after=14 due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:55876/api/v1/events/stream?after=14 due to access control checks.\n    at consumeStream (http://127.0.0.1:55876/assets/shell-CKvWsoOx.js:792:34137)",
+      "disrupting": true,
+      "expected": false
+    },
+    {
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:55913/api/v1/events?after=17 due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:55913/api/v1/events?after=17 due to access control checks.\n    at recover (http://127.0.0.1:55913/assets/shell-CKvWsoOx.js:792:32801)",
+      "disrupting": true,
+      "expected": false
+    }
+  ],
+  "domErrors": []
+}

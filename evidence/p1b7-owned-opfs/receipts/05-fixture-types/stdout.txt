@@ -1,0 +1,2 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'tsc' --ignoreConfig --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --strict --types node --skipLibCheck tests/editor/owned-opfs.ts tests/editor/owned-opfs.spec.ts tests/editor/portable.spec.ts

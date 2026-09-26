@@ -1,0 +1,96 @@
+{
+  "origins": [
+    "http://127.0.0.1:56151",
+    "http://127.0.0.1:56152"
+  ],
+  "profiles": [
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-6KWgxl",
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-ljmKI2"
+  ],
+  "observations": [
+    {
+      "phase": "ephemeral",
+      "origin": "http://127.0.0.1:56151",
+      "result": "UnknownError"
+    },
+    {
+      "phase": "first",
+      "origin": "http://127.0.0.1:56151",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-6KWgxl",
+      "initial": []
+    },
+    {
+      "phase": "second",
+      "origin": "http://127.0.0.1:56151",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-ljmKI2"
+    },
+    {
+      "phase": "same-origin-shared-marker",
+      "name": "same-origin-a71146cd-73f9-423a-bf7a-de05fec9da7d",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "7120c16a-7859-43d4-ad3f-02a12510a482",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-ljmKI2"
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:56151",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-ljmKI2"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:56151",
+          "entries": [
+            {
+              "name": "same-origin-a71146cd-73f9-423a-bf7a-de05fec9da7d",
+              "kind": "file"
+            }
+          ],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "refused",
+          "origin": "http://127.0.0.1:56151",
+          "error": "Error: OPFS_DIRTY_ORIGIN"
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:56152",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-ljmKI2"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:56152",
+          "entries": [],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:56152"
+        },
+        {
+          "origin": "http://127.0.0.1:56152",
+          "phase": "cleanup",
+          "remaining": []
+        }
+      ]
+    },
+    {
+      "phase": "other-origin-clean",
+      "origin": "http://127.0.0.1:56152"
+    }
+  ]
+}

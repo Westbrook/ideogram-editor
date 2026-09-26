@@ -1,0 +1,22 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   'independent.bin'
++ ]
+- []
+
+    at file:///Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/environment-oracle.mjs:18:849 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ 'independent.bin' ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

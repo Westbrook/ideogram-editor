@@ -1,0 +1,57 @@
+Exact successor re-verification handoff
+
+Rejected target ecc5262f6339688aade7611f8da8f31d37e41c76, source parent bbb00ab5d43dc7910912e9e67653925e5b86e83d/runtimeccdfab3bf9d9d8d84c9d2399b0364b55fd52f33eb2f615c58a559691209d1a9a.
+Current checkout /Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-checkout.
+Current immutable-on-seal bundle /Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent.
+Do not rerun into these outputs or reuse this closed window. Coordinator must release a bounded correction and assign an exact successor/new workload window. No product implementation by this reviewer.
+
+Blocking requirement / existing record
+Spec3/task5656/292d plus explicit successor assignment requires complete durable E1 under verified fresh WebKit storage/profile isolation, no inherited data shortcut. Existing UI439b475b owns the fixture/environment acceptance concern; no new ID and no reopening I-BR01/A-BR01.
+Exact reproduction inputs: Node26.10.0/npm12.1.0; Playwright1.63.0 WebKit26.6 r2359 on macOS26.6.1 arm64. Native blank local HTML, one newly bound127.0.0.1 origin, two distinct mkdtemp persistent profiles sequentially, same getDirectory/getFileHandle/createWritable/write/close/read calls. First file independent.bin bytes[0,255,10,13,127,128]; second control uses unique marker with[2,4,6,8], records actual origin64108, second64109 and profile paths. No product/network storage mock.
+Current failure: environment-oracle.json and .log.txt,16:04:11.369673–16:04:13.278977Z. Same-origin second profile sees first file. Diagnostic profile-isolation-diagnostic.json/.log.txt,16:05:07.947141–16:05:09.548915Z records same-origin OPFS sharing only, no cookie/localStorage/IDB marker and no marker at different origin. Diagnostic exit0 means receipt completed, NOT isolation passed. Same-origin clean premise is not proved by random ports/UUID file names or exact downloaded hash alone.
+Relevant source: tests/editor/portable.spec.ts14–16 creates profile but has no OPFS-start-state/owned-cleanup proof. src/state/destination.ts uses native disk-backed streaming, unique ie-download UUID, exact response etag/length/hash and unconfirmed fallback destination; unchanged and not a proved product failure.
+
+Minimal acceptance-preserving correction
+Establish the actual clean/isolation precondition of each E1 run and fail closed if it is absent; verify owned cleanup and preserve all original byte/history/pixel/restart/error/time-limit assertions. The native same-origin sharing control can remain a retained environment negative: a corrected fixture must refuse/prevent contaminated admission or provide a demonstrably isolated native store, rather than claiming userDataDir inherently fixes WebKit. An equivalent explicit fresh-origin/preflight/ownership design is for coordinator disposition; no automatic permission to erase unknown storage, choose a new port repeatedly until clean, bypass OPFS with memory, or weaken user-data safety.
+Include a deterministic dirty-origin precondition control and demonstrate it cannot enter E1 as a clean test. Record original/fresh profile and origin relationships before assertions; retain exact owned markers/initial observations and cleanup even on failure. Do not read or delete unrelated browser files, cookies or quarantined credentials.
+Current reviewer cleanup: exact unique diagnostic marker was verified and removed at its recorded origin (cleanup-owned-marker.json). Initial failing script did not record its origin before failure; its six-byte synthetic independent.bin cleanup cannot be claimed. Profiles were removed; unknown shared stores were not searched/erased. Preserve this limitation.
+
+Fresh successor commands
+Use NEW_CHECKOUT and NEW_OUT placeholders as distinct absolute paths chosen after assignment; pinned Node first in PATH. These are templates, never execute literally against the sealed paths above.
+npm ci --no-audit --no-fund
+npm run typecheck
+npm run build
+python3 evidence/p1b7-webkit-rail/verify-evidence.py
+EDITOR_BROWSER=webkit EDITOR_RECEIPT=NEW_OUT/editor-webkit npx playwright test --config tests/editor/playwright.config.ts --output NEW_OUT/editor-webkit/browser
+EDITOR_BROWSER=chromium EDITOR_RECEIPT=NEW_OUT/editor-chromium npx playwright test --config tests/editor/playwright.config.ts --output NEW_OUT/editor-chromium/browser
+EDITOR_BROWSER=firefox EDITOR_RECEIPT=NEW_OUT/editor-firefox npx playwright test --config tests/editor/playwright.config.ts --output NEW_OUT/editor-firefox/browser
+node --test tests/editor/shutdown-console.test.mjs
+IE_SHELL_OUTPUT=NEW_OUT/shell npx playwright test --config tests/browser/playwright.config.ts
+node --import ./tests/session/no-egress.mjs --test tests/editor/read-adapters.test.mjs tests/editor/document-projection.test.mjs tests/editor/shutdown-console.test.mjs
+For a fixture-only correction, choose the affected final-source full WebKit and strict E1/error controls on the other engines according to its actual diff; do not automatically repeat unchanged broad backend/resource campaigns. Source identity controls any e392/ecc evidence reuse. TEST9/TEST10 forbid replacing an unresolved ordinary failure with a later green result.
+
+Independent controls
+To reproduce this exact rejected control, copy environment-oracle.mjs/profile-isolation-diagnostic.mjs to a NEW external bundle, replace only declared checkout/output paths, retain and hash the copied scripts, and run under the pinned Node in the assigned checkout:
+node NEW_OUT/environment-oracle.mjs
+node NEW_OUT/profile-isolation-diagnostic.mjs
+The first currently FAILS; do not edit it to expect shared state and call that an isolation pass. Keep this fail-before plus a separately named corrected-fixture oracle. Old initial output is missing first origin; the diagnostic includes its actual inputs. No product gates repeated here.
+Strict error-oracle control uses separately versioned oracle-only-v2.mjs. Copy/retarget only absolute checkout/output paths into NEW_OUT; preserve original oracle-only failure. The v2 change corrects observed WebKit DOM Error: prefix and explicitly waits for the injected timer's executed marker, not for a swallowed error. It stores errors before asserting, verifies actual throw/rejection/mimic across navigation and final immediate-close ErrorEvent after context close, exact metadata negatives, plus blank-page screenshot-only CSP and deliberate app-style CSP rejection.
+node NEW_OUT/oracle-only-v2.mjs
+Independent UI corrected script likewise requires NEW_OUT and NEW_CHECKOUT paths; retain original null-shadowRoot selector failure. Native role locator referred to the inner button; corrected forced-colors read selects public en-button host.
+node NEW_OUT/ui-probe-corrected.mjs
+Visual compare packaged references/user-desired.png with actual normal-state desktop/narrow/RTL captures. The immediate post-forced-colors rail crop is transitional; use actual full-pane/normal rail captures. Preserve public slots/parts/tokens, geometry/state/focus and exact splitter guards.
+
+Timing / completed-result boundaries
+Only run after a separately confirmed serial window and criterion-based necessity; at most one unchanged observer in this review already used. Live observer tests/editor/full-action.timing.ts and original parent tests/editor/analyze-timing.py unchanged; v2 separately attributed tests/editor/analyze-history-v2.py.
+EDITOR_RECEIPT=NEW_OUT/full-action npx playwright test --config tests/editor/timing.config.ts --output NEW_OUT/full-action/browser
+python3 tests/editor/analyze-timing.py NEW_OUT/full-action
+python3 tests/editor/analyze-history-v2.py NEW_OUT/full-action NEW_OUT/history-v2.json
+python3 tests/editor/validate-history-v2.py evidence/p1b7-history-latency/receipts/22-full-action evidence/p1b7-history-latency/receipts/prior-independent-control NEW_OUT/history-oracle-controls
+Copy current corroborate.py into NEW_OUT and change only sourceTarget for its explicit new attribution; it derives input paths from its own parent. It independently derives first complete/ready-nonbusy/matching changed-asset draw, FIRST full covering Paint END and compares all eight v2 rows.
+python3 NEW_OUT/corroborate.py
+Original sealed independent analyzer remains /Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/analyze-history.py (unchanged5a3178fc12203924fba0265bf5f4c6f9e644c9899ab54f3e37a044919349d7e5). Compatible-input optional control:
+python3 /Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/analyze-history.py NEW_OUT/full-action NEW_OUT/history-original-control.json
+Current exact raw files: full-action/action-steps.json, paint-trace.json, paint-analysis.json; history-v2.json/raw-history-corroboration.json/history-original-control.json. Current Undo required66.300 ->Paint82.580 ->verified95.673; Redo58.789 ->66.638 ->79.111; checkpoint78.529 ->83.572 ->96.702. No extension needed. Preserve current/old full costs,50ms target misses, no R20 child, all native/formal limits. Never move endpoints, substitute pending paint, subtract children or repeat until under ceiling.
+
+Identity / continuation
+Current audit.py seals all2848 Git/disk inputs,100runtime/97code/61build and archive;249 unchanged owning inputs support e392 backend506/recovery13 reuse with original dates. New artifact identity/served runtime must be re-established after correction; do not silently retarget56474 or restart52219/55911/56296/4381/default locator. Native current card7 roundtrip is unpaired, not author26 paired receipt or user review. All old09/e392/eb4/lost19/failed24/v2/harness/measurement histories and user checkpoints remain. No task/feedback completion from scoped positive results.

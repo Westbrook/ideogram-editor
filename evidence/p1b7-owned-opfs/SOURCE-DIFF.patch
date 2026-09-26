@@ -1,0 +1,263 @@
+diff --git a/tests/editor/owned-opfs.spec.ts b/tests/editor/owned-opfs.spec.ts
+new file mode 100644
+index 0000000..0eaf5de
+--- /dev/null
++++ b/tests/editor/owned-opfs.spec.ts
+@@ -0,0 +1,69 @@
++import {test,expect,webkit,type BrowserContext,type Page} from '@playwright/test';
++import {createServer} from 'node:http';
++import {mkdtemp,realpath,mkdir,writeFile,rm} from 'node:fs/promises';
++import {tmpdir} from 'node:os';
++import {join} from 'node:path';
++import {randomUUID} from 'node:crypto';
++import {ownedOPFS} from './owned-opfs.js';
++const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
++async function server(){const s=createServer((_,r)=>r.end('<!doctype html><title>Owned native storage control</title>'));await new Promise<void>(r=>s.listen(0,'127.0.0.1',r));return {origin:'http://127.0.0.1:'+(s.address() as {port:number}).port,close:()=>new Promise<void>(r=>s.close(()=>r()))};}
++async function marker(page:Page,name:string,create=false){return page.evaluate(async({name,create})=>{const root=await navigator.storage.getDirectory();if(create){const f=await root.getFileHandle(name,{create:true}),w=await f.createWritable();await w.write(new Uint8Array([0,255,10,13,127,128]));await w.close();}const f=await root.getFileHandle(name);return [...new Uint8Array(await(await f.getFile()).arrayBuffer())];},{name,create});}
++async function removeMarker(page:Page,name:string){expect(await marker(page,name)).toEqual([0,255,10,13,127,128]);await page.evaluate(async name=>{const root=await navigator.storage.getDirectory();await root.removeEntry(name);for await(const [n] of (root as any).entries())if(n===name)throw Error('CONTROL_MARKER_REMAINS');},name);}
++async function persistent(profiles:string[]){const p=await mkdtemp(join(await realpath(tmpdir()),'ie-owned-opfs-'));profiles.push(p);return webkit.launchPersistentContext(p);}
++
++test('native OPFS dirty admission refuses foreign entries; exact owned success and failure cleanup',async({browser,browserName})=>{
++ const servers=await Promise.all([server(),server(),server()]),profiles:string[]=[],observations:any[]=[];let context:BrowserContext|undefined,foreignPage:Page|undefined,foreignCreated=false,latePage:Page|undefined,lateCreated=false;
++ const foreign='foreign-'+randomUUID();let store:Awaited<ReturnType<typeof ownedOPFS>>|undefined,page:Page|undefined;
++ try{
++  context=browserName==='webkit'?await persistent(profiles):await browser.newContext();
++  // This controlled creator document predates the observer. It is the ONLY
++  // actor allowed to read/remove its declared foreign marker after refusal.
++  foreignPage=await context.newPage();await foreignPage.goto(servers[0].origin);
++  const initial=await foreignPage.evaluate(async()=>{const r=await navigator.storage.getDirectory(),names=[];for await(const [n] of (r as any).entries())names.push(n);return names;});
++  observations.push({phase:'creator-precondition',origin:servers[0].origin,profiles:[...profiles],initial});expect(initial).toEqual([]);
++  expect(await marker(foreignPage,foreign,true)).toEqual([0,255,10,13,127,128]);foreignCreated=true;
++  latePage=await context.newPage();await latePage.goto(servers[1].origin);
++  store=await ownedOPFS(context,profiles[0]??browserName+' ephemeral');page=await context.newPage();
++  await expect(store.admit(page,servers[0].origin)).rejects.toThrow('OPFS_DIRTY_ORIGIN');
++  expect(store.ledger.some(e=>e.phase==='admitted')).toBe(false);
++  await store.cleanup(page); // Refused origins cannot authorize even cleanup.
++  expect(await marker(foreignPage,foreign)).toEqual([0,255,10,13,127,128]);
++  observations.push({phase:'foreign-preserved',name:foreign,bytes:[0,255,10,13,127,128]});
++  await removeMarker(foreignPage,foreign);foreignCreated=false;observations.push({phase:'creator-cleaned',name:foreign,absent:true});
++  await store.admit(page,servers[1].origin);await page.goto(servers[1].origin);
++  expect(await marker(page,'owned-success-'+store.run,true)).toEqual([0,255,10,13,127,128]);
++  await marker(latePage,foreign,true);lateCreated=true;
++  await expect(store.cleanup(page)).rejects.toThrow('OPFS_UNKNOWN_REMAINS');
++  expect(await marker(latePage,foreign)).toEqual([0,255,10,13,127,128]);
++  observations.push({phase:'foreign-arrived-after-admission-preserved',name:foreign});
++  await removeMarker(latePage,foreign);lateCreated=false;await store.cleanup(page);store.verify();
++  await store.admit(page,servers[2].origin);await page.goto(servers[2].origin);
++  let failure='';try{await marker(page,'owned-failure-'+store.run,true);throw Error('CONTROL_WORKFLOW_FAILURE');}catch(e){failure=String(e);}finally{await store.cleanup(page);}
++  expect(failure).toContain('CONTROL_WORKFLOW_FAILURE');store.verify();observations.push({phase:'workflow-failure-cleaned',failure});
++ }finally{
++  try{if(store&&page)await store.cleanup(page);}finally{try{if(foreignCreated&&foreignPage)await removeMarker(foreignPage,foreign);if(lateCreated&&latePage)await removeMarker(latePage,foreign);}finally{
++   await context?.close();for(const s of servers)await s.close();for(const p of profiles)await rm(p,{recursive:true,force:true});
++   await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'owned-opfs-controls.json'),JSON.stringify({browserName,origins:servers.map(s=>s.origin),profiles,observations,ledger:store?.ledger},null,2));
++  }}
++ }
++});
++
++test('WebKit native profile sharing is retained as an environment negative, not an isolation guarantee',async({browserName,browser})=>{
++ test.skip(browserName!=='webkit','WebKit-specific persistent-profile boundary; common admission controls run on every engine');
++ const one=await server(),two=await server(),profiles:string[]=[],observations:any[]=[],name='same-origin-'+randomUUID();let context:BrowserContext|undefined,created=false;
++ try{
++  const ephemeral=await browser.newContext();try{const p=await ephemeral.newPage();const guard=await ownedOPFS(ephemeral,'WebKit ephemeral control');await expect(guard.admit(p,one.origin)).rejects.toThrow(/UnknownError|unknown transient/);observations.push({phase:'ephemeral-fixture-refused',origin:one.origin,ledger:guard.ledger});expect(guard.ledger.some(e=>e.phase==='admitted')).toBe(false);guard.verify();}finally{await ephemeral.close();}
++  context=await persistent(profiles);let page=await context.newPage();await page.goto(one.origin);
++  const initial=await page.evaluate(async()=>{const r=await navigator.storage.getDirectory(),names=[];for await(const [n] of (r as any).entries())names.push(n);return names;});observations.push({phase:'first',origin:one.origin,profile:profiles[0],initial});expect(initial).toEqual([]);
++  await marker(page,name,true);created=true;await context.close();context=await persistent(profiles);page=await context.newPage();
++  const store=await ownedOPFS(context,profiles[1]);observations.push({phase:'second',origin:one.origin,profile:profiles[1]});
++  await expect(store.admit(page,one.origin)).rejects.toThrow('OPFS_DIRTY_ORIGIN');await page.goto(one.origin);expect(await marker(page,name)).toEqual([0,255,10,13,127,128]);
++  observations.push({phase:'same-origin-shared-marker',name,bytes:[0,255,10,13,127,128],ledger:store.ledger});
++  await removeMarker(page,name);created=false;
++  await store.admit(page,two.origin);await page.goto(two.origin);await store.cleanup(page);store.verify();observations.push({phase:'other-origin-clean',origin:two.origin});
++ }finally{
++  try{if(created){if(!context||context.pages().length===0)context=await persistent(profiles);const p=await context.newPage();await p.goto(one.origin);await removeMarker(p,name);observations.push({phase:'failure-owned-marker-cleanup',name,absent:true});}}finally{
++   await context?.close();await one.close();await two.close();for(const p of profiles)await rm(p,{recursive:true,force:true});await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'native-profile-boundary.json'),JSON.stringify({origins:[one.origin,two.origin],profiles,observations},null,2));
++  }
++ }
++});
+diff --git a/tests/editor/owned-opfs.ts b/tests/editor/owned-opfs.ts
+new file mode 100644
+index 0000000..fb15c9d
+--- /dev/null
++++ b/tests/editor/owned-opfs.ts
+@@ -0,0 +1,90 @@
++import type {BrowserContext,Page} from '@playwright/test';
++import {randomUUID} from 'node:crypto';
++
++// E1-only observation of real native OPFS. A fresh WebKit userDataDir does NOT
++// isolate OPFS. Admission requires an observed empty root at each owned origin.
++// No content of preexisting entries is read; only exact created handles may be
++// removed. The external ledger survives navigation and catches lost cleanup.
++export async function ownedOPFS(context:BrowserContext,profile:string){
++ const run=randomUUID(),admitted=new Set<string>(),live=new Map<string,string>();
++ const initialCookieCount=(await context.cookies()).length;
++ const ledger:any[]=[{phase:'fixture',run,profile,initialCookieCount}],key=(origin:string,name:string)=>origin+'/'+name;
++ await context.exposeBinding('recordOwnedOPFS',({page},event:any)=>{
++  const origin=new URL(page.url()).origin;
++  if(event.origin!==origin)throw Error('OPFS_ORIGIN_MISMATCH');
++  ledger.push(event);
++  if(event.phase==='creating'){
++   if(!admitted.has(origin)||live.has(key(origin,event.name)))throw Error('OPFS_NOT_ADMITTED');
++   live.set(key(origin,event.name),'creating');
++  }else if(event.phase==='created')live.set(key(origin,event.name),'created');
++  else if(event.phase==='removed')live.delete(key(origin,event.name));
++ });
++ await context.addInitScript(()=>{
++  if(location.protocol!=='http:'||location.hostname!=='127.0.0.1')return;
++  const native=FileSystemDirectoryHandle.prototype.getFileHandle;
++  const owned=new Map<string,{root:FileSystemDirectoryHandle;file:FileSystemFileHandle}>();
++  const record=(event:any)=>(window as any).recordOwnedOPFS({origin:location.origin,...event});
++  FileSystemDirectoryHandle.prototype.getFileHandle=async function(name,options){
++   if(!options?.create)return native.call(this,name,options);
++   const root=await navigator.storage.getDirectory();
++   if(!await root.isSameEntry(this))throw Error('OPFS_UNOWNED_DIRECTORY');
++   // Refuse collisions, never inspect an existing file's content.
++   let exists=false;
++   try{await native.call(this,name);exists=true;}catch(e){if((e as DOMException).name!=='NotFoundError')throw e;}
++   if(exists)throw Error('OPFS_PREEXISTING_CREATE');
++   await record({phase:'creating',name});
++   const file=await native.call(this,name,options);
++   owned.set(name,{root,file});
++   await record({phase:'created',name});
++   return file;
++  };
++  (window as any).cleanupOwnedOPFS=async()=>{
++   for(const [name,{root,file}] of owned){
++    const current=await native.call(root,name);
++    if(!await current.isSameEntry(file))throw Error('OPFS_HANDLE_REPLACED');
++    await root.removeEntry(name);owned.delete(name);
++    let absent=false;try{await native.call(root,name);}catch(e){if((e as DOMException).name==='NotFoundError')absent=true;else throw e;}
++    if(!absent)throw Error('OPFS_CLEANUP_NOT_ABSENT');
++    await record({phase:'removed',name,exactHandle:true,absent});
++   }
++   const root=await navigator.storage.getDirectory(),remaining=[];
++   for await(const [name,entry] of (root as any).entries())remaining.push({name,kind:entry.kind});
++   await record({phase:'cleanup',remaining});
++   if(remaining.length)throw Error('OPFS_UNKNOWN_REMAINS');
++  };
++ });
++ return {run,ledger,
++  async admit(page:Page,origin:string){
++   // Persist relationship before navigation/assertions; this is an inert test
++   // document only. No product response or storage implementation is replaced.
++   ledger.push({phase:'preflight-start',origin,profile});
++   if(initialCookieCount)throw Error('OPFS_CONTEXT_NOT_FRESH');
++   if(admitted.has(origin))throw Error('OPFS_ORIGIN_REUSED');
++   // Keep the workflow document's original navigation/restart sequence intact.
++   // This same-context probe observes the same native origin store, then closes.
++   const probe=await page.context().newPage();
++   const url=origin+'/__e1_opfs_preflight_'+run;
++   await probe.route(url,route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>E1 native storage preflight</title>'}));
++   try{
++    await probe.goto(url);
++    const initial=await probe.evaluate(async()=>{
++     const root=await navigator.storage.getDirectory(),entries=[];
++     for await(const [name,entry] of (root as any).entries())entries.push({name,kind:entry.kind});
++     return {entries,localStorage:localStorage.length,cookies:document.cookie.length,indexedDB:(await indexedDB.databases()).map(d=>d.name)};
++    });
++    ledger.push({phase:'preflight',origin,...initial});
++    if(initial.entries.length||initial.localStorage||initial.cookies||initial.indexedDB.length)throw Error('OPFS_DIRTY_ORIGIN');
++    admitted.add(origin);ledger.push({phase:'admitted',origin});
++   }catch(e){ledger.push({phase:'refused',origin,error:String(e)});throw e;}
++   finally{await probe.close();}
++  },
++  async cleanup(page:Page){
++   const origin=new URL(page.url()).origin;
++   if(!admitted.has(origin))return;
++   try{await page.evaluate(()=>(window as any).cleanupOwnedOPFS());}
++   catch(e){ledger.push({phase:'cleanup-incomplete',origin,error:String(e)});throw e;}
++   if([...live.keys()].some(k=>k.startsWith(origin+'/')))throw Error('OPFS_LOST_OWNED_HANDLE');
++  },
++  verify(){if(live.size)throw Error('OPFS_CLEANUP_INCOMPLETE: '+JSON.stringify([...live]));}
++ };
++}
+diff --git a/tests/editor/portable.spec.ts b/tests/editor/portable.spec.ts
+index 252b78a..f285a31 100644
+--- a/tests/editor/portable.spec.ts
++++ b/tests/editor/portable.spec.ts
+@@ -1,30 +1,37 @@
+ import {test as base,webkit,expect,type Page} from '@playwright/test';
+-import {mkdtemp,realpath,readFile,writeFile} from 'node:fs/promises';
++import {mkdtemp,realpath,readFile,writeFile,rm,mkdir} from 'node:fs/promises';
+ import {tmpdir} from 'node:os';
+ import {join} from 'node:path';
+ import sharp from 'sharp';
+ import {serverProcess} from './process.js';
+ import {recordDOMErrors} from './error-monitor.js';
++import {ownedOPFS} from './owned-opfs.js';
+ import {expectedShutdownConsole,expectedShutdownPageError} from './shutdown-console.js';
+ // Test archive reader is independent of the browser adapter; small fixture only.
+ // @ts-ignore
+ import {unpack,records} from '../portable/archive-fixture.mjs';
+ // WebKit's ephemeral contexts do not expose OPFS. Only this durable portable
+-// journey uses a fresh persistent profile; other tests retain ephemeral failure coverage.
+-const test=base.extend<{e1Errors:{domErrors:unknown[];finish:()=>Promise<void>}}>({context:async({context,browserName,contextOptions,viewport},use)=>{
++// journey uses a fresh profile AND verified empty native OPFS per origin.
++// Profile directories alone do not isolate WebKit OPFS; other tests keep ephemeral coverage.
++const profiles=new WeakMap<object,string>();
++const test=base.extend<{e1Errors:{domErrors:unknown[];finish:()=>Promise<void>};e1Storage:Awaited<ReturnType<typeof ownedOPFS>>}>({context:async({context,browserName,contextOptions,viewport},use)=>{
+  if(browserName!=='webkit'){await use(context);return;}
+  const profile=await mkdtemp(join(await realpath(tmpdir()),'ie-webkit-e1-'));
+  const persistent=await webkit.launchPersistentContext(profile,{...contextOptions,viewport});
+- try{await use(persistent);}finally{await persistent.close();}
++ profiles.set(persistent,profile);
++ try{await use(persistent);}finally{await persistent.close();await rm(profile,{recursive:true,force:true});}
+ },e1Errors:async({context},use)=>{
+  const monitor={domErrors:await recordDOMErrors(context),finish:async()=>{}};
+  try{await use(monitor);}finally{await context.close();await monitor.finish();expect(monitor.domErrors).toEqual([]);}
++},e1Storage:async({context,e1Errors,browserName},use)=>{
++ void e1Errors;const storage=await ownedOPFS(context,profiles.get(context)??browserName+' ephemeral context');
++ try{await use(storage);}finally{await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'e1-storage.json'),JSON.stringify({run:storage.run,ledger:storage.ledger},null,2));storage.verify();}
+ }});
+ const accepted=(page:Page,type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
+ const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
+ const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+-async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();}
+-test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context,browserName,e1Errors})=>{
++async function download(page:Page,path:string,storage:Awaited<ReturnType<typeof ownedOPFS>>){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();await storage.cleanup(page);}
++test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context,browserName,e1Errors,e1Storage})=>{
+  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[],expectedFailures:string[]=[];let disrupting=false;const retiredOrigins=new Set<string>();const consoleObservations:{text:string;url:string;disrupting:boolean;retiredOrigin:boolean;expected:boolean}[]=[];
+  const pageErrors:{name:string;message:string;stack:string;disrupting:boolean;expected:boolean}[]=[],domErrors=e1Errors.domErrors;
+  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+@@ -32,35 +39,35 @@ test('E1 browser copy, actual process restart/new port, reviewed reopen and exac
+  e1Errors.finish=async()=>{await writeFile(join(receipt,'e1-console.json'),JSON.stringify({browser:browserName,retiredOrigins:[...retiredOrigins],observations:consoleObservations,pageErrors,domErrors},null,2));expect(errors).toEqual([]);};
+  page.on('request',r=>{const u=new URL(r.url());if(u.protocol!=='blob:'){requests.push(u.pathname);expect(u.hostname).toBe('127.0.0.1');}});
+  try{
+- await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
++ await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
+  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');
+  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');
+  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();
+  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');
+  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();
+- const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;
++ const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath,e1Storage);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;
+  const events=records(entries,'events').values.map((x:any)=>x.event);expect(events.some((e:any)=>e.type==='HistoryNavigated')).toBe(true);expect(events.some((e:any)=>e.type==='CheckpointSaved')).toBe(true);
+  const entities=all.filter((x:any)=>x.kind==='entity').map((x:any)=>({kind:x.entityType,value:JSON.parse(entries.get('objects/'+x.payloadRef.hash.slice(7)))}));
+  expect(entities.filter((x:any)=>x.kind==='history').length).toBe(3);expect(entities.filter((x:any)=>x.kind==='checkpoint').length).toBe(1);expect(entities.some((x:any)=>x.kind==='draft')).toBe(true);
+  const originalPixels=await sharp('tests/raster/fixtures/hidden-alpha.png').ensureAlpha().raw().toBuffer();
+  const effects=await server.effects();expect(Object.values(effects).every(v=>v===0)).toBe(true);const oldOrigin=server.origin,oldPid=server.pid;disrupting=true;retiredOrigins.add(server.origin);await server.kill();
+- server=await serverProcess(root);expect(server.pid).not.toBe(oldPid);expect(server.origin).not.toBe(oldOrigin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
++ server=await serverProcess(root);expect(server.pid).not.toBe(oldPid);expect(server.origin).not.toBe(oldOrigin);await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
+  expect(await page.evaluate(async()=> (await indexedDB.databases()).filter(d=>d.name?.startsWith('ie-delivery-')).length)).toBe(1);
+  await click(page,'Open');await page.getByRole('button',{name:/^Restore ui_/}).click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  await click(page,'Open');await page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath);
+  await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
+- await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+- disrupting=true;retiredOrigins.add(server.origin);await server.kill();server=await serverProcess(root);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
++ await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath,e1Storage);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
++ disrupting=true;retiredOrigins.add(server.origin);await server.kill();server=await serverProcess(root);await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
+  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore p_/});await expect(mapped).not.toHaveCount(0);
+  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+- await click(page,'Save copy');await click(page,'Prepare complete copy');const nestedPath=join(directory,'nested.ideogram-project');await download(page,nestedPath);const nested=await readFile(nestedPath);expect(nested.includes(await readFile(bundlePath))).toBe(true);
++ await click(page,'Save copy');await click(page,'Prepare complete copy');const nestedPath=join(directory,'nested.ideogram-project');await download(page,nestedPath,e1Storage);const nested=await readFile(nestedPath);expect(nested.includes(await readFile(bundlePath))).toBe(true);
+  // New drafts on mapped IDs must obey the same bounded ID contract. Existing
+  // mapped saved drafts retain their original identities and exact text.
+  const newDrafts:any[]=[];page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/ui/')&&r.method()==='POST'){const b=JSON.parse(r.postData()!).body;if(b.type==='SaveDraft'&&b.draft.kind==='inspector')newDrafts.push(b.draft);}});
+  await page.getByRole('treeitem').first().click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Editable after portable reopen');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');expect(newDrafts.length).toBeGreaterThan(0);expect(newDrafts.every(d=>d.id.length<=128&&d.documentId.startsWith('p_')&&d.targetLayerId.startsWith('p_'))).toBe(true);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem',{name:'Editable after portable reopen · visible'})).toBeVisible();
+  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(domErrors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+- await writeFile(join(receipt,'e1.json'),JSON.stringify({browserContext:browserName==='webkit'?'fresh persistent WebKit profile':'ephemeral',expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
++ await writeFile(join(receipt,'e1.json'),JSON.stringify({browserContext:browserName==='webkit'?'fresh profile plus verified empty native OPFS at every origin':'ephemeral',expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+  // Successful rail screenshots are captured separately: WebKit screenshot
+  // tooling injects inline styles. Keep this error oracle strict through teardown.
+- }finally{await page.close();await server.close();}
++ }finally{try{await e1Storage.cleanup(page);}finally{await page.close();await server.close();}}
+ });

@@ -1,0 +1,314 @@
+{
+  "sourceBuild": "07-build",
+  "runtime": "ccdfab3bf9d9d8d84c9d2399b0364b55fd52f33eb2f615c58a559691209d1a9a",
+  "matched": 61,
+  "mapping": "evidence/p1b7-webkit-rail/BUILD-MAPPING.json",
+  "preservedPreview": "http://127.0.0.1:56474/?progress-report",
+  "entries": [
+    {
+      "originalPath": "dist/app/.vite/manifest.json",
+      "packagePath": "emitted/browser-static/.vite/manifest.json",
+      "sha256": "582feb2e0a1f974763ae9a25771bdbafd18f04f65bbe54d567d7a37d7374ae26"
+    },
+    {
+      "originalPath": "dist/app/assets/editor-panels-C8u6k489.js",
+      "packagePath": "emitted/browser-static/assets/editor-panels-C8u6k489.js",
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b"
+    },
+    {
+      "originalPath": "dist/app/assets/icon-LNfVOU5p.js",
+      "packagePath": "emitted/browser-static/assets/icon-LNfVOU5p.js",
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122"
+    },
+    {
+      "originalPath": "dist/app/assets/index-3qdbjV_g.css",
+      "packagePath": "emitted/browser-static/assets/index-3qdbjV_g.css",
+      "sha256": "4dbd26c5d61d312d5dcf86b7a52cf1687cc18ad020bfc0160053950a23f339ea"
+    },
+    {
+      "originalPath": "dist/app/assets/index-CZlJ4lrb.js",
+      "packagePath": "emitted/browser-static/assets/index-CZlJ4lrb.js",
+      "sha256": "b90771e0bcd5aaa63f49bdb46b8d5e8d2fd9adf8b572b0180dfcdf213e780175"
+    },
+    {
+      "originalPath": "dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "packagePath": "emitted/browser-static/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf"
+    },
+    {
+      "originalPath": "dist/app/assets/shell-CKvWsoOx.js",
+      "packagePath": "emitted/browser-static/assets/shell-CKvWsoOx.js",
+      "sha256": "875f76168f1c8ddb514aefa0c6aa3ab814c3f4c65ee68c358b5fd49d9323f2fa"
+    },
+    {
+      "originalPath": "dist/app/build-evidence.json",
+      "packagePath": "emitted/browser-static/build-evidence.json",
+      "sha256": "822678ffa504eaac7623fd4b9d3fcd4b3beaa386d281dfeb44312bcbf2d23917"
+    },
+    {
+      "originalPath": "dist/app/index.html",
+      "packagePath": "emitted/browser-static/index.html",
+      "sha256": "1a65161138428043ee4e6d6c4532cc2cb92a3c33c393cac8dd134283ca1a5e66"
+    },
+    {
+      "originalPath": "dist/local/server/assets.js",
+      "packagePath": "emitted/local-runtime/server/assets.js",
+      "sha256": "560d611c6a86d71afb98c5285646410b228cfc549161d68d4e9680c5b2c4325e"
+    },
+    {
+      "originalPath": "dist/local/server/control-json.js",
+      "packagePath": "emitted/local-runtime/server/control-json.js",
+      "sha256": "5edf6a712c0df681675aed35db2aef48783f02622d0090d22f0f7beea949b107"
+    },
+    {
+      "originalPath": "dist/local/server/errors.js",
+      "packagePath": "emitted/local-runtime/server/errors.js",
+      "sha256": "ae53f08b15f25f561ad3ce6bfb7da003bd93cc6db428b92604d6369dffbaf05d"
+    },
+    {
+      "originalPath": "dist/local/server/http.js",
+      "packagePath": "emitted/local-runtime/server/http.js",
+      "sha256": "0d050f6ccb76c51072656aa31a9283fa444dfd377230df1a9a3813bf81c453ea"
+    },
+    {
+      "originalPath": "dist/local/server/portable/closure.js",
+      "packagePath": "emitted/local-runtime/server/portable/closure.js",
+      "sha256": "f4c396ca8f4af65fa28c83aec14c45fd88ffbb4644c32e44c86dcd9e76913ac6"
+    },
+    {
+      "originalPath": "dist/local/server/portable/format.js",
+      "packagePath": "emitted/local-runtime/server/portable/format.js",
+      "sha256": "561988ae9458ed7558804f0c468f2dfdda74cbdf697a973cbe720c5a323ab653"
+    },
+    {
+      "originalPath": "dist/local/server/portable/provenance.js",
+      "packagePath": "emitted/local-runtime/server/portable/provenance.js",
+      "sha256": "4c21c347376e8808ad7ff5b9ca79a35c3aa858d16b0666a490e3ee902acbd35f"
+    },
+    {
+      "originalPath": "dist/local/server/portable/transactions.js",
+      "packagePath": "emitted/local-runtime/server/portable/transactions.js",
+      "sha256": "99a6605309369388cefbcf7d6745a2d0603a0d6488df965ae342f318d83634b5"
+    },
+    {
+      "originalPath": "dist/local/server/portable/zip.js",
+      "packagePath": "emitted/local-runtime/server/portable/zip.js",
+      "sha256": "e8436192a4495c5c9e87f0e6325d54cbbf8e2fe8923657f418cb20e90ade412b"
+    },
+    {
+      "originalPath": "dist/local/server/portable.js",
+      "packagePath": "emitted/local-runtime/server/portable.js",
+      "sha256": "7542ad1645e6412211eec554e77ba665d07385208efa20985f6d23c34a934fb6"
+    },
+    {
+      "originalPath": "dist/local/server/private-root.js",
+      "packagePath": "emitted/local-runtime/server/private-root.js",
+      "sha256": "7e335aa2acae027687d1de188fb70f4ac56c408b76b51885f34b82b52333b124"
+    },
+    {
+      "originalPath": "dist/local/server/protocol.js",
+      "packagePath": "emitted/local-runtime/server/protocol.js",
+      "sha256": "28db8a4cad4fc65914afa80a92ed9e47352cb8af5a009a91416cfc7853266a5f"
+    },
+    {
+      "originalPath": "dist/local/server/raster/container.js",
+      "packagePath": "emitted/local-runtime/server/raster/container.js",
+      "sha256": "7266feff722fe6baf6a57cd8e1e0b34f279a963504ea09cb13cbb15ece47847d"
+    },
+    {
+      "originalPath": "dist/local/server/raster/engine.js",
+      "packagePath": "emitted/local-runtime/server/raster/engine.js",
+      "sha256": "c1f35f045014f8ef34c9ffa2b80d1ce0843105f46d60b70c0b837e72da91136d"
+    },
+    {
+      "originalPath": "dist/local/server/raster/identity.js",
+      "packagePath": "emitted/local-runtime/server/raster/identity.js",
+      "sha256": "397b5e99b48d250e28bbc14a4080fd185d956c588a22cdaed5494cd4906651e5"
+    },
+    {
+      "originalPath": "dist/local/server/raster/png-input.js",
+      "packagePath": "emitted/local-runtime/server/raster/png-input.js",
+      "sha256": "03e84261fa50ffb3921053449b02c0da7e0e90f4fd515e305907e28312e82fe9"
+    },
+    {
+      "originalPath": "dist/local/server/raster/png.js",
+      "packagePath": "emitted/local-runtime/server/raster/png.js",
+      "sha256": "777a00bd2578614027dfe91619e7a7f06a250ed760fec03d3af9d8bc5b1af068"
+    },
+    {
+      "originalPath": "dist/local/server/raster/worker.js",
+      "packagePath": "emitted/local-runtime/server/raster/worker.js",
+      "sha256": "57f69a6c13eef34acd236a37de204966038c5a85014f5ce5b3ba2886420949ec"
+    },
+    {
+      "originalPath": "dist/local/server/sessions.js",
+      "packagePath": "emitted/local-runtime/server/sessions.js",
+      "sha256": "324690207de323e67bd3353fb20b09edd806fb0c6e8afb45e377c99b50b23b36"
+    },
+    {
+      "originalPath": "dist/local/server/static.js",
+      "packagePath": "emitted/local-runtime/server/static.js",
+      "sha256": "866f2b734df5ec54fa967f60d344abeeb7fa578d806cdc42617bac532a0199e7"
+    },
+    {
+      "originalPath": "dist/local/server/storage/assets.js",
+      "packagePath": "emitted/local-runtime/server/storage/assets.js",
+      "sha256": "4091b2d898767027c4fd94eac8534581a7f97dad9753abc13c9f798aa6a74331"
+    },
+    {
+      "originalPath": "dist/local/server/storage/canonical.js",
+      "packagePath": "emitted/local-runtime/server/storage/canonical.js",
+      "sha256": "62a963acc87465bbd40faaf007518e84c13ebf834f471d79b6943abde0373382"
+    },
+    {
+      "originalPath": "dist/local/server/storage/database.js",
+      "packagePath": "emitted/local-runtime/server/storage/database.js",
+      "sha256": "7dcd5f3ce0ba7cb3ca46c9b1cca64a56a4b1754aac64ba7bf8b250f1407c3a6c"
+    },
+    {
+      "originalPath": "dist/local/server/storage/errors.js",
+      "packagePath": "emitted/local-runtime/server/storage/errors.js",
+      "sha256": "73e1b0673732604083ff87a0962914058cbd72e6d3bf00fb353091dfc2b75106"
+    },
+    {
+      "originalPath": "dist/local/server/storage/files.js",
+      "packagePath": "emitted/local-runtime/server/storage/files.js",
+      "sha256": "4d80e2b7af5b884ac5a9c8e6b2ab5e1a5640315897e4e4207217a4b630d974c0"
+    },
+    {
+      "originalPath": "dist/local/server/storage/history.js",
+      "packagePath": "emitted/local-runtime/server/storage/history.js",
+      "sha256": "7d89d6d03e18c86dd3ec7070aca46a0c890e2727676886770be6055032b8c44e"
+    },
+    {
+      "originalPath": "dist/local/server/storage/objects.js",
+      "packagePath": "emitted/local-runtime/server/storage/objects.js",
+      "sha256": "c37741666c49be781e394fa1ac795a55da857f1aed275884f2374af5853a9546"
+    },
+    {
+      "originalPath": "dist/local/server/storage/ownership.js",
+      "packagePath": "emitted/local-runtime/server/storage/ownership.js",
+      "sha256": "69fe80713016d4aee2b8e5e6f7cf910fda70a3e5c1b97c483d1698aab1a69299"
+    },
+    {
+      "originalPath": "dist/local/server/storage/portable.js",
+      "packagePath": "emitted/local-runtime/server/storage/portable.js",
+      "sha256": "8f4b5a36d96ee0e33a6a657e12d8798351664a9c407718ae1c4445cd81d4702c"
+    },
+    {
+      "originalPath": "dist/local/server/storage/raster.js",
+      "packagePath": "emitted/local-runtime/server/storage/raster.js",
+      "sha256": "580d10c29318f63d9c4e0e718ebf0ad21811ce0fd97d5d8b20be57306d3d7f87"
+    },
+    {
+      "originalPath": "dist/local/server/storage/recovery.js",
+      "packagePath": "emitted/local-runtime/server/storage/recovery.js",
+      "sha256": "1acb64cc935a455f062fffaaa8863347ab6e9b877cbb051f71bfd6f831b4bbb0"
+    },
+    {
+      "originalPath": "dist/local/server/storage/reducer.js",
+      "packagePath": "emitted/local-runtime/server/storage/reducer.js",
+      "sha256": "a11c25360a63d359d8e3f71e255f94eda6de98582abcf1daf0c2a38d6c0b9730"
+    },
+    {
+      "originalPath": "dist/local/server/storage/schema.js",
+      "packagePath": "emitted/local-runtime/server/storage/schema.js",
+      "sha256": "a6da7a69ccf973c263f85bed109e6b3033460f58e931a6da508eeb8b1eeb7f6b"
+    },
+    {
+      "originalPath": "dist/local/server/storage/ui.js",
+      "packagePath": "emitted/local-runtime/server/storage/ui.js",
+      "sha256": "a1bc9c44163175695ffe3512e9445b1a25edb3ff080c508a2ab55565205d9b70"
+    },
+    {
+      "originalPath": "dist/local/server/storage/worker.js",
+      "packagePath": "emitted/local-runtime/server/storage/worker.js",
+      "sha256": "4b52ec312e539164dae26a220c6c05222894559ca1b1ac69c57f80fc366d13b8"
+    },
+    {
+      "originalPath": "dist/local/server/storage/writer.js",
+      "packagePath": "emitted/local-runtime/server/storage/writer.js",
+      "sha256": "b25b7858b38359708ce3f2e40f3ad13a02b94945e97b90e391ea8c6b4683d85a"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/assets.js",
+      "packagePath": "emitted/local-runtime/src/protocol/assets.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/history-validation.js",
+      "packagePath": "emitted/local-runtime/src/protocol/history-validation.js",
+      "sha256": "8ffd56fbace84af8b50087a5bd088bca7c98789cf2ea16436f6656578a40c540"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/history.js",
+      "packagePath": "emitted/local-runtime/src/protocol/history.js",
+      "sha256": "7e6e86039c51ed5088575c0a209a786aee2c9dc18f33ba3426e4ca61cbbf87b6"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/json.js",
+      "packagePath": "emitted/local-runtime/src/protocol/json.js",
+      "sha256": "11c2c958ba6682a8c43359c817cc34c7df7613d96d7def6f355a25bff9b2feca"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/portable.js",
+      "packagePath": "emitted/local-runtime/src/protocol/portable.js",
+      "sha256": "d76412ba46fe9aaa6fd4db561a0bb3aed2af7031c4bf7f72bc0af1136b2a4e14"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/raster.js",
+      "packagePath": "emitted/local-runtime/src/protocol/raster.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/recovery.js",
+      "packagePath": "emitted/local-runtime/src/protocol/recovery.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/session.js",
+      "packagePath": "emitted/local-runtime/src/protocol/session.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/sha256.js",
+      "packagePath": "emitted/local-runtime/src/protocol/sha256.js",
+      "sha256": "afde447a5304453903ca3e360043bb8d73f105e1648cd898476c8a2d409056b3"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/store.js",
+      "packagePath": "emitted/local-runtime/src/protocol/store.js",
+      "sha256": "12ec4a17d70195813e8f02ba67ebce82864e1a4f20967c8ce0c10c4f3e37b0b9"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/ui.js",
+      "packagePath": "emitted/local-runtime/src/protocol/ui.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "originalPath": "dist/local/src/protocol/validate.js",
+      "packagePath": "emitted/local-runtime/src/protocol/validate.js",
+      "sha256": "38b9a8f286d457cde9b382d6044e12786f1e2ddcb983dd05eb76e0d6b071f610"
+    },
+    {
+      "originalPath": "dist/local/src/raster/core.js",
+      "packagePath": "emitted/local-runtime/src/raster/core.js",
+      "sha256": "b9ad5306ba5de38ba9b0c58c91bfce0003f6530da2ffd1ca0b0fca6aa1b5fe46"
+    },
+    {
+      "originalPath": "dist/local/src/state/projection.js",
+      "packagePath": "emitted/local-runtime/src/state/projection.js",
+      "sha256": "b0ff3d1f60ca642516c64bde77c8537a45b4288fd6782489c285e54d003f59fa"
+    },
+    {
+      "originalPath": "dist/local/tooling/launch.js",
+      "packagePath": "emitted/local-runtime/tooling/launch.js",
+      "sha256": "dcff289c33c963c793e71dfa20c46582ffa20fb68affd2805063404f47910dbe"
+    },
+    {
+      "originalPath": "dist/local/tooling/launcher.js",
+      "packagePath": "emitted/local-runtime/tooling/launcher.js",
+      "sha256": "41f9735a421ca1c3a1527434f2b9ef957cff60a58078d6a470d03007c56629da"
+    }
+  ]
+}

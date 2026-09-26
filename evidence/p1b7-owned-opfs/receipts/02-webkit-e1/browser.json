@@ -1,0 +1,167 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts",
+      "portable.spec.ts",
+      "--output",
+      "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "portable.spec.ts",
+      "file": "portable.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 10510,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55876/api/v1/events/stream?after=14 due to access control checks.\",\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55913/api/v1/events?after=17 due to access control checks.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55876/api/v1/events/stream?after=14 due to access control checks.\",\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55913/api/v1/events?after=17 due to access control checks.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:68:84",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                      "column": 84,
+                      "line": 68
+                    },
+                    "snippet": "  66 |  const newDrafts:any[]=[];page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/ui/')&&r.method()==='POST'){const b=JSON.parse(r.postData()!).body;if(b.type==='SaveDraft'&&b.draft.kind==='inspector')newDrafts.push(b.draft);}});\n  67 |  await page.getByRole('treeitem').first().click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Editable after portable reopen');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');expect(newDrafts.length).toBeGreaterThan(0);expect(newDrafts.every(d=>d.id.length<=128&&d.documentId.startsWith('p_')&&d.targetLayerId.startsWith('p_'))).toBe(true);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem',{name:'Editable after portable reopen · visible'})).toBeVisible();\n> 68 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(domErrors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);\n     |                                                                                    ^\n  69 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({browserContext:browserName==='webkit'?'fresh profile plus verified empty native OPFS at every origin':'ephemeral',expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));\n  70 |  // Successful rail screenshots are captured separately: WebKit screenshot\n  71 |  // tooling injects inline styles. Keep this error oracle strict through teardown."
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                        "column": 84,
+                        "line": 68
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55876/api/v1/events/stream?after=14 due to access control checks.\",\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55913/api/v1/events?after=17 due to access control checks.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  66 |  const newDrafts:any[]=[];page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/ui/')&&r.method()==='POST'){const b=JSON.parse(r.postData()!).body;if(b.type==='SaveDraft'&&b.draft.kind==='inspector')newDrafts.push(b.draft);}});\n  67 |  await page.getByRole('treeitem').first().click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Editable after portable reopen');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');expect(newDrafts.length).toBeGreaterThan(0);expect(newDrafts.every(d=>d.id.length<=128&&d.documentId.startsWith('p_')&&d.targetLayerId.startsWith('p_'))).toBe(true);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem',{name:'Editable after portable reopen · visible'})).toBeVisible();\n> 68 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(domErrors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);\n     |                                                                                    ^\n  69 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({browserContext:browserName==='webkit'?'fresh profile plus verified empty native OPFS at every origin':'ephemeral',expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));\n  70 |  // Successful rail screenshots are captured separately: WebKit screenshot\n  71 |  // tooling injects inline styles. Keep this error oracle strict through teardown.\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:68:84"
+                    },
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                        "column": 226,
+                        "line": 39
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55876/api/v1/events/stream?after=14 due to access control checks.\",\u001b[39m\n\u001b[31m+   \"/127.0.0.1:55913/api/v1/events?after=17 due to access control checks.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  37 |  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));\n  38 |  page.on('pageerror',e=>{const observation={browser:browserName,name:e.name,message:e.message,stack:e.stack??'',disrupting,retiredOrigins},expected=expectedShutdownPageError(observation);pageErrors.push({name:e.name,message:e.message,stack:e.stack??'',disrupting,expected});if(!expected)errors.push(e.message);});page.on('console',m=>{if(m.type()==='error'){const url=m.location().url,expected=expectedShutdownConsole({browser:browserName,text:m.text(),url,disrupting,retiredOrigins});let safeUrl='',retiredOrigin=false;try{const parsed=new URL(url);safeUrl=parsed.origin+parsed.pathname;retiredOrigin=retiredOrigins.has(parsed.origin);}catch{}consoleObservations.push({text:m.text(),url:safeUrl,disrupting,retiredOrigin,expected});if(expected)expectedFailures.push(m.text());else errors.push(m.text());}});\n> 39 |  e1Errors.finish=async()=>{await writeFile(join(receipt,'e1-console.json'),JSON.stringify({browser:browserName,retiredOrigins:[...retiredOrigins],observations:consoleObservations,pageErrors,domErrors},null,2));expect(errors).toEqual([]);};\n     |                                                                                                                                                                                                                                  ^\n  40 |  page.on('request',r=>{const u=new URL(r.url());if(u.protocol!=='blob:'){requests.push(u.pathname);expect(u.hostname).toBe('127.0.0.1');}});\n  41 |  try{\n  42 |  await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;\n    at Object.e1Errors.finish (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:39:226)\n    at Object.e1Errors (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:25:56)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T16:21:25.658Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                    "column": 84,
+                    "line": 68
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "c79a3b05e7f67b52c1b1-218d14430d8fbae0d45e",
+          "file": "portable.spec.ts",
+          "line": 34,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T16:21:25.356Z",
+    "duration": 11133.06,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

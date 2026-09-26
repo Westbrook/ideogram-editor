@@ -1,0 +1,171 @@
+{
+  "browserName": "firefox",
+  "origins": [
+    "http://127.0.0.1:56638",
+    "http://127.0.0.1:56639",
+    "http://127.0.0.1:56640"
+  ],
+  "profiles": [],
+  "observations": [
+    {
+      "phase": "creator-precondition",
+      "origin": "http://127.0.0.1:56638",
+      "profiles": [],
+      "initial": []
+    },
+    {
+      "phase": "foreign-preserved",
+      "name": "foreign-8551f8f7-b22c-48da-a1a7-9f27fd2a3f0c",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ]
+    },
+    {
+      "phase": "creator-cleaned",
+      "name": "foreign-8551f8f7-b22c-48da-a1a7-9f27fd2a3f0c",
+      "absent": true
+    },
+    {
+      "phase": "foreign-arrived-after-admission-preserved",
+      "name": "foreign-8551f8f7-b22c-48da-a1a7-9f27fd2a3f0c"
+    },
+    {
+      "phase": "workflow-failure-cleaned",
+      "failure": "Error: CONTROL_WORKFLOW_FAILURE"
+    }
+  ],
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "1924bf73-ef3e-4004-a907-312b817bb760",
+      "profile": "firefox ephemeral",
+      "initialCookieCount": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:56638",
+      "profile": "firefox ephemeral"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:56638",
+      "entries": [
+        {
+          "name": "foreign-8551f8f7-b22c-48da-a1a7-9f27fd2a3f0c",
+          "kind": "file"
+        }
+      ],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "refused",
+      "origin": "http://127.0.0.1:56638",
+      "error": "Error: OPFS_DIRTY_ORIGIN"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:56639",
+      "profile": "firefox ephemeral"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:56639",
+      "entries": [],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:56639"
+    },
+    {
+      "origin": "http://127.0.0.1:56639",
+      "phase": "creating",
+      "name": "owned-success-1924bf73-ef3e-4004-a907-312b817bb760"
+    },
+    {
+      "origin": "http://127.0.0.1:56639",
+      "phase": "created",
+      "name": "owned-success-1924bf73-ef3e-4004-a907-312b817bb760"
+    },
+    {
+      "origin": "http://127.0.0.1:56639",
+      "phase": "removed",
+      "name": "owned-success-1924bf73-ef3e-4004-a907-312b817bb760",
+      "exactHandle": true,
+      "absent": true
+    },
+    {
+      "origin": "http://127.0.0.1:56639",
+      "phase": "cleanup",
+      "remaining": [
+        {
+          "name": "foreign-8551f8f7-b22c-48da-a1a7-9f27fd2a3f0c",
+          "kind": "file"
+        }
+      ]
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "origin": "http://127.0.0.1:56639",
+      "error": "Error: page.evaluate: OPFS_UNKNOWN_REMAINS\nwindow.cleanupOwnedOPFS@debugger eval code:71:35\nasync*@debugger eval code line 311 > eval:1:14\nevaluate@debugger eval code:313:16\n@debugger eval code:1:44\n@debugger eval code:1:62\n"
+    },
+    {
+      "origin": "http://127.0.0.1:56639",
+      "phase": "cleanup",
+      "remaining": []
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:56640",
+      "profile": "firefox ephemeral"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:56640",
+      "entries": [],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:56640"
+    },
+    {
+      "origin": "http://127.0.0.1:56640",
+      "phase": "creating",
+      "name": "owned-failure-1924bf73-ef3e-4004-a907-312b817bb760"
+    },
+    {
+      "origin": "http://127.0.0.1:56640",
+      "phase": "created",
+      "name": "owned-failure-1924bf73-ef3e-4004-a907-312b817bb760"
+    },
+    {
+      "origin": "http://127.0.0.1:56640",
+      "phase": "removed",
+      "name": "owned-failure-1924bf73-ef3e-4004-a907-312b817bb760",
+      "exactHandle": true,
+      "absent": true
+    },
+    {
+      "origin": "http://127.0.0.1:56640",
+      "phase": "cleanup",
+      "remaining": []
+    },
+    {
+      "origin": "http://127.0.0.1:56640",
+      "phase": "cleanup",
+      "remaining": []
+    }
+  ]
+}

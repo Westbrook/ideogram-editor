@@ -1,0 +1,45 @@
+{
+  "start": "2026-09-26T16:04:11.520Z",
+  "storage": [
+    {
+      "kind": "ephemeral",
+      "ok": false,
+      "stage": "getDirectory",
+      "name": "UnknownError",
+      "message": "The operation failed for an unknown transient reason (e.g. out of memory)."
+    },
+    {
+      "kind": "persistent-one",
+      "ok": true,
+      "initial": [],
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ]
+    },
+    {
+      "kind": "persistent-two",
+      "ok": true,
+      "initial": [
+        "independent.bin"
+      ],
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ]
+    }
+  ],
+  "oracle": [],
+  "browser": "26.6",
+  "pass": false,
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'independent.bin'\n+ ]\n- []\n\n    at file:///Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/environment-oracle.mjs:18:849",
+  "end": "2026-09-26T16:04:13.273Z"
+}

@@ -1,0 +1,56 @@
+{
+  "start": "2026-09-26T16:05:08.173Z",
+  "marker": "ecc-49326f3c-f3e1-4736-ade6-68e47fda8d88",
+  "observations": [
+    {
+      "profile": 1,
+      "origin": 1,
+      "before": {
+        "opfsExists": false,
+        "opfsBytes": null,
+        "localStorage": null,
+        "cookie": false,
+        "indexedDB": false
+      }
+    },
+    {
+      "profile": 2,
+      "origin": 1,
+      "before": {
+        "opfsExists": true,
+        "opfsBytes": [
+          2,
+          4,
+          6,
+          8
+        ],
+        "localStorage": null,
+        "cookie": false,
+        "indexedDB": false
+      }
+    },
+    {
+      "profile": 2,
+      "origin": 2,
+      "before": {
+        "opfsExists": false,
+        "opfsBytes": null,
+        "localStorage": null,
+        "cookie": false,
+        "indexedDB": false
+      }
+    }
+  ],
+  "scope": "One bounded diagnostic after preserved independent profile-isolation failure; no product workflow or timing rerun.",
+  "origins": [
+    "http://127.0.0.1:64108",
+    "http://127.0.0.1:64109"
+  ],
+  "profiles": [
+    "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ecc-profile-diagnostic-aAjhAB",
+    "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ecc-profile-diagnostic-i7XSBV"
+  ],
+  "sameOriginOPFSVisible": true,
+  "freshOriginOPFSVisible": false,
+  "end": "2026-09-26T16:05:09.543Z"
+}

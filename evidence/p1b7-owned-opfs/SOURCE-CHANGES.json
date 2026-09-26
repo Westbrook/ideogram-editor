@@ -1,0 +1,9 @@
+{
+  "base": "ecc5262f6339688aade7611f8da8f31d37e41c76",
+  "sourceCommit": "aa0abbcb8e4408fed072ae06e2c1be5bebb80b56",
+  "files": [
+    "tests/editor/owned-opfs.spec.ts",
+    "tests/editor/owned-opfs.ts",
+    "tests/editor/portable.spec.ts"
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "run": "03184c95-efc6-4285-b410-5dc5d2160a4b",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "03184c95-efc6-4285-b410-5dc5d2160a4b",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-2Mue85"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:56171",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-2Mue85"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:56171",
+      "entries": [],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:56171"
+    },
+    {
+      "origin": "http://127.0.0.1:56171",
+      "phase": "creating",
+      "name": "ie-download-0f9589cb-5256-42d1-bcab-6ad0074d5117"
+    },
+    {
+      "origin": "http://127.0.0.1:56171",
+      "phase": "created",
+      "name": "ie-download-0f9589cb-5256-42d1-bcab-6ad0074d5117"
+    },
+    {
+      "origin": "http://127.0.0.1:56171",
+      "phase": "removed",
+      "name": "ie-download-0f9589cb-5256-42d1-bcab-6ad0074d5117",
+      "exactHandle": true,
+      "absent": true
+    },
+    {
+      "origin": "http://127.0.0.1:56171",
+      "phase": "cleanup",
+      "remaining": []
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:56211",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-2Mue85"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:56211",
+      "entries": [],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:56211"
+    },
+    {
+      "origin": "http://127.0.0.1:56211",
+      "phase": "creating",
+      "name": "ie-download-a282f540-6e34-40c7-b138-8d0d25df2a43"
+    },
+    {
+      "origin": "http://127.0.0.1:56211",
+      "phase": "created",
+      "name": "ie-download-a282f540-6e34-40c7-b138-8d0d25df2a43"
+    },
+    {
+      "origin": "http://127.0.0.1:56211",
+      "phase": "removed",
+      "name": "ie-download-a282f540-6e34-40c7-b138-8d0d25df2a43",
+      "exactHandle": true,
+      "absent": true
+    },
+    {
+      "origin": "http://127.0.0.1:56211",
+      "phase": "cleanup",
+      "remaining": []
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:56240",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-2Mue85"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:56240",
+      "entries": [],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:56240"
+    },
+    {
+      "origin": "http://127.0.0.1:56240",
+      "phase": "creating",
+      "name": "ie-download-635d25fc-8b69-4ac7-bd5e-46bfa59cc5ca"
+    },
+    {
+      "origin": "http://127.0.0.1:56240",
+      "phase": "created",
+      "name": "ie-download-635d25fc-8b69-4ac7-bd5e-46bfa59cc5ca"
+    },
+    {
+      "origin": "http://127.0.0.1:56240",
+      "phase": "removed",
+      "name": "ie-download-635d25fc-8b69-4ac7-bd5e-46bfa59cc5ca",
+      "exactHandle": true,
+      "absent": true
+    },
+    {
+      "origin": "http://127.0.0.1:56240",
+      "phase": "cleanup",
+      "remaining": []
+    },
+    {
+      "origin": "http://127.0.0.1:56240",
+      "phase": "cleanup",
+      "remaining": []
+    }
+  ]
+}

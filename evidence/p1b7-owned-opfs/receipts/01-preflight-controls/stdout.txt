@@ -1,0 +1,11 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts owned-opfs.spec.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/01-preflight-controls/browser
+
+Running 2 tests using 1 worker
+
+(node:84597) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/owned-opfs.spec.ts:14:1 › native OPFS dirty admission refuses foreign entries; exact owned success and failure cleanup (1.2s)
+  ✓  2 tests/editor/owned-opfs.spec.ts:45:1 › WebKit native profile sharing is retained as an environment negative, not an isolation guarantee (1.8s)
+
+  2 passed (3.9s)

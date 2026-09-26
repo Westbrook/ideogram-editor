@@ -1,0 +1,557 @@
+{
+  "meaning": "Historical code and browser JSON are separately attributed observations. Current code inputs exclude reporter metadata. No private profile/pairing/SQLite/network trace copied.",
+  "entries": [
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/01-preflight-controls/browser/.last-run.json",
+      "packagePath": "receipts/01-preflight-controls/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/01-preflight-controls/browser.json",
+      "packagePath": "receipts/01-preflight-controls/browser.json",
+      "sha256": "d66b0531c8c2b7aee10a190496ba0cd01f30b3aead81181fde1aa3836b982402",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/01-preflight-controls/command.json",
+      "packagePath": "receipts/01-preflight-controls/command.json",
+      "sha256": "786a1b965201a7c637ce21b23cb45c2b8eeaf74aad1bce1ea53e1a2a5995a7d2",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/01-preflight-controls/native-profile-boundary.json",
+      "packagePath": "receipts/01-preflight-controls/native-profile-boundary.json",
+      "sha256": "834610e5b691195e1969617eddb4120771cff12fe0da5a2d83b2fbdefa42e4dd",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/01-preflight-controls/owned-opfs-controls.json",
+      "packagePath": "receipts/01-preflight-controls/owned-opfs-controls.json",
+      "sha256": "1a7533e3c11fa0840746c0c89e4ab4fe6d2dd17f8087400b166dd90c861c92a3",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/01-preflight-controls/stdout.txt",
+      "packagePath": "receipts/01-preflight-controls/stdout.txt",
+      "sha256": "90644260be7ab3b466d34c426ffdcabaa5a73382a07beb6e25553c8273e62397",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-candidate-source/inputs.json",
+      "packagePath": "receipts/02-candidate-source/inputs.json",
+      "sha256": "ee4939fcb95c18ce6b4105cd3685ba122ac826f9a1ccb18b1986563905cd4dfc",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-candidate-source/owned-opfs.spec.ts",
+      "packagePath": "receipts/02-candidate-source/owned-opfs.spec.ts",
+      "sha256": "d83899c260230933ded89b32a796fec2ed524e9919d983b48cd619e242ef9001",
+      "category": "historical verification code; not current code input"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-candidate-source/owned-opfs.ts",
+      "packagePath": "receipts/02-candidate-source/owned-opfs.ts",
+      "sha256": "feaf12f4262c7849aff91b8aff5fc4b20d397de209379475183fc27d6acdf979",
+      "category": "historical verification code; not current code input"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-candidate-source/portable.spec.ts",
+      "packagePath": "receipts/02-candidate-source/portable.spec.ts",
+      "sha256": "3be6c4c47f327a7b36579866759a94825ae4e8bdd3eeba7e591dc0026989a5e5",
+      "category": "historical verification code; not current code input"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser/.last-run.json",
+      "packagePath": "receipts/02-webkit-e1/browser/.last-run.json",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "packagePath": "receipts/02-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md.txt",
+      "sha256": "f9c1a39bb43db4e0fccf3d1825d64658c822f53f19e52f3bce2e49eb4eafeb1c",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "packagePath": "receipts/02-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "sha256": "7fda87da1757582b96415a4aadd25ff6cda89b887c47ff36a3a33a235f5a2034",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/browser.json",
+      "packagePath": "receipts/02-webkit-e1/browser.json",
+      "sha256": "c19752d2118099a3f1ed44d683b8f66bd46a5d0a211f31d70aa5b9f6d2b09729",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/command.json",
+      "packagePath": "receipts/02-webkit-e1/command.json",
+      "sha256": "51842bce41602d90fff677096787c855c06179346e36774be4832a95cd2cddf8",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/e1-console.json",
+      "packagePath": "receipts/02-webkit-e1/e1-console.json",
+      "sha256": "b69d1e0aaece738e9f134b5f79bebc5c36faeb1c32122c8c39e22983e20062e6",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/e1-storage.json",
+      "packagePath": "receipts/02-webkit-e1/e1-storage.json",
+      "sha256": "c0c36047087cc817bc653464b224a10ad1ae464e1b37d5237aa5722ec4f013f4",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/02-webkit-e1/stdout.txt",
+      "packagePath": "receipts/02-webkit-e1/stdout.txt",
+      "sha256": "a174fc8564249e520278a40c01406e6c4ac4e8296c4c5bd1713f73ccdcd6e3cd",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/browser/.last-run.json",
+      "packagePath": "receipts/03-dedicated-preflight/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/browser.json",
+      "packagePath": "receipts/03-dedicated-preflight/browser.json",
+      "sha256": "07450f3d01f3aabf58ba6984079a7a6c35faea380e382dc2b23bc2b43d9e96ce",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/command.json",
+      "packagePath": "receipts/03-dedicated-preflight/command.json",
+      "sha256": "f5f893e7e72d4fa7f1a6a4cef6c6a8e87aa153fa5c56415b7644844df59e1a95",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/e1-console.json",
+      "packagePath": "receipts/03-dedicated-preflight/e1-console.json",
+      "sha256": "1ded7f5dd95e0f62244573e5abaa71ad92f87c98338ec70d569663a8b0a5453f",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/e1-storage.json",
+      "packagePath": "receipts/03-dedicated-preflight/e1-storage.json",
+      "sha256": "f41ad4f5789229e22c082ef6c17a4f4735d20732d344b7db24f7db86f51da073",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/e1.json",
+      "packagePath": "receipts/03-dedicated-preflight/e1.json",
+      "sha256": "601e17a33fd88838f1b547a75827069164b2a2b2311e39b1c2504edab8babe2d",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/native-profile-boundary.json",
+      "packagePath": "receipts/03-dedicated-preflight/native-profile-boundary.json",
+      "sha256": "486ba4281a4324bf2926b4fdc63997bf11bccf1f49f81f8a9e25410c6167b6c5",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/owned-opfs-controls.json",
+      "packagePath": "receipts/03-dedicated-preflight/owned-opfs-controls.json",
+      "sha256": "50315f8fbc61c6a4f836d4f0bc94b8752d180c1bff0aec331a83c907893f0515",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/03-dedicated-preflight/stdout.txt",
+      "packagePath": "receipts/03-dedicated-preflight/stdout.txt",
+      "sha256": "d80cb9d85caae58b5cf5e21a27f3f2e6d5b9ddd9a9c7626d5dc4f4381260787a",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/04-fixture-types/command.json",
+      "packagePath": "receipts/04-fixture-types/command.json",
+      "sha256": "a04c5d246ce48c1ffe3494a3b0d65279f98a4d20f30d8455a6c0e6ab52a6aafa",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/04-fixture-types/stdout.txt",
+      "packagePath": "receipts/04-fixture-types/stdout.txt",
+      "sha256": "69642d98e7c8b75b33a5067fdd2aa3dbb7de4e29312a7f12359660d6bc01fbc0",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/05-fixture-types/command.json",
+      "packagePath": "receipts/05-fixture-types/command.json",
+      "sha256": "bb14720dddc96d43abe8a2555b41dff8f597f568ce41d77b80fe508ff0bca01a",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/05-fixture-types/stdout.txt",
+      "packagePath": "receipts/05-fixture-types/stdout.txt",
+      "sha256": "10d261a897128fe1c4d88cc8ab00646daaf7c34d8c9236de4a281d61b0368c73",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/06-typecheck/command.json",
+      "packagePath": "receipts/06-typecheck/command.json",
+      "sha256": "46577007a7b52d496ce8379680d0debf0391023765be46058d9f2cac74201d45",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/06-typecheck/stdout.txt",
+      "packagePath": "receipts/06-typecheck/stdout.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/07-build/command.json",
+      "packagePath": "receipts/07-build/command.json",
+      "sha256": "c1a6b0fb3816aca3c8407ae685f06d563c193e9818dcc8ab5fd5acc69164f345",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/07-build/stdout.txt",
+      "packagePath": "receipts/07-build/stdout.txt",
+      "sha256": "e73076d618dc929330591a53a919477c4024eed177d305a250f8b6648c01e422",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/08-error-unit/command.json",
+      "packagePath": "receipts/08-error-unit/command.json",
+      "sha256": "9cc10c832b954918300a75025e15dee7a9d8fbc13ccb32fb5574ceb176bb2703",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/08-error-unit/stdout.txt",
+      "packagePath": "receipts/08-error-unit/stdout.txt",
+      "sha256": "5129230edcebf8d564cca76dbeb6d037cc1c6d568c83ca6b3e289d90a44e9e08",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/09-final-source/CODE-INPUTS.json",
+      "packagePath": "receipts/09-final-source/CODE-INPUTS.json",
+      "sha256": "befad4d97d1d186d110a9b55860a31ce340266fea0b39d0945e82aa7161fb0ee",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/09-final-source/owned-opfs.spec.ts",
+      "packagePath": "receipts/09-final-source/owned-opfs.spec.ts",
+      "sha256": "92ad60435875b16300cc37dfe1d6f7670de869322d0faecbb16dc9d751e38fa0",
+      "category": "historical verification code; not current code input"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/09-final-source/owned-opfs.ts",
+      "packagePath": "receipts/09-final-source/owned-opfs.ts",
+      "sha256": "2734e5cd378db01d80bdcc7834cd5a970e0b3e10be3773480a3629550ebd6666",
+      "category": "historical verification code; not current code input"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/09-final-source/portable.spec.ts",
+      "packagePath": "receipts/09-final-source/portable.spec.ts",
+      "sha256": "3be6c4c47f327a7b36579866759a94825ae4e8bdd3eeba7e591dc0026989a5e5",
+      "category": "historical verification code; not current code input"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/09-final-source/tracked-diff.patch",
+      "packagePath": "receipts/09-final-source/tracked-diff.patch",
+      "sha256": "1b70024db47c9e9dacb130ff044eab625cce6eb624a0617ab8f570439e9809e9",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/browser/.last-run.json",
+      "packagePath": "receipts/10-webkit-full/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/browser.json",
+      "packagePath": "receipts/10-webkit-full/browser.json",
+      "sha256": "36b6d9c17276a957eaccea2f37fa546ec350ffa80f00eab2f431afbfd984272f",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/command.json",
+      "packagePath": "receipts/10-webkit-full/command.json",
+      "sha256": "bf9617cf62069457c792a3dca14efc71cd7bfa70f056f3f47c38a85570000e4d",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/e1-console.json",
+      "packagePath": "receipts/10-webkit-full/e1-console.json",
+      "sha256": "55a6c16ab0e3cd850618d50fcf529595814a5a55972f908fa9412c06664ecffb",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/e1-storage.json",
+      "packagePath": "receipts/10-webkit-full/e1-storage.json",
+      "sha256": "c192879c14d5e312e6df5ff22f4d520c893f4c8c6479963b6dd6d200900df802",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/e1.json",
+      "packagePath": "receipts/10-webkit-full/e1.json",
+      "sha256": "8b6aadef94e0637efad47fa780ad4ff2fa1dc7184f886c877f34881db7288860",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/editor.png",
+      "packagePath": "receipts/10-webkit-full/editor.png",
+      "sha256": "50abfff1f77826cdfc18bdbb8a4de53b52016ea11217476dca4dcfbd9a15ba30",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/error-oracle-negatives.json",
+      "packagePath": "receipts/10-webkit-full/error-oracle-negatives.json",
+      "sha256": "5d55ccdf4aef1f0fe92dc23095fa7e9ca6ccdf88dbb0142d80c5a31406e57a16",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/native-profile-boundary.json",
+      "packagePath": "receipts/10-webkit-full/native-profile-boundary.json",
+      "sha256": "0258ce49ba382ec22008d86556bf57a41554ebba04930faeecc0c6a9ec79725f",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/owned-opfs-controls.json",
+      "packagePath": "receipts/10-webkit-full/owned-opfs-controls.json",
+      "sha256": "9a3dde4dc2f227dabf9e84212f8d73370ea8dbd518e353b79db68fde92b8baec",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/rail-320-ltr.png",
+      "packagePath": "receipts/10-webkit-full/rail-320-ltr.png",
+      "sha256": "1cab3ce7cc7d91e1356d4ea2c19a785e9fd9935b601ac178ab908f0831947215",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/rail-320-rtl.png",
+      "packagePath": "receipts/10-webkit-full/rail-320-rtl.png",
+      "sha256": "4046514e0ea811965016960ffb03ece6597e329a8913b208604a6c3c4791908a",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/rail-720-ltr.png",
+      "packagePath": "receipts/10-webkit-full/rail-720-ltr.png",
+      "sha256": "afd518cd9fe7080686f15008c2f19e62d909e685ab93d7521fc72dcb03b41698",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/rail-720-rtl.png",
+      "packagePath": "receipts/10-webkit-full/rail-720-rtl.png",
+      "sha256": "2cb5cbee90fd1db41a22bc86af712094116d48f1277978c88fd15c2978d820d1",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/rail-desktop.png",
+      "packagePath": "receipts/10-webkit-full/rail-desktop.png",
+      "sha256": "490ed04d0b35e47d2eef87f348aec8c2ab36b2b7291323d54c437d3664477d5b",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/stdout.txt",
+      "packagePath": "receipts/10-webkit-full/stdout.txt",
+      "sha256": "53bbf203756529fff7e102101d766b5cb342ee8b17a877217c5d8c059bae5426",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/browser/.last-run.json",
+      "packagePath": "receipts/11-chromium-affected/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/browser.json",
+      "packagePath": "receipts/11-chromium-affected/browser.json",
+      "sha256": "51dbdece772360745810bf2308c34b8b77e9992ac6421026a3f81dddba495192",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/command.json",
+      "packagePath": "receipts/11-chromium-affected/command.json",
+      "sha256": "62384ee2f55459bf43fc26c1f0b6ae16670bf444016a11b2a57f55e0c6b9a489",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/e1-console.json",
+      "packagePath": "receipts/11-chromium-affected/e1-console.json",
+      "sha256": "4476ad9fa1dab2775cb12e7396b7d0ad6fd02e5b4ae7c87707109de0eb825ff3",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/e1-storage.json",
+      "packagePath": "receipts/11-chromium-affected/e1-storage.json",
+      "sha256": "051b99a23ceb95b0e7a288e0566921a14919dd6c9a3bbd4a6a3b07c77bde3a4a",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/e1.json",
+      "packagePath": "receipts/11-chromium-affected/e1.json",
+      "sha256": "f2ba0f7ad092a26f9a8693feeef040e0641e03cf820588a809a1bcbd8655a7dc",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/error-oracle-negatives.json",
+      "packagePath": "receipts/11-chromium-affected/error-oracle-negatives.json",
+      "sha256": "2a5ad7cb0d28a749e3480ef25ba0caff67e0a4124413cfd3788902c032ed3ba7",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/owned-opfs-controls.json",
+      "packagePath": "receipts/11-chromium-affected/owned-opfs-controls.json",
+      "sha256": "da198f3356d5af42aba8e77977b19bfb4440515186b5d7b0511c61fbbe6f5b8d",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/11-chromium-affected/stdout.txt",
+      "packagePath": "receipts/11-chromium-affected/stdout.txt",
+      "sha256": "3514c32f5af11969fd1c8313fcc5aa82fe926321073b5691c252fee3583b250f",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/browser/.last-run.json",
+      "packagePath": "receipts/12-firefox-affected/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/browser.json",
+      "packagePath": "receipts/12-firefox-affected/browser.json",
+      "sha256": "e2f3eb9a747b5f3d443cae74806d1e28143195fb0d7e2bb963d04898d4cc335e",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/command.json",
+      "packagePath": "receipts/12-firefox-affected/command.json",
+      "sha256": "c89c8e663b1df4851c1caafea0c21db2c4f539f7a8d71f62678eeb8ef61b41a5",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/e1-console.json",
+      "packagePath": "receipts/12-firefox-affected/e1-console.json",
+      "sha256": "4b792c0a94cb4d008d28233b70849d7c7339df0465f9c954580a5b77d93e3344",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/e1-storage.json",
+      "packagePath": "receipts/12-firefox-affected/e1-storage.json",
+      "sha256": "a2d1e68ebaf603fff8f20528c87c7ab2756246d2440c49fdb5b8e349d6155c38",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/e1.json",
+      "packagePath": "receipts/12-firefox-affected/e1.json",
+      "sha256": "17f1f620a0924270ea38e79a674b105ee99bc1542323944ba7c32d44c062099c",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/error-oracle-negatives.json",
+      "packagePath": "receipts/12-firefox-affected/error-oracle-negatives.json",
+      "sha256": "65730ff3fe4edecd6053a8902c032e39121b6b2432bec8296e41f7869d543b68",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/owned-opfs-controls.json",
+      "packagePath": "receipts/12-firefox-affected/owned-opfs-controls.json",
+      "sha256": "d845dc8bf38374000fca5c59da658ba414a9acff05c4a2c7c4919e01fecfa5ac",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/12-firefox-affected/stdout.txt",
+      "packagePath": "receipts/12-firefox-affected/stdout.txt",
+      "sha256": "1fe06a98cfc9f72a4ffd0987e6f435f8c654f371c0a28f0e814700868313c221",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/13-build-reuse.json",
+      "packagePath": "receipts/13-build-reuse.json",
+      "sha256": "e8d516138e1d32148e1fc438b46927e6b902d1d759ecf2c8cdc4abe0b137bc6a",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/commands.jsonl",
+      "packagePath": "receipts/commands.jsonl",
+      "sha256": "5752140f1f09dfb7d0e2db492c1a3d0aa8c27ab1f5387f5e52653c476b84bde8",
+      "category": "observed browser/command/control metadata"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/run.py",
+      "packagePath": "receipts/run.py",
+      "sha256": "5420c22483129e2a6e7ed818aca580e1c4aaa3943cf90d87c0357092e7699c8f",
+      "category": "historical verification code; not current code input"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/SHA256SUMS",
+      "packagePath": "prior-ecc/SHA256SUMS",
+      "sha256": "2c5fe0614bfa003636a1de9443e9ae70b9ef9970e70d7a740e13224b78a551d3",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/VERDICT.txt",
+      "packagePath": "prior-ecc/VERDICT.txt",
+      "sha256": "e44d709458f73db0c0c4a2f3b73b8f966c00110ca972fa7c1f270518ed8a9a30",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/REVERIFY.txt",
+      "packagePath": "prior-ecc/REVERIFY.txt",
+      "sha256": "11a220a1bca9a4192d3529082f46621f243fa3c6439e6157c218bafe5226779b",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/commands.jsonl",
+      "packagePath": "prior-ecc/commands.jsonl",
+      "sha256": "8ae1b537d488362a74ab702426d86d89c98262dc6366cc0d3c52ad76800db79a",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/environment-oracle.mjs",
+      "packagePath": "prior-ecc/environment-oracle.mjs",
+      "sha256": "714f1126ba7e20b8f6ce7abbbe5046d18c051155e7103d32a964f62918216a72",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/environment-oracle.json",
+      "packagePath": "prior-ecc/environment-oracle.json",
+      "sha256": "031bc2bb8dcaf897ee5394598951616197e56b4e26def18d9b1f196666961d28",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/environment-oracle.log.txt",
+      "packagePath": "prior-ecc/environment-oracle.log.txt",
+      "sha256": "a9dd4744d756eed70fc62b95b8ed2e9ca23d5dfc619a8e6f8eaeb7cc757a0570",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/profile-isolation-diagnostic.mjs",
+      "packagePath": "prior-ecc/profile-isolation-diagnostic.mjs",
+      "sha256": "e924b41e3f05b99cb37089cf187d97d0e10b16038ebef6804173bf1137f6002c",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/profile-isolation-diagnostic.json",
+      "packagePath": "prior-ecc/profile-isolation-diagnostic.json",
+      "sha256": "20561e1f6541c63da8280fde71ddf25212796d69bf6819d67ef88a40bc19945b",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/profile-isolation-diagnostic.log.txt",
+      "packagePath": "prior-ecc/profile-isolation-diagnostic.log.txt",
+      "sha256": "57a0257d647496b24c90b0734b64e91dce982eff016f1d057946dc6c156ca4a0",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/cleanup-owned-marker.mjs",
+      "packagePath": "prior-ecc/cleanup-owned-marker.mjs",
+      "sha256": "9a3c1c7af9043e5b437f2de01c28d1d7d9d7e9678a5603a1ca5de2384f883b89",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/cleanup-owned-marker.json",
+      "packagePath": "prior-ecc/cleanup-owned-marker.json",
+      "sha256": "7c4b2eb1b5976f5bd7d577adb06b3cce739f0dbb12c718222144ae8353c2afc4",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/ecc5262-independent/cleanup-owned-marker.log.txt",
+      "packagePath": "prior-ecc/cleanup-owned-marker.log.txt",
+      "sha256": "cd65129295f1d400a92099438ef4455044ff24ae6eb23c07714d7f38451df7cf",
+      "category": "verbatim sealed rejected-target observation or independent source"
+    }
+  ]
+}

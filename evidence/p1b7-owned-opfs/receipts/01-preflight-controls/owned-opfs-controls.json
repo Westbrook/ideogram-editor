@@ -1,0 +1,150 @@
+{
+  "browserName": "webkit",
+  "origins": [
+    "http://127.0.0.1:55698",
+    "http://127.0.0.1:55699",
+    "http://127.0.0.1:55700"
+  ],
+  "profiles": [
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-fbuVMK"
+  ],
+  "observations": [
+    {
+      "phase": "creator-precondition",
+      "origin": "http://127.0.0.1:55698",
+      "profiles": [
+        "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-fbuVMK"
+      ],
+      "initial": []
+    },
+    {
+      "phase": "foreign-preserved",
+      "name": "foreign-8b4052af-e07c-4cba-b518-b300ed85f976",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ]
+    },
+    {
+      "phase": "creator-cleaned",
+      "name": "foreign-8b4052af-e07c-4cba-b518-b300ed85f976",
+      "absent": true
+    },
+    {
+      "phase": "workflow-failure-cleaned",
+      "failure": "Error: CONTROL_WORKFLOW_FAILURE"
+    }
+  ],
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "057ed979-c3c1-432b-89ac-6611b0af4964",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-fbuVMK"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:55698",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-fbuVMK"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:55698",
+      "entries": [
+        {
+          "name": "foreign-8b4052af-e07c-4cba-b518-b300ed85f976",
+          "kind": "file"
+        }
+      ],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "refused",
+      "origin": "http://127.0.0.1:55698",
+      "error": "Error: OPFS_DIRTY_ORIGIN"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:55699",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-fbuVMK"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:55699",
+      "entries": [],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:55699"
+    },
+    {
+      "origin": "http://127.0.0.1:55699",
+      "phase": "creating",
+      "name": "owned-success-057ed979-c3c1-432b-89ac-6611b0af4964"
+    },
+    {
+      "origin": "http://127.0.0.1:55699",
+      "phase": "created",
+      "name": "owned-success-057ed979-c3c1-432b-89ac-6611b0af4964"
+    },
+    {
+      "origin": "http://127.0.0.1:55699",
+      "phase": "removed",
+      "name": "owned-success-057ed979-c3c1-432b-89ac-6611b0af4964",
+      "exactHandle": true,
+      "absent": true
+    },
+    {
+      "origin": "http://127.0.0.1:55699",
+      "phase": "cleanup",
+      "remaining": []
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:55700",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-fbuVMK"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:55700",
+      "entries": [],
+      "localStorage": 0,
+      "cookies": 0,
+      "indexedDB": []
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:55700"
+    },
+    {
+      "origin": "http://127.0.0.1:55700",
+      "phase": "creating",
+      "name": "owned-failure-057ed979-c3c1-432b-89ac-6611b0af4964"
+    },
+    {
+      "origin": "http://127.0.0.1:55700",
+      "phase": "created",
+      "name": "owned-failure-057ed979-c3c1-432b-89ac-6611b0af4964"
+    },
+    {
+      "origin": "http://127.0.0.1:55700",
+      "phase": "removed",
+      "name": "owned-failure-057ed979-c3c1-432b-89ac-6611b0af4964",
+      "exactHandle": true,
+      "absent": true
+    },
+    {
+      "origin": "http://127.0.0.1:55700",
+      "phase": "cleanup",
+      "remaining": []
+    }
+  ]
+}

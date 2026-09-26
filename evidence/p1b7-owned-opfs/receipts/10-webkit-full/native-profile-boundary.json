@@ -1,0 +1,114 @@
+{
+  "origins": [
+    "http://127.0.0.1:57063",
+    "http://127.0.0.1:57064"
+  ],
+  "profiles": [
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-u96FOk",
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-WiBVJ0"
+  ],
+  "observations": [
+    {
+      "phase": "ephemeral-fixture-refused",
+      "origin": "http://127.0.0.1:57063",
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "7e3c63c9-4190-4538-81f2-0e553aa42cf3",
+          "profile": "WebKit ephemeral control",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:57063",
+          "profile": "WebKit ephemeral control"
+        },
+        {
+          "phase": "refused",
+          "origin": "http://127.0.0.1:57063",
+          "error": "Error: page.evaluate: UnknownError: The operation failed for an unknown transient reason (e.g. out of memory)."
+        }
+      ]
+    },
+    {
+      "phase": "first",
+      "origin": "http://127.0.0.1:57063",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-u96FOk",
+      "initial": []
+    },
+    {
+      "phase": "second",
+      "origin": "http://127.0.0.1:57063",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-WiBVJ0"
+    },
+    {
+      "phase": "same-origin-shared-marker",
+      "name": "same-origin-b287edab-1247-49f8-9c44-86ea8cb22227",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "ce2fde26-c705-4965-9e8f-8777dcce9a53",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-WiBVJ0",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:57063",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-WiBVJ0"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:57063",
+          "entries": [
+            {
+              "name": "same-origin-b287edab-1247-49f8-9c44-86ea8cb22227",
+              "kind": "file"
+            }
+          ],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "refused",
+          "origin": "http://127.0.0.1:57063",
+          "error": "Error: OPFS_DIRTY_ORIGIN"
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:57064",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-owned-opfs-WiBVJ0"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:57064",
+          "entries": [],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:57064"
+        },
+        {
+          "origin": "http://127.0.0.1:57064",
+          "phase": "cleanup",
+          "remaining": []
+        }
+      ]
+    },
+    {
+      "phase": "other-origin-clean",
+      "origin": "http://127.0.0.1:57064"
+    }
+  ]
+}

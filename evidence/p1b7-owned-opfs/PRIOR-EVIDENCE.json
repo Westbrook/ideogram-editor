@@ -1,0 +1,21 @@
+{
+  "target": "ecc5262f6339688aade7611f8da8f31d37e41c76",
+  "sealSHA256": "2c5fe0614bfa003636a1de9443e9ae70b9ef9970e70d7a740e13224b78a551d3",
+  "fullSealedFileCount": 157,
+  "selected": [
+    "SHA256SUMS",
+    "VERDICT.txt",
+    "REVERIFY.txt",
+    "commands.jsonl",
+    "environment-oracle.mjs",
+    "environment-oracle.json",
+    "environment-oracle.log.txt",
+    "profile-isolation-diagnostic.mjs",
+    "profile-isolation-diagnostic.json",
+    "profile-isolation-diagnostic.log.txt",
+    "cleanup-owned-marker.mjs",
+    "cleanup-owned-marker.json",
+    "cleanup-owned-marker.log.txt"
+  ],
+  "limitation": "Original first six-byte marker origin was not recorded; cleanup remains unclaimed. No unknown stores searched or erased. Original rejected seal and verdict are unchanged."
+}

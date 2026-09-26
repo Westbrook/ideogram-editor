@@ -1,0 +1,74 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/opfs-fixture-author/10-webkit-full/browser
+
+Running 31 tests using 1 worker
+
+(node:90592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/editor/error-monitor.spec.ts:8:1 › real console errors, throws and rejected promises survive the network exception across navigation and teardown (754ms)
+  ✓   2 tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body (1.7s)
+  ✓   3 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (2.1s)
+  ✓   4 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (2.9s)
+  ✓   5 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (3.1s)
+  ✓   6 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (6.0s)
+  ✓   7 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (3.7s)
+  ✓   8 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.1s)
+  ✓   9 tests/editor/interactions.spec.ts:46:1 › intermediate drawers preserve native node, value, selection and composition across reflow (851ms)
+  ✓  10 tests/editor/interactions.spec.ts:56:1 › canvas drop, selected flatten, typed transform/crop and retained branch/checkpoint actions (6.7s)
+standalone OPFS probe {
+  ok: false,
+  stage: 'directory',
+  name: 'UnknownError',
+  message: 'The operation failed for an unknown transient reason (e.g. out of memory).'
+}
+Browser storage unavailable: failure state verified; successful write/export NOT qualified for this engine. {
+  ok: false,
+  stage: 'directory',
+  name: 'UnknownError',
+  message: 'The operation failed for an unknown transient reason (e.g. out of memory).'
+}
+  ✓  11 tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained (2.4s)
+  ✓  12 tests/editor/interactions.spec.ts:76:1 › Help uses persistent information and public drawer without component CSP violations (1.1s)
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+screenshot-only diagnostics [
+  "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy."
+]
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Select layers',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+  ✓  13 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (2.8s)
+  ✓  14 tests/editor/owned-opfs.spec.ts:14:1 › native OPFS dirty admission refuses foreign entries; exact owned success and failure cleanup (1.6s)
+  ✓  15 tests/editor/owned-opfs.spec.ts:51:1 › WebKit native profile sharing is retained as an environment negative, not an isolation guarantee (2.9s)
+  ✓  16 tests/editor/portable.spec.ts:34:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (10.6s)
+  ✓  17 tests/editor/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof (2.7s)
+  ✓  18 tests/editor/recovery.spec.ts:55:1 › history completion retries complete recovery when another tab replaces the staged base (3.0s)
+  ✓  19 tests/editor/recovery.spec.ts:74:1 › autosave receipt completion keeps the native Apply target stable during a held pointer press (2.7s)
+  ✓  20 tests/editor/recovery.spec.ts:92:1 › lost draft receipt survives reload with exact original request; cleared draft does not return (3.1s)
+  ✓  21 tests/editor/recovery.spec.ts:103:1 › missing retained raster bytes block full copy visibly and remain recoverable (2.6s)
+  ✓  22 tests/editor/recovery.spec.ts:110:1 › real snapshot gap recovery publishes the complete current document after offline browser interval (6.4s)
+  ✓  23 tests/editor/recovery.spec.ts:119:1 › new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery (3.6s)
+  ✓  24 tests/editor/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (1.3s)
+  ✓  25 tests/editor/recovery.spec.ts:166:1 › late canvas bytes from another document cannot replace the reopened current raster (3.3s)
+  ✓  26 tests/editor/recovery.spec.ts:174:1 › late version probe cannot publish mixed side panels across a concurrent checkpoint or renewed session (3.4s)
+  ✓  27 tests/editor/recovery.spec.ts:191:1 › missing or malformed current version header withholds side panels and reload recovers (2.7s)
+  ✓  28 tests/editor/recovery.spec.ts:200:1 › late explicitly requested history page cannot replace a newer complete transaction view (3.5s)
+  ✓  29 tests/editor/recovery.spec.ts:209:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets (6.2s)
+  ✓  30 tests/editor/tool-rail.spec.ts:9:1 › public rail restores icon-over-label surfaces and native disabled, selected, keyboard and pointer behavior (947ms)
+  ✓  31 tests/editor/tool-rail.spec.ts:26:1 › rail keeps full targets and visible labels at narrow and RTL reflow (1.5s)
+
+  31 passed (1.6m)
