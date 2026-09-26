@@ -71,6 +71,24 @@ test('history completion retries complete recovery when another tab replaces the
  }finally{release();await page.unrouteAll({behavior:'wait'});await f.server.close();}
 });
 
+test('autosave receipt completion keeps the native Apply target stable during a held pointer press',async({page,context})=>{
+ const f=await setup(page,context);let release=()=>{},pressed=false;try{
+ await page.getByRole('treeitem').click();let id='';const edits:string[]=[];
+ page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const c=JSON.parse(r.postData()!).command;if(c.body.type==='FinalizeStaging')id=c.commandId;if(c.body.type==='SetLayerProperties')edits.push(r.postData()!);}});
+ let entered=()=>{};const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);
+ await page.route('**/api/v1/commands/*',async route=>{
+  if(!id||new URL(route.request().url()).pathname!=='/api/v1/commands/'+id){await route.continue();return;}
+  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});if(response.status()===202){await route.fulfill({response});return;}expect(response.status()).toBe(200);entered();await gate;await route.fulfill({response});
+ });
+ await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Stable native Apply');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await hit;
+ const apply=page.getByRole('button',{name:'Apply properties',exact:true});await apply.scrollIntoViewIfNeeded();await expect(apply).toBeEnabled();
+ const node=await apply.elementHandle(),before=await apply.boundingBox();expect(before).toBeTruthy();await page.mouse.move(before!.x+before!.width/2,before!.y+before!.height/2);await page.mouse.down();pressed=true;
+ release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true})).toBeVisible();
+ const after=await apply.boundingBox();await page.mouse.up();pressed=false;
+ expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
+ }finally{release();if(pressed)await page.mouse.up();await page.unrouteAll({behavior:'wait'});await f.server.close();}
+});
+
 test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
  const f=await setup(page,context);try{
  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];
@@ -117,7 +135,31 @@ test('actual SQLite FULL pauses a browser command and exact original delivery su
  // the writer connection's 512-page limit during its real command transaction.
  const db=new DatabaseSync(join(root,'metadata.sqlite'));db.exec('CREATE TABLE browser_fault_fill(bytes BLOB); CREATE TRIGGER browser_fault_full BEFORE INSERT ON commands BEGIN INSERT INTO browser_fault_fill VALUES(zeroblob(8388608)); END;');db.close();
  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')wires.push(r.postData()!);});await click(page,'New');await click(page,'Create');await expect(page.getByText(/Storage paused/)).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();const read=new DatabaseSync(join(root,'metadata.sqlite'));expect(read.prepare('SELECT count(*) n FROM commands').get()!.n).toBe(0);expect(read.prepare('SELECT count(*) n FROM documents').get()!.n).toBe(0);read.exec('DROP TRIGGER browser_fault_full; DROP TABLE browser_fault_fill;');read.close();
- await click(page,'Cancel');await click(page,'Check and retry original');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
+ await click(page,'Cancel');
+ for(const viewport of [{width:320,height:700},{width:720,height:500}]){
+  await page.setViewportSize(viewport);const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});await status.focus();await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);await page.keyboard.press('Home');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBe(0);await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);
+  for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});
+  const area=await status.boundingBox(),target=await retry.boundingBox();expect(target!.y).toBeGreaterThanOrEqual(area!.y);expect(target!.y+target!.height).toBeLessThanOrEqual(area!.y+area!.height);expect(await status.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);
+ }
+ // Guard checks follow the unchanged native 320→720 navigation sequence.
+ // Synthetic keys establish handler ownership only, not native IME qualification.
+ const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});
+ const excluded=await status.evaluate(region=>{
+  const before=region.scrollTop,focused=document.activeElement!;
+  return [region,focused].map(target=>{const e=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true});target.dispatchEvent(e);return {prevented:e.defaultPrevented,unchanged:region.scrollTop===before};});
+ });expect(excluded).toEqual([{prevented:false,unchanged:true},{prevented:false,unchanged:true}]);
+ await status.focus();
+ const guards=await status.evaluate(region=>{
+  if(document.activeElement!==region)throw Error('Guard precondition: region must own focus');
+  const cases=[{ctrlKey:true},{metaKey:true},{altKey:true},{shiftKey:true},{isComposing:true},{key:'ArrowLeft'},{key:'Tab'},{key:'Enter'}];const before=region.scrollTop;
+  const results=cases.map(flags=>{const e=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true,...flags});region.dispatchEvent(e);return {prevented:e.defaultPrevented,unchanged:region.scrollTop===before};});
+  const vetoed=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true});vetoed.preventDefault();region.dispatchEvent(vetoed);
+  let propagated=false;const observe=(e:Event)=>{if(e===accepted)propagated=true;};const accepted=new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true});document.addEventListener('keydown',observe);region.dispatchEvent(accepted);document.removeEventListener('keydown',observe);
+  return {results,vetoPreserved:vetoed.defaultPrevented&&region.scrollTop===before,accepted:accepted.defaultPrevented,propagated};
+ });expect(guards).toEqual({results:Array.from({length:8},()=>({prevented:false,unchanged:true})),vetoPreserved:true,accepted:true,propagated:true});
+ await page.keyboard.press('Shift+Tab');expect(await status.evaluate(n=>n.contains(document.activeElement))).toBe(false);
+ await status.focus();await page.keyboard.press('End');for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});
+ await page.keyboard.press('Enter');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
  }finally{await server.close();}
 });
 

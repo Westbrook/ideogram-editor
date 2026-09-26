@@ -62,20 +62,34 @@ export class RecoveryCache {
   }
   async apply(generation: string,event: DomainEvent) {
     // Each staged row is private; only the published pointer exposes a complete view.
-    const previous=event.documentId?await this.value(generation,'document',event.documentId)??null:null;
-    requireValue(!await this.value(generation,'event',event.eventId),'Duplicate event identity');
-    if(event.type==='AssetRegistered'){requireValue(!await this.value(generation,'asset',event.payload.asset.id),'Duplicate asset');await this.put(generation,'asset',event.payload.asset.id,event.payload.asset);}
-    else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
-    if(event.type==='BundleImported'){
-      const hydrated=await this.value(generation,'namespace',event.payload.namespaceId);
-      requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
+    // Read checks and their writes share one transaction. No await crosses its
+    // active callbacks, and no event marker survives a failed reducer/write.
+    const tx=this.db.transaction('rows','readwrite'),store=tx.objectStore('rows');let validationError:unknown;
+    const checks:[string,string][]=[['event',event.eventId]];
+    if(event.documentId)checks.push(['document',event.documentId]);
+    if(event.type==='AssetRegistered')checks.push(['asset',event.payload.asset.id]);
+    if(event.type==='BundleImported')checks.push(['namespace',event.payload.namespaceId]);
+    const values=new Map<string,any>();let remaining=checks.length;
+    const put=(type:string,id:string,value:unknown)=>store.put(value,[generation,type,id]);
+    for(const [type,id] of checks){
+      const read=store.get([generation,type,id]);read.onsuccess=()=>{
+        values.set(type,read.result);if(--remaining)return;
+        try{
+          requireValue(!values.get('event'),'Duplicate event identity');
+          if(event.type==='AssetRegistered'){requireValue(!values.get('asset'),'Duplicate asset');put('asset',event.payload.asset.id,event.payload.asset);}
+          else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
+            if(event.type==='BundleImported'){
+              const hydrated=values.get('namespace');requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
+            }
+            const next=reduceDocument(values.get('document')??null,event);put('document',next.id,next);
+            if(event.type==='DocumentCreated'||event.type==='ImageEdited')put('history',event.payload.history.id,event.payload.history);
+            else if(event.type==='CheckpointSaved')put('checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
+          }
+          put('event',event.eventId,event.workspaceSeq);
+        }catch(error){validationError=error;tx.abort();}
+      };
     }
-    const next=reduceDocument(previous,event);
-    await this.put(generation,'document',next.id,next);
-    if((event.type==='DocumentCreated'||event.type==='ImageEdited')) await this.put(generation,'history',event.payload.history.id,event.payload.history);
-    else if(event.type==='CheckpointSaved') await this.put(generation,'checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
-    }
-    await this.put(generation,'event',event.eventId,event.workspaceSeq);
+    try{await done(tx);}catch(error){throw validationError??error;}
   }
   async applyEvents(generation: string,eventsStage: string,count: bigint) {
     for(let i=0n;i<count;i++) {const event=await this.value(eventsStage,'staged',String(i));requireValue(event);await this.apply(generation,event);}

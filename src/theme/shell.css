@@ -187,8 +187,9 @@ en-toolbar::part(base) {flex-wrap:wrap;}
 en-button {max-width:100%;}
 en-button::part(control) {white-space:normal;}
 .bar-end {flex-wrap:wrap;}
-.operation-status {padding:8px 18px;background:var(--en-color-surface);border-bottom:1px solid var(--en-color-line);font-size:12px;}
-.operation-status:has(en-validation-summary) {max-height:180px;overflow:auto;}
+/* Receipt updates must not move an enabled native control during a press.
+   Keep this status region stable; longer recovery/error content stays scrollable. */
+.operation-status {block-size:6rem;flex-shrink:0;overflow:auto;scrollbar-gutter:stable;padding:8px 18px;background:var(--en-color-surface);border-bottom:1px solid var(--en-color-line);font-size:12px;}
 .pending,.actions {display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-block:8px;}
 .request-fields>* {margin-block:12px;}
 .request-fields p {font-size:12px;}

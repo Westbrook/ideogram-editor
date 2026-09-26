@@ -19,6 +19,20 @@ async function snapshotFixture(){const w=await openWriter({root});const ref=awai
 const state=(page:any)=>page.evaluate(()=> (window as any).harness.read());
 const recover=(page:any)=>page.evaluate(async()=>{try{return {cursor:await (window as any).harness.client.recover()};}catch(e){return {error:String(e)};}});
 
+test('private event application rolls back every row on a write fault and retains duplicate checks',async({page})=>{
+  const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);await w.close();await start(page);
+  const result=await page.evaluate(async()=>{
+    const h=(window as any).harness,page=await(await h.transport('/api/v1/events?after=0')).json(),event=page.batches[0].events[0],generation='write-fault';
+    const put=IDBObjectStore.prototype.put;let failure='';
+    IDBObjectStore.prototype.put=function(value,key){if(Array.isArray(key)&&key[0]===generation&&key[1]==='history')throw new DOMException('Injected private history write fault','QuotaExceededError');return put.call(this,value,key);};
+    try{await h.cache.apply(generation,event);}catch(error){failure=(error as Error).name;}finally{IDBObjectStore.prototype.put=put;}
+    const partial={document:await h.cache.value(generation,'document',event.documentId),history:await h.cache.value(generation,'history',event.payload.history.id),event:await h.cache.value(generation,'event',event.eventId)};
+    await h.cache.apply(generation,event);let duplicate='';try{await h.cache.apply(generation,event);}catch(error){duplicate=String(error);}
+    return {failure,partial,duplicate,published:await h.cache.published(),document:await h.cache.value(generation,'document',event.documentId),event:await h.cache.value(generation,'event',event.eventId)};
+  });
+  expect(result.failure).toBe('QuotaExceededError');expect(result.partial).toEqual({document:undefined,history:undefined,event:undefined});expect(result.duplicate).toContain('Duplicate event identity');expect(result.published.cursor).toBe('0');expect(result.document.revision).toBe('1');expect(result.event).toBe('1');
+});
+
 test('browser snapshot plus pinned tail publishes at H only and preserves prior view on download failure',async({page})=>{
   const ref=await snapshotFixture();await start(page);
   // A previous published view is deliberately distinct from the incoming snapshot.
