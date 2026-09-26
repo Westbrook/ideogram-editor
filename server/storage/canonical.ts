@@ -7,7 +7,7 @@ import { StoreError } from './errors.js';
 const bad = (): never => { throw new StoreError('MALFORMED_REQUEST'); };
 export const isId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value);
 export const isSeq = (value: unknown): value is string => typeof value === 'string' && /^(0|[1-9][0-9]*)$/.test(value);
-function keys(value: unknown, names: string[]): asserts value is Record<string, unknown> {
+export function keys(value: unknown, names: string[]): asserts value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value) ||
       Object.keys(value).length !== names.length || names.some(name => !Object.hasOwn(value, name))) bad();
 }
@@ -46,6 +46,13 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
   } else if (body.type === 'SaveCheckpoint') {
     keys(body, ['type', 'name']);
     if (typeof body.name !== 'string') bad();
+  } else if (body.type === 'PreviewStagingOwnershipTransfer') {
+    keys(body, ['type','stagingId']); if (!isId(body.stagingId)) bad();
+  } else if (body.type === 'TransferStagingOwnership') {
+    keys(body, ['type','stagingId','expectedOwnerClientId','expectedVersion','reviewId','reviewHash']);
+    if (!isId(body.stagingId)||!isId(body.expectedOwnerClientId)||!isSeq(body.expectedVersion)||!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash)) bad();
+  } else if (body.type === 'FinalizeStaging') {
+    keys(body, ['type','stagingId','expectedSha256']); if (!isId(body.stagingId)||typeof body.expectedSha256!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.expectedSha256)) bad();
   } else throw new StoreError('UNSUPPORTED_COMMAND');
   return value as unknown as CommandRequest;
 }

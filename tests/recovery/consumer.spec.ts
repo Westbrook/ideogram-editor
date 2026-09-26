@@ -8,12 +8,13 @@ const {openWriter}=await import(pathToFileURL(resolve('dist/local/server/storage
 const {largeTransaction}=await import('../protocol/fixtures.mjs');
 const {command,checkpoint,encode,expectedBytes,refFor}=await import('../store/helpers.mjs');
 let server:any;let root:string;let now:number;
+const output=resolve(process.env.IE_RECOVERY_OUTPUT??'artifacts/p1b2');
 test.beforeEach(async({context})=>{
   root=await mkdtemp(join(await realpath(tmpdir()),'ie-recovery-browser-'));now=Date.now();
   await context.route('**/*',route=>{if(new URL(route.request().url()).hostname!=='127.0.0.1')throw new Error('Provider/nonlocal request denied');return route.continue();});
 });
 test.afterEach(async()=>{if(server)await server.close();server=undefined;await rm(root,{recursive:true,force:true});});
-async function start(page:any){server=await startLocalServer({root,staticDirectory:resolve('artifacts/p1b2/browser-app'),now:()=>now});await page.goto(server.issuePairingURL());await expect(page.locator('#state')).toHaveText('Recovery consumer ready');}
+async function start(page:any){server=await startLocalServer({root,staticDirectory:resolve(output,'browser-app'),now:()=>now});await page.goto(server.issuePairingURL());await expect(page.locator('#state')).toHaveText('Recovery consumer ready');}
 async function snapshotFixture(){const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);for(let i=1;i<255;i++)await w.submit(encode(checkpoint(ref,String(i),'Snapshot '+i)),w.epoch);await w.close();return ref;}
 const state=(page:any)=>page.evaluate(()=> (window as any).harness.read());
 const recover=(page:any)=>page.evaluate(async()=>{try{return {cursor:await (window as any).harness.client.recover()};}catch(e){return {error:String(e)};}});
@@ -37,7 +38,7 @@ test('browser snapshot plus pinned tail publishes at H only and preserves prior 
   await page.route('**/api/v1/protocol-content/**',async route=>{const r=await route.fetch();const bytes=await r.body();bytes[bytes.length-2]^=1;await route.fulfill({response:r,body:bytes});});
   expect((await recover(page)).error).toBeTruthy();expect(await state(page)).toEqual(prior);
   await page.unroute('**/api/v1/protocol-content/**');expect(await recover(page)).toEqual({cursor:'256'});
-  expect((await state(page)).document).toEqual(good.document);await page.screenshot({path:'artifacts/p1b2/browser-recovery.png'});
+  expect((await state(page)).document).toEqual(good.document);await page.screenshot({path:resolve(output,'browser-recovery.png')});
 });
 
 test('browser validates large transaction hash, length, count, sequence and pinned context before publication',async({page})=>{
@@ -147,4 +148,28 @@ test('I-C01 IndexedDB read lifetime blocks cross-tab publication and deletion un
   expect(await second.evaluate(()=>(window as any).publishDone??false)).toBe(false);
   const row=await page.evaluate(async()=>{(window as any).releaseRead=true;return await(window as any).readResult;});expect(row).toEqual({revision:'1'});
   await second.evaluate(()=>(window as any).publishResult);expect((await state(second)).document).toEqual({revision:'2'});await second.close();
+});
+
+test('asset upload and snapshot recovery publish immutable metadata without unsafe content or backend ownership',async({page})=>{
+  await start(page);
+  const created=await page.evaluate(async()=>{
+    const h=(window as any).harness;const bytes=new TextEncoder().encode('<svg onload="bad()">inert</svg>');
+    const hash='sha256:'+Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(n=>n.toString(16).padStart(2,'0')).join('');
+    const stage={protocolVersion:1,stagingId:crypto.randomUUID(),purpose:'caption',expectedBytes:String(bytes.length),sha256:hash,mediaType:'text/plain'};
+    const headers={'Content-Type':'application/json','X-App-CSRF':h.session.csrfToken};
+    const first=await h.transport('/api/v1/assets/staging',{method:'POST',headers,body:JSON.stringify(stage)});if(first.status!==201)throw Error(await first.text());
+    const put=await h.transport('/api/v1/assets/staging/'+stage.stagingId,{method:'PUT',headers:{'Content-Type':'application/octet-stream','X-App-CSRF':h.session.csrfToken,'Upload-Offset':'0'},body:bytes});if(put.status!==200)throw Error(await put.text());
+    return {stage,clientId:h.session.clientId};
+  });
+  const c=command(refFor(expectedBytes),{clientId:created.clientId,documentId:null,body:{type:'FinalizeStaging',stagingId:created.stage.stagingId,expectedSha256:created.stage.sha256}});
+  const sent=await page.evaluate(c=>(window as any).harness.send(c),c);expect([200,202]).toContain(sent.status);
+  const accepted=await page.evaluate(async id=>{const h=(window as any).harness;for(let i=0;i<200;i++){const r=await h.transport('/api/v1/commands/'+id);const result=await r.json();if(result.kind==='receipt')return result;await new Promise(r=>setTimeout(r,5));}throw Error('Missing receipt');},c.command.commandId);expect(accepted.receipt.status).toBe('accepted');
+  expect(await recover(page)).toEqual({cursor:'1'});
+  const asset=await page.evaluate(async()=>{const h=(window as any).harness;const events=await(await h.transport('/api/v1/events?after=0')).json();const a=events.batches[0].events[0].payload.asset;return h.cache.read('asset',a.id);});expect(asset.qualification).toBe('opaque-text');expect(asset.blob.hash).toBe(created.stage.sha256);
+  const ref=refFor(expectedBytes);await page.evaluate(c=>(window as any).harness.send(c),command(ref,{clientId:created.clientId}));
+  for(let i=1;i<251;i++){const c=command(ref,{clientId:created.clientId,expectedDocumentRevision:String(i),body:{type:'SaveCheckpoint',name:'with asset '+i}});expect((await page.evaluate(c=>(window as any).harness.send(c),c)).value.receipt.status).toBe('accepted');}
+  await page.evaluate(async()=>{const h=(window as any).harness;const old=await h.cache.published();await h.cache.publish({generation:crypto.randomUUID(),cursor:'0',epoch:null},old);});
+  expect(await recover(page)).toEqual({cursor:'252'});
+  expect(await page.evaluate(id=>(window as any).harness.cache.read('asset',id),asset.id)).toEqual(asset);
+  const serialized=JSON.stringify(asset);for(const secret of ['cookieHash','sessionHash','filename','ownerClientId','original'])expect(serialized).not.toContain(secret);
 });

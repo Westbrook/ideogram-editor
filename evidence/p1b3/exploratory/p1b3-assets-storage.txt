@@ -1,0 +1,32 @@
+✔ actual7ef07dd migration preserves all retained tables and verified rollback database (2167.151042ms)
+✔ asset event replay and snapshots keep original bytes and dependencies across restart (1864.653875ms)
+✔ staging symlinks are rejected without writing the target, and reservation pressure retains data (206.316458ms)
+✖ journal capacity failure cannot invent a pending command or replace its original rejection (758.399042ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5050.532667
+
+✖ failing tests:
+
+test at tests/assets/storage.test.mjs:45:1
+✖ journal capacity failure cannot invent a pending command or replace its original rejection (758.399042ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"21052f78-5c93-40a9-b05d-7a815dedbf8b","kind":"pending","operationId":"77179148-78a3-422e-8a81-d9da8b0e1e3c","phase":"preparing","protocolVersion":1,"receiptUrl":"/api/v1/commands/21052f78-5c93-40a9-b05d-7a815dedbf8b"}
+  
+  202 !== 507
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/storage.test.mjs:51:126)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 507,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,22 @@
+{
+  "peakRSS": 350519296,
+  "peakHeap": 12829784,
+  "samples": [
+    {
+      "bytes": 8388608,
+      "pendingReceiptMs": 7.39349999999996,
+      "lastClientByteToObservedAcceptanceMs": 44.77170799999999,
+      "uploadToObservedAcceptanceMs": 126.13629100000003,
+      "downloadVerifiedClientMs": 96.619166,
+      "maxChunkReceiptMs": 10.903333000000032
+    },
+    {
+      "bytes": 33554432,
+      "pendingReceiptMs": 8.912375000000111,
+      "lastClientByteToObservedAcceptanceMs": 86.69862499999999,
+      "uploadToObservedAcceptanceMs": 393.24525000000006,
+      "downloadVerifiedClientMs": 370.8165409999999,
+      "maxChunkReceiptMs": 11.976458000000093
+    }
+  ]
+}

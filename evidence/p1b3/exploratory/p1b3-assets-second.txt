@@ -1,0 +1,16 @@
+npm notice run ideogram-editor@0.1.0 test:assets
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (567.571417ms)
+✔ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (486.609959ms)
+✔ stale and expired reviews reject durably; hostile declarations and raw images never become usable (529.136167ms)
+✔ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (599.31175ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2228.797

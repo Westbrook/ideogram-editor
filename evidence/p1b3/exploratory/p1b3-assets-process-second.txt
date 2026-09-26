@@ -1,0 +1,31 @@
+npm notice run ideogram-editor@0.1.0 test:assets
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (512.081625ms)
+✔ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (467.018333ms)
+✔ stale and expired reviews reject durably; hostile declarations and raw images never become usable (520.655ms)
+✔ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (653.138792ms)
+✔ SIGKILL upload-before-write preserves only the journaled offset and missing suffix (730.305125ms)
+✔ SIGKILL upload-before-flush preserves only the journaled offset and missing suffix (722.368625ms)
+✔ SIGKILL upload-after-flush preserves only the journaled offset and missing suffix (696.913625ms)
+✔ SIGKILL upload-before-offset-commit preserves only the journaled offset and missing suffix (705.907834ms)
+✔ SIGKILL upload-after-offset-commit preserves only the journaled offset and missing suffix (732.532834ms)
+✔ SIGKILL preparation-before-commit resolves the original finalize identity once (701.213167ms)
+✔ SIGKILL preparation-after-commit resolves the original finalize identity once (705.54775ms)
+✔ SIGKILL finalize-before-flush resolves the original finalize identity once (711.9385ms)
+✔ SIGKILL finalize-after-flush resolves the original finalize identity once (718.814083ms)
+✔ SIGKILL finalize-before-rename resolves the original finalize identity once (719.171833ms)
+✔ SIGKILL finalize-after-rename resolves the original finalize identity once (687.703625ms)
+✔ SIGKILL finalize-after-directory-sync resolves the original finalize identity once (714.549416ms)
+✔ SIGKILL finalize-before-register resolves the original finalize identity once (692.092834ms)
+✔ SIGKILL asset-before-commit resolves the original finalize identity once (642.252041ms)
+✔ SIGKILL asset-after-commit resolves the original finalize identity once (688.536542ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12821.830041

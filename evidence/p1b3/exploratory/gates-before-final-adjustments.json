@@ -1,0 +1,100 @@
+[
+  {
+    "command": "npm run typecheck",
+    "startedAt": "2026-09-26T05:31:25.144134+00:00",
+    "elapsedSeconds": 0.8026481671258807,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/typecheck.txt"
+  },
+  {
+    "command": "npm run build",
+    "startedAt": "2026-09-26T05:31:25.947257+00:00",
+    "elapsedSeconds": 2.5742779169231653,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/build.txt"
+  },
+  {
+    "command": "npm run test:assets",
+    "startedAt": "2026-09-26T05:31:28.521867+00:00",
+    "elapsedSeconds": 23.451496792025864,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-assets.txt"
+  },
+  {
+    "command": "npm run test:assets:volume",
+    "startedAt": "2026-09-26T05:31:51.973856+00:00",
+    "elapsedSeconds": 3.80544291716069,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-assets-volume.txt"
+  },
+  {
+    "command": "npm run test:protocol",
+    "startedAt": "2026-09-26T05:31:55.779798+00:00",
+    "elapsedSeconds": 20.520239791832864,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-protocol.txt"
+  },
+  {
+    "command": "npm run test:recovery",
+    "startedAt": "2026-09-26T05:32:16.300500+00:00",
+    "elapsedSeconds": 16.995678916107863,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-recovery.txt"
+  },
+  {
+    "command": "npm run test:store",
+    "startedAt": "2026-09-26T05:32:33.296618+00:00",
+    "elapsedSeconds": 15.050680375192314,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-store.txt"
+  },
+  {
+    "command": "npm run test:store:volume",
+    "startedAt": "2026-09-26T05:32:48.347741+00:00",
+    "elapsedSeconds": 2.867222874891013,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-store-volume.txt"
+  },
+  {
+    "command": "npm run test:session",
+    "startedAt": "2026-09-26T05:32:51.215379+00:00",
+    "elapsedSeconds": 4.369900125078857,
+    "exitCode": 1,
+    "log": "evidence/p1b3/logs/test-session.txt"
+  },
+  {
+    "command": "npm run test:shell",
+    "startedAt": "2026-09-26T05:32:55.585775+00:00",
+    "elapsedSeconds": 7.272405417170376,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-shell.txt"
+  },
+  {
+    "command": "npm run test:consumer",
+    "startedAt": "2026-09-26T05:33:02.858548+00:00",
+    "elapsedSeconds": 19.368889667093754,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/test-consumer.txt"
+  },
+  {
+    "command": "npm run verify:vendor",
+    "startedAt": "2026-09-26T05:33:22.227885+00:00",
+    "elapsedSeconds": 0.23406995786353946,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/verify-vendor.txt"
+  },
+  {
+    "command": "python3 docs/spec/tools/check_spec.py",
+    "startedAt": "2026-09-26T05:33:22.462296+00:00",
+    "elapsedSeconds": 0.18745220778509974,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/spec.txt"
+  },
+  {
+    "command": "git diff --check",
+    "startedAt": "2026-09-26T05:33:22.650036+00:00",
+    "elapsedSeconds": 0.015266417060047388,
+    "exitCode": 0,
+    "log": "evidence/p1b3/logs/diff.txt"
+  }
+]

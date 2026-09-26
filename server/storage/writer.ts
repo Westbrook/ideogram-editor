@@ -4,6 +4,7 @@ import { acquireRoot } from './ownership.js';
 import { StoreError, safeError } from './errors.js';
 import type { StoreErrorCode } from './errors.js';
 import type { RecoveryStore, StoredContent } from './recovery.js';
+import type { Assets, AssetAuth } from './assets.js';
 import type { StoreDatabase } from './database.js';
 import { IO_CHUNK } from './objects.js';
 import { PrivateRootError } from '../private-root.js';
@@ -42,7 +43,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     if (message.type === 'failure') { testing?.onFailure?.(message.failure); return; }
     const item = pending.get(message.id); if (!item) return;
     pending.delete(message.id);
-    if (message.type === 'error') item.reject(new StoreError(message.code)); else item.resolve(message.result);
+    if (message.type === 'error') item.reject(new StoreError(message.code,message.detail)); else item.resolve(message.result);
   });
   let epoch: string;
   try { epoch = await ready; owner.check(); } catch (error) { await worker.terminate(); await exited; throw error; }
@@ -65,6 +66,21 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
       if (bytes.byteLength > 65536) throw new StoreError('PAYLOAD_TOO_LARGE');
       return request<Receipt>('submit', { bytes, epoch: writerEpoch });
     },
+    assetCreate: (value:unknown,auth:AssetAuth)=>request<ReturnType<Assets['create']>>('assetCreate',{value,auth}),
+    assetGet: (id:string,auth:AssetAuth)=>request<ReturnType<Assets['get']>>('assetGet',{id,auth}),
+    assetInventory: (cursor:string|null,auth:AssetAuth)=>request<ReturnType<Assets['inventory']>>('assetInventory',{cursor,auth}),
+    assetReview: (id:string,auth:AssetAuth)=>request<ReturnType<Assets['review']>>('assetReview',{id,auth}),
+    assetBeginChunk: (id:string,offset:string,length:number,auth:AssetAuth)=>request<string>('assetBeginChunk',{id,offset,length,auth}),
+    assetCheckChunk: (token:string,auth:AssetAuth)=>request<void>('assetCheckChunk',{token,auth}),
+    assetChunk: (token:string,bytes:Uint8Array,auth:AssetAuth)=>request<ReturnType<Assets['chunk']>>('assetChunk',{token,bytes,auth}),
+    assetAbortChunk: (token:string)=>request<void>('assetAbortChunk',{token}),
+    assetCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('assetCommand',{bytes,auth}),
+    assetPending: (id:string)=>request<ReturnType<Assets['pending']>>('assetPending',{id}),
+    assetProjection: (id:string)=>request<{asset:ReturnType<Assets['asset']>;highWater:string}>('assetProjection',{id}),
+    assetVerify: (id:string)=>request<Awaited<ReturnType<Assets['verify']>>>('assetVerify',{id}),
+    assetContent: (id:string,handle:string,offset:string,length:number)=>request<Uint8Array>('assetContent',{id,handle,offset,length}),
+    assetRelease: (handle:string)=>request<void>('assetRelease',{handle}),
+    commandState: (id:string)=>request<{record:ReturnType<StoreDatabase['lookup']>;pending:ReturnType<Assets['pending']>}>('commandState',{id}),
     lookup: (id: string) => request<ReturnType<StoreDatabase['lookup']>>('lookup', { id }),
     document: (id: string) => request<Document | null>('document', { id }),
     history: (id: string) => request<ReturnType<StoreDatabase['entity']>>('history', { id }),

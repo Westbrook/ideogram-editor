@@ -1,0 +1,161 @@
+{
+  "base": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+  "branch": "ideogram-editor-p1",
+  "files": [
+    {
+      "path": "package.json",
+      "bytes": 3168,
+      "sha256": "43ff7395f95877d90449dd57dc7f83996f6fe4c284a06d105ecdd63625df7240"
+    },
+    {
+      "path": "server/assets.ts",
+      "bytes": 6636,
+      "sha256": "b5c2d35e30035c58c0c42b8f48ea8e100aa0f1713269d721dc1929b48ffad5ee"
+    },
+    {
+      "path": "server/errors.ts",
+      "bytes": 2774,
+      "sha256": "42f5e8afeb75efc12ded38f14d340b65d77885a01b84dd8a46f31fb090bdf0db"
+    },
+    {
+      "path": "server/http.ts",
+      "bytes": 13870,
+      "sha256": "ba29e793bbaad5fd828b6b2884227aef1fa9a411c8edda0861bcac391f9d4e7b"
+    },
+    {
+      "path": "server/protocol.ts",
+      "bytes": 22031,
+      "sha256": "23790ef99f710fac6f1f48cae9cb5ec3ec6b53544e501a2287db0a211681c8b8"
+    },
+    {
+      "path": "server/storage/assets.ts",
+      "bytes": 26754,
+      "sha256": "84634f74f876a52baad5d44a65aa7ad6f0bf5a41efc670fc5d2e6575fdde8cff"
+    },
+    {
+      "path": "server/storage/canonical.ts",
+      "bytes": 4744,
+      "sha256": "00cba05dc14523154d6c0b7860a6d568b7ab08c411662f110b95b33b1feda02a"
+    },
+    {
+      "path": "server/storage/database.ts",
+      "bytes": 29108,
+      "sha256": "1caa9efea2dbfad8ba92b5d28a17db72ba779f3c327a1ca78012b0e48880b635"
+    },
+    {
+      "path": "server/storage/errors.ts",
+      "bytes": 1104,
+      "sha256": "31ca05343688e5f1dc6cc876f356624d042589d9b9c3ec1ef8176a196f81715b"
+    },
+    {
+      "path": "server/storage/objects.ts",
+      "bytes": 11465,
+      "sha256": "7ef86194192376d05fb3ff96e1e7eb86273feaf1de6ed7b2745fd9c1af2ecd6c"
+    },
+    {
+      "path": "server/storage/recovery.ts",
+      "bytes": 20454,
+      "sha256": "f84e3653f67a8a14f0cbc3c7ccb2c8256e6939e3d74e127b251c5f95469e1d32"
+    },
+    {
+      "path": "server/storage/schema.ts",
+      "bytes": 7396,
+      "sha256": "8ca548126975e7593f75257a5dc9c4b49de7b9531d1172199f843a96d279ada8"
+    },
+    {
+      "path": "server/storage/worker.ts",
+      "bytes": 6575,
+      "sha256": "47137fec4345bb1c04ff06dcf96053c1b23570d6830536bd91b587833d2e6c99"
+    },
+    {
+      "path": "server/storage/writer.ts",
+      "bytes": 9903,
+      "sha256": "981b6bd8fab2879e215aeca6eb9c6e53ae9189d72a2e166d119a6178bbf083c6"
+    },
+    {
+      "path": "src/protocol/assets.ts",
+      "bytes": 2188,
+      "sha256": "acac8f01ff758c96deb725ede913a7cf25401db930f08e75c50208e491e1af82"
+    },
+    {
+      "path": "src/protocol/store.ts",
+      "bytes": 2808,
+      "sha256": "23a659bd2f5fb06bca9caeb89dd2de8d66a44ab30d7568a9a299047d280ef9a0"
+    },
+    {
+      "path": "src/protocol/validate.ts",
+      "bytes": 5585,
+      "sha256": "7aa2f10aa9e7822496f07e99ee2576109f959257d082f9a5e1dee2528b75fe64"
+    },
+    {
+      "path": "src/state/recovery-cache.ts",
+      "bytes": 4685,
+      "sha256": "38aba5ca044cf7d5c2e1013143253db0216f8db6c03bc591cdc86693767c8edd"
+    },
+    {
+      "path": "src/state/recovery-client.ts",
+      "bytes": 15699,
+      "sha256": "5f4f4214889491420697cf79b1d95f700c1625c08d9c25bdfbaf14bb5d1618b4"
+    },
+    {
+      "path": "tests/assets/http.test.mjs",
+      "bytes": 12587,
+      "sha256": "f7f5e0d22a1af408df52f6cfeff93e11d2b0018d22aa8560d9dddb8c139291b4"
+    },
+    {
+      "path": "tests/assets/process.test.mjs",
+      "bytes": 9835,
+      "sha256": "4e21cc9dc10a26e640daad2a4dc0bcd5c1ca6368233d4d9fc50788202ae76626"
+    },
+    {
+      "path": "tests/assets/storage.test.mjs",
+      "bytes": 13774,
+      "sha256": "0fe0a82d3b643745d16056a4560c659664d67e0b72e44e9355690836909682ac"
+    },
+    {
+      "path": "tests/assets/volume-fault.mjs",
+      "bytes": 4554,
+      "sha256": "59fdd7ae18d8454358ea96705aa9c038fd6ade89b38a9990c3530e9e7cde3daf"
+    },
+    {
+      "path": "tests/protocol/recovery.test.mjs",
+      "bytes": 9811,
+      "sha256": "52b0051b5baeb858374bdc024b003c499a0b164986c3e58d28ae89a1f3e897dd"
+    },
+    {
+      "path": "tests/recovery/consumer.spec.ts",
+      "bytes": 19288,
+      "sha256": "97435d396015c793087a0cba841f32f0bc391b5efb34256f63fc5794ed3a0416"
+    },
+    {
+      "path": "tests/recovery/playwright.config.ts",
+      "bytes": 493,
+      "sha256": "5c29ec752064cf7c0963fcc4440ca9281a90db1b1ea19d4a8efd7addc3a0e1d9"
+    },
+    {
+      "path": "tests/recovery/vite.config.ts",
+      "bytes": 261,
+      "sha256": "89027dd103f028352f7970b2f6abe67d1831cddd60549496384bc5092e79106a"
+    },
+    {
+      "path": "tests/session/http.test.mjs",
+      "bytes": 16354,
+      "sha256": "dd3b6cfbd6e8fe02206d0410c184558f3782d78ae51ab096c27d91299cbc8abd"
+    },
+    {
+      "path": "tooling/ASSETS.txt",
+      "bytes": 7909,
+      "sha256": "86d3389b6c218adf711d660473c5da304108145918b13d9a885e12d78dfcbc8f"
+    },
+    {
+      "path": "tooling/PROTOCOL.txt",
+      "bytes": 13925,
+      "sha256": "05311dd4c385fab17f55ffcb6198f585a9bd5358fa95d668cff94e094051a6c2"
+    },
+    {
+      "path": "tooling/measure-assets.mjs",
+      "bytes": 4912,
+      "sha256": "232fd702cdc2bebfa18e382065e8e6e2f86bd1e6c26b5cba73f8ffa9a4a218bf"
+    }
+  ]
+}

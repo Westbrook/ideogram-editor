@@ -11,7 +11,9 @@ import { StoreError } from './errors.js';
 import { Objects } from './objects.js';
 import type { Barrier } from './objects.js';
 import { event as validateEvent } from '../../src/protocol/validate.js';
-import { extendSchema } from './schema.js';
+import { Assets, AssetRejection } from './assets.js';
+import type { AssetFact } from '../../src/protocol/assets.js';
+import { extendSchema, assetSchema } from './schema.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
 
@@ -39,6 +41,7 @@ export class StoreDatabase {
   readonly objects: Objects;
   readonly epoch: string;
   readonly recovery: RecoveryStore;
+  readonly assets: Assets;
   private databaseIdentity;
   private rootIdentity;
   private missing: { hash: string; code: string }[] = [];
@@ -60,12 +63,13 @@ export class StoreDatabase {
         if (Object.values(this.db.prepare(`PRAGMA ${name}`).get()!)[0] !== expected) throw new StoreError('UNSUPPORTED_STORAGE');
       }
       const version = Number(this.db.prepare('PRAGMA user_version').get()!.user_version);
-      if (![0,1,2].includes(version)) throw new StoreError('CORRUPT_STORE');
+      if (![0,1,2,3].includes(version)) throw new StoreError('CORRUPT_STORE');
       this.db.exec('BEGIN IMMEDIATE');
       this.db.exec(schema);
 
       this.db.exec('COMMIT');
       extendSchema(this.db, root, version, options.quotaBytes);
+      assetSchema(this.db, root, options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
@@ -84,6 +88,9 @@ export class StoreDatabase {
       this.setMeta('writerEpoch', this.epoch);
       this.db.exec('COMMIT');
       syncDirectory(root); this.check();
+      this.assets=new Assets(this.db,this.objects,root,this.epoch,()=>this.fence(this.epoch),barrier,
+        (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.objects.onAvailable(()=>this.assets.schedule());
       if (options.maxPageCount !== undefined) {
         if (!Number.isSafeInteger(options.maxPageCount) || options.maxPageCount < 1) throw new Error('Invalid test page limit');
         this.db.exec(`PRAGMA max_page_count=${options.maxPageCount}`);
@@ -130,7 +137,13 @@ export class StoreDatabase {
     return row ? JSON.parse(String(row.json)) : null;
   }
   private project(event: DomainEvent): void {
-    const next = reduceDocument(this.document(event.documentId), event);
+    if(event.type==='AssetRegistered') {
+      this.db.prepare('INSERT INTO assets VALUES (?,?)').run(event.payload.asset.id,canonical(event.payload.asset));
+      for(const ref of [event.payload.asset.blob,...event.payload.asset.dependencies])this.db.prepare('INSERT OR IGNORE INTO asset_dependencies VALUES (?,?)').run(event.payload.asset.id,ref.hash);
+      return;
+    }
+    if(event.type==='StagingTransferReviewPrepared'||event.type==='StagingOwnershipTransferred')return;
+    const next = reduceDocument(this.document(event.documentId!), event);
     this.db.prepare('INSERT INTO documents VALUES (?,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json').run(next.id, canonical(next));
     if (event.type === 'DocumentCreated') this.db.prepare('INSERT INTO history VALUES (?,?,?)').run(event.payload.history.id, next.id, canonical(event.payload.history));
     else this.db.prepare('INSERT INTO checkpoints VALUES (?,?,?)').run(event.payload.checkpoint.id, next.id, canonical(event.payload.checkpoint));
@@ -139,7 +152,7 @@ export class StoreDatabase {
     const start = performance.now();
     this.db.exec('BEGIN IMMEDIATE');
     try {
-      this.db.exec('DELETE FROM checkpoints; DELETE FROM history; DELETE FROM documents;');
+      this.db.exec('DELETE FROM asset_dependencies; DELETE FROM assets; DELETE FROM checkpoints; DELETE FROM history; DELETE FROM documents;');
       const snapshot = this.recovery.latest();
       if (snapshot) this.recovery.restore(snapshot);
       let highWater = BigInt(snapshot?.seq ?? '0');
@@ -168,8 +181,8 @@ export class StoreDatabase {
     } catch (error) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw error; }
     this.replayMs = performance.now() - start;
   }
-  private register(owner: string, ref: BlobRef) {
-    this.objects.verify(ref);
+  private register(owner: string, ref: BlobRef, proof?:string) {
+    if(proof)this.objects.proven(ref,proof);else this.objects.verify(ref);
     this.db.prepare('INSERT OR IGNORE INTO objects VALUES (?,?)').run(ref.hash, ref.byteLength);
     if (this.db.prepare('SELECT byte_length FROM objects WHERE hash=?').get(ref.hash)!.byte_length !== ref.byteLength) throw new StoreError('CORRUPT_OBJECT');
     this.db.prepare('INSERT INTO roots VALUES (?,?,?)').run(owner, ref.hash, ref.mediaType);
@@ -203,7 +216,7 @@ export class StoreDatabase {
       if (c.body.width < 1 || c.body.height < 1) return reject('INVALID_INPUT', 'command.body', 'POSITIVE_DIMENSIONS_REQUIRED');
       if (c.body.color !== 'sRGB' || c.body.depth !== 8) return reject('INCOMPATIBLE', 'command.body', 'UNSUPPORTED_COLOR_DEPTH');
       if (c.body.width > 8192 || c.body.height > 8192 || c.body.width * c.body.height > 25000000) return reject('CAPACITY', 'command.body', 'DOCUMENT_DIMENSION_LIMIT');
-    } else {
+    } else if(c.body.type==='SaveCheckpoint') {
       if (!current) return reject('INVALID_INPUT', 'command.documentId', 'DOCUMENT_REQUIRED');
       if (!c.body.name.trim()) return reject('INVALID_INPUT', 'command.body.name', 'NAME_REQUIRED');
     }
@@ -214,6 +227,7 @@ export class StoreDatabase {
   submit(bytes: Uint8Array, epoch: string): Receipt {
     this.fence(epoch);
     const request = parseCommand(bytes); const c = request.command;
+    if(c.body.type!=='NewDocument'&&c.body.type!=='SaveCheckpoint')throw new StoreError('UNSUPPORTED_COMMAND');
     const serialized = canonical(request);
     if (Buffer.byteLength(serialized) > 65536) throw new StoreError('PAYLOAD_TOO_LARGE');
     const hash = hashBytes(serialized);
@@ -245,7 +259,7 @@ export class StoreDatabase {
           event = { ...envelope, type: 'DocumentCreated', payload: { document: created, history: {
             id: captured.historyId, documentId: created.id, branchId: created.branchId, parent: null,
             forward: { before: null, after: created }, inverse: { before: created, after: null }, roots: [c.expectedEntityVersions] } } };
-        } else event = { ...envelope, type: 'CheckpointSaved', payload: { checkpoint: { id: captured.checkpointId, name: c.body.name,
+        } else if(c.body.type==='SaveCheckpoint') event = { ...envelope, type: 'CheckpointSaved', payload: { checkpoint: { id: captured.checkpointId, name: c.body.name,
           documentId: document!.id, documentRevision: document!.revision, historyHead: document!.historyHead, highWater: this.meta('highWater') } } };
         if (Buffer.byteLength(canonical(event)) > 16384) rejection = { code: 'CAPACITY', path: 'command.body', reason: 'EVENT_SIZE_LIMIT', currentRevision: document?.revision ?? null };
       }
@@ -273,6 +287,43 @@ export class StoreDatabase {
       if (!committed && this.db.isTransaction) this.db.exec('ROLLBACK');
       throw error;
     }
+  }
+  private commitAsset(bytes: Uint8Array, build:()=>AssetFact, failure?:()=>void):Receipt {
+    this.fence(this.epoch);const request=parseCommand(bytes);const c=request.command;const serialized=canonical(request);const hash=hashBytes(serialized);
+    this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const previous=this.lookup(c.commandId);if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return previous.receipt;}
+      if(this.missingCount)throw new StoreError('CORRUPT_STORE');
+      let receipt:Receipt;
+      // A savepoint prevents a rejected builder from publishing partial indexes.
+      this.db.exec('SAVEPOINT asset_effect');
+      try {
+        if(c.documentId!==null||c.expectedDocumentRevision!==null)throw new AssetRejection('INVALID_INPUT','WORKSPACE_COMMAND_REQUIRED');
+        let expected:Uint8Array;
+        try{expected=this.objects.verify(c.expectedEntityVersions,true)!;}catch(e){if(e instanceof StoreError&&['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw new AssetRejection('MISSING_ASSET','UNAVAILABLE_PRECONDITIONS');if(e instanceof StoreError&&e.code==='PAYLOAD_TOO_LARGE')throw new AssetRejection('CAPACITY','VERSION_MANIFEST_LIMIT');throw e;}
+        let versions;try{versions=parseExpected(expected);}catch(e){if(e instanceof StoreError&&['MALFORMED_REQUEST','PAYLOAD_TOO_LARGE'].includes(e.code))throw new AssetRejection('INVALID_INPUT','INVALID_VERSION_MAP');throw e;}
+        if(c.expectedEntityVersions.mediaType!=='application/json'||canonical(versions)!==Buffer.from(expected).toString('utf8')||versions.entities.length)throw new AssetRejection('INVALID_INPUT','EMPTY_WORKSPACE_PRECONDITIONS_REQUIRED');
+        if(this.db.prepare('SELECT seq FROM events_v2 WHERE transaction_id=?').get(c.transactionId))throw new AssetRejection('INVALID_INPUT','TRANSACTION_ID_REUSE');
+        if(BigInt(this.meta('highWater'))-BigInt(this.recovery.latest(true)?.seq??'0')>=500n)throw new AssetRejection('CAPACITY','SNAPSHOT_REQUIRED');
+        const fact=build();const seq=String(BigInt(this.meta('highWater'))+1n);
+        const event:DomainEvent={schemaVersion:1,payloadVersion:1,eventId:randomUUID(),workspaceSeq:seq,streamId:'assets',streamSeq:seq,documentId:null,resultingDocumentRevision:null,
+          commandId:c.commandId,correlationId:c.correlationId,causationId:c.causationId,transactionId:c.transactionId,writerEpoch:this.epoch,recordedAt:new Date().toISOString(),...fact};
+        validateEvent(event);if(Buffer.byteLength(canonical(event))>16384)throw new AssetRejection('CAPACITY','EVENT_SIZE_LIMIT');
+        this.register('command:'+c.commandId,c.expectedEntityVersions);
+        this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq,c.transactionId,c.commandId,canonical(event));this.project(event);this.setMeta('highWater',seq);
+        receipt={status:'accepted',commandId:c.commandId,fromSeq:seq,toSeq:seq,documentRevision:null,transactionId:c.transactionId};
+        this.db.exec('RELEASE asset_effect');
+      }catch(error){
+        this.db.exec('ROLLBACK TO asset_effect; RELEASE asset_effect');
+        if(!(error instanceof AssetRejection))throw error;
+        failure?.();const details=this.objects.putMetadata(Buffer.from(canonical({kind:'fields',issues:[{path:'command.body',code:error.reason}]})));this.register('receipt:'+c.commandId,details);
+        receipt={status:'rejected',commandId:c.commandId,code:error.code,currentRevision:error.currentRevision,details};
+        // A rejected original identity is terminal; no preparation can overwrite it.
+        this.db.prepare('DELETE FROM asset_preparations WHERE id=?').run(c.commandId);
+      }
+      this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,canonical(receipt));
+      this.barrier('asset-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('asset-after-commit');this.recovery.maintain();return receipt;
+    }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
   }
   protocolDefaults(): void {
     // A fixed safe precondition value makes the existing narrow commands usable
@@ -302,7 +353,7 @@ export class StoreDatabase {
   forgetClient(cookieHash: string) { this.db.prepare('DELETE FROM client_bindings WHERE cookie_hash=?').run(cookieHash); }
   health() {
     this.check(); const fs = statfsSync(this.root,{bigint:true});
-    return { missingCount: this.missingCount, diskWarning: (fs.blocks-fs.bavail)*100n >= fs.blocks*80n, snapshotPressure: this.recovery.snapshotFailure };
+    return { missingCount: this.missingCount, diskWarning: (fs.blocks-fs.bavail)*100n >= fs.blocks*80n, snapshotPressure: this.recovery.snapshotFailure || this.assets.pressure() };
   }
   diagnostics() {
     this.check(); const filesystem = statfsSync(this.root, { bigint: true });
@@ -318,6 +369,7 @@ export class StoreDatabase {
       filesystem: { type: String(filesystem.type), blockSize: String(filesystem.bsize), availableBytes: String(filesystem.bavail * filesystem.bsize), totalBytes: String(filesystem.blocks * filesystem.bsize) },
       diskWarning: (filesystem.blocks - filesystem.bavail) * 100n >= filesystem.blocks * 80n,
       resources: { ioChunkBytes: 1048576, maxTransfers: 2, admissionOverheadPercent: 25, freeMarginBytes: '1073741824', metadataHeadroomBytes: '67108864', metadataHeadroomPhysicallyPreallocated: false, snapshotTailCeiling: 500 },
+      assets: this.assets.diagnostics(),
       observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,
         buildMs: this.recovery.snapshotBuildMs, sliceMaxMs: this.recovery.snapshotSliceMaxMs, activationMs: this.recovery.snapshotActivationMs }, qualification: false },
       processMemory: process.memoryUsage(), sqliteIntegrity: this.db.prepare('PRAGMA quick_check').get() };

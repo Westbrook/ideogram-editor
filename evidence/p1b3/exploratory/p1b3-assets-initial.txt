@@ -1,0 +1,102 @@
+npm notice run ideogram-editor@0.1.0 test:assets
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✖ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (420.746917ms)
+✖ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (440.996958ms)
+✖ stale and expired reviews reject durably; hostile declarations and raw images never become usable (491.210916ms)
+✖ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (549.9135ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1952.22425
+
+✖ failing tests:
+
+test at tests/assets/http.test.mjs:19:1
+✖ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (420.746917ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"4d493e7b-e24b-4593-956c-af37170a5da2","kind":"unknown","protocolVersion":1}
+  + actual - expected
+  
+  + 'unknown'
+  - 'receipt'
+  
+      at finish (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:16:163)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:26:28)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'receipt',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/assets/http.test.mjs:43:1
+✖ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (440.996958ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"07f112b0-cfd0-41f6-a202-47427db310ce","kind":"unknown","protocolVersion":1}
+  + actual - expected
+  
+  + 'unknown'
+  - 'receipt'
+  
+      at finish (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:16:163)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:59:81)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'receipt',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/assets/http.test.mjs:62:1
+✖ stale and expired reviews reject durably; hostile declarations and raw images never become usable (491.210916ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"08160e0d-a803-4616-9e09-7f1191874a61","kind":"unknown","protocolVersion":1}
+  + actual - expected
+  
+  + 'unknown'
+  - 'receipt'
+  
+      at finish (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:16:163)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:72:252)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'receipt',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/assets/http.test.mjs:77:1
+✖ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (549.9135ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"22fbf49b-5383-4b5f-8766-b5e1723603d8","kind":"unknown","protocolVersion":1}
+  + actual - expected
+  
+  + 'unknown'
+  - 'receipt'
+  
+      at finish (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:16:163)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:83:140)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'receipt',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

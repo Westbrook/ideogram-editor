@@ -1,3 +1,11 @@
+P1b.3 INTEGRATION UPDATE
+
+Read tooling/ASSETS.txt for schema3, staged uploads, durable local preparation
+identity before202, reviewed ownership transfer, typed original assets and safe
+content. The synchronous-only statements below describe the approved P1b.2
+baseline. Its provenance/session, whole-receipt and snapshot invariants remain.
+Image decoder eligibility and full editor integration remain P1b.4/P1b.7.
+
 P1b.2 LP-1 COMMANDS AND ATOMIC RECOVERY
 
 Source baseline: independently approved e1a0092eeb0022c445bb348d0602fa0a727c3aee.

@@ -24,15 +24,15 @@ export class RecoveryStore {
   constructor(private db: DatabaseSync, private objects: Objects, private path: string, private barrier: Barrier, private check: () => void) {}
   highWater() { return String(this.db.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value); }
   private *entities(db = this.db) {
-    for (const [type, table] of [['checkpoint','checkpoints'], ['document','documents'], ['history','history']]) {
+    for (const [type, table] of [['asset','assets'], ['checkpoint','checkpoints'], ['document','documents'], ['history','history']]) {
       for (const row of db.prepare(`SELECT id,json FROM ${table} ORDER BY id`).iterate()) {
         const text = String(row.json); const value = JSON.parse(text);
-        yield { type, id: String(row.id), version: type === 'document' ? value.revision : type === 'checkpoint' ? value.documentRevision : value.forward.after.revision, text };
+        yield { type, id: String(row.id), version: type==='asset'?value.version:type === 'document' ? value.revision : type === 'checkpoint' ? value.documentRevision : value.forward.after.revision, text };
       }
     }
   }
   private *snapshotRows(id: string, seq: string, db = this.db): Generator<Buffer> {
-    const count = db.prepare('SELECT (SELECT count(*) FROM documents)+(SELECT count(*) FROM history)+(SELECT count(*) FROM checkpoints) AS n').get()!.n;
+    const count = db.prepare('SELECT (SELECT count(*) FROM assets)+(SELECT count(*) FROM documents)+(SELECT count(*) FROM history)+(SELECT count(*) FROM checkpoints) AS n').get()!.n;
     yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: 2, entityCount: String(count) }) + '\n');
     for (const entity of this.entities(db)) {
       // Current narrow projections are individually bounded by the event budget.
@@ -182,7 +182,7 @@ export class RecoveryStore {
         if (row.kind !== 'header' || row.snapshotId !== item.id || row.snapshotSeq !== item.seq || row.projectionSchema !== 2 || !isSeq(row.entityCount)) throw new StoreError('CORRUPT_STORE');
         expected = row.entityCount; continue;
       }
-      if (row.kind !== 'projection-part' || !['document','history','checkpoint'].includes(row.entityType) || !isId(row.entityId) || !isSeq(row.entityVersion) ||
+      if (row.kind !== 'projection-part' || !['asset','document','history','checkpoint'].includes(row.entityType) || !isId(row.entityId) || !isSeq(row.entityVersion) ||
           !Number.isSafeInteger(row.partCount) || row.partCount < 1 || !Number.isSafeInteger(row.partIndex)) throw new StoreError('CORRUPT_STORE');
       const nextKey = row.entityType + ':' + row.entityId;
       if (!part) { if (nextKey <= previousKey) throw new StoreError('CORRUPT_STORE'); key = nextKey; parts = row.partCount; version = row.entityVersion; }
@@ -194,7 +194,7 @@ export class RecoveryStore {
       if (++part === parts) {
         const value = JSON.parse(text);
         if (canonical(value) !== text || value.id !== row.entityId) throw new StoreError('CORRUPT_STORE');
-        const actualVersion = row.entityType === 'document' ? value.revision : row.entityType === 'checkpoint' ? value.documentRevision : value.forward?.after?.revision;
+        const actualVersion = row.entityType==='asset'?value.version:row.entityType === 'document' ? value.revision : row.entityType === 'checkpoint' ? value.documentRevision : value.forward?.after?.revision;
         try { validateEntity(row.entityType,value); } catch { throw new StoreError('CORRUPT_STORE'); }
         projectionHash.update(canonical({ type: row.entityType, id: row.entityId, version, text }) + '\n');
         if (version !== actualVersion) throw new StoreError('CORRUPT_STORE');
@@ -205,9 +205,10 @@ export class RecoveryStore {
   }
   restore(item: StoredSnapshot) {
     // Caller owns rollback transaction. Insert documents first to honor FKs.
-    for (const type of ['document','history','checkpoint']) this.validateSnapshot(item, (kind,id,text) => {
+    for (const type of ['asset','document','history','checkpoint']) this.validateSnapshot(item, (kind,id,text) => {
       if (kind !== type) return; const value = JSON.parse(text);
-      if (kind === 'document') this.db.prepare('INSERT INTO documents VALUES (?,?)').run(id,text);
+      if (kind==='asset') {this.db.prepare('INSERT INTO assets VALUES (?,?)').run(id,text);for(const ref of [value.blob,...value.dependencies])this.db.prepare('INSERT OR IGNORE INTO asset_dependencies VALUES (?,?)').run(id,ref.hash);}
+      else if (kind === 'document') this.db.prepare('INSERT INTO documents VALUES (?,?)').run(id,text);
       else this.db.prepare(`INSERT INTO ${kind === 'history' ? 'history' : 'checkpoints'} VALUES (?,?,?)`).run(id,value.documentId,text);
     });
     const expected = this.db.prepare('SELECT projection_hash FROM snapshots WHERE id=?').get(item.id)!;

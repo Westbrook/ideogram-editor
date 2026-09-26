@@ -19,8 +19,9 @@ try {
   if (identity.dev !== workerData.identity.dev || identity.ino !== workerData.identity.ino) throw new StoreError('ROOT_UNSAFE');
   store = new StoreDatabase(workerData.root, barrier, { quotaBytes: workerData.quotaBytes, maxPageCount: workerData.testing?.maxPageCount });
   port.postMessage({ type: 'ready', epoch: store.epoch });
+  store.assets.schedule(true);
 } catch (error) {
-  port.postMessage({ type: 'startup-error', code: safeError(error).code }); port.close();
+  port.postMessage({ type: 'startup-error', code: safeError(error).code, detail:safeError(error).detail }); port.close();
 }
 port.on('message', async message => {
   try {
@@ -29,17 +30,32 @@ port.on('message', async message => {
     if(method!=='close')store.fence(args.epoch);
     // Reads/close may wait for a pending snapshot. Receipts normally do not;
     // only an exhausted tail waits for recovery before applying backpressure.
-    if (method==='submit'&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
+    if ((method==='submit'||method==='assetCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
     else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
-    if (method === 'close') { store.close(); result = null; }
+    if (method === 'close') { await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
     else {
       store.fence(args.epoch);
       switch (method) {
+        case 'assetCreate': result=store.assets.create(args.value,args.auth);break;
+        case 'assetGet': result=store.assets.get(args.id,args.auth);break;
+        case 'assetInventory': result=store.assets.inventory(args.cursor,args.auth);break;
+        case 'assetReview': result=store.assets.review(args.id,args.auth);break;
+        case 'assetBeginChunk': result=store.assets.beginChunk(args.id,args.offset,args.length,args.auth);break;
+        case 'assetCheckChunk': store.assets.checkChunk(args.token,args.auth);result=null;break;
+        case 'assetChunk': result=store.assets.chunk(args.token,args.bytes,args.auth);break;
+        case 'assetAbortChunk': store.assets.abortChunk(args.token);result=null;break;
+        case 'assetCommand': result=store.assets.command(args.bytes,args.auth);break;
+        case 'assetPending': result=store.assets.pending(args.id);break;
+        case 'assetProjection': result={asset:store.assets.asset(args.id),highWater:store.recovery.highWater()};break;
+        case 'assetVerify': result=await store.assets.verify(args.id);break;
+        case 'assetRelease': store.assets.releaseContent(args.handle);result=null;break;
+        case 'assetContent': result=store.assets.content(args.id,args.handle,args.offset,args.length);break;
         case 'protocolDefaults': store.protocolDefaults(); result = null; break;
         case 'recoverClient': result = store.recoverClient(args.hash,args.now); break;
         case 'rememberClient': store.rememberClient(args.hash,args.clientId,args.expires,args.oldHash); result = null; break;
         case 'forgetClient': store.forgetClient(args.hash); result = null; break;
         case 'submit': result = store.submit(args.bytes, args.epoch); break;
+        case 'commandState': result={record:store.lookup(args.id),pending:store.assets.pending(args.id)};break;
         case 'lookup': result = store.lookup(args.id); break;
         case 'document': result = store.document(args.id); break;
         case 'history': result = store.entity('history', args.id); break;
@@ -81,6 +97,6 @@ port.on('message', async message => {
         sqliteCode: typeof native.errcode === 'number' ? native.errcode : undefined,
       } });
     }
-    port.postMessage({ type: 'error', id: message.id, code: safeError(error).code });
+    port.postMessage({ type: 'error', id: message.id, code: safeError(error).code, detail:safeError(error).detail });
   }
 });

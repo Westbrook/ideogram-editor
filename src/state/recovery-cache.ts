@@ -40,12 +40,15 @@ export class RecoveryCache {
   }
   async apply(generation: string,event: DomainEvent) {
     // Each staged row is private; only the published pointer exposes a complete view.
-    const previous=await this.value(generation,'document',event.documentId)??null;
+    const previous=event.documentId?await this.value(generation,'document',event.documentId)??null:null;
     requireValue(!await this.value(generation,'event',event.eventId),'Duplicate event identity');
+    if(event.type==='AssetRegistered'){requireValue(!await this.value(generation,'asset',event.payload.asset.id),'Duplicate asset');await this.put(generation,'asset',event.payload.asset.id,event.payload.asset);}
+    else if(event.type==='DocumentCreated'||event.type==='CheckpointSaved'){
     const next=reduceDocument(previous,event);
     await this.put(generation,'document',next.id,next);
     if(event.type==='DocumentCreated') await this.put(generation,'history',event.payload.history.id,event.payload.history);
     else await this.put(generation,'checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
+    }
     await this.put(generation,'event',event.eventId,event.workspaceSeq);
   }
   async applyEvents(generation: string,eventsStage: string,count: bigint) {

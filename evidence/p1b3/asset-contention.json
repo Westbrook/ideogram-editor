@@ -1,0 +1,500 @@
+{
+  "at": "2026-09-26T05:38:38.897Z",
+  "qualification": false,
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b3-contention/root-uikfoQ",
+  "fixture": "32MiB UTF-8 original finalization overlaps serial8k-name checkpoint receipts and snapshot250; HTTP whole responses measured. No provider.",
+  "finalizeAdmissionMs": 7.39712499999996,
+  "samples": [
+    {
+      "revision": 250,
+      "seq": "250",
+      "ms": 10.90762500000028
+    },
+    {
+      "revision": 251,
+      "seq": "251",
+      "ms": 16.357750000000124
+    },
+    {
+      "revision": 252,
+      "seq": "252",
+      "ms": 15.866582999999991
+    },
+    {
+      "revision": 253,
+      "seq": "253",
+      "ms": 14.754374999999982
+    },
+    {
+      "revision": 254,
+      "seq": "254",
+      "ms": 15.272459000000254
+    },
+    {
+      "revision": 255,
+      "seq": "255",
+      "ms": 14.783334000000195
+    },
+    {
+      "revision": 256,
+      "seq": "256",
+      "ms": 32.00491699999975
+    },
+    {
+      "revision": 257,
+      "seq": "257",
+      "ms": 27.178791000000274
+    },
+    {
+      "revision": 258,
+      "seq": "258",
+      "ms": 14.764083999999912
+    },
+    {
+      "revision": 259,
+      "seq": "259",
+      "ms": 6.889250000000175
+    },
+    {
+      "revision": 260,
+      "seq": "260",
+      "ms": 7.281875000000127
+    },
+    {
+      "revision": 261,
+      "seq": "261",
+      "ms": 9.763292000000092
+    },
+    {
+      "revision": 262,
+      "seq": "262",
+      "ms": 6.836624999999913
+    },
+    {
+      "revision": 263,
+      "seq": "263",
+      "ms": 7.250499999999647
+    },
+    {
+      "revision": 264,
+      "seq": "264",
+      "ms": 6.790665999999874
+    },
+    {
+      "revision": 265,
+      "seq": "266",
+      "ms": 24.53675000000021
+    },
+    {
+      "revision": 266,
+      "seq": "267",
+      "ms": 6.883542000000034
+    },
+    {
+      "revision": 267,
+      "seq": "268",
+      "ms": 5.123874999999771
+    },
+    {
+      "revision": 268,
+      "seq": "269",
+      "ms": 5.136707999999999
+    },
+    {
+      "revision": 269,
+      "seq": "270",
+      "ms": 4.86654099999987
+    },
+    {
+      "revision": 270,
+      "seq": "271",
+      "ms": 6.2127919999998085
+    },
+    {
+      "revision": 271,
+      "seq": "272",
+      "ms": 5.801249999999982
+    },
+    {
+      "revision": 272,
+      "seq": "273",
+      "ms": 5.132624999999734
+    },
+    {
+      "revision": 273,
+      "seq": "274",
+      "ms": 5.778208000000177
+    },
+    {
+      "revision": 274,
+      "seq": "275",
+      "ms": 6.3242089999998825
+    },
+    {
+      "revision": 275,
+      "seq": "276",
+      "ms": 5.685875000000124
+    },
+    {
+      "revision": 276,
+      "seq": "277",
+      "ms": 5.160832999999911
+    },
+    {
+      "revision": 277,
+      "seq": "278",
+      "ms": 4.829041999999845
+    },
+    {
+      "revision": 278,
+      "seq": "279",
+      "ms": 5.220374999999876
+    },
+    {
+      "revision": 279,
+      "seq": "280",
+      "ms": 5.8371250000000146
+    },
+    {
+      "revision": 280,
+      "seq": "281",
+      "ms": 6.221667000000252
+    },
+    {
+      "revision": 281,
+      "seq": "282",
+      "ms": 5.811959000000115
+    },
+    {
+      "revision": 282,
+      "seq": "283",
+      "ms": 6.184582999999748
+    },
+    {
+      "revision": 283,
+      "seq": "284",
+      "ms": 5.728375000000142
+    },
+    {
+      "revision": 284,
+      "seq": "285",
+      "ms": 6.222749999999905
+    },
+    {
+      "revision": 285,
+      "seq": "286",
+      "ms": 5.779166000000259
+    },
+    {
+      "revision": 286,
+      "seq": "287",
+      "ms": 6.210250000000087
+    },
+    {
+      "revision": 287,
+      "seq": "288",
+      "ms": 5.781833000000006
+    },
+    {
+      "revision": 288,
+      "seq": "289",
+      "ms": 6.198875000000044
+    },
+    {
+      "revision": 289,
+      "seq": "290",
+      "ms": 5.883499999999913
+    },
+    {
+      "revision": 290,
+      "seq": "291",
+      "ms": 6.312833999999839
+    },
+    {
+      "revision": 291,
+      "seq": "292",
+      "ms": 5.670166999999765
+    },
+    {
+      "revision": 292,
+      "seq": "293",
+      "ms": 6.142374999999902
+    },
+    {
+      "revision": 293,
+      "seq": "294",
+      "ms": 5.738333000000239
+    },
+    {
+      "revision": 294,
+      "seq": "295",
+      "ms": 6.398874999999862
+    },
+    {
+      "revision": 295,
+      "seq": "296",
+      "ms": 5.682583999999679
+    },
+    {
+      "revision": 296,
+      "seq": "297",
+      "ms": 6.097792000000027
+    },
+    {
+      "revision": 297,
+      "seq": "298",
+      "ms": 5.860000000000127
+    },
+    {
+      "revision": 298,
+      "seq": "299",
+      "ms": 6.279332999999951
+    },
+    {
+      "revision": 299,
+      "seq": "300",
+      "ms": 5.798665999999685
+    },
+    {
+      "revision": 300,
+      "seq": "301",
+      "ms": 6.182999999999993
+    },
+    {
+      "revision": 301,
+      "seq": "302",
+      "ms": 5.807666000000154
+    },
+    {
+      "revision": 302,
+      "seq": "303",
+      "ms": 6.263791999999739
+    },
+    {
+      "revision": 303,
+      "seq": "304",
+      "ms": 5.661499999999705
+    },
+    {
+      "revision": 304,
+      "seq": "305",
+      "ms": 6.1565419999997175
+    },
+    {
+      "revision": 305,
+      "seq": "306",
+      "ms": 5.839124999999967
+    },
+    {
+      "revision": 306,
+      "seq": "307",
+      "ms": 6.284333000000061
+    },
+    {
+      "revision": 307,
+      "seq": "308",
+      "ms": 13.804833000000144
+    },
+    {
+      "revision": 308,
+      "seq": "309",
+      "ms": 9.999791000000187
+    },
+    {
+      "revision": 309,
+      "seq": "310",
+      "ms": 7.198875000000044
+    },
+    {
+      "revision": 310,
+      "seq": "311",
+      "ms": 6.849499999999807
+    },
+    {
+      "revision": 311,
+      "seq": "312",
+      "ms": 6.062457999999879
+    },
+    {
+      "revision": 312,
+      "seq": "313",
+      "ms": 5.799709000000348
+    },
+    {
+      "revision": 313,
+      "seq": "314",
+      "ms": 6.172042000000147
+    },
+    {
+      "revision": 314,
+      "seq": "315",
+      "ms": 6.018291999999747
+    },
+    {
+      "revision": 315,
+      "seq": "316",
+      "ms": 5.9696670000003
+    },
+    {
+      "revision": 316,
+      "seq": "317",
+      "ms": 5.86200000000008
+    },
+    {
+      "revision": 317,
+      "seq": "318",
+      "ms": 6.220624999999927
+    },
+    {
+      "revision": 318,
+      "seq": "319",
+      "ms": 5.927541999999903
+    },
+    {
+      "revision": 319,
+      "seq": "320",
+      "ms": 6.052958000000217
+    },
+    {
+      "revision": 320,
+      "seq": "321",
+      "ms": 6.743665999999848
+    },
+    {
+      "revision": 321,
+      "seq": "322",
+      "ms": 6.196292000000085
+    },
+    {
+      "revision": 322,
+      "seq": "323",
+      "ms": 5.886625000000095
+    },
+    {
+      "revision": 323,
+      "seq": "324",
+      "ms": 6.086457999999766
+    },
+    {
+      "revision": 324,
+      "seq": "325",
+      "ms": 5.802374999999756
+    },
+    {
+      "revision": 325,
+      "seq": "326",
+      "ms": 6.222375000000284
+    },
+    {
+      "revision": 326,
+      "seq": "327",
+      "ms": 5.93166599999995
+    },
+    {
+      "revision": 327,
+      "seq": "328",
+      "ms": 7.099041999999827
+    },
+    {
+      "revision": 328,
+      "seq": "329",
+      "ms": 6.873375000000124
+    },
+    {
+      "revision": 329,
+      "seq": "330",
+      "ms": 6.122666000000208
+    }
+  ],
+  "maxMs": 32.00491699999975,
+  "over50": [],
+  "receipt": {
+    "kind": "receipt",
+    "protocolVersion": 1,
+    "receipt": {
+      "commandId": "1840fbfa-c350-4b99-9be8-4b210e7f44c0",
+      "documentRevision": null,
+      "fromSeq": "265",
+      "status": "accepted",
+      "toSeq": "265",
+      "transactionId": "e9db3da5-9cfb-4dd7-9579-5ce2355ce544"
+    }
+  },
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 2930,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "2",
+    "highWater": "330",
+    "projectionDigest": "sha256:f64c739790a57aa939ea2ab243d86582f4661da9a6839d21dba3c94532702380",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "666180751360",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "33554432",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": []
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 307.05929200000037,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": "250",
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 208650240,
+      "heapTotal": 25313280,
+      "heapUsed": 13738624,
+      "external": 4439380,
+      "arrayBuffers": 1870142
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  }
+}

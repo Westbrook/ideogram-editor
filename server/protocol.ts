@@ -1,3 +1,4 @@
+import { AssetRoutes } from './assets.js';
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -19,6 +20,7 @@ export function storeError(error: unknown, mutation = false): ProtocolError {
   if (error instanceof ProtocolError) return error;
   const retry = mutation ? 'same-command' : 'read-or-transfer';
   if (error instanceof StoreError) {
+    if (['OWNER_REQUIRED','NOT_FOUND','CONTENT_WITHHELD','STAGING_ID_REUSE','OFFSET_MISMATCH','REVIEW_EXPIRED','MEDIA_TYPE'].includes(error.code)) return new ProtocolError(error.code as ConstructorParameters<typeof ProtocolError>[0],error.detail,error.code==='OFFSET_MISMATCH'?'read-or-transfer':'none');
     if (['MALFORMED_REQUEST','UNSUPPORTED_COMMAND'].includes(error.code)) return new ProtocolError('MALFORMED_REQUEST');
     if (error.code === 'PROTOCOL_VERSION' || error.code === 'PAYLOAD_TOO_LARGE' || error.code === 'COMMAND_ID_REUSE') return new ProtocolError(error.code);
     if (error.code === 'CAPACITY' || error.code === 'STORAGE_FULL') return new ProtocolError('STORAGE_FULL', undefined, retry);
@@ -36,8 +38,10 @@ export class ProtocolRoutes {
   private leases = new Map<string, Lease>();
   private content = new Map<string, Content>();
   private streams = 0;
-  constructor(private writer: Writer, private now: () => number) {}
+  private assets: AssetRoutes;
+  constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);}
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
+    const asset=this.assets.match(path);if(asset)return asset;
     if (path === PREFIX + 'commands') return { allow: ['POST'], kind: 'submit', query: [] };
     if (path === PREFIX + 'events') return { allow: ['GET'], kind: 'events', query: ['after','recoveryId'] };
     if (path === PREFIX + 'events/stream') return { allow: ['GET'], kind: 'stream', query: ['after'] };
@@ -121,8 +125,11 @@ export class ProtocolRoutes {
     page.more = page.nextCursor !== page.recovery.highWater; return page;
   }
   private async commandResult(id: string, session: Session): Promise<CommandResult> {
-    const record = await this.writer.lookup(id);
-    if (!record) return { protocolVersion: 1, kind: 'unknown', commandId: id };
+    const {record,pending} = await this.writer.commandState(id);
+    if (!record) {
+      if(pending){if(pending.command.clientId!==session.clientId)throw new ProtocolError('OWNER_REQUIRED');return {protocolVersion:1,kind:'pending',commandId:id,operationId:pending.operationId,phase:pending.phase,receiptUrl:PREFIX+'commands/'+id};}
+      return { protocolVersion: 1, kind: 'unknown', commandId: id };
+    }
     if (record.command.clientId !== session.clientId) throw new ProtocolError('OWNER_REQUIRED');
     const result: CommandResult = { protocolVersion: 1, kind: 'receipt', receipt: record.receipt };
     if (record.receipt.status === 'rejected') {
@@ -140,20 +147,22 @@ export class ProtocolRoutes {
     if (params.has('recoveryId') && !isId(params.get('recoveryId'))) throw new ProtocolError('MALFORMED_REQUEST');
     try {
       await this.prune();
-      if (route.kind === 'submit') {
+      if (route.kind === 'submit'||route.kind==='asset-finalize') {
         const bytes = await readControlBytes(request); await assertRoot(); const current = authenticate();
         const command = parseCommand(bytes).command;
         if (command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
         // sessionId is original provenance, never an authentication credential.
         // The authenticated client owns the persisted command across renewal.
-        const previous = await this.writer.lookup(command.commandId);
+        if(route.kind==='asset-finalize'&&(command.body.type!=='FinalizeStaging'||command.body.stagingId!==id))throw new ProtocolError('MALFORMED_REQUEST');
+        const state = await this.writer.commandState(command.commandId);const previous=state.record??state.pending;
         if (previous && previous.command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
-        await this.writer.submit(bytes, this.writer.epoch); authenticate();
-        sendJSON(response, 200, await this.commandResult(command.commandId, current));
+        if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));else {const pending=await this.writer.assetPending(command.commandId);if(pending)throw new ProtocolError('COMMAND_ID_REUSE');await this.writer.submit(bytes,this.writer.epoch);}
+        authenticate();const result=await this.commandResult(command.commandId,current);sendJSON(response,result.kind==='pending'?202:200,result);
       } else if (route.kind === 'commands') {
         const result = await this.commandResult(id, session); authenticate();
-        sendJSON(response, result.kind === 'unknown' ? 404 : 200, result);
-      } else if (route.kind === 'documents') {
+        sendJSON(response, result.kind === 'unknown' ? 404 : result.kind==='pending'?202:200, result);
+      } else if(route.kind.startsWith('asset-')) await this.assets.handle(request,response,route,params,authenticate,assertRoot);
+      else if (route.kind === 'documents') {
         const view = await this.writer.projection(id); if (!view.document) throw new ProtocolError('NOT_FOUND');
         const result = { protocolVersion: 1, entityVersion: view.document.revision, projectionSchema: 2, highWater: view.highWater,
           projection: { kind: 'inline', value: view.document } as any };

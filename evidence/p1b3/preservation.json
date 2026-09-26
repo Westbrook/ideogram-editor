@@ -1,0 +1,61 @@
+{
+  "at": "2026-09-26T05:34:04.539816+00:00",
+  "priorEvidence": [
+    {
+      "bundle": "evidence/p1a1",
+      "files": 18,
+      "failures": []
+    },
+    {
+      "bundle": "evidence/p1a2",
+      "files": 15,
+      "failures": []
+    },
+    {
+      "bundle": "evidence/p1a2-case-alias",
+      "files": 4,
+      "failures": []
+    },
+    {
+      "bundle": "evidence/p1a3",
+      "files": 26,
+      "failures": []
+    },
+    {
+      "bundle": "evidence/p1b1",
+      "files": 38,
+      "failures": []
+    },
+    {
+      "bundle": "evidence/p1b2",
+      "files": 53,
+      "failures": []
+    },
+    {
+      "bundle": "evidence/p1b2-receipt-timing",
+      "files": 44,
+      "failures": []
+    },
+    {
+      "bundle": "evidence/p1b2-review-fixes",
+      "files": 33,
+      "failures": []
+    }
+  ],
+  "http": [
+    {
+      "url": "http://127.0.0.1:52219/?progress-report",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4381/",
+      "status": 200
+    }
+  ],
+  "approved7ef07dd": {
+    "files": 72,
+    "failures": [],
+    "verdictSHA256": "da9591b6467966ef13b22dd4cf79a0b93ac4f8301951b63dd4661054b884e1f4"
+  },
+  "protectedTrackedDiff": ""
+}

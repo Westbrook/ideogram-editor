@@ -1,0 +1,15 @@
+{
+  "retained": "exploratory/",
+  "items": [
+    "Initial TypeScript staging state narrowing fixed.",
+    "Initial HTTP finalize receipt lookup could briefly return unknown between separate receipt/preparation reads; replaced with one atomic worker commandState operation and all original assertions pass.",
+    "First process fixture had a missing closing brace; corrected before17 crash tests ran.",
+    "Initial SQLite fault fixture allowed a small preparation to fit an existing page; retained log; the corrected public request uses valid60000-byte original whitespace to require a real overflowing journal write and demonstrates507/no pending record.",
+    "Inventory test originally used240 small metadata records that correctly fit one64KiB page; fixture expanded to320 to exercise cursor pagination without changing admission limits.",
+    "Schema migration expected-version assertion updated2\u21923 while retained backup/history assertions stay intact; new exact7ef07dd migration+rollback test added.",
+    "Session test updated newly available routes to404/400; corrected new storage error retry mapping so ownership/missing/profile errors remain retry:none and only offset mismatch requests read-or-transfer.",
+    "Malformed owned precondition manifests now become durable INVALID_INPUT instead of stranded preparation.",
+    "Reader-held capacity test led to a shared IO availability callback; queued original preparations resume when reader/snapshot/upload slots free."
+  ],
+  "untouchedHistoricalEvidence": true
+}

@@ -91,7 +91,7 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
       { id: 'PF-1', version: '1', state: 'unavailable' },
     ],
   };
-  const server = createServer({ maxHeaderSize: 16 * 1024, requestTimeout: 15_000, headersTimeout: 10_000 }, (request, response) => {
+  const server = createServer({ maxHeaderSize: 16 * 1024, requestTimeout: 0, headersTimeout: 10_000 }, (request, response) => {
     void handle(request, response);
   });
   server.setTimeout(15_000, socket => socket.destroy());

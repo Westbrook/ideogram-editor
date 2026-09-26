@@ -1,0 +1,57 @@
+npm notice run ideogram-editor@0.1.0 test:assets
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (535.29925ms)
+✔ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (452.683459ms)
+✔ stale and expired reviews reject durably; hostile declarations and raw images never become usable (518.464125ms)
+✔ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (614.689583ms)
+✔ SIGKILL upload-before-write preserves only the journaled offset and missing suffix (712.138083ms)
+✔ SIGKILL upload-before-flush preserves only the journaled offset and missing suffix (680.501333ms)
+✔ SIGKILL upload-after-flush preserves only the journaled offset and missing suffix (687.280917ms)
+✔ SIGKILL upload-before-offset-commit preserves only the journaled offset and missing suffix (705.314666ms)
+✔ SIGKILL upload-after-offset-commit preserves only the journaled offset and missing suffix (672.78925ms)
+✔ SIGKILL preparation-before-commit resolves the original finalize identity once (696.208958ms)
+✔ SIGKILL preparation-after-commit resolves the original finalize identity once (687.8085ms)
+✔ SIGKILL finalize-before-flush resolves the original finalize identity once (685.601042ms)
+✔ SIGKILL finalize-after-flush resolves the original finalize identity once (693.310041ms)
+✔ SIGKILL finalize-before-rename resolves the original finalize identity once (677.797458ms)
+✔ SIGKILL finalize-after-rename resolves the original finalize identity once (676.254917ms)
+✔ SIGKILL finalize-after-directory-sync resolves the original finalize identity once (683.207167ms)
+✔ SIGKILL finalize-before-register resolves the original finalize identity once (721.1395ms)
+✔ SIGKILL asset-before-commit resolves the original finalize identity once (675.742542ms)
+✔ SIGKILL asset-after-commit resolves the original finalize identity once (686.433875ms)
+✔ SIGKILL transfer-before-commit keeps original owner or transfers exactly once (725.217834ms)
+✔ SIGKILL transfer-after-commit keeps original owner or transfers exactly once (697.538125ms)
+✔ actual7ef07dd migration preserves all retained tables and verified rollback database (2286.17625ms)
+✔ asset event replay and snapshots keep original bytes and dependencies across restart (1828.643333ms)
+✔ staging symlinks are rejected without writing the target, and reservation pressure retains data (186.958542ms)
+✔ journal capacity failure cannot invent a pending command or replace its original rejection (753.3835ms)
+✖ recovery inventory paginates minimal metadata and content pins detect later file changes (2554.911459ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 25
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21781.018167
+
+✖ failing tests:
+
+test at tests/assets/storage.test.mjs:54:1
+✖ recovery inventory paginates minimal metadata and content pins detect later file changes (2554.911459ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(first.nextCursor)
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/storage.test.mjs:56:56)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

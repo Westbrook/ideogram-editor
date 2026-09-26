@@ -1,0 +1,235 @@
+{
+  "at": "2026-09-26T05:38:40.783Z",
+  "runtime": "v26.10.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "os": "25.6.0",
+  "cpu": "Apple M5 Max",
+  "qualification": false,
+  "fixture": "Random ASCII UTF-8 opaque captions; original bytes retained, no image qualification. Cold new private roots; one sample each.",
+  "measurement": "Real loopback HTTP. Last-byte clock starts on the last PUT client request finish event and includes its flush acknowledgement, finalize admission and complete final lookup. Polling overhead remains included. Download uses a fixture client that materializes its body; production server uses32KiB pieces. RSS includes fixtures/client/server and worker.",
+  "peakRSS": 350519296,
+  "peakHeap": 12829784,
+  "samples": [
+    {
+      "bytes": 8388608,
+      "sha256": "sha256:97348ce204059e6806bd2db3e8c5edaf1fa2a8cce2b73417f16d5aae0cb7e1d6",
+      "root": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b3-final-measure/root-CObBbr",
+      "chunkReceiptMs": [
+        10.903333000000032,
+        9.92870899999997,
+        10.019124999999974,
+        10.067665999999974,
+        9.899625000000015,
+        10.004333000000031,
+        10.003457999999966,
+        10.046124999999961
+      ],
+      "maxChunkReceiptMs": 10.903333000000032,
+      "pendingReceiptMs": 7.39349999999996,
+      "maxPollReceiptMs": 12.393958999999995,
+      "lastClientByteToObservedAcceptanceMs": 44.77170799999999,
+      "uploadToObservedAcceptanceMs": 126.13629100000003,
+      "downloadVerifiedClientMs": 96.619166,
+      "diagnostics": {
+        "node": "26.10.0",
+        "sqlite": {
+          "version": "3.53.4",
+          "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+        },
+        "settings": {
+          "journal_mode": "wal",
+          "synchronous": 2,
+          "foreign_keys": 1,
+          "busy_timeout": 250,
+          "fullfsync": 1,
+          "checkpoint_fullfsync": 1,
+          "page_size": 4096,
+          "page_count": 48,
+          "max_page_count": 4294967294
+        },
+        "writerEpoch": "2",
+        "highWater": "1",
+        "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "inventory": {
+          "orphanCount": "0",
+          "stagingCount": "0"
+        },
+        "missingCount": 0,
+        "missing": [],
+        "filesystem": {
+          "type": "26",
+          "blockSize": "4096",
+          "availableBytes": "666175057920",
+          "totalBytes": "1995165736960"
+        },
+        "diskWarning": false,
+        "resources": {
+          "ioChunkBytes": 1048576,
+          "maxTransfers": 2,
+          "admissionOverheadPercent": 25,
+          "freeMarginBytes": "1073741824",
+          "metadataHeadroomBytes": "67108864",
+          "metadataHeadroomPhysicallyPreallocated": false,
+          "snapshotTailCeiling": 500
+        },
+        "assets": {
+          "orphanUploadCount": "0",
+          "orphanUploadBytes": "0",
+          "committedBytes": "8388608",
+          "failedCount": "0",
+          "preparations": "0",
+          "stages": "1",
+          "reservedBytes": "0",
+          "activeTransfers": 0,
+          "preparationMs": []
+        },
+        "observations": {
+          "appendMs": [],
+          "replayMs": 8.757875000000013,
+          "snapshot": {
+            "target": 250,
+            "pressure": false,
+            "latest": null,
+            "buildMs": 0,
+            "sliceMaxMs": 0,
+            "activationMs": 0
+          },
+          "qualification": false
+        },
+        "processMemory": {
+          "rss": 162070528,
+          "heapTotal": 9846784,
+          "heapUsed": 7255944,
+          "external": 4876612,
+          "arrayBuffers": 2307374
+        },
+        "sqliteIntegrity": {
+          "quick_check": "ok"
+        }
+      }
+    },
+    {
+      "bytes": 33554432,
+      "sha256": "sha256:fd702c5769ce6736478ae8b08f152737b0889690130d5c5b78908f7dac3693be",
+      "root": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b3-final-measure/root-6CClOB",
+      "chunkReceiptMs": [
+        9.986125000000015,
+        8.892000000000053,
+        9.117457999999942,
+        10.065624999999955,
+        10.020833000000039,
+        10.081458999999995,
+        9.994167000000061,
+        9.802125000000046,
+        9.08062499999994,
+        9.976958000000081,
+        9.94033300000001,
+        8.915458999999942,
+        8.954082999999855,
+        10.082291000000168,
+        9.112916000000041,
+        8.840958,
+        8.986083000000008,
+        9.038457999999991,
+        9.073708000000124,
+        8.927458000000115,
+        8.945625000000064,
+        8.996666000000005,
+        11.074500000000171,
+        9.90954099999999,
+        9.089249999999993,
+        8.945332999999891,
+        9.14083299999993,
+        10.932084000000032,
+        9.928249999999935,
+        10.101458999999977,
+        9.985957999999982,
+        11.976458000000093
+      ],
+      "maxChunkReceiptMs": 11.976458000000093,
+      "pendingReceiptMs": 8.912375000000111,
+      "maxPollReceiptMs": 13.161791999999878,
+      "lastClientByteToObservedAcceptanceMs": 86.69862499999999,
+      "uploadToObservedAcceptanceMs": 393.24525000000006,
+      "downloadVerifiedClientMs": 370.8165409999999,
+      "diagnostics": {
+        "node": "26.10.0",
+        "sqlite": {
+          "version": "3.53.4",
+          "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+        },
+        "settings": {
+          "journal_mode": "wal",
+          "synchronous": 2,
+          "foreign_keys": 1,
+          "busy_timeout": 250,
+          "fullfsync": 1,
+          "checkpoint_fullfsync": 1,
+          "page_size": 4096,
+          "page_count": 48,
+          "max_page_count": 4294967294
+        },
+        "writerEpoch": "2",
+        "highWater": "1",
+        "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "inventory": {
+          "orphanCount": "0",
+          "stagingCount": "0"
+        },
+        "missingCount": 0,
+        "missing": [],
+        "filesystem": {
+          "type": "26",
+          "blockSize": "4096",
+          "availableBytes": "666140164096",
+          "totalBytes": "1995165736960"
+        },
+        "diskWarning": false,
+        "resources": {
+          "ioChunkBytes": 1048576,
+          "maxTransfers": 2,
+          "admissionOverheadPercent": 25,
+          "freeMarginBytes": "1073741824",
+          "metadataHeadroomBytes": "67108864",
+          "metadataHeadroomPhysicallyPreallocated": false,
+          "snapshotTailCeiling": 500
+        },
+        "assets": {
+          "orphanUploadCount": "0",
+          "orphanUploadBytes": "0",
+          "committedBytes": "33554432",
+          "failedCount": "0",
+          "preparations": "0",
+          "stages": "1",
+          "reservedBytes": "0",
+          "activeTransfers": 0,
+          "preparationMs": []
+        },
+        "observations": {
+          "appendMs": [],
+          "replayMs": 8.138916999999992,
+          "snapshot": {
+            "target": 250,
+            "pressure": false,
+            "latest": null,
+            "buildMs": 0,
+            "sliceMaxMs": 0,
+            "activationMs": 0
+          },
+          "qualification": false
+        },
+        "processMemory": {
+          "rss": 350404608,
+          "heapTotal": 9584640,
+          "heapUsed": 7288048,
+          "external": 4876613,
+          "arrayBuffers": 2307375
+        },
+        "sqliteIntegrity": {
+          "quick_check": "ok"
+        }
+      }
+    }
+  ]
+}

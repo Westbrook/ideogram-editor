@@ -1,0 +1,115 @@
+{
+  "taskId": "83720c82-0338-445d-9ad2-2354700091ce",
+  "reviewerTaskId": "aff95449-61c6-4514-b0d5-4468e4b960a8",
+  "at": "2026-09-26T05:39:44.522316+00:00",
+  "status": "review_required",
+  "base": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+  "branch": "ideogram-editor-p1",
+  "sourceManifestSHA256": "56e611b3d873e0c7f7b073d6a9cb82cb67cd5371734a175305b116db183d017e",
+  "files": 31,
+  "schema": 3,
+  "wireProjectionSchema": 2,
+  "implemented": [
+    "Owner-only201/200 staging and409 metadata conflict, decimal sequential<=1MiB chunks, fsynced journal offsets/version and restart tail recovery.",
+    "Durable original envelope/hash/client/operation preparation before202; atomic status lookup and local same-identity restart.",
+    "Minimal paged inventory and target/session/epoch-scoped canonical review; explicit atomic transfer, old IO lease fencing, immutable original receipts.",
+    "Logical original assets and dependencies distinct from hash dedup; safe typed replay/snapshots/atomic browser publication.",
+    "Unknown image/mask originals remain pending decoder and inaccessible as content; supported opaque UTF-8 captions are measured text/plain attachments.",
+    "Immutable private content proofs/pins, per-read safety/availability/identity, HEAD/single-range/If-Range/ETag/416; no raw blob route or provider effect.",
+    "Actual remaining byte reservations+25%+1GiB filesystem/quota margin+64MiB metadata accounting, shared2 IO stages and inventory without deletion.",
+    "Verified additive schema2\u21923 backup/activation and prior-code rollback with252 retained events and snapshot250."
+  ],
+  "gates": {
+    "allExitZero": true,
+    "assetTests": 28,
+    "processKillBarriers": 17,
+    "assetVolume": 1,
+    "protocol": 14,
+    "browserRecovery": 12,
+    "writer": 24,
+    "writerVolume": 1,
+    "session": 14,
+    "shell": 10,
+    "freshConsumerBrowser": 2,
+    "typecheck": true,
+    "build": true,
+    "vendor": true,
+    "spec": true,
+    "diffCheck": true
+  },
+  "actualFaults": {
+    "filesystem": "isolated2GiB HFS+ sparse image",
+    "ENOSPC": true,
+    "EROFS": true,
+    "fillerBytes": 2000314368,
+    "offsetBefore": "4",
+    "resumedOffset": "1048580",
+    "journalPageCapacityFailure": true
+  },
+  "metrics": {
+    "receipt760": [
+      {
+        "label": "small",
+        "count": 760,
+        "maxMs": 23.167790999999852,
+        "over50": []
+      },
+      {
+        "label": "bounded-large",
+        "count": 760,
+        "maxMs": 28.132666999999856,
+        "over50": []
+      }
+    ],
+    "writerMaxMs": 14.152666999998473,
+    "snapshot": {
+      "target": 250,
+      "pressure": false,
+      "latest": "750",
+      "buildMs": 265.2020420000008,
+      "sliceMaxMs": 20.350875000000087,
+      "activationMs": 6.741250000000946
+    },
+    "assetContention": {
+      "maxMs": 32.00491699999975,
+      "over50": [],
+      "finalizeAdmissionMs": 7.39712499999996
+    },
+    "assetSamples": [
+      {
+        "bytes": 8388608,
+        "pendingReceiptMs": 7.39349999999996,
+        "lastClientByteToObservedAcceptanceMs": 44.77170799999999,
+        "uploadToObservedAcceptanceMs": 126.13629100000003,
+        "downloadVerifiedClientMs": 96.619166,
+        "maxChunkReceiptMs": 10.903333000000032
+      },
+      {
+        "bytes": 33554432,
+        "pendingReceiptMs": 8.912375000000111,
+        "lastClientByteToObservedAcceptanceMs": 86.69862499999999,
+        "uploadToObservedAcceptanceMs": 393.24525000000006,
+        "downloadVerifiedClientMs": 370.8165409999999,
+        "maxChunkReceiptMs": 11.976458000000093
+      }
+    ],
+    "peakRSSIncludingFixtureClientServerAndWorker": 350519296,
+    "peakMainHeap": 12829784,
+    "qualification": false
+  },
+  "limits": [
+    "All images/masks are owned original bytes only, unknown safety/pending-decoder. Static/animation/full decoding/dimensions/color/orientation/canonical eligibility and output reservation belong to P1b.4.",
+    "Font/adapter/bundle staging profiles unavailable in this slice; training and parsed caption authoring remain with later owners.",
+    "Single-host synthetic timing and actual process/storage tests are not formal R20/R27/R28/R31/R38 campaigns, network/provider, full100k replay, power-loss/device-cache, other-platform or native/AT qualification.",
+    "No UI integration, destructive retained-data cleanup, publishing, provider/paid calls, live design-system, preview or canonical report edits.",
+    "Waiting-for-resources retains the original preparation; after fixing capacity, retry that command or restart local preparation. No original receipt can be overwritten."
+  ],
+  "nextOwner": "Coordinator assigns exact committed source to existing reviewer aff95449. Raster P1b.4 begins only after approval; extend typed immutable asset/RasterRef qualification and reserve actual decoder/output costs before allocations. P1b.7 owns UI/session/cancel/recovery integration and en-reve/exact1px-grid-splitter policy.",
+  "pr": null,
+  "ci": null,
+  "baseCIRun": null,
+  "zeroProviderCalls": true,
+  "historicalSeals": "preservation.json",
+  "report": "http://127.0.0.1:4381/",
+  "preview": "http://127.0.0.1:52219/?progress-report"
+}

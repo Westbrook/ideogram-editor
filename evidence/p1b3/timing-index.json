@@ -1,0 +1,8 @@
+{
+  "executedSourceManifestSHA256": "56e611b3d873e0c7f7b073d6a9cb82cb67cd5371734a175305b116db183d017e",
+  "base": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+  "rawDriverHistoricalTarget": "446ed20a366d26f5b9d0612b1cba468d023b2742",
+  "explanation": "Unchanged independently supplied760-command driver retains its historical446ed20 label. This run imported the current exact source bytes named in source-manifest.json, through a source symlink under fresh artifacts/p1b3-receipt-timing. Historical label is not execution identity.",
+  "driverSHA256": "4964d706fd0c5eff4a2aadc55366dc103be1d9947227e8a22ef8e8d60c7c289e",
+  "qualification": false
+}

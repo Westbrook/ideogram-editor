@@ -72,7 +72,7 @@ export class RecoveryConsumer {
     await this.rows(descriptor.content,descriptor.recovery,'lp1-snapshot-jsonl',async(row,index)=>{
       if(index===0n){keys(row,['kind','snapshotId','snapshotSeq','projectionSchema','entityCount']);ok(row.kind==='header'&&row.snapshotId===descriptor.snapshotId&&row.snapshotSeq===descriptor.snapshotSeq&&row.projectionSchema===2&&seq(row.entityCount));expected=row.entityCount;return;}
       keys(row,['kind','entityType','entityId','entityVersion','partIndex','partCount','utf8Base64']);
-      ok(row.kind==='projection-part'&&['document','history','checkpoint'].includes(row.entityType)&&id(row.entityId)&&seq(row.entityVersion)&&Number.isSafeInteger(row.partIndex)&&Number.isSafeInteger(row.partCount)&&row.partCount>0&&typeof row.utf8Base64==='string');
+      ok(row.kind==='projection-part'&&['asset','document','history','checkpoint'].includes(row.entityType)&&id(row.entityId)&&seq(row.entityVersion)&&Number.isSafeInteger(row.partIndex)&&Number.isSafeInteger(row.partCount)&&row.partCount>0&&typeof row.utf8Base64==='string');
       const next=row.entityType+':'+row.entityId;
       if(!part){ok(next>previous);key=next;parts=row.partCount;version=row.entityVersion;}
       ok(next===key&&parts===row.partCount&&part===row.partIndex&&version===row.entityVersion);

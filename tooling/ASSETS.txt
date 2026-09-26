@@ -1,0 +1,122 @@
+P1b.3 RECOVERABLE STAGING AND SAFE ORIGINALS
+
+Baseline: approved 7ef07dda92279cc632d82e18d008c74ff99ee851.
+Use pinned .toolchain/bin Node26.10.0/npm12.1.0. Run test:assets and
+macOS-only test:assets:volume, plus affected protocol/store/recovery/session/
+shell/consumer checks. No dependency, UI, provider or publishing work is added.
+Approved preview52219 and independent report4381 remain separate services.
+
+HTTP AND OWNERSHIP
+
+Staging create uses exact LP-1 fields,201 on first durable registration,200 on
+identical owner retry,409 on changed metadata. No filename/path/URL field exists.
+GET/PUT/finalize require the current paired client owner and all LS-1 checks.
+PUT requires decimal Upload-Offset and Content-Length, octet-stream,1..1MiB.
+One stage lease admits one sequential chunk. A bounded HTTP buffer is not a
+committed offset: the worker truncates unacknowledged tails, writes/fsyncs/closes,
+then atomically increments offset/version. Lost replies require GET before resend.
+Network abort leaves the prior durable offset. Restart never adopts a file tail.
+
+POST /commands handles PreviewStagingOwnershipTransfer/TransferStagingOwnership/
+FinalizeStaging; POST /assets/staging/:id/finalize wraps the identical envelope.
+Recovery inventory is minimal, paginated under64KiB and session-scoped opaque
+cursors; no names, paths, hash, bytes or credentials. Finalized entries excluded.
+Review is target-client + issuing-session + writer-epoch scoped, expires within
+30minutes/session, and hashes exact canonical {reviewId,targetClientId,staging,
+expiresAt}. The accepted preview event is exactly {reviewId,reviewHash}.
+Transfer rechecks review/owner/version/state and active leases in the writer.
+All disk chunk operations are synchronous on that worker; revoke old network
+leases before ownership commit so queued old callbacks fail. A preparation lease
+cannot be quiesced and produces durable CAPACITY. Stale review produces durable
+STALE_REVISION. Acceptance atomically changes owner/version, event and receipt;
+retry original command never transfers twice. Fresh pairing/renewal cannot revive
+a review from the old session. A precommit crash requires a fresh preview.
+
+DURABLE LOCAL PREPARATION
+
+The pending command envelope, canonical hash, original bytes, client ownership,
+operation ID, staging ID/version and phase are committed before202. Lookup reads
+receipt and pending identity in one worker operation. Startup resumes only that
+local preparation. No remote authority/outbox exists. Changed ID/hash conflicts;
+terminal rejection cannot be overwritten. Journal failure cannot return durable
+pending/accepted. Storage faults retain pending identity and waiting-for-resources;
+retry the SAME command after fixing capacity. Work is bounded64 preparations,
+two combined object/snapshot/upload/asset-reader stages,1MiB IO,128 content pins,
+64 IPC requests and existing worker128/16MiB heaps. Queue entries are not evicted.
+
+Preparation hashes in1MiB yielded steps, verifies actual length and caption UTF-8,
+flushes/closes, renames on the same filesystem, syncs directories, then fully
+rehashes the immutable target cooperatively. The short accepting transaction
+checks a private proof of device/inode/size/times, registers object/dependency
+roots, an immutable logical asset version, staging state, event and receipt.
+Concurrent file identity changes fail closed. Hash dedup never merges logical
+versions. Finalization preserves the original encoded bytes, including failed
+staging and unreferenced immutable files. No GC or retained-history cleanup exists.
+
+PROFILE BOUNDARIES
+
+Caption imports are complete opaque UTF-8, served only as measured text/plain
+attachments/nosniff/no-store, even when declared application/json or containing
+markup/URLs. No parsed caption/authoring eligibility is implied, and no16MiB raw
+retention cap is invented. Existing command expected-version parsing stays typed
+and64KiB; a finalized application/json caption can carry those exact canonical
+manifest bytes. No generic putObject/blob endpoint is exposed.
+
+Images/masks admit only declared PNG/JPEG/WebP (mask PNG), reject obvious signature
+mismatch and preserve full owned originals. They are ALWAYS unknown safety and
+pending-decoder, NEVER a RasterRef or usable image. Signature checks do not prove
+static/nonanimated, complete decoder validity, dimensions, color, orientation,
+mask mapping or canonical qualification. P1b.4 owns those checks and reservations
+for predicted canonical output before allocation. Truncated/animated files with
+matching signatures cannot get content bytes or image eligibility here. Deferred
+font/adapter/bundle purposes return415 before staging; their own profile owners
+must add sealed parsers/eligibility. No8/32MiB/4GiB/tensor fixture becomes a cap.
+
+SAFE CONTENT AND RECOVERY
+
+GET /assets/:id returns typed original metadata at a captured highWater.
+GET/HEAD /assets/:id/content resolves only a registered logical asset identity;
+raw object hashes and stage IDs grant no access. Unknown/withheld/quarantined
+content is403. Missing/corrupt content is404 before headers. Full hash verification
+runs before every new content response; bounded read proof checks file identity
+and current safety/availability on each32KiB read. Private read pins are released
+on completion/error. ETag uses algorithm-qualified hash; single ranges/suffixes,
+If-Range full200 fallback and416 typed total-length details are supported.
+Session/root checks continue during streaming. No cross-origin media exemption.
+The stream owns one of the same two IO slots used by upload/preparation/snapshots.
+
+Schema3 is additive. Existing schema2 receives a private fsynced VACUUM backup,
+integrity/table digest checks, transactional table/index activation and a retained
+migration receipt. Schema1 still first receives the approved schema2 migration.
+A genuinely empty new root needs no backup reservation. Existing roots, all
+commands/events/history/objects/snapshots remain. The prior binary can reopen the
+retained schema2 backup with unchanged immutable objects in an isolated root.
+Asset facts extend pure typed validation and atomic browser staging publication;
+snapshots include only safe asset metadata and retained roots, never upload,
+preparation, session, review or credential tables. Schema2 snapshot wire framing
+and250/500 scheduling/backpressure stay unchanged.
+
+RESERVATIONS AND INVENTORY
+
+Reserve actual remaining staged bytes plus25% overhead with1GiB filesystem AND
+configured quota margin plus64MiB metadata accounting. Existing allocations are
+counted by actual disk usage; recheck before chunks and at least every30s of
+progress, including long requests. Snapshot/object/asset work shares reservations.
+Socket idle timeout30s on upload,10s headers; no absolute progressing-transfer
+request timeout. Existing control idle timeout15s and session lifetimes remain.
+Prepare currently produces no raster output, so it reserves no fictional decoder
+cost. The future raster owner must add its actual output/working plan first.
+Private diagnostics expose counts/bytes of incomplete,failed and orphan uploads,
+object orphans, reserved bytes, active slots, preparations and observed durations.
+Recovery inventory supplies actionable stage metadata; P1b.7 owns visible controls.
+No deletion is inferred from failure, transfer, lease expiry or pressure.
+
+LIMITS
+
+Author fault tests are process death and actual isolated HFS+ ENOSPC/EROFS,
+not power-loss/device-cache or platform qualification. HTTP timings/8MiB/32MiB
+transfer observations are local synthetic data, not named PERF campaigns or
+provider/network ceilings. Binary image fixtures remain pending decoder. Wider
+100k history, native accessibility, full editor, image/font/adapter/bundle,
+provider and full PERF qualification belong to their assigned later tasks.
+Independent exact-source review is required before this task earns credit.

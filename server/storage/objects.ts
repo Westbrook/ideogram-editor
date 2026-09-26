@@ -15,6 +15,11 @@ type Stage = { fd: number; path: string; length: bigint; received: bigint; hash:
 export class Objects {
   private stages = new Map<string, Stage>();
   private reserved = 0n;
+  private external = new Map<string,bigint>();
+  private slots = new Set<string>();
+  private available:()=>void=()=>{};
+  onAvailable(callback:()=>void){this.available=callback;}
+  private proofs = new Map<string,{ref:BlobRef;stamp:string}>();
   readonly staging: string;
   readonly objects: string;
   constructor(private root: string, private check: () => void, private barrier: Barrier, private quota?: string) {
@@ -26,10 +31,20 @@ export class Objects {
     const stats = statfsSync(this.root, { bigint: true });
     const free = stats.bavail * stats.bsize; const total = stats.blocks * stats.bsize;
     const required = length + (length + 3n) / 4n;
+    const reserved = this.reserved + [...this.external.values()].reduce((a,b)=>a+b,0n);
     const used = this.quota ? inspectTree(this.root) : 0n;
-    if (free < this.reserved + required + MARGIN + EMERGENCY || (total - free) * 10n >= total * 9n ||
-        (this.quota && (used * 10n >= BigInt(this.quota) * 9n || used + this.reserved + required + EMERGENCY > BigInt(this.quota)))) throw new StoreError('CAPACITY');
+    if (free < reserved + required + MARGIN + EMERGENCY || (total - free) * 10n >= total * 9n ||
+        (this.quota && (used * 10n >= BigInt(this.quota) * 9n || used + reserved + required + MARGIN + EMERGENCY > BigInt(this.quota)))) throw new StoreError('CAPACITY');
   }
+  reserve(id: string, cost: bigint, enforce = true) {
+    const previous=this.external.get(id);this.external.delete(id);
+    try {if(enforce)this.capacity(cost);this.external.set(id,cost+(cost+3n)/4n);}
+    catch(e){if(previous!==undefined)this.external.set(id,previous);throw e;}
+  }
+  unreserve(id: string) {this.external.delete(id);}
+  acquire(id: string) {if(this.slots.has(id))return;if(this.stages.size+this.slots.size>=2)throw new StoreError('CAPACITY');this.slots.add(id);}
+  release(id: string) {if(this.slots.delete(id))this.available();}
+  reservationInventory() {return {reservedBytes:String(this.reserved+[...this.external.values()].reduce((a,b)=>a+b,0n)), activeTransfers:this.slots.size+this.stages.size};}
   begin(byteLength: string, mediaType: string, expectedHash?: string, metadata = false): string {
     this.check();
     assertComponents(this.staging); assertPrivate(this.staging, true);
@@ -37,7 +52,7 @@ export class Objects {
     validateBlob({ hash: expectedHash ?? `sha256:${'0'.repeat(64)}`, byteLength, mediaType });
     const length = BigInt(byteLength);
     if (metadata && length > 65536n) throw new StoreError('PAYLOAD_TOO_LARGE');
-    if (this.stages.size >= 2) throw new StoreError('CAPACITY');
+    if (this.stages.size + this.slots.size >= 2) throw new StoreError('CAPACITY');
     if (!metadata) this.capacity(length);
     const id = randomUUID(); const path = join(this.staging, id);
     const fd = openSync(path, constants.O_CREAT | constants.O_EXCL | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
@@ -82,14 +97,14 @@ export class Objects {
     this.barrier('after-object-rename');
     syncDirectory(join(this.objects, hash.slice(7, 9))); syncDirectory(this.staging);
     this.barrier('after-object-directory-sync'); this.verify(ref);
-    this.reserved -= stage.reserved; this.stages.delete(id);
+    this.reserved -= stage.reserved; this.stages.delete(id);this.available();
     return ref;
   }
   abort(id: string): void {
     const stage = this.stages.get(id); if (!stage) return;
     if (stage.fd !== -1) closeSync(stage.fd);
     // Keep abandoned bytes for startup inventory; cleanup is a later explicit operation.
-    this.reserved -= stage.reserved; this.stages.delete(id);
+    this.reserved -= stage.reserved; this.stages.delete(id);this.available();
   }
   putMetadata(bytes: Uint8Array): BlobRef {
     const id = this.begin(String(bytes.byteLength), 'application/json', undefined, true);
@@ -141,6 +156,23 @@ export class Objects {
       return bytes;
     } finally { closeSync(fd); }
   }
+  private stamp(ref:BlobRef) {
+    const path=this.path(ref);assertComponents(this.objects);assertPrivate(this.objects,true);assertPrivate(join(this.objects,ref.hash.slice(7,9)),true);
+    const s=assertPrivate(path,false);return JSON.stringify([s.dev,s.ino,s.size,s.mtimeMs,s.ctimeMs]);
+  }
+  async prove(ref:BlobRef,check:()=>void):Promise<string> {
+    this.check();if(this.proofs.size>=128)throw new StoreError('CAPACITY');const stamp=this.stamp(ref);const path=this.path(ref);
+    const fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);
+    try {
+      if(!sameFile(fstatSync(fd),assertPrivate(path,false)))throw new StoreError('ROOT_UNSAFE');
+      const hash=createHash('sha256');const buffer=Buffer.alloc(IO_CHUNK);let length=0n;
+      for(;;){this.check();check();const n=readSync(fd,buffer);if(!n)break;length+=BigInt(n);if(length>BigInt(ref.byteLength))throw new StoreError('CORRUPT_OBJECT');hash.update(buffer.subarray(0,n));await new Promise<void>(r=>setImmediate(r));}
+      if(length!==BigInt(ref.byteLength)||'sha256:'+hash.digest('hex')!==ref.hash||this.stamp(ref)!==stamp)throw new StoreError('CORRUPT_OBJECT');
+      const token=randomUUID();this.proofs.set(token,{ref,stamp});return token;
+    } finally{closeSync(fd);}
+  }
+  proven(ref:BlobRef,token:string){this.check();const proof=this.proofs.get(token);if(!proof||proof.ref.hash!==ref.hash||proof.ref.byteLength!==ref.byteLength||proof.ref.mediaType!==ref.mediaType||this.stamp(ref)!==proof.stamp)throw new StoreError('CORRUPT_OBJECT');}
+  releaseProof(token:string){this.proofs.delete(token);}
   inventory(registered: Set<string>) {
     const orphans: string[] = [];
     for (const shard of readdirSync(this.objects)) {

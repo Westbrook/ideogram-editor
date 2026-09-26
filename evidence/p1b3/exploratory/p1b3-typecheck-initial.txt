@@ -1,0 +1,8 @@
+npm notice run ideogram-editor@0.1.0 typecheck
+npm notice run npm run typecheck:consumer && npm run typecheck:app && tsc --noEmit -p tsconfig.server.json
+npm notice run ideogram-editor@0.1.0 typecheck:consumer
+npm notice run tsc --noEmit
+npm notice run ideogram-editor@0.1.0 typecheck:app
+npm notice run tsc --noEmit -p tsconfig.app.json
+server/storage/assets.ts(74,187): error TS2322: Type '"complete" | "failed" | "finalized" | "receiving"' is not assignable to type '"complete" | "failed" | "receiving"'.
+  Type '"finalized"' is not assignable to type '"complete" | "failed" | "receiving"'.
