@@ -1,0 +1,29 @@
+✖ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (1963.340834ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2014.6285
+
+✖ failing tests:
+
+test at tests/protocol/http.test.mjs:110:1
+✖ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (1963.340834ms)
+  AssertionError [ERR_ASSERTION]: /api/v1/snapshots/5d57d986-03cc-4e3a-9d3f-a04357ae0c16?recoveryId=f07a5288-86ee-4900-8aa3-81df0f7850d4
+  
+  200 !== 410
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/http.test.mjs:121:45)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 410,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

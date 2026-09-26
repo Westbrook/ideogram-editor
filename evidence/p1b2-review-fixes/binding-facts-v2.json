@@ -1,0 +1,35 @@
+{
+  "roots": [
+    "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2-review-fixes/independent/roots/binding-luopP7",
+    "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2-review-fixes/independent/roots/binding-wxdK8F",
+    "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2-review-fixes/independent/roots/binding-aV1AZn",
+    "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2-review-fixes/independent/roots/binding-REC0FD",
+    "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2-review-fixes/independent/roots/binding-piPlec"
+  ],
+  "facts": [
+    {
+      "case": "I-B01",
+      "restartRetry": true,
+      "oldCredentialsInvalid": true,
+      "rotationRevocationIsolation": true
+    },
+    {
+      "case": "I-B02",
+      "oneUse": true,
+      "absoluteExpiry": true,
+      "pairingExpiry": true
+    },
+    {
+      "case": "I-B03",
+      "failedCommitClosed": true,
+      "rollbackPreserved": true
+    },
+    {
+      "case": "I-B04",
+      "oldSessionStatus": 401,
+      "sameClient": true,
+      "oldRecoveryStatus": 410,
+      "code": "READ_CONTEXT_EXPIRED"
+    }
+  ]
+}

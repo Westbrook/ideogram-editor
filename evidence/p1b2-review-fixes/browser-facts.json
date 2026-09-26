@@ -1,0 +1,103 @@
+{
+  "browser": "153.0.8010.12",
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2-review-fixes/independent/roots/browser-wuor4h",
+  "facts": [
+    {
+      "case": "I-C01",
+      "description": "An in-flight public cache.read across another tab atomic publication",
+      "before": {
+        "view": {
+          "generation": "d991b16c-cf01-470b-b653-b7a454f0f67d",
+          "cursor": "1",
+          "epoch": "1"
+        },
+        "document": {
+          "branchId": "63e1f003-596f-4b32-9fee-7189dd8e111c",
+          "checkpoint": null,
+          "color": "sRGB",
+          "compositionVersion": null,
+          "depth": 8,
+          "height": 800,
+          "historyHead": "99e3b188-82e9-4497-92f3-c80b89663ba2",
+          "id": "document_1",
+          "orderedLayerIds": [],
+          "revision": "1",
+          "width": 1200
+        }
+      },
+      "after": {
+        "view": {
+          "generation": "c6fcd702-c974-48bd-8a0f-0d0031a21395",
+          "cursor": "2",
+          "epoch": "1"
+        },
+        "document": {
+          "branchId": "63e1f003-596f-4b32-9fee-7189dd8e111c",
+          "checkpoint": "81c599a3-f13f-4dad-bedc-a12c1148a9c5",
+          "color": "sRGB",
+          "compositionVersion": null,
+          "depth": 8,
+          "height": 800,
+          "historyHead": "99e3b188-82e9-4497-92f3-c80b89663ba2",
+          "id": "document_1",
+          "orderedLayerIds": [],
+          "revision": "2",
+          "width": 1200
+        }
+      },
+      "readResult": {
+        "branchId": "63e1f003-596f-4b32-9fee-7189dd8e111c",
+        "checkpoint": null,
+        "color": "sRGB",
+        "compositionVersion": null,
+        "depth": 8,
+        "height": 800,
+        "historyHead": "99e3b188-82e9-4497-92f3-c80b89663ba2",
+        "id": "document_1",
+        "orderedLayerIds": [],
+        "revision": "1",
+        "width": 1200
+      },
+      "expected": "complete old or new document, never absent",
+      "pass": true
+    },
+    {
+      "case": "I-C02",
+      "description": "Changed epoch at final public recovery revalidation",
+      "result": "rejected",
+      "oldStateRetained": true,
+      "pass": true
+    },
+    {
+      "case": "I-C03",
+      "description": "Page close/reopen after failed final transfer",
+      "priorProjectionPreserved": true,
+      "pass": true
+    },
+    {
+      "case": "I-C04",
+      "description": "Recovery after browser reopen",
+      "state": {
+        "view": {
+          "generation": "7b0f8bb0-36c4-4b21-8c32-238261747707",
+          "cursor": "3",
+          "epoch": "1"
+        },
+        "document": {
+          "branchId": "63e1f003-596f-4b32-9fee-7189dd8e111c",
+          "checkpoint": "7155c536-8063-475d-b477-ae286ee31df8",
+          "color": "sRGB",
+          "compositionVersion": null,
+          "depth": 8,
+          "height": 800,
+          "historyHead": "99e3b188-82e9-4497-92f3-c80b89663ba2",
+          "id": "document_1",
+          "orderedLayerIds": [],
+          "revision": "3",
+          "width": 1200
+        }
+      }
+    }
+  ],
+  "failed": 0
+}

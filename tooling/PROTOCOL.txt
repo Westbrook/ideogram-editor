@@ -111,7 +111,10 @@ Absent valid bounded recovery gives503, never an unfulfillable snapshot URL.
 GET /snapshots/:id?recoveryId=R retains exact identity/B/H/content. Metadata
 checks content/hash/count/schema before offering it. No newer snapshot is
 substituted. Successful authorized reads renew the30-minute idle lease within
-the session's absolute bound. Expiry/restart give410; wrong client/context403.
+the session's absolute bound. Read leases/content are also fenced by the issuing
+session's private cookie hash: fresh pairing or renewal cannot reuse them even
+when original command ownership is restored. Start a fresh read after credential
+rotation. Expiry/restart/session replacement give410; wrong client/context403.
 POST /recovery/:id/release journals owner-bound idempotent release with CSRF204.
 Release/expiry never deletes document/history roots. Read pins and content
 handles are bounded128; stream admission16; pressure yields typed local errors.
@@ -147,6 +150,9 @@ snapshot B plus tail through H in private IndexedDB staging, revalidates the
 lease, then atomically swaps one published generation/cursor pointer. Failure
 removes its staging and preserves the old view. Concurrent cache publication
 uses an IndexedDB compare-and-swap; no browser tab becomes the durable writer.
+RecoveryCache.read selects the published pointer and requested row in one
+readonly transaction spanning meta/rows, so another tab's publication and old
+generation deletion cannot turn an in-flight read into an absent document.
 consumeStream(signal) stages partial batches and reference downloads, applying
 one complete validated transaction before advancing. Checkpoints/IDs alone
 never advance; partial/gapped/malformed/expired/revoked deliveries fail closed.

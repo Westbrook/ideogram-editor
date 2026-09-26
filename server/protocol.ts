@@ -11,8 +11,8 @@ import { readControlBytes, readSessionRequest, parseControlJSON } from './contro
 import { ProtocolError } from './errors.js';
 import type { Session } from './sessions.js';
 
-type Lease = { clientId: string; expires: number; absolute: number; start: string; context: RecoveryContext; snapshot: StoredSnapshot | null; released: boolean; descriptor?: SnapshotDescriptor };
-type Content = { clientId: string; expires: number; absolute: number; recoveryId?: string; stored: StoredContent };
+type Lease = { clientId: string; sessionHash: string; expires: number; absolute: number; start: string; context: RecoveryContext; snapshot: StoredSnapshot | null; released: boolean; descriptor?: SnapshotDescriptor };
+type Content = { clientId: string; sessionHash: string; expires: number; absolute: number; recoveryId?: string; stored: StoredContent };
 const IDLE = 30 * 60 * 1000;
 const PREFIX = '/api/v1/';
 export function storeError(error: unknown, mutation = false): ProtocolError {
@@ -61,6 +61,8 @@ export class ProtocolRoutes {
     const lease = this.leases.get(id);
     if (!lease) throw new ProtocolError('READ_CONTEXT_EXPIRED', undefined, 'read-or-transfer');
     if (lease.clientId !== session.clientId) throw new ProtocolError('OWNER_REQUIRED');
+    // Command provenance survives pairing/renewal; read authority does not.
+    if (lease.sessionHash !== session.cookieHash) throw new ProtocolError('READ_CONTEXT_EXPIRED', undefined, 'read-or-transfer');
     if (lease.released || this.now() >= lease.expires || this.now() >= lease.absolute || lease.context.writerEpoch !== this.writer.epoch) throw new ProtocolError('READ_CONTEXT_EXPIRED', undefined, 'read-or-transfer');
     return lease;
   }
@@ -72,7 +74,7 @@ export class ProtocolRoutes {
     await this.prune();
     if (this.content.size >= 128) { await this.writer.dropContent(stored.handle); throw new ProtocolError('LOCAL_BUSY', undefined, 'read-or-transfer'); }
     const contentId = randomUUID(); const expires = Math.min(this.now() + IDLE, session.expires);
-    this.content.set(contentId, { stored, clientId: session.clientId, expires, absolute: session.expires, recoveryId: lease?.context.recoveryId });
+    this.content.set(contentId, { stored, clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, recoveryId: lease?.context.recoveryId });
     return { contentId, url: PREFIX + 'protocol-content/' + contentId + (lease ? '?recoveryId=' + lease.context.recoveryId : ''),
       blob: stored.blob, encoding: stored.encoding, recordCount: stored.recordCount, expiresAt: new Date(expires).toISOString() };
   }
@@ -94,7 +96,7 @@ export class ProtocolRoutes {
       const inside = await this.writer.boundary(after, captured.highWater);
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
-      lease = { clientId: session.clientId, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
+      lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
         context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 2, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
@@ -168,6 +170,7 @@ export class ProtocolRoutes {
         await readSessionRequest(request,false); await assertRoot(); authenticate();
         const lease = this.leases.get(id);
         if (lease && lease.clientId !== session.clientId) throw new ProtocolError('OWNER_REQUIRED');
+        if (lease && lease.sessionHash !== session.cookieHash) throw new ProtocolError('READ_CONTEXT_EXPIRED');
         if (!lease) { const owner = await this.writer.releasedOwner(id); if (owner !== session.clientId) throw new ProtocolError(owner ? 'OWNER_REQUIRED' : 'READ_CONTEXT_EXPIRED'); }
         await this.writer.release(id,session.clientId); if (lease) lease.released = true; await this.prune(); response.writeHead(204); response.end();
       } else if (route.kind === 'protocol-content') await this.readContent(request,response,id,params.get('recoveryId'),authenticate,assertRoot);
@@ -179,6 +182,7 @@ export class ProtocolRoutes {
     const check = () => {
       const session = authenticate();
       if (item.clientId !== session.clientId || (item.recoveryId ?? null) !== recoveryId) throw new ProtocolError('OWNER_REQUIRED');
+      if (item.sessionHash !== session.cookieHash) throw new ProtocolError('READ_CONTEXT_EXPIRED', undefined, 'read-or-transfer');
       if ((!item.recoveryId && this.now() >= item.expires) || this.now() >= item.absolute) throw new ProtocolError('READ_CONTEXT_EXPIRED');
       return recoveryId ? this.lease(recoveryId,session) : undefined;
     };

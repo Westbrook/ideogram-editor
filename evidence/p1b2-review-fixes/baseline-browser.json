@@ -1,0 +1,163 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/recovery/playwright.config.ts",
+      "--grep",
+      "I-C01 a public"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/recovery",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2/browser-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/recovery",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../artifacts/p1b2/recovery-browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "consumer.spec.ts",
+      "file": "consumer.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "I-C01 a public cache read overlapping another tab publication retains a complete document",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1373,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\nExpected: \u001b[32m{\"id\": \"document_1\", \"revision\": \"1\"}\u001b[39m\nReceived: \u001b[31mnull\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\nExpected: \u001b[32m{\"id\": \"document_1\", \"revision\": \"1\"}\u001b[39m\nReceived: \u001b[31mnull\u001b[39m\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/consumer.spec.ts:132:18",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/consumer.spec.ts",
+                      "column": 18,
+                      "line": 132
+                    },
+                    "snippet": "  130 |   await second.evaluate(async()=>{const cache=(window as any).harness.cache;const old=await cache.published();await cache.put('second','document','document_1',{id:'document_1',revision:'2'});await cache.publish({generation:'second',cursor:'2',epoch:'1'},old);});\n  131 |   const result=await page.evaluate(async()=>{(window as any).releaseRead?.();return await(window as any).readResult??null;});\n> 132 |   expect(result).toEqual({id:'document_1',revision:'1'});expect((await state(second)).document.revision).toBe('2');await second.close();\n      |                  ^\n  133 | });\n  134 |\n  135 | test('I-C01 IndexedDB read lifetime blocks cross-tab publication and deletion until row selection completes',async({page,context})=>{"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/consumer.spec.ts",
+                        "column": 18,
+                        "line": 132
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\nExpected: \u001b[32m{\"id\": \"document_1\", \"revision\": \"1\"}\u001b[39m\nReceived: \u001b[31mnull\u001b[39m\n\n  130 |   await second.evaluate(async()=>{const cache=(window as any).harness.cache;const old=await cache.published();await cache.put('second','document','document_1',{id:'document_1',revision:'2'});await cache.publish({generation:'second',cursor:'2',epoch:'1'},old);});\n  131 |   const result=await page.evaluate(async()=>{(window as any).releaseRead?.();return await(window as any).readResult??null;});\n> 132 |   expect(result).toEqual({id:'document_1',revision:'1'});expect((await state(second)).document.revision).toBe('2');await second.close();\n      |                  ^\n  133 | });\n  134 |\n  135 | test('I-C01 IndexedDB read lifetime blocks cross-tab publication and deletion until row selection completes',async({page,context})=>{\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/consumer.spec.ts:132:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T04:47:48.304Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2/browser-results/consumer-I-C01-a-public-ca-b2bef-retains-a-complete-document/test-failed-1.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2/browser-results/consumer-I-C01-a-public-ca-b2bef-retains-a-complete-document/test-failed-2.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2/browser-results/consumer-I-C01-a-public-ca-b2bef-retains-a-complete-document/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/consumer.spec.ts",
+                    "column": 18,
+                    "line": 132
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "c1cf76b2c3e27e53bcdc-1cbcab96f338d42adccc",
+          "file": "consumer.spec.ts",
+          "line": 122,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T04:47:48.095Z",
+    "duration": 1939.562,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "at": "2026-09-26T04:49:44.598353+00:00",
+  "oldSeals": [
+    {
+      "folder": "docs/spec",
+      "files": 49,
+      "pass": true
+    },
+    {
+      "folder": "docs/handoff",
+      "files": 42,
+      "pass": true
+    },
+    {
+      "folder": "evidence/p1a1",
+      "files": 18,
+      "pass": true
+    },
+    {
+      "folder": "evidence/p1a2",
+      "files": 15,
+      "pass": true
+    },
+    {
+      "folder": "evidence/p1a2-case-alias",
+      "files": 4,
+      "pass": true
+    },
+    {
+      "folder": "evidence/p1a3",
+      "files": 26,
+      "pass": true
+    },
+    {
+      "folder": "evidence/p1b1",
+      "files": 38,
+      "pass": true
+    },
+    {
+      "folder": "evidence/p1b2",
+      "files": 53,
+      "pass": true
+    }
+  ],
+  "protectedPathsUnchanged": [
+    "docs/spec",
+    "docs/handoff",
+    "vendor",
+    "package-lock.json",
+    ".progress-report/project.json",
+    "evidence/p1a1",
+    "evidence/p1a2",
+    "evidence/p1a2-case-alias",
+    "evidence/p1a3",
+    "evidence/p1b1",
+    "evidence/p1b2"
+  ],
+  "live": {
+    "52219": {
+      "status": 200
+    },
+    "4381": {
+      "status": 200
+    }
+  },
+  "approvedPreviewHashes": {
+    "shell-C87eLKrM.js": "97a776945d330845ef7039de22733d1532a1b47660d26a2f6234a0099d47fb57",
+    "index-Ckqhmx9n.css": "75c39e0f3d7ec9542ac3b4cf45f97c99257cd9aa8d657ab17706fdd9a36b0730",
+    "index-BsEZWd8Y.js": "b2760ee7d98a32bebd2add8814cf2704dca7baf5ec4d706fb5e4eff0bf31e647"
+  }
+}

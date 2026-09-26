@@ -1,0 +1,36 @@
+
+Running 1 test using 1 worker
+
+(node:75357) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/recovery/consumer.spec.ts:122:1 › I-C01 a public cache read overlapping another tab publication retains a complete document (1.4s)
+
+
+  1) tests/recovery/consumer.spec.ts:122:1 › I-C01 a public cache read overlapping another tab publication retains a complete document 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    Expected: {"id": "document_1", "revision": "1"}
+    Received: null
+
+      130 |   await second.evaluate(async()=>{const cache=(window as any).harness.cache;const old=await cache.published();await cache.put('second','document','document_1',{id:'document_1',revision:'2'});await cache.publish({generation:'second',cursor:'2',epoch:'1'},old);});
+      131 |   const result=await page.evaluate(async()=>{(window as any).releaseRead?.();return await(window as any).readResult??null;});
+    > 132 |   expect(result).toEqual({id:'document_1',revision:'1'});expect((await state(second)).document.revision).toBe('2');await second.close();
+          |                  ^
+      133 | });
+      134 |
+      135 | test('I-C01 IndexedDB read lifetime blocks cross-tab publication and deletion until row selection completes',async({page,context})=>{
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/consumer.spec.ts:132:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b2/browser-results/consumer-I-C01-a-public-ca-b2bef-retains-a-complete-document/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b2/browser-results/consumer-I-C01-a-public-ca-b2bef-retains-a-complete-document/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b2/browser-results/consumer-I-C01-a-public-ca-b2bef-retains-a-complete-document/error-context.md
+
+  1 failed
+    tests/recovery/consumer.spec.ts:122:1 › I-C01 a public cache read overlapping another tab publication retains a complete document 

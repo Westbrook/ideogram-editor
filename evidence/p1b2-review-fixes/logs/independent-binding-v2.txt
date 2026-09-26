@@ -1,0 +1,12 @@
+✔ I-B01 restart, original retry, cookie rotation, revoke, and root isolation (1048.8755ms)
+✔ I-B02 concurrent one-use pairing and expired binding cannot recover identity (386.580666ms)
+✔ I-B03 failed durable binding commit returns no credentials and preserves prior binding (570.163125ms)
+✔ I-B04 same-server fresh pairing invalidates old recovery context while preserving command owner (237.970292ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2292.936291

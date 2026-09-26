@@ -1,0 +1,39 @@
+npm notice run ideogram-editor@0.1.0 test:store
+npm notice run npm run build:server && node --import ./tests/store/no-network.mjs --test --test-concurrency=1 tests/store/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ OS ownership: competing processes and case aliases refuse; death releases ownership and fences old callbacks (777.456792ms)
+ℹ Host resolves case aliases; actual alias contention was exercised.
+✔ NewDocument and named checkpoint persist exact facts, history and receipt; replay has no effects (463.943125ms)
+ℹ {"runtime":"26.10.0","sqlite":{"version":"3.53.4","source":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"},"settings":{"journal_mode":"wal","synchronous":2,"foreign_keys":1,"busy_timeout":250,"fullfsync":1,"checkpoint_fullfsync":1,"page_size":4096,"page_count":34,"max_page_count":4294967294},"filesystem":{"type":"26","blockSize":"4096","availableBytes":"672575647744","totalBytes":"1995165736960"},"resources":{"ioChunkBytes":1048576,"maxTransfers":2,"admissionOverheadPercent":25,"freeMarginBytes":"1073741824","metadataHeadroomBytes":"67108864","metadataHeadroomPhysicallyPreallocated":false,"snapshotTailCeiling":500},"observations":{"appendMs":[],"replayMs":8.432542000000012,"snapshot":{"target":250,"pressure":false,"latest":null},"qualification":false},"memory":{"rss":90095616,"heapTotal":14565376,"heapUsed":9616448,"external":4626996,"arrayBuffers":213620}}
+✔ canonical delivery: whitespace/key order retry once; changed provenance or Unicode conflicts without replacement (254.341583ms)
+✔ public command boundary rejects duplicate keys, unknown fields/types, malformed UTF-8 and oversize without receipts (246.0385ms)
+✔ concurrent revision race accepts exactly one checkpoint and durably rejects the stale draft (527.388291ms)
+✔ all five rejection codes retain exact details; no rejection advances document sequence (575.907208ms)
+✔ missing or corrupt immutable bytes cannot become accepted references and remain visible at restart (488.861125ms)
+✔ streamed objects verify actual lengths/hashes, deduplicate bytes, retain orphans and obey admission reservations (710.646958ms)
+✔ root modes, hardlinks, symlink subfiles and replaced paths fail closed without touching targets (594.419416ms)
+✔ application-data defaults are explicit and refuse silent migration of the earlier root (1.346375ms)
+✔ large event content is rejected without truncation; real snapshots preserve history past 500 events (7099.473542ms)
+✔ SIGKILL at before-object-write: unfinished bytes never appear as an accepted document (440.001833ms)
+✔ SIGKILL at before-object-flush: unfinished bytes never appear as an accepted document (441.32075ms)
+✔ SIGKILL at after-object-flush: unfinished bytes never appear as an accepted document (442.681334ms)
+✔ SIGKILL at before-object-rename: unfinished bytes never appear as an accepted document (435.087625ms)
+✔ SIGKILL at after-object-rename: unfinished bytes never appear as an accepted document (433.389916ms)
+✔ SIGKILL at after-object-directory-sync: unfinished bytes never appear as an accepted document (443.599333ms)
+✔ SIGKILL at before-event-insert: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (633.358875ms)
+✔ SIGKILL at before-commit: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (674.606916ms)
+✔ SIGKILL at after-commit: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (642.342375ms)
+✔ real SQLite SQLITE_FULL rolls back acceptance and rejection receipts, then exact retry succeeds after capacity returns (715.473875ms)
+✔ real filesystem permission failure during rename leaves no accepted reference and can retry unchanged bytes (482.020458ms)
+✔ SQLite busy timeout is bounded off the parent event loop; failed mutation has no durable receipt (546.057542ms)
+ℹ {"busyTimeoutObservedMs":297.09241699999984,"parentResponseDuringWorkerBusyMs":0.22625000000061846,"performanceQualification":false}
+✔ all durable subfiles remain owner-only, including WAL, shared-memory file and abandoned staging (267.341833ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18420.52525

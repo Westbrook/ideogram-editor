@@ -13,7 +13,19 @@ export class RecoveryCache {
   }
   private async get(store: string,key: IDBValidKey) {const tx=this.db.transaction(store);return result(tx.objectStore(store).get(key));}
   async published(): Promise<Published> { return await this.get('meta','published') ?? {generation:'empty',cursor:'0',epoch:null}; }
-  async read(type: string,id: string) {const view=await this.published();return this.get('rows',[view.generation,type,id]);}
+  async read(type: string,id: string) {
+    // Keep pointer selection and row retrieval in one read lifetime. Another
+    // tab may publish and discard the previous generation immediately after it.
+    const tx=this.db.transaction(['meta','rows']);
+    const completed=done(tx);let value: unknown;
+    const pointer=tx.objectStore('meta').get('published');
+    pointer.onsuccess=()=>{
+      const view: Published=pointer.result??{generation:'empty',cursor:'0',epoch:null};
+      const row=tx.objectStore('rows').get([view.generation,type,id]);
+      row.onsuccess=()=>{value=row.result;};
+    };
+    await completed;return value;
+  }
   async put(generation: string,type: string,id: string,value: unknown) {
     const tx=this.db.transaction('rows','readwrite');tx.objectStore('rows').put(value,[generation,type,id]);await done(tx);
   }

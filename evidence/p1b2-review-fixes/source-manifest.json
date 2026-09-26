@@ -1,0 +1,7 @@
+{
+  "server/protocol.ts": "0ebb8eb29b40c55c6292d62c3cefac982c66c955db7b09977235b937f2075a0b",
+  "src/state/recovery-cache.ts": "72b1d9cc759c9b212c2e51d145ed3a6fec14d0327170827c242dce5d62e89104",
+  "tests/protocol/http.test.mjs": "8b50ca95772282cf00bebc3d7eab3627a46d3ac652f2d359f48fd6041963147e",
+  "tests/recovery/consumer.spec.ts": "773d02eafad8b19a60e3fa618710fb83223384e655ab94f566923231641b4234",
+  "tooling/PROTOCOL.txt": "d693053d2bee0fb0a89c51e57031a24331111fd688c6a8e4e0cc6891520f2abe"
+}

@@ -1,0 +1,35 @@
+{
+  "roots": [
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/446ed20-independent/roots/binding-v4VS3l",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/446ed20-independent/roots/binding-A618ua",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/446ed20-independent/roots/binding-x9VmuJ",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/446ed20-independent/roots/binding-aHe8NS",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/446ed20-independent/roots/binding-UoZ3Pm"
+  ],
+  "facts": [
+    {
+      "case": "I-B01",
+      "restartRetry": true,
+      "oldCredentialsInvalid": true,
+      "rotationRevocationIsolation": true
+    },
+    {
+      "case": "I-B02",
+      "oneUse": true,
+      "absoluteExpiry": true,
+      "pairingExpiry": true
+    },
+    {
+      "case": "I-B03",
+      "failedCommitClosed": true,
+      "rollbackPreserved": true
+    },
+    {
+      "case": "I-B04",
+      "oldSessionStatus": 401,
+      "sameClient": true,
+      "oldRecoveryStatus": 200,
+      "code": null
+    }
+  ]
+}

@@ -106,3 +106,24 @@ test('a fresh unseeded HTTP root accepts NewDocument with the public fixed empty
   const c=command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId});const response=await call(server.origin,'/api/v1/commands',{method:'POST',headers:mutationHeaders(server,paired),body:c});
   assert.equal(response.status,200);assert.equal(response.json.receipt.status,'accepted');
 });
+
+test('I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership',async t=>{
+  const f=await setup(t);const c=f.command();const receipt=await f.post('/api/v1/commands',c);
+  for(let revision=1;revision<250;revision++)assert.equal((await f.post('/api/v1/commands',f.command({expectedDocumentRevision:String(revision),body:{type:'SaveCheckpoint',name:'session fence '+revision}}))).json.receipt.status,'accepted');
+  for(const rotation of ['pair','renew']){
+    const old=f.paired;const gap=await f.read('/api/v1/events?after=0');const descriptor=gap.json.error.details.value.snapshot;
+    assert.equal((await f.read(descriptor.content.url)).status,200);
+    f.paired=rotation==='pair'?await call(f.server.origin,'/api/v1/session/bootstrap',{method:'POST',headers:{Origin:f.server.origin,Cookie:cookieFrom(old)},body:{protocolVersion:1,pairingToken:new URL(f.server.issuePairingURL()).hash.slice(9)}}):await f.post('/api/v1/session/renew',{protocolVersion:1});
+    assert.equal(f.paired.json.clientId,old.json.clientId);
+    assert.equal((await call(f.server.origin,'/api/v1/session',{headers:readHeaders(cookieFrom(old))})).status,401);
+    assert.equal((await f.post('/api/v1/commands',c,{'X-App-CSRF':old.json.csrfToken})).status,403);
+    for(const path of [descriptor.metadataUrl,descriptor.content.url,'/api/v1/events?after=250&recoveryId='+descriptor.recovery.recoveryId]){
+      const stale=await f.read(path);assert.equal(stale.status,410,path);assert.equal(stale.json.error.code,'READ_CONTEXT_EXPIRED');
+    }
+    assert.equal((await f.post('/api/v1/recovery/'+descriptor.recovery.recoveryId+'/release',{protocolVersion:1})).status,410);
+    assert.deepEqual((await f.read('/api/v1/commands/'+c.command.commandId)).json,receipt.json);
+    assert.deepEqual((await f.post('/api/v1/commands',c)).json,receipt.json);
+    const fresh=(await f.read('/api/v1/events?after=0')).json.error.details.value.snapshot;
+    assert.notEqual(fresh.recovery.recoveryId,descriptor.recovery.recoveryId);assert.equal((await f.read(fresh.content.url)).status,200);
+  }
+});

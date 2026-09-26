@@ -118,3 +118,33 @@ test('two browser tabs race durable commands and converge through complete recov
   await Promise.all([recover(page),recover(second)]);await recover(page);await recover(second);
   expect((await state(page)).view.cursor).toBe('2');expect((await state(second)).document).toEqual((await state(page)).document);await second.close();
 });
+
+test('I-C01 a public cache read overlapping another tab publication retains a complete document',async({page,context})=>{
+  await start(page);const second=await context.newPage();await second.goto(server.issuePairingURL());await expect(second.locator('#state')).toHaveText('Recovery consumer ready');
+  await page.evaluate(async()=>{const h=(window as any).harness;const old=await h.cache.published();await h.cache.put('first','document','document_1',{id:'document_1',revision:'1'});await h.cache.publish({generation:'first',cursor:'1',epoch:'1'},old);
+    // Gate the old split-read boundary if present. A consistent read can finish
+    // without this boundary and must retain its selected row after publication.
+    const original=h.cache.published.bind(h.cache);h.cache.published=async()=>{const view=await original();(window as any).pointerRead=true;await new Promise<void>(r=>(window as any).releaseRead=r);return view;};
+    (window as any).readResult=h.cache.read('document','document_1').then((v:any)=>{(window as any).readDone=true;return v;});});
+  await page.waitForFunction(()=>(window as any).pointerRead||(window as any).readDone);
+  await second.evaluate(async()=>{const cache=(window as any).harness.cache;const old=await cache.published();await cache.put('second','document','document_1',{id:'document_1',revision:'2'});await cache.publish({generation:'second',cursor:'2',epoch:'1'},old);});
+  const result=await page.evaluate(async()=>{(window as any).releaseRead?.();return await(window as any).readResult??null;});
+  expect(result).toEqual({id:'document_1',revision:'1'});expect((await state(second)).document.revision).toBe('2');await second.close();
+});
+
+test('I-C01 IndexedDB read lifetime blocks cross-tab publication and deletion until row selection completes',async({page,context})=>{
+  await start(page);const second=await context.newPage();await second.goto(server.issuePairingURL());await expect(second.locator('#state')).toHaveText('Recovery consumer ready');
+  await page.evaluate(async()=>{const cache=(window as any).harness.cache;const old=await cache.published();await cache.put('first','document','document_1',{revision:'1'});await cache.put('second','document','document_1',{revision:'2'});await cache.publish({generation:'first',cursor:'1',epoch:'1'},old);
+    const original=IDBObjectStore.prototype.get;let intercept=true;
+    IDBObjectStore.prototype.get=function(key){const request=original.call(this,key);if(intercept&&this.name==='meta'&&key==='published'){
+      intercept=false;const tx=this.transaction;let handler:any;
+      Object.defineProperty(request,'onsuccess',{set(value){handler=value;}});
+      request.addEventListener('success',()=>{(window as any).pointerRead=true;const pump=()=>{const keep=original.call(tx.objectStore('meta'),'read-lifetime-gate');keep.onsuccess=()=>{if(!(window as any).releaseRead)pump();else handler.call(request,new Event('success'));};};pump();});
+    }return request;};
+    (window as any).readResult=cache.read('document','document_1');});
+  await page.waitForFunction(()=>(window as any).pointerRead===true);
+  await second.evaluate(()=>{const w=window as any;w.publishResult=w.harness.cache.publish({generation:'second',cursor:'2',epoch:'1'},{generation:'first',cursor:'1',epoch:'1'}).then(()=>w.publishDone=true);w.publishStarted=true;});
+  expect(await second.evaluate(()=>(window as any).publishDone??false)).toBe(false);
+  const row=await page.evaluate(async()=>{(window as any).releaseRead=true;return await(window as any).readResult;});expect(row).toEqual({revision:'1'});
+  await second.evaluate(()=>(window as any).publishResult);expect((await state(second)).document).toEqual({revision:'2'});await second.close();
+});

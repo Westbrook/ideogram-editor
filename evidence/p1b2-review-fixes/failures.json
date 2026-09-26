@@ -1,0 +1,27 @@
+[
+  {
+    "id": "I-B04",
+    "target": "446ed20a366d26f5b9d0612b1cba468d023b2742",
+    "reproduced": "New regression on original compiled server returned200 rather than410 for old snapshot context after same-client fresh pairing.",
+    "log": "logs/baseline-context.txt",
+    "disposition": "SessionHash fence; author tests pass, independent correction review still required."
+  },
+  {
+    "id": "I-C01",
+    "target": "446ed20a366d26f5b9d0612b1cba468d023b2742",
+    "reproduced": "Actual Chromium public cache.read returned null after another tab published and removed old rows.",
+    "log": "logs/baseline-browser.txt",
+    "disposition": "Single IndexedDB meta+rows read transaction; author browser tests pass, independent correction review still required."
+  },
+  {
+    "id": "HARNESS-01",
+    "log": "logs/independent-browser-adapted.txt",
+    "result": "Independent harness copied under isolated artifacts with symlinked source caused expected PrivateRootError because staticDirectory traversed a symlink. No browser test ran in this attempt.",
+    "correction": "Resolve staticDirectory realpath in the author copied harness only; server boundary unchanged. Retained corrected log independent-browser-adapted-v2.txt."
+  },
+  {
+    "id": "O01",
+    "target": "446ed20a366d26f5b9d0612b1cba468d023b2742",
+    "result": "Prior single snapshot-spanning receipt56.997ms exceeds50ms R20 ceiling. This correction does not address or requalify timing; independent R20 assessment remains open."
+  }
+]

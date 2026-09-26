@@ -1,0 +1,13 @@
+file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/private-root.js:15
+            throw new PrivateRootError();
+                  ^
+
+PrivateRootError: Use an owner-only storage directory with no symbolic links (0700 directories, 0600 files).
+    at checkPath (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/private-root.js:15:19)
+    at async ancestors (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/private-root.js:22:9)
+    at async Promise.all (index 1)
+    at async assertSeparateDirectories (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/private-root.js:33:49)
+    at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:73:9)
+    at async file:///Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b2-review-fixes/independent/browser-adapted.mjs:8:9
+
+Node.js v26.10.0

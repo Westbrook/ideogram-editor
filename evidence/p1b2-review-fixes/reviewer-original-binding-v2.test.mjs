@@ -1,0 +1,56 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,chmod,rename,writeFile,mkdir} from 'node:fs/promises';
+import {join} from 'node:path';
+import {DatabaseSync} from 'node:sqlite';
+import {startLocalServer} from './source/dist/local/server/http.js';
+import {openWriter} from './source/dist/local/server/storage/writer.js';
+import {EMPTY_EXPECTED_VERSIONS} from './source/dist/local/src/protocol/store.js';
+import {command} from './source/tests/store/helpers.mjs';
+import {call,pair,cookieFrom,readHeaders,mutationHeaders} from './source/tests/session/helpers.mjs';
+const base=new URL('./roots/',import.meta.url).pathname;await mkdir(base,{recursive:true});
+const roots=[];const facts=[];
+const root=async()=>{const r=await mkdtemp(join(base,'binding-'));await chmod(r,0o700);roots.push(r);return r;};
+const read=(s,p,path)=>call(s.origin,path,{headers:readHeaders(cookieFrom(p))});
+const post=(s,p,path,body)=>call(s.origin,path,{method:'POST',headers:mutationHeaders(s,p),body});
+const bootstrap=(s,cookie,token=new URL(s.issuePairingURL()).hash.slice(9))=>call(s.origin,'/api/v1/session/bootstrap',{method:'POST',headers:{Origin:s.origin,...(cookie?{Cookie:cookie}:{})},body:{protocolVersion:1,pairingToken:token}});
+const start=async(t,r,opts={})=>{const s=await startLocalServer({root:r,...opts});t.after(()=>s.close());return s;};
+test('I-B01 restart, original retry, cookie rotation, revoke, and root isolation',async t=>{
+ const r=await root();let s=await start(t,r);const p=await pair(s);const c=command(EMPTY_EXPECTED_VERSIONS,{clientId:p.json.clientId});const receipt=await post(s,p,'/api/v1/commands',c);assert.equal(receipt.status,200);
+ const oldContext=(await read(s,p,'/api/v1/events?after=0')).json.recovery;await s.close();s=await start(t,r);
+ assert.equal((await read(s,p,'/api/v1/session')).status,401);
+ assert.equal((await bootstrap(s,cookieFrom(p),'x'.repeat(43))).status,401);
+ const fresh=await bootstrap(s,cookieFrom(p));assert.equal(fresh.json.clientId,p.json.clientId);
+ assert.deepEqual((await post(s,fresh,'/api/v1/commands',c)).json,receipt.json);
+ assert.equal((await read(s,fresh,'/api/v1/events?after=0&recoveryId='+oldContext.recoveryId)).status,410);
+ const badCsrf=await call(s.origin,'/api/v1/commands',{method:'POST',headers:{...mutationHeaders(s,fresh),'X-App-CSRF':p.json.csrfToken},body:c});assert.equal(badCsrf.status,403);
+ const renewed=await post(s,fresh,'/api/v1/session/renew',{protocolVersion:1});assert.equal(renewed.status,200);assert.equal((await read(s,fresh,'/api/v1/session')).status,401);
+ const substituted=await pair(s);assert.equal((await post(s,substituted,'/api/v1/commands',c)).status,403);assert.equal((await read(s,substituted,'/api/v1/commands/'+c.command.commandId)).status,403);
+ await s.close();s=await start(t,r);const rotatedOld=await bootstrap(s,cookieFrom(fresh));assert.notEqual(rotatedOld.json.clientId,p.json.clientId);
+ const restored=await bootstrap(s,cookieFrom(renewed));assert.equal(restored.json.clientId,p.json.clientId);
+ assert.equal((await post(s,restored,'/api/v1/session/revoke',{protocolVersion:1})).status,204);await s.close();s=await start(t,r);
+ assert.notEqual((await bootstrap(s,cookieFrom(restored))).json.clientId,p.json.clientId);
+ const other=await start(t,await root());assert.notEqual((await bootstrap(other,cookieFrom(renewed))).json.clientId,p.json.clientId);
+ facts.push({case:'I-B01',restartRetry:true,oldCredentialsInvalid:true,rotationRevocationIsolation:true});
+});
+test('I-B02 concurrent one-use pairing and expired binding cannot recover identity',async t=>{
+ let now=Date.now();const r=await root();let s=await start(t,r,{now:()=>now});const token=new URL(s.issuePairingURL()).hash.slice(9);
+ const both=await Promise.all([bootstrap(s,undefined,token),bootstrap(s,undefined,token)]);assert.deepEqual(both.map(x=>x.status).sort(),[200,401]);const p=both.find(x=>x.status===200);
+ now+=12*60*60*1000+1;assert.equal((await read(s,p,'/api/v1/session')).status,401);await s.close();s=await start(t,r,{now:()=>now});assert.notEqual((await bootstrap(s,cookieFrom(p))).json.clientId,p.json.clientId);
+ const expired=new URL(s.issuePairingURL()).hash.slice(9);now+=5*60*1000+1;assert.equal((await bootstrap(s,undefined,expired)).status,401);
+ facts.push({case:'I-B02',oneUse:true,absoluteExpiry:true,pairingExpiry:true});
+});
+test('I-B03 failed durable binding commit returns no credentials and preserves prior binding',async t=>{
+ const r=await root();let s=await start(t,r);const p=await pair(s);await s.close();const db=new DatabaseSync(join(r,'metadata.sqlite'));const before=db.prepare('SELECT * FROM client_bindings').all();db.exec("CREATE TRIGGER deny_binding BEFORE INSERT ON client_bindings BEGIN SELECT RAISE(ABORT,'independent binding fault'); END");db.close();s=await start(t,r);
+ const denied=await bootstrap(s,cookieFrom(p));assert.equal(denied.status,503);assert.equal(denied.headers['set-cookie'],undefined);assert.equal((await read(s,p,'/api/v1/session')).status,401);await s.close();
+ const verify=new DatabaseSync(join(r,'metadata.sqlite'));assert.deepEqual(verify.prepare('SELECT * FROM client_bindings').all(),before);verify.exec('DROP TRIGGER deny_binding');verify.close();s=await start(t,r);assert.equal((await bootstrap(s,cookieFrom(p))).json.clientId,p.json.clientId);
+ facts.push({case:'I-B03',failedCommitClosed:true,rollbackPreserved:true});
+});
+test('I-B04 same-server fresh pairing invalidates old recovery context while preserving command owner',async t=>{
+ const r=await root();const s=await start(t,r);const p=await pair(s);const c=command(EMPTY_EXPECTED_VERSIONS,{clientId:p.json.clientId});await post(s,p,'/api/v1/commands',c);const page=await read(s,p,'/api/v1/events?after=0');
+ const paired=await bootstrap(s,cookieFrom(p));assert.equal(paired.json.clientId,p.json.clientId);assert.equal((await read(s,p,'/api/v1/session')).status,401);
+ const reused=await read(s,paired,'/api/v1/events?after=0&recoveryId='+page.json.recovery.recoveryId);
+ facts.push({case:'I-B04',oldSessionStatus:401,sameClient:true,oldRecoveryStatus:reused.status,code:reused.json.error?.code??null});
+ assert.equal(reused.status,410,'Old pairing recovery context must not survive fresh credentials');
+});
+test.after(async()=>{await writeFile(new URL('./binding-facts-v2.json',import.meta.url),JSON.stringify({roots,facts},null,2)+'\n');});

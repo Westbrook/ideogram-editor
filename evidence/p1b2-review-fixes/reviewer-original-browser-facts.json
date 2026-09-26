@@ -1,0 +1,91 @@
+{
+  "browser": "153.0.8010.12",
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit-verification/446ed20-independent/roots/browser-Uy9jkQ",
+  "facts": [
+    {
+      "case": "I-C01",
+      "description": "An in-flight public cache.read across another tab atomic publication",
+      "before": {
+        "view": {
+          "generation": "08337326-94b8-4224-9034-0d5b932762f3",
+          "cursor": "1",
+          "epoch": "1"
+        },
+        "document": {
+          "branchId": "ac8335ce-413d-48ce-aaef-d6b026831e21",
+          "checkpoint": null,
+          "color": "sRGB",
+          "compositionVersion": null,
+          "depth": 8,
+          "height": 800,
+          "historyHead": "c56397fe-1f04-4de2-9002-c4d1e52f2bf8",
+          "id": "document_1",
+          "orderedLayerIds": [],
+          "revision": "1",
+          "width": 1200
+        }
+      },
+      "after": {
+        "view": {
+          "generation": "fa12fc5b-0688-46d9-a7ac-36263bdb40e1",
+          "cursor": "2",
+          "epoch": "1"
+        },
+        "document": {
+          "branchId": "ac8335ce-413d-48ce-aaef-d6b026831e21",
+          "checkpoint": "9738c06b-69ac-4505-9404-08e37d6b9fa5",
+          "color": "sRGB",
+          "compositionVersion": null,
+          "depth": 8,
+          "height": 800,
+          "historyHead": "c56397fe-1f04-4de2-9002-c4d1e52f2bf8",
+          "id": "document_1",
+          "orderedLayerIds": [],
+          "revision": "2",
+          "width": 1200
+        }
+      },
+      "readResult": null,
+      "expected": "complete old or new document, never absent",
+      "pass": false
+    },
+    {
+      "case": "I-C02",
+      "description": "Changed epoch at final public recovery revalidation",
+      "result": "rejected",
+      "oldStateRetained": true,
+      "pass": true
+    },
+    {
+      "case": "I-C03",
+      "description": "Page close/reopen after failed final transfer",
+      "priorProjectionPreserved": true,
+      "pass": true
+    },
+    {
+      "case": "I-C04",
+      "description": "Recovery after browser reopen",
+      "state": {
+        "view": {
+          "generation": "391c64d2-0df5-4d10-9c3f-2bb44ac29f06",
+          "cursor": "3",
+          "epoch": "1"
+        },
+        "document": {
+          "branchId": "ac8335ce-413d-48ce-aaef-d6b026831e21",
+          "checkpoint": "42b52a5a-56a2-4852-a654-9129336a8fdf",
+          "color": "sRGB",
+          "compositionVersion": null,
+          "depth": 8,
+          "height": 800,
+          "historyHead": "c56397fe-1f04-4de2-9002-c4d1e52f2bf8",
+          "id": "document_1",
+          "orderedLayerIds": [],
+          "revision": "3",
+          "width": 1200
+        }
+      }
+    }
+  ],
+  "failed": 1
+}

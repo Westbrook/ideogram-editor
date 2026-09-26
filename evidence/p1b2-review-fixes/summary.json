@@ -1,0 +1,48 @@
+{
+  "at": "2026-09-26T04:50:32.827420+00:00",
+  "taskNoteId": "7406ec5e-004d-4829-a9fd-0dab66b22a60",
+  "reviewTaskNoteId": "400723da-6e2d-49eb-9e82-ed0cc553cb79",
+  "base": "446ed20a366d26f5b9d0612b1cba468d023b2742",
+  "branch": "ideogram-editor-p1",
+  "status": "review_required; author correction only, original reviewer target unchanged",
+  "scope": "Only independent I-B04 recovery/content session fencing and I-C01 concurrent-tab cache read consistency; no storage/session policy/UI/provider changes.",
+  "changes": [
+    "Read contexts/content retain backend-only issuing-session cookie hash in addition to durable client ownership. Fresh pairing and renewal expire old read authority with410; command lookup/resend still returns exact durable receipt. No endpoint or envelope authentication change.",
+    "RecoveryCache.read chooses published pointer and row inside one readonly IndexedDB meta+rows transaction, so publication and old-row deletion cannot overtake row retrieval. Existing pointer/cursor compare-and-swap remains unchanged."
+  ],
+  "files": {
+    "server/protocol.ts": "0ebb8eb29b40c55c6292d62c3cefac982c66c955db7b09977235b937f2075a0b",
+    "src/state/recovery-cache.ts": "72b1d9cc759c9b212c2e51d145ed3a6fec14d0327170827c242dce5d62e89104",
+    "tests/protocol/http.test.mjs": "8b50ca95772282cf00bebc3d7eab3627a46d3ac652f2d359f48fd6041963147e",
+    "tests/recovery/consumer.spec.ts": "773d02eafad8b19a60e3fa618710fb83223384e655ab94f566923231641b4234",
+    "tooling/PROTOCOL.txt": "d693053d2bee0fb0a89c51e57031a24331111fd688c6a8e4e0cc6891520f2abe"
+  },
+  "authorGates": {
+    "typecheck": "PASS",
+    "build": "PASS",
+    "protocol": "PASS12/12",
+    "recovery": "PASS11/11 actual Chromium, including old split-read repro and native IDB transaction lifetime scheduling",
+    "session": "PASS14/14",
+    "shell": "PASS10/10 actual Chromium",
+    "store": "PASS24/24",
+    "consumer": "PASS fresh pinned install/build/browser2/2",
+    "vendor": "PASS",
+    "spec": "PASS",
+    "oldSeals": "PASS245 files across8 original bundles",
+    "diffCheck": "PASS"
+  },
+  "externalProbes": {
+    "binding": "Unmodified reviewer binding-v2.test.mjs, copied to isolated scratch root, PASS4/4; binding-facts-v2.json. Original reviewer scripts/facts retained untouched.",
+    "browser": "Copied reviewer browser.mjs with author scheduling adaptation: permit complete read to finish if removed published() boundary no longer runs; optional gate release; resolve symlinked static path with realpath. Assertions unchanged; I-C01 old document1 returned, new document2 published; I-C02/03 retained prior state, I-C04 recovers3. browser-facts.json failed0. One symlink-static harness rejection retained.",
+    "independence": "These executions are author checks, not an independent verdict or reviewer target switch. Reviewer originals remain external and untouched."
+  },
+  "failureEvidence": "failures.json; original compiled446ed20 regressions failed with old context200 and browser null; original/adapted scripts, JSON and screenshots retained. No pre-existing base CI claim; no remote PR/CI exists.",
+  "zeroProviderCalls": "No provider implementation invoked; protocol/session guards and browser literal-loopback guards active; shared writer effect assertions pass. Dependency provisioning is separate.",
+  "notRerun": "Mounted volume test not rerun: no storage, filesystem, SQLite, resource accounting, native dependency or lockfile changes. Prior exact446ed20 volume evidence remains sealed.",
+  "limits": [
+    "Prior snapshot-spanning receipt56.997ms versus50ms R20 remains explicitly open/unqualified. No new timing/PERF pass or waiver.",
+    "No full editor integration (P1b.7), pending202 preparation, asset/UI/native/accessibility/platform qualification. Original bounded P1b.2 limitations remain."
+  ],
+  "nextOwner": "Coordinator assigns exact correction commit for independent re-review; reviewer reruns I-B04/I-C01 and affected gates, and finishes R20 assessment before assets. After session rotation the full UI owner must start a fresh recovery; original command envelopes remain unchanged.",
+  "preservation": "Approved preview52219 still exact85df04f assets, report4381 HTTP200, locator/historical evidence unchanged; report maintainer owns data and feedback remains open."
+}
