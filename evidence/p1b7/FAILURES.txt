@@ -68,3 +68,11 @@ Final served-byte probe initially assumed public build metadata/raw index equali
 404 for hidden/build metadata and transformed root are correct static/bootstrap
 behavior. Corrected compiled loadStatic oracle verifies every served file; old
 observations retained in served-runtime.json.
+
+Report failure attribution correction (coordinator task, delivered13:10:50Z): the
+report maintainer identified FOUR OLDER card inspect strings, not only the new
+supplemental card. Revision209 wraps their exact text in arrays and preserves
+old revisions; the55911 card/version URL binding already existed. Earlier
+new-card-only diagnosis above is superseded. Author independently verified the
+repaired209 rendered roundtrip75; it did not independently locate all older
+malformed records before the owner repaired them. Report source was unchanged.
