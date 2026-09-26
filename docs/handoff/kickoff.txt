@@ -1,14 +1,18 @@
 Implement the approved Ideogram Editor plan in this repository.
 
+Read docs/handoff/README.md first. Begin from the latest completed, verified handoff commit on upon-build. The approved technical identity below is not the checkout starting point.
+
+Require the complete portable handoff package and its completed portability verification before implementation. Confirm the final handoff receipt identifies the archival commit you are using; that receipt may accompany the handoff without workspace-note access. If the package, required local artifacts or completed verification are absent, report that handoff packaging is incomplete and identify what is missing. Do not begin implementation or reopen the approved technical review to resolve a packaging gap.
+
 The planning and independent review are complete. I accept SPEC-A3 as the implementation baseline. Start building the initial editor through phases P1–P3, in small, verified milestones. Begin with P1a, then the P1b durable editing workflow. Do not stop after producing another plan.
 
 PROJECT AND APPROVED BASELINE
 
 Repository: the checkout containing docs/handoff/README.md (original local name: ideogram-edit)
 Planning branch: upon-build
-Start a new implementation branch from the FINAL HANDOFF COMMIT on upon-build, not from main or only the older approved technical commit.
-Find the archival commit with: git log -1 --format=%H -- docs/handoff/README.md
-Confirm it is an ancestor of your implementation branch. It preserves the technical commit below and adds the final planning records.
+Start a new implementation branch from the LATEST COMPLETED, VERIFIED HANDOFF COMMIT on upon-build, not from main or only the older approved technical commit.
+Find the latest handoff commit candidate with: git log -1 --format=%H upon-build -- docs/handoff
+Confirm it matches the completed handoff receipt and is an ancestor of your implementation branch. A Git log entry alone is not proof that portability verification is complete. The archival commit preserves the technical commit below and adds the final planning records; no future archival hash is assumed by this prompt.
 This handoff is locally committed; it has not been pushed or published. Another machine needs these Git objects transferred by a separately authorized action.
 Exact approved technical commit:
 409e4afb1a7168f706e9015e5e62122a74d40453
@@ -39,7 +43,7 @@ Pasting this prompt into a future implementation task authorizes that future tas
 
 READ BEFORE IMPLEMENTING
 
-Start with docs/spec/index.md, particularly:
+After docs/handoff/README.md and the handoff completeness check, read docs/spec/index.md, particularly:
 - Accepted decisions and requirement traceability.
 - Implementation phases.
 - Implementer quick-start.
@@ -59,12 +63,13 @@ The full specification governs implementation; this prompt is a starting guide, 
 
 FIRST ACTIONS
 
-1. Read applicable repository instructions, inspect the checkout and preserve existing work. Confirm the approved commit is available; inspect any subsequent changes rather than resetting them.
+1. Read applicable repository instructions, inspect the checkout and preserve existing work. Read docs/handoff/README.md first and confirm the latest completed, verified archival commit on upon-build is available and is the implementation branch base. Also confirm the approved technical commit is its ancestor; inspect subsequent changes rather than resetting them. If packaging or its completion verification is missing, report the specific packaging gap without restarting technical review.
 2. Read the frozen progress snapshot above and its checkpoint, then the live report and unresolved feedback if workspace access is available. Reuse the existing project report when available. For a Git-only continuation, use the snapshot as prior context and establish durable implementation progress using the applicable progress-report skill in your environment; do not pretend the frozen report is live. The original skill location was /Users/westbrook/.agents/skills/progress-report/SKILL.md. Distinguish completed planning from new implementation work.
 3. Verify the documentation baseline:
    python3 docs/spec/tools/check_spec.py
    python3 docs/spec/tools/check_spec_mutations.py
    Run shasum -a 256 -c SHA256SUMS from docs/spec.
+   Run shasum -a 256 -c SHA256SUMS from docs/handoff and inspect its local manifest, maps, final approval snapshot and verification receipt. Passing author checks does not replace the completed portability review required above.
    These verify documentation integrity, not application behavior.
 4. Record a concise implementation breakdown with dependencies, acceptance evidence and the first milestone. Then begin implementation. Resolve ordinary engineering choices within the approved contracts without asking me to repeat settled decisions.
 

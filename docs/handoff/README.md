@@ -47,14 +47,16 @@ All 33 distinct `intent://local/file/` targets referenced by the snapshots alrea
 
 ## Git availability
 
-Create the future implementation branch from the **final archival commit on local `upon-build`**, which adds this directory on top of the approved technical commit. Do not start from `main` or branch only from `409e4af`, which lacks this handoff. Discover the archival commit in the checkout with:
+Create the future implementation branch from the **latest completed, verified archival commit on local `upon-build`**, which adds this directory on top of the approved technical commit. Do not start from `main` or branch only from `409e4af`, which lacks this handoff. Discover the latest handoff commit candidate in the checkout with:
 
 ```sh
-git log -1 --format=%H -- docs/handoff/README.md
+git log -1 --format=%H upon-build -- docs/handoff
 git status --short
 ```
 
-This package is local Git availability, not pushed publication. No Git remote was configured at packaging; no push or PR was performed. A task sharing this repository can branch from the archival commit. Another machine needs the Git objects transferred through a separately authorized action. The commit's own SHA is recorded by Git and in the live final handoff, rather than embedded in a self-referential archive.
+Confirm the candidate matches the completed handoff receipt and portability review before implementation; the completion receipt may accompany the handoff without requiring workspace-note access. A Git log entry or passing author checks alone does not establish completed independent review. If the package, local artifacts or completed verification are absent, report incomplete handoff packaging and the specific missing item, without reopening technical review. No future archival SHA is invented here.
+
+This package is local Git availability, not pushed publication. No Git remote was configured at packaging; no push or PR was performed. A task sharing this repository can branch from the verified archival commit. Another machine needs the Git objects transferred through a separately authorized action. The commit's own SHA is recorded by Git and in the final completion handoff, rather than embedded in a self-referential archive.
 
 ## Integrity checks
 
