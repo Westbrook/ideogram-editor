@@ -1,0 +1,62 @@
+✖ native chromium durable text/history/copy/restart exact identities (5564.227417ms)
+✖ native webkit durable text/history/copy/restart exact identities (4503.136792ms)
+✖ native firefox durable text/history/copy/restart exact identities (3689.716333ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13937.726375
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native chromium durable text/history/copy/restart exact identities (5564.227417ms)
+  page.evaluate: AssertionError: {"protocolVersion":1,"requestId":"80570436-6060-4b23-b030-3b0158aeea48","error":{"code":"STORAGE_FULL","retry":"same-command","message":"There is insufficient local storage."}}
+  
+  507 !== 200
+  
+      at file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:29:125
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async BindingCall.call (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/node_modules/playwright-core/lib/coreBundle.js:62048:27)
+      at async _Page._onBinding (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/node_modules/playwright-core/lib/coreBundle.js:61460:11)
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:39:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:53:29) {
+    log: []
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native webkit durable text/history/copy/restart exact identities (4503.136792ms)
+  page.evaluate: AssertionError: {"protocolVersion":1,"requestId":"cad5eb1f-fd6f-409d-ac72-8c056819705b","error":{"code":"STORAGE_FULL","retry":"same-command","message":"There is insufficient local storage."}}
+  
+  507 !== 200
+  
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:39:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:52:15) {
+    log: []
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native firefox durable text/history/copy/restart exact identities (3689.716333ms)
+  page.evaluate: {"protocolVersion":1,"requestId":"234639ae-c48f-4388-a576-02782bbfb9f0","error":{"code":"STORAGE_FULL","retry":"same-command","message":"There is insufficient local storage."}}
+  
+  507 !== 200
+  
+  AssertionError: {"protocolVersion":1,"requestId":"234639ae-c48f-4388-a576-02782bbfb9f0","error":{"code":"STORAGE_FULL","retry":"same-command","message":"There is insufficient local storage."}}
+  
+  507 !== 200
+  
+  AssertionError [ERR_ASSERTION]: {"protocolVersion":1,"requestId":"234639ae-c48f-4388-a576-02782bbfb9f0","error":{"code":"STORAGE_FULL","retry":"same-command","message":"There is insufficient local storage."}}
+  
+  507 !== 200
+  
+      at file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:29:125
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async BindingCall.call (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/node_modules/playwright-core/lib/coreBundle.js:62048:27)
+      at async _Page._onBinding (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/node_modules/playwright-core/lib/coreBundle.js:61460:11)
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:39:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:49:14) {
+    log: []
+  }

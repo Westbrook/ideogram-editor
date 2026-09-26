@@ -223,6 +223,7 @@ export class Portables {
    }
    if(a.raster){const m=json(Buffer.from(await this.readSmall(join(directory,a.raster.manifest.hash.slice(7)))));rasterManifest(m);const fd=openSync(join(directory,m.pixels.hash.slice(7)),constants.O_RDONLY|constants.O_NOFOLLOW);try{for(const t of m.tiles){const h=createHash('sha256'),b=Buffer.alloc(t.width*4);for(let y=0;y<t.height;y++){if(readSync(fd,b,0,b.length,((t.y+y)*m.width+t.x)*4)!==b.length)invalid();h.update(b);}if('sha256:'+h.digest('hex')!==t.hash)invalid();check();await tick();}}finally{closeSync(fd);}}
   }
+  for(const row of db.prepare('SELECT json FROM text_sources ORDER BY hash').iterate()){await this.texts.verify(JSON.parse(String(row.json)),ref=>join(directory,ref.hash.slice(7)),check);}
   for(const row of db.prepare("SELECT json FROM entities WHERE kind='asset'").iterate()){const a=JSON.parse(String(row.json));if(a.raster?.role==='native'){
    const source=db.prepare('SELECT json FROM decoded_pixels WHERE id=?').get(a.raster.sourceAssetIds[0]);if(!source)invalid();const info=JSON.parse(String(source!.json));if(info.pixels.hash!==a.raster.pixels.hash||canonical(info.conversion)!==canonical(a.raster.conversion))invalid();
   }}

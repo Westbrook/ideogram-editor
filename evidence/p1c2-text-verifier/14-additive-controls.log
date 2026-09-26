@@ -1,0 +1,458 @@
+{
+  "engine": "chromium",
+  "target": "correction source snapshot in receipt",
+  "cases": [
+    {
+      "name": "plain",
+      "textUtf8": "4142",
+      "expected": "accepted",
+      "beforeRevision": "1",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "fd44223f-ab15-4fb6-a031-90615c7a5dd1",
+          "documentRevision": "2",
+          "fromSeq": "13",
+          "status": "accepted",
+          "toSeq": "15",
+          "transactionId": "12a58b2b-99af-482c-8b1d-bfdaf80d3b18"
+        }
+      },
+      "afterRevision": "2",
+      "pass": true,
+      "draft": {
+        "assetId": "2751f7ee-e095-456f-9e16-e57179497b9b",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "1",
+        "generation": "1",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": null
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true
+    },
+    {
+      "name": "nfd",
+      "textUtf8": "65cc81",
+      "expected": "accepted",
+      "beforeRevision": "2",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:7994ee56acd0e963c669dfdb40e546ae47da86bf537736e685525dba5367495d",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "1668",
+        "hash": "sha256:68cdc6f488060e250c1c3b8cd8f08b155cea819464eb46471faf93ec622cf358",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "77b91873-efa5-435f-a76e-ec0a12a74c6e",
+          "documentRevision": "3",
+          "fromSeq": "25",
+          "status": "accepted",
+          "toSeq": "27",
+          "transactionId": "ac4a1f78-d1d0-427c-9dbc-9941a4e46db7"
+        }
+      },
+      "afterRevision": "3",
+      "pass": true,
+      "draft": {
+        "assetId": "a07c246e-28c5-41c1-9157-5bd4ffe7a79b",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "2",
+        "generation": "2",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": "native_text"
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true,
+      "undoExact": true
+    },
+    {
+      "name": "leading-bom",
+      "textUtf8": "efbbbf4142",
+      "expected": "accepted",
+      "beforeRevision": "4",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2249",
+        "hash": "sha256:f1b916dac6b51d4fb06261b4e08cae3918cbe79b1cfb83c6816762326f18a2ed",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "54ed9bc0-081f-4482-a12e-3ca4c580c614",
+          "documentRevision": "5",
+          "fromSeq": "38",
+          "status": "accepted",
+          "toSeq": "40",
+          "transactionId": "f5053706-5ffe-4618-8ce6-acd9b23bf242"
+        }
+      },
+      "afterRevision": "5",
+      "pass": true,
+      "draft": {
+        "assetId": "1282d5bc-9ff5-43f4-995a-feaa3a3808d9",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "4",
+        "generation": "3",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": "native_text"
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true,
+      "undoExact": true
+    },
+    {
+      "name": "reversed-line-range",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "f762f8f9-202a-4a17-9719-00c68cb3760a",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "81",
+            "hash": "sha256:9220473ce25407c60e91788d7ae40af172bb3efd8d21b4effbc2fc25eeb45c68",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_LAYOUT_INVALID",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "f82c261a-1508-4f10-bfc9-a2edd94d9305",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "4",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    },
+    {
+      "name": "missing-runs",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "dfc953ef-5ccb-4ece-b104-c4ce20e63428",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "81",
+            "hash": "sha256:9220473ce25407c60e91788d7ae40af172bb3efd8d21b4effbc2fc25eeb45c68",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_LAYOUT_INVALID",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "a6854ffa-8618-45a0-b083-05ca960e2c1b",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "5",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    },
+    {
+      "name": "mismatched-pixels",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "4e55292a-e958-48ec-a28e-a64daecf1aa5",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "82",
+            "hash": "sha256:d8c64f8527e54c36474de620c7cd3348098dd7b7c8557a4b72b980005c0b20d7",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_NATIVE_MISMATCH",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "fb43553d-61ca-40c7-84b8-57a7475323c5",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "6",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    },
+    {
+      "name": "wrong-direction",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "3f92e02b-796a-4fd2-bc1a-0baa5575a50c",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "82",
+            "hash": "sha256:d8c64f8527e54c36474de620c7cd3348098dd7b7c8557a4b72b980005c0b20d7",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_NATIVE_MISMATCH",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "4221a852-8222-4dee-95be-9415739d17b8",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "7",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    },
+    {
+      "name": "same-fill-other-text",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:2b505d48262d505d43ea4c4704ccaf326fde13f06a31a4a96e69988fa6f03e7b",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:de212f4c6b83507fefbc25454b9629d3cac5f36228cf348693344f6fd18f682d",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "9b1ea1f3-4673-43c1-a180-b6cf6c577d4b",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "82",
+            "hash": "sha256:d8c64f8527e54c36474de620c7cd3348098dd7b7c8557a4b72b980005c0b20d7",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_NATIVE_MISMATCH",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "54597f91-c22f-4a83-a86b-53a6efc79c5a",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "8",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    }
+  ],
+  "resetCalls": 0,
+  "workers": 8,
+  "closed": 8,
+  "ownedBeforeDispose": {
+    "cpuBytes": 473308972,
+    "textBytes": 70655788
+  },
+  "earlyRelease": "TEXT_REALM_STILL_OWNED",
+  "ownedAfterDispose": {
+    "cpuBytes": 473308972,
+    "textBytes": 70655788
+  },
+  "duplicateRenewalOneRow": true,
+  "releaseAfterObservedCloseExactlyOnce": true,
+  "fullHistoryReview": {
+    "editable": true,
+    "reason": null,
+    "source": {
+      "byteLength": "780646",
+      "hash": "sha256:c3f0e236b535bed8d70564d1e6f59fdab0925df8c4453972b650f01faf1416e3",
+      "mediaType": "application/x-ideogram-project"
+    }
+  },
+  "complete": true,
+  "failures": []
+}

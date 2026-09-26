@@ -2,7 +2,7 @@ P1c.2 durable text-state integration (review candidate, not qualification)
 
 Stored identities
 FontVersion hashes canonical font bytes reference, face zero, parser policy,
-fsType, reviewed license record and origin. TextVersion hashes normalized UTF-8,
+fsType, reviewed license record and origin. TextVersion hashes exact scalar-preserving UTF-8 (including leading U+FEFF),
 style/frame/layout policy and ordered exact font versions. TextRenderVersion
 hashes TextVersion, profile manifest, dependency identity, complete native layout,
 canonical RGBA bytes, dimensions, overflow and resolved font versions. Text layer
@@ -72,3 +72,49 @@ Affected existing tests: assets, history, portable, protocol, raster, session,
 store suites, plus browser recovery/history consumers. Keep earlier failures.
 Native build is reusable only while profile, native inputs, patches, lockfiles,
 loader/client/admission/font/memory/worker and fixture reset sources stay exact.
+
+Criterion3 correction (supersedes the preparation-authority and ownership
+claims above for new acceptance; rejected648/b895 evidence remains historical)
+
+The browser and backend now call one versioned core.ts. engine.ts keeps browser
+same-origin loading; render-worker.mjs uses only hashed pinned local custom.3
+JS/WASM and exact staged font paths. No new native binary/recipe or fallback.
+New acceptance and editable-import admission compare the independently prepared
+layout (canonical numeric JSON, no tolerance) and exact pixel/text hashes with
+submitted immutable refs. This verifies arbitrary same-fill substitutions as
+well as obvious range/run/direction contradictions. Strict decoding preserves
+leading U+FEFF. Replay, history, reopen, copy creation and export do not render.
+Known c197 and b895 manifests retain exact original IDs/bytes; their algorithm
+semantics match the shared core. Unknown profiles remain explicit read-only.
+Malformed supported input is rejected, never silently replaced with server output.
+
+One R35 lane now covers the browser and verifier together. Durable preparation
+stages dependencies, ends private browser renderer ownership, drops its consumed
+PreparedText, then books the verifier loan plus retained unowned caller fonts
+and 64KiB metadata before exposing the candidate. Other renderer/output/font
+leases in that realm remain booked and can refuse this transition. Admission
+IDs carry realm/monotonic preparation/budget. A successful new preparation
+invalidates prior IDs before releasing the old client loan; active verification
+refuses renewal/release. Failed admission does not refund the previous owner.
+Only one new realm lane is admitted; prior persisted owners are not discarded.
+
+The file-only backend gets path/hash descriptors, not font Blob clones. Font
+construction owns <=2F (retained Blobs + current file buffer); shaping owns <=3F
+(Blobs + parser ArrayBuffers + digest snapshot). Native copies remain in the
+booked32MiB heap. Peak is max(startup engine, resident engine +3F+4R+6L+I+64KiB)
+plus2L+2MiB comparison/host scratch. Browser retained bytes are additional within
+the SAME128MiB cap. The early4F proof was conservative; its failed mixed-font
+integration is retained separately from the corrected phase-accounted proof.
+
+At handoff the backend splits the original128MiB envelope into browser remainder
+and the independently recomputed verifier loan. Its active loan is reservedCPU;
+actual worker exit refunds only that backend allocation. The client continues
+holding the complementary loan so it cannot grow during the following CP-1
+phase. R18 sees the browser remainder, active backend reservations and existing
+process baseline, not a second128MiB allowance. Restart loses no unknown browser
+owner: persisted rows revert conservatively to a full envelope. Borrowed native
+font parsing uses the same lane; no concurrent verifier/parser allocation.
+Cancellation, crash, deadline and false completion settle only after actual
+worker exit. Atomic object proofs, draft/session/generation/revision/profile
+fences are rechecked after async work. No timer/RSS/termination-call inference
+releases retained browser data. This is logical ownership, not P3 qualification.

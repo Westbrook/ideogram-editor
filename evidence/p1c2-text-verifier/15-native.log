@@ -1,0 +1,55 @@
+✖ native chromium durable text/history/copy/restart exact identities (1607.311833ms)
+✖ native webkit durable text/history/copy/restart exact identities (3777.019083ms)
+✖ native firefox durable text/history/copy/restart exact identities (3006.003333ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8586.999625
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native chromium durable text/history/copy/restart exact identities (1607.311833ms)
+  page.evaluate: TextFailure: TEXT_MEMORY_BUDGET
+      at n (http://127.0.0.1:65479/assets/index-B70ijMNP.js:1:992)
+      at Object.check (http://127.0.0.1:65479/assets/index-B70ijMNP.js:1:16610)
+      at Object.reserve (http://127.0.0.1:65479/assets/index-B70ijMNP.js:1:16698)
+      at fe.prepare (http://127.0.0.1:65479/assets/index-B70ijMNP.js:415:2605)
+      at async <anonymous>:337:30
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:39:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:45:26) {
+    name: 'Error',
+    log: []
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native webkit durable text/history/copy/restart exact identities (3777.019083ms)
+  page.evaluate: TextFailure: TEXT_MEMORY_BUDGET
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:39:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:45:26) {
+    name: 'Error',
+    log: []
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native firefox durable text/history/copy/restart exact identities (3006.003333ms)
+  page.evaluate: TEXT_MEMORY_BUDGET
+  t@http://127.0.0.1:49343/assets/index-B70ijMNP.js:1:908
+  n@http://127.0.0.1:49343/assets/index-B70ijMNP.js:1:992
+  check@http://127.0.0.1:49343/assets/index-B70ijMNP.js:1:16610
+  reserve@http://127.0.0.1:49343/assets/index-B70ijMNP.js:1:16698
+  prepare@http://127.0.0.1:49343/assets/index-B70ijMNP.js:415:2605
+  async*@debugger eval code line 311 > eval:1:311
+  async*evaluate@debugger eval code:313:16
+  @debugger eval code:1:44
+  @debugger eval code:1:62
+  
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:39:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:45:26) {
+    name: 'Error',
+    log: []
+  }

@@ -1,0 +1,73 @@
+✖ native chromium durable text/history/copy/restart exact identities (10333.494625ms)
+✖ native webkit durable text/history/copy/restart exact identities (13832.960208ms)
+✖ native firefox durable text/history/copy/restart exact identities (14520.803958ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38893.466292
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native chromium durable text/history/copy/restart exact identities (10333.494625ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"2b8c338e-f98d-4d25-ac0c-103fb707d72e","kind":"pending","operationId":"c662e317-0e89-4914-9aff-0fc606437685","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/2b8c338e-f98d-4d25-ac0c-103fb707d72e"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async apply (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:43:116)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:45:14)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native webkit durable text/history/copy/restart exact identities (13832.960208ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"13b3228b-4db2-47ea-a151-27175955bdf4","kind":"pending","operationId":"4752a0fb-9ece-4d5a-b5a7-02515bfedf54","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/13b3228b-4db2-47ea-a151-27175955bdf4"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async apply (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:43:116)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:54:14)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native firefox durable text/history/copy/restart exact identities (14520.803958ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"bf1230fa-65bb-41b6-8d40-57d7123c0c34","kind":"pending","operationId":"8658a91b-5571-4f01-9421-b532fdf6ecca","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/bf1230fa-65bb-41b6-8d40-57d7123c0c34"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async apply (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:43:116)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:54:14)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

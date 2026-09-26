@@ -244,7 +244,7 @@ export class Histories {
         if(approved){await protect(approved.plan);after=this.versionState(approved.after);version=approved.after;await protectAsset(approved.preparedAssetId);}
         else{
           if('candidate'in b){
-            textCandidate=await this.texts.candidate(c,document,this.authority(id),protect);const source=await metadata(textCandidate.source);
+            textCandidate=await this.texts.candidate(c,document,this.authority(id),protect,()=>{check();this.assertCommand(c,this.document(c.documentId!));this.authority(id);});const source=await metadata(textCandidate.source);
             const prepared=await this.rasters.prepareDocument({type:'RetainText',source,pixels:textCandidate.source.render.pixels,width:textCandidate.source.render.width,height:textCandidate.source.render.height},randomUUID(),slot,check);proofs.push(...prepared.proofs);textAsset=prepared.asset;facts.push({type:'AssetRegistered',payload:{asset:textAsset}});
             after=structuredClone(before);after.schemaVersion=2;const old=after.layers.find(l=>l.id===b.layerId);
             if(b.type==='CreateTextLayer'){if(this.usedLayer(document.id,b.layerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');after.layers.push({id:b.layerId,version:'1',kind:'text',source,name:b.name,assetId:textAsset.id,layerToDocument:[1,0,0,1,0,0],opacity:1,visible:true,locked:false,blend:'normal',mask:null});}

@@ -106,8 +106,8 @@
   },
   {
     "path": "tooling/text/seal-profile.mjs",
-    "bytes": 3827,
-    "sha256": "1b53ab47cde30cc18357bee4c3761e513bfbcfbdbfb90db5109b033cf0c5e5fe"
+    "bytes": 4042,
+    "sha256": "4b431776df4c3fed78cdad21106f7a174f357edeb944cfd2c297b3ebf97ed0d8"
   },
   {
     "path": "tooling/text/skia-DEPS.txt",
@@ -128,6 +128,11 @@
     "path": "tooling/text/third_party-icu-BUILD.gn",
     "bytes": 3405,
     "sha256": "4bdeab72453dd04d77a5b1654581bf8a4c4889ed2ed6ca091c8ad64d63ab10fd"
+  },
+  {
+    "path": "tooling/text/verifier.vite.config.ts",
+    "bytes": 318,
+    "sha256": "01a84de54aac11eddbe4bb9ba1aa2c986060e67774f861e65f03a7bce4aa387c"
   },
   {
     "path": "tooling/text/verify.mjs",
@@ -186,8 +191,8 @@
   },
   {
     "path": "vendor/text/manifest.json",
-    "bytes": 14238,
-    "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8"
+    "bytes": 15396,
+    "sha256": "33d4bd6c00699ba4f962519be01161f43fe51e81cd3c83c5bd255425a9b6be51"
   },
   {
     "path": "vendor/text/notices/Brotli-LICENSE",

@@ -1,0 +1,10 @@
+✔ native verifier supervisor refuses crash, false result, deadline and stale authority; subsequent lane works (433.039417ms)
+✔ combined verifier budget has usable CJK headroom and refuses oversized requests (0.584208ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 482.887166

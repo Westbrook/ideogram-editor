@@ -277,14 +277,19 @@
       "sha256": "80173a85fd2eeca2cac63ea0806c23643668dfc2c3249859e9d07426e3730686"
     },
     {
+      "path": "src/text/core.ts",
+      "bytes": 16793,
+      "sha256": "69cb9bb9d2e97be39ef5faaa76b2f05b98c3ba40d2b3b0c18624b1f08a2bf1ed"
+    },
+    {
       "path": "src/text/durable.ts",
-      "bytes": 5409,
-      "sha256": "6ba9a8d70373851c7ce8d33271a7ef44ce868409f4f08b8f6a15aff8eb46e0be"
+      "bytes": 6365,
+      "sha256": "a5bce2aa7dad1678b3af6df93f8cdbc7c841dddca507eb176673011b699cd3e5"
     },
     {
       "path": "src/text/engine.ts",
-      "bytes": 18097,
-      "sha256": "d442af366266d825f1f8703bb7387c1204b449a4a1538a5fd78e8e444a274d6a"
+      "bytes": 1476,
+      "sha256": "c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830"
     },
     {
       "path": "src/text/font.ts",
@@ -345,8 +350,8 @@
     },
     {
       "path": "server/storage/text.ts",
-      "bytes": 9476,
-      "sha256": "7e392b7a5047c52c894a45ef9707405e4b29480671acabce7e7916e34d4e1fd0"
+      "bytes": 12913,
+      "sha256": "48fd29b2ea5151696c6f7e3c300c12dce5ec59fd9467273477cc1f73c9b626b4"
     },
     {
       "path": "server/text/font.ts",
@@ -359,9 +364,39 @@
       "sha256": "bff44a473836e51538e93a1c56363f009a17c48fa18bbe487596576d41d8848f"
     },
     {
+      "path": "server/text/supervisor.ts",
+      "bytes": 1504,
+      "sha256": "ad066c86979d8e4eb6ae66ba3b53c5b629d7b1f01422bc36fee377e266c96bc1"
+    },
+    {
       "path": "server/text/validation.ts",
-      "bytes": 8373,
-      "sha256": "5893b6e4e529be9455914d25e6cd4a463e50d676df9a6d4ec2ba7d34081e0a1b"
+      "bytes": 8893,
+      "sha256": "202a21129c7b7eadda0c5362d6b26409ae0a637e0330ce4a41143a3f7e320a75"
+    },
+    {
+      "path": "server/text/render-worker.mjs",
+      "bytes": 2720,
+      "sha256": "90e01ed67bac35e425ee5ca75187fe80d7476ea6cf18b28f7897aae0d4a24ff9"
+    },
+    {
+      "path": "tests/text-state/verifier.vite.config.ts",
+      "bytes": 330,
+      "sha256": "e1f41d22e2b89b621c9ac1960bc932ef8fd3a646fb350446f2aba614b6ef38a7"
+    },
+    {
+      "path": "tooling/text/verifier.vite.config.ts",
+      "bytes": 318,
+      "sha256": "01a84de54aac11eddbe4bb9ba1aa2c986060e67774f861e65f03a7bce4aa387c"
+    },
+    {
+      "path": "src/protocol/text-budget.ts",
+      "bytes": 1118,
+      "sha256": "273f6a5be4b183df0249fed558b05dcd33e58d53b0ed20bafcb02ae110df80e0"
+    },
+    {
+      "path": "src/text/retained-profiles/b89503d3.json",
+      "bytes": 14238,
+      "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8"
     },
     {
       "path": "src/protocol/text.ts",
@@ -374,5 +409,5 @@
       "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b"
     }
   ],
-  "id": "sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee"
+  "id": "sha256:3aa752dbf592a5ebb559b4907ff259656543400b9d2ce240dfde8c17fe48efc5"
 }

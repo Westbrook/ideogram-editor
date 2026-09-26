@@ -17,9 +17,9 @@ test('real font worker refuses restricted and corrupt staged bytes without alter
  const source=await stage(bytes,'font'),accepted=await terminal(f,f.command({expectedDocumentRevision:before.revision,body:{type:'ImportFont',source,license,origin:'bundled',embeddingReviewed:true}}));assert.equal(accepted.json.receipt.status,'accepted');assert.deepEqual(await doc(f),before);
 });
 test('text realms share the writer budget; retries renew one owner and explicit release returns capacity',async t=>{
- const f=await isolated(t);for(const id of ['realm_one','realm_two'])assert.equal((await f.post('/api/v1/text-admission/'+id,{protocolVersion:1})).status,200);
- const third=await f.post('/api/v1/text-admission/realm_three',{protocolVersion:1});assert.notEqual(third.status,200,third.text);
+ const f=await isolated(t);assert.equal((await f.post('/api/v1/text-admission/realm_one',{protocolVersion:1})).status,200);
+ assert.notEqual((await f.post('/api/v1/text-admission/realm_two',{protocolVersion:1})).status,200);
  for(let i=0;i<4;i++)assert.equal((await f.post('/api/v1/text-admission/realm_one',{protocolVersion:1})).status,200);
- const count=()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{return db.prepare('SELECT count(*) n FROM text_admissions').get().n;}finally{db.close();}};assert.equal(count(),2);
- assert.equal((await f.post('/api/v1/text-admission/realm_one/release',{protocolVersion:1})).status,200);assert.equal(count(),1);assert.equal((await f.post('/api/v1/text-admission/realm_three',{protocolVersion:1})).status,200);assert.equal(count(),2);
+ const count=()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{return db.prepare('SELECT count(*) n FROM text_admissions').get().n;}finally{db.close();}};assert.equal(count(),1);
+ assert.equal((await f.post('/api/v1/text-admission/realm_one/release',{protocolVersion:1})).status,200);assert.equal(count(),0);assert.equal((await f.post('/api/v1/text-admission/realm_two',{protocolVersion:1})).status,200);assert.equal(count(),1);
 });

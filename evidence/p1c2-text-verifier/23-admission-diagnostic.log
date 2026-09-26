@@ -1,0 +1,27 @@
+✖ native chromium durable text/history/copy/restart exact identities (5544.984417ms)
+ℹ {"admissionFailure":{"error":{"code":"STORAGE_FULL","message":"There is insufficient local storage.","retry":"same-command"},"protocolVersion":1,"requestId":"07a5639e-ac6a-40b9-8261-8a3b885ca68d"},"process":{"type":"memory","usage":{"arrayBuffers":24319094,"external":29214408,"heapTotal":19546112,"heapUsed":12756448,"rss":269418496}}}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5713.44675
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native chromium durable text/history/copy/restart exact identities (5544.984417ms)
+  page.evaluate: AssertionError: {"protocolVersion":1,"requestId":"07a5639e-ac6a-40b9-8261-8a3b885ca68d","error":{"code":"STORAGE_FULL","retry":"same-command","message":"There is insufficient local storage."}}
+  
+  507 !== 200
+  
+      at file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:29:219
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async BindingCall.call (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/node_modules/playwright-core/lib/coreBundle.js:62048:27)
+      at async _Page._onBinding (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/node_modules/playwright-core/lib/coreBundle.js:61460:11)
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:39:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/native.test.mjs:53:29) {
+    log: []
+  }

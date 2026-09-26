@@ -12,5 +12,5 @@ export async function isolated(t,options={}){
  const {origin,url}=await wait('ready');
  const paired=await call(origin,'/api/v1/session/bootstrap',{method:'POST',headers:{Origin:origin,...options.cookie?{Cookie:options.cookie}:{}},body:{protocolVersion:1,pairingToken:new URL(url).hash.slice(9)}});
  const server={origin,close:async()=>{if(p.connected){p.send('close');await exited;}}};
- return {root,paired,server,wait,kill:async()=>{p.kill('SIGKILL');await exited;},read:path=>call(origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body)};
+ return {root,paired,server,wait,memory:()=>{p.send('memory');return wait('memory');},kill:async()=>{p.kill('SIGKILL');await exited;},read:path=>call(origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body)};
 }
