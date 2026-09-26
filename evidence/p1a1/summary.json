@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-09-26T02:30:04.258957+00:00",
+  "task": "e30714c6-2c99-400f-98db-f5411fad1856",
+  "archivalBase": "082a3fab650c55712e8a390802e409f1c11f1d75",
+  "sourceIdentity": "37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4",
+  "python": "Python 3.14.6",
+  "achieved": [
+    "2155 exact frozen source files with lock/license, dirty patch/status and reproducible source archive",
+    "Four coherent immutable npm archives verified by SHA-256 and actual npm integrity",
+    "Official independently obtained Node26.10.0/npm12.1.0; no upstream toolchain/dependency/output reuse",
+    "Source install/build/metadata checks and byte-identical second production without sibling source",
+    "Fresh consumer npm ci/npm ls --all/realpath-version checks/typecheck/build; public metadata import audit",
+    "Two Chromium registration/native interaction/lazy readiness tests passed, auto scoped and explicit global",
+    "Three fail-closed vendor/duplicate lock/source-drift checks passed"
+  ],
+  "failures": [
+    {
+      "attempt": "producer-attempt-1-failed.json",
+      "cause": "npm12 workspace pack JSON is keyed by package name, not an array",
+      "disposition": "Corrected runner parser; a new clean source install/build/pack passed, followed by byte-identical reproduction"
+    },
+    {
+      "attempt": "root typecheck, 2026-09-26T02:26 UTC",
+      "cause": "Fixture passed a string rather than the public lazy loader readonly string array",
+      "disposition": "Changed fixture to arrays; later clean consumer typecheck passed"
+    },
+    {
+      "attempt": "root build, 2026-09-26T02:26 UTC",
+      "cause": "TypeScript7 top-level package exports version only, not legacy compiler API",
+      "disposition": "Import checker uses pinned public unstable/sync and unstable/ast APIs; later public import audit/build passed"
+    },
+    {
+      "attempt": "consumer-attempt-1-failed",
+      "cause": "Playwright status locator matched fixture readiness and output status",
+      "disposition": "Named readiness status explicitly; retained both failed traces"
+    },
+    {
+      "attempt": "consumer-attempt-2-failed",
+      "cause": "Fixture subscribed to en-action on en-button; packed public contract uses native click",
+      "disposition": "Bound only native click; both clean-consumer browser paths passed; retained both failed traces"
+    }
+  ],
+  "notices": [
+    "npm12 blocked optional fsevents install scripts; no allowScripts exemption added; consumer graph/build/browser checks passed",
+    "Source selected corpus differs in scope/date from prior planning corpus hashes; no concurrent drift observed during freeze/production. Post-production original source comparison passed",
+    "Reproduction and final consumer work overlapped briefly; elapsed observations are not isolated timing campaign samples"
+  ],
+  "observations": {
+    "D01": {
+      "installPlusVendorAndGraphSeconds": 2.989918584,
+      "cohort": "fresh node_modules and empty npm cache on this local macOS host; not declared C/N WD"
+    },
+    "D03": {
+      "fixtureBuildSeconds": 1.592432667,
+      "scope": "fixture browser build only; no editor/server"
+    },
+    "D09": {
+      "sourceInstallSeconds": 1.5556541250000002,
+      "producerBuildMetadataChecksPackSeconds": 25.320741291999997,
+      "wholeUpgradeSeconds": null,
+      "wholeUpgradeLimit": "Not measured as one contiguous complete update clock; do not sum child timings into qualification"
+    },
+    "D11": {
+      "startupJsRawBytes": 181039,
+      "startupJsGzipBytes": 56324,
+      "cssGzipBytes": 8584
+    }
+  },
+  "qualifications": {
+    "Q12": "Bounded source/archive and initial consumer evidence achieved; full adapters, supported browser matrix and Q3 I2 still pending",
+    "Q13": "Exact initial tool/browser graph sealed; SQLite/fal/native text and remaining application tools still pending",
+    "Q3 I2": "NOT QUALIFIED: required five cold plus five warm complete campaigns have not run",
+    "independentReview": "Pending exact implementation commit review; no completion claim"
+  },
+  "providerCalls": 0
+}

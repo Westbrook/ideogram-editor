@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "sourceIdentity": "37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4",
+  "sourceArchive": {
+    "path": "source.tar.gz",
+    "bytes": 5547610,
+    "sha256": "ae4d779bb7bb5b307c4650e402084502e2fe73f1bbb4cb16fdcd8c96866de4dd"
+  },
+  "toolchain": {
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "nodeArchives": {
+      "darwin-arm64": {
+        "filename": "node-v26.10.0-darwin-arm64.tar.gz",
+        "sha256": "751fdf7439f115d87ee2a8f3f18c065b6151852068e3e666ac60ac2996f75ac9"
+      },
+      "darwin-x64": {
+        "filename": "node-v26.10.0-darwin-x64.tar.gz",
+        "sha256": "ebbe9ab9b58ad6bb54390d6e2c862c1afa7d4475fb7e8ae8146acde211bf70df"
+      },
+      "linux-arm64": {
+        "filename": "node-v26.10.0-linux-arm64.tar.xz",
+        "sha256": "7a6353f63eb3d04765004b4adf172616243e4522434635cb1d26288658b04ab5"
+      },
+      "linux-x64": {
+        "filename": "node-v26.10.0-linux-x64.tar.xz",
+        "sha256": "ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022"
+      }
+    },
+    "npmArchive": {
+      "url": "https://registry.npmjs.org/npm/-/npm-12.1.0.tgz",
+      "integrity": "sha512-Fyhu62pNx70YCs/5+dEmJQTFVmSKwvo5CA0qvBkGDRpob42MJ6G2RQ2tdxeKM4nYnIZDqkYAxEgqtoejn9QGtQ=="
+    }
+  },
+  "platform": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.6.0"
+  },
+  "startedAt": "2026-09-26T02:23:51.765Z",
+  "commands": [
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "--version"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:51.765Z",
+      "elapsedMs": 69.970959,
+      "exit": 0,
+      "stdout": "12.1.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "tar",
+      "args": [
+        "-xzf",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/en-reve-freezes/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/source.tar.gz",
+        "-C",
+        "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-producer-pgFbfj"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:51.839Z",
+      "elapsedMs": 316.744958,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "python3",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/tooling/freeze-en-reve.py",
+        "/Users/westbrook/Documents/repos/design-system",
+        "--check",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/en-reve-freezes/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/source-manifest.json"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:52.242Z",
+      "elapsedMs": 1446.8968329999998,
+      "exit": 0,
+      "stdout": "Live source still matches 37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4\n",
+      "stderr": ""
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "ci",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:53.688Z",
+      "elapsedMs": 1648.3470410000002,
+      "exit": 0,
+      "stdout": "\nadded 175 packages in 2s\n",
+      "stderr": "npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead\nnpm warn install-scripts 2 packages had install scripts blocked because they are not covered by allowScripts:\nnpm warn install-scripts   fsevents@2.3.3 (install: (install scripts present))\nnpm warn install-scripts   rs-module-lexer@2.9.0 (postinstall: node postinstall.js)\nnpm warn install-scripts\nnpm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "build",
+        "-w",
+        "@en-reve/tokens"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:55.337Z",
+      "elapsedMs": 1042.475167,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "npm notice run @en-reve/tokens@0.1.0 build\nnpm notice run tsc -p tsconfig.json && node scripts/generate.mjs\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "build",
+        "-w",
+        "@en-reve/styles"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:56.380Z",
+      "elapsedMs": 350.65620800000033,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "npm notice run @en-reve/styles@0.1.0 build\nnpm notice run node scripts/author-css.mjs && tsc -p tsconfig.json && node scripts/export-css.mjs\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "build",
+        "-w",
+        "@en-reve/primitives"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:56.731Z",
+      "elapsedMs": 224.7284579999996,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "npm notice run @en-reve/primitives@0.1.0 build\nnpm notice run tsc -b\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "build",
+        "-w",
+        "@en-reve/elements"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:56.956Z",
+      "elapsedMs": 820.9692079999995,
+      "exit": 0,
+      "stdout": "Lazy manifest: 96 canonical definitions.\n",
+      "stderr": "npm notice run @en-reve/elements@0.1.0 build\nnpm notice run node ../../tooling/metadata/lazy-manifest.ts && tsc -b\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "metadata"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:23:57.776Z",
+      "elapsedMs": 9166.757582999999,
+      "exit": 0,
+      "stdout": "\n> en-reve-workspace@0.1.0 metadata:lazy\n> node tooling/metadata/lazy-manifest.ts\n\nLazy manifest: 96 canonical definitions.\n{\"output\":\"/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-producer-pgFbfj/packages/elements/custom-elements.json\",\"sourceFiles\":530,\"emittedTags\":96,\"manifestDigest\":\"sha256:37229e158e6a416c71a7f236ea44ef6b359caa8c620099a5125360eba0941f01\"}\n\n> en-reve-workspace@0.1.0 metadata:types\n> node tooling/metadata/prepared-types.ts\n\nPublic TypeScript snapshot verified.\n\n> en-reve-workspace@0.1.0 metadata:api\n> node tooling/metadata/public-graph.ts\n\n{\"components\":96,\"entrypoints\":531,\"digest\":\"sha256:3ffe8bc60b13927e66976bdac0d8a38d60764895d552ee244acc54b0b21770d0\",\"checked\":false}\n\n> en-reve-workspace@0.1.0 customization\n> node tooling/customization/verify.mjs\n\n{\"productionFiles\":589,\"registryContracts\":719,\"discoveredNames\":673,\"sourceReferences\":2284,\"authoredAnnotations\":885,\"cemAssociations\":1097,\"reviewedFindings\":16,\"failures\":0}\n",
+      "stderr": "npm notice run en-reve-workspace@0.1.0 metadata\nnpm notice run npm run metadata:lazy && node tooling/metadata/generate-elements.ts && npm run metadata:types && npm run metadata:api && npm run customization\nnpm warn Unknown env config \"global-ignore-file\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"global-ignore-file\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"global-ignore-file\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"global-ignore-file\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "check:lazy"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:24:06.943Z",
+      "elapsedMs": 255.93479099999968,
+      "exit": 0,
+      "stdout": "Lazy manifest: 96 canonical definitions.\n",
+      "stderr": "npm notice run en-reve-workspace@0.1.0 check:lazy\nnpm notice run node tooling/metadata/lazy-manifest.ts --check\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "check:types"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:24:07.199Z",
+      "elapsedMs": 2658.8892079999987,
+      "exit": 0,
+      "stdout": "Public TypeScript snapshot verified.\n",
+      "stderr": "npm notice run en-reve-workspace@0.1.0 check:types\nnpm notice run node tooling/metadata/prepared-types.ts --check\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "check:api"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:24:09.858Z",
+      "elapsedMs": 2553.185999999998,
+      "exit": 0,
+      "stdout": "{\"components\":96,\"entrypoints\":531,\"digest\":\"sha256:3ffe8bc60b13927e66976bdac0d8a38d60764895d552ee244acc54b0b21770d0\",\"checked\":true}\n",
+      "stderr": "npm notice run en-reve-workspace@0.1.0 check:api\nnpm notice run node tooling/metadata/public-graph.ts --check\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "run",
+        "check:customization"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:24:12.411Z",
+      "elapsedMs": 551.073124999999,
+      "exit": 0,
+      "stdout": "{\"productionFiles\":589,\"registryContracts\":719,\"discoveredNames\":673,\"sourceReferences\":2284,\"authoredAnnotations\":885,\"cemAssociations\":1097,\"reviewedFindings\":16,\"failures\":0}\n",
+      "stderr": "npm notice run en-reve-workspace@0.1.0 check:customization\nnpm notice run node tooling/customization/verify.mjs --check\n"
+    },
+    {
+      "executable": "pinned-node",
+      "args": [
+        "pinned-npm-cli",
+        "pack",
+        "--json",
+        "--pack-destination",
+        "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-producer-pgFbfj/packs",
+        "-w",
+        "@en-reve/tokens"
+      ],
+      "cwd": "isolated-source",
+      "startedAt": "2026-09-26T02:24:12.964Z",
+      "elapsedMs": 297.7173330000005,
+      "exit": 0,
+      "stdout": "{\n  \"@en-reve/tokens\": {\n    \"id\": \"@en-reve/tokens@0.1.0\",\n    \"name\": \"@en-reve/tokens\",\n    \"version\": \"0.1.0\",\n    \"size\": 456656,\n    \"unpackedSize\": 9339981,\n    \"shasum\": \"b364255ced2d7c76cfb8ede910133441da71332b\",\n    \"integrity\": \"sha512-lw49GMLCPyKR+JvwsCnXA/gjEgYZajjnnEPq9jw3A7IWUeJ+77/VRd3b8fzuJ+2ABsIF/bmytHNbhKlBErzA/A==\",\n    \"filename\": \"en-reve-tokens-0.1.0.tgz\",\n    \"files\": [\n      {\n        \"path\": \"LICENSE\",\n        \"size\": 1077,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"README.md\",\n        \"size\": 42376,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/admin.d.ts\",\n        \"size\": 477,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/admin.d.ts.map\",\n        \"size\": 428,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/admin.js\",\n        \"size\": 12155,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/admin.js.map\",\n        \"size\": 14206,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/authoring.d.ts\",\n        \"size\": 3026,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/authoring.d.ts.map\",\n        \"size\": 1903,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/authoring.js\",\n        \"size\": 8859,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/authoring.js.map\",\n        \"size\": 6747,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/candidate.d.ts\",\n        \"size\": 1675,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/candidate.d.ts.map\",\n        \"size\": 770,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/candidate.js\",\n        \"size\": 2467,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/candidate.js.map\",\n        \"size\": 2804,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/color.d.ts\",\n        \"size\": 1332,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/color.d.ts.map\",\n        \"size\": 988,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/color.js\",\n        \"size\": 6321,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/color.js.map\",\n        \"size\": 8140,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/css.d.ts\",\n        \"size\": 414,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/css.d.ts.map\",\n        \"size\": 344,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/css.js\",\n        \"size\": 3397,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/css.js.map\",\n        \"size\": 3242,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization-data.d.ts\",\n        \"size\": 48590,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization-data.d.ts.map\",\n        \"size\": 2294,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization-data.js\",\n        \"size\": 101254,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization-data.js.map\",\n        \"size\": 65693,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization.d.ts\",\n        \"size\": 3899,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization.d.ts.map\",\n        \"size\": 2774,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization.js\",\n        \"size\": 9748,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization.js.map\",\n        \"size\": 8007,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/customization.json\",\n        \"size\": 1295556,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/default.css\",\n        \"size\": 94206,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/defaults.d.ts\",\n        \"size\": 133,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/defaults.js\",\n        \"size\": 14304,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/derived.d.ts\",\n        \"size\": 830,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/derived.d.ts.map\",\n        \"size\": 276,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/derived.js\",\n        \"size\": 1519,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/derived.js.map\",\n        \"size\": 1041,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/graph.d.ts\",\n        \"size\": 858,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/graph.d.ts.map\",\n        \"size\": 866,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/graph.js\",\n        \"size\": 10007,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/graph.js.map\",\n        \"size\": 11238,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/hash.d.ts\",\n        \"size\": 305,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/hash.d.ts.map\",\n        \"size\": 267,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/hash.js\",\n        \"size\": 3846,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/hash.js.map\",\n        \"size\": 5527,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.d.ts\",\n        \"size\": 2614,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.d.ts.map\",\n        \"size\": 1964,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.js\",\n        \"size\": 1665,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.js.map\",\n        \"size\": 1348,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/manifest.json\",\n        \"size\": 6073712,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/overrides.d.ts\",\n        \"size\": 204,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/overrides.d.ts.map\",\n        \"size\": 185,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/overrides.js\",\n        \"size\": 178,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/overrides.js.map\",\n        \"size\": 167,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/patch.d.ts\",\n        \"size\": 1553,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/patch.d.ts.map\",\n        \"size\": 940,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/patch.js\",\n        \"size\": 4487,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/patch.js.map\",\n        \"size\": 4221,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/properties.css\",\n        \"size\": 52479,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/properties.d.ts\",\n        \"size\": 2037,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/properties.d.ts.map\",\n        \"size\": 1123,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/properties.js\",\n        \"size\": 9309,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/properties.js.map\",\n        \"size\": 8635,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipe-data.d.ts\",\n        \"size\": 251,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipe-data.d.ts.map\",\n        \"size\": 165,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipe-data.js\",\n        \"size\": 230,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipe-data.js.map\",\n        \"size\": 273,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipes.d.ts\",\n        \"size\": 356,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipes.d.ts.map\",\n        \"size\": 375,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipes.js\",\n        \"size\": 4001,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/recipes.js.map\",\n        \"size\": 4272,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/relationships.d.ts\",\n        \"size\": 1087,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/relationships.d.ts.map\",\n        \"size\": 872,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/relationships.js\",\n        \"size\": 2557,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/relationships.js.map\",\n        \"size\": 3024,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-draft.d.ts\",\n        \"size\": 2202,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-draft.d.ts.map\",\n        \"size\": 1869,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-draft.js\",\n        \"size\": 12837,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-draft.js.map\",\n        \"size\": 13305,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-pair.d.ts\",\n        \"size\": 1532,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-pair.d.ts.map\",\n        \"size\": 1272,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-pair.js\",\n        \"size\": 3500,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/review-pair.js.map\",\n        \"size\": 3690,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/scope.d.ts\",\n        \"size\": 368,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/scope.d.ts.map\",\n        \"size\": 234,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/scope.js\",\n        \"size\": 1961,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/scope.js.map\",\n        \"size\": 1723,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/sizing.d.ts\",\n        \"size\": 2900,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/sizing.d.ts.map\",\n        \"size\": 557,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/sizing.js\",\n        \"size\": 3066,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/sizing.js.map\",\n        \"size\": 2221,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/source.d.ts\",\n        \"size\": 1658,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/source.d.ts.map\",\n        \"size\": 781,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/source.js\",\n        \"size\": 47352,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/source.js.map\",\n        \"size\": 28215,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/source.tokens.json\",\n        \"size\": 125053,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme-pair.d.ts\",\n        \"size\": 1111,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme-pair.d.ts.map\",\n        \"size\": 660,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme-pair.js\",\n        \"size\": 4702,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme-pair.js.map\",\n        \"size\": 4299,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme.d.ts\",\n        \"size\": 175,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme.d.ts.map\",\n        \"size\": 215,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme.js\",\n        \"size\": 3453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/theme.js.map\",\n        \"size\": 3574,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/dark-compact.css\",\n        \"size\": 36959,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/dark-compact.tokens.json\",\n        \"size\": 108869,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/dark-spacious.css\",\n        \"size\": 36959,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/dark-spacious.tokens.json\",\n        \"size\": 108841,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/dark.css\",\n        \"size\": 36953,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/dark.tokens.json\",\n        \"size\": 108934,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/light-compact.css\",\n        \"size\": 36982,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/light-compact.tokens.json\",\n        \"size\": 108216,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/light-spacious.css\",\n        \"size\": 36982,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/light-spacious.tokens.json\",\n        \"size\": 108188,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/light.css\",\n        \"size\": 36976,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/themes/light.tokens.json\",\n        \"size\": 108281,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/tokens.json\",\n        \"size\": 165295,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/tokens.tsbuildinfo\",\n        \"size\": 10865,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/types.d.ts\",\n        \"size\": 4711,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/types.d.ts.map\",\n        \"size\": 4220,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/types.js\",\n        \"size\": 44,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/types.js.map\",\n        \"size\": 102,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/value.d.ts\",\n        \"size\": 949,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/value.d.ts.map\",\n        \"size\": 987,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/value.js\",\n        \"size\": 5879,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/value.js.map\",\n        \"size\": 7216,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"package.json\",\n        \"size\": 1618,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 128,\n    \"bundled\": []\n  }\n}\n",
+      "stderr": ""
+    }
+  ],
+  "packages": [],
+  "environment": {
+    "isolatedHome": true,
+    "emptyNpmCache": true,
+    "upstreamOutputsUsed": false,
+    "metadataCache": "off"
+  },
+  "limits": [
+    "One local correctness production run; not Q3 I2 five-cold/five-warm qualification."
+  ],
+  "workDirectory": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-producer-pgFbfj",
+  "producerStartedAt": "2026-09-26T02:23:55.338Z",
+  "failure": "TypeError: object is not iterable (cannot read property Symbol(Symbol.iterator))",
+  "finishedAt": "2026-09-26T02:24:13.263Z"
+}

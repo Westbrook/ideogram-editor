@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "sourceIdentity": "37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4",
+  "packages": [
+    {
+      "name": "@en-reve/tokens",
+      "version": "0.1.0",
+      "filename": "en-reve-tokens-0.1.0.tgz",
+      "bytes": 456656,
+      "unpackedSize": 9339981,
+      "integrity": "sha512-lw49GMLCPyKR+JvwsCnXA/gjEgYZajjnnEPq9jw3A7IWUeJ+77/VRd3b8fzuJ+2ABsIF/bmytHNbhKlBErzA/A==",
+      "shasum": "b364255ced2d7c76cfb8ede910133441da71332b",
+      "sha256": "064b6de67bef8fb92b3384c430911f9fb2fbbb88fe4765996e3e0ecf5dc0d92d",
+      "dependencies": {},
+      "peerDependencies": {}
+    },
+    {
+      "name": "@en-reve/styles",
+      "version": "0.1.0",
+      "filename": "en-reve-styles-0.1.0.tgz",
+      "bytes": 152196,
+      "unpackedSize": 962628,
+      "integrity": "sha512-VqnUxN0RM4mli0rs3i9mPZjd3kj7caNLgHPMF2KeII62VYndah6AMRkS1W/XTUVp0xlsFi9orDDPPrTRpenvew==",
+      "shasum": "ee1a2e95449700cb68cf9a924b50eba9231abf84",
+      "sha256": "1142ae99803bbfb4d9b0fd8698682d3ee5c821e36395c38d5a266bfe34d89e57",
+      "dependencies": {
+        "lit": "3.3.3",
+        "@en-reve/tokens": "0.1.0"
+      },
+      "peerDependencies": {}
+    },
+    {
+      "name": "@en-reve/primitives",
+      "version": "0.1.0",
+      "filename": "en-reve-primitives-0.1.0.tgz",
+      "bytes": 161443,
+      "unpackedSize": 664579,
+      "integrity": "sha512-8UGr4RS/eW19iP9HBWpU5K7Q5GEMnQRPvq6G7FI8azibCecqfdBf7Nz4dFF0m8Ti12QIcTBEfvhiqGeweqqcoA==",
+      "shasum": "76630e804b6ce1ac01d21ee96b14d0d5f9046e15",
+      "sha256": "769baf6ac5652966e1a791688291d0ef87596ea1ed270ebe10735f4d51cf65c2",
+      "dependencies": {},
+      "peerDependencies": {
+        "lit": "^3.3.3",
+        "signal-polyfill": "^0.2.2",
+        "signal-utils": "^0.21.1"
+      }
+    },
+    {
+      "name": "@en-reve/elements",
+      "version": "0.1.0",
+      "filename": "en-reve-elements-0.1.0.tgz",
+      "bytes": 1246938,
+      "unpackedSize": 10479858,
+      "integrity": "sha512-TyP4vV7EfglBb3IYwLO27ONejewFrIx5qCN8XUsmTQAUj3lFaAZBi7gu/QFWTlLlXyIXkw9Av4+03Ki0aiW31g==",
+      "shasum": "801f011423b767bc93f27e9b51e9d0312fb73ee5",
+      "sha256": "01baeb4da2f42cf7ae14e2e0bf91b5199c7a10c23a8f899b289fed57827db11b",
+      "dependencies": {
+        "@en-reve/primitives": "0.1.0",
+        "@en-reve/styles": "0.1.0",
+        "@lit/context": "1.1.6",
+        "lit": "3.3.3",
+        "prosemirror-commands": "^1.7.2",
+        "prosemirror-history": "^1.5.0",
+        "prosemirror-keymap": "^1.2.3",
+        "prosemirror-model": "^1.25.11",
+        "prosemirror-schema-list": "^1.5.1",
+        "prosemirror-state": "^1.4.4",
+        "prosemirror-transform": "^1.12.1",
+        "prosemirror-view": "^1.42.3"
+      },
+      "peerDependencies": {}
+    }
+  ]
+}

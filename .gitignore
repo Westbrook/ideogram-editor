@@ -25,3 +25,10 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# App-owned toolchain, isolated production and test work
+.toolchain/
+artifacts/
+test-results/
+playwright-report/
+__pycache__/
