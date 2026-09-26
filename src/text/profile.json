@@ -277,8 +277,8 @@
     },
     {
       "path": "src/text/engine.ts",
-      "bytes": 16335,
-      "sha256": "1ce61d04581b2794fae39805cac162b9bb55f32dd8dd1bdfdeef91c0aa070e2f"
+      "bytes": 18097,
+      "sha256": "d442af366266d825f1f8703bb7387c1204b449a4a1538a5fd78e8e444a274d6a"
     },
     {
       "path": "src/text/font.ts",
@@ -338,5 +338,5 @@
       "sha256": "a3363488527e40d81ef4f1723b6f84011006846b10f88c206ae43cdfdd0366f6"
     }
   ],
-  "id": "sha256:cfef264028e9e3076165f1370cf9b87db4c6c9690a25c82e1ffa2fbaa22641a1"
+  "id": "sha256:c19791aedcddd732ebcd95ee0b375415d7a1ef96f72d847ad7359f100799ac1e"
 }

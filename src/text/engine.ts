@@ -152,12 +152,39 @@ export async function prepareText(request: TextRequest, ck: Kit): Promise<Prepar
         if (!shaped) fail('TEXT_LAYOUT_BUDGET');
         const runs: unknown[] = [];
         try {
+          // The native unresolved list excludes some controls. If such a
+          // character still produces glyph zero, retain the existing refusal
+          // but identify only its native source grapheme, not the paragraph.
+          // Visitor offsets are UTF-8 (including RTL runs); glyph-info ranges
+          // are UTF-16 and may cover multiple scalars in one affected cluster.
+          const missingRanges = new Map<number, {startUtf16: number; endUtf16: number; startUtf8: number; endUtf8: number}>();
+          for (const line of shaped) for (const run of line.runs) {
+            for (let i = 0; i < run.glyphs.length; i++) if (run.glyphs[i] === 0) {
+              const index = utf16(run.offsets[i]) - start16;
+              const glyph = paragraph.getGlyphInfoAt(index);
+              if (!glyph || glyph.isEllipsis) fail('TEXT_CLUSTER_UNAVAILABLE', { utf16: start16 + index });
+              const {start, end} = glyph.graphemeClusterTextRange;
+              if (!(start <= index && index < end)) fail('TEXT_CLUSTER_INDEX');
+              const startUtf8 = utf8(start), endUtf8 = utf8(end);
+              missingRanges.set(start, {startUtf16: start16 + start, endUtf16: start16 + end, startUtf8, endUtf8});
+            }
+          }
+          if (missingRanges.size) {
+            const ranges = [...missingRanges.values()].sort((a,b) => a.startUtf16-b.startUtf16);
+            const codepoints = new Set<number>();
+            let range = 0;
+            for (const scalar of local.scalars) {
+              const index = start16 + scalar.utf16;
+              while (range < ranges.length && index >= ranges[range].endUtf16) range++;
+              if (range < ranges.length && index >= ranges[range].startUtf16) codepoints.add(scalar.codepoint);
+            }
+            fail('TEXT_MISSING_GLYPHS', { codepoints: [...codepoints].sort((a,b) => a-b), ranges });
+          }
           for (const line of shaped) for (const run of line.runs) {
             glyphBudget -= run.glyphs.length; runBudget--;
             const fontHash = faces.find(f => run.typeface?.isAliasOf(f.face))?.hash;
             if (!fontHash) fail('TEXT_UNRESOLVED_RUN_FONT');
             if (run.fakeBold || run.fakeItalic) fail('TEXT_SYNTHETIC_FACE');
-            if (run.glyphs.some(g => g === 0)) fail('TEXT_MISSING_GLYPHS', { codepoints: local.scalars.map(s => s.codepoint) });
             const offsets = Array.from(run.offsets);
             const font = new ck.Font(run.typeface, run.size);
             let inkBounds: number[][];

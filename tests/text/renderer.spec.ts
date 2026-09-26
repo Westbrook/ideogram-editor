@@ -102,6 +102,45 @@ test('CPU straight alpha, fractional clip, wrapping, empty text and explicit dir
   await info.attach('pixel-controls',{body:JSON.stringify(Object.fromEntries(Object.entries(output).map(([k,v]:[string,any])=>[k,{...v,pixels:undefined}]))),contentType:'application/json'});
 });
 
+test('missing diagnostics identify native affected spans without blaming supported clusters',async({page},info)=>{
+  const result=await page.evaluate(async()=>{
+    const f=(window as any).textFixture, fonts=['NotoSans','NotoSansArabic','NotoSansSymbols2'];
+    const saved=await f.renderer.prepare(await f.request('office A\u0301 🂡 مرحبا',fonts));
+    const beforeHash=await f.hashBytes(saved.rgba), rows=[];
+    for(const [text,expected] of [
+      ['A\tB',[9]], ['A\tB\tC',[9]], ['A\u0301🂡\tB',[9]],
+      ['مرحبا\tعالم',[9]], ['AB\n🂡A\u0301\tB',[9]],
+      ['A\u0301🂡𝄞B',[0x1d11e]], ['A中🂡文B',[0x4e2d,0x6587]],
+    ] as [string,number[]][]){
+      const request=await f.request(text,fonts);
+      try{const p=await f.renderer.prepare(request);rows.push({text,expected,accepted:true});f.releasePrepared(p);}
+      catch(e:any){rows.push({text,expected,code:e.code,details:e.details,unchanged:request.text===text});}
+    }
+    // Native handling of standalone/control/format text is preserved; these
+    // checks do not invent a tab width or require standalone TAB refusal.
+    const controls=[];
+    for(const text of ['AB','\t','A\u200bB','A\u2067مرحبا\u2069B']){
+      const p=await f.renderer.prepare(await f.request(text,fonts));
+      controls.push({text,retained:await p.textUtf8.text()});f.releasePrepared(p);
+    }
+    const afterHash=await f.hashBytes(saved.rgba);f.releasePrepared(saved);f.renderer.dispose();
+    return{rows,controls,beforeHash,afterHash};
+  });
+  await info.attach('affected-codepoint-diagnostics',{body:JSON.stringify(result),contentType:'application/json'});
+  expect(result.afterHash).toBe(result.beforeHash);
+  for(const row of result.rows){
+    expect(row.code,row.text).toBe('TEXT_MISSING_GLYPHS');expect(row.details.codepoints,row.text).toEqual(row.expected);
+    expect(row.unchanged).toBe(true);
+    if(row.text.includes('\t')){
+      const ranges=[];
+      for(let i=0;i<row.text.length;i++)if(row.text[i]==='\t')ranges.push({startUtf16:i,endUtf16:i+1,
+        startUtf8:new TextEncoder().encode(row.text.slice(0,i)).length,endUtf8:new TextEncoder().encode(row.text.slice(0,i+1)).length});
+      expect(row.details.ranges,row.text).toEqual(ranges);
+    }
+  }
+  for(const row of result.controls)expect(row.retained).toBe(row.text);
+});
+
 test('missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation',async({page},info)=>{
   await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
   const results=await page.evaluate(async()=>{

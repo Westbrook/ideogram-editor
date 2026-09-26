@@ -187,7 +187,7 @@
   {
     "path": "vendor/text/manifest.json",
     "bytes": 12986,
-    "sha256": "ef292b6a656bcf5408a95632dc3a7c67cbd94dfdc61c92f697a87951642c3277"
+    "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b"
   },
   {
     "path": "vendor/text/notices/Brotli-LICENSE",
