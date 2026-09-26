@@ -6,8 +6,10 @@
   "reportUrl": "http://127.0.0.1:4381/",
   "apps": {
     "local": {
-      "url": "http://127.0.0.1:5173/?progress-report",
-      "availability": "planned; shell owner confirms app port and integrates Developer UI return link"
+      "url": null,
+      "availability": "unavailable until shell supplies its OS-selected launch origin (LS-1)",
+      "urlTemplate": "{actualLaunchOrigin}/?progress-report",
+      "integration": "Shell owner supplies actual origin and integrates trusted Developer UI return link."
     }
   },
   "continuationOf": {
