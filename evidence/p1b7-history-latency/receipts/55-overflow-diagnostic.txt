@@ -1,0 +1,116 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/playwright.config.ts --grep actual SQLite FULL --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-browser
+
+Running 1 test using 1 worker
+
+(node:94808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+FOCUS REGION { width: 320, height: 700 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 0,
+  nativeBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  hostBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  statusBox: {
+    x: 0,
+    y: 235,
+    width: 320,
+    height: 84,
+    top: 235,
+    right: 320,
+    bottom: 319,
+    left: 0
+  },
+  statusScroll: 184
+}
+FOCUS REGION { width: 720, height: 500 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 375,
+  nativeBox: {
+    x: 213.06666564941406,
+    y: -227.8000030517578,
+    width: 185.06666564941406,
+    height: 35,
+    top: -227.8000030517578,
+    right: 398.1333312988281,
+    bottom: -192.8000030517578,
+    left: 213.06666564941406
+  },
+  hostBox: {
+    x: 213.06666564941406,
+    y: -227.8000030517578,
+    width: 185.06666564941406,
+    height: 35,
+    top: -227.8000030517578,
+    right: 398.1333312988281,
+    bottom: -192.8000030517578,
+    left: 213.06666564941406
+  },
+  statusBox: {
+    x: 0,
+    y: -260,
+    width: 720,
+    height: 84,
+    top: -260,
+    right: 720,
+    bottom: -176,
+    left: 0
+  },
+  statusScroll: 119
+}
+FOCUS EVENTS [{"target":"EN-BUTTON","label":null,"text":"New"},{"target":"EN-DIALOG","label":null,"text":"\n    \n    Create an empty sRGB, 8-bit document.Create\n    \n    \n "},{"target":"EN-BUTTON","label":null,"text":"Create"},{"target":"EN-BUTTON","label":null,"text":"Cancel"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"}]
+  ✘  1 ../ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (6.9s)
+
+
+  1) ../ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns 
+
+    Error: expect(locator).toBeInViewport() failed
+
+    Locator:  getByRole('button', { name: 'Check and retry original', exact: true })
+    Expected: in viewport
+    Received: viewport ratio 0
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeInViewport" getByRole('button', { name: 'Check and retry original', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Check and retry original', exact: true })
+        14 × locator resolved to <button tabindex="0" type="button" part="control" class="en-button" aria-busy="false" data-size="medium" data-variant="secondary">…</button>
+           - unexpected value "viewport ratio 0"
+
+
+      139 |  for(const viewport of [{width:320,height:700},{width:720,height:500}]){
+      140 |   await page.setViewportSize(viewport);const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});await status.focus();console.log('FOCUS REGION',viewport,await page.evaluate(()=>({active:document.activeElement?.tagName,activeLabel:document.activeElement?.getAttribute('aria-label'),scrollY})));await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);
+    > 141 |   for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();console.log('FOCUS RETRY',await retry.evaluate(n=>({nativeActive:(n.getRootNode() as ShadowRoot).activeElement===n,documentActive:document.activeElement?.tagName,label:document.activeElement?.getAttribute('aria-label'),scrollY,nativeBox:n.getBoundingClientRect().toJSON(),hostBox:(n.getRootNode() as ShadowRoot).host.getBoundingClientRect().toJSON(),statusBox:document.querySelector('.operation-status')!.getBoundingClientRect().toJSON(),statusScroll:document.querySelector('.operation-status')!.scrollTop})));await expect(retry).toBeInViewport({ratio:1});
+          |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ^
+      142 |   const area=await status.boundingBox(),target=await retry.boundingBox();expect(target!.y).toBeGreaterThanOrEqual(area!.y);expect(target!.y+target!.height).toBeLessThanOrEqual(area!.y+area!.height);expect(await status.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);
+      143 |  }
+      144 |  await page.keyboard.press('Enter');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
+        at /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/recovery.spec.ts:141:706
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.md
+
+  1 failed
+    ../ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns 

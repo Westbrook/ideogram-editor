@@ -1,0 +1,49 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/playwright.config.ts --grep multi-tab convergence --repeat-each 5 --max-failures 1 --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/11-multitab-diagnostic/browser
+
+Running 5 tests using 1 worker
+
+(node:51597) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 ../ideogram-edit-verification/i-br01-author/diagnostic-tests/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (4.8s)
+(node:51620) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 ../ideogram-edit-verification/i-br01-author/diagnostic-tests/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (3.8s)
+(node:51643) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+SAFE FAILURE STATE [{"heading":"Action needs attention","items":[{"target":"inspector","message":"Cache transaction aborted"}]}]
+SAFE FAILURE STATE []
+  ✘  3 ../ideogram-edit-verification/i-br01-author/diagnostic-tests/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (7.8s)
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) ../ideogram-edit-verification/i-br01-author/diagnostic-tests/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+
+
+      35 | test('multi-tab convergence preserves a stale inspector draft and recovers accepted transactions',async({page,context})=>{
+      36 |  const server=await setup(page);try{await imported(page);const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();
+    > 37 |  await second.getByRole('textbox',{name:'Layer name',exact:true}).fill('Other tab unapplied');await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.7');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(second.locator('.document-name')).toHaveText(await page.locator('.document-name').textContent()??'');await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await click(second,'Apply properties');await expect(second.getByText(/Stale conflict/)).toBeVisible();await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await second.close();
+         |                                                                                                                                                                                                                                                                                                                 ^
+      38 |  }finally{await server.close();}
+      39 | });
+      40 |
+        at /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/interactions.spec.ts:37:305
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/11-multitab-diagnostic/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions-repeat2/error-context.md
+
+  1 failed
+    ../ideogram-edit-verification/i-br01-author/diagnostic-tests/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions 
+  2 did not run
+  2 passed (18.1s)
+  1 error was not a part of any test, see above for details

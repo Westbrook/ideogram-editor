@@ -1,0 +1,1027 @@
+{
+  "actions": [
+    {
+      "action": "import-review-and-apply",
+      "testIntentToPaintMs": 1295.941,
+      "firstNativeIntentToPaintMs": 1285.182,
+      "lastNativeIntentToPaintMs": 447.582,
+      "lastIntent": "ie.intent.Apply reviewed result",
+      "correctAsset": "fec33f2f-6f1a-4456-a9d5-20c08a5b70fc",
+      "revision": "2",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784863359557,
+        "dur": 192,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "selection",
+      "testIntentToPaintMs": 36.433,
+      "firstNativeIntentToPaintMs": 13.219,
+      "lastNativeIntentToPaintMs": 13.219,
+      "lastIntent": "ie.intent.Select layers",
+      "correctAsset": "fec33f2f-6f1a-4456-a9d5-20c08a5b70fc",
+      "revision": "2",
+      "newCorrectCanvasDraw": false,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784863826007,
+        "dur": 379,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "opacity-0",
+      "testIntentToPaintMs": 428.915,
+      "firstNativeIntentToPaintMs": 398.071,
+      "lastNativeIntentToPaintMs": 398.071,
+      "lastIntent": "ie.intent.Apply properties",
+      "correctAsset": "194fc04e-7966-42e6-8c93-d8eadf1be614",
+      "revision": "3",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784864276178,
+        "dur": 261,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "opacity-1",
+      "testIntentToPaintMs": 383.976,
+      "firstNativeIntentToPaintMs": 348.888,
+      "lastNativeIntentToPaintMs": 348.888,
+      "lastIntent": "ie.intent.Apply properties",
+      "correctAsset": "710f394d-e6e5-4526-8e87-8caf1709d136",
+      "revision": "4",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784865076195,
+        "dur": 260,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "opacity-2",
+      "testIntentToPaintMs": 373.506,
+      "firstNativeIntentToPaintMs": 348.802,
+      "lastNativeIntentToPaintMs": 348.802,
+      "lastIntent": "ie.intent.Apply properties",
+      "correctAsset": "f8438837-53df-429c-b923-971e2b33bb1d",
+      "revision": "5",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784865909192,
+        "dur": 277,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "opacity-3",
+      "testIntentToPaintMs": 404.578,
+      "firstNativeIntentToPaintMs": 366.661,
+      "lastNativeIntentToPaintMs": 366.661,
+      "lastIntent": "ie.intent.Apply properties",
+      "correctAsset": "0f88a370-53af-4364-a2e3-5e4c03196b81",
+      "revision": "6",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784866777050,
+        "dur": 278,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "opacity-4",
+      "testIntentToPaintMs": 418.024,
+      "firstNativeIntentToPaintMs": 384.207,
+      "lastNativeIntentToPaintMs": 384.207,
+      "lastIntent": "ie.intent.Apply properties",
+      "correctAsset": "1c7477ad-7832-4388-980b-45e4568083fe",
+      "revision": "7",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784867644386,
+        "dur": 289,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "undo",
+      "testIntentToPaintMs": 117.393,
+      "firstNativeIntentToPaintMs": 79.013,
+      "lastNativeIntentToPaintMs": 79.013,
+      "lastIntent": "ie.intent.Undo",
+      "correctAsset": "0f88a370-53af-4364-a2e3-5e4c03196b81",
+      "revision": "8",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784868193572,
+        "dur": 309,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "redo",
+      "testIntentToPaintMs": 158.899,
+      "firstNativeIntentToPaintMs": 114.83,
+      "lastNativeIntentToPaintMs": 114.83,
+      "lastIntent": "ie.intent.Redo",
+      "correctAsset": "1c7477ad-7832-4388-980b-45e4568083fe",
+      "revision": "9",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784868375643,
+        "dur": 254,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "zoom",
+      "testIntentToPaintMs": 14.866,
+      "firstNativeIntentToPaintMs": 10.159,
+      "lastNativeIntentToPaintMs": 10.159,
+      "lastIntent": "ie.intent.View zoom",
+      "correctAsset": "1c7477ad-7832-4388-980b-45e4568083fe",
+      "revision": "9",
+      "newCorrectCanvasDraw": false,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784868609638,
+        "dur": 188,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "resample-review-and-apply",
+      "testIntentToPaintMs": 1093.486,
+      "firstNativeIntentToPaintMs": 1053.488,
+      "lastNativeIntentToPaintMs": 171.588,
+      "lastIntent": "ie.intent.Apply reviewed result",
+      "correctAsset": "278da51e-aa58-4853-91f2-db6f096d5ec3",
+      "revision": "10",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784869715782,
+        "dur": 373,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "flatten-review-and-apply",
+      "testIntentToPaintMs": 1146.055,
+      "firstNativeIntentToPaintMs": 1103.823,
+      "lastNativeIntentToPaintMs": 222.522,
+      "lastIntent": "ie.intent.Apply reviewed result",
+      "correctAsset": "f3ba7e3a-bcf7-4968-af6f-b59fea91a527",
+      "revision": "11",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784870916545,
+        "dur": 345,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "checkpoint",
+      "testIntentToPaintMs": 130.5,
+      "firstNativeIntentToPaintMs": 101.224,
+      "lastNativeIntentToPaintMs": 101.224,
+      "lastIntent": "ie.intent.Save checkpoint",
+      "correctAsset": "f3ba7e3a-bcf7-4968-af6f-b59fea91a527",
+      "revision": "12",
+      "newCorrectCanvasDraw": false,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784871062322,
+        "dur": 270,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "full-copy-ready",
+      "testIntentToPaintMs": 671.274,
+      "firstNativeIntentToPaintMs": 631.92,
+      "lastNativeIntentToPaintMs": 567.02,
+      "lastIntent": "ie.intent.Prepare full-history copy",
+      "correctAsset": "f3ba7e3a-bcf7-4968-af6f-b59fea91a527",
+      "revision": "12",
+      "newCorrectCanvasDraw": false,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784871744377,
+        "dur": 411,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "full-copy-download",
+      "testIntentToPaintMs": 45.531,
+      "firstNativeIntentToPaintMs": 18.822,
+      "lastNativeIntentToPaintMs": 18.822,
+      "lastIntent": "ie.intent.Write copy",
+      "correctAsset": "f3ba7e3a-bcf7-4968-af6f-b59fea91a527",
+      "revision": "12",
+      "newCorrectCanvasDraw": false,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784872061625,
+        "dur": 264,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "portable-open-review-and-apply",
+      "testIntentToPaintMs": 6824.189,
+      "firstNativeIntentToPaintMs": 6797.382,
+      "lastNativeIntentToPaintMs": 4415.083,
+      "lastIntent": "ie.intent.Apply reviewed result",
+      "correctAsset": "p_214ca20f4bc069127f15f278e9450b0dbeccb49e93f359030b90566a927bc05b",
+      "revision": "12",
+      "newCorrectCanvasDraw": true,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784878909374,
+        "dur": 276,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "exact-export-ready",
+      "testIntentToPaintMs": 337.061,
+      "firstNativeIntentToPaintMs": 299.925,
+      "lastNativeIntentToPaintMs": 299.925,
+      "lastIntent": "ie.intent.Export exact PNG",
+      "correctAsset": "p_214ca20f4bc069127f15f278e9450b0dbeccb49e93f359030b90566a927bc05b",
+      "revision": "12",
+      "newCorrectCanvasDraw": false,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784879261863,
+        "dur": 229,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    },
+    {
+      "action": "exact-export-download",
+      "testIntentToPaintMs": 55.398,
+      "firstNativeIntentToPaintMs": 16.592,
+      "lastNativeIntentToPaintMs": 16.592,
+      "lastIntent": "ie.intent.Write image",
+      "correctAsset": "p_214ca20f4bc069127f15f278e9450b0dbeccb49e93f359030b90566a927bc05b",
+      "revision": "12",
+      "newCorrectCanvasDraw": false,
+      "canvasBackendNodeId": 18,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 62156,
+        "tid": 253429499,
+        "ts": 3784879825687,
+        "dur": 173,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        },
+        "detail": null
+      },
+      "boundary": "First renderer Paint after exact accepted completion, matching revision update and new matching canvas draw when content changes; unchanged content retains its verified asset. Includes automated review dwell and all preparatory work in the first-intent parent."
+    }
+  ],
+  "feedback": [
+    {
+      "action": "ie.intent.Prepare image",
+      "inputToNextStatusPaintMs": 3.01
+    },
+    {
+      "action": "ie.intent.Apply reviewed result",
+      "inputToNextStatusPaintMs": 65.426
+    },
+    {
+      "action": "ie.intent.Select layers",
+      "inputToNextStatusPaintMs": 13.219
+    },
+    {
+      "action": "ie.intent.Apply properties",
+      "inputToNextStatusPaintMs": 33.522
+    },
+    {
+      "action": "ie.intent.Apply properties",
+      "inputToNextStatusPaintMs": 32.188
+    },
+    {
+      "action": "ie.intent.Apply properties",
+      "inputToNextStatusPaintMs": 32.345
+    },
+    {
+      "action": "ie.intent.Apply properties",
+      "inputToNextStatusPaintMs": 32.439
+    },
+    {
+      "action": "ie.intent.Apply properties",
+      "inputToNextStatusPaintMs": 32.588
+    },
+    {
+      "action": "ie.intent.Undo",
+      "inputToNextStatusPaintMs": 13.974
+    },
+    {
+      "action": "ie.intent.Redo",
+      "inputToNextStatusPaintMs": 16.369
+    },
+    {
+      "action": "ie.intent.View zoom",
+      "inputToNextStatusPaintMs": 10.159
+    },
+    {
+      "action": "ie.intent.Open resample",
+      "inputToNextStatusPaintMs": 13.394
+    },
+    {
+      "action": "ie.intent.Prepare resample",
+      "inputToNextStatusPaintMs": 33.467
+    },
+    {
+      "action": "ie.intent.Apply reviewed result",
+      "inputToNextStatusPaintMs": 32.788
+    },
+    {
+      "action": "ie.intent.Open flatten",
+      "inputToNextStatusPaintMs": 13.48
+    },
+    {
+      "action": "ie.intent.Prepare flatten copy",
+      "inputToNextStatusPaintMs": 32.968
+    },
+    {
+      "action": "ie.intent.Apply reviewed result",
+      "inputToNextStatusPaintMs": 33.384
+    },
+    {
+      "action": "ie.intent.Save checkpoint",
+      "inputToNextStatusPaintMs": 35.303
+    },
+    {
+      "action": "ie.intent.Open copy",
+      "inputToNextStatusPaintMs": 13.582
+    },
+    {
+      "action": "ie.intent.Prepare full-history copy",
+      "inputToNextStatusPaintMs": 34.968
+    },
+    {
+      "action": "ie.intent.Write copy",
+      "inputToNextStatusPaintMs": 18.822
+    },
+    {
+      "action": "ie.intent.Open open",
+      "inputToNextStatusPaintMs": 14.073
+    },
+    {
+      "action": "ie.intent.Inspect portable project",
+      "inputToNextStatusPaintMs": 10.921
+    },
+    {
+      "action": "ie.intent.Apply reviewed result",
+      "inputToNextStatusPaintMs": 33.091
+    },
+    {
+      "action": "ie.intent.Export exact PNG",
+      "inputToNextStatusPaintMs": 31.737
+    },
+    {
+      "action": "ie.intent.Write image",
+      "inputToNextStatusPaintMs": 16.592
+    },
+    {
+      "action": "ie.intent.Select layers",
+      "inputToNextStatusPaintMs": 13.644
+    },
+    {
+      "action": "ie.intent.Apply properties",
+      "inputToNextStatusPaintMs": 30.633
+    }
+  ],
+  "pan": [
+    {
+      "inputToCanvasDrawMs": 13.353,
+      "inputToNextRendererPaintMs": 13.998
+    },
+    {
+      "inputToCanvasDrawMs": 14.798,
+      "inputToNextRendererPaintMs": 15.28
+    },
+    {
+      "inputToCanvasDrawMs": 14.878,
+      "inputToNextRendererPaintMs": 15.297
+    },
+    {
+      "inputToCanvasDrawMs": 14.895,
+      "inputToNextRendererPaintMs": 15.328
+    },
+    {
+      "inputToCanvasDrawMs": 15.068,
+      "inputToNextRendererPaintMs": 15.546
+    },
+    {
+      "inputToCanvasDrawMs": 14.88,
+      "inputToNextRendererPaintMs": 15.304
+    },
+    {
+      "inputToCanvasDrawMs": 15.082,
+      "inputToNextRendererPaintMs": 115.558
+    },
+    {
+      "inputToCanvasDrawMs": 15.484,
+      "inputToNextRendererPaintMs": 99.358
+    },
+    {
+      "inputToCanvasDrawMs": 15.479,
+      "inputToNextRendererPaintMs": 82.659
+    },
+    {
+      "inputToCanvasDrawMs": 14.849,
+      "inputToNextRendererPaintMs": 65.858
+    },
+    {
+      "inputToCanvasDrawMs": 15.423,
+      "inputToNextRendererPaintMs": 49.759
+    },
+    {
+      "inputToCanvasDrawMs": 15.292,
+      "inputToNextRendererPaintMs": 32.958
+    }
+  ],
+  "startup": [
+    {
+      "marker": "ie.test.cold.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 201.329
+    },
+    {
+      "marker": "ie.test.warm.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 199.694
+    },
+    {
+      "marker": "ie.test.warm.test-edit",
+      "navigationToSubsequentPaintUpperBoundMs": 1109.26
+    }
+  ],
+  "serverProcessRSSPeakMiB": 174.3125,
+  "receiptObservations": [
+    {
+      "commandId": "e07e56a7-8c78-42f3-b62b-13c69869cf3f",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 40.66083299999991
+    },
+    {
+      "commandId": "a31e87b7-de29-4715-bce1-7aef7c5d6b74",
+      "operation": "PrepareRaster",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 256.81937500000004
+    },
+    {
+      "commandId": "f6321148-131d-4376-872a-5d4e8755abef",
+      "operation": "ReviewRaster",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 10.893416999999772
+    },
+    {
+      "commandId": "abf71802-fe02-4a41-84d0-b7ccb6296e1b",
+      "operation": "ApproveRaster",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 25.453625000000102
+    },
+    {
+      "commandId": "095cde51-f9da-4793-b4b3-88c3e5051281",
+      "operation": "NewDocument",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 9.574791999999889
+    },
+    {
+      "commandId": "50b1313d-e499-47e6-a816-cc2dbc891a87",
+      "operation": "ImportAsset",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 250.24649999999974
+    },
+    {
+      "commandId": "50666c24-10a3-4ba3-93c7-31e342b1925f",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 40.84654200000023
+    },
+    {
+      "commandId": "54fd3409-01c9-4e3b-85fe-a250f7b48739",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 224.95499999999993
+    },
+    {
+      "commandId": "fddde15e-2a94-4ad3-8807-00abdc618142",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 33.78041700000085
+    },
+    {
+      "commandId": "2d2aac42-3b11-4ef0-9cdd-9339996a331d",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 194.48383400000057
+    },
+    {
+      "commandId": "6f3f9394-43d3-46db-b6b7-74468f37a366",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 30.634541999999783
+    },
+    {
+      "commandId": "f6721d01-ac8a-40e7-aa6f-97eb1f4bb57e",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 194.5408749999997
+    },
+    {
+      "commandId": "f0a43d73-ac3e-4282-91c8-b497a0dc60ef",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 33.31658299999981
+    },
+    {
+      "commandId": "15aad980-05ae-4d54-b9e6-ef7857234d97",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 214.2747500000005
+    },
+    {
+      "commandId": "23a18a9b-b6be-4d82-8501-04e7a0b7928a",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 31.13379199999963
+    },
+    {
+      "commandId": "dc5ffaa2-68be-43bd-afa1-d503bb3431f0",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 221.13958300000013
+    },
+    {
+      "commandId": "07c658fc-415b-46b4-aab8-a8f07542c863",
+      "operation": "Undo",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 33.25645900000018
+    },
+    {
+      "commandId": "97da4d32-14c7-46e4-8756-cbdc6ef91545",
+      "operation": "Redo",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 51.00495799999953
+    },
+    {
+      "commandId": "921c57cf-874a-4381-a32a-8c668cefbe9e",
+      "operation": "PrepareImageResample",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 352.02879100000064
+    },
+    {
+      "commandId": "c799b9df-d568-43ed-a7a2-7226ba56af06",
+      "operation": "ReviewImageEdit",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 28.176416000000245
+    },
+    {
+      "commandId": "8d64eef0-ef8b-48ce-988b-fead91728595",
+      "operation": "ResampleImage",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 90.43624999999884
+    },
+    {
+      "commandId": "20cae7b0-8f92-4189-a7dd-0dd985b67e38",
+      "operation": "PrepareFlattenedCopy",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 328.16262500000084
+    },
+    {
+      "commandId": "e4189b8f-68dd-4614-8502-d6e0a7540634",
+      "operation": "ReviewImageEdit",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 33.225540999999794
+    },
+    {
+      "commandId": "b9ee7458-6bef-40c1-a98b-36b0a2a81ede",
+      "operation": "CreateFlattenedCopy",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 140.2183330000007
+    },
+    {
+      "commandId": "037a584c-c63b-4358-b4e2-1e9100e9eda5",
+      "operation": "SaveCheckpoint",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 32.81412499999897
+    },
+    {
+      "commandId": "67fe9695-3599-4252-8a62-088ecbf89168",
+      "operation": "SaveCopy",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 501.035249999999
+    },
+    {
+      "commandId": "800ddcc2-4d7b-467b-ab75-f3d1c8189e40",
+      "operation": "PreviewBundleImport",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 2039.595209000001
+    },
+    {
+      "commandId": "76e24812-fcba-4e52-bcfc-060cb0b150eb",
+      "operation": "ImportBundle",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 4179.422875
+    },
+    {
+      "commandId": "39351d32-352e-4e05-9def-f9e76a8d560c",
+      "operation": "ExportDocument",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 220.25525000000198
+    },
+    {
+      "commandId": "3a09d15b-b508-4e22-a2b5-25c2f7bb8296",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 34.73820799999885
+    },
+    {
+      "commandId": "ec5445fb-3d8e-448a-b989-c673a69ea630",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 228.02679200000057
+    }
+  ],
+  "limits": [
+    "Tiny author fixture, single run per source; no formal W0/W1/W2, p95 population, native, GPU/display, power-loss or exclusive-host qualification.",
+    "Renderer Paint is a conservative software paint boundary. GPU canvas updates can present without a new Paint event; per-pan presented-frame latency and drop rate are NOT established.",
+    "No child clock substitutes for an action parent. HTTP request-to-observed-receipt includes preparation and queue; it is NOT the commit-ready R20 boundary.",
+    "R08 forced fallback/cooperative slice attribution and complete browser+server+native-child RSS are NOT qualified by this trace. Server-process RSS alone is partial.",
+    "Download initiated and Playwright saveAs remain separate observations; external destination is unconfirmed. Actual destination writable close is a separate functional check.",
+    "Startup readiness markers are conservative upper bounds after assertions, not a complete formal startup decomposition. The accepted warm edit is required and missing in failed63."
+  ]
+}

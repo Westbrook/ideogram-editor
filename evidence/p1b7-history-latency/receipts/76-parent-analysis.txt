@@ -1,0 +1,111 @@
+{
+  "file": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action/paint-analysis.json",
+  "actions": [
+    {
+      "name": "import-review-and-apply",
+      "nativeParentMs": 1149.071,
+      "lastIntentMs": 315.471
+    },
+    {
+      "name": "selection",
+      "nativeParentMs": 14.368,
+      "lastIntentMs": 14.368
+    },
+    {
+      "name": "opacity-0",
+      "nativeParentMs": 331.711,
+      "lastIntentMs": 331.711
+    },
+    {
+      "name": "opacity-1",
+      "nativeParentMs": 315.419,
+      "lastIntentMs": 315.419
+    },
+    {
+      "name": "opacity-2",
+      "nativeParentMs": 333.007,
+      "lastIntentMs": 333.007
+    },
+    {
+      "name": "opacity-3",
+      "nativeParentMs": 314.978,
+      "lastIntentMs": 314.978
+    },
+    {
+      "name": "opacity-4",
+      "nativeParentMs": 333.942,
+      "lastIntentMs": 333.942
+    },
+    {
+      "name": "undo",
+      "nativeParentMs": 66.478,
+      "lastIntentMs": 66.478
+    },
+    {
+      "name": "redo",
+      "nativeParentMs": 67.582,
+      "lastIntentMs": 67.582
+    },
+    {
+      "name": "zoom",
+      "nativeParentMs": 11.862,
+      "lastIntentMs": 11.862
+    },
+    {
+      "name": "resample-review-and-apply",
+      "nativeParentMs": 1031.037,
+      "lastIntentMs": 149.037
+    },
+    {
+      "name": "flatten-review-and-apply",
+      "nativeParentMs": 998.946,
+      "lastIntentMs": 119.546
+    },
+    {
+      "name": "checkpoint",
+      "nativeParentMs": 67.445,
+      "lastIntentMs": 67.445
+    },
+    {
+      "name": "full-copy-ready",
+      "nativeParentMs": 430.762,
+      "lastIntentMs": 365.962
+    },
+    {
+      "name": "full-copy-download",
+      "nativeParentMs": 17.351,
+      "lastIntentMs": 17.351
+    },
+    {
+      "name": "portable-open-review-and-apply",
+      "nativeParentMs": 3898.335,
+      "lastIntentMs": 2532.934
+    },
+    {
+      "name": "exact-export-ready",
+      "nativeParentMs": 183.539,
+      "lastIntentMs": 183.539
+    },
+    {
+      "name": "exact-export-download",
+      "nativeParentMs": 16.558,
+      "lastIntentMs": 16.558
+    }
+  ],
+  "feedbackMaxMs": 49.648,
+  "startup": [
+    {
+      "marker": "ie.test.cold.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 191.286
+    },
+    {
+      "marker": "ie.test.warm.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 153.122
+    },
+    {
+      "marker": "ie.test.warm.test-edit",
+      "navigationToSubsequentPaintUpperBoundMs": 1046.406
+    }
+  ],
+  "serverRSSMiB": 179.296875
+}

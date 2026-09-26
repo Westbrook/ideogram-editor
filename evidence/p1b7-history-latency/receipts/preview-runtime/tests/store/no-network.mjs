@@ -1,0 +1,20 @@
+import { Socket } from 'node:net';
+import http from 'node:http';
+import https from 'node:https';
+import dns from 'node:dns';
+import dgram from 'node:dgram';
+import { workerData } from 'node:worker_threads';
+const names = ['submit', 'upload', 'poll', 'cancel', 'fetch', 'socket', 'dns', 'datagram'];
+const shared = workerData?.testing?.effectCounters ?? new SharedArrayBuffer(names.length * 4);
+const counters = new Int32Array(shared);
+const deny = name => (...args) => {
+  Atomics.add(counters, names.indexOf(name), 1);
+  throw new Error(`Unexpected network effect: ${name}`);
+};
+globalThis.fetch = deny('fetch');
+http.request = deny('submit'); http.get = deny('poll');
+https.request = deny('upload'); https.get = deny('cancel');
+Socket.prototype.connect = deny('socket');
+dns.lookup = deny('dns'); dns.resolve = deny('dns');
+dgram.createSocket = deny('datagram');
+globalThis.__storeNetworkCounters = { shared, read: () => Object.fromEntries(names.map((name, i) => [name, Atomics.load(counters, i)])) };

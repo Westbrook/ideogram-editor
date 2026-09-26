@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/analyze-history.py", line 30, in <module>
+    assert paint['ts']<=stop['ts'],name
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: redo

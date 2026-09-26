@@ -1,0 +1,30 @@
+{
+  "at": "2026-09-26T14:45:41.700493+00:00",
+  "runtimeSourceSHA256": "1c899ccad5923e155d507fbfdbfce111833f47497774dd8104a1694b5876c2b1",
+  "buildCommand": "69-build",
+  "initialJS": {
+    "raw": 494956,
+    "gzip": 129058,
+    "files": [
+      "dist/app/assets/icon-LNfVOU5p.js",
+      "dist/app/assets/index-Cv7AQh9f.js",
+      "dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "dist/app/assets/shell-DUbzQO44.js"
+    ]
+  },
+  "lazyJS": {
+    "raw": 9411,
+    "gzip": 3308,
+    "files": [
+      "dist/app/assets/editor-panels-C8u6k489.js"
+    ]
+  },
+  "CSS": {
+    "raw": 96436,
+    "gzip": 12607,
+    "files": [
+      "dist/app/assets/index-CeDocqmD.css"
+    ]
+  },
+  "scope": "AUTHOR actual emitted disk artifact sizes, single build. Not evaluated-module/native/five-build qualification. Shared static imports counted once. Build plugin labels/estimates preserved separately."
+}

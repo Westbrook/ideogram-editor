@@ -1,0 +1,66 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/playwright.config.ts --grep new inspector drafts --repeat-each 3 --max-failures 1 --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-browser
+
+Running 3 tests using 1 worker
+
+(node:79577) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+SAFE OPERATION FinalizeStaging
+SAFE OPERATION PrepareRaster
+SAFE OPERATION ReviewRaster
+SAFE OPERATION ApproveRaster
+SAFE OPERATION NewDocument
+SAFE OPERATION ImportAsset
+SAFE OPERATION FinalizeStaging
+SAFE OPERATION SetLayerProperties
+SAFE OPERATION FinalizeStaging
+SAFE OPERATION SetLayerProperties
+SAFE OPERATION FinalizeStaging
+SAFE OPERATION SetLayerProperties
+  ✓  1 ../ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/recovery.spec.ts:167:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets (6.2s)
+(node:79614) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+SAFE OPERATION FinalizeStaging
+SAFE OPERATION PrepareRaster
+SAFE OPERATION ReviewRaster
+SAFE OPERATION ApproveRaster
+SAFE OPERATION NewDocument
+SAFE OPERATION ImportAsset
+SAFE OPERATION FinalizeStaging
+SAFE OPERATION SetLayerProperties
+SAFE OPERATION FinalizeStaging
+SAFE FAILURE DETAILS {"clicks":["{\"text\":\"Apply reviewed result\",\"prevented\":false,\"connected\":true}","{\"text\":\"Apply properties\",\"prevented\":false,\"connected\":true}"],"marks":["ie.intent.Prepare image","ie.complete.Prepare image","ie.intent.Apply reviewed result","ie.complete.Apply reviewed result","ie.intent.Apply properties","ie.complete.Apply properties","ie.intent.Select layers"],"validation":[],"status":"FinalizeStaging accepted and saved locally.Updates interrupted. Recovering complete transactions; the last valid view is retained.Reconnect\n    "}
+  ✘  2 ../ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/recovery.spec.ts:167:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets (8.9s)
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) ../ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/recovery.spec.ts:167:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('treeitem', { name: 'Edited boundary 128 · visible', exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('treeitem', { name: 'Edited boundary 128 · visible', exact: true }) with timeout 5000ms
+      - waiting for getByRole('treeitem', { name: 'Edited boundary 128 · visible', exact: true })
+
+
+      172 |  const layerId=('boundary_'+size+'_').padEnd(size-'inspector_'.length-documentId.length-1,'x');const d=(await f.read('/api/v1/documents/'+documentId)).json.projection.value;
+      173 |  const c=command(f.last.command.expectedEntityVersions,{clientId,documentId,expectedDocumentRevision:d.revision,body:{type:'ImportAsset',assetId:asset.id,layerId,name:'Boundary '+size,draft:null}});let r=await call(f.server.origin,'/api/v1/commands',{method:'POST',body:c,headers:f.headers()});for(let n=0;r.status===202&&n<1000;n++){await new Promise(r=>setTimeout(r,5));r=await f.read('/api/v1/commands/'+c.command.commandId);}expect(r.json.receipt.status).toBe('accepted');
+    > 174 |  await page.getByRole('treeitem',{name:'Boundary '+size+' · visible',exact:true}).click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Edited boundary '+size);await click(page,'Apply properties');await expect(page.getByRole('treeitem',{name:'Edited boundary '+size+' · visible',exact:true})).toBeVisible();
+          |                                                                                                                                                                                                                                                                                                                             ^
+      175 |  const draft=observed.find(d=>d.targetLayerId===layerId);expect(draft).toBeTruthy();expect(draft.documentId).toBe(documentId);expect(draft.id.length).toBeLessThanOrEqual(128);if(size<=128)expect(draft.id).toBe('inspector_'+documentId+'_'+layerId);else expect(draft.id).toMatch(/^inspector_[0-9a-f]{64}$/);
+      176 |  }
+      177 |  expect(new Set(observed.map(d=>d.id)).size).toBe(3);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();for(const size of [127,128,129])await expect(page.getByRole('treeitem',{name:'Edited boundary '+size+' · visible',exact:true})).toBeVisible();
+        at /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/recovery.spec.ts:174:317
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets-repeat1/error-context.md
+
+  1 failed
+    ../ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/recovery.spec.ts:167:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets 
+  1 did not run
+  1 passed (17.3s)
+  1 error was not a part of any test, see above for details

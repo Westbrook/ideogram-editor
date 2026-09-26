@@ -1,0 +1,54 @@
+{
+  "at": "2026-09-26T14:31:09.914273+00:00",
+  "source": "d306be55d4a25a3256c8520d113c07789276ef628244fc35915f99cf4f97f113",
+  "initial": [
+    {
+      "file": "assets/icon-LNfVOU5p.js",
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "rawBytes": 137598,
+      "gzipBytes": 31511
+    },
+    {
+      "file": "assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "rawBytes": 1218,
+      "gzipBytes": 691
+    },
+    {
+      "file": "assets/index-DcJkR-kS.js",
+      "sha256": "672d64ad598cf6b53cd380362eeb17e5730a3b28325ad2917effe15aba39f736",
+      "rawBytes": 1429,
+      "gzipBytes": 765
+    },
+    {
+      "file": "assets/shell-j7wGF6cA.js",
+      "sha256": "94ddb4aed6d42a5d329329ab282f218504ced7b945c2d84ad3c0d2d782545a43",
+      "rawBytes": 354420,
+      "gzipBytes": 96011
+    }
+  ],
+  "lazyPanelsIncremental": [
+    {
+      "file": "assets/editor-panels-C8u6k489.js",
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "rawBytes": 9411,
+      "gzipBytes": 3308
+    }
+  ],
+  "css": [
+    {
+      "file": "assets/index-CeDocqmD.css",
+      "sha256": "a2563ee427d84dbf92fc8ebe28fcdde8ecc277e6610074bcb4f6a1f8266aefe6",
+      "rawBytes": 96436,
+      "gzipBytes": 12607
+    }
+  ],
+  "totals": {
+    "initialRawBytes": 494665,
+    "initialGzipBytes": 128978,
+    "lazyPanelGzipBytes": 3308,
+    "cssGzipBytes": 12607
+  },
+  "budgets": "D11 startup gzip300/500KiB, evaluated raw1/1.5MiB; lazy feature150/300KiB excluding separately budgeted text engine; CSS/UI fonts100/200KiB. No new fonts/engine introduced.",
+  "qualification": "Actual emitted bytes with shared code counted once; single artifact observation only, not five-build/cache/evaluated-module qualification. Pre-finalization plugin build-evidence values retained separately."
+}

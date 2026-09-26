@@ -1,0 +1,77 @@
+diff --git a/src/state/recovery-cache.ts b/src/state/recovery-cache.ts
+index 637d617..e305d80 100644
+--- a/src/state/recovery-cache.ts
++++ b/src/state/recovery-cache.ts
+@@ -62,20 +62,34 @@ export class RecoveryCache {
+   }
+   async apply(generation: string,event: DomainEvent) {
+     // Each staged row is private; only the published pointer exposes a complete view.
+-    const previous=event.documentId?await this.value(generation,'document',event.documentId)??null:null;
+-    requireValue(!await this.value(generation,'event',event.eventId),'Duplicate event identity');
+-    if(event.type==='AssetRegistered'){requireValue(!await this.value(generation,'asset',event.payload.asset.id),'Duplicate asset');await this.put(generation,'asset',event.payload.asset.id,event.payload.asset);}
+-    else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
+-    if(event.type==='BundleImported'){
+-      const hydrated=await this.value(generation,'namespace',event.payload.namespaceId);
+-      requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
++    // Read checks and their writes share one transaction. No await crosses its
++    // active callbacks, and no event marker survives a failed reducer/write.
++    const tx=this.db.transaction('rows','readwrite'),store=tx.objectStore('rows');let validationError:unknown;
++    const checks:[string,string][]=[['event',event.eventId]];
++    if(event.documentId)checks.push(['document',event.documentId]);
++    if(event.type==='AssetRegistered')checks.push(['asset',event.payload.asset.id]);
++    if(event.type==='BundleImported')checks.push(['namespace',event.payload.namespaceId]);
++    const values=new Map<string,any>();let remaining=checks.length;
++    const put=(type:string,id:string,value:unknown)=>store.put(value,[generation,type,id]);
++    for(const [type,id] of checks){
++      const read=store.get([generation,type,id]);read.onsuccess=()=>{
++        values.set(type,read.result);if(--remaining)return;
++        try{
++          requireValue(!values.get('event'),'Duplicate event identity');
++          if(event.type==='AssetRegistered'){requireValue(!values.get('asset'),'Duplicate asset');put('asset',event.payload.asset.id,event.payload.asset);}
++          else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
++            if(event.type==='BundleImported'){
++              const hydrated=values.get('namespace');requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
++            }
++            const next=reduceDocument(values.get('document')??null,event);put('document',next.id,next);
++            if(event.type==='DocumentCreated'||event.type==='ImageEdited')put('history',event.payload.history.id,event.payload.history);
++            else if(event.type==='CheckpointSaved')put('checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
++          }
++          put('event',event.eventId,event.workspaceSeq);
++        }catch(error){validationError=error;tx.abort();}
++      };
+     }
+-    const next=reduceDocument(previous,event);
+-    await this.put(generation,'document',next.id,next);
+-    if((event.type==='DocumentCreated'||event.type==='ImageEdited')) await this.put(generation,'history',event.payload.history.id,event.payload.history);
+-    else if(event.type==='CheckpointSaved') await this.put(generation,'checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
+-    }
+-    await this.put(generation,'event',event.eventId,event.workspaceSeq);
++    try{await done(tx);}catch(error){throw validationError??error;}
+   }
+   async applyEvents(generation: string,eventsStage: string,count: bigint) {
+     for(let i=0n;i<count;i++) {const event=await this.value(eventsStage,'staged',String(i));requireValue(event);await this.apply(generation,event);}
+diff --git a/tests/recovery/consumer.spec.ts b/tests/recovery/consumer.spec.ts
+index dfc9c79..df63c35 100644
+--- a/tests/recovery/consumer.spec.ts
++++ b/tests/recovery/consumer.spec.ts
+@@ -19,6 +19,20 @@ async function snapshotFixture(){const w=await openWriter({root});const ref=awai
+ const state=(page:any)=>page.evaluate(()=> (window as any).harness.read());
+ const recover=(page:any)=>page.evaluate(async()=>{try{return {cursor:await (window as any).harness.client.recover()};}catch(e){return {error:String(e)};}});
+ 
++test('private event application rolls back every row on a write fault and retains duplicate checks',async({page})=>{
++  const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);await w.close();await start(page);
++  const result=await page.evaluate(async()=>{
++    const h=(window as any).harness,page=await(await h.transport('/api/v1/events?after=0')).json(),event=page.batches[0].events[0],generation='write-fault';
++    const put=IDBObjectStore.prototype.put;let failure='';
++    IDBObjectStore.prototype.put=function(value,key){if(Array.isArray(key)&&key[0]===generation&&key[1]==='history')throw new DOMException('Injected private history write fault','QuotaExceededError');return put.call(this,value,key);};
++    try{await h.cache.apply(generation,event);}catch(error){failure=(error as Error).name;}finally{IDBObjectStore.prototype.put=put;}
++    const partial={document:await h.cache.value(generation,'document',event.documentId),history:await h.cache.value(generation,'history',event.payload.history.id),event:await h.cache.value(generation,'event',event.eventId)};
++    await h.cache.apply(generation,event);let duplicate='';try{await h.cache.apply(generation,event);}catch(error){duplicate=String(error);}
++    return {failure,partial,duplicate,published:await h.cache.published(),document:await h.cache.value(generation,'document',event.documentId),event:await h.cache.value(generation,'event',event.eventId)};
++  });
++  expect(result.failure).toBe('QuotaExceededError');expect(result.partial).toEqual({document:undefined,history:undefined,event:undefined});expect(result.duplicate).toContain('Duplicate event identity');expect(result.published.cursor).toBe('0');expect(result.document.revision).toBe('1');expect(result.event).toBe('1');
++});
++
+ test('browser snapshot plus pinned tail publishes at H only and preserves prior view on download failure',async({page})=>{
+   const ref=await snapshotFixture();await start(page);
+   // A previous published view is deliberately distinct from the incoming snapshot.

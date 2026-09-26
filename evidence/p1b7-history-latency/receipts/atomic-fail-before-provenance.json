@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-26T14:27:33.799755+00:00",
+  "attempt": 25,
+  "fixtureBuildCommand": "19-recovery-build",
+  "fixtureSourceCommit": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+  "sourceInputsAtCommit": {
+    "src/state/recovery-cache.ts": "ef6d088d00206e1e6c7c39fa7b533b27105ded0271244fd5a708bcefec234bda",
+    "src/state/recovery-client.ts": "80b12c46049cbf8529ac0b91a890c654489999882049e69b0942872d9e96938f",
+    "src/state/projection.ts": "9cf86f8a121bcef8b07879405d5989189df615684b46aa64185da9e0cb0b63f5",
+    "tests/recovery/app/main.ts": "cdef66afa99be3c2d80a9f5bd60daa0d93112a2e272da9d9d056a4c5ae71dba2",
+    "tests/recovery/vite.config.ts": "89027dd103f028352f7970b2f6abe67d1831cddd60549496384bc5092e79106a",
+    "tests/recovery/playwright.config.ts": "5c29ec752064cf7c0963fcc4440ca9281a90db1b1ea19d4a8efd7addc3a0e1d9"
+  },
+  "fixtureBuildFiles": {
+    "19-recovery/browser-app/index.html": "9bf758f234cfb3bb46aea5690637c51fbe0475b34fbec2afb498d09d928cc69c",
+    "19-recovery/browser-app/assets/index-CE4_Z4qG.js": "83a14853d37098963850989e9a4b0907cf9b722f277b9981113dea39daa993b5"
+  },
+  "sourceAttribution": "Retained command19-build/build log made this frozen fixture with earlier bef code. Build bytes retained, not a new rebuild/reproducibility claim. Attempt25 serves that directory; it does not serve dist/app.",
+  "testSource": {
+    "path": "tests/recovery/consumer.spec.ts",
+    "sha256": "c84a069d56513ec32a81aad37b145bf8608dee8a12a81858816975f67d4cb549",
+    "note": "New write-fault/replay regression added after bef; unchanged through atomic corrected13-pass gate28."
+  },
+  "failure": "Injected history write QuotaExceededError happens after earlier separate document transaction committed. Retry DocumentCreated sees existing private document and throws Invalid creation; no publication was performed by this fixture. Current atomic event transaction aborts every row; gate28 proves absence and subsequent successful apply/duplicate rejection.",
+  "reporterOverwrite": {
+    "originalAttempt19Reporter": "UNAVAILABLE; no original hash recorded, no reconstruction",
+    "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery/recovery-browser.json",
+    "currentPathBelongsToAttempt": 25,
+    "currentSha256": "fe63b965f8db5bed90aa93da110ad5541d155a9786016f3658f7b9382af532a4",
+    "attributedCopy": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/25-atomic-before/recovery-browser.json",
+    "copySha256": "fe63b965f8db5bed90aa93da110ad5541d155a9786016f3658f7b9382af532a4",
+    "retained19": "stdout12-pass + commandUTC/exit + build log/frozen fixture; current19 JSON does not support original pass"
+  },
+  "environmentFor25": {
+    "IE_RECOVERY_OUTPUT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery"
+  },
+  "environmentFor28": {
+    "IE_RECOVERY_OUTPUT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery"
+  }
+}

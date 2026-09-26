@@ -1,0 +1,160 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts",
+      "--output",
+      "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser",
+      "--grep",
+      "actual SQLite FULL"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "recovery.spec.ts",
+      "file": "recovery.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6913,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeInViewport\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Check and retry original', exact: true })\nExpected: in viewport\nReceived: viewport ratio 0\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeInViewport\" getByRole('button', { name: 'Check and retry original', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Check and retry original', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"secondary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"viewport ratio 0\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeInViewport\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Check and retry original', exact: true })\nExpected: in viewport\nReceived: viewport ratio 0\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeInViewport\" getByRole('button', { name: 'Check and retry original', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Check and retry original', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"secondary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"viewport ratio 0\"\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:141:171",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                      "column": 171,
+                      "line": 141
+                    },
+                    "snippet": "  139 |  for(const viewport of [{width:320,height:700},{width:720,height:500}]){\n  140 |   await page.setViewportSize(viewport);const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});await status.focus();await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);\n> 141 |   for(let n=0;n<5&&!await retry.evaluate(n=>n.getRootNode().activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});\n      |                                                                                                                                                                           ^\n  142 |   const area=await status.boundingBox(),target=await retry.boundingBox();expect(target!.y).toBeGreaterThanOrEqual(area!.y);expect(target!.y+target!.height).toBeLessThanOrEqual(area!.y+area!.height);expect(await status.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);\n  143 |  }\n  144 |  await page.keyboard.press('Enter');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                        "column": 171,
+                        "line": 141
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeInViewport\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Check and retry original', exact: true })\nExpected: in viewport\nReceived: viewport ratio 0\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeInViewport\" getByRole('button', { name: 'Check and retry original', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Check and retry original', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"secondary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"viewport ratio 0\"\u001b[22m\n\n\n  139 |  for(const viewport of [{width:320,height:700},{width:720,height:500}]){\n  140 |   await page.setViewportSize(viewport);const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});await status.focus();await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);\n> 141 |   for(let n=0;n<5&&!await retry.evaluate(n=>n.getRootNode().activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});\n      |                                                                                                                                                                           ^\n  142 |   const area=await status.boundingBox(),target=await retry.boundingBox();expect(target!.y).toBeGreaterThanOrEqual(area!.y);expect(target!.y+target!.height).toBeLessThanOrEqual(area!.y+area!.height);expect(await status.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);\n  143 |  }\n  144 |  await page.keyboard.press('Enter');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:141:171"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:29:06.959Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                    "column": 171,
+                    "line": 141
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ef78f3da5c9c24fceacf-e5cddf413e752e63439b",
+          "file": "recovery.spec.ts",
+          "line": 130,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T14:29:06.624Z",
+    "duration": 7923.591,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

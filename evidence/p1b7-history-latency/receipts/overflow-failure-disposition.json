@@ -1,0 +1,15 @@
+{
+  "classification": "Candidate4 source runtime7427dd8; adjacent bounded status-area overflow defect, not original eb4 latency finding.",
+  "44": "Firefox25/26: all native held-click/history/draft tests pass; added keyboard End/Tab focused retry is outside region/viewport at narrow width.",
+  "48": "Focused same runtime plus stronger eventual InViewport assertion still fails ratio0 after5s. This disproves a mere early geometry assertion; real visibility correction needed.",
+  "change": "Scoped operation-status focusin reveals retargeted public host via nearest scrollIntoView; no focus setting, no private component query, no synthetic activation or state mutation.",
+  "sourceSnapshots": [
+    "candidate-4-source.json",
+    "44-recovery-source.ts"
+  ],
+  "gatesPending": [
+    "49-typecheck",
+    "50-build",
+    "new affected browser gates"
+  ]
+}

@@ -1,0 +1,1 @@
+import {defineConfig} from '/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/index.mjs';export default defineConfig({testDir:'.',testMatch:'recovery.spec.ts',workers:1,retries:0,timeout:90000,reporter:[['list']],use:{browserName:'firefox',viewport:{width:1440,height:1000},trace:'off'}});

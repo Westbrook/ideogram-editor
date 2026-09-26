@@ -1,0 +1,575 @@
+diff --git a/src/state/editor-client.ts b/src/state/editor-client.ts
+index 68a03aa..de33fff 100644
+--- a/src/state/editor-client.ts
++++ b/src/state/editor-client.ts
+@@ -1,6 +1,6 @@
+ import { createValueModel } from '@en-reve/primitives/state/value.js';
+ import type { createSessionClient } from './session-client.js';
+-import { RecoveryCache } from './recovery-cache.js';
++import { RecoveryCache, RecoveryPublicationConflict } from './recovery-cache.js';
+ import { RecoveryConsumer } from './recovery-client.js';
+ import { BrowserJournal } from './browser-journal.js';
+ import { DraftPersistence } from './draft-persistence.js';
+@@ -107,7 +107,20 @@ export class EditorClient {
+   }
+   async sync() {
+     if(this.syncTask)return this.syncTask;
+-    this.syncTask=(async()=>{this.stream?.abort();await this.streamTask;await this.consumer!.recover();await this.refresh();})().finally(()=>{this.syncTask=undefined;});
++    this.syncTask=(async()=>{
++      const cache=this.cache,consumer=this.consumer!,lifetime=this.lifecycle;
++      this.stream?.abort();await this.streamTask;
++      for(;;){
++        try{await consumer.recover();break;}
++        catch(error){
++          // Another tab won the pointer CAS (or retired our selected base).
++          // Start a whole new leased recovery, never accept its pointer as our
++          // command proof or retry unrelated storage/authority/validation errors.
++          if(!(error instanceof RecoveryPublicationConflict)||lifetime!==this.lifecycle||cache!==this.cache)throw error;
++        }
++      }
++      await this.refresh();
++    })().finally(()=>{this.syncTask=undefined;});
+     return this.syncTask;
+   }
+   private async refresh() {
+@@ -192,8 +205,9 @@ export class EditorClient {
+   async run(label:string,action:()=>Promise<void>,intentTime=performance.now()) {
+     if(this.view.busy)return;
+     this.patch({busy:true,message:label+'…',error:''});performance.clearMarks('ie.intent.'+label);performance.mark('ie.intent.'+label,{startTime:intentTime});
+-    // Pending feedback can paint before hashing/IO. Its clock never replaces the full action clock.
+-    await new Promise<void>(r=>requestAnimationFrame(()=>setTimeout(r,0)));
++    // Yield pending feedback without holding asynchronous journal/transport work
++    // until the next display frame. Hashing already yields in bounded slices.
++    await tick();
+     try{await action();}catch(error){this.fail(error);}finally{this.patch({busy:false});performance.clearMarks('ie.complete.'+label);performance.mark('ie.complete.'+label);}
+   }
+   fail(error:unknown) {
+@@ -214,11 +228,16 @@ export class EditorClient {
+     let value:CommandResult;
+     if(lookup){const response=await this.session.transport('/api/v1/commands/'+id);value=await response.json();if(value.kind==='unknown'||value.kind==='pending'&&value.phase==='waiting-for-resources')value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});}
+     else value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});
++    let receiptDelay=0;
+     for(;;){
+       delivery={...delivery,result:value};await this.journal!.put('command:'+id,delivery);await this.restorePending();
+       if(value.kind!=='pending')break;
+       if(value.phase==='waiting-for-resources')throw Error('waiting-for-resources');
+-      await pause(30);value=await this.json<CommandResult>('/api/v1/commands/'+id);
++      // A local command can finish while its pending identity is journaled.
++      // Probe promptly, then back off to the existing sustained cadence. Only
++      // one lookup is in flight; a wake never substitutes for its exact receipt.
++      await pause(receiptDelay);receiptDelay=receiptDelay===0?4:Math.min(30,receiptDelay*2);
++      value=await this.json<CommandResult>('/api/v1/commands/'+id);
+     }
+     if(value.kind!=='receipt')throw Error('RECEIPT_UNKNOWN');
+     if(value.receipt.status==='rejected'){
+diff --git a/src/state/recovery-cache.ts b/src/state/recovery-cache.ts
+index a0dbc28..e305d80 100644
+--- a/src/state/recovery-cache.ts
++++ b/src/state/recovery-cache.ts
+@@ -2,6 +2,9 @@ import type { DomainEvent } from '../protocol/store.js';
+ import { reduceDocument } from './projection.js';
+ import { requireValue } from '../protocol/validate.js';
+ export type Published = { generation: string; cursor: string; epoch: string | null };
++export class RecoveryPublicationConflict extends Error {
++  constructor(){super('Projection changed in another tab');this.name='RecoveryPublicationConflict';}
++}
+ const result = <T>(request: IDBRequest<T>) => new Promise<T>((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
+ const done = (tx: IDBTransaction) => new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onabort=()=>reject(tx.error??new Error('Cache transaction aborted'));tx.onerror=()=>reject(tx.error);});
+ export class RecoveryCache {
+@@ -43,36 +46,59 @@ export class RecoveryCache {
+   }
+   private range(generation: string) {return IDBKeyRange.bound([generation],[generation,[]]);}
+   async clone(from: string,to: string) {
+-    const tx=this.db.transaction('rows','readwrite');const store=tx.objectStore('rows');const cursor=store.openCursor(this.range(from));
+-    cursor.onsuccess=()=>{const c=cursor.result;if(!c)return;const key=c.key as string[];store.put(c.value,[to,...key.slice(1)]);c.continue();};await done(tx);
++    // Pin base selection and copying together: a competing publication may
++    // otherwise discard the selected generation before this transaction starts.
++    const tx=this.db.transaction(['meta','rows'],'readwrite');const store=tx.objectStore('rows');let conflict=false;
++    const pointer=tx.objectStore('meta').get('published');
++    pointer.onsuccess=()=>{
++      if((pointer.result?.generation??'empty')!==from){conflict=true;tx.abort();return;}
++      const cursor=store.openCursor(this.range(from));
++      cursor.onsuccess=()=>{const c=cursor.result;if(!c)return;const key=c.key as string[];store.put(c.value,[to,...key.slice(1)]);c.continue();};
++    };
++    try{await done(tx);}catch(error){if(conflict)throw new RecoveryPublicationConflict();throw error;}
+   }
+   async discard(generation: string) {
+     const tx=this.db.transaction('rows','readwrite');tx.objectStore('rows').delete(this.range(generation));await done(tx);
+   }
+   async apply(generation: string,event: DomainEvent) {
+     // Each staged row is private; only the published pointer exposes a complete view.
+-    const previous=event.documentId?await this.value(generation,'document',event.documentId)??null:null;
+-    requireValue(!await this.value(generation,'event',event.eventId),'Duplicate event identity');
+-    if(event.type==='AssetRegistered'){requireValue(!await this.value(generation,'asset',event.payload.asset.id),'Duplicate asset');await this.put(generation,'asset',event.payload.asset.id,event.payload.asset);}
+-    else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
+-    if(event.type==='BundleImported'){
+-      const hydrated=await this.value(generation,'namespace',event.payload.namespaceId);
+-      requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
+-    }
+-    const next=reduceDocument(previous,event);
+-    await this.put(generation,'document',next.id,next);
+-    if((event.type==='DocumentCreated'||event.type==='ImageEdited')) await this.put(generation,'history',event.payload.history.id,event.payload.history);
+-    else if(event.type==='CheckpointSaved') await this.put(generation,'checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
++    // Read checks and their writes share one transaction. No await crosses its
++    // active callbacks, and no event marker survives a failed reducer/write.
++    const tx=this.db.transaction('rows','readwrite'),store=tx.objectStore('rows');let validationError:unknown;
++    const checks:[string,string][]=[['event',event.eventId]];
++    if(event.documentId)checks.push(['document',event.documentId]);
++    if(event.type==='AssetRegistered')checks.push(['asset',event.payload.asset.id]);
++    if(event.type==='BundleImported')checks.push(['namespace',event.payload.namespaceId]);
++    const values=new Map<string,any>();let remaining=checks.length;
++    const put=(type:string,id:string,value:unknown)=>store.put(value,[generation,type,id]);
++    for(const [type,id] of checks){
++      const read=store.get([generation,type,id]);read.onsuccess=()=>{
++        values.set(type,read.result);if(--remaining)return;
++        try{
++          requireValue(!values.get('event'),'Duplicate event identity');
++          if(event.type==='AssetRegistered'){requireValue(!values.get('asset'),'Duplicate asset');put('asset',event.payload.asset.id,event.payload.asset);}
++          else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
++            if(event.type==='BundleImported'){
++              const hydrated=values.get('namespace');requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
++            }
++            const next=reduceDocument(values.get('document')??null,event);put('document',next.id,next);
++            if(event.type==='DocumentCreated'||event.type==='ImageEdited')put('history',event.payload.history.id,event.payload.history);
++            else if(event.type==='CheckpointSaved')put('checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
++          }
++          put('event',event.eventId,event.workspaceSeq);
++        }catch(error){validationError=error;tx.abort();}
++      };
+     }
+-    await this.put(generation,'event',event.eventId,event.workspaceSeq);
++    try{await done(tx);}catch(error){throw validationError??error;}
+   }
+   async applyEvents(generation: string,eventsStage: string,count: bigint) {
+     for(let i=0n;i<count;i++) {const event=await this.value(eventsStage,'staged',String(i));requireValue(event);await this.apply(generation,event);}
+   }
+   async publish(next: Published,expected: Published) {
+-    const tx=this.db.transaction('meta','readwrite');const store=tx.objectStore('meta');const request=store.get('published');
++    const tx=this.db.transaction('meta','readwrite');const store=tx.objectStore('meta');const request=store.get('published');let conflict=false;
+     request.onsuccess=()=>{const current=request.result??{generation:'empty',cursor:'0',epoch:null};
+-      if(current.generation!==expected.generation||current.cursor!==expected.cursor||current.epoch!==expected.epoch)tx.abort();else store.put(next,'published');};await done(tx);
++      if(current.generation!==expected.generation||current.cursor!==expected.cursor||current.epoch!==expected.epoch){conflict=true;tx.abort();}else store.put(next,'published');};
++    try{await done(tx);}catch(error){if(conflict)throw new RecoveryPublicationConflict();throw error;}
+     // Old published data remains intact until the pointer transaction commits.
+     await this.discard(expected.generation).catch(()=>{});
+   }
+diff --git a/src/theme/shell.css b/src/theme/shell.css
+index 8da5c1f..140825e 100644
+--- a/src/theme/shell.css
++++ b/src/theme/shell.css
+@@ -187,8 +187,9 @@ en-toolbar::part(base) {flex-wrap:wrap;}
+ en-button {max-width:100%;}
+ en-button::part(control) {white-space:normal;}
+ .bar-end {flex-wrap:wrap;}
+-.operation-status {padding:8px 18px;background:var(--en-color-surface);border-bottom:1px solid var(--en-color-line);font-size:12px;}
+-.operation-status:has(en-validation-summary) {max-height:180px;overflow:auto;}
++/* Receipt updates must not move an enabled native control during a press.
++   Keep this status region stable; longer recovery/error content stays scrollable. */
++.operation-status {block-size:6rem;flex-shrink:0;overflow:auto;scrollbar-gutter:stable;padding:8px 18px;background:var(--en-color-surface);border-bottom:1px solid var(--en-color-line);font-size:12px;}
+ .pending,.actions {display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-block:8px;}
+ .request-fields>* {margin-block:12px;}
+ .request-fields p {font-size:12px;}
+diff --git a/src/ui/shell.ts b/src/ui/shell.ts
+index 8a29139..d578cd2 100644
+--- a/src/ui/shell.ts
++++ b/src/ui/shell.ts
+@@ -162,6 +162,13 @@ class EditorShell extends LitElement {
+   }
+   private showPanel(panel:NonNullable<EditorShell['panel']>){void editor.run('Open '+panel,async()=>{await this.panels();if(panel==='open'){await editor.listUI();await editor.listStages();}this.panel=panel;this.requestUpdate();await this.updateComplete;this.querySelector<EnDialog>('#editor-dialog')?.show();});}
+   private action(event:Event,label:string,work:()=>Promise<void>){this.adapter.action(event,()=>{void editor.run(label,work,event.timeStamp);});}
++  private statusNavigation=(event:KeyboardEvent)=>{
++    const region=event.currentTarget;
++    if(event.defaultPrevented||event.isComposing||this.composition||event.keyCode===229||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||!['Home','End'].includes(event.key)||!(region instanceof HTMLElement)||region.tagName!=='SECTION'||event.target!==region||document.activeElement!==region||!region.isConnected||region.isContentEditable)return;
++    // Only this app-owned scroll region consumes its own navigation keys.
++    // Descendant native editing/activation and normal page navigation keep ownership.
++    event.preventDefault();region.scrollTo({top:event.key==='Home'?0:region.scrollHeight,behavior:'instant'});
++  };
+   private closePanel(){this.panel=null;this.requestUpdate();}
+   private async prepare(work:()=>Promise<void>){await this.panels();await work();this.panel=null;this.requestUpdate();await this.updateComplete;this.querySelector<EnDialog>('#review-dialog')?.show();}
+   private input=(event:DraftInputEvent)=>{
+@@ -262,7 +269,7 @@ class EditorShell extends LitElement {
+     <div class="bar-end"><en-button id="session-trigger" variant="ghost">${statusName[session.connection]}</en-button><en-popover for="session-trigger" label="Local connection"><p>${session.message}</p><p>No provider request is available in this workflow.</p><div class="actions"><en-button variant="secondary" ?disabled=${session.busy} @click=${()=>connection.resume()}>Check connection</en-button><en-button variant="secondary" ?disabled=${session.busy||session.connection!=='paired'} @click=${()=>connection.renew()}>Renew connection</en-button><en-button variant="ghost" ?disabled=${session.busy||session.connection!=='paired'} @click=${()=>connection.revoke()}>Disconnect</en-button></div></en-popover>
+     <en-button variant="secondary" ?disabled=${locked||!d} @click=${()=>this.showPanel('copy')}>Save copy</en-button><en-button ?disabled=${locked||!d} @click=${(e:Event)=>this.action(e,'Export exact PNG',()=>editor.export())}>Export image</en-button><en-button id="help-trigger" variant="ghost" aria-describedby="help-description" @click=${()=>void this.panels().then(()=>this.querySelector<EnDialog>('#help-drawer')?.show())}>Help</en-button><span id="help-description" class="help-description">Shortcuts and recovery</span></div></header>
+     ${session.connection!=='paired'?html`<section class="connection-panel"><p>${session.message}</p><en-button variant="secondary" ?disabled=${session.busy} @click=${()=>connection.resume()}>Check connection</en-button></section>`:nothing}
+-    <section class="operation-status" aria-label="Operation status" aria-busy=${view.busy}><p role="status">${view.message}</p>${view.recovery?html`<p>${view.recovery}</p><en-button @click=${(e:Event)=>this.action(e,'Reconnect',async()=>{this.repaintKey='';await editor.connect();})}>Reconnect</en-button>`:nothing}${view.error&&!this.panel&&!view.review?html`<en-validation-summary heading="Action needs attention" .items=${[{target:'inspector',message:view.error}]} @en-action=${(e:Event)=>{e.preventDefault();this.inspectorOpen=true;this.requestUpdate();void this.updateComplete.then(()=>this.querySelector<HTMLElement>('#inspector')?.focus());}}></en-validation-summary>`:nothing}
++    <section class="operation-status" aria-label="Operation status" tabindex="0" @keydown=${this.statusNavigation} aria-busy=${view.busy}><p role="status">${view.message}</p>${view.recovery?html`<p>${view.recovery}</p><en-button @click=${(e:Event)=>this.action(e,'Reconnect',async()=>{this.repaintKey='';await editor.connect();})}>Reconnect</en-button>`:nothing}${view.error&&!this.panel&&!view.review?html`<en-validation-summary heading="Action needs attention" .items=${[{target:'inspector',message:view.error}]} @en-action=${(e:Event)=>{e.preventDefault();this.inspectorOpen=true;this.requestUpdate();void this.updateComplete.then(()=>this.querySelector<HTMLElement>('#inspector')?.focus());}}></en-validation-summary>`:nothing}
+     ${view.uiPending.map(id=>html`<p>UI change receipt unknown. Current draft text is retained.</p><en-button ?disabled=${view.busy||!view.ready} @click=${(e:Event)=>this.action(e,'Retry original UI draft',()=>editor.retryDraft(id))}>Retry original draft delivery</en-button>`)}${view.pending.map(p=>html`<div class="pending"><span>${p.label} · ${p.result?.kind==='pending'?p.result.phase:'receipt unknown'}</span><en-button variant="secondary" ?disabled=${view.busy||!view.ready} @click=${(e:Event)=>this.action(e,'Retry original operation',()=>editor.retry(p.request.command.commandId))}>Check and retry original</en-button></div>`)}</section>
+     <div class="mobile-openers"><en-button variant="secondary" id="request-opener" @click=${()=>void this.togglePane('request')}>${this.requestOpen?'Hide request':'Show request'}</en-button><en-button variant="secondary" id="inspector-opener" @click=${()=>void this.togglePane('inspector')}>${this.inspectorOpen?'Hide layers':'Show layers'}</en-button></div>
+     <main class="workspace" aria-label="Image editor"><aside class="tool-rail"><en-toolbar label="Canvas tools" orientation=${this.narrow?'horizontal':'vertical'}>${['Move','Text','Select','Mask','Crop','Pan','Zoom'].map(name=>html`<en-button variant="ghost" ?disabled=${!['Pan','Zoom'].includes(name)} aria-pressed=${this.tool===name} @click=${()=>{this.tool=name;this.requestUpdate();}}>${name}</en-button>`)}</en-toolbar></aside>
+diff --git a/tests/editor/analyze-history-v2.py b/tests/editor/analyze-history-v2.py
+new file mode 100644
+index 0000000..fc65849
+--- /dev/null
++++ b/tests/editor/analyze-history-v2.py
+@@ -0,0 +1,148 @@
++"""Version 2: bounded retrospective history Paint analysis; no live observer changes.
++
++The original independent analyzer is retained externally, unchanged. This version
++allows the first correct covering Paint to follow DOM verification only when all
++original prerequisites precede verification and an explicit later interference
++boundary limits the search. It fails closed rather than inferring a trace end.
++"""
++import hashlib
++import json
++import math
++import pathlib
++import sys
++
++LABELS = {'undo': 'Undo', 'redo': 'Redo', 'checkpoint': 'Save checkpoint'}
++PASSIVE = {'Paint', 'RunTask', 'FunctionCall', 'Layout', 'UpdateLayoutTree',
++           'DrawFrame', 'Commit', 'CompositeLayers'}
++
++# Pinned Playwright diagnostic bookkeeping only; all other native dispatches
++# remain boundaries (including unknown event types). Source attribution is
++# retained alongside the retrospective validation receipt.
++TOOLING_DISPATCH = {'__playwright_reset_targets__', '__playwright_mark_target__'}
++
++def passive(event):
++    return event['name'] in PASSIVE or (event['name'] == 'EventDispatch'
++        and event.get('args', {}).get('type') in TOOLING_DISPATCH)
++
++def require(condition, reason):
++    if not condition:
++        raise ValueError(reason)
++
++
++def detail(event):
++    value = event.get('args', {}).get('detail')
++    return json.loads(value) if isinstance(value, str) else value or {}
++
++
++def analyze(trace, steps):
++    events = sorted(trace, key=lambda event: event['ts'])
++    rows = []
++    for index, step in enumerate(steps):
++        name = step['name']
++        if name not in LABELS and not name.startswith('opacity-'):
++            continue
++        label = LABELS.get(name, 'Apply properties')
++        def only(marker):
++            found = [e for e in events if e['name'] == marker]
++            require(len(found) == 1, name + ': missing/duplicate ' + marker)
++            return found[0]
++        start = only('ie.test.start.' + name)
++        stop = only('ie.test.verified.' + name)
++        require(start['pid'] == stop['pid'] and start['ts'] < stop['ts'], name + ': marker order/process')
++        group = [e for e in events if start['ts'] <= e['ts'] <= stop['ts'] and e['pid'] == start['pid']]
++        intents = [e for e in group if e['name'].startswith('ie.intent.')]
++        complete = [e for e in group if e['name'].startswith('ie.complete.')]
++        require(len(intents) == len(complete) == 1, name + ': expected one intent/completion')
++        intent = intents[0]
++        require(intent['name'] == 'ie.intent.' + label and complete[0]['name'] == 'ie.complete.' + label,
++                name + ': wrong action identity')
++        revision = step['document'].split('revision ')[-1]
++        require(revision.isdecimal() and step.get('asset'), name + ': missing revision/asset')
++        # Independently captured browser mark snapshot supplies expected document
++        # identity; neither a same-number revision in another document nor an
++        # asset-only draw satisfies the prerequisites.
++        expected = [m['detail'] for m in step['marks'] if m['name'] == 'ie.editor.updated'
++                    and m.get('detail', {}).get('revision') == revision]
++        identities = {m.get('documentId') for m in expected}
++        require(len(identities) == 1 and None not in identities and '' not in identities,
++                name + ': missing/ambiguous expected document')
++        document_id = next(iter(identities))
++        correct = [e for e in group if e['name'] == 'ie.editor.updated'
++                   and detail(e).get('revision') == revision and detail(e).get('documentId') == document_id]
++        settled = [e for e in correct if detail(e).get('busy') is False and detail(e).get('ready') is True]
++        draws = [e for e in group if e['name'] == 'ie.canvas.drawn'
++                 and detail(e) == {'documentId': document_id, 'revision': revision, 'assetId': step['asset']}]
++        require(index > 0 and steps[index-1].get('asset'), name + ': missing predecessor asset')
++        changed = step['asset'] != steps[index-1]['asset']
++        require(correct and settled and (not changed or draws), name + ': missing exact prerequisite before verified')
++        required = max([complete[0]['ts'], settled[0]['ts']] + ([draws[0]['ts']] if changed else []))
++        require(intent['ts'] <= min(complete[0]['ts'], settled[0]['ts']) <= required <= stop['ts'],
++                name + ': prerequisite order')
++        box = step['canvasBox']
++        require(all(math.isfinite(box[k]) for k in ('x', 'y', 'width', 'height'))
++                and box['width'] > 0 and box['height'] > 0 and step.get('canvasBackendNodeId'), name + ': canvas identity/geometry')
++        def covers(event):
++            clip = event.get('args', {}).get('clip', [])
++            return len(clip) == 8 and all(math.isfinite(x) for x in clip) and min(clip[::2]) <= box['x'] and max(clip[::2]) >= box['x'] + box['width'] and min(clip[1::2]) <= box['y'] and max(clip[1::2]) >= box['y'] + box['height']
++        paint = next((e for e in events if e['pid'] == start['pid'] and e['name'] == 'Paint'
++                      and e['ts'] >= required and covers(e)), None)
++        require(paint is not None, name + ': no correct covering Paint')
++        paint_end = paint['ts'] + paint.get('dur', 0)
++        require(math.isfinite(paint_end) and paint.get('dur', 0) >= 0, name + ': invalid Paint end')
++        # Reject intervening supersession even before DOM verification. Duplicate
++        # updates of the same settled state do not invalidate the prerequisite.
++        for event in events:
++            if event['pid'] != start['pid'] or not required < event['ts'] < paint_end:
++                continue
++            kind = event['name']
++            value = detail(event)
++            if kind == 'ie.editor.updated':
++                require(value.get('documentId') == document_id and value.get('revision') == revision
++                        and value.get('busy') is False and value.get('ready') is True, name + ': state superseded')
++            elif kind == 'ie.canvas.drawn':
++                require(value == {'documentId': document_id, 'revision': revision, 'assetId': step['asset']}, name + ': asset superseded')
++            elif not passive(event) and kind != 'ie.test.verified.' + name:
++                raise ValueError(name + ': intervening signal ' + kind)
++        boundary = None
++        if paint_end > stop['ts']:
++            # All non-passive records conservatively bound this extension,
++            # including unknown app marks, native dispatch, navigation and errors.
++            # An absent next signal is inconclusive: a Paint itself cannot prove
++            # a later finite trace boundary or continued target identity.
++            boundary = next((e for e in events if e['pid'] == start['pid'] and e['ts'] > stop['ts']
++                             and not passive(e)), None)
++            require(boundary is not None and math.isfinite(boundary['ts']), name + ': no finite interference boundary')
++            require(paint_end < boundary['ts'], name + ': Paint reaches interference boundary')
++        ms = lambda stamp: round((stamp - intent['ts']) / 1000, 3)
++        rows.append({'action': name, 'intent': intent, 'documentId': document_id, 'revision': revision,
++                     'asset': step['asset'], 'assetChanged': changed,
++                     'firstCorrectRevisionMs': ms(correct[0]['ts']), 'firstSettledRevisionMs': ms(settled[0]['ts']),
++                     'firstCompleteMs': ms(complete[0]['ts']), 'matchingDrawMs': ms(draws[0]['ts']) if draws else None,
++                     'completedCoveringPaintMs': ms(paint_end), 'paint': paint, 'canvasBox': box,
++                     'testAssertionMs': ms(stop['ts']), 'postVerifiedPaint': paint_end > stop['ts'],
++                     'finiteBoundary': boundary})
++    require(rows, 'No admissible history actions')
++    return rows
++
++
++def digest(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def main():
++    folder, output = map(pathlib.Path, sys.argv[1:])
++    require(not output.exists(), 'Refusing to overwrite an existing analysis output')
++    inputs = {name: digest(folder/name) for name in ['paint-trace.json', 'action-steps.json']}
++    actions = analyze(json.loads((folder/'paint-trace.json').read_text())['traceEvents'],
++                      json.loads((folder/'action-steps.json').read_text())['steps'])
++    result = {'version': 2, 'retrospective': True, 'source': str(folder), 'inputSha256': inputs,
++              'analyzerSha256': digest(pathlib.Path(__file__)),
++              'boundary': 'Unchanged native intent through FIRST correct covering renderer Paint END. Exact document/revision/asset, settled state, single completion and required changed-asset draw precede DOM verification. Post-verification Paint must end before the next explicit non-passive signal; absent bounds fail closed. No GPU/physical display, formal W1/H, population or independent approval claim.',
++              'actions': actions}
++    output.write_text(json.dumps(result, indent=2) + '\n')
++    print(json.dumps([{'action': r['action'], 'completedCoveringPaintMs': r['completedCoveringPaintMs'],
++                       'postVerifiedPaint': r['postVerifiedPaint']} for r in actions], indent=2))
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/tests/editor/recovery.spec.ts b/tests/editor/recovery.spec.ts
+index f295667..61d0c45 100644
+--- a/tests/editor/recovery.spec.ts
++++ b/tests/editor/recovery.spec.ts
+@@ -18,6 +18,77 @@ async function setup(page:Page,context:BrowserContext){
+  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
+  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
+ }
++test('history receipt probes stay serial and one action waits for exact accepted result proof',async({page,context})=>{
++ const f=await setup(page,context);let releaseReceipt=()=>{},releaseProof=()=>{};
++ try{
++ const original=await page.locator('canvas').getAttribute('data-asset');await page.getByRole('treeitem').click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.5');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
++ let id='',pending:any,lookups=0,active=0,maxActive=0;const wires:string[]=[];
++ const receiptGate=new Promise<void>(r=>releaseReceipt=r),proofGate=new Promise<void>(r=>releaseProof=r);let receiptHit=()=>{},proofHit=()=>{};
++ const heldReceipt=new Promise<void>(r=>receiptHit=r),heldProof=new Promise<void>(r=>proofHit=r);
++ await page.route('**/api/v1/commands',async route=>{
++  if(route.request().method()!=='POST'||JSON.parse(route.request().postData()!).command.body.type!=='Undo'){await route.continue();return;}
++  wires.push(route.request().postData()!);id=JSON.parse(wires[0]).command.commandId;const response=await route.fetch();pending=await response.json();expect(pending.kind).toBe('pending');await route.fulfill({response});
++ });
++ await page.route('**/api/v1/commands/*',async route=>{
++  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id){await route.continue();return;}
++  active++;maxActive=Math.max(maxActive,active);lookups++;
++  try{
++   // Replay delayed, real pending observations, then hold one receipt read.
++   // This is a delivery fault oracle, not a timing specimen or synthetic receipt.
++   if(lookups<=2){await route.fulfill({status:202,json:pending});return;}
++   receiptHit();await receiptGate;await route.continue();
++  }finally{active--;}
++ });
++ await page.route('**/api/v1/commands/*/result',async route=>{
++  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id+'/result'){await route.continue();return;}
++  // Node-side route.fetch omits Chromium's browser-supplied Fetch Metadata.
++  // Bind this fault-injection read to the already paired test origin; normal
++  // browser authorization remains covered by the unchanged boundary tests.
++  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});expect(response.status()).toBe(200);proofHit();await proofGate;await route.fulfill({response});
++ });
++ await click(page,'Undo');await heldReceipt;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');expect(wires).toHaveLength(1);expect(lookups).toBe(3);expect(maxActive).toBe(1);await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
++ releaseReceipt();await heldProof;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
++ releaseProof();await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);expect(wires).toHaveLength(1);expect((await f.read('/api/v1/commands/'+id+'/original')).text).toBe(wires[0]);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);
++ }finally{releaseReceipt();releaseProof();await page.unrouteAll({behavior:'wait'});await f.server.close();}
++});
++
++test('history completion retries complete recovery when another tab replaces the staged base',async({page,context})=>{
++ const f=await setup(page,context);let release=()=>{};try{
++ await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');const original=await page.locator('canvas').getAttribute('data-asset');await page.getByRole('treeitem').click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.5');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
++ const other=await context.newPage();await other.goto(f.server.origin);await expect(other.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
++ let entered=()=>{},held=false,reads=0;const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);const wires:string[]=[];
++ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'&&JSON.parse(r.postData()!).command.body.type==='Undo')wires.push(r.postData()!);});
++ await page.route('**/api/v1/events?*',async route=>{
++  if(new URL(route.request().url()).searchParams.has('recoveryId')){await route.continue();return;}
++  reads++;if(held){await route.continue();return;}held=true;
++  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});expect(response.status()).toBe(200);entered();await gate;await route.fulfill({response});
++ });
++ await click(page,'Undo');await hit;
++ // A full other-tab recovery replaces/discards the old shared generation even
++ // if its cursor already includes Undo. The held reader must restart its proof.
++ await other.reload();await expect(other.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();release();
++ await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);await expect(page.locator('.document-name')).toHaveText(await other.locator('.document-name').textContent()??'');expect(reads).toBeGreaterThan(1);expect(wires).toHaveLength(1);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);await other.close();
++ }finally{release();await page.unrouteAll({behavior:'wait'});await f.server.close();}
++});
++
++test('autosave receipt completion keeps the native Apply target stable during a held pointer press',async({page,context})=>{
++ const f=await setup(page,context);let release=()=>{},pressed=false;try{
++ await page.getByRole('treeitem').click();let id='';const edits:string[]=[];
++ page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const c=JSON.parse(r.postData()!).command;if(c.body.type==='FinalizeStaging')id=c.commandId;if(c.body.type==='SetLayerProperties')edits.push(r.postData()!);}});
++ let entered=()=>{};const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);
++ await page.route('**/api/v1/commands/*',async route=>{
++  if(!id||new URL(route.request().url()).pathname!=='/api/v1/commands/'+id){await route.continue();return;}
++  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});if(response.status()===202){await route.fulfill({response});return;}expect(response.status()).toBe(200);entered();await gate;await route.fulfill({response});
++ });
++ await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Stable native Apply');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await hit;
++ const apply=page.getByRole('button',{name:'Apply properties',exact:true});await apply.scrollIntoViewIfNeeded();await expect(apply).toBeEnabled();
++ const node=await apply.elementHandle(),before=await apply.boundingBox();expect(before).toBeTruthy();await page.mouse.move(before!.x+before!.width/2,before!.y+before!.height/2);await page.mouse.down();pressed=true;
++ release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true})).toBeVisible();
++ const after=await apply.boundingBox();await page.mouse.up();pressed=false;
++ expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
++ }finally{release();if(pressed)await page.mouse.up();await page.unrouteAll({behavior:'wait'});await f.server.close();}
++});
++
+ test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
+  const f=await setup(page,context);try{
+  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];
+@@ -64,7 +135,31 @@ test('actual SQLite FULL pauses a browser command and exact original delivery su
+  // the writer connection's 512-page limit during its real command transaction.
+  const db=new DatabaseSync(join(root,'metadata.sqlite'));db.exec('CREATE TABLE browser_fault_fill(bytes BLOB); CREATE TRIGGER browser_fault_full BEFORE INSERT ON commands BEGIN INSERT INTO browser_fault_fill VALUES(zeroblob(8388608)); END;');db.close();
+  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')wires.push(r.postData()!);});await click(page,'New');await click(page,'Create');await expect(page.getByText(/Storage paused/)).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();const read=new DatabaseSync(join(root,'metadata.sqlite'));expect(read.prepare('SELECT count(*) n FROM commands').get()!.n).toBe(0);expect(read.prepare('SELECT count(*) n FROM documents').get()!.n).toBe(0);read.exec('DROP TRIGGER browser_fault_full; DROP TABLE browser_fault_fill;');read.close();
+- await click(page,'Cancel');await click(page,'Check and retry original');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
++ await click(page,'Cancel');
++ for(const viewport of [{width:320,height:700},{width:720,height:500}]){
++  await page.setViewportSize(viewport);const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});await status.focus();await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);await page.keyboard.press('Home');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBe(0);await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);
++  for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});
++  const area=await status.boundingBox(),target=await retry.boundingBox();expect(target!.y).toBeGreaterThanOrEqual(area!.y);expect(target!.y+target!.height).toBeLessThanOrEqual(area!.y+area!.height);expect(await status.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);
++ }
++ // Guard checks follow the unchanged native 320→720 navigation sequence.
++ // Synthetic keys establish handler ownership only, not native IME qualification.
++ const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});
++ const excluded=await status.evaluate(region=>{
++  const before=region.scrollTop,focused=document.activeElement!;
++  return [region,focused].map(target=>{const e=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true});target.dispatchEvent(e);return {prevented:e.defaultPrevented,unchanged:region.scrollTop===before};});
++ });expect(excluded).toEqual([{prevented:false,unchanged:true},{prevented:false,unchanged:true}]);
++ await status.focus();
++ const guards=await status.evaluate(region=>{
++  if(document.activeElement!==region)throw Error('Guard precondition: region must own focus');
++  const cases=[{ctrlKey:true},{metaKey:true},{altKey:true},{shiftKey:true},{isComposing:true},{key:'ArrowLeft'},{key:'Tab'},{key:'Enter'}];const before=region.scrollTop;
++  const results=cases.map(flags=>{const e=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true,...flags});region.dispatchEvent(e);return {prevented:e.defaultPrevented,unchanged:region.scrollTop===before};});
++  const vetoed=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true});vetoed.preventDefault();region.dispatchEvent(vetoed);
++  let propagated=false;const observe=(e:Event)=>{if(e===accepted)propagated=true;};const accepted=new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true});document.addEventListener('keydown',observe);region.dispatchEvent(accepted);document.removeEventListener('keydown',observe);
++  return {results,vetoPreserved:vetoed.defaultPrevented&&region.scrollTop===before,accepted:accepted.defaultPrevented,propagated};
++ });expect(guards).toEqual({results:Array.from({length:8},()=>({prevented:false,unchanged:true})),vetoPreserved:true,accepted:true,propagated:true});
++ await page.keyboard.press('Shift+Tab');expect(await status.evaluate(n=>n.contains(document.activeElement))).toBe(false);
++ await status.focus();await page.keyboard.press('End');for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});
++ await page.keyboard.press('Enter');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
+  }finally{await server.close();}
+ });
+ 
+diff --git a/tests/editor/validate-history-v2.py b/tests/editor/validate-history-v2.py
+new file mode 100644
+index 0000000..971ff71
+--- /dev/null
++++ b/tests/editor/validate-history-v2.py
+@@ -0,0 +1,77 @@
++"""Offline retained-trace positive and mutation controls; never runs a browser."""
++import copy
++import datetime
++import hashlib
++import importlib.util
++import json
++import pathlib
++import sys
++
++analyzer_path = pathlib.Path(__file__).with_name('analyze-history-v2.py')
++spec = importlib.util.spec_from_file_location('history_v2', analyzer_path)
++analyzer = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(analyzer)
++bef, eb4, output = map(pathlib.Path, sys.argv[1:])
++output.mkdir(parents=True, exist_ok=False)
++sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
++load = lambda p: json.loads(p.read_text())
++def run(folder):
++    return analyzer.analyze(load(folder/'paint-trace.json')['traceEvents'], load(folder/'action-steps.json')['steps'])
++rows = run(bef)
++assert {r['action']: r['completedCoveringPaintMs'] for r in rows if r['action'] in ['undo','redo','checkpoint']} == {'undo':79.013,'redo':114.830,'checkpoint':101.224}
++control = run(eb4/'full-action')
++original = load(eb4/'history-analysis.json')['actions']
++for expected, actual in zip(original, control, strict=True):
++    for key in ['action','firstCorrectRevisionMs','firstSettledRevisionMs','firstCompleteMs','matchingDrawMs','completedCoveringPaintMs']:
++        assert actual[key] == expected[key], (key, actual, expected)
++redo = next(r for r in rows if r['action'] == 'redo')
++source_events = load(bef/'paint-trace.json')['traceEvents']
++start = next(e['ts'] for e in source_events if e['name'] == 'ie.test.start.redo')
++stop = next(e['ts'] for e in source_events if e['name'] == 'ie.test.verified.redo')
++end = redo['paint']['ts'] + redo['paint'].get('dur', 0)
++base_events = [e for e in source_events if start <= e['ts'] <= redo['finiteBoundary']['ts']]
++source_steps = load(bef/'action-steps.json')['steps']
++i = next(i for i,s in enumerate(source_steps) if s['name']=='redo')
++base_steps = [{'name':'predecessor-asset', 'asset':source_steps[i-1]['asset']}, source_steps[i]]
++assert analyzer.analyze(base_events,base_steps)[0]['completedCoveringPaintMs'] == 114.830
++cases=[]
++def negative(name, mutate):
++    events,steps=copy.deepcopy(base_events),copy.deepcopy(base_steps)
++    mutate(events,steps)
++    directory=output/name;directory.mkdir()
++    for file,value in [('paint-trace.json',{'traceEvents':events}),('action-steps.json',{'steps':steps})]:
++        (directory/file).write_text(json.dumps(value,indent=2)+'\n')
++    try:
++        analyzer.analyze(events,steps)
++    except ValueError as error:
++        reason=str(error)
++    else:
++        raise AssertionError(name+': invalid specimen was accepted')
++    cases.append({'case':name,'result':'rejected as required','reason':reason,'inputs':{p.name:sha(p) for p in directory.iterdir()}})
++def change_detail(events, field, value, kind='ie.canvas.drawn'):
++    for e in events:
++        if e['name']==kind:
++            d=analyzer.detail(e);d[field]=value;e['args']['detail']=json.dumps(d)
++def insert(events,kind,args):
++    events.append({'name':kind,'ts':stop+1000,'pid':redo['intent']['pid'],'tid':redo['intent']['tid'],'args':args})
++negative('missing-draw',lambda e,s:e.__setitem__(slice(None),[x for x in e if x['name']!='ie.canvas.drawn']))
++negative('wrong-draw-document',lambda e,s:change_detail(e,'documentId','wrong-document'))
++negative('wrong-draw-revision',lambda e,s:change_detail(e,'revision','999'))
++negative('wrong-draw-asset',lambda e,s:change_detail(e,'assetId','wrong-asset'))
++negative('wrong-state-document',lambda e,s:change_detail(e,'documentId','wrong-document','ie.editor.updated'))
++negative('missing-completion',lambda e,s:e.__setitem__(slice(None),[x for x in e if x['name']!='ie.complete.Redo']))
++negative('wrong-completion',lambda e,s:[x.update(name='ie.complete.Undo') for x in e if x['name']=='ie.complete.Redo'])
++negative('draw-after-verified',lambda e,s:[x.update(ts=stop+1) for x in e if x['name']=='ie.canvas.drawn'])
++negative('missing-expected-document',lambda e,s:[m['detail'].pop('documentId',None) for m in s[-1]['marks'] if m['name']=='ie.editor.updated'])
++negative('native-interference',lambda e,s:insert(e,'EventDispatch',{'type':'pointerdown'}))
++negative('unknown-tooling-dispatch',lambda e,s:insert(e,'EventDispatch',{'type':'__playwright_unknown__'}))
++negative('unknown-app-signal',lambda e,s:insert(e,'ie.unrecognized',{}))
++negative('state-supersession',lambda e,s:insert(e,'ie.editor.updated',{'detail':json.dumps({'documentId':redo['documentId'],'revision':'999','busy':False,'ready':True})}))
++negative('asset-supersession',lambda e,s:insert(e,'ie.canvas.drawn',{'detail':json.dumps({'documentId':redo['documentId'],'revision':redo['revision'],'assetId':'wrong-asset'})}))
++negative('error-interference',lambda e,s:insert(e,'EventDispatch',{'type':'error'}))
++negative('navigation-interference',lambda e,s:insert(e,'navigationStart',{}))
++negative('no-finite-bound',lambda e,s:e.__setitem__(slice(None),[x for x in e if x['ts']<=end]))
++negative('insufficient-bound',lambda e,s:e.append({'name':'EventDispatch','ts':end,'pid':redo['intent']['pid'],'args':{'type':'keydown'}}))
++receipt={'retrospective':True,'argv':sys.argv,'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'analyzerSha256':sha(analyzer_path),'validatorSha256':sha(pathlib.Path(__file__)),'sourceInputs':{str(p):sha(p) for folder in [bef,eb4/'full-action'] for p in [folder/'paint-trace.json',folder/'action-steps.json']},'positiveControls':{'bef':{r['action']:r['completedCoveringPaintMs'] for r in rows},'eb4':'all eight actions match original analysis exactly'},'negativeControls':cases}
++(output/'validation.json').write_text(json.dumps(receipt,indent=2)+'\n')
++print(json.dumps({'positiveControls':receipt['positiveControls'],'rejectedNegativeControls':len(cases),'receipt':str(output/'validation.json')},indent=2))
+diff --git a/tests/recovery/consumer.spec.ts b/tests/recovery/consumer.spec.ts
+index dfc9c79..df63c35 100644
+--- a/tests/recovery/consumer.spec.ts
++++ b/tests/recovery/consumer.spec.ts
+@@ -19,6 +19,20 @@ async function snapshotFixture(){const w=await openWriter({root});const ref=awai
+ const state=(page:any)=>page.evaluate(()=> (window as any).harness.read());
+ const recover=(page:any)=>page.evaluate(async()=>{try{return {cursor:await (window as any).harness.client.recover()};}catch(e){return {error:String(e)};}});
+ 
++test('private event application rolls back every row on a write fault and retains duplicate checks',async({page})=>{
++  const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);await w.close();await start(page);
++  const result=await page.evaluate(async()=>{
++    const h=(window as any).harness,page=await(await h.transport('/api/v1/events?after=0')).json(),event=page.batches[0].events[0],generation='write-fault';
++    const put=IDBObjectStore.prototype.put;let failure='';
++    IDBObjectStore.prototype.put=function(value,key){if(Array.isArray(key)&&key[0]===generation&&key[1]==='history')throw new DOMException('Injected private history write fault','QuotaExceededError');return put.call(this,value,key);};
++    try{await h.cache.apply(generation,event);}catch(error){failure=(error as Error).name;}finally{IDBObjectStore.prototype.put=put;}
++    const partial={document:await h.cache.value(generation,'document',event.documentId),history:await h.cache.value(generation,'history',event.payload.history.id),event:await h.cache.value(generation,'event',event.eventId)};
++    await h.cache.apply(generation,event);let duplicate='';try{await h.cache.apply(generation,event);}catch(error){duplicate=String(error);}
++    return {failure,partial,duplicate,published:await h.cache.published(),document:await h.cache.value(generation,'document',event.documentId),event:await h.cache.value(generation,'event',event.eventId)};
++  });
++  expect(result.failure).toBe('QuotaExceededError');expect(result.partial).toEqual({document:undefined,history:undefined,event:undefined});expect(result.duplicate).toContain('Duplicate event identity');expect(result.published.cursor).toBe('0');expect(result.document.revision).toBe('1');expect(result.event).toBe('1');
++});
++
+ test('browser snapshot plus pinned tail publishes at H only and preserves prior view on download failure',async({page})=>{
+   const ref=await snapshotFixture();await start(page);
+   // A previous published view is deliberately distinct from the incoming snapshot.

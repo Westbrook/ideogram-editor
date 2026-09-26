@@ -1,0 +1,122 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser
+
+Running 24 tests using 1 worker
+
+(node:44767) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body (1.8s)
+  ✓   2 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (1.8s)
+  ✓   3 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (2.7s)
+  ✓   4 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (2.9s)
+  ✓   5 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (5.9s)
+  ✘   6 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (8.0s)
+(node:44987) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   7 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.4s)
+  ✓   8 tests/editor/interactions.spec.ts:46:1 › intermediate drawers preserve native node, value, selection and composition across reflow (1.2s)
+  ✓   9 tests/editor/interactions.spec.ts:56:1 › canvas drop, selected flatten, typed transform/crop and retained branch/checkpoint actions (7.9s)
+standalone OPFS probe { ok: true }
+  ✓  10 tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained (3.2s)
+  ✓  11 tests/editor/interactions.spec.ts:76:1 › Help uses persistent information and public drawer without component CSP violations (1.5s)
+screenshot-only diagnostics []
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Select layers',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+  ✓  12 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (3.5s)
+  ✓  13 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (12.4s)
+  ✘  14 tests/editor/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof (8.6s)
+(node:45405) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  15 tests/editor/recovery.spec.ts:52:1 › lost draft receipt survives reload with exact original request; cleared draft does not return (4.5s)
+  ✓  16 tests/editor/recovery.spec.ts:63:1 › missing retained raster bytes block full copy visibly and remain recoverable (3.6s)
+  ✓  17 tests/editor/recovery.spec.ts:70:1 › real snapshot gap recovery publishes the complete current document after offline browser interval (9.6s)
+  ✓  18 tests/editor/recovery.spec.ts:79:1 › new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery (4.7s)
+  ✓  19 tests/editor/recovery.spec.ts:90:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (1.4s)
+  ✓  20 tests/editor/recovery.spec.ts:102:1 › late canvas bytes from another document cannot replace the reopened current raster (5.2s)
+  ✓  21 tests/editor/recovery.spec.ts:110:1 › late version probe cannot publish mixed side panels across a concurrent checkpoint or renewed session (4.3s)
+  ✓  22 tests/editor/recovery.spec.ts:127:1 › missing or malformed current version header withholds side panels and reload recovers (3.4s)
+  ✓  23 tests/editor/recovery.spec.ts:136:1 › late explicitly requested history page cannot replace a newer complete transaction view (4.4s)
+  ✓  24 tests/editor/recovery.spec.ts:145:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets (6.1s)
+
+
+  1) tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+
+
+      35 | test('multi-tab convergence preserves a stale inspector draft and recovers accepted transactions',async({page,context})=>{
+      36 |  const server=await setup(page);try{await imported(page);const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();
+    > 37 |  await second.getByRole('textbox',{name:'Layer name',exact:true}).fill('Other tab unapplied');await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.7');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(second.locator('.document-name')).toHaveText(await page.locator('.document-name').textContent()??'');await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await click(second,'Apply properties');await expect(second.getByText(/Stale conflict/)).toBeVisible();await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await second.close();
+         |                                                                                                                                                                                                                                                                                                                 ^
+      38 |  }finally{await server.close();}
+      39 | });
+      40 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:37:305
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/i-br01-author/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/i-br01-author/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/error-context.md
+
+  2) tests/editor/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Undo accepted and saved locally.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Undo accepted and saved locally.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('Undo accepted and saved locally.', { exact: true })
+
+
+      46 |  await click(page,'Undo');await heldReceipt;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');expect(wires).toHaveLength(1);expect(lookups).toBe(3);expect(maxActive).toBe(1);await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
+      47 |  releaseReceipt();await heldProof;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
+    > 48 |  releaseProof();await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);expect(wires).toHaveLength(1);expect((await f.read('/api/v1/commands/'+id+'/original')).text).toBe(wires[0]);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);
+         |                                                                                               ^
+      49 |  }finally{releaseReceipt();releaseProof();await page.unrouteAll({behavior:'wait'});await f.server.close();}
+      50 | });
+      51 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:48:95
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/i-br01-author/05-chromium/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/05-chromium/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.md
+
+  2 failed
+    tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions 
+    tests/editor/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof 
+  22 passed (1.9m)

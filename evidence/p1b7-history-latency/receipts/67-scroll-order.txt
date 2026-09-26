@@ -1,0 +1,247 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/67-scroll-order-source/playwright.config.ts --grep actual SQLite FULL --repeat-each 3 --max-failures 1 --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/67-scroll-order-browser
+
+Running 3 tests using 1 worker
+
+(node:7761) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+FOCUS REGION { width: 320, height: 700 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 0,
+  nativeBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  hostBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  statusBox: {
+    x: 0,
+    y: 235,
+    width: 320,
+    height: 84,
+    top: 235,
+    right: 320,
+    bottom: 319,
+    left: 0
+  },
+  statusScroll: 184
+}
+FOCUS REGION { width: 720, height: 500 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 0,
+  nativeBox: {
+    x: 213.06666564941406,
+    y: 147.1999969482422,
+    width: 185.06666564941406,
+    height: 35,
+    top: 147.1999969482422,
+    right: 398.1333312988281,
+    bottom: 182.1999969482422,
+    left: 213.06666564941406
+  },
+  hostBox: {
+    x: 213.06666564941406,
+    y: 147.1999969482422,
+    width: 185.06666564941406,
+    height: 35,
+    top: 147.1999969482422,
+    right: 398.1333312988281,
+    bottom: 182.1999969482422,
+    left: 213.06666564941406
+  },
+  statusBox: {
+    x: 0,
+    y: 115,
+    width: 720,
+    height: 84,
+    top: 115,
+    right: 720,
+    bottom: 199,
+    left: 0
+  },
+  statusScroll: 119
+}
+FOCUS EVENTS [{"target":"EN-BUTTON","label":null,"text":"New"},{"target":"EN-DIALOG","label":null,"text":"\n    \n    Create an empty sRGB, 8-bit document.Create\n    \n    \n "},{"target":"EN-BUTTON","label":null,"text":"Create"},{"target":"EN-BUTTON","label":null,"text":"Cancel"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"}]
+  ✓  1 ../ideogram-edit-verification/i-br01-author/67-scroll-order-source/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (2.3s)
+(node:7853) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+FOCUS REGION { width: 320, height: 700 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 0,
+  nativeBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  hostBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  statusBox: {
+    x: 0,
+    y: 235,
+    width: 320,
+    height: 84,
+    top: 235,
+    right: 320,
+    bottom: 319,
+    left: 0
+  },
+  statusScroll: 184
+}
+FOCUS REGION { width: 720, height: 500 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 147,
+  nativeBox: {
+    x: 213.06666564941406,
+    y: 0.1999969482421875,
+    width: 185.06666564941406,
+    height: 35,
+    top: 0.1999969482421875,
+    right: 398.1333312988281,
+    bottom: 35.19999694824219,
+    left: 213.06666564941406
+  },
+  hostBox: {
+    x: 213.06666564941406,
+    y: 0.1999969482421875,
+    width: 185.06666564941406,
+    height: 35,
+    top: 0.1999969482421875,
+    right: 398.1333312988281,
+    bottom: 35.19999694824219,
+    left: 213.06666564941406
+  },
+  statusBox: {
+    x: 0,
+    y: -32,
+    width: 720,
+    height: 84,
+    top: -32,
+    right: 720,
+    bottom: 52,
+    left: 0
+  },
+  statusScroll: 119
+}
+FOCUS EVENTS [{"target":"EN-BUTTON","label":null,"text":"New"},{"target":"EN-DIALOG","label":null,"text":"\n    \n    Create an empty sRGB, 8-bit document.Create\n    \n    \n "},{"target":"EN-BUTTON","label":null,"text":"Create"},{"target":"EN-BUTTON","label":null,"text":"Cancel"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"}]
+  ✓  2 ../ideogram-edit-verification/i-br01-author/67-scroll-order-source/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (1.9s)
+(node:7932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+FOCUS REGION { width: 320, height: 700 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 0,
+  nativeBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  hostBox: {
+    x: 18,
+    y: 267.20001220703125,
+    width: 185.06666564941406,
+    height: 35,
+    top: 267.20001220703125,
+    right: 203.06666564941406,
+    bottom: 302.20001220703125,
+    left: 18
+  },
+  statusBox: {
+    x: 0,
+    y: 235,
+    width: 320,
+    height: 84,
+    top: 235,
+    right: 320,
+    bottom: 319,
+    left: 0
+  },
+  statusScroll: 184
+}
+FOCUS REGION { width: 720, height: 500 } { active: 'SECTION', activeLabel: 'Operation status', scrollY: 0 }
+FOCUS RETRY {
+  nativeActive: true,
+  documentActive: 'EN-BUTTON',
+  label: null,
+  scrollY: 147,
+  nativeBox: {
+    x: 213.06666564941406,
+    y: 0.1999969482421875,
+    width: 185.06666564941406,
+    height: 35,
+    top: 0.1999969482421875,
+    right: 398.1333312988281,
+    bottom: 35.19999694824219,
+    left: 213.06666564941406
+  },
+  hostBox: {
+    x: 213.06666564941406,
+    y: 0.1999969482421875,
+    width: 185.06666564941406,
+    height: 35,
+    top: 0.1999969482421875,
+    right: 398.1333312988281,
+    bottom: 35.19999694824219,
+    left: 213.06666564941406
+  },
+  statusBox: {
+    x: 0,
+    y: -32,
+    width: 720,
+    height: 84,
+    top: -32,
+    right: 720,
+    bottom: 52,
+    left: 0
+  },
+  statusScroll: 119
+}
+FOCUS EVENTS [{"target":"EN-BUTTON","label":null,"text":"New"},{"target":"EN-DIALOG","label":null,"text":"\n    \n    Create an empty sRGB, 8-bit document.Create\n    \n    \n "},{"target":"EN-BUTTON","label":null,"text":"Create"},{"target":"EN-BUTTON","label":null,"text":"Cancel"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"},{"target":"SECTION","label":"Operation status","text":"Action needs attention.\n    NewDocument · receipt unknownCheck an"},{"target":"EN-VALIDATION-SUMMARY","label":null,"text":""},{"target":"EN-BUTTON","label":null,"text":"Check and retry original"}]
+  ✓  3 ../ideogram-edit-verification/i-br01-author/67-scroll-order-source/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (2.1s)
+
+  3 passed (9.2s)

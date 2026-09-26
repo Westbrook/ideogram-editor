@@ -1,0 +1,42 @@
+[
+  {
+    "action": "opacity-0",
+    "completedCoveringPaintMs": 367.131,
+    "postVerifiedPaint": false
+  },
+  {
+    "action": "opacity-1",
+    "completedCoveringPaintMs": 366.121,
+    "postVerifiedPaint": false
+  },
+  {
+    "action": "opacity-2",
+    "completedCoveringPaintMs": 365.609,
+    "postVerifiedPaint": false
+  },
+  {
+    "action": "opacity-3",
+    "completedCoveringPaintMs": 365.753,
+    "postVerifiedPaint": false
+  },
+  {
+    "action": "opacity-4",
+    "completedCoveringPaintMs": 350.824,
+    "postVerifiedPaint": false
+  },
+  {
+    "action": "undo",
+    "completedCoveringPaintMs": 116.323,
+    "postVerifiedPaint": false
+  },
+  {
+    "action": "redo",
+    "completedCoveringPaintMs": 99.474,
+    "postVerifiedPaint": false
+  },
+  {
+    "action": "checkpoint",
+    "completedCoveringPaintMs": 116.436,
+    "postVerifiedPaint": false
+  }
+]

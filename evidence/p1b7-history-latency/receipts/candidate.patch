@@ -1,0 +1,76 @@
+diff --git a/src/state/editor-client.ts b/src/state/editor-client.ts
+index 68a03aa..c5f9049 100644
+--- a/src/state/editor-client.ts
++++ b/src/state/editor-client.ts
+@@ -192,8 +192,9 @@ export class EditorClient {
+   async run(label:string,action:()=>Promise<void>,intentTime=performance.now()) {
+     if(this.view.busy)return;
+     this.patch({busy:true,message:label+'…',error:''});performance.clearMarks('ie.intent.'+label);performance.mark('ie.intent.'+label,{startTime:intentTime});
+-    // Pending feedback can paint before hashing/IO. Its clock never replaces the full action clock.
+-    await new Promise<void>(r=>requestAnimationFrame(()=>setTimeout(r,0)));
++    // Yield pending feedback without holding asynchronous journal/transport work
++    // until the next display frame. Hashing already yields in bounded slices.
++    await tick();
+     try{await action();}catch(error){this.fail(error);}finally{this.patch({busy:false});performance.clearMarks('ie.complete.'+label);performance.mark('ie.complete.'+label);}
+   }
+   fail(error:unknown) {
+@@ -214,11 +215,16 @@ export class EditorClient {
+     let value:CommandResult;
+     if(lookup){const response=await this.session.transport('/api/v1/commands/'+id);value=await response.json();if(value.kind==='unknown'||value.kind==='pending'&&value.phase==='waiting-for-resources')value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});}
+     else value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});
++    let receiptDelay=0;
+     for(;;){
+       delivery={...delivery,result:value};await this.journal!.put('command:'+id,delivery);await this.restorePending();
+       if(value.kind!=='pending')break;
+       if(value.phase==='waiting-for-resources')throw Error('waiting-for-resources');
+-      await pause(30);value=await this.json<CommandResult>('/api/v1/commands/'+id);
++      // A local command can finish while its pending identity is journaled.
++      // Probe promptly, then back off to the existing sustained cadence. Only
++      // one lookup is in flight; a wake never substitutes for its exact receipt.
++      await pause(receiptDelay);receiptDelay=receiptDelay===0?4:Math.min(30,receiptDelay*2);
++      value=await this.json<CommandResult>('/api/v1/commands/'+id);
+     }
+     if(value.kind!=='receipt')throw Error('RECEIPT_UNKNOWN');
+     if(value.receipt.status==='rejected'){
+diff --git a/tests/editor/recovery.spec.ts b/tests/editor/recovery.spec.ts
+index f295667..94d1db6 100644
+--- a/tests/editor/recovery.spec.ts
++++ b/tests/editor/recovery.spec.ts
+@@ -18,6 +18,37 @@ async function setup(page:Page,context:BrowserContext){
+  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
+  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
+ }
++test('history receipt probes stay serial and one action waits for exact accepted result proof',async({page,context})=>{
++ const f=await setup(page,context);let releaseReceipt=()=>{},releaseProof=()=>{};
++ try{
++ const original=await page.locator('canvas').getAttribute('data-asset');await page.getByRole('treeitem').click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.5');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
++ let id='',pending:any,lookups=0,active=0,maxActive=0;const wires:string[]=[];
++ const receiptGate=new Promise<void>(r=>releaseReceipt=r),proofGate=new Promise<void>(r=>releaseProof=r);let receiptHit=()=>{},proofHit=()=>{};
++ const heldReceipt=new Promise<void>(r=>receiptHit=r),heldProof=new Promise<void>(r=>proofHit=r);
++ await page.route('**/api/v1/commands',async route=>{
++  if(route.request().method()!=='POST'||JSON.parse(route.request().postData()!).command.body.type!=='Undo'){await route.continue();return;}
++  wires.push(route.request().postData()!);id=JSON.parse(wires[0]).command.commandId;const response=await route.fetch();pending=await response.json();expect(pending.kind).toBe('pending');await route.fulfill({response});
++ });
++ await page.route('**/api/v1/commands/*',async route=>{
++  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id){await route.continue();return;}
++  active++;maxActive=Math.max(maxActive,active);lookups++;
++  try{
++   // Replay delayed, real pending observations, then hold one receipt read.
++   // This is a delivery fault oracle, not a timing specimen or synthetic receipt.
++   if(lookups<=2){await route.fulfill({status:202,json:pending});return;}
++   receiptHit();await receiptGate;await route.continue();
++  }finally{active--;}
++ });
++ await page.route('**/api/v1/commands/*/result',async route=>{
++  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id+'/result'){await route.continue();return;}
++  const response=await route.fetch();proofHit();await proofGate;await route.fulfill({response});
++ });
++ await click(page,'Undo');await heldReceipt;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');expect(wires).toHaveLength(1);expect(lookups).toBe(3);expect(maxActive).toBe(1);await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
++ releaseReceipt();await heldProof;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
++ releaseProof();await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);expect(wires).toHaveLength(1);expect((await f.read('/api/v1/commands/'+id+'/original')).text).toBe(wires[0]);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);
++ }finally{releaseReceipt();releaseProof();await page.unrouteAll({behavior:'wait'});await f.server.close();}
++});
++
+ test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
+  const f=await setup(page,context);try{
+  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];

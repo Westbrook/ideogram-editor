@@ -1,0 +1,37 @@
+{
+  "at": "2026-09-26T14:28:12.209628+00:00",
+  "source": "7427dd8ef5808174d8369c74166298b0701f1b042d1eea9c9f5ee077d36706d5",
+  "files": [
+    {
+      "file": "assets/preload-helper-BZ1Pz5am.js",
+      "bytes": 1218,
+      "gzipBytes": 691
+    },
+    {
+      "file": "assets/editor-panels-C8u6k489.js",
+      "bytes": 9411,
+      "gzipBytes": 3308
+    },
+    {
+      "file": "assets/icon-LNfVOU5p.js",
+      "bytes": 137598,
+      "gzipBytes": 31511
+    },
+    {
+      "file": "assets/index-CeDocqmD.css",
+      "bytes": 96436,
+      "gzipBytes": 12607
+    },
+    {
+      "file": "assets/shell-Cp5OIHAo.js",
+      "bytes": 354265,
+      "gzipBytes": 95942
+    },
+    {
+      "file": "assets/index-CJ8hQOsO.js",
+      "bytes": 1429,
+      "gzipBytes": 763
+    }
+  ],
+  "note": "Actual emitted file bytes, distinct from pre-finalization plugin estimates. Single build observation, no D11 campaign/evaluated-module qualification."
+}

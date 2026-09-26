@@ -1,0 +1,5 @@
+{
+  "at": "2026-09-26T14:50:14.804664+00:00",
+  "result": "FAILED before product server import/start",
+  "reason": "Launch referenced absent tests/session/no-egress.mjs; prepared service contains protocol/no-effects.mjs importing store shared no-network counters. Correct launcher import, no app/build change; no timing run."
+}

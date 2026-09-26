@@ -1,0 +1,439 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/browser/playwright.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "shell.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell/shell-browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "shell.spec.ts",
+      "file": "shell.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1199,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:19.173Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "bootstrap-observations",
+                      "contentType": "application/json",
+                      "body": "ewogICJjbGVhbmVkIjogOS43MDAwMDAyODYxMDIyOTUsCiAgImZldGNoZXMiOiBbCiAgICB7CiAgICAgICJwYXRoIjogIi9hcGkvdjEvc2Vzc2lvbi9ib290c3RyYXAiLAogICAgICAiaGFzaCI6ICIiLAogICAgICAiY29uc3VtZWQiOiB0cnVlCiAgICB9LAogICAgewogICAgICAicGF0aCI6ICIvYXBpL3YxL2NhcGFiaWxpdGllcyIsCiAgICAgICJoYXNoIjogIiIsCiAgICAgICJjb25zdW1lZCI6IHRydWUKICAgIH0sCiAgICB7CiAgICAgICJwYXRoIjogIi9hcGkvdjEvdWkvdWlfNDc3NTQ5YzUtYTE1ZS00MzYyLTk2Y2EtNWExOGRlNTViYmZjIiwKICAgICAgImhhc2giOiAiIiwKICAgICAgImNvbnN1bWVkIjogdHJ1ZQogICAgfQogIF0sCiAgInJlc291cmNlcyI6IFsKICAgIHsKICAgICAgInBhdGgiOiAiL2Fzc2V0cy9wcmVsb2FkLWhlbHBlci1CWjFQejVhbS5qcyIsCiAgICAgICJzdGFydCI6IDEwLjgwMDAwMDE5MDczNDg2MwogICAgfSwKICAgIHsKICAgICAgInBhdGgiOiAiL2Fzc2V0cy9pbmRleC1DZ2J1QldrMC5jc3MiLAogICAgICAic3RhcnQiOiAxMC45MDAwMDAwOTUzNjc0MzIKICAgIH0sCiAgICB7CiAgICAgICJwYXRoIjogIi9hc3NldHMvaW5kZXgtMUxKMmN5VkwuanMiLAogICAgICAic3RhcnQiOiAxNi4yMDAwMDAyODYxMDIyOTUKICAgIH0sCiAgICB7CiAgICAgICJwYXRoIjogIi9hc3NldHMvaWNvbi1MTmZWT1U1cC5qcyIsCiAgICAgICJzdGFydCI6IDE4CiAgICB9LAogICAgewogICAgICAicGF0aCI6ICIvYXNzZXRzL3NoZWxsLUJtQlZZNkJuLmpzIiwKICAgICAgInN0YXJ0IjogMTgKICAgIH0sCiAgICB7CiAgICAgICJwYXRoIjogIi9hcGkvdjEvc2Vzc2lvbi9ib290c3RyYXAiLAogICAgICAic3RhcnQiOiA1OS41CiAgICB9LAogICAgewogICAgICAicGF0aCI6ICIvYXBpL3YxL2NhcGFiaWxpdGllcyIsCiAgICAgICJzdGFydCI6IDc4CiAgICB9CiAgXSwKICAiaGFzaCI6ICIiLAogICJoYXNQYWlyaW5nIjogZmFsc2UsCiAgInN0b3JhZ2UiOiBbCiAgICAwLAogICAgMQogIF0sCiAgImNvb2tpZSI6ICIiCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-8dbe9307dcfeab21df12",
+          "file": "shell.spec.ts",
+          "line": 35,
+          "column": 1
+        },
+        {
+          "title": "B02 real native prompt drafts, inert text, selection and composition-safe shortcuts",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1097,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:20.709Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-585fa1cdc2205b01e3c6",
+          "file": "shell.spec.ts",
+          "line": 78,
+          "column": 1
+        },
+        {
+          "title": "B03 keyboard panels, roving tool focus, resize and collapsed content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1242,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:21.817Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-f609be8ea01f83d870cf",
+          "file": "shell.spec.ts",
+          "line": 105,
+          "column": 1
+        },
+        {
+          "title": "B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1856,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:23.070Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-b676d67937fce5da8173",
+          "file": "shell.spec.ts",
+          "line": 129,
+          "column": 1
+        },
+        {
+          "title": "B05 browser-controlled hostile origin, null origin, navigation and no marker reads",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1002,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:24.941Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "hostile-browser-outcomes",
+                      "contentType": "application/json",
+                      "body": "eyJzdGF0dXNlcyI6WzQwMyw0MDNdLCJvdXRjb21lIjpbImJsb2NrZWQiLCJibG9ja2VkIl0sIm51bGxPcmlnaW5PdXRjb21lIjoiYmxvY2tlZC1iZWZvcmUtcmVzcG9uc2UifQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-70e3946e88573de5e558",
+          "file": "shell.spec.ts",
+          "line": 155,
+          "column": 1
+        },
+        {
+          "title": "B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1585,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:25.952Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-c074dc394044298161fc",
+          "file": "shell.spec.ts",
+          "line": 190,
+          "column": 1
+        },
+        {
+          "title": "B07 trusted report flag, navigation fragment, unflagged absence and offline recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1457,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:27.560Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-a8062f7bb3a163282122",
+          "file": "shell.spec.ts",
+          "line": 209,
+          "column": 1
+        },
+        {
+          "title": "B08 lost renewal response is read back without retry; restarted server requires pairing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1805,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:29.024Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-d700188ba25de3b83f48",
+          "file": "shell.spec.ts",
+          "line": 228,
+          "column": 1
+        },
+        {
+          "title": "B09 CSP permits only the trusted split styles and blocks injected inline behavior",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1019,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:30.834Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-3dc6f124e0472ed3736d",
+          "file": "shell.spec.ts",
+          "line": 255,
+          "column": 1
+        },
+        {
+          "title": "B10 same-site user navigation opens only the anonymous shell; fetch and frame remain denied",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1017,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T14:06:31.860Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-4ff75fdeee1c7fc9fefe",
+          "file": "shell.spec.ts",
+          "line": 270,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T14:06:18.848Z",
+    "duration": 14169.164999999999,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

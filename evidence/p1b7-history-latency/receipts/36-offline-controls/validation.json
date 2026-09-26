@@ -1,0 +1,195 @@
+{
+  "retrospective": true,
+  "argv": [
+    "tests/editor/validate-history-v2.py",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls"
+  ],
+  "at": "2026-09-26T14:21:22.664598+00:00",
+  "analyzerSha256": "b15559793a74c7fac5b119ee39b493a40f8ba0f65db6412613a940463665b1bc",
+  "validatorSha256": "561194ae3ab05257f208b21c3e9f60b411426449e1e54a73cc44d52bf35fa6ea",
+  "sourceInputs": {
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/paint-trace.json": "0c4cce5947a7a3b044ce22394b6cd35ac1a973b2f49565b346f56e6ac3ee20a2",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/action-steps.json": "d7b2d666186200be4b9fb1fbcd0bd9be4c9dfd10facd79334129072695174d01",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/full-action/paint-trace.json": "6cb5762373c587a8b9d91f0a64133573558153cbe5ef2665c20f7841ee453cb3",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/full-action/action-steps.json": "0cdecad90ca8eef02a649da6c254a5f61218f10b80fcf1458b7bfe972784d2eb"
+  },
+  "positiveControls": {
+    "bef": {
+      "opacity-0": 398.071,
+      "opacity-1": 348.888,
+      "opacity-2": 348.802,
+      "opacity-3": 366.661,
+      "opacity-4": 384.207,
+      "undo": 79.013,
+      "redo": 114.83,
+      "checkpoint": 101.224
+    },
+    "eb4": "all eight actions match original analysis exactly"
+  },
+  "negativeControls": [
+    {
+      "case": "missing-draw",
+      "result": "rejected as required",
+      "reason": "redo: missing exact prerequisite before verified",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "8dd6ad8a5f369b735ad7f0f54c9603eaf9a93cffdb1e52dde6245b50773a536c"
+      }
+    },
+    {
+      "case": "wrong-draw-document",
+      "result": "rejected as required",
+      "reason": "redo: missing exact prerequisite before verified",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "c9e42c8270cd28dac7bec4ada46bee016342d25f277fdd23348afbb9ef8b7321"
+      }
+    },
+    {
+      "case": "wrong-draw-revision",
+      "result": "rejected as required",
+      "reason": "redo: missing exact prerequisite before verified",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "93b8c6f8ad5263246f2726808dfd413dd405705d12b98b6365fd563051f08832"
+      }
+    },
+    {
+      "case": "wrong-draw-asset",
+      "result": "rejected as required",
+      "reason": "redo: missing exact prerequisite before verified",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "92afed3f12906f15056270055c9604b6c864a745e6dbc12fb2d9f407cb872267"
+      }
+    },
+    {
+      "case": "wrong-state-document",
+      "result": "rejected as required",
+      "reason": "redo: missing exact prerequisite before verified",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "8905962667dba855b1380027e3a22902d42a7f4846fd8dde309f301bedf36bb4"
+      }
+    },
+    {
+      "case": "missing-completion",
+      "result": "rejected as required",
+      "reason": "redo: expected one intent/completion",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "ee2b964a1c1c2f18079e843fd459c31884e37ed11ba43e286c1567c086ca0fca"
+      }
+    },
+    {
+      "case": "wrong-completion",
+      "result": "rejected as required",
+      "reason": "redo: wrong action identity",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "053a72f6917afd1125234e0036d7f4fd81af290902396af809640c54d3bfd3b3"
+      }
+    },
+    {
+      "case": "draw-after-verified",
+      "result": "rejected as required",
+      "reason": "redo: missing exact prerequisite before verified",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "8d60858d2707ae3471eb1f88244f362e324e6cc9f7999b524e244dc6a1c347ee"
+      }
+    },
+    {
+      "case": "missing-expected-document",
+      "result": "rejected as required",
+      "reason": "redo: missing/ambiguous expected document",
+      "inputs": {
+        "action-steps.json": "375a6042d0c75c6d406f26db00b88aa83b2423b2bcc918681b836e56e67e3b83",
+        "paint-trace.json": "409c14f4b28b4e75586889cd1827e08682f67c247a07a20c95d0c31f2ac3eb16"
+      }
+    },
+    {
+      "case": "native-interference",
+      "result": "rejected as required",
+      "reason": "redo: intervening signal EventDispatch",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "1b47c12d6fc9d9bb2f1ea3a67389b91e0c8d42cd49e8b9eade7799b8994201f5"
+      }
+    },
+    {
+      "case": "unknown-tooling-dispatch",
+      "result": "rejected as required",
+      "reason": "redo: intervening signal EventDispatch",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "59b79cbef5a84f2dd74c6cefe2a23763637b32ae4579424441bf83e07e1c50e5"
+      }
+    },
+    {
+      "case": "unknown-app-signal",
+      "result": "rejected as required",
+      "reason": "redo: intervening signal ie.unrecognized",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "654ffe6443b7b647e2075d7a93bd580266f2dcc0dd5bb14752778b06ecdd5f5c"
+      }
+    },
+    {
+      "case": "state-supersession",
+      "result": "rejected as required",
+      "reason": "redo: state superseded",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "7673d54e598c5301547fdc91bb35efce5be375d3bd34ac53193d3c8a6bcf0f97"
+      }
+    },
+    {
+      "case": "asset-supersession",
+      "result": "rejected as required",
+      "reason": "redo: asset superseded",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "54c3bccd99185fcd3b38189e50128940f224f861799ad819c1aae9a34d9a24b4"
+      }
+    },
+    {
+      "case": "error-interference",
+      "result": "rejected as required",
+      "reason": "redo: intervening signal EventDispatch",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "a50bbe68e8919944b63fce02641204f36485c7dad4289c1053dcd2aad9bfd4b4"
+      }
+    },
+    {
+      "case": "navigation-interference",
+      "result": "rejected as required",
+      "reason": "redo: intervening signal navigationStart",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "7de7e4bea83120c54a030c082020a38f21d2c0e30d79a13dd176b11eb416035a"
+      }
+    },
+    {
+      "case": "no-finite-bound",
+      "result": "rejected as required",
+      "reason": "redo: no finite interference boundary",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "6f63c72b1ba35ed70f40a766331d1dd46bc2b5761182ec7d69f97d760c3ba6da"
+      }
+    },
+    {
+      "case": "insufficient-bound",
+      "result": "rejected as required",
+      "reason": "redo: Paint reaches interference boundary",
+      "inputs": {
+        "action-steps.json": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+        "paint-trace.json": "400e7292cf6683df54f08708ded1f97769b94e9258f188256887a04efb4e40ec"
+      }
+    }
+  ]
+}

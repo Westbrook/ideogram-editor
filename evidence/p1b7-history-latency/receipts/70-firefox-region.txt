@@ -1,0 +1,16 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/70-firefox-region/browser --grep actual SQLite FULL --repeat-each 3 --max-failures 1
+
+Running 3 tests using 1 worker
+
+(node:21544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (2.3s)
+(node:21564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/editor/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (2.1s)
+(node:21586) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/editor/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (2.1s)
+
+  3 passed (9.6s)

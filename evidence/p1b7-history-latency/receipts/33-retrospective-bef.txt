@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/analyze-history-v2.py", line 140, in <module>
+    main()
+    ~~~~^^
+  File "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/analyze-history-v2.py", line 128, in main
+    actions = analyze(json.loads((folder/'paint-trace.json').read_text())['traceEvents'],
+                      json.loads((folder/'action-steps.json').read_text())['steps'])
+  File "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/analyze-history-v2.py", line 97, in analyze
+    raise ValueError(name + ': intervening signal ' + kind)
+ValueError: redo: intervening signal EventDispatch

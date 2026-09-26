@@ -1,0 +1,190 @@
+diff --git a/src/state/recovery-cache.ts b/src/state/recovery-cache.ts
+index 637d617..e305d80 100644
+--- a/src/state/recovery-cache.ts
++++ b/src/state/recovery-cache.ts
+@@ -62,20 +62,34 @@ export class RecoveryCache {
+   }
+   async apply(generation: string,event: DomainEvent) {
+     // Each staged row is private; only the published pointer exposes a complete view.
+-    const previous=event.documentId?await this.value(generation,'document',event.documentId)??null:null;
+-    requireValue(!await this.value(generation,'event',event.eventId),'Duplicate event identity');
+-    if(event.type==='AssetRegistered'){requireValue(!await this.value(generation,'asset',event.payload.asset.id),'Duplicate asset');await this.put(generation,'asset',event.payload.asset.id,event.payload.asset);}
+-    else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
+-    if(event.type==='BundleImported'){
+-      const hydrated=await this.value(generation,'namespace',event.payload.namespaceId);
+-      requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
++    // Read checks and their writes share one transaction. No await crosses its
++    // active callbacks, and no event marker survives a failed reducer/write.
++    const tx=this.db.transaction('rows','readwrite'),store=tx.objectStore('rows');let validationError:unknown;
++    const checks:[string,string][]=[['event',event.eventId]];
++    if(event.documentId)checks.push(['document',event.documentId]);
++    if(event.type==='AssetRegistered')checks.push(['asset',event.payload.asset.id]);
++    if(event.type==='BundleImported')checks.push(['namespace',event.payload.namespaceId]);
++    const values=new Map<string,any>();let remaining=checks.length;
++    const put=(type:string,id:string,value:unknown)=>store.put(value,[generation,type,id]);
++    for(const [type,id] of checks){
++      const read=store.get([generation,type,id]);read.onsuccess=()=>{
++        values.set(type,read.result);if(--remaining)return;
++        try{
++          requireValue(!values.get('event'),'Duplicate event identity');
++          if(event.type==='AssetRegistered'){requireValue(!values.get('asset'),'Duplicate asset');put('asset',event.payload.asset.id,event.payload.asset);}
++          else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
++            if(event.type==='BundleImported'){
++              const hydrated=values.get('namespace');requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');
++            }
++            const next=reduceDocument(values.get('document')??null,event);put('document',next.id,next);
++            if(event.type==='DocumentCreated'||event.type==='ImageEdited')put('history',event.payload.history.id,event.payload.history);
++            else if(event.type==='CheckpointSaved')put('checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
++          }
++          put('event',event.eventId,event.workspaceSeq);
++        }catch(error){validationError=error;tx.abort();}
++      };
+     }
+-    const next=reduceDocument(previous,event);
+-    await this.put(generation,'document',next.id,next);
+-    if((event.type==='DocumentCreated'||event.type==='ImageEdited')) await this.put(generation,'history',event.payload.history.id,event.payload.history);
+-    else if(event.type==='CheckpointSaved') await this.put(generation,'checkpoint',event.payload.checkpoint.id,event.payload.checkpoint);
+-    }
+-    await this.put(generation,'event',event.eventId,event.workspaceSeq);
++    try{await done(tx);}catch(error){throw validationError??error;}
+   }
+   async applyEvents(generation: string,eventsStage: string,count: bigint) {
+     for(let i=0n;i<count;i++) {const event=await this.value(eventsStage,'staged',String(i));requireValue(event);await this.apply(generation,event);}
+diff --git a/src/theme/shell.css b/src/theme/shell.css
+index 8da5c1f..0efb560 100644
+--- a/src/theme/shell.css
++++ b/src/theme/shell.css
+@@ -187,8 +187,9 @@ en-toolbar::part(base) {flex-wrap:wrap;}
+ en-button {max-width:100%;}
+ en-button::part(control) {white-space:normal;}
+ .bar-end {flex-wrap:wrap;}
+-.operation-status {padding:8px 18px;background:var(--en-color-surface);border-bottom:1px solid var(--en-color-line);font-size:12px;}
+-.operation-status:has(en-validation-summary) {max-height:180px;overflow:auto;}
++/* Receipt updates must not move an enabled native control during a press.
++   Keep this status region stable; longer recovery/error content stays scrollable. */
++.operation-status {block-size:6rem;flex-shrink:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:8px 18px;background:var(--en-color-surface);border-bottom:1px solid var(--en-color-line);font-size:12px;}
+ .pending,.actions {display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-block:8px;}
+ .request-fields>* {margin-block:12px;}
+ .request-fields p {font-size:12px;}
+diff --git a/src/ui/shell.ts b/src/ui/shell.ts
+index 8a29139..69bf512 100644
+--- a/src/ui/shell.ts
++++ b/src/ui/shell.ts
+@@ -76,6 +76,7 @@ class EditorShell extends LitElement {
+   private previewURL='';
+   private previewAsset='';
+   private renderGeneration=0;
++  private statusFocusFrame=0;
+   private repaintKey='';
+   private narrow=matchMedia('(max-width:1100px)').matches;
+   private extreme=matchMedia('(max-width:720px)').matches;
+@@ -95,7 +96,7 @@ class EditorShell extends LitElement {
+     for(const query of ['(max-width:1100px)','(max-width:720px)'])matchMedia(query).addEventListener('change',()=>void this.updateLayout(),{signal});
+     if(this.narrow&&!this.extreme)void this.updateLayout();
+   }
+-  disconnectedCallback(){super.disconnectedCallback();this.adapter.invalidate();this.lifecycle?.abort();this.resize?.disconnect();this.canvas?.dispose();if(this.previewURL)URL.revokeObjectURL(this.previewURL);editor.dispose();connection.dispose();}
++  disconnectedCallback(){super.disconnectedCallback();cancelAnimationFrame(this.statusFocusFrame);this.adapter.invalidate();this.lifecycle?.abort();this.resize?.disconnect();this.canvas?.dispose();if(this.previewURL)URL.revokeObjectURL(this.previewURL);editor.dispose();connection.dispose();}
+   protected firstUpdated(){
+     const canvas=this.querySelector<HTMLCanvasElement>('canvas')!;this.canvas=new CanvasView(canvas,connection.transport);
+     this.resize=new ResizeObserver(()=>this.draw());this.resize.observe(canvas);
+@@ -162,6 +163,16 @@ class EditorShell extends LitElement {
+   }
+   private showPanel(panel:NonNullable<EditorShell['panel']>){void editor.run('Open '+panel,async()=>{await this.panels();if(panel==='open'){await editor.listUI();await editor.listStages();}this.panel=panel;this.requestUpdate();await this.updateComplete;this.querySelector<EnDialog>('#editor-dialog')?.show();});}
+   private action(event:Event,label:string,work:()=>Promise<void>){this.adapter.action(event,()=>{void editor.run(label,work,event.timeStamp);});}
++  private revealStatusControl=(event:FocusEvent)=>{
++    // Retargeted public hosts preserve native focus; reveal the focused control
++    // after native focus/keyboard scrolling. A later focus or removed host wins.
++    cancelAnimationFrame(this.statusFocusFrame);
++    const target=event.target;
++    if(target instanceof HTMLElement)this.statusFocusFrame=requestAnimationFrame(()=>{
++      this.statusFocusFrame=0;
++      if(target.isConnected&&document.activeElement===target)target.scrollIntoView({behavior:'instant',block:'nearest',inline:'nearest'});
++    });
++  };
+   private closePanel(){this.panel=null;this.requestUpdate();}
+   private async prepare(work:()=>Promise<void>){await this.panels();await work();this.panel=null;this.requestUpdate();await this.updateComplete;this.querySelector<EnDialog>('#review-dialog')?.show();}
+   private input=(event:DraftInputEvent)=>{
+@@ -262,7 +273,7 @@ class EditorShell extends LitElement {
+     <div class="bar-end"><en-button id="session-trigger" variant="ghost">${statusName[session.connection]}</en-button><en-popover for="session-trigger" label="Local connection"><p>${session.message}</p><p>No provider request is available in this workflow.</p><div class="actions"><en-button variant="secondary" ?disabled=${session.busy} @click=${()=>connection.resume()}>Check connection</en-button><en-button variant="secondary" ?disabled=${session.busy||session.connection!=='paired'} @click=${()=>connection.renew()}>Renew connection</en-button><en-button variant="ghost" ?disabled=${session.busy||session.connection!=='paired'} @click=${()=>connection.revoke()}>Disconnect</en-button></div></en-popover>
+     <en-button variant="secondary" ?disabled=${locked||!d} @click=${()=>this.showPanel('copy')}>Save copy</en-button><en-button ?disabled=${locked||!d} @click=${(e:Event)=>this.action(e,'Export exact PNG',()=>editor.export())}>Export image</en-button><en-button id="help-trigger" variant="ghost" aria-describedby="help-description" @click=${()=>void this.panels().then(()=>this.querySelector<EnDialog>('#help-drawer')?.show())}>Help</en-button><span id="help-description" class="help-description">Shortcuts and recovery</span></div></header>
+     ${session.connection!=='paired'?html`<section class="connection-panel"><p>${session.message}</p><en-button variant="secondary" ?disabled=${session.busy} @click=${()=>connection.resume()}>Check connection</en-button></section>`:nothing}
+-    <section class="operation-status" aria-label="Operation status" aria-busy=${view.busy}><p role="status">${view.message}</p>${view.recovery?html`<p>${view.recovery}</p><en-button @click=${(e:Event)=>this.action(e,'Reconnect',async()=>{this.repaintKey='';await editor.connect();})}>Reconnect</en-button>`:nothing}${view.error&&!this.panel&&!view.review?html`<en-validation-summary heading="Action needs attention" .items=${[{target:'inspector',message:view.error}]} @en-action=${(e:Event)=>{e.preventDefault();this.inspectorOpen=true;this.requestUpdate();void this.updateComplete.then(()=>this.querySelector<HTMLElement>('#inspector')?.focus());}}></en-validation-summary>`:nothing}
++    <section class="operation-status" aria-label="Operation status" tabindex="0" @focusin=${this.revealStatusControl} aria-busy=${view.busy}><p role="status">${view.message}</p>${view.recovery?html`<p>${view.recovery}</p><en-button @click=${(e:Event)=>this.action(e,'Reconnect',async()=>{this.repaintKey='';await editor.connect();})}>Reconnect</en-button>`:nothing}${view.error&&!this.panel&&!view.review?html`<en-validation-summary heading="Action needs attention" .items=${[{target:'inspector',message:view.error}]} @en-action=${(e:Event)=>{e.preventDefault();this.inspectorOpen=true;this.requestUpdate();void this.updateComplete.then(()=>this.querySelector<HTMLElement>('#inspector')?.focus());}}></en-validation-summary>`:nothing}
+     ${view.uiPending.map(id=>html`<p>UI change receipt unknown. Current draft text is retained.</p><en-button ?disabled=${view.busy||!view.ready} @click=${(e:Event)=>this.action(e,'Retry original UI draft',()=>editor.retryDraft(id))}>Retry original draft delivery</en-button>`)}${view.pending.map(p=>html`<div class="pending"><span>${p.label} · ${p.result?.kind==='pending'?p.result.phase:'receipt unknown'}</span><en-button variant="secondary" ?disabled=${view.busy||!view.ready} @click=${(e:Event)=>this.action(e,'Retry original operation',()=>editor.retry(p.request.command.commandId))}>Check and retry original</en-button></div>`)}</section>
+     <div class="mobile-openers"><en-button variant="secondary" id="request-opener" @click=${()=>void this.togglePane('request')}>${this.requestOpen?'Hide request':'Show request'}</en-button><en-button variant="secondary" id="inspector-opener" @click=${()=>void this.togglePane('inspector')}>${this.inspectorOpen?'Hide layers':'Show layers'}</en-button></div>
+     <main class="workspace" aria-label="Image editor"><aside class="tool-rail"><en-toolbar label="Canvas tools" orientation=${this.narrow?'horizontal':'vertical'}>${['Move','Text','Select','Mask','Crop','Pan','Zoom'].map(name=>html`<en-button variant="ghost" ?disabled=${!['Pan','Zoom'].includes(name)} aria-pressed=${this.tool===name} @click=${()=>{this.tool=name;this.requestUpdate();}}>${name}</en-button>`)}</en-toolbar></aside>
+diff --git a/tests/editor/recovery.spec.ts b/tests/editor/recovery.spec.ts
+index 76a44ad..0cd023f 100644
+--- a/tests/editor/recovery.spec.ts
++++ b/tests/editor/recovery.spec.ts
+@@ -71,6 +71,30 @@ test('history completion retries complete recovery when another tab replaces the
+  }finally{release();await page.unrouteAll({behavior:'wait'});await f.server.close();}
+ });
+ 
++test('autosave receipt completion keeps the native Apply target stable during a held pointer press',async({page,context})=>{
++ const f=await setup(page,context);let release=()=>{},pressed=false;try{
++ await page.getByRole('treeitem').click();let id='';const edits:string[]=[];
++ page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const c=JSON.parse(r.postData()!).command;if(c.body.type==='FinalizeStaging')id=c.commandId;if(c.body.type==='SetLayerProperties')edits.push(r.postData()!);}});
++ let entered=()=>{};const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);
++ await page.route('**/api/v1/commands/*',async route=>{
++  if(!id||new URL(route.request().url()).pathname!=='/api/v1/commands/'+id){await route.continue();return;}
++  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});if(response.status()===202){await route.fulfill({response});return;}expect(response.status()).toBe(200);entered();await gate;await route.fulfill({response});
++ });
++ await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Stable native Apply');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await hit;
++ const apply=page.getByRole('button',{name:'Apply properties',exact:true});await apply.scrollIntoViewIfNeeded();await expect(apply).toBeEnabled();
++ const node=await apply.elementHandle(),before=await apply.boundingBox();expect(before).toBeTruthy();await page.mouse.move(before!.x+before!.width/2,before!.y+before!.height/2);await page.mouse.down();pressed=true;
++ release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true})).toBeVisible();
++ const after=await apply.boundingBox();await page.mouse.up();pressed=false;
++ expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
++ const stale=await page.evaluate(async()=>{
++  const status=document.querySelector<HTMLElement>('.operation-status')!,other=document.querySelector<HTMLElement>('#session-trigger')!,original=Element.prototype.scrollIntoView;const calls:string[]=[];
++  Element.prototype.scrollIntoView=function(options){calls.push(this.tagName);original.call(this,options);};
++  try{status.focus();other.focus();await new Promise<void>(r=>requestAnimationFrame(()=>r()));return {calls,focus:document.activeElement===other};}finally{Element.prototype.scrollIntoView=original;}
++ });expect(stale).toEqual({calls:[],focus:true});
++
++ }finally{release();if(pressed)await page.mouse.up();await page.unrouteAll({behavior:'wait'});await f.server.close();}
++});
++
+ test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
+  const f=await setup(page,context);try{
+  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];
+@@ -117,7 +141,13 @@ test('actual SQLite FULL pauses a browser command and exact original delivery su
+  // the writer connection's 512-page limit during its real command transaction.
+  const db=new DatabaseSync(join(root,'metadata.sqlite'));db.exec('CREATE TABLE browser_fault_fill(bytes BLOB); CREATE TRIGGER browser_fault_full BEFORE INSERT ON commands BEGIN INSERT INTO browser_fault_fill VALUES(zeroblob(8388608)); END;');db.close();
+  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')wires.push(r.postData()!);});await click(page,'New');await click(page,'Create');await expect(page.getByText(/Storage paused/)).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();const read=new DatabaseSync(join(root,'metadata.sqlite'));expect(read.prepare('SELECT count(*) n FROM commands').get()!.n).toBe(0);expect(read.prepare('SELECT count(*) n FROM documents').get()!.n).toBe(0);read.exec('DROP TRIGGER browser_fault_full; DROP TABLE browser_fault_fill;');read.close();
+- await click(page,'Cancel');await click(page,'Check and retry original');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
++ await click(page,'Cancel');
++ for(const viewport of [{width:320,height:700},{width:720,height:500}]){
++  await page.setViewportSize(viewport);const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});await status.focus();await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);
++  for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});
++  const area=await status.boundingBox(),target=await retry.boundingBox();expect(target!.y).toBeGreaterThanOrEqual(area!.y);expect(target!.y+target!.height).toBeLessThanOrEqual(area!.y+area!.height);expect(await status.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);
++ }
++ await page.keyboard.press('Enter');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
+  }finally{await server.close();}
+ });
+ 
+diff --git a/tests/recovery/consumer.spec.ts b/tests/recovery/consumer.spec.ts
+index dfc9c79..df63c35 100644
+--- a/tests/recovery/consumer.spec.ts
++++ b/tests/recovery/consumer.spec.ts
+@@ -19,6 +19,20 @@ async function snapshotFixture(){const w=await openWriter({root});const ref=awai
+ const state=(page:any)=>page.evaluate(()=> (window as any).harness.read());
+ const recover=(page:any)=>page.evaluate(async()=>{try{return {cursor:await (window as any).harness.client.recover()};}catch(e){return {error:String(e)};}});
+ 
++test('private event application rolls back every row on a write fault and retains duplicate checks',async({page})=>{
++  const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);await w.close();await start(page);
++  const result=await page.evaluate(async()=>{
++    const h=(window as any).harness,page=await(await h.transport('/api/v1/events?after=0')).json(),event=page.batches[0].events[0],generation='write-fault';
++    const put=IDBObjectStore.prototype.put;let failure='';
++    IDBObjectStore.prototype.put=function(value,key){if(Array.isArray(key)&&key[0]===generation&&key[1]==='history')throw new DOMException('Injected private history write fault','QuotaExceededError');return put.call(this,value,key);};
++    try{await h.cache.apply(generation,event);}catch(error){failure=(error as Error).name;}finally{IDBObjectStore.prototype.put=put;}
++    const partial={document:await h.cache.value(generation,'document',event.documentId),history:await h.cache.value(generation,'history',event.payload.history.id),event:await h.cache.value(generation,'event',event.eventId)};
++    await h.cache.apply(generation,event);let duplicate='';try{await h.cache.apply(generation,event);}catch(error){duplicate=String(error);}
++    return {failure,partial,duplicate,published:await h.cache.published(),document:await h.cache.value(generation,'document',event.documentId),event:await h.cache.value(generation,'event',event.eventId)};
++  });
++  expect(result.failure).toBe('QuotaExceededError');expect(result.partial).toEqual({document:undefined,history:undefined,event:undefined});expect(result.duplicate).toContain('Duplicate event identity');expect(result.published.cursor).toBe('0');expect(result.document.revision).toBe('1');expect(result.event).toBe('1');
++});
++
+ test('browser snapshot plus pinned tail publishes at H only and preserves prior view on download failure',async({page})=>{
+   const ref=await snapshotFixture();await start(page);
+   // A previous published view is deliberately distinct from the incoming snapshot.

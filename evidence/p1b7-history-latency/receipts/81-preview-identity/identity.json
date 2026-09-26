@@ -1,0 +1,55 @@
+{
+  "at": "2026-09-26T14:52:30.106Z",
+  "runtime": {
+    "started": "2026-09-26T14:50:15.316Z",
+    "pid": 30683,
+    "origin": "http://127.0.0.1:56296",
+    "reviewURL": "http://127.0.0.1:56296/?progress-report",
+    "runtimeSourceSHA256": "1c899ccad5923e155d507fbfdbfce111833f47497774dd8104a1694b5876c2b1",
+    "node": "v26.10.0",
+    "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-i-br01-preview-1c899cca/",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit-i-br01-preview-1c899cca/private",
+    "mode": "isolated author review; no independent approval; outgoing effects denied"
+  },
+  "browser": "153.0.8010.12",
+  "sourceCommit": "67199cdacb6d7bd25575868e2586747132ae696a",
+  "served": [
+    {
+      "path": "dist/app/index.html",
+      "sha256": "bc49dad6957354a2f986640d37951cd87a2470173391692f9656ec8e3a25c3e2",
+      "status": 200
+    },
+    {
+      "path": "dist/app/assets/index-CeDocqmD.css",
+      "sha256": "a2563ee427d84dbf92fc8ebe28fcdde8ecc277e6610074bcb4f6a1f8266aefe6",
+      "status": 200
+    },
+    {
+      "path": "dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "status": 200
+    },
+    {
+      "path": "dist/app/assets/index-Cv7AQh9f.js",
+      "sha256": "d77afa34f6c80f942667a845f4357523783b85f5373ae6884d35dd1f9288f0b0",
+      "status": 200
+    },
+    {
+      "path": "dist/app/assets/icon-LNfVOU5p.js",
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "status": 200
+    },
+    {
+      "path": "dist/app/assets/shell-DUbzQO44.js",
+      "sha256": "20643be064e9ac19ca9ee3f830ea60cf6821cb7cf44854683fd40efa890cfc95",
+      "status": 200
+    },
+    {
+      "path": "dist/app/assets/editor-panels-C8u6k489.js",
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "status": 200
+    }
+  ],
+  "scope": "Author Chromium actual served response bytes and paired rendered shell; no native OS/AT or independent approval."
+}

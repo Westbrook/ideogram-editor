@@ -1,0 +1,174 @@
+diff --git a/src/state/editor-client.ts b/src/state/editor-client.ts
+index 68a03aa..de33fff 100644
+--- a/src/state/editor-client.ts
++++ b/src/state/editor-client.ts
+@@ -1,6 +1,6 @@
+ import { createValueModel } from '@en-reve/primitives/state/value.js';
+ import type { createSessionClient } from './session-client.js';
+-import { RecoveryCache } from './recovery-cache.js';
++import { RecoveryCache, RecoveryPublicationConflict } from './recovery-cache.js';
+ import { RecoveryConsumer } from './recovery-client.js';
+ import { BrowserJournal } from './browser-journal.js';
+ import { DraftPersistence } from './draft-persistence.js';
+@@ -107,7 +107,20 @@ export class EditorClient {
+   }
+   async sync() {
+     if(this.syncTask)return this.syncTask;
+-    this.syncTask=(async()=>{this.stream?.abort();await this.streamTask;await this.consumer!.recover();await this.refresh();})().finally(()=>{this.syncTask=undefined;});
++    this.syncTask=(async()=>{
++      const cache=this.cache,consumer=this.consumer!,lifetime=this.lifecycle;
++      this.stream?.abort();await this.streamTask;
++      for(;;){
++        try{await consumer.recover();break;}
++        catch(error){
++          // Another tab won the pointer CAS (or retired our selected base).
++          // Start a whole new leased recovery, never accept its pointer as our
++          // command proof or retry unrelated storage/authority/validation errors.
++          if(!(error instanceof RecoveryPublicationConflict)||lifetime!==this.lifecycle||cache!==this.cache)throw error;
++        }
++      }
++      await this.refresh();
++    })().finally(()=>{this.syncTask=undefined;});
+     return this.syncTask;
+   }
+   private async refresh() {
+@@ -192,8 +205,9 @@ export class EditorClient {
+   async run(label:string,action:()=>Promise<void>,intentTime=performance.now()) {
+     if(this.view.busy)return;
+     this.patch({busy:true,message:label+'…',error:''});performance.clearMarks('ie.intent.'+label);performance.mark('ie.intent.'+label,{startTime:intentTime});
+-    // Pending feedback can paint before hashing/IO. Its clock never replaces the full action clock.
+-    await new Promise<void>(r=>requestAnimationFrame(()=>setTimeout(r,0)));
++    // Yield pending feedback without holding asynchronous journal/transport work
++    // until the next display frame. Hashing already yields in bounded slices.
++    await tick();
+     try{await action();}catch(error){this.fail(error);}finally{this.patch({busy:false});performance.clearMarks('ie.complete.'+label);performance.mark('ie.complete.'+label);}
+   }
+   fail(error:unknown) {
+@@ -214,11 +228,16 @@ export class EditorClient {
+     let value:CommandResult;
+     if(lookup){const response=await this.session.transport('/api/v1/commands/'+id);value=await response.json();if(value.kind==='unknown'||value.kind==='pending'&&value.phase==='waiting-for-resources')value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});}
+     else value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});
++    let receiptDelay=0;
+     for(;;){
+       delivery={...delivery,result:value};await this.journal!.put('command:'+id,delivery);await this.restorePending();
+       if(value.kind!=='pending')break;
+       if(value.phase==='waiting-for-resources')throw Error('waiting-for-resources');
+-      await pause(30);value=await this.json<CommandResult>('/api/v1/commands/'+id);
++      // A local command can finish while its pending identity is journaled.
++      // Probe promptly, then back off to the existing sustained cadence. Only
++      // one lookup is in flight; a wake never substitutes for its exact receipt.
++      await pause(receiptDelay);receiptDelay=receiptDelay===0?4:Math.min(30,receiptDelay*2);
++      value=await this.json<CommandResult>('/api/v1/commands/'+id);
+     }
+     if(value.kind!=='receipt')throw Error('RECEIPT_UNKNOWN');
+     if(value.receipt.status==='rejected'){
+diff --git a/src/state/recovery-cache.ts b/src/state/recovery-cache.ts
+index a0dbc28..637d617 100644
+--- a/src/state/recovery-cache.ts
++++ b/src/state/recovery-cache.ts
+@@ -2,6 +2,9 @@ import type { DomainEvent } from '../protocol/store.js';
+ import { reduceDocument } from './projection.js';
+ import { requireValue } from '../protocol/validate.js';
+ export type Published = { generation: string; cursor: string; epoch: string | null };
++export class RecoveryPublicationConflict extends Error {
++  constructor(){super('Projection changed in another tab');this.name='RecoveryPublicationConflict';}
++}
+ const result = <T>(request: IDBRequest<T>) => new Promise<T>((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
+ const done = (tx: IDBTransaction) => new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onabort=()=>reject(tx.error??new Error('Cache transaction aborted'));tx.onerror=()=>reject(tx.error);});
+ export class RecoveryCache {
+@@ -43,8 +46,16 @@ export class RecoveryCache {
+   }
+   private range(generation: string) {return IDBKeyRange.bound([generation],[generation,[]]);}
+   async clone(from: string,to: string) {
+-    const tx=this.db.transaction('rows','readwrite');const store=tx.objectStore('rows');const cursor=store.openCursor(this.range(from));
+-    cursor.onsuccess=()=>{const c=cursor.result;if(!c)return;const key=c.key as string[];store.put(c.value,[to,...key.slice(1)]);c.continue();};await done(tx);
++    // Pin base selection and copying together: a competing publication may
++    // otherwise discard the selected generation before this transaction starts.
++    const tx=this.db.transaction(['meta','rows'],'readwrite');const store=tx.objectStore('rows');let conflict=false;
++    const pointer=tx.objectStore('meta').get('published');
++    pointer.onsuccess=()=>{
++      if((pointer.result?.generation??'empty')!==from){conflict=true;tx.abort();return;}
++      const cursor=store.openCursor(this.range(from));
++      cursor.onsuccess=()=>{const c=cursor.result;if(!c)return;const key=c.key as string[];store.put(c.value,[to,...key.slice(1)]);c.continue();};
++    };
++    try{await done(tx);}catch(error){if(conflict)throw new RecoveryPublicationConflict();throw error;}
+   }
+   async discard(generation: string) {
+     const tx=this.db.transaction('rows','readwrite');tx.objectStore('rows').delete(this.range(generation));await done(tx);
+@@ -70,9 +81,10 @@ export class RecoveryCache {
+     for(let i=0n;i<count;i++) {const event=await this.value(eventsStage,'staged',String(i));requireValue(event);await this.apply(generation,event);}
+   }
+   async publish(next: Published,expected: Published) {
+-    const tx=this.db.transaction('meta','readwrite');const store=tx.objectStore('meta');const request=store.get('published');
++    const tx=this.db.transaction('meta','readwrite');const store=tx.objectStore('meta');const request=store.get('published');let conflict=false;
+     request.onsuccess=()=>{const current=request.result??{generation:'empty',cursor:'0',epoch:null};
+-      if(current.generation!==expected.generation||current.cursor!==expected.cursor||current.epoch!==expected.epoch)tx.abort();else store.put(next,'published');};await done(tx);
++      if(current.generation!==expected.generation||current.cursor!==expected.cursor||current.epoch!==expected.epoch){conflict=true;tx.abort();}else store.put(next,'published');};
++    try{await done(tx);}catch(error){if(conflict)throw new RecoveryPublicationConflict();throw error;}
+     // Old published data remains intact until the pointer transaction commits.
+     await this.discard(expected.generation).catch(()=>{});
+   }
+diff --git a/tests/editor/recovery.spec.ts b/tests/editor/recovery.spec.ts
+index f295667..76a44ad 100644
+--- a/tests/editor/recovery.spec.ts
++++ b/tests/editor/recovery.spec.ts
+@@ -18,6 +18,59 @@ async function setup(page:Page,context:BrowserContext){
+  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
+  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
+ }
++test('history receipt probes stay serial and one action waits for exact accepted result proof',async({page,context})=>{
++ const f=await setup(page,context);let releaseReceipt=()=>{},releaseProof=()=>{};
++ try{
++ const original=await page.locator('canvas').getAttribute('data-asset');await page.getByRole('treeitem').click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.5');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
++ let id='',pending:any,lookups=0,active=0,maxActive=0;const wires:string[]=[];
++ const receiptGate=new Promise<void>(r=>releaseReceipt=r),proofGate=new Promise<void>(r=>releaseProof=r);let receiptHit=()=>{},proofHit=()=>{};
++ const heldReceipt=new Promise<void>(r=>receiptHit=r),heldProof=new Promise<void>(r=>proofHit=r);
++ await page.route('**/api/v1/commands',async route=>{
++  if(route.request().method()!=='POST'||JSON.parse(route.request().postData()!).command.body.type!=='Undo'){await route.continue();return;}
++  wires.push(route.request().postData()!);id=JSON.parse(wires[0]).command.commandId;const response=await route.fetch();pending=await response.json();expect(pending.kind).toBe('pending');await route.fulfill({response});
++ });
++ await page.route('**/api/v1/commands/*',async route=>{
++  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id){await route.continue();return;}
++  active++;maxActive=Math.max(maxActive,active);lookups++;
++  try{
++   // Replay delayed, real pending observations, then hold one receipt read.
++   // This is a delivery fault oracle, not a timing specimen or synthetic receipt.
++   if(lookups<=2){await route.fulfill({status:202,json:pending});return;}
++   receiptHit();await receiptGate;await route.continue();
++  }finally{active--;}
++ });
++ await page.route('**/api/v1/commands/*/result',async route=>{
++  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id+'/result'){await route.continue();return;}
++  // Node-side route.fetch omits Chromium's browser-supplied Fetch Metadata.
++  // Bind this fault-injection read to the already paired test origin; normal
++  // browser authorization remains covered by the unchanged boundary tests.
++  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});expect(response.status()).toBe(200);proofHit();await proofGate;await route.fulfill({response});
++ });
++ await click(page,'Undo');await heldReceipt;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');expect(wires).toHaveLength(1);expect(lookups).toBe(3);expect(maxActive).toBe(1);await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
++ releaseReceipt();await heldProof;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
++ releaseProof();await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);expect(wires).toHaveLength(1);expect((await f.read('/api/v1/commands/'+id+'/original')).text).toBe(wires[0]);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);
++ }finally{releaseReceipt();releaseProof();await page.unrouteAll({behavior:'wait'});await f.server.close();}
++});
++
++test('history completion retries complete recovery when another tab replaces the staged base',async({page,context})=>{
++ const f=await setup(page,context);let release=()=>{};try{
++ await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');const original=await page.locator('canvas').getAttribute('data-asset');await page.getByRole('treeitem').click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.5');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
++ const other=await context.newPage();await other.goto(f.server.origin);await expect(other.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
++ let entered=()=>{},held=false,reads=0;const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);const wires:string[]=[];
++ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'&&JSON.parse(r.postData()!).command.body.type==='Undo')wires.push(r.postData()!);});
++ await page.route('**/api/v1/events?*',async route=>{
++  if(new URL(route.request().url()).searchParams.has('recoveryId')){await route.continue();return;}
++  reads++;if(held){await route.continue();return;}held=true;
++  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});expect(response.status()).toBe(200);entered();await gate;await route.fulfill({response});
++ });
++ await click(page,'Undo');await hit;
++ // A full other-tab recovery replaces/discards the old shared generation even
++ // if its cursor already includes Undo. The held reader must restart its proof.
++ await other.reload();await expect(other.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();release();
++ await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);await expect(page.locator('.document-name')).toHaveText(await other.locator('.document-name').textContent()??'');expect(reads).toBeGreaterThan(1);expect(wires).toHaveLength(1);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);await other.close();
++ }finally{release();await page.unrouteAll({behavior:'wait'});await f.server.close();}
++});
++
+ test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
+  const f=await setup(page,context);try{
+  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];

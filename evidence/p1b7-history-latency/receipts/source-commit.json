@@ -1,0 +1,7 @@
+{
+  "commit": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+  "runtimeSourceSHA256": "5b8d33bc547eb7c3c577ba2b3e0ab05fb543f830796419a09a859499447ffa20",
+  "runtimeInputsMatchGit": 100,
+  "verificationInputsMatchGit": 90,
+  "clean": true
+}

@@ -1,0 +1,9 @@
+{
+  "51": "Firefox25/26; immediate focus reveal does not keep whole status region in viewport after native End/Tab at720. No closure.",
+  "52": "Chromium focused6 PASS",
+  "53": "WebKit focused6 PASS",
+  "54": "shell10 PASS",
+  "55": "Retained external exact-source diagnostic:320 native/host y267.200 inside region235..319 at scrollY0;720 native/host y-227.800 inside region-260..-176 but page scrollY375. Document active EN-BUTTON and matching native focus. Focus event sequence SECTION \u2192 validation summary \u2192 retry public host.",
+  "source": "candidate-5-source.json",
+  "next": "Scoped requestAnimationFrame reveal only for still-connected exact document.activeElement, behavior instant/nearest. Does not schedule commands or alter clock/observers; functional verification pending."
+}

@@ -1,0 +1,17 @@
+{
+  "positiveControls": {
+    "bef": {
+      "opacity-0": 398.071,
+      "opacity-1": 348.888,
+      "opacity-2": 348.802,
+      "opacity-3": 366.661,
+      "opacity-4": 384.207,
+      "undo": 79.013,
+      "redo": 114.83,
+      "checkpoint": 101.224
+    },
+    "eb4": "all eight actions match original analysis exactly"
+  },
+  "rejectedNegativeControls": 18,
+  "receipt": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/validation.json"
+}

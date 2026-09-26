@@ -1,0 +1,60 @@
+{
+  "source": "ac719bc0b47d9e052dd3e111c6802a34e060c8ee2ecfae3c55feacab82303e38",
+  "initial": [
+    {
+      "file": "assets/icon-LNfVOU5p.js",
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "rawBytes": 137598,
+      "gzipBytes": 31511
+    },
+    {
+      "file": "assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "rawBytes": 1218,
+      "gzipBytes": 691
+    },
+    {
+      "file": "assets/index-DZ66gQ_Z.js",
+      "sha256": "2e11b1a2db3ab6839e9bad94a7e51f2fc6dc497748d1947606e2ddbffc9db8db",
+      "rawBytes": 1429,
+      "gzipBytes": 764
+    },
+    {
+      "file": "assets/shell-cXDgPTI8.js",
+      "sha256": "edcfcc377d690803a6cab6982e40c3d5dc65dbd7723fb33daa3feea9924ba159",
+      "rawBytes": 354667,
+      "gzipBytes": 96090
+    }
+  ],
+  "lazyPanelsIncremental": [
+    {
+      "file": "assets/editor-panels-C8u6k489.js",
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "rawBytes": 9411,
+      "gzipBytes": 3308
+    }
+  ],
+  "css": [
+    {
+      "file": "assets/index-CeDocqmD.css",
+      "sha256": "a2563ee427d84dbf92fc8ebe28fcdde8ecc277e6610074bcb4f6a1f8266aefe6",
+      "rawBytes": 96436,
+      "gzipBytes": 12607
+    }
+  ],
+  "totals": {
+    "initial": {
+      "rawBytes": 494912,
+      "gzipBytes": 129056
+    },
+    "lazyPanelsIncremental": {
+      "rawBytes": 9411,
+      "gzipBytes": 3308
+    },
+    "css": {
+      "rawBytes": 96436,
+      "gzipBytes": 12607
+    }
+  },
+  "D11": "startup gzip300/500KiB/evaluated raw1/1.5MiB; lazy150/300KiB;CSS100/200KiB. No font/engine introduced. Actual emitted bytes; shared code counted once. Single artifact only; no five-build/evaluated-module/native qualification."
+}

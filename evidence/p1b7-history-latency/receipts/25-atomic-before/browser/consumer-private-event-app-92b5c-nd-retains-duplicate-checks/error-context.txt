@@ -1,0 +1,26 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: consumer.spec.ts >> private event application rolls back every row on a write fault and retains duplicate checks
+- Location: tests/recovery/consumer.spec.ts:22:1
+
+# Error details
+
+```
+Error: page.evaluate: Error: Invalid creation
+    at t (http://127.0.0.1:51095/assets/index-CE4_Z4qG.js:1:4728)
+    at e.apply (http://127.0.0.1:51095/assets/index-CE4_Z4qG.js:1:20884)
+    at async eval (eval at evaluate (:311:30), <anonymous>:24:5)
+    at async <anonymous>:337:30
+```
+
+# Page snapshot
+
+```yaml
+- paragraph [ref=e2]: Recovery consumer ready
+```

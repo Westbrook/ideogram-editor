@@ -1,0 +1,25 @@
+{
+  "at": "2026-09-26T14:26:34.754009+00:00",
+  "candidateRuntimeIdentity": "fbedffa9e813f2df9c0564a864bb5184994156b66d82a0d73ca4013ad057e883",
+  "sourceManifest": "candidate-3-source.json",
+  "sourceManifestSHA256": "a7ac4567d84929ba8f6b4a50ef3a7325a83e8d4860ff2cdd686fae76a671974b",
+  "attempts": {
+    "30": "Firefox full24 PASS/1 FAIL; edit not admitted at native click.",
+    "37": "Safe diagnostic1 PASS/1 FAIL/1 unrun; no second Apply native click or intent.",
+    "38": "Safe pointer diagnostic2 PASS/1 FAIL; status pending row disappears between down/up, click targets common inspector DIV.",
+    "39": "Fixture ERROR: expected first receipt lookup200 but valid pending202. No geometry result.",
+    "40": "Same fixture ERROR; intended source replacement stopped with assertion because pattern had two occurrences, subsequent shell command still ran unchanged test. Retained, no product inference.",
+    "41": "Corrected fixture passes through real pending202 until held terminal200. Product FAIL: same connected Apply node y414.79998779296875 ->363.79998779296875 (51px movement) during native pointer press. No source CSS build yet; frozen27 runtime candidate3."
+  },
+  "fixtureCorrection": "Only real terminal receipt is held; earlier202 passed through. No synthetic receipt, force click, second click or mutation replay.",
+  "oldCandidateDist": "27-build outputs recorded in candidate-3-source.json; CSS file edit after test start did not rebuild served app.",
+  "files": {
+    "39-stability-before-source.ts": "27ccc803e2eb698c78641daa7ea2cbeeed99e674e6ce5b6b68470eb9e3824c5b",
+    "30-firefox.log": "c66bd7abb2717a2951f86476d80bc0b13846d12f3edc9f4b867f8ebcbba24cd0",
+    "37-firefox-diagnostic.log": "d6995b6192d2b6a56369c9d03f742374d7b1dda84a436d16ccce8acf17f5cb44",
+    "38-firefox-diagnostic.log": "3a6768455ea1ad43df7dd52d32802b067f94a358fb54c960c4660ca4ecd37313",
+    "39-stability-before.log": "69c0f95aac3561d3207bd8e2e7bd7e21913140778b57640a4cc15380533f498a",
+    "40-stability-before.log": "c93870a8ba6edc77feba44a670540f1a8e56f0a47d7283d35887d5b453b761b3",
+    "41-stability-before.log": "9e3ce48cbf485ca47bbb3094ae15e20852c7eb2c574da57d77d7f0fe9102c56c"
+  }
+}

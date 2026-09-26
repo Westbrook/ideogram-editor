@@ -1,0 +1,21 @@
+{
+  "base": "eb4a3e64ed288db6cf16e1118690e8b6f3ac3876",
+  "originalReview": "../eb4a3e6-independent/VERDICT.txt",
+  "originalEvidencePolicy": "Original eb4/e1fa068/p1b7/p1b7-provenance records remain untouched. This directory is additive correction evidence.",
+  "attempts": {
+    "05-chromium": "Candidate1:22 pass/2 fail. Existing multi-tab Apply failed; safe diagnostic11 later reproduced Cache transaction aborted. New held-result fault oracle failed; diagnostics09/10 establish ORIGIN_DENIED because node-side route.fetch omitted browser Fetch Metadata.",
+    "07-firefox": "Candidate1:23 pass/1 fail. Late version/renewal did not display recovery complete. Exact cause was not captured; no claim of proven identical cause to cache race. Three diagnostic copies12 passed; later full candidate2 recheck retained separately.",
+    "08-diagnostic": "Harness startup failure: external copied specs lacked nearest type:module package, so Playwright transpilation treated imported ES modules as CommonJS. No app criterion exercised.",
+    "09-diagnostic": "Copied functional specs plus failure-state output: one multi-tab pass, held-result ORIGIN_DENIED failure, four unrun after max-failures. Failure retained; not a timing run.",
+    "10-diagnostic": "Copied held-result functional test with allowlisted denied-response output confirmed absent Origin/Fetch Metadata on node-side intercepted result read. No cookies/tokens captured.",
+    "11-multitab-diagnostic": "Copied functional multi-tab test:2 pass then Cache transaction aborted failure;2 not run after max-failures. Repetition used to reproduce functional race, not performance selection.",
+    "12-renewal-diagnostic": "Three copied renewal functional repetitions passed; does not erase07 or prove its cause.",
+    "13-held-proof": "Same candidate1 runtime with corrected test-origin fault read:held-proof test passed.",
+    "14-publication-before": "Candidate1 runtime, newly added deterministic other-tab base replacement regression:failed before cache correction. The same regression is retained in final verification source."
+  },
+  "diagnosticSourceClassification": "diagnostic-tests are external copied verification inputs, not app code or observed browser metadata. Their retained final form includes added safe diagnostic hooks. Version changes:08 lacked package.json;09 added type:module;10 added denied-response allowlist;11/12 made browser selectable. Their assertions came from candidate1 originals. No claim these final copies are byte-identical inputs to every earlier diagnostic invocation.",
+  "candidate1": "candidate-source.json + candidate.patch bind first scheduling-only runtime. Later13/14 test-only changes did not change that runtime.",
+  "candidate2": "candidate-2-source.json + candidate-2.patch bind the cache-conflict correction and final25-test browser inputs. Final gates15-21 use that runtime;6 server read checks04 remain applicable because all server/protocol/package inputs are unchanged.",
+  "scopeLimits": "Tiny integrated observations only. No formal W1/H,100k operations,large-envelope/native/AT/power-loss qualification. Original R20 full metadata/opacity and five pending maxima remain. WebKit full-download failure remains;20 is four focused checks only. Screenshot-only WebKit CSP diagnostics retained; workflow assertions precede screenshot injection.",
+  "functionalOverlap": "Some independent functional suites ran concurrently; their execution durations are not performance qualification. A separate explicit serial interval is required for timing."
+}

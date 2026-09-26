@@ -1,0 +1,5 @@
+{
+  "at": "2026-09-26T14:52:29.254350+00:00",
+  "result": "80 FAILED link-name oracle",
+  "reason": "Actual public accessible name is Progress Report \u2197, exact matcher omitted arrow. No app/product build change.81 uses observed exact link name; prior timeout retained."
+}

@@ -1,0 +1,437 @@
+{
+  "version": 2,
+  "retrospective": true,
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/full-action",
+  "inputSha256": {
+    "paint-trace.json": "6cb5762373c587a8b9d91f0a64133573558153cbe5ef2665c20f7841ee453cb3",
+    "action-steps.json": "0cdecad90ca8eef02a649da6c254a5f61218f10b80fcf1458b7bfe972784d2eb"
+  },
+  "analyzerSha256": "b15559793a74c7fac5b119ee39b493a40f8ba0f65db6412613a940463665b1bc",
+  "boundary": "Unchanged native intent through FIRST correct covering renderer Paint END. Exact document/revision/asset, settled state, single completion and required changed-asset draw precede DOM verification. Post-verification Paint must end before the next explicit non-passive signal; absent bounds fail closed. No GPU/physical display, formal W1/H, population or independent approval claim.",
+  "actions": [
+    {
+      "action": "opacity-0",
+      "intent": {
+        "name": "ie.intent.Apply properties",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783079559990,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "3",
+      "asset": "50f69e73-dc68-4fd5-87ed-49aba19ac751",
+      "assetChanged": true,
+      "firstCorrectRevisionMs": 351.876,
+      "firstSettledRevisionMs": 354.687,
+      "firstCompleteMs": 354.504,
+      "matchingDrawMs": 357.691,
+      "completedCoveringPaintMs": 367.131,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783079926883,
+        "dur": 238,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 796.21,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    },
+    {
+      "action": "opacity-1",
+      "intent": {
+        "name": "ie.intent.Apply properties",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783080392689,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "4",
+      "asset": "f1984db7-4139-4ded-a498-e52669599727",
+      "assetChanged": true,
+      "firstCorrectRevisionMs": 350.621,
+      "firstSettledRevisionMs": 353.081,
+      "firstCompleteMs": 352.904,
+      "matchingDrawMs": 356.179,
+      "completedCoveringPaintMs": 366.121,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783080758541,
+        "dur": 269,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 796.729,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    },
+    {
+      "action": "opacity-2",
+      "intent": {
+        "name": "ie.intent.Apply properties",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783081226490,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "5",
+      "asset": "98a74a33-62c5-4ab6-a8ee-17946bb83660",
+      "assetChanged": true,
+      "firstCorrectRevisionMs": 350.019,
+      "firstSettledRevisionMs": 353.09,
+      "firstCompleteMs": 352.867,
+      "matchingDrawMs": 356.121,
+      "completedCoveringPaintMs": 365.609,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783081591846,
+        "dur": 253,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 796.713,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    },
+    {
+      "action": "opacity-3",
+      "intent": {
+        "name": "ie.intent.Apply properties",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783082059490,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "6",
+      "asset": "a77d1dea-9302-4cdd-855a-74c0cdde7ee9",
+      "assetChanged": true,
+      "firstCorrectRevisionMs": 344.352,
+      "firstSettledRevisionMs": 347.053,
+      "firstCompleteMs": 346.901,
+      "matchingDrawMs": 351.196,
+      "completedCoveringPaintMs": 365.753,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783082425040,
+        "dur": 203,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 796.28,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    },
+    {
+      "action": "opacity-4",
+      "intent": {
+        "name": "ie.intent.Apply properties",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783082892790,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "7",
+      "asset": "4be155fa-47cc-4b86-b5d2-88cd48a57417",
+      "assetChanged": true,
+      "firstCorrectRevisionMs": 341.623,
+      "firstSettledRevisionMs": 344.474,
+      "firstCompleteMs": 344.303,
+      "matchingDrawMs": 347.619,
+      "completedCoveringPaintMs": 350.824,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783083243355,
+        "dur": 259,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 791.22,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    },
+    {
+      "action": "undo",
+      "intent": {
+        "name": "ie.intent.Undo",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783083728790,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "8",
+      "asset": "a77d1dea-9302-4cdd-855a-74c0cdde7ee9",
+      "assetChanged": true,
+      "firstCorrectRevisionMs": 95.848,
+      "firstSettledRevisionMs": 100.624,
+      "firstCompleteMs": 100.453,
+      "matchingDrawMs": 99.544,
+      "completedCoveringPaintMs": 116.323,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783083844884,
+        "dur": 229,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 186.113,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    },
+    {
+      "action": "redo",
+      "intent": {
+        "name": "ie.intent.Redo",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783083977290,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "9",
+      "asset": "4be155fa-47cc-4b86-b5d2-88cd48a57417",
+      "assetChanged": true,
+      "firstCorrectRevisionMs": 86.664,
+      "firstSettledRevisionMs": 89.268,
+      "firstCompleteMs": 89.135,
+      "matchingDrawMs": 92.226,
+      "completedCoveringPaintMs": 99.474,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783084076537,
+        "dur": 227,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 186.199,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    },
+    {
+      "action": "checkpoint",
+      "intent": {
+        "name": "ie.intent.Save checkpoint",
+        "cat": "blink.user_timing",
+        "ph": "I",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783086676490,
+        "args": {}
+      },
+      "documentId": "42c285a7-1857-41da-bf6b-d0445ada10f1",
+      "revision": "12",
+      "asset": "4960539c-8a23-41eb-96b6-ea205c46056f",
+      "assetChanged": false,
+      "firstCorrectRevisionMs": 107.126,
+      "firstSettledRevisionMs": 110.718,
+      "firstCompleteMs": 110.605,
+      "matchingDrawMs": null,
+      "completedCoveringPaintMs": 116.436,
+      "paint": {
+        "name": "Paint",
+        "cat": "devtools.timeline",
+        "ph": "X",
+        "pid": 12104,
+        "tid": 253166019,
+        "ts": 3783086792669,
+        "dur": 257,
+        "args": {
+          "clip": [
+            0,
+            0,
+            1440,
+            0,
+            1440,
+            1000,
+            0,
+            1000
+          ],
+          "nodeId": 2,
+          "layerId": 0
+        }
+      },
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      },
+      "testAssertionMs": 207.25,
+      "postVerifiedPaint": false,
+      "finiteBoundary": null
+    }
+  ]
+}

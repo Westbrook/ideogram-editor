@@ -1,0 +1,2870 @@
+{
+  "capturedAt": "2026-09-26T14:56:28.657385+00:00",
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author",
+  "scope": "Surviving external author evidence at packaging time. Byte-preserving path aliases; log/md suffix changed to txt only. No original unavailable19 reporter is reconstructed. Historical source/build manifests are captured provenance, not claims that all historical dist outputs are retained. Only declared frozen fixtures/builds are supplied. Browser reporter JSON are observations, never current verification-code inputs.",
+  "entries": [
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/01-install.log",
+      "packagePath": "receipts/01-install.txt",
+      "sha256": "62f985e811555061e4a2df9597dfc81ed216cd7368857dc5bf66d3c49fd73a5e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/02-typecheck.log",
+      "packagePath": "receipts/02-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/03-build.log",
+      "packagePath": "receipts/03-build.txt",
+      "sha256": "028dc22760823c8947d9f98d90e5a46a9e9c9ed4ac97913905d71e20b2f8ef2d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/04-read-contracts.log",
+      "packagePath": "receipts/04-read-contracts.txt",
+      "sha256": "557cdcc040cfbf2242360a27d457ede4ea86ab8bb49f034592b487fc24e80299",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser/.last-run.json",
+      "packagePath": "receipts/05-chromium/browser/.last-run.json",
+      "sha256": "32dd08dc6f8d8ef105fce076bf70071246900896b4c90c900bb1dcaebcfebc6f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/error-context.md",
+      "packagePath": "receipts/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/error-context.txt",
+      "sha256": "ffe65df38a66c10b43aa84c347b88f36f54ad710a8b6e7fa93708d19a024fcd8",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-1.png",
+      "packagePath": "receipts/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-1.png",
+      "sha256": "8d63cad5187aff0cf4ad50d7b20ac9de9bfea1454a739cec9169c50d4a8765e9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-2.png",
+      "packagePath": "receipts/05-chromium/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-2.png",
+      "sha256": "ee1f90de2f751a212331b106aab13c24323051fe88fcc77a08cc768f504c6d33",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.md",
+      "packagePath": "receipts/05-chromium/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.txt",
+      "sha256": "4406b0b5e1a3a00bf95c076631d5826787a6399d739199a74dd6a36a1d582480",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/test-failed-1.png",
+      "packagePath": "receipts/05-chromium/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/test-failed-1.png",
+      "sha256": "7009f61b4e63e48cffe7157303f528ebd96e682c016115f735540ba0c68f3b1e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/browser.json",
+      "packagePath": "receipts/05-chromium/browser.json",
+      "sha256": "842a4890386c9692fc968d27d917b1eb81eb2d9773535ac6d4b5a1720c984e5b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/e1.json",
+      "packagePath": "receipts/05-chromium/e1.json",
+      "sha256": "ab0c23c5a6ca8154e2f934831b6cb6ab1e594f08c08450b6d38de079d71fcccb",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/e1.png",
+      "packagePath": "receipts/05-chromium/e1.png",
+      "sha256": "bc96937a50ae9b57f5f7fc912999f7c8c338a634d81e6ed3dfe9f5a854d6f53e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium/editor.png",
+      "packagePath": "receipts/05-chromium/editor.png",
+      "sha256": "6600def62c0213dd3ab9d926f241481d373552c8d19eef2ed292b8a8cbe80621",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/05-chromium.log",
+      "packagePath": "receipts/05-chromium.txt",
+      "sha256": "b070975e355e54a7ba26aa4c3416e2c91f0868c23ab8d838e46cce8bc88c945b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/06-shell/browser/.last-run.json",
+      "packagePath": "receipts/06-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/06-shell/shell-browser.json",
+      "packagePath": "receipts/06-shell/shell-browser.json",
+      "sha256": "58b88ee17828f92847b7c09d3c0f29d2a4e09f669578ba5cd8c9bf3bab8eabb0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/06-shell/shell-desktop-1440.png",
+      "packagePath": "receipts/06-shell/shell-desktop-1440.png",
+      "sha256": "9155ef4ae9397fbec7f9d108cb4042c8037aca5a05f1a242323b64173afdd421",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/06-shell/shell-reflow-320.png",
+      "packagePath": "receipts/06-shell/shell-reflow-320.png",
+      "sha256": "25fc48b89e36b3a13dffb621d2e72b6fed5628a8aa632698b09cb94d869bc837",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/06-shell/shell-reflow-720.png",
+      "packagePath": "receipts/06-shell/shell-reflow-720.png",
+      "sha256": "ee9b66b22c43d51b87ef99734e5253edc017162308b70f1ff830ab33ef9a5cb8",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/06-shell.log",
+      "packagePath": "receipts/06-shell.txt",
+      "sha256": "46594ee7838c2815d4a6736828b42abe33ad326f0dd325d7d5f8fd2d609fe2f7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/browser/.last-run.json",
+      "packagePath": "receipts/07-firefox/browser/.last-run.json",
+      "sha256": "e306c0f8cd39ad6f898d77984b22672ed31690f4d6070e5250fb698b443b6e1b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/browser/recovery-late-version-prob-d5721-eckpoint-or-renewed-session/error-context.md",
+      "packagePath": "receipts/07-firefox/browser/recovery-late-version-prob-d5721-eckpoint-or-renewed-session/error-context.txt",
+      "sha256": "7583a8f1eb2b60c7e01436591631cbc8d4fe1f9c42a241c20b9b02d43319bbda",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/browser/recovery-late-version-prob-d5721-eckpoint-or-renewed-session/test-failed-1.png",
+      "packagePath": "receipts/07-firefox/browser/recovery-late-version-prob-d5721-eckpoint-or-renewed-session/test-failed-1.png",
+      "sha256": "cb9fbe4e40e061c9e5a6282eb2ab3106dedac940021faf4849a461fdbee9c64d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/browser/recovery-late-version-prob-d5721-eckpoint-or-renewed-session/test-failed-2.png",
+      "packagePath": "receipts/07-firefox/browser/recovery-late-version-prob-d5721-eckpoint-or-renewed-session/test-failed-2.png",
+      "sha256": "6ac8c2e6c1527791dac84ab87209adcad7379ac3d135befd0e1cdd63dcee9123",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/browser.json",
+      "packagePath": "receipts/07-firefox/browser.json",
+      "sha256": "1e63065e0317df281dab8838a1e9dc0a1fe36f870c517dd74056cc7ca93f7b4e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/e1.json",
+      "packagePath": "receipts/07-firefox/e1.json",
+      "sha256": "3a028c04097849e6f5b958710a124954672e9678ce533330c6d5b7ad6a763ee9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/e1.png",
+      "packagePath": "receipts/07-firefox/e1.png",
+      "sha256": "cd515e3a82bbcd2544d1d4cb66ba8afcec2c4fc55cd49077469e76d0e6750154",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox/editor.png",
+      "packagePath": "receipts/07-firefox/editor.png",
+      "sha256": "ce2d646d280c6d1cba45930f49c83b0291962e0853317f8b02c66da68105c6b9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/07-firefox.log",
+      "packagePath": "receipts/07-firefox.txt",
+      "sha256": "4d9ffc9cc81a78b08f92bb8b307d0390b3ee42edc8ca7dd64bab8e5c0224aed3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/08-diagnostic/browser/.last-run.json",
+      "packagePath": "receipts/08-diagnostic/browser/.last-run.json",
+      "sha256": "e22df5d0991eb28c09093b1e678b3fa8cd1fab48185d38e67cf79fb6e63ad5ea",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/08-diagnostic.log",
+      "packagePath": "receipts/08-diagnostic.txt",
+      "sha256": "8fa2e098594adb394e090a9d8a03ebd6930d3237ddf8eda710b1f7ce2245cc32",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/09-diagnostic/browser/.last-run.json",
+      "packagePath": "receipts/09-diagnostic/browser/.last-run.json",
+      "sha256": "e70dbfc9635a56b2ac729307506230ac8d1cd3acbeeaa8f6f5a9b1b5c5f4e647",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/09-diagnostic/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.md",
+      "packagePath": "receipts/09-diagnostic/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.txt",
+      "sha256": "87f8c32d7e35fecdc1bd20f616b13386080708c67cd5d9c7f53cefa37f971e63",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/09-diagnostic.log",
+      "packagePath": "receipts/09-diagnostic.txt",
+      "sha256": "b7216ceb08699cfc1b5e5ba1a276decad1bc6b0f822fbcfcc71fca9eb2e9be63",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/10-diagnostic/browser/.last-run.json",
+      "packagePath": "receipts/10-diagnostic/browser/.last-run.json",
+      "sha256": "8aef1e5114706620c6612f2652598eb446e041cccc78f5a4c3fd7a2847904ca3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/10-diagnostic/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.md",
+      "packagePath": "receipts/10-diagnostic/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.txt",
+      "sha256": "b04eb42e52f6c0ae9258bb48b0834916974d3de6e14c7d7c32f9f7658e6854b4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/10-diagnostic.log",
+      "packagePath": "receipts/10-diagnostic.txt",
+      "sha256": "15cf63cd28d5d8b9e8a35d067c68c5b8d515820de5b7f01c29fd5b0b142d643a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/11-multitab-diagnostic/browser/.last-run.json",
+      "packagePath": "receipts/11-multitab-diagnostic/browser/.last-run.json",
+      "sha256": "e6cfe8639fb06fd12f552fbc9444b9f7916a0ba3e16bebb456c31f1b1c7f1091",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/11-multitab-diagnostic/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions-repeat2/error-context.md",
+      "packagePath": "receipts/11-multitab-diagnostic/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions-repeat2/error-context.txt",
+      "sha256": "374082d8b3931ecdb324a5f0cccb150b96921f4f0702cb64aaa005369f966863",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/11-multitab-diagnostic.log",
+      "packagePath": "receipts/11-multitab-diagnostic.txt",
+      "sha256": "a99b3a96324977c5d8ddef47ccc50a27042d121597b1e47c14536bd34c23657c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/12-renewal-diagnostic/browser/.last-run.json",
+      "packagePath": "receipts/12-renewal-diagnostic/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/12-renewal-diagnostic.log",
+      "packagePath": "receipts/12-renewal-diagnostic.txt",
+      "sha256": "bf69572c6549d4a4a47222cf091b05cdff6fefd3f1f1a84a243607f72396473c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/13-held-proof/browser/.last-run.json",
+      "packagePath": "receipts/13-held-proof/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/13-held-proof/browser.json",
+      "packagePath": "receipts/13-held-proof/browser.json",
+      "sha256": "70231be7ed87938756fdc63e78e5622251dc9921dd799c1bb9848830d2b23ea9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/13-held-proof.log",
+      "packagePath": "receipts/13-held-proof.txt",
+      "sha256": "6b4e481524a53a7f053ed7aeb23da8ee8331b43ded36fba730b1ad1b72397582",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/14-publication-before/browser/.last-run.json",
+      "packagePath": "receipts/14-publication-before/browser/.last-run.json",
+      "sha256": "ac44513e35dec37b38450c4a8ffce2f0f1b3d8bf1287e0998dfe6bcea7298630",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/14-publication-before/browser/recovery-history-completio-bba7b-ab-replaces-the-staged-base/error-context.md",
+      "packagePath": "receipts/14-publication-before/browser/recovery-history-completio-bba7b-ab-replaces-the-staged-base/error-context.txt",
+      "sha256": "99e23bae2131a2adaa2f552fda985f7362c953d342cb8cea1abf6a8337a092b0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/14-publication-before/browser/recovery-history-completio-bba7b-ab-replaces-the-staged-base/test-failed-1.png",
+      "packagePath": "receipts/14-publication-before/browser/recovery-history-completio-bba7b-ab-replaces-the-staged-base/test-failed-1.png",
+      "sha256": "ad8263e4a564e1cde661a6756fcd7d9fec2180d2c278a735d674bcb43a0b40d5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/14-publication-before/browser/recovery-history-completio-bba7b-ab-replaces-the-staged-base/test-failed-2.png",
+      "packagePath": "receipts/14-publication-before/browser/recovery-history-completio-bba7b-ab-replaces-the-staged-base/test-failed-2.png",
+      "sha256": "db7b0063bc60daa0067fbaeb366ca465496881828b89454cd743b332c6b7c78e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/14-publication-before/browser.json",
+      "packagePath": "receipts/14-publication-before/browser.json",
+      "sha256": "e4ee62119cf4ba7bc1cd80d47e505441ce01516177eec31754dcdf0e458df7e1",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/14-publication-before.log",
+      "packagePath": "receipts/14-publication-before.txt",
+      "sha256": "a063f6d10f3688677ef9a08a4e366aee2c9c2babeec9d4ccd6c2d07048d99a08",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/15-typecheck.log",
+      "packagePath": "receipts/15-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/16-build.log",
+      "packagePath": "receipts/16-build.txt",
+      "sha256": "a586d751901ce3dfb718048f282eaad146da869a5ccc026f0f9f79a09a48d7b6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/17-chromium/browser/.last-run.json",
+      "packagePath": "receipts/17-chromium/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/17-chromium/browser.json",
+      "packagePath": "receipts/17-chromium/browser.json",
+      "sha256": "4539b7cc6ffdecb8ec07c0d62dae557188ca13cdde94d3cf58d95035a9ef11f6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/17-chromium/e1.json",
+      "packagePath": "receipts/17-chromium/e1.json",
+      "sha256": "be8837a62859b33d104f8f094beb414786b34dad9aa32ebed9a1be6f5abbb5b7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/17-chromium/e1.png",
+      "packagePath": "receipts/17-chromium/e1.png",
+      "sha256": "0c9300d22a07439a325a26a8fb1cc4aa3ca7e1919f70fa590024a2c180c262b1",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/17-chromium/editor.png",
+      "packagePath": "receipts/17-chromium/editor.png",
+      "sha256": "14b4ee08b14bb7c99c584b4d90511e2cf7f31434278a0b022513aec0fa509d1a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/17-chromium.log",
+      "packagePath": "receipts/17-chromium.txt",
+      "sha256": "96d545993fd67647da127cd4d84fb51915f2b0acbe6e4229e10cced839681782",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/18-firefox/browser/.last-run.json",
+      "packagePath": "receipts/18-firefox/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/18-firefox/browser.json",
+      "packagePath": "receipts/18-firefox/browser.json",
+      "sha256": "1b8a2d0e2a4ab15f08a91c90224163a01d5bef9b78b0a5963c5226c8477a4c9d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/18-firefox/e1.json",
+      "packagePath": "receipts/18-firefox/e1.json",
+      "sha256": "0e20c977253b1282a3df5bd0506009f95795b2a0ef8fbfeb748a4e7b7ba0bcc0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/18-firefox/e1.png",
+      "packagePath": "receipts/18-firefox/e1.png",
+      "sha256": "e0b01b82ff227195264929f8ed51f3c8c0ea199f0cf3e1d47e48e69d0c5f1297",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/18-firefox/editor.png",
+      "packagePath": "receipts/18-firefox/editor.png",
+      "sha256": "14dd28ad3cebdae6c0f9f96f8695c4397f4a7460b9880624a6689ec4b435c10b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/18-firefox.log",
+      "packagePath": "receipts/18-firefox.txt",
+      "sha256": "1fef33b99c9c48b1708f0c626d5f37be03df0a603dbb322f6e7a4f5dd1555bd6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery/browser-app/assets/index-CE4_Z4qG.js",
+      "packagePath": "receipts/19-recovery/browser-app/assets/index-CE4_Z4qG.js",
+      "sha256": "83a14853d37098963850989e9a4b0907cf9b722f277b9981113dea39daa993b5",
+      "category": "historical-frozen-fixture-build",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery/browser-app/index.html",
+      "packagePath": "receipts/19-recovery/browser-app/index.html",
+      "sha256": "9bf758f234cfb3bb46aea5690637c51fbe0475b34fbec2afb498d09d928cc69c",
+      "category": "historical-frozen-fixture-build",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery/browser-recovery.png",
+      "packagePath": "receipts/19-recovery/browser-recovery.png",
+      "sha256": "53b9a9ca466661b5f8e283d274be2926491ac6dd05c09c1186e198f3f8e4b5d7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery/browser-results/.last-run.json",
+      "packagePath": "receipts/19-recovery/browser-results/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery/recovery-browser.json",
+      "packagePath": "receipts/19-recovery/recovery-browser.json",
+      "sha256": "fe63b965f8db5bed90aa93da110ad5541d155a9786016f3658f7b9382af532a4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery-build.log",
+      "packagePath": "receipts/19-recovery-build.txt",
+      "sha256": "536bc950ccbf12bcdaf8ef9c40e67ae28b4d0d65f81c6a6c2d58e36ff8b401d5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/19-recovery.log",
+      "packagePath": "receipts/19-recovery.txt",
+      "sha256": "bfb0574ad8125c0f3be595968887b5d9a44ac6c3bf14c6ad70c0602a4421b009",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/20-webkit/browser/.last-run.json",
+      "packagePath": "receipts/20-webkit/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/20-webkit/browser.json",
+      "packagePath": "receipts/20-webkit/browser.json",
+      "sha256": "4244004d60f62c4e1456143f7902d70694279b640cee654fe22db69736c18f6e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/20-webkit/editor.png",
+      "packagePath": "receipts/20-webkit/editor.png",
+      "sha256": "acb1bafa274f7798fc943fb4c3f373d91c417c21986311087b7c8d0d0194a668",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/20-webkit.log",
+      "packagePath": "receipts/20-webkit.txt",
+      "sha256": "10dd9d64f99c2464d98ce4292d512779c71afe1b2e8dde3667eece99cfac92b6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell/browser/.last-run.json",
+      "packagePath": "receipts/21-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell/shell-browser.json",
+      "packagePath": "receipts/21-shell/shell-browser.json",
+      "sha256": "20988546924997a394441c4fe0d77525aac779bb38f168deb1c94ba2d62c5f52",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell/shell-desktop-1440.png",
+      "packagePath": "receipts/21-shell/shell-desktop-1440.png",
+      "sha256": "9155ef4ae9397fbec7f9d108cb4042c8037aca5a05f1a242323b64173afdd421",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell/shell-reflow-320.png",
+      "packagePath": "receipts/21-shell/shell-reflow-320.png",
+      "sha256": "25fc48b89e36b3a13dffb621d2e72b6fed5628a8aa632698b09cb94d869bc837",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell/shell-reflow-720.png",
+      "packagePath": "receipts/21-shell/shell-reflow-720.png",
+      "sha256": "7dce136a0466446ae3d91df88a31846f615d581a9e467001006e63d0c956f4ec",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/21-shell.log",
+      "packagePath": "receipts/21-shell.txt",
+      "sha256": "d4d91118438f546e6a72a890397a68ad2c9a7e4ab3d00e3ff9645110db75bb0b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/action-steps.json",
+      "packagePath": "receipts/22-full-action/action-steps.json",
+      "sha256": "d7b2d666186200be4b9fb1fbcd0bd9be4c9dfd10facd79334129072695174d01",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/browser/.last-run.json",
+      "packagePath": "receipts/22-full-action/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/browser.json",
+      "packagePath": "receipts/22-full-action/browser.json",
+      "sha256": "96b58e3a4efc8d3d5ce4964a1c65b48c76cc44def9fc59c578788026774a760f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/paint-analysis.json",
+      "packagePath": "receipts/22-full-action/paint-analysis.json",
+      "sha256": "bfc792aedc67770152f36831230bbd6a3c46b7dec6ff9281e3f5b3eed6c11808",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/paint-trace.json",
+      "packagePath": "receipts/22-full-action/paint-trace.json",
+      "sha256": "0c4cce5947a7a3b044ce22394b6cd35ac1a973b2f49565b346f56e6ac3ee20a2",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action/timing-final.png",
+      "packagePath": "receipts/22-full-action/timing-final.png",
+      "sha256": "b519ee7b7d6d656703bb891f65ec440ffa9454ca11557c6a2828a8ae072feb02",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action.log",
+      "packagePath": "receipts/22-full-action.txt",
+      "sha256": "adad4907be30c707163f624b7cd03bf2b638eb3e6fe0b9cac15dc7f01e64780d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/23-parent-analysis.log",
+      "packagePath": "receipts/23-parent-analysis.txt",
+      "sha256": "b37393129e41d0959a7d4b7b2d0cbb93e9e78b97e9f8d20bd3f1fe288b113946",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/24-history-analysis.log",
+      "packagePath": "receipts/24-history-analysis.txt",
+      "sha256": "82654bf13e62eb9f93504a74efc5c1c5c0a34f2b9c68fb942a00baefe58d4734",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/25-atomic-before/browser/.last-run.json",
+      "packagePath": "receipts/25-atomic-before/browser/.last-run.json",
+      "sha256": "c8f7404373ef9389bf0f07c1ffbfa958d6dede70812c7c3864ed2583de9b8ffc",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/25-atomic-before/browser/consumer-private-event-app-92b5c-nd-retains-duplicate-checks/error-context.md",
+      "packagePath": "receipts/25-atomic-before/browser/consumer-private-event-app-92b5c-nd-retains-duplicate-checks/error-context.txt",
+      "sha256": "0b4673de402c207eed08d0edacab7f57db2a42ab3ebbf8f20d5d3971c6ce46d4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/25-atomic-before/browser/consumer-private-event-app-92b5c-nd-retains-duplicate-checks/test-failed-1.png",
+      "packagePath": "receipts/25-atomic-before/browser/consumer-private-event-app-92b5c-nd-retains-duplicate-checks/test-failed-1.png",
+      "sha256": "53b9a9ca466661b5f8e283d274be2926491ac6dd05c09c1186e198f3f8e4b5d7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/25-atomic-before/recovery-browser.json",
+      "packagePath": "receipts/25-atomic-before/recovery-browser.json",
+      "sha256": "fe63b965f8db5bed90aa93da110ad5541d155a9786016f3658f7b9382af532a4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/25-atomic-before.log",
+      "packagePath": "receipts/25-atomic-before.txt",
+      "sha256": "31d64f7cd128f588b7465ebbefa900dacaaef5b222e8620fa92989e81244408e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/26-typecheck.log",
+      "packagePath": "receipts/26-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/27-build.log",
+      "packagePath": "receipts/27-build.txt",
+      "sha256": "4d438476a67c45a356e88ec184ee82b32210cecac9489af944476fd363461c23",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery/browser-app/assets/index-DIOiRCI0.js",
+      "packagePath": "receipts/28-recovery/browser-app/assets/index-DIOiRCI0.js",
+      "sha256": "6ed08daa14f4e15f41b949f33f52b40b71f5c008bd49e357b1914b84b4270912",
+      "category": "historical-frozen-fixture-build",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery/browser-app/index.html",
+      "packagePath": "receipts/28-recovery/browser-app/index.html",
+      "sha256": "4b67df6c0fffd835d6e29c2d6d4efaf2f9b3eddf7dd0861ef4d9804714955c31",
+      "category": "historical-frozen-fixture-build",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery/browser-recovery.png",
+      "packagePath": "receipts/28-recovery/browser-recovery.png",
+      "sha256": "53b9a9ca466661b5f8e283d274be2926491ac6dd05c09c1186e198f3f8e4b5d7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery/browser-results/.last-run.json",
+      "packagePath": "receipts/28-recovery/browser-results/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery/recovery-browser.json",
+      "packagePath": "receipts/28-recovery/recovery-browser.json",
+      "sha256": "a2c85047313d6dc0270be3fb454959ce671ccda30b289d9bbf9506a761e6065b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery-build.log",
+      "packagePath": "receipts/28-recovery-build.txt",
+      "sha256": "9f98a24a1e2edc769062e7373fd7ae021343328dae3f41eddff0cfbfbe7ebab5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/28-recovery.log",
+      "packagePath": "receipts/28-recovery.txt",
+      "sha256": "b34d68707b241ce33013103703d3fd2d497576853a2e6c2424816cb9734d75c5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/29-chromium/browser/.last-run.json",
+      "packagePath": "receipts/29-chromium/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/29-chromium/browser.json",
+      "packagePath": "receipts/29-chromium/browser.json",
+      "sha256": "5ba3c72a679c20db741d46f2458e7c953d843cfc6a07bc9a64bcf08bd6e1c27a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/29-chromium/e1.json",
+      "packagePath": "receipts/29-chromium/e1.json",
+      "sha256": "aa663ecee7ad63cd6f9721270603aeeb79bf4621a7b37b20d005e8e41e0af63f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/29-chromium/e1.png",
+      "packagePath": "receipts/29-chromium/e1.png",
+      "sha256": "6f23d023c5cbb3f86a91f78de57b51c8408aa010ca38d74dec56f13961458334",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/29-chromium/editor.png",
+      "packagePath": "receipts/29-chromium/editor.png",
+      "sha256": "fcfc0dceaacce8b46aa98062884e82085d97bb5791b30fb7af983b3a7ffc2492",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/29-chromium.log",
+      "packagePath": "receipts/29-chromium.txt",
+      "sha256": "ba3d2dfaa0a009c3a971f158a6b982720889a4ae2b677c22fe2021ac8fed1b1a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox/browser/.last-run.json",
+      "packagePath": "receipts/30-firefox/browser/.last-run.json",
+      "sha256": "d3df730824d6a1f8e934e2603a712d903cb569b4b548bc215c5bdf761c7e807f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox/browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets/error-context.md",
+      "packagePath": "receipts/30-firefox/browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets/error-context.txt",
+      "sha256": "9ce4635bfa8fbb0f13fe1e36c0657b7f96f68ad2ab4c50fa653f55cb7f982b99",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox/browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets/test-failed-1.png",
+      "packagePath": "receipts/30-firefox/browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets/test-failed-1.png",
+      "sha256": "a60e1f675283fd93df922bea9d27307f5d348fb374228fd0b1d4f377dd33a56e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox/browser.json",
+      "packagePath": "receipts/30-firefox/browser.json",
+      "sha256": "488fd9537e2f8f1a8d494aa448d43fe3ddf2d442bc802577cdcd93e0740f68e6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox/e1.json",
+      "packagePath": "receipts/30-firefox/e1.json",
+      "sha256": "2223951c1ec262c6a8b898589b52f58d12743f6553fcb7a300efa44414d592d7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox/e1.png",
+      "packagePath": "receipts/30-firefox/e1.png",
+      "sha256": "8b0b7a01ccf7222dcd98835c1526bd2e77a2d0b4400a5ef6addb5fbc42851e28",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox/editor.png",
+      "packagePath": "receipts/30-firefox/editor.png",
+      "sha256": "a137540767b5f0f10d52bc410f8c186af36f588641fbf59e15dce42628fd26ad",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/30-firefox.log",
+      "packagePath": "receipts/30-firefox.txt",
+      "sha256": "c66bd7abb2717a2951f86476d80bc0b13846d12f3edc9f4b867f8ebcbba24cd0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/31-webkit/browser/.last-run.json",
+      "packagePath": "receipts/31-webkit/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/31-webkit/browser.json",
+      "packagePath": "receipts/31-webkit/browser.json",
+      "sha256": "ccce8c7545a610ab87da29f74a95386fd4cdbccbbac5c4771d323a4ab78640e1",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/31-webkit/editor.png",
+      "packagePath": "receipts/31-webkit/editor.png",
+      "sha256": "c7981a3828c3ac64c5599833fff8b57f29b3dae0342b5e47cb7284b17e229b40",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/31-webkit.log",
+      "packagePath": "receipts/31-webkit.txt",
+      "sha256": "8d9a2f48c73a080e32243f3b016932a3098aa33dfdad0a693144a06fc2820e95",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/32-shell/browser/.last-run.json",
+      "packagePath": "receipts/32-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/32-shell/shell-browser.json",
+      "packagePath": "receipts/32-shell/shell-browser.json",
+      "sha256": "1f1c17c3e502eff9b66e1659901e678813ee8aece495b6478810ebed44117bbe",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/32-shell/shell-desktop-1440.png",
+      "packagePath": "receipts/32-shell/shell-desktop-1440.png",
+      "sha256": "9155ef4ae9397fbec7f9d108cb4042c8037aca5a05f1a242323b64173afdd421",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/32-shell/shell-reflow-320.png",
+      "packagePath": "receipts/32-shell/shell-reflow-320.png",
+      "sha256": "25fc48b89e36b3a13dffb621d2e72b6fed5628a8aa632698b09cb94d869bc837",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/32-shell/shell-reflow-720.png",
+      "packagePath": "receipts/32-shell/shell-reflow-720.png",
+      "sha256": "824e3b98663905dcd8e7f63e945c8838594e12a39961ab249039db977c3b031e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/32-shell.log",
+      "packagePath": "receipts/32-shell.txt",
+      "sha256": "9f27a49fabc3f28e01b1adb8b83a2abe45659b618f72b2f4926cbedd31cf2b4a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/33-analyzer-development.py",
+      "packagePath": "receipts/33-analyzer-development.py",
+      "sha256": "baa19a8ea32792d463ab56f66cbe7987263c9397e9b1b0f65fed130c17d40235",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/33-retrospective-bef.log",
+      "packagePath": "receipts/33-retrospective-bef.txt",
+      "sha256": "7bd83416c9e2a4d32c46a4c4303404a452e5941a68c7b0dc0ecca91dcec75cb2",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/34-history-v2-bef.json",
+      "packagePath": "receipts/34-history-v2-bef.json",
+      "sha256": "06c68661baefb42ac51a1f63f6ae154e8696718bb48db3542cb5b6b02e9a6788",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/34-retrospective-bef.log",
+      "packagePath": "receipts/34-retrospective-bef.txt",
+      "sha256": "8c7a203f7696b064d11e30d087d26cb4780eb0d533f770c1e20c5ac1824627f0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/35-history-v2-eb4.json",
+      "packagePath": "receipts/35-history-v2-eb4.json",
+      "sha256": "158066fa808f6317cf0cb99371bc2128c669260647f4eb8b5c193abe49e2accb",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/35-retrospective-eb4.log",
+      "packagePath": "receipts/35-retrospective-eb4.txt",
+      "sha256": "9f9e797dc1b11d6f185d6b30f2c27d7f1f95781aa26be1cb8e93aeefd2d015f9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/asset-supersession/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/asset-supersession/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/asset-supersession/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/asset-supersession/paint-trace.json",
+      "sha256": "54c3bccd99185fcd3b38189e50128940f224f861799ad819c1aae9a34d9a24b4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/draw-after-verified/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/draw-after-verified/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/draw-after-verified/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/draw-after-verified/paint-trace.json",
+      "sha256": "8d60858d2707ae3471eb1f88244f362e324e6cc9f7999b524e244dc6a1c347ee",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/error-interference/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/error-interference/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/error-interference/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/error-interference/paint-trace.json",
+      "sha256": "a50bbe68e8919944b63fce02641204f36485c7dad4289c1053dcd2aad9bfd4b4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/insufficient-bound/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/insufficient-bound/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/insufficient-bound/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/insufficient-bound/paint-trace.json",
+      "sha256": "400e7292cf6683df54f08708ded1f97769b94e9258f188256887a04efb4e40ec",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/missing-completion/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/missing-completion/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/missing-completion/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/missing-completion/paint-trace.json",
+      "sha256": "ee2b964a1c1c2f18079e843fd459c31884e37ed11ba43e286c1567c086ca0fca",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/missing-draw/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/missing-draw/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/missing-draw/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/missing-draw/paint-trace.json",
+      "sha256": "8dd6ad8a5f369b735ad7f0f54c9603eaf9a93cffdb1e52dde6245b50773a536c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/missing-expected-document/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/missing-expected-document/action-steps.json",
+      "sha256": "375a6042d0c75c6d406f26db00b88aa83b2423b2bcc918681b836e56e67e3b83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/missing-expected-document/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/missing-expected-document/paint-trace.json",
+      "sha256": "409c14f4b28b4e75586889cd1827e08682f67c247a07a20c95d0c31f2ac3eb16",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/native-interference/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/native-interference/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/native-interference/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/native-interference/paint-trace.json",
+      "sha256": "1b47c12d6fc9d9bb2f1ea3a67389b91e0c8d42cd49e8b9eade7799b8994201f5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/navigation-interference/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/navigation-interference/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/navigation-interference/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/navigation-interference/paint-trace.json",
+      "sha256": "7de7e4bea83120c54a030c082020a38f21d2c0e30d79a13dd176b11eb416035a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/no-finite-bound/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/no-finite-bound/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/no-finite-bound/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/no-finite-bound/paint-trace.json",
+      "sha256": "6f63c72b1ba35ed70f40a766331d1dd46bc2b5761182ec7d69f97d760c3ba6da",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/state-supersession/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/state-supersession/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/state-supersession/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/state-supersession/paint-trace.json",
+      "sha256": "7673d54e598c5301547fdc91bb35efce5be375d3bd34ac53193d3c8a6bcf0f97",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/unknown-app-signal/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/unknown-app-signal/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/unknown-app-signal/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/unknown-app-signal/paint-trace.json",
+      "sha256": "654ffe6443b7b647e2075d7a93bd580266f2dcc0dd5bb14752778b06ecdd5f5c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/unknown-tooling-dispatch/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/unknown-tooling-dispatch/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/unknown-tooling-dispatch/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/unknown-tooling-dispatch/paint-trace.json",
+      "sha256": "59b79cbef5a84f2dd74c6cefe2a23763637b32ae4579424441bf83e07e1c50e5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/validation.json",
+      "packagePath": "receipts/36-offline-controls/validation.json",
+      "sha256": "76cc5515a57adcb59ec31ee7db2642f69711bec457df5755e0d041e6007c5409",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-completion/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/wrong-completion/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-completion/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/wrong-completion/paint-trace.json",
+      "sha256": "053a72f6917afd1125234e0036d7f4fd81af290902396af809640c54d3bfd3b3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-draw-asset/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/wrong-draw-asset/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-draw-asset/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/wrong-draw-asset/paint-trace.json",
+      "sha256": "92afed3f12906f15056270055c9604b6c864a745e6dbc12fb2d9f407cb872267",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-draw-document/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/wrong-draw-document/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-draw-document/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/wrong-draw-document/paint-trace.json",
+      "sha256": "c9e42c8270cd28dac7bec4ada46bee016342d25f277fdd23348afbb9ef8b7321",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-draw-revision/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/wrong-draw-revision/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-draw-revision/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/wrong-draw-revision/paint-trace.json",
+      "sha256": "93b8c6f8ad5263246f2726808dfd413dd405705d12b98b6365fd563051f08832",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-state-document/action-steps.json",
+      "packagePath": "receipts/36-offline-controls/wrong-state-document/action-steps.json",
+      "sha256": "a664be8c084e64cb43bef0b3bb7625c77eb447f4267d8a943c01cdc345404a83",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls/wrong-state-document/paint-trace.json",
+      "packagePath": "receipts/36-offline-controls/wrong-state-document/paint-trace.json",
+      "sha256": "8905962667dba855b1380027e3a22902d42a7f4846fd8dde309f301bedf36bb4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls.log",
+      "packagePath": "receipts/36-offline-controls.txt",
+      "sha256": "c6f34963b41a18849ba3b67d2941dfdf70c871e265be6aa4026a060d957ece8c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-browser/.last-run.json",
+      "packagePath": "receipts/37-firefox-diagnostic-browser/.last-run.json",
+      "sha256": "8c1b113562cc1ebdc76fcee29f04b91a7f64ea88d552b913acf02ec438030bc5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets-repeat1/error-context.md",
+      "packagePath": "receipts/37-firefox-diagnostic-browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets-repeat1/error-context.txt",
+      "sha256": "5a73cb602b4dbdb047192db5e0f545f36e6e5fb502b2d9311a0354ad71d7e904",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/package.json",
+      "packagePath": "receipts/37-firefox-diagnostic-source/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/playwright.config.ts",
+      "packagePath": "receipts/37-firefox-diagnostic-source/playwright.config.ts",
+      "sha256": "f69455b6d3505740d8e293a99a7bdd218a20e46c192cd7e44c9c0938490b2210",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic-source/recovery.spec.ts",
+      "packagePath": "receipts/37-firefox-diagnostic-source/recovery.spec.ts",
+      "sha256": "00aa16b74fe1e2b0372941e7dbed55ac6565065975f1f8e41f730566383f72e8",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/37-firefox-diagnostic.log",
+      "packagePath": "receipts/37-firefox-diagnostic.txt",
+      "sha256": "d6995b6192d2b6a56369c9d03f742374d7b1dda84a436d16ccce8acf17f5cb44",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/38-firefox-diagnostic-browser/.last-run.json",
+      "packagePath": "receipts/38-firefox-diagnostic-browser/.last-run.json",
+      "sha256": "6fdd1936ece11d73831fb3b9780e87241319175f702d2c156251f3a471b521ab",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/38-firefox-diagnostic-browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets-repeat2/error-context.md",
+      "packagePath": "receipts/38-firefox-diagnostic-browser/recovery-new-inspector-dra-b5aaa-inctly-bound-longer-targets-repeat2/error-context.txt",
+      "sha256": "05335b5cfd2d7a2ecd347a5a34870f10dfaf4262c2f6595f20b2922e36771204",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/38-firefox-diagnostic-source/package.json",
+      "packagePath": "receipts/38-firefox-diagnostic-source/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/38-firefox-diagnostic-source/playwright.config.ts",
+      "packagePath": "receipts/38-firefox-diagnostic-source/playwright.config.ts",
+      "sha256": "f69455b6d3505740d8e293a99a7bdd218a20e46c192cd7e44c9c0938490b2210",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/38-firefox-diagnostic-source/recovery.spec.ts",
+      "packagePath": "receipts/38-firefox-diagnostic-source/recovery.spec.ts",
+      "sha256": "b74e5cef5da2d980d8d46bf72c1eeb66660bd74d805c03a436eeabb809fa201f",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/38-firefox-diagnostic.log",
+      "packagePath": "receipts/38-firefox-diagnostic.txt",
+      "sha256": "3a6768455ea1ad43df7dd52d32802b067f94a358fb54c960c4660ca4ecd37313",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/39-stability-before/browser/.last-run.json",
+      "packagePath": "receipts/39-stability-before/browser/.last-run.json",
+      "sha256": "7f4638944a00521c679bef6d6ee07270167d76f2da5deed23694080f1a5bc881",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/39-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/error-context.md",
+      "packagePath": "receipts/39-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/error-context.txt",
+      "sha256": "843325e141aea46f725d2b5028060b25ebef2d38980b608a408cec09373ba3e6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/39-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/test-failed-1.png",
+      "packagePath": "receipts/39-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/test-failed-1.png",
+      "sha256": "b550227bfede4a8f2e4e745183dbd82f38faf85f6cb67be6b31da9aabc5ee99b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/39-stability-before/browser.json",
+      "packagePath": "receipts/39-stability-before/browser.json",
+      "sha256": "602e760d6dedace585c5ab0672402ac564dc421c82cc907ad37f978e77fcfeeb",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/39-stability-before-source.ts",
+      "packagePath": "receipts/39-stability-before-source.ts",
+      "sha256": "27ccc803e2eb698c78641daa7ea2cbeeed99e674e6ce5b6b68470eb9e3824c5b",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/39-stability-before.log",
+      "packagePath": "receipts/39-stability-before.txt",
+      "sha256": "69c0f95aac3561d3207bd8e2e7bd7e21913140778b57640a4cc15380533f498a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/40-stability-before/browser/.last-run.json",
+      "packagePath": "receipts/40-stability-before/browser/.last-run.json",
+      "sha256": "7f4638944a00521c679bef6d6ee07270167d76f2da5deed23694080f1a5bc881",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/40-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/error-context.md",
+      "packagePath": "receipts/40-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/error-context.txt",
+      "sha256": "18ee41a4e3bbb91c06c2ee1713a6d1c07b031b4aabc8fd93787ab117bff85cd4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/40-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/test-failed-1.png",
+      "packagePath": "receipts/40-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/test-failed-1.png",
+      "sha256": "bd5688c57013c3e3735f6e08a5e13f576955ff0d4187cba1aa6b526ff8900fa3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/40-stability-before/browser.json",
+      "packagePath": "receipts/40-stability-before/browser.json",
+      "sha256": "28d49c2d69a34ab8d0b6052563c2b251c5fe98723f7477374b8f425d9295d982",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/40-stability-before.log",
+      "packagePath": "receipts/40-stability-before.txt",
+      "sha256": "c93870a8ba6edc77feba44a670540f1a8e56f0a47d7283d35887d5b453b761b3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/41-stability-before/browser/.last-run.json",
+      "packagePath": "receipts/41-stability-before/browser/.last-run.json",
+      "sha256": "7f4638944a00521c679bef6d6ee07270167d76f2da5deed23694080f1a5bc881",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/41-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/error-context.md",
+      "packagePath": "receipts/41-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/error-context.txt",
+      "sha256": "c9252b694ed21d31af6412153edaa5cadadfa47f5374640aac227dc4c4a58ce3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/41-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/test-failed-1.png",
+      "packagePath": "receipts/41-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/test-failed-1.png",
+      "sha256": "973684a40209d9d7e074239e9233587c8ce069c086deeffaff09f5a55b132fc5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/41-stability-before/browser.json",
+      "packagePath": "receipts/41-stability-before/browser.json",
+      "sha256": "7e062133c551a91e02b4f1d6cce8e26b95d96ce946c3f1005ae21dc824ff78e9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/41-stability-before.log",
+      "packagePath": "receipts/41-stability-before.txt",
+      "sha256": "9e3ce48cbf485ca47bbb3094ae15e20852c7eb2c574da57d77d7f0fe9102c56c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/42-typecheck.log",
+      "packagePath": "receipts/42-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/43-build.log",
+      "packagePath": "receipts/43-build.txt",
+      "sha256": "c227c9e879e2689c2f3152a9e8287017f68d5efeb7f263f0558bc39e11df8198",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox/browser/.last-run.json",
+      "packagePath": "receipts/44-firefox/browser/.last-run.json",
+      "sha256": "84495f96f7a000ede1fc92fee749368c79ba20cdba290f78c6100288f3c01d14",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.md",
+      "packagePath": "receipts/44-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.txt",
+      "sha256": "70cd67d9b47861f8bd0fb9211def7719a2175a4ec0cdce09aabb3e68e9c7de2f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "packagePath": "receipts/44-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "sha256": "5b81035a7b8c27755c96f90a2149470c735a7c4c0352ea0ffef186179bc6feb3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox/browser.json",
+      "packagePath": "receipts/44-firefox/browser.json",
+      "sha256": "7111b1288b7fc2e936344c578733fed7f3b26e56fd30d94ca09f6437eb0f921b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox/e1.json",
+      "packagePath": "receipts/44-firefox/e1.json",
+      "sha256": "c01d8e270960c04a87de3b602d39ce02798fa0502c5b02bff06cae93728e25ca",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox/e1.png",
+      "packagePath": "receipts/44-firefox/e1.png",
+      "sha256": "9020887a17ed6a26cac832c7a7ddfa23bcb8079e2322c12942e763eecb89a083",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox/editor.png",
+      "packagePath": "receipts/44-firefox/editor.png",
+      "sha256": "79c12503a4898c3fbeda47588d9a6d39f68f0921f9ef3ca134d4d0bb8aa05ab4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-firefox.log",
+      "packagePath": "receipts/44-firefox.txt",
+      "sha256": "56da44ecb94dcc52d327422e1e2f7738d11d71dc7c9488a337c2d31b82fc7b0d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/44-recovery-source.ts",
+      "packagePath": "receipts/44-recovery-source.ts",
+      "sha256": "15d863c02fb28dde5893d2f0f9ee023cf687a118eda9dc15dd716393d506be1f",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/45-chromium/browser/.last-run.json",
+      "packagePath": "receipts/45-chromium/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/45-chromium/browser.json",
+      "packagePath": "receipts/45-chromium/browser.json",
+      "sha256": "f97ccf039219106cb58013a186dd31e7f9645a03b4abd0b89074402ab45461a0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/45-chromium/e1.json",
+      "packagePath": "receipts/45-chromium/e1.json",
+      "sha256": "037a39e407bee9970b9993e1eec2c857ac1b55684b10b2ac8e457fa89c2bfdd3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/45-chromium/e1.png",
+      "packagePath": "receipts/45-chromium/e1.png",
+      "sha256": "c802ff141b45651058193096a12b0d1d6957541fe983bfe0ca1aa5dff83b20bf",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/45-chromium/editor.png",
+      "packagePath": "receipts/45-chromium/editor.png",
+      "sha256": "e11392bb246079a9cff905cac5b22c5f5472026746da22a6db594c165e03981f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/45-chromium.log",
+      "packagePath": "receipts/45-chromium.txt",
+      "sha256": "893ebf9b857a45249e44c9ad25e55af0cf023a80019d2b4274fe3002871b6b3f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/46-webkit/browser/.last-run.json",
+      "packagePath": "receipts/46-webkit/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/46-webkit/browser.json",
+      "packagePath": "receipts/46-webkit/browser.json",
+      "sha256": "18965899cb68665098a31eb36015cbbf00b0f6ed1fa0c6aa99e55294ecd82ef2",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/46-webkit/editor.png",
+      "packagePath": "receipts/46-webkit/editor.png",
+      "sha256": "fa4b157eb81e04824f6fddd66bfc31897430217c3e442659c845579e10cdd4c3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/46-webkit.log",
+      "packagePath": "receipts/46-webkit.txt",
+      "sha256": "9efa0a55b600a9834e6b74c8cc67552138f5f4bc060469655f870a26ebb5edd3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/47-shell/browser/.last-run.json",
+      "packagePath": "receipts/47-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/47-shell/shell-browser.json",
+      "packagePath": "receipts/47-shell/shell-browser.json",
+      "sha256": "f4798e14213c5b8e00c6bff5edc0895a03eaf2ba06157e1854d889bc17c58bf5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/47-shell/shell-desktop-1440.png",
+      "packagePath": "receipts/47-shell/shell-desktop-1440.png",
+      "sha256": "21588a65587652bbd6a0fb2e5b840e6b4f69a39b84e5d9dc374ae4f9b92c4dbe",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/47-shell/shell-reflow-320.png",
+      "packagePath": "receipts/47-shell/shell-reflow-320.png",
+      "sha256": "c9ae5b59fa1d752cf34cbd72bf3dafcb0f8332e4030bccc97ae4e9db3b206a92",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/47-shell/shell-reflow-720.png",
+      "packagePath": "receipts/47-shell/shell-reflow-720.png",
+      "sha256": "ad08b1c484f3eebfd8b9ae6c42790f6668486d83b2ec5a828c72d29872b12117",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/47-shell.log",
+      "packagePath": "receipts/47-shell.txt",
+      "sha256": "d9e6f5bb1931d6926394d1b306dc295c034298e5df5d6f9462a1cfaf76db3dc0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser/.last-run.json",
+      "packagePath": "receipts/48-firefox-scroll/browser/.last-run.json",
+      "sha256": "84495f96f7a000ede1fc92fee749368c79ba20cdba290f78c6100288f3c01d14",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.md",
+      "packagePath": "receipts/48-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.txt",
+      "sha256": "fcd7f91f840849ebbd520ca91f4396b177d72755a6ebc36db15d4a26c18618f4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "packagePath": "receipts/48-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "sha256": "5b81035a7b8c27755c96f90a2149470c735a7c4c0352ea0ffef186179bc6feb3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll/browser.json",
+      "packagePath": "receipts/48-firefox-scroll/browser.json",
+      "sha256": "bf63b6f1209010b472bb8f011d9083ff980688971f3322d4826ee330927e3e15",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/48-firefox-scroll.log",
+      "packagePath": "receipts/48-firefox-scroll.txt",
+      "sha256": "12a8eb8439dff23de19804ca96bb6d680cbabad89452fae196eba9ed4abc5233",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/49-typecheck.log",
+      "packagePath": "receipts/49-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/50-build.log",
+      "packagePath": "receipts/50-build.txt",
+      "sha256": "1038a1dcad9357a0d62faa69f33b172c251c3ff1a63c174dfdb8204aa2ad41cc",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox/browser/.last-run.json",
+      "packagePath": "receipts/51-firefox/browser/.last-run.json",
+      "sha256": "84495f96f7a000ede1fc92fee749368c79ba20cdba290f78c6100288f3c01d14",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.md",
+      "packagePath": "receipts/51-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.txt",
+      "sha256": "4c3775d2cda50ca42d4a5c22488d0634b5aaf9abaa195c24d5d2fba943542b11",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "packagePath": "receipts/51-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "sha256": "5b81035a7b8c27755c96f90a2149470c735a7c4c0352ea0ffef186179bc6feb3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox/browser.json",
+      "packagePath": "receipts/51-firefox/browser.json",
+      "sha256": "65f8367da952594af089d0eac370d8229c8439b725fc0f9f06e3e0672876e960",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox/e1.json",
+      "packagePath": "receipts/51-firefox/e1.json",
+      "sha256": "c49b89a8d035709eb124accc92bf49f592bc4f9b0f8dee57843c9a01636d8ce5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox/e1.png",
+      "packagePath": "receipts/51-firefox/e1.png",
+      "sha256": "d51c1e3a02d9885ad1d55068b8d0def71f770bd367ee37751a4ec7cc55206836",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox/editor.png",
+      "packagePath": "receipts/51-firefox/editor.png",
+      "sha256": "6c192259395aa96cf8509956a65a7dc5e20b408d829ebcae5710081668848ea8",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/51-firefox.log",
+      "packagePath": "receipts/51-firefox.txt",
+      "sha256": "079bbd54aff4b3fb494327353ba6347c9a3c7a9a4dfdacbb709c5698e1e69324",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/52-chromium/browser/.last-run.json",
+      "packagePath": "receipts/52-chromium/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/52-chromium/browser.json",
+      "packagePath": "receipts/52-chromium/browser.json",
+      "sha256": "6d4f93de17f1d405cab7a8576d1851c86fe609014c33f75a25205041816b5e11",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/52-chromium.log",
+      "packagePath": "receipts/52-chromium.txt",
+      "sha256": "cae888f333997ee9e054600130fdc28379c1c91abb96491ea88f17688857fe2b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/53-webkit/browser/.last-run.json",
+      "packagePath": "receipts/53-webkit/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/53-webkit/browser.json",
+      "packagePath": "receipts/53-webkit/browser.json",
+      "sha256": "542b035665272fde5f0ec152311e12452872eed47209832f60016fa98ae9104c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/53-webkit.log",
+      "packagePath": "receipts/53-webkit.txt",
+      "sha256": "dededa50958dea2b33fcc62e45cb465602e3c9fc1ee640d55ea8bf4752c67015",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/54-shell/browser/.last-run.json",
+      "packagePath": "receipts/54-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/54-shell/shell-browser.json",
+      "packagePath": "receipts/54-shell/shell-browser.json",
+      "sha256": "0e1b17a36dca4400260e59e74186cacb7514feb128285131e954fa7751c4f490",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/54-shell/shell-desktop-1440.png",
+      "packagePath": "receipts/54-shell/shell-desktop-1440.png",
+      "sha256": "f6a6107f0df29c2fb94a4d21472b23cb16941672651363b771c1ec29cf4b8e9b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/54-shell/shell-reflow-320.png",
+      "packagePath": "receipts/54-shell/shell-reflow-320.png",
+      "sha256": "d13c7935abac785486051124a086e5981bf378563648a824a9f5a06c124e1032",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/54-shell/shell-reflow-720.png",
+      "packagePath": "receipts/54-shell/shell-reflow-720.png",
+      "sha256": "06af91df1097262ab40faf61d5d953c224d9cea8730aba89c60ec13378b7e243",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/54-shell.log",
+      "packagePath": "receipts/54-shell.txt",
+      "sha256": "49ba944db833a7673138ecb5bf4b3954e6273c655255f197e85f752b4c1fd811",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-browser/.last-run.json",
+      "packagePath": "receipts/55-overflow-diagnostic-browser/.last-run.json",
+      "sha256": "84495f96f7a000ede1fc92fee749368c79ba20cdba290f78c6100288f3c01d14",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.md",
+      "packagePath": "receipts/55-overflow-diagnostic-browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.txt",
+      "sha256": "0b54f7a0c75ef6b7d124f8619a16776d49cdc0e755969719ec7a70e70d57d011",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/package.json",
+      "packagePath": "receipts/55-overflow-diagnostic-source/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/playwright.config.ts",
+      "packagePath": "receipts/55-overflow-diagnostic-source/playwright.config.ts",
+      "sha256": "f69455b6d3505740d8e293a99a7bdd218a20e46c192cd7e44c9c0938490b2210",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic-source/recovery.spec.ts",
+      "packagePath": "receipts/55-overflow-diagnostic-source/recovery.spec.ts",
+      "sha256": "353c51880a5e9c80fc22a7eb4b135c209c4c6f0c3a134afdfcfd4b6f0efca9dd",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/55-overflow-diagnostic.log",
+      "packagePath": "receipts/55-overflow-diagnostic.txt",
+      "sha256": "cf54858bf6b63d60bbac100892b6a937f69c18ef22fa234c95378e33ae47b082",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/56-typecheck.log",
+      "packagePath": "receipts/56-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/57-build.log",
+      "packagePath": "receipts/57-build.txt",
+      "sha256": "6df5c85d647b60235f6979a417a7e4e58fec2d3d61a8dfb5fbc284f11fb66162",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/58-firefox-scroll/browser/.last-run.json",
+      "packagePath": "receipts/58-firefox-scroll/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/58-firefox-scroll/browser.json",
+      "packagePath": "receipts/58-firefox-scroll/browser.json",
+      "sha256": "ed45585f8632bfcac7de372b90267f2ad2b0d82061bc544e9cfcf23cee3eb883",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/58-firefox-scroll.log",
+      "packagePath": "receipts/58-firefox-scroll.txt",
+      "sha256": "78a88e481dbdaf934b87be0794be23b06871b24c1adcf96cd7868d1f97dee70d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/59-typecheck.log",
+      "packagePath": "receipts/59-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/60-build.log",
+      "packagePath": "receipts/60-build.txt",
+      "sha256": "e154489c55bcd38ac84e29ef48d113c7d944d2f11e8b1768ca2a331974189ccb",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox/browser/.last-run.json",
+      "packagePath": "receipts/61-firefox/browser/.last-run.json",
+      "sha256": "84495f96f7a000ede1fc92fee749368c79ba20cdba290f78c6100288f3c01d14",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.md",
+      "packagePath": "receipts/61-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/error-context.txt",
+      "sha256": "47ba6ac756260121a76fba4d5e4bc7c54398272f818e37d2c9af360b7a8c9529",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "packagePath": "receipts/61-firefox/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns/test-failed-1.png",
+      "sha256": "5b81035a7b8c27755c96f90a2149470c735a7c4c0352ea0ffef186179bc6feb3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox/browser.json",
+      "packagePath": "receipts/61-firefox/browser.json",
+      "sha256": "228315b2303083bf3c475b5ebe16f0b8f909ee8f25ee56debfe16c387386a7d3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox/e1.json",
+      "packagePath": "receipts/61-firefox/e1.json",
+      "sha256": "cb77cb272f48409b774a83a48128f79514a5300a35d1492b7689f00473c8849b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox/e1.png",
+      "packagePath": "receipts/61-firefox/e1.png",
+      "sha256": "87ccc2ef02185efa369894f9831da570265e11f23d3cb14acc807015e57121af",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox/editor.png",
+      "packagePath": "receipts/61-firefox/editor.png",
+      "sha256": "88a2b198305471750a2eee21a4a52b7604313fcdd3d0861e17a79a1243025fe9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/61-firefox.log",
+      "packagePath": "receipts/61-firefox.txt",
+      "sha256": "b6c3e32db12a31cf74d3d9a469245816f51765bba1e81bee0856ba31639628ee",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/62-chromium/browser/.last-run.json",
+      "packagePath": "receipts/62-chromium/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/62-chromium/browser.json",
+      "packagePath": "receipts/62-chromium/browser.json",
+      "sha256": "0a2362608876095f0db8ba5d7c44260939ef88163117b49e94a2738a477d9a78",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/62-chromium.log",
+      "packagePath": "receipts/62-chromium.txt",
+      "sha256": "8d65a545a905c86948e42da46151fa0439ca5ef0945c4de3bc83728956cad390",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/63-webkit/browser/.last-run.json",
+      "packagePath": "receipts/63-webkit/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/63-webkit/browser.json",
+      "packagePath": "receipts/63-webkit/browser.json",
+      "sha256": "65087cf5fb67b2d2ec7cb26910588ae2b52228779a817f3d90b834113e426a53",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/63-webkit.log",
+      "packagePath": "receipts/63-webkit.txt",
+      "sha256": "9582b6ee36bfac53f590684b3a72f676215696e11669ec754cf1244a70b5c2c7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/64-shell/browser/.last-run.json",
+      "packagePath": "receipts/64-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/64-shell/shell-browser.json",
+      "packagePath": "receipts/64-shell/shell-browser.json",
+      "sha256": "e2680c99ded3fcabba080d66b720901902c7c96fb0c969ebb12e3141fec3a147",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/64-shell/shell-reflow-320.png",
+      "packagePath": "receipts/64-shell/shell-reflow-320.png",
+      "sha256": "c9ae5b59fa1d752cf34cbd72bf3dafcb0f8332e4030bccc97ae4e9db3b206a92",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/64-shell/shell-reflow-720.png",
+      "packagePath": "receipts/64-shell/shell-reflow-720.png",
+      "sha256": "80d4f31f44b162470b2646575b30a2c9d84dc51c522490b52150e53ad3bc721a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/64-shell.log",
+      "packagePath": "receipts/64-shell.txt",
+      "sha256": "a6fb33611a8e342d7adef7bff1bda0b5e0ba9696d274431b9b9648d7adcd5791",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/65-build.log",
+      "packagePath": "receipts/65-build.txt",
+      "sha256": "6473731a98cc7c02cd29e17b9b4eb0d45d38cad7148e357ce649ae4ada00e831",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/66-firefox-scroll/browser/.last-run.json",
+      "packagePath": "receipts/66-firefox-scroll/browser/.last-run.json",
+      "sha256": "59be133b51275505b7da6d2b3732d80971f0542e5cd9285eccc96a85cf0f629f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/66-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns-repeat2/error-context.md",
+      "packagePath": "receipts/66-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns-repeat2/error-context.txt",
+      "sha256": "47ba6ac756260121a76fba4d5e4bc7c54398272f818e37d2c9af360b7a8c9529",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/66-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns-repeat2/test-failed-1.png",
+      "packagePath": "receipts/66-firefox-scroll/browser/recovery-actual-SQLite-FUL-abfed-eeds-after-capacity-returns-repeat2/test-failed-1.png",
+      "sha256": "5b81035a7b8c27755c96f90a2149470c735a7c4c0352ea0ffef186179bc6feb3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/66-firefox-scroll/browser.json",
+      "packagePath": "receipts/66-firefox-scroll/browser.json",
+      "sha256": "94bc9899b459de0f3e99f2660731a93a1fb3015b36d36955bf14ebda325dbe7f",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/66-firefox-scroll.log",
+      "packagePath": "receipts/66-firefox-scroll.txt",
+      "sha256": "65664b1320148cfbf5cbd5044ada9b14114c4b41c3b50711434a01556c14f999",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/67-scroll-order-browser/.last-run.json",
+      "packagePath": "receipts/67-scroll-order-browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/67-scroll-order-source/package.json",
+      "packagePath": "receipts/67-scroll-order-source/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/67-scroll-order-source/playwright.config.ts",
+      "packagePath": "receipts/67-scroll-order-source/playwright.config.ts",
+      "sha256": "f69455b6d3505740d8e293a99a7bdd218a20e46c192cd7e44c9c0938490b2210",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/67-scroll-order-source/recovery.spec.ts",
+      "packagePath": "receipts/67-scroll-order-source/recovery.spec.ts",
+      "sha256": "9cb92117e2cfdfc7a310fca798bdda6228c8ac68aec32e2a55381044c653d87e",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/67-scroll-order.log",
+      "packagePath": "receipts/67-scroll-order.txt",
+      "sha256": "ac54d6efcfd6159a980fca9ea0dcb33d71d4a4f4933e33a5bd73533e56f821d4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/68-typecheck.log",
+      "packagePath": "receipts/68-typecheck.txt",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/69-build.log",
+      "packagePath": "receipts/69-build.txt",
+      "sha256": "92e737ff331c6cb6257808d81e42cc37a4a9953df92fc6d46a41bf53dee2011d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/70-firefox-region/browser/.last-run.json",
+      "packagePath": "receipts/70-firefox-region/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/70-firefox-region/browser.json",
+      "packagePath": "receipts/70-firefox-region/browser.json",
+      "sha256": "72de8145e4a44511457c24253cc956cdb3ac1f909ed3c067155f0ea0b0d4d924",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/70-firefox-region.log",
+      "packagePath": "receipts/70-firefox-region.txt",
+      "sha256": "d04812e88afd1b3d33ed680f54045e8eb56844b83cfbfe9d3bc149bd2b56721e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox/browser/.last-run.json",
+      "packagePath": "receipts/71-firefox/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox/browser.json",
+      "packagePath": "receipts/71-firefox/browser.json",
+      "sha256": "283d34a826e84afb09656f37da1c7e166633a907e9a4c9d7e5f5771596cf144d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox/e1.json",
+      "packagePath": "receipts/71-firefox/e1.json",
+      "sha256": "3e1842963a249844eaa5292df7df3bddad60eae02e300e497c729ea8cb3edfc9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox/e1.png",
+      "packagePath": "receipts/71-firefox/e1.png",
+      "sha256": "bfa4921b2aa6aa73f3a8d3a0f393b67afac59da318d545c49446a5a2314ec3d2",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox/editor.png",
+      "packagePath": "receipts/71-firefox/editor.png",
+      "sha256": "8ec30bb27ddb2ad72b91bc956b76ed64cb87e1c05e45c2c34c7c10da918855d4",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox.log",
+      "packagePath": "receipts/71-firefox.txt",
+      "sha256": "b4cb421632e56a343c00a11a3e4255ee6bc78fa606f6e70451e8f4ae6441ee5e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/72-chromium/browser/.last-run.json",
+      "packagePath": "receipts/72-chromium/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/72-chromium/browser.json",
+      "packagePath": "receipts/72-chromium/browser.json",
+      "sha256": "91192f1e57eb2ca323810aea7ac76a570c11bedac57692f761c43cc85a45ab18",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/72-chromium.log",
+      "packagePath": "receipts/72-chromium.txt",
+      "sha256": "ad341f088252d154526db00c536bb2cbc40202478e9ce83f8713e86dc3021ebd",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/73-webkit/browser/.last-run.json",
+      "packagePath": "receipts/73-webkit/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/73-webkit/browser.json",
+      "packagePath": "receipts/73-webkit/browser.json",
+      "sha256": "dd92b98560ac2be0d6e70c4b5074a52280f432405bb4b87b906040952363aeb7",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/73-webkit.log",
+      "packagePath": "receipts/73-webkit.txt",
+      "sha256": "fb90f5107c7fb5b54899e975a7a5307905c0d1a5ec946f45b9429251264dd658",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/74-shell/browser/.last-run.json",
+      "packagePath": "receipts/74-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/74-shell/shell-browser.json",
+      "packagePath": "receipts/74-shell/shell-browser.json",
+      "sha256": "6056d3618175fdd2389eeb1bcd5dbd2655f7d5e2cc514e34a6c1ed57ff847601",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/74-shell/shell-reflow-320.png",
+      "packagePath": "receipts/74-shell/shell-reflow-320.png",
+      "sha256": "fe8214a7dd6034c92d03c8127e55dec9159b8452107015215f2dcf02ced1f1b5",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/74-shell/shell-reflow-720.png",
+      "packagePath": "receipts/74-shell/shell-reflow-720.png",
+      "sha256": "2aa1af6947a9e649642fe6e48654c7afd156a3cd9906f6407d2e02ee53c73e70",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/74-shell.log",
+      "packagePath": "receipts/74-shell.txt",
+      "sha256": "47b6b2e30c9f2a30f02e013418c2108fb6ba25ef976c545fc0015d6257868855",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action/action-steps.json",
+      "packagePath": "receipts/75-full-action/action-steps.json",
+      "sha256": "27796080dd948584fae12c1de16c5d20e2a8c7ed370de6572d6ca0e4ea7e2447",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action/browser.json",
+      "packagePath": "receipts/75-full-action/browser.json",
+      "sha256": "4a160fb173baf0b5c8873b64b91282b03f4e3caa727a2b9daed8e3e380ff4108",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action/paint-analysis.json",
+      "packagePath": "receipts/75-full-action/paint-analysis.json",
+      "sha256": "50131ae7fc851980558187041725c6bc40997f4ce9cbea2880341124f7a49dd9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action/paint-trace.json",
+      "packagePath": "receipts/75-full-action/paint-trace.json",
+      "sha256": "e51c5c78be0102b4cb8364ef6fe98087975eb475778e9b6e2382186cb01a1b7a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action/timing-final.png",
+      "packagePath": "receipts/75-full-action/timing-final.png",
+      "sha256": "440a2410cecaaeba9b6fd2beb65d37aec4f6fe05a6dadd5b5ccf619eb3968dd6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action.log",
+      "packagePath": "receipts/75-full-action.txt",
+      "sha256": "f77a703f602a84e0326052eccf5be7504eff9e655f6762e8c5c70c830b45ec68",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/76-parent-analysis.log",
+      "packagePath": "receipts/76-parent-analysis.txt",
+      "sha256": "41aea6acf45853d1bbfd8c380be708f4661c9952d7d015260feab230a2ac0507",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/77-history-analysis.log",
+      "packagePath": "receipts/77-history-analysis.txt",
+      "sha256": "17b762b1acdecc69cf7414f3ac867b8f8f8261d82d2b4baaebe463d6d94b49bf",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/77-history-v2.json",
+      "packagePath": "receipts/77-history-v2.json",
+      "sha256": "f05b2ba95a6aeab311f61c4bb915f78acd4e77337139348ba0af9a92615a0b0c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/78-preview-start-failure/disposition.json",
+      "packagePath": "receipts/78-preview-start-failure/disposition.json",
+      "sha256": "447c77495abb6011a5e116d3484a66b67e171190c63c2cb60f30e0dbbb18c3e3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/78-preview-start-failure/launch.json",
+      "packagePath": "receipts/78-preview-start-failure/launch.json",
+      "sha256": "eec3e44603f1d1ac4af4841fc11c824876a691fcb9cfdc899bd7996a41b62561",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/78-preview-start-failure/service.txt",
+      "packagePath": "receipts/78-preview-start-failure/service.txt",
+      "sha256": "730920c499e6701d2bda1aa8fb17104b78499762dd02782b332ce1653c0b2360",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/79-preview-identity.log",
+      "packagePath": "receipts/79-preview-identity.txt",
+      "sha256": "3819ef3402188017d460583c49b9f7e58e5d2342fa30413ca1fd55378e1f0b70",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/79-preview-identity.mjs",
+      "packagePath": "receipts/79-preview-identity.mjs",
+      "sha256": "b1c71a1238aed883b310c77b0b0f694527136b8a3d2ceffcb6386a35a0ebcc69",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/79-preview-oracle-disposition.json",
+      "packagePath": "receipts/79-preview-oracle-disposition.json",
+      "sha256": "281c868d52452c416bcb1090fdf1306199599f98c8aa29e170a4f9578df4d371",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/80-preview-identity.log",
+      "packagePath": "receipts/80-preview-identity.txt",
+      "sha256": "ea3c6e5aafd8c8fdcd855c8ffacec75387030ba9f5d28f6b809e8e425720ad5c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/80-preview-identity.mjs",
+      "packagePath": "receipts/80-preview-identity.mjs",
+      "sha256": "20b6470be39b9a749e7899b0e35dbeaa6661ee8a78f2708431d170ea4770d4dc",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/80-preview-oracle-disposition.json",
+      "packagePath": "receipts/80-preview-oracle-disposition.json",
+      "sha256": "a1aa9ed9f184b9eaf3260e53066631a68c5b059623d30237c16d5017e6c13ccb",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/81-preview-identity/identity.json",
+      "packagePath": "receipts/81-preview-identity/identity.json",
+      "sha256": "b2f047cce1218d341eade5f4117e03a04fde4bfcfa85676242168e3981e859e6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/81-preview-identity/paired-preview.png",
+      "packagePath": "receipts/81-preview-identity/paired-preview.png",
+      "sha256": "15dae062215cc1b10de2686d9f079e4f0bdbe14799615df3769fc28d103d2377",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/81-preview-identity.log",
+      "packagePath": "receipts/81-preview-identity.txt",
+      "sha256": "252f0bda521c26733011aa6ee3f731d58ae0e1a0e606e8097776ab38f3d56e8a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/81-preview-identity.mjs",
+      "packagePath": "receipts/81-preview-identity.mjs",
+      "sha256": "cd625d1d32c3f59def0c692c556d8dca253e6cbbff9b5813f233faa47532c86a",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/atomic-fail-before-provenance.json",
+      "packagePath": "receipts/atomic-fail-before-provenance.json",
+      "sha256": "23c904f537a06a6640b6944436cb8cd5a7d50af6047a78fbc1f3625533f3d154",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/attempt-dispositions.json",
+      "packagePath": "receipts/attempt-dispositions.json",
+      "sha256": "dd201c526cbb19e813308cbb334b76267c10e790096480a6b2ef36df92f2ff31",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-2-source.json",
+      "packagePath": "receipts/candidate-2-source.json",
+      "sha256": "d08e7bdc836be7c3772126348b8179bab88584de8cd37ba50471b903a3c51d54",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-2.patch",
+      "packagePath": "receipts/candidate-2.patch",
+      "sha256": "63344624b7687e0e105ecf4ebb2ee4192cbe7c376cd268fa679fc87a86cdbf06",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-3-source.json",
+      "packagePath": "receipts/candidate-3-source.json",
+      "sha256": "a7ac4567d84929ba8f6b4a50ef3a7325a83e8d4860ff2cdd686fae76a671974b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-3.patch",
+      "packagePath": "receipts/candidate-3.patch",
+      "sha256": "42a8d05543e27a6179f938e151de310ef453b5bad14accad2e401cca12794968",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-4-disk-bytes.json",
+      "packagePath": "receipts/candidate-4-disk-bytes.json",
+      "sha256": "78adbcb87b733c7d1f1c39f3d3e5edaa83291b8e8208f070fe9e6d9edc4c25e3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-4-source.json",
+      "packagePath": "receipts/candidate-4-source.json",
+      "sha256": "a75af50834ce41340e3c797196a03fd49f2ea2fada847befb871336aa0769d15",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-4.patch",
+      "packagePath": "receipts/candidate-4.patch",
+      "sha256": "29c6b115c6227b94909cd8d4e9abdf84a1bbd62b13881870cc7cf4472a34b789",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-5-disk-bytes.json",
+      "packagePath": "receipts/candidate-5-disk-bytes.json",
+      "sha256": "e2764988a1f2e6e31ef94c94565020c4846d295c2c135d5aab5cd843ddd5ea10",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-5-source.json",
+      "packagePath": "receipts/candidate-5-source.json",
+      "sha256": "4815797586ed44bc993523fc9a9d58a770de4d9311c69986af26e6557bb55901",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-5.patch",
+      "packagePath": "receipts/candidate-5.patch",
+      "sha256": "8e36b1b07ed9f99ee5cf2889fdb3ecf48233d9e85d8172e852fa42448782f892",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-6-source.json",
+      "packagePath": "receipts/candidate-6-source.json",
+      "sha256": "a48be1b709ded11fc7202076ece38b99a7eaea1a022df0f7af5fa70f6daec83b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-6.patch",
+      "packagePath": "receipts/candidate-6.patch",
+      "sha256": "6c114c84f7e337de790a9e809c81a72421d9558d92563762b412d6b381c0985e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-7-disk-bytes.json",
+      "packagePath": "receipts/candidate-7-disk-bytes.json",
+      "sha256": "311189c51aadbe2128fe3033983b7cce64a62521bd9408eb5e4cfde5ac013d14",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-7-source.json",
+      "packagePath": "receipts/candidate-7-source.json",
+      "sha256": "761287f95468e36b1eb6316c093ed3e9b779b932d4be0a3b2152ab0e0f7bcbaa",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-7.patch",
+      "packagePath": "receipts/candidate-7.patch",
+      "sha256": "2a6eb9912842dd2e11ed4d3b17db3f622855b3e19f207538bebf93103d438390",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-8-source.json",
+      "packagePath": "receipts/candidate-8-source.json",
+      "sha256": "d8145e947210833fa9e38d7109101c23f950e15458d9e5379b8fe9078cb1c15c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-8.patch",
+      "packagePath": "receipts/candidate-8.patch",
+      "sha256": "6262f3a5f45d768a1219065aaf4843c7535837f6eb23bb307730e550f8af6f65",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-9-D11.json",
+      "packagePath": "receipts/candidate-9-D11.json",
+      "sha256": "512c0e7518c99ab8b60dad5dad3e0b9b51251312eef7e1c21b7086f220538800",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-9-source.json",
+      "packagePath": "receipts/candidate-9-source.json",
+      "sha256": "56de24bf16406aca71aac32ac6c9b6ae213e9c2d04507e2f87e61f2b5eb9992a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-9-source.patch",
+      "packagePath": "receipts/candidate-9-source.patch",
+      "sha256": "9fa135578488224649505090942b3fe3c297e4c20d187ef418630771c037c24e",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate-source.json",
+      "packagePath": "receipts/candidate-source.json",
+      "sha256": "c3bff2e224b94a2d9e1f458ed0850c9473332b66a9cfc3f41c8496135e8b9a61",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/candidate.patch",
+      "packagePath": "receipts/candidate.patch",
+      "sha256": "c7aa0b45fc6ca3808c4d2c3e849dd78b59cffe01db7f3341f33e2657d8ac844a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/commands.jsonl",
+      "packagePath": "receipts/commands.jsonl",
+      "sha256": "05efb1c65e54e15b7acafc3c2707a9ac77a1bd60b25e02be8b001dddb7760ffa",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/correction-dispositions-addendum.json",
+      "packagePath": "receipts/correction-dispositions-addendum.json",
+      "sha256": "9c78f7d361676bfe2c7bff9c2e51eced3304d2f51b9239b44930b0c190c6ecbb",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/interactions.spec.ts",
+      "packagePath": "receipts/diagnostic-tests/interactions.spec.ts",
+      "sha256": "dbbc25f42c0089d816dd610ab5ad6cb87a4b3899f281a956b6816bc8078175da",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/package.json",
+      "packagePath": "receipts/diagnostic-tests/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/playwright.config.ts",
+      "packagePath": "receipts/diagnostic-tests/playwright.config.ts",
+      "sha256": "1d91928b735e201f5d7f03654321dadb7225e7b362fe81ce9a232f88839091d2",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/recovery.spec.ts",
+      "packagePath": "receipts/diagnostic-tests/recovery.spec.ts",
+      "sha256": "15ad31842d9b2ff9e37294f4c00952dbae92f6cbf9fdd6879dc1802d12d2b686",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/history-v2-provenance.json",
+      "packagePath": "receipts/history-v2-provenance.json",
+      "sha256": "ae92094ed21d44052d17e530aa59a76928cd24eb256832483d8b4b586526635d",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/history-v2.diff",
+      "packagePath": "receipts/history-v2.diff",
+      "sha256": "1310ba3333f58df5fe10b7f7c778dd93d165d2342dd68c668cf17352f68e2712",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/overflow-failure-disposition.json",
+      "packagePath": "receipts/overflow-failure-disposition.json",
+      "sha256": "6868fe61c21604efd5c186ec52b1676a31da96377d37f47f1fcbd55e8a125d47",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/overflow-ordering-disposition.json",
+      "packagePath": "receipts/overflow-ordering-disposition.json",
+      "sha256": "62b640781a6d15f71b4c2cadb8c7e3fe1b6b363ad07772e9028572b515fd4ae0",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/effects.json",
+      "packagePath": "receipts/preview-runtime/effects.json",
+      "sha256": "2f7dc247bfe143f1965bb0455ac9d0d939775afaa7eb10ee0e3623a571d9e262",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/launch-2.json",
+      "packagePath": "receipts/preview-runtime/launch-2.json",
+      "sha256": "89fc81891560f2961a47cd96c06b9a507446d00f8d0184b502619652c9bb2ac6",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/package.json",
+      "packagePath": "receipts/preview-runtime/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/run.mjs",
+      "packagePath": "receipts/preview-runtime/run.mjs",
+      "sha256": "cf0fd555e626c64f437983439d5a617bc0ef58a019e2c245e58a60fa6391c484",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/runtime.json",
+      "packagePath": "receipts/preview-runtime/runtime.json",
+      "sha256": "7ea1665695c15be7f575acf60b51d6dd3ca1bf413056768d9902068c915d4a37",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/service-2.log",
+      "packagePath": "receipts/preview-runtime/service-2.txt",
+      "sha256": "0705ab968617fac627162b6bab94cf054070f3611c70be62d58b815adb151239",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/source.json",
+      "packagePath": "receipts/preview-runtime/source.json",
+      "sha256": "5e130440202b3a67f792ae5c7e65afc0a5a8b919d770ead9532869e993f9ce53",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/tests/protocol/no-effects.mjs",
+      "packagePath": "receipts/preview-runtime/tests/protocol/no-effects.mjs",
+      "sha256": "3caffe509c8d6197380024a5b20dcd49b9edd8b6f075eec68b23a84665e4c8ea",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/preview-runtime/tests/store/no-network.mjs",
+      "packagePath": "receipts/preview-runtime/tests/store/no-network.mjs",
+      "sha256": "28357edecfde1ac4f47fa487319c36a2ab7a2c0d479eb54088dd815ad2247f6a",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/prior-independent-control/SHA256SUMS",
+      "packagePath": "receipts/prior-independent-control/SHA256SUMS",
+      "sha256": "44a9a3734bbc7c570b89d973cfe6fd1a78b8fad5e3767c4decc27ad14fc552e3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/prior-independent-control/VERDICT.txt",
+      "packagePath": "receipts/prior-independent-control/VERDICT.txt",
+      "sha256": "dc4072be2c90366b7f91a9ff50810636f8024ece1a4d8031d6050c8602e02aee",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/prior-independent-control/analyze-history.py",
+      "packagePath": "receipts/prior-independent-control/analyze-history.py",
+      "sha256": "5a3178fc12203924fba0265bf5f4c6f9e644c9899ab54f3e37a044919349d7e5",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/prior-independent-control/classification.json",
+      "packagePath": "receipts/prior-independent-control/classification.json",
+      "sha256": "0e9eccd809f579ec599b0bbfd87027ba141bfd6998089ac9621b77b1b65241e2",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/prior-independent-control/full-action/action-steps.json",
+      "packagePath": "receipts/prior-independent-control/full-action/action-steps.json",
+      "sha256": "0cdecad90ca8eef02a649da6c254a5f61218f10b80fcf1458b7bfe972784d2eb",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/prior-independent-control/full-action/paint-trace.json",
+      "packagePath": "receipts/prior-independent-control/full-action/paint-trace.json",
+      "sha256": "6cb5762373c587a8b9d91f0a64133573558153cbe5ef2665c20f7841ee453cb3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/prior-independent-control/history-analysis.json",
+      "packagePath": "receipts/prior-independent-control/history-analysis.json",
+      "sha256": "ba3a1326ed7b1afc27abe8069d7bbc1b864326ccdc2cf41cc3aeeed30f22fb8b",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/reporter-overwrite-disclosure.json",
+      "packagePath": "receipts/reporter-overwrite-disclosure.json",
+      "sha256": "ccd597526628c6df665dabae0e7ca745050e37f0a9d058a08763bf97c25d7953",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/run.py",
+      "packagePath": "receipts/run.py",
+      "sha256": "c517f307921410f8d2f6b9efc9f0e7068f070cf72a786f4fb226f93f20d548d5",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/scroll-chain-disposition.json",
+      "packagePath": "receipts/scroll-chain-disposition.json",
+      "sha256": "411033263347de82118d65f19e4af8a338cd4b08b11c017caef11d33dd8e867c",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/source-commit-2.json",
+      "packagePath": "receipts/source-commit-2.json",
+      "sha256": "f609a0bf6a147e59cf0e82bc29a2b86ebdd3635f144f616f72caaf2e05b09205",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/source-commit.json",
+      "packagePath": "receipts/source-commit.json",
+      "sha256": "699363511a98d0f5bd7e2a42d4fd6b902568e398fd420527cca959f2f9eb9864",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/stability-failure-disposition.json",
+      "packagePath": "receipts/stability-failure-disposition.json",
+      "sha256": "3e9d3239ee768ef686b5d95fe2aa8a1ea3619a09c136eec9c5f882c9c92bc667",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/window-2.json",
+      "packagePath": "receipts/window-2.json",
+      "sha256": "6a12190c94c500c8079a1fb381c7e823006ac1bdbd7d2a78d8c9dd2e7dbbbae9",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/window.json",
+      "packagePath": "receipts/window.json",
+      "sha256": "ab4abc564d6e4af42a0d27c51b5e261f318bc8c79ff80abe3782184f612ca933",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action/browser/.last-run.json",
+      "packagePath": "receipts/75-full-action/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/82-preview-roundtrip/focused-card.png",
+      "packagePath": "receipts/82-preview-roundtrip/focused-card.png",
+      "sha256": "fdc4383e1949e1a75a296377a125d239364ffa6e00cab1fcfcb1e0ff3a7c189a",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/82-preview-roundtrip/returned-preview.png",
+      "packagePath": "receipts/82-preview-roundtrip/returned-preview.png",
+      "sha256": "3ff0daec76f99cabe2cc67fe418df8adc04f22d6b8de63b96138dcc65525b670",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/82-preview-roundtrip/roundtrip.json",
+      "packagePath": "receipts/82-preview-roundtrip/roundtrip.json",
+      "sha256": "f9d43782374a2b0c0fbf45b3ca7f5e8e3b018f447309f965668ff4f13bea61aa",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/82-preview-roundtrip.log",
+      "packagePath": "receipts/82-preview-roundtrip.txt",
+      "sha256": "e1a476b5bc4c6104d0d7ef1c36d2955ff3cc1dba9b642647818ef810657738f3",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/82-preview-roundtrip.mjs",
+      "packagePath": "receipts/82-preview-roundtrip.mjs",
+      "sha256": "1d51d31bb38861ea57eecb0dc8fad085f02c99d11b84994617baf9a1b943ed15",
+      "category": "verification-source-copy",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/native-host-limit.json",
+      "packagePath": "receipts/native-host-limit.json",
+      "sha256": "9760c29e07533e73543fab82826e46126674a6166d3d53e440e1d74e1c3a96fc",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/timing-output-location.json",
+      "packagePath": "receipts/timing-output-location.json",
+      "sha256": "eed75f636c18395450a9813d12b3134548ddf6246a8edb654f736ebf495fb4dd",
+      "category": "observation-or-provenance",
+      "bytePreserving": true
+    }
+  ]
+}

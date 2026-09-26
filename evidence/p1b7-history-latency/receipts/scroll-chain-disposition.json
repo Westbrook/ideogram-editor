@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-26T14:40:35.750862+00:00",
+  "58": "Focused candidate6 PASS once; later61 disproves closure.",
+  "61": "Final candidate7 Firefox25/26; current focus/visibility check fails ratio0 at720. Ended14:37:39.630372 before65-build14:38:03.904638; no mixed build served.",
+  "62": "Candidate7 Chromium6 focused PASS",
+  "63": "Candidate7 WebKit6 focused PASS",
+  "64": "Candidate7 shell3 affected PASS; prior full10 remains separately attributed.",
+  "65": "Build of candidate8 status-only overscroll containment PASS",
+  "66": "Candidate8 Firefox focused2 PASS then1 FAIL; containment not a cure.",
+  "67": "External safe native scroll/focus/reveal diagnostic3 PASS with extra geometry read RPCs inherited from55; altered functional observation ordering means no cure or current uninstrumented pass claim.",
+  "open": "Region End/Tab focus can leave whole region page-offscreen. Further unchanged reruns stopped. Coordinator asked to disposition section-target-only Home/End default scrolling control; no implementation before explicit exception to prior no-input-interception constraint."
+}

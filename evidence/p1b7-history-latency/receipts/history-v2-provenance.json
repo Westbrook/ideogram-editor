@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-26T14:22:05.131686+00:00",
+  "originalAnalyzer": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/analyze-history.py",
+    "sha256": "5a3178fc12203924fba0265bf5f4c6f9e644c9899ab54f3e37a044919349d7e5",
+    "invocation24": "FAILED; unchanged; no accepted summary"
+  },
+  "newAnalyzer": {
+    "path": "tests/editor/analyze-history-v2.py",
+    "sha256": "b15559793a74c7fac5b119ee39b493a40f8ba0f65db6412613a940463665b1bc",
+    "scope": "Offline separately versioned retrospective analysis only. Positive controls retain all adverse results. No live observer/markers changed."
+  },
+  "developmentInvocation33": {
+    "result": "FAILED conservative EventDispatch classification",
+    "sourcePath": "33-analyzer-development.py",
+    "sha256": "baa19a8ea32792d463ab56f66cbe7987263c9397e9b1b0f65fed130c17d40235"
+  },
+  "toolingClassification": {
+    "version": "1.63.0",
+    "producer": "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright-core/lib/coreBundle.js",
+    "sha256": "549070af3acabb3efcc4f55bfe6210f9f7c2fcf633cf7eaa59bfe60719969171",
+    "lines": [
+      14821,
+      14829
+    ],
+    "sourceExcerpt": "      document.addEventListener(\"__playwright_mark_target__\", (event) => {\n        const target = event.composedPath()[0];\n        if (target?.nodeType !== Node.ELEMENT_NODE)\n          return;\n        target.__playwright_target__ = this._targetGeneration;\n      });\n      document.addEventListener(\"__playwright_reset_targets__\", () => {\n        ++this._targetGeneration;\n      });\n    }\n",
+    "names": [
+      "__playwright_mark_target__",
+      "__playwright_reset_targets__"
+    ],
+    "effect": "Pinned producer writes diagnostic __playwright_target__ property or increments diagnostic _targetGeneration; no app state/raster/DOM mutation. Exclusion exact-name only; other signals remain fail-closed."
+  },
+  "newOutputs": {
+    "34-history-v2-bef.json": "06c68661baefb42ac51a1f63f6ae154e8696718bb48db3542cb5b6b02e9a6788",
+    "35-history-v2-eb4.json": "158066fa808f6317cf0cb99371bc2128c669260647f4eb8b5c193abe49e2accb",
+    "36-offline-controls/validation.json": "76cc5515a57adcb59ec31ee7db2642f69711bec457df5755e0d041e6007c5409"
+  },
+  "negativeControls": 18,
+  "qualification": "Retrospective AUTHOR analysis/controls; not original passing invocation, live run, or independent approval."
+}

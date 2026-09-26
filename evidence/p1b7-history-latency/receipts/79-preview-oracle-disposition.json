@@ -1,0 +1,5 @@
+{
+  "at": "2026-09-26T14:51:38.261522+00:00",
+  "result": "79 FAILED identity oracle",
+  "reason": "Compared runtime bootstrap-transformed HTML to raw dist index. Frozen server/static.ts loadStatic intentionally inserts hash-authorized prelude and resource template.80 compares served responses to actual frozen loadStatic output; JS/CSS byte checks remain exact. No app/build mutation or timing run."
+}

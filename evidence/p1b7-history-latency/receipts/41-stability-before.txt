@@ -1,0 +1,42 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/41-stability-before/browser --grep autosave receipt completion
+
+Running 1 test using 1 worker
+
+(node:85926) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/recovery.spec.ts:74:1 › autosave receipt completion keeps the native Apply target stable during a held pointer press (3.1s)
+
+
+  1) tests/editor/recovery.spec.ts:74:1 › autosave receipt completion keeps the native Apply target stable during a held pointer press 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "height": 35,
+        "width": 135.8499755859375,
+        "x": 1185.9832763671875,
+    -   "y": 414.79998779296875,
+    +   "y": 363.79998779296875,
+      }
+
+      86 |  release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true})).toBeVisible();
+      87 |  const after=await apply.boundingBox();await page.mouse.up();pressed=false;
+    > 88 |  expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
+         |                                                                          ^
+      89 |  }finally{release();if(pressed)await page.mouse.up();await page.unrouteAll({behavior:'wait'});await f.server.close();}
+      90 | });
+      91 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:88:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/i-br01-author/41-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/41-stability-before/browser/recovery-autosave-receipt--482f9-during-a-held-pointer-press/error-context.md
+
+  1 failed
+    tests/editor/recovery.spec.ts:74:1 › autosave receipt completion keeps the native Apply target stable during a held pointer press 

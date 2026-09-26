@@ -1,0 +1,20 @@
+node:internal/process/promises:324
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+AssertionError [ERR_ASSERTION]: dist/app/index.html
++ actual - expected
+
++ 'bc49dad6957354a2f986640d37951cd87a2470173391692f9656ec8e3a25c3e2'
+- '155183b6f21c382e51adbdc6d4636533aa9aa81dea6b3751e2eace56f482dc64'
+
+    at file:///Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/79-preview-identity.mjs:3:939 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'bc49dad6957354a2f986640d37951cd87a2470173391692f9656ec8e3a25c3e2',
+  expected: '155183b6f21c382e51adbdc6d4636533aa9aa81dea6b3751e2eace56f482dc64',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

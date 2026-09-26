@@ -1,0 +1,5 @@
+{
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent",
+  "policy": "Exact selected copies from immutable original independently rejected eb4 bundle, not a replacement seal or new independent review. Original SHA256SUMS covers110 files; only explicitly copied analyzer/control/input/verdict entries included here. New package seal covers these copies.",
+  "purpose": "Fresh checkout can reproduce v2 positive eb4 compatibility and18 negative controls without external ignored files."
+}

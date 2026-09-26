@@ -1,0 +1,31 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/recovery/playwright.config.ts --grep private event application --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/25-atomic-before/browser
+
+Running 1 test using 1 worker
+
+(node:66054) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/recovery/consumer.spec.ts:22:1 › private event application rolls back every row on a write fault and retains duplicate checks (1.7s)
+
+
+  1) tests/recovery/consumer.spec.ts:22:1 › private event application rolls back every row on a write fault and retains duplicate checks 
+
+    Error: page.evaluate: Error: Invalid creation
+        at t (http://127.0.0.1:51095/assets/index-CE4_Z4qG.js:1:4728)
+        at e.apply (http://127.0.0.1:51095/assets/index-CE4_Z4qG.js:1:20884)
+        at async eval (eval at evaluate (:311:30), <anonymous>:24:5)
+        at async <anonymous>:337:30
+        at t (http://127.0.0.1:51095/assets/index-CE4_Z4qG.js:1:4728)
+        at e.apply (http://127.0.0.1:51095/assets/index-CE4_Z4qG.js:1:20884)
+        at async eval (eval at evaluate (:311:30), <anonymous>:24:5)
+        at async <anonymous>:337:30
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/recovery/consumer.spec.ts:24:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/i-br01-author/25-atomic-before/browser/consumer-private-event-app-92b5c-nd-retains-duplicate-checks/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/25-atomic-before/browser/consumer-private-event-app-92b5c-nd-retains-duplicate-checks/error-context.md
+
+  1 failed
+    tests/recovery/consumer.spec.ts:22:1 › private event application rolls back every row on a write fault and retains duplicate checks 

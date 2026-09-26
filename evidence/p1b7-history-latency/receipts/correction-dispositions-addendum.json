@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-26T14:47:08.527797+00:00",
+  "scope": "Author source-attributed functional corrections and retained adverse outcomes; no independent acceptance or credit.",
+  "attempts": {
+    "19": "Original recovery JSON UNAVAILABLE after unsealed overwrite by25; retained stdout12 PASS, command/build/frozen bytes. Current19 JSON is25 FAILED. See reporter-overwrite-disclosure.json.",
+    "22-24": "Clean bef timing functional22 PASS, parent23 PASS, original history24 FAILED paint<=verified; no accepted history summary. True retrospective v2 later79.013/114.830/101.224 remain adverse. Old observers/outputs unchanged.",
+    "25": "Fail-before atomic application on frozen19 bef browser fixture; history put fault leaves partial document under old separate transactions, replay Invalid creation. See exact source/build attribution atomic-fail-before-provenance.json.",
+    "26-32": "Atomic candidate3: type/build PASS, recovery28:13 PASS; Chromium29:25 PASS, Firefox30:24 PASS/1 FAIL native second Apply non-admission; WebKit31:4 focused PASS, shell32:10 PASS.",
+    "33-36": "Conservative v2 development33 rejects Playwright bookkeeping signal; script preserved. Authorized exact-name pinned-producer classification34/35 yields retained bef/eb4 results;36 passes18 negative mutated copies. Retrospective author analysis only.",
+    "37-38": "Firefox safe functional diagnostics:37 1PASS/1FAIL/1UNRUN;38 2PASS/1FAIL. Missing second native Apply admission. Pointer38 locates status occupied-area shift between down/up, no SetLayerProperties.",
+    "39-41": "39/40 harness expects initial receipt200 but real202: fixture failures retained.40 ran unchanged after failed source-edit assertion.41 corrected held-terminal fixture on frozen27 build fails geometry: same Apply y414.79998779296875\u2192363.79998779296875. Native mouse-up not rescued/retried.",
+    "42-48": "Stable-status candidate4 type/build PASS; Firefox44:25PASS/1FAIL focused Retry outside viewport; Chromium45:26PASS, WebKit46:7 focused PASS, shell47:10PASS.48 fails stronger viewport assertion, not simple assertion timing.",
+    "49-55": "Immediate focus-reveal candidate5 type/build PASS; Firefox51:25PASS/1FAIL; Chromium52/WebKit53:6 focused PASS; shell54:10PASS.55 safe diagnostic fails at720 page scroll375, Retry y-227 within offscreen status;320 visible.",
+    "56-61": "Next-frame candidate6 type/build PASS and focused58 PASS once. Cancellable candidate7 type/build PASS; full61 Firefox25PASS/1FAIL, so58 does not close. Full61 ended before candidate8 build65; no mixed runtime.",
+    "62-67": "Candidate7 focused62 Chromium6/63WebKit6/64shell3 PASS. Containment candidate8 build65 PASS;66Firefox focused2PASS/1FAIL.67 instrumented geometry-order copy3PASS is diagnostic only, not cure or proof overhead causation.",
+    "68-70": "Candidate9 removes failed reveal and containment experiments; exact focused app-owned SECTION Home/End handler and stable status. Type68/build69 PASS; focused70 native 320\u2192720 SQLite FULL3PASS. Synthetic guard checks occur after native sequence; no native IME/AT inference.",
+    "71-74": "Final-source71Firefox pending at record creation;72Chromium6PASS,73WebKit6PASS,74shell3PASS. Final status authoritative in commands.jsonl/reporter outputs and later final handoff."
+  },
+  "environmentSupplement": {
+    "74-shell": {
+      "IE_SHELL_OUTPUT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/74-shell"
+    },
+    "notes": "run.py records EDITOR_RECEIPT/BROWSER only. IE_SHELL_OUTPUT for earlier06/21/32/47/54/64 equals their fresh same-label external directory. IE_RECOVERY_OUTPUT19/25/28 are explicitly retained in atomic-fail-before-provenance.json. CLI --output paths bind browser attachments."
+  },
+  "sourceBinding": "candidate1\u20139 manifests/patches retain evolving inputs; candidate9 final verificationCode92 separate from observed browser metadata. Build69 supplied dist for70\u201374. No code or build changes during70\u201374. Some functional gates overlap; their elapsed durations are not performance evidence."
+}

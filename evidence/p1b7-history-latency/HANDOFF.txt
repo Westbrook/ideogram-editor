@@ -1,0 +1,168 @@
+P1b.7 bounded I-BR01 correction — AUTHOR handoff, independent review required
+
+Measured product commit: 67199cdacb6d7bd25575868e2586747132ae696a.
+Runtime source SHA256: 1c899ccad5923e155d507fbfdbfce111833f47497774dd8104a1694b5876c2b1.
+Base rejected review: eb4a3e64ed288db6cf16e1118690e8b6f3ac3876.
+Intermediate failed correction: bef08ef7c5911313b7e0b1335e9237a719d75fb6.
+Branch ideogram-editor-p1; task292d3ac5-08c8-4caf-9042-1eefd4cd050f;
+independent review565666d8-a9e3-4bb2-b09a-286e4da36009;
+shared PR Context cbd63320-6def-4beb-b78f-de897caf3cdf.
+No GitHub PR URL/number or base CI run exists for this local work. All gates here
+are author local checks, not CI or independent approval. Coordinator assigns the
+existing reviewer to the final evidence-only successor. I-BR01, A-R01 and user UI
+acceptance remain OPEN; P1b remains21/27. Do not inherit any user acknowledgment.
+
+CHANGE AND AUTHORITY
+bef removes the forced animation-frame+timer scheduling boundary, serially probes
+receipts at0/4/8/16/30ms then30ms, and retries full leased recovery only for typed
+publication conflicts while lifecycle/cache identity is unchanged. Clone pins its
+base and row copy in one transaction; publication still uses complete-generation
+CAS. Other exceptions remain failures. Pending bodies, IDs, epochs, result proofs,
+review authority, generation/final-veto and durable acceptance are unchanged.
+671 consolidates each private event's duplicate/predecessor/namespace checks,
+reducer writes and event marker into one IndexedDB transaction. A fault aborts all
+rows; complete command/generation publication remains atomic and independently
+fenced. Meaningful fail-before25 and corrected28 prove rollback/replay/duplicates;
+browser held-result and another-tab generation replacement controls remain.
+
+Author-found adjacent UI defect: disappearance of a real pending autosave row
+moved the same enabled native Apply51px between mousedown and mouseup. Real held
+receipt/pointer regression41 failed before stable6rem status occupied area. It
+passes on corrected sources without forced/retried clicks or weakened assertions.
+Overflow remains scrollable and named; messages/errors/Retry are preserved.
+Earlier immediate/next-frame reveal and overscroll-containment experiments failed
+and were removed. The coordinator explicitly amended prior no-input-interception
+scope only for unmodified Home/End on the exact focused connected app-owned
+SECTION, neither composing nor defaultPrevented. The handler scrolls only that
+region and preserves bubbling; all descendant/public/native controls, modifiers,
+Tab/ShiftTab/Enter and normal navigation outside remain untouched. No timer/frame
+polling, focus transfer, action/clock changes or vendor bypass. Public EnButton
+and EnValidationSummary inside this region remain native-backed. This approved
+contract is the concrete native SECTION exception; original full component
+inventory is preserved at evidence/p1b7/components.json, with this supplement.
+Native End/Home/Tab/ShiftTab/Enter and same original Retry command were exercised
+at320→720 with actual content/scroll history. Separate synthetic exclusion/veto/
+propagation controls follow the native sequence; they do not qualify OS IME/AT.
+
+FINAL SOURCE GATES
+See GATE-MATRIX.json and receipts/commands.jsonl for exact argv/UTC/exit/attribution.
+Type68/build69 pass. Final Firefox71 full26/26 passes; focused70 Firefox3,
+72 Chromium6,73 WebKit6,74 shell B02/B03/B06 three pass. Prior Chromium29 full25
+belongs to atomic candidate3;45 full26 to stable-region candidate4, not a fresh
+full current Chromium run. Recovery28 thirteen passes unchanged atomic cache.
+Offline34/35 match retained adverse bef and all original eb4 endpoints;36 rejects
+18 invalid copied specimens. No blanket repeated gates or native/full-WebKit
+qualification. Earlier full WebKit portable download timeout and OPFS observation
+remain separately attributed, no asserted common cause.
+
+ONE AUTHORIZED LIVE WINDOW
+Confirmation issued14:47:58.479Z; actual receipt/START14:48:11.803784Z.
+75 unchanged live observer14:48:11.839467–14:48:30.607117Z PASS.
+76 unchanged parent analyzer14:48:38.988631–14:48:39.080315Z PASS.
+77 separately versioned bounded history analyzer14:48:39.113263–14:48:39.199597Z PASS.
+END14:48:39.229854Z, acknowledged; no repeat. Full window commands/hashes in
+receipts/window-2.json, source-commit-2.json and the package seal.
+Observer SHA256 ae37e7b2f7c321f5279f3b3ba1f4c2a927e20fe53caba3f0257a40eb29b229c3.
+Parent analyzer a9efa15e64bd660d1f4280d1d5cb299ad4cfa8ff6fd9806d0ec29e98a3ac899a.
+History v2 b15559793a74c7fac5b119ee39b493a40f8ba0f65db6412613a940463665b1bc.
+
+Exact native intent→first correct completed covering renderer Paint END:
+Undo66.478ms, Redo67.582ms, checkpoint67.445ms. All required exact document,
+revision, asset, ready/settled state, single completion and changed-raster draw
+preceded DOM verified; no post-verified extension was used in this new run.
+Opacity314.978–333.942ms remains disclosed. Full parent import1149.071ms
+(last Apply315.471), resample1031.037(149.037), flatten998.946(119.546), complete
+copy-ready430.762(last365.962), copy download17.351, portable open3898.335
+(last Apply2532.934), exact export-ready183.539/download16.558. Copy/download
+initiation does not prove external destination bytes saved. Feedbackmax49.648ms.
+All preparation/review/queue/commit/proof/recovery/client work stays inside parent
+clocks. Child R20 spans are not substitutes. See all raw steps, trace, request
+receipts and analyses for every observation, not only the passing history cohort.
+
+Cold191.286ms is navigation→subsequent Paint after clean-root local recovery-ready
+assertion, excluding server startup. Warm153.122ms is reload→subsequent Paint
+after recovery and same canvas-asset assertions. Separate navigation→Paint after the warm accepted-edit
+marker is1046.406ms includes native selection,
+field edit/autosave/Apply and accepted status; this is NOT the153.122ms endpoint.
+These are conservative trace upper bounds after assertions, not full R05 startup
+decomposition/qualification. Server-only RSS179.296875MiB is not whole-process
+peak. Assigned-agent serial reservation is not exclusive-host evidence. Tiny
+workload is not formal W1/H/population/native/100k/large-envelope/power-loss
+qualification. Prior full history metadata74.742833ms20/20 above50, tiny full
+opacity171.443917ms and pending resource maxima remain; graph scans may be
+quadratic. A-R01 remains open.
+
+ORACLE HISTORY AND LOSS DISCLOSURE
+Original eb4 independent rejection and110-file seal remain immutable. Original
+history analyzer assumes paint<=verified. Retained bef actual matching draw
+102.819ms precedes verified103.800ms, first correct covering Paint ends114.830ms
+before next native interference; earlier100.152ms Paint precedes correct draw.
+Original invocation24 remains FAILED/no accepted summary. v2 changes only this
+ordering guard, keeping prerequisite identity/order and first covering Paint.
+A post-verified Paint must precede finite explicit no-interference bound; unknown
+native/app/input/error/state/asset/navigation signals fail closed, absent bounds
+fail. Only two exact pinned Playwright diagnostic bookkeeping event names are
+classified passive; producer excerpt/hash and negative unknown-event controls
+are retained.33 conservative development rejection is retained.34/35/36 are
+retrospective AUTHOR outputs, not replacement original success or live approval.
+Bef true Undo79.013/Redo114.830/checkpoint101.224 adverse outcomes remain.
+
+Original unsealed attempt19 recovery-browser.json is UNAVAILABLE, with no original
+hash recorded. Attempt25 reused IE_RECOVERY_OUTPUT19 and overwrote it. Current
+19 and25 JSON bytes belong to FAILED25, never evidence of original19 success.
+Original19 stdout12-pass, command/exit/UTC, build log and frozen browser fixture
+survive. reporter-overwrite-disclosure.json and atomic-fail-before-provenance.json
+identify this precisely. No reconstructed reporter or all-artifacts-survived claim.
+All later outputs use fresh directories; original sealed p1b7/eb4 evidence is
+unchanged. Additional failed source/diagnostic/geometry/overflow attempts are
+listed in receipts/correction-dispositions-addendum.json and specific dispositions.
+Some intermediate copied diagnostic test files evolved; retained final copies
+are not claimed byte-identical to every earlier invocation. Historical source
+manifests/patches are preserved provenance; all historical generated build bytes
+were not retained. The frozen19 fixture and final69 build ARE included.
+
+REVIEW PREVIEW AND D11
+http://127.0.0.1:56296/?progress-report, service
+/Users/westbrook/Documents/repos/ideogram-edit-i-br01-preview-1c899cca,
+PID30683, started14:50:15.316Z, distinct private root.61 build69 outputs frozen and
+checked at startup; protocol/no-effects.mjs denies outgoing effects with shared
+counters. Initial78 launcher failed before app startup (wrong absent preload
+path), retained.79 wrongly compared transformed HTML to raw index;80 omitted
+arrow from exact link accessible name; both failed harness attempts retained.
+81 verifies seven actual served HTML/JS/CSS/lazy resources against frozen
+loadStatic output and build, paired rendered shell, scrubbed fragment and trusted
+4381 link. Roundtrip evidence is separately appended; no API-only navigation claim.
+Old55911, approved52219, report4381 and approved locator remain untouched.
+The report owner alone publishes supplemental unreviewed exact-source cards.
+No credentials, private roots/databases or pairing fragments are included here.
+Secure pairing is requested via service control FIFO, outputting mode0600 ignored
+artifacts/i-br01-private-preview-2/pairing.json; never paste its contents into notes.
+Restart only if needed with pinned Node and --import ./tests/protocol/no-effects.mjs
+run.mjs from frozen service root, keeping FIFO open; OS-selected port may change.
+Do not restart or measure during an independent review reservation.
+D11 actual emitted startup JS494956raw/129058gzip bytes, lazy9411raw/3308gzip,
+CSS96436raw/12607gzip. Within artifact budgets; not evaluated-module/five-build
+qualification. Shared imports counted once, no new fonts/engine. Build plugin's
+historical label/estimates preserved rather than relabeled.
+
+FRESH ARCHIVE VERIFICATION
+python3 evidence/p1b7-history-latency/verify-evidence.py
+Validates seal, current code-input partition, all surviving observation copies,
+frozen final build and selected original independent control copies; no ignored
+dist/private/credential files or external evidence directories required.
+Current CODE-INPUTS.json has100 runtime/config inputs and92 verification code
+inputs, with reporter JSON ONLY in OBSERVATION-MAPPING. Build61 relocated using
+BUILD-MAPPING, byte-preserving. Historical manifests keep original absolute path
+provenance; use mapping for copied observations, not those historical paths.
+Optional offline oracle revalidation (new empty external output directory):
+python3 tests/editor/validate-history-v2.py evidence/p1b7-history-latency/receipts/22-full-action evidence/p1b7-history-latency/receipts/prior-independent-control /tmp/NEW-EMPTY-history-v2-output
+Product reruns require coordinator serial authorization for timing. Reverify
+commands: npm run typecheck; npm run build; npx playwright test --config
+tests/editor/playwright.config.ts; EDITOR_RECEIPT=<fresh-external> npx playwright
+test --config tests/editor/timing.config.ts; python3 tests/editor/analyze-timing.py
+<fresh-external>; python3 tests/editor/analyze-history-v2.py <fresh-external>
+<new-output.json>. Do not overwrite earlier receipts. No further run was performed
+for this packaging handoff.
+
+ROUNDTRIP ADDENDUM
+82 PASS14:54:17.645227–14:54:20.303376Z: macOS author Playwright Chromium native browser clicks, actual rendered67199cd card revision2, paired app→report→56296 preview→report, zero page errors and only two intended origins. Focused card and returned preview screenshots retained and inspected. Native Intent existing report tab restored, but later capture failed cgWindowNotFound; no new native Intent/OS/AT roundtrip pass. Preview effect counters are all zero. No user acknowledgment was submitted.

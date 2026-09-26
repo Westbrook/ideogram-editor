@@ -1,0 +1,38 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/46-webkit/browser --grep history receipt probes|history completion retries|autosave receipt completion|native composition drafts|E1 real reviewed import|320px and 200|actual SQLite FULL
+
+Running 7 tests using 1 worker
+
+(node:89191) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (3.7s)
+  ✓  2 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.4s)
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+screenshot-only diagnostics [
+  "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy."
+]
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Select layers',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+  ✓  3 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (3.6s)
+  ✓  4 tests/editor/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof (3.9s)
+  ✓  5 tests/editor/recovery.spec.ts:55:1 › history completion retries complete recovery when another tab replaces the staged base (4.5s)
+  ✓  6 tests/editor/recovery.spec.ts:74:1 › autosave receipt completion keeps the native Apply target stable during a held pointer press (3.5s)
+  ✓  7 tests/editor/recovery.spec.ts:130:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (1.7s)
+
+  7 passed (23.1s)

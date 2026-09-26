@@ -1,0 +1,1 @@
+import {defineConfig} from '/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/index.mjs';export default defineConfig({testDir:'.',testMatch:'*.spec.ts',workers:1,retries:0,timeout:90000,reporter:[['list']],use:{browserName:process.env.EDITOR_BROWSER??'chromium',viewport:{width:1440,height:1000},trace:'off'}});

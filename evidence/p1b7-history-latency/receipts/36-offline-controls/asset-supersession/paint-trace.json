@@ -1,0 +1,4045 @@
+{
+  "traceEvents": [
+    {
+      "name": "ie.test.start.redo",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868216998,
+      "args": {}
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868220376,
+      "dur": 5,
+      "args": {
+        "type": "__playwright_reset_targets__"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868220385,
+      "dur": 1,
+      "args": {
+        "type": "__playwright_mark_target__"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868225813,
+      "dur": 160
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868226027,
+      "dur": 37
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868226126,
+      "dur": 271,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868226137,
+      "dur": 259,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868226236,
+      "dur": 89,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868242593,
+      "dur": 131
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868242616,
+      "dur": 97
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868242963,
+      "dur": 264,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868242975,
+      "dur": 251,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868243072,
+      "dur": 81,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245272,
+      "dur": 424
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245797,
+      "dur": 3,
+      "args": {
+        "type": "pointerout"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245805,
+      "dur": 1,
+      "args": {
+        "type": "pointerover"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245809,
+      "dur": 1,
+      "args": {
+        "type": "mouseout"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245811,
+      "dur": 1,
+      "args": {
+        "type": "mouseover"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245813,
+      "dur": 1,
+      "args": {
+        "type": "pointermove"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245814,
+      "dur": 27,
+      "args": {
+        "type": "mousemove"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245822,
+      "dur": 14
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245838,
+      "dur": 2
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245980,
+      "dur": 469,
+      "args": {
+        "type": "pointerdown"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245982,
+      "dur": 459
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868245997,
+      "dur": 173
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246173,
+      "dur": 92
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246444,
+      "dur": 3
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246453,
+      "dur": 8,
+      "args": {
+        "type": "mousedown"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246455,
+      "dur": 4
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246460,
+      "dur": 1
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246485,
+      "dur": 127
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246617,
+      "dur": 1,
+      "args": {
+        "type": "focus"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246619,
+      "dur": 23,
+      "args": {
+        "type": "focusin"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246622,
+      "dur": 19
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246643,
+      "dur": 1,
+      "args": {
+        "type": "DOMFocusIn"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246711,
+      "dur": 9,
+      "args": {
+        "type": "pointerup"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246714,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246718,
+      "dur": 1
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246721,
+      "dur": 5,
+      "args": {
+        "type": "mouseup"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246723,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246725,
+      "dur": 1
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246731,
+      "dur": 64,
+      "args": {
+        "type": "click"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246732,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246735,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246737,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246748,
+      "dur": 44
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246793,
+      "dur": 2,
+      "args": {
+        "type": "DOMActivate"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246797,
+      "dur": 139
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868246938,
+      "dur": 65
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868250781,
+      "dur": 4,
+      "args": {
+        "type": "__playwright_reset_targets__"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868259928,
+      "dur": 4,
+      "args": {
+        "type": "__playwright_reset_targets__"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868259989,
+      "dur": 163
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868260355,
+      "dur": 35
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868260422,
+      "dur": 262,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868260434,
+      "dur": 249,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868260540,
+      "dur": 76,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261048,
+      "dur": 104
+    },
+    {
+      "name": "ie.intent.Redo",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261067,
+      "args": {}
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261300,
+      "dur": 14
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261316,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261319,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261321,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261327,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261334,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261337,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261339,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261340,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261378,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261381
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261382,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261384,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261385,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261388
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261389,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261427,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261434
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261441,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"8\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261473,
+      "dur": 21
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261494,
+      "dur": 305
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261513,
+      "dur": 60
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261576,
+      "dur": 152
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261800,
+      "dur": 41
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261841,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868261898,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868262005,
+      "dur": 5
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868262013,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868262018,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868262022,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868262026,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868262029,
+      "dur": 3
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868262167,
+      "dur": 1292
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868269855,
+      "dur": 7
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270013,
+      "dur": 5,
+      "args": {
+        "type": "blur"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270019,
+      "dur": 13,
+      "args": {
+        "type": "focusout"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270024,
+      "dur": 6
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270032,
+      "dur": 1,
+      "args": {
+        "type": "DOMFocusOut"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270043,
+      "dur": 246
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270459,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270840,
+      "dur": 82
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270975,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270982,
+      "dur": 4
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270987,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270989,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868270990,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271360,
+      "dur": 101
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271470,
+      "dur": 17
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271525,
+      "dur": 9
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271554,
+      "dur": 39
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271624,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"8\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271660,
+      "dur": 12
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271708,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271728,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271732,
+      "dur": 1
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868271859,
+      "dur": 3,
+      "args": {
+        "type": "slotchange"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868275381,
+      "dur": 385
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868275769,
+      "dur": 231
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868276448,
+      "dur": 30
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868276481,
+      "dur": 3
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868276510,
+      "dur": 56
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868276589,
+      "dur": 365
+    },
+    {
+      "name": "ie.viewport.drawn",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868276939,
+      "args": {
+        "detail": "{\"zoom\":1,\"x\":0,\"y\":0}"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868276956,
+      "dur": 22
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868276980,
+      "dur": 43
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868277083,
+      "dur": 353,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868277093,
+      "dur": 342,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868277288,
+      "dur": 75,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868283925,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284203,
+      "dur": 54
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284475,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"8\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284505,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284545,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284644,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284667,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284671,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868284675,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868287152,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868288813,
+      "dur": 59
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868289049,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"8\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868289091,
+      "dur": 5
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868289125,
+      "dur": 7
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868292788,
+      "dur": 5,
+      "args": {
+        "type": "__playwright_reset_targets__"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868292866,
+      "dur": 130
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868292999,
+      "dur": 103
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868293298,
+      "dur": 9
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868293309,
+      "dur": 2
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868293355,
+      "dur": 229,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868293364,
+      "dur": 219,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868293453,
+      "dur": 67,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868310545,
+      "dur": 160
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868310807,
+      "dur": 234,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868310819,
+      "dur": 221,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868310909,
+      "dur": 70,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868311259,
+      "dur": 12
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868311289,
+      "dur": 4
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868311295,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868311300,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868311460,
+      "dur": 36
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868311623,
+      "dur": 24
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868313682,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868317622,
+      "dur": 56
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868317722,
+      "dur": 4
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868317727,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868317732,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868322448,
+      "dur": 11
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868322490,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"8\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868322547,
+      "dur": 12
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868322612,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868323120,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868323145,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868323149,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868323153,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868323402,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868323406,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868323410
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868325324,
+      "dur": 294
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868325622,
+      "dur": 126
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326141,
+      "dur": 44
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326188,
+      "dur": 3
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326204,
+      "dur": 52
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326280,
+      "dur": 334
+    },
+    {
+      "name": "ie.viewport.drawn",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326602,
+      "args": {
+        "detail": "{\"zoom\":1,\"x\":0,\"y\":0}"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326617,
+      "dur": 25
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326644,
+      "dur": 49
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326763,
+      "dur": 297,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326772,
+      "dur": 287,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868326930,
+      "dur": 64,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328473,
+      "dur": 5
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328480,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328483,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328484,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328486,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328682,
+      "dur": 24
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328827,
+      "dur": 57
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868328982,
+      "dur": 25
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329101,
+      "dur": 37
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329210,
+      "dur": 21
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329290,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329354,
+      "dur": 21
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329431,
+      "dur": 14
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329526,
+      "dur": 20
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329599,
+      "dur": 13
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329679,
+      "dur": 17
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329781,
+      "dur": 34
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868329928,
+      "dur": 68
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330194,
+      "dur": 22
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330287,
+      "dur": 14
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330368,
+      "dur": 17
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330459,
+      "dur": 12
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330543,
+      "dur": 14
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330670,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330785,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330865,
+      "dur": 20
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868330953,
+      "dur": 20
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331107,
+      "dur": 10
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331187,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331284,
+      "dur": 17
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331407,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331477,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331568,
+      "dur": 15
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331625,
+      "dur": 13
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331691,
+      "dur": 12
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331773,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331835,
+      "dur": 13
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331906,
+      "dur": 9
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868331979,
+      "dur": 10
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332275,
+      "dur": 16
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332356,
+      "dur": 10
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332419,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332495,
+      "dur": 8
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332557,
+      "dur": 10
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332626,
+      "dur": 32
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332732,
+      "dur": 17
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332808,
+      "dur": 23
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332892,
+      "dur": 15
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868332960,
+      "dur": 17
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333046,
+      "dur": 16
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333120,
+      "dur": 20
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333206,
+      "dur": 23
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333284,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333500,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333574,
+      "dur": 16
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333663,
+      "dur": 5
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333730,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333873,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868333963,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868334114,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868334129,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868334133,
+      "dur": 4
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868334138,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336333,
+      "dur": 17
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336448,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336611,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336631,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336635,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336638,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336639,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868336641,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868341806,
+      "dur": 14
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868341946,
+      "dur": 7
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868342008,
+      "dur": 147
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868342342,
+      "dur": 238,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868342353,
+      "dur": 227,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868342445,
+      "dur": 68,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346279,
+      "dur": 33
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346451,
+      "dur": 8
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346656,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"8\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346706,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346748,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346846,
+      "dur": 5
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346862,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346867,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346871,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346991,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346994,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868346995,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868347035,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868347037,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868347038,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868347073,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868347074,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868347075,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868352450,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868352457,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868352461,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868353876,
+      "dur": 12
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868353948,
+      "dur": 18
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354019,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354076,
+      "dur": 2
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354263,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"9\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354324,
+      "dur": 4
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354329,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354332,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354452,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354493,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354595,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354607,
+      "dur": 2
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354654,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"9\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354671,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868354683,
+      "dur": 1
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868355140,
+      "dur": 2,
+      "args": {
+        "type": "selectionchange"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868355221,
+      "dur": 11
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868355248,
+      "dur": 4
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868355253,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868355257,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357336,
+      "dur": 40
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357587,
+      "args": {
+        "detail": "{\"busy\":true,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"9\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357620,
+      "dur": 6
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357654,
+      "dur": 5
+    },
+    {
+      "name": "ie.complete.Redo",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357722,
+      "args": {}
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357747,
+      "dur": 5
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357755,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357758,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357763,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357765,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357769,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357795,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357798,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357800,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357802,
+      "dur": 2
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357807,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357810,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357812,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357814,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357816,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357829,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357831,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357833
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357834,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357837,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357838,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357861,
+      "dur": 1
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357868,
+      "dur": 1
+    },
+    {
+      "name": "ie.editor.updated",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357872,
+      "args": {
+        "detail": "{\"busy\":false,\"ready\":true,\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"9\",\"selected\":[\"f6f018ee-db70-4ec3-bd63-afb81b2dfb82\"]}"
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357921,
+      "dur": 16
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357938,
+      "dur": 750
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868357956,
+      "dur": 232
+    },
+    {
+      "name": "Layout",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868358193,
+      "dur": 423
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868358690,
+      "dur": 45
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868358736,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868358767,
+      "dur": 2
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868359021,
+      "dur": 1460
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361165,
+      "dur": 12
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361180,
+      "dur": 2
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361219,
+      "dur": 275,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361230,
+      "dur": 263,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361335,
+      "dur": 86,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361793,
+      "dur": 15
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361832,
+      "dur": 5
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361838,
+      "dur": 3
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868361843,
+      "dur": 1
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868363441,
+      "dur": 2,
+      "args": {
+        "type": "__playwright_reset_targets__"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868363445,
+      "dur": 1,
+      "args": {
+        "type": "__playwright_mark_target__"
+      }
+    },
+    {
+      "name": "ie.viewport.drawn",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868363873,
+      "args": {
+        "detail": "{\"zoom\":1,\"x\":0,\"y\":0}"
+      }
+    },
+    {
+      "name": "ie.canvas.drawn",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868363886,
+      "args": {
+        "detail": "{\"documentId\":\"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\",\"revision\":\"9\",\"assetId\":\"1c7477ad-7832-4388-980b-45e4568083fe\"}"
+      }
+    },
+    {
+      "name": "ie.test.verified.redo",
+      "cat": "blink.user_timing",
+      "ph": "I",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868364867,
+      "args": {}
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868369875,
+      "dur": 5,
+      "args": {
+        "type": "__playwright_reset_targets__"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868369882,
+      "dur": 1,
+      "args": {
+        "type": "__playwright_mark_target__"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868370928,
+      "dur": 4,
+      "args": {
+        "type": "__playwright_reset_targets__"
+      }
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868370934,
+      "dur": 1,
+      "args": {
+        "type": "__playwright_mark_target__"
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868375337,
+      "dur": 161
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868375643,
+      "dur": 254,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 2,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868375655,
+      "dur": 241,
+      "args": {
+        "clip": [
+          0,
+          0,
+          1440,
+          0,
+          1440,
+          1000,
+          0,
+          1000
+        ],
+        "nodeId": 21,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "Paint",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868375743,
+      "dur": 78,
+      "args": {
+        "clip": [
+          0,
+          0,
+          280,
+          0,
+          280,
+          1170,
+          0,
+          1170
+        ],
+        "nodeId": 20,
+        "layerId": 0
+      }
+    },
+    {
+      "name": "UpdateLayoutTree",
+      "cat": "blink,devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868392509,
+      "dur": 163
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "ph": "X",
+      "pid": 62156,
+      "tid": 253429499,
+      "ts": 3784868392827,
+      "dur": 4,
+      "args": {
+        "type": "pointerout"
+      }
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868226536
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868226596
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868243478
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868243540
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260923
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,input,input.scrolling",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260923
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,input,input.scrolling",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260923
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,input,input.scrolling",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260923
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,input,input.scrolling",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260999
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,input,input.scrolling",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260999
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,input,input.scrolling",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260999
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868260999
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868278028
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868278130
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868302036
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868302097
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868311252
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868311308
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868327960
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868328026
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868346242
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868346306
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868361765
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868361864
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "b",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868376030
+    },
+    {
+      "name": "Commit",
+      "cat": "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      "ph": "e",
+      "pid": 62156,
+      "tid": 253429770,
+      "ts": 3784868376086
+    },
+    {
+      "name": "ie.canvas.drawn",
+      "ts": 3784868365867,
+      "pid": 62156,
+      "tid": 253429499,
+      "args": {
+        "detail": "{\"documentId\": \"a0350dd8-0182-4bb8-ad91-24ab7811d5b2\", \"revision\": \"9\", \"assetId\": \"wrong-asset\"}"
+      }
+    }
+  ]
+}

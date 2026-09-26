@@ -1,0 +1,316 @@
+{
+  "at": "2026-09-26T14:55:36.448403+00:00",
+  "measuredSourceCommit": "67199cdacb6d7bd25575868e2586747132ae696a",
+  "gates": [
+    {
+      "label": "04-read-contracts",
+      "argv": [
+        "node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/editor/read-adapters.test.mjs",
+        "tests/editor/document-projection.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T13:58:28.397654+00:00",
+      "head": "eb4a3e64ed288db6cf16e1118690e8b6f3ac3876",
+      "environment": {},
+      "ended": "2026-09-26T13:59:07.097651+00:00",
+      "exit": 0,
+      "sourceAttribution": "Six server read checks on candidate1; server/protocol inputs unchanged. Not a fresh final UI gate."
+    },
+    {
+      "label": "28-recovery",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/recovery/playwright.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:15:14.461869+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {},
+      "ended": "2026-09-26T14:15:46.807142+00:00",
+      "exit": 0,
+      "sourceAttribution": "Thirteen atomic recovery checks on candidate3; recovery-cache code unchanged in current source. Fixture build28 supplied."
+    },
+    {
+      "label": "34-retrospective-bef",
+      "argv": [
+        "python3",
+        "tests/editor/analyze-history-v2.py",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/34-history-v2-bef.json"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:20:05.482921+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {},
+      "ended": "2026-09-26T14:20:05.569352+00:00",
+      "exit": 0,
+      "sourceAttribution": "Retrospective offline v2/negative controls on retained traces; no live measurement or independent approval."
+    },
+    {
+      "label": "35-retrospective-eb4",
+      "argv": [
+        "python3",
+        "tests/editor/analyze-history-v2.py",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/full-action",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/35-history-v2-eb4.json"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:20:05.603992+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {},
+      "ended": "2026-09-26T14:20:05.690841+00:00",
+      "exit": 0,
+      "sourceAttribution": "Retrospective offline v2/negative controls on retained traces; no live measurement or independent approval."
+    },
+    {
+      "label": "36-offline-controls",
+      "argv": [
+        "python3",
+        "tests/editor/validate-history-v2.py",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/22-full-action",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/36-offline-controls"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:21:22.519812+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {},
+      "ended": "2026-09-26T14:21:22.676943+00:00",
+      "exit": 0,
+      "sourceAttribution": "Retrospective offline v2/negative controls on retained traces; no live measurement or independent approval."
+    },
+    {
+      "label": "68-typecheck",
+      "argv": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:42:23.098513+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {},
+      "ended": "2026-09-26T14:42:25.626079+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "69-build",
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:42:25.709563+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {},
+      "ended": "2026-09-26T14:42:28.979324+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "70-firefox-region",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/editor/playwright.config.ts",
+        "--output",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/70-firefox-region/browser",
+        "--grep",
+        "actual SQLite FULL",
+        "--repeat-each",
+        "3",
+        "--max-failures",
+        "1"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:45:07.327160+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {
+        "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/70-firefox-region",
+        "EDITOR_BROWSER": "firefox"
+      },
+      "ended": "2026-09-26T14:45:18.042393+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "72-chromium",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/editor/playwright.config.ts",
+        "--output",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/72-chromium/browser",
+        "--grep",
+        "autosave receipt completion|actual SQLite FULL|native composition drafts|public adapters|320px and 200|intermediate drawers"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:45:51.281392+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {
+        "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/72-chromium"
+      },
+      "ended": "2026-09-26T14:46:06.314758+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "73-webkit",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/editor/playwright.config.ts",
+        "--output",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/73-webkit/browser",
+        "--grep",
+        "autosave receipt completion|actual SQLite FULL|native composition drafts|public adapters|320px and 200|intermediate drawers"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:45:59.304880+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {
+        "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/73-webkit",
+        "EDITOR_BROWSER": "webkit"
+      },
+      "ended": "2026-09-26T14:46:14.482643+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "74-shell",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/browser/playwright.config.ts",
+        "--grep",
+        "B02|B03|B06"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:46:15.531917+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {},
+      "ended": "2026-09-26T14:46:19.817288+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "71-firefox",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/editor/playwright.config.ts",
+        "--output",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox/browser"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:45:26.693258+00:00",
+      "head": "bef08ef7c5911313b7e0b1335e9237a719d75fb6",
+      "environment": {
+        "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/71-firefox",
+        "EDITOR_BROWSER": "firefox"
+      },
+      "ended": "2026-09-26T14:47:07.879812+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "75-full-action",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/editor/timing.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:48:11.839467+00:00",
+      "head": "67199cdacb6d7bd25575868e2586747132ae696a",
+      "environment": {
+        "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action"
+      },
+      "ended": "2026-09-26T14:48:30.607117+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "76-parent-analysis",
+      "argv": [
+        "python3",
+        "tests/editor/analyze-timing.py",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:48:38.988631+00:00",
+      "head": "67199cdacb6d7bd25575868e2586747132ae696a",
+      "environment": {},
+      "ended": "2026-09-26T14:48:39.080315+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "77-history-analysis",
+      "argv": [
+        "python3",
+        "tests/editor/analyze-history-v2.py",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/75-full-action",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/77-history-v2.json"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:48:39.113263+00:00",
+      "head": "67199cdacb6d7bd25575868e2586747132ae696a",
+      "environment": {},
+      "ended": "2026-09-26T14:48:39.199597+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "81-preview-identity",
+      "argv": [
+        "node",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/81-preview-identity.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:52:29.288479+00:00",
+      "head": "67199cdacb6d7bd25575868e2586747132ae696a",
+      "environment": {},
+      "ended": "2026-09-26T14:52:30.140549+00:00",
+      "exit": 0,
+      "sourceAttribution": "Current67199cd candidate9 measured source, build69."
+    },
+    {
+      "label": "82-preview-roundtrip",
+      "argv": [
+        "node",
+        "/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/82-preview-roundtrip.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "started": "2026-09-26T14:54:17.645227+00:00",
+      "head": "67199cdacb6d7bd25575868e2586747132ae696a",
+      "environment": {},
+      "ended": "2026-09-26T14:54:20.303376+00:00",
+      "exit": 0,
+      "sourceAttribution": "Frozen67199cd preview runtime1c899cca, served build69; actual rendered report card revision2."
+    }
+  ],
+  "priorFailures": "See receipts/commands.jsonl and disposition JSON; not erased by these selected final gates. Native OS/AT/formal campaigns not performed."
+}

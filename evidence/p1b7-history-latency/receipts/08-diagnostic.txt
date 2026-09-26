@@ -1,0 +1,19 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/playwright.config.ts --grep history receipt|multi-tab convergence --repeat-each 3 --max-failures 1 --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/08-diagnostic/browser
+(node:45934) Warning: Failed to load the ES module: /Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension.
+(Use `node --trace-warnings ...` to show where the warning was created)
+SyntaxError: Cannot use 'import.meta' outside a module
+
+   at ../../../ideogram-edit/dist/local/server/http.js:9
+
+   7 | import { BOOTSTRAP_CSP, SHELL_STYLE_CSP, loadStatic } from './static.js';
+   8 | import { ProtocolRoutes, storeError } from './protocol.js';
+>  9 | import { openWriter } from './storage/writer.js';
+     | ^
+  10 | const methods = {
+  11 |     '/api/v1/session/bootstrap': ['POST'], '/api/v1/session': ['GET'],
+  12 |     '/api/v1/session/renew': ['POST'], '/api/v1/session/revoke': ['POST'], '/api/v1/capabilities': ['GET'],
+    at Object.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:9:1)
+    at Object.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:5:1)
+    at Object.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/recovery.spec.ts:9:1)
+

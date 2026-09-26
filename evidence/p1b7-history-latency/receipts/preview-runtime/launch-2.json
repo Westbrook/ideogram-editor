@@ -1,0 +1,11 @@
+{
+  "pid": 30683,
+  "command": [
+    "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+    "--import",
+    "./tests/protocol/no-effects.mjs",
+    "run.mjs"
+  ],
+  "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-i-br01-preview-1c899cca",
+  "sourceCommit": "67199cdacb6d7bd25575868e2586747132ae696a"
+}

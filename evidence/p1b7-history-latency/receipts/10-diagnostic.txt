@@ -1,0 +1,41 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/playwright.config.ts --grep history receipt --max-failures 1 --output /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/10-diagnostic/browser
+
+Running 1 test using 1 worker
+
+(node:49499) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+SAFE DENIED RESPONSE {"path":"/api/v1/commands/864770a8-9dfa-48bb-ab6a-e950882af3dd/result","status":403,"headers":{"x-app-client":"LP-1"},"body":{"protocolVersion":1,"requestId":"825310f8-fc8f-43a0-8c8f-351d99a3763b","error":{"code":"ORIGIN_DENIED","retry":"none","message":"This request is not from the editor launch origin."}}}
+SAFE FAILURE STATE [{"heading":"Action needs attention","items":[{"target":"inspector","message":"ORIGIN_DENIED"}]}]
+  ✘  1 ../ideogram-edit-verification/i-br01-author/diagnostic-tests/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof (9.7s)
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) ../ideogram-edit-verification/i-br01-author/diagnostic-tests/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Undo accepted and saved locally.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Undo accepted and saved locally.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('Undo accepted and saved locally.', { exact: true })
+
+
+      46 |  await click(page,'Undo');await heldReceipt;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');expect(wires).toHaveLength(1);expect(lookups).toBe(3);expect(maxActive).toBe(1);await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
+      47 |  releaseReceipt();await heldProof;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
+    > 48 |  releaseProof();await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);expect(wires).toHaveLength(1);expect((await f.read('/api/v1/commands/'+id+'/original')).text).toBe(wires[0]);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);
+         |                                                                                               ^
+      49 |  }finally{releaseReceipt();releaseProof();await page.unrouteAll({behavior:'wait'});await f.server.close();}
+      50 | });
+      51 |
+        at /Users/westbrook/Documents/repos/ideogram-edit-verification/i-br01-author/diagnostic-tests/recovery.spec.ts:48:95
+
+    Error Context: ../ideogram-edit-verification/i-br01-author/10-diagnostic/browser/recovery-history-receipt-p-59932-exact-accepted-result-proof/error-context.md
+
+  1 failed
+    ../ideogram-edit-verification/i-br01-author/diagnostic-tests/recovery.spec.ts:21:1 › history receipt probes stay serial and one action waits for exact accepted result proof 
+  1 error was not a part of any test, see above for details

@@ -1,0 +1,15 @@
+{
+  "base": "eb4a3e64ed288db6cf16e1118690e8b6f3ac3876",
+  "measuredHead": "67199cdacb6d7bd25575868e2586747132ae696a",
+  "filesTouched": [
+    "src/state/editor-client.ts",
+    "src/state/recovery-cache.ts",
+    "src/theme/shell.css",
+    "src/ui/shell.ts",
+    "tests/editor/analyze-history-v2.py",
+    "tests/editor/recovery.spec.ts",
+    "tests/editor/validate-history-v2.py",
+    "tests/recovery/consumer.spec.ts"
+  ],
+  "policy": "Final successor adds evidence only, preserving all measured source/build/observer hashes. Original eb4 verdict remains immutable."
+}

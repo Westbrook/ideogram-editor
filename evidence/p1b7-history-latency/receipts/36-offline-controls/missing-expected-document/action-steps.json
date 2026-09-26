@@ -1,0 +1,202 @@
+{
+  "steps": [
+    {
+      "name": "predecessor-asset",
+      "asset": "0f88a370-53af-4364-a2e3-5e4c03196b81"
+    },
+    {
+      "name": "redo",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 186.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 187.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 198.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 633.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1036.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1474.8000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1892.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1913.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1937.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1950.8000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1971.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2799.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2816.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3644.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3660,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4482.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4496.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5333,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5350.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5384.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5756.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6188.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6200.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6238.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6313.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6321.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6341,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6385.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6481.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 6481.900000095367,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "revision": "9",
+            "selected": [
+              "f6f018ee-db70-4ec3-bd63-afb81b2dfb82"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 6487.900000095367,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 6487.900000095367,
+          "detail": {
+            "documentId": "a0350dd8-0182-4bb8-ad91-24ab7811d5b2",
+            "revision": "9",
+            "assetId": "1c7477ad-7832-4388-980b-45e4568083fe"
+          }
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6488.800000190735,
+          "detail": null
+        }
+      ],
+      "document": "3 \u00d7 2 \u00b7 revision 9",
+      "asset": "1c7477ad-7832-4388-980b-45e4568083fe",
+      "canvasBackendNodeId": 18,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    }
+  ]
+}
