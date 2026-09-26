@@ -1,0 +1,269 @@
+{
+  "recordedAt": "2026-09-26T03:51:14.420Z",
+  "node": {
+    "node": "26.10.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "libffi": "3.8.0",
+    "lief": "0.17.0",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "147",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.8",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026c",
+    "undici": "8.10.2",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "14.6.202.34-node.34",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "platform": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.6.0"
+  },
+  "nodeArchive": {
+    "filename": "node-v26.10.0-darwin-arm64.tar.gz",
+    "sha256": "751fdf7439f115d87ee2a8f3f18c065b6151852068e3e666ac60ac2996f75ac9"
+  },
+  "nodeBinarySHA256": "56d28b39a8048f0cd1af7ad7e09f6cbe1c04439b6dfeb6c8d9090c082af60861",
+  "nativeBuild": {
+    "nodeGyp": "13.0.0",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "addonSHA256": "084f7a908282c8b3298ff09c79e4e885df1db1445f6e5afff0db163e464ad6f7",
+    "fsExtSourceSHA256": "d6bc3ef4c9269d8702f4ac7e7a411ffe1a3ddf757c5df0cc54aeecadd20d124b",
+    "fsExtLicenseSHA256": "cb5aedb296c5246d1f22e9099f925a65146f9f0d6b4eebba97fd27a6cdbbab2d"
+  },
+  "sources": [
+    {
+      "name": "fs-ext",
+      "version": "2.1.1",
+      "metadataURL": "https://registry.npmjs.org/fs-ext/2.1.1",
+      "metadataSHA256": "53baf497c5ec39ad0abc6f5b4d70792a00668b52887bbe66d8a0120ca609b43b",
+      "archiveURL": "https://registry.npmjs.org/fs-ext/-/fs-ext-2.1.1.tgz",
+      "archiveSHA256": "cbfa7c01683dbfa27bbc86816380c41e6a3cf336ec2c34e7cf26e22222b61d85",
+      "archiveIntegrity": "sha512-/TrISPOFhCkbgIRWK9lzscRzwPCu0PqtCcvMc9jsHKBgZGoqA0VzhspVht5Zu8lxaXjIYIBWILHpRotYkCCcQA==",
+      "gitHead": "aded976099c2b06c944f0897a9b004dbf266e234",
+      "sourceRepository": {
+        "url": "git://github.com/baudehlo/node-fs-ext.git",
+        "type": "git"
+      },
+      "retrievedAt": "2026-09-26T03:51:13.198Z"
+    },
+    {
+      "name": "nan",
+      "version": "2.29.0",
+      "metadataURL": "https://registry.npmjs.org/nan/2.29.0",
+      "metadataSHA256": "9fec8d379f39584910f9dd0c58addc2d31e3fd3e75307dfef26a8db714dd9578",
+      "archiveURL": "https://registry.npmjs.org/nan/-/nan-2.29.0.tgz",
+      "archiveSHA256": "038073cb41dbf5cd49df2cd98439dc7ee73f713801e9989426313420693e8af6",
+      "archiveIntegrity": "sha512-GlGk3HIvitbvs+LT3g6XUP1kpirKNvmDFwF/bmo6XNWSb/eYEs/O4bfgIEIXCZ+lIOTS5xNwDvSGMw6FJdAhtA==",
+      "gitHead": "a1b4ba8f4bf2f46d2f270dbbb7bc0af482dc3e32",
+      "sourceRepository": {
+        "url": "git://github.com/nodejs/nan.git",
+        "type": "git"
+      },
+      "retrievedAt": "2026-09-26T03:51:13.316Z"
+    }
+  ],
+  "docs": [
+    {
+      "purpose": "Node SQLite API stability",
+      "url": "https://nodejs.org/download/release/v26.10.0/docs/api/sqlite.html",
+      "sha256": "e10be2e74ecc335b46e1d878565a5e64b6e857e503daafe96b861efeb3b80afa",
+      "bytes": 269142,
+      "retrievedAt": "2026-09-26T03:51:13.379Z"
+    },
+    {
+      "purpose": "SQLite WAL local-filesystem and sync behavior",
+      "url": "https://www.sqlite.org/wal.html",
+      "sha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+      "bytes": 42143,
+      "retrievedAt": "2026-09-26T03:51:13.636Z"
+    },
+    {
+      "purpose": "SQLite settings and FULL/fullfsync semantics",
+      "url": "https://www.sqlite.org/pragma.html",
+      "sha256": "b9bcb335ae818497f3fa05114a10492f64f35503f275da2264f2d5d436db3f5d",
+      "bytes": 139778,
+      "retrievedAt": "2026-09-26T03:51:13.867Z"
+    },
+    {
+      "purpose": "SQLite device and power-failure assumptions",
+      "url": "https://www.sqlite.org/atomiccommit.html",
+      "sha256": "5a5be7b660217c9408c8a81eaf2faa2d08832ed3790f895a0a713916ad856ea1",
+      "bytes": 77968,
+      "retrievedAt": "2026-09-26T03:51:13.932Z"
+    },
+    {
+      "purpose": "Apple flock descriptor lifetime and process death",
+      "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/flock.2.html",
+      "sha256": "0229810d6c5666af413dd05216cf53c1476059533823febb4782f394cceb7ccd",
+      "bytes": 16162,
+      "retrievedAt": "2026-09-26T03:51:14.072Z"
+    }
+  ],
+  "stability": {
+    "nodeSQLite": "1.2 release candidate, not stable 2",
+    "qualification": "This exact runtime only; API upgrades require requalification."
+  },
+  "receipt": {
+    "status": "accepted",
+    "commandId": "qualification_create",
+    "fromSeq": "1",
+    "toSeq": "1",
+    "documentRevision": "1",
+    "transactionId": "qualification_transaction"
+  },
+  "live": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 19,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "1",
+    "highWater": "1",
+    "projectionDigest": "sha256:8ab80f3418f50be9435dfc2c11dbfc87004055ebc4f296346048e4e33b7ae315",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "671611715584",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "observations": {
+      "appendMs": [
+        4.847792000000027
+      ],
+      "replayMs": 0.10779200000001765,
+      "snapshot": "not implemented; writes backpressure at 500 events",
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 117047296,
+      "heapTotal": 10371072,
+      "heapUsed": 6263416,
+      "external": 5974117,
+      "arrayBuffers": 143827
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "restarted": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 19,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "2",
+    "highWater": "1",
+    "projectionDigest": "sha256:8ab80f3418f50be9435dfc2c11dbfc87004055ebc4f296346048e4e33b7ae315",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "671611760640",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 4.588582999999971,
+      "snapshot": "not implemented; writes backpressure at 500 events",
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 117948416,
+      "heapTotal": 9322496,
+      "heapUsed": 6474872,
+      "external": 3743717,
+      "arrayBuffers": 1192403
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "observations": {
+    "publicSubmitRoundTripMs": 5.723417000000154,
+    "canonicalCommandBytes": 609,
+    "canonicalEventBytes": [
+      1642
+    ],
+    "scope": "One command, tiny replay; worker append excludes caller transport. These are observations, not R20-R23 campaign results."
+  },
+  "limits": [
+    "Process-kill tests are not power-loss proof.",
+    "macOS arm64/APFS exercised; isolated HFS+ ENOSPC is separate failure evidence.",
+    "Linux and other OS/filesystem/device combinations, Windows ACLs, backup/restore/migration and full PERF campaigns remain unqualified.",
+    "Single-command R20/R21 and short-replay R22 observations only; R23 snapshots are deferred with a 500-event admission ceiling.",
+    "64MiB metadata headroom is admission accounting, not a physically preallocated emergency reserve."
+  ]
+}

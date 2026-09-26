@@ -1,0 +1,142 @@
+[
+  {
+    "path": "package-lock.json",
+    "bytes": 51213,
+    "sha256": "13e46ea34b40dd58b45aeca63f3184f089672451ef3cf6af5f19fe4a95aa781e"
+  },
+  {
+    "path": "package.json",
+    "bytes": 2584,
+    "sha256": "9da108e8488ad9b4f1cc2d4108953ed5a45e2cee79bc6bd39812674fc9ba3ed8"
+  },
+  {
+    "path": "server/http.ts",
+    "bytes": 11456,
+    "sha256": "667114883efceee33f443cdcb63916c5be7f8cb05d842bf0212f558d8f8370c1"
+  },
+  {
+    "path": "server/storage/canonical.ts",
+    "bytes": 5193,
+    "sha256": "6a368695cfd67513bdf64cbfa2d5e10b8824d99c685c2d87008ac509185ea89e"
+  },
+  {
+    "path": "server/storage/database.ts",
+    "bytes": 19728,
+    "sha256": "ad372e8a34d6c4aa1a1559825c03121f193ab40c3a570d60b4f86ec3a3ba5795"
+  },
+  {
+    "path": "server/storage/errors.ts",
+    "bytes": 673,
+    "sha256": "5fb9b915b2b9a514ead0f899cf220573db14e96f54cea32a4bc5545ba86a8740"
+  },
+  {
+    "path": "server/storage/files.ts",
+    "bytes": 3556,
+    "sha256": "f2728d58580f0b73a5150a61feb153972c462fdcfcdb903f1e76000568aedea6"
+  },
+  {
+    "path": "server/storage/objects.ts",
+    "bytes": 7731,
+    "sha256": "e90a7aea4d5da40e724dafe725182284beef1f0f823582ad25bb8c4be088bf6e"
+  },
+  {
+    "path": "server/storage/ownership.ts",
+    "bytes": 1750,
+    "sha256": "1f6ab6d8a88936d0795009938a2157288017ab249c065bc8c258f6a635784d40"
+  },
+  {
+    "path": "server/storage/reducer.ts",
+    "bytes": 1195,
+    "sha256": "431a988c170e3ee4c4df731e57559b2fbd6d48ddd9ba5cff97966e09f3a1253f"
+  },
+  {
+    "path": "server/storage/worker.ts",
+    "bytes": 2924,
+    "sha256": "7d4227e50ccc34e42847ad8a7fd91689620cebc8d77e40bcbb85db650e114246"
+  },
+  {
+    "path": "server/storage/writer.ts",
+    "bytes": 6420,
+    "sha256": "0c7369638a2e19c1845bcee26862ac814343e0144db36ecdbd25aedc4d62497b"
+  },
+  {
+    "path": "src/protocol/store.ts",
+    "bytes": 2437,
+    "sha256": "b716d4063bda694e882108b4f7aede6676106c9bf5a2515774a1a55b7a3daf40"
+  },
+  {
+    "path": "tests/browser/shell.spec.ts",
+    "bytes": 21814,
+    "sha256": "5290cb2c27a421024daca26f4e2b158d17f0284a7fb5b3c32c86c4a21c161557"
+  },
+  {
+    "path": "tests/session/storage-launch.test.mjs",
+    "bytes": 12951,
+    "sha256": "c231a82e4a6516496db0652d31e12b49e9305d74ea31139c2689346a9f668aa7"
+  },
+  {
+    "path": "tests/store/core.test.mjs",
+    "bytes": 16771,
+    "sha256": "82fd90a39e6de06ef6d43481b3e398a124b49f55ec38aceab7e9db251a89f89a"
+  },
+  {
+    "path": "tests/store/failure.test.mjs",
+    "bytes": 7930,
+    "sha256": "c293abf1026172be37ccb53310635fe79002a19d4d9eb593342e356de5d60387"
+  },
+  {
+    "path": "tests/store/helpers.mjs",
+    "bytes": 4241,
+    "sha256": "35af9e4eb05b9ac5e5ead19ae150fd7034f928e890585f63ea5c9ecbfe0fae74"
+  },
+  {
+    "path": "tests/store/no-network.mjs",
+    "bytes": 1004,
+    "sha256": "28357edecfde1ac4f47fa487319c36a2ab7a2c0d479eb54088dd815ad2247f6a"
+  },
+  {
+    "path": "tests/store/process-fixture.mjs",
+    "bytes": 1580,
+    "sha256": "bfed929467c274b76dc93821abb47d37e1400c51bac70e7a0c9e0b866dbbb67f"
+  },
+  {
+    "path": "tests/store/volume-fault.mjs",
+    "bytes": 4993,
+    "sha256": "9d419856da146bda8f01aca843ab326974e5031061d58006d8f2a833e296fabb"
+  },
+  {
+    "path": "tooling/SESSION.txt",
+    "bytes": 9567,
+    "sha256": "b1e55a95613d699a9f5d86a8fd395fa6c3cb4a8dbaacd1eb9310bf5662746973"
+  },
+  {
+    "path": "tooling/SHELL.txt",
+    "bytes": 3973,
+    "sha256": "acee3ec592405acf6cc5797481a58c419d1cdb489d9fc2112df9f708b8ca12d9"
+  },
+  {
+    "path": "tooling/STORE.txt",
+    "bytes": 10687,
+    "sha256": "2494874725932b4b1b9c232b4410cdf40b2d5ee403dfe93c3536be28814ce2cb"
+  },
+  {
+    "path": "tooling/launch.ts",
+    "bytes": 1879,
+    "sha256": "635e224389096c9ee8c83aee6f9cddd9080b078b91e540edd3947ecea024d2fa"
+  },
+  {
+    "path": "tooling/launcher.ts",
+    "bytes": 2616,
+    "sha256": "c682aadcaecd729d4536abbc3ee6dda58d403df1ccd0c8579f115670d7df986b"
+  },
+  {
+    "path": "tooling/qualify-store.mjs",
+    "bytes": 6674,
+    "sha256": "0bcdfdcbbf2e1eacc88968268ed4964311df81f266523efec2c382d30b919c34"
+  },
+  {
+    "path": "tooling/verify-store-inputs.py",
+    "bytes": 3307,
+    "sha256": "cafd1e296d89db305af763f3c1c16a511a5f07087ff5b704f32f4070bde4bf6b"
+  }
+]

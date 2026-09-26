@@ -24,7 +24,9 @@
     "test:browser": "playwright test --config tests/consumer/playwright.config.ts",
     "typecheck:app": "tsc --noEmit -p tsconfig.app.json",
     "build:app": "npm run verify:imports && vite build --config vite.app.config.ts",
-    "test:shell": "npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts"
+    "test:shell": "npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts",
+    "test:store": "npm run build:server && node --import ./tests/store/no-network.mjs --test --test-concurrency=1 tests/store/*.test.mjs",
+    "test:store:volume": "npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs"
   },
   "dependencies": {
     "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",
@@ -33,12 +35,19 @@
     "@en-reve/elements": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-elements-0.1.0.tgz",
     "lit": "3.3.3",
     "signal-polyfill": "0.2.2",
-    "signal-utils": "0.21.1"
+    "signal-utils": "0.21.1",
+    "fs-ext": "2.1.1"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
     "@types/node": "24.13.6",
     "typescript": "7.0.2",
     "vite": "8.3.1"
+  },
+  "overrides": {
+    "nan": "2.29.0"
+  },
+  "allowScripts": {
+    "fs-ext@2.1.1": true
   }
 }

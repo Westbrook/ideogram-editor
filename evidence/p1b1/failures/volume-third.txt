@@ -1,0 +1,32 @@
+npm notice run ideogram-editor@0.1.0 test:store:volume
+npm notice run npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✖ isolated mounted filesystem ENOSPC: no false rejection receipt; same command recovers after space is restored (11360.943584ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11424.976292
+
+✖ failing tests:
+
+test at tests/store/volume-fault.mjs:12:1
+✖ isolated mounted filesystem ENOSPC: no false rejection receipt; same command recovers after space is restored (11360.943584ms)
+  Error: write EPIPE
+      at target._send (node:internal/child_process:932:20)
+      at target.send (node:internal/child_process:805:19)
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/helpers.mjs:47:112
+      at new Promise (<anonymous>)
+      at Object.call (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/helpers.mjs:47:12)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/volume-fault.mjs:24:28)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    errno: -32,
+    code: 'EPIPE',
+    syscall: 'write'
+  }

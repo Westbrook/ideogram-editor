@@ -32,6 +32,6 @@ try {
   process.once('SIGTERM', stop);
 } catch {
   // Native errors can contain paths/argv; emit only a fixed safe diagnostic.
-  console.error('Local launch failed. Use Node 26.10.0, an owner-only root with no symlinks, and --static only for a trusted browser build.');
+  console.error('Local launch failed. Use Node 26.10.0, an unused owner-only local root with no symlinks, and --static only for a trusted browser build. If an earlier ~/.ideogram-editor directory exists, select it explicitly with --root; no files are moved.');
   process.exitCode = 1;
 }

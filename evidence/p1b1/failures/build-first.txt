@@ -1,0 +1,4 @@
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+server/storage/canonical.ts(57,24): error TS18046: 'value.entities' is of type 'unknown'.
+server/storage/canonical.ts(60,14): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.

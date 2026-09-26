@@ -1,0 +1,59 @@
+npm notice run ideogram-editor@0.1.0 test:store
+npm notice run npm run build:server && node --import ./tests/store/no-network.mjs --test --test-concurrency=1 tests/store/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ OS ownership: competing processes and case aliases refuse; death releases ownership and fences old callbacks (323.77725ms)
+ℹ Host resolves case aliases; actual alias contention was exercised.
+✔ NewDocument and named checkpoint persist exact facts, history and receipt; replay has no effects (238.338375ms)
+ℹ {"runtime":"26.10.0","sqlite":{"version":"3.53.4","source":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"},"settings":{"journal_mode":"wal","synchronous":2,"foreign_keys":1,"busy_timeout":250,"fullfsync":1,"checkpoint_fullfsync":1,"page_size":4096,"page_count":19,"max_page_count":4294967294},"filesystem":{"type":"26","blockSize":"4096","availableBytes":"670631780352","totalBytes":"1995165736960"},"resources":{"ioChunkBytes":1048576,"maxTransfers":2,"admissionOverheadPercent":25,"freeMarginBytes":"1073741824","metadataHeadroomBytes":"67108864","metadataHeadroomPhysicallyPreallocated":false,"snapshotTailCeiling":500},"observations":{"appendMs":[],"replayMs":4.686333000000005,"snapshot":"not implemented; writes backpressure at 500 events","qualification":false},"memory":{"rss":88932352,"heapTotal":13778944,"heapUsed":8760392,"external":4495328,"arrayBuffers":146771}}
+✔ canonical delivery: whitespace/key order retry once; changed provenance or Unicode conflicts without replacement (135.219417ms)
+✔ public command boundary rejects duplicate keys, unknown fields/types, malformed UTF-8 and oversize without receipts (122.2285ms)
+✔ concurrent revision race accepts exactly one checkpoint and durably rejects the stale draft (305.136541ms)
+✔ all five rejection codes retain exact details; no rejection advances document sequence (405.2975ms)
+✔ missing or corrupt immutable bytes cannot become accepted references and remain visible at restart (300.734458ms)
+✔ streamed objects verify actual lengths/hashes, deduplicate bytes, retain orphans and obey admission reservations (370.61725ms)
+✖ root modes, hardlinks, symlink subfiles and replaced paths fail closed without touching targets (137.725041ms)
+✔ application-data defaults are explicit and refuse silent migration of the earlier root (1.345458ms)
+✔ large event content is rejected without truncation; snapshot absence backpressures at the 500-event ceiling (2916.645125ms)
+✔ SIGKILL at before-object-write: unfinished bytes never appear as an accepted document (348.91975ms)
+✔ SIGKILL at before-object-flush: unfinished bytes never appear as an accepted document (372.27175ms)
+✔ SIGKILL at after-object-flush: unfinished bytes never appear as an accepted document (352.55475ms)
+✔ SIGKILL at before-object-rename: unfinished bytes never appear as an accepted document (275.80375ms)
+✔ SIGKILL at after-object-rename: unfinished bytes never appear as an accepted document (245.989792ms)
+✔ SIGKILL at after-object-directory-sync: unfinished bytes never appear as an accepted document (268.567833ms)
+✔ SIGKILL at before-event-insert: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (308.237542ms)
+✔ SIGKILL at before-commit: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (297.555458ms)
+✔ SIGKILL at after-commit: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (328.905875ms)
+✔ real SQLite SQLITE_FULL rolls back acceptance and rejection receipts, then exact retry succeeds after capacity returns (425.66075ms)
+✔ real filesystem permission failure during rename leaves no accepted reference and can retry unchanged bytes (267.744459ms)
+✔ SQLite busy timeout is bounded off the parent event loop; failed mutation has no durable receipt (438.307959ms)
+ℹ {"busyTimeoutObservedMs":274.63929199999984,"parentResponseDuringWorkerBusyMs":0.38524999999981446,"performanceQualification":false}
+✔ all durable subfiles remain owner-only, including WAL, shared-memory file and abandoned staging (169.331917ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 23
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9490.644125
+
+✖ failing tests:
+
+test at tests/store/core.test.mjs:179:1
+✖ root modes, hardlinks, symlink subfiles and replaced paths fail closed without touching targets (137.725041ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(failed.startup.code)
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/core.test.mjs:187:54)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

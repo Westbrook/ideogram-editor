@@ -1,0 +1,278 @@
+npm notice run ideogram-editor@0.1.0 test:shell
+npm notice run npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:app
+npm notice run npm run verify:imports && vite build --config vite.app.config.ts
+npm notice run ideogram-editor@0.1.0 verify:imports
+npm notice run node tooling/verify-imports.mjs
+Verified 18 consumer en-reve imports against packed public metadata
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 101 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/app/.vite/manifest.json          0.38 kB │ gzip:  0.20 kB
+dist/app/index.html                   0.87 kB │ gzip:  0.50 kB
+dist/app/build-evidence.json          6.28 kB │ gzip:  1.13 kB
+dist/app/assets/index-Ckqhmx9n.css   92.56 kB │ gzip: 11.84 kB
+dist/app/assets/index-BsEZWd8Y.js     2.39 kB │ gzip:  1.17 kB
+dist/app/assets/shell-C87eLKrM.js   191.64 kB │ gzip: 49.16 kB
+
+✓ built in 92ms
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+
+Running 10 tests using 1 worker
+
+(node:8112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   1 tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (828ms)
+(node:8653) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   2 tests/browser/shell.spec.ts:74:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts (587ms)
+(node:8897) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   3 tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (105ms)
+(node:8934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   4 tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing (107ms)
+(node:8943) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   5 tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads (91ms)
+(node:8948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   6 tests/browser/shell.spec.ts:186:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (91ms)
+(node:8953) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   7 tests/browser/shell.spec.ts:206:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (90ms)
+(node:8961) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   8 tests/browser/shell.spec.ts:225:1 › B08 lost renewal response is read back without retry; restarted server requires pairing (106ms)
+(node:8967) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   9 tests/browser/shell.spec.ts:252:1 › B09 CSP permits only the trusted split styles and blocks injected inline behavior (89ms)
+(node:8972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  10 tests/browser/shell.spec.ts:267:1 › B10 same-site user navigation opens only the anonymous shell; fetch and frame remain denied (89ms)
+
+
+  1) tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B01-launcher-native--dbbc7-ie-reload-and-startup-bytes/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B01-launcher-native--dbbc7-ie-reload-and-startup-bytes/error-context.md
+
+  2) tests/browser/shell.spec.ts:74:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B02-real-native-prom-b199a--composition-safe-shortcuts/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B02-real-native-prom-b199a--composition-safe-shortcuts/error-context.md
+
+  3) tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/error-context.md
+
+  4) tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B04-renew-stale-CSRF-90e84-iry-and-fresh-local-pairing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B04-renew-stale-CSRF-90e84-iry-and-fresh-local-pairing/error-context.md
+
+  5) tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/error-context.md
+
+  6) tests/browser/shell.spec.ts:186:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B06-320px-and-200-eq-2cfa3-ed-drawers-and-focus-return/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B06-320px-and-200-eq-2cfa3-ed-drawers-and-focus-return/error-context.md
+
+  7) tests/browser/shell.spec.ts:206:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B07-trusted-report-f-2c6ad-bsence-and-offline-recovery/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B07-trusted-report-f-2c6ad-bsence-and-offline-recovery/error-context.md
+
+  8) tests/browser/shell.spec.ts:225:1 › B08 lost renewal response is read back without retry; restarted server requires pairing 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B08-lost-renewal-res-ef592-ted-server-requires-pairing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B08-lost-renewal-res-ef592-ted-server-requires-pairing/error-context.md
+
+  9) tests/browser/shell.spec.ts:252:1 › B09 CSP permits only the trusted split styles and blocks injected inline behavior 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B09-CSP-permits-only-7629c-ks-injected-inline-behavior/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B09-CSP-permits-only-7629c-ks-injected-inline-behavior/error-context.md
+
+  10) tests/browser/shell.spec.ts:267:1 › B10 same-site user navigation opens only the anonymous shell; fetch and frame remain denied 
+
+    Error: STORAGE_FAILURE
+
+       at ../../server/storage/writer.ts:35
+
+      33 |     ended = true; owner.close(); fail('CLOSED'); readyReject(new StoreError('STORAGE_FAILURE')); resolve();
+      34 |   }));
+    > 35 |   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
+         |                                                                   ^
+      36 |   worker.on('message', message => {
+      37 |     if (message.type === 'ready') { readyResolve(message.epoch); return; }
+      38 |     if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+        at Worker.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/server/storage/writer.ts:35:67)
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B10-same-site-user-n-3cc89-tch-and-frame-remain-denied/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B10-same-site-user-n-3cc89-tch-and-frame-remain-denied/error-context.md
+
+  10 failed
+    tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes 
+    tests/browser/shell.spec.ts:74:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts 
+    tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content 
+    tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing 
+    tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+    tests/browser/shell.spec.ts:186:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return 
+    tests/browser/shell.spec.ts:206:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery 
+    tests/browser/shell.spec.ts:225:1 › B08 lost renewal response is read back without retry; restarted server requires pairing 
+    tests/browser/shell.spec.ts:252:1 › B09 CSP permits only the trusted split styles and blocks injected inline behavior 
+    tests/browser/shell.spec.ts:267:1 › B10 same-site user navigation opens only the anonymous shell; fetch and frame remain denied 

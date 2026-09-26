@@ -8,6 +8,7 @@ import { readSessionRequest } from './control-json.js';
 import { Sessions, readCookie, sessionCookie, expiredCookie } from './sessions.js';
 import { assertSeparateDirectories, preparePrivateRoot } from './private-root.js';
 import { BOOTSTRAP_CSP, SHELL_STYLE_CSP, loadStatic } from './static.js';
+import { openWriter } from './storage/writer.js';
 
 export type ServerOptions = { root: string; staticDirectory?: string; now?: () => number; credentialConfigured?: boolean };
 const methods: Record<string, readonly string[]> = {
@@ -65,6 +66,7 @@ export async function startLocalServer(options: ServerOptions) {
     await assertSeparateDirectories(root.path, options.staticDirectory);
   }
   const files = await loadStatic(options.staticDirectory);
+  const writer = await openWriter({ root: root.path });
   const wall = Date.now();
   const monotonic = performance.now();
   const sessions = new Sessions(options.now ?? (() => wall + performance.now() - monotonic));
@@ -92,7 +94,7 @@ export async function startLocalServer(options: ServerOptions) {
   server.on('clientError', (_error, socket) => { if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); });
 
   async function assertRoot(): Promise<void> {
-    try { if (rootInvalid || closed) throw new Error(); await root.assertUnchanged(); }
+    try { if (rootInvalid || closed || !writer.available) throw new Error(); await root.assertUnchanged(); }
     catch { rootInvalid = true; sessions.invalidate(); throw new ProtocolError('SERVER_UNAVAILABLE'); }
   }
 
@@ -160,10 +162,10 @@ export async function startLocalServer(options: ServerOptions) {
       json(response, safe.status, safe.toWire());
     }
   }
-  await new Promise<void>((resolve, reject) => {
+  try { await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, '127.0.0.1', () => { server.off('error', reject); resolve(); });
-  });
+  }); } catch (error) { await writer.close(); throw error; }
   const address = server.address() as AddressInfo;
   origin = `http://127.0.0.1:${address.port}`;
   async function close(): Promise<void> {
@@ -171,7 +173,7 @@ export async function startLocalServer(options: ServerOptions) {
     closed = true; sessions.invalidate();
     const closing = new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     server.closeAllConnections();
-    await closing;
+    try { await closing; } finally { await writer.close(); }
   }
   try { await root.recordLaunch(origin); } catch (error) { await close(); throw error; }
   return {

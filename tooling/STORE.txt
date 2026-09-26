@@ -1,0 +1,167 @@
+P1b.1 DURABLE WRITER FOUNDATION
+
+Run from the repository root:
+  python3 tooling/bootstrap-toolchain.py
+  export PATH="$PWD/.toolchain/bin:$PATH"
+  npm ci
+  npm run build:server
+  npm run test:store
+  npm run test:store:volume       # macOS only; isolated disposable 64MiB image
+  node tooling/qualify-store.mjs  # official runtime/package reads, isolated root
+  python3 tooling/verify-store-inputs.py # exact installed native source/headers
+  npm run test:session
+  npm run test:shell
+  npm run test:consumer
+
+The runtime is exactly Node26.10.0/npm12.1.0. SQLite comes from Node (observed
+3.53.4); Node labels its API Stability1.2, release candidate. fs-ext2.1.1 and
+nan2.29.0 are pinned in package/lock with only fs-ext's exact npm12 install script
+allowed. Native compilation needs Python and a C/C++ toolchain. The fresh
+consumer installs/builds its own graph and retains independence from app source
+and the live design-system checkout. No TTL, browser leadership, helper lock
+daemon, provider transport or paid call exists. See evidence/p1b1 provenance.
+
+STARTUP AND STORAGE
+
+npm start starts the writer before listening, then serves the same secured shell.
+Default root: ~/Library/Application Support/ideogram-edit on macOS, or absolute
+XDG_DATA_HOME/ideogram-edit (fallback ~/.local/share/ideogram-edit) on Linux.
+The resolved root is printed locally. If ~/.ideogram-editor exists, implicit
+startup refuses: choose that root with --root or deliberately choose a new root.
+No migration, move, overwrite, cleanup, or data loss is inferred from a default.
+--root remains supported. Existing preview instances are never repointed.
+
+0700 directories/0600 single-link regular files are required. Ancestor symlinks,
+private/static filesystem-identity aliases and overlap fail closed. There is no
+automatic chmod. writer.lock is never unlinked: a real nonblocking flock remains
+held in the parent until the dedicated SQLite worker has exited. Process death
+releases it in the OS. A second owner refuses before opening SQLite. A fresh
+owner increments durable decimal writerEpoch. Worker startup checks the exact
+root inode/device captured under ownership; every operation checks identity,
+permissions and epoch. A dead worker invalidates the parent service and releases
+the lock. Same-OS-user hostile processes can bypass advisory locks; that threat
+is outside the pairing boundary.
+
+Darwin filesystem admission resolves actual diskutil filesystem identity via
+df's device (Darwin statfs type numbers are dynamically registered, not Linux
+magic values). Only APFS/HFS are admitted there; Linux uses known local magic
+values. Windows and unknown/network filesystems fail closed. Admission is not a
+claim of named-platform power-loss qualification. Actual author runs use macOS
+arm64 APFS, plus an isolated HFS+ image for ENOSPC. Wider platform/device tests
+and restore/migration remain P3 work.
+
+SQLite settings: WAL, synchronous FULL, foreign_keys ON, busy_timeout250ms,
+trusted_schema OFF, extensions disabled, fullfsync/checkpoint_fullfsync ON.
+Required WAL/FULL/FK/timeout values are read back and must match. All database
+calls, replay, hashing and byte operations run in the worker, off the HTTP loop.
+Statements bind parameters; each command uses BEGIN IMMEDIATE, fences epoch and
+rechecks versions inside the transaction. Sequence/revision/epoch math is BigInt
+with canonical decimal TEXT persisted and string wire values. Events, original
+commands, canonical hashes and receipts are immutable; derived indexes rebuild
+from events. No replay effects or scheduler is attached.
+
+IN-PROCESS PUBLIC BOUNDARY (server/storage/writer.ts, compiled dist/local/...)
+
+openWriter({root, quotaBytes?}) returns root, epoch, available, submit, lookup,
+document, history, checkpoint, events, diagnostics, readMetadata, putObject and
+close. Use compiled ESM entry points, including from Playwright. close is
+idempotent and drains/ends the worker before releasing ownership. Test hooks are
+an internal second argument, never HTTP/CLI/env flags, and only coordinate real
+process barriers/page-capacity failures. No storage methods are exposed over
+HTTP in this slice. Existing command/asset/event/recovery routes stay unavailable
+and capability storageState remains unavailable until wire recovery is complete.
+
+putObject(asyncIterableOfUint8Array, {byteLength,mediaType,hash?}, capturedEpoch):
+  Internal owned-byte primitive, not an asset import/authorization endpoint.
+  It acknowledges <=1MiB chunks, bounds two in-flight stages, reserves known
+  length+25% plus1GiB free margin and additional64MiB metadata headroom, rejects
+  at90% volume/quota usage and reports an80% volume warning in diagnostics.
+  Transfers recheck capacity after30s before consuming another chunk. Metadata
+  receipt-detail writes use <=64KiB recovery work even when admission is paused.
+  The64MiB headroom is accounting only, not physically preallocated space.
+  Streamed length/hash -> file fsync/close -> same-filesystem atomic rename ->
+  directory fsync (destination and staging) -> reread/verify identity/hash/length.
+  Existing same-hash files must match; they are never overwritten to hide damage.
+  Returning a BlobRef means finalized bytes, NOT domain acceptance. Only a later
+  accepting command transaction registers references. Orphans/failed staging
+  are inventoried at startup and retained; this slice implements no GC or upload
+  resumption. No atomic transaction across SQLite and files is claimed.
+
+submit(UTF8CommandRequestBytes, capturedEpoch):
+  Receives the exact ARCH5.2/LP-1 envelope in src/protocol/store.ts. Every field
+  is required in this narrow profile, including explicit nullable fields.
+  Strict shared JSON parser rejects duplicate decoded keys, unknown fields,
+  nonfinite/unsafe typed integers, invalid UTF-8/surrogates and >64KiB requests.
+  Canonical hash covers protocolVersion+complete validated command, scalar-key
+  order, literal Unicode/no normalization, lowercase control escapes and finite
+  ECMAScript numbers. Original incoming envelope bytes and canonical form persist.
+  Only NewDocument {type,width,height,color,depth} and SaveCheckpoint {type,name}
+  are supported. NewDocument's envelope supplies a new documentId and null
+  expectedDocumentRevision; supported color/depth are sRGB/8, sides<=8192 and
+  area<=25MP. SaveCheckpoint supplies the existing documentId and exact revision.
+  It pins the prior highWater/revision/historyHead and creates a new checkpoint
+  identity; its accepted document transaction updates checkpoint/revision while
+  preserving the image-history cursor. The prior history root remains retained.
+
+  expectedEntityVersions points to canonical application/json:
+    {"entities":[],"schemaVersion":1}
+  or entities [{entityType:"document",entityId:<same-document>,version:<Seq>}].
+  This foundation has no layers/jobs yet. Future owners extend a versioned typed
+  registry; do not accept arbitrary entity JSON or unrelated document preconditions.
+  Expected-version metadata is bounded64KiB in this foundation. Later large
+  manifests require a bounded streaming reader, never silent truncation.
+
+  A transaction persists events/receipt/history/checkpoint/index/root changes
+  together after mandatory bytes verify. Same ID/hash returns the original
+  receipt after restart; changed hash throws COMMAND_ID_REUSE without mutation.
+  Current public foundation emits one complete event per transaction. events()
+  reads <=500 committed events with highWater; this is an internal bounded read,
+  NOT LP-1 pinned recovery, snapshots, multi-event paging, leases or SSE.
+  Five durable rejection codes remain exactly STALE_REVISION, INVALID_INPUT,
+  MISSING_ASSET, CAPACITY, INCOMPATIBLE. Details are canonical immutable JSON
+  {kind:"fields",issues:[{path,code}]} BlobRefs, retained with each receipt.
+  A storage exception never fabricates a rejected receipt: query or resend the
+  SAME original command. IDs/time are captured before acceptance. Reducers are
+  pure, with no clock, random, filesystem or network reads.
+
+INTEGRATION OWNERS
+
+P1b.2 authenticates/authorizes original client/session provenance before submit
+or lookup, maps safe StoreErrors to LP-1 status/retry/detail types, supplies exact
+epoch fencing, adds receipt ownership and atomic recovery/snapshot streaming.
+The writer itself is trusted in-process and is not an authentication boundary.
+Do not treat envelope client/session IDs as authentication. No public blob URL
+exists. readMetadata is internal and capped64KiB; future content leases must be
+scoped and sanitized. Do not directly expose diagnostics/internal native paths.
+
+P1b.2 must add R23 snapshots (target250, tail<=500) before removing the foundation
+SNAPSHOT_REQUIRED durable CAPACITY gate at500 events. Full log is preserved;
+this gate is honest backpressure, not R23 qualification. Extend transaction batch
+storage/replay deliberately for multi-event commands; UNIQUE transaction_id and
+command_id in this foundation intentionally encode one-event transactions.
+
+P1b.3 owns client-bound resumable uploads, reservations/settings/recovery UI,
+typed asset validation, safe content, explicit repair and GC. putObject never
+grants upload ownership or MIME safety. Startup reports missing/corrupt mandatory
+bytes and blocks new mutations, while keeping metadata readable for recovery.
+History owns semantic edits, undo/redo/branches and later root release. Initial
+NewDocument creates the recorded reversible history root; SaveCheckpoint does
+not invent an image edit. Current roots conservatively retain accepted-command
+preconditions and receipt details; no user deletion path is enabled.
+
+LIMITS AND EVIDENCE
+
+Resource guards: worker old heap128MiB/young16MiB, <=64 queued IPC requests,
+<=64KiB command/metadata, <=16KiB event,1MiB IO chunk and two active stages.
+No physical emergency reserve, automatic cleanup, scheduler, HTTP recovery,
+upload/raster/copy/editing UI or provider behavior is claimed.
+SIGKILL is process recovery evidence only. FULL/fsync ultimately depend on
+OS/filesystem/device behavior; power cuts/device cache failures are unqualified.
+R20 append and R22 short replay measurements are observations, sometimes with
+concurrent correctness work; no R20-23/PERF campaign or100k replay qualification.
+R23 snapshot creation/read is not measured or implemented in this slice.
+
+Author logs, actual settings/resources/OS/source provenance, failed attempts and
+source/evidence hashes are in evidence/p1b1. Independent exact-commit review is
+required before this task earns completion credit. No remote/PR/CI, publication,
+paid/provider calls, source archive or live design-system edits are part of it.

@@ -8,8 +8,9 @@ Use the qualified toolchain from tooling/README.txt, from the repository root:
   npm run test:session
   npm start
 
-npm start launches the compiled server, creates ~/.ideogram-editor with mode
-0700 if absent, binds only 127.0.0.1 at an OS-selected port, writes the nonsecret
+npm start launches the compiled server and durable writer. The OS application-data
+root and deliberate legacy-root selection are documented in tooling/STORE.txt.
+It creates new private directories with mode0700, binds only127.0.0.1 at an OS-selected port, and writes the nonsecret
 origin/pid/time to root/launch.json (0600), and opens a five-minute pairing link
 through the OS browser launcher. The URL fragment is never printed. Type pair
 and Enter in that same terminal to open a new one-use link. Ctrl-C stops the
@@ -113,8 +114,9 @@ storageState is unavailable; connectionState unknown. LP-1/LS-1 are unqualified
 pending integrated review; EF-1/PF-1 unavailable. limits is empty because this
 slice does not claim any qualified document/model pipeline. All unfinished
 command/document/job/event/asset/snapshot/recovery/bundle routes require session
-checks then return503 SERVER_UNAVAILABLE. No writer, receipt, SSE stream,
-provider dispatch, asset authorization or document durability exists yet.
+checks then return503 SERVER_UNAVAILABLE. The in-process writer/receipt core now
+exists (tooling/STORE.txt), but SSE, recovery/command HTTP, provider dispatch and
+asset authorization remain unavailable.
 
 The only accepted landing query key is progress-report; its value is ignored.
 The shell includes its
@@ -128,9 +130,9 @@ test:session uses real HTTP on loopback, a controlled clock with the actual
 session store, actual POSIX mode/symlink checks, compiled CLI startup, and a
 SIGKILL/restart child-process test. A test-only socket guard rejects every
 non-literal-loopback connection. Production has no outbound/provider transport.
-The restart test retains a sentinel file; it does NOT prove durable jobs or a
-database, which are unimplemented. Root launch.json is metadata, not a writer
-lock. An OS-held writer lock/epoch must precede a future document writer.
+The session restart test retains a sentinel file; durable database/process tests
+now live in test:store. It does not prove durable jobs. Root launch.json is
+metadata; writer.lock has separate OS-held ownership and a durable writer epoch.
 
 The bootstrap ordering check executes the actual prelude in a VM and observes
 served HTML/CSP. P1a.3 adds actual Chromium browser cookie/fetch/fragment/history and hostile

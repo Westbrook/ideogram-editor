@@ -1,0 +1,35 @@
+npm notice run ideogram-editor@0.1.0 test:store:volume
+npm notice run npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✖ isolated mounted filesystem ENOSPC: no false rejection receipt; same command recovers after space is restored (1448.615125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1531.692209
+
+✖ failing tests:
+
+test at tests/store/volume-fault.mjs:12:1
+✖ isolated mounted filesystem ENOSPC: no false rejection receipt; same command recovers after space is restored (1448.615125ms)
+  AssertionError [ERR_ASSERTION]: {"type":"startup-error","code":"UNSUPPORTED_STORAGE"}
+  + actual - expected
+  
+  + 'startup-error'
+  - 'ready'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/volume-fault.mjs:23:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'startup-error',
+    expected: 'ready',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

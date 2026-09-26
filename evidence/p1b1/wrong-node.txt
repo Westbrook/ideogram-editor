@@ -1,0 +1,1 @@
+Local launch failed. Use Node 26.10.0, an unused owner-only local root with no symlinks, and --static only for a trusted browser build. If an earlier ~/.ideogram-editor directory exists, select it explicitly with --root; no files are moved.

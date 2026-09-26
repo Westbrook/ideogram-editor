@@ -1,0 +1,197 @@
+npm notice run ideogram-editor@0.1.0 test:session
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/session/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✖ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (14.463167ms)
+✖ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (6.810625ms)
+✖ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (5.154125ms)
+✖ SEC03: one-use pairing is atomic and expires at precisely five minutes (8.82025ms)
+✖ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (5.215458ms)
+✖ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (5.635291ms)
+✖ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (5.127459ms)
+✖ P1a boundary: all unfinished routes deny content and mutations; keys never reach responses (6.23325ms)
+✖ SEC06: real private root/file permissions, symlink and insecure-root rejection (8.0235ms)
+✖ SEC03/06: root replacement invalidates the running boundary without modifying user data (6.57925ms)
+✖ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (21.990084ms)
+ℹ Host supports case aliases.
+✔ SEC03: actual killed-process restart rejects old cookie, CSRF and unused pairing; leaves root data intact (254.927666ms)
+✖ SEC03/05: trusted static build and synchronous fragment-removal contract before shell resources (13.898875ms)
+✖ Launcher: private fragment goes only to browser callback; executable launch records an OS-selected origin (10.823958ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 1
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 497.390583
+
+✖ failing tests:
+
+test at tests/session/http.test.mjs:18:1
+✖ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (14.463167ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:19:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/http.test.mjs:49:1
+✖ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (6.810625ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:50:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/http.test.mjs:71:1
+✖ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (5.154125ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:72:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/http.test.mjs:89:1
+✖ SEC03: one-use pairing is atomic and expires at precisely five minutes (8.82025ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:91:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/http.test.mjs:106:1
+✖ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (5.215458ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:107:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/http.test.mjs:134:1
+✖ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (5.635291ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:137:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/http.test.mjs:164:1
+✖ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (5.127459ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:165:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/http.test.mjs:198:1
+✖ P1a boundary: all unfinished routes deny content and mutations; keys never reach responses (6.23325ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:203:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/storage-launch.test.mjs:14:1
+✖ SEC06: real private root/file permissions, symlink and insecure-root rejection (8.0235ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/storage-launch.test.mjs:15:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/storage-launch.test.mjs:43:1
+✖ SEC03/06: root replacement invalidates the running boundary without modifying user data (6.57925ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/storage-launch.test.mjs:44:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/storage-launch.test.mjs:59:1
+✖ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (21.990084ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/storage-launch.test.mjs:94:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/storage-launch.test.mjs:144:1
+✖ SEC03/05: trusted static build and synchronous fragment-removal contract before shell resources (13.898875ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async fixture (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:9:18)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/storage-launch.test.mjs:153:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }
+
+test at tests/session/storage-launch.test.mjs:183:1
+✖ Launcher: private fragment goes only to browser callback; executable launch records an OS-selected origin (10.823958ms)
+  Error: STORAGE_FAILURE
+      at safeError (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/errors.js:9:50)
+      at openWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:23:15)
+      at async startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:74:20)
+      at async launch (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/tooling/launcher.js:31:20)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/storage-launch.test.mjs:186:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'STORAGE_FAILURE'
+  }

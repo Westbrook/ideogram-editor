@@ -1,0 +1,85 @@
+[
+  {
+    "attempt": "dependency-first-install",
+    "evidence": "dependency-initial-install.txt",
+    "cause": "npm12 blocked fs-ext native install script. First require failed MODULE_NOT_FOUND in tool output.",
+    "fix": "Review pinned source and add exact fs-ext@2.1.1 allowScripts; rebuild succeeds."
+  },
+  {
+    "attempt": "first-build",
+    "evidence": "failures/build-first.txt",
+    "cause": "TypeScript unknown field narrowing in expected-version validator.",
+    "fix": "Narrow validated array and entity ID types."
+  },
+  {
+    "attempt": "initial-smoke",
+    "cause": "Inherited --input-type=module is invalid for worker file entry; raw error appeared in tool output only.",
+    "fix": "Use compiled .mjs entry and filter input-type only when present."
+  },
+  {
+    "attempt": "store-first/second",
+    "evidence": [
+      "failures/store-first.txt",
+      "failures/store-second.txt"
+    ],
+    "cause": "Unsafe root correctly refused but PrivateRootError had no public code.",
+    "fix": "Normalize startup failures to typed safe StoreError."
+  },
+  {
+    "attempt": "session-first",
+    "evidence": "failures/session-first.txt",
+    "cause": "Old session test asserted an exact storage file list before durable writer existed.",
+    "fix": "Keep sentinel and launch preservation checks; real store layout/security checked in dedicated store suite."
+  },
+  {
+    "attempt": "session-second",
+    "evidence": "failures/session-second.txt",
+    "cause": "Explicit worker execArgv included Node test-runner flags rejected by Worker.",
+    "fix": "Retain default worker inheritance except input-type compatibility path."
+  },
+  {
+    "attempt": "session-third",
+    "evidence": "failures/session-third.txt",
+    "cause": "New private-subfile validator used ROOT_UNSAFE text instead of existing owner-only diagnostic.",
+    "fix": "Keep safe owner-only diagnostic and typed code."
+  },
+  {
+    "attempt": "volume-first/second",
+    "evidence": [
+      "failures/volume-first.txt",
+      "failures/volume-second.txt"
+    ],
+    "cause": "Incorrect hdiutil type/format arguments for a blank image.",
+    "fix": "Use documented default read/write UDIF creation."
+  },
+  {
+    "attempt": "volume-third/fourth",
+    "evidence": [
+      "failures/volume-third.txt",
+      "failures/volume-fourth.txt"
+    ],
+    "cause": "Darwin VFS numeric type was incorrectly treated as a stable HFS magic; EPIPE initially obscured startup refusal.",
+    "fix": "Resolve actual device filesystem via df/diskutil; assert startup result and handle IPC send errors."
+  },
+  {
+    "attempt": "shell-first",
+    "evidence": "failures/shell.txt",
+    "cause": "Playwright transformed source imports but could not provide a compiled worker.js module at the source location.",
+    "fix": "Browser suite now exercises compiled production server/worker."
+  },
+  {
+    "attempt": "shell-legacy-evidence-write",
+    "cause": "Existing B01 screenshot path rewrote sealed P1a3 desktop image during regression.",
+    "fix": "Saved new evidence separately, restored original exact Git bytes, redirected all three screenshot outputs to ignored artifacts. All original seals pass."
+  },
+  {
+    "attempt": "headers-comparison",
+    "cause": "Binary distribution config.gypi differs from generic node-gyp headers; assertion observed in tool output.",
+    "fix": "Verify the exact official headers tarball via SHASUMS256 and compare all2810 actual build headers."
+  },
+  {
+    "attempt": "preservation-first",
+    "cause": "Coordinator independently restored preview and changed locator while seal check included locator.",
+    "fix": "Leave coordinator-owned change untouched; preserve source/archive/evidence scope and exclude locator from writer commit."
+  }
+]

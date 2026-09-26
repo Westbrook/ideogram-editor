@@ -2,9 +2,15 @@ import { test as base, expect } from '@playwright/test';
 import { mkdtemp, realpath, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { createServer } from 'node:http';
-import { startLocalServer } from '../../server/http.js';
-import { launch } from '../../tooling/launcher.js';
+import type { startLocalServer as ServerFactory } from '../../server/http.js';
+import type { launch as Launcher } from '../../tooling/launcher.js';
+
+// Exercise the same compiled server/worker entry points used by npm start.
+// Playwright's source transform does not provide a worker-thread module loader.
+const { startLocalServer }: { startLocalServer: typeof ServerFactory } = await import(pathToFileURL(resolve('dist/local/server/http.js')).href);
+const { launch }: { launch: typeof Launcher } = await import(pathToFileURL(resolve('dist/local/tooling/launcher.js')).href);
 
 type Server = Awaited<ReturnType<typeof startLocalServer>>;
 const test = base.extend<{ local: { server: Server; advance: (ms: number) => void } }>({
@@ -67,7 +73,7 @@ test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup
     expect(build.observations.D11.cssGzipBytes).toBeLessThan(200 * 1024);
     expect(build.outputs.flatMap((x: {modules:string[]}) => x.modules).some((x:string) => /prosemirror|server\/|tooling\/launcher|elements\/dist\/index.js/.test(x))).toBe(false);
     await info.attach('bootstrap-observations', { body: JSON.stringify(observations, null, 2), contentType: 'application/json' });
-    await page.screenshot({ path: 'evidence/p1a3/desktop-1440.png' });
+    await page.screenshot({ path: 'artifacts/shell-desktop-1440.png' });
   } finally { await server.close(); }
 });
 
@@ -190,7 +196,7 @@ test('B06 320px and 200% equivalent reflow, draft retention, named drawers and f
   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toBeFocused();
   await expect(page.getByRole('button', {name:'Request',exact:true})).toHaveAttribute('aria-expanded','true');
   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toHaveValue('Keep this draft through reflow');
-  await page.screenshot({path:'evidence/p1a3/reflow-720.png',fullPage:true});
+  await page.screenshot({path:'artifacts/shell-reflow-720.png',fullPage:true});
   await page.setViewportSize({width:320,height:800});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(320);
   await page.getByRole('textbox', {name:'Prompt',exact:true}).focus();
@@ -200,7 +206,7 @@ test('B06 320px and 200% equivalent reflow, draft retention, named drawers and f
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', {name:'Layers & composition',exact:true})).toBeFocused();
   await page.getByRole('button', {name:'Request',exact:true}).click();
-  await page.screenshot({path:'evidence/p1a3/reflow-320.png',fullPage:true});
+  await page.screenshot({path:'artifacts/shell-reflow-320.png',fullPage:true});
 });
 
 test('B07 trusted report flag, navigation fragment, unflagged absence and offline recovery', async ({ page, local }) => {

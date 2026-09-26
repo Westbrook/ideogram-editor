@@ -11,7 +11,8 @@ The trusted launcher starts the same-origin local listener at an OS-selected
 127.0.0.1 port and opens a one-use pairing link directly in the default browser.
 It prints only the nonsecret origin. Type pair in that running terminal to open
 a fresh link. Never paste the pairing fragment into chat/report/config. The
-launcher writes nonsecret origin metadata to ~/.ideogram-editor/launch.json.
+launcher writes nonsecret origin metadata to <selected-root>/launch.json.
+OS application-data defaults, legacy-root selection and writer limits: tooling/STORE.txt.
 No key is required. No provider calls exist in this slice.
 
 For an isolated review root:
@@ -64,5 +65,6 @@ Q3/R01-R08 performance qualification or a complete Q26 browser/OS cohort. D11
 counts all initial dynamic modules but is a single artifact observation. Native
 200% Chrome inspection and synthetic composition tests do not establish physical
 IME, dictation, AT/screen-reader or all supported browser behavior. CP-1 raster,
-assets, text/fonts/composition, durable writer/history/copies/jobs and providers
-belong to later slices; none is certified by an empty shell.
+assets, text/fonts/composition, history/copies/jobs and providers belong to later
+slices. The in-process writer has separate test:store evidence; none of these
+behaviors is certified by an empty shell.

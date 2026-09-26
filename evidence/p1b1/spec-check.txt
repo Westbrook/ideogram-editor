@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "checks": {
+    "current_documents": 7,
+    "relative_links": 243,
+    "markdown_tables": 173,
+    "json_examples": 67,
+    "requirements": 12,
+    "decisions": 30,
+    "capabilities": 24,
+    "qualifications": 27,
+    "planning_findings": 20,
+    "protocol_wire_types_checked": 26,
+    "protocol_recovery_clauses_checked": 20,
+    "LP1_correction_operations": 16,
+    "readiness_findings": 20,
+    "readiness_profiles": 8,
+    "readiness_consumer_oracles": 27,
+    "local_protocol_route_rows": 21,
+    "declared_A3_transformations": 68,
+    "reproduced_A2_documents": 7,
+    "input_snapshots": 32,
+    "resolved_note_references": 405,
+    "synchronized_notes": 7,
+    "api_contract_blocks": 63,
+    "architecture_contract_blocks": 10,
+    "unchanged_budget_rows": 60,
+    "performance_tables_preserved_with_exact_FA01_wording": 26,
+    "api_schema_appendices": 27,
+    "sealed_files": 49
+  },
+  "errors": [],
+  "limits": [
+    "Documentation/source/parity checks only; no application tests, benchmarks, provider or live external-link checks.",
+    "Stored note hashes attest to the recorded readback; a future live note edit requires a fresh synchronization readback."
+  ]
+}

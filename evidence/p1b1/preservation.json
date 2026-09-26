@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-09-26T03:50:18.452759+00:00",
+  "docs/spec": 49,
+  "docs/handoff": 42,
+  "evidence/p1a1": 18,
+  "evidence/p1a2": 15,
+  "evidence/p1a2-case-alias": 4,
+  "evidence/p1a3": 26,
+  "preservedBaselineDiff": "empty",
+  "unrelatedLocatorChange": "Coordinator restored stopped preview as52219; writer owner did not modify locator and excludes it from scoped commit."
+}

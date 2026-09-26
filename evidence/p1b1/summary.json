@@ -1,0 +1,196 @@
+{
+  "taskNoteId": "a904d00e-11a8-4b87-beb0-ac2bead8bf1a",
+  "checkedAt": "2026-09-26T03:52:21.715793+00:00",
+  "branch": "ideogram-editor-p1",
+  "approvedBase": "85df04ff1c64ea347ba767759419b7759b3798ec",
+  "immediateParent": "d067b3d51368fccc33765fad41325bf2086de908",
+  "status": "review_required",
+  "independentApproval": false,
+  "commitIdentity": "Exact ws.git.commit result is recorded in task and shared PR Context after commit, without a self-referential SHA.",
+  "scope": [
+    "OS-held exclusive root owner and durable epoch",
+    "Dedicated Node SQLite WAL/FULL writer",
+    "Streamed immutable object finalization and transactional registration",
+    "Canonical typed NewDocument/SaveCheckpoint, immutable commands/receipts/events and pure replay",
+    "Launcher lifetime/default-root integration; HTTP editing/recovery remains unavailable"
+  ],
+  "gates": [
+    {
+      "command": "npm run typecheck",
+      "status": "PASS",
+      "count": null,
+      "log": "evidence/p1b1/typecheck-final.txt",
+      "completedAt": "2026-09-26T03:51:09.289514+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "npm run build",
+      "status": "PASS",
+      "count": null,
+      "log": "evidence/p1b1/build.txt",
+      "completedAt": "2026-09-26T03:41:33.407317+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "npm run test:store",
+      "status": "PASS",
+      "count": 24,
+      "log": "evidence/p1b1/store-final.txt",
+      "completedAt": "2026-09-26T03:51:05.800525+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "npm run test:store:volume",
+      "status": "PASS",
+      "count": 1,
+      "log": "evidence/p1b1/volume-final.txt",
+      "completedAt": "2026-09-26T03:51:08.761170+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "npm run test:session",
+      "status": "PASS",
+      "count": 14,
+      "log": "evidence/p1b1/session-final.txt",
+      "completedAt": "2026-09-26T03:51:18.488213+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "npm run test:shell",
+      "status": "PASS",
+      "count": 10,
+      "log": "evidence/p1b1/shell-final.txt",
+      "completedAt": "2026-09-26T03:48:05.703732+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "npm run test:consumer",
+      "status": "PASS",
+      "count": 2,
+      "log": "evidence/p1b1/consumer.txt",
+      "completedAt": "2026-09-26T03:42:00.059620+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "node tooling/qualify-store.mjs",
+      "status": "PASS",
+      "count": null,
+      "log": "evidence/p1b1/provenance-final.txt",
+      "completedAt": "2026-09-26T03:51:14.515565+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "python3 tooling/verify-store-inputs.py",
+      "status": "PASS",
+      "count": null,
+      "log": "evidence/p1b1/source-verification.txt",
+      "completedAt": "2026-09-26T03:48:40.765648+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "npm run verify:vendor",
+      "status": "PASS",
+      "count": null,
+      "log": "evidence/p1b1/vendor-final.txt",
+      "completedAt": "2026-09-26T03:51:37.066972+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    },
+    {
+      "command": "python3 docs/spec/tools/check_spec.py",
+      "status": "PASS",
+      "count": null,
+      "log": "evidence/p1b1/spec-check.txt",
+      "completedAt": "2026-09-26T03:50:09.663613+00:00",
+      "timingBasis": "Original output-file modification time, not a PERF stopwatch."
+    }
+  ],
+  "networkEvidence": {
+    "storeTests": "Per-process shared worker/parent counters for submit/upload/poll/cancel/fetch/socket/dns/datagram are all0; attempted calls throw.",
+    "providerCalls": 0,
+    "qualificationTraffic": "Official Node/SQLite/Apple/npm sources and package/browser provisioning only."
+  },
+  "runtime": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "sqliteSettings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 19,
+      "max_page_count": 4294967294
+    },
+    "apiStability": {
+      "nodeSQLite": "1.2 release candidate, not stable 2",
+      "qualification": "This exact runtime only; API upgrades require requalification."
+    },
+    "nativeDependency": "fs-ext2.1.1 / pinned nan2.29.0; exact allowScripts, integrity-checked primary archives, installed source and2810 exact Node headers verified"
+  },
+  "resources": {
+    "ioChunkBytes": 1048576,
+    "maxTransfers": 2,
+    "admissionOverheadPercent": 25,
+    "freeMarginBytes": "1073741824",
+    "metadataHeadroomBytes": "67108864",
+    "metadataHeadroomPhysicallyPreallocated": false,
+    "snapshotTailCeiling": 500
+  },
+  "observations": {
+    "publicSubmitRoundTripMs": 5.723417000000154,
+    "canonicalCommandBytes": 609,
+    "canonicalEventBytes": [
+      1642
+    ],
+    "scope": "One command, tiny replay; worker append excludes caller transport. These are observations, not R20-R23 campaign results."
+  },
+  "failureEvidence": {
+    "process": "Nine real SIGKILL file/transaction barriers; last committed projection/receipt survives; same-ID retry deduplicates.",
+    "sqlite": "Actual error codes13 SQLITE_FULL and5 SQLITE_BUSY verified through test-only numeric evidence; no fabricated receipt.",
+    "filesystem": "Actual EACCES rename denial, mounted HFS+ ENOSPC at0 bytes available, mounted EROFS ownership refusal; exact retry/reopen succeeds.",
+    "retainedAttempts": "failures.json + failures/; no failing attempts concealed."
+  },
+  "limitations": [
+    "Author verification only; bounded independent verifier must approve exact commit.",
+    "Only two foundation commands, one event per command. No HTTP commands/recovery, resumable upload, raster, portable copy, image/history editing UI or provider scheduler.",
+    "Snapshots not implemented here. Explicit durable CAPACITY at500 retained events until P1b.2 adds R23 snapshots/multi-event recovery. No R23 or100k replay measurement.",
+    "64MiB extra metadata headroom is admission accounting, not physically preallocated emergency bytes.",
+    "macOS arm64/APFS tested, HFS+ disk-image faults tested. Linux/other filesystems/platforms, Windows ACLs, second OS user and power-loss/device-cache behavior remain unqualified.",
+    "R20 worker span excludes caller transport; public round trip is one command. Timing observations are not PERF campaign results; correctness/browser runs sometimes overlapped.",
+    "No GC, destructive migration, verified backup/restore, repair UI or shared/network storage support.",
+    "Existing en-reve-first UI feedback439b475b remains open with P1b.7; writer changes no app UI."
+  ],
+  "services": {
+    "app": {
+      "url": "http://127.0.0.1:52219/?progress-report",
+      "status": 200
+    },
+    "report": {
+      "url": "http://127.0.0.1:4381/",
+      "status": 200
+    },
+    "previewRestoration": {
+      "oldOrigin": "http://127.0.0.1:61717/",
+      "observed": "Stopped independently during task; writer owner did not stop, restart, repoint or modify its root.",
+      "owner": "Coordinator",
+      "locatorCommit": "d067b3d51368fccc33765fad41325bf2086de908",
+      "serves": "Approved85df04f preview, separate from new writer candidate"
+    }
+  },
+  "sourceManifest": "source-manifest.json",
+  "integrationContract": "tooling/STORE.txt",
+  "preservation": "preservation.json",
+  "pr": {
+    "url": null,
+    "number": null,
+    "remote": null,
+    "ci": null,
+    "preExistingBaseCIFailures": "Unassessed; no CI run or base CI link exists."
+  },
+  "nextAction": "Coordinator assigns independent P1b writer review411811e0 at the exact committed SHA; do not start dependent wire implementation before approval."
+}
