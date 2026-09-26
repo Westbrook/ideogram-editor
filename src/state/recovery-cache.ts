@@ -2,6 +2,9 @@ import type { DomainEvent } from '../protocol/store.js';
 import { reduceDocument } from './projection.js';
 import { requireValue } from '../protocol/validate.js';
 export type Published = { generation: string; cursor: string; epoch: string | null };
+export class RecoveryPublicationConflict extends Error {
+  constructor(){super('Projection changed in another tab');this.name='RecoveryPublicationConflict';}
+}
 const result = <T>(request: IDBRequest<T>) => new Promise<T>((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
 const done = (tx: IDBTransaction) => new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onabort=()=>reject(tx.error??new Error('Cache transaction aborted'));tx.onerror=()=>reject(tx.error);});
 export class RecoveryCache {
@@ -43,8 +46,16 @@ export class RecoveryCache {
   }
   private range(generation: string) {return IDBKeyRange.bound([generation],[generation,[]]);}
   async clone(from: string,to: string) {
-    const tx=this.db.transaction('rows','readwrite');const store=tx.objectStore('rows');const cursor=store.openCursor(this.range(from));
-    cursor.onsuccess=()=>{const c=cursor.result;if(!c)return;const key=c.key as string[];store.put(c.value,[to,...key.slice(1)]);c.continue();};await done(tx);
+    // Pin base selection and copying together: a competing publication may
+    // otherwise discard the selected generation before this transaction starts.
+    const tx=this.db.transaction(['meta','rows'],'readwrite');const store=tx.objectStore('rows');let conflict=false;
+    const pointer=tx.objectStore('meta').get('published');
+    pointer.onsuccess=()=>{
+      if((pointer.result?.generation??'empty')!==from){conflict=true;tx.abort();return;}
+      const cursor=store.openCursor(this.range(from));
+      cursor.onsuccess=()=>{const c=cursor.result;if(!c)return;const key=c.key as string[];store.put(c.value,[to,...key.slice(1)]);c.continue();};
+    };
+    try{await done(tx);}catch(error){if(conflict)throw new RecoveryPublicationConflict();throw error;}
   }
   async discard(generation: string) {
     const tx=this.db.transaction('rows','readwrite');tx.objectStore('rows').delete(this.range(generation));await done(tx);
@@ -70,9 +81,10 @@ export class RecoveryCache {
     for(let i=0n;i<count;i++) {const event=await this.value(eventsStage,'staged',String(i));requireValue(event);await this.apply(generation,event);}
   }
   async publish(next: Published,expected: Published) {
-    const tx=this.db.transaction('meta','readwrite');const store=tx.objectStore('meta');const request=store.get('published');
+    const tx=this.db.transaction('meta','readwrite');const store=tx.objectStore('meta');const request=store.get('published');let conflict=false;
     request.onsuccess=()=>{const current=request.result??{generation:'empty',cursor:'0',epoch:null};
-      if(current.generation!==expected.generation||current.cursor!==expected.cursor||current.epoch!==expected.epoch)tx.abort();else store.put(next,'published');};await done(tx);
+      if(current.generation!==expected.generation||current.cursor!==expected.cursor||current.epoch!==expected.epoch){conflict=true;tx.abort();}else store.put(next,'published');};
+    try{await done(tx);}catch(error){if(conflict)throw new RecoveryPublicationConflict();throw error;}
     // Old published data remains intact until the pointer transaction commits.
     await this.discard(expected.generation).catch(()=>{});
   }

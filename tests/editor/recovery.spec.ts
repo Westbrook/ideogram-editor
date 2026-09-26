@@ -18,6 +18,59 @@ async function setup(page:Page,context:BrowserContext){
  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
 }
+test('history receipt probes stay serial and one action waits for exact accepted result proof',async({page,context})=>{
+ const f=await setup(page,context);let releaseReceipt=()=>{},releaseProof=()=>{};
+ try{
+ const original=await page.locator('canvas').getAttribute('data-asset');await page.getByRole('treeitem').click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.5');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
+ let id='',pending:any,lookups=0,active=0,maxActive=0;const wires:string[]=[];
+ const receiptGate=new Promise<void>(r=>releaseReceipt=r),proofGate=new Promise<void>(r=>releaseProof=r);let receiptHit=()=>{},proofHit=()=>{};
+ const heldReceipt=new Promise<void>(r=>receiptHit=r),heldProof=new Promise<void>(r=>proofHit=r);
+ await page.route('**/api/v1/commands',async route=>{
+  if(route.request().method()!=='POST'||JSON.parse(route.request().postData()!).command.body.type!=='Undo'){await route.continue();return;}
+  wires.push(route.request().postData()!);id=JSON.parse(wires[0]).command.commandId;const response=await route.fetch();pending=await response.json();expect(pending.kind).toBe('pending');await route.fulfill({response});
+ });
+ await page.route('**/api/v1/commands/*',async route=>{
+  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id){await route.continue();return;}
+  active++;maxActive=Math.max(maxActive,active);lookups++;
+  try{
+   // Replay delayed, real pending observations, then hold one receipt read.
+   // This is a delivery fault oracle, not a timing specimen or synthetic receipt.
+   if(lookups<=2){await route.fulfill({status:202,json:pending});return;}
+   receiptHit();await receiptGate;await route.continue();
+  }finally{active--;}
+ });
+ await page.route('**/api/v1/commands/*/result',async route=>{
+  if(new URL(route.request().url()).pathname!=='/api/v1/commands/'+id+'/result'){await route.continue();return;}
+  // Node-side route.fetch omits Chromium's browser-supplied Fetch Metadata.
+  // Bind this fault-injection read to the already paired test origin; normal
+  // browser authorization remains covered by the unchanged boundary tests.
+  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});expect(response.status()).toBe(200);proofHit();await proofGate;await route.fulfill({response});
+ });
+ await click(page,'Undo');await heldReceipt;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');expect(wires).toHaveLength(1);expect(lookups).toBe(3);expect(maxActive).toBe(1);await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
+ releaseReceipt();await heldProof;await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','true');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toHaveCount(0);
+ releaseProof();await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);expect(wires).toHaveLength(1);expect((await f.read('/api/v1/commands/'+id+'/original')).text).toBe(wires[0]);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);
+ }finally{releaseReceipt();releaseProof();await page.unrouteAll({behavior:'wait'});await f.server.close();}
+});
+
+test('history completion retries complete recovery when another tab replaces the staged base',async({page,context})=>{
+ const f=await setup(page,context);let release=()=>{};try{
+ await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');const original=await page.locator('canvas').getAttribute('data-asset');await page.getByRole('treeitem').click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.5');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
+ const other=await context.newPage();await other.goto(f.server.origin);await expect(other.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+ let entered=()=>{},held=false,reads=0;const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);const wires:string[]=[];
+ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'&&JSON.parse(r.postData()!).command.body.type==='Undo')wires.push(r.postData()!);});
+ await page.route('**/api/v1/events?*',async route=>{
+  if(new URL(route.request().url()).searchParams.has('recoveryId')){await route.continue();return;}
+  reads++;if(held){await route.continue();return;}held=true;
+  const response=await route.fetch({headers:{...route.request().headers(),Origin:f.server.origin}});expect(response.status()).toBe(200);entered();await gate;await route.fulfill({response});
+ });
+ await click(page,'Undo');await hit;
+ // A full other-tab recovery replaces/discards the old shared generation even
+ // if its cursor already includes Undo. The held reader must restart its proof.
+ await other.reload();await expect(other.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();release();
+ await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');await expect(page.locator('canvas')).toHaveAttribute('data-asset',original!);await expect(page.locator('.document-name')).toHaveText(await other.locator('.document-name').textContent()??'');expect(reads).toBeGreaterThan(1);expect(wires).toHaveLength(1);expect(Object.values(await f.server.effects()).every(x=>x===0)).toBe(true);await other.close();
+ }finally{release();await page.unrouteAll({behavior:'wait'});await f.server.close();}
+});
+
 test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
  const f=await setup(page,context);try{
  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];

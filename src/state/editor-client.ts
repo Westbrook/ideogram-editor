@@ -1,6 +1,6 @@
 import { createValueModel } from '@en-reve/primitives/state/value.js';
 import type { createSessionClient } from './session-client.js';
-import { RecoveryCache } from './recovery-cache.js';
+import { RecoveryCache, RecoveryPublicationConflict } from './recovery-cache.js';
 import { RecoveryConsumer } from './recovery-client.js';
 import { BrowserJournal } from './browser-journal.js';
 import { DraftPersistence } from './draft-persistence.js';
@@ -107,7 +107,20 @@ export class EditorClient {
   }
   async sync() {
     if(this.syncTask)return this.syncTask;
-    this.syncTask=(async()=>{this.stream?.abort();await this.streamTask;await this.consumer!.recover();await this.refresh();})().finally(()=>{this.syncTask=undefined;});
+    this.syncTask=(async()=>{
+      const cache=this.cache,consumer=this.consumer!,lifetime=this.lifecycle;
+      this.stream?.abort();await this.streamTask;
+      for(;;){
+        try{await consumer.recover();break;}
+        catch(error){
+          // Another tab won the pointer CAS (or retired our selected base).
+          // Start a whole new leased recovery, never accept its pointer as our
+          // command proof or retry unrelated storage/authority/validation errors.
+          if(!(error instanceof RecoveryPublicationConflict)||lifetime!==this.lifecycle||cache!==this.cache)throw error;
+        }
+      }
+      await this.refresh();
+    })().finally(()=>{this.syncTask=undefined;});
     return this.syncTask;
   }
   private async refresh() {
@@ -192,8 +205,9 @@ export class EditorClient {
   async run(label:string,action:()=>Promise<void>,intentTime=performance.now()) {
     if(this.view.busy)return;
     this.patch({busy:true,message:label+'…',error:''});performance.clearMarks('ie.intent.'+label);performance.mark('ie.intent.'+label,{startTime:intentTime});
-    // Pending feedback can paint before hashing/IO. Its clock never replaces the full action clock.
-    await new Promise<void>(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+    // Yield pending feedback without holding asynchronous journal/transport work
+    // until the next display frame. Hashing already yields in bounded slices.
+    await tick();
     try{await action();}catch(error){this.fail(error);}finally{this.patch({busy:false});performance.clearMarks('ie.complete.'+label);performance.mark('ie.complete.'+label);}
   }
   fail(error:unknown) {
@@ -214,11 +228,16 @@ export class EditorClient {
     let value:CommandResult;
     if(lookup){const response=await this.session.transport('/api/v1/commands/'+id);value=await response.json();if(value.kind==='unknown'||value.kind==='pending'&&value.phase==='waiting-for-resources')value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});}
     else value=await this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire});
+    let receiptDelay=0;
     for(;;){
       delivery={...delivery,result:value};await this.journal!.put('command:'+id,delivery);await this.restorePending();
       if(value.kind!=='pending')break;
       if(value.phase==='waiting-for-resources')throw Error('waiting-for-resources');
-      await pause(30);value=await this.json<CommandResult>('/api/v1/commands/'+id);
+      // A local command can finish while its pending identity is journaled.
+      // Probe promptly, then back off to the existing sustained cadence. Only
+      // one lookup is in flight; a wake never substitutes for its exact receipt.
+      await pause(receiptDelay);receiptDelay=receiptDelay===0?4:Math.min(30,receiptDelay*2);
+      value=await this.json<CommandResult>('/api/v1/commands/'+id);
     }
     if(value.kind!=='receipt')throw Error('RECEIPT_UNKNOWN');
     if(value.receipt.status==='rejected'){
