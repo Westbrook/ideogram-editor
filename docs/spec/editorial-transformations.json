@@ -1,6 +1,6 @@
 {
-  "assembly": "SPEC-A2",
-  "policy": "Editorial consolidation with the explicitly authorized FA-01 payload clarification. Original history snapshots are unchanged. All numerical budgets, campaign counts and substantive typed contracts are preserved.",
+  "assembly": "SPEC-A3",
+  "policy": "SPEC-A3 applies the explicitly approved 2026-09-26 readiness findings and user decisions. Prior operations and sealed history remain unchanged; A3 exact replacements declare all new contracts/tables. No existing numeric budget/campaign changes.",
   "operations": [
     {
       "kind": "extract",
@@ -757,5 +757,905 @@
       }
     ],
     "validation": "Reverse exactly these replacements and require each of the seven full current documents to equal its approved technical-commit bytes; all other edits are evidence/receipt metadata."
+  },
+  "readinessRevision": {
+    "id": "SPEC-A3",
+    "baseCommit": "86701416fa966b92353a1cff062a81a27a1786b9",
+    "authorization": "Spec Readiness audit triage — 2026-09-26; Task 9 Approved findings list",
+    "baseDocumentSha256": {
+      "index": "bc1e80f1a65274f66db15c7bbe7d7996c1ebd95e2797a1d1f08fdbd3a96f1e15",
+      "api": "c0df4cb8df78e3ba04117b72821ffb8a4d69cf59828510306c7ee9f433a641de",
+      "design-system": "b374c55f33e43eff89138c890706a15a91586fb71f7268f90d78a08e326b253a",
+      "ux": "03a84bd6fbfdd930068cce8d6ebaec64f106c59afed65c74f23d605c6a5d8af6",
+      "architecture": "951258ff76456d0a1dbff355f29c69184b91dbd3c0191768d7fc25a1980476db",
+      "testing": "2118b75a7f3cfa63288444c93e5217cc2f09f93114d92b09cfd11836f521aee5",
+      "performance": "4296f2b93db5f9be9ef8892f56f43bd6471802bdc2f27390b621cc297e0e06ee"
+    },
+    "operations": [
+      {
+        "section": "api",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01",
+          "8A-F02"
+        ],
+        "old": "Assembly revision **API-1.2+A1**, 2026-09-26 UTC. Approved technical baseline: **API-1.2** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.",
+        "new": "Assembly revision **API-1.2+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed."
+      },
+      {
+        "section": "design-system",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01",
+          "8A-F02"
+        ],
+        "old": "Assembly revision **DS-1.1+A1**, 2026-09-26 UTC. Approved technical baseline: **DS-1.1** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.",
+        "new": "Assembly revision **DS-1.1+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed."
+      },
+      {
+        "section": "ux",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01",
+          "8A-F02"
+        ],
+        "old": "Assembly revision **UX-2.2+A1**, 2026-09-26 UTC. Approved technical baseline: **UX-2.2** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.",
+        "new": "Assembly revision **UX-2.2+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed."
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01",
+          "8A-F02"
+        ],
+        "old": "Assembly revision **ARCH-1.4+A1**, 2026-09-26 UTC. Approved technical baseline: **ARCH-1.4** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.",
+        "new": "Assembly revision **ARCH-1.4+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed."
+      },
+      {
+        "section": "testing",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01",
+          "8A-F02"
+        ],
+        "old": "Assembly revision **TEST-1+A1**, 2026-09-26 UTC. Approved technical baseline: **TEST-1** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.",
+        "new": "Assembly revision **TEST-1+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed."
+      },
+      {
+        "section": "performance",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01",
+          "8A-F02"
+        ],
+        "old": "Assembly revision **PERF-8+A2**, 2026-09-26 UTC. Approved technical baseline: **PERF-8** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.",
+        "new": "Assembly revision **PERF-8+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed."
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01",
+          "8A-F02"
+        ],
+        "old": "Assembly **SPEC-A2**, 2026-09-26 UTC. Status: **independently approved for specification/source readiness** at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861** in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This metadata-only closeout preserves SPEC-A2 technical identity. Task 7 remains review_required for coordinator closeout; user acceptance is separately pending. The six input sections retain their source-readiness approvals. Implementation remains provisional at the owned qualification gates below. No editor implementation, application tests, benchmarks, package installation, provider calls or deployment are claimed.",
+        "new": "Assembly **SPEC-A3**, 2026-09-26 UTC. Status: **author readiness revisions; Task 10 independent verification pending**. Original Task 7 is complete; SPEC-A2 source approval at **083579cdb1bfd24e3fdb64f4f051524393e50861** and closeout **86701416fa966b92353a1cff062a81a27a1786b9** remain historical evidence. [Prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not cover the new readiness contracts. User review/acceptance and runtime qualification remain separate. No implementation, paid calls or PR are authorized by this document."
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F07"
+        ],
+        "old": "CAP-01–CAP-21 below; no inferred missing-family completeness",
+        "new": "CAP-01–CAP-24 below; no inferred missing-family completeness"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01"
+        ],
+        "old": "Original Task 7 remains **review_required** for coordinator closeout after independent approval. The coordinator confirms this metadata-only synchronization and owns task completion; the author does not change it to complete.",
+        "new": "Original Task 7 is complete. Task 9 delivers SPEC-A3 for review_required handoff; Task 10 owns independent readiness verification before REQ-READY can close."
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01"
+        ],
+        "old": "| R20 correct existing tasks/scope | Original seven tasks retained; Tasks 1–6 complete, Task 7 review_required for coordinator closeout after independent approval; no implementation started |",
+        "new": "| R20 correct existing tasks/scope | Original seven tasks retained; all original seven tasks complete; SPEC-A3 awaits Task 10 readiness review; no implementation started |"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F01"
+        ],
+        "old": "SPEC-A1 independent review identified FA-01:",
+        "new": "**Historical assembly receipt (SPEC-A1/A2, superseded for current status):** SPEC-A1 independent review identified FA-01:"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "[API-1.2+A1]",
+        "new": "[API-1.2+A3]"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "[DS-1.1+A1]",
+        "new": "[DS-1.1+A3]"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "[UX-2.2+A1]",
+        "new": "[UX-2.2+A3]"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "[ARCH-1.4+A1]",
+        "new": "[ARCH-1.4+A3]"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "[TEST-1+A1]",
+        "new": "[TEST-1+A3]"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "[PERF-8+A2](performance.md)",
+        "new": "[PERF-8+A3](performance.md)"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "The eleven original REQ IDs cover",
+        "new": "The twelve current REQ IDs include the new REQ-READY audit/closure gate; the eleven original REQ IDs cover"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "| P0 specification | This assembly and original Task 7 final independent review | Exact source/mirror/version/parity checks; 4/4 final technical wave independently approved; user acceptance remains separate; documentation rollback restores matching versions and retains history |",
+        "new": "| P0 specification | Original Task 7 complete; SPEC-A3 incorporates audits 8A/8B/8C and Task 9 | Original approval remains historical; REQ-READY closes only after Task 10 verifies every disposition and source/mirror/checker seal; user acceptance separate; matching-version rollback retains history |"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-01"
+        ],
+        "old": "named gates Q01–Q22/Q26/Q27",
+        "new": "applicable gates in the phase-to-qualification matrix below (conditional/Future gates do not become initial features)"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8C-01"
+        ],
+        "old": "P1 seal full source/lock/license/archive bytes and integrity; clean consumer install/public-import/registration evidence; no DS change required by this task",
+        "new": "P1 Build/DS producer selects and freezes full source/lock/license bytes with per-file manifest, rejects concurrent drift, then seals coherent archives and clean consumer/public-import/registration evidence; dated 8C drift is recorded in DS §1; no DS change by Task 9"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-04",
+          "8B-06"
+        ],
+        "old": "P2 deterministic expiry/restart fixtures and durable download/reconciliation; future authorized retention observation; never treat provider URLs as owned assets",
+        "new": "P2 seal endpoint-specific minimum-retention/private-compatible RP-1 and EF-1 hosts/upload profile; deterministic expiry/restart fixtures; disclose unsupported policy and require explicit fallback acknowledgement or block dispatch; provider observation only when authorized"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8C-02"
+        ],
+        "old": "The API's evidence was retrieved on 2026-09-25.",
+        "new": "The API's original evidence was retrieved on 2026-09-25; audit 8C rechecked it on 2026-09-26, with raw/semantic drift distinctions in API §Readiness evidence."
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; independent final specification/source review approved",
+        "new": "Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; SPEC-A2 source review approved; SPEC-A3 Task 10 review pending"
+      },
+      {
+        "section": "ux",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F04"
+        ],
+        "old": "User-accepted initial app dataset envelope, with PERF WT qualification still required: 1–100 original static images, up to 800MiB total original bytes, prepared 1024² default example crops ≤2MiB each and ≤201MiB package qualification workload. These are accepted editor admission limits, not fal dataset requirements or measured capacity. A 500-image fixture is admission rejection/recovery only under the accepted maximum100. Supporting500 requires a separately accepted product-scope amendment before any performance qualification; a stress/E campaign cannot enable it. If requested resolution/content exceeds the prepared-package allowance, show actual estimated bytes and block or offer explicit lower resolution/fewer images, preserving the draft; do not compress away quality invisibly. Per-caption app default limit 4KiB UTF-8 in the qualification envelope; excess text is retained and flagged, not truncated. Schema has no verified count/archive/caption limits. Provider validation may impose additional restrictions; surface it and retain the dataset.",
+        "new": "User-accepted initial hard admission caps are four independent checks: 1–100 original static images, ≤800MiB total originals, ≤201MiB prepared provider ZIP and ≤4KiB UTF-8 per caption. These are app caps, not fal limits or measured capacity. PERF WT's 2048²/8MiB originals and 1024²/2MiB prepared crops are qualification fixtures, not per-image or square-only admission limits. A prepared image >2MiB or another explicitly reviewed supported resolution can pass the four caps; timing outside WT is unqualified. A 500-image dataset is rejected; supporting it needs a product amendment. Preserve originals and excess caption text; do not truncate or silently resize/compress. If the total package cannot fit, offer explicit reviewed resolution/fewer-image changes and retain the draft; the provider may impose additional unverified restrictions."
+      },
+      {
+        "section": "ux",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F05"
+        ],
+        "old": "Optional string in guide profile; app includes authored value, including explicit empty string if chosen.",
+        "new": "Guide profile: optional. App profile: required explicitly represented string; explicit empty string is valid. Missing raw-import field is an error, never silently synthesized."
+      },
+      {
+        "section": "ux",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F05"
+        ],
+        "old": "An explicit reviewed “Convert copy” may propose changes side-by-side, preserving the original.",
+        "new": "An explicit reviewed “Convert copy” may propose changes side-by-side, preserving the original. A missing high_level_description yields MISSING_SCENE at that path; an explicit empty string passes. A reviewed Convert copy may add an explicitly chosen string, including empty, while retaining exact original raw input. The authored result then uses the same required app profile as Architecture §16.4."
+      },
+      {
+        "section": "ux",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03"
+        ],
+        "old": "“Delete selected candidates” requires explicit selection and dependency review.",
+        "new": "“Hide selected candidates” requires explicit selection and dependency review (DeleteCandidate action). Show “Hiding results does not free disk space: job provenance retains the image bytes.” Even never-adopted candidates remain byte-rooted; full-history copies retain these hidden job results."
+      },
+      {
+        "section": "ux",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03",
+          "8B-08"
+        ],
+        "old": "User may back up and delete a whole document with an explicit list of retained/shared assets; shared library assets remain until their own explicit deletion.",
+        "new": "User may back up and delete a whole document using the preview and durable receipt in [ARCH DR-1](architecture.md#s20). Preview lists released histories/checkpoints/drafts/jobs, retained shared/library/backup roots and estimated bytes. Running/uncertain work requires explicit acknowledgement; deletion prevents late results from recreating the document and is not provider cancellation/refund/remote erasure. Show “Document deleted; cleanup pending” until actual GC receipt, then actual bytes freed. A changed dependency invalidates confirmation and requires a new preview. Shared library assets and external copies remain until their own explicit deletion."
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-02"
+        ],
+        "old": "Proposed same-origin routes, versioned /api/v1:",
+        "new": "Same-origin route overview, versioned /api/v1. [LP-1 and LS-1](#s20) define normative wire/session behavior and add session/staging-status routes:"
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-05"
+        ],
+        "old": "Portable bundle proposal: versioned manifest,",
+        "new": "Portable bundle PF-1 ([§20.4](#s20)): ZIP64 STORE container with versioned manifest,"
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03",
+          "8B-07"
+        ],
+        "old": "Include all nondeleted retained candidates associated with included jobs, even unadopted/set aside.",
+        "new": "Include all retained result bytes rooted by included job provenance, even if the candidate row is hidden/tombstoned, unadopted or set aside. Only portable-class provenance edges enter the bundle under TP-1; backend transport evidence is excluded."
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03",
+          "8B-08"
+        ],
+        "old": "Deleting a candidate hides/tombstones its library entry but cannot remove bytes protected by adoption/history or another identical-byte asset version.",
+        "new": "Deleting a candidate hides/tombstones its library entry and retains all its result bytes through job provenance, including an otherwise unprotected never-adopted candidate. It does not free disk space. Whole-document deletion DR-1 releases document-owned roots; adoption/history/shared roots elsewhere remain protected."
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-07"
+        ],
+        "old": "preserve exact response bytes as transport provenance and decoded prompt UTF-8 as a separate streamed blob when complete.",
+        "new": "preserve exact response body bytes in the backend-only BackendTransportEvidence store under TP-1 and decoded prompt UTF-8 as a separate streamed blob when complete. PortableProviderRecord is a sanitized derivative, never the exact transport body."
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-02",
+          "8B-03",
+          "8B-04",
+          "8B-05",
+          "8B-07",
+          "8B-08",
+          "8B-11",
+          "8A-F03"
+        ],
+        "old": "All §16.9 action clocks and resource guards remain in force. PERF-8 retains complete compound cancellation/late-result allocation within the existing H4/I6H blocks. Implementation and final assembly verification are separate from prior source approval.\n",
+        "new": "All §16.9 action clocks and resource guards remain in force. PERF-8 retains complete compound cancellation/late-result allocation within the existing H4/I6H blocks. Implementation and final assembly verification are separate from prior source approval.\n\n<a id=\"s20\"></a>\n\n## 20. Readiness contracts — SPEC-A3\n\nThe user-approved 2026-09-26 readiness decisions authorize this section (8B-02–08/11). It completes §§5/7/8/9 without changing the existing Command/Receipt or provider schema contracts, pixel rules, one-active-request default, full-history policy or PERF ceilings. The route and policy inventory is mirrored in [readiness-contracts.json](readiness-contracts.json); the consumer oracles are [TEST §13](testing.md#s13). This is a specified protocol, not evidence of an implemented or qualified server.\n\n### 20.1 Local protocol LP-1\n\nAll paths below are under /api/v1. JSON is UTF-8, duplicate keys, unknown properties/discriminators, nonfinite numbers, unpaired surrogates and unsupported protocolVersion rejected before command acceptance. ProtocolVersion is 1; unsupported major version returns 426 PROTOCOL_VERSION with supportedVersions:[1]. IDs are opaque bounded strings (1–128 ASCII letters/digits/underscore/hyphen); sequences, revisions, offsets and lengths are canonical unsigned decimal strings, including \"0\", never floating-point counters. Content bytes use separate streaming routes. JSON control envelopes are ≤64KiB, event rows ≤16KiB; large details/manifests/provenance stay referenced blobs. Oversized metadata returns 413 without truncating user input.\n\nCanonical command hash LP-1: parse with duplicate detection; validate the §5.2 Command shape and typed body; hash the UTF-8 encoding of {protocolVersion:1,command:Command}. Recursively sort object keys by Unicode scalar value, preserve array order and string code points (no Unicode/newline normalization); encode strings with JSON quotation, escaping quote/backslash and controls U+0000–001F (lowercase four-digit \\\\u escapes), leaving other scalar values literal. Numbers use ECMAScript JSON.stringify finite binary64 representation (negative zero becomes 0); identities requiring exact large integers already use decimal strings. Omitted optional keys stay omitted; null is distinct. Include every envelope field, body and BlobRef identity/hash/length; do not include HTTP headers, cookie, CSRF token or whitespace. Store original validated envelope plus hash. ClientId/sessionId are immutable command provenance, not current authentication: a renewed session can query/resend its authorized original envelope unchanged. Same ID/different hash is HTTP 409 COMMAND_ID_REUSE with no receipt overwrite or effect, even after restart. Validation must not fetch arbitrary client URLs.\n\n```ts\ntype ReadinessCommandBody =\n  | { type: \"TransferStagingOwnership\"; stagingId: string; expectedOwnerClientId: string; expectedVersion: string }\n  | { type: \"FinalizeStaging\"; stagingId: string; expectedSha256: string }\n  | { type: \"PreviewBundleImport\"; stagingId: string }\n  | { type: \"ImportBundle\"; stagingId: string; previewId: string; approvalHash: string }\n  | { type: \"PreviewDocumentDeletion\"; documentId: string }\n  | { type: \"DeleteDocument\"; documentId: string; planId: string; planHash: string;\n      expectedRootGeneration: string; acknowledgeRemoteUncertainty: boolean }\n  | { type: \"SetSpendGuard\"; spendSessionId: string; cap: number | null;\n      expectedConfigVersion: string }\n  | { type: \"StartSpendSession\"; previousSessionId: string | null;\n      cap: number | null; acknowledgeUnresolvedAttempts: boolean };\ntype LocalError = {\n  protocolVersion: 1; requestId: string;\n  error: { code: string; retry: \"none\" | \"same-command\" | \"read-or-transfer\";\n    message: string; commandId?: string; currentRevision?: string;\n    detailsRef?: BlobRef };\n};\ntype CommandResult =\n  | { protocolVersion: 1; kind: \"receipt\"; receipt: Receipt }\n  | { protocolVersion: 1; kind: \"pending\"; commandId: string; operationId: string;\n      phase: \"preparing\" | \"waiting-for-resources\"; receiptUrl: string }\n  | { protocolVersion: 1; kind: \"unknown\"; commandId: string };\ntype StagingRecord = {\n  protocolVersion: 1; stagingId: string; ownerClientId: string;\n  purpose: \"image\" | \"mask\" | \"adapter\" | \"font\" | \"caption\" | \"bundle\";\n  expectedBytes: string; sha256: string; mediaType: string;\n  committedOffset: string; state: \"receiving\" | \"complete\" | \"finalized\" | \"failed\";\n  assetRef?: BlobRef;\n};\ntype EventBatch = {\n  transactionId: string; fromSeq: string; toSeq: string;\n  events: readonly DomainEvent<unknown>[];\n};\ntype EventPage = {\n  protocolVersion: 1; kind: \"batches\"; projectionSchema: number;\n  highWater: string; nextCursor: string; batches: readonly EventBatch[];\n};\ntype StreamEnvelope =\n  | { protocolVersion: 1; kind: \"batch-part\"; transactionId: string;\n      fromSeq: string; toSeq: string; partIndex: number; partCount: number;\n      events: readonly DomainEvent<unknown>[] }\n  | { protocolVersion: 1; kind: \"checkpoint\"; highWater: string }\n  | { protocolVersion: 1; kind: \"gap\"; requestedAfter: string;\n      earliestAvailable: string; snapshotUrl: string; highWater: string };\n```\n\n| Route | Request and successful response | Failure and retry rule |\n| --- | --- | --- |\n| POST /session/bootstrap | {protocolVersion:1,pairingToken}; 200 {protocolVersion:1,csrfToken,sessionExpiresAt,clientId}, Set-Cookie; single-use launch exchange | 401 expired/used token, 403 origin/host; no retry with consumed token; local launcher issues another |\n| GET /session | Cookie + LS-1 same-origin read checks; 200 same session view and CSRF token | 401 requires local pairing; never caches secrets |\n| POST /session/renew; POST /session/revoke | {protocolVersion:1}; CSRF; renew 200 rotates cookie/token; revoke 204 | Old session/token immediately invalid; no domain mutation; retry by reading current session |\n| GET /capabilities | Authenticated; 200 {protocolVersion:1,serverVersion,projectionSchema,limits,credentialConfigured,storageState,connectionState,profiles} | Missing FAL_KEY is credentialConfigured:false, not HTTP authentication failure |\n| POST /commands | §5.2 Command in {protocolVersion:1,command}; 200 CommandResult receipt or 202 CommandResult pending with Location pointing to /commands/:id | Only complete durable receipt is accepted/rejected. 202 means preparation is pending, zero acceptance/provider dispatch |\n| GET /commands/:id | 200 receipt; 202 same pending identity; 404 CommandResult unknown | Unknown is not proof of failed dispatch. Resend identical command after reconnect; never manufacture new ID |\n| GET /events?after=seq | 200 EventPage at captured highWater, whole transactions only; nextCursor is last complete transaction | 409 CURSOR_INSIDE_TRANSACTION; 410 gap with snapshotUrl/earliestAvailable/highWater; retry safe read |\n| GET /events/stream?after=seq | text/event-stream containing StreamEnvelope; SSE id only on final part is toSeq | Reconnect from last applied complete toSeq; 401 closes stream; gap reloads pinned snapshot plus tail |\n| GET /documents/:id; GET /jobs/:id | 200 {protocolVersion:1,entityVersion,projectionSchema,projection,highWater}; projection is existing typed read model, safe provenance only | 404 unknown; 410 document tombstone; no automatic remote reconnect/submit |\n| POST /assets/staging | {protocolVersion:1,stagingId,purpose,expectedBytes,sha256,mediaType}; 201 StagingRecord; client chooses id for retry dedup | 409 changed metadata/id; 413 unsupported purpose envelope; 507 no reservation; identical retry returns same record |\n| GET /assets/staging/:id | 200 StagingRecord with committedOffset from durable server record | 404 unknown; authorized owner only; resolves lost PUT/finalize response |\n| PUT /assets/staging/:id | application/octet-stream; Upload-Offset decimal header and Content-Length; sequential chunk ≤1MiB; 200 StagingRecord after flush/checkpoint | 409 OFFSET_MISMATCH returns committedOffset; 413 length exceeds declaration/chunk; query offset then resend only missing bytes |\n| POST /assets/staging/:id/finalize | {protocolVersion:1,command}; body names FinalizeStaging with stagingId/expected hash; 200 receipt or 202 pending | Full declared length/hash/type/profile checked; failed validation gives durable INVALID_INPUT receipt when storage works; identical command is idempotent |\n| GET /assets/:version/content | Version authorization + safety gate; 200 bytes or 206 one valid bytes range; ETag immutable SHA-256 | 416 with Content-Range bytes */length for malformed/unsatisfiable/multiple range; If-Range mismatch sends full 200; 403 withheld/quarantined; 404 missing |\n| POST /bundles/import | {protocolVersion:1,command}; ImportBundle references finalized bundle staging plus preview approval, never a path/URL; 200 receipt or 202 pending | Isolated validation/preparation; only final receipt publishes namespace; same command retry |\n| GET /bundles/:id/content | Only ready authorized complete/incomplete-labelled bundle; 200/206 with same range/ETag rules | 409 BUNDLE_NOT_READY; 416 invalid range; download does not confirm external destination saved |\n\nPreflight/auth/parsing/protocol failures are LocalError: 400 MALFORMED_REQUEST, 401 SESSION_REQUIRED, 403 ORIGIN_DENIED/CSRF_DENIED/CONTENT_WITHHELD, 404 NOT_FOUND, 409 COMMAND_ID_REUSE/OFFSET_MISMATCH/CURSOR_INSIDE_TRANSACTION, 410 DOCUMENT_DELETED/CURSOR_GAP, 413 PAYLOAD_TOO_LARGE, 415 MEDIA_TYPE, 426 PROTOCOL_VERSION, 429 LOCAL_BUSY, 503 SERVER_UNAVAILABLE and 507 STORAGE_FULL. No durable domain rejection is implied by these HTTP errors. If the validated command reaches the writer and a receipt can be committed, the unchanged five-code Receipt union applies: STALE_REVISION, INVALID_INPUT, MISSING_ASSET, CAPACITY or INCOMPATIBLE, returned as HTTP 200 kind:receipt/status:rejected. Specific sanitized reason belongs to details, not a new union code. A failed journal write returns 507/503 with retry:same-command and does not claim a rejection was durable. Credential unavailable, provider uncertainty, remote rate limits and expired remote URLs are job/provenance states in projections/events, not an HTTP 401 for the local browser session. All error messages omit request input and secrets.\n\nFor example, an unknown query returns {\"protocolVersion\":1,\"kind\":\"unknown\",\"commandId\":\"cmd_a\"} at HTTP 404; a prepared operation returns {\"protocolVersion\":1,\"kind\":\"pending\",\"commandId\":\"cmd_a\",\"operationId\":\"op_a\",\"phase\":\"preparing\",\"receiptUrl\":\"/api/v1/commands/cmd_a\"} at HTTP 202. A same-ID conflict returns {\"protocolVersion\":1,\"requestId\":\"r_a\",\"error\":{\"code\":\"COMMAND_ID_REUSE\",\"retry\":\"none\",\"message\":\"This command ID belongs to different content.\",\"commandId\":\"cmd_a\"}} at HTTP 409. Local errors describe actual retry classes: reads/transfers may back off; a mutation with lost response is queried or resent byte-equivalently; provider POST never inherits either retry policy.\n\nReadinessCommandBody extends the illustrative §4 CommandBody inventory through the same envelope and writer; cap is null (off) or a positive safe integer. PreviewDocumentDeletion durably records a plan without changing document revision; its accepted event exposes the plan reference. PreviewBundleImport is a local preparation command bound to staging hash, schema and closure; only its subsequent confirmed ImportBundle command publishes a namespace.\n\nPending identity is durably bound to commandId/hash before responding 202. Restart resumes only local preparation or reports its known state; acceptance rechecks revisions/roots and commits exactly one receipt. A preparation failure becomes a durable rejection where possible. No outbox authority exists before acceptance. Stage ownership is workspace+client identity, renewable across paired sessions. The trusted local launcher re-pairs an existing client identity using its owner-only local pairing registry; the browser cannot select an arbitrary clientId in bootstrap. If that identity is unavailable, a freshly paired client must request an explicit reviewed TransferStagingOwnership command naming the stage and current owner/version; all clients share the single OS-owner workspace, but no helper read/transfer bypasses this action. Pairing-registry secrets stay backend-only and are excluded from portable copies. For ordinary access, another client cannot inspect/resume/finalize without an explicit ownership-transfer action. An aborted PUT advances only to the last flushed recorded offset; startup truncates any uncommitted tail. Finalization is immutable and one-time; identical retries reference the same asset. Failed staging is inventoried, not silently promoted or counted as owned data.\n\nEvent transactions never become partly visible. HTTP pages never split a transaction; a transaction too large for the control envelope returns a transaction download reference and count/hash, streamed to bounded staging. SSE splits only wire framing (each frame ≤64KiB); the client buffers parts in bounded local storage, checks IDs/order/count, then applies the whole transaction once. Missing/duplicate/conflicting parts cause discard and safe gap fetch; no revision advances until complete. A snapshot reload is pinned to a high-water mark; replay its full tail before publishing. Heartbeats/checkpoints do not advance the applied cursor. Snapshot/event payloads never contain transport records.\n\n### 20.2 Localhost threat, session and content contract LS-1\n\nDefault bind is 127.0.0.1 with an OS-selected port recorded by the launcher; optional ::1 is separately bound and explicitly listed. The launch record chooses one browser origin; localhost, 127.0.0.1 and [::1] are not interchangeable aliases. Compare normalized scheme, literal host and numeric bound port exactly; reject trailing-dot/alternate numeric hosts, userinfo, foreign hosts, unexpected ports and all Forwarded/X-Forwarded-* headers. A configured Vite dev proxy must run on the same loopback host, use the launch-record exact origin/port, preserve that validated Origin and use a separate server-held proxy credential; uncredentialed forwarded values never establish trust. No permissive CORS or wildcard dev origin.\n\nThe trusted local launcher generates a random 256-bit pairing token, hashes it server-side, expires it after 5 minutes and consumes it transactionally once. Deliver in a browser URL fragment (not query, logs or Referer); bootstrap script removes the fragment with replaceState before any requests. It can only exchange at the exact launch origin. Session cookie is HttpOnly, SameSite=Strict, Path=/, no Domain; use Secure on HTTPS, with the explicit loopback HTTP exception. CSRF token is independent random 256-bit state, returned only through authenticated same-origin JSON, held in memory and sent as X-App-CSRF on every mutation except bootstrap. Session lifetime is 12 hours absolute and 30 minutes idle; authenticated renewal rotates credentials, invalidates old values and requires an unexpired session. Logout/revoke, server restart and root change invalidate sessions and close streams; jobs persist independently. An expired session requires fresh local pairing, not a URL token reuse. These durations are new security parameters, not changed PERF timing targets.\n\n| Threat / boundary | Required control | TEST §13 oracle |\n| --- | --- | --- |\n| Hostile website or DNS rebinding | Exact launch Host+port, exact Origin whenever present; mutations require Origin. Reject null Origin and cross-site fetch metadata; no Access-Control-Allow-Origin | SEC01 foreign/rebound/IPv6-alias Host, null Origin and forged forwarded headers yield zero state/provider effects |\n| Missing Origin on normal browser navigation/media | Authenticated GET/HEAD immutable content may omit Origin with Sec-Fetch-Site:same-origin and scoped authorization. JSON GET and fetch-based SSE may omit Origin only with those checks plus X-App-Client:LP-1. Static shell is session-free but contains no secrets. Mutations never permit absent Origin | SEC02 anonymous/cross-site content and absent-Origin API without client marker rejected; authenticated same-origin browser reads succeed |\n| Pairing theft/replay, session fixation | Fragment-only one-use expiring token; cookie/token rotation; no token in logs/events/bundles; bootstrap is only unauthenticated API | SEC03 expired/reused token, revoked session, old CSRF and restart fail without effect |\n| Sensitive data via GET/stream | Same session/scope checks as commands; no-store API/provenance; safety status enforced at asset endpoint, including ranges/thumbnails | SEC04 blocked/unknown-safety bytes cannot bypass UI through direct URL/range |\n| Untrusted project/prompt/file text | Render text as text; never insert HTML or execute supplied code; CSP default-src 'self', object-src 'none', frame-ancestors 'none', base-uri 'none'; restrict connect-src to exact local origin, images to self/blob, fonts and workers to app resources | SEC05 hostile filename/prompt/archive renders inert; signed URLs never become browser src |\n| Storage or local process boundary | Private root directory mode 0700/files 0600 or equivalent owner-only ACL; reject symlink roots/path components; protect DB, staging, backups and transport store | SEC06 another OS user denied; owner-compromised process/OS outside pairing defense, not claimed protected |\n\nServe validated static raster previews with measured MIME and nosniff; other original/unknown content uses attachment and sanitized filename plus Content-Security-Policy:sandbox. Do not serve user SVG/HTML as active app-origin content. Referrer-Policy:no-referrer; no sensitive response caching. Same-origin browser GET fetches can omit Origin; the authenticated client uses X-App-Client:LP-1 and Sec-Fetch-Site:same-origin under the narrow read exception above. Use fetch-based SSE so the client marker is available. Never attempt to set the browser-controlled Origin header or waive checks for generic absent-Origin requests. Browser behavior and proxy details require Q26 qualification; unsupported browser behavior must not silently disable checks.\n\n### 20.3 Egress and transfer profile EF-1\n\nSeparate queue transport from asset retrieval. Only authenticated queue calls to exact https://queue.fal.run:443 for the selected allowlisted endpoint/request identity can receive Authorization: Key from CredentialProvider; no redirects. The dedicated fal upload adapter may receive a credential only for exact documented auth/API endpoints recorded in its sealed Q09 profile; never for a returned asset URL. Queue-returned URLs must match the pinned queue origin and request identity, otherwise quarantine for protocol reconciliation. No generic fal.run POST or model stream is enabled by this policy.\n\nCredential-free media fetches use a versioned server-owned exact-host list in the selected Q09 storage profile, with only HTTPS port 443. No wildcard suffix list, arbitrary host, browser-supplied URL, userinfo, fragment, ambient cookie, Authorization, client certificate, .netrc or environment proxy inheritance. The initial list is empty until the documented fal/CDN endpoint hosts are sealed; this is a qualification gate, not permission to guess a current CDN hostname. Signed query credentials received from the provider remain confined to backend transport evidence. Media redirects are rejected (zero hops); a newly documented host/redirect needs a profile revision and fixture review before use, never credential forwarding.\n\nResolve A/AAAA at connection time, reject the whole answer set if any address is loopback, private, link-local, multicast, unspecified or reserved, including IPv4-mapped IPv6 and noncanonical numeric forms. Pin a validated address to the actual socket, verify peer address and TLS hostname/certificate for the original host, and revalidate each new connection/resume; do not validate one DNS answer then reconnect through a new unchecked resolution. Deny proxy bypass. Test-only provider emulation is a distinct dependency-injected transport with fixed loopback fixture origins and sentinel credentials; production builds/config reject the emulator flag/profile and cannot weaken EF-1.\n\nEvery transfer owns a R31 disk reservation and purpose envelope, counts actual streamed bytes even without Content-Length, and checks declared versus actual length/hash. A known size cannot exceed reserved bytes; unknown size pauses before consuming the reservation and acquires more under R31 or fails visibly, preserving partial evidence. No new global file cap is implied: larger full closures and opaque returned prompts stream under R38/R39; training keeps its four caps. Use ≤1MiB IO chunks inside the existing 64MiB copy/text workspaces, with codecs/tensors inside their existing caps. Connection deadline 10 seconds; no-progress read deadline 30 seconds. Each timeout aborts that connection and reports interrupted retrieval, never provider cancellation. There is no absolute job-duration timeout; resumable bounded transfers can continue while bytes make progress and reservations remain valid. Status/read/transfer retry uses existing bounded backoff and observed Retry-After; each attempt rechecks identity, storage and session. Do not auto-retry a paid submission. New operational connection limits are distinct from unchanged end-to-end budget ceilings and are accounted inside the parent clocks.\n\n### 20.4 Portable format and upload profile PF-1\n\n.ideogram-project formatVersion:1 is ZIP64-capable ZIP with STORE entries (no compression, encryption, multi-volume archives or executable content). This explicitly chooses the formerly proposed container; STORE removes decompression expansion from the initial profile without limiting closure size. Reject other compression methods as unsupported profile, never auto-convert untrusted files. UTF-8 entry names are exact canonical relative ASCII paths: manifest.json, records/<decimal>.jsonl and objects/<64 lowercase hex sha256>. No absolute/drive/UNC paths, backslashes, percent-escaped names, dot/dot-dot/empty segments, duplicate names, case-fold collisions, symlink/hardlink/device entries or overlapping byte ranges. Directory entries are unnecessary and rejected. ZIP local headers and central directory must agree on name/method/sizes/CRC; validate ZIP64 offsets/lengths without narrowing to 32-bit. The caller never supplies a destination path.\n\n```ts\ntype PortableSegment = {\n  path: string; sha256: string; bytes: string;\n  kind: \"index\" | \"events\" | \"records\"; recordCount: string;\n};\ntype PortableRootRef = { kind: string; logicalId: string; recordHash: string };\ntype PortableManifestV1 = {\n  formatVersion: 1; documentSchema: 2; sourceNamespace: string;\n  capturedHighWater: Seq; complete: boolean;\n  rootRefs: readonly PortableRootRef[]; segments: readonly PortableSegment[];\n};\ntype PortableRecordV1 =\n  | { schemaVersion: 1; kind: \"index\"; segments: readonly PortableSegment[] }\n  | { schemaVersion: 1; kind: \"event\"; event: DomainEvent<unknown> }\n  | { schemaVersion: 1; kind: \"object\"; sha256: string; bytes: string;\n      mediaType: string; path: string }\n  | { schemaVersion: 1; kind: \"entity\"; logicalId: string; entityType: string;\n      payloadVersion: number; payloadRef: BlobRef; dependencies: readonly PortableRootRef[] };\n```\n\nManifest is {formatVersion:1,documentSchema:2,sourceNamespace,capturedHighWater,complete,rootRefs,segments}; each segment descriptor is {path,sha256,bytes,kind,recordCount}. Manifest pages and individual descriptor/event records obey existing R39 128MiB segment and R19/§5 event envelopes; larger indexes are segmented, not truncated. A small manifest root points to further descriptor segments rather than requiring all descriptors resident. JSONL records are UTF-8 LP-1 canonical objects with one record per line and schema/payload versions. Event sequence and transaction boundaries are retained; closure maps include immutable hashes, lengths, logical IDs, dependencies and artifact class. Object descriptors and raw SHA-256 hex filenames agree; BlobRef hashes retain their algorithm-qualified form. Entity types are limited to the existing document/layer/text/layout/font/composition/history/checkpoint/draft/job/candidate/dataset/adapter schemas and TP-1 portable-provider, never backend-transport; unknown versions remain inspection-only. Index segments form an acyclic graph; event segments preserve exact original event objects and transaction boundaries. Objects contain the exact owned bytes. Source namespace IDs remap into a fresh local namespace with a persisted mapping; original bytes/identity remain provenance. Imported jobs are observation-only. Unknown future format/version opens inspection/recovery without executing or publishing an editable namespace; never coerce to v1.\n\nValidation order is normative: (1) authenticated ownership and purpose/declared length plus R31 reservation; (2) stream to isolated owner-only staging with hash/length checks; (3) bounded ZIP directory/header/entry-type/path/collision/range validation; (4) stream STORE entries, CRC and SHA-256, enforcing aggregate bytes equal the declared reservation and descriptors (there is no compression ratio >1 to accept); (5) validate versioned manifest/JSONL without duplicate keys, references, complete transaction sequences and full transitive closure; (6) validate typed assets/codecs/fonts/adapters under their sealed profiles without executing archive code; (7) display preview including missing/restricted fonts, scope/size and namespace mapping; (8) one writer acceptance publishes all references/events/receipt after mandatory bytes are durable. Any failure leaves the existing namespace and source archive unchanged. Durable staging inventory records incomplete attempts; restart resumes only validated matching offsets or offers explicit cleanup. Orphaned content-addressed files are collected only after the ordinary zero-root recheck; no failed import can delete a shared object.\n\nPurpose-specific validation: original image imports require static PNG/JPEG/WebP measured signatures and dimensions; masks require static PNG with reviewed grayscale/luminance, polarity and alpha mapping, explicit reviewed resize/mapping for the accepted 25MP/8192-side document envelope, and tiled decode reservations before allocation; originals are retained. Reject animation and unsupported formats exactly as UX §3; no first-frame extraction. A valid larger original is not silently resized or rejected solely by a W1/W2 encoded-byte fixture. Training originals keep 1–100/800MiB aggregate, prepared ZIP ≤201MiB and captions ≤4KiB UTF-8 independently; 1024-square/2MiB per prepared image remain WT fixtures only. Caption app parsing uses WJ depth16/token50000/256KiB authored limits; larger returned provenance streams opaque, not discarded. Font files use R35 exact identity/license/parser caps; tensor/config uploads use the Q08 nonexecuting inspection profile and WA reservations, not an invented 1GiB hard tensor cap. Bundles use PF-1/R39 and may exceed4GiB. Each unsupported or over-budget parse preserves original/staged bytes and explains recovery; it cannot register a usable asset or silently truncate. Raw archive upload and training ZIP construction are different operations; arbitrary prepared training ZIP import remains excluded.\n\n### 20.5 Exact transport evidence and portable provenance TP-1\n\n```ts\ntype BackendTransportEvidence = {\n  class: \"backend-transport\"; attemptId: string; recordId: string;\n  direction: \"request\" | \"response\"; exactBodyRef: BlobRef;\n  completeness: \"complete\" | \"partial\"; receivedBytes: string;\n  sanitizedHeaderRef: BlobRef; policyRef: BlobRef;\n  access: \"backend-only\"; export: \"never\";\n};\ntype PortableProviderRecord = {\n  class: \"portable-provider\"; attemptId: string; endpoint: string;\n  requestId: string | null; status: string; assetHashes: readonly string[];\n  requestedPromptRef: BlobRef | null; submittedPromptRef: BlobRef | null;\n  returnedPromptRef: BlobRef | null; seedText: string | null;\n  safeTimingsRef: BlobRef | null; privacyPolicyRef: BlobRef;\n  derivation: { profile: \"TP-1\"; sourceBodyHash: string; complete: boolean };\n};\ntype AppliedPrivacyPolicy = {\n  profileId: string; profileVersion: number; evidenceDigest: string;\n  requestedStoreIO: \"0\"; requestedAccess: \"most-private-compatible\";\n  appliedLifecycleSeconds: number | null; appliedACL: string | null;\n  enforcement: \"documented\" | \"observed\" | \"unknown\";\n  fallbackAcknowledgementId: string | null;\n};\n```\n\nExact request/response body bytes live in a separately permissioned backend store, never a domain BlobRef reachable by generic /assets, portable closure, UI projection or ordinary log. Headers are allowlisted/sanitized at ingestion: never persist FAL_KEY, Authorization or Cookie even in transport evidence. Exact bodies can contain signed URLs or echoed input, so access is backend transport/recovery only; no browser download route. Persist incomplete state honestly. Retain evidence with its attempt until explicit whole-document/root deletion releases it; bounded diagnostic copies remain under existing rings. TP-1 exactness refers to received body bytes only, not a full raw HTTP transcript or redacted body relabelled exact.\n\nPortableProviderRecord is a separately derived allowlisted record. Preserve required seed, status, hashes and safe finite timing values; do not copy arbitrary provider URLs, headers, error messages or unknown JSON properties. Unknown fields remain backend evidence unless separately typed/sanitized. Safe asset lineage uses hashes and route IDs, not full origin/path if it carries secrets. Export traversal follows only portable-class edges and explicitly excludes backend-transport, staging URL maps, credentials, cookies, pairing/session state and live outbox authority; it cannot treat every provenance BlobRef as portable. The source body hash is evidence metadata, not a traversable export edge.\n\nRequested/submitted/returned prompt records remain their separately exact UTF-8 blobs, including escaped/oversized content; do not redact authored text or truncate it and still call it exact. They are document content under the existing full-history policy, not copied HTTP credentials. The writer never inserts provider transport secrets into prompt fields. A provider response containing a known credential/cookie/signed-URL sentinel in a prompt is quarantined; complete copy is blocked with a disclosure until the user creates an explicitly redacted, labelled recovery copy. Do not silently alter the exact original or export transport secrets to satisfy completeness. Consumer fixtures distinguish arbitrary user-authored URL text from known transport credentials. Redacted recovery copies carry incomplete/sanitized status and do not claim exact prompt closure.\n\n### 20.6 Explicit deletion and root ownership DR-1\n\nDeleteCandidate is a dependency-reviewed visibility tombstone. Even a never-adopted, otherwise unprotected result remains strongly byte-rooted by its job result provenance. This intentionally frees no candidate image bytes; set-aside/hide is not disk cleanup. Adopted/history/shared roots remain protected. Candidate metadata records the tombstone and retained byte reason. Job-associated hidden result bytes remain in full-history copy closure because provenance still roots them; the hidden row need not appear as a normal candidate on reopen. This is the user's keep-bytes decision, not the audit's alternative root-release recommendation.\n\nWhole-document deletion is the storage-reclaim path, with PreviewDocumentDeletion then DeleteDocument actions through §5.2. Preview yields a durable plan ID/hash, document revision/root-generation, exclusive releasable bytes, shared/retained roots, affected histories/checkpoints/drafts/jobs, external backups and uncertainty warning. Confirmation names the plan and expected versions; changed roots invalidate the plan with STALE_REVISION and require a new preview. Save copy is offered first but not silently performed; external saved copies/backups are never erased. Deletion cannot be undone as a normal edit; reopening a verified copy creates a new namespace.\n\n| Root class | Atomic DeleteDocument disposition | Physical outcome |\n| --- | --- | --- |\n| Document/layers, all retained branches/undo-redo, document-scoped named checkpoints, drafts/UI and document candidates/jobs/source/result provenance | Remove this document's owning edges in one writer transaction; append workspace DocumentDeleted tombstone + receipt outside deleted namespace | Exclusive bytes become GC-eligible; retained hash/ID/count receipt holds no strong byte edge |\n| Shared objects/another document, independent dataset/adapter library, explicit external pins | Keep every independent root; deletion preview names them | Shared bytes retained, never counted as freed |\n| Safe-unstarted queued job | Remove dispatch authority/outbox and cancel local stage work atomically before releasing roots | No provider submit after tombstone |\n| Dispatching/running/uncertain job | Preview requires explicit acknowledgement; detach minimal reconciliation tombstone with attempt/request identity and nonportable transport control, keep conservative remote slot/charge reservation | No new paid submission, adoption, candidate publication or result download; known-ID status/cancel reconciliation may continue; uncertainty stays visible |\n| In-flight import/prepare/copy or active transfer | Writer epoch/root-generation fencing cancels publication, aborts transfer and pins in-use objects until worker acknowledges stop | GC cannot race a reader/writer; bytes show pending cleanup; an already prepared independent saved bundle remains |\n| Staging, quarantine, backups and external/provider copies | Inventory by ownership; release document-only staging after worker stop; keep independent migration/backup roots until their own explicit cleanup | Local deletion never proves remote erasure or deletes a user-chosen external copy |\n\nAccept only after the tombstone, edge release, receipt and dispatch fences commit atomically. Receipt reports accepted deletion and estimated eligible/shared/pending bytes; a subsequent GC receipt reports actual reclaimed bytes. No instant or guaranteed byte-freed claim. GC marks a generation, quarantines zero-root objects with a durable marker, waits until no pre-generation IO lease remains, then rechecks references under writer lock immediately before unlink. A new pin rescues quarantine atomically. Restart completes only already committed tombstones/GC intents, inventories partial unlink and continues idempotently; it never infers deletion from a missing view or temporary file. Repeated DeleteDocument with the same command returns the existing receipt. Late callbacks check tombstone/epoch first, retain only minimal reconciliation metadata and cannot recreate the document or its candidate roots. Unknown remote work may keep a slot occupied; explicit risk override remains §7, and does not mean refund, stop or remote deletion.\n\n### 20.7 Optional request cap and uncertain-charge ledger SG-1\n\nOff by default. SetSpendGuard action sets an optional positive integer paid-request cap on a durable spendSessionId. This is a user-visible work session, independent of browser/pairing sessions, tabs and server restart. A new session requires explicit StartSpendSession review; automatic login/restart cannot reset counters. No billing/account management or guaranteed currency limit is introduced.\n\nBefore AttemptDispatching, the writer atomically checks the active cap and reserves one count for that attempt alongside the existing concurrency slot/outbox fence. Inference or training request counts once irrespective of output batch size; an explicit new attempt counts again. Safe-unstarted cancellation releases its reservation; once dispatching is durable, uncertainty conservatively holds/consumes the count even if the crash may have preceded network bytes. Known completion/failure/cancellation never proves a zero charge and does not replenish that session's dispatched count. Read/status/cancel/result retrieval consumes no new paid-request count. Concurrent tabs cannot pass the same last slot. If capped, keep jobs local and show paused-spend-cap; no hidden retry. Explicit cap raise/disable or new session records a config event and resumes eligible work; old unresolved attempts remain in the visible ledger and preserve their concurrency holds unless separately risk-overridden.\n\nLedger rows show attempt, operation, dispatch status, estimate/source/assumptions, charge observation if supplied, and uncertain-charge state/reason. Unknown actual cost is never zero. U07 estimates remain estimates; U08 stays one active provider request. PERF R24/R26/R30/R31 include cap checks, ledger persistence and paints; no new campaign or numeric performance ceiling is added.\n"
+      },
+      {
+        "section": "architecture",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-03"
+        ],
+        "old": "This is an app-auth proposal, separate from fal credentials; no multi-user/account system is introduced.",
+        "new": "LS-1 in §20.2 now specifies this accepted local authentication contract, separate from fal credentials; no multi-user/account system is introduced."
+      },
+      {
+        "section": "design-system",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8C-01"
+        ],
+        "old": "Seal and requalify the selected source when producing packages.",
+        "new": "Seal and requalify the selected source when producing packages. The [dated 8C-01 freshness receipt](#readiness-ds) records later broader-corpus drift and the existing Q12 freeze gate."
+      },
+      {
+        "section": "api",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-04",
+          "8B-07"
+        ],
+        "old": "Do not persist secrets, signed URL credentials or full authorization headers in events/logs.",
+        "new": "Do not persist secrets, signed URL credentials or full authorization headers in events/logs. [ARCH EF-1/TP-1](architecture.md#s20) separates authenticated queue transport from credential-free media fetching and confines exact bodies to backend-only evidence."
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-05"
+        ],
+        "old": "Remaining engineering proposals include Normal blend/sRGB pipeline, PNG app default, nonempty prompt rule, font/render profile and archive format",
+        "new": "Remaining engineering qualifications include Normal blend/sRGB pipeline, PNG app default, nonempty prompt rule, font/render profile and the selected PF-1 archive/hostile-upload profile"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-02",
+          "8B-03",
+          "8B-04"
+        ],
+        "old": "P1/P2 local HTTP/redaction/file-boundary fixtures; hosted secret injection/webhook verification only under a separately scoped deployment",
+        "new": "P1/P2 LP-1/LS-1/EF-1 actual HTTP/session/content/egress fixtures and negative cases; hosted secret injection/webhook verification only under separately scoped deployment"
+      },
+      {
+        "section": "api",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-04",
+          "8B-06",
+          "8C-02"
+        ],
+        "old": "Author verification on 2026-09-25: all 17 V4 schemas compared; published Fal sample structurally parsed; complete documented caption fields/types/order/bounds cross-checked against guide, hosted type definitions and verifier; 32 offline format fixtures recorded; coordinate mapping checked algebraically and against a non-square example; no app/model build or benchmark. Offline fixture record SHA-256 `d861253db319626db33861d1921977355c36bbb3178ae37fac462c33a8715648`. Temporary source/fixture files are in /tmp/ideogram-composition-evidence; the canonical durable deliverable is this note, not those temporary files. Repository mirrors remain Task7 work.\n",
+        "new": "Author verification on 2026-09-25: all 17 V4 schemas compared; published Fal sample structurally parsed; complete documented caption fields/types/order/bounds cross-checked against guide, hosted type definitions and verifier; 32 offline format fixtures recorded; coordinate mapping checked algebraically and against a non-square example; no app/model build or benchmark. Offline fixture record SHA-256 `d861253db319626db33861d1921977355c36bbb3178ae37fac462c33a8715648`. Temporary source/fixture files are in /tmp/ideogram-composition-evidence; the canonical durable deliverable is this note, not those temporary files. Repository mirrors remain Task7 work.\n\n<a id=\"readiness-evidence\"></a>\n\n## Readiness evidence and remote privacy — API-1.2+A3\n\n**8C freshness receipt, 2026-09-26:** [audit 8C](readiness/8C-evidence.txt) rechecked all 27 schema hashes and found them unchanged, including the 17 V4 schemas, six empty model-stream outputs and ten comparison schemas. Runtime route sets, V4 guide bytes, caption guide/code identity, protocol bytes and pricing prose matched the dated captures. This is source comparison, not provider execution. The broader en-reve corpus drift belongs to DS §1/Q12.\n\n8C-02 raw HTML digests differ for base/family/explore pages. Whitespace-normalized visible text (excluding script/style), embedded schema objects and discovered routes are equivalent to the prior captures; canonical embedded-schema digest is 9b6081e824ca9492d88f8a2a6b6f1da205659f10689864518e14c179543de611. Comparison-only upscale examples changed property ordering (url/file_name), with equivalent parsed objects. The complete dated old/new raw ledger and methods are retained in the audit receipt; historical Appendix C/E9 hashes remain untouched. Future raw drift must trigger semantic comparison before any contract change. No new native-layer, alpha, tiling, stream, billing or forwarding guarantee follows; Q01–Q11 remain unqualified.\n\n### RP-1 — selected minimum-retention policy\n\nUser decision 2026-09-26: select the shortest provider-side persistence and most private access supported for each endpoint while preserving deferred input fetching and result recovery. Request X-Fal-Store-IO:0 on each inference/training attempt; this minimizes request JSON history only. Select the minimum supported finite object lifecycle and most private supported ACL compatible with the pinned upload/inference/fetch flow. Do not substitute guessed seconds or undocumented ACL enum values. [Existing header evidence](https://fal.ai/docs/documentation/model-apis/common-parameters) names expiration_duration_seconds and initial_acl but does not establish a universally safe minimum for V4 deferred fetching. Q09 must seal a versioned endpoint/storage profile containing exact supported header/upload values, evidence, minimum compatible lifetime, renewal capability and credential-free retrieval hosts before claiming enforcement.\n\nA profile is usable only if it supports the selected endpoint's deferred fetch, source/mask/adapter/archive availability and subsequent output download; unbounded/unknown queue delay cannot be declared covered by a guessed finite TTL. Prefer a renewable private staging lease where documented and qualified. If minimum/private compatibility cannot be guaranteed, block dispatch and show the exact uncertainty and proposed provider-supported fallback. A user can explicitly acknowledge that disclosed fallback for the frozen attempt; do not silently inherit forever/public account defaults, alter a dispatched request or refresh/retry an uncertain paid submission. Persist requested policy, applied values (or explicit unknown), profile/evidence identity, observed versus documented enforcement and fallback acknowledgement on every attempt through AppliedPrivacyPolicy. A local download does not prove provider erasure. Profile feasibility remains Q09 qualification, not an unresolved choice of the default policy.\n\n| Data leaving local storage | Destination / metadata | Required policy and visible limit |\n| --- | --- | --- |\n| Prompt, structured caption, seed/settings | Selected fal endpoint; exact prompt plus requested settings | Store-IO:0 requested; show metadata may be processed/logged remotely; returned prompt may differ; source evidence is not enforcement proof |\n| Source/mask image | Qualified fal storage or explicitly configured object store; measured MIME/bytes and transport identity | Most private deferred-fetch-compatible access and minimum lifetime; immutable owned originals remain local; expiry can prevent execution |\n| Adapter weights/config | Qualified storage and selected LoRA endpoint; format/profile plus immutable byte identities | Same least-retention profile; no arbitrary URL import; disclose model processing/caching unknowns |\n| Training image/caption ZIP | Qualified storage and trainer; only validated pairs and training parameters | Same policy with trainer fetch-window qualification; local sidecar/provenance is not uploaded; indefinite job duration is not a fixed TTL guarantee |\n| Output image/weights/config and response | Provider result/storage to backend | Promptly retain required bytes; credential-free EF-1 asset fetch, profile expiry/ACL recorded; offline machine may miss remote lifetime |\n\nUser-visible preflight names these data classes, destination/profile and policy uncertainty; per-attempt inspection shows applied values without exposing signed URLs. No automatic remote deletion API is introduced. Local candidate hiding, whole-document deletion and external copy deletion never promise removal of provider copies, reused inputs, logs or backups. Transport credentials remain server-only. [ARCH §20](architecture.md#s20) owns LP-1/EF-1/TP-1; tests PRIV01/02 and EGRESS01–03 own expiry, fallback, credential sentinel and replay outcomes. These are new app policy contracts; the captured provider schemas and evidence dates are unchanged.\n"
+      },
+      {
+        "section": "ux",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-06",
+          "8B-11"
+        ],
+        "old": "PERF-8 owns the detailed phase allocation, finite specimens, sample rules, reserves and regression response. This mirror preserves its numbers; no benchmark has run.\n",
+        "new": "PERF-8 owns the detailed phase allocation, finite specimens, sample rules, reserves and regression response. This mirror preserves its numbers; no benchmark has run.\n\n<a id=\"readiness-ux\"></a>\n\n## Readiness policy surfaces — UX-2.2+A3\n\nBefore dispatch, request review shows what leaves the computer (prompt/settings, attached source/mask, adapters, or training image/caption archive), the destination and the selected minimum-retention/private-compatible RP-1 profile. If private access or deferred-fetch lifetime is unqualified, show “Remote privacy or availability cannot be guaranteed” with the exact proposed fallback; block until the user explicitly acknowledges that fallback or cancels, preserving the draft. Attempt inspection records requested/applied values and enforcement uncertainty. Never imply that Store-IO:0 removes CDN media, or that deleting local work removes provider copies. API RP-1 owns the policy; Architecture TP-1 protects signed URLs and transport records from UI/export.\n\nOptional **Paid-request cap** is off by default. Enabling asks for a positive request count for the current work session; show remaining/reserved/dispatched counts and clearly explain that one request may return several images, training counts once, and a new retry attempt counts again. The server enforces the cap across tabs/restarts. At the cap, show “Paused at request cap”, preserve queued jobs/drafts and offer an explicit cap change or new work session. Signing in again does not reset the spend session. The uncertain-charge ledger remains visible across sessions with attempt identity, estimated cost/source and “Actual charge unavailable” where unknown. Cancellation is not a refund, uncertainty retains its reservation, and estimates are never called a guaranteed money limit. U07/U08 remain unchanged; Architecture SG-1 owns the writer rules.\n\nStorage controls distinguish **Hide result — no disk space freed**, **Free preview cache**, and **Delete document**. The existing §5 cleanup flow and Architecture DR-1 own previews, shared roots, active-job acknowledgements and actual GC receipts; no second retention policy is implied here. These surfaces use existing accessible dialogs/status/field errors and do not introduce a billing/account-management system.\n"
+      },
+      {
+        "section": "design-system",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8C-01"
+        ],
+        "old": "2026-09-25: The user accepted browser rendering first. Section 9’s initial architecture is now an accepted preference: native HTML loading/error shell, token CSS and client-rendered editor; optional SSR requires a measured startup benefit and its own qualification. The local provider server remains required. Both identified preference questions are closed; this does not claim runtime or installation qualification.\n",
+        "new": "2026-09-25: The user accepted browser rendering first. Section 9’s initial architecture is now an accepted preference: native HTML loading/error shell, token CSS and client-rendered editor; optional SSR requires a measured startup benefit and its own qualification. The local provider server remains required. Both identified preference questions are closed; this does not claim runtime or installation qualification.\n\n<a id=\"readiness-ds\"></a>\n\n## Dated source freshness and package qualification — DS-1.1+A3\n\n8C-01 supplements §1 and §7; it does not replace the historical digests. The [8C receipt](readiness/8C-evidence.txt) reran the exact corpus recipe including tsconfig.base.json: 1,832 files at 2026-09-26T01:16:13.499547+00:00 hashed 0229d00ed04102965b9c615bff17652c101a9815e672f5472c4a0ed2d3921a72; 1,834 files at 2026-09-26T01:17:19.103780+00:00 hashed 391e90709c6d4e677f77f15570b1b817715f0dd75ce91046a87198ef5b3fffab. HEAD and all nine anchors matched; 531 public metadata entrypoints, 96 element declarations and the 42 named class/descriptor pairs still matched. These are dated observations, not today's immutable producer identity.\n\nDuring that audit tooling/testing/machine-owner.mjs and its test appeared, while invoke.mjs, workload.mjs, README.md and comprehensive.test.mjs changed. The historical full per-file byte inventory was not preserved, so no claim is made that all drift since the 1,831-file baseline is harmless. Private 0.1.0 and HEAD alone still cannot reconstruct the entire working graph.\n\nQ12 remains owned by Build/DS producer in P1: select and freeze exact full source, lock and license bytes into an isolated snapshot with a sorted per-file path/length/hash manifest; record and reject concurrent source drift; then produce coherent archives and qualify public imports, generated metadata, lock identity, actual archive bytes and clean consumer installation. Keep historical observations and selected production identity distinct. No live design-system edits, archive production, installation or browser qualification occurred in Task 9. PERF D09 includes this existing producer work; toolchain pins remain proposals until sealed.\n"
+      },
+      {
+        "section": "performance",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03",
+          "8B-02",
+          "8B-04",
+          "8B-05",
+          "8B-07",
+          "8B-08",
+          "8B-11",
+          "8C-01"
+        ],
+        "old": "On 2026-09-25, read the existing design-system package-lock.json and installed playwright-core package.json/browsers.json without executing or installing them. Lockfile SHA-256: 495784328f6a3e500e0fd40726377b650a978f290554305edb4bf6c29be4e622. Installed core metadata SHA-256: f061c58427e47e843e26d201f0a57076c734e57c734ecbbd87d4a23b7a20db9b (version 1.63.0); browser manifest SHA-256: 545d52f8382c391e605562c330e9c1c534a16045898203037a49bb8bd769a946. These identify the source for proposed pins in §2; they do not prove installed browser executables, producer reproducibility or editor compatibility. Future editor installation must obtain matching locked artifacts without relying on this sibling checkout.\n",
+        "new": "On 2026-09-25, read the existing design-system package-lock.json and installed playwright-core package.json/browsers.json without executing or installing them. Lockfile SHA-256: 495784328f6a3e500e0fd40726377b650a978f290554305edb4bf6c29be4e622. Installed core metadata SHA-256: f061c58427e47e843e26d201f0a57076c734e57c734ecbbd87d4a23b7a20db9b (version 1.63.0); browser manifest SHA-256: 545d52f8382c391e605562c330e9c1c534a16045898203037a49bb8bd769a946. These identify the source for proposed pins in §2; they do not prove installed browser executables, producer reproducibility or editor compatibility. Future editor installation must obtain matching locked artifacts without relying on this sibling checkout.\n\n<a id=\"readiness-accounting\"></a>\n\n## SPEC-A3 readiness resource accounting\n\nThe 60 R/T/D rows, all 26 existing PERF tables, workload sizes, finite P/Q3 samples and campaign totals remain byte-preserved apart from the already approved FA-01 wording. This addition changes no target, ceiling, sample count or accepted admission cap. LP-1/LS-1/EF-1/PF-1/TP-1/DR-1/SG-1 work is inside the existing owning action and memory/disk clocks, not an unmeasured free allowance.\n\nCommand canonicalization/hash, auth, receipt dedup, staging bookkeeping, spend-cap reservation and deletion-plan checks count inside applicable R19/R24/R26/R30 completion and durability clocks. Immutable uploads, exact backend response storage, portable sanitization, STORE archive validation/hash/closure and deletion GC account for actual bytes, staging+final overlap and transient allocations under R31/R38/R39 and existing CPU/RSS ceilings. Backend-only evidence is private storage and still consumes quota; excluding it from portable copies does not erase its disk cost. Both exact and derived records are counted when retained. Chunk buffers (≤1MiB) are subsets of existing workspaces, never additional allowances.\n\nCandidate hiding frees zero retained result bytes, including never-adopted results. Only cache eviction or explicit eligible root release (whole-document DR-1) may reduce those categories. Until leases/quarantine/GC finish, count bytes as retained or pending cleanup; shared roots count once physically and remain attributed. R31 warnings/reservations cannot assume a hide action will free space. Keep the additional64MiB recovery reserve and1GiB admission margin distinct. Large copies/opaque prompts still stream beyond4GiB/16MiB qualification specimens with unqualified completion timing, not truncation.\n\nNew 5-minute pairing,12-hour absolute/30-minute idle sessions and10-second connect/30-second no-progress transfer deadlines are LS-1/EF-1 operational security/interruption parameters, not edits to PERF completion ceilings or provider-duration promises. Repeated recovery work and failed attempts remain in end-to-end receipts. New correctness fixtures in TEST §13 are assigned to existing U/L/B/E owners; before running WD, QA records actual added case counts and elapsed work. If the sealed suite no longer fits WD, follow Q21's explicit scope/budget amendment, never delete tests or inflate passing campaign counts silently.\n\n8C-01's moving en-reve corpus requires the existing Q12 source freeze/per-file manifest before D09 producer qualification; old HEAD/private versions cannot identify today's build graph. No source freeze, performance campaign or runtime measurement is claimed by this documentation revision.\n"
+      },
+      {
+        "section": "testing",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03",
+          "8A-F04",
+          "8A-F05",
+          "8B-01",
+          "8B-02",
+          "8B-03",
+          "8B-04",
+          "8B-05",
+          "8B-06",
+          "8B-07",
+          "8B-08",
+          "8B-09",
+          "8B-11"
+        ],
+        "old": "TEST-1 was independently approved for specification/source readiness. Task 5 is complete. The assembled revision awaits final independent verification; executable tests, native/manual checks and provider qualification remain future work.\n",
+        "new": "TEST-1 was independently approved for specification/source readiness. Task 5 is complete. The assembled revision awaits final independent verification; executable tests, native/manual checks and provider qualification remain future work.\n\n<a id=\"s13\"></a>\n\n## 13. Readiness contract regression plan — TEST-1+A3\n\nThese are future consumer tests, not executions reported by Task 9. They extend existing U/L/B owners and E1–E4 journeys; unit > local integration > browser > end-to-end priority remains. Use real local HTTP/files/transactions/ZIP streams where practical and a deterministic provider emulator, no credentials by default. Each row asserts an observable boundary distinct from the complementary layers. QA inventories added cases under WD/Q21 before claiming unchanged measured suite costs; all existing tests and PERF campaigns remain required.\n\n| Test ID / finding | Behavior owner and fixture | Observable assertion and future layer |\n| --- | --- | --- |\n| PROTO01 / 8B-02 | State; same command with whitespace/key-order variation, null versus omission, changed envelope/body, Unicode, duplicate keys and >64KiB body | U canonicalization yields same hash only for defined equivalence; L duplicate local delivery returns original receipt/one event batch, changed body gives409 and no effect; rejection remains HTTP200 Receipt with unchanged five-code union |\n| PROTO02 / 8B-02 | State/Assets; lost202, pending preparation, crash/restart, expired paired session, unavailable journal and unknown receipt | L same operation/command identity survives; no outbox until receipt, unknown never creates a new attempt,507 never falsely claims durable rejection, renewed authorized session resends unchanged envelope |\n| PROTO03 / 8B-02 | Assets; chunk loss/partial flush, wrong offset/hash/type/owner, duplicate finalize | L GET offset resumes only flushed prefix; failed finalize never owned-ready; identical finalize one asset/receipt, other client denied; malformed/multiple/out-of-range content request gives416 with correct length |\n| PROTO04 / 8B-02 | State/UI; split transaction, dropped/duplicated/misordered SSE parts, inside-transaction cursor, retention gap | L/B no partial projection or early cursor advance; full transaction once; gap reload pinned snapshot+tail converges without remote calls |\n| SEC01 / 8B-03 | Jobs/Build; hostile-site requests, DNS-rebinding Host, alternate numeric/IPv6 alias, wrong port, null Origin and forwarded headers | L actual HTTP rejects before state/provider effects; B hostile origin cannot bootstrap/read/mutate through browser; exact configured proxy is separate positive case |\n| SEC02 / 8B-03 | UI/Jobs; absent-Origin same-origin browser fetch/media, cross-site navigation and anonymous downloads | L/B only LS-1's authenticated same-origin request classes succeed; Origin absence is never a general bypass; sensitive JSON/streams require the explicit client marker |\n| SEC03 / 8B-03 | State; controlled clock and real session store, consumed/expired token, revoke/renew/restart | L old token/cookie/CSRF rejected; no secret in URL history/log/event/bundle; jobs survive session restart; B fragment removed before requests |\n| SEC04 / 8B-03 | Assets; withheld/unknown-safety candidate plus guessed content/thumbnail/range paths | L/B direct endpoints deny bytes, not merely hidden UI; allowed retained asset renders after normal authorization |\n| SEC05 / 8B-03 | UI; hostile filename/prompt/SVG/archive HTML | B no script/network execution, safe text and attachment/nosniff/CSP behavior; keyboard error recovery remains accessible |\n| SEC06 / 8B-03 | Build/State; owner-only temporary root and symlink attempt | L OS permissions and path checks protect root; document explicit same-OS-user limitation, not simulated security certification |\n| EGRESS01 / 8B-04 | Jobs; queue credential sentinel versus asset host, redirect to private host, unapproved host/port | L transport captures credential only on permitted queue/upload auth origin; media fetch has no auth/cookie/proxy inheritance; all redirects rejected |\n| EGRESS02 / 8B-04 | Assets; mixed A/AAAA, mapped IPv4, resolution changed before connection, production emulator flag | U address classification plus L connection binding rejects any disallowed answer/peer; production refuses emulator override; deterministic test transport remains isolated |\n| EGRESS03 / 8B-04 | Assets; missing/false length, exhausted disk reservation, stalled stream, changed resume ETag | L counts real bytes; pauses before reservation overrun, timeout preserves honest partial state, no append to changed identity and no provider resubmit |\n| FORMAT01 / 8B-05 | Assets; real ZIP64 STORE, traversal/backslash/duplicate/case collision, symlink/device, overlapping entries or directory/header mismatch | U validators plus L hostile-file import publishes no namespace, preserves source and shared objects; no untrusted executable code runs |\n| FORMAT02 / 8B-05 | Assets; compressed expansion bomb, corrupted CRC/hash/JSONL, missing closure edge, interrupted staging/publication | L rejects unsupported compression before decompression; failed/restarted import leaves last good namespace; idempotent recovery and explicit staged-byte cleanup |\n| FORMAT03 / 8B-05 | Assets/State; generated streamed >4GiB closure, >128MiB logical manifest index split into segments, old font and hidden candidate | L real-file streaming stays within R39 workspace and includes full history/rooted bytes; complete copy fails on missing required asset, never truncates to fixture; no remote calls on reopen |\n| PROV01 / 8B-07 | Jobs/Assets; response body containing signed URL, cookie/key/error sentinel and escaped prompt, plus >16MiB returned prompt | L backend exact/partial evidence separated from derived allowlist; exported archive contains no transport secrets, exact legitimate prompt bytes retained, browser cannot read backend store |\n| PROV02 / 8B-07 | Assets/UI; known transport-secret sentinel embedded in returned prompt | L complete copy blocks rather than export secret or falsify exactness; explicit redacted recovery copy is labelled incomplete/sanitized; original protected evidence unchanged |\n| PRIV01 / 8B-06 | Jobs; frozen RP-1 request and endpoint profile, unsupported/private or too-short expiry | U policy resolution plus L wire fixture requests Store-IO:0 and recorded supported values; no guessed ACL/TTL, no silent fallback; UI retains draft until explicit acknowledgement or compatible profile |\n| PRIV02 / 8B-06 | Jobs/UI; expiry while offline, partial download, local delete | L/B local retained results reopen with zero calls; missing expired bytes show recovery limits; local deletion never displays remote-erasure success; requested/applied/unknown policy remains inspectable |\n| DELETE01 / 8A-F03 | State/Assets; never-adopted result with only job provenance; repeat with history/shared pin (extends S13) | U root walk and L Hide/DeleteCandidate tombstone retain bytes; GC frees zero result bytes; B says no disk space freed; portable copy retains hidden job-rooted result |\n| DELETE02 / 8B-08 | State/Assets; sole-root document versus shared assets, named checkpoints, independent dataset/adapter/backup | L preview/confirmation releases only listed document edges in one transaction; receipt durable outside namespace; shared bytes retained and actual freed count reported only after GC |\n| DELETE03 / 8B-08 | State/Jobs; changed preview revision, running/uncertain job, concurrent new pin, restart in quarantine/unlink, late result callback | L stale plan rejected; no post-tombstone dispatch/adoption/result publication; minimal reconciliation/charge hold survives; current pin rescues object; restart repeats safely without collateral deletion |\n| TRAIN01 / 8A-F04 | Training; prepared image >2MiB with all four accepted caps satisfied, nonsquare supported reviewed resolution; each cap+1 | U/L first cases pass admission with timing unqualified beyond WT; cap+1 rejects independently, originals/caption text remain intact; no invented per-image cap |\n| CAPTION01 / 8A-F05 | UI/State; known guide object missing high_level_description, explicit empty string, authored nonempty string (extends TX10/U-caption) | U missing field fails MISSING_SCENE; empty/present pass; B Convert copy inserts only reviewed value and preserves exact raw original; backend agrees |\n| SPEND01 / 8B-11 | Jobs; cap off, cap1, concurrent tabs, restart and browser re-pair | L off preserves old behavior; cap1 permits one dispatch reservation, extra jobs pause locally; restart does not reset work session; batches/training count as requests |\n| SPEND02 / 8B-11 | Jobs/UI; crash before/after durable dispatch fence, uncertainty, cancellation, explicit new attempt/session | L safe-unstarted reservation releasable but dispatching/uncertain count held; new paid attempt consumes count, reads/cancel/fetch do not; B explicit resume and persistent unknown-charge ledger, no money-limit guarantee |\n\nLP-1 wire examples and [readiness-contracts.json](readiness-contracts.json) are documentation oracles, not generated application tests. Static Task 9 checks validate declared contract inventory, IDs, exact old/new table/block changes and REQ-READY coverage; Task 10 independently reads semantics. Future tests must exercise behavior rather than simply matching this prose.\n\nE1 is the first credential-free vertical slice named in the index: boot the packed consumer, import one image, edit/undo, save a full-history copy, restart and reopen/export with equal owned pixels and zero provider calls. Its staged P1 exits organize already required behavior; they do not waive native text/composition/masks or later E2–E4. Initial support claims use the [index support matrix](index.md#initial-support-matrix), existing §9 AX/M-IME evidence and PERF H/L/C profiles; a measurement pin or automated engine alone is not platform/AT support.\n"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02",
+          "8B-01",
+          "8B-09",
+          "8B-10"
+        ],
+        "old": "**Historical assembly receipt (SPEC-A1/A2, superseded for current status):** SPEC-A1 independent review identified FA-01: PERF WT described the app manifest inside the upload ZIP, conflicting with UX §8 and ARCH §10. Under [Task 7 correction authorization](corrections/475e1f5c-0697-46e9-b205-decbb4297f00-FA01.md), PERF-8+A2 now states that only validated image/caption pairs enter the ≤201 MiB provider ZIP and the app manifest remains a separately durable sidecar. Its preparation/storage stays within existing workload and timing/resource accounting. All 60 budget rows and all numerical campaign values are unchanged; the table checker permits only the exact recorded WT wording correction. The [SPEC-A1 independent review](corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md) remains historical review evidence; SPEC-A2 is independently approved in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md), with final technical progress 4/4 and FA-01 closed. The [closeout authorization](approvals/475e1f5c-0697-46e9-b205-decbb4297f00-closeout.md) limits this update to approval labels/provenance; technical requirements and future qualifications are unchanged. No new product decision was required. Remaining runtime/build/provider/font/storage/accessibility/performance limitations are in Q01–Q27. No PR has been published and no implementation phase has been initiated.\n",
+        "new": "**Historical assembly receipt (SPEC-A1/A2, superseded for current status):** SPEC-A1 independent review identified FA-01: PERF WT described the app manifest inside the upload ZIP, conflicting with UX §8 and ARCH §10. Under [Task 7 correction authorization](corrections/475e1f5c-0697-46e9-b205-decbb4297f00-FA01.md), PERF-8+A2 now states that only validated image/caption pairs enter the ≤201 MiB provider ZIP and the app manifest remains a separately durable sidecar. Its preparation/storage stays within existing workload and timing/resource accounting. All 60 budget rows and all numerical campaign values are unchanged; the table checker permits only the exact recorded WT wording correction. The [SPEC-A1 independent review](corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md) remains historical review evidence; SPEC-A2 is independently approved in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md), with final technical progress 4/4 and FA-01 closed. The [closeout authorization](approvals/475e1f5c-0697-46e9-b205-decbb4297f00-closeout.md) limits this update to approval labels/provenance; technical requirements and future qualifications are unchanged. No new product decision was required. Remaining runtime/build/provider/font/storage/accessibility/performance limitations are in Q01–Q27. No PR has been published and no implementation phase has been initiated.\n\n<a id=\"readiness-dispositions\"></a>\n\n## Readiness dispositions and current gate\n\nAll 20 findings from [8A](readiness/8A-conformance.txt), [8B](readiness/8B-readiness.txt) and [8C](readiness/8C-evidence.txt) have author resolutions in SPEC-A3 under the [2026-09-26 decision receipt](readiness/authorization.txt). No finding is silently dropped or marked independently approved. Task 10 must verify these owning changes and current seven-note parity before Coordinator closes REQ-READY. Existing Q01–Q27 remain implementation qualifications; source authoring does not pass them. Original Task 7 is complete.\n\n| Finding | Author disposition | Owning current source and verification |\n| --- | --- | --- |\n| 8A-F01 | Resolved: original Task 7 complete; new readiness review pending | Index status/R20/handoff; live Spec header |\n| 8A-F02 | Resolved: REQ-READY added, closure still pending Task 10 | Index/traceability/checker; Task 10 independent review |\n| 8A-F03 | Resolved per user keep-bytes decision | UX §5, ARCH §9.2/DR-1, PERF accounting; DELETE01 |\n| 8A-F04 | Resolved: four hard training caps separate from WT fixtures | UX §8; TRAIN01; unchanged PERF WT |\n| 8A-F05 | Resolved: guide optional versus app-required scene; empty accepted | UX §14, ARCH §16.4 unchanged; CAPTION01/TX10 |\n| 8A-F06 | Resolved: current decisions/header separated from preserved chronological receipts | Live Spec history disclosure; sealed history untouched |\n| 8A-F07 | Resolved: CAP-01–CAP-24 summary | Index/traceability exact match |\n| 8B-01 | Resolved: first-slice milestones and applicable phase gates | Index below; TEST E1/§13 |\n| 8B-02 | Resolved: LP-1 wire/hash/error/upload/event contract | ARCH §20.1; PROTO01–04 |\n| 8B-03 | Resolved: LS-1 threat/session/content policy | ARCH §20.2; SEC01–06; Q26 runtime evidence still required |\n| 8B-04 | Resolved: EF-1 credential-free retrieval and sealed egress | ARCH §20.3/API cross-link; EGRESS01–03; Q09 profile qualification |\n| 8B-05 | Resolved: PF-1 ZIP64 STORE and ordered hostile-input validation | ARCH §20.4; FORMAT01–03; Q18/Q27 qualification |\n| 8B-06 | Resolved: minimum-retention/private-compatible RP-1 default | API/UX/ARCH AppliedPrivacyPolicy; PRIV01–02; Q09 endpoint feasibility unqualified |\n| 8B-07 | Resolved: backend exact evidence separated from portable allowlist | ARCH §20.5/§16.7; PROV01–02; PERF storage accounting |\n| 8B-08 | Resolved: explicit document preview/root release/receipt/race recovery | UX §5, ARCH §20.6; DELETE02–03 |\n| 8B-09 | Resolved: collected existing support claims and evidence | Index support matrix; TEST §9/13; no new supported cohort |\n| 8B-10 | Resolved: role-based entry path and one owning contract per topic | Index quick-start below; details remain in owners, no contract deletion |\n| 8B-11 | Resolved: off-by-default durable request cap and unknown-charge ledger | UX readiness, ARCH §20.7; SPEND01–02 |\n| 8C-01 | Resolved: dated broader source drift recorded; Q12 freeze retained | DS readiness receipt/§1/7, index Q12, PERF D09 accounting |\n| 8C-02 | Resolved: raw versus semantic freshness receipt; no schema change | API readiness evidence; original hashes unchanged |\n\n### Implementer quick-start\n\nRead the current gate and accepted decisions first. Required now means the next authorized implementation phase; this spec itself does not start it. UI implementers read UX §§3/5/13–16, DS §§4/7, ARCH LP-1/LS-1 and TEST E1/AX. State/Assets implementers read ARCH §§5/6/9/16 plus PF-1/TP-1/DR-1 and TEST §7/13. Jobs implementers read API transport/RP-1, ARCH §§4/7 and EF-1/SG-1 with TEST E2–E4. Build/QA read DS source/archives, TEST §10/11/13, PERF §2/7/8 and the Q register. API A/B are the field/schema reference, C/E the evidence reference; sealed history is for provenance, not required to infer current behavior.\n\nArchitecture owns local protocol/security/storage contracts; API owns provider evidence and RP-1; UX owns visible decisions/recovery; TEST owns observable checks; PERF's original matrices own all numeric budgets/campaigns. The new §20 and readiness summaries link these authorities instead of replacing or duplicating their finite ledgers. A conflicting owner clause or failed mandatory qualification stops the affected claim for coordinator disposition; passing documentation is not runtime evidence.\n\n### P1 sub-milestones and first slice\n\n| Milestone / dependency | Deliverable and owner | Observable exit from existing requirements |\n| --- | --- | --- |\n| P1a reproducible local shell | Build/UI; freeze Q12/Q13 package/tool inputs; packed consumer/browser shell and LP-1/LS-1 session | TEST §10 clean consumer/public imports and missing-key local shell; no secret in client; install evidence still future |\n| P1b durable single-image spine after P1a | State/Assets/Raster; writer, asset registration and CP-1 pipeline Q14/Q17 | Existing TEST E1 import → edit → undo → full-history copy → restart/reopen → exact export; real file/transaction checks and zero provider calls |\n| P1c complete initial authoring after P1b | UI/Text/Raster; native text/fonts, masks, separate composition links, history/recovery Q15/Q18 | TEST TX/F01–F05/E1 plus accessible native editing and old-history closure; no raster-only release shortcut |\n| P2 queued request slice after P1 | Jobs/UI; frozen request, deterministic provider emulator, local adapter path | TEST E2–E4 with LP-1/EF-1/RP-1/SG-1, uncertain submit/restart/cancel and explicit safe adoption; live-provider claims wait for applicable Q evidence |\n\n### Phase-to-qualification applicability\n\n| Gate(s) | Phase / accountable owner | Initial-release applicability and required disposition |\n| --- | --- | --- |\n| Q01/Q03/Q08/Q09/Q10 | P2 API/Jobs/Assets | Required for corresponding size/queue/adapter/privacy/forwarding support claim; deterministic fixtures plus separately authorized provider evidence where specified; no emulator proof of actual provider enforcement |\n| Q06/Q07 | P2 Jobs | Required honest estimate/unknown billing/identity/capacity disclosures and retained observations; no promised exact charge, duration or seed pixels; provider checks only if separately authorized |\n| Q11 | P2 UI/API, P3 QA | Native geometry and explicit caption limits required; semantic image quality remains an observation, not hard fidelity certification |\n| Q12/Q13/Q14/Q15/Q17 | P1 Build/DS/Raster/Text/State; P3 qualification owners | Required sealed inputs and existing functional/durability/native-text exits; P3 verifies named-platform failures and exact outputs |\n| Q16/Q18/Q19/Q20/Q21 | P1/P3 UI/Assets/Performance/QA | Required applicable initial accessibility, full closure, hardware/campaign/resource/suite receipts; unsupported claims explicit, no budget pass without evidence |\n| Q26/Q27 | P1/P2/P3 Jobs/Assets/Build | Required localhost, content, path/parser and upload-boundary qualification before handling real data and release |\n| Q04 | P4 Training | Deferred from initial inference release because training implementation is lower priority; full specification retained and gate mandatory before trainer support |\n| Q02/Q05 | Future API/Product | Model streams and new transparent/layered-output claims are deferred; preserve actual alpha today without promising provider alpha/native layers |\n| Q22 | Later explicit concurrency qualification, Jobs | Default one active request; higher-cap evidence needed only before exposing a higher qualified value, not an initial mandatory feature |\n| Q23/Q24/Q25 | Future Product/API/Build | Outpaint/adjacent alternatives/tiling/pipelines/URL imports/SSR require separate adoption; excluded from initial release completion |\n\n<a id=\"initial-support-matrix\"></a>\n\n### Initial support matrix\n\nThis collects existing TEST §9 and PERF §2 claims; it neither expands support nor invents a new release campaign. All platform claims remain unqualified until receipts exist.\n\n| Cohort | Existing role / evidence required | Honest limit or fallback |\n| --- | --- | --- |\n| Desktop Chromium on PERF H/L macOS | Primary automated engine; functional and H/L performance specimens plus Chromium+VoiceOver/native IME receipts | Actual pinned builds recorded; missing AT/IME evidence is missing qualification |\n| Desktop Firefox and Playwright WebKit on H/L | Existing compatibility specimens and affected functional checks, separately reported | WebKit is not proof of native Safari or AT support |\n| Native Safari + VoiceOver on macOS | Separate native manual AX10 and affected input/focus checks | Required native evidence before claiming cohort support; accessible paging if virtual lists unqualified |\n| Linux C | Deterministic backend/build/correctness and named measurement host | CI success does not establish a Linux desktop/AT or H-timing claim |\n| Windows + NVDA/Firefox | Additional compatibility/manual target before Windows claim | No Windows support claim or new performance campaign without named native receipts |\n| Touch/coarse pointer and mobile | Existing affordance checks | Full mobile editing/performance support not claimed; desktop support remains the initial scope |\n\nFont/worker/virtual-list fallbacks retain the existing stored appearance, blocked unsupported reflow and accessible paging rules. A missing native device/operator receipt requires an explicit unsupported cohort or release-blocker disposition; green automation cannot waive the accepted accessibility paths.\n"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F02"
+        ],
+        "old": "\n\n## Decision traceability",
+        "new": "\n| REQ-READY | Independent readiness audits and every approved finding resolved at owner or explicitly deferred | Audits 8A/8B/8C; 2026-09-26 user decisions; Task 9 disposition register | Documentation gate; N/A creative capability | Clear current state and review links; N/A editor control | Versioned owning sections and exact note/file parity; N/A runtime event | Task 10 independent disposition/source/checker verification pending; Coordinator owns closure | N/A runtime budget; unchanged numeric contracts verified | P0 before implementation |\n\n## Decision traceability"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-02"
+        ],
+        "old": "\n\n## Capability and compatibility audit",
+        "new": "\n| DEC-27 | Local protocol, localhost security, egress, portable validation and typed transport boundary | Spec user decisions 2026-09-26 | LP-1/LS-1/EF-1/PF-1/TP-1 | Explicit review, status and recovery; preserve drafts | Architecture §20 versioned actions/projections and durable receipts | Architecture §20; PROTO/SEC/EGRESS/FORMAT/PROV tests | Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change | P1–P3 |\n\n## Capability and compatibility audit"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03"
+        ],
+        "old": "\n\n## Capability and compatibility audit",
+        "new": "\n| DEC-28 | Candidate deletion keeps bytes; explicit whole-document deletion reclaims exclusive roots | Spec user decisions 2026-09-26 | DR-1 | Explicit review, status and recovery; preserve drafts | Architecture §20 versioned actions/projections and durable receipts | UX §5; Architecture §20.6; DELETE01–03 | Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change | P1–P3 |\n\n## Capability and compatibility audit"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-06"
+        ],
+        "old": "\n\n## Capability and compatibility audit",
+        "new": "\n| DEC-29 | Minimum remote retention and most private compatible access; disclose uncertainty | Spec user decisions 2026-09-26 | RP-1 | Explicit review, status and recovery; preserve drafts | Architecture §20 versioned actions/projections and durable receipts | API readiness privacy; PRIV01–02; Q09 | Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change | P2/P4 |\n\n## Capability and compatibility audit"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8B-11"
+        ],
+        "old": "\n\n## Capability and compatibility audit",
+        "new": "\n| DEC-30 | Optional durable per-session paid-request cap off by default and uncertain-charge ledger | Spec user decisions 2026-09-26 | SG-1 | Explicit review, status and recovery; preserve drafts | Architecture §20 versioned actions/projections and durable receipts | UX readiness; Architecture §20.7; SPEND01–02 | Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change | P2 |\n\n## Capability and compatibility audit"
+      },
+      {
+        "section": "index",
+        "kind": "exact-replace",
+        "count": 1,
+        "findings": [
+          "8A-F03",
+          "8B-02",
+          "8B-06",
+          "8B-11"
+        ],
+        "old": "- **DEC-26:** Preview and explicitly approve missing-font substitution.",
+        "new": "- **DEC-26:** Preview and explicitly approve missing-font substitution.\n- **DEC-27:** Local protocol, localhost security, egress, portable validation and typed transport boundary.\n- **DEC-28:** Candidate deletion keeps bytes; explicit whole-document deletion reclaims exclusive roots.\n- **DEC-29:** Minimum remote retention and most private compatible access; disclose uncertainty.\n- **DEC-30:** Optional durable per-session paid-request cap off by default and uncertain-charge ledger."
+      }
+    ],
+    "declaredStructuralChanges": {
+      "index": {
+        "typedBlocksBefore": 0,
+        "typedBlocksAfter": 0,
+        "tablesBefore": 10,
+        "tablesAfter": 14,
+        "currentTypedBlockSha256": [],
+        "currentTableSha256": [
+          "e91c20f6f8ee36d4d5943790638ab676ab5d533eaafdc30a41965902d11accd1",
+          "47e056f2de666e980674ec83920d23e55693ff5cb433cfca16325d37abf31c4c",
+          "3bd768ce9e5be0e7bdd359cc22d3fb9e93e38c239bff2b81d08a98a34b436b31",
+          "080d344404f78ef78c6d0d77ba6409fef3333223192311ac49f0f513eea15bbe",
+          "473e2b8eac29b5caae2e28dddcdc78744b11ec0f9d06bda92b1b7e5a6f765efc",
+          "5e00aa9d8f0aad74b4376c1bd11b37a868d6be7c81424d53d1dc1a6da91bf298",
+          "6dc71af7b11bfc2b2aad6f536d757722271c1641d2e572811a8edaacba216e93",
+          "a8dca33411b0aea577b2ce69dc14d44380257158d278d6b3e871ba1b8974c8ee",
+          "41eb11e8aa6f30453bba466711528a2a851eb898afb9637358d2031972394b3b",
+          "be36721647b23916267f024a9b951861abe508dd11a6eafdec2cb3ac83473de0",
+          "13082bda3b5c82193e869133a9bd553270a1fd71af21db0375edb77d055e4411",
+          "c95bf14bbcff79e4b94af711df24fd7675b01b89d2edc211e7ad46b534bb4a35",
+          "4cb7770b875fabe4ac1e3d5a4291f7b1ffb86d8a5d125861af1e8a6bec620eed",
+          "7a3f682112813b03eacd7ca803c6c2450b90179a36160d3f07360e7214bf9540"
+        ]
+      },
+      "api": {
+        "typedBlocksBefore": 63,
+        "typedBlocksAfter": 63,
+        "tablesBefore": 65,
+        "tablesAfter": 66,
+        "currentTypedBlockSha256": [
+          "66e7e918efb2c01cde19caef16461b9abea3534830fa4ba79b45d5f0bea0cdcf",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "66e7e918efb2c01cde19caef16461b9abea3534830fa4ba79b45d5f0bea0cdcf",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "cbb4d14c3c754729f4d866b16cf7984c7b881b0907f0f39f6f0e362d78107349",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "e40e8d9ca7e8750461b895d30dfb9c537d8d878073ed13a7da38d9ecc996c043",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "e40e8d9ca7e8750461b895d30dfb9c537d8d878073ed13a7da38d9ecc996c043",
+          "ca085cd63717f54685367cf322d67c8c6b4e55ac24afa3c94ca592942eec3d34",
+          "cbb4d14c3c754729f4d866b16cf7984c7b881b0907f0f39f6f0e362d78107349",
+          "ca085cd63717f54685367cf322d67c8c6b4e55ac24afa3c94ca592942eec3d34",
+          "5b42c17fb52a4752b5f1d7802df9b2efce944611d8a79e65efd1d00e54f08f90",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "464fd980d4ab1e039b43e6f312a55bac369a857929c981c187364811db28bd80",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "66e7e918efb2c01cde19caef16461b9abea3534830fa4ba79b45d5f0bea0cdcf",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "625d5f4a0d9863d8058b01b0811ff13aca07683d0a74186fed0f3a9e572440d1",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "625d5f4a0d9863d8058b01b0811ff13aca07683d0a74186fed0f3a9e572440d1",
+          "ca085cd63717f54685367cf322d67c8c6b4e55ac24afa3c94ca592942eec3d34",
+          "66e7e918efb2c01cde19caef16461b9abea3534830fa4ba79b45d5f0bea0cdcf",
+          "ca085cd63717f54685367cf322d67c8c6b4e55ac24afa3c94ca592942eec3d34",
+          "66e7e918efb2c01cde19caef16461b9abea3534830fa4ba79b45d5f0bea0cdcf",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "625d5f4a0d9863d8058b01b0811ff13aca07683d0a74186fed0f3a9e572440d1",
+          "b233547185449def4006fef5295f50b41349b4c57c5efe57b1da4bde5d573010",
+          "625d5f4a0d9863d8058b01b0811ff13aca07683d0a74186fed0f3a9e572440d1",
+          "ca085cd63717f54685367cf322d67c8c6b4e55ac24afa3c94ca592942eec3d34",
+          "66e7e918efb2c01cde19caef16461b9abea3534830fa4ba79b45d5f0bea0cdcf",
+          "ca085cd63717f54685367cf322d67c8c6b4e55ac24afa3c94ca592942eec3d34",
+          "0dcdcfc1191fcd84dd5933a3ccbf53ca275d4c52b4cd0aa3e4ca671160c3a371",
+          "563e748a12b096fd14a4677555ee18216ce69c680e1c6298b2040b52700385fe",
+          "a231ce6f3c4d0a0f466db6c2a108d38eff344c44bab2c859fdd4c4e5f8c83d46",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "7bba10681b0430044178eae48312b1c90c2907a6983a26af1a7c287ac12bfa08",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "c54effaf413d334f9ee3bf48ba8c6772a3072174ea3b6c8ed75fcdf381860418",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "c2cdeeec06a9ce765859aa0ad05096c7e20202f3bfd6315a46bc362f12311d92",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "66e7e918efb2c01cde19caef16461b9abea3534830fa4ba79b45d5f0bea0cdcf",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "5b42c17fb52a4752b5f1d7802df9b2efce944611d8a79e65efd1d00e54f08f90",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "c2cdeeec06a9ce765859aa0ad05096c7e20202f3bfd6315a46bc362f12311d92",
+          "9fb6cf669a13fe32cd073e958f98b7b8848a390aaa83914e1ee8206a1154fce8",
+          "5aac464dafe9a5c7497d544af480afd9bca2007e85380e7cfda40bec60708c63",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "cbb4d14c3c754729f4d866b16cf7984c7b881b0907f0f39f6f0e362d78107349",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "cbb4d14c3c754729f4d866b16cf7984c7b881b0907f0f39f6f0e362d78107349",
+          "7fd0e76f837ee32fd3b0e699eef0c71851175546a64ad9cd9589d21067364bc0",
+          "5623ed898ae793cf4dfccd68d29f9952505e368d095a7fe095486b8268d12dd9",
+          "76bb079e266987c33cb552faa8d9c4ac47c74504b5a40d50a454986886dca723",
+          "771b252cc62f454dd8685920d43a5c0bfb4dc4ad9cf9e2b98443b1705af0a43f",
+          "30674f25caba2559e626e026a865594849eb35d8c37c67e9fd8e2a753c0ef554",
+          "23197a0a5d40b8f8961cebe6b167c1ce8abb97a3590dfac9fbb08ccec7356202",
+          "811362f068aa1738acd296b41013ac449b20ebccce60d59eaeed749dd680630e",
+          "0e358f426556832320ad860d5acc0a40e873a492850bf1b237d269656f7e6691",
+          "b4c7f04d1c598bcf6d33ca40b359e2220a3be9d8af09b156c9b0addba45e82f0",
+          "58250b26e42e9e87efaaec3fcbc651b604645ed1be4a8ebfb29db965f8772451"
+        ],
+        "currentTableSha256": [
+          "d09ce7272a07048ac9ad7073e79f41120255eb299d883ec4316c78d08366490b",
+          "724e577d147fab08c6f93041ce47e6c18c5226cd7b37da8ea202a604c1c354b3",
+          "58f1f49637b3016f1c9ff42c39e5ea6a473b0e21fe4b0cbe6f593abfbb825b9a",
+          "f867d4722f51fde56b8e69fdbef1f9c9cc00557416fe8699c8a8c067bcc9420a",
+          "a5a7866929b12d9ae7e1cd7a54b77d7e229203eb2ca10e572c98fb511ff55d81",
+          "33db58e6492632d1d379a22f2dbdffea31b685b0844b63ab326ce1b8a95d3a84",
+          "57d2284c40eec5a46ec655654c0e6a93e715e058cf0815cf78d7a6427c527bb1",
+          "42f7ebe968d7c576091198c14ea5e4139e4d8f0e2bacb50853a1c138739f42df",
+          "87eaf9137dd702407cb65970bab042499d0e36c2df710c38bc7090c60b0486bc",
+          "d8d6885bb7ccbe271ee9313593b3dbb6244701f580068fdcae1e79bf4ed55804",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "2d0eff94ee9b4e7ac60df4e01268b84515373ad995a5928d2da784d03dbd9f07",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "f51aa0fa4e1a1160e9987752204e9a3f688645a00813bb85eaaea889ddd23dd2",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "57ac610e946ad89baba5b68a571b00ed01466f3a2f986d625d20a06022ac95f6",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "15d9e9999c3328c81a338adb0de3b39673f4cb6324e5bf8813b11c5bccc06992",
+          "688ffdefbc1a764456cf1441972e77567385e0b03869eb92954bb7ac5ec1e422",
+          "1f700bf6817d938b2a19c447d3983430f6c4a71655206311d7cbb03f11992915",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "cd9d1e0158ae11b60e690e3928acb3f4e939619f95ab69488476cd61db92cf3c",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "9b34221722600dd875a696d9fb481a8775941928d44539df7c228d60caa073e4",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "a477b7c644c4d54d92acf9d5b3c77597aa2ac98d2fcbfb66ea0aefd22b7daf85",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "20dedbbbe926ea285b151aecd30c5944686c59d983e7c8cd93f806701cff22fe",
+          "14cbab47d3b4f140235810b78e3d625312b6c9b4dc96ca99d5b966684f472c2c",
+          "056e237b66f58ff79fe6fdc84184b5189f3d0d70dcead832875b675ebcf3852c",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "3774e7f918c123e23e68b5a5f0bc917010aab31110df3814e4025b0712dee75b",
+          "ba41aa74c0a87bd8ea2167b9addabb505f7e400a10cffc3b0572cfd1748213d9",
+          "f8cc8f6101466a61269a9aac5b7be79caee86a5d28513067497fa27cab53f5c6",
+          "43a3a19558badcdfb40a9a015db91e3631f4b27b7cc71de9896d7c065d8a8d98",
+          "e64fd20c25895965afee9a528168af0b589ea568bde9e6550d4629aeab016034",
+          "8e3cd4193d5c4384bf5605359de04ab3df42a16be39b2c83162ce6af51696220",
+          "68eeebdf5fb4f889044f4205b9ca97d23e0c7a0d5a10880a05916303f5df19d8",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "ac98ede135bac9d952f001e61ef079ca2e43d29401777cb717e867072ffa3528",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "2e6115f00a6d0029e423b4cf73d1b3c5cdf1c14c073056f9e6bdbb4403ba6079",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "573d0457332d1f01055b9cb53a115c98542012f0bd6d46831d30a8123d3a60b2",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "a3992f4f34c3b34df330588e8603b968bb2e366e783ceee6988bf43bf6699ee8",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "52c0732e6a840bbbda5202d454ac46798f1b8754636d3499aec73ded64ddec34",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "b12450b33c4b9c408d5c18294b59efcf58bc09d8ce2398201b2d65329b03778a",
+          "87b3ac4ec8e9250feba00ae722a7d7933601ff19fa0d7687e0a9165007a9ebf8",
+          "2110322df186fbc9832b2943af8fe77cf86516687b766c4f7f762904e7293664",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "cf3d617395b4e0dc2490f3f592926a023cec520fb3c605b64db72ed6945e60ef",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "4a0fa6cbbb68d42ec175d48fd0af6cd006aff24b977036ca7379c277b298723d",
+          "864a4ad22257d484b614b76687e45317b56f24976eeb956fe6736de2c88e9217",
+          "6b73dbd744a6328ee616553c49d85c185c69d06e578c84d6be7c163e6bbb7460",
+          "8acf0dffa74bc8eb69ab928e280b730c998f74d26846e4271dbbfbe48e98465b",
+          "db3d425ce98653b20a77af22df0eb87b8644dfa49d7ab97b8ef81ac0f4559e94",
+          "1c9099eda4a461f1567b4ba701d24e483d2d26b0e44ca1af4926ec3b0b385d29",
+          "2b4218abefd7718d8113e62d39b3ca56b60190c53cbd0b552cda6e63950c3ca0",
+          "85de70ff6b5198dcfa618406ddbe51d3dae5cce481cf7d720cced4b1116217c1",
+          "749d08548a316e358a327c88a9b2680237023625eecc724905d609c8e57454fd",
+          "9b3764c732dde27c593de012c8c2c12d1ac63e8ccd7c49565ebbfae2c91ddd3d",
+          "0d8ddd30340a2a6b32db42182d10952a3a5ab690754d1fd3124d2d8d75b4fa14"
+        ]
+      },
+      "design-system": {
+        "typedBlocksBefore": 0,
+        "typedBlocksAfter": 0,
+        "tablesBefore": 5,
+        "tablesAfter": 5,
+        "currentTypedBlockSha256": [],
+        "currentTableSha256": [
+          "9a92c8326756544364bcee33ccbc6f1389b8f5b7a9771a4b2f482bc47a04ef04",
+          "1ee5ff7d3fff99991386815c374134d9ae9dba0addb5074a163873941865c5bb",
+          "232bdadb3625047dc28c5a51c5255b993045974a98da072dfbed65d1e5400bdb",
+          "4d2c76ef89927fd5a528b9bf2c9098ec4108962f07f1e464721726a9fbc6f027",
+          "1ec87f0305d11834160f8e82e77e5a87f68dcbfc4986377e47b710d540b59799"
+        ]
+      },
+      "ux": {
+        "typedBlocksBefore": 0,
+        "typedBlocksAfter": 0,
+        "tablesBefore": 30,
+        "tablesAfter": 30,
+        "currentTypedBlockSha256": [],
+        "currentTableSha256": [
+          "23a584abde2c507da57479838157195def39908a3b49bc3b322c5ac81208067a",
+          "3f3864371817da60a16365e1b69fd2ffdb7332552f513e43adf94190ef8ff110",
+          "8e8a92f15599b8e962091996d6508942ab29f10c946c7861b58e7e03b9be807b",
+          "0ac7f567193f441c96e7a28cc871e9facc38233bdbe782ccc8d16f9e347a79f9",
+          "d412eb937062fe67b9bc792507cd7329ca41d5e9c231df8f8a6d2d0dfd41a5c2",
+          "91c1f5a4cb575700174ad9f27a6730b60cffa77ed0f15402e4caf6434f0ab4dd",
+          "2925f8824778da0421a738c78631d2af74e8e8649ddd4066207c5110390f7af1",
+          "85cca0fcf88316a2092ea900153ef921515495d7fd8fa748971c5d66469baddf",
+          "076c6d01cedef96ecb255774de9b06a198461268b28c4fde2d9af9cbfa05def0",
+          "6879ce0e03d3941335ff89c666cb1b15feca8a6b7b5ccfa1edbe4e024eaee854",
+          "8dcc24d656a13a2892f06c61eeb32565b6aa9c7dadc445520579c2ef92817d76",
+          "e32dd4a44c884bc2c9d8623e9b7114ee3ab6919a82c5d5875329bc9ebee312f7",
+          "e91a71c1d1a412524087649c563bf5e6d59b05450903881e8e81ff6955f315e2",
+          "742a546b2e8764bf159ac27f2c7084674fe4063809081ec83caa4b73565fffb9",
+          "d06ee48c5bb6ca4c84a837aa108cfee0acc1d310a41433b97a1107789b944079",
+          "6305faf384cbb31da8367cb22ebf7cde3cb0fcd39012885b20fd24b51e637ce0",
+          "07cf302d5285bb78f737fc01e892a373670c4ae211b44bb117184d9984b95c63",
+          "cbfa3dd00c1e1cb947518b5dda72a6af2f0596fb0dd33149c0e5c7cd1df67c36",
+          "9b5f096589a09e18155503114df16bc0cebef8769483434ec9631c5f08703374",
+          "25fe420ad5dea6bbcbbf8d3be3eefcb084986d861ae86ad1bfca7c2a7a9eead8",
+          "e886fe71d379f5ee99b4cc69e30f4751ce4127d0cdd11bf804b46646ec6bde35",
+          "d25029230118dc2f3188fcc8c24d7cb03916452f5672f7c8c3c3433aa5bb5267",
+          "acdae6e4a4b9dc4ed9f7efa27e7fc32f79978b6a67dffb1e899c05ccfeccbdfb",
+          "6031fbf48af53540f17f55b810661fcfe3f342b330bf28986e36989deba26baf",
+          "38140909d94d57a521e72d5dc791434cd6f17eebdc985469998dff2819659d8f",
+          "1c2b7eea36a0603a0c77c81beb2fc1a148e913d397f39456a78cad0b778ddb57",
+          "09136086a6e7838621d1e3f362d85d4fb89167f83c26db2d329ae9f8040ad3d6",
+          "109b202f664edb5e80fbb706e8e393607dce229701af2fa6f0d5fdf7f44a68cc",
+          "5d72456716d5352c419005d24a627ac1549aa7654ee317a8fbf1e7500bdd9140",
+          "24b02015b62f8f35887fc9e676a43982a24c8e17f849be5b4dfc0daf0a59222d"
+        ]
+      },
+      "architecture": {
+        "typedBlocksBefore": 7,
+        "typedBlocksAfter": 10,
+        "tablesBefore": 15,
+        "tablesAfter": 18,
+        "currentTypedBlockSha256": [
+          "e1384dcb7c862a5d9384538a2ad2cef3e071a5ee6af43f78f8fd7ad319345def",
+          "433f1b0c23f58569024785702e44230dc6b94b4fd0cbbec128b5e8b9465b4626",
+          "daf1670cb569335ab0988658e41d85237073b35484359c7dede8bd3ecdfe2c31",
+          "6b523cc2a8c5f625e3462a897349851c43c7ab64e06adc1f8e1208cd0d345abb",
+          "8ce241d48416d44a2149f2816e15ca7197b329f5ca24b59ada8b131c71cdeb3c",
+          "e43817fdb98c96c46a839d17e66d6d211bae10c14dce0de66a2f16c72077ce7b",
+          "85049ca07f25b3f8964848766c312b80c89808a629cb381f3fa5a904dbbf1fd6",
+          "2d0462131c821cee32b70ccf779bd5810b6d43aa40999691436dd8fee0c1ae62",
+          "69f4eb47da66153daed7ef01a6112804190a61a819f62134cd4feec8b78527dc",
+          "8d963bc50df31560365cf20ef189b9568f127969056ea9b6fabaa3cfea28cf2d"
+        ],
+        "currentTableSha256": [
+          "d642758489a2800b187bec3f25a9dbef8d7c78806e3007e848ff4f29014e90ab",
+          "0e9c47035f619a90f397e1d9b8addafc04c8d91e60624d239d65528a7fafc592",
+          "41389b51bf3d6efb9b645635faeac35bbd1d798f9cc9ae017279fcc39f04ca84",
+          "cccebbfc67401a1e5b18f589f7f668c3450434582b44ea9e7986b8ed7b02b7f3",
+          "405ab055351150e9d8c3da1201ad30dafbf8360233466c522c6f7dff57309a0e",
+          "f7ba33298dbc3bb3b0281caf832b7674dcd73288d4a286a266762b74535d8fdb",
+          "397add985dec70c29e49e5a1081d2b0796876d72d5c055e814afb2418b08990d",
+          "0a08396dc388649d4f2366b4adca93274dba9f93c4316c830ef2f54495955656",
+          "31665fbd08e9f911eb01b56c8702e3728248a087defa9172f0909334681644ed",
+          "2f985dcca001a4af93d7cabf4815d7e986bcbf9e888be401a23e897238bcfbf4",
+          "ae5bd0fb42d8ed46c0ff61878c3e992badc835d8e0f8cb614d13ecb6843cfc44",
+          "25927d344bc4e47025430411784069560273be50415461704cc721c3da5ac1df",
+          "16c517ac4dcd24d73653bd3845691c904315171c0253d8e56442f5867d65f16b",
+          "484b5f4286578ace35dfd9572877b51967efa1e80e34fc7e9b365a55678416e3",
+          "681c83df89820deb1227f654add865d5d4d363b93679f2ea11610b97418fcd10",
+          "98d556baa65b42f39202a03f861b93c222a1b1c4d138151401518721fc0690ba",
+          "a478c4a2ab7b1badc3152c5ab2b4375c1eff5d20e6e011c77bfcab8afe53d038",
+          "8a4afbc4b8a1db274190251d6ca56fdc730c08cfe53cfee7107dd747dd5bb3e0"
+        ]
+      },
+      "testing": {
+        "typedBlocksBefore": 0,
+        "typedBlocksAfter": 0,
+        "tablesBefore": 13,
+        "tablesAfter": 14,
+        "currentTypedBlockSha256": [],
+        "currentTableSha256": [
+          "8845914ffd6e6dcd29c0e0c0ffae3fdc712d7424683895cfc4f63dfadd86d55b",
+          "d7041de55de523c0097b8202c623ed96ccf4c115ac4688da6674fc9845d1d285",
+          "634ee3d7d83119710be71661ecb7f65c67f7846b22a5b4979fb40fed75eb45f4",
+          "40d483a04851274f7ceebf353897e3b43bb4988a5c53a4a82b804451799e7813",
+          "cca22d6efaae6d43d56c447adf4c6adecd4e595fcf7e9dc7d7c62302ae4901d2",
+          "f3ba6dc37b8039d694f63865ee437cdab065eb671ad6968dc6473a02b1555dee",
+          "c119bf8e4c27e413493ca0fdf0bd647084175d65b66707f2f4ecc0c4f6d42aba",
+          "745b9cc660f02f21dbaa2540b1303daa94a9e8b46fd58eab5863550815080398",
+          "d03114496b771de7a4f0aa63450ec4639248929884f15c42559b151952a077c8",
+          "47aa20b5b1b75777d48fa520f433d13e24c62dc7e76779398d6f60f4b3ff814a",
+          "5db737f7b0be98435d54801e33444695fd53ea5d8dba9d685ca689de5a5e0e70",
+          "29989f2cae98dd3f3db97bcbe29283e16b56f8153f536233c59da235bc1f0805",
+          "dea8b9808e4826f50fb92a1d8269bfd22a067c02002aa7f0f6392f61ebb8fadf",
+          "57d72cc12cc78b540a505aca6c15d92928de557aa097ff3bfd45a62f1067ae9f"
+        ]
+      },
+      "performance": {
+        "typedBlocksBefore": 0,
+        "typedBlocksAfter": 0,
+        "tablesBefore": 26,
+        "tablesAfter": 26,
+        "currentTypedBlockSha256": [],
+        "currentTableSha256": [
+          "61f54b19a75581257cdac00619db0abe7d4ebeac68ddbae5318c3fa3cf15717d",
+          "8da85d2a71e1e20b7335ad2c02bb604c57759fd3b3689238c95bdce66dc2ac87",
+          "3e60953c8f0de92de3fb84c97bf48cbbb0d8947a1c419a808fefb01ef4dc1ce7",
+          "db875d1dbfeb9d04e22b7fb16d20afe3a7b5a4ced1f75e83199b680fa457565a",
+          "fd796071407fe8e740c7ebafc48e25da9a577dda53f2540b06774420938a31c7",
+          "4f883d155b3383a0c1bf426914ccbb7f1ec407e15581f879b6821bed3bf1366a",
+          "0333949930929b5ed297aac4722790d65888c846fe350bcd3734d7e23b299c86",
+          "fa30946b32b1191a4d261247f88ec26047f746b1aea4dfa5da95ce91787c931b",
+          "e2cbaab2d078cb0191afcb1aca27f1be1504602dd3d2101e3288c0cd603131f7",
+          "089371ac37fe56ec9610906c09b06fd76c55e7d00d4fe29d074c3ee869b09601",
+          "e48aaec3927c6dc310ee125bd7328a338bf4e6687ce35eb9ff4e3a11303ef30a",
+          "885dcdaee93ace7f840d0965144481c54da5f92fd6e68e5af7cb71d772a10ca0",
+          "03e9a0331bd9369135775e1fba315b146fb82143f8cafb4fd8c63684bbc902a8",
+          "26201954828a0b7ac3d1e42c3e05e1b072ec57f6a9c99fb217d54d3468a5adea",
+          "d4342ff3fbd760e7ed52ab47293dd109f97b03f1036e018b5c98fa4551e3a1d9",
+          "862818ab18dbecebd69b3ec2bcbfc24f8db0b5b57cf7a3b8d72f499d44e022a2",
+          "4c481722ca071a4f7e34b16088277a910d285f32b786cf1e47e43013bd182c34",
+          "2e016a7a5b423dac2ffa19dcb962a92667977f8a95eecc6911c47bcf6b763a56",
+          "65766b6a140d159611b6eb91091fc0bfa03dfe6317a1100f855d2e2fd9f8a03d",
+          "effe316a64d9eaacac189eeb6f80b7dd41eb7d72e516934427bd0e135d9e8bd9",
+          "356bcacb978497a10d4181c04b121c23024a66c6e54987ab67843188b68384e9",
+          "1968ce4b2105cec437b752b774d8218b9e6089b65e5b029222868f9f4bc32915",
+          "9878765bcd9b91660851d520f03c01356e6af773c71a506ea67cb88798a7df7a",
+          "d1413740fa30f4fc059d7e68253fd2e90ddf6201083033fd65b11941b1e2a5fd",
+          "a540c53848b594ed4e2ee198fd891b71347f856ec500483a027cd450bf3f0108",
+          "21c8563ee98e9d67b232342cb600de52b6d5bb817b6d5d4f51ee6cc1b0b85f23"
+        ]
+      }
+    },
+    "numericBudgetChanges": [],
+    "addedOperationalParameters": "LP-1 ID length/chunk framing; LS-1 token/session lifetimes; EF-1 connection/no-progress deadlines are new protocol/security parameters, not changes to the 60 PERF budget rows or campaign inventories."
   }
 }

@@ -1,0 +1,445 @@
+{
+  "schemaVersion": 1,
+  "assembly": "SPEC-A3",
+  "authorization": "readiness/authorization.txt",
+  "baseCommit": "86701416fa966b92353a1cff062a81a27a1786b9",
+  "findingIds": [
+    "8A-F01",
+    "8A-F02",
+    "8A-F03",
+    "8A-F04",
+    "8A-F05",
+    "8A-F06",
+    "8A-F07",
+    "8B-01",
+    "8B-02",
+    "8B-03",
+    "8B-04",
+    "8B-05",
+    "8B-06",
+    "8B-07",
+    "8B-08",
+    "8B-09",
+    "8B-10",
+    "8B-11",
+    "8C-01",
+    "8C-02"
+  ],
+  "findings": [
+    {
+      "id": "8A-F01",
+      "status": "author-resolved",
+      "disposition": "Resolved: original Task 7 complete; new readiness review pending",
+      "ownerAndVerification": "Index status/R20/handoff; live Spec header",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8A-F02",
+      "status": "author-resolved",
+      "disposition": "Resolved: REQ-READY added, closure still pending Task 10",
+      "ownerAndVerification": "Index/traceability/checker; Task 10 independent review",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8A-F03",
+      "status": "author-resolved",
+      "disposition": "Resolved per user keep-bytes decision",
+      "ownerAndVerification": "UX §5, ARCH §9.2/DR-1, PERF accounting; DELETE01",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8A-F04",
+      "status": "author-resolved",
+      "disposition": "Resolved: four hard training caps separate from WT fixtures",
+      "ownerAndVerification": "UX §8; TRAIN01; unchanged PERF WT",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8A-F05",
+      "status": "author-resolved",
+      "disposition": "Resolved: guide optional versus app-required scene; empty accepted",
+      "ownerAndVerification": "UX §14, ARCH §16.4 unchanged; CAPTION01/TX10",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8A-F06",
+      "status": "author-resolved",
+      "disposition": "Resolved: current decisions/header separated from preserved chronological receipts",
+      "ownerAndVerification": "Live Spec history disclosure; sealed history untouched",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8A-F07",
+      "status": "author-resolved",
+      "disposition": "Resolved: CAP-01–CAP-24 summary",
+      "ownerAndVerification": "Index/traceability exact match",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-01",
+      "status": "author-resolved",
+      "disposition": "Resolved: first-slice milestones and applicable phase gates",
+      "ownerAndVerification": "Index below; TEST E1/§13",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-02",
+      "status": "author-resolved",
+      "disposition": "Resolved: LP-1 wire/hash/error/upload/event contract",
+      "ownerAndVerification": "ARCH §20.1; PROTO01–04",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-03",
+      "status": "author-resolved",
+      "disposition": "Resolved: LS-1 threat/session/content policy",
+      "ownerAndVerification": "ARCH §20.2; SEC01–06; Q26 runtime evidence still required",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-04",
+      "status": "author-resolved",
+      "disposition": "Resolved: EF-1 credential-free retrieval and sealed egress",
+      "ownerAndVerification": "ARCH §20.3/API cross-link; EGRESS01–03; Q09 profile qualification",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-05",
+      "status": "author-resolved",
+      "disposition": "Resolved: PF-1 ZIP64 STORE and ordered hostile-input validation",
+      "ownerAndVerification": "ARCH §20.4; FORMAT01–03; Q18/Q27 qualification",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-06",
+      "status": "author-resolved",
+      "disposition": "Resolved: minimum-retention/private-compatible RP-1 default",
+      "ownerAndVerification": "API/UX/ARCH AppliedPrivacyPolicy; PRIV01–02; Q09 endpoint feasibility unqualified",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-07",
+      "status": "author-resolved",
+      "disposition": "Resolved: backend exact evidence separated from portable allowlist",
+      "ownerAndVerification": "ARCH §20.5/§16.7; PROV01–02; PERF storage accounting",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-08",
+      "status": "author-resolved",
+      "disposition": "Resolved: explicit document preview/root release/receipt/race recovery",
+      "ownerAndVerification": "UX §5, ARCH §20.6; DELETE02–03",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-09",
+      "status": "author-resolved",
+      "disposition": "Resolved: collected existing support claims and evidence",
+      "ownerAndVerification": "Index support matrix; TEST §9/13; no new supported cohort",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-10",
+      "status": "author-resolved",
+      "disposition": "Resolved: role-based entry path and one owning contract per topic",
+      "ownerAndVerification": "Index quick-start below; details remain in owners, no contract deletion",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8B-11",
+      "status": "author-resolved",
+      "disposition": "Resolved: off-by-default durable request cap and unknown-charge ledger",
+      "ownerAndVerification": "UX readiness, ARCH §20.7; SPEND01–02",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8C-01",
+      "status": "author-resolved",
+      "disposition": "Resolved: dated broader source drift recorded; Q12 freeze retained",
+      "ownerAndVerification": "DS readiness receipt/§1/7, index Q12, PERF D09 accounting",
+      "independentReview": "pending Task 10"
+    },
+    {
+      "id": "8C-02",
+      "status": "author-resolved",
+      "disposition": "Resolved: raw versus semantic freshness receipt; no schema change",
+      "ownerAndVerification": "API readiness evidence; original hashes unchanged",
+      "independentReview": "pending Task 10"
+    }
+  ],
+  "profiles": {
+    "LP-1": {
+      "owner": "architecture.md#s20",
+      "protocolVersion": 1,
+      "commandResults": [
+        "receipt",
+        "pending",
+        "unknown"
+      ],
+      "domainRejectionCodes": [
+        "STALE_REVISION",
+        "INVALID_INPUT",
+        "MISSING_ASSET",
+        "CAPACITY",
+        "INCOMPATIBLE"
+      ],
+      "sameIdDifferentBody": 409,
+      "unknownReceipt": 404,
+      "pending": 202,
+      "largeBodies": "blob references",
+      "retryPaidPost": false,
+      "tests": [
+        "PROTO01",
+        "PROTO02",
+        "PROTO03",
+        "PROTO04"
+      ]
+    },
+    "LS-1": {
+      "owner": "architecture.md#s20",
+      "exactHostOrigin": true,
+      "sensitiveReadsAuthenticated": true,
+      "nullOriginAllowed": false,
+      "absentOriginRead": "authenticated same-origin metadata plus client marker for JSON/SSE",
+      "tokenBits": 256,
+      "pairingTTLSeconds": 300,
+      "sessionAbsoluteSeconds": 43200,
+      "sessionIdleSeconds": 1800,
+      "tests": [
+        "SEC01",
+        "SEC02",
+        "SEC03",
+        "SEC04",
+        "SEC05",
+        "SEC06"
+      ]
+    },
+    "EF-1": {
+      "owner": "architecture.md#s20",
+      "queueOrigin": "https://queue.fal.run:443",
+      "mediaCredentials": false,
+      "mediaRedirectHops": 0,
+      "hostProfileGate": "Q09",
+      "productionEmulatorAllowed": false,
+      "connectTimeoutSeconds": 10,
+      "idleTimeoutSeconds": 30,
+      "byteLimit": "purpose envelope and R31 reservation; no global fixture cap",
+      "tests": [
+        "EGRESS01",
+        "EGRESS02",
+        "EGRESS03"
+      ]
+    },
+    "PF-1": {
+      "owner": "architecture.md#s20",
+      "formatVersion": 1,
+      "container": "ZIP64",
+      "compression": "STORE",
+      "hard4GiBCap": false,
+      "publish": "after closure validation and durable bytes",
+      "tests": [
+        "FORMAT01",
+        "FORMAT02",
+        "FORMAT03"
+      ]
+    },
+    "RP-1": {
+      "owner": "api.md#readiness-evidence",
+      "storeIO": "0",
+      "default": "minimum-retention-most-private-compatible",
+      "unsupported": "block or explicit disclosed fallback",
+      "endpointQualification": "Q09",
+      "localDeletionImpliesRemoteDeletion": false,
+      "tests": [
+        "PRIV01",
+        "PRIV02"
+      ]
+    },
+    "TP-1": {
+      "owner": "architecture.md#s20",
+      "backendClass": "backend-transport",
+      "backendExport": "never",
+      "portableClass": "portable-provider",
+      "prompts": "separate exact UTF-8 blobs; known secret contamination blocks complete export",
+      "tests": [
+        "PROV01",
+        "PROV02"
+      ]
+    },
+    "DR-1": {
+      "owner": "architecture.md#s20",
+      "candidateDeletion": "tombstone-and-keep-bytes",
+      "wholeDocumentDeletion": "preview-atomic-root-release-durable-receipt",
+      "sharedRoots": "retain",
+      "lateResults": "no-document-resurrection",
+      "tests": [
+        "DELETE01",
+        "DELETE02",
+        "DELETE03"
+      ]
+    },
+    "SG-1": {
+      "owner": "architecture.md#s20",
+      "enabledByDefault": false,
+      "scope": "durable-spendSessionId",
+      "uncertainReservation": "held",
+      "restartResets": false,
+      "guaranteedMoneyLimit": false,
+      "tests": [
+        "SPEND01",
+        "SPEND02"
+      ]
+    }
+  },
+  "routes": [
+    {
+      "route": "POST /session/bootstrap",
+      "requestAndSuccess": "{protocolVersion:1,pairingToken}; 200 {protocolVersion:1,csrfToken,sessionExpiresAt,clientId}, Set-Cookie; single-use launch exchange",
+      "failureAndRetry": "401 expired/used token, 403 origin/host; no retry with consumed token; local launcher issues another"
+    },
+    {
+      "route": "GET /session",
+      "requestAndSuccess": "Cookie + LS-1 same-origin read checks; 200 same session view and CSRF token",
+      "failureAndRetry": "401 requires local pairing; never caches secrets"
+    },
+    {
+      "route": "POST /session/renew; POST /session/revoke",
+      "requestAndSuccess": "{protocolVersion:1}; CSRF; renew 200 rotates cookie/token; revoke 204",
+      "failureAndRetry": "Old session/token immediately invalid; no domain mutation; retry by reading current session"
+    },
+    {
+      "route": "GET /capabilities",
+      "requestAndSuccess": "Authenticated; 200 {protocolVersion:1,serverVersion,projectionSchema,limits,credentialConfigured,storageState,connectionState,profiles}",
+      "failureAndRetry": "Missing FAL_KEY is credentialConfigured:false, not HTTP authentication failure"
+    },
+    {
+      "route": "POST /commands",
+      "requestAndSuccess": "§5.2 Command in {protocolVersion:1,command}; 200 CommandResult receipt or 202 CommandResult pending with Location pointing to /commands/:id",
+      "failureAndRetry": "Only complete durable receipt is accepted/rejected. 202 means preparation is pending, zero acceptance/provider dispatch"
+    },
+    {
+      "route": "GET /commands/:id",
+      "requestAndSuccess": "200 receipt; 202 same pending identity; 404 CommandResult unknown",
+      "failureAndRetry": "Unknown is not proof of failed dispatch. Resend identical command after reconnect; never manufacture new ID"
+    },
+    {
+      "route": "GET /events?after=seq",
+      "requestAndSuccess": "200 EventPage at captured highWater, whole transactions only; nextCursor is last complete transaction",
+      "failureAndRetry": "409 CURSOR_INSIDE_TRANSACTION; 410 gap with snapshotUrl/earliestAvailable/highWater; retry safe read"
+    },
+    {
+      "route": "GET /events/stream?after=seq",
+      "requestAndSuccess": "text/event-stream containing StreamEnvelope; SSE id only on final part is toSeq",
+      "failureAndRetry": "Reconnect from last applied complete toSeq; 401 closes stream; gap reloads pinned snapshot plus tail"
+    },
+    {
+      "route": "GET /documents/:id; GET /jobs/:id",
+      "requestAndSuccess": "200 {protocolVersion:1,entityVersion,projectionSchema,projection,highWater}; projection is existing typed read model, safe provenance only",
+      "failureAndRetry": "404 unknown; 410 document tombstone; no automatic remote reconnect/submit"
+    },
+    {
+      "route": "POST /assets/staging",
+      "requestAndSuccess": "{protocolVersion:1,stagingId,purpose,expectedBytes,sha256,mediaType}; 201 StagingRecord; client chooses id for retry dedup",
+      "failureAndRetry": "409 changed metadata/id; 413 unsupported purpose envelope; 507 no reservation; identical retry returns same record"
+    },
+    {
+      "route": "GET /assets/staging/:id",
+      "requestAndSuccess": "200 StagingRecord with committedOffset from durable server record",
+      "failureAndRetry": "404 unknown; authorized owner only; resolves lost PUT/finalize response"
+    },
+    {
+      "route": "PUT /assets/staging/:id",
+      "requestAndSuccess": "application/octet-stream; Upload-Offset decimal header and Content-Length; sequential chunk ≤1MiB; 200 StagingRecord after flush/checkpoint",
+      "failureAndRetry": "409 OFFSET_MISMATCH returns committedOffset; 413 length exceeds declaration/chunk; query offset then resend only missing bytes"
+    },
+    {
+      "route": "POST /assets/staging/:id/finalize",
+      "requestAndSuccess": "{protocolVersion:1,command}; body names FinalizeStaging with stagingId/expected hash; 200 receipt or 202 pending",
+      "failureAndRetry": "Full declared length/hash/type/profile checked; failed validation gives durable INVALID_INPUT receipt when storage works; identical command is idempotent"
+    },
+    {
+      "route": "GET /assets/:version/content",
+      "requestAndSuccess": "Version authorization + safety gate; 200 bytes or 206 one valid bytes range; ETag immutable SHA-256",
+      "failureAndRetry": "416 with Content-Range bytes */length for malformed/unsatisfiable/multiple range; If-Range mismatch sends full 200; 403 withheld/quarantined; 404 missing"
+    },
+    {
+      "route": "POST /bundles/import",
+      "requestAndSuccess": "{protocolVersion:1,command}; ImportBundle references finalized bundle staging plus preview approval, never a path/URL; 200 receipt or 202 pending",
+      "failureAndRetry": "Isolated validation/preparation; only final receipt publishes namespace; same command retry"
+    },
+    {
+      "route": "GET /bundles/:id/content",
+      "requestAndSuccess": "Only ready authorized complete/incomplete-labelled bundle; 200/206 with same range/ETag rules",
+      "failureAndRetry": "409 BUNDLE_NOT_READY; 416 invalid range; download does not confirm external destination saved"
+    }
+  ],
+  "testIds": [
+    "PROTO01",
+    "PROTO02",
+    "PROTO03",
+    "PROTO04",
+    "SEC01",
+    "SEC02",
+    "SEC03",
+    "SEC04",
+    "SEC05",
+    "SEC06",
+    "EGRESS01",
+    "EGRESS02",
+    "EGRESS03",
+    "FORMAT01",
+    "FORMAT02",
+    "FORMAT03",
+    "PROV01",
+    "PROV02",
+    "PRIV01",
+    "PRIV02",
+    "DELETE01",
+    "DELETE02",
+    "DELETE03",
+    "TRAIN01",
+    "CAPTION01",
+    "SPEND01",
+    "SPEND02"
+  ],
+  "editorialCases": [
+    "TRAIN01",
+    "CAPTION01"
+  ],
+  "readinessGate": {
+    "requirement": "REQ-READY",
+    "owner": "Coordinator",
+    "verifierTask": "45decaa2-2459-4100-8461-d7680076c4d3",
+    "status": "pending-independent-verification"
+  },
+  "numericBudgetChanges": [],
+  "qualificationIds": [
+    "Q01",
+    "Q02",
+    "Q03",
+    "Q04",
+    "Q05",
+    "Q06",
+    "Q07",
+    "Q08",
+    "Q09",
+    "Q10",
+    "Q11",
+    "Q12",
+    "Q13",
+    "Q14",
+    "Q15",
+    "Q16",
+    "Q17",
+    "Q18",
+    "Q19",
+    "Q20",
+    "Q21",
+    "Q22",
+    "Q23",
+    "Q24",
+    "Q25",
+    "Q26",
+    "Q27"
+  ]
+}

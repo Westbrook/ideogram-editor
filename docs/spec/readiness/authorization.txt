@@ -1,0 +1,53 @@
+## Final readiness review — 2026-09-26
+
+The user requested a last whole-plan review before implementation. Three independent read-only audits run in parallel; the coordinator then triages findings, brings any decision-changing items to the user, and only approved findings are applied (Task 9) and re-verified (Task 10).
+
+**Triage policy (user, 2026-09-26):** Small wording, labeling and cross-section consistency fixes that do not change behavior, scope, numbers or an accepted decision are approved in advance and go straight into Task 9. Only findings that would change a decision, scope, contract behavior or budget come to the user.
+
+- [x] [Task 8A — Requirements and decision conformance audit](intent://local/task/d423d075-bfbd-4e8d-a918-c674fe49489f)
+
+- [x] [Task 8B — Implementation readiness and improvement audit](intent://local/task/4f9abb5b-0737-47c4-9e36-f8fde3f5a501)
+
+- [x] [Task 8C — External evidence freshness audit](intent://local/task/e6d124b4-1b98-4c9a-a959-825b180d2532)
+
+- [/] [Task 9 — Apply readiness revisions (SPEC-A3)](intent://local/task/06f9a11c-d6b1-4ddf-b695-69ea592617df)
+
+- [ ] [Task 10 — Final implementation-readiness verification](intent://local/task/45decaa2-2459-4100-8461-d7680076c4d3)
+
+
+
+## Readiness audit triage — 2026-09-26
+
+Audits: [8A conformance](intent://local/upon-build/note/b7a93978-262b-4266-aaf7-03cf836db2cf) (not approved), [8B implementation readiness](intent://local/upon-build/note/5f056a05-3316-4c28-9b1b-eb0d6f9d9349) (not approved), [8C evidence freshness](intent://local/upon-build/note/f0aea5b2-1d37-42a9-adf3-857e0a4995eb) (sources current). No P0 findings.
+
+- **Pre-approved editorial (Task 9):** 8A-F01, F02, F04, F05, F06, F07; 8B-01 (first-slice sub-milestones and phase-to-qualification table from existing requirements), 8B-09 (support matrix), 8B-10 (implementer quick-start, de-duplication without contract changes); 8C-01, 8C-02.
+- **Decided:** 8A-F03, 8B-02–08, 8B-11 — see below. All findings are approved for Task 9.
+
+**User decisions (2026-09-26):**
+- **Protocol and security — specify all.** Task 9 adds a versioned local protocol contract (8B-02), localhost threat→control→test rules (8B-03), credential-free result-fetch egress policy (8B-04), portable archive/upload validation profile (8B-05) and a typed transport-record/export boundary (8B-07). Accepted product behavior is unchanged.
+- **Deleting an unused result — keep bytes.** Explicit deletion of an unprotected candidate hides/tombstones it; its image bytes stay retained through job provenance. UX must say plainly that this does not free disk space. Whole-document deletion keeps its existing promise and is specified per 8B-08 (preview, durable receipt, restart/race rules, shared roots retained); it is the defined path to reclaim storage. Closes 8A-F03 with an explicit contract and test.
+- **Remote privacy — minimize retention.** Default to the shortest provider-side storage and most private access fal.ai supports that remains compatible with deferred result fetching; disclose when it cannot be guaranteed; record the applied policy on each attempt; never claim local deletion removes remote copies (8B-06). Feasibility per endpoint stays a qualification item if undocumented.
+- **Spend guardrails — add, off by default.** Optional server-enforced per-session paid-request cap and a visible ledger of requests with uncertain charge; estimates are never presented as guaranteed billing limits (8B-11). U07/U08 otherwise unchanged.
+
+
+TASK 9 APPROVED FINDINGS
+# Task 9 — Apply readiness revisions (SPEC-A3)
+
+Apply the coordinator- and user-approved findings from Tasks 8A–8C at their owning source, producing SPEC-A3.
+
+## Scope
+Owning section notes, index, Spec current-state summary and matching docs/spec files; preserve sealed history and all approved contracts except where an approved finding changes them. Starts only after the coordinator publishes the approved findings list and any user decisions.
+
+## Inputs
+The three readiness audit notes, the approved findings list recorded in this Spec, [PR Context — upon-build](intent://local/upon-build/note/337dd04c-2911-4227-8217-1e2fc0b6a9f0).
+
+## Definition of Done
+- Every approved finding is resolved or explicitly deferred with owner and reason; traceability and qualification register updated.
+- Note/file parity, documentation checker, seals and link checks pass; exact diff and transformation record kept.
+
+## Verification
+python3 docs/spec/tools/check_spec.py; shasum -a 256 -c SHA256SUMS in docs/spec; live seven-note parity script; git diff --check.
+
+## Approved findings list (coordinator, 2026-09-26)
+
+All findings in audits 8A, 8B and 8C are approved for this task: editorial items as written, decision items per the **User decisions (2026-09-26)** block in the Spec's "Readiness audit triage" section. Note the candidate-deletion decision is **keep bytes** (not the auditor's recommendation). Bump to SPEC-A3 with new section revision labels; update traceability (including REQ-READY), qualification register, testing cases and performance/resource accounting where affected, without changing existing numeric budgets unless a decision requires it (state any such change explicitly).

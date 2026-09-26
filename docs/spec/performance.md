@@ -1,6 +1,6 @@
 # Performance Requirements and Metrics
 
-Assembly revision **PERF-8+A2**, 2026-09-26 UTC. Approved technical baseline: **PERF-8** with accepted Spec addenda. SPEC-A2 is independently approved for specification/source readiness at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**, as recorded in the [final approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md). This is a metadata-only approval closeout; the technical section revision is unchanged. Underlying source approvals remain in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.
+Assembly revision **PERF-8+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed.
 
 [Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/1b7b659d-d577-4257-b677-4850bbf86143.md).
 
@@ -734,3 +734,17 @@ Amendment procedure: identify budget/assumption IDs and input revision; record o
 ## Qualification pin provenance — read-only evidence
 
 On 2026-09-25, read the existing design-system package-lock.json and installed playwright-core package.json/browsers.json without executing or installing them. Lockfile SHA-256: 495784328f6a3e500e0fd40726377b650a978f290554305edb4bf6c29be4e622. Installed core metadata SHA-256: f061c58427e47e843e26d201f0a57076c734e57c734ecbbd87d4a23b7a20db9b (version 1.63.0); browser manifest SHA-256: 545d52f8382c391e605562c330e9c1c534a16045898203037a49bb8bd769a946. These identify the source for proposed pins in §2; they do not prove installed browser executables, producer reproducibility or editor compatibility. Future editor installation must obtain matching locked artifacts without relying on this sibling checkout.
+
+<a id="readiness-accounting"></a>
+
+## SPEC-A3 readiness resource accounting
+
+The 60 R/T/D rows, all 26 existing PERF tables, workload sizes, finite P/Q3 samples and campaign totals remain byte-preserved apart from the already approved FA-01 wording. This addition changes no target, ceiling, sample count or accepted admission cap. LP-1/LS-1/EF-1/PF-1/TP-1/DR-1/SG-1 work is inside the existing owning action and memory/disk clocks, not an unmeasured free allowance.
+
+Command canonicalization/hash, auth, receipt dedup, staging bookkeeping, spend-cap reservation and deletion-plan checks count inside applicable R19/R24/R26/R30 completion and durability clocks. Immutable uploads, exact backend response storage, portable sanitization, STORE archive validation/hash/closure and deletion GC account for actual bytes, staging+final overlap and transient allocations under R31/R38/R39 and existing CPU/RSS ceilings. Backend-only evidence is private storage and still consumes quota; excluding it from portable copies does not erase its disk cost. Both exact and derived records are counted when retained. Chunk buffers (≤1MiB) are subsets of existing workspaces, never additional allowances.
+
+Candidate hiding frees zero retained result bytes, including never-adopted results. Only cache eviction or explicit eligible root release (whole-document DR-1) may reduce those categories. Until leases/quarantine/GC finish, count bytes as retained or pending cleanup; shared roots count once physically and remain attributed. R31 warnings/reservations cannot assume a hide action will free space. Keep the additional64MiB recovery reserve and1GiB admission margin distinct. Large copies/opaque prompts still stream beyond4GiB/16MiB qualification specimens with unqualified completion timing, not truncation.
+
+New 5-minute pairing,12-hour absolute/30-minute idle sessions and10-second connect/30-second no-progress transfer deadlines are LS-1/EF-1 operational security/interruption parameters, not edits to PERF completion ceilings or provider-duration promises. Repeated recovery work and failed attempts remain in end-to-end receipts. New correctness fixtures in TEST §13 are assigned to existing U/L/B/E owners; before running WD, QA records actual added case counts and elapsed work. If the sealed suite no longer fits WD, follow Q21's explicit scope/budget amendment, never delete tests or inflate passing campaign counts silently.
+
+8C-01's moving en-reve corpus requires the existing Q12 source freeze/per-file manifest before D09 producer qualification; old HEAD/private versions cannot identify today's build graph. No source freeze, performance campaign or runtime measurement is claimed by this documentation revision.

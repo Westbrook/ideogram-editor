@@ -1,0 +1,314 @@
+# Readiness audit 8C — evidence freshness
+
+## Verification Summary
+
+- Verdict: **✅ APPROVED — Task 8C audit deliverable complete.** This approves the completeness of this read-only freshness audit, not implementation or the whole readiness review. Findings are handed to the coordinator for Task 9 triage.
+- Confidence: **High** for fetched API/document bytes, route discovery, public metadata and pinned dependency comparisons; **Medium** for overall source freshness because en-reve's working tree continued changing during the audit. No runtime or clean-package behavior is certified.
+- As-of date: **2026-09-26 UTC**. Public retrievals: 01:13:35–01:14:29 UTC; local comparisons continue through the timestamps below.
+- **No new P0 or P1 provider/public-contract drift found.** One P2 source-identity finding and one P3 cosmetic-drift observation. Neither requires changing an accepted user decision.
+- Editor baseline: branch `upon-build`, HEAD `86701416fa966b92353a1cff062a81a27a1786b9`; approved technical identity `083579cdb1bfd24e3fdb64f4f051524393e50861`; original base `7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a`. No PR. No repository diff was created by this audit.
+
+The audit preserves DEC-01–DEC-26, including queued results first, Fast initially/tiling later, frozen explicit operations/attachments, immutable package archives, browser rendering first, one style per text box, explicit Apply/Cancel, separate linked Layers/Composition lists, and previewed font substitution. Fresh source bytes do not resolve paid-provider, package-build, native-IME/AT or performance qualifications.
+
+## Acceptance Criteria Checklist
+
+1. **✅ VERIFIED — Re-fetch public fal.ai V4 endpoint schemas/model pages and Ideogram V4 documentation; compare fields, enums, limits and endpoints with API-1.2.**
+   - Evidence: the source ledger below; all 27 raw schemas (17 V4 including trainer/streams, 10 retained comparisons) match Appendix A/C. The 27 guides include 26 exact matches and one JSON example key-order-only difference. All 13 protocol/SDK Markdown snapshots and 3 Ideogram hosted API Markdown snapshots match. Ideogram repository HEAD and all 8 pinned caption/model documentation/source files match E9. All 11 ordinary V4/trainer model pages were retrieved successfully.
+   - Verification: fresh downloads and SHA-256; current Appendix A/B field checker independently rerun against fresh schemas: 318 input fields, 76 output fields, 8 nested definitions, 54 valid structural examples, 119 missing-required negatives, 182 references. The base page's embedded OpenAPI object and 18 published runtime URLs match the original captured page exactly as parsed. These are 17 captured routes plus operational `/health`; no health or inference call was made. No added/removed public route was discovered within those sources; private/unlisted worldwide completeness is not asserted.
+2. **✅ VERIFIED — Compare current en-reve HEAD and public exports against DS-1.1.**
+   - Evidence: same HEAD, same 9 identity anchors, same 531 metadata entrypoints and 96 custom-element declarations; 42 class/descriptor pairs named by DS resolve to supported entries and actual source files. Five package export maps still support the documented public boundaries. Full corpus drift is explicitly reported as 8C-01.
+   - Verification: read-only Git/path/JSON/hash inspection; no source build or behavioral test execution. Counts are inventories, not maturity scores. Unchanged metadata does not prove all implementation bytes are unchanged.
+3. **✅ VERIFIED — Compare proposed toolchain pins against current lockfiles.**
+   - Evidence: unchanged DS root package/lock hashes and Playwright core/browser manifests; exact version table below. Node 26.10.0 fits the declared engine range, rather than being claimed installed or locked by npm. No editor lockfile exists yet, consistent with Q13.
+   - Verification: direct package/lock/browser manifest reads without installs or executable launches; package-manager exact pin and browser revision overrides preserved.
+4. **✅ VERIFIED — Record source identities, retrieval times, clause-linked drift findings, fixes and decision needs.**
+   - Evidence: full ledgers and 8C-01/02 below. Historical hashes remain historical; no prior approval substitutes for current comparison.
+   - Verification: ledger completeness checked against API Appendix C/E9; every observed drift has an owning clause and practical impact. No ambiguity in this task's audit criteria blocked completion.
+5. **✅ VERIFIED — Deliver the titled readiness-audit note and keep the audit read-only.**
+   - Evidence: this note, tagged `readiness-audit`, linked from original Task 8C. Temporary evidence is isolated under `/tmp/ideogram-readiness-8c`; only task/progress/PR-context/audit notes were updated.
+   - Verification: no section/Spec/docs/spec/design-system mutation, no real credentials, login, installation, app code, inference, training, uploads, model downloads, PR or deployment. GitHub public reads used `gh api` with an isolated empty config, a dummy CLI-required token and `Authorization: anonymous`, so no real credential was loaded or sent. An earlier empty-header attempt with the dummy placeholder returned 401; the explicit anonymous header succeeded. This is not a provider runtime test.
+
+## Findings and impact
+
+### 8C-01 — P2: The broader en-reve source identity has drifted and is still moving
+
+**Triage tag: editorial — pre-approved for Task 9.** Add the dated evidence receipt and preserve the existing Q12 owner and qualification gate. No change to behavior, scope, numbers/budgets or accepted decisions is proposed.
+
+- **Owning clauses:** [DS-1.1+A1](intent://local/upon-build/note/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2), §1 lines 17–37 and §7 lines 167–185; matching `docs/spec/design-system.md`. [SPEC-A2](intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088) Q12 line 192. [PERF-8+A2](intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143) §6 line 533 and D09 line 547.
+- **Prior identity:** DS §1 records 1,831 files, initial `3afd03c9ef47c11d031e0b73710416ece2fd1402910efe21e26147cf97aab6b9`, final `3d058d0aa84a70f9bfc2c886e7dc124d2e35bd6ac7a166f5095fef6398c7dbb3`, with unchanged HEAD and nine anchors.
+- **Fresh evidence:** exact historical file-selection/hash recipe (including `tsconfig.base.json`) yields 1,832 files at 2026-09-26T01:16:13.499547+00:00, SHA-256 `0229d00ed04102965b9c615bff17652c101a9815e672f5472c4a0ed2d3921a72`; later 1,834 files at 2026-09-26T01:17:19.103780+00:00, SHA-256 `391e90709c6d4e677f77f15570b1b817715f0dd75ce91046a87198ef5b3fffab`. The nine anchors were rechecked at the later read and still match. Source Git status grew from 802 to 805 entries during the audit; no remote is configured.
+- **Observed changes within this audit:** added `tooling/testing/machine-owner.mjs` and `tooling/testing/machine-owner.test.mjs`; changed `tooling/testing/invoke.mjs`, `workload.mjs`, `README.md` and `comprehensive.test.mjs`. Exact changes since the historical 1,831-file baseline cannot all be attributed because its per-file content inventory/source archive was not retained in the canonical evidence; do not infer they are all harmless. File mtimes alone were not used as content proof.
+- **Impact:** the historical DS audit remains dated evidence, but HEAD/private version 0.1.0 cannot identify today's entire source/testing graph. Reusing that historical broad digest as a current producer identity would be incorrect. No changed adopted public export or field contract was found. This reinforces existing Q12, rather than adding an application feature or invalidating every prior source conclusion.
+- **Proposed fix / owner:** coordinator/Task 9 should add a dated freshness receipt to DS §1 and keep Q12 explicitly owned by Build/DS producer. Preserve the old digest observations. Before package production in P1, choose and freeze the exact complete source/lock/license bytes and a per-file manifest, reject concurrent source drift, then produce and qualify coherent archives. Do not copy or repair the live DS repo during this audit.
+- **User decision needed:** **No** for the proposed evidence update and existing Q12 gate. A change to accepted archive delivery or browser-first rendering would require a separate user decision and is not proposed.
+- **Re-verify:** rerun the exact corpus/anchor commands below on the selected frozen source; compare the per-file manifest, selected public imports, generated metadata, lock and actual archive bytes. Clean installation and browser gates are future authorized P1 qualification, not checks run here.
+
+### 8C-02 — P3: Raw web-page hashes changed without demonstrated contract drift
+
+**Triage tag: editorial — pre-approved for Task 9.** Record the dated raw/semantic comparison without rewriting historical hashes or changing capabilities, behavior, scope, budgets or accepted decisions.
+
+- **Owning clauses:** [API-1.2+A1](intent://local/upon-build/note/2728dafd-4209-4558-a762-3a0192e0610f), evidence method lines 15–28, Appendix C lines 2005–2060 and E9 lines 2279–2303; pricing observations lines 202–228.
+- **Evidence:** the ledger records current HTML hashes for the base, family and explore pages versus both Appendix C and E9 captures. Whitespace-normalized visible text (excluding script/style nodes) is identical to the original Appendix C captures. Parsed base-page embedded OpenAPI is identical; discovered runtime URLs are identical. Canonical embedded-schema SHA-256: `9b6081e824ca9492d88f8a2a6b6f1da205659f10689864518e14c179543de611` (sorted-key compact JSON of the extracted object list; distinct from raw HTML hashes).
+- **Additional evidence:** the comparison-only upscale guide changed from `961fe95c61520e867b1d65260fcea6d68756decf304d4b483b08c91db529386e` to `668254c690332801f15e2b75a1b1b4d70a93d34918fc65a6b47b1b5d57334e14`; the complete diff only exchanges `url` and `file_name` property order in its two rendered output examples. Its parsed example objects are equivalent. Every V4 guide and schema is byte-identical. This order-only drift was also observed in the earlier foundation review; it is not a new product defect.
+- **Impact:** raw HTML/example digests alone would produce a false contract-drift alert. No route, field, enum, limit, pricing prose, composition convention or accepted operation change is supported by these differences. Current content still distinguishes raster results and upcoming editable layers; no new native-layer response is established.
+- **Proposed fix / owner:** Task 9/API owner may link this dated ledger as a freshness addendum and retain both raw and semantic comparison receipts. Do not rewrite historical API-1.2 evidence hashes or change capability status. No mandatory contract correction.
+- **User decision needed:** **No**. Any future promotion of tiling/streams/older-model features or automatic native-layer conversion still needs the relevant accepted scope decision and qualification.
+- **Re-verify:** refetch the ledger URLs, compare raw hashes, then compare embedded metadata, visible text and parsed example objects whenever raw bytes differ.
+
+## Current contract confirmations
+
+- All 17 V4 schemas preserve their endpoint-specific request/response contract, including dedicated source+LoRA and source+mask+LoRA routes. The six stream output schemas remain empty. No new dedicated V4 upscale, multi-reference-list field, top-level negative prompt, native-layer/text output, or typed Fal `json_prompt` field is established.
+- `prompt` remains a string on all 16 V4 inference routes. Current Ideogram-hosted `V4JsonPrompt` documentation belongs to a separate provider API. Pinned model-caption guides/code still differ from hosted expansion/validation behavior as documented in E1–E9. Current public docs do not close Q10/Q11.
+- All protocol bytes match, so recorded queue/schema cancellation differences, retries/fallback uncertainty, retention distinctions and unknown runtime limits remain visible. Matching bytes do not certify actual enforcement. Q01–Q11 are not closed by this audit.
+- Current en-reve boundaries: elements root plus supported component/descriptor/additional metadata entries; primitives state/interactions/templates patterns without a root entry; styles explicit JS/CSS families; tokens documented utilities/default/theme/data entries; SSR root/install/scoped/client. Unsupported deep imports remain unsupported despite the wildcard map. Public metadata remains 531 entries / 96 custom elements; all 42 DS-named class/descriptor pairs resolve.
+
+## Toolchain identity comparison
+
+| Item | Proposed / historical | Current local evidence | Result |
+| --- | --- | --- | --- |
+| Node | 26.10.0 proposed | root engine `^24.21.0 || >=26.10.0 <27` | Compatible proposal; no claim that npm locks or installs Node |
+| npm | 12.1.0 | `packageManager: npm@12.1.0`, engine `>=12.1.0 <13` | Match |
+| TypeScript | 7.0.2 | DS package-lock 7.0.2 | Match |
+| Vite | 8.3.1 | DS package-lock 8.3.1 | Match |
+| Lit | 3.3.3 | DS package-lock 3.3.3 | Match |
+| signal-polyfill / signal-utils | 0.2.2 / 0.21.1 | DS package-lock 0.2.2 / 0.21.1 | Match |
+| Playwright / core / test | 1.63.0 | lock and installed core metadata 1.63.0 | Match; binaries not executed |
+| Chromium | 153.0.8010.12 / revision 1243 | current browsers.json identical | Match |
+| Firefox | 155.0 / revision 1543 | current browsers.json identical | Match |
+| WebKit | 26.6 / revision 2359 | identical manifest, mac14/mac14-arm64 override 2251 | Match; preserve platform override |
+| @lit/context | 1.1.6 | lock 1.1.6 | Match |
+| Optional SSR / SSR client / parse5 | 4.1.0 / 1.1.8 / 8.0.1 | lock matches | Match; SSR remains optional |
+| Editor toolchain/fal client/SQLite driver | Not delivered; Q13 | no editor package lock exists | Expected future qualification, not source drift |
+
+## Source ledger
+
+All hashes below are full SHA-256. “Same” means exact raw bytes hash to the stated prior value; it is not a semantic-only claim. Retrieval timestamps are UTC. Dated source hashes do not pin Fal model weights. Local reads are explicitly distinguished from public HTTP sources. Repeated base/family fetches are retained because Appendix C and E9 recorded different historical snapshots.
+
+<details>
+<summary>27 schemas and corresponding guides — URLs, times, prior/current hashes</summary>
+
+| Endpoint and source URLs | Schema prior = current SHA-256 | Guide prior → current SHA-256 | Retrieved schema / guide UTC |
+| --- | --- | --- | --- |
+| `ideogram/v4` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4) · [guide](https://fal.ai/models/ideogram/v4/llms.txt) | `d83cf73ad6afecb49c2c1c094e8876674d0b844d0c1bda93b8ec804026653806` | `736e671a2727154af39788e6dbab9ba1bc6bca22142d71bb42e6b6a5e7120a90` = same | 2026-09-26T01:13:35.895869+00:00 / 2026-09-26T01:13:35.459509+00:00 |
+| `ideogram/v4/fast` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/fast) · [guide](https://fal.ai/models/ideogram/v4/fast/llms.txt) | `a6db6ca26a594018c8ad9315d46e09e30a42d18b2483a412502c1a1943e5c91e` | `83d59d915dbdc839aabc7ace0a23c389625a95efb3c1d52e27dbba6a66599730` = same | 2026-09-26T01:13:35.766007+00:00 / 2026-09-26T01:13:35.972851+00:00 |
+| `ideogram/v4/image-to-image` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/image-to-image) · [guide](https://fal.ai/models/ideogram/v4/image-to-image/llms.txt) | `44262f4376e55aead06f8b56cfbc8d8f32d240484b06c7c9164f6867184e9fa6` | `d3651e99d8bbd5c1b7e0ee6968d54767e6389ddf93865d4612adc126642e3072` = same | 2026-09-26T01:13:35.757893+00:00 / 2026-09-26T01:13:35.549545+00:00 |
+| `ideogram/v4/image-to-image/lora` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/image-to-image/lora) · [guide](https://fal.ai/models/ideogram/v4/image-to-image/lora/llms.txt) | `391081e2e09dbf08d8f7db59e9349d23e4d444a8819f8f01213a7929b5e5e193` | `eaaf29bd88c84ddec2b47ec924936f1e6115754db7c5bec1ba1b2de948c253b4` = same | 2026-09-26T01:13:35.934989+00:00 / 2026-09-26T01:13:35.703776+00:00 |
+| `ideogram/v4/image-to-image/lora/stream` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/image-to-image/lora/stream) · [guide](https://fal.ai/models/ideogram/v4/image-to-image/lora/stream/llms.txt) | `21b8009c6d632817855d4252b4bdb78d10c17be633f36af509f77367bb79983e` | `2e7737afb088ba008053c4ad38ef7b0f59cb3f2dfdeb28d0b137f07ff7499adb` = same | 2026-09-26T01:13:36.072924+00:00 / 2026-09-26T01:13:35.876543+00:00 |
+| `ideogram/v4/image-to-image/stream` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/image-to-image/stream) · [guide](https://fal.ai/models/ideogram/v4/image-to-image/stream/llms.txt) | `3f1469685499df946e3a750db792dc5d66c08caca72ed190fb7d9ed2369ce607` | `a69a90d5c9d570c0731930c694af9a6d9b7467e89b66d4bbabdd67ba45cfbdf4` = same | 2026-09-26T01:13:36.231290+00:00 / 2026-09-26T01:13:36.434235+00:00 |
+| `ideogram/v4/inpaint` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/inpaint) · [guide](https://fal.ai/models/ideogram/v4/inpaint/llms.txt) | `a04dd440c2ad322730020cd99b1abe07bd16115ab5db1563f44239dc8d27a149` | `953e77dd0c3b6e22fef426717de13aff6af9030b0235437ec0b77facbe750607` = same | 2026-09-26T01:13:36.398790+00:00 / 2026-09-26T01:13:36.845932+00:00 |
+| `ideogram/v4/inpaint/lora` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/inpaint/lora) · [guide](https://fal.ai/models/ideogram/v4/inpaint/lora/llms.txt) | `c7a156d6fa86482abf3add45c55dc6cc9b0e7ba58bb77982884cf9cf0e5b8bdb` | `f3bf9df9062754f99843b8d605019f419de1670c5b2ecce039c1e6ebd28d2530` = same | 2026-09-26T01:13:36.400767+00:00 / 2026-09-26T01:13:36.398648+00:00 |
+| `ideogram/v4/instant` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/instant) · [guide](https://fal.ai/models/ideogram/v4/instant/llms.txt) | `e8ddffdfef2072067915ae0a257c60439900e978468d7753bc0cf9176c525027` | `12b5098faaa92e8f29f762e601bfde7b064bdf1e929f960aa1ddb6bbf0ad998f` = same | 2026-09-26T01:13:36.448583+00:00 / 2026-09-26T01:13:36.774897+00:00 |
+| `ideogram/v4/lora` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/lora) · [guide](https://fal.ai/models/ideogram/v4/lora/llms.txt) | `c5c544d3883e7f3392139adac4c2a41cbeae7fd88a9d7762c4733238ba9848b6` | `e9c0c45a93c2a3545675f7e6b41d5ee11a5559a9d7921f6c7dc6e5de55a6b348` = same | 2026-09-26T01:13:36.789993+00:00 / 2026-09-26T01:13:36.926257+00:00 |
+| `ideogram/v4/lora/stream` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/lora/stream) · [guide](https://fal.ai/models/ideogram/v4/lora/stream/llms.txt) | `639eb160f80f412a63c1470d0657dceedad9f4a060af594a8765bfec6b09b20e` | `2469a311e9ec406ad989035ef63c96532ff5a08521ac1a4d4e019e35d9f46d83` = same | 2026-09-26T01:13:37.121252+00:00 / 2026-09-26T01:13:36.774825+00:00 |
+| `ideogram/v4/stream` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/stream) · [guide](https://fal.ai/models/ideogram/v4/stream/llms.txt) | `c5dc0e181f1875f846ebc4d46210500fbca130c7adef5ab52588cd8b10685895` | `a12cf20c3c4fca8896f30e4b0e9e91641e36ef1ac8b332d98b69b027aa492e55` = same | 2026-09-26T01:13:36.926136+00:00 / 2026-09-26T01:13:36.826847+00:00 |
+| `ideogram/v4/tiling` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/tiling) · [guide](https://fal.ai/models/ideogram/v4/tiling/llms.txt) | `5f1177b1a4302825af51cf729780789de62ec3c5b7775962d4c19a4f707395b0` | `14ecf5c482b4ca9daa224c0e4910c0eb46b5bf2c0fc8684e8b1444da656db502` = same | 2026-09-26T01:13:37.233289+00:00 / 2026-09-26T01:13:37.342550+00:00 |
+| `ideogram/v4/tiling/lora` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/tiling/lora) · [guide](https://fal.ai/models/ideogram/v4/tiling/lora/llms.txt) | `04c269b6673f5a38a68b0a26fd29893e73048fe3da4a2f36c9d38229219ed474` | `2d40be8e41cbfe05a42332c71cd8d0e9d8bf8e283685d82eb9e686302ce46af2` = same | 2026-09-26T01:13:37.179302+00:00 / 2026-09-26T01:13:37.369464+00:00 |
+| `ideogram/v4/tiling/lora/stream` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/tiling/lora/stream) · [guide](https://fal.ai/models/ideogram/v4/tiling/lora/stream/llms.txt) | `136968ca1ad745accc469e0a28d0a44476d8dff02aab2a3a8752800f3819d2f5` | `d35ed4c1b6c0850a345d10e3f2e5fd61640ea33baf1b7b949be49ce9123f6cbb` = same | 2026-09-26T01:13:37.325385+00:00 / 2026-09-26T01:13:37.253215+00:00 |
+| `ideogram/v4/tiling/stream` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/tiling/stream) · [guide](https://fal.ai/models/ideogram/v4/tiling/stream/llms.txt) | `6272afc4cca2d3aedb8729f203f5f15e873cba46e49cd1c09e91a050f8ad432f` | `c991de8ec7ddea2aa3a9999a9ef2ce8a4cff0532bd0ad24a79afc2e73ffc606b` = same | 2026-09-26T01:13:37.362633+00:00 / 2026-09-26T01:13:37.449678+00:00 |
+| `ideogram/v4/trainer` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4/trainer) · [guide](https://fal.ai/models/ideogram/v4/trainer/llms.txt) | `b35fcc12da58c1ba01a36fd76534a1cc11555ff7ce7d67ae748c1accab91c604` | `b1cd1ec6f8279bc2487b78ac6f0ad0fafc5d0c015bf9644cdaedfd529d3821f8` = same | 2026-09-26T01:13:37.536589+00:00 / 2026-09-26T01:13:37.329592+00:00 |
+| `fal-ai/ideogram/character` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/character) · [guide](https://fal.ai/models/fal-ai/ideogram/character/llms.txt) | `7f6721951cd7ca4b025b06f92dfeab3c3db40efef3b9507da09153ae812a05a3` | `178a622818b4abffb785cf80c1c6f87c11123b43111c11567c02d7fdab8b1118` = same | 2026-09-26T01:13:37.643908+00:00 / 2026-09-26T01:13:37.449705+00:00 |
+| `fal-ai/ideogram/character/edit` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/character/edit) · [guide](https://fal.ai/models/fal-ai/ideogram/character/edit/llms.txt) | `bf5d47d8b9130f77fbad1db0430d982e07d4bc6f857a5182d936bc45f852bf06` | `087b20ae45c14f2fe46486aa0353573ea1fd75ac68d87c01b37d02be250f5652` = same | 2026-09-26T01:13:37.667705+00:00 / 2026-09-26T01:13:37.574341+00:00 |
+| `fal-ai/ideogram/character/remix` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/character/remix) · [guide](https://fal.ai/models/fal-ai/ideogram/character/remix/llms.txt) | `62caceba22724896a4c7436e0e4e2fbc8ad9ef49c46a75d278886bbf767926b4` | `129b51dd7c9a6755ac66c09470483750005c190856999fb79bae194ff0d30ba8` = same | 2026-09-26T01:13:37.698627+00:00 / 2026-09-26T01:13:37.844072+00:00 |
+| `fal-ai/ideogram/upscale` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/upscale) · [guide](https://fal.ai/models/fal-ai/ideogram/upscale/llms.txt) | `057ab35accce215c4728907864dffc0919f1d36fdbd2c68830e7dc4eae5d92c6` | `961fe95c61520e867b1d65260fcea6d68756decf304d4b483b08c91db529386e` → `668254c690332801f15e2b75a1b1b4d70a93d34918fc65a6b47b1b5d57334e14` | 2026-09-26T01:13:37.790063+00:00 / 2026-09-26T01:13:37.643934+00:00 |
+| `fal-ai/ideogram/v3` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/v3) · [guide](https://fal.ai/models/fal-ai/ideogram/v3/llms.txt) | `32fd0734e70cc437db13bd6bf093eaf72c8597d7a45d16030ad1c57e0c73aa7d` | `cf235e6ce52597c1738ce6715b60cac01d804f160b33324a0d63d409f4d04ec2` = same | 2026-09-26T01:13:37.973128+00:00 / 2026-09-26T01:13:37.743923+00:00 |
+| `fal-ai/ideogram/v3/edit` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/v3/edit) · [guide](https://fal.ai/models/fal-ai/ideogram/v3/edit/llms.txt) | `35e9c93f9c9b2c5a1a2b8e27496efe16dc763108340e13b209021c4f05000d1c` | `8c9ea22a9d847df0298e986961d78282fec1887a3a993d39445a4de0bd7125bd` = same | 2026-09-26T01:13:37.996907+00:00 / 2026-09-26T01:13:37.992856+00:00 |
+| `fal-ai/ideogram/v3/layerize-text` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/v3/layerize-text) · [guide](https://fal.ai/models/fal-ai/ideogram/v3/layerize-text/llms.txt) | `3bc21c1d0458314e858786ea01b40fa65ab076ee038a54b8a8b7d4c5992d3539` | `24205359d86ed701a9572d0ef784fbe781b56c21e03d75554943e770470dce77` = same | 2026-09-26T01:13:38.034730+00:00 / 2026-09-26T01:13:37.864881+00:00 |
+| `fal-ai/ideogram/v3/reframe` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/v3/reframe) · [guide](https://fal.ai/models/fal-ai/ideogram/v3/reframe/llms.txt) | `4e2d693f10b8a9d76100e53ec408641aff6399017e562ad0213027fbc3d01596` | `b2acb6c583313f773764c27cd776302778afd5941859ab8c2531ae0429f76894` = same | 2026-09-26T01:13:38.170277+00:00 / 2026-09-26T01:13:38.170330+00:00 |
+| `fal-ai/ideogram/v3/remix` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/v3/remix) · [guide](https://fal.ai/models/fal-ai/ideogram/v3/remix/llms.txt) | `31d93c5fb63685678347d8055a870c9bf75f4f75867353b006b6af376aa09c4d` | `13d345bb81d3fedcb6af942dbdccbe18dea7fd9d8c39e28abb5ee6bb56413375` = same | 2026-09-26T01:13:38.258242+00:00 / 2026-09-26T01:13:38.034570+00:00 |
+| `fal-ai/ideogram/v3/replace-background` — [schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/ideogram/v3/replace-background) · [guide](https://fal.ai/models/fal-ai/ideogram/v3/replace-background/llms.txt) | `a430f9bfc1a34bf8c9ad3e147aa282c2d2129aab5c5ea48ae71eae906886a551` | `671df9d7fd90ccbfd0649c8289e922e68c8515f909d436ef1ce7e1b71bef3a9b` = same | 2026-09-26T01:13:38.286304+00:00 / 2026-09-26T01:13:38.170524+00:00 |
+
+</details>
+
+<details>
+<summary>Discovery, protocol and hosted Ideogram documentation snapshots</summary>
+
+| Source | Prior SHA-256 | Current SHA-256 | Retrieved UTC / result |
+| --- | --- | --- | --- |
+| [catalog](https://fal.ai/models/ideogram/v4) | `16ad1d8192f529caaa93a4a9f1e6eb59a4cb7e3c36195fc6812082a49c9ed824` | `5516be91ec82763ca7eba6a18c3b240fb2b02c55e79d9399c545fd2840c7f9fe` | 2026-09-26T01:13:38.535026+00:00 / raw drift; see 8C-02 |
+| [explore](https://fal.ai/explore/ideogram) | `61a04e2d3a93b6177b32d39a9769d7e6526d720912e17f9ecf28149ed7b4cf9c` | `50090853f875c143085bad6f379eb7dc615cca0e9333b1247fd8c341a2c9296e` | 2026-09-26T01:13:39.303550+00:00 / raw drift; see 8C-02 |
+| [family](https://fal.ai/ideogram-4) | `4cf8ff9b19096bf67ed25bb31916ad13951b132930821cfe78e0ca5a56240b8d` | `0501f04a42ee80a58baf3e43bd232773460c125f453bb93058a6b7ca1a14bb79` | 2026-09-26T01:13:38.319588+00:00 / raw drift; see 8C-02 |
+| [queue](https://fal.ai/docs/documentation/model-apis/inference/queue.md) | `577c207e98e21b13a2a33505feb704562d5e028d7f11e0e480975487cf4313e6` | `577c207e98e21b13a2a33505feb704562d5e028d7f11e0e480975487cf4313e6` | 2026-09-26T01:13:38.311604+00:00 / exact match |
+| [webhooks](https://fal.ai/docs/documentation/model-apis/inference/webhooks.md) | `bf76cb38c37ebde1d3ed3108648e4a217bad032a39b0b2182435643738d037a6` | `bf76cb38c37ebde1d3ed3108648e4a217bad032a39b0b2182435643738d037a6` | 2026-09-26T01:13:38.311574+00:00 / exact match |
+| [cdn](https://fal.ai/docs/documentation/model-apis/fal-cdn.md) | `d2790e48b527f034a228252407cdda087d187e9a7d5ccd79f5cb660fb830365d` | `d2790e48b527f034a228252407cdda087d187e9a7d5ccd79f5cb660fb830365d` | 2026-09-26T01:13:38.298947+00:00 / exact match |
+| [retention](https://fal.ai/docs/documentation/model-apis/media-expiration.md) | `77d6d254a08b1edf7eeda40abe558dcc1d552024e80240738eafcfc2fdd46a09` | `77d6d254a08b1edf7eeda40abe558dcc1d552024e80240738eafcfc2fdd46a09` | 2026-09-26T01:13:38.383414+00:00 / exact match |
+| [headers](https://fal.ai/docs/documentation/model-apis/common-parameters.md) | `33d81720bbb4f0433ef178ae13f48882e3c03a33d08cc16d9e038f791bbff56b` | `33d81720bbb4f0433ef178ae13f48882e3c03a33d08cc16d9e038f791bbff56b` | 2026-09-26T01:13:38.501026+00:00 / exact match |
+| [reliability](https://fal.ai/docs/documentation/model-apis/inference/reliability.md) | `95d277a2917fc362d1df2ce79081ed48056955455939cb03cc01e18cd9669709` | `95d277a2917fc362d1df2ce79081ed48056955455939cb03cc01e18cd9669709` | 2026-09-26T01:13:38.401516+00:00 / exact match |
+| [limits](https://fal.ai/docs/documentation/model-apis/concurrency-limits.md) | `0e641fdef47e433f8ade3d8ee5da83b9fc31d27861b43e50992342d449f0ed58` | `0e641fdef47e433f8ade3d8ee5da83b9fc31d27861b43e50992342d449f0ed58` | 2026-09-26T01:13:38.425794+00:00 / exact match |
+| [errors](https://fal.ai/docs/documentation/model-apis/request-errors.md) | `7cf89d6279aca693e8fe162d6cc7ef41654aec91c2fb94da81af575b397c2346` | `7cf89d6279aca693e8fe162d6cc7ef41654aec91c2fb94da81af575b397c2346` | 2026-09-26T01:13:38.428749+00:00 / exact match |
+| [model-errors](https://fal.ai/docs/documentation/model-apis/errors.md) | `a61c4ef50499d2b26e971377b2a1e5d382ea9078f3ebe550911f09e47ddf8e0c` | `a61c4ef50499d2b26e971377b2a1e5d382ea9078f3ebe550911f09e47ddf8e0c` | 2026-09-26T01:13:38.500456+00:00 / exact match |
+| [streaming](https://fal.ai/docs/documentation/model-apis/inference/streaming.md) | `6674504e8563efd41ac016a8303d7e418f505bff4b5f612df725ddd818a6e0cd` | `6674504e8563efd41ac016a8303d7e418f505bff4b5f612df725ddd818a6e0cd` | 2026-09-26T01:13:38.612330+00:00 / exact match |
+| [sdk-retry](https://fal.ai/docs/api-reference/client-libraries/javascript/retry.md) | `0623283a0f3b08f38b6e481ea51ee82419b0ba67aa500a22b714a210509d034b` | `0623283a0f3b08f38b6e481ea51ee82419b0ba67aa500a22b714a210509d034b` | 2026-09-26T01:13:38.694954+00:00 / exact match |
+| [sdk-queue](https://fal.ai/docs/api-reference/client-libraries/javascript/queue.md) | `75567f39937f79c7f0d1decb8686bd36429316c3964ef7fd1246ff79f0a46e8f` | `75567f39937f79c7f0d1decb8686bd36429316c3964ef7fd1246ff79f0a46e8f` | 2026-09-26T01:13:38.697227+00:00 / exact match |
+| [arguments](https://fal.ai/docs/documentation/model-apis/model-arguments.md) | `fe8a6f861770c754b15be0874bcbb542d107b58eceb00039587878705a64ed36` | `fe8a6f861770c754b15be0874bcbb542d107b58eceb00039587878705a64ed36` | 2026-09-26T01:13:38.602842+00:00 / exact match |
+| [Fal base page](https://fal.ai/models/ideogram/v4) | `78f64cf9867b841f6fd2eaab1e0bbb25a031439a2c56f9f4ac8f31f737a21c56` | `c23ddf43694a681cd3d8da12c7c0278c0963f443018fabf6405bba08a84a18be` | 2026-09-26T01:13:38.931843+00:00 / raw drift; see 8C-02 |
+| [Fal family page](https://fal.ai/ideogram-4) | `b5d7ca4de3c3dba0b7d395440225afcf6fcd8781ce1b4ad6a39abe92a320ea76` | `714ba94535d665fac5e77cc562679519294f57f9d7430eafeab99af40eafb425` | 2026-09-26T01:13:38.727817+00:00 / raw drift; see 8C-02 |
+| [Ideogram generate Markdown](https://developer.ideogram.ai/api-reference/generate-images/generate-v4.md) | `accc8b67ac87f60cb7261504c184d47568bc71b4058f201f8a1d92c2cbbd7f23` | `accc8b67ac87f60cb7261504c184d47568bc71b4058f201f8a1d92c2cbbd7f23` | 2026-09-26T01:13:38.697288+00:00 / exact match |
+| [Ideogram Magic Prompt Markdown](https://developer.ideogram.ai/api-reference/describe-prompts/magic-prompt-v4.md) | `8cd3427b414766f03403607629b98d1d1bc8490043547f2b51a12865b9c821f6` | `8cd3427b414766f03403607629b98d1d1bc8490043547f2b51a12865b9c821f6` | 2026-09-26T01:13:38.904845+00:00 / exact match |
+| [Ideogram Describe Markdown](https://developer.ideogram.ai/api-reference/describe-prompts/describe-v4.md) | `5b000a1c6ed04007d79a78146df4fa449a6d219be54ddd20a7019f562f8978ef` | `5b000a1c6ed04007d79a78146df4fa449a6d219be54ddd20a7019f562f8978ef` | 2026-09-26T01:13:38.922525+00:00 / exact match |
+| [Ideogram model site](https://ideogram.ai/models/4.0) | No byte hash asserted by API-1.2 | `91f8de637c0796d289925eec6159dc9f2816d22a21a57e642fb0ce799a16f857` | 2026-09-26T01:13:38.904983+00:00 / new identity only; no prior-byte equality claim |
+
+</details>
+
+<details>
+<summary>Fresh endpoint model pages</summary>
+
+Only base/family/explore had canonical HTML baseline hashes. Other pages below are new dated identities; their absence from the old HTML ledger is not a removed endpoint. Their linked schemas/guides are compared above. All 11 returned model pages with the expected title and no not-found marker; this does not establish runtime availability.
+
+| Source | Prior | Current SHA-256 | Retrieved UTC |
+| --- | --- | --- | --- |
+| [ideogram/v4](https://fal.ai/models/ideogram/v4) | Appendix C/E9; see table above | `6c927dcd66391cec0ece7a529f69566929fce12ab0a7b505c80dc4e951a363d1` | 2026-09-26T01:14:28.579530+00:00 |
+| [ideogram/v4/fast](https://fal.ai/models/ideogram/v4/fast) | No canonical prior HTML hash | `4b8f893888e81520088221eb2099cbb9c609fc5a781f4cf853f3e327aaa86cb4` | 2026-09-26T01:14:28.149577+00:00 |
+| [ideogram/v4/image-to-image](https://fal.ai/models/ideogram/v4/image-to-image) | No canonical prior HTML hash | `bb4d2eb970c77c4119f3b0220383fd569154d4b6b5389319c2c73edcb817a0af` | 2026-09-26T01:14:29.196743+00:00 |
+| [ideogram/v4/image-to-image/lora](https://fal.ai/models/ideogram/v4/image-to-image/lora) | No canonical prior HTML hash | `c88c34d1c41fb12db7774fd12eab0f870b807323537bfa5ed3a2d1d136c1dc35` | 2026-09-26T01:14:29.172459+00:00 |
+| [ideogram/v4/inpaint](https://fal.ai/models/ideogram/v4/inpaint) | No canonical prior HTML hash | `cac26f21031f21525f5e35a7b5465e7873730720167789575bf7670bac05fb67` | 2026-09-26T01:14:28.833797+00:00 |
+| [ideogram/v4/inpaint/lora](https://fal.ai/models/ideogram/v4/inpaint/lora) | No canonical prior HTML hash | `d49469fe8dfe29c6ffc48e67018315941ccb07eb4aab99d553a80b59fa3c5025` | 2026-09-26T01:14:28.756664+00:00 |
+| [ideogram/v4/instant](https://fal.ai/models/ideogram/v4/instant) | No canonical prior HTML hash | `922a666875049412ccfcadd154d3727f16d4097719e030d68ac11ed8c970e614` | 2026-09-26T01:14:29.053337+00:00 |
+| [ideogram/v4/lora](https://fal.ai/models/ideogram/v4/lora) | No canonical prior HTML hash | `404955c3d2a62ecd61dd13f1534008bd3206021fcdf48b2baebf8b903f4f3346` | 2026-09-26T01:14:29.212379+00:00 |
+| [ideogram/v4/tiling](https://fal.ai/models/ideogram/v4/tiling) | No canonical prior HTML hash | `0271f315fe980e1043224fd2b4325ff61a74bc2626c9b795b4ab7a803a719707` | 2026-09-26T01:14:29.399493+00:00 |
+| [ideogram/v4/tiling/lora](https://fal.ai/models/ideogram/v4/tiling/lora) | No canonical prior HTML hash | `05aa5e8b8e5f9f3b644d6c6b7e4f135a138965c0444b5cc765b3322c6724537d` | 2026-09-26T01:14:29.396463+00:00 |
+| [ideogram/v4/trainer](https://fal.ai/models/ideogram/v4/trainer) | No canonical prior HTML hash | `58383894d43b9d7436d42604c1a7f6e00f01090014c54ec923291cfe7570faaa` | 2026-09-26T01:14:29.430409+00:00 |
+
+</details>
+
+<details>
+<summary>Ideogram repository HEAD and eight pinned source files</summary>
+
+[Current HEAD metadata](https://api.github.com/repos/ideogram-oss/ideogram4/commits/HEAD): prior = current `990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2`; retrieved 2026-09-26T01:14:25.564838+00:00; response SHA-256 `9f8838e5225eb5e3d379b8b13dc50df50543a450014ab2057734a7bfba1786f0`. Commit message: Misc docs cleanup and corrections to text prompting (#34), dated 2026-06-30T18:01:52Z. This is repository identity, not Fal deployment identity.
+
+| Source at current = pinned HEAD | Prior = current content SHA-256 | Retrieved UTC |
+| --- | --- | --- |
+| [Pinned prompting guide](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/docs/prompting.md) | `6dd30fdbf957d390038aad737cf703bff5adcd02805842b928bb40326d07d7a8` | 2026-09-26T01:14:25.810671+00:00 |
+| [Pinned CaptionVerifier](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/src/ideogram4/caption_verifier.py) | `e6808c1068cb16937b26a95c1915900c051f35deea9292cb476bffcd3e7ce2b8` | 2026-09-26T01:14:26.041880+00:00 |
+| [Pinned magic_prompt.py](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/src/ideogram4/magic_prompt.py) | `e56b87d9225a8119b90023469de3b77b2c8b62ce387ba38b3f7baebc441619bc` | 2026-09-26T01:14:26.232031+00:00 |
+| [Pinned expansion system prompt v1](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/src/ideogram4/magic_prompt_system_prompts/v1.txt) | `5f6386382a1d9676f597be93884fc2346b62b923638da8df8b47d4d94a728f5e` | 2026-09-26T01:14:26.407599+00:00 |
+| [Pinned pipeline](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/src/ideogram4/pipeline_ideogram4.py) | `c12ed0f97b814103af3b287e3048dd23ec7fcdb2e014d72d4869d472e9c4a6cd` | 2026-09-26T01:14:26.589597+00:00 |
+| [Pinned inference CLI](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/run_inference.py) | `2236dd85c6a72ab48511759f9313d165db7682e5f3564022fd747296bd04167f` | 2026-09-26T01:14:26.756461+00:00 |
+| [Pinned local inference guide](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/docs/inference.md) | `ea1697c57066e73ce9e71c84fe23320ca33b1c0c65179820275cad07a246bf5b` | 2026-09-26T01:14:26.912520+00:00 |
+| [Pinned README](https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/README.md) | `baac6e04de78b700b52942b716b3eff654aa00449a0ae2ba7c43f47868fd1c8e` | 2026-09-26T01:14:27.152132+00:00 |
+
+</details>
+
+<details>
+<summary>En-reve local source and toolchain identities</summary>
+
+Source root: `/Users/westbrook/Documents/repos/design-system`. Local HEAD prior = current `6d09b31cf43523ac8c75352208ab9697b62e2673`; no public remote configured, so no claim about an unavailable upstream remote HEAD. The task explicitly requires this local design-system comparison.
+
+Nine anchors retrieved 2026-09-26T01:13:48.119721+00:00; all rechecked unchanged at 2026-09-26T01:17:19.103780+00:00.
+
+| Source path relative to DS | Prior = current SHA-256 |
+| --- | --- |
+| `package.json` | `a34853a850b90ee812c15b8b31c60e18fd516625b98c01b0b3355fcde84bc0bd` |
+| `package-lock.json` | `495784328f6a3e500e0fd40726377b650a978f290554305edb4bf6c29be4e622` |
+| `packages/elements/public-api.json` | `71980beca2a69afee31adf526ff34261de4772e4ef198efacaa4d3daf100a088` |
+| `packages/elements/custom-elements.json` | `ef15177573ae327736d5627b9bcf0d41ec90741208b0461a8850bf873f8a3efc` |
+| `packages/elements/public-types.json` | `89335e5dddbeb3c3d9d12e4b33b429cb055b6e976a52030986aeb6414ef28c55` |
+| `packages/primitives/src/interactions/events.ts` | `0d4a8948ca160189c50b8349c8b34b27bd911c09f29bdf30369b15de41c866b9` |
+| `packages/primitives/src/state/draft.ts` | `df2e3e8869177fd482da605350f366615c0ed4e7a0a607f59984efee7d35a441` |
+| `packages/elements/src/forms-private/form-field.ts` | `0962086c61c18e98818ed658aaab8efe76f5204af42aff0e3b340e1efafffc49` |
+| `packages/primitives/src/interactions/virtual-collection.ts` | `22ce815d1bbe6f0977f586655f0d0e0131664efbb72e391a9aa3c6a9ca708041` |
+
+Additional local identities retrieved 2026-09-26T01:17:08.481999+00:00:
+
+| Source path | Prior identity / comparison | Current SHA-256 |
+| --- | --- | --- |
+| `packages/elements/package.json` | No separate prior hash; public boundary matches DS §2/7 | `90bdf39411df3e527e2ccbf26dabad33289a9da929237a3db11a390afe087507` |
+| `packages/primitives/package.json` | No separate prior hash; public boundary matches DS §2/7 | `28534fd92e36e4e027afcafb806dbb6cc4bb9e285ef86b5213b09bb5a1254662` |
+| `packages/styles/package.json` | No separate prior hash; public boundary matches DS §2/7 | `9b1f0339be72582b1018c69a34b5ed369344dce8651d2e08c1fd7497338c53b1` |
+| `packages/tokens/package.json` | No separate prior hash; public boundary matches DS §2/7 | `18794333df480b209dbacee743d26d5fd6d276d8e8ac2e36b622b0151dc480ee` |
+| `packages/ssr/package.json` | No separate prior hash; public boundary matches DS §2/7 | `195d83214979263cda84594f0e9670b50ee5997a932b9066f1c5208b1de74f52` |
+| `tsconfig.base.json` | No separate prior hash; public boundary matches DS §2/7 | `40adb4a43233b72907a9ca070deac2370dbb64f585c139dd914d60d52d5c5aed` |
+| `node_modules/playwright-core/package.json` | Prior = current per PERF §10 receipt | `f061c58427e47e843e26d201f0a57076c734e57c734ecbbd87d4a23b7a20db9b` |
+| `node_modules/playwright-core/browsers.json` | Prior = current per PERF §10 receipt | `545d52f8382c391e605562c330e9c1c534a16045898203037a49bb8bd769a946` |
+
+The local receipt also records 84 source hashes for the 42 verified class/descriptor pairs. These are fresh source identities, not claims of byte equality with an unretained historical source snapshot.
+
+</details>
+
+## Tests/Commands Run
+
+- `python3 /tmp/ideogram-readiness-8c/refetch.py` → PASS: 76 HTTP records, all successful; 27 schemas, 27 guides, 22 discovery/protocol/hosted-document snapshots. Only 6 prior-hash records drifted; the model-site row had no prior hash.
+- `python3 /tmp/ideogram-readiness-8c/more_sources.py` → PASS: anonymous `gh` HEAD/content retrievals plus 11 model pages; 8 source-file hashes match.
+- `python3 /tmp/ideogram-readiness-8c/check_api.py` → PASS: 27 schemas; 318/76 fields; 8 nested definitions; 54 structural examples; 119 expected missing-required failures; 182 references. The checker was inspected before reuse and runs against the fresh captures and current docs/spec/api.md, not stale evidence. It is a bounded structural checker, not a complete OpenAPI standards suite.
+- `python3 /tmp/ideogram-readiness-8c/compare.py` → PASS: semantic HTML/schema/route comparison, public metadata resolution and exact lock pins. Non-base model pages do not expose the same full embedded family schema object; they were checked via their own linked schema/guide and expected title instead of being reported as schema matches.
+- `python3 /tmp/ideogram-readiness-8c/local_receipt.py` and the corpus command below → PASS with explicitly reported drift: HEAD, maps, 9 anchors and manifests; 1,832→1,834 files during audit.
+- `git -C /Users/westbrook/Documents/repos/design-system rev-parse HEAD`, `git ... remote -v`, `git ... status --short`; editor `git status --short` / `git diff --name-only` → read-only identity checks.
+- No app/build/install/provider/native-browser tests were run: they are outside this audit's authorization and no app exists. Static/public-document checks are the applicable verification here. Base CI is unassessed, not claimed passing or pre-existing-failing. No base rebuild.
+
+## Exact re-verify commands
+
+Temporary scripts/receipts remain under `/tmp/ideogram-readiness-8c`; they are convenience evidence, not the durable deliverable. The note preserves all source identities. Run these only within a newly authorized read-only audit:
+
+```sh
+python3 /tmp/ideogram-readiness-8c/refetch.py
+python3 /tmp/ideogram-readiness-8c/more_sources.py
+python3 /tmp/ideogram-readiness-8c/check_api.py
+python3 /tmp/ideogram-readiness-8c/compare.py
+python3 /tmp/ideogram-readiness-8c/local_receipt.py
+```
+
+If temporary scripts are gone, the schema/guide ledger can be reconstructed from API Appendix C using this no-credential source check (no inference/training requests):
+
+```python
+import pathlib, re, urllib.request, hashlib, datetime
+text = pathlib.Path('docs/spec/api.md').read_text()
+for endpoint, schema_hash, guide_hash in re.findall(
+    r'\| `(ideogram/[^`]+|fal-ai/[^`]+)` \| `([a-f0-9]{64})` \| `([a-f0-9]{64})`', text
+):
+    for url, prior in [
+        ('https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=' + endpoint, schema_hash),
+        ('https://fal.ai/models/' + endpoint + '/llms.txt', guide_hash)
+    ]:
+        with urllib.request.urlopen(url, timeout=45) as response:
+            content = response.read()
+        actual = hashlib.sha256(content).hexdigest()
+        print(datetime.datetime.now(datetime.timezone.utc).isoformat(), url, prior, actual, prior == actual)
+```
+
+The historical and current corpus recipe (exact path scope, real NUL separator and newline terminator) is:
+
+```python
+import pathlib, subprocess, hashlib, datetime
+root = pathlib.Path('/Users/westbrook/Documents/repos/design-system')
+paths = subprocess.check_output([
+    'git', '-C', str(root), 'ls-files', '--cached', '--others', '--exclude-standard', '--',
+    'packages/elements', 'packages/primitives', 'packages/styles', 'packages/tokens',
+    'packages/ssr', 'apps/docs', 'tooling', 'plans', 'package.json', 'package-lock.json',
+    'tsconfig.base.json'
+], text=True).splitlines()
+excluded = {'dist', 'node_modules', 'results', 'test-results', 'playwright-report'}
+rows = [p + '\0' + hashlib.sha256((root / p).read_bytes()).hexdigest()
+        for p in sorted(set(paths))
+        if (root / p).is_file() and not excluded.intersection(pathlib.Path(p).parts)]
+print(datetime.datetime.now(datetime.timezone.utc).isoformat(), len(rows),
+      hashlib.sha256(('\n'.join(rows) + '\n').encode()).hexdigest())
+```
+
+## Evidence index and handoff
+
+- **Commits reviewed:** editor `8670141` current identity / `083579c` technical approval / `7c41c8e` original base; DS `6d09b31`; Ideogram `990fe1c`. This was external-evidence verification, not another full assembly diff review.
+- **Notes reviewed:** Spec REQ-API/DS/PERF/READY and decisions; Task8C; PR Context; accepted operation compatibility; SPEC-A2 index/Q01–Q27 and six section identities/owning clauses; final approval; existing progress handoff and unresolved feedback (empty at checkpoints). Original API/DS/performance task ownership retained.
+- **Files/areas reviewed:** docs/spec/api.md Appendices A–C/E; design-system §1–3/7–11; performance §2/6/10; index traceability and qualification register; en-reve public manifests/export maps/selected source paths/root lock/Playwright metadata; fresh public provider/model documents.
+- **Risk notes:** source/guide hashes are time-bound; no immutable Fal weights revision or account/runtime contract was discovered. Dirty DS bytes can change even at unchanged HEAD, and current matching metadata is not behavior proof. No unrun qualification was marked complete.
+- **Coordinator next action:** triage 8C-01 into the existing Q12 owner/trigger and optionally add the dated source ledger to SPEC-A3 evidence; 8C-02 needs no contract correction. Combine with Tasks8A/8B before Task9/10. Do not reopen completed original tasks or change accepted decisions merely because this audit exists.
+- **Scope completion:** all Task8C audit requirements are covered; the finding remains an explicit handoff, not a silent source repair. User review remains separate and no review card is marked reviewed by the verifier.
+
+<details>
+<summary>Temporary receipt hashes for reproducibility</summary>
+
+| Receipt/script | SHA-256 |
+| --- | --- |
+| `retrieval.json` | `ee6cf7fc50496ca127c32529b54cdc91d2e661fac0de54107cef44e9f7fd46f1` |
+| `github-retrieval.json` | `880e612d9328e16dbf0ed2e4bdb25b598807361112c38e6d815f46fb429dea64` |
+| `pages-retrieval.json` | `41cee554ce4331dee9c8313d9b3eac4d6b3bebdf607b34b77652774cac669161` |
+| `comparison.json` | `843c5b97a3310d2a571986a577866039785bfe6d6762b2829fa9e0f16956a5e8` |
+| `ds-anchors.json` | `893cdd68352a22cb63fbf4a69af01acd4089c232ea7bde0122ad74a6529e72ae` |
+| `ds-corpus.json` | `a460a8c7cf5b7883f4b144c41294cacada93c0f0c6e3a0a09745f2b66996c981` |
+| `ds-corpus-final.json` | `5e3bab461a72b617990f8c30d208b950f747e4acba142d803e86f8c98d53c6f8` |
+| `local-receipt.json` | `ded16246f5086c3464af754c7c21d1c7a45a02cfa6e9541e2154acc74297f8c2` |
+| `refetch.py` | `3d1049610045749a0fc88132d520b49a6e9f382a5586f2de7af903146429ece1` |
+| `more_sources.py` | `c96483a5842866a97814b95f2ffb21d3c551ad101fcac59407a14491996331e1` |
+| `check_api.py` | `744612d3bc1a749a5da33f6106b2d3c9bd81e17a14912edca6d38f160e7fc358` |
+| `compare.py` | `7bced19ec9aa7886fa7bf2bee7e28bd30fe66dc9b473ddccb18c0ef8bbab1474` |
+| `local_receipt.py` | `7c551c0e534f9f2e40d5b8824ff5a4a6b30c9e6551c77a513d4842d89b4c0dbd` |
+
+</details>

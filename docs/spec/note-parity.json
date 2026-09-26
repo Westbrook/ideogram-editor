@@ -1,77 +1,84 @@
 {
-  "assembly": "SPEC-A2",
-  "metadataCloseout": "SPEC-A2-approval-closeout-1",
+  "assembly": "SPEC-A3",
   "method": "Exact saved-note readback; deterministic link normalization must equal full repository document byte for byte.",
   "receipts": [
     {
       "noteId": "df180a35-40dd-43d7-b9c6-1f1dd0306088",
       "path": "index.md",
       "noteUrl": "intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088",
-      "sentRawSha256": "8f03ba946cbe546489c6343038ab9e9c5210873e126bf6c639f9ec83c4e3221c",
-      "readbackRawSha256": "8f03ba946cbe546489c6343038ab9e9c5210873e126bf6c639f9ec83c4e3221c",
-      "noteBytes": 67227,
+      "sentRawSha256": "7e4e6b15a394f631ce0d4f257ec2de7f206b3925e591b9f2105db1d6e62a0cf3",
+      "readbackRawSha256": "7e4e6b15a394f631ce0d4f257ec2de7f206b3925e591b9f2105db1d6e62a0cf3",
+      "noteBytes": 79904,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T01:00:42.390Z"
+      "readbackAt": "2026-09-26T01:37:22.458939+00:00",
+      "normalizedReadbackSha256": "c5827acb78ed29b251bc4788600528a6b5d2fa7dfa0357e040aebd1ffbe60079"
     },
     {
       "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
       "path": "api.md",
       "noteUrl": "intent://local/upon-build/note/2728dafd-4209-4558-a762-3a0192e0610f",
-      "sentRawSha256": "fcecca541a042a2846c723f81f066ee4608741344bbf46061ae7ff51c2a273d3",
-      "readbackRawSha256": "fcecca541a042a2846c723f81f066ee4608741344bbf46061ae7ff51c2a273d3",
-      "noteBytes": 168991,
+      "sentRawSha256": "eccc3c75d1f1b976c83e65f63d32f5258885ed3d2db307854bbf0dad9389d5ee",
+      "readbackRawSha256": "eccc3c75d1f1b976c83e65f63d32f5258885ed3d2db307854bbf0dad9389d5ee",
+      "noteBytes": 174493,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T01:00:42.478Z"
+      "readbackAt": "2026-09-26T01:37:22.518439+00:00",
+      "normalizedReadbackSha256": "d242a7680b36c29af0f76d57c6d9b29b41a548f9f939d6c5d3cda515ea55daac"
     },
     {
       "noteId": "bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
       "path": "design-system.md",
       "noteUrl": "intent://local/upon-build/note/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
-      "sentRawSha256": "f46f6e0ecab6b7a84d08cb74fe8e9a82285b76d7a4a93c3ec7cd9f5003b15292",
-      "readbackRawSha256": "f46f6e0ecab6b7a84d08cb74fe8e9a82285b76d7a4a93c3ec7cd9f5003b15292",
-      "noteBytes": 50926,
+      "sentRawSha256": "6c5e67fb6ef5d0fe14b771051da36b5e184bf3f0979029f8bf646a5cba486c21",
+      "readbackRawSha256": "6c5e67fb6ef5d0fe14b771051da36b5e184bf3f0979029f8bf646a5cba486c21",
+      "noteBytes": 52756,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T01:00:42.552Z"
+      "readbackAt": "2026-09-26T01:37:22.569995+00:00",
+      "normalizedReadbackSha256": "714bf819f66c459d2455d7b0bd129a7cb82e2f68254c0166dea93e130aae45f6"
     },
     {
       "noteId": "3febb57d-ea57-42de-a098-b12fb4e010e4",
       "path": "ux.md",
       "noteUrl": "intent://local/upon-build/note/3febb57d-ea57-42de-a098-b12fb4e010e4",
-      "sentRawSha256": "f1099d2cf27bcc91faab667fcacf2e3ea30ce0d46bf2214611f0121f381a6f77",
-      "readbackRawSha256": "f1099d2cf27bcc91faab667fcacf2e3ea30ce0d46bf2214611f0121f381a6f77",
-      "noteBytes": 170608,
+      "sentRawSha256": "f4c3d5fa09459cbd4fef7a0201c4be76db0b3628828462044df7d9b93ebb4b04",
+      "readbackRawSha256": "f4c3d5fa09459cbd4fef7a0201c4be76db0b3628828462044df7d9b93ebb4b04",
+      "noteBytes": 173595,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T01:00:42.659Z"
+      "readbackAt": "2026-09-26T01:37:22.626227+00:00",
+      "normalizedReadbackSha256": "a9e063b785196d72b48baff682e7cfab80ac6c8298222bae453515922b756e96"
     },
     {
       "noteId": "c0689bcd-8dca-4ce6-bccb-e538e0a45477",
       "path": "architecture.md",
       "noteUrl": "intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477",
-      "sentRawSha256": "f0dfd0906cede1c5861fc2dc02f317af831d832be13c994dcc28cec9345ce091",
-      "readbackRawSha256": "f0dfd0906cede1c5861fc2dc02f317af831d832be13c994dcc28cec9345ce091",
-      "noteBytes": 189269,
+      "sentRawSha256": "2b05085c2868bc1e4147e2c34be08d5c6e0f186a1fe37fcb03e2e24f5491a7ea",
+      "readbackRawSha256": "2b05085c2868bc1e4147e2c34be08d5c6e0f186a1fe37fcb03e2e24f5491a7ea",
+      "noteBytes": 226599,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T01:00:42.765Z"
+      "readbackAt": "2026-09-26T01:37:22.686541+00:00",
+      "normalizedReadbackSha256": "6cf2ae7fb5d99ca93b3ceec25e5a061ecb9220854f42ff1663db4815cb19c363"
     },
     {
       "noteId": "d7819c6b-68ff-4d89-835d-9acabe779cae",
       "path": "testing.md",
       "noteUrl": "intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae",
-      "sentRawSha256": "16cd0a99c1c8b209419ce8c4f181717fc335f458775bb2b5022824ccc577736b",
-      "readbackRawSha256": "16cd0a99c1c8b209419ce8c4f181717fc335f458775bb2b5022824ccc577736b",
-      "noteBytes": 102048,
+      "sentRawSha256": "81414fce7aed7579a9eb6e5fdfe1415c39a1e6f7747ae691b6ea8936d62db283",
+      "readbackRawSha256": "81414fce7aed7579a9eb6e5fdfe1415c39a1e6f7747ae691b6ea8936d62db283",
+      "noteBytes": 111740,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T01:00:42.863Z"
+      "readbackAt": "2026-09-26T01:37:22.744657+00:00",
+      "normalizedReadbackSha256": "2a7e9d7bbd9fe24e5363b201cdbc6616d663e339b3b015c0375413efa577909a"
     },
     {
       "noteId": "1b7b659d-d577-4257-b677-4850bbf86143",
       "path": "performance.md",
       "noteUrl": "intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143",
-      "sentRawSha256": "c4e0340b93db17830435a6c2544e7ec3609016794702f3af96060f5a144094ca",
-      "readbackRawSha256": "c4e0340b93db17830435a6c2544e7ec3609016794702f3af96060f5a144094ca",
-      "noteBytes": 179407,
+      "sentRawSha256": "44770dd7e43e71aa842ef2654456afa4ce5e36edb6573ce52972d1c26df7bfb2",
+      "readbackRawSha256": "44770dd7e43e71aa842ef2654456afa4ce5e36edb6573ce52972d1c26df7bfb2",
+      "noteBytes": 182054,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T01:00:42.972Z"
+      "readbackAt": "2026-09-26T01:37:22.807033+00:00",
+      "normalizedReadbackSha256": "9c52564eeb29861c15a092855e0bf8b9bdf6b3d0692bc083dcf7d105bd4f9254"
     }
-  ]
+  ],
+  "historicalMetadataCloseout": "SPEC-A2-approval-closeout-1"
 }

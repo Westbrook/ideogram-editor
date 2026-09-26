@@ -1,0 +1,240 @@
+# Readiness audit 8B — implementation readiness
+
+## Verification Summary
+
+- **Verdict: ❌ NOT APPROVED for implementation without further design work.** A team can begin bounded toolchain qualification and pure-domain work after authorization, but cannot independently implement the complete local service and first release from the current contracts.
+- **Confidence: High for this documentation audit.** No application/runtime confidence is claimed. The existing documentation checks ran; application tests do not yet exist and are outside this read-only assignment.
+- **Task 8B deliverable: complete.** This is an audit result, not a reversal of SPEC-A2's earlier documentation/source approval and not implementation authorization.
+- **Findings: eight P2 gaps/ambiguities and three P3 improvements; no demonstrated P0 or P1.** Existing safeguards are credited below. No implementation vulnerability was tested or alleged.
+
+Reviewed SPEC-A2 at `86701416fa966b92353a1cff062a81a27a1786b9`, technical baseline `083579cdb1bfd24e3fdb64f4f051524393e50861`. Original PR-context base: `7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a`; no PR exists. The current Spec adds REQ-READY at line 68. All findings require coordinator triage under Tasks 9/10; this audit makes no source edits.
+
+## Readiness by phase
+
+“Can start” describes design readiness, not permission to implement. Missing future runtime evidence is not itself a documentation defect.
+
+| Phase | Readiness verdict | Entry work and exit clarification |
+| --- | --- | --- |
+| P0 specification | Documentation integrity verified; readiness amendment needed | The checker, seals and seven live-note identities pass. REQ-READY remains open until findings are resolved or explicitly deferred with owner/reason. |
+| P1 local foundation/authoring | Bounded foundation work can start; whole-phase handoff needs design completion | DS packaging/layout and the single writer are concrete. First define the small slice and local wire/security/archive/deletion contracts (8B-01/02/03/05/07/08). Seal Q12–Q15/Q17 inputs during implementation; do not require imaginary installed artifacts before starting. |
+| P2 queued workflows | Not ready for parallel end-to-end implementation | Routing, immutable requests, uncertainty and safety outcomes are strong. Complete the backend contract, fetch policy and remote privacy defaults (8B-02/04/06/07). Q01/03/08/09/10 stay explicit provider/adapter qualification gates; emulator success cannot establish live support. |
+| P3 initial release qualification | Test design largely ready; release checklist needs applicability decisions | Keep existing TEST/PERF campaigns, correctness gates and manual evidence. Replace the broad Q01–Q22 range with applicable gate dispositions: Q02 is future streams, Q04 includes P4 training, Q05 future output claims, Q22 higher concurrency. They must not accidentally become required initial features (8B-01). Clarify support claims (8B-09). |
+| P4 lower-priority training | Workflow design substantially ready; conditional implementation remains later | Dataset limits, image/caption-only ZIP, durable sidecar, two-artifact registration and E5 are specified. Inherit common service/security/privacy fixes; qualify Q04 and the exact adapter profile before claiming runtime interoperability. No reason to move training ahead of imported-adapter inference. |
+| Future scope | Correctly deferred | Streams, tiling, outpaint, URL adapter import, optional SSR/hosted deployment remain separate adoption work. This audit does not promote them into initial scope. |
+
+Owning phase table: [Index — Implementation phases](intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088), mirror `docs/spec/index.md:244–257`.
+
+## Findings register
+
+Triage policy received from the coordinator after initial delivery: **editorial** means wording/navigation/consistency only, with no change to behavior, scope, numbers or accepted decisions; these bounded changes are pre-approved for Task 9. **decision** means a new or changed contract, policy, scope or budget and goes to the user. A proposed engineering contract can be a decision item even when it preserves all accepted product choices. Tags below supersede the initial narrower decision-impact labels.
+
+Line references below are to the repository mirrors at the reviewed commit. Each owner link identifies the authoritative matching note; live-note hashes match the sealed readbacks. “Missing detail” means the named detail is absent, not that the broader topic is absent.
+
+### 8B-01 — P2: First slice and milestone gates are not executable as a work plan
+
+**Triage: editorial**
+
+**Owner:** [Index](intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088), phases/qualification register, `index.md:175–208,244–255`; [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae) §4, `testing.md:121`.
+
+**Evidence / impact:** P1 bundles packaging, writer, image/text/composition/masks/history/copy/export into one outcome. E1 supplies a useful journey, but is not designated as the first slice with prerequisite contracts and milestone exit artifacts. P3's Q01–Q22 range also includes gates whose own triggers are future/P4/optional. The qualification register explains the conditions, so this is ambiguity and navigation debt, not proof that streams were added to release.
+
+**Proposed fix:** Add P1 sub-milestones and a phase-to-Q applicability table in the existing index. Name deliverables, dependency owner, exact observable exit, and “deferred/not applicable because…” per conditional gate. Use the suggested slice below; retain all accepted release scope.
+
+**User decision:** Pre-approved only for organizing existing P1–P4, TEST and Q requirements into a clearer reading/work sequence and showing already-defined conditional applicability. No new exit requirement, behavior, scope or budget is approved; route any such addition as a separate decision.
+**Re-verify:** Static trace from each sub-milestone to TEST E1–E4, owning contracts and Q triggers; documentation checks below.
+
+### 8B-02 — P2: Local HTTP, errors and idempotency remain an outline
+
+**Triage: decision**
+
+**Owner:** [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §§5.2/7.2/8, `architecture.md:327–360,446–458,478–489`; [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae) §§5/7, `testing.md:154,220–224`.
+
+**Evidence / impact:** Routes and durable dedup are present. Missing wire schemas/status mapping include bootstrap/session/CSRF exchange, 202 preparation status versus accepted/rejected Receipt, unknown receipt, same-ID/different-body conflict, staging offsets/resume/finalize, stream cursor/gap envelopes and content-range failures. The Receipt union lists five domain codes, while §8 names additional credential/storage/protocol cases without identifying which are HTTP failures, durable rejections or job states. “Canonical-body-hash” has no canonicalization contract. Independent frontend/backend implementations must invent matching choices.
+
+**Proposed fix:** One versioned local protocol appendix/schema with example request/response/error bodies, auth/CSRF requirements, status codes, command hashing inputs/normalization, pending-operation identity, upload ownership/resume/finalize semantics and event transaction/cursor rules. Distinguish retry-safe local delivery, retryable reads/transfers and uncertain paid dispatch. Keep all mutations through existing actions.
+
+**User decision:** Required under the current triage policy: request/response schemas, status mappings, command hashing and upload/stream semantics add or choose contract behavior. They can preserve accepted product choices, but are not editorial.
+**Re-verify:** Table every listed route against schemas/examples and error/retry behavior; later real HTTP integration cases for duplicate delivery, changed-body ID, stale revision, pending→receipt, reconnect gaps and resumed upload.
+
+### 8B-03 — P2: Localhost threat model needs concrete acceptance rules
+
+**Triage: decision**
+
+**Owner:** [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §8, `architecture.md:491–497`; [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae) §7, `testing.md:224`; Index Q26.
+
+**Evidence / impact:** Loopback binding, Host/Origin checks, pairing cookie and mutation CSRF are already required. There is no explicit attacker/trust-boundary table or exact policy for bootstrap delivery/reuse/expiry, host+port/IPv6 aliases, absent or null Origin, allowed dev proxy headers, session renewal/revocation, or sensitive GET/stream access. DNS rebinding is not named; merely saying “reject unexpected Host/Origin” leaves its test oracle unspecified.
+
+**Proposed fix:** Specify launch/bootstrap trust and exact accepted origins/hosts, authenticate sensitive reads as well as writes, define absent-Origin behavior by request class, and add negative browser/HTTP cases for hostile sites, rebinding Host values, spoofed forwarded headers, reused pairing tokens and expired sessions. State that a compromised same-OS-user process is outside the pairing defense; define storage-root permissions. Add a bounded browser-content policy for untrusted text/downloads rather than treating loopback as trusted content.
+
+**User decision:** Required under the current triage policy: exact bootstrap/session/origin/content-access rules choose security contract behavior, even while preserving the single-user localhost model. Remote access or a changed trust model also requires a decision.
+**Re-verify:** Review a threat→control→test matrix; later L/B tests must reject hostile requests with zero state/provider effects. OWASP's [CSRF guidance](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) supports exact origin handling; the finding is about missing app-specific rules, not a proven exploit.
+
+### 8B-04 — P2: Result fetching lacks a sealed egress and credential policy
+
+**Triage: decision**
+
+**Owner:** [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §§7.2/8, `architecture.md:458,493–497`; [API](intent://local/upon-build/note/2728dafd-4209-4558-a762-3a0192e0610f), Transport, `api.md:160–168`; [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae), `testing.md:66,154`.
+
+**Evidence / impact:** HTTPS/host/redirect/resolved-address validation and private-address rejection are present. Missing are the approved host/port classes, which calls receive FAL_KEY, redirect credential stripping, connection-time DNS/address policy, byte/time limits, and the test-only exception for the localhost provider emulator. A hostname allowlist alone does not define these behaviors.
+
+**Proposed fix:** Separate authenticated queue transport from credential-free asset fetching, use a versioned allowlist, explicitly reject or validate each redirect, bind address validation to the actual connection and cover IPv4/IPv6 representations. Deny ambient proxy/credential inheritance unless explicitly configured. Keep emulator exceptions test-only and production-inaccessible. Reuse existing transfer/admission budgets.
+
+**User decision:** Required under the current triage policy: host/credential/redirect/DNS and connection policies choose transport behavior. Keep arbitrary URL imports deferred.
+**Re-verify:** Future fixtures for allowed host→private redirect, changed DNS answer, mixed address families, oversized/no-length response, credential sentinel on asset host and rejected production emulator override. These are applications of [OWASP SSRF guidance](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html), not live attack tests.
+
+### 8B-05 — P2: Portable format and hostile-upload validation need a concrete profile
+
+**Triage: decision**
+
+**Owner:** [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §§8/9.3/16.7, `architecture.md:486–488,497,543–547,944–950`; [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae), `testing.md:222–224`; Index Q18/Q27.
+
+**Evidence / impact:** Closure, safe paths, hashes, bounded parsing and atomic publication are present. The archive is still a proposal: no normative container/manifest/entry/event encoding profile or exact validation order. “Compression ratio/total bytes” and “bounded” leave archive bombs, duplicate/colliding entries, symlink/hardlink/device entries and partial-import cleanup without a shared oracle. A generic fixed 4GiB cap would contradict the existing larger-copy policy.
+
+**Proposed fix:** Define a versioned portable-format manifest and import algorithm before writer/export implementations diverge. If ZIP is chosen, specify large-file support. Validate entries into isolated staging, reject unsafe names/types/collisions, stream hashes and decompression within resource reservations, then publish once. Define route/type-specific upload/parser limits using existing envelopes; preserve original files and distinguish failed staging from owned assets.
+
+**User decision:** Required under the current triage policy: portable encoding and validation profiles choose contract behavior. New hard limits or restrictions affecting accepted full-history/large-copy behavior must be explicitly identified.
+**Re-verify:** Static schema/sample archive walkthrough; later real-file integration cases for traversal, duplicate names, expansion bomb, interrupted import, oversized image decode, hash mismatch and >4GiB streamed closure. [OWASP upload guidance](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html) supports validation beyond MIME and decompressed-size control.
+
+### 8B-06 — P2: Remote privacy defaults have evidence but no selected app policy
+
+**Triage: decision**
+
+**Owner:** [API](intent://local/upon-build/note/2728dafd-4209-4558-a762-3a0192e0610f), retention/uploads, `api.md:188–194`; [UX](intent://local/upon-build/note/3febb57d-ea57-42de-a098-b12fb4e010e4) §6 transport, `ux.md:359`; [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §8, `architecture.md:495`; Index Q09.
+
+**Evidence / impact:** API evidence distinguishes payload history, CDN ACL/lifetime and local storage. UX delegates actual header values to Architecture; Architecture requires recording access policy/expiry but does not choose Store-IO/object lifecycle/ACL defaults. An implementer could leave account/provider defaults in effect while users assume “local” means private. Expiring staging too soon would also break queued fetch/recovery.
+
+**Proposed fix:** Add a data-egress/retention table: prompt, source/mask, adapters, training archive, outputs; destination, metadata sent, remote policy/default, uncertainty and deletion limits. Recommend minimum provider persistence and private access compatible with documented deferred fetch, with explicit fallback disclosure when that cannot be guaranteed. Record the selected policy on every attempt; do not promise local deletion removes remote copies.
+
+**User decision:** Required: select new remote privacy/retention defaults after checking provider feasibility. Preserve U09 local retention and full-history copies. This audit selects no TTL or policy.
+**Re-verify:** Chosen values must exist in the owning clauses and request fixtures, with expiry/offline/recovery cases. External evidence freshness remains Task 8C's responsibility.
+
+### 8B-07 — P2: Exact transport provenance and portable secret exclusion need a typed boundary
+
+**Triage: decision**
+
+**Owner:** [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §§9.3/16.7, `architecture.md:543–547,942–946`; [Performance](intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143) §7 receipt privacy, `performance.md:673–677`; [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae), `testing.md:224`.
+
+**Evidence / impact:** §16.7 says retain exact response bytes as transport provenance. Responses can include signed result URLs; copies exclude signed transport URLs, and PERF diagnostics are protected/redacted. Full closure retains job/raw provenance, but no type/closure rule explicitly separates the exact transport blob from portable safe provenance. The intended rules can coexist, but copying every provenance reference or redacting the only “exact” blob would violate one of them.
+
+**Proposed fix:** Distinct backend-only transport evidence and portable sanitized response records; explicit export exclusion and retention/access rules for the former. Preserve exact requested/submitted/returned prompt bytes as the separately owned caption records already specified. Redaction produces a derived record, never falsely relabels bytes as exact.
+
+**User decision:** Required under the current triage policy: typed record/export/retention boundaries complete contract behavior. Preserve accepted secret exclusion and exact prompt provenance; their existing wording alone does not pre-approve this specific implementation contract.
+**Re-verify:** Fixture containing signed URL, cookie/key/error sentinel and escaped/oversized prompt: local record classes correct, portable archive contains no transport secret, prompt bytes remain exact, reopen makes zero remote calls.
+
+### 8B-08 — P2: Whole-document deletion is promised but root-release semantics are incomplete
+
+**Triage: decision**
+
+**Owner:** [UX](intent://local/upon-build/note/3febb57d-ea57-42de-a098-b12fb4e010e4) §5, `ux.md:266–270`; [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §§5.1/9.2, `architecture.md:321–323,523–533`.
+
+**Evidence / impact:** Retention/GC is substantial, and UX explicitly permits backing up and deleting a whole document. But the deletion transaction does not say which document/history/checkpoint/draft/job roots are removed, which shared assets remain, how active/uncertain jobs and late results behave, or when quarantine/staging/backups remain after deletion. Candidate tombstones alone cannot free bytes still rooted by job provenance. This is not a request for the deferred history-prune UI.
+
+**Proposed fix:** A dependency-aware whole-document deletion/root-release table, preview, durable receipt and restart/race rules. Clearly state local physical deletion versus retained shared roots, grace/quarantine, external bundles/backups and provider copies. Keep default indefinite candidates/full history until an explicit eligible deletion.
+
+**User decision:** Required under the current triage policy: root-release, active-job/late-result and deletion-recovery rules complete behavior. The existing whole-document deletion promise is preserved; automatic expiry, pruning or shared-data erasure is not approved.
+**Re-verify:** Future L/B cases: sole-root document, shared asset, retained checkpoint, running/uncertain job, late completion and restart during GC; no collateral deletion and honest bytes-freed status.
+
+### 8B-09 — P3: Promote the support cohort from test detail into release metadata
+
+**Triage: editorial**
+
+**Owner:** [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae) §9, `testing.md:267–286`; [Performance](intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143) §2, `performance.md:36–46`.
+
+**Evidence / impact:** Browser/OS/AT targets and manual protocols are present. They are dispersed among measurement pins and conditional support language. The distinction between primary automated engine, Safari/AT observations, Linux CI, Windows-before-claim and unsupported mobile could be easier for implementers and release reviewers to apply.
+
+**Proposed fix:** A compact initial support matrix in the index, with required evidence and unsupported/fallback behavior; link to existing AX protocols rather than duplicate them.
+**User decision:** Pre-approved only for collecting already-stated support cohorts, evidence requirements and fallback behavior into a matrix. Any new or changed supported cohort, fallback or release requirement is a separate decision.
+**Re-verify:** Each support claim has the matching native/manual/functional receipts at P3. Nonblocking to early implementation.
+
+### 8B-10 — P3: Add an implementer quick-start; reduce duplicate normative prose
+
+**Triage: editorial**
+
+**Owner:** [Index](intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088), reading path, `index.md:7–21`; [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §§16–19; [Performance](intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143) §§2/7–9.
+
+**Evidence / impact:** Reading order and stable anchors already exist. Seven current documents total **6,057 lines / 115,440 whitespace-delimited words**. Schemas explain much of API size, but repeated amended budgets, correction walkthroughs and handoffs also compete with current contracts. This raises onboarding/contradiction risk; size alone does not invalidate requirements.
+
+**Proposed fix:** Add the role-based quick-start below inside the existing index. Distinguish “required now”, reference appendices and qualification receipts. Keep one numerical/contract authority, link repeated summaries, and move obsolete reasoning only through reviewed source/mirror changes. Do not drop accepted constraints or finite performance samples merely to shorten documents.
+**User decision:** Pre-approved for reading order, labels, links and removal of duplicate wording without changing normative contracts, numbers, scope or accepted decisions. Any scope/budget reduction remains a decision.
+**Re-verify:** A new implementer can locate entry tasks, current contract, tests, non-goals and stop conditions without reading history.
+
+### 8B-11 — P3: Optional spend guardrails can improve daily use
+
+**Triage: decision**
+
+**Owner:** [UX](intent://local/upon-build/note/3febb57d-ea57-42de-a098-b12fb4e010e4) §5, `ux.md:252–254`; [Architecture](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477) §7.1, `architecture.md:438–456`; [Testing](intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae) §12, `testing.md:452–454`.
+
+**Evidence / impact:** Explicit submit, one active request, no uncertain auto-retry, estimates/unknown charges and strict live-test caps already exist. The strict spend manifest is a testing policy, not an everyday app budget. Sequential queued requests can still accumulate cost.
+
+**Proposed fix:** Consider an optional server-enforced request-count/session stop and visible unresolved-charge ledger before dispatching more work. Offer a monetary reservation only where a conservative bound exists; never market an estimate as a guaranteed billing ceiling. This is an improvement, not a new acceptance blocker or account/billing system.
+**User decision:** Required if adopted: optional server-enforced daily-use stop/reservation rules change behavior. Current U07/U08 remain unchanged until the user decides.
+**Re-verify:** Future bounded emulator scenarios for reaching the limit, restart persistence, uncertainty holding reservation and explicit resume.
+
+## Coverage credited: present, not missing
+
+| Audit area | Existing useful contract and remaining qualification |
+| --- | --- |
+| Repository scaffold/toolchain | DS §§7–8, `design-system.md:167–213`: isolated immutable four-package archives, provenance/licenses, relative dependencies, lockfile, clean consumer, concrete folder ownership and planned commands. ARCH §2 selects Node SQLite writer worker. Q12/Q13 require sealing actual compatible artifacts; absent installs are expected, not a defect. |
+| Safety flags | UX §5 `ux.md:258–264`, ARCH §7.3 `architecture.md:466–472`, TEST §5 `testing.md:156`: true flags withheld; missing/misaligned mapping blocks ordinary display/adoption/export; partial results retained separately. Test enforcement through content endpoints under 8B-02/03; do not add a bypass. |
+| Font licensing/preservation | ARCH §16.1 `architecture.md:704–712,754`, §16.7 `architecture.md:946–950`: exact face bytes, license record, permitted/restricted/unknown embedding state, restricted/missing dependency blocks a complete-copy claim, retained appearance and explicit substitution. Q15 must seal redistributable default fonts and evidence; no actual font license clearance is asserted here. |
+| Observability/redaction | ARCH §§5.1/11/16.8, `architecture.md:310–323,610–614,954–960`; PERF §8 `performance.md:687–715`: correlated spans, stage distinctions, bounded diagnostics and monotonic clocks. PERF §7 `performance.md:673–677` specifies receipt content/retention and redaction. 8B-07 addresses record boundaries, not absence of instrumentation. |
+| Error taxonomy | API `api.md:196–198` and UX `ux.md:234–264` distinguish protocol/access/input/capacity/offline/expiry/uncertainty. 8B-02 is the missing local wire mapping, not missing user-facing error design. |
+| Accessibility | UX §7 and TEST §9 define WCAG 2.2 AA shell/form target, keyboard numeric alternatives, names/focus/reflow/contrast, AX01–10, native IME/AT and virtualized-list fallback. Q16 is actual manual qualification, not proof already passed. |
+| Schema evolution | ARCH §§9.4/16.7 `architecture.md:553–559,940–950`: separate payload/schema/profile versions, pure upcasters, backup/new namespace/atomic activation, explicit schema1→2 example and unknown-future read-only recovery; copied jobs inert. TEST §7 covers migration/rollback. Portable wire profile remains 8B-05. |
+| Local retention and cost | ARCH §9.2 and UX §5 contain dependency-aware retention, explicit cleanup, pressure admission and no automatic expiry. U07/U08/U09 are preserved. 8B-08 narrows the remaining deletion gap; 8B-11 is optional. |
+
+The four accepted text defaults and separate linked Layers/Composition lists were checked against current Spec lines 368–386 and DEC-23–26. Suggested sequencing preserves them; it does not return them to the decision queue.
+
+## Prioritized recommended additions
+
+1. **Before implementation handoff:** a short first-slice/phase-gate page in the existing index (8B-01), local HTTP/error/receipt appendix (8B-02), and concrete localhost/fetch/import threat matrix (8B-03/04/05).
+2. **Before handling real user/provider data:** decide remote privacy defaults (8B-06), separate secret-bearing transport provenance (8B-07), and specify existing whole-document deletion (8B-08).
+3. **During authorized foundation work:** seal Q12–Q15/Q17 tool/package/codec/font/storage profiles and golden fixtures, then update exact versions/commands. Do not install or invent passing evidence as part of this audit.
+4. **Before release:** applicability-based Q checklist and support matrix; preserve existing TEST/PERF/manual qualification. Add quick-start navigation now (8B-09/10). Discuss optional spend stops only if desired (8B-11).
+
+### Suggested first slice and reading order inside the existing index
+
+- **Orientation:** accepted decisions, non-goals, phases and qualification register; then UX §1/§3–5/§13 for the observable journey.
+- **P1a foundation:** DS §§7–8 and ARCH §§2/5/8/9. Seal producer/consumer inputs, trusted launch/session and local protocol. Exit: clean consumer fixture plus local command receipt/replay with no provider key.
+- **P1b first vertical slice:** import one image; create/edit one native text layer using explicit Apply/Cancel; keep Layers/Composition as separate lists; undo/redo; restart; checkpoint/full-history copy/import; PNG export. Use TEST E1 with real local storage, one licensed pinned font and CP-1. Exit: editable source and exact retained appearance/closure survive reopen; no provider calls. A small fixture proves this slice, not the full accepted 25MP/100-layer envelope.
+- **Complete P1:** composition bindings, masks, limits, storage recovery and other P1 journeys against the existing matrices.
+- **P2a provider-emulated slice:** explicit base generation and Fast conflict→resolution, immutable review, retained candidate and deliberate adoption; then masked E3 and uncertain/restart E4. Read ARCH §7 and the applicable API schema/transport sections when implementing each operation. Finish all initially accepted routes/adapters before P3; the slice does not remove them.
+- **Before claiming readiness:** TEST owning rows plus PERF relevant budgets/finite campaign and the Q applicability checklist. API A01–A27 and historical receipts are references, not mandatory cover-to-cover onboarding.
+
+## Acceptance Criteria Checklist — Task 8B
+
+- ✅ VERIFIED — Dedicated note with the required title/tag and a readiness verdict for P0–P4/Future. Evidence: this note; verification: readback after creation.
+- ✅ VERIFIED — Findings register includes ID, severity, owning note/clause/line, evidence, fix, decision requirement and re-verification. Evidence: 8B-01–11; verification: source-to-finding review.
+- ✅ VERIFIED — All assigned scope areas audited, including improvements and document usability. Evidence: phase verdicts, register and coverage table; verification: cross-read current six-section sources, index, traceability, Q01–Q27 and accepted decisions.
+- ✅ VERIFIED — Prioritized additions and distinction between missing detail and hard-to-find/present content. Evidence: each register entry and priorities; verification: scoped searches followed by owning-clause reads.
+- ✅ VERIFIED — Read-only source constraints preserved. Evidence: clean repository at start/end; no section/Spec/design-system edits, installs, credentials or provider calls. Only audit/task/report/context notes were written.
+
+**REQ-READY is not yet verified as a project-wide criterion:** the audit findings have not been dispositioned. Task 8B completion means the requested audit exists; it does not complete Tasks 9/10 or approve implementation.
+
+## Evidence index and checks
+
+- Commits/context: `86701416fa966b92353a1cff062a81a27a1786b9`; technical baseline `083579cdb1bfd24e3fdb64f4f051524393e50861`; no PR/CI failure investigation.
+- Notes: current Spec; Task 8B; all six section notes and index linked above; accepted compatibility `6df7045b-6f0a-42c5-a32d-879b38d54c51`; final review `769bd9b2-f482-41fa-abc8-0bee99d453ef`; PR Context `337dd04c-2911-4227-8217-1e2fc0b6a9f0`; existing progress report `b6884312-45fe-4295-a5a3-70180a701223`.
+- Areas: seven current mirrors, `traceability.json`, Q01–Q27, note parity/manifests/seals and relevant owning contracts. The API schema inventory was used as context; Task 8C owns external provider freshness.
+- `python3 docs/spec/tools/check_spec.py` → **PASS** (7 docs, 227 portable links, 11 original REQs, 26 decisions, 27 qualifications, 41 seals). Its 11-REQ check is historical assembly scope; it does **not** verify the newly added REQ-READY.
+- `shasum -a 256 -c SHA256SUMS` in `docs/spec` → **PASS, 41**.
+- Fresh `ws.note.read` snapshots for all seven current notes → SHA-256 comparison against `note-parity.json` **PASS, 7/7**. Combined with passing mirror seals this confirms current source identity; prior approvals alone were not used as proof.
+- `git diff --check`, `git status --short` → **PASS / clean** at audit evidence checks.
+- Word/line inventory → **115,440 words; 6,057 lines** across seven current documents.
+- One initial local hash script used the wrong working-directory-relative path and failed before comparison; rerun from repository root passed all seven. This was an audit command error, not a product defect.
+- Application/browser/security/IME/AT/provider/benchmark tests → **not run**: specification-only repository, read-only task, no installs or credentials authorized. Planned tests above are re-verification requirements, not passing evidence.
+
+## Handoff and exact re-verification
+
+Coordinator owns triage and any user decisions. Route accepted fixes through Task 9, then Task 10 independently checks the amended owning notes and mirrors. Do not silently amend accepted choices or mark user review complete.
+
+After authorized documentation revisions run:
+```sh
+python3 docs/spec/tools/check_spec.py
+(cd docs/spec && shasum -a 256 -c SHA256SUMS)
+git diff --check
+git status --short
+```
+Also re-read the seven current notes and compare fresh raw UTF-8 SHA-256 with updated `note-parity.json` receipts; stale stored hashes are insufficient. Recheck the owning clauses and proposed fixture outcomes for each accepted finding. Future application entrypoints (`npm run test:integration`, `npm run test:browser`, `npm run test:consumer`) become executable only after scaffold delivery; no nonexistent command is presented as a current verification step.
+
+Risks: external evidence freshness is outside 8B; real runtime feasibility remains Q01–Q27; remote privacy choices may require provider clarification. No unresolved report/Spec comment threads were found during this audit. User review and acceptance remain separate.

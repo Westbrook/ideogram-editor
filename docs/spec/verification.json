@@ -2,133 +2,252 @@
   "status": "PASS",
   "checks": {
     "current_documents": 7,
-    "relative_links": 227,
-    "markdown_tables": 164,
+    "relative_links": 243,
+    "markdown_tables": 173,
     "json_examples": 67,
-    "requirements": 11,
-    "decisions": 26,
+    "requirements": 12,
+    "decisions": 30,
     "capabilities": 24,
     "qualifications": 27,
     "planning_findings": 20,
-    "input_snapshots": 26,
+    "readiness_findings": 20,
+    "readiness_profiles": 8,
+    "readiness_consumer_oracles": 27,
+    "local_protocol_route_rows": 16,
+    "declared_A3_transformations": 52,
+    "reproduced_A2_documents": 7,
+    "input_snapshots": 30,
     "resolved_note_references": 405,
     "synchronized_notes": 7,
     "api_contract_blocks": 63,
-    "architecture_contract_blocks": 7,
+    "architecture_contract_blocks": 10,
     "unchanged_budget_rows": 60,
     "performance_tables_preserved_with_exact_FA01_wording": 26,
     "api_schema_appendices": 27,
-    "sealed_files": 41
+    "sealed_files": 47
   },
   "errors": [],
   "limits": [
     "Documentation/source/parity checks only; no application tests, benchmarks, provider or live external-link checks.",
     "Stored note hashes attest to the recorded readback; a future live note edit requires a fresh synchronization readback."
   ],
-  "assembly": "SPEC-A2",
-  "executedAt": "2026-09-26T01:01:18.698084+00:00",
+  "assembly": "SPEC-A3",
+  "executedAt": "2026-09-26T01:38:28.212312+00:00",
   "command": "python3 docs/spec/tools/check_spec.py",
-  "verificationClass": "Author metadata-only closeout checks after independent SPEC-A2 specification/source approval",
-  "baseSha": "7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a",
-  "previousHead": "083579cdb1bfd24e3fdb64f4f051524393e50861",
-  "independentVerificationCredit": "4/4",
+  "verificationClass": "Author readiness-revision documentation checks; independent Task 10 pending",
+  "baseSha": "86701416fa966b92353a1cff062a81a27a1786b9",
+  "independentVerificationCredit": "SPEC-A3 pending; prior SPEC-A2 approval preserved",
+  "liveNoteParity": "7/7 exact fresh readbacks",
   "gitChecks": {
-    "currentChange": "git diff --check -- docs/spec : PASS, exit 0",
-    "currentFilesFromOriginalBase": "git diff --check 7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a -- docs/spec :(exclude)docs/spec/history/** : PASS, exit 0",
-    "history": "No diff under docs/spec/history or docs/spec/corrections; historical whitespace remains exact",
-    "scope": "Metadata-only docs/spec closeout; checker unchanged; no app files",
+    "currentChange": "git diff --check: PASS",
+    "sealedHistory": "history/corrections/approvals unchanged",
     "branch": "upon-build",
-    "commit": "Final metadata-only commit recorded in Task 7 and same PR Context; avoids recursive commit identity"
+    "scope": "docs/spec only"
   },
-  "feedback": {
-    "checkedAt": "2026-09-26T01:01:02.375Z",
-    "openThreads": 0,
-    "notes": [
-      "b6884312-45fe-4295-a5a3-70180a701223",
-      "spec",
-      "475e1f5c-0697-46e9-b205-decbb4297f00"
-    ]
-  },
-  "sourceTaskStatus": "Tasks 1–6 remain complete; original Task 7 review_required at handoff",
   "notRun": [
-    "Application tests",
-    "Browser or physical IME/AT qualification",
-    "Builds or package installation/sealing",
-    "Benchmarks/performance campaigns",
-    "Provider/API or paid calls",
+    "application/runtime tests",
+    "browser/IME/AT",
+    "build/install",
+    "benchmarks",
+    "provider/paid calls",
     "CI",
-    "PR publication or deployment"
+    "PR"
   ],
-  "preExistingCI": "Not assessed; no CI run URL or runtime pass claimed",
-  "historicalFA01AuthorChecks": {
-    "id": "FA-01",
-    "exactClauseReview": "PERF §2 WT:57 and §5:507 agree with unchanged UX §8:424 and ARCH §10:570: image/caption-only provider ZIP, durable separate app manifest, existing manifest work and timing/resource accounting retained.",
-    "preservation": "All 60 budget rows exact; all 26 PERF tables exact after prior version labels and only the literal FA-01 WT substitution. All 22 original history inputs unchanged.",
-    "reviewerScriptsReproduced": {
-      "sourceAndContracts": "PASS: 24 input hashes, 67 replacements, six reconstructed prose documents, seven independently rebuilt raw note hashes, API 63 and ARCH 13 all-fence contracts, 60 test budget mappings, J24/S27/TX16/AX10",
-      "linksAndJSON": "PASS: 217 current portable links/anchors, six support JSON artifacts without duplicate keys",
-      "finiteCampaignMath": "PASS: original core normal/cold, Q3, native/Fast, WQ/H4/I6H and P22/30/40 + Q3 16/19/22 schedules; no measurements",
-      "actualLiveNotes": "PASS: all seven exactRawParity true at 2026-09-26T00:53:07.294Z"
+  "preExistingCI": "No CI run exists for this docs-only task; pre-existing CI failures unassessed, no run link.",
+  "historicalSPEC_A2": {
+    "status": "PASS",
+    "checks": {
+      "current_documents": 7,
+      "relative_links": 227,
+      "markdown_tables": 164,
+      "json_examples": 67,
+      "requirements": 11,
+      "decisions": 26,
+      "capabilities": 24,
+      "qualifications": 27,
+      "planning_findings": 20,
+      "input_snapshots": 26,
+      "resolved_note_references": 405,
+      "synchronized_notes": 7,
+      "api_contract_blocks": 63,
+      "architecture_contract_blocks": 7,
+      "unchanged_budget_rows": 60,
+      "performance_tables_preserved_with_exact_FA01_wording": 26,
+      "api_schema_appendices": 27,
+      "sealed_files": 41
     },
-    "scriptSource": "corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md"
+    "errors": [],
+    "limits": [
+      "Documentation/source/parity checks only; no application tests, benchmarks, provider or live external-link checks.",
+      "Stored note hashes attest to the recorded readback; a future live note edit requires a fresh synchronization readback."
+    ],
+    "assembly": "SPEC-A2",
+    "executedAt": "2026-09-26T01:01:18.698084+00:00",
+    "command": "python3 docs/spec/tools/check_spec.py",
+    "verificationClass": "Author metadata-only closeout checks after independent SPEC-A2 specification/source approval",
+    "baseSha": "7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a",
+    "previousHead": "083579cdb1bfd24e3fdb64f4f051524393e50861",
+    "independentVerificationCredit": "4/4",
+    "gitChecks": {
+      "currentChange": "git diff --check -- docs/spec : PASS, exit 0",
+      "currentFilesFromOriginalBase": "git diff --check 7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a -- docs/spec :(exclude)docs/spec/history/** : PASS, exit 0",
+      "history": "No diff under docs/spec/history or docs/spec/corrections; historical whitespace remains exact",
+      "scope": "Metadata-only docs/spec closeout; checker unchanged; no app files",
+      "branch": "upon-build",
+      "commit": "Final metadata-only commit recorded in Task 7 and same PR Context; avoids recursive commit identity"
+    },
+    "feedback": {
+      "checkedAt": "2026-09-26T01:01:02.375Z",
+      "openThreads": 0,
+      "notes": [
+        "b6884312-45fe-4295-a5a3-70180a701223",
+        "spec",
+        "475e1f5c-0697-46e9-b205-decbb4297f00"
+      ]
+    },
+    "sourceTaskStatus": "Tasks 1–6 remain complete; original Task 7 review_required at handoff",
+    "notRun": [
+      "Application tests",
+      "Browser or physical IME/AT qualification",
+      "Builds or package installation/sealing",
+      "Benchmarks/performance campaigns",
+      "Provider/API or paid calls",
+      "CI",
+      "PR publication or deployment"
+    ],
+    "preExistingCI": "Not assessed; no CI run URL or runtime pass claimed",
+    "historicalFA01AuthorChecks": {
+      "id": "FA-01",
+      "exactClauseReview": "PERF §2 WT:57 and §5:507 agree with unchanged UX §8:424 and ARCH §10:570: image/caption-only provider ZIP, durable separate app manifest, existing manifest work and timing/resource accounting retained.",
+      "preservation": "All 60 budget rows exact; all 26 PERF tables exact after prior version labels and only the literal FA-01 WT substitution. All 22 original history inputs unchanged.",
+      "reviewerScriptsReproduced": {
+        "sourceAndContracts": "PASS: 24 input hashes, 67 replacements, six reconstructed prose documents, seven independently rebuilt raw note hashes, API 63 and ARCH 13 all-fence contracts, 60 test budget mappings, J24/S27/TX16/AX10",
+        "linksAndJSON": "PASS: 217 current portable links/anchors, six support JSON artifacts without duplicate keys",
+        "finiteCampaignMath": "PASS: original core normal/cold, Q3, native/Fast, WQ/H4/I6H and P22/30/40 + Q3 16/19/22 schedules; no measurements",
+        "actualLiveNotes": "PASS: all seven exactRawParity true at 2026-09-26T00:53:07.294Z"
+      },
+      "scriptSource": "corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md"
+    },
+    "closeout": {
+      "id": "SPEC-A2-approval-closeout-1",
+      "reviewedTechnicalCommit": "083579cdb1bfd24e3fdb64f4f051524393e50861",
+      "independentApprovalSnapshot": "approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md",
+      "authorizationSnapshot": "approvals/475e1f5c-0697-46e9-b205-decbb4297f00-closeout.md",
+      "classification": "Metadata only; no new technical review or runtime qualification",
+      "exactChangeSummary": "15 complete line replacements: six section headers, two Architecture handoff labels, seven index approval/progress/handoff lines. One matching REQ-DOCS JSON status string. Supporting evidence/ledger/parity/manifest/seal receipts only.",
+      "exactSemanticComparison": [
+        {
+          "path": "index.md",
+          "approvedBodyAfterExactMetadataReversalSha256": "c5eda7c7b0e1bd9f219a67eb29b929654730a5c6004e8fb0a1cd00a8c65dedcb",
+          "approvedCommitBlobSha256": "c5eda7c7b0e1bd9f219a67eb29b929654730a5c6004e8fb0a1cd00a8c65dedcb",
+          "exactMatch": true
+        },
+        {
+          "path": "api.md",
+          "approvedBodyAfterExactMetadataReversalSha256": "136039aff6744ade9a07b5e17841d90aac65271c85875fa59197c3ad72239cff",
+          "approvedCommitBlobSha256": "136039aff6744ade9a07b5e17841d90aac65271c85875fa59197c3ad72239cff",
+          "exactMatch": true
+        },
+        {
+          "path": "design-system.md",
+          "approvedBodyAfterExactMetadataReversalSha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378",
+          "approvedCommitBlobSha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378",
+          "exactMatch": true
+        },
+        {
+          "path": "ux.md",
+          "approvedBodyAfterExactMetadataReversalSha256": "73f8325806c604c460486f83b8c16e2e0ac430762a7dc2283bc18259210fe46f",
+          "approvedCommitBlobSha256": "73f8325806c604c460486f83b8c16e2e0ac430762a7dc2283bc18259210fe46f",
+          "exactMatch": true
+        },
+        {
+          "path": "architecture.md",
+          "approvedBodyAfterExactMetadataReversalSha256": "e8b8f24b37169c591965ac3239045f58d5b4d1ef8fc1e50aaf99f9279aa92aab",
+          "approvedCommitBlobSha256": "e8b8f24b37169c591965ac3239045f58d5b4d1ef8fc1e50aaf99f9279aa92aab",
+          "exactMatch": true
+        },
+        {
+          "path": "testing.md",
+          "approvedBodyAfterExactMetadataReversalSha256": "cdd5f49a41897c066c025b51070f246155f29723cd5b063250e0a5e44a458ebf",
+          "approvedCommitBlobSha256": "cdd5f49a41897c066c025b51070f246155f29723cd5b063250e0a5e44a458ebf",
+          "exactMatch": true
+        },
+        {
+          "path": "performance.md",
+          "approvedBodyAfterExactMetadataReversalSha256": "96e086868ecfe8e3b53af399ef3a43df029f90b4b5b4a92875dc1c692f88af7f",
+          "approvedCommitBlobSha256": "96e086868ecfe8e3b53af399ef3a43df029f90b4b5b4a92875dc1c692f88af7f",
+          "exactMatch": true
+        }
+      ],
+      "comparisonMethod": "Reverse only the 15 exact full-line replacements in editorial-transformations.json closeout.metadataReplacements; require complete UTF-8 document equality to git show 083579c:docs/spec/<path>. All seven pass.",
+      "invariants": "All technical section tables and contracts unchanged; original history, FA-01 correction snapshots and tools/check_spec.py byte-identical to approved commit. Traceability reverses exactly after its single approval-label replacement.",
+      "sourceReconstruction": "PASS: six source extracts and 75 exact replacements; 63 API/13 ARCH all-fence contracts; 60 budget mappings; J24/S27/TX16/AX10 unchanged.",
+      "portableLinks": "PASS: 226 current relative paths/anchors, 227 including history; all support JSON parses without duplicate keys.",
+      "actualSevenNoteParity": "PASS at 2026-09-26T01:01:02.375Z; all seven exactRawParity true",
+      "taskDisposition": "review_required until coordinator confirms closeout; author does not mark complete",
+      "userAcceptance": "pending"
+    }
   },
-  "closeout": {
-    "id": "SPEC-A2-approval-closeout-1",
-    "reviewedTechnicalCommit": "083579cdb1bfd24e3fdb64f4f051524393e50861",
-    "independentApprovalSnapshot": "approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md",
-    "authorizationSnapshot": "approvals/475e1f5c-0697-46e9-b205-decbb4297f00-closeout.md",
-    "classification": "Metadata only; no new technical review or runtime qualification",
-    "exactChangeSummary": "15 complete line replacements: six section headers, two Architecture handoff labels, seven index approval/progress/handoff lines. One matching REQ-DOCS JSON status string. Supporting evidence/ledger/parity/manifest/seal receipts only.",
-    "exactSemanticComparison": [
+  "checkerNegativeProbes": {
+    "executedAt": "2026-09-26T01:38:28.131929+00:00",
+    "scope": "Isolated temporary documentation copies only; original files and notes unchanged",
+    "cases": [
       {
-        "path": "index.md",
-        "approvedBodyAfterExactMetadataReversalSha256": "c5eda7c7b0e1bd9f219a67eb29b929654730a5c6004e8fb0a1cd00a8c65dedcb",
-        "approvedCommitBlobSha256": "c5eda7c7b0e1bd9f219a67eb29b929654730a5c6004e8fb0a1cd00a8c65dedcb",
-        "exactMatch": true
+        "probe": "missing REQ-READY",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "requirements ID coverage"
       },
       {
-        "path": "api.md",
-        "approvedBodyAfterExactMetadataReversalSha256": "136039aff6744ade9a07b5e17841d90aac65271c85875fa59197c3ad72239cff",
-        "approvedCommitBlobSha256": "136039aff6744ade9a07b5e17841d90aac65271c85875fa59197c3ad72239cff",
-        "exactMatch": true
+        "probe": "missing audit disposition",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "A3 disposition coverage"
       },
       {
-        "path": "design-system.md",
-        "approvedBodyAfterExactMetadataReversalSha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378",
-        "approvedCommitBlobSha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378",
-        "exactMatch": true
+        "probe": "changed candidate decision",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "DR-1 contract candidateDeletion"
       },
       {
-        "path": "ux.md",
-        "approvedBodyAfterExactMetadataReversalSha256": "73f8325806c604c460486f83b8c16e2e0ac430762a7dc2283bc18259210fe46f",
-        "approvedCommitBlobSha256": "73f8325806c604c460486f83b8c16e2e0ac430762a7dc2283bc18259210fe46f",
-        "exactMatch": true
+        "probe": "enabled spend cap by default",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "SG-1 contract enabledByDefault"
       },
       {
-        "path": "architecture.md",
-        "approvedBodyAfterExactMetadataReversalSha256": "e8b8f24b37169c591965ac3239045f58d5b4d1ef8fc1e50aaf99f9279aa92aab",
-        "approvedCommitBlobSha256": "e8b8f24b37169c591965ac3239045f58d5b4d1ef8fc1e50aaf99f9279aa92aab",
-        "exactMatch": true
+        "probe": "media credentials leak",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "EF-1 contract mediaCredentials"
       },
       {
-        "path": "testing.md",
-        "approvedBodyAfterExactMetadataReversalSha256": "cdd5f49a41897c066c025b51070f246155f29723cd5b063250e0a5e44a458ebf",
-        "approvedCommitBlobSha256": "cdd5f49a41897c066c025b51070f246155f29723cd5b063250e0a5e44a458ebf",
-        "exactMatch": true
+        "probe": "removed local route",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1 route inventory"
       },
       {
-        "path": "performance.md",
-        "approvedBodyAfterExactMetadataReversalSha256": "96e086868ecfe8e3b53af399ef3a43df029f90b4b5b4a92875dc1c692f88af7f",
-        "approvedCommitBlobSha256": "96e086868ecfe8e3b53af399ef3a43df029f90b4b5b4a92875dc1c692f88af7f",
-        "exactMatch": true
+        "probe": "missing new consumer case",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "readiness test row DELETE01"
+      },
+      {
+        "probe": "changed original typed contract",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "original contracts not preserved"
+      },
+      {
+        "probe": "changed original performance budget",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "60 PERF budget rows changed"
+      },
+      {
+        "probe": "changed history",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "input hash spec"
+      },
+      {
+        "probe": "undeclared contract prose",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "A3 undeclared change: architecture"
       }
     ],
-    "comparisonMethod": "Reverse only the 15 exact full-line replacements in editorial-transformations.json closeout.metadataReplacements; require complete UTF-8 document equality to git show 083579c:docs/spec/<path>. All seven pass.",
-    "invariants": "All technical section tables and contracts unchanged; original history, FA-01 correction snapshots and tools/check_spec.py byte-identical to approved commit. Traceability reverses exactly after its single approval-label replacement.",
-    "sourceReconstruction": "PASS: six source extracts and 75 exact replacements; 63 API/13 ARCH all-fence contracts; 60 budget mappings; J24/S27/TX16/AX10 unchanged.",
-    "portableLinks": "PASS: 226 current relative paths/anchors, 227 including history; all support JSON parses without duplicate keys.",
-    "actualSevenNoteParity": "PASS at 2026-09-26T01:01:02.375Z; all seven exactRawParity true",
-    "taskDisposition": "review_required until coordinator confirms closeout; author does not mark complete",
-    "userAcceptance": "pending"
+    "command": "python3 docs/spec/tools/check_spec_mutations.py"
   }
 }

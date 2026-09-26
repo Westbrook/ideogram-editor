@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "assembly": "SPEC-A2",
+  "assembly": "SPEC-A3",
   "requirements": [
     {
       "id": "REQ-API",
@@ -17,7 +17,7 @@
       "id": "REQ-CAP",
       "requirement": "Every kickoff capability explicitly classified",
       "evidence": "API capability map and corrected compatibility",
-      "capability": "CAP-01–CAP-21 below; no inferred missing-family completeness",
+      "capability": "CAP-01–CAP-24 below; no inferred missing-family completeness",
       "ux": "UX §2 O1–O9, comparisons and gaps",
       "state": "ARCH §4 allowlist forbids silent fallback; no events for disabled capabilities",
       "test": "TEST §5 O1–O9 and negative/gap controls",
@@ -119,9 +119,20 @@
       "capability": "Seven current documents and six owner notes plus index",
       "ux": "Review navigation and versioned cards; N/A editor control: documentation deliverable",
       "state": "Synchronized source/mirror revision; N/A app event: documentation revision history",
-      "test": "Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; independent final specification/source review approved",
+      "test": "Documentation checker, parity, hashes, link/anchor/table/fence/JSON checks; SPEC-A2 source review approved; SPEC-A3 Task 10 review pending",
       "performance": "N/A runtime budget: documentation gate, no app performance claim",
       "phase": "P0"
+    },
+    {
+      "id": "REQ-READY",
+      "requirement": "Independent readiness audits and every approved finding resolved at owner or explicitly deferred",
+      "evidence": "Audits 8A/8B/8C; 2026-09-26 user decisions; Task 9 disposition register",
+      "capability": "Documentation gate; N/A creative capability",
+      "ux": "Clear current state and review links; N/A editor control",
+      "state": "Versioned owning sections and exact note/file parity; N/A runtime event",
+      "test": "Task 10 independent disposition/source/checker verification pending; Coordinator owns closure",
+      "performance": "N/A runtime budget; unchanged numeric contracts verified",
+      "phase": "P0 before implementation"
     }
   ],
   "decisions": [
@@ -410,6 +421,50 @@
       "test": "TEST §8 L-text/L-copy/B-text; M-IME/AT as relevant",
       "performance": "R34/R35/R39; font resource ledger inside memory caps",
       "phase": "P1–P3"
+    },
+    {
+      "id": "DEC-27",
+      "requirement": "Local protocol, localhost security, egress, portable validation and typed transport boundary",
+      "evidence": "Spec user decisions 2026-09-26",
+      "capability": "LP-1/LS-1/EF-1/PF-1/TP-1",
+      "ux": "Explicit review, status and recovery; preserve drafts",
+      "state": "Architecture §20 versioned actions/projections and durable receipts",
+      "test": "Architecture §20; PROTO/SEC/EGRESS/FORMAT/PROV tests",
+      "performance": "Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change",
+      "phase": "P1–P3"
+    },
+    {
+      "id": "DEC-28",
+      "requirement": "Candidate deletion keeps bytes; explicit whole-document deletion reclaims exclusive roots",
+      "evidence": "Spec user decisions 2026-09-26",
+      "capability": "DR-1",
+      "ux": "Explicit review, status and recovery; preserve drafts",
+      "state": "Architecture §20 versioned actions/projections and durable receipts",
+      "test": "UX §5; Architecture §20.6; DELETE01–03",
+      "performance": "Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change",
+      "phase": "P1–P3"
+    },
+    {
+      "id": "DEC-29",
+      "requirement": "Minimum remote retention and most private compatible access; disclose uncertainty",
+      "evidence": "Spec user decisions 2026-09-26",
+      "capability": "RP-1",
+      "ux": "Explicit review, status and recovery; preserve drafts",
+      "state": "Architecture §20 versioned actions/projections and durable receipts",
+      "test": "API readiness privacy; PRIV01–02; Q09",
+      "performance": "Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change",
+      "phase": "P2/P4"
+    },
+    {
+      "id": "DEC-30",
+      "requirement": "Optional durable per-session paid-request cap off by default and uncertain-charge ledger",
+      "evidence": "Spec user decisions 2026-09-26",
+      "capability": "SG-1",
+      "ux": "Explicit review, status and recovery; preserve drafts",
+      "state": "Architecture §20 versioned actions/projections and durable receipts",
+      "test": "UX readiness; Architecture §20.7; SPEND01–02",
+      "performance": "Existing R24/R26/R30/R31/R38/R39 clocks and resource accounting; no budget change",
+      "phase": "P2"
     }
   ],
   "capabilities": [
