@@ -1,0 +1,16 @@
+[
+  {
+    "name": "gn.zip",
+    "url": "https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-arm64/+/git_revision:b2afae122eeb6ce09c52d63f67dc53fc517dbdc8",
+    "finalUrl": "https://storage.googleapis.com/chrome-infra-packages/store/SHA256/cbb260f2cf999f7d74da96b3828a061299c6337354dd6db642e778828576025c?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=chrome-infra-packages%40appspot.gserviceaccount.com%2F20260926%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260926T193702Z&X-Goog-Expires=7199&X-Goog-Signature=6846b17e58c9ddf5452d787e4e66b8f946611ca460d787c61a2b193daf7569f96a4ab35633a17fea078e9fcb7a1a4ab93bad9318f4a93e665d5e05ad0077fa9615a43ed4b9dac4b91e90cf146fe053b32727dac7d2dbf2abda1ad99f7560d8bdd1e22770d6d583acf97f921245c409918cec9f523885057488b2c47975bddd8bf892817a8405438cec63de374debf94b474f521157674b48f181692218fc73f1330f8b10864f221bcfb80de02c8a368636669b55016bd680ef0c2b6aa8600f076be53e200ba7757ce636ddb333f9e644ee0a5aabaff27a384797ef3cad8d35f23c29434afc1b3a1ff10d9b0be31c85308c1ce79949ec2ed2433e20dd69a39c57&X-Goog-SignedHeaders=host&response-content-disposition=attachment%3B+filename%3D%22gn-mac-arm64.zip%22",
+    "bytes": 828016,
+    "sha256": "cbb260f2cf999f7d74da96b3828a061299c6337354dd6db642e778828576025c"
+  },
+  {
+    "name": "ninja.zip",
+    "url": "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/ninja/mac-arm64/+/version:2@1.12.1.chromium.4",
+    "finalUrl": "https://storage.googleapis.com/chrome-infra-packages/store/SHA256/c5e9b4ffab3b2edefbc41849fc81f116c8d047b258906becc061be9ecaf04afd?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=chrome-infra-packages%40appspot.gserviceaccount.com%2F20260926%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260926T191748Z&X-Goog-Expires=7199&X-Goog-Signature=39a8f62b6fb981898f67662f937a8d58e67a976b61e5272ae4a56aafc59492997a6596ae5edf65dfe151ce00e81b24bb7988e597e9dfb0e662c1b6a1e66ad52fde11cdd4c6264e2b0484d5293027c3c3635510fc3bb8717056e8fb00b8f44b263890f50f2b00ee8fa0d2729b8f6f46fee1abf9f06f0dea1d10242bfcfa35c2f5affb4ef1a5aa61df52c5b8b33b9e82b1098834ed53a54675fe3eeb7da884a6045682eb0540409fb9a7f8accf811f2762e526fc96d60292f55f6127b57ffb63ba3342a04f986c5dc062374a07817eda2ec3075de8e4f06f254271939a552cbed58ccb179cf1c0adf930f439cfee1b7db43c9323eaf2f516115fdc497b60273301&X-Goog-SignedHeaders=host&response-content-disposition=attachment%3B+filename%3D%22ninja-mac-arm64.zip%22",
+    "bytes": 145520,
+    "sha256": "c5e9b4ffab3b2edefbc41849fc81f116c8d047b258906becc061be9ecaf04afd"
+  }
+]

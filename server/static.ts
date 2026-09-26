@@ -39,7 +39,7 @@ export type StaticFile = { bytes: Buffer; type: string };
 const types: Record<string, string> = {
   js: 'text/javascript; charset=utf-8', css: 'text/css; charset=utf-8',
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
-  woff2: 'font/woff2', ico: 'image/x-icon',
+  woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', wasm: 'application/wasm', ico: 'image/x-icon',
 };
 
 export async function loadStatic(directory?: string): Promise<Map<string, StaticFile>> {

@@ -1,0 +1,20 @@
+vite v8.3.1 building client environment for production...
+transforming...
+[plugin rolldown:vite-resolve] Module "fs" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "path" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "fs" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "path" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+✓ 16 modules transformed.
+rendering chunks...
+computing gzip size...
+artifacts/p1c1/app/index.html                                         0.24 kB │ gzip:     0.18 kB
+artifacts/p1c1/app/assets/heap-worker-QY2lVmo0.js                   133.94 kB
+artifacts/p1c1/app/assets/worker-DkkgYl9e.js                        163.14 kB
+artifacts/p1c1/app/assets/NotoSansArabic-Regular-CEibNoL-.ttf       240.45 kB
+artifacts/p1c1/app/assets/NotoSans-Regular-Dpf_lrdO.ttf             569.20 kB
+artifacts/p1c1/app/assets/NotoSansSymbols2-Regular-Dcz4cXYm.ttf     656.85 kB
+artifacts/p1c1/app/assets/canvaskit-CYnNwTac.wasm                 7,094.51 kB │ gzip: 2,895.86 kB
+artifacts/p1c1/app/assets/NotoSansCJKsc-Regular-DxgKpThH.otf     16,437.36 kB
+artifacts/p1c1/app/assets/index-Co2ePsrx.js                          32.25 kB │ gzip:    13.31 kB
+
+✓ built in 151ms

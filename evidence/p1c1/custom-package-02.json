@@ -1,0 +1,34 @@
+{
+  "package": "canvaskit-wasm",
+  "version": "0.40.0-ideogram.2",
+  "distribution": "local reproducible CPU Paragraph build from official source; not npm-byte-equivalent",
+  "tarball": {
+    "bytes": 2088136,
+    "sha256": "c245e1a0f59599f960d48d047b106a56606a1cea67665954466da4e8858eae87",
+    "gzipBytes": 2087707
+  },
+  "js": {
+    "bytes": 73594,
+    "sha256": "c62f2d6e4037f16e6ed7d04360a1da995e67a254e8fcf0a624467897b44c12c0",
+    "gzipBytes": 23969
+  },
+  "wasm": {
+    "bytes": 4979323,
+    "sha256": "2b5220ae8fb7a66ceefbfc8cc8a3ada96684d5ca59d2beea60d9a0b66b44a901",
+    "gzipBytes": 2021770
+  },
+  "sourceRevision": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+  "sourceAttribution": "Locally built official source archive and exact DEPS; explicit source patch and pinned tools",
+  "paperAnchor": "ae33954b4932e71f2bdfbe58ad3d1cde7980db7c",
+  "license": "BSD-3-Clause",
+  "customBuild": {
+    "source": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+    "emscripten": "3.1.44",
+    "llvm": "a8cbd27d1f238e104a5d5ca345d93bc1f4d4ab1f",
+    "recipe": "tooling/text/configure-source.py",
+    "patch": "tooling/text/canvaskit-source.patch",
+    "initialBytes": 16777216,
+    "maximumBytes": 33554432,
+    "icuDataSha256": "c12537022ef818991a7bfed41a76d8d6ae962ffbc0e6511ac762a5d0845e7f7c"
+  }
+}

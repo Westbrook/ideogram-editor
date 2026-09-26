@@ -1,0 +1,25 @@
+
+Running 1 test using 1 worker
+
+(node:94128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping (910ms)
+
+
+  1) [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+
+    Error: page.evaluate: TextFailure: TEXT_MISSING_GLYPHS
+        at s.onmessage (http://127.0.0.1:64506/assets/index-BjBCU8gi.js:1:4428)
+        at s.onmessage (http://127.0.0.1:64506/assets/index-BjBCU8gi.js:1:4428)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:30:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/text/artifacts/p1c1/browser-01/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/text/artifacts/p1c1/browser-01/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/error-context.md
+
+    Error Context: tests/text/artifacts/p1c1/browser-01/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/error-context.md
+
+  1 failed
+    [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 

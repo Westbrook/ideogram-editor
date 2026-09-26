@@ -1,0 +1,109 @@
+--- a/modules/canvaskit/BUILD.gn
++++ b/modules/canvaskit/BUILD.gn
+@@ -346,7 +346,8 @@
+     "-sFILESYSTEM=0",
+     "-sMODULARIZE",
+     "-sNO_EXIT_RUNTIME=1",
+-    "-sINITIAL_MEMORY=128MB",
++    "-sINITIAL_MEMORY=16MB",
++    "-sMAXIMUM_MEMORY=32MB",
+     "-sWASM",
+     "-sSTRICT=1",
+   ]
+--- a/modules/canvaskit/compile.sh
++++ b/modules/canvaskit/compile.sh
+@@ -9,7 +9,7 @@
+ # Navigate to SKIA_HOME from where this file is located.
+ BASE_DIR=`cd $(dirname ${BASH_SOURCE[0]}) && pwd`
+ pushd $BASE_DIR/../..
+-./bin/fetch-gn
++# Task recipe supplies the sealed official GN binary.
+ 
+ IS_OFFICIAL_BUILD="true"
+ IS_DEBUG="false"
+@@ -199,7 +199,7 @@
+ 
+ fi # no_codecs
+ 
+-./bin/fetch-ninja
++# Task recipe supplies the sealed official Ninja binary.
+ NINJA=third_party/ninja/ninja
+ 
+ echo "Compiling"
+@@ -271,4 +271,4 @@
+   skia_canvaskit_enable_webgl=${ENABLE_WEBGL} \
+   skia_canvaskit_enable_webgpu=${ENABLE_WEBGPU}"
+ 
+-${NINJA} -C ${BUILD_DIR} canvaskit.js
++${NINJA} -j4 -C ${BUILD_DIR} canvaskit.js
+--- a/modules/canvaskit/paragraph_bindings.cpp
++++ b/modules/canvaskit/paragraph_bindings.cpp
+@@ -5,6 +5,7 @@
+  * found in the LICENSE file.
+  */
+ #include "include/core/SkColor.h"
++#include "include/core/SkGraphics.h"
+ #include "include/core/SkFontStyle.h"
+ #include "include/core/SkPictureRecorder.h"
+ #include "include/core/SkString.h"
+@@ -504,6 +505,33 @@
+     return jlines;
+ }
+ 
++
++// App adapter: check native expansion before allocating any exported JS arrays.
++// Native storage is already contained in the hard-limited WASM heap.
++JSArray GetShapedLinesBounded(para::Paragraph& self, unsigned maxGlyphs,
++                             unsigned maxRuns, unsigned maxLines) {
++    uint64_t glyphs = 0, runs = 0;
++    bool fits = self.lineNumber() <= maxLines;
++    self.visit([&](int, const para::Paragraph::VisitorInfo* info) {
++        if (info) {
++            if (info->count < 0) { fits = false; return; }
++            glyphs += info->count;
++            ++runs;
++            fits = fits && glyphs <= maxGlyphs && runs <= maxRuns;
++        }
++    });
++    return fits ? GetShapedLines(self) : emscripten::val::null();
++}
++
++Float32Array GetRectsForRangeBounded(para::Paragraph& self, unsigned start,
++    unsigned end, para::RectHeightStyle heightStyle, para::RectWidthStyle widthStyle,
++    unsigned maxRects) {
++    auto boxes = self.getRectsForRange(start, end, heightStyle, widthStyle);
++    if (boxes.size() > maxRects) return emscripten::val::null();
++    if (boxes.empty()) return emscripten::val::global("Float32Array").new_(0);
++    return TextBoxesToFloat32Array(boxes);
++}
++
+ std::vector<SkUnicode::Position> convertArrayU32(WASMPointerU32 array, size_t count) {
+     std::vector<size_t> vec;
+     vec.resize(count);
+@@ -521,6 +549,7 @@
+ }
+ 
+ EMSCRIPTEN_BINDINGS(Paragraph) {
++    function("purgeOwnedTextCaches", &SkGraphics::PurgeFontCache);
+ 
+     class_<para::Paragraph>("Paragraph")
+         .function("didExceedMaxLines", &para::Paragraph::didExceedMaxLines)
+@@ -541,6 +570,8 @@
+         .function("_getRectsForPlaceholders", &GetRectsForPlaceholders)
+         .function("_getRectsForRange", &GetRectsForRange)
+         .function("getShapedLines", &GetShapedLines)
++        .function("getShapedLinesBounded", &GetShapedLinesBounded)
++        .function("getRectsForRangeBounded", &GetRectsForRangeBounded)
+         .function("getWordBoundary", &para::Paragraph::getWordBoundary)
+         .function("layout", &para::Paragraph::layout)
+         .function("unresolvedCodepoints", &UnresolvedCodepoints);
+--- a/modules/canvaskit/memory.js
++++ b/modules/canvaskit/memory.js
+@@ -129,6 +129,7 @@
+   var bytesPerElement = CanvasKit[dest].BYTES_PER_ELEMENT;
+   if (!ptr) {
+     ptr = CanvasKit._malloc(arr.length * bytesPerElement);
++    if (!ptr) { throw new RangeError("TEXT_NATIVE_ALLOCATION"); }
+   }
+   // In c++ terms, the WASM heap is a uint8_t*, a long buffer/array of single
+   // byte elements. When we run _malloc, we always get an offset/pointer into

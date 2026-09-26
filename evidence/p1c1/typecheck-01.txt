@@ -1,0 +1,174 @@
+npm notice run ideogram-editor@0.1.0 typecheck:app
+npm notice run tsc --noEmit -p tsconfig.app.json
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(904,11): error TS2300: Duplicate identifier 'GPUCommandBufferDescriptor'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(907,11): error TS2300: Duplicate identifier 'GPUCommandEncoderDescriptor'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(914,11): error TS2300: Duplicate identifier 'GPUComputePassTimestampWrites'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(1015,5): error TS2687: All declarations of 'entryPoint' must have identical modifiers.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(1024,11): error TS2300: Duplicate identifier 'GPUQueueDescriptor'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(1027,11): error TS2300: Duplicate identifier 'GPURenderBundleDescriptor'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(1070,11): error TS2300: Duplicate identifier 'GPURenderPassTimestampWrites'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(16128,11): error TS2300: Duplicate identifier 'GPUSupportedFeatures'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(16132,13): error TS2300: Duplicate identifier 'GPUSupportedFeatures'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44174,6): error TS2300: Duplicate identifier 'GPUBindingResource'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44175,6): error TS2300: Duplicate identifier 'GPUBufferDynamicOffset'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44176,6): error TS2300: Duplicate identifier 'GPUBufferUsageFlags'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44177,6): error TS2300: Duplicate identifier 'GPUColor'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44178,6): error TS2300: Duplicate identifier 'GPUColorWriteFlags'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44180,6): error TS2300: Duplicate identifier 'GPUDepthBias'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44181,6): error TS2300: Duplicate identifier 'GPUExtent3D'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44182,6): error TS2300: Duplicate identifier 'GPUFlagsConstant'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44183,6): error TS2300: Duplicate identifier 'GPUIndex32'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44184,6): error TS2300: Duplicate identifier 'GPUIntegerCoordinate'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44186,6): error TS2300: Duplicate identifier 'GPUMapModeFlags'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44187,6): error TS2300: Duplicate identifier 'GPUOrigin2D'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44188,6): error TS2300: Duplicate identifier 'GPUOrigin3D'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44189,6): error TS2300: Duplicate identifier 'GPUPipelineConstantValue'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44190,6): error TS2300: Duplicate identifier 'GPUSampleMask'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44191,6): error TS2300: Duplicate identifier 'GPUShaderStageFlags'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44192,6): error TS2300: Duplicate identifier 'GPUSignedOffset32'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44193,6): error TS2300: Duplicate identifier 'GPUSize32'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44195,6): error TS2300: Duplicate identifier 'GPUSize64'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44197,6): error TS2300: Duplicate identifier 'GPUStencilValue'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44198,6): error TS2300: Duplicate identifier 'GPUTextureUsageFlags'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44305,6): error TS2300: Duplicate identifier 'GPUAddressMode'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44306,6): error TS2300: Duplicate identifier 'GPUAutoLayoutMode'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44307,6): error TS2300: Duplicate identifier 'GPUBlendFactor'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44308,6): error TS2300: Duplicate identifier 'GPUBlendOperation'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44309,6): error TS2300: Duplicate identifier 'GPUBufferBindingType'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44311,6): error TS2300: Duplicate identifier 'GPUCanvasAlphaMode'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44313,6): error TS2300: Duplicate identifier 'GPUCompareFunction'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44314,6): error TS2300: Duplicate identifier 'GPUCompilationMessageType'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44315,6): error TS2300: Duplicate identifier 'GPUCullMode'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44316,6): error TS2300: Duplicate identifier 'GPUDeviceLostReason'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44317,6): error TS2300: Duplicate identifier 'GPUErrorFilter'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44318,6): error TS2300: Duplicate identifier 'GPUFeatureName'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44319,6): error TS2300: Duplicate identifier 'GPUFilterMode'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44320,6): error TS2300: Duplicate identifier 'GPUFrontFace'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44321,6): error TS2300: Duplicate identifier 'GPUIndexFormat'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44322,6): error TS2300: Duplicate identifier 'GPULoadOp'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44323,6): error TS2300: Duplicate identifier 'GPUMipmapFilterMode'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44325,6): error TS2300: Duplicate identifier 'GPUPowerPreference'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44326,6): error TS2300: Duplicate identifier 'GPUPrimitiveTopology'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44327,6): error TS2300: Duplicate identifier 'GPUQueryType'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44328,6): error TS2300: Duplicate identifier 'GPUSamplerBindingType'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44329,6): error TS2300: Duplicate identifier 'GPUStencilOperation'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44330,6): error TS2300: Duplicate identifier 'GPUStorageTextureAccess'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44331,6): error TS2300: Duplicate identifier 'GPUStoreOp'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44332,6): error TS2300: Duplicate identifier 'GPUTextureAspect'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44333,6): error TS2300: Duplicate identifier 'GPUTextureDimension'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44334,6): error TS2300: Duplicate identifier 'GPUTextureFormat'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44335,6): error TS2300: Duplicate identifier 'GPUTextureSampleType'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44336,6): error TS2300: Duplicate identifier 'GPUTextureViewDimension'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44337,6): error TS2300: Duplicate identifier 'GPUVertexFormat'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44338,6): error TS2300: Duplicate identifier 'GPUVertexStepMode'.
+node_modules/@typescript/typescript-darwin-arm64/lib/lib.dom.d.ts(44685,11): error TS2300: Duplicate identifier 'GPUSupportedFeatures'.
+node_modules/@webgpu/types/dist/index.d.ts(41,6): error TS2300: Duplicate identifier 'GPUBindingResource'.
+node_modules/@webgpu/types/dist/index.d.ts(47,6): error TS2300: Duplicate identifier 'GPUBufferDynamicOffset'.
+node_modules/@webgpu/types/dist/index.d.ts(49,6): error TS2300: Duplicate identifier 'GPUBufferUsageFlags'.
+node_modules/@webgpu/types/dist/index.d.ts(51,6): error TS2300: Duplicate identifier 'GPUColor'.
+node_modules/@webgpu/types/dist/index.d.ts(55,6): error TS2300: Duplicate identifier 'GPUColorWriteFlags'.
+node_modules/@webgpu/types/dist/index.d.ts(57,6): error TS2300: Duplicate identifier 'GPUComputePassTimestampWrites'.
+node_modules/@webgpu/types/dist/index.d.ts(59,6): error TS2300: Duplicate identifier 'GPUDepthBias'.
+node_modules/@webgpu/types/dist/index.d.ts(61,6): error TS2300: Duplicate identifier 'GPUExtent3D'.
+node_modules/@webgpu/types/dist/index.d.ts(65,6): error TS2300: Duplicate identifier 'GPUFlagsConstant'.
+node_modules/@webgpu/types/dist/index.d.ts(67,6): error TS2300: Duplicate identifier 'GPUIndex32'.
+node_modules/@webgpu/types/dist/index.d.ts(69,6): error TS2300: Duplicate identifier 'GPUIntegerCoordinate'.
+node_modules/@webgpu/types/dist/index.d.ts(71,6): error TS2300: Duplicate identifier 'GPUMapModeFlags'.
+node_modules/@webgpu/types/dist/index.d.ts(73,6): error TS2300: Duplicate identifier 'GPUOrigin2D'.
+node_modules/@webgpu/types/dist/index.d.ts(77,6): error TS2300: Duplicate identifier 'GPUOrigin3D'.
+node_modules/@webgpu/types/dist/index.d.ts(81,6): error TS2300: Duplicate identifier 'GPUPipelineConstantValue'.
+node_modules/@webgpu/types/dist/index.d.ts(83,6): error TS2300: Duplicate identifier 'GPURenderPassTimestampWrites'.
+node_modules/@webgpu/types/dist/index.d.ts(85,6): error TS2300: Duplicate identifier 'GPUSampleMask'.
+node_modules/@webgpu/types/dist/index.d.ts(87,6): error TS2300: Duplicate identifier 'GPUShaderStageFlags'.
+node_modules/@webgpu/types/dist/index.d.ts(89,6): error TS2300: Duplicate identifier 'GPUSignedOffset32'.
+node_modules/@webgpu/types/dist/index.d.ts(91,6): error TS2300: Duplicate identifier 'GPUSize32'.
+node_modules/@webgpu/types/dist/index.d.ts(93,6): error TS2300: Duplicate identifier 'GPUSize64'.
+node_modules/@webgpu/types/dist/index.d.ts(95,6): error TS2300: Duplicate identifier 'GPUStencilValue'.
+node_modules/@webgpu/types/dist/index.d.ts(97,6): error TS2300: Duplicate identifier 'GPUTextureUsageFlags'.
+node_modules/@webgpu/types/dist/index.d.ts(99,6): error TS2300: Duplicate identifier 'GPUAddressMode'.
+node_modules/@webgpu/types/dist/index.d.ts(104,6): error TS2300: Duplicate identifier 'GPUAutoLayoutMode'.
+node_modules/@webgpu/types/dist/index.d.ts(106,6): error TS2300: Duplicate identifier 'GPUBlendFactor'.
+node_modules/@webgpu/types/dist/index.d.ts(121,6): error TS2300: Duplicate identifier 'GPUBlendOperation'.
+node_modules/@webgpu/types/dist/index.d.ts(128,6): error TS2300: Duplicate identifier 'GPUBufferBindingType'.
+node_modules/@webgpu/types/dist/index.d.ts(133,6): error TS2300: Duplicate identifier 'GPUCanvasAlphaMode'.
+node_modules/@webgpu/types/dist/index.d.ts(140,6): error TS2300: Duplicate identifier 'GPUCompareFunction'.
+node_modules/@webgpu/types/dist/index.d.ts(150,6): error TS2300: Duplicate identifier 'GPUCompilationMessageType'.
+node_modules/@webgpu/types/dist/index.d.ts(159,6): error TS2300: Duplicate identifier 'GPUCullMode'.
+node_modules/@webgpu/types/dist/index.d.ts(164,6): error TS2300: Duplicate identifier 'GPUDeviceLostReason'.
+node_modules/@webgpu/types/dist/index.d.ts(166,6): error TS2300: Duplicate identifier 'GPUErrorFilter'.
+node_modules/@webgpu/types/dist/index.d.ts(170,6): error TS2300: Duplicate identifier 'GPUFeatureName'.
+node_modules/@webgpu/types/dist/index.d.ts(181,6): error TS2300: Duplicate identifier 'GPUFilterMode'.
+node_modules/@webgpu/types/dist/index.d.ts(185,6): error TS2300: Duplicate identifier 'GPUFrontFace'.
+node_modules/@webgpu/types/dist/index.d.ts(189,6): error TS2300: Duplicate identifier 'GPUIndexFormat'.
+node_modules/@webgpu/types/dist/index.d.ts(193,6): error TS2300: Duplicate identifier 'GPULoadOp'.
+node_modules/@webgpu/types/dist/index.d.ts(197,6): error TS2300: Duplicate identifier 'GPUMipmapFilterMode'.
+node_modules/@webgpu/types/dist/index.d.ts(201,6): error TS2300: Duplicate identifier 'GPUPowerPreference'.
+node_modules/@webgpu/types/dist/index.d.ts(205,6): error TS2300: Duplicate identifier 'GPUPrimitiveTopology'.
+node_modules/@webgpu/types/dist/index.d.ts(212,6): error TS2300: Duplicate identifier 'GPUQueryType'.
+node_modules/@webgpu/types/dist/index.d.ts(220,6): error TS2300: Duplicate identifier 'GPUSamplerBindingType'.
+node_modules/@webgpu/types/dist/index.d.ts(225,6): error TS2300: Duplicate identifier 'GPUStencilOperation'.
+node_modules/@webgpu/types/dist/index.d.ts(235,6): error TS2300: Duplicate identifier 'GPUStorageTextureAccess'.
+node_modules/@webgpu/types/dist/index.d.ts(237,6): error TS2300: Duplicate identifier 'GPUStoreOp'.
+node_modules/@webgpu/types/dist/index.d.ts(241,6): error TS2300: Duplicate identifier 'GPUTextureAspect'.
+node_modules/@webgpu/types/dist/index.d.ts(246,6): error TS2300: Duplicate identifier 'GPUTextureDimension'.
+node_modules/@webgpu/types/dist/index.d.ts(251,6): error TS2300: Duplicate identifier 'GPUTextureFormat'.
+node_modules/@webgpu/types/dist/index.d.ts(347,6): error TS2300: Duplicate identifier 'GPUTextureSampleType'.
+node_modules/@webgpu/types/dist/index.d.ts(354,6): error TS2300: Duplicate identifier 'GPUTextureViewDimension'.
+node_modules/@webgpu/types/dist/index.d.ts(362,6): error TS2300: Duplicate identifier 'GPUVertexFormat'.
+node_modules/@webgpu/types/dist/index.d.ts(394,6): error TS2300: Duplicate identifier 'GPUVertexStepMode'.
+node_modules/@webgpu/types/dist/index.d.ts(409,3): error TS2717: Subsequent property declarations must have the same type.  Property 'entries' must be of type 'GPUBindGroupEntry[]', but here has type 'Iterable<GPUBindGroupEntry>'.
+node_modules/@webgpu/types/dist/index.d.ts(428,3): error TS2717: Subsequent property declarations must have the same type.  Property 'entries' must be of type 'GPUBindGroupLayoutEntry[]', but here has type 'Iterable<GPUBindGroupLayoutEntry>'.
+node_modules/@webgpu/types/dist/index.d.ts(582,3): error TS2717: Subsequent property declarations must have the same type.  Property 'viewFormats' must be of type 'GPUTextureFormat[] | undefined', but here has type 'Iterable<GPUTextureFormat> | undefined'.
+node_modules/@webgpu/types/dist/index.d.ts(612,6): error TS2300: Duplicate identifier 'GPUCommandBufferDescriptor'.
+node_modules/@webgpu/types/dist/index.d.ts(614,6): error TS2300: Duplicate identifier 'GPUCommandEncoderDescriptor'.
+node_modules/@webgpu/types/dist/index.d.ts(695,3): error TS2717: Subsequent property declarations must have the same type.  Property 'requiredFeatures' must be of type 'GPUFeatureName[] | undefined', but here has type 'Iterable<GPUFeatureName> | undefined'.
+node_modules/@webgpu/types/dist/index.d.ts(707,3): error TS2717: Subsequent property declarations must have the same type.  Property 'requiredLimits' must be of type 'Record<string, number | undefined> | undefined', but here has type 'Record<string, number> | undefined'.
+node_modules/@webgpu/types/dist/index.d.ts(727,3): error TS2717: Subsequent property declarations must have the same type.  Property 'source' must be of type 'HTMLVideoElement | VideoFrame', but here has type 'HTMLVideoElement'.
+node_modules/@webgpu/types/dist/index.d.ts(733,3): error TS2717: Subsequent property declarations must have the same type.  Property 'targets' must be of type '(GPUColorTargetState | null)[]', but here has type 'Iterable<GPUColorTargetState | null>'.
+node_modules/@webgpu/types/dist/index.d.ts(886,3): error TS2717: Subsequent property declarations must have the same type.  Property 'bindGroupLayouts' must be of type '(GPUBindGroupLayout | null)[]', but here has type 'Iterable<GPUBindGroupLayout>'.
+node_modules/@webgpu/types/dist/index.d.ts(920,3): error TS2687: All declarations of 'entryPoint' must have identical modifiers.
+node_modules/@webgpu/types/dist/index.d.ts(920,3): error TS2717: Subsequent property declarations must have the same type.  Property 'entryPoint' must be of type 'string | undefined', but here has type 'string'.
+node_modules/@webgpu/types/dist/index.d.ts(939,6): error TS2300: Duplicate identifier 'GPUQueueDescriptor'.
+node_modules/@webgpu/types/dist/index.d.ts(941,6): error TS2300: Duplicate identifier 'GPURenderBundleDescriptor'.
+node_modules/@webgpu/types/dist/index.d.ts(955,3): error TS2717: Subsequent property declarations must have the same type.  Property 'view' must be of type 'GPUTexture | GPUTextureView', but here has type 'GPUTextureView'.
+node_modules/@webgpu/types/dist/index.d.ts(961,3): error TS2717: Subsequent property declarations must have the same type.  Property 'resolveTarget' must be of type 'GPUTexture | GPUTextureView | undefined', but here has type 'GPUTextureView | undefined'.
+node_modules/@webgpu/types/dist/index.d.ts(996,3): error TS2717: Subsequent property declarations must have the same type.  Property 'view' must be of type 'GPUTexture | GPUTextureView', but here has type 'GPUTextureView'.
+node_modules/@webgpu/types/dist/index.d.ts(1055,3): error TS2717: Subsequent property declarations must have the same type.  Property 'colorAttachments' must be of type '(GPURenderPassColorAttachment | null)[]', but here has type 'Iterable<GPURenderPassColorAttachment | null>'.
+node_modules/@webgpu/types/dist/index.d.ts(1081,3): error TS2717: Subsequent property declarations must have the same type.  Property 'colorFormats' must be of type '(GPUTextureFormat | null)[]', but here has type 'Iterable<GPUTextureFormat | null>'.
+node_modules/@webgpu/types/dist/index.d.ts(1287,3): error TS2717: Subsequent property declarations must have the same type.  Property 'size' must be of type 'GPUExtent3D', but here has type 'GPUExtent3DStrict'.
+node_modules/@webgpu/types/dist/index.d.ts(1333,3): error TS2717: Subsequent property declarations must have the same type.  Property 'viewFormats' must be of type 'GPUTextureFormat[] | undefined', but here has type 'Iterable<GPUTextureFormat> | undefined'.
+node_modules/@webgpu/types/dist/index.d.ts(1405,3): error TS2717: Subsequent property declarations must have the same type.  Property 'attributes' must be of type 'GPUVertexAttribute[]', but here has type 'Iterable<GPUVertexAttribute>'.
+node_modules/@webgpu/types/dist/index.d.ts(1410,3): error TS2717: Subsequent property declarations must have the same type.  Property 'buffers' must be of type '(GPUVertexBufferLayout | null)[] | undefined', but here has type 'Iterable<GPUVertexBufferLayout | null> | undefined'.
+node_modules/@webgpu/types/dist/index.d.ts(1624,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPU' must be of type '{ new (): GPU; prototype: GPU; }', but here has type '{ new (): never; prototype: GPU; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1671,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUAdapter' must be of type '{ new (): GPUAdapter; prototype: GPUAdapter; }', but here has type '{ new (): never; prototype: GPUAdapter; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1710,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUAdapterInfo' must be of type '{ new (): GPUAdapterInfo; prototype: GPUAdapterInfo; }', but here has type '{ prototype: GPUAdapterInfo; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1724,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUBindGroup' must be of type '{ new (): GPUBindGroup; prototype: GPUBindGroup; }', but here has type '{ new (): never; prototype: GPUBindGroup; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1739,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUBindGroupLayout' must be of type '{ new (): GPUBindGroupLayout; prototype: GPUBindGroupLayout; }', but here has type '{ new (): never; prototype: GPUBindGroupLayout; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1795,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUBuffer' must be of type '{ new (): GPUBuffer; prototype: GPUBuffer; }', but here has type '{ new (): never; prototype: GPUBuffer; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1841,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUCanvasContext' must be of type '{ new (): GPUCanvasContext; prototype: GPUCanvasContext; }', but here has type '{ new (): never; prototype: GPUCanvasContext; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1856,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUCommandBuffer' must be of type '{ new (): GPUCommandBuffer; prototype: GPUCommandBuffer; }', but here has type '{ new (): never; prototype: GPUCommandBuffer; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1983,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUCommandEncoder' must be of type '{ new (): GPUCommandEncoder; prototype: GPUCommandEncoder; }', but here has type '{ new (): never; prototype: GPUCommandEncoder; }'.
+node_modules/@webgpu/types/dist/index.d.ts(1998,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUCompilationInfo' must be of type '{ new (): GPUCompilationInfo; prototype: GPUCompilationInfo; }', but here has type '{ new (): never; prototype: GPUCompilationInfo; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2056,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUCompilationMessage' must be of type '{ new (): GPUCompilationMessage; prototype: GPUCompilationMessage; }', but here has type '{ new (): never; prototype: GPUCompilationMessage; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2122,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUComputePassEncoder' must be of type '{ new (): GPUComputePassEncoder; prototype: GPUComputePassEncoder; }', but here has type '{ new (): never; prototype: GPUComputePassEncoder; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2138,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUComputePipeline' must be of type '{ new (): GPUComputePipeline; prototype: GPUComputePipeline; }', but here has type '{ new (): never; prototype: GPUComputePipeline; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2318,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUDevice' must be of type '{ new (): GPUDevice; prototype: GPUDevice; }', but here has type '{ new (): never; prototype: GPUDevice; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2330,12): error TS2717: Subsequent property declarations must have the same type.  Property 'reason' must be of type 'GPUDeviceLostReason', but here has type 'GPUDeviceLostReason | undefined'.
+node_modules/@webgpu/types/dist/index.d.ts(2336,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUDeviceLostInfo' must be of type '{ new (): GPUDeviceLostInfo; prototype: GPUDeviceLostInfo; }', but here has type '{ new (): never; prototype: GPUDeviceLostInfo; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2353,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUError' must be of type '{ new (): GPUError; prototype: GPUError; }', but here has type '{ new (): never; prototype: GPUError; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2373,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUExternalTexture' must be of type '{ new (): GPUExternalTexture; prototype: GPUExternalTexture; }', but here has type '{ new (): never; prototype: GPUExternalTexture; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2405,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUPipelineLayout' must be of type '{ new (): GPUPipelineLayout; prototype: GPUPipelineLayout; }', but here has type '{ new (): never; prototype: GPUPipelineLayout; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2432,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUQuerySet' must be of type '{ new (): GPUQuerySet; prototype: GPUQuerySet; }', but here has type '{ new (): never; prototype: GPUQuerySet; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2513,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUQueue' must be of type '{ new (): GPUQueue; prototype: GPUQueue; }', but here has type '{ new (): never; prototype: GPUQueue; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2528,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPURenderBundle' must be of type '{ new (): GPURenderBundle; prototype: GPURenderBundle; }', but here has type '{ new (): never; prototype: GPURenderBundle; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2554,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPURenderBundleEncoder' must be of type '{ new (): GPURenderBundleEncoder; prototype: GPURenderBundleEncoder; }', but here has type '{ new (): never; prototype: GPURenderBundleEncoder; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2649,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPURenderPassEncoder' must be of type '{ new (): GPURenderPassEncoder; prototype: GPURenderPassEncoder; }', but here has type '{ new (): never; prototype: GPURenderPassEncoder; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2665,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPURenderPipeline' must be of type '{ new (): GPURenderPipeline; prototype: GPURenderPipeline; }', but here has type '{ new (): never; prototype: GPURenderPipeline; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2680,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUSampler' must be of type '{ new (): GPUSampler; prototype: GPUSampler; }', but here has type '{ new (): never; prototype: GPUSampler; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2701,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUShaderModule' must be of type '{ new (): GPUShaderModule; prototype: GPUShaderModule; }', but here has type '{ new (): never; prototype: GPUShaderModule; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2706,6): error TS2300: Duplicate identifier 'GPUSupportedFeatures'.
+node_modules/@webgpu/types/dist/index.d.ts(2746,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUSupportedLimits' must be of type '{ new (): GPUSupportedLimits; prototype: GPUSupportedLimits; }', but here has type '{ prototype: GPUSupportedLimits; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2803,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUTexture' must be of type '{ new (): GPUTexture; prototype: GPUTexture; }', but here has type '{ new (): never; prototype: GPUTexture; }'.
+node_modules/@webgpu/types/dist/index.d.ts(2818,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'GPUTextureView' must be of type '{ new (): GPUTextureView; prototype: GPUTextureView; }', but here has type '{ new (): never; prototype: GPUTextureView; }'.
+src/text/engine.ts(78,59): error TS2339: Property 'FontStyle' does not exist on type 'Kit'.
+src/text/engine.ts(98,81): error TS2339: Property 'FontStyle' does not exist on type 'Kit'.

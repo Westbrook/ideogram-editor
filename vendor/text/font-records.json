@@ -1,0 +1,74 @@
+[
+  {
+    "file": "vendor/text/fonts/NotoSans-Regular.ttf",
+    "nameRecords": {
+      "0": "Copyright 2015-2021 Google LLC. All Rights Reserved.",
+      "1": "Noto Sans",
+      "2": "Regular",
+      "5": "Version 2.008; ttfautohint (v1.8) -l 8 -r 50 -G 200 -x 14 -D latn -f none -a qsq -X \"\"",
+      "6": "NotoSans-Regular",
+      "13": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software.",
+      "14": "http://scripts.sil.org/OFL"
+    },
+    "fsType": 0,
+    "weight": 400,
+    "width": 5,
+    "glyphCount": 3748,
+    "tables": 18,
+    "format": "static-ttf"
+  },
+  {
+    "file": "vendor/text/fonts/NotoSansCJKsc-Regular.otf",
+    "nameRecords": {
+      "0": "© 2014-2021 Adobe (http://www.adobe.com/).",
+      "1": "Noto Sans CJK SC",
+      "2": "Regular",
+      "5": "Version 2.004;hotconv 1.0.118;makeotfexe 2.5.65603",
+      "6": "NotoSansCJKsc-Regular",
+      "13": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software.",
+      "14": "http://scripts.sil.org/OFL"
+    },
+    "fsType": 0,
+    "weight": 400,
+    "width": 5,
+    "glyphCount": 65535,
+    "tables": 17,
+    "format": "static-otf"
+  },
+  {
+    "file": "vendor/text/fonts/NotoSansSymbols2-Regular.ttf",
+    "nameRecords": {
+      "0": "Copyright 2017 Google Inc. All Rights Reserved.",
+      "1": "Noto Sans Symbols2",
+      "2": "Regular",
+      "5": "Version 2.003",
+      "6": "NotoSansSymbols2-Regular",
+      "13": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software.",
+      "14": "http://scripts.sil.org/OFL"
+    },
+    "fsType": 0,
+    "weight": 400,
+    "width": 5,
+    "glyphCount": 2674,
+    "tables": 14,
+    "format": "static-ttf"
+  },
+  {
+    "file": "vendor/text/fonts/NotoSansArabic-Regular.ttf",
+    "nameRecords": {
+      "0": "Copyright 2015-2021 Google LLC. All Rights Reserved.",
+      "1": "Noto Sans Arabic",
+      "2": "Regular",
+      "5": "Version 2.009; ttfautohint (v1.8) -l 8 -r 50 -G 200 -x 14 -D arab -f none -a qsq -X \"\"",
+      "6": "NotoSansArabic-Regular",
+      "13": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software.",
+      "14": "http://scripts.sil.org/OFL"
+    },
+    "fsType": 0,
+    "weight": 400,
+    "width": 5,
+    "glyphCount": 1661,
+    "tables": 18,
+    "format": "static-ttf"
+  }
+]

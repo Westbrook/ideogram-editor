@@ -1,0 +1,13 @@
+
+Running 6 tests using 1 worker
+
+(node:99838) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping (1.3s)
+  ✓  2 [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (960ms)
+  ✓  3 [chromium] › tests/text/renderer.spec.ts:64:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (3.5s)
+  ✓  4 [chromium] › tests/text/renderer.spec.ts:91:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (149ms)
+  ✓  5 [chromium] › tests/text/renderer.spec.ts:122:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (78ms)
+  ✓  6 [chromium] › tests/text/renderer.spec.ts:147:1 › supersession, cancel and dispose terminate owned workers without publishing old generations (113ms)
+
+  6 passed (6.8s)

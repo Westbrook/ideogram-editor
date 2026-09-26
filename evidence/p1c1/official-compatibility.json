@@ -1,0 +1,56 @@
+[
+  {
+    "version": "0.42.0",
+    "variant": "default",
+    "wasmBytes": 7317345,
+    "sha256": "25ebed8e60158c5854f8dc807b936daca21354f8bfb6a2231266b0a93812f301",
+    "initialBytes": 134217728,
+    "maximumBytes": 2147483648,
+    "gitHead": "e2def78fa232884d4aedcf3ad92d4a0dd673b898"
+  },
+  {
+    "version": "0.42.0",
+    "variant": "full/",
+    "wasmBytes": 8242911,
+    "sha256": "aca7fa6019f95d3de98d4a49ae60a3d66a09e9d5ca74091fbc369b9be959f959",
+    "initialBytes": 134217728,
+    "maximumBytes": 2147483648,
+    "gitHead": "e2def78fa232884d4aedcf3ad92d4a0dd673b898"
+  },
+  {
+    "version": "0.42.0",
+    "variant": "profiling/",
+    "wasmBytes": 9589139,
+    "sha256": "2b49b51704b3286c537c3089c7653aece1e8305d1510cb08b062f736bf8c6700",
+    "initialBytes": 134217728,
+    "maximumBytes": 2147483648,
+    "gitHead": "e2def78fa232884d4aedcf3ad92d4a0dd673b898"
+  },
+  {
+    "version": "0.41.1",
+    "variant": "default",
+    "wasmBytes": 7159342,
+    "sha256": "bd669c88bd033eaf62d673103a42231a737c6d12e4cc99f8548b2784b5772430",
+    "initialBytes": 134217728,
+    "maximumBytes": 2147483648,
+    "gitHead": "fba4f1bf212eef642cb1359d7cdf93a227e49c93"
+  },
+  {
+    "version": "0.41.1",
+    "variant": "full/",
+    "wasmBytes": 8080104,
+    "sha256": "11e13773783fec05d04a2f8c73b9ad46f98c33359ab680d835b7638bb3b87cde",
+    "initialBytes": 134217728,
+    "maximumBytes": 2147483648,
+    "gitHead": "fba4f1bf212eef642cb1359d7cdf93a227e49c93"
+  },
+  {
+    "version": "0.41.1",
+    "variant": "profiling/",
+    "wasmBytes": 9400088,
+    "sha256": "51ce504f08bcae7f51499a5cb5bab08d69d21ff91aefd6cf5e37ecc93b7793a1",
+    "initialBytes": 134217728,
+    "maximumBytes": 2147483648,
+    "gitHead": "fba4f1bf212eef642cb1359d7cdf93a227e49c93"
+  }
+]

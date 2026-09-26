@@ -1,0 +1,35 @@
+
+Running 24 tests using 1 worker
+
+(node:18616) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/text/renderer.spec.ts:23:1 › real worker Latin, combining, ligature and supplementary mapping (1.3s)
+  ✓   2 [chromium] › tests/text/renderer.spec.ts:41:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (1.1s)
+  ✓   3 [chromium] › tests/text/renderer.spec.ts:62:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (4.9s)
+  ✓   4 [chromium] › tests/text/renderer.spec.ts:90:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (193ms)
+  ✓   5 [chromium] › tests/text/renderer.spec.ts:124:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (111ms)
+  ✓   6 [chromium] › tests/text/renderer.spec.ts:155:1 › supersession, cancel and dispose terminate owned workers without publishing old generations (159ms)
+  ✓   7 [chromium] › tests/text/renderer.spec.ts:176:1 › pinned WASM allocator refuses growth above the explicit worker heap cap (91ms)
+  ✓   8 [chromium] › tests/text/renderer.spec.ts:184:1 › stock native storage reset requires observed closure of every actual text worker (468ms)
+(node:18656) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   9 [webkit] › tests/text/renderer.spec.ts:23:1 › real worker Latin, combining, ligature and supplementary mapping (912ms)
+  ✓  10 [webkit] › tests/text/renderer.spec.ts:41:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (928ms)
+  ✓  11 [webkit] › tests/text/renderer.spec.ts:62:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (5.1s)
+  ✓  12 [webkit] › tests/text/renderer.spec.ts:90:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (289ms)
+  ✓  13 [webkit] › tests/text/renderer.spec.ts:124:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (188ms)
+  ✓  14 [webkit] › tests/text/renderer.spec.ts:155:1 › supersession, cancel and dispose terminate owned workers without publishing old generations (225ms)
+  ✓  15 [webkit] › tests/text/renderer.spec.ts:176:1 › pinned WASM allocator refuses growth above the explicit worker heap cap (188ms)
+  ✓  16 [webkit] › tests/text/renderer.spec.ts:184:1 › stock native storage reset requires observed closure of every actual text worker (1.6s)
+(node:18837) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  17 [firefox] › tests/text/renderer.spec.ts:23:1 › real worker Latin, combining, ligature and supplementary mapping (1.3s)
+  ✓  18 [firefox] › tests/text/renderer.spec.ts:41:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (968ms)
+  ✓  19 [firefox] › tests/text/renderer.spec.ts:62:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (8.2s)
+  ✓  20 [firefox] › tests/text/renderer.spec.ts:90:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (380ms)
+  ✓  21 [firefox] › tests/text/renderer.spec.ts:124:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (208ms)
+  ✓  22 [firefox] › tests/text/renderer.spec.ts:155:1 › supersession, cancel and dispose terminate owned workers without publishing old generations (276ms)
+  ✓  23 [firefox] › tests/text/renderer.spec.ts:176:1 › pinned WASM allocator refuses growth above the explicit worker heap cap (222ms)
+  ✓  24 [firefox] › tests/text/renderer.spec.ts:184:1 › stock native storage reset requires observed closure of every actual text worker (2.0s)
+
+  24 passed (34.4s)

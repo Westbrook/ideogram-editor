@@ -1,0 +1,44 @@
+
+Running 8 tests using 1 worker
+
+(node:11827) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/text/renderer.spec.ts:23:1 › real worker Latin, combining, ligature and supplementary mapping (1.3s)
+  ✓  2 [chromium] › tests/text/renderer.spec.ts:41:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (976ms)
+  ✓  3 [chromium] › tests/text/renderer.spec.ts:62:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (3.5s)
+  ✓  4 [chromium] › tests/text/renderer.spec.ts:89:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (171ms)
+  ✓  5 [chromium] › tests/text/renderer.spec.ts:120:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (104ms)
+  ✓  6 [chromium] › tests/text/renderer.spec.ts:145:1 › supersession, cancel and dispose terminate owned workers without publishing old generations (134ms)
+  ✘  7 [chromium] › tests/text/renderer.spec.ts:166:1 › pinned WASM allocator refuses growth above the explicit worker heap cap (107ms)
+(node:11864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  8 [chromium] › tests/text/renderer.spec.ts:174:1 › stock native storage reset requires observed closure of every actual text worker (488ms)
+
+
+  1) [chromium] › tests/text/renderer.spec.ts:166:1 › pinned WASM allocator refuses growth above the explicit worker heap cap 
+
+    Error: expect(received).toBeGreaterThan(expected)
+
+    Expected: > 134217728
+    Received:   134217728
+
+      168 |   expect(result.error).toBeUndefined();expect(result.pointer).toBeGreaterThan(0);
+      169 |   expect(result.overPointer).toBe(0);expect(result.final).toBeLessThanOrEqual(128*1024**2);
+    > 170 |   expect(result.after).toBeGreaterThan(result.before);
+          |                        ^
+      171 |   await info.attach('heap-admission',{body:JSON.stringify(result),contentType:'application/json'});
+      172 | });
+      173 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:170:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1c1/browser-09/results/renderer-pinned-WASM-alloc-b10a7-he-explicit-worker-heap-cap-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1c1/browser-09/results/renderer-pinned-WASM-alloc-b10a7-he-explicit-worker-heap-cap-chromium/error-context.md
+
+    Error Context: artifacts/p1c1/browser-09/results/renderer-pinned-WASM-alloc-b10a7-he-explicit-worker-heap-cap-chromium/error-context.md
+
+  1 failed
+    [chromium] › tests/text/renderer.spec.ts:166:1 › pinned WASM allocator refuses growth above the explicit worker heap cap 
+  7 passed (8.6s)

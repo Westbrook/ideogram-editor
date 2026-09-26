@@ -1,5 +1,8 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "resolveJsonModule": true },
-  "include": ["src/**/*.ts", "vite.app.config.ts", "tests/browser/**/*.ts"]
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "paths": { "canvaskit-wasm": ["./vendor/text/canvaskit.d.ts"] }
+  },
+  "include": ["src/**/*.ts", "vite.app.config.ts", "tests/browser/**/*.ts", "tests/text/**/*.ts"]
 }

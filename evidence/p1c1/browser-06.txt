@@ -1,0 +1,21 @@
+
+Running 12 tests using 1 worker
+
+(node:2058) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [webkit] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping (2.5s)
+  ✓   2 [webkit] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (895ms)
+  ✓   3 [webkit] › tests/text/renderer.spec.ts:64:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (3.3s)
+  ✓   4 [webkit] › tests/text/renderer.spec.ts:91:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (231ms)
+  ✓   5 [webkit] › tests/text/renderer.spec.ts:122:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (157ms)
+  ✓   6 [webkit] › tests/text/renderer.spec.ts:147:1 › supersession, cancel and dispose terminate owned workers without publishing old generations (205ms)
+(node:2361) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   7 [firefox] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping (1.3s)
+  ✓   8 [firefox] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (1.1s)
+  ✓   9 [firefox] › tests/text/renderer.spec.ts:64:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (3.9s)
+  ✓  10 [firefox] › tests/text/renderer.spec.ts:91:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (271ms)
+  ✓  11 [firefox] › tests/text/renderer.spec.ts:122:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (149ms)
+  ✓  12 [firefox] › tests/text/renderer.spec.ts:147:1 › supersession, cancel and dispose terminate owned workers without publishing old generations (264ms)
+
+  12 passed (16.3s)

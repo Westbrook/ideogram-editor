@@ -1,0 +1,20 @@
+{
+  "at": "2026-09-26T20:54:26.210875+00:00",
+  "scope": "fresh output directory, same pinned source/tool closure; not independently reacquired toolchain or cross-host reproducibility",
+  "results": [
+    {
+      "part": "js",
+      "bytes": 73594,
+      "first": "c62f2d6e4037f16e6ed7d04360a1da995e67a254e8fcf0a624467897b44c12c0",
+      "freshOutput": "c62f2d6e4037f16e6ed7d04360a1da995e67a254e8fcf0a624467897b44c12c0",
+      "equal": true
+    },
+    {
+      "part": "wasm",
+      "bytes": 4979323,
+      "first": "2b5220ae8fb7a66ceefbfc8cc8a3ada96684d5ca59d2beea60d9a0b66b44a901",
+      "freshOutput": "2b5220ae8fb7a66ceefbfc8cc8a3ada96684d5ca59d2beea60d9a0b66b44a901",
+      "equal": true
+    }
+  ]
+}

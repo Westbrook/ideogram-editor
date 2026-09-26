@@ -1,0 +1,55 @@
+{
+  "files": [
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/bin/gn",
+      "bytes": 1928064,
+      "sha256": "76c4542d5ad22fc944a5d50f4db5f2ad2ff3792ac48afb08d4415f0da41ce570"
+    },
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/ninja/ninja",
+      "bytes": 328194,
+      "sha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f"
+    },
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin/clang",
+      "bytes": 95679952,
+      "sha256": "881f5fec39dbb17f0638e9d222d3b530970e2ade9aa3ac335bef3abd4a3a4f52"
+    },
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin/wasm-ld",
+      "bytes": 54891216,
+      "sha256": "a7a37e8cf5a40eccdadef2b87a96a7c67eeb76d0528825c346af7ca39fbc782e"
+    },
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/emscripten/emcc",
+      "bytes": 1065,
+      "sha256": "b0c9551f9155fa9c028efa24591acdfd30f02f32fb247cf9266f5f0f2ede7589"
+    }
+  ],
+  "versions": [
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/bin/gn",
+      "exitCode": 0,
+      "stdout": "2175 (b2afae122eeb)\n",
+      "stderr": ""
+    },
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/ninja/ninja",
+      "exitCode": 0,
+      "stdout": "1.12.1\n",
+      "stderr": ""
+    },
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin/clang",
+      "exitCode": 0,
+      "stdout": "clang version 17.0.0 (https://github.com/llvm/llvm-project a8cbd27d1f238e104a5d5ca345d93bc1f4d4ab1f)\nTarget: x86_64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin\n",
+      "stderr": ""
+    },
+    {
+      "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/emscripten/emcc",
+      "exitCode": 0,
+      "stdout": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.44 (bec42dac7873903d09d713963e34020c22a8bd2d)\nCopyright (C) 2014 the Emscripten authors (see AUTHORS.txt)\nThis is free and open source software under the MIT license.\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    }
+  ]
+}

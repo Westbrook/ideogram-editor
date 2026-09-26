@@ -1,0 +1,18 @@
+Resolving SDK version '3.1.44' to 'sdk-releases-b90507fcf011da61bacfca613569d882f7749552-64bit'
+Installing SDK 'sdk-releases-b90507fcf011da61bacfca613569d882f7749552-64bit'..
+Installing tool 'node-16.20.0-64bit'..
+Downloading: /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/downloads/node-v16.20.0-darwin-arm64.tar.gz from https://storage.googleapis.com/webassembly/emscripten-releases-builds/deps/node-v16.20.0-darwin-arm64.tar.gz, 29941115 Bytes
+ [----------------------------------------------------------------------------]
+Unpacking '/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/downloads/node-v16.20.0-darwin-arm64.tar.gz' to '/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/node/16.20.0_64bit'
+Done installing tool 'node-16.20.0-64bit'.
+Installing tool 'python-3.9.2-64bit'..
+Downloading: /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/downloads/python-3.9.2-1-macos-arm64.tar.gz from https://storage.googleapis.com/webassembly/emscripten-releases-builds/deps/python-3.9.2-1-macos-arm64.tar.gz, 31582429 Bytes
+ [----------------------------------------------------------------------------]
+Unpacking '/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/downloads/python-3.9.2-1-macos-arm64.tar.gz' to '/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/python/3.9.2_64bit'
+Done installing tool 'python-3.9.2-64bit'.
+Installing tool 'releases-b90507fcf011da61bacfca613569d882f7749552-64bit'..
+Downloading: /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/downloads/b90507fcf011da61bacfca613569d882f7749552-wasm-binaries-arm64.tbz2 from https://storage.googleapis.com/webassembly/emscripten-releases-builds/mac/b90507fcf011da61bacfca613569d882f7749552/wasm-binaries-arm64.tbz2, 317192878 Bytes
+ [----------------------------------------------------------------------------]
+Unpacking '/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/downloads/b90507fcf011da61bacfca613569d882f7749552-wasm-binaries-arm64.tbz2' to '/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream'
+Done installing tool 'releases-b90507fcf011da61bacfca613569d882f7749552-64bit'.
+Done installing SDK 'sdk-releases-b90507fcf011da61bacfca613569d882f7749552-64bit'.

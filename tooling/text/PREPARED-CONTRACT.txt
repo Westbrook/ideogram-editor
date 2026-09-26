@@ -1,0 +1,81 @@
+TextRenderer is a preparation service, never a document writer.
+
+Import src/text/client.ts lazily when text work is requested. Load selected
+bundled faces only through loadBundledFont(id), or supply explicit local Blob
+bytes with expected SHA256, faceIndex0 and reviewed license hash/permission.
+Use one TextRenderer for the active preparation lane. Healthy workers and exact faces are reused inside a booked heap. A bounded latest-preview queue coalesces stale inputs; each prepare() supersedes
+the previous generation; cancel()/dispose() call native Worker.terminate().
+Every request carries document/revision/layer/version/session/generation.
+The worker cannot publish a domain mutation. An older worker completion cannot
+resolve over a newer request; stale/cancelled work rejects without a candidate.
+
+PreparedText (kind prepared-text-1) contains frozen metadata and immutable Blobs:
+- exact textUtf8 and textHash (no normalization or surrogate replacement);
+- ordered font dependencies, complete font Blobs, actual format/parser/fsType,
+  caller-reviewed license hashes, and the sealed rendererProfile ID;
+- layout JSON Blob/layoutHash in app layout-1, containing finite line, run,
+  grapheme/range/ink geometry, per-LF paragraph direction, exact UTF16<->UTF8
+  scalar boundaries (-1 at interiors), native shaped glyph offsets in BOTH
+  units, and font hashes resolved by native typeface identity;
+- rgba Blob/rasterHash, integer ceil(frame.width/height) local image extent,
+  explicit fractional frame clip and overflow flag;
+- dependencyHash over canonical known text/style/frame/font/profile fields;
+- an allocation snapshot labelled as heap/unique-font/output sizes, NOT peak
+  RSS or aggregate font/shaping-memory qualification.
+
+Raster policy: CPU raster-direct surface, RGBA8888 unpremultiplied sRGB, cleared
+transparent; non-hinted default shaping, default font features, locale und.
+Read the surface's explicit storage after flush; zero RGB where alpha is zero.
+Line height is the largest supplied face's ascent/descent/leading span times
+the requested positive multiplier. Record native rounded baselines and symmetric
+leading. Logical LF separators remain in retained text/mappings; separate
+paragraph records exclude the separator. Frame wrapping does not change logical
+line admission. Empty committed text returns a transparent candidate.
+Text fill alpha is included exactly once. Layer opacity, mask, affine transform
+and stack blending are not applied here; CP-1 owns them later.
+
+Later writer task must independently validate allowed renderer/parser profile,
+Blob lengths/hashes, license records and full closure; stage text/font/license/
+profile/layout/raster bytes durably; recheck all revision/session/generation/
+dependency tokens in its atomic acceptance transaction. Enforce document-wide
+1MiB text, total100 layers, current16 faces/64MiB and total memory reservations
+there as well as these per-request bounds. Caller licensing assertions and
+browser output are not backend authority. No backend acceptance, schema,
+history, portable closure, authoring UI, native IME/AT or saved-version migration
+is implemented by this task. Retained raster replay must NOT rerun shaping.
+
+Missing fonts/glyphs, malformed/restricted fonts, non-finite/out-of-envelope
+geometry, invalid Unicode/newlines or stale work refuse reflow. Preserve the
+caller-owned draft and previous accepted raster. Font substitution or renderer
+upgrade needs an explicit new reviewed reflow/version, never old-byte mutation.
+
+Host support: trusted build assets allow wasm/ttf/otf MIME types. WASM compilation
+permission is added only to trusted JavaScript responses with Sec-Fetch-Dest:
+worker; document script policy and ordinary JS eval restrictions are unchanged.
+Worker/font URLs are same-origin build references; dynamic font URLs are absent.
+The product shell does not import this foundation yet, so this task adds no
+text startup fetch/evaluation or authoring controls.
+
+Cleanup verification: stock Playwright actual worker close events must precede
+any reset. The unchanged ownedOPFS fixture admits only clean controlled origins,
+refuses uncertain writers/dirty/unadmitted state, resets once and verifies native
+absence. A future caller/worker must prove its own closure; no reset permission
+is inferred from a termination count or elapsed time. Public termination calls
+are product lifecycle behavior; fixture observation is separate evidence.
+
+Resource ownership: MEMORY.txt is part of this renderer profile. All controllers
+and bundled loaders in the realm share textMemory; other CPU consumers reserve
+through the same authority. Later writer/process integration is required before
+product acceptance. Request geometry/font capacity can refuse before allocation
+even when basic per-layer/document size limits pass. Call releasePrepared only
+after dropping or durably consuming all candidate references; continued retained
+use needs its own reservation. Idle workers and bundled fonts remain booked.
+Cancellation/disposal successfully terminates the private worker and releases its
+engine/unfinished-job leases exactly once; caller/input/output leases remain.
+This is the stock platform ownership boundary, not an instant RSS/native-finally
+claim. API termination failure retains uncertain capacity. Repeated cancel/new
+preparation does not require reopening. TEXT_MEMORY_BUDGET/FONT_CACHE_CAPACITY
+and native allocation failures preserve draft/old appearance; historical cache pressure
+gets at most one cold renderer retry with the same current inputs and original
+deadline. A fresh over-budget request remains a refusal.
+Never reset unknown storage as a recovery shortcut.

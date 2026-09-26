@@ -1,0 +1,12 @@
+npm notice run ideogram-editor@0.1.0 verify:text
+npm notice run node tooling/text/verify.mjs
+{
+  "ok": true,
+  "profile": "sha256:cfef264028e9e3076165f1370cf9b87db4c6c9690a25c82e1ffa2fbaa22641a1",
+  "fonts": 4,
+  "memory": {
+    "initial": 16777216,
+    "maximum": 33554432
+  },
+  "scope": "sealed inputs, source attribution and ABI; not resource/platform qualification"
+}

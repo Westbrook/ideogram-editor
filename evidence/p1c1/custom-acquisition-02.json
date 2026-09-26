@@ -1,0 +1,32 @@
+[
+  {
+    "command": [
+      "git",
+      "init",
+      "artifacts/p1c1/custom-source/icu"
+    ],
+    "at": "2026-09-26T20:37:22.526617+00:00",
+    "exitCode": 0,
+    "stdout": "Initialized empty Git repository in /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/icu/.git/\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "-C",
+      "artifacts/p1c1/custom-source/icu",
+      "-c",
+      "http.lowSpeedLimit=1024",
+      "-c",
+      "http.lowSpeedTime=30",
+      "fetch",
+      "--depth=1",
+      "https://chromium.googlesource.com/chromium/deps/icu.git",
+      "364118a1d9da24bb5b770ac3d762ac144d6da5a4"
+    ],
+    "at": "2026-09-26T20:37:22.537860+00:00",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "From https://chromium.googlesource.com/chromium/deps/icu\n * branch            364118a1d9da24bb5b770ac3d762ac144d6da5a4 -> FETCH_HEAD\n"
+  }
+]

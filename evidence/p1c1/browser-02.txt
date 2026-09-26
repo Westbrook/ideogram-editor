@@ -1,0 +1,44 @@
+
+Running 2 tests using 1 worker
+
+(node:95329) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping (148ms)
+(node:95334) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (231ms)
+
+
+  1) [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+
+    Error: page.evaluate: TextFailure: TEXT_LAYOUT_INDEX
+        at s.onmessage (http://127.0.0.1:64591/assets/index-BjBCU8gi.js:1:4428)
+        at s.onmessage (http://127.0.0.1:64591/assets/index-BjBCU8gi.js:1:4428)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:30:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/text/artifacts/p1c1/browser-02/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/text/artifacts/p1c1/browser-02/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/error-context.md
+
+    Error Context: tests/text/artifacts/p1c1/browser-02/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/error-context.md
+
+  2) [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+
+    Error: page.evaluate: TextFailure: TEXT_LAYOUT_INDEX
+        at s.onmessage (http://127.0.0.1:64598/assets/index-BjBCU8gi.js:1:4428)
+        at s.onmessage (http://127.0.0.1:64598/assets/index-BjBCU8gi.js:1:4428)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/text/artifacts/p1c1/browser-02/results/renderer-real-worker-RTL-p-4bf7d-JK-and-exact-retained-bytes-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/text/artifacts/p1c1/browser-02/results/renderer-real-worker-RTL-p-4bf7d-JK-and-exact-retained-bytes-chromium/error-context.md
+
+    Error Context: tests/text/artifacts/p1c1/browser-02/results/renderer-real-worker-RTL-p-4bf7d-JK-and-exact-retained-bytes-chromium/error-context.md
+
+  2 failed
+    [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+    [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 

@@ -1,0 +1,133 @@
+
+Running 21 tests using 1 worker
+
+(node:10495) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   1 [chromium] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping (0ms)
+  -   2 [chromium] › tests/text/renderer.spec.ts:40:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes
+  -   3 [chromium] › tests/text/renderer.spec.ts:61:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction
+  -   4 [chromium] › tests/text/renderer.spec.ts:88:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation
+  -   5 [chromium] › tests/text/renderer.spec.ts:119:1 › exact admission boundaries preserve input and reject unsafe indices and geometry
+  -   6 [chromium] › tests/text/renderer.spec.ts:144:1 › supersession, cancel and dispose terminate owned workers without publishing old generations
+  -   7 [chromium] › tests/text/renderer.spec.ts:165:1 › stock native storage reset requires observed closure of every actual text worker
+(node:10499) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   8 [webkit] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping (0ms)
+  -   9 [webkit] › tests/text/renderer.spec.ts:40:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes
+  -  10 [webkit] › tests/text/renderer.spec.ts:61:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction
+  -  11 [webkit] › tests/text/renderer.spec.ts:88:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation
+  -  12 [webkit] › tests/text/renderer.spec.ts:119:1 › exact admission boundaries preserve input and reject unsafe indices and geometry
+  -  13 [webkit] › tests/text/renderer.spec.ts:144:1 › supersession, cancel and dispose terminate owned workers without publishing old generations
+  -  14 [webkit] › tests/text/renderer.spec.ts:165:1 › stock native storage reset requires observed closure of every actual text worker
+(node:10506) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  15 [firefox] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping (0ms)
+  -  16 [firefox] › tests/text/renderer.spec.ts:40:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes
+  -  17 [firefox] › tests/text/renderer.spec.ts:61:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction
+  -  18 [firefox] › tests/text/renderer.spec.ts:88:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation
+  -  19 [firefox] › tests/text/renderer.spec.ts:119:1 › exact admission boundaries preserve input and reject unsafe indices and geometry
+  -  20 [firefox] › tests/text/renderer.spec.ts:144:1 › supersession, cancel and dispose terminate owned workers without publishing old generations
+  -  21 [firefox] › tests/text/renderer.spec.ts:165:1 › stock native storage reset requires observed closure of every actual text worker
+
+
+  1) [chromium] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+
+    Error: Use an owner-only storage directory with no symbolic links (0700 directories, 0600 files).
+
+       at ../../dist/local/server/private-root.js:50
+
+      48 |         const stat = await lstat(current);
+      49 |         if (!stat.isDirectory() || stat.isSymbolicLink())
+    > 50 |             throw new PrivateRootError();
+         |                   ^
+      51 |     }
+      52 |     const identity = await lstat(path);
+      53 |     if (identity.uid !== process.getuid() || (identity.mode & 0o777) !== 0o700)
+        at preparePrivateRoot (/Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/private-root.js:50:19)
+        at startLocalServer (/Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:71:18)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:12:10
+
+    TypeError: Cannot read properties of undefined (reading 'close')
+
+      13 |   origin=server.origin;
+      14 | });
+    > 15 | test.afterAll(async()=>{await server.close();await rm(root,{recursive:true});});
+         |                                      ^
+      16 | test.beforeEach(async({page})=>{
+      17 |   const response=await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
+      18 |   expect(response!.headers()['content-security-policy']).not.toContain('wasm-unsafe-eval');
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:15:38
+
+    Error Context: artifacts/p1c1/browser-08/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/error-context.md
+
+    Error Context: artifacts/p1c1/browser-08/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-chromium/error-context.md
+
+  2) [webkit] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+
+    Error: Use an owner-only storage directory with no symbolic links (0700 directories, 0600 files).
+
+       at ../../dist/local/server/private-root.js:50
+
+      48 |         const stat = await lstat(current);
+      49 |         if (!stat.isDirectory() || stat.isSymbolicLink())
+    > 50 |             throw new PrivateRootError();
+         |                   ^
+      51 |     }
+      52 |     const identity = await lstat(path);
+      53 |     if (identity.uid !== process.getuid() || (identity.mode & 0o777) !== 0o700)
+        at preparePrivateRoot (/Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/private-root.js:50:19)
+        at startLocalServer (/Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:71:18)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:12:10
+
+    TypeError: Cannot read properties of undefined (reading 'close')
+
+      13 |   origin=server.origin;
+      14 | });
+    > 15 | test.afterAll(async()=>{await server.close();await rm(root,{recursive:true});});
+         |                                      ^
+      16 | test.beforeEach(async({page})=>{
+      17 |   const response=await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
+      18 |   expect(response!.headers()['content-security-policy']).not.toContain('wasm-unsafe-eval');
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:15:38
+
+    Error Context: artifacts/p1c1/browser-08/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-webkit/error-context.md
+
+    Error Context: artifacts/p1c1/browser-08/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-webkit/error-context.md
+
+  3) [firefox] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+
+    Error: Use an owner-only storage directory with no symbolic links (0700 directories, 0600 files).
+
+       at ../../dist/local/server/private-root.js:50
+
+      48 |         const stat = await lstat(current);
+      49 |         if (!stat.isDirectory() || stat.isSymbolicLink())
+    > 50 |             throw new PrivateRootError();
+         |                   ^
+      51 |     }
+      52 |     const identity = await lstat(path);
+      53 |     if (identity.uid !== process.getuid() || (identity.mode & 0o777) !== 0o700)
+        at preparePrivateRoot (/Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/private-root.js:50:19)
+        at startLocalServer (/Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:71:18)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:12:10
+
+    TypeError: Cannot read properties of undefined (reading 'close')
+
+      13 |   origin=server.origin;
+      14 | });
+    > 15 | test.afterAll(async()=>{await server.close();await rm(root,{recursive:true});});
+         |                                      ^
+      16 | test.beforeEach(async({page})=>{
+      17 |   const response=await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
+      18 |   expect(response!.headers()['content-security-policy']).not.toContain('wasm-unsafe-eval');
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/text/renderer.spec.ts:15:38
+
+    Error Context: artifacts/p1c1/browser-08/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-firefox/error-context.md
+
+    Error Context: artifacts/p1c1/browser-08/results/renderer-real-worker-Latin-1df67-e-and-supplementary-mapping-firefox/error-context.md
+
+  3 failed
+    [chromium] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+    [webkit] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+    [firefox] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+  18 did not run

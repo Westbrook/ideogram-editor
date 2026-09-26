@@ -1,0 +1,70 @@
+P1c.1 native text foundation — distribution and source attribution
+
+Runtime: unmodified default bin/canvaskit.js + bin/canvaskit.wasm from Google's
+official canvaskit-wasm 0.40.0 npm package. The complete original tarball is
+vendored. Registry SHA512 and exact JS/WASM SHA256 are checked by verify:text.
+Its registry gitHead is 5f262bd2cbb40f78659ec32547163fe83117a38d. This is
+distribution provenance, not proof of a reproducible native build. It differs
+from the historical paper anchor ae33954b4932e71f2bdfbe58ad3d1cde7980db7c.
+
+Read primary sources: https://docs.skia.org/docs/user/modules/quickstart/
+and the exact Skia revision's modules/canvaskit/{compile.sh,paragraph.js,
+paragraph_bindings.cpp,cpu.js}, modules/skparagraph/{src,include}, DEPS and
+third_party/icu/BUILD.gn. Read snapshots here are supporting evidence; they do
+not prove the upstream build used exactly the documented native dependencies.
+The runtime's ParagraphBuilder.RequiresClientICU() must be false.
+
+Unicode: the source DEPS points to ICU364118a1d9da24bb5b770ac3d762ac144d6da5a4.
+The exact source uchar.h advertises Unicode15.1; ICU BUILD.gn uses its stripped
+flutter/icudtl.dat. Fetching that standalone native data returned HTTP503.
+unicodeDataHash explicitly identifies the containing official WASM, NOT an
+independently extracted ICU payload. Graphemes/bidi/line breaking use that sealed
+WASM. App auto-direction separately uses sealed official Unicode15.1.0
+DerivedBidiClass.txt (https://www.unicode.org/Public/15.1.0/ucd/extracted/DerivedBidiClass.txt).
+No Intl.Segmenter, host ICU version, system fonts or runtime remote font service
+is substituted for this identity. Auto-direction skips nested isolate content
+and chooses first strong L/R/AL per LF paragraph; otherwise LTR.
+
+Fonts: four unmodified static official Noto regular upright normal-width faces.
+Noto Sans, Noto Sans Arabic and Noto Sans Symbols2 come from official archived
+notofonts/noto-fonts commit ffebf8c1ee449e544955a7e813c54f9b73848eac; CJKsc
+comes from notofonts/noto-cjk f8d157532fbfaeda587e826d4cd5b21a49186f7c.
+Exact raw URLs, bytes, hashes and OFL1.1 records are in vendor/text/manifest.json.
+Font name/copyright/version/license records extracted from actual bytes are in
+vendor/text/font-records.json. All four actual OS/2 fsType fields are0.
+Fonts are not subset, renamed or sold separately. Full font bytes and notices
+must accompany project/export distributions. Bundled coverage is deliberately
+finite: Latin combining/ligatures, Arabic bidi, selected CJK and monochrome
+supplementary symbols. For example U+1D11E is NOT covered and preparation refuses
+it with the exact codepoint. No universal language/emoji coverage claim.
+
+Parser policy: bounded sfnt container/table/checksum/OS2/outline preflight before
+isolated CanvasKit FreeType interpretation. Static TTF/glyf+loca and CFF1 OTF,
+face0, regular400/width5/upright only. Collections, variable/color/bitmap/SVG,
+unknown/restricted embedding and unsupported styles refuse. This is not a full
+OpenType sanitizer or an OS process sandbox. OS/2 embedding rules are based on
+https://learn.microsoft.com/en-us/typography/opentype/spec/os2#fstype;
+container rules: https://learn.microsoft.com/en-us/typography/opentype/spec/otff.
+Local license permission is an explicit caller review record, not legal advice
+inferred from fsType. Later writer validation must retain this record.
+
+Notices: official package BSD3 license, actual font OFL records, ICU source
+license, HarfBuzz exact-source COPYING, and supplementary native/runtime
+licenses are retained in vendor/text/notices. supplemental-notice-sources.json
+states each fetched URL; release-tag supplemental licenses are not claimed to
+prove compiled dependency versions. FreeType FTL is from official VER-2-13-2;
+exact Chromium mirror fetch failed503. Portions of this software are copyright
+(c) The FreeType Project (www.freetype.org). All rights reserved.
+
+TypeScript-only compatibility: CanvasKit0.40's legacy @webgpu/types reference
+conflicts with TypeScript7 lib.dom. A byte-checked declaration copy removes ONLY
+that reference. The package runtime, package archive, and lock integrity remain
+unchanged. No skipLibCheck or native binary patch is used.
+
+Memory: official WASM declares initial128MiB/max2GiB. The adapter pins its actual
+resize_heap import a.qb/exported memory zd and refuses growth beyond128MiB,
+including the glue's speculative grow. Native allocation refusal is tested.
+That cap is not total process memory: JS fonts, structured clones, output Blobs,
+layout and raster copies add overhead. Initial heap alone reaches the R35
+font/shaping ceiling; aggregate R35/P3 fit is explicitly NOT established and
+remains Q20/A-R01. No timing/resource campaign or ceiling waiver is claimed.

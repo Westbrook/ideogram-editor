@@ -1,0 +1,1127 @@
+{
+  "at": "2026-09-26T20:59:56.533875+00:00",
+  "task": "37acc962-c349-497b-977c-71c881390331",
+  "base": "b3173ff73707eb2e9595be6c941c2afc3df1093c",
+  "branch": "ideogram-editor-p1",
+  "status": "author review_required; independent acceptance pending",
+  "profile": "sha256:08a6daefc46a9c16466372e081e4ca7d5cacaa6c35dd8bd3c981bcaeb2790c2a",
+  "engine": {
+    "package": "canvaskit-wasm",
+    "version": "0.40.0-ideogram.2",
+    "distribution": "local reproducible CPU Paragraph build from official source; not npm-byte-equivalent",
+    "tarball": {
+      "bytes": 2088136,
+      "sha256": "c245e1a0f59599f960d48d047b106a56606a1cea67665954466da4e8858eae87",
+      "gzipBytes": 2087707
+    },
+    "js": {
+      "bytes": 73594,
+      "sha256": "c62f2d6e4037f16e6ed7d04360a1da995e67a254e8fcf0a624467897b44c12c0",
+      "gzipBytes": 23969
+    },
+    "wasm": {
+      "bytes": 4979323,
+      "sha256": "2b5220ae8fb7a66ceefbfc8cc8a3ada96684d5ca59d2beea60d9a0b66b44a901",
+      "gzipBytes": 2021770
+    },
+    "sourceRevision": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+    "sourceAttribution": "Locally built official source archive and exact DEPS; explicit source patch and pinned tools",
+    "paperAnchor": "ae33954b4932e71f2bdfbe58ad3d1cde7980db7c",
+    "license": "BSD-3-Clause",
+    "customBuild": {
+      "source": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+      "emscripten": "3.1.44",
+      "llvm": "a8cbd27d1f238e104a5d5ca345d93bc1f4d4ab1f",
+      "recipe": "tooling/text/configure-source.py",
+      "patch": "tooling/text/canvaskit-source.patch",
+      "initialBytes": 16777216,
+      "maximumBytes": 33554432,
+      "icuDataSha256": "c12537022ef818991a7bfed41a76d8d6ae962ffbc0e6511ac762a5d0845e7f7c"
+    }
+  },
+  "fontBytes": 17903880,
+  "nativeChecks": [
+    {
+      "test": "real worker Latin, combining, ligature and supplementary mapping",
+      "project": "chromium",
+      "status": "passed"
+    },
+    {
+      "test": "real worker RTL per paragraph, bidi runs, CJK and exact retained bytes",
+      "project": "chromium",
+      "status": "passed"
+    },
+    {
+      "test": "CPU straight alpha, fractional clip, wrapping, empty text and explicit direction",
+      "project": "chromium",
+      "status": "passed"
+    },
+    {
+      "test": "missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation",
+      "project": "chromium",
+      "status": "passed"
+    },
+    {
+      "test": "exact admission boundaries preserve input and reject unsafe indices and geometry",
+      "project": "chromium",
+      "status": "passed"
+    },
+    {
+      "test": "latest preview queue coalesces obsolete requests and releases disposal exactly once",
+      "project": "chromium",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "coalescing-disposal",
+          "value": {
+            "result": {
+              "firstResult": "TEXT_STALE",
+              "secondResult": "TEXT_STALE",
+              "text": "latest",
+              "generation": 3,
+              "after": "TEXT_DISPOSED",
+              "before": {
+                "cpuBytes": 569208,
+                "textBytes": 569208
+              },
+              "retained": {
+                "cpuBytes": 48539167,
+                "textBytes": 48539167
+              },
+              "disposed": {
+                "cpuBytes": 831785,
+                "textBytes": 831785
+              },
+              "twice": {
+                "cpuBytes": 831785,
+                "textBytes": 831785
+              },
+              "released": {
+                "cpuBytes": 569208,
+                "textBytes": 569208
+              },
+              "lifecycle": {
+                "activeWorkers": 0,
+                "idleWorkers": 0,
+                "queuedRequests": 0,
+                "terminations": 1,
+                "disposed": true,
+                "uncertainBytes": 0
+              }
+            },
+            "workers": [
+              "http://127.0.0.1:61278/assets/worker-BMqMUX_s.js"
+            ],
+            "resetCalls": 0
+          }
+        }
+      ]
+    },
+    {
+      "test": "pinned WASM allocator refuses growth above the explicit worker heap cap",
+      "project": "chromium",
+      "status": "passed"
+    },
+    {
+      "test": "repeated native cancellation preserves saved output and admits each new generation",
+      "project": "chromium",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "repeated-cancel",
+          "value": {
+            "cycles": [
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 0",
+                "generation": 3
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 1",
+                "generation": 5
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 2",
+                "generation": 7
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 3",
+                "generation": 9
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 4",
+                "generation": 11
+              }
+            ],
+            "savedHash": "sha256:50c304dc221632a48a750cfaf6fabc498941f6f929190391deb50776339b7813",
+            "retainedHash": "sha256:50c304dc221632a48a750cfaf6fabc498941f6f929190391deb50776339b7813",
+            "baseline": {
+              "cpuBytes": 48542735,
+              "textBytes": 48542735
+            },
+            "reservations": {
+              "cpuBytes": 48542735,
+              "textBytes": 48542735
+            },
+            "lifecycle": {
+              "activeWorkers": 0,
+              "idleWorkers": 1,
+              "queuedRequests": 0,
+              "terminations": 5,
+              "disposed": false,
+              "uncertainBytes": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "test": "engine load failure releases private reservations and permits a fresh native worker",
+      "project": "chromium",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "engine-error-recovery",
+          "value": {
+            "code": "TEXT_ENGINE_LOAD",
+            "before": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "after": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "lifecycle": {
+              "activeWorkers": 0,
+              "idleWorkers": 0,
+              "queuedRequests": 0,
+              "terminations": 1,
+              "disposed": false,
+              "uncertainBytes": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "test": "shared reservations reject oversized work before worker allocation and preserve inputs",
+      "project": "chromium",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "preallocation-refusals",
+          "value": {
+            "oversized": "TEXT_MEMORY_BUDGET",
+            "sharedFailure": "TEXT_MEMORY_BUDGET",
+            "combined": "TEXT_MEMORY_BUDGET",
+            "before": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "after": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "text": "preserved draft",
+            "fontHash": "sha256:b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+          }
+        }
+      ]
+    },
+    {
+      "test": "stock native storage reset requires observed closure of every actual text worker",
+      "project": "chromium",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "native-worker-cleanup",
+          "value": {
+            "browserName": "chromium",
+            "origin": "http://127.0.0.1:61278",
+            "marker": "text-worker-f0dbc368-67dd-4258-9382-6e5f8d3e54c8",
+            "outcome": "clean",
+            "error": null,
+            "workers": [
+              {
+                "url": "http://127.0.0.1:61278/assets/worker-BMqMUX_s.js",
+                "closed": true
+              }
+            ],
+            "errors": [],
+            "ledger": [
+              {
+                "phase": "fixture",
+                "run": "c44f1b78-e236-4c8c-8514-7b40e052865f",
+                "profile": "chromium ephemeral",
+                "contract": "controlled-origin-v2"
+              },
+              {
+                "phase": "initial-cookies",
+                "count": 0
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "preflight-start",
+                "origin": "http://127.0.0.1:61278",
+                "profile": "chromium ephemeral"
+              },
+              {
+                "phase": "cookie-audit",
+                "count": 0,
+                "metadata": []
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "preflight",
+                "origin": "http://127.0.0.1:61278",
+                "entries": [],
+                "localStorage": 0,
+                "indexedDB": [],
+                "serviceWorkers": 0,
+                "cookieCount": 0
+              },
+              {
+                "phase": "admitted",
+                "origin": "http://127.0.0.1:61278"
+              },
+              {
+                "phase": "worker-registered"
+              },
+              {
+                "phase": "cleanup-start",
+                "admitted": [
+                  "http://127.0.0.1:61278"
+                ],
+                "visited": [
+                  "http://127.0.0.1:61278"
+                ],
+                "resetCalls": 0
+              },
+              {
+                "phase": "cookie-audit",
+                "count": 0,
+                "metadata": []
+              },
+              {
+                "phase": "public-reset",
+                "resetCalls": 1
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "post-reset",
+                "origin": "http://127.0.0.1:61278",
+                "entries": [],
+                "localStorage": 0,
+                "indexedDB": [],
+                "serviceWorkers": 0
+              },
+              {
+                "phase": "post-reset-cookies",
+                "count": 0
+              },
+              {
+                "phase": "cleanup-complete",
+                "resetCalls": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "test": "real worker Latin, combining, ligature and supplementary mapping",
+      "project": "webkit",
+      "status": "passed"
+    },
+    {
+      "test": "real worker RTL per paragraph, bidi runs, CJK and exact retained bytes",
+      "project": "webkit",
+      "status": "passed"
+    },
+    {
+      "test": "CPU straight alpha, fractional clip, wrapping, empty text and explicit direction",
+      "project": "webkit",
+      "status": "passed"
+    },
+    {
+      "test": "missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation",
+      "project": "webkit",
+      "status": "passed"
+    },
+    {
+      "test": "exact admission boundaries preserve input and reject unsafe indices and geometry",
+      "project": "webkit",
+      "status": "passed"
+    },
+    {
+      "test": "latest preview queue coalesces obsolete requests and releases disposal exactly once",
+      "project": "webkit",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "coalescing-disposal",
+          "value": {
+            "result": {
+              "firstResult": "TEXT_STALE",
+              "secondResult": "TEXT_STALE",
+              "text": "latest",
+              "generation": 3,
+              "after": "TEXT_DISPOSED",
+              "before": {
+                "cpuBytes": 569208,
+                "textBytes": 569208
+              },
+              "retained": {
+                "cpuBytes": 48539167,
+                "textBytes": 48539167
+              },
+              "disposed": {
+                "cpuBytes": 831785,
+                "textBytes": 831785
+              },
+              "twice": {
+                "cpuBytes": 831785,
+                "textBytes": 831785
+              },
+              "released": {
+                "cpuBytes": 569208,
+                "textBytes": 569208
+              },
+              "lifecycle": {
+                "activeWorkers": 0,
+                "idleWorkers": 0,
+                "queuedRequests": 0,
+                "terminations": 1,
+                "disposed": true,
+                "uncertainBytes": 0
+              }
+            },
+            "workers": [
+              "http://127.0.0.1:61335/assets/worker-BMqMUX_s.js"
+            ],
+            "resetCalls": 0
+          }
+        }
+      ]
+    },
+    {
+      "test": "pinned WASM allocator refuses growth above the explicit worker heap cap",
+      "project": "webkit",
+      "status": "passed"
+    },
+    {
+      "test": "repeated native cancellation preserves saved output and admits each new generation",
+      "project": "webkit",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "repeated-cancel",
+          "value": {
+            "cycles": [
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 0",
+                "generation": 3
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 1",
+                "generation": 5
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 2",
+                "generation": 7
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 3",
+                "generation": 9
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 4",
+                "generation": 11
+              }
+            ],
+            "savedHash": "sha256:50c304dc221632a48a750cfaf6fabc498941f6f929190391deb50776339b7813",
+            "retainedHash": "sha256:50c304dc221632a48a750cfaf6fabc498941f6f929190391deb50776339b7813",
+            "baseline": {
+              "cpuBytes": 48542735,
+              "textBytes": 48542735
+            },
+            "reservations": {
+              "cpuBytes": 48542735,
+              "textBytes": 48542735
+            },
+            "lifecycle": {
+              "activeWorkers": 0,
+              "idleWorkers": 1,
+              "queuedRequests": 0,
+              "terminations": 5,
+              "disposed": false,
+              "uncertainBytes": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "test": "engine load failure releases private reservations and permits a fresh native worker",
+      "project": "webkit",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "engine-error-recovery",
+          "value": {
+            "code": "TEXT_ENGINE_LOAD",
+            "before": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "after": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "lifecycle": {
+              "activeWorkers": 0,
+              "idleWorkers": 0,
+              "queuedRequests": 0,
+              "terminations": 1,
+              "disposed": false,
+              "uncertainBytes": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "test": "shared reservations reject oversized work before worker allocation and preserve inputs",
+      "project": "webkit",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "preallocation-refusals",
+          "value": {
+            "oversized": "TEXT_MEMORY_BUDGET",
+            "sharedFailure": "TEXT_MEMORY_BUDGET",
+            "combined": "TEXT_MEMORY_BUDGET",
+            "before": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "after": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "text": "preserved draft",
+            "fontHash": "sha256:b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+          }
+        }
+      ]
+    },
+    {
+      "test": "stock native storage reset requires observed closure of every actual text worker",
+      "project": "webkit",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "native-worker-cleanup",
+          "value": {
+            "browserName": "webkit",
+            "origin": "http://127.0.0.1:61335",
+            "marker": "text-worker-432dba64-9558-4cf2-8652-7c29a74d94d5",
+            "outcome": "clean",
+            "error": null,
+            "workers": [
+              {
+                "url": "http://127.0.0.1:61335/assets/worker-BMqMUX_s.js",
+                "closed": true
+              }
+            ],
+            "errors": [],
+            "ledger": [
+              {
+                "phase": "fixture",
+                "run": "216f5244-d87d-476e-9bd4-fef0c36967df",
+                "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-text-worker-NAdB4q",
+                "contract": "controlled-origin-v2"
+              },
+              {
+                "phase": "initial-cookies",
+                "count": 0
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "preflight-start",
+                "origin": "http://127.0.0.1:61335",
+                "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-text-worker-NAdB4q"
+              },
+              {
+                "phase": "cookie-audit",
+                "count": 0,
+                "metadata": []
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "preflight",
+                "origin": "http://127.0.0.1:61335",
+                "entries": [],
+                "localStorage": 0,
+                "indexedDB": [],
+                "serviceWorkers": 0,
+                "cookieCount": 0
+              },
+              {
+                "phase": "admitted",
+                "origin": "http://127.0.0.1:61335"
+              },
+              {
+                "phase": "worker-registered"
+              },
+              {
+                "phase": "owned-blob",
+                "origin": "http://127.0.0.1:61335",
+                "resourceType": "xhr"
+              },
+              {
+                "phase": "owned-blob",
+                "origin": "http://127.0.0.1:61335",
+                "resourceType": "xhr"
+              },
+              {
+                "phase": "owned-blob",
+                "origin": "http://127.0.0.1:61335",
+                "resourceType": "xhr"
+              },
+              {
+                "phase": "owned-blob",
+                "origin": "http://127.0.0.1:61335",
+                "resourceType": "xhr"
+              },
+              {
+                "phase": "owned-blob",
+                "origin": "http://127.0.0.1:61335",
+                "resourceType": "xhr"
+              },
+              {
+                "phase": "owned-blob",
+                "origin": "http://127.0.0.1:61335",
+                "resourceType": "xhr"
+              },
+              {
+                "phase": "owned-blob",
+                "origin": "http://127.0.0.1:61335",
+                "resourceType": "xhr"
+              },
+              {
+                "phase": "cleanup-start",
+                "admitted": [
+                  "http://127.0.0.1:61335"
+                ],
+                "visited": [
+                  "http://127.0.0.1:61335"
+                ],
+                "resetCalls": 0
+              },
+              {
+                "phase": "cookie-audit",
+                "count": 0,
+                "metadata": []
+              },
+              {
+                "phase": "public-reset",
+                "resetCalls": 1
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "post-reset",
+                "origin": "http://127.0.0.1:61335",
+                "entries": [],
+                "localStorage": 0,
+                "indexedDB": [],
+                "serviceWorkers": 0
+              },
+              {
+                "phase": "post-reset-cookies",
+                "count": 0
+              },
+              {
+                "phase": "cleanup-complete",
+                "resetCalls": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "test": "real worker Latin, combining, ligature and supplementary mapping",
+      "project": "firefox",
+      "status": "passed"
+    },
+    {
+      "test": "real worker RTL per paragraph, bidi runs, CJK and exact retained bytes",
+      "project": "firefox",
+      "status": "passed"
+    },
+    {
+      "test": "CPU straight alpha, fractional clip, wrapping, empty text and explicit direction",
+      "project": "firefox",
+      "status": "passed"
+    },
+    {
+      "test": "missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation",
+      "project": "firefox",
+      "status": "passed"
+    },
+    {
+      "test": "exact admission boundaries preserve input and reject unsafe indices and geometry",
+      "project": "firefox",
+      "status": "passed"
+    },
+    {
+      "test": "latest preview queue coalesces obsolete requests and releases disposal exactly once",
+      "project": "firefox",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "coalescing-disposal",
+          "value": {
+            "result": {
+              "firstResult": "TEXT_STALE",
+              "secondResult": "TEXT_STALE",
+              "text": "latest",
+              "generation": 3,
+              "after": "TEXT_DISPOSED",
+              "before": {
+                "cpuBytes": 569208,
+                "textBytes": 569208
+              },
+              "retained": {
+                "cpuBytes": 48539167,
+                "textBytes": 48539167
+              },
+              "disposed": {
+                "cpuBytes": 831785,
+                "textBytes": 831785
+              },
+              "twice": {
+                "cpuBytes": 831785,
+                "textBytes": 831785
+              },
+              "released": {
+                "cpuBytes": 569208,
+                "textBytes": 569208
+              },
+              "lifecycle": {
+                "activeWorkers": 0,
+                "idleWorkers": 0,
+                "queuedRequests": 0,
+                "terminations": 1,
+                "disposed": true,
+                "uncertainBytes": 0
+              }
+            },
+            "workers": [
+              "http://127.0.0.1:61405/assets/worker-BMqMUX_s.js"
+            ],
+            "resetCalls": 0
+          }
+        }
+      ]
+    },
+    {
+      "test": "pinned WASM allocator refuses growth above the explicit worker heap cap",
+      "project": "firefox",
+      "status": "passed"
+    },
+    {
+      "test": "repeated native cancellation preserves saved output and admits each new generation",
+      "project": "firefox",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "repeated-cancel",
+          "value": {
+            "cycles": [
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 0",
+                "generation": 3
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 1",
+                "generation": 5
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 2",
+                "generation": 7
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 3",
+                "generation": 9
+              },
+              {
+                "cancellation": "TEXT_CANCELLED",
+                "text": "current 4",
+                "generation": 11
+              }
+            ],
+            "savedHash": "sha256:50c304dc221632a48a750cfaf6fabc498941f6f929190391deb50776339b7813",
+            "retainedHash": "sha256:50c304dc221632a48a750cfaf6fabc498941f6f929190391deb50776339b7813",
+            "baseline": {
+              "cpuBytes": 48542735,
+              "textBytes": 48542735
+            },
+            "reservations": {
+              "cpuBytes": 48542735,
+              "textBytes": 48542735
+            },
+            "lifecycle": {
+              "activeWorkers": 0,
+              "idleWorkers": 1,
+              "queuedRequests": 0,
+              "terminations": 5,
+              "disposed": false,
+              "uncertainBytes": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "test": "engine load failure releases private reservations and permits a fresh native worker",
+      "project": "firefox",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "engine-error-recovery",
+          "value": {
+            "code": "TEXT_ENGINE_LOAD",
+            "before": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "after": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "lifecycle": {
+              "activeWorkers": 0,
+              "idleWorkers": 0,
+              "queuedRequests": 0,
+              "terminations": 1,
+              "disposed": false,
+              "uncertainBytes": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "test": "shared reservations reject oversized work before worker allocation and preserve inputs",
+      "project": "firefox",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "preallocation-refusals",
+          "value": {
+            "oversized": "TEXT_MEMORY_BUDGET",
+            "sharedFailure": "TEXT_MEMORY_BUDGET",
+            "combined": "TEXT_MEMORY_BUDGET",
+            "before": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "after": {
+              "cpuBytes": 569208,
+              "textBytes": 569208
+            },
+            "text": "preserved draft",
+            "fontHash": "sha256:b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+          }
+        }
+      ]
+    },
+    {
+      "test": "stock native storage reset requires observed closure of every actual text worker",
+      "project": "firefox",
+      "status": "passed",
+      "receipts": [
+        {
+          "name": "native-worker-cleanup",
+          "value": {
+            "browserName": "firefox",
+            "origin": "http://127.0.0.1:61405",
+            "marker": "text-worker-b7e44df1-2fa6-4a2b-818d-dce1880afea0",
+            "outcome": "clean",
+            "error": null,
+            "workers": [
+              {
+                "url": "http://127.0.0.1:61405/assets/worker-BMqMUX_s.js",
+                "closed": true
+              }
+            ],
+            "errors": [],
+            "ledger": [
+              {
+                "phase": "fixture",
+                "run": "fa218659-77ca-41fc-a969-94cefb19cae5",
+                "profile": "firefox ephemeral",
+                "contract": "controlled-origin-v2"
+              },
+              {
+                "phase": "initial-cookies",
+                "count": 0
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "preflight-start",
+                "origin": "http://127.0.0.1:61405",
+                "profile": "firefox ephemeral"
+              },
+              {
+                "phase": "cookie-audit",
+                "count": 0,
+                "metadata": []
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "preflight",
+                "origin": "http://127.0.0.1:61405",
+                "entries": [],
+                "localStorage": 0,
+                "indexedDB": [],
+                "serviceWorkers": 0,
+                "cookieCount": 0
+              },
+              {
+                "phase": "admitted",
+                "origin": "http://127.0.0.1:61405"
+              },
+              {
+                "phase": "worker-registered"
+              },
+              {
+                "phase": "cleanup-start",
+                "admitted": [
+                  "http://127.0.0.1:61405"
+                ],
+                "visited": [
+                  "http://127.0.0.1:61405"
+                ],
+                "resetCalls": 0
+              },
+              {
+                "phase": "cookie-audit",
+                "count": 0,
+                "metadata": []
+              },
+              {
+                "phase": "public-reset",
+                "resetCalls": 1
+              },
+              {
+                "phase": "page-registered"
+              },
+              {
+                "phase": "post-reset",
+                "origin": "http://127.0.0.1:61405",
+                "entries": [],
+                "localStorage": 0,
+                "indexedDB": [],
+                "serviceWorkers": 0
+              },
+              {
+                "phase": "post-reset-cookies",
+                "count": 0
+              },
+              {
+                "phase": "cleanup-complete",
+                "resetCalls": 1
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "cleanGates": [
+    {
+      "name": "install",
+      "command": [
+        "npm",
+        "ci"
+      ],
+      "at": "2026-09-26T20:59:11.857036+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/lifecycle-clean-install.txt"
+    },
+    {
+      "name": "verify",
+      "command": [
+        "npm",
+        "run",
+        "verify:text"
+      ],
+      "at": "2026-09-26T20:59:14.198177+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/lifecycle-clean-verify.txt"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "at": "2026-09-26T20:59:14.376197+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/lifecycle-clean-typecheck.txt"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "at": "2026-09-26T20:59:17.589076+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/lifecycle-clean-build.txt"
+    }
+  ],
+  "reusedUnchangedHostSessionGates": [
+    {
+      "name": "host",
+      "command": [
+        "node",
+        "--test",
+        "tests/text/host.test.mjs"
+      ],
+      "at": "2026-09-26T20:54:59.697214+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/custom-clean-host.txt"
+    },
+    {
+      "name": "session",
+      "command": [
+        "npm",
+        "run",
+        "test:session"
+      ],
+      "at": "2026-09-26T20:55:00.393825+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/custom-clean-session.txt"
+    }
+  ],
+  "reusedHostFiles": [
+    {
+      "path": "server/http.ts",
+      "sha256": "a3363488527e40d81ef4f1723b6f84011006846b10f88c206ae43cdfdd0366f6"
+    },
+    {
+      "path": "server/static.ts",
+      "sha256": "17113de5a2cad06f94e1788a7a25bf71656d77d5f48f5371910a8a6159cf5cac"
+    },
+    {
+      "path": "tests/editor/owned-opfs.ts",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c"
+    }
+  ],
+  "nativeRebuild": {
+    "at": "2026-09-26T20:54:26.210875+00:00",
+    "scope": "fresh output directory, same pinned source/tool closure; not independently reacquired toolchain or cross-host reproducibility",
+    "results": [
+      {
+        "part": "js",
+        "bytes": 73594,
+        "first": "c62f2d6e4037f16e6ed7d04360a1da995e67a254e8fcf0a624467897b44c12c0",
+        "freshOutput": "c62f2d6e4037f16e6ed7d04360a1da995e67a254e8fcf0a624467897b44c12c0",
+        "equal": true
+      },
+      {
+        "part": "wasm",
+        "bytes": 4979323,
+        "first": "2b5220ae8fb7a66ceefbfc8cc8a3ada96684d5ca59d2beea60d9a0b66b44a901",
+        "freshOutput": "2b5220ae8fb7a66ceefbfc8cc8a3ada96684d5ca59d2beea60d9a0b66b44a901",
+        "equal": true
+      }
+    ]
+  },
+  "rawBrowserArchive": {
+    "path": "evidence/p1c1/raw-browser-receipts.tar.gz",
+    "bytes": 439059,
+    "sha256": "d6d73912001741b34708798c755158f3a4ef4377ef4e51e77268b6b51ee39058",
+    "directories": [
+      "artifacts/p1c1/browser-05",
+      "artifacts/p1c1/browser-06",
+      "artifacts/p1c1/browser-07",
+      "artifacts/p1c1/browser-08",
+      "artifacts/p1c1/browser-09",
+      "artifacts/p1c1/browser-10",
+      "artifacts/p1c1/browser-11",
+      "artifacts/p1c1/browser-12",
+      "artifacts/p1c1/custom-browser-01",
+      "artifacts/p1c1/custom-browser-02",
+      "artifacts/p1c1/custom-browser-06",
+      "artifacts/p1c1/custom-browser-07",
+      "artifacts/p1c1/custom-browser-final",
+      "artifacts/p1c1/custom-cjk-03",
+      "artifacts/p1c1/custom-cjk-04",
+      "artifacts/p1c1/custom-cjk-05",
+      "artifacts/p1c1/lifecycle-browser-01",
+      "artifacts/p1c1/lifecycle-browser-final",
+      "tests/text/artifacts/p1c1/browser-01",
+      "tests/text/artifacts/p1c1/browser-02",
+      "tests/text/artifacts/p1c1/browser-03",
+      "tests/text/artifacts/p1c1/browser-04"
+    ]
+  },
+  "limits": [
+    "Logical realm reservations, not R17 RSS or P3 qualification",
+    "Later writer must bridge process/backend shared accounting before acceptance",
+    "Initial font style profile regular400/upright/normal-width static TTF/CFF1",
+    "Native cache <=16 exact faces, within32MiB heap; dispose/recreate on cache capacity",
+    "No writer/schema/protocol/UI/IME/AT implementation",
+    "No source/platform/corpus/timing campaign, publishing or provider calls"
+  ],
+  "retainedFailures": [
+    "typecheck-01: upstream WebGPU duplicate declarations",
+    "browser-01: unsupported U+1D11E positive fixture",
+    "browser-02/03: UTF16 line metrics incorrectly treated as UTF8",
+    "browser-08: realpath temporary host fixture",
+    "browser-09: wrong128MiB allocator growth oracle",
+    "clean-gates: omitted unchanged report locator in copied fixture",
+    "custom-acquisition-01: ICU archive HTTP503; exact Git succeeded",
+    "custom-browser-01: repeated CJK OOB, obsolete worker/heap oracles, cleanup fixture timeout",
+    "custom-browser-02 and custom-cjk-03: guarded repeated CJK allocation refusal",
+    "custom-cjk-05: native eviction/refund assumption failed; bounded exact face retention adopted",
+    "pre-lifecycle-profile: permanent quarantine made cancellation unusable; coordinator corrected stock ownership boundary"
+  ]
+}

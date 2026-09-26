@@ -19,8 +19,8 @@ const methods: Record<string, readonly string[]> = {
 };
 const unavailable = /^\/api\/v1\/(?:commands|events|documents|jobs|assets|bundles|snapshots|protocol-content|recovery|ui|image-previews|image-edit-reviews)(?:\/|$)/;
 
-function securityHeaders(response: ServerResponse, origin: string): void {
-  response.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' ${BOOTSTRAP_CSP}; style-src 'self'; style-src-attr 'unsafe-hashes' ${SHELL_STYLE_CSP}; connect-src ${origin}; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
+function securityHeaders(response: ServerResponse, origin: string, wasmWorker = false): void {
+  response.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' ${BOOTSTRAP_CSP}${wasmWorker ? " 'wasm-unsafe-eval'" : ''}; style-src 'self'; style-src-attr 'unsafe-hashes' ${SHELL_STYLE_CSP}; connect-src ${origin}; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Referrer-Policy', 'no-referrer');
   response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -184,6 +184,10 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
         if (!file) throw new ProtocolError('NOT_FOUND');
         if (request.method !== 'GET') { response.setHeader('Allow', 'GET'); throw new ProtocolError('METHOD_NOT_ALLOWED'); }
         if (request.headers['transfer-encoding'] !== undefined || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0')) throw new ProtocolError('MALFORMED_REQUEST');
+        // Native text uses sealed WASM in a dedicated worker. Keep document
+        // script policy unchanged; only trusted built JS worker responses gain
+        // WASM compilation (never JavaScript eval) permission.
+        if (file.type.startsWith('text/javascript') && request.headers['sec-fetch-dest'] === 'worker') securityHeaders(response, origin, true);
         response.writeHead(200, { 'Content-Type': file.type, 'Content-Length': file.bytes.length });
         response.end(file.bytes);
       }

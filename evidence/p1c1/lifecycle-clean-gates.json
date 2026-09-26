@@ -1,0 +1,45 @@
+[
+  {
+    "name": "install",
+    "command": [
+      "npm",
+      "ci"
+    ],
+    "at": "2026-09-26T20:59:11.857036+00:00",
+    "exitCode": 0,
+    "log": "evidence/p1c1/lifecycle-clean-install.txt"
+  },
+  {
+    "name": "verify",
+    "command": [
+      "npm",
+      "run",
+      "verify:text"
+    ],
+    "at": "2026-09-26T20:59:14.198177+00:00",
+    "exitCode": 0,
+    "log": "evidence/p1c1/lifecycle-clean-verify.txt"
+  },
+  {
+    "name": "typecheck",
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "at": "2026-09-26T20:59:14.376197+00:00",
+    "exitCode": 0,
+    "log": "evidence/p1c1/lifecycle-clean-typecheck.txt"
+  },
+  {
+    "name": "build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "at": "2026-09-26T20:59:17.589076+00:00",
+    "exitCode": 0,
+    "log": "evidence/p1c1/lifecycle-clean-build.txt"
+  }
+]

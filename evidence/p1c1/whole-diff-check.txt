@@ -1,0 +1,117 @@
+evidence/p1c1/browser-01.txt:9: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-01.txt:25: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-02.txt:12: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-02.txt:27: trailing whitespace.
++  2) [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/browser-02.txt:43: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-02.txt:44: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/browser-03.txt:12: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-03.txt:31: trailing whitespace.
++  2) [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/browser-03.txt:53: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:25:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-03.txt:54: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:43:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/browser-08.txt:33: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-08.txt:65: trailing whitespace.
++  2) [webkit] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-08.txt:97: trailing whitespace.
++  3) [firefox] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-08.txt:130: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-08.txt:131: trailing whitespace.
++    [webkit] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-08.txt:132: trailing whitespace.
++    [firefox] › tests/text/renderer.spec.ts:22:1 › real worker Latin, combining, ligature and supplementary mapping 
+evidence/p1c1/browser-09.txt:18: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:166:1 › pinned WASM allocator refuses growth above the explicit worker heap cap 
+evidence/p1c1/browser-09.txt:43: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:166:1 › pinned WASM allocator refuses growth above the explicit worker heap cap 
+evidence/p1c1/custom-browser-01.txt:46: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-browser-01.txt:67: trailing whitespace.
++  2) [chromium] › tests/text/renderer.spec.ts:164:1 › supersession, cancel and dispose terminate owned workers without publishing old generations 
+evidence/p1c1/custom-browser-01.txt:90: trailing whitespace.
++  3) [chromium] › tests/text/renderer.spec.ts:185:1 › pinned WASM allocator refuses growth above the explicit worker heap cap 
+evidence/p1c1/custom-browser-01.txt:114: trailing whitespace.
++  4) [chromium] › tests/text/renderer.spec.ts:193:1 › stock native storage reset requires observed closure of every actual text worker 
+evidence/p1c1/custom-browser-01.txt:131: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-browser-01.txt:132: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:164:1 › supersession, cancel and dispose terminate owned workers without publishing old generations 
+evidence/p1c1/custom-browser-01.txt:133: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:185:1 › pinned WASM allocator refuses growth above the explicit worker heap cap 
+evidence/p1c1/custom-browser-01.txt:134: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:193:1 › stock native storage reset requires observed closure of every actual text worker 
+evidence/p1c1/custom-browser-02.txt:42: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-browser-02.txt:64: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-cjk-03.txt:33: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-cjk-03.txt:53: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-cjk-05.txt:33: trailing whitespace.
++  1) [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-cjk-05.txt:55: trailing whitespace.
++    [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes 
+evidence/p1c1/custom-source-01.patch:21: trailing whitespace.
++ 
+evidence/p1c1/custom-source-01.patch:25: trailing whitespace.
++ 
+evidence/p1c1/custom-source-01.patch:27: trailing whitespace.
++ 
+evidence/p1c1/custom-source-01.patch:31: trailing whitespace.
++ 
+evidence/p1c1/custom-source-01.patch:36: trailing whitespace.
++ 
+evidence/p1c1/custom-source-01.patch:42: trailing whitespace.
++ 
+evidence/p1c1/custom-source-01.patch:72: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:21: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:25: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:27: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:31: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:36: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:52: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:84: trailing whitespace.
++ 
+evidence/p1c1/custom-source-02.patch:87: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:21: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:25: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:27: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:31: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:36: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:52: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:85: trailing whitespace.
++ 
+tooling/text/canvaskit-source.patch:88: trailing whitespace.
++ 
+vendor/text/notices/Emscripten-LICENSE:60: trailing whitespace.
++    written permission. 
+vendor/text/notices/Emscripten-LICENSE:102: new blank line at EOF.
+vendor/text/notices/custom-emscripten-LICENSE.txt:60: trailing whitespace.
++    written permission. 
+vendor/text/notices/custom-emscripten-LICENSE.txt:102: new blank line at EOF.
+vendor/text/notices/libwebp-COPYING:30: new blank line at EOF.

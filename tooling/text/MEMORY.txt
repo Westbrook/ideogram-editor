@@ -1,0 +1,95 @@
+P1c.1 reservation model (all counts in bytes)
+
+Authority: src/text/memory.ts textMemory is shared by every controller and bundled
+font loader in one app realm. R35 text <=128MiB, within shared R18 CPU <=512MiB.
+Other consumers can book category other. The later writer must bridge this realm
+ledger with process/backend accounting before acceptance; this task has no product
+UI or backend integration and does not claim a process-wide RSS admission proof.
+
+Native heap: initial16MiB / hard maximum32MiB in the compiled WASM descriptor.
+Book the full32MiB, including all native font bytes, FreeType/HarfBuzz/ICU scratch,
+shape/line/glyph caches and direct RGBA surface. No second count of in-heap data.
+A failed native allocator does not increase the heap; its guard returns/refuses
+before writing through a null pointer. A trapped native job terminates
+its worker, without accepting a candidate or touching previous accepted pixels.
+
+Engine startup: 32MiB + 6*WASM_bytes +4MiB fixed glue/adapter allowance. The six
+WASM-sized stores cover incoming stream/copy chunks, Blob, ArrayBuffer, WebCrypto
+snapshot and compile inputs. After worker-ready completes the loader scope,
+resident booking is32MiB +2*WASM_bytes +4MiB (compiled module and retained input
+allowance). These are ownership transitions, not promises of synchronous GC.
+The healthy resident heap stays booked. Explicit successful terminate ends app
+ownership of private worker allocations, independently of measured RSS or GC.
+
+Font loader: reserve5*fileBytes before fetch/hash; then retain1*fileBytes for the
+cached immutable input Blob. Concurrent loads share the pool and coalesce per ID.
+No hidden font fetch occurs at startup. Cache is only the four sealed bundled
+assets. User-supplied original files remain caller-owned and are counted during
+preparation; the caller must account for originals retained outside this service.
+
+Request preflight scans Unicode scalars and bounded metadata before arrays,
+clones, worker creation or native allocation. Its full peak must fit before any
+worker creation. Main metadata is a bounded whitelist; font Blob handles alias
+inputs. The sole clone boundary is postMessage to the worker. Font reservation
+is4*uniqueFontBytes (caller Blob + worker backing + parser buffer + digest snapshot),
+minus only caller Blob bytes already booked by the owned loader. Native copies
+are inside the booked heap. Buffers verified by the parser are reused for native
+registration, rather than allocating another ArrayBuffer per font.
+
+G=max(64,8*scalarCount); runs<=G; soft lines<=max(logicalLines,G); rectangles<=2G.
+L=16384+1024*(G+scalarCount+lineBound), must be <=8MiB. Each term includes bounded
+numbers/indices/geometry and serialized text. Index/temporary scalar allowance
+I=128*(UTF16length+UTF8bytes+scalarCount+3). Raster R=ceil(width)*ceil(height)*4.
+Request peak=fontReservation +4R+6L+I+65536. The raster count includes JS readback,
+Blob and hashing/cross-context copies; native RGBA is already in the heap. Layout
+includes objects, copied exported arrays, UTF16 serialization, UTF8 Blob and
+hash/cross-context copies. The native count pass checks G/runs/lines before JS
+shaped arrays exist; native rectangle vector size is checked before export.
+No GSUB expansion assumption alone authorizes allocation. Oversized geometry,
+font/native work or full request peak refuses; no text/font truncation.
+
+Each worker caches up to16 exact faces already loaded, inside its32MiB heap.
+Cache uses no native eviction refund to admit new faces. An accepted run must
+match this request's supplied fonts even if other exact faces are cached.
+Per-job paragraph, builder, font metric wrappers, raster surface/allocation and
+native returned rectangle buffers are explicitly released. Known CJK repeated
+registration/eviction failures are preserved; retained face reuse is the chosen
+bounded ownership policy. Historical occupancy can report FONT_CACHE_CAPACITY or a guarded native copy
+allocation failure. The client terminates/releases that private worker and tries
+once in a fresh worker with the same complete supplied set, token and original
+deadline. It never retries indefinitely or substitutes/truncates fonts. If the
+fresh job itself cannot fit, it refuses and preserves the draft/old appearance.
+A valid changed current set is not a new lifetime-font limit.
+
+Bounded rectangle extraction distinguishes a zero-length Float32Array (valid
+empty geometry) from null (quota exceeded). Nonempty results are native-owned
+views; the adapter copies retained geometry and frees their native allocation.
+
+
+Prepared output: before acceptance, verify token, geometry/Blob sizes and font
+identity. Retain a reservation for text/layout/RGBA plus non-loader-owned font
+inputs. releasePrepared(value) means the caller has durably consumed or dropped
+all candidate references; it is an ownership release, not a GC assertion. The
+caller must not use it to excuse continued unbooked retention. Retained saved
+appearance and caller drafts are never modified by refusal/cancellation.
+
+One active job and one latest pending request are permitted. A microtask queue
+coalesces obsolete requests before starting new worker work; tokens fence late
+results. Healthy idle worker heap/provider remains booked. On cancel, deadline,
+fatal failure or dispose, detach listeners/timers, call stock Worker.terminate,
+and drop private worker/job references. Successful termination releases those
+private reservations exactly once. It does not execute native finally blocks or
+certify physical memory reclamation. Shared caller Blobs, saved/prepared output
+leases and external resources keep their distinct owners. Only an actual API
+failure retains uncertain booking; no guessed timer or synthetic counter refund.
+Primary platform contract: https://html.spec.whatwg.org/multipage/workers.html#terminate-a-worker
+
+Repeated cancellation/new preparation and disposal are usable in the same realm.
+The browser test harness still separately observes actual worker-close events
+before one controlled public OPFS reset. Runtime reservation release is never a
+substitute for that storage gate. Unknown/unclosed storage state fails without reset.
+
+This is a conservative owned-allocation model. Engine/JS implementation overhead
+and GC/RSS correlations, full WXn/WXs envelopes, repeated lifecycle campaigns and
+physical-platform performance remain P3. Passing these bounded checks does not
+qualify those campaigns or make backend reservations automatic.

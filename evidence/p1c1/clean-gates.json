@@ -1,0 +1,40 @@
+[
+  {
+    "name": "clean-install",
+    "command": [
+      "npm",
+      "ci"
+    ],
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/clean",
+    "start": "2026-09-26T20:29:31.046613+00:00",
+    "end": "2026-09-26T20:29:34.703341+00:00",
+    "exit": 0,
+    "log": "clean-install.txt"
+  },
+  {
+    "name": "clean-profile",
+    "command": [
+      "npm",
+      "run",
+      "verify:text"
+    ],
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/clean",
+    "start": "2026-09-26T20:29:34.703893+00:00",
+    "end": "2026-09-26T20:29:35.490490+00:00",
+    "exit": 0,
+    "log": "clean-profile.txt"
+  },
+  {
+    "name": "clean-typecheck",
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/clean",
+    "start": "2026-09-26T20:29:35.490868+00:00",
+    "end": "2026-09-26T20:29:38.029102+00:00",
+    "exit": 1,
+    "log": "clean-typecheck.txt"
+  }
+]

@@ -1,0 +1,296 @@
+[
+  {
+    "name": "emsdk",
+    "url": "https://skia.googlesource.com/external/github.com/emscripten-core/emsdk.git",
+    "revision": "a896e3d066448b3530dbcaa48869fafefd738f57",
+    "commands": [
+      {
+        "command": [
+          "git",
+          "init",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk"
+        ],
+        "exitCode": 0,
+        "stdout": "Initialized empty Git repository in /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/.git/\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk",
+          "-c",
+          "http.lowSpeedLimit=1024",
+          "-c",
+          "http.lowSpeedTime=30",
+          "fetch",
+          "--depth=1",
+          "https://skia.googlesource.com/external/github.com/emscripten-core/emsdk.git",
+          "a896e3d066448b3530dbcaa48869fafefd738f57"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "From https://skia.googlesource.com/external/github.com/emscripten-core/emsdk\n * branch            a896e3d066448b3530dbcaa48869fafefd738f57 -> FETCH_HEAD\n"
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk",
+          "checkout",
+          "--detach",
+          "a896e3d066448b3530dbcaa48869fafefd738f57"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "HEAD is now at a896e3d 3.1.44 (#1260)\n"
+      }
+    ],
+    "at": "2026-09-26T20:38:30.541153+00:00"
+  },
+  {
+    "name": "freetype",
+    "url": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git",
+    "revision": "5d4e649f740c675426fbe4cdaffc53ee2a4cb954",
+    "commands": [
+      {
+        "command": [
+          "git",
+          "init",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/freetype"
+        ],
+        "exitCode": 0,
+        "stdout": "Initialized empty Git repository in /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/freetype/.git/\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/freetype",
+          "-c",
+          "http.lowSpeedLimit=1024",
+          "-c",
+          "http.lowSpeedTime=30",
+          "fetch",
+          "--depth=1",
+          "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git",
+          "5d4e649f740c675426fbe4cdaffc53ee2a4cb954"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "From https://chromium.googlesource.com/chromium/src/third_party/freetype2\n * branch            5d4e649f740c675426fbe4cdaffc53ee2a4cb954 -> FETCH_HEAD\n"
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/freetype",
+          "checkout",
+          "--detach",
+          "5d4e649f740c675426fbe4cdaffc53ee2a4cb954"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "HEAD is now at 5d4e649 .gitlab-ci.yml: Minor.\n"
+      }
+    ],
+    "at": "2026-09-26T20:38:30.541370+00:00"
+  },
+  {
+    "name": "harfbuzz",
+    "url": "https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz.git",
+    "revision": "ca3cd48fa3e06fa81d7c8a3f716cca44ed2de26a",
+    "commands": [
+      {
+        "command": [
+          "git",
+          "init",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/harfbuzz"
+        ],
+        "exitCode": 0,
+        "stdout": "Initialized empty Git repository in /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/harfbuzz/.git/\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/harfbuzz",
+          "-c",
+          "http.lowSpeedLimit=1024",
+          "-c",
+          "http.lowSpeedTime=30",
+          "fetch",
+          "--depth=1",
+          "https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz.git",
+          "ca3cd48fa3e06fa81d7c8a3f716cca44ed2de26a"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "From https://chromium.googlesource.com/external/github.com/harfbuzz/harfbuzz\n * branch            ca3cd48fa3e06fa81d7c8a3f716cca44ed2de26a -> FETCH_HEAD\n"
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/harfbuzz",
+          "checkout",
+          "--detach",
+          "ca3cd48fa3e06fa81d7c8a3f716cca44ed2de26a"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "HEAD is now at ca3cd48 Fix memory leak in hb_coretext_get_glyph_name\n"
+      }
+    ],
+    "at": "2026-09-26T20:38:30.541348+00:00"
+  },
+  {
+    "name": "zlib",
+    "url": "https://chromium.googlesource.com/chromium/src/third_party/zlib",
+    "revision": "646b7f569718921d7d4b5b8e22572ff6c76f2596",
+    "commands": [
+      {
+        "command": [
+          "git",
+          "init",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/zlib"
+        ],
+        "exitCode": 0,
+        "stdout": "Initialized empty Git repository in /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/zlib/.git/\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/zlib",
+          "-c",
+          "http.lowSpeedLimit=1024",
+          "-c",
+          "http.lowSpeedTime=30",
+          "fetch",
+          "--depth=1",
+          "https://chromium.googlesource.com/chromium/src/third_party/zlib",
+          "646b7f569718921d7d4b5b8e22572ff6c76f2596"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "From https://chromium.googlesource.com/chromium/src/third_party/zlib\n * branch            646b7f569718921d7d4b5b8e22572ff6c76f2596 -> FETCH_HEAD\n"
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/zlib",
+          "checkout",
+          "--detach",
+          "646b7f569718921d7d4b5b8e22572ff6c76f2596"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "HEAD is now at 646b7f5 [zlib][build] Remove fdopen #defines in zutil.h.\n"
+      }
+    ],
+    "at": "2026-09-26T20:38:30.542984+00:00"
+  },
+  {
+    "name": "wuffs",
+    "url": "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git",
+    "revision": "e3f919ccfe3ef542cfc983a82146070258fb57f8",
+    "commands": [
+      {
+        "command": [
+          "git",
+          "init",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/wuffs"
+        ],
+        "exitCode": 0,
+        "stdout": "Initialized empty Git repository in /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/wuffs/.git/\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/wuffs",
+          "-c",
+          "http.lowSpeedLimit=1024",
+          "-c",
+          "http.lowSpeedTime=30",
+          "fetch",
+          "--depth=1",
+          "https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c.git",
+          "e3f919ccfe3ef542cfc983a82146070258fb57f8"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "From https://skia.googlesource.com/external/github.com/google/wuffs-mirror-release-c\n * branch            e3f919ccfe3ef542cfc983a82146070258fb57f8 -> FETCH_HEAD\n"
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/wuffs",
+          "checkout",
+          "--detach",
+          "e3f919ccfe3ef542cfc983a82146070258fb57f8"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "HEAD is now at e3f919c Run script/sync.sh: 0.3.3+3399.20230408\n"
+      }
+    ],
+    "at": "2026-09-26T20:38:31.183528+00:00"
+  },
+  {
+    "name": "libpng",
+    "url": "https://skia.googlesource.com/third_party/libpng.git",
+    "revision": "ed217e3e601d8e462f7fd1e04bed43ac42212429",
+    "commands": [
+      {
+        "command": [
+          "git",
+          "init",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/libpng"
+        ],
+        "exitCode": 0,
+        "stdout": "Initialized empty Git repository in /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/libpng/.git/\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/libpng",
+          "-c",
+          "http.lowSpeedLimit=1024",
+          "-c",
+          "http.lowSpeedTime=30",
+          "fetch",
+          "--depth=1",
+          "https://skia.googlesource.com/third_party/libpng.git",
+          "ed217e3e601d8e462f7fd1e04bed43ac42212429"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "From https://skia.googlesource.com/third_party/libpng\n * branch            ed217e3e601d8e462f7fd1e04bed43ac42212429 -> FETCH_HEAD\n"
+      },
+      {
+        "command": [
+          "git",
+          "-C",
+          "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/libpng",
+          "checkout",
+          "--detach",
+          "ed217e3e601d8e462f7fd1e04bed43ac42212429"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "HEAD is now at ed217e3 Release libpng version 1.6.43\n"
+      }
+    ],
+    "at": "2026-09-26T20:38:31.828998+00:00"
+  }
+]

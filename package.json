@@ -34,7 +34,9 @@
     "test:raster": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/raster/*.test.mjs",
     "test:raster:browser": "npm run build:server && vite build --config tests/raster/vite.config.ts && playwright test --config tests/raster/playwright.config.ts",
     "verify:raster": "node tooling/raster/verify-inputs.mjs",
-    "test:history": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/history/*.test.mjs"
+    "test:history": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/history/*.test.mjs",
+    "verify:text": "node tooling/text/verify.mjs",
+    "test:text": "npm run build:server && vite build --config tests/text/vite.config.ts && playwright test --config tests/text/playwright.config.ts"
   },
   "dependencies": {
     "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",
@@ -45,7 +47,8 @@
     "signal-polyfill": "0.2.2",
     "signal-utils": "0.21.1",
     "fs-ext": "2.1.1",
-    "sharp": "0.35.4"
+    "sharp": "0.35.4",
+    "canvaskit-wasm": "file:vendor/text/canvaskit-wasm-0.40.0-ideogram.3.tgz"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

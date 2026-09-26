@@ -1,0 +1,42 @@
+[
+  {
+    "file": "vendor/text/notices/Brotli-LICENSE",
+    "url": "https://raw.githubusercontent.com/google/brotli/6d03dfbedda1615c4cba1211f8d81735575209c8/LICENSE",
+    "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+  },
+  {
+    "file": "vendor/text/notices/Expat-COPYING",
+    "url": "https://raw.githubusercontent.com/libexpat/libexpat/624da0f593bb8d7e146b9f42b06d8e6c80d032a3/expat/COPYING",
+    "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534"
+  },
+  {
+    "file": "vendor/text/notices/libwebp-COPYING",
+    "url": "https://raw.githubusercontent.com/webmproject/libwebp/845d5476a866141ba35ac133f856fa62f0b7445f/COPYING",
+    "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+  },
+  {
+    "file": "vendor/text/notices/libpng-LICENSE",
+    "url": "https://raw.githubusercontent.com/pnggroup/libpng/v1.6.43/LICENSE",
+    "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+  },
+  {
+    "file": "vendor/text/notices/libjpeg-turbo-LICENSE",
+    "url": "https://raw.githubusercontent.com/libjpeg-turbo/libjpeg-turbo/3.0.1/LICENSE.md",
+    "sha256": "60c756742db3ad1913304e8b13f0e86e22e51adb50cc0b3333c163f7e45ceec1"
+  },
+  {
+    "file": "vendor/text/notices/zlib-LICENSE",
+    "url": "https://raw.githubusercontent.com/madler/zlib/v1.3.1/LICENSE",
+    "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+  },
+  {
+    "file": "vendor/text/notices/Wuffs-LICENSE",
+    "url": "https://raw.githubusercontent.com/google/wuffs/v0.3.4/LICENSE",
+    "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+  },
+  {
+    "file": "vendor/text/notices/Emscripten-LICENSE",
+    "url": "https://raw.githubusercontent.com/emscripten-core/emscripten/3.1.64/LICENSE",
+    "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+  }
+]

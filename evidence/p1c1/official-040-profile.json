@@ -1,0 +1,250 @@
+{
+  "adapterVersion": "text-worker-1",
+  "layoutVersion": "layout-1",
+  "rasterProfile": "ck040-cpu-rgba8888-unpremul-srgb-transparent-zero-1",
+  "engine": {
+    "package": "canvaskit-wasm",
+    "version": "0.40.0",
+    "distribution": "https://registry.npmjs.org/canvaskit-wasm/-/canvaskit-wasm-0.40.0.tgz",
+    "tarball": {
+      "bytes": 9780590,
+      "sha256": "41e3cf79e3b5d566a8d5a5c4649dfd083d08451158e4d70ff6525e38182b5073",
+      "gzipBytes": 9775779
+    },
+    "js": {
+      "bytes": 129433,
+      "sha256": "b2556106b80c5ff3041f3888d55e602636e1812c98cf77a72e7c328c8036c838",
+      "gzipBytes": 39679
+    },
+    "wasm": {
+      "bytes": 7094511,
+      "sha256": "2abfa191f92f0aee6e0c8e3ff9612294a7721a40761216867c1c059e7993c9d3",
+      "gzipBytes": 2841139
+    },
+    "sourceRevision": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+    "sourceAttribution": "npm registry gitHead; not a locally reproduced native build",
+    "paperAnchor": "ae33954b4932e71f2bdfbe58ad3d1cde7980db7c",
+    "license": "BSD-3-Clause"
+  },
+  "unicode": {
+    "policy": "first-strong-per-LF-paragraph-isolate-aware-15.1.0",
+    "bidiData": {
+      "bytes": 166678,
+      "sha256": "b57884c59a3a5348d86faed39965bbddb4e4493d3c16c1ec378ec26bfb5821be",
+      "gzipBytes": 41877
+    },
+    "shaper": "ICU compiled into sealed WASM; default non-client build",
+    "sourceUnicodeVersion": "15.1",
+    "sourceICURevision": "364118a1d9da24bb5b770ac3d762ac144d6da5a4",
+    "unicodeDataHash": "sha256:2abfa191f92f0aee6e0c8e3ff9612294a7721a40761216867c1c059e7993c9d3",
+    "unicodeDataHashScope": "containing WASM artifact, not independently extracted ICU data; source DEPS attribution only"
+  },
+  "fonts": [
+    {
+      "id": "NotoSans",
+      "file": "fonts/NotoSans-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+      "bytes": 569208,
+      "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "gzipBytes": 283990,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-OFL.txt",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    },
+    {
+      "id": "NotoSansArabic",
+      "file": "fonts/NotoSansArabic-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf",
+      "bytes": 240456,
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b",
+      "gzipBytes": 105678,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-OFL.txt",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    },
+    {
+      "id": "NotoSansSymbols2",
+      "file": "fonts/NotoSansSymbols2-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansSymbols2/NotoSansSymbols2-Regular.ttf",
+      "bytes": 656852,
+      "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "gzipBytes": 297016,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-OFL.txt",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    },
+    {
+      "id": "NotoSansCJKsc",
+      "file": "fonts/NotoSansCJKsc-Regular.otf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-cjk/f8d157532fbfaeda587e826d4cd5b21a49186f7c/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+      "bytes": 16437364,
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+      "gzipBytes": 13585906,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-CJK-OFL.txt",
+      "licenseHash": "sha256:6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    }
+  ],
+  "limits": {
+    "wasmHeapBytes": 134217728,
+    "faceBytes": 16777216,
+    "faces": 16,
+    "fontBytes": 67108864,
+    "textBytes": 16384,
+    "logicalLines": 256,
+    "pixels": 25000000,
+    "layoutBytes": 8388608
+  },
+  "fontProfile": "static regular upright normal-width TTF/CFF1 OTF; complete unmodified files; face index0",
+  "lineHeightPolicy": "largest supplied font metric span times multiplier; symmetric leading; native rounded baselines",
+  "memory": {
+    "wasmDeclaredInitialBytes": 134217728,
+    "wasmDeclaredMaximumBytes": 2147483648,
+    "adapterWasmGrowthCap": 134217728,
+    "aggregateFontShapingCeilingQualified": false,
+    "knownLimit": "Initial WASM heap alone equals R35 128MiB ceiling; JS font/layout/raster/copy overhead is additional. No aggregate R35/P3 fit claim.",
+    "ownership": "one disposable worker per TextRenderer; callers must share one controller for the active text preparation lane; no global document writer"
+  },
+  "notices": [
+    {
+      "path": "vendor/text/notices/Brotli-LICENSE",
+      "bytes": 1084,
+      "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+    },
+    {
+      "path": "vendor/text/notices/CanvasKit-LICENSE",
+      "bytes": 1635,
+      "sha256": "d27678cba0d529e77201e2d2a053628143e986aad8f1e77f7039ad4366c8f978"
+    },
+    {
+      "path": "vendor/text/notices/Emscripten-LICENSE",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "vendor/text/notices/Expat-COPYING",
+      "bytes": 1144,
+      "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534"
+    },
+    {
+      "path": "vendor/text/notices/FreeType-FTL.TXT",
+      "bytes": 6743,
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+    },
+    {
+      "path": "vendor/text/notices/HarfBuzz-COPYING",
+      "bytes": 1971,
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "path": "vendor/text/notices/Noto-CJK-OFL.txt",
+      "bytes": 4301,
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    },
+    {
+      "path": "vendor/text/notices/Noto-OFL.txt",
+      "bytes": 4377,
+      "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "path": "vendor/text/notices/Unicode-LICENSE.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    {
+      "path": "vendor/text/notices/Wuffs-LICENSE",
+      "bytes": 10174,
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    {
+      "path": "vendor/text/notices/icu-LICENSE",
+      "bytes": 25185,
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+    },
+    {
+      "path": "vendor/text/notices/libjpeg-turbo-LICENSE",
+      "bytes": 5213,
+      "sha256": "60c756742db3ad1913304e8b13f0e86e22e51adb50cc0b3333c163f7e45ceec1"
+    },
+    {
+      "path": "vendor/text/notices/libpng-LICENSE",
+      "bytes": 5345,
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+    },
+    {
+      "path": "vendor/text/notices/libwebp-COPYING",
+      "bytes": 1496,
+      "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+    },
+    {
+      "path": "vendor/text/notices/zlib-LICENSE",
+      "bytes": 1002,
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+    }
+  ],
+  "adapterSources": [
+    {
+      "path": "src/text/admission.ts",
+      "bytes": 3591,
+      "sha256": "98c95b7addff1d98b79ee687498f6a44ddee3dead36df136cff76ee67489475d"
+    },
+    {
+      "path": "src/text/bidi-data.json",
+      "bytes": 19070,
+      "sha256": "df36e677252814e1d84009c9ab735c12ac67deb7460695d64b477beee00b955a"
+    },
+    {
+      "path": "src/text/bidi.ts",
+      "bytes": 632,
+      "sha256": "9fbc954b46188247d44c829ce82bba259de40dbcbb0100380c43aa8e7b961350"
+    },
+    {
+      "path": "src/text/bundled-fonts.ts",
+      "bytes": 1155,
+      "sha256": "e432ef8a0701cd14fb50e56c8a1170768ff417d4f879ae206c54d3f94d267231"
+    },
+    {
+      "path": "src/text/client.ts",
+      "bytes": 2623,
+      "sha256": "dfbc99bba43f4c4abc9e1c0a272b1d054cbccc3409a3d1a1b33011eaebd08f46"
+    },
+    {
+      "path": "src/text/contracts.ts",
+      "bytes": 3468,
+      "sha256": "2a6cf746e7b16c6c86791fc6e08bd854b1c868a5266b561e6c77ae7e8de5df4e"
+    },
+    {
+      "path": "src/text/engine.ts",
+      "bytes": 15127,
+      "sha256": "37aa854acc89f2e823cdb7aea0833492a74c8646f4fc422052a8dcc2d2d43c2b"
+    },
+    {
+      "path": "src/text/font.ts",
+      "bytes": 4277,
+      "sha256": "416b1d58dc403cba942d0aa292a891b8e2b83847997f5154c7e7f7870ae50a2a"
+    },
+    {
+      "path": "src/text/worker.ts",
+      "bytes": 694,
+      "sha256": "d37b5f783749e800e1e720a62d6645ea09d5251b79562ba7ab727db8ad338dd5"
+    }
+  ],
+  "typeCompatibility": {
+    "path": "vendor/text/canvaskit.d.ts",
+    "sha256": "b77844bc1c2c9b12960bcecb5299c6b4e5dc5a07aa2ccf026124287a1b3f50f4",
+    "change": "Only upstream triple-slash WebGPU reference replaced by comment; TypeScript7 lib.dom already supplies WebGPU declarations. Runtime JS/WASM unmodified."
+  },
+  "id": "sha256:629cbfca2d2cee64b8c74b970a1b4ca505d2dfabaf1ee6bc7efae1ed2c98e3ad"
+}

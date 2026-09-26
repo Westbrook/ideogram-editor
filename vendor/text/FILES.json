@@ -1,0 +1,307 @@
+[
+  {
+    "path": "tooling/text/acquire-source.py",
+    "bytes": 2041,
+    "sha256": "9f916adf3b0efe892f3e98e421af0bc3573b702a6add1c3bea3c46c97e38d0f9"
+  },
+  {
+    "path": "tooling/text/canvaskit-registry.json",
+    "bytes": 3295,
+    "sha256": "d6775b6906dfa1b766fa13ce691596999941b39fe0bb8a5450210e03b9d6c386"
+  },
+  {
+    "path": "tooling/text/canvaskit-source.patch",
+    "bytes": 3975,
+    "sha256": "aef6f9481e8bf71bb942b24dd58dc5dd6849dec6122d571094e0ab658509c5a6"
+  },
+  {
+    "path": "tooling/text/configure-source.py",
+    "bytes": 3535,
+    "sha256": "b1f04570cd6a854312b58017e95f75a59155ffdb1ed6e71792ca5b2653dd768c"
+  },
+  {
+    "path": "tooling/text/DerivedBidiClass-15.1.0.txt",
+    "bytes": 166678,
+    "sha256": "b57884c59a3a5348d86faed39965bbddb4e4493d3c16c1ec378ec26bfb5821be"
+  },
+  {
+    "path": "tooling/text/icu-uchar.h",
+    "bytes": 149201,
+    "sha256": "e28f4c512d46e9d1debc7f5f7727c9c7987411ccdf95b76fd0d9af7142eef4bc"
+  },
+  {
+    "path": "tooling/text/MEMORY.txt",
+    "bytes": 6499,
+    "sha256": "882bc204eadd21c2b1c58ac7946be2f168c7997df064a5f475f664b74e52f8c1"
+  },
+  {
+    "path": "tooling/text/modules-canvaskit-compile.sh",
+    "bytes": 8105,
+    "sha256": "887ce1ce843dfa27900561e504e04989ce92bb7f899ba9f186be9c773c694419"
+  },
+  {
+    "path": "tooling/text/modules-canvaskit-cpu.js",
+    "bytes": 5125,
+    "sha256": "6f4c8dce3ca11a377087f71d13414b9d567f740d982d4250c2389b0664312858"
+  },
+  {
+    "path": "tooling/text/modules-canvaskit-paragraph_bindings.cpp",
+    "bytes": 37239,
+    "sha256": "7324865f030e6d24953cbafbcca6d968c637a3d78c719030629f0de6e6133a34"
+  },
+  {
+    "path": "tooling/text/modules-canvaskit-paragraph.js",
+    "bytes": 16857,
+    "sha256": "36681ae56635c2633c856d9b56ea107f44b41a7df1edeb2f6fb7f7db715450dc"
+  },
+  {
+    "path": "tooling/text/modules-skparagraph-include-FontCollection.h",
+    "bytes": 3092,
+    "sha256": "b5ea18f509d02362d170140da72d762c7a1e6211e3d8f2b2263e7d8bfd0449fc"
+  },
+  {
+    "path": "tooling/text/modules-skparagraph-include-Metrics.h",
+    "bytes": 3685,
+    "sha256": "c2f566ddc2b707d19533acf551d8d3de2958911475562c53a82384e661ca83fb"
+  },
+  {
+    "path": "tooling/text/modules-skparagraph-src-FontCollection.cpp",
+    "bytes": 7932,
+    "sha256": "e6cf93e9956340fffc806fb2215162eede3c2b1df7435151c2ec436cc92a6429"
+  },
+  {
+    "path": "tooling/text/modules-skparagraph-src-ParagraphImpl.cpp",
+    "bytes": 60335,
+    "sha256": "13f25d3a14dcb80fcfea1d66a001c07b7097de4aeda3ad813437b5101056e6ae"
+  },
+  {
+    "path": "tooling/text/modules-skparagraph-src-Run.cpp",
+    "bytes": 12085,
+    "sha256": "edf061b7f400871953e94a0dba29d71bc9cd1ec0e93ef57e89a61f0f361e6589"
+  },
+  {
+    "path": "tooling/text/modules-skparagraph-src-TextLine.cpp",
+    "bytes": 64889,
+    "sha256": "d0f4c364f0b5c2b33bc3f1a3004e182aca222b1aad0e730627a875cc006be9fc"
+  },
+  {
+    "path": "tooling/text/package-source.py",
+    "bytes": 2338,
+    "sha256": "d1789d22e902f0e5f6e05ec6eeacd520430f6dbb6583c2a6b703abbb9b6d49a0"
+  },
+  {
+    "path": "tooling/text/PREPARED-CONTRACT.txt",
+    "bytes": 5678,
+    "sha256": "d726c0c1f68413ad0859d9c29f3df9e42e94324d3d44633aefcb8b21511e138c"
+  },
+  {
+    "path": "tooling/text/PROVENANCE.txt",
+    "bytes": 5053,
+    "sha256": "50dc2d5bb5ede0da2162a4d7f98801dd69efdc135dc37d0f6baf6d5daf531063"
+  },
+  {
+    "path": "tooling/text/rebuild.py",
+    "bytes": 3463,
+    "sha256": "18f8afb2cc9341aedc30f2712fa21727250543dd91f7c966bd105171d689b33d"
+  },
+  {
+    "path": "tooling/text/seal-profile.mjs",
+    "bytes": 3526,
+    "sha256": "e5830fda13df2cecbf10d487ddfccbe58a0eafd949f7ad3f6e0e10d8bc7a96b2"
+  },
+  {
+    "path": "tooling/text/skia-DEPS.txt",
+    "bytes": 10023,
+    "sha256": "299116887431eceabb1cf3896a66f17d69a858a7a849f6a13219238c60b04682"
+  },
+  {
+    "path": "tooling/text/source-closure.json",
+    "bytes": 7326,
+    "sha256": "c7cb9b9febbf9464800aaa46d4044243629400e8e3d836771f99c2d01dc4c993"
+  },
+  {
+    "path": "tooling/text/supplemental-notice-sources.json",
+    "bytes": 1894,
+    "sha256": "7d8944ff9496b9794d4734650fb5e04b933bbc1dba8f16338ddca1bacf19a28c"
+  },
+  {
+    "path": "tooling/text/third_party-icu-BUILD.gn",
+    "bytes": 3405,
+    "sha256": "4bdeab72453dd04d77a5b1654581bf8a4c4889ed2ed6ca091c8ad64d63ab10fd"
+  },
+  {
+    "path": "tooling/text/verify.mjs",
+    "bytes": 3159,
+    "sha256": "66d27c19be0c9725cce02994db9ccc2176b05a07eb9b46db0bc5ee1bf6b67061"
+  },
+  {
+    "path": "vendor/text/canvaskit-wasm-0.40.0-ideogram.1.tgz",
+    "bytes": 2087704,
+    "sha256": "7c29459a8c772d45f533a1e3e42caadd3f84c4ce61cff58f1cdbc9a2fe4dfefd"
+  },
+  {
+    "path": "vendor/text/canvaskit-wasm-0.40.0-ideogram.2.tgz",
+    "bytes": 2088136,
+    "sha256": "c245e1a0f59599f960d48d047b106a56606a1cea67665954466da4e8858eae87"
+  },
+  {
+    "path": "vendor/text/canvaskit-wasm-0.40.0-ideogram.3.tgz",
+    "bytes": 2088133,
+    "sha256": "3528e0ce6183998fc34a6a2a3963b3c2518d0df8ca9d3f8c89fa4b20cd2ef538"
+  },
+  {
+    "path": "vendor/text/canvaskit-wasm-0.40.0.tgz",
+    "bytes": 9780590,
+    "sha256": "41e3cf79e3b5d566a8d5a5c4649dfd083d08451158e4d70ff6525e38182b5073"
+  },
+  {
+    "path": "vendor/text/canvaskit.d.ts",
+    "bytes": 172707,
+    "sha256": "b77844bc1c2c9b12960bcecb5299c6b4e5dc5a07aa2ccf026124287a1b3f50f4"
+  },
+  {
+    "path": "vendor/text/font-records.json",
+    "bytes": 3334,
+    "sha256": "eb1f8edeff28529fd0323b3e4ee6e1fb33c9e1ba534aa4a27bb8cf2b8f6a3ea8"
+  },
+  {
+    "path": "vendor/text/fonts/NotoSans-Regular.ttf",
+    "bytes": 569208,
+    "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+  },
+  {
+    "path": "vendor/text/fonts/NotoSansArabic-Regular.ttf",
+    "bytes": 240456,
+    "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"
+  },
+  {
+    "path": "vendor/text/fonts/NotoSansCJKsc-Regular.otf",
+    "bytes": 16437364,
+    "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"
+  },
+  {
+    "path": "vendor/text/fonts/NotoSansSymbols2-Regular.ttf",
+    "bytes": 656852,
+    "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+  },
+  {
+    "path": "vendor/text/manifest.json",
+    "bytes": 12986,
+    "sha256": "ef292b6a656bcf5408a95632dc3a7c67cbd94dfdc61c92f697a87951642c3277"
+  },
+  {
+    "path": "vendor/text/notices/Brotli-LICENSE",
+    "bytes": 1084,
+    "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+  },
+  {
+    "path": "vendor/text/notices/CanvasKit-LICENSE",
+    "bytes": 1635,
+    "sha256": "d27678cba0d529e77201e2d2a053628143e986aad8f1e77f7039ad4366c8f978"
+  },
+  {
+    "path": "vendor/text/notices/custom-emscripten-LICENSE.txt",
+    "bytes": 5093,
+    "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+  },
+  {
+    "path": "vendor/text/notices/custom-freetype-LICENSE.txt",
+    "bytes": 6743,
+    "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+  },
+  {
+    "path": "vendor/text/notices/custom-harfbuzz-LICENSE.txt",
+    "bytes": 1971,
+    "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+  },
+  {
+    "path": "vendor/text/notices/custom-icu-LICENSE.txt",
+    "bytes": 25185,
+    "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+  },
+  {
+    "path": "vendor/text/notices/custom-libpng-LICENSE.txt",
+    "bytes": 5345,
+    "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+  },
+  {
+    "path": "vendor/text/notices/custom-skia-LICENSE.txt",
+    "bytes": 1507,
+    "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd"
+  },
+  {
+    "path": "vendor/text/notices/custom-wuffs-LICENSE.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "path": "vendor/text/notices/custom-zlib-LICENSE.txt",
+    "bytes": 910,
+    "sha256": "e1cfcc55c325b3f78cf55df9664abaa066e2271dffe8213347d9fccdfbac8f2c"
+  },
+  {
+    "path": "vendor/text/notices/Emscripten-LICENSE",
+    "bytes": 5093,
+    "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+  },
+  {
+    "path": "vendor/text/notices/Expat-COPYING",
+    "bytes": 1144,
+    "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534"
+  },
+  {
+    "path": "vendor/text/notices/FreeType-FTL.TXT",
+    "bytes": 6743,
+    "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+  },
+  {
+    "path": "vendor/text/notices/HarfBuzz-COPYING",
+    "bytes": 1971,
+    "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+  },
+  {
+    "path": "vendor/text/notices/icu-LICENSE",
+    "bytes": 25185,
+    "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+  },
+  {
+    "path": "vendor/text/notices/libjpeg-turbo-LICENSE",
+    "bytes": 5213,
+    "sha256": "60c756742db3ad1913304e8b13f0e86e22e51adb50cc0b3333c163f7e45ceec1"
+  },
+  {
+    "path": "vendor/text/notices/libpng-LICENSE",
+    "bytes": 5345,
+    "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+  },
+  {
+    "path": "vendor/text/notices/libwebp-COPYING",
+    "bytes": 1496,
+    "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+  },
+  {
+    "path": "vendor/text/notices/Noto-CJK-OFL.txt",
+    "bytes": 4301,
+    "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+  },
+  {
+    "path": "vendor/text/notices/Noto-OFL.txt",
+    "bytes": 4377,
+    "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+  },
+  {
+    "path": "vendor/text/notices/Unicode-LICENSE.txt",
+    "bytes": 1995,
+    "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+  },
+  {
+    "path": "vendor/text/notices/Wuffs-LICENSE",
+    "bytes": 10174,
+    "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+  },
+  {
+    "path": "vendor/text/notices/zlib-LICENSE",
+    "bytes": 1002,
+    "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+  }
+]

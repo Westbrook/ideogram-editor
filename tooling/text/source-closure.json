@@ -1,0 +1,183 @@
+{
+  "skiaCommit": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+  "archive": {
+    "name": "skia.tar.gz",
+    "url": "https://codeload.github.com/google/skia/tar.gz/5f262bd2cbb40f78659ec32547163fe83117a38d",
+    "at": "2026-09-26T20:37:03.434085+00:00",
+    "status": 200,
+    "finalUrl": "https://codeload.github.com/google/skia/tar.gz/5f262bd2cbb40f78659ec32547163fe83117a38d",
+    "bytes": 66545045,
+    "sha256": "85edb7e4f428e67c00f6fd11e77f29759b72bcdd5a32e85999fcc8bd79e8cbb0"
+  },
+  "deps": [
+    {
+      "name": "emsdk",
+      "revision": "a896e3d066448b3530dbcaa48869fafefd738f57",
+      "tree": "15ea4ff63d346e689401e2c87a1695d570a6b90a"
+    },
+    {
+      "name": "freetype",
+      "revision": "5d4e649f740c675426fbe4cdaffc53ee2a4cb954",
+      "tree": "8d4dd2931a80d22a09eb3d9c6621982016ee157f"
+    },
+    {
+      "name": "harfbuzz",
+      "revision": "ca3cd48fa3e06fa81d7c8a3f716cca44ed2de26a",
+      "tree": "338afc4427d8ba817fcf4d6a2f0c975a3e852dd2"
+    },
+    {
+      "name": "icu",
+      "revision": "364118a1d9da24bb5b770ac3d762ac144d6da5a4",
+      "tree": "268d3140262b461fdec9c1fd71f570234f9a740b"
+    },
+    {
+      "name": "libpng",
+      "revision": "ed217e3e601d8e462f7fd1e04bed43ac42212429",
+      "tree": "fb8cc13885452cf73dc8664d92334135e44b0f60"
+    },
+    {
+      "name": "wuffs",
+      "revision": "e3f919ccfe3ef542cfc983a82146070258fb57f8",
+      "tree": "4ed0549dc65a512c370b80db658a1093facf732e"
+    },
+    {
+      "name": "zlib",
+      "revision": "646b7f569718921d7d4b5b8e22572ff6c76f2596",
+      "tree": "15d5d748ce2060ea03b9e9b60d9d0ee512274520"
+    }
+  ],
+  "licenses": [
+    {
+      "source": "LICENSE",
+      "path": "vendor/text/notices/custom-skia-LICENSE.txt",
+      "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd",
+      "bytes": 1507
+    },
+    {
+      "source": "third_party/externals/freetype/docs/FTL.TXT",
+      "path": "vendor/text/notices/custom-freetype-LICENSE.txt",
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1",
+      "bytes": 6743
+    },
+    {
+      "source": "third_party/externals/harfbuzz/COPYING",
+      "path": "vendor/text/notices/custom-harfbuzz-LICENSE.txt",
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+      "bytes": 1971
+    },
+    {
+      "source": "third_party/externals/icu/LICENSE",
+      "path": "vendor/text/notices/custom-icu-LICENSE.txt",
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee",
+      "bytes": 25185
+    },
+    {
+      "source": "third_party/externals/libpng/LICENSE",
+      "path": "vendor/text/notices/custom-libpng-LICENSE.txt",
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e",
+      "bytes": 5345
+    },
+    {
+      "source": "third_party/externals/wuffs/LICENSE",
+      "path": "vendor/text/notices/custom-wuffs-LICENSE.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    {
+      "source": "third_party/externals/zlib/LICENSE",
+      "path": "vendor/text/notices/custom-zlib-LICENSE.txt",
+      "sha256": "e1cfcc55c325b3f78cf55df9664abaa066e2271dffe8213347d9fccdfbac8f2c",
+      "bytes": 910
+    },
+    {
+      "source": "third_party/externals/emsdk/upstream/emscripten/LICENSE",
+      "path": "vendor/text/notices/custom-emscripten-LICENSE.txt",
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86",
+      "bytes": 5093
+    }
+  ],
+  "tools": {
+    "files": [
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/bin/gn",
+        "bytes": 1928064,
+        "sha256": "76c4542d5ad22fc944a5d50f4db5f2ad2ff3792ac48afb08d4415f0da41ce570"
+      },
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/ninja/ninja",
+        "bytes": 328194,
+        "sha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f"
+      },
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin/clang",
+        "bytes": 95679952,
+        "sha256": "881f5fec39dbb17f0638e9d222d3b530970e2ade9aa3ac335bef3abd4a3a4f52"
+      },
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin/wasm-ld",
+        "bytes": 54891216,
+        "sha256": "a7a37e8cf5a40eccdadef2b87a96a7c67eeb76d0528825c346af7ca39fbc782e"
+      },
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/emscripten/emcc",
+        "bytes": 1065,
+        "sha256": "b0c9551f9155fa9c028efa24591acdfd30f02f32fb247cf9266f5f0f2ede7589"
+      }
+    ],
+    "versions": [
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/bin/gn",
+        "exitCode": 0,
+        "stdout": "2175 (b2afae122eeb)\n",
+        "stderr": ""
+      },
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/ninja/ninja",
+        "exitCode": 0,
+        "stdout": "1.12.1\n",
+        "stderr": ""
+      },
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin/clang",
+        "exitCode": 0,
+        "stdout": "clang version 17.0.0 (https://github.com/llvm/llvm-project a8cbd27d1f238e104a5d5ca345d93bc1f4d4ab1f)\nTarget: x86_64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/bin\n",
+        "stderr": ""
+      },
+      {
+        "path": "artifacts/p1c1/custom-source/skia-5f262bd2cbb40f78659ec32547163fe83117a38d/third_party/externals/emsdk/upstream/emscripten/emcc",
+        "exitCode": 0,
+        "stdout": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.44 (bec42dac7873903d09d713963e34020c22a8bd2d)\nCopyright (C) 2014 the Emscripten authors (see AUTHORS.txt)\nThis is free and open source software under the MIT license.\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "icuData": {
+    "path": "third_party/externals/icu/flutter/icudtl.dat",
+    "bytes": 778864,
+    "sha256": "c12537022ef818991a7bfed41a76d8d6ae962ffbc0e6511ac762a5d0845e7f7c"
+  },
+  "recipeArguments": [
+    "cpu",
+    "no_skottie",
+    "no_codecs",
+    "no_embedded_font",
+    "no_woff2",
+    "no_canvas",
+    "no_skp_serialization",
+    "no_effects_deserialization"
+  ],
+  "buildTools": [
+    {
+      "name": "gn.zip",
+      "url": "https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-arm64/+/git_revision:b2afae122eeb6ce09c52d63f67dc53fc517dbdc8",
+      "bytes": 828016,
+      "sha256": "cbb260f2cf999f7d74da96b3828a061299c6337354dd6db642e778828576025c"
+    },
+    {
+      "name": "ninja.zip",
+      "url": "https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/ninja/mac-arm64/+/version:2@1.12.1.chromium.4",
+      "bytes": 145520,
+      "sha256": "c5e9b4ffab3b2edefbc41849fc81f116c8d047b258906becc061be9ecaf04afd"
+    }
+  ]
+}
