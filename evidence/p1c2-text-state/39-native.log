@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: native chromium durable text/history/copy/restart exact identities
+not ok 1 - native chromium durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 14558.59
+  type: 'test'
+  location: '/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:22:77'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: Content descriptor mismatch
+        at I (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:4594)
+        at xe.rows (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:22923)
+        at async xe.batch (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:24511)
+        at async xe.page (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:30854)
+        at async xe.recover (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:31716)
+        at async eval (eval at evaluate (:311:30), <anonymous>:1:278)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    I (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:4594)
+    xe.rows (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:22923)
+    async xe.batch (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:24511)
+    async xe.page (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:30854)
+    async xe.recover (http://127.0.0.1:59667/assets/index-DTRw06KP.js:379:31716)
+    async eval (eval at evaluate (:311:30), <anonymous>:1:278)
+    async <anonymous>:337:30
+    TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:68:367)
+  ...
+# Subtest: native webkit durable text/history/copy/restart exact identities
+not ok 2 - native webkit durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 15363.093833
+  type: 'test'
+  location: '/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:22:77'
+  failureType: 'testCodeFailure'
+  error: 'page.evaluate: Error: Content descriptor mismatch'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:68:367)
+  ...
+# Subtest: native firefox durable text/history/copy/restart exact identities
+not ok 3 - native firefox durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 17828.124833
+  type: 'test'
+  location: '/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:22:77'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Content descriptor mismatch
+    I@http://127.0.0.1:62655/assets/index-DTRw06KP.js:379:4594
+    rows@http://127.0.0.1:62655/assets/index-DTRw06KP.js:379:22924
+    async*batch@http://127.0.0.1:62655/assets/index-DTRw06KP.js:379:24522
+    page@http://127.0.0.1:62655/assets/index-DTRw06KP.js:379:30865
+    recover@http://127.0.0.1:62655/assets/index-DTRw06KP.js:379:31727
+    async*@debugger eval code line 311 > eval:1:291
+    async*evaluate@debugger eval code:313:16
+    @debugger eval code:1:44
+    @debugger eval code:1:62
+    
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:68:367)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48198.37675

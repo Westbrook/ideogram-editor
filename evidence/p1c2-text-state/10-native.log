@@ -1,0 +1,26 @@
+✖ native chromium durable text/history/copy/restart exact identities (2407.813125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2607.837541
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:13:77
+✖ native chromium durable text/history/copy/restart exact identities (2407.813125ms)
+  page.evaluate: AssertionError: {"protocolVersion":1,"requestId":"562ee172-e9f0-4dc4-af42-2354091da1af","error":{"code":"STORAGE_FULL","retry":"same-command","message":"There is insufficient local storage."}}
+  
+  507 !== 200
+  
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:20:125
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async BindingCall.call (/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright-core/lib/coreBundle.js:62048:27)
+      at async _Page._onBinding (/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright-core/lib/coreBundle.js:61460:11)
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:28:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:33:26) {
+    log: []
+  }

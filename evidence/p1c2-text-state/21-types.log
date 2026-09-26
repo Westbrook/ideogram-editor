@@ -1,0 +1,7 @@
+npm notice run ideogram-editor@0.1.0 typecheck
+npm notice run npm run typecheck:consumer && npm run typecheck:app && tsc --noEmit -p tsconfig.server.json
+npm notice run ideogram-editor@0.1.0 typecheck:consumer
+npm notice run tsc --noEmit
+npm notice run ideogram-editor@0.1.0 typecheck:app
+npm notice run tsc --noEmit -p tsconfig.app.json
+server/portable/closure.ts(23,234): error TS18048: 'row' is possibly 'undefined'.

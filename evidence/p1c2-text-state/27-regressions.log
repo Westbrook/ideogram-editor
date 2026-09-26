@@ -1,0 +1,959 @@
+✔ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (602.514208ms)
+✔ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (554.030917ms)
+✔ stale and expired reviews reject durably; hostile declarations and raw images never become usable (627.773375ms)
+✔ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (701.126292ms)
+✔ SIGKILL upload-before-write preserves only the journaled offset and missing suffix (757.602125ms)
+✔ SIGKILL upload-before-flush preserves only the journaled offset and missing suffix (774.206416ms)
+✔ SIGKILL upload-after-flush preserves only the journaled offset and missing suffix (794.711042ms)
+✔ SIGKILL upload-before-offset-commit preserves only the journaled offset and missing suffix (760.811542ms)
+✔ SIGKILL upload-after-offset-commit preserves only the journaled offset and missing suffix (834.367958ms)
+✔ SIGKILL preparation-before-commit resolves the original finalize identity once (826.232875ms)
+✔ SIGKILL preparation-after-commit resolves the original finalize identity once (778.993084ms)
+✔ SIGKILL finalize-before-flush resolves the original finalize identity once (804.631375ms)
+✔ SIGKILL finalize-after-flush resolves the original finalize identity once (808.950792ms)
+✔ SIGKILL finalize-before-rename resolves the original finalize identity once (819.152583ms)
+✔ SIGKILL finalize-after-rename resolves the original finalize identity once (778.778792ms)
+✔ SIGKILL finalize-after-directory-sync resolves the original finalize identity once (785.44975ms)
+✔ SIGKILL finalize-before-register resolves the original finalize identity once (800.69725ms)
+✔ SIGKILL asset-before-commit resolves the original finalize identity once (851.434541ms)
+✔ SIGKILL asset-after-commit resolves the original finalize identity once (863.023083ms)
+✔ SIGKILL transfer-before-commit keeps original owner or transfers exactly once (858.015542ms)
+✔ SIGKILL transfer-after-commit keeps original owner or transfers exactly once (841.02875ms)
+✔ competing HTTP command identities stay exclusive through pending responses and SIGKILL restart (2743.996ms)
+✖ actual7ef07dd migration preserves all retained tables and verified rollback database (2322.731917ms)
+✔ asset event replay and snapshots keep original bytes and dependencies across restart (1827.361834ms)
+✔ staging symlinks are rejected without writing the target, and reservation pressure retains data (271.292583ms)
+✔ journal capacity failure cannot invent a pending command or replace its original rejection (946.826667ms)
+✔ recovery inventory paginates minimal metadata and content pins detect later file changes (4058.5765ms)
+✔ durable preparation waits for shared reader slots and retains original command ownership (368.859417ms)
+✔ malformed owned manifest is a durable rejection and does not strand or accept the pending original (392.903625ms)
+✔ history rejects missing authoritative dependency after proof, preserves old pixels and receipt (1162.199125ms)
+✔ history rejects changed authoritative dependency after proof, preserves old pixels and receipt (1057.288666ms)
+✔ history rejects same-byte-replacement authoritative dependency after proof, preserves old pixels and receipt (1132.772083ms)
+✔ missing hidden/deleted and historical pixels are explicit recovery, never a re-decode on restart (1271.115458ms)
+✔ actual SQLite FULL at acceptance never publishes image revision and same durable identity retries after restart (1599.391708ms)
+✔ frozen export and a separate UI intent retain independent revisions (1119.107333ms)
+✔ UI checkpoint SQLite FULL leaves prior preferences and receipt absent, exact retry succeeds (1444.453625ms)
+✔ real import, transform, opacity, undo/redo, retained branch/checkpoint, restart and exact export (1644.606208ms)
+✔ concurrent revisions, deleted identity, locks, masks, crop and canvas bounds are explicit (1758.719917ms)
+✔ export freezes the selected image revision while a preceding queued edit commits, and blank export is explicit PNG (1242.551ms)
+✔ SIGKILL history-preparation-before-commit retains image command identity, complete transaction and exact restart pixels (1302.930958ms)
+✔ SIGKILL history-preparation-after-commit retains image command identity, complete transaction and exact restart pixels (1247.12875ms)
+✔ SIGKILL history-after-proofs retains image command identity, complete transaction and exact restart pixels (1405.975042ms)
+✔ SIGKILL history-before-register retains image command identity, complete transaction and exact restart pixels (1379.100333ms)
+✔ SIGKILL history-before-event retains image command identity, complete transaction and exact restart pixels (1587.444208ms)
+✔ SIGKILL history-before-commit retains image command identity, complete transaction and exact restart pixels (2812.569917ms)
+✔ SIGKILL history-after-commit retains image command identity, complete transaction and exact restart pixels (1371.2165ms)
+✔ SIGKILL approved resampling image-edit-preparation-after-commit retains the exact command and expires uncommitted review authority (1686.994541ms)
+✔ SIGKILL approved resampling history-after-proofs retains the exact command and expires uncommitted review authority (2067.533625ms)
+✔ SIGKILL approved resampling image-edit-before-commit retains the exact command and expires uncommitted review authority (1872.593833ms)
+✔ SIGKILL approved resampling image-edit-after-commit retains the exact command and expires uncommitted review authority (1799.054291ms)
+✔ independent semantic patches and complete retained graph match all branches/checkpoints, pure restart/undo/redo cannot launch raster or network effects (2420.709459ms)
+ℹ {"requiredRootCount":24,"retainedAssetCount":5,"retainedClosureCount":24,"originalHash":"sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9","branchHead":"702d7df0-bd65-4c43-94b5-503aed4290ee","zeroEffects":{"submit":0,"upload":0,"poll":0,"cancel":0,"fetch":0,"socket":0,"dns":0,"datagram":0}}
+✔ previewed intrinsic image resampling creates new pixels only after explicit approval; exact versions survive undo/redo and stale review (1343.005791ms)
+✔ flatten-copy review freezes selected stacking and actual full preview; hide is explicit, originals and branch remain (2461.4485ms)
+✔ document-aligned masks remain attached through resampling and refuse implicit canvas remapping (1461.972875ms)
+✔ review expires on session renewal, locked source refuses hiding and wrong kind cannot apply a prepared image (1362.077042ms)
+✔ schema6 preserves actual approved schema5 pending preparation and verified rollback (1903.902ms)
+ℹ {"schema6Migration":{"backup":"schema5-backup-1e98b6a1-f985-43c1-b812-847c5767d3db.sqlite","backupHash":"sha256:2cd09c3614e704b3b0c79fb9cc18374de92e05d60d50b456529a9fa24af6e280","capability":"image-history-ui-v1","from":5,"manifest":{"asset_dependencies":{"count":"5","hash":"09887a56c2fe856f710a806610a4f19e25aed48a1924b2f4402cddf62640291e"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"1fcf3c2c83a9311d330f37a7ae5bc804315b886ee902854b4fccee43c1f164f6"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"26adb3b9229758bada82dd9c81d1046f05dee7c31cf8882cad3a23c3d2284c2e"},"commands":{"count":"4","hash":"74f58fcf3f8182e6d68bc7123598560461c4ff3bb2e6d3024173351cb33d51a8"},"documents":{"count":"1","hash":"0e049c943abfb42c6d5da9ca45b9d0826e6c5430f113d653d2137e1767295dbe"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"3003b861ac16989f35387982f036b131c43c4d43a84c005d3a8fe498fdf38ab5"},"history":{"count":"1","hash":"b9b2da0315537d6fe06897d9311138b90678b11de13545757cf73d5b8828dae6"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"e93ba805454b6c5b472a394f683f0c39dfdb966dbe1cf3f9829a701fac52a6b0"},"raster_preparations":{"count":"1","hash":"8d641c891e51307f9167c5280ddb2f89ae4e49e3bfea65f1c0c9255ec4b520ef"},"raster_reviews":{"count":"1","hash":"5694b253e89f5748cd3d133bac3709e719ff9edec8960df082ec6a8d33c1bd13"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"83283120d7407fa423f35cca64d2ce9b9ab9d78e8e0796bb1bcb4319a36f8c02"},"schema_migrations":{"count":"4","hash":"622aad40812e5c22d05105eb20ab3c635c0087efe15ee7e779a1c718dd048660"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f6d2f1c9e0cd0a1a37a8fe6de297ea5bfd57c6c1d16db65c0579116c7af5f336","staged_assets":{"count":"3","hash":"75abefba7d5a529e7762a6f8f2b71dc7afbaf83ca9bd9d31522114d47e8092ba"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema5-backup-1e98b6a1-f985-43c1-b812-847c5767d3db.sqlite.manifest.json","rollback":{"compatibleExecutable":"92e5247ed3279f25292f8e312661bf3b12deffe7"},"strategy":"semantic-version-verified-backup-transactional-activation","to":6},"pending":{"command":{"schemaVersion":1,"commandId":"ed0e9129-9848-4166-b8ed-c103907552a5","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"17d88601-e44f-48c9-99a1-73f832412750","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"PrepareRaster","assetId":"cbd86c53-ad23-4362-9e21-bd7f48e2becc"}},"hash":"sha256:48aac13e5bac75657e2cf206d55ce5d80ae73d41cbd8b449a85fdfcc9d15c743","operationId":"dc2ce7a4-8634-4e3f-81c0-d8a2e536cbef","phase":"preparing"},"oldRefusal":9,"rollback":{"epoch":"2","state":{"record":{"hash":"sha256:48aac13e5bac75657e2cf206d55ce5d80ae73d41cbd8b449a85fdfcc9d15c743","command":{"body":{"assetId":"cbd86c53-ad23-4362-9e21-bd7f48e2becc","type":"PrepareRaster"},"causationId":null,"clientId":"client_1","commandId":"ed0e9129-9848-4166-b8ed-c103907552a5","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"17d88601-e44f-48c9-99a1-73f832412750"},"receipt":{"commandId":"ed0e9129-9848-4166-b8ed-c103907552a5","documentRevision":null,"fromSeq":"5","status":"accepted","toSeq":"5","transactionId":"17d88601-e44f-48c9-99a1-73f832412750"}},"pending":null}}}
+✔ schema6 preserves actual approved schema5 pending approval and verified rollback (1316.906542ms)
+ℹ {"schema6Migration":{"backup":"schema5-backup-fdc7d3d8-e853-40b7-83d4-8f0c18a3582e.sqlite","backupHash":"sha256:41579033b1bf2b2370b048777b70e20bac0bb50c17d1d2767d1fd5bff15d196f","capability":"image-history-ui-v1","from":5,"manifest":{"asset_dependencies":{"count":"5","hash":"a898c34b0bac54c3fa9591de663f15085cbfb6d9a6291654073e6d0e4fb09b84"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"2b66125ed347aeba728c763a57116012bf7ff237bee394c1e5a2fdbb43ea5f6f"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"9202d6833e91f58aabc8dedca34d7a563ec82f05ee43d1f2b2e0c09edcb171a1"},"commands":{"count":"4","hash":"0a81c0321f8d28354bb1f03bfec9b314074c008ec37ff83f5e25e4970b3281e4"},"documents":{"count":"1","hash":"7c29cfb27eb7217c534838fa907feede8c4d4b74d984aee8037a070e84388b7a"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"f30795f1c331a1cf887ba6a3d7b65cceaa79611b9619633ce0cd8b359a127d2a"},"history":{"count":"1","hash":"e39900d1da8ba7594f145fd8b45f2624add7e25a3aede5778fef0f6dfcc3c871"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"78c915ac96ceda50fe085ff0fb9d9358b0486b6c31381a16b30c27b364921727"},"raster_preparations":{"count":"1","hash":"894b02dea9b54c11a69ee97563b43ce40a3c5d1a038d70ef918d4c325193baa3"},"raster_reviews":{"count":"1","hash":"769618b0275471aa1d430d6fe4d025fa918937efff600a716a71a5ad7a4720b5"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"f1c86c77ed0b6133fd8fa8e2e4b8fa46b8d5d4385a20078193204a8147153569"},"schema_migrations":{"count":"4","hash":"622aad40812e5c22d05105eb20ab3c635c0087efe15ee7e779a1c718dd048660"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f6d2f1c9e0cd0a1a37a8fe6de297ea5bfd57c6c1d16db65c0579116c7af5f336","staged_assets":{"count":"3","hash":"27659612eca06c73f324d5ed7da5244805d36783d18f7517ce40585cc393f9f6"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema5-backup-fdc7d3d8-e853-40b7-83d4-8f0c18a3582e.sqlite.manifest.json","rollback":{"compatibleExecutable":"92e5247ed3279f25292f8e312661bf3b12deffe7"},"strategy":"semantic-version-verified-backup-transactional-activation","to":6},"pending":{"command":{"schemaVersion":1,"commandId":"118819a5-9708-4420-aed5-7e58bf677a16","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"c6cf01e0-fdb7-4fa4-8c70-aa29e41c104d","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"ApproveRaster","assetId":"bacca2fe-eb39-4560-b54b-6014ec70e23f","reviewId":"d7ee4041-145e-4709-9b84-9bcf858549a4","reviewHash":"sha256:0e7966a0d8e0365e44ef96bf31ea87b4a3eba91919dfa4d5f1723b118c081d68"}},"hash":"sha256:7218dee562b1a726d3b8343a30f058c95830d81065a2361483de8cbfb5edb2dd","operationId":"ee333006-209f-489c-97f7-e90d58774c97","phase":"preparing"},"oldRefusal":9,"rollback":{"epoch":"2","state":{"record":{"hash":"sha256:7218dee562b1a726d3b8343a30f058c95830d81065a2361483de8cbfb5edb2dd","command":{"body":{"assetId":"bacca2fe-eb39-4560-b54b-6014ec70e23f","reviewHash":"sha256:0e7966a0d8e0365e44ef96bf31ea87b4a3eba91919dfa4d5f1723b118c081d68","reviewId":"d7ee4041-145e-4709-9b84-9bcf858549a4","type":"ApproveRaster"},"causationId":null,"clientId":"client_1","commandId":"118819a5-9708-4420-aed5-7e58bf677a16","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"c6cf01e0-fdb7-4fa4-8c70-aa29e41c104d"},"receipt":{"code":"INVALID_INPUT","commandId":"118819a5-9708-4420-aed5-7e58bf677a16","currentRevision":null,"details":{"byteLength":"83","hash":"sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9","mediaType":"application/json"},"status":"rejected"}},"pending":null}}}
+✔ unknown future storage is inspected without mutation and returns explicit recovery guidance (671.599ms)
+✖ schema6 capacity failure retains schema5 and every request, then retries safely (1075.603458ms)
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (1009.056916ms)
+✔ activation rechecks the verified database backup before publishing schema6 (990.721375ms)
+✔ activation rechecks the verified manifest backup before publishing schema6 (1001.02775ms)
+✔ SIGKILL history-schema-before-backup preserves pending approval and restarts exactly (1058.687208ms)
+✔ SIGKILL history-schema-backup-written preserves pending approval and restarts exactly (1001.199875ms)
+✔ SIGKILL history-schema-backup-verified preserves pending approval and restarts exactly (1042.674834ms)
+✔ SIGKILL history-schema-before-activation preserves pending approval and restarts exactly (1175.110583ms)
+✔ SIGKILL history-schema-after-activation preserves pending approval and restarts exactly (1202.001667ms)
+✔ UI and full Unicode drafts persist independently, stale generations survive, applying fences composition (1274.850791ms)
+✔ UI transcript compaction retains current draft and all domain events, selection reconciliation is visible (6382.903ms)
+✔ public preview rejects duplicate-json-key and preserves source and namespace (738.210542ms)
+✔ public preview rejects noncanonical-json and preserves source and namespace (741.355834ms)
+✔ public preview rejects missing-final-LF and preserves source and namespace (681.204292ms)
+✔ public preview rejects unknown-entity-field and preserves source and namespace (685.625166ms)
+✔ public preview rejects wrong-projection and preserves source and namespace (753.7785ms)
+✔ public preview rejects missing-required-history and preserves source and namespace (717.188208ms)
+✔ public preview rejects duplicate-entity and preserves source and namespace (796.014916ms)
+✔ public preview rejects duplicate-object and preserves source and namespace (810.878542ms)
+✔ public preview rejects event-sequence-duplicate and preserves source and namespace (922.1675ms)
+✔ public preview rejects source-event-mutation and preserves source and namespace (813.688125ms)
+✔ public preview rejects event-beyond-highwater and preserves source and namespace (801.275458ms)
+✔ public preview rejects root-hash-mismatch and preserves source and namespace (758.806083ms)
+✔ public preview rejects unknown-root-field and preserves source and namespace (737.153667ms)
+✔ public preview rejects descriptor-hash-mismatch and preserves source and namespace (727.660666ms)
+✔ public preview rejects oversized-record and preserves source and namespace (732.122208ms)
+✔ public preview rejects index-cycle and preserves source and namespace (693.260917ms)
+✔ unknown format remains inspection-only with original source retained (677.623667ms)
+✔ unknown format-extra remains inspection-only with original source retained (698.687708ms)
+✔ unknown document remains inspection-only with original source retained (726.331666ms)
+✔ unknown payload remains inspection-only with original source retained (725.594583ms)
+✔ unknown record remains inspection-only with original source retained (708.015833ms)
+✔ unknown entity remains inspection-only with original source retained (709.490791ms)
+✔ changed history patch cannot publish a fresh editable namespace (1194.730417ms)
+✔ shared acyclic index pages are accepted without duplicating their records (715.418417ms)
+browser fixture ready 80
+browser prior cursor { generation: 'prior', cursor: '0', epoch: null }
+hydration fault missing-descriptor { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:b23170b3e0d56eda6c1ebbbf929236befc33f75698b8f37d5a79ac93d98ed547',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault wrong-context { error: 'Error: Recovery context changed' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:b23170b3e0d56eda6c1ebbbf929236befc33f75698b8f37d5a79ac93d98ed547',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault missing-content { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:b23170b3e0d56eda6c1ebbbf929236befc33f75698b8f37d5a79ac93d98ed547',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault truncated-content { error: 'Error: Content integrity check failed' }
+✔ Chromium restart recovery hydrates a multi-chunk imported namespace before the cursor and survives missing or corrupt pages (7753.111791ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","cursor":"80","assets":3,"history":2,"checkpoints":70,"failedHydrationRetainsPrior":true,"externalRequests":[],"qualification":false}
+SSE reached {
+  published: {
+    generation: '8a7f7f6b-db0a-40a5-801b-0c544c95dbbb',
+    cursor: '11',
+    epoch: '3'
+  },
+  failure: undefined
+}
+✔ Chromium SSE import uses its pinned context, publishes complete rows once and ignores duplicate delivery (2256.640125ms)
+✔ Chromium snapshot plus tail includes all imported domain projections after server restart (5991.065042ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","snapshotRecovery":true,"namespaceRowsAgree":true,"externalRequests":[],"qualification":false}
+✔ Chromium validates every retained namespace link despite recomputed descriptor and content, then preserves the cross-tab winner (4159.922958ms)
+ℹ {"finding":"I-PF02","kind":"structural linkage, not hash/authenticity failure","browser":"153.0.8010.12","results":[{"fault":"missing-nonhead-history","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-history-parent","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-checkpoint-head","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"foreign-history-parent","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"foreign-checkpoint-head","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"missing-retained-composite","result":{"error":"Error: Missing imported asset link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-asset-source","result":{"error":"Error: Missing imported asset link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"history-cycle","result":{"error":"Error: Invalid imported history graph"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"asset-cycle","result":{"error":"Error: Invalid imported asset graph"},"rewroteDescriptorAndContent":true,"priorPreserved":true}],"healthyRetainedHistory":4,"healthyCheckpoints":3,"redo":"p_cfce8a01f1e08546c86b8770ad121a2146956ed890a423351211424538fef8b8","crossTabWinnerPreserved":true,"qualification":false}
+✔ actual d4 accepted format1 namespace new copy is proven without rewriting original history (4731.217334ms)
+ℹ {"finding":"I-PF01","priorExecutable":"d4ed761","legacy":"proven","originalArchive":"sha256:ac6fa90d1f13580d6acb9e7378f479df164d11430ec0f0ef67be92e6fe6006fd","acceptedNamespace":"83a55159-03bd-4d43-8cbe-f54eedacd980","originalTransaction":{"commandId":"b21add3e-d4a9-4a4b-9143-0f9cc59c405c","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"c4be63fc-40b7-4727-af43-e0b8faac5772"},"preservedOriginal":true}
+✔ actual d4 accepted format1 namespace new copy is truncated without rewriting original history (2302.077541ms)
+ℹ {"finding":"I-PF01","priorExecutable":"d4ed761","legacy":"truncated","originalArchive":"sha256:08727fe07fbb62522cbc587356d35c5bc64d34630338b76c8150b5cbbe795c9e","acceptedNamespace":"b5572435-4f6b-42c6-a862-24bfe430c27f","originalTransaction":{"commandId":"bbeb309a-ff02-4b23-b2a1-cdca139682be","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"0f0aff82-4df0-4280-9ecb-862fd9a18f7d"},"preservedOriginal":true}
+✔ actual d4 accepted format1 namespace new copy is foreign without rewriting original history (2814.798208ms)
+ℹ {"finding":"I-PF01","priorExecutable":"d4ed761","legacy":"foreign","originalArchive":"sha256:0a28f56b4c75358e5ac3fa4410b8db2c0db12ac8df598a2abe75cb831a8a55cd","acceptedNamespace":"26eef97c-848c-4280-b1f2-0c805d6b1165","originalTransaction":{"commandId":"f85a5fec-b3c6-48ee-a8da-736f57cb586c","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"c953fee5-b336-48a8-b396-9acd8b2b3c6d"},"preservedOriginal":true}
+✔ actual d4 pending frozen capture upgrades from immutable receipts (1575.421417ms)
+ℹ {"finding":"I-PF01","proven":true,"originalCommand":"e0cced05-8146-4e4c-be68-f12c4fe9f701","operation":"c0d39e95-2ed6-4218-867e-c8aaba56eadc","frozen":"{\"capture\":\"c0d39e95-2ed6-4218-867e-c8aaba56eadc\",\"captureHash\":\"sha256:ab645e9764525d9021f8cbdbd8a16426da604a2abe2e94ed98654d348854d608\",\"document\":{\"branchId\":\"5ed21900-10c6-4ef6-93ef-b8b0493bdda3\",\"checkpoint\":null,\"color\":\"sRGB\",\"compositionVersion\":null,\"depth\":8,\"height\":2,\"historyHead\":\"56ceebda-c70e-4ed9-8158-70ba10bc09f1\",\"id\":\"document_1\",\"image\":{\"compositeAssetId\":\"18a94799-a23a-4cff-acd0-26ae07076097\",\"semanticDigest\":\"sha256:94f46a4d99e2769c8c32352a8831b5d34c17333eacacd78e5b72dd0bb729ed66\",\"state\":{\"byteLength\":\"271\",\"hash\":\"sha256:4ead9f1c4bb91289036b5a64decb3809a54bbcd860934bda2ae28ec4d3460035\",\"mediaType\":\"application/json\"}},\"orderedLayerIds\":[\"picture\"],\"redo\":null,\"revision\":\"2\",\"width\":3},\"highWater\":\"8\",\"uiDigest\":\"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}","receipt":{"commandId":"e0cced05-8146-4e4c-be68-f12c4fe9f701","documentRevision":"2","fromSeq":"9","status":"accepted","toSeq":"9","transactionId":"db56eb05-aea0-4d3a-a212-939dd124efe7"},"captureUnchanged":true}
+✔ actual d4 pending frozen capture retains exact pending identity when evidence is unavailable (2659.858833ms)
+ℹ {"finding":"I-PF01","proven":false,"originalCommand":"3cf2727d-4986-47c2-9214-52929303ad5e","operation":"78021290-81a4-4d97-b5aa-1e1a5654f003","frozen":"{\"capture\":\"78021290-81a4-4d97-b5aa-1e1a5654f003\",\"captureHash\":\"sha256:92d6f78e9f853a20e0f6668e8071e55785012e4cd64a877663a7b3ebb6cf621d\",\"document\":{\"branchId\":\"p_a387ce85ea30a53cd766963b9713e4270674341926719e6dfdf74df9e14fbcf8\",\"checkpoint\":null,\"color\":\"sRGB\",\"compositionVersion\":null,\"depth\":8,\"height\":2,\"historyHead\":\"p_ad35b18852b87877d47ffff9119389e35f2765b1e823b0584cd99ca119ce8317\",\"id\":\"p_6213c232cdce43261eed5a23c71a0de39cd1f0888a9129aae0edeaca2a5f9d37\",\"image\":{\"compositeAssetId\":\"p_0a2e1ed037ca0209594e04ed84c04c4a29e95e5ef1c515e4954bb989c0f9eb2d\",\"semanticDigest\":\"sha256:e1fc7ded057324bdb505cbe8b71a6febc61478ca5451d0ff30adf9b06212c40e\",\"state\":{\"byteLength\":\"360\",\"hash\":\"sha256:904d830e3c4206bbad390fd38b484c83c8faec09bf6d77f1114f1922f5615bbc\",\"mediaType\":\"application/json\"}},\"orderedLayerIds\":[\"p_4e50d7becb69791149ac4eb1e5fb6d98d7b9b9b6174e7a4bcd698f8d4a350a4f\"],\"redo\":null,\"revision\":\"2\",\"width\":3},\"highWater\":\"2\",\"uiDigest\":\"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}","receipt":null,"captureUnchanged":true}
+✔ missing deleted-layer-pixels refuses copy and preserves all other current roots (1209.326958ms)
+✔ missing hidden-branch-pixels refuses copy and preserves all other current roots (1262.4975ms)
+✔ durable preparation remains pinned and cancellation releases only its owned pins after terminal rejection (677.031375ms)
+✔ review UI mappings page every imported checkpoint without a session count cap (4646.923584ms)
+ℹ UI checkpoints persisted
+ℹ Archive copied
+ℹ Archive reviewed
+ℹ Mapping pages read
+ℹ Fresh namespace accepted
+✔ actual SQLite FULL preserves identity and source through same-authority-retry (9118.085334ms)
+ℹ {"recovery":"same-authority-retry","sqlitePageLimit":662,"restoredFreePages":493,"fillerRows":437,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","sourceTablesPreserved":["documents","history","checkpoints","objects","roots","commands","events_v2","assets","asset_dependencies","ui_checkpoints","ui_events","ui_receipts","staged_assets","portable_reviews","portable_review_sources","portable_review_maps","portable_pins"],"originalSourcePreserved":true,"originalCommandId":"453e28fc-caf8-4a0a-969d-ce28b99d29fe","originalCommandHash":"sha256:a5c9c754a16717a4126bdf25a0fb9b05af57347bdc91e97058b698da3afd8e26","originalOperationId":"8f2518bb-9e6e-4188-ab44-d5fe2b85d02b","originalReviewId":"92f6707e-4839-4fd5-a8c6-7984af7fb815","acceptedCommandId":"453e28fc-caf8-4a0a-969d-ce28b99d29fe","acceptedReviewId":"92f6707e-4839-4fd5-a8c6-7984af7fb815","sameOriginalIdentityPreserved":true,"singleNamespace":true,"singleAcceptedEvent":true,"restartRequiresFreshReview":false}
+✔ actual SQLite FULL preserves identity and source through restart-expired-review (10250.429625ms)
+ℹ {"recovery":"restart-expired-review","sqlitePageLimit":662,"restoredFreePages":493,"fillerRows":437,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","sourceTablesPreserved":["documents","history","checkpoints","objects","roots","commands","events_v2","assets","asset_dependencies","ui_checkpoints","ui_events","ui_receipts","staged_assets","portable_reviews","portable_review_sources","portable_review_maps","portable_pins"],"originalSourcePreserved":true,"originalCommandId":"c2e87724-8bd4-4a06-bf4d-3b25485333ee","originalCommandHash":"sha256:748391a9c7a650e9009972473ac5dba7a99476ddc83b105a997986b3198ce1cc","originalOperationId":"f5f34f82-d533-4d79-80c5-72eddcd649b3","originalReviewId":"0ead8c2e-e32e-4b25-b3f5-a146050aa03b","acceptedCommandId":"a1856639-7f95-4d2b-9312-c6554988880b","acceptedReviewId":"082b6e8e-50a0-4372-9195-5b1cbd57e0da","sameOriginalIdentityPreserved":true,"singleNamespace":true,"singleAcceptedEvent":true,"restartRequiresFreshReview":true}
+✔ empty document real HTTP copy, review, fresh namespace import and exact retry (942.191125ms)
+✔ image retained pixels and old branch reopen in fresh namespace (2278.382209ms)
+✔ restored draft apply clear recopy retains exact history ownership and dedup (4056.644542ms)
+ℹ {"finding":"I-PF03","restart":false,"owner":"ui:2869936a-b7e4-4768-90a4-e5ec8eae3bf0:p_fee4744e273bb3b4f8f0d97ec2cf80e65fffdf3fcceb6404c63420990e862d2d:p_5523147cc42d8c822314e41dbf54ae282205001f71352f4b36f20c0da74db328:1","blob":{"byteLength":"37","hash":"sha256:370464cc0108380974debab23abc46ccfd4dbeae26fd5437e15a65d2edb2023d","mediaType":"text/plain"},"importReceipt":{"commandId":"47efb497-b9dd-41e3-82db-0eb757f190bd","documentRevision":"2","fromSeq":"13","status":"accepted","toSeq":"13","transactionId":"35f86c70-d7d5-45b5-bace-c485d3efe95b"},"applyReceipt":{"commandId":"2b898658-1067-4b40-b1e8-aa7c7fcbab7a","documentRevision":"3","fromSeq":"14","status":"accepted","toSeq":"14","transactionId":"aaa6d14b-4214-42a5-b519-76ff67d4695d"},"recopy":{"byteLength":"64431","hash":"sha256:a09d938482e60a1ab93388eadb3a843a1b0cf12efe7141755e53edc6502258fb","mediaType":"application/x-ideogram-project"},"reopened":"p_9ce081f2a7855d92dabcd84e7cd631b9ee6f9124f4830bee287e152cd219fc03","unrelatedExcluded":true}
+✔ restored draft apply clear recopy retains exact history ownership across restart (4108.526375ms)
+ℹ {"finding":"I-PF03","restart":true,"owner":"ui:bb0aa9c8-cd1d-4fad-b7cc-ea0c6055342f:p_bc7830713241fd3b1e0081ca8c3fe77cb55954061c5d52dcaa0732245bc78b6b:p_31b2955fcc561c77dd2982d20d923b57b53ef0db1bfedcbffd6b303224be67ad:1","blob":{"byteLength":"37","hash":"sha256:370464cc0108380974debab23abc46ccfd4dbeae26fd5437e15a65d2edb2023d","mediaType":"text/plain"},"importReceipt":{"commandId":"0d8f87f9-35c6-44df-92ba-b9d6560026b9","documentRevision":"2","fromSeq":"13","status":"accepted","toSeq":"13","transactionId":"169082bb-7ccd-4b13-b067-45e5fa5ca463"},"applyReceipt":{"commandId":"3f31becb-4ce2-489d-89ae-54d31f0fe74e","documentRevision":"3","fromSeq":"14","status":"accepted","toSeq":"14","transactionId":"bcc0fd5d-7ef3-4e81-b55f-33abcb43be53"},"recopy":{"byteLength":"64431","hash":"sha256:106340bb2d53aa88989edcb666d726d5768c8a33142a06a46c56162118f7197c","mediaType":"application/x-ideogram-project"},"reopened":"p_b903da22c266b82cc7cd17a5915878b703be45b5ce2c25ccd648d8592737a4ef","unrelatedExcluded":true}
+✔ required current mapped draft ownership still fails explicitly when missing (2337.501667ms)
+✔ required accepted-history mapped draft ownership still fails explicitly when missing (2617.194333ms)
+✔ failed atomic import leaves no mapped draft owner or partial namespace and retains original roots (3463.488542ms)
+✔ copy retains mask, deleted layer, inactive branches, checkpoint, export and exact source events; reopen restarts and navigates all (5462.634917ms)
+ℹ {"retainedHistoryNodes":5,"retainedAssetIds":9,"sourceEventCount":12,"literalPixelOracles":true,"sourceTransactionsPreserved":true,"namespaceFresh":true,"providerEffects":0}
+✔ real non-sparse STORE bytes exceed 4 GiB and a following entry uses an actual 64-bit offset (5956.022708ms)
+ℹ {"fixture":"real repeated nonzero bytes; no sparse file or forged size","payloadBytes":"4296015889","archiveBytes":"4296016564","allocatedBytes":4309651456,"maxIOChunk":1048576,"peakRSS":172883968,"fullTestMs":5812.678916999999,"qualification":false,"limits":"ZIP transport correctness only; not the R39 document campaign"}
+✔ real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments (11757.700583ms)
+ℹ {"fixture":"synthetic canonical checkpoint records, real bytes","eventRecordCount":10000,"eventIndexBytes":"150650050","eventSegments":2,"rootSegments":3,"peakRSS":397049856,"elapsedMs":8736.718833,"qualification":false,"limits":"segmented index transport/parser only; not a coherent full document or 100k-operation campaign"}
+✔ actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (8256.680333ms)
+ℹ {"priorExecutable":"d84c1de55709bbd957222cac854905c41583a4e4","sourceUISeq":"1018","sourceObjects":18,"scopeA":["current_a","history_owned"],"scopeB":["current_b","reused_b"],"sourcePreserved":true}
+✔ legacy required current-bytes failure refuses a complete-copy claim (6517.993708ms)
+✔ legacy required history-ownership failure refuses a complete-copy claim (6392.211334ms)
+✔ real SIGKILL portable-preparation-before-commit preserves pinned copy identity and exact retry (1246.349583ms)
+✔ real SIGKILL portable-preparation-after-commit preserves pinned copy identity and exact retry (1171.259667ms)
+✔ real SIGKILL portable-export-before-commit preserves pinned copy identity and exact retry (1151.886041ms)
+✔ real SIGKILL portable-before-commit preserves pinned copy identity and exact retry (1171.130583ms)
+✔ real SIGKILL portable-after-commit preserves pinned copy identity and exact retry (1077.40925ms)
+✔ real SIGKILL portable-import-after-proofs publishes all fresh namespace or none (1213.090459ms)
+✔ real SIGKILL portable-import-before-commit publishes all fresh namespace or none (1414.226917ms)
+✔ real SIGKILL portable-import-after-commit publishes all fresh namespace or none (1327.44ms)
+✔ source changed after validation preserves namespace and existing shared bytes (1059.75875ms)
+✔ source replaced after validation preserves namespace and existing shared bytes (1052.503458ms)
+✔ source missing after validation preserves namespace and existing shared bytes (1085.880333ms)
+✔ inert provider provenance retains oversized exact prompts and result bytes across import, copy and restart with zero effects (2728.89825ms)
+ℹ {"promptBytes":17825805,"exactUTF8":true,"bodyHashTraversed":false,"providerEffects":0,"qualification":false}
+✔ portable provider headers cannot become an editable namespace (693.437333ms)
+✔ portable provider transportURL cannot become an editable namespace (677.717958ms)
+✔ portable provider backendClass cannot become an editable namespace (682.620917ms)
+✔ portable provider bodyReachability cannot become an editable namespace (674.748834ms)
+✔ portable provider invalidUTF8 cannot become an editable namespace (729.782709ms)
+✔ portable provider incomplete cannot become an editable namespace (684.49025ms)
+✔ portable provider timings-array cannot become an editable namespace (690.713708ms)
+✔ known transport-contaminated prompt hash is inspection-only without altering the exact staged original (604.671959ms)
+✔ provider artifact-hash metadata has no invented 200-item format cap (782.61175ms)
+✔ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (3537.908042ms)
+✔ review authority, namespace collision, source integrity and ranges are checked at public boundary (813.803833ms)
+✔ public trailing workspace event preserves domain revision evidence: revision-tail-control-2.zip (1410.045375ms)
+ℹ {"finding":"I-PF01","originalReviewerArchive":"revision-tail-control-2.zip","archiveHash":"sha256:23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e","previewReceipt":{"commandId":"b232083d-d11b-44c6-8d09-bb323f0a0e49","documentRevision":null,"fromSeq":"2","status":"accepted","toSeq":"2","transactionId":"b226e94b-db88-4486-8507-cb295e209303"},"importReceipt":{"commandId":"6ef86a51-7258-471f-966d-e51b4c9a1f94","documentRevision":"3","fromSeq":"3","status":"accepted","toSeq":"3","transactionId":"0e464be3-9a1d-4a5d-b52f-80eef059bcbd"},"sourcePreserved":true}
+✔ public trailing workspace event preserves domain revision evidence: format2-domain-revision-hidden-by-tail.zip (576.297875ms)
+ℹ {"finding":"I-PF01","originalReviewerArchive":"format2-domain-revision-hidden-by-tail.zip","archiveHash":"sha256:c43bb855a4fadc6410ec1801103fb2f361281cb49d653d56fe43e788105c153c","previewReceipt":{"code":"INVALID_INPUT","commandId":"56666433-1fd4-476b-a08e-5fad7c374a91","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"importReceipt":null,"sourcePreserved":true}
+✔ public trailing workspace event preserves domain revision evidence: revision-tail-control-null.zip (547.756833ms)
+ℹ {"finding":"I-PF01","originalReviewerArchive":"revision-tail-control-null.zip","archiveHash":"sha256:9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283","previewReceipt":{"code":"INVALID_INPUT","commandId":"258d48fb-66b9-4374-b5cc-928d499f6e0f","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"importReceipt":null,"sourcePreserved":true}
+✔ actual nonmutating document receipt retains revision with no domain event in a complete copy (2560.179208ms)
+ℹ {"finding":"I-PF01","noDomainEvents":true,"sourceReceipt":{"commandId":"45ae1b33-1f74-4f39-92a6-d125bc2e8b82","documentRevision":"2","fromSeq":"8","status":"accepted","toSeq":"8","transactionId":"a70eea82-1deb-4327-84af-3669483c2df6"},"importReceipt":{"commandId":"5abb8bca-7e7e-42c8-9dfd-b093ec8cebf3","documentRevision":"2","fromSeq":"2","status":"accepted","toSeq":"2","transactionId":"c534201b-0f67-45df-b07c-66bd7707fa05"}}
+✔ public preview rejects conflicting domain revisions inside one otherwise contiguous transaction (1042.334167ms)
+ℹ {"finding":"I-PF01","conflictingDomainRevisions":["2","3"],"receipt":{"code":"INVALID_INPUT","commandId":"8f57acc1-a82e-4d65-a5da-cf1e7671fe3a","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"}}
+✔ schema7 preserves actual approved schema6 pending preparation and verified rollback (1565.167ms)
+ℹ {"schema7Migration":{"backup":"schema6-backup-f62cb3eb-c203-44bd-9823-cfb472f21ced.sqlite","backupHash":"sha256:03bb5a08cfa46cfa781e384ea6721d1b98da86330ddb301877738e466c3eafd3","capability":"portable-copy-v1","from":6,"manifest":{"asset_dependencies":{"count":"5","hash":"f2291c1d8469596170bd86ec539dc24f938c0cb510b6186d3e2947d7ba850510"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"322d8a2dd4081177e0bb054e0885950efcb34923669286cdbad6094f9c46da8b"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"34d78c7261d6a6f426b936637308183ca2b101da403e9b504a755bb920ec2375"},"commands":{"count":"4","hash":"d9df00cd9e3f78501372ff69d0e97a33859fd112febee2b26006066d53f0e601"},"documents":{"count":"1","hash":"4978f6082c52c383fa5d86cb36aa7ac4bc934a1be508f503a70434fa5353813f"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"a36482ff6792c62a889838e713362d423dbad80d4412cdd753b2317fb724f013"},"history":{"count":"1","hash":"9444d50972240e6f5ecbe209d678d45ec5b11a6a6d8d603ffdb24e3cee126d36"},"history_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_edit_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_previews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"2ad387caebc66470ee2dfc6fd2d9f73f25efc8b718fee9d2c53d98f6442a8a45"},"raster_preparations":{"count":"1","hash":"d15a1da2683b8dee081dc7fb993829a345076a70849aa09c59f014d55bcd60f1"},"raster_reviews":{"count":"1","hash":"547f50ff9da129e4d3512b33a29ffd4ebcd01192559bfb65c591ead84bad7657"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"f8b8cfebc3502d2600db6d067498f86bc417883808400511d5473185ecf7a1ed"},"schema_migrations":{"count":"5","hash":"a65fd6ae990f80d394cdf8e1181150dfa97e7dbdf1bb5deb35badb5de309e28f"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f80ac91509af8f313d4fc93d63135aa523ec81b08e908d70cd1e79f13d2681f4","staged_assets":{"count":"3","hash":"49944188ee3efab8d5f10ab01dd4041a5aa63eb3687202133ae8f6f5a7720fd9"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_receipts":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema6-backup-f62cb3eb-c203-44bd-9823-cfb472f21ced.sqlite.manifest.json","rollback":{"compatibleExecutable":"d84c1de55709bbd957222cac854905c41583a4e4"},"strategy":"semantic-version-verified-backup-transactional-activation","to":7},"pending":{"command":{"schemaVersion":1,"commandId":"0df97a4b-0ed9-4b18-9f23-5d94855846c1","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"f41d6d68-173c-4430-89b2-373da84c70e7","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"PrepareRaster","assetId":"a53f0944-3488-46a0-aba9-84fb542b98b7"}},"hash":"sha256:e4fe09bc89cf3aa9b627f4b598fc71bd1c2d903e9f5112c3de77dde838809e3e","operationId":"c48a42b3-26de-4cf5-8a17-a05803dc85d6","phase":"preparing"},"oldRefusal":9,"rollback":{"epoch":"2","state":{"record":{"hash":"sha256:e4fe09bc89cf3aa9b627f4b598fc71bd1c2d903e9f5112c3de77dde838809e3e","command":{"body":{"assetId":"a53f0944-3488-46a0-aba9-84fb542b98b7","type":"PrepareRaster"},"causationId":null,"clientId":"client_1","commandId":"0df97a4b-0ed9-4b18-9f23-5d94855846c1","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"f41d6d68-173c-4430-89b2-373da84c70e7"},"receipt":{"commandId":"0df97a4b-0ed9-4b18-9f23-5d94855846c1","documentRevision":null,"fromSeq":"5","status":"accepted","toSeq":"5","transactionId":"f41d6d68-173c-4430-89b2-373da84c70e7"}},"pending":null}}}
+✔ schema7 preserves actual approved schema6 pending approval and verified rollback (1224.043792ms)
+ℹ {"schema7Migration":{"backup":"schema6-backup-b6fd38bd-90eb-434b-943b-7e762b7b8c2b.sqlite","backupHash":"sha256:dc195cbbb345cfe7cc28a96c651911c689d6aa208ad5130f3921a93d428c42ba","capability":"portable-copy-v1","from":6,"manifest":{"asset_dependencies":{"count":"5","hash":"135a51135a6f27df2c19a0c685877b329dba8d9a5857bd1d1cfa5626dde538d0"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"a9fde4552bfad28c01ab3a0e886333275d3db14bd6f7da66d945597fa9673b52"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"e6ecd37160da8e4b5092218cf9649ef3373063774afd8c6ffad58e11c1c9cd09"},"commands":{"count":"4","hash":"fea179dcfe45144a5610e85a4556afa4c9b9f0647aee7b6545726e1d73016b4b"},"documents":{"count":"1","hash":"8f4ed06adf4d6dbfb196e08f865926ce7fdc124a25771243dac76946d4b54843"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"eb8b06abb53991fdff434579646f9924888785770dcf0d328b5f46721770190e"},"history":{"count":"1","hash":"89c10d23d22952493ed569c2f6b65ebab2f527160b739a97dbd7a20b2d327e6b"},"history_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_edit_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_previews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"9406eb69316841fbef9f0cbe05858bdc31a2239c6ec97cfc94ed2fc208615444"},"raster_preparations":{"count":"1","hash":"35c2cd8ec568e42d8c3191eff8d6d1f54e3191b7900c85af8a83cb706207b58d"},"raster_reviews":{"count":"1","hash":"ade8a5b193c7b4f6a33ae6260975f18266cd658780280ef23b856c254359acbe"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"fcc2ab1a0710dd948a9951015b2d8e3c8f319d4920a6e434e432851d168c96c9"},"schema_migrations":{"count":"5","hash":"a65fd6ae990f80d394cdf8e1181150dfa97e7dbdf1bb5deb35badb5de309e28f"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f80ac91509af8f313d4fc93d63135aa523ec81b08e908d70cd1e79f13d2681f4","staged_assets":{"count":"3","hash":"44869adc0538221072935d0ebca431c8a52c2b8899f4b27d7f4bf80d3ce4c05e"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_receipts":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema6-backup-b6fd38bd-90eb-434b-943b-7e762b7b8c2b.sqlite.manifest.json","rollback":{"compatibleExecutable":"d84c1de55709bbd957222cac854905c41583a4e4"},"strategy":"semantic-version-verified-backup-transactional-activation","to":7},"pending":{"command":{"schemaVersion":1,"commandId":"6d05867f-631f-4e65-a901-b8b35ef3dbb7","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"159ab3ff-db2a-4d28-a36a-5795bfc00f9b","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"ApproveRaster","assetId":"5749840b-e98c-4012-94af-e2cd6aaa9667","reviewId":"e093ae43-81f9-4bd6-8c83-6da98675ffc7","reviewHash":"sha256:ef5efdb8a52ffcfb444242c92e43ab0b0a81198b188b162b7840124c995161f6"}},"hash":"sha256:24e54129b5d47c0d5529f7822f4a716b860fcc9abff5c909bedb1e93c6f62efc","operationId":"69817a5d-2fdd-4b4a-b0f6-706c7dac2662","phase":"preparing"},"oldRefusal":9,"rollback":{"epoch":"2","state":{"record":{"hash":"sha256:24e54129b5d47c0d5529f7822f4a716b860fcc9abff5c909bedb1e93c6f62efc","command":{"body":{"assetId":"5749840b-e98c-4012-94af-e2cd6aaa9667","reviewHash":"sha256:ef5efdb8a52ffcfb444242c92e43ab0b0a81198b188b162b7840124c995161f6","reviewId":"e093ae43-81f9-4bd6-8c83-6da98675ffc7","type":"ApproveRaster"},"causationId":null,"clientId":"client_1","commandId":"6d05867f-631f-4e65-a901-b8b35ef3dbb7","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"159ab3ff-db2a-4d28-a36a-5795bfc00f9b"},"receipt":{"code":"INVALID_INPUT","commandId":"6d05867f-631f-4e65-a901-b8b35ef3dbb7","currentRevision":null,"details":{"byteLength":"83","hash":"sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9","mediaType":"application/json"},"status":"rejected"}},"pending":null}}}
+✔ unknown future storage is inspected without mutation and returns explicit recovery guidance (687.387458ms)
+✖ schema7 capacity failure retains schema6 and every request, then retries safely (951.76325ms)
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (974.008167ms)
+✔ activation rechecks the verified database backup before publishing schema7 (1003.882834ms)
+✔ activation rechecks the verified manifest backup before publishing schema7 (1011.121042ms)
+✔ SIGKILL portable-schema-before-backup preserves pending approval and restarts exactly (999.778208ms)
+✔ SIGKILL portable-schema-backup-written preserves pending approval and restarts exactly (1060.945042ms)
+✔ SIGKILL portable-schema-backup-verified preserves pending approval and restarts exactly (1084.09875ms)
+✔ SIGKILL portable-schema-before-activation preserves pending approval and restarts exactly (1059.731208ms)
+✔ SIGKILL portable-schema-after-activation preserves pending approval and restarts exactly (992.488208ms)
+✔ schema8 fences the actual d4 writer and verifies schema7 rollback including pending portable captures (1767.465375ms)
+ℹ {"migration":{"backup":"schema7-backup-78aa750c-7edb-460e-9388-b14aed417355.sqlite","backupHash":"sha256:b22e010dec2f3ae952fffe79efeeab89646a611be2c26be32929bc6344c8c012","capability":"portable-copy-v2-transaction-bounds","from":7,"manifest":{"asset_dependencies":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"b17bc1326fc34d40196e69a30a730687f2b54377ed6e3e59a3531e95fb72df01"},"commands":{"count":"4","hash":"d12bf9a6a0fa29c3f62bc2919e76b07f2abc45e5189691bbfa728f439b91fa18"},"documents":{"count":"2","hash":"a03e75b1f1aa67c4ddd8acd11753783f0f4df1c14dc3c6405db1f900ef16c2cd"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"bbdbef256d5d16d6d1353ed28f65d943c7de10ecb386485b4cb97c11309b724e"},"history":{"count":"2","hash":"5b9fc22e2d74cc97d858b2f74dd9e7a98cc7e2d445e643f0e5ae1b20c9b941ca"},"history_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_edit_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_previews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"meta":{"count":"2","hash":"821a4178fd4871ad8facd081bfcfddf32ab8f80baa23c2e2ca1ccb288bfd3fe0"},"objects":{"count":"4","hash":"d9f0c5f5568cdc0464282d046b34262a7fdba18dc0856bec94f5c0d05d7b604e"},"portable_bundles":{"count":"1","hash":"958e5d946ea524be7e49b7935e3e561a8d73f63b268ddc70733c198e9e8fb7a2"},"portable_cancellations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"portable_maps":{"count":"3","hash":"95ff780cda71d16bc5182311ffa8c19e8bf1d8882aeafbc0b3c2e7f138e5029e"},"portable_namespaces":{"count":"1","hash":"eef9a89835fb2fe9b6dc9750cdd3d425106673ee18947282d026d4b7ef5ec13b"},"portable_pins":{"count":"1","hash":"e702535823843c870a0b1f59d332b309f8bd787adb9d79d3d1cccf3b651c273e"},"portable_preparations":{"count":"1","hash":"52bd4551a66c882434642cf9a888bed2cae3327d862e89c48ad36f106e9167ff"},"portable_quarantined_hashes":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"portable_review_maps":{"count":"3","hash":"b97626b04ef630adb10090c8ea671a106d314595ebfcd4577154e8a8b1cf2df6"},"portable_review_sources":{"count":"1","hash":"dd299adabe1bf0851b49a079cbac1f2dd5855c839ad8fabc3aebd7e0c111c596"},"portable_reviews":{"count":"1","hash":"8a45853bccda64bb37b09349344b76286e4bc63464684745c029109d34e7afd0"},"portable_rows":{"count":"2","hash":"fda160251da37fbd82859e38f7934c84232f2522fc04212c87d170e7dcc273c7"},"raster_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"raster_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"10","hash":"3d1da750b1cec4362b6841469cd651619789ce1fd3557688b1bd153f51b24c35"},"schema_migrations":{"count":"6","hash":"890f2233d11a133bd026b5bd8785008eb00c2f04b12021e44c9c886d1f2a3a59"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:8c9f7528f9ca558241e91547b7269dbafa3f7c5066bc7536912c99bd26b06792","staged_assets":{"count":"1","hash":"2291d78cfa8beff7f3e1bd05edb626d0e22aea75745b023db5faefec128f6bdb"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_receipts":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema7-backup-78aa750c-7edb-460e-9388-b14aed417355.sqlite.manifest.json","rollback":{"compatibleExecutable":"d4ed76148999978565ca8b37d27612f5b3faa591"},"strategy":"semantic-version-verified-backup-transactional-activation","to":8},"priorRefusal":"UNSUPPORTED_STORAGE","rollbackCommand":"cd18319b-2e41-469f-b616-55418411b0b0","rollbackReceipt":{"commandId":"cd18319b-2e41-469f-b616-55418411b0b0","documentRevision":"1","fromSeq":"5","status":"accepted","toSeq":"5","transactionId":"4a28113b-6c80-44dc-932d-15bd65005d5e"},"allOriginalTablesAndFilesPreserved":true}
+✖ schema8 capacity refusal leaves schema7 and exact pending requests intact (1343.941917ms)
+✔ schema8 activation refuses changed backup-written without altering source (1320.707167ms)
+✔ schema8 activation refuses changed database without altering source (1379.791958ms)
+✔ schema8 activation refuses changed manifest without altering source (1349.61775ms)
+✖ schema8 SIGKILL before-backup retains pending identity and original portable files (1423.312458ms)
+✖ schema8 SIGKILL backup-written retains pending identity and original portable files (1543.377792ms)
+✖ schema8 SIGKILL backup-verified retains pending identity and original portable files (1495.4235ms)
+✖ schema8 SIGKILL before-activation retains pending identity and original portable files (1621.463459ms)
+✖ schema8 SIGKILL after-activation retains pending identity and original portable files (1532.210916ms)
+✖ format2 public roundtrip retains exact original receipt bounds and canonical event bytes (1055.363042ms)
+✔ public preview rejects prefix transaction with no namespace or source change (1139.657208ms)
+ℹ {"finding":"I-PF01","mutation":"prefix","originalBounds":{"commandId":"ee245817-e57d-4a3c-8b7e-90e627f54d3a","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"62447180-9066-426d-9b12-5b489cb59953"},"commandId":"6eed5153-6efc-455e-876a-2cfcdbbf42e9","receipt":{"code":"INVALID_INPUT","commandId":"6eed5153-6efc-455e-876a-2cfcdbbf42e9","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:ce45694c6d4b15d1dfb4c22c7f0ff3cb7fd11b215b6f2f9341c3cf4b309d7ecb","noNamespace":true}
+✔ public preview rejects tail transaction with no namespace or source change (1178.827375ms)
+ℹ {"finding":"I-PF01","mutation":"tail","originalBounds":{"commandId":"01b6d1e1-00c5-4fe8-b803-e62d6aa9adb8","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"5665829f-e274-4d11-80d5-858edf458985"},"commandId":"58c4f624-07ee-4115-b94d-888105e73009","receipt":{"code":"INVALID_INPUT","commandId":"58c4f624-07ee-4115-b94d-888105e73009","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:e464b6eb478bd9216e6f17fdc88a8473ac2ed41f037351f49eab5f9bb6b720d6","noNamespace":true}
+✔ public preview rejects wrong-count transaction with no namespace or source change (1205.861125ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-count","originalBounds":{"commandId":"33f9d216-76e8-4cf3-aac5-104be81e99bf","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"4b5bf06c-6bf9-416f-906f-7313f42451db"},"commandId":"071177f4-9000-4663-8f5c-e7851e9c85f0","receipt":{"code":"INVALID_INPUT","commandId":"071177f4-9000-4663-8f5c-e7851e9c85f0","currentRevision":null,"details":{"byteLength":"86","hash":"sha256:95fc3af1ade331e8d3b605904c0edce644f8782f0b0cd26ac8fee4cb72c5490d","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:d87ddd001cc2f5d195310669a1098d62f0bc4a9ed0006d7c856f0ea1b3a4dd67","noNamespace":true}
+✔ public preview rejects wrong-first transaction with no namespace or source change (1330.849875ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-first","originalBounds":{"commandId":"01676127-c373-4305-8347-8b6cabadb93e","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"f3b37c1e-10b9-4fb3-bb31-63576b60a4e1"},"commandId":"be8561b7-1e08-4aca-8190-895aeb56479b","receipt":{"code":"INVALID_INPUT","commandId":"be8561b7-1e08-4aca-8190-895aeb56479b","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:20b00237a20fcddf08a4c019963baf3024c0d2bd894e787734d33ac68dc58470","noNamespace":true}
+✔ public preview rejects wrong-last transaction with no namespace or source change (1148.084959ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-last","originalBounds":{"commandId":"48331829-6629-45e8-b027-5dbab068ab4d","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"d2a56a8f-efd6-4410-b0f3-26b746f06346"},"commandId":"14be6a7b-ef17-4dd0-a90f-bf075546c4ed","receipt":{"code":"INVALID_INPUT","commandId":"14be6a7b-ef17-4dd0-a90f-bf075546c4ed","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:489e0c13a63d4cd06e74a8791a4a05978cc16de5d6a4abe00a59cb41c259c5db","noNamespace":true}
+✔ public preview rejects wrong-hash transaction with no namespace or source change (1204.428166ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-hash","originalBounds":{"commandId":"d6330dd9-79fc-4876-8a81-14c70defaafe","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"50930d05-31bf-4a11-b65f-36a4744464d5"},"commandId":"7f01bd43-f412-4ff0-98b1-130e972b5292","receipt":{"code":"INVALID_INPUT","commandId":"7f01bd43-f412-4ff0-98b1-130e972b5292","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:2163f400286fae4b747f39cf3da11a633d25cb10da43900069b7d3c3bac691f1","noNamespace":true}
+✔ public preview rejects wrong-command transaction with no namespace or source change (1190.392875ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-command","originalBounds":{"commandId":"fa90c736-b5c7-46a8-9089-2974700b083b","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"8670df75-164d-4ceb-bbd0-5775f31af354"},"commandId":"85ef1279-c9c0-453e-9f30-4b34aec38d22","receipt":{"code":"INVALID_INPUT","commandId":"85ef1279-c9c0-453e-9f30-4b34aec38d22","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:9672bf6e752622ae97c70b4b7f7aecccea1902365bca69359033cd1f9dc9c5df","noNamespace":true}
+✔ public preview rejects wrong-revision transaction with no namespace or source change (1184.499208ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-revision","originalBounds":{"commandId":"7dc353fa-2023-4149-9846-e7d0e7132fa5","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"034226d2-0195-4d1f-9955-45dfd079177c"},"commandId":"0188d784-159e-4aaf-bfd2-a4c211fa0143","receipt":{"code":"INVALID_INPUT","commandId":"0188d784-159e-4aaf-bfd2-a4c211fa0143","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:bf71da6067476901111c7f4eb34100d2eafdfd1c405df3cbb4d031efa52dd905","noNamespace":true}
+✔ public preview rejects missing-descriptor transaction with no namespace or source change (1112.657541ms)
+ℹ {"finding":"I-PF01","mutation":"missing-descriptor","originalBounds":{"commandId":"f08b6357-76d5-417b-8d9d-4bd48877a453","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"6c723287-a1f2-45f3-bf01-c9f5bdb150cb"},"commandId":"ce5fcb3c-472a-454f-9b77-a22f564353bf","receipt":{"code":"INVALID_INPUT","commandId":"ce5fcb3c-472a-454f-9b77-a22f564353bf","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:03021c4ed8b784b51e7f793ce920952fc3c2965a1429e5c41f681d8e4b870ce0","noNamespace":true}
+✔ public preview rejects duplicate-descriptor transaction with no namespace or source change (1112.485916ms)
+ℹ {"finding":"I-PF01","mutation":"duplicate-descriptor","originalBounds":{"commandId":"3380741a-0474-4954-8932-acc7c2ed332b","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"32fb1d50-f06c-454e-b80f-cdfe939b5328"},"commandId":"08034921-8f98-4682-ac6a-09cfbb1558b1","receipt":{"code":"INVALID_INPUT","commandId":"08034921-8f98-4682-ac6a-09cfbb1558b1","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:5754cb7bf21abb89aff930a2f9dcc3e55959102263adca88c2ee67fcaa782c75","noNamespace":true}
+✔ public preview rejects duplicate-event-id transaction with no namespace or source change (1213.376834ms)
+ℹ {"finding":"I-PF01","mutation":"duplicate-event-id","originalBounds":{"commandId":"1176da63-74c5-4899-b322-d0692f79afe7","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"51307f8a-7fd8-4012-afc4-40e77dcf5303"},"commandId":"92d5ff77-7f14-4fe3-9398-ce20a1fd21f8","receipt":{"code":"INVALID_INPUT","commandId":"92d5ff77-7f14-4fe3-9398-ce20a1fd21f8","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:70f31697ba31eedec6290511a984bbb1ab30d1e9cfc838cecc5b6c5e0dc368e8","noNamespace":true}
+✔ public preview rejects split-one-command transaction with no namespace or source change (1117.169625ms)
+ℹ {"finding":"I-PF01","mutation":"split-one-command","originalBounds":{"commandId":"5bc67097-845d-46d5-80fb-2d663a724ee7","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"1fa5edb6-4efe-48a2-914a-45eb2b80e8e4"},"commandId":"fad7ef4b-54f6-4314-b66c-0a144f5e205b","receipt":{"code":"INVALID_INPUT","commandId":"fad7ef4b-54f6-4314-b66c-0a144f5e205b","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:b924733385fae2f800f06e289280b8464bb2ddff8f0eda91816a69bee4b2f697","noNamespace":true}
+✖ legacy format1 retains inspection and explicitly refuses editable publication (1078.720917ms)
+✔ unchanged independent d4 hostile archives never become editable or publish a namespace (1726.0745ms)
+ℹ {"finding":"I-PF01","unchangedReviewerArtifact":"drop-transaction-prefix.zip","sha256":"sha256:a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd","receipt":{"commandId":"2459e4ad-b809-4846-b8ae-517cfd1c3912","documentRevision":null,"fromSeq":"1","status":"accepted","toSeq":"1","transactionId":"2a5cd6a2-22e2-48ad-bac6-f49f2fc2286f"},"noEditableNamespace":true}
+ℹ {"finding":"I-PF01","unchangedReviewerArtifact":"hostile-duplicate-event-id.zip","sha256":"sha256:c6e2adf81f2372c97cac0e4703fa184ac6c9f10866b5000219baba5769fe2c26","receipt":{"code":"INVALID_INPUT","commandId":"c40eacb0-2116-4d07-8562-a44b5fa148ac","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"noEditableNamespace":true}
+ℹ {"finding":"I-PF01","unchangedReviewerArtifact":"hostile-split-one-command.zip","sha256":"sha256:e6f642af807db51f74d402467f818bb05227edee910bb440442a774361fe620b","receipt":{"code":"INVALID_INPUT","commandId":"ba18f578-ea49-4046-a972-7ae8653e8968","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"noEditableNamespace":true}
+✔ ZIP64 STORE roundtrip uses real content, exact CRC/hash and 64-bit fields (25.528083ms)
+✔ rejects compression before accepting archive (14.144ms)
+✔ rejects encryption before accepting archive (11.859166ms)
+✔ rejects descriptor before accepting archive (10.384958ms)
+✔ rejects traversal before accepting archive (10.703208ms)
+✔ rejects crc before accepting archive (9.276584ms)
+✔ rejects payload before accepting archive (10.348ms)
+✔ rejects trailing before accepting archive (10.293625ms)
+✔ rejects volume before accepting archive (9.152916ms)
+✔ rejects symlink before accepting archive (9.21425ms)
+✔ rejects executable before accepting archive (7.204375ms)
+✔ rejects directory before accepting archive (8.81025ms)
+✔ rejects overlap before accepting archive (8.209333ms)
+✔ rejects zip64Offset before accepting archive (8.868ms)
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (667.262291ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (865.471ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2097.653209ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (22.444875ms)
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (665.988584ms)
+✔ a fresh unseeded HTTP root accepts NewDocument with the public fixed empty precondition reference (304.843917ms)
+✔ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (2012.011209ms)
+✔ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (742.444167ms)
+✔ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (729.776125ms)
+✔ I-P01 SIGKILL during sliced snapshot construction preserves committed receipt and recovers full history (2153.276ms)
+✔ PROTO04 large complete transaction uses immutable reference; interior cursor rejected and restart replay agrees (2236.192125ms)
+✔ R23 corrupt latest snapshot falls back to prior snapshot, then full log; failed snapshots backpressure only the 500-event tail (7797.799208ms)
+✖ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (1001.714625ms)
+✔ I-P01 warm snapshot admission detects changed bytes and external root metadata; reads verify and recover pinned state (2483.97925ms)
+✔ approval rechecks file identity after proofs: missing (766.185791ms)
+✔ approval rechecks file identity after proofs: corrupt (721.785ms)
+✔ approval rechecks file identity after proofs: same-bytes-replacement (685.807791ms)
+✔ approval rechecks file identity after proofs: symlink (600.14475ms)
+✔ approval rechecks file identity after proofs: hardlink (675.600125ms)
+✔ approval rechecks live session binding after proofs and keeps the original rejected identity (590.300834ms)
+✔ queued approval authorities are bounded and released when a retry rejects an expired review (1167.007291ms)
+✔ approval rejects missing pixels dependency without a usable canonical asset (750.240209ms)
+✔ approval rejects corrupt pixels dependency without a usable canonical asset (726.692166ms)
+✔ approval rejects substituted pixels dependency without a usable canonical asset (688.296625ms)
+✔ approval rejects missing manifest dependency without a usable canonical asset (692.629083ms)
+✔ approval rejects corrupt manifest dependency without a usable canonical asset (720.918125ms)
+✔ approval rejects substituted manifest dependency without a usable canonical asset (807.15375ms)
+✔ approval rejects missing png dependency without a usable canonical asset (863.9265ms)
+✔ approval rejects corrupt png dependency without a usable canonical asset (939.215917ms)
+✔ approval rejects substituted png dependency without a usable canonical asset (843.157ms)
+✔ approval rejects missing original dependency without a usable canonical asset (801.452917ms)
+✔ approval rejects corrupt original dependency without a usable canonical asset (756.930333ms)
+✔ approval rejects substituted original dependency without a usable canonical asset (739.267708ms)
+✔ approval rejects missing exif dependency without a usable canonical asset (754.579792ms)
+✔ approval rejects corrupt exif dependency without a usable canonical asset (770.816083ms)
+✔ approval rejects substituted exif dependency without a usable canonical asset (772.45825ms)
+✔ approval rejects missing icc dependency without a usable canonical asset (798.988042ms)
+✔ approval rejects corrupt icc dependency without a usable canonical asset (769.276667ms)
+✔ approval rejects substituted icc dependency without a usable canonical asset (827.561041ms)
+✔ actual frozen PNG/JPEG/static WebP codec inputs; independently specified uniform and literal pixels (219.2145ms)
+✔ all eight EXIF orientations normalize once with exact alpha/hidden samples retained (171.835292ms)
+✔ supported P3 converts with review data and original profile identity retained (25.45175ms)
+✔ actual malformed/animated/profile/extent inputs cannot produce usable canonical output (165.058666ms)
+✔ P3 nonprimary conversion matches independent public LittleCMS C oracle, retaining alpha (22.016125ms)
+✔ lossy and lossless alpha WebP match independent public decoder diagnostic including exact alpha (39.749458ms)
+✔ WebP extent and native allocation plan are admitted before invoking its native metadata parser (23.878375ms)
+✔ actual nonwhite JPEG pixels match independently installed Pillow/libjpeg-turbo golden diagnostic (23.32275ms)
+✔ frozen export preserves historical pixel identity and records current encoder separately (37.110709ms)
+✔ F01 independent literal: stage2 alpha26, exact shared composite90 and F04 108 versus109 (1.106917ms)
+✔ empty, hidden RGB, singleton, integer translation, M0 and nonidentity alpha-zero arithmetic (0.1945ms)
+✔ independent half-pixel bilinear, linear light, transparent padding and premultiplied edge goldens (0.110417ms)
+✔ area-integrated triangle coefficients are independently derived rational constants; no boundary renormalization (0.269917ms)
+✔ transform-mask-opacity ordering and R16 luminance-alpha are explicit (0.105042ms)
+✔ F02 core triangle feather: exact R16 edges, no tile renormalization, radii0/1/2/64 (1.276834ms)
+✔ affine coordinates, bounded envelope and independent seam output at128/512 (0.26ms)
+✔ real original → worker → durable preview → exact review approval → CP-1 capture → PNG export and reopen (1680.621541ms)
+✔ hidden RGB identity, exact mask coordinates, empty output, cache dependencies and lossless JPEG-source export (1873.72075ms)
+✔ conversion review binds actual decoded preview, exact hash, owner, session and writer epoch (814.379375ms)
+✔ malformed, animated and unsupported-profile originals retain bytes and terminal diagnostics without usable asset (1528.637625ms)
+✔ real worker reconstruction crosses128/512 tile boundaries with independent expected pixels (964.307375ms)
+✔ actual concurrent foundation and raster requests cannot reuse one durable command ID (1748.820042ms)
+▶ sealed independent PNG container/profile/stream fixtures
+  ✔ valid-srgb-0.png (3.124958ms)
+  ✔ valid-srgb-1.png (0.93975ms)
+  ✔ valid-srgb-2.png (0.582958ms)
+  ✔ valid-srgb-3.png (0.487875ms)
+  ✔ srgb-empty.png (0.55875ms)
+  ✔ srgb-0000.png (0.478ms)
+  ✔ srgb-04.png (0.332167ms)
+  ✔ srgb-ff.png (0.3855ms)
+  ✔ srgb-duplicate.png (0.477625ms)
+  ✔ srgb-late.png (0.372959ms)
+  ✔ trns-rgba.png (0.248084ms)
+  ✔ trns-gray-alpha.png (0.222041ms)
+  ✔ trns-rgb-short.png (0.586167ms)
+  ✔ trns-late.png (0.765417ms)
+  ✔ ihdr-depth-color.png (0.351333ms)
+  ✔ unknown-critical.png (0.436291ms)
+  ✔ reserved-name-bit.png (0.4245ms)
+  ✔ idat-duplicate-stream.png (0.660084ms)
+  ✔ idat-tail.png (0.577917ms)
+  ✔ idat-extra-row.png (1.158125ms)
+  ✔ idat-short-row.png (0.776292ms)
+  ✔ idat-filter.png (1.384125ms)
+  ✔ idat-truncated-zlib.png (0.50125ms)
+  ✔ idat-noncontiguous.png (0.361042ms)
+  ✔ valid-split-idat.png (0.913375ms)
+  ✔ gAMA-late.png (1.305875ms)
+  ✔ cHRM-late.png (1.387709ms)
+  ✔ sBIT-late.png (0.913542ms)
+  ✔ pHYs-late.png (0.345709ms)
+  ✔ bKGD-late.png (0.338ms)
+  ✔ eXIf-late.png (0.436875ms)
+  ✔ hIST-late.png (0.241167ms)
+  ✔ sPLT-late.png (0.482542ms)
+  ✔ gAMA-invalid.png (0.35125ms)
+  ✔ cHRM-invalid.png (0.206958ms)
+  ✔ sBIT-invalid.png (0.192125ms)
+  ✔ pHYs-invalid.png (0.203ms)
+  ✔ bKGD-invalid.png (0.216375ms)
+  ✔ tIME-invalid.png (0.331375ms)
+  ✔ eXIf-invalid.png (0.240125ms)
+  ✔ hIST-invalid.png (0.283291ms)
+  ✔ sPLT-invalid.png (0.211584ms)
+  ✔ zTXt-extra-stream.png (0.358333ms)
+  ✔ zTXt-keyword.png (0.237625ms)
+  ✔ iCCP-extra-stream.png (0.494958ms)
+  ✔ iCCP-keyword.png (0.289375ms)
+  ✔ itxt-extra-stream.png (0.283542ms)
+  ✔ itxt-invalid-utf8.png (0.26175ms)
+  ✔ text-invalid-keyword.png (0.357541ms)
+  ✔ text-null.png (0.25175ms)
+  ✔ valid-text.png (0.586458ms)
+  ✔ plte-empty.png (0.332417ms)
+  ✔ plte-short.png (0.229291ms)
+  ✔ plte-too-many.png (0.230458ms)
+  ✔ plte-gray.png (0.226083ms)
+  ✔ plte-missing.png (0.252708ms)
+  ✔ plte-after-trns.png (0.311958ms)
+  ✔ srgb-after-plte.png (0.242292ms)
+  ✔ trns-palette-long.png (0.233791ms)
+  ✔ palette-index.png (0.334959ms)
+  ✔ valid-0-1.png (0.407791ms)
+  ✔ valid-3-1.png (1.089875ms)
+  ✔ valid-0-2.png (0.662584ms)
+  ✔ valid-3-2.png (0.378417ms)
+  ✔ valid-0-4.png (0.422459ms)
+  ✔ valid-3-4.png (0.341417ms)
+  ✔ valid-0-8.png (0.312583ms)
+  ✔ valid-3-8.png (0.498292ms)
+  ✔ valid-rgb-trns.png (0.315459ms)
+  ✔ valid-gray-alpha.png (0.383792ms)
+  ✔ valid-adam7-1-False.png (0.339708ms)
+  ✔ valid-adam7-1-True.png (0.429542ms)
+  ✔ valid-adam7-9-False.png (0.287667ms)
+  ✔ valid-adam7-9-True.png (0.286ms)
+  ✔ reviewer-srgb-bad-size.png (0.244625ms)
+  ✔ reviewer-srgb-bad-intent.png (0.244875ms)
+  ✔ reviewer-trns-rgba.png (0.238958ms)
+  ✔ reviewer-duplicate-idat-stream.png (0.268291ms)
+  ✔ reviewer-idat-trailing-data.png (0.262625ms)
+  ✔ reviewer-icc-after-idat.png (0.261042ms)
+  ✔ reviewer-valid-unknown-icc-before.png (0.461958ms)
+  ✔ reviewer-valid-unknown-icc-after.png (0.258083ms)
+  ✔ reviewer-exif-after-idat.png (0.35125ms)
+  ✔ reviewer-orientation-6-after.png (0.188834ms)
+  ✔ reviewer-unknown-critical.png (0.188666ms)
+✔ sealed independent PNG container/profile/stream fixtures (43.525ms)
+▶ public PNG rejection retains original, exact durable receipt and no usable raster through restart
+  ✔ srgb-empty.png (139.570125ms)
+  ✔ srgb-0000.png (122.584958ms)
+  ✔ srgb-04.png (120.396209ms)
+  ✔ srgb-ff.png (121.255541ms)
+  ✔ srgb-duplicate.png (124.6435ms)
+  ✔ srgb-late.png (129.550708ms)
+  ✔ trns-rgba.png (128.222333ms)
+  ✔ trns-gray-alpha.png (123.216083ms)
+  ✔ trns-rgb-short.png (126.499209ms)
+  ✔ trns-late.png (127.789166ms)
+  ✔ ihdr-depth-color.png (127.270292ms)
+  ✔ unknown-critical.png (127.702666ms)
+  ✔ reserved-name-bit.png (125.628875ms)
+  ✔ idat-extra-row.png (135.565125ms)
+  ✔ idat-short-row.png (132.439083ms)
+  ✔ idat-filter.png (134.999042ms)
+  ✔ idat-truncated-zlib.png (127.025667ms)
+  ✔ idat-noncontiguous.png (129.902375ms)
+  ✔ gAMA-late.png (139.341208ms)
+  ✔ cHRM-late.png (129.866834ms)
+  ✔ sBIT-late.png (129.506125ms)
+  ✔ pHYs-late.png (130.8105ms)
+  ✔ bKGD-late.png (123.959083ms)
+  ✔ eXIf-late.png (124.717541ms)
+  ✔ hIST-late.png (131.324709ms)
+  ✔ sPLT-late.png (123.948416ms)
+  ✔ gAMA-invalid.png (122.734292ms)
+  ✔ cHRM-invalid.png (118.14825ms)
+  ✔ sBIT-invalid.png (117.413541ms)
+  ✔ pHYs-invalid.png (121.693209ms)
+  ✔ bKGD-invalid.png (118.947708ms)
+  ✔ tIME-invalid.png (119.693542ms)
+  ✔ eXIf-invalid.png (124.618875ms)
+  ✔ hIST-invalid.png (115.936334ms)
+  ✔ sPLT-invalid.png (117.299625ms)
+  ✔ zTXt-extra-stream.png (121.876791ms)
+  ✔ zTXt-keyword.png (118.247666ms)
+  ✔ iCCP-extra-stream.png (120.61975ms)
+  ✔ iCCP-keyword.png (123.543583ms)
+  ✔ itxt-extra-stream.png (129.2015ms)
+  ✔ itxt-invalid-utf8.png (113.06825ms)
+  ✔ text-invalid-keyword.png (130.865584ms)
+  ✔ text-null.png (118.779541ms)
+  ✔ plte-empty.png (121.437541ms)
+  ✔ plte-short.png (119.440542ms)
+  ✔ plte-too-many.png (117.911417ms)
+  ✔ plte-gray.png (122.529333ms)
+  ✔ plte-missing.png (133.278791ms)
+  ✔ plte-after-trns.png (124.559583ms)
+  ✔ srgb-after-plte.png (126.265584ms)
+  ✔ trns-palette-long.png (126.989334ms)
+  ✔ palette-index.png (134.470208ms)
+  ✔ reviewer-srgb-bad-size.png (125.951583ms)
+  ✔ reviewer-srgb-bad-intent.png (128.274375ms)
+  ✔ reviewer-trns-rgba.png (135.562583ms)
+  ✔ reviewer-icc-after-idat.png (121.558708ms)
+  ✔ reviewer-valid-unknown-icc-before.png (191.380833ms)
+  ✔ reviewer-valid-unknown-icc-after.png (185.725042ms)
+  ✔ reviewer-exif-after-idat.png (131.847375ms)
+  ✔ reviewer-orientation-6-after.png (180.593959ms)
+  ✔ reviewer-unknown-critical.png (121.951542ms)
+✔ public PNG rejection retains original, exact durable receipt and no usable raster through restart (8720.976ms)
+✔ supported ICC and valid orientation remain explicit through review, approval and export (1045.803542ms)
+▶ valid PNG depths, palette transparency, split streams, metadata and Adam7 retain independent pixels
+  ✔ valid-srgb-0.png (156.247625ms)
+  ✔ valid-srgb-1.png (158.941709ms)
+  ✔ valid-srgb-2.png (164.080042ms)
+  ✔ valid-srgb-3.png (149.35775ms)
+  ✔ idat-duplicate-stream.png (155.766958ms)
+  ✔ idat-tail.png (160.389333ms)
+  ✔ valid-split-idat.png (148.219875ms)
+  ✔ valid-text.png (163.76075ms)
+  ✔ valid-0-1.png (162.108791ms)
+  ✔ valid-3-1.png (159.966583ms)
+  ✔ valid-0-2.png (138.5355ms)
+  ✔ valid-3-2.png (136.754625ms)
+  ✔ valid-0-4.png (157.666958ms)
+  ✔ valid-3-4.png (164.03325ms)
+  ✔ valid-0-8.png (163.660667ms)
+  ✔ valid-3-8.png (174.104ms)
+  ✔ valid-rgb-trns.png (156.049375ms)
+  ✔ valid-gray-alpha.png (169.299ms)
+  ✔ valid-adam7-1-False.png (180.603917ms)
+  ✔ valid-adam7-1-True.png (170.2615ms)
+  ✔ valid-adam7-9-False.png (156.073209ms)
+  ✔ valid-adam7-9-True.png (157.781917ms)
+✔ valid PNG depths, palette transparency, split streams, metadata and Adam7 retain independent pixels (3962.599834ms)
+✔ SIGKILL raster-preparation-before-commit keeps original raster command, operation and encoded source (1187.330125ms)
+✔ SIGKILL raster-preparation-after-commit keeps original raster command, operation and encoded source (1128.281084ms)
+✔ SIGKILL raster-after-worker keeps original raster command, operation and encoded source (1241.533541ms)
+✔ SIGKILL raster-before-flush keeps original raster command, operation and encoded source (1260.889875ms)
+✔ SIGKILL raster-after-flush keeps original raster command, operation and encoded source (1247.859375ms)
+✔ SIGKILL raster-before-rename keeps original raster command, operation and encoded source (1271.448417ms)
+✔ SIGKILL raster-after-rename keeps original raster command, operation and encoded source (1266.555ms)
+✔ SIGKILL raster-after-directory-sync keeps original raster command, operation and encoded source (1248.157667ms)
+✔ SIGKILL raster-before-register keeps original raster command, operation and encoded source (1345.397125ms)
+✔ SIGKILL asset-before-commit keeps original raster command, operation and encoded source (1365.135375ms)
+✔ SIGKILL asset-after-commit keeps original raster command, operation and encoded source (1326.119166ms)
+✔ SIGKILL raster-after-register keeps original raster command, operation and encoded source (1299.083792ms)
+✔ SIGKILL frozen PNG export raster-before-register reopens exact existing canonical bytes (1525.123833ms)
+✔ SIGKILL frozen PNG export raster-after-register reopens exact existing canonical bytes (1305.903958ms)
+✔ SIGKILL approval raster-approval-preparation-before-commit preserves identity and requires a live review before publication (1153.673958ms)
+✔ SIGKILL approval raster-approval-preparation-after-commit preserves identity and requires a live review before publication (1179.077875ms)
+✔ SIGKILL approval raster-approval-after-proofs preserves identity and requires a live review before publication (1146.78075ms)
+✔ SIGKILL approval raster-approval-before-register preserves identity and requires a live review before publication (2734.82675ms)
+✔ SIGKILL approval raster-approval-after-register preserves identity and requires a live review before publication (1995.589709ms)
+✔ schema5 preserves dfa383d compatible schema4 and names an actually usable rollback executable (2664.320333ms)
+ℹ {"case":"compatible-dfa383d","pending":{"command":{"schemaVersion":1,"commandId":"8b57b5ca-9daf-489e-84c4-6a5a15b3cec4","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"2d86fb43-c4b2-4b63-bc76-88180479691c","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"PrepareRaster","assetId":"69c7677f-b274-4571-b3ac-08b8a32b4e52"}},"hash":"sha256:9d372e8a4008cf31ac976977a27ed924f79995f0f662de896e0225b5909983be","operationId":"b817595d-9af2-45c8-9740-9e1c1663209d","phase":"preparing"},"originalCommand":{"protocolVersion":1,"command":{"schemaVersion":1,"commandId":"8b57b5ca-9daf-489e-84c4-6a5a15b3cec4","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"2d86fb43-c4b2-4b63-bc76-88180479691c","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"PrepareRaster","assetId":"69c7677f-b274-4571-b3ac-08b8a32b4e52"}}},"migration":{"backup":"schema4-backup-0722dc48-d7b5-485a-9d78-0ad1b5315181.sqlite","backupHash":"sha256:31d74e75242bfb6cf2d0c47c9709b23ecdd5f3c4c8d801e8462622344ff77a7c","capability":"raster-pending-approval-v1","from":4,"manifest":{"asset_dependencies":{"count":"5","hash":"58a291630a75d3e0b7607b7ccc5eb8d09e83eafa1c0416471dcd3a2e37eafc6d"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"e9b8a0f362d522b310a67b0ebe71c330208c02a7599bccbd9fbf4830aac586b7"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"37dce2888e493ed1aec8cc41bc4e93051f6eb37542309e02fbb2ca185aff3143"},"commands":{"count":"4","hash":"4eff4a14b90e01ab44ac3d70c7402b337b2e4a759304ecdc2b071b5ad73ad178"},"documents":{"count":"1","hash":"4883f8276b89ee9b1f08cf132bb1268ede39ec63f6df9c9827ccdf0796f4e79b"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"108652472c92acd9b74f1c51c2cf471e93a12d3a1e6b34cc8b2542302ed4788e"},"history":{"count":"1","hash":"2abba9b3368d8f6c6f2be1ad05ce45f3e3dae008c491f50d65430c06c2f9c875"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"76b20f2834a66f2e0529e63e965b00c006ea0f096abf8fae6580083a2dec4297"},"raster_preparations":{"count":"1","hash":"527374e6338468e1886a0339e8191f878ac99aa734999686a3d755152648c54f"},"raster_reviews":{"count":"1","hash":"e265068c3b24872d5aa9877b0c9ea10eb81f8daa5ec72ef3eb02cd7e6cc4eeda"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"bea8cd647050a2d1a691319de6cc28018d68c14c6852117d80711689e71871ab"},"schema_migrations":{"count":"3","hash":"9f7789c1636256b27d68914eafad70200b120d249077dedb7a25eff9a2b02c23"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f6d2f1c9e0cd0a1a37a8fe6de297ea5bfd57c6c1d16db65c0579116c7af5f336","staged_assets":{"count":"3","hash":"a9be54e21467525d86d7629bd279ea63f63255f6db4dfbc269bcb844a1290b4c"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema4-backup-0722dc48-d7b5-485a-9d78-0ad1b5315181.sqlite.manifest.json","rollback":{"compatibleExecutable":"dfa383d56d21bc9c7bb40248db8a503fe33e6e46","pendingApprovals":0},"strategy":"semantic-version-verified-backup-transactional-activation","to":5},"originalHashes":{"objects/sha256/10/10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","objects/sha256/2f/2f3e923287f4774cca06e8fdd8434b6c0181d48e5c9948b09bb68561bb9e907c":"sha256:2f3e923287f4774cca06e8fdd8434b6c0181d48e5c9948b09bb68561bb9e907c","objects/sha256/44/447d3a3647b4a7872229aeac8df1869e484681ecfebdc95c2d04b533aacc358b":"sha256:447d3a3647b4a7872229aeac8df1869e484681ecfebdc95c2d04b533aacc358b","objects/sha256/6f/6f24d5e2d2ae2a925db25c429a7fceb690fc7cb53bb909b52438538b4d9ff02d":"sha256:6f24d5e2d2ae2a925db25c429a7fceb690fc7cb53bb909b52438538b4d9ff02d","objects/sha256/b7/b703ce1c98980cbb1dfb0cc6fae32a617f9d6a985e390045ff736ee74839b3fe":"sha256:b703ce1c98980cbb1dfb0cc6fae32a617f9d6a985e390045ff736ee74839b3fe","objects/sha256/cf/cf572f5aabe811670c63de2cbf0e9f86ac25bc84942d190d4c44abf25632a38a":"sha256:cf572f5aabe811670c63de2cbf0e9f86ac25bc84942d190d4c44abf25632a38a"},"oldWriterRefusals":["dfa383d56d21bc9c7bb40248db8a503fe33e6e46","7388d1e625a6ac2c563bc64cca6318d264649acc"],"rollbackResult":{"epoch":"2","state":{"record":{"hash":"sha256:9d372e8a4008cf31ac976977a27ed924f79995f0f662de896e0225b5909983be","command":{"body":{"assetId":"69c7677f-b274-4571-b3ac-08b8a32b4e52","type":"PrepareRaster"},"causationId":null,"clientId":"client_1","commandId":"8b57b5ca-9daf-489e-84c4-6a5a15b3cec4","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"2d86fb43-c4b2-4b63-bc76-88180479691c"},"receipt":{"commandId":"8b57b5ca-9daf-489e-84c4-6a5a15b3cec4","documentRevision":null,"fromSeq":"5","status":"accepted","toSeq":"5","transactionId":"2d86fb43-c4b2-4b63-bc76-88180479691c"}},"pending":null}}}
+✔ schema5 preserves 7388d1e pending approval and names an actually usable rollback executable (1775.846333ms)
+ℹ {"case":"existing-7388d1e-approval","pending":{"command":{"schemaVersion":1,"commandId":"983d6564-03e0-4a1c-8c87-b4e5a5545da0","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"5a8733d3-4253-4828-9db2-cc6f2914d5bf","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"ApproveRaster","assetId":"5d03d206-437a-49c3-9cce-68acb07d70c7","reviewId":"fb8a2e97-f1a3-4441-b415-9ca111653bcf","reviewHash":"sha256:f78bef805179a633a79b2e109991f02190142b0a097a16c7724eed23bc6c9e39"}},"hash":"sha256:18a7609be289acb0c7f04c073b72b8ee94c92fd4ed88546581d78c36dbeeee0b","operationId":"54bb04d8-d5ce-4086-91b8-be97f517e8b4","phase":"preparing"},"originalCommand":{"protocolVersion":1,"command":{"schemaVersion":1,"commandId":"983d6564-03e0-4a1c-8c87-b4e5a5545da0","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"5a8733d3-4253-4828-9db2-cc6f2914d5bf","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"ApproveRaster","assetId":"5d03d206-437a-49c3-9cce-68acb07d70c7","reviewId":"fb8a2e97-f1a3-4441-b415-9ca111653bcf","reviewHash":"sha256:f78bef805179a633a79b2e109991f02190142b0a097a16c7724eed23bc6c9e39"}}},"migration":{"backup":"schema4-backup-8f7b7367-7f68-4dc6-a5a5-0bbd9f9e1c7b.sqlite","backupHash":"sha256:1efb57797c60b437125aba0c6d4e7ad4b6a6e13f6b930809a5415d0fb79a2495","capability":"raster-pending-approval-v1","from":4,"manifest":{"asset_dependencies":{"count":"5","hash":"174cc7a13fc8f26662449e3ef8033f9e7d3db5c7653bf87ef95b71e84be2cd95"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"1db1648787fe647fe2942f1e541952048d63011bb669ee7170f876bd9b1625bd"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"9f6a5ec4de87fceedde13d232cf605e1c293c22ca0032eb2689b85967456b3b2"},"commands":{"count":"4","hash":"f329384de5bbf7db6d4da5c733e8223860af818b13d1a6843946c65e5f7d7082"},"documents":{"count":"1","hash":"26c694290565b8060ab4868cb1f640e7cd112b08834a24b9006f609a539ecab6"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"3ab87e4571148a380656cd785bbae15b499c2d6349e628eefa5a4a12d2076575"},"history":{"count":"1","hash":"a1e8ba33cd0f77c2ce6d4f802f47aa36b37ffed71fbf71d6bef26219bc37f7a4"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"ab59d120ba52a1d9106a161df0355c60d1cc089ec08ce5305df534cbc8f610d9"},"raster_preparations":{"count":"1","hash":"346aa25e19cec9ee55f3c1e7daf6541e0be23f8a4fb52dfc3b3fbf375bc8aa36"},"raster_reviews":{"count":"1","hash":"c4a0d68b64d97ca463d60d80a94d8cf1c375ff771b5c21036f83ae4a1665edca"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"4cd09f87105b6ea0431fba3f5de0b4373b232be2d6214eff89ba8d8eca276b9f"},"schema_migrations":{"count":"3","hash":"9f7789c1636256b27d68914eafad70200b120d249077dedb7a25eff9a2b02c23"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f6d2f1c9e0cd0a1a37a8fe6de297ea5bfd57c6c1d16db65c0579116c7af5f336","staged_assets":{"count":"3","hash":"982d8f79d6f7dc53c2147be409ef438b977181ab5069017409a95a9a70d5e102"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema4-backup-8f7b7367-7f68-4dc6-a5a5-0bbd9f9e1c7b.sqlite.manifest.json","rollback":{"compatibleExecutable":"7388d1e625a6ac2c563bc64cca6318d264649acc","pendingApprovals":1},"strategy":"semantic-version-verified-backup-transactional-activation","to":5},"originalHashes":{"objects/sha256/10/10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","objects/sha256/2f/2f3e923287f4774cca06e8fdd8434b6c0181d48e5c9948b09bb68561bb9e907c":"sha256:2f3e923287f4774cca06e8fdd8434b6c0181d48e5c9948b09bb68561bb9e907c","objects/sha256/6f/6f24d5e2d2ae2a925db25c429a7fceb690fc7cb53bb909b52438538b4d9ff02d":"sha256:6f24d5e2d2ae2a925db25c429a7fceb690fc7cb53bb909b52438538b4d9ff02d","objects/sha256/b7/b703ce1c98980cbb1dfb0cc6fae32a617f9d6a985e390045ff736ee74839b3fe":"sha256:b703ce1c98980cbb1dfb0cc6fae32a617f9d6a985e390045ff736ee74839b3fe","objects/sha256/cf/cf572f5aabe811670c63de2cbf0e9f86ac25bc84942d190d4c44abf25632a38a":"sha256:cf572f5aabe811670c63de2cbf0e9f86ac25bc84942d190d4c44abf25632a38a","objects/sha256/dd/dd5f97e143e9d79207f1d56d655b625d0504df8166f7073e8fda6a84d5d2547b":"sha256:dd5f97e143e9d79207f1d56d655b625d0504df8166f7073e8fda6a84d5d2547b"},"oldWriterRefusals":["dfa383d56d21bc9c7bb40248db8a503fe33e6e46","7388d1e625a6ac2c563bc64cca6318d264649acc"],"rollbackResult":{"epoch":"2","state":{"record":{"hash":"sha256:18a7609be289acb0c7f04c073b72b8ee94c92fd4ed88546581d78c36dbeeee0b","command":{"body":{"assetId":"5d03d206-437a-49c3-9cce-68acb07d70c7","reviewHash":"sha256:f78bef805179a633a79b2e109991f02190142b0a097a16c7724eed23bc6c9e39","reviewId":"fb8a2e97-f1a3-4441-b415-9ca111653bcf","type":"ApproveRaster"},"causationId":null,"clientId":"client_1","commandId":"983d6564-03e0-4a1c-8c87-b4e5a5545da0","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"5a8733d3-4253-4828-9db2-cc6f2914d5bf"},"receipt":{"code":"INVALID_INPUT","commandId":"983d6564-03e0-4a1c-8c87-b4e5a5545da0","currentRevision":null,"details":{"byteLength":"83","hash":"sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9","mediaType":"application/json"},"status":"rejected"}},"pending":null}}}
+✔ unknown future storage is inspected without mutation and returns explicit recovery guidance (678.046625ms)
+✖ schema5 capacity failure retains schema4 and every request, then retries safely (1089.613ms)
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (1311.159292ms)
+✔ activation rechecks the verified database backup before publishing schema5 (1428.191ms)
+✔ activation rechecks the verified manifest backup before publishing schema5 (1429.911375ms)
+✔ SIGKILL approval-schema-before-backup preserves pending approval and restarts exactly (1246.835875ms)
+✔ SIGKILL approval-schema-backup-written preserves pending approval and restarts exactly (1151.572875ms)
+✔ SIGKILL approval-schema-backup-verified preserves pending approval and restarts exactly (1120.612542ms)
+✔ SIGKILL approval-schema-before-activation preserves pending approval and restarts exactly (1099.741375ms)
+✔ SIGKILL approval-schema-after-activation preserves pending approval and restarts exactly (1035.746584ms)
+✔ shared two IO slots, combined64 preparations, exact pending identity and conflicting writer command (7749.10775ms)
+✔ disk admission retains pending identity and later resumes same operation; original bytes are retained (1136.881375ms)
+✔ raster typed snapshots retain full closure and exact pixels after full-log and snapshot reopen (2735.188083ms)
+✖ schema4 migration preserves exact approvede8b9f1a data and its prior-code rollback (1066.901458ms)
+✖ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (298.830708ms)
+✔ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (282.785208ms)
+✔ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (314.882125ms)
+✔ SEC03: one-use pairing is atomic and expires at precisely five minutes (327.836041ms)
+✔ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (282.925417ms)
+✔ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (473.602166ms)
+✔ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (375.207708ms)
+✔ session boundary: implemented routes stay authenticated, unfinished routes deny access, and keys never reach responses (419.525ms)
+✔ SEC06: real private root/file permissions, symlink and insecure-root rejection (693.3715ms)
+✔ SEC03/06: root replacement invalidates the running boundary without modifying user data (338.585375ms)
+✔ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (319.243583ms)
+ℹ Host supports case aliases.
+✔ SEC03: actual killed-process restart rejects old cookie, CSRF and unused pairing; leaves root data intact (686.833791ms)
+✔ SEC03/05: trusted static build and synchronous fragment-removal contract before shell resources (341.48575ms)
+✔ Launcher: private fragment goes only to browser callback; executable launch records an OS-selected origin (686.185458ms)
+✔ OS ownership: competing processes and case aliases refuse; death releases ownership and fences old callbacks (965.713666ms)
+ℹ Host resolves case aliases; actual alias contention was exercised.
+✔ NewDocument and named checkpoint persist exact facts, history and receipt; replay has no effects (609.099625ms)
+ℹ {"runtime":"26.10.0","sqlite":{"version":"3.53.4","source":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"},"settings":{"journal_mode":"wal","synchronous":2,"foreign_keys":1,"busy_timeout":250,"fullfsync":1,"checkpoint_fullfsync":1,"page_size":4096,"page_count":100,"max_page_count":4294967294},"filesystem":{"type":"26","blockSize":"4096","availableBytes":"590312677376","totalBytes":"1995165736960"},"resources":{"ioChunkBytes":1048576,"maxTransfers":2,"admissionOverheadPercent":25,"freeMarginBytes":"1073741824","metadataHeadroomBytes":"67108864","metadataHeadroomPhysicallyPreallocated":false,"snapshotTailCeiling":500},"observations":{"appendMs":[],"replayMs":9.56412499999999,"snapshot":{"target":250,"pressure":false,"latest":null,"buildMs":0,"sliceMaxMs":0,"activationMs":0},"qualification":false},"memory":{"rss":97697792,"heapTotal":15613952,"heapUsed":12504904,"external":5856127,"arrayBuffers":1442751}}
+✔ canonical delivery: whitespace/key order retry once; changed provenance or Unicode conflicts without replacement (372.665542ms)
+✔ public command boundary rejects duplicate keys, unknown fields/types, malformed UTF-8 and oversize without receipts (378.606375ms)
+✔ concurrent revision race accepts exactly one checkpoint and durably rejects the stale draft (664.069875ms)
+✔ all five rejection codes retain exact details; no rejection advances document sequence (740.674583ms)
+✔ missing or corrupt immutable bytes cannot become accepted references and remain visible at restart (659.840459ms)
+✔ streamed objects verify actual lengths/hashes, deduplicate bytes, retain orphans and obey admission reservations (966.498ms)
+✔ root modes, hardlinks, symlink subfiles and replaced paths fail closed without touching targets (780.863166ms)
+✔ application-data defaults are explicit and refuse silent migration of the earlier root (1.212125ms)
+✔ large event content is rejected without truncation; real snapshots preserve history past 500 events (3403.861083ms)
+✔ SIGKILL at before-object-write: unfinished bytes never appear as an accepted document (595.95875ms)
+✔ SIGKILL at before-object-flush: unfinished bytes never appear as an accepted document (526.232ms)
+✔ SIGKILL at after-object-flush: unfinished bytes never appear as an accepted document (554.101917ms)
+✔ SIGKILL at before-object-rename: unfinished bytes never appear as an accepted document (530.387667ms)
+✔ SIGKILL at after-object-rename: unfinished bytes never appear as an accepted document (542.272833ms)
+✔ SIGKILL at after-object-directory-sync: unfinished bytes never appear as an accepted document (611.077166ms)
+✔ SIGKILL at before-event-insert: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (816.755125ms)
+✔ SIGKILL at before-commit: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (817.822583ms)
+✔ SIGKILL at after-commit: receipt, event, roots and projection recover together; same-ID retry resolves lost delivery (748.59975ms)
+✔ real SQLite SQLITE_FULL rolls back acceptance and rejection receipts, then exact retry succeeds after capacity returns (832.15825ms)
+✔ real filesystem permission failure during rename leaves no accepted reference and can retry unchanged bytes (572.982334ms)
+✔ SQLite busy timeout is bounded off the parent event loop; failed mutation has no durable receipt (612.404958ms)
+ℹ {"busyTimeoutObservedMs":286.8702920000005,"parentResponseDuringWorkerBusyMs":0.3064590000003591,"performanceQualification":false}
+✔ all durable subfiles remain owner-only, including WAL, shared-memory file and abandoned staging (331.574959ms)
+✔ schema9 fences the actual approved renderer foundation writer and verifies schema8 rollback including pending portable captures (2004.781875ms)
+ℹ {"migration":{"backup":"schema8-backup-2bb7fdbc-e489-4f10-8e67-38ee8d65e1d2.sqlite","backupHash":"sha256:de157bc966340ded2c5b9a676fc1f0b35ca2792a72c68d1c8d5b902a66f69f43","capability":"durable-text-v1-pf3-projection4","from":8,"manifest":{"asset_dependencies":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"dc49aa7fb393476d23782bdac1ed8199a9da7572b94d964d06706514b466331f"},"commands":{"count":"4","hash":"5fa180efe09880228c6a551fea91233b8cee1ae49fa54245672c7069c55d3ab4"},"documents":{"count":"2","hash":"08a84ade9a798b22471229fa889d664ecabd8bbfec86360c8d02301d0ca35cc6"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"e59b0fb20b1bbc2e5d054308a5a127c649fe2e1ce3bd54d75949f029e364c4b2"},"history":{"count":"2","hash":"9e6632653dac1a3b5a6b0125068ba3a6bbe0b0b061a11d620043bcc5ddf80739"},"history_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_edit_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_previews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"meta":{"count":"2","hash":"821a4178fd4871ad8facd081bfcfddf32ab8f80baa23c2e2ca1ccb288bfd3fe0"},"objects":{"count":"4","hash":"a4482939984abccb18292a4c910d7c558b612945c7184b89beca28c361fe57fe"},"portable_bundles":{"count":"1","hash":"e3520f5da37f2f2b888db8c1fed08c51369fadb0b601f4adde1f8449ccf9d5e8"},"portable_cancellations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"portable_maps":{"count":"3","hash":"45970746baa8b0e32aa32f0b317241a6e87631ef2b2f7d03de094bbe3a36fd5b"},"portable_namespaces":{"count":"1","hash":"b30efaaa77a813a5cb30d624dd4f83e7201e08860d0cf328956df7a21810c952"},"portable_pins":{"count":"1","hash":"7cdb41778de41ace123e56c3b22cc372ae3127e143eb333107b99d1d9bda1544"},"portable_preparations":{"count":"1","hash":"37608a82a2674dbbae525f237e656c56b5200c7cd10d936eb8fdc6554eb22c38"},"portable_quarantined_hashes":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"portable_review_maps":{"count":"3","hash":"137983b18727c2a1f66f9a7be9aec004788f96ef238ed4e48ca52c3bdfe9eaa8"},"portable_review_sources":{"count":"1","hash":"f0eaaba8a542dbe93bd5a14d555245cedc1c10933bad4c995f15ca1cf40f9edc"},"portable_reviews":{"count":"1","hash":"f229643dad29dbc4be97849e9eb55532498a403308385e276fc89bcfee8f943e"},"portable_rows":{"count":"2","hash":"9b028c8beef73968ead27ac223b23447a8011a6cf9df5ca886493d27b54a5df3"},"raster_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"raster_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"10","hash":"704f8abb992a9857eea574de12547e17e909bfba9714082c432929a26e927c75"},"schema_migrations":{"count":"7","hash":"de1b90124617af7062cd69a7c1e723908237245abbd91685e8c6616bb58610bb"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f1c80afb8934ee4c3efb36dda413a29674e6969d65ff3bbceffe060025e018e5","staged_assets":{"count":"1","hash":"9dc9534bfc5b7b6d3dff2b06084de69f815121e59780ac0a42bc2de062686c18"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_receipts":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema8-backup-2bb7fdbc-e489-4f10-8e67-38ee8d65e1d2.sqlite.manifest.json","rollback":{"compatibleExecutable":"dcd5f11dbd57cd7ed00c8ddf410857ce4700440e"},"strategy":"semantic-version-verified-backup-transactional-activation","to":9},"priorRefusal":"UNSUPPORTED_STORAGE","rollbackCommand":"7ecc80e6-ad23-4d63-8944-d0b1b1fd9e0a","rollbackReceipt":{"commandId":"7ecc80e6-ad23-4d63-8944-d0b1b1fd9e0a","documentRevision":"1","fromSeq":"5","status":"accepted","toSeq":"5","transactionId":"8fbdf255-6b9b-473c-8a2e-846eb0c9bd09"},"allOriginalTablesAndFilesPreserved":true}
+✔ schema9 capacity refusal leaves schema8 and exact pending requests intact (1351.285625ms)
+✔ schema9 activation refuses changed backup-written without altering source (1434.173041ms)
+✔ schema9 activation refuses changed database without altering source (1552.797917ms)
+✔ schema9 activation refuses changed manifest without altering source (1336.4935ms)
+✔ schema9 SIGKILL before-backup retains pending identity and original portable files (1453.844667ms)
+✔ schema9 SIGKILL backup-written retains pending identity and original portable files (1473.585958ms)
+✔ schema9 SIGKILL backup-verified retains pending identity and original portable files (1416.759375ms)
+✔ schema9 SIGKILL before-activation retains pending identity and original portable files (1412.738459ms)
+✔ schema9 SIGKILL after-activation retains pending identity and original portable files (1448.395917ms)
+ℹ tests 516
+ℹ suites 0
+ℹ pass 498
+ℹ fail 18
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 475347.519458
+
+✖ failing tests:
+
+test at tests/assets/storage.test.mjs:18:1
+✖ actual7ef07dd migration preserves all retained tables and verified rollback database (2322.731917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/storage.test.mjs:24:76)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/history/schema.test.mjs:72:1
+✖ schema6 capacity failure retains schema5 and every request, then retries safely (1075.603458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/schema.test.mjs:74:152)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/history/schema.test.mjs:76:1
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (1009.056916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/schema.test.mjs:79:230)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/schema.test.mjs:72:1
+✖ schema7 capacity failure retains schema6 and every request, then retries safely (951.76325ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:74:152)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/schema.test.mjs:76:1
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (974.008167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:79:230)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transaction-schema.test.mjs:25:1
+✖ schema8 capacity refusal leaves schema7 and exact pending requests intact (1343.941917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:25:380)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL before-backup retains pending identity and original portable files (1423.312458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:27:546)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL backup-written retains pending identity and original portable files (1543.377792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:27:546)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL backup-verified retains pending identity and original portable files (1495.4235ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:27:546)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL before-activation retains pending identity and original portable files (1621.463459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:27:546)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL after-activation retains pending identity and original portable files (1532.210916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:27:546)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transactions.test.mjs:10:1
+✖ format2 public roundtrip retains exact original receipt bounds and canonical event bytes (1055.363042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  3 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transactions.test.mjs:11:142)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/transactions.test.mjs:39:1
+✖ legacy format1 retains inspection and explicitly refuses editable publication (1078.720917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'UNSUPPORTED_FORMAT_VERSION'
+  - 'LEGACY_TRANSACTION_BOUNDS_UNAVAILABLE'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transactions.test.mjs:40:395)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'UNSUPPORTED_FORMAT_VERSION',
+    expected: 'LEGACY_TRANSACTION_BOUNDS_UNAVAILABLE',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/protocol/recovery.test.mjs:47:1
+✖ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (1001.714625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/recovery.test.mjs:55:82)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/schema.test.mjs:73:1
+✖ schema5 capacity failure retains schema4 and every request, then retries safely (1089.613ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/schema.test.mjs:75:152)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/schema.test.mjs:77:1
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (1311.159292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/schema.test.mjs:80:230)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/storage.test.mjs:41:1
+✖ schema4 migration preserves exact approvede8b9f1a data and its prior-code rollback (1066.901458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  9 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/storage.test.mjs:45:202)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/session/http.test.mjs:18:1
+✖ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (298.830708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      connectionState: 'unknown',
+      credentialConfigured: false,
+      limits: [],
+      profiles: [
+  ...
+          id: 'PF-1',
+  +       state: 'unqualified',
+  +       version: '3'
+  +     },
+  +     {
+  +       id: 'TEXT-DURABLE',
+  +       state: 'unqualified',
+  -       state: 'unavailable',
+          version: '1'
+        }
+      ],
+  +   projectionSchema: 4,
+  -   projectionSchema: 3,
+      protocolVersion: 1,
+      serverVersion: '0.1.0',
+      storageState: 'ready'
+    }
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:43:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 4, credentialConfigured: false, storageState: 'ready', connectionState: 'unknown', limits: [], profiles: [ [Object], [Object], [Object], [Object], [Object] ] },
+    expected: { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 3, credentialConfigured: false, storageState: 'ready', connectionState: 'unknown', limits: [], profiles: [ [Object], [Object], [Object], [Object] ] },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

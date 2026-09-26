@@ -1,0 +1,28 @@
+✖ native chromium durable text/history/copy/restart exact identities (10529.230416ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10728.145
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:14:77
+✖ native chromium durable text/history/copy/restart exact identities (10529.230416ms)
+  page.evaluate: AssertionError: {"commandId":"231eac1b-3ecc-44cf-9fa2-6ce0d69b895a","kind":"pending","operationId":"d548397e-4d5a-486a-ab13-1e2196c19740","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/231eac1b-3ecc-44cf-9fa2-6ce0d69b895a"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async workspace (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:9:115)
+      at async stage (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:16:188)
+      at async BindingCall.call (/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright-core/lib/coreBundle.js:62048:27)
+      at async _Page._onBinding (/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright-core/lib/coreBundle.js:61460:11)
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:29:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:37:26) {
+    log: []
+  }

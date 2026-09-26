@@ -1,0 +1,22 @@
+✖ native chromium durable text/history/copy/restart exact identities (1339.795ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1505.90675
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:14:77
+✖ native chromium durable text/history/copy/restart exact identities (1339.795ms)
+  page.evaluate: Error: TEXT_PROFILE_UNAVAILABLE
+      at z (http://127.0.0.1:61551/assets/index-BtQolWYd.js:1:45611)
+      at async DurableTextPreparation.prepare (http://127.0.0.1:61551/assets/index-BtQolWYd.js:1:46651)
+      at async <anonymous>:337:30
+      at candidate (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:29:27)
+      at async TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:34:26) {
+    log: []
+  }

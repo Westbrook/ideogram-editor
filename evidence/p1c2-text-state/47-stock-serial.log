@@ -1,0 +1,73 @@
+vite v8.3.1 building client environment for production...
+transforming...
+[plugin rolldown:vite-resolve] Module "fs" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "path" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "fs" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "path" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+✓ 17 modules transformed.
+rendering chunks...
+computing gzip size...
+artifacts/p1c2/stock-47/artifacts/p1c1/app/index.html                                         0.24 kB │ gzip:     0.18 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/heap-worker-B08pHl_T.js                    88.89 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/worker-RcYXK4Xv.js                        119.58 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/NotoSansArabic-Regular-CEibNoL-.ttf       240.45 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/NotoSans-Regular-Dpf_lrdO.ttf             569.20 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/NotoSansSymbols2-Regular-Dcz4cXYm.ttf     656.85 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/canvaskit-B2Vb3rWN.wasm                 4,979.35 kB │ gzip: 2,059.12 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/NotoSansCJKsc-Regular-DxgKpThH.otf     16,437.36 kB
+artifacts/p1c2/stock-47/artifacts/p1c1/app/assets/index--AUlMSO6.js                          44.72 kB │ gzip:    18.46 kB
+
+✓ built in 118ms
+
+Running 42 tests using 1 worker
+
+(node:97614) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/text/renderer.spec.ts:32:1 › real worker Latin, combining, ligature and supplementary mapping (1.3s)
+  ✓   2 [chromium] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (1.0s)
+  ✓   3 [chromium] › tests/text/renderer.spec.ts:77:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (5.0s)
+  ✓   4 [chromium] › tests/text/renderer.spec.ts:105:1 › missing diagnostics identify native affected spans without blaming supported clusters (183ms)
+  ✓   5 [chromium] › tests/text/renderer.spec.ts:144:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (141ms)
+  ✓   6 [chromium] › tests/text/renderer.spec.ts:178:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (100ms)
+  ✓   7 [chromium] › tests/text/renderer.spec.ts:209:1 › latest preview queue coalesces obsolete requests and releases disposal exactly once (118ms)
+  ✓   8 [chromium] › tests/text/renderer.spec.ts:230:1 › pinned WASM allocator refuses growth above the explicit worker heap cap (113ms)
+  ✓   9 [chromium] › tests/text/renderer.spec.ts:240:1 › historical native font cache occupancy triggers a bounded cold recycle (236ms)
+  ✓  10 [chromium] › tests/text/renderer.spec.ts:258:1 › native font allocation pressure recycles once without substituting current font bytes (362ms)
+  ✓  11 [chromium] › tests/text/renderer.spec.ts:274:1 › repeated native cancellation preserves saved output and admits each new generation (348ms)
+  ✓  12 [chromium] › tests/text/renderer.spec.ts:294:1 › engine load failure releases private reservations and permits a fresh native worker (538ms)
+  ✓  13 [chromium] › tests/text/renderer.spec.ts:308:1 › shared reservations reject oversized work before worker allocation and preserve inputs (81ms)
+  ✓  14 [chromium] › tests/text/renderer.spec.ts:326:1 › stock native storage reset requires observed closure of every actual text worker (487ms)
+(node:98313) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  15 [webkit] › tests/text/renderer.spec.ts:32:1 › real worker Latin, combining, ligature and supplementary mapping (962ms)
+  ✓  16 [webkit] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (859ms)
+  ✓  17 [webkit] › tests/text/renderer.spec.ts:77:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (4.8s)
+  ✓  18 [webkit] › tests/text/renderer.spec.ts:105:1 › missing diagnostics identify native affected spans without blaming supported clusters (319ms)
+  ✓  19 [webkit] › tests/text/renderer.spec.ts:144:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (231ms)
+  ✓  20 [webkit] › tests/text/renderer.spec.ts:178:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (180ms)
+  ✓  21 [webkit] › tests/text/renderer.spec.ts:209:1 › latest preview queue coalesces obsolete requests and releases disposal exactly once (195ms)
+  ✓  22 [webkit] › tests/text/renderer.spec.ts:230:1 › pinned WASM allocator refuses growth above the explicit worker heap cap (199ms)
+  ✓  23 [webkit] › tests/text/renderer.spec.ts:240:1 › historical native font cache occupancy triggers a bounded cold recycle (386ms)
+  ✓  24 [webkit] › tests/text/renderer.spec.ts:258:1 › native font allocation pressure recycles once without substituting current font bytes (450ms)
+  ✓  25 [webkit] › tests/text/renderer.spec.ts:274:1 › repeated native cancellation preserves saved output and admits each new generation (431ms)
+  ✓  26 [webkit] › tests/text/renderer.spec.ts:294:1 › engine load failure releases private reservations and permits a fresh native worker (616ms)
+  ✓  27 [webkit] › tests/text/renderer.spec.ts:308:1 › shared reservations reject oversized work before worker allocation and preserve inputs (176ms)
+  ✓  28 [webkit] › tests/text/renderer.spec.ts:326:1 › stock native storage reset requires observed closure of every actual text worker (1.5s)
+(node:98993) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  29 [firefox] › tests/text/renderer.spec.ts:32:1 › real worker Latin, combining, ligature and supplementary mapping (1.5s)
+  ✓  30 [firefox] › tests/text/renderer.spec.ts:50:1 › real worker RTL per paragraph, bidi runs, CJK and exact retained bytes (1.0s)
+  ✓  31 [firefox] › tests/text/renderer.spec.ts:77:1 › CPU straight alpha, fractional clip, wrapping, empty text and explicit direction (5.6s)
+  ✓  32 [firefox] › tests/text/renderer.spec.ts:105:1 › missing diagnostics identify native affected spans without blaming supported clusters (610ms)
+  ✓  33 [firefox] › tests/text/renderer.spec.ts:144:1 › missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation (234ms)
+  ✓  34 [firefox] › tests/text/renderer.spec.ts:178:1 › exact admission boundaries preserve input and reject unsafe indices and geometry (183ms)
+  ✓  35 [firefox] › tests/text/renderer.spec.ts:209:1 › latest preview queue coalesces obsolete requests and releases disposal exactly once (207ms)
+  ✓  36 [firefox] › tests/text/renderer.spec.ts:230:1 › pinned WASM allocator refuses growth above the explicit worker heap cap (200ms)
+  ✓  37 [firefox] › tests/text/renderer.spec.ts:240:1 › historical native font cache occupancy triggers a bounded cold recycle (324ms)
+  ✓  38 [firefox] › tests/text/renderer.spec.ts:258:1 › native font allocation pressure recycles once without substituting current font bytes (827ms)
+  ✓  39 [firefox] › tests/text/renderer.spec.ts:274:1 › repeated native cancellation preserves saved output and admits each new generation (572ms)
+  ✓  40 [firefox] › tests/text/renderer.spec.ts:294:1 › engine load failure releases private reservations and permits a fresh native worker (684ms)
+  ✓  41 [firefox] › tests/text/renderer.spec.ts:308:1 › shared reservations reject oversized work before worker allocation and preserve inputs (176ms)
+  ✓  42 [firefox] › tests/text/renderer.spec.ts:326:1 › stock native storage reset requires observed closure of every actual text worker (2.1s)
+
+  42 passed (39.0s)

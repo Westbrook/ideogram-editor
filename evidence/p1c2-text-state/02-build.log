@@ -1,0 +1,4 @@
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+server/storage/history.ts(115,28): error TS2339: Property 'layerVersion' does not exist on type '{ type: "ApplyTransform"; layerId: string; layerVersion: string; transform: Affine; draft: DraftFence | null; } | { type: "SetLayerProperties"; layerId: string; layerVersion: string; properties: Partial<...>; draft: DraftFence | null; } | ... 5 more ... | { ...; }'.
+  Property 'layerVersion' does not exist on type '{ type: "CreateTextLayer"; layerId: string; name: string; candidate: BlobRef; draft: DraftFence; admissionId: string; }'.

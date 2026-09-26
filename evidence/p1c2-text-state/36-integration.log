@@ -1,0 +1,79 @@
+✔ durable font parser is exactly the approved bounded parser algorithm (1.116541ms)
+✔ real font worker refuses restricted and corrupt staged bytes without altering the document (721.664458ms)
+✔ text realms share the writer budget; retries renew one owner and explicit release returns capacity (363.521042ms)
+✖ native chromium durable text/history/copy/restart exact identities (11573.337875ms)
+✖ native webkit durable text/history/copy/restart exact identities (15285.965ms)
+✖ native firefox durable text/history/copy/restart exact identities (15395.12525ms)
+✔ schema9 fences the actual approved renderer foundation writer and verifies schema8 rollback including pending portable captures (2059.024459ms)
+ℹ {"migration":{"backup":"schema8-backup-ebe2dcc2-b9a6-455e-a3b6-fa4bf7373e09.sqlite","backupHash":"sha256:acb19f0456bd967c41a900ea29052759d82b9f0a64371e45a67dbf7050f34d84","capability":"durable-text-v1-pf3-projection4","from":8,"manifest":{"asset_dependencies":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"92a565316e027b53173bf1d03dc94176b335c81c1530fd2a7687de6409c76373"},"commands":{"count":"4","hash":"0ebea83be93cc066a449a95e2f0441d7de55eec1f5edd61a5c12f51fa8198e27"},"documents":{"count":"2","hash":"6d8232a5e2511066136901a649a339f4d932d27bc1d1279f02399d5b241ae75a"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"e2ffca63a7c51d1bfeb894cc636225cd91270ec0faf73394fc3d88d27f9017e0"},"history":{"count":"2","hash":"1dc7247d137fded17529a824de92e8996f6ad78655f89d97569d772339b4a05f"},"history_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_edit_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_previews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"meta":{"count":"2","hash":"821a4178fd4871ad8facd081bfcfddf32ab8f80baa23c2e2ca1ccb288bfd3fe0"},"objects":{"count":"4","hash":"568dee5e666bb5be842b0c04826d7fad753c4027f28d9d63296d4aed6d9d6b80"},"portable_bundles":{"count":"1","hash":"223614e8176dc258ff3d145abd05effaf5fd043a63f72a76e78f62dbbfbf3886"},"portable_cancellations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"portable_maps":{"count":"3","hash":"31498bc36bcb8d1acbabee64bec9a030fa4371201e38d36e16ed755fd78ae085"},"portable_namespaces":{"count":"1","hash":"6aad151f12e5efa1409ea74aa2747f8a5dc44366f5aee116dc1ebfdde381ef46"},"portable_pins":{"count":"1","hash":"d4be7c2e9b4084291e452595deab3e329864db8d509a81a6a4cae4d5413f306a"},"portable_preparations":{"count":"1","hash":"e388af59c9d514d2761c935790a20c44395148e196ac401a24176d934eaf5b1d"},"portable_quarantined_hashes":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"portable_review_maps":{"count":"3","hash":"4682ca5d568d461765354c504a4e9c13cf2ce544ef229e4496c5b9f9e647402a"},"portable_review_sources":{"count":"1","hash":"572458f86872d02ff45ef576689b2b0c9fa8bcf07a137adedfd5e52c4e246805"},"portable_reviews":{"count":"1","hash":"9cd327737b569c72aa721e654d3fbd6b705df9f7dfe24895dd0b3d764023a0fd"},"portable_rows":{"count":"2","hash":"0778e5213e194f42843a8952a4b9e5e4bba95bf8160a1850ff8d1efbee52c72f"},"raster_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"raster_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"10","hash":"483f7401302f6e967eda88765e5f0081db99c5ba9e9abe91b0cd0d76d841454c"},"schema_migrations":{"count":"7","hash":"de1b90124617af7062cd69a7c1e723908237245abbd91685e8c6616bb58610bb"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f1c80afb8934ee4c3efb36dda413a29674e6969d65ff3bbceffe060025e018e5","staged_assets":{"count":"1","hash":"0be69a4a50649530b28f03fbdca1a7e2ae59f3039b467036557d340695519039"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_receipts":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema8-backup-ebe2dcc2-b9a6-455e-a3b6-fa4bf7373e09.sqlite.manifest.json","rollback":{"compatibleExecutable":"dcd5f11dbd57cd7ed00c8ddf410857ce4700440e"},"strategy":"semantic-version-verified-backup-transactional-activation","to":9},"priorRefusal":"UNSUPPORTED_STORAGE","rollbackCommand":"4219c3d3-765f-4b67-8653-3f358cfae859","rollbackReceipt":{"commandId":"4219c3d3-765f-4b67-8653-3f358cfae859","documentRevision":"1","fromSeq":"5","status":"accepted","toSeq":"5","transactionId":"1a561142-6e12-4840-88b5-f2546942e23d"},"allOriginalTablesAndFilesPreserved":true}
+✔ schema9 capacity refusal leaves schema8 and exact pending requests intact (1477.217334ms)
+✔ schema9 activation refuses changed backup-written without altering source (1377.503417ms)
+✔ schema9 activation refuses changed database without altering source (1358.393583ms)
+✔ schema9 activation refuses changed manifest without altering source (1303.406459ms)
+✔ schema9 SIGKILL before-backup retains pending identity and original portable files (1333.246708ms)
+✔ schema9 SIGKILL backup-written retains pending identity and original portable files (1401.704167ms)
+✔ schema9 SIGKILL backup-verified retains pending identity and original portable files (1396.995208ms)
+✔ schema9 SIGKILL before-activation retains pending identity and original portable files (1400.551333ms)
+✔ schema9 SIGKILL after-activation retains pending identity and original portable files (1345.202125ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 13
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58114.273667
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native chromium durable text/history/copy/restart exact identities (11573.337875ms)
+  page.evaluate: Error: Invalid recovery data
+      at I (http://127.0.0.1:54299/assets/index-DTRw06KP.js:379:4594)
+      at xe.control (http://127.0.0.1:54299/assets/index-DTRw06KP.js:379:22554)
+      at xe.recover (http://127.0.0.1:54299/assets/index-DTRw06KP.js:379:31269)
+      at async eval (eval at evaluate (:311:30), <anonymous>:1:234)
+      at async <anonymous>:337:30
+      at TestContext.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:62:29) {
+    log: []
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native webkit durable text/history/copy/restart exact identities (15285.965ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"2ae46dc7-8408-4369-a343-cc8369724c34","kind":"pending","operationId":"9bebc6d5-51a0-4b02-9160-182d239368cc","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/2ae46dc7-8408-4369-a343-cc8369724c34"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async workspace (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:9:115)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:61:17)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native firefox durable text/history/copy/restart exact identities (15395.12525ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"abe3d33d-045c-4316-930b-ff493a7379ac","kind":"pending","operationId":"6b27b944-9757-4a18-a062-6d070fc36826","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/abe3d33d-045c-4316-930b-ff493a7379ac"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async workspace (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:9:115)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:61:17)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

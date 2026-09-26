@@ -1,0 +1,17 @@
+TAP version 13
+# Subtest: native firefox durable text/history/copy/restart exact identities
+ok 1 - native firefox durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 21725.430167
+  type: 'test'
+  ...
+# {"closed":1,"copyHash":"sha256:c832116015f29d7bd72c82b87c03217f864b6a8bbf62eec9f57963e7c7de0ef7","empty":{"commandId":"15639351-6ad4-46ec-bb11-46f177e3d748","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"07235e6a-d988-4298-a4a3-411ff4e792c5"},"engine":"firefox","first":{"commandId":"a1f8413c-7089-4f61-957e-da1994afe407","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"436a156a-2656-4151-a996-8435489f4529"},"profile":"sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee","source":{"byteLength":"2763","hash":"sha256:a35b424b110fbb715532366b29d4a2bef5821677c30dc33624e98bff8db35817","mediaType":"application/json"},"workers":1}
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21912.621834

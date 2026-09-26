@@ -1,0 +1,3 @@
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+src/protocol/history.ts(16,3): error TS1110: Type expected.

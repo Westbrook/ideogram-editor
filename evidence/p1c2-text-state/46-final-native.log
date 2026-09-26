@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: native chromium durable text/history/copy/restart exact identities
+ok 1 - native chromium durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 19894.588875
+  type: 'test'
+  ...
+# {"closed":1,"copyHash":"sha256:879b630280b9cc3fa50e1138ba354bffbe48462c658257859fafbfe33be0ef09","empty":{"commandId":"f5d81bde-6af8-443b-bcda-86060198d775","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"f4ac65e0-2814-44e0-9848-95c61cf46be2"},"engine":"chromium","first":{"commandId":"ed3fc458-7d13-4fb2-9b57-b9f7936d0900","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"46fb7696-4392-4318-ada9-11718a5be2d1"},"profile":"sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee","source":{"byteLength":"2763","hash":"sha256:a35b424b110fbb715532366b29d4a2bef5821677c30dc33624e98bff8db35817","mediaType":"application/json"},"workers":1}
+# Subtest: native webkit durable text/history/copy/restart exact identities
+ok 2 - native webkit durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 17338.981541
+  type: 'test'
+  ...
+# {"closed":1,"copyHash":"sha256:0d166938f384cce3d90aa58c0ccc11ed22cf2144ea015f420eb34e9bc6b6810e","empty":{"commandId":"71de5350-6794-42a6-aa32-a50ff0765e45","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"736fbaf7-6edc-4e6d-a586-a6ebfcf180a2"},"engine":"webkit","first":{"commandId":"8d0196b7-b7e8-4fa5-bd9a-c06521fb0b7e","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"4ddfcf59-605c-4c4f-a794-b7a3ce4e0ef2"},"profile":"sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee","source":{"byteLength":"2763","hash":"sha256:a35b424b110fbb715532366b29d4a2bef5821677c30dc33624e98bff8db35817","mediaType":"application/json"},"workers":1}
+# Subtest: native firefox durable text/history/copy/restart exact identities
+ok 3 - native firefox durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 17748.937125
+  type: 'test'
+  ...
+# {"closed":1,"copyHash":"sha256:3ffc64f403cc58cf687b7d6bcafb87ea94ee4b162e029d33ab08af85287aa035","empty":{"commandId":"2add292f-bee5-4fab-8e86-b5a87108d9fd","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"50c955a8-918c-4a81-88df-327a48f40390"},"engine":"firefox","first":{"commandId":"07ee0ccb-b19e-49f4-a35f-a7aaa7ae1563","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"2ff526bb-604d-4151-9165-f505bf9b5be3"},"profile":"sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee","source":{"byteLength":"2763","hash":"sha256:a35b424b110fbb715532366b29d4a2bef5821677c30dc33624e98bff8db35817","mediaType":"application/json"},"workers":1}
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55167.337875

@@ -1,0 +1,33 @@
+✖ native chromium durable text/history/copy/restart exact identities (6523.496792ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6684.258042
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:14:77
+✖ native chromium durable text/history/copy/restart exact identities (6523.496792ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"code":"INVALID_INPUT","commandId":"4b8f3dbb-fd5e-427d-bdb1-bb69334f723a","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"rejectionDetails":{"kind":"inline","value":{"issues":[{"code":"PORTABLE_MALFORMED_REQUEST","path":"command.body"}],"kind":"fields"}}}
+  + actual - expected
+  
+  + 'rejected'
+  - 'accepted'
+  
+      at edit (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:8:175)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async copy (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:15:60)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:44:382)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'rejected',
+    expected: 'accepted',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

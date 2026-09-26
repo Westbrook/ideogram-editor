@@ -1,0 +1,20 @@
+npm notice run ideogram-editor@0.1.0 verify:text
+npm notice run node tooling/text/verify.mjs
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: server/http.ts bytes
+
+14400 !== 14334
+
+    at file:///Users/westbrook/Documents/repos/ideogram-edit/tooling/text/verify.mjs:9:43 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 14400,
+  expected: 14334,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

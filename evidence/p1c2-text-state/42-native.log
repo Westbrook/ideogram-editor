@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: native chromium durable text/history/copy/restart exact identities
+ok 1 - native chromium durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 19353.651875
+  type: 'test'
+  ...
+# {"closed":1,"copyHash":"sha256:35fba256cdc3de2cb1bc94db8b5833b8c05d65649b720cd39bde61b535d86c58","empty":{"commandId":"722fd26e-5726-4e77-94ec-5977de27c8af","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"56d8f3eb-d478-4861-a7a1-21f26580faf4"},"engine":"chromium","first":{"commandId":"55a4ee26-48df-444e-9ce7-02c7e8e8cdcc","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"280c1307-6fdb-4b94-b9ae-2f2173905006"},"profile":"sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee","source":{"byteLength":"2763","hash":"sha256:a35b424b110fbb715532366b29d4a2bef5821677c30dc33624e98bff8db35817","mediaType":"application/json"},"workers":1}
+# Subtest: native webkit durable text/history/copy/restart exact identities
+ok 2 - native webkit durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 19496.717625
+  type: 'test'
+  ...
+# {"closed":1,"copyHash":"sha256:71ac692dfdc2c38efd2cd88c0ae8d8172141552973268907526e16c1e786bcc6","empty":{"commandId":"e4443f38-6efc-492a-87d4-36f4048f17a3","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"10a4aa27-49fe-4527-9cb2-b3cbed074eeb"},"engine":"webkit","first":{"commandId":"ee4cd905-f81b-4d50-9d5e-41cf20b8ae18","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"54367cf7-c5ed-410c-a094-b7c06ec0399e"},"profile":"sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee","source":{"byteLength":"2763","hash":"sha256:a35b424b110fbb715532366b29d4a2bef5821677c30dc33624e98bff8db35817","mediaType":"application/json"},"workers":1}
+# Subtest: native firefox durable text/history/copy/restart exact identities
+not ok 3 - native firefox durable text/history/copy/restart exact identities
+  ---
+  duration_ms: 9624.957708
+  type: 'test'
+  location: '/Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:22:77'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:64:192)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 2
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48662.703583

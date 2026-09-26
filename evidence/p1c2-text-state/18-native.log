@@ -1,0 +1,10 @@
+✔ native chromium durable text/history/copy/restart exact identities (8330.420166ms)
+ℹ {"closed":1,"copyHash":"sha256:d4494ca92923e80f35093b3b08be96ac9be48e1aa860455e46a07e2d531de6af","empty":{"commandId":"a2032f62-0c60-4401-b692-3a34766ca354","documentRevision":"3","fromSeq":"23","status":"accepted","toSeq":"25","transactionId":"6b539ff6-ab1d-4c59-98f1-198a780e94cc"},"engine":"chromium","first":{"commandId":"9652e2d6-b0fd-4d7f-a490-67363e748132","documentRevision":"2","fromSeq":"14","status":"accepted","toSeq":"16","transactionId":"c87b22da-fb07-4d7d-83af-478ae9de64c1"},"profile":"sha256:c19791aedcddd732ebcd95ee0b375415d7a1ef96f72d847ad7359f100799ac1e","source":{"byteLength":"2763","hash":"sha256:e855b31d01a5662513d457091c6ca7ef8105728994172519e018448b9d4f7d19","mediaType":"application/json"},"workers":1}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8774.820042

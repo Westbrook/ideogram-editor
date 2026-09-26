@@ -1,0 +1,26 @@
+✖ native chromium durable text/history/copy/restart exact identities (1596.618833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1781.26075
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:14:77
+✖ native chromium durable text/history/copy/restart exact identities (1596.618833ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"code":"INVALID_INPUT","commandId":"ba8bcb4f-a167-4538-8769-644b129fe723","currentRevision":"1","details":{"byteLength":"81","hash":"sha256:9220473ce25407c60e91788d7ae40af172bb3efd8d21b4effbc2fc25eeb45c68","mediaType":"application/json"},"status":"rejected"},"rejectionDetails":{"kind":"inline","value":{"issues":[{"code":"TEXT_LAYOUT_INVALID","path":"command.body"}],"kind":"fields"}}} {"issues":[{"code":"TEXT_LAYOUT_INVALID","path":"command.body"}],"kind":"fields"}
+      at apply (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:33:304)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/text-state/native.test.mjs:35:14)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }

@@ -1,0 +1,11 @@
+✔ durable font parser is exactly the approved bounded parser algorithm (1.469625ms)
+✔ real font worker refuses restricted and corrupt staged bytes without altering the document (873.340333ms)
+✔ text realms share the writer budget; retries renew one owner and explicit release returns capacity (468.74775ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1408.797709
