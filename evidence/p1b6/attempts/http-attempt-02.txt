@@ -1,0 +1,10 @@
+✔ empty document real HTTP copy, review, fresh namespace import and exact retry (988.075ms)
+✔ image retained pixels and old branch reopen in fresh namespace (2364.223208ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3422.88525

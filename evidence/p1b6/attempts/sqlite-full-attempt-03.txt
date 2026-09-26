@@ -1,0 +1,31 @@
+✖ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7211.091208ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7259.466542
+
+✖ failing tests:
+
+test at tests/portable/failure.test.mjs:28:1
+✖ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7211.091208ms)
+  AssertionError [ERR_ASSERTION]: {"protocolVersion":1,"items":[],"next":null}
+  + actual - expected
+  
+  + undefined
+  - 'STORAGE_FULL'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/failure.test.mjs:48:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'STORAGE_FULL',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

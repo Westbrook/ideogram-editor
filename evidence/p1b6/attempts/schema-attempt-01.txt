@@ -1,0 +1,167 @@
+✖ schema7 preserves actual approved schema6 pending preparation and verified rollback (1571.373917ms)
+✖ schema7 preserves actual approved schema6 pending approval and verified rollback (677.245792ms)
+✔ unknown future storage is inspected without mutation and returns explicit recovery guidance (636.395125ms)
+✖ schema7 capacity failure retains schema6 and every request, then retries safely (875.098291ms)
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (882.349583ms)
+✔ activation rechecks the verified database backup before publishing schema7 (923.98925ms)
+✔ activation rechecks the verified manifest backup before publishing schema7 (900.463458ms)
+✖ SIGKILL portable-schema-before-backup preserves pending approval and restarts exactly (679.655667ms)
+✖ SIGKILL portable-schema-backup-written preserves pending approval and restarts exactly (682.937375ms)
+✖ SIGKILL portable-schema-backup-verified preserves pending approval and restarts exactly (708.016167ms)
+✖ SIGKILL portable-schema-before-activation preserves pending approval and restarts exactly (703.2095ms)
+✖ SIGKILL portable-schema-after-activation preserves pending approval and restarts exactly (707.09775ms)
+ℹ Error: Test "schema7 preserves actual approved schema6 pending approval and verified rollback" at tests/portable/schema.test.mjs:54:36 generated asynchronous activity after the test ended. This activity created the error "Error: STORAGE_FAILURE" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ tests 12
+ℹ suites 0
+ℹ pass 3
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10265.722542
+
+✖ failing tests:
+
+test at tests/portable/schema.test.mjs:54:36
+✖ schema7 preserves actual approved schema6 pending preparation and verified rollback (1571.373917ms)
+  Error: 2nd ORDER BY term out of range - should be between 1 and 1
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:123
+      at Array.map (<anonymous>)
+      at inspect (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:104)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:57:32)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'ERR_SQLITE_ERROR',
+    errcode: 1,
+    errstr: 'SQL logic error'
+  }
+
+test at tests/portable/schema.test.mjs:54:36
+✖ schema7 preserves actual approved schema6 pending approval and verified rollback (677.245792ms)
+  Error: 2nd ORDER BY term out of range - should be between 1 and 1
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:123
+      at Array.map (<anonymous>)
+      at inspect (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:104)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:57:32)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'ERR_SQLITE_ERROR',
+    errcode: 1,
+    errstr: 'SQL logic error'
+  }
+
+test at tests/portable/schema.test.mjs:72:1
+✖ schema7 capacity failure retains schema6 and every request, then retries safely (875.098291ms)
+  Error: 2nd ORDER BY term out of range - should be between 1 and 1
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:123
+      at Array.map (<anonymous>)
+      at inspect (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:104)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:74:158)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'ERR_SQLITE_ERROR',
+    errcode: 1,
+    errstr: 'SQL logic error'
+  }
+
+test at tests/portable/schema.test.mjs:76:1
+✖ backup corruption fails verification before activation, retains evidence, and retries without changing requests (882.349583ms)
+  Error: 2nd ORDER BY term out of range - should be between 1 and 1
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:123
+      at Array.map (<anonymous>)
+      at inspect (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:104)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:79:236)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'ERR_SQLITE_ERROR',
+    errcode: 1,
+    errstr: 'SQL logic error'
+  }
+
+test at tests/portable/schema.test.mjs:89:192
+✖ SIGKILL portable-schema-before-backup preserves pending approval and restarts exactly (679.655667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  6 !== 5
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:90:206)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 6,
+    expected: 5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/schema.test.mjs:89:192
+✖ SIGKILL portable-schema-backup-written preserves pending approval and restarts exactly (682.937375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  6 !== 5
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:90:206)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 6,
+    expected: 5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/schema.test.mjs:89:192
+✖ SIGKILL portable-schema-backup-verified preserves pending approval and restarts exactly (708.016167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  6 !== 5
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:90:206)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 6,
+    expected: 5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/schema.test.mjs:89:192
+✖ SIGKILL portable-schema-before-activation preserves pending approval and restarts exactly (703.2095ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  6 !== 5
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:90:206)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 6,
+    expected: 5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/portable/schema.test.mjs:89:192
+✖ SIGKILL portable-schema-after-activation preserves pending approval and restarts exactly (707.09775ms)
+  Error: 2nd ORDER BY term out of range - should be between 1 and 1
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:123
+      at Array.map (<anonymous>)
+      at inspect (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:18:104)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/schema.test.mjs:90:138)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'ERR_SQLITE_ERROR',
+    errcode: 1,
+    errstr: 'SQL logic error'
+  }

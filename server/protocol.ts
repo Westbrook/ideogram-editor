@@ -1,3 +1,5 @@
+import { PortableRoutes } from './portable.js';
+import { isPortableCommand } from '../src/protocol/portable.js';
 import { isHistoryCommand } from '../src/protocol/history.js';
 import { AssetRoutes } from './assets.js';
 import { randomUUID } from 'node:crypto';
@@ -26,7 +28,7 @@ export function storeError(error: unknown, mutation = false): ProtocolError {
     if (error.code === 'PROTOCOL_VERSION' || error.code === 'PAYLOAD_TOO_LARGE' || error.code === 'COMMAND_ID_REUSE') return new ProtocolError(error.code);
     if (error.code === 'CAPACITY' || error.code === 'STORAGE_FULL') return new ProtocolError('STORAGE_FULL', undefined, retry);
     if (error.code === 'QUEUE_FULL') return new ProtocolError('LOCAL_BUSY', undefined, retry);
-    if (['CORRUPT_STORE','CORRUPT_OBJECT','MISSING_OBJECT'].includes(error.code)) return new ProtocolError('RECOVERY_UNAVAILABLE', undefined, retry);
+    if (['CORRUPT_STORE','CORRUPT_OBJECT','MISSING_OBJECT'].includes(error.code)) return new ProtocolError('RECOVERY_UNAVAILABLE', error.detail, retry);
   }
   return new ProtocolError('SERVER_UNAVAILABLE', undefined, retry);
 }
@@ -44,8 +46,10 @@ export class ProtocolRoutes {
   private content = new Map<string, Content>();
   private streams = 0;
   private assets: AssetRoutes;
-  constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);}
+  private portable: PortableRoutes;
+  constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
+    const portable=this.portable.match(path);if(portable)return portable;
     const asset=this.assets.match(path);if(asset)return asset;
     if (path === PREFIX + 'commands') return { allow: ['POST'], kind: 'submit', query: [] };
     if (path === PREFIX + 'events') return { allow: ['GET'], kind: 'events', query: ['after','recoveryId'] };
@@ -167,11 +171,13 @@ export class ProtocolRoutes {
         if(route.kind==='asset-finalize'&&(command.body.type!=='FinalizeStaging'||command.body.stagingId!==id))throw new ProtocolError('MALFORMED_REQUEST');
         const state = await this.writer.commandState(command.commandId);const previous=state.record??state.pending;
         if (previous && previous.command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
-        if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));
+        if(isPortableCommand(command.body.type))await this.writer.portableCommand(bytes,this.assets.auth(current));
+        else if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));
         else if(['PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
         else if(isHistoryCommand(command.body.type)&&(command.body.type!=='SaveCheckpoint'||(await this.writer.document(command.documentId!))?.image))await this.writer.historyCommand(bytes,this.assets.auth(current));
         else await this.writer.submit(bytes,this.writer.epoch);
         authenticate();const result=await this.commandResult(command.commandId,current);sendCommandResult(response,result);
+      } else if(['bundle','bundle-review','bundle-mapping','bundle-content','portable-inventory'].includes(route.kind)){await this.portable.handle(request,response,route,params,authenticate,assertRoot);
       } else if(route.kind==='image-previews'||route.kind==='image-edit-reviews'){
         const result=route.kind==='image-previews'?await this.writer.imagePreview(id,this.assets.auth(session)):await this.writer.imageEditReview(id,this.assets.auth(session));authenticate();sendJSON(response,200,result);
       } else if(route.kind==='ui'){

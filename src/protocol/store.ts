@@ -1,3 +1,4 @@
+import type { PortableBody, PortableFact } from './portable.js';
 // Foundation commands only. The HTTP/session adapter owns authentication; these
 // identities are immutable provenance, never credentials or authority.
 import type { AssetBody, AssetFact } from './assets.js';
@@ -12,7 +13,7 @@ export type Command = {
   schemaVersion: 1; commandId: string; clientId: string; sessionId: string;
   correlationId: string; causationId: string | null; transactionId: string;
   documentId: string | null; expectedDocumentRevision: Seq | null;
-  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody | RasterBody | HistoryBody;
+  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody | RasterBody | HistoryBody | PortableBody;
 };
 export type CommandRequest = { protocolVersion: 1; command: Command };
 export type RejectionCode = 'STALE_REVISION' | 'INVALID_INPUT' | 'MISSING_ASSET' | 'CAPACITY' | 'INCOMPATIBLE';
@@ -43,6 +44,7 @@ export type DomainEvent = {
 } & (
   | { type: 'DocumentCreated'; payload: { document: Document; history: HistoryNode } }
   | { type: 'CheckpointSaved'; payload: { checkpoint: Checkpoint } }
+  | PortableFact
   | HistoryFact
   | AssetFact
 );

@@ -1,0 +1,70 @@
+✔ missing deleted-layer-pixels refuses copy and preserves all other current roots (1172.834042ms)
+✔ missing hidden-branch-pixels refuses copy and preserves all other current roots (1085.751291ms)
+✔ durable preparation remains pinned and cancellation releases only its owned pins after terminal rejection (585.294458ms)
+✔ review UI mappings page every imported checkpoint without a session count cap (3840.486416ms)
+ℹ UI checkpoints persisted
+ℹ Archive copied
+ℹ Archive reviewed
+ℹ Mapping pages read
+ℹ Fresh namespace accepted
+✖ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (4050.199541ms)
+✔ real SIGKILL portable-preparation-before-commit preserves pinned copy identity and exact retry (966.557375ms)
+✔ real SIGKILL portable-preparation-after-commit preserves pinned copy identity and exact retry (969.298125ms)
+✔ real SIGKILL portable-export-before-commit preserves pinned copy identity and exact retry (987.919417ms)
+✔ real SIGKILL portable-before-commit preserves pinned copy identity and exact retry (988.910209ms)
+✔ real SIGKILL portable-after-commit preserves pinned copy identity and exact retry (939.443375ms)
+✔ real SIGKILL portable-import-after-proofs publishes all fresh namespace or none (1089.564167ms)
+✔ real SIGKILL portable-import-before-commit publishes all fresh namespace or none (1124.382875ms)
+✔ real SIGKILL portable-import-after-commit publishes all fresh namespace or none (1096.208416ms)
+✔ source changed after validation preserves namespace and existing shared bytes (934.483583ms)
+✔ source replaced after validation preserves namespace and existing shared bytes (956.98825ms)
+✔ source missing after validation preserves namespace and existing shared bytes (953.326875ms)
+✔ inert provider provenance retains oversized exact prompts and result bytes across import, copy and restart with zero effects (2386.825375ms)
+ℹ {"promptBytes":17825805,"exactUTF8":true,"bodyHashTraversed":false,"providerEffects":0,"qualification":false}
+✔ portable provider headers cannot become an editable namespace (594.617958ms)
+✔ portable provider transportURL cannot become an editable namespace (688.84575ms)
+✔ portable provider backendClass cannot become an editable namespace (579.409458ms)
+✔ portable provider bodyReachability cannot become an editable namespace (616.1235ms)
+✔ portable provider invalidUTF8 cannot become an editable namespace (661.789625ms)
+✔ portable provider incomplete cannot become an editable namespace (685.82175ms)
+✔ portable provider timings-array cannot become an editable namespace (641.44225ms)
+✔ known transport-contaminated prompt hash is inspection-only without altering the exact staged original (629.731ms)
+✔ provider artifact-hash metadata has no invented 200-item format cap (776.630917ms)
+✔ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (330.1485ms)
+✔ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (271.571083ms)
+✔ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (257.76775ms)
+✔ SEC03: one-use pairing is atomic and expires at precisely five minutes (255.219042ms)
+✔ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (272.385041ms)
+✔ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (406.923625ms)
+✔ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (273.266042ms)
+✔ session boundary: implemented routes stay authenticated, unfinished routes deny access, and keys never reach responses (268.022792ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 33
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32541.728917
+
+✖ failing tests:
+
+test at tests/portable/failure.test.mjs:28:1
+✖ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (4050.199541ms)
+  AssertionError [ERR_ASSERTION]: {"protocolVersion":1,"items":[{"commandId":"d372623e-83ff-4c75-9ecb-60acf04b327c","operationId":"5769b67b-c78d-4f35-bb25-9cf09be9c71b","phase":"preparing","reason":null,"operation":"ImportBundle","documentId":null,"recovery":"retry-same-command-or-cancel"}],"next":null}
+  + actual - expected
+  
+  + null
+  - 'STORAGE_FULL'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/failure.test.mjs:29:1802)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'STORAGE_FULL',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:45581) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/history/consumer.spec.ts:24:1 › real browser applies asset and image history atomically, stale tab cannot overwrite and reload retains current projection (1.4s)
+  ✓  2 tests/history/consumer.spec.ts:35:1 › new image history snapshot plus tail is equivalent to full replay and corrupt bytes never advance browser state (4.8s)
+  ✓  3 tests/history/consumer.spec.ts:50:1 › browser draft owner fences late preparation and lost receipt retries the same durable UI identity (1.1s)
+
+  3 passed (7.5s)

@@ -83,6 +83,13 @@ export function event(v: any): asserts v is DomainEvent {
   requireValue(v.schemaVersion===1&&v.payloadVersion===1&&['eventId','streamId','commandId','correlationId','transactionId'].every(k=>id(v[k]))&&
     ['workspaceSeq','streamSeq','writerEpoch'].every(k=>seq(v[k]))&&(v.causationId===null||id(v.causationId))&&typeof v.recordedAt==='string'&&Number.isFinite(Date.parse(v.recordedAt))&&
     new TextEncoder().encode(canonical(v)).length<=16384);
+  if(['BundlePrepared','BundleImportReviewed','PortableCancelled'].includes(v.type)){
+    requireValue(v.documentId===null&&v.resultingDocumentRevision===null&&v.streamId==='portable'&&v.streamSeq===v.workspaceSeq);
+    if(v.type==='BundlePrepared'){keys(v.payload,['bundle']);const b=v.payload.bundle;keys(b,['protocolVersion','bundleId','documentId','documentRevision','capturedHighWater','uiDigest','blob','complete','status','destinationStatus']);blob(b.blob);requireValue(b.protocolVersion===1&&id(b.bundleId)&&id(b.documentId)&&seq(b.documentRevision)&&seq(b.capturedHighWater)&&/^sha256:[a-f0-9]{64}$/.test(b.uiDigest)&&b.blob.mediaType==='application/x-ideogram-project'&&b.complete===true&&b.status==='copy-ready'&&b.destinationStatus==='unconfirmed');}
+    else if(v.type==='BundleImportReviewed'){keys(v.payload,['reviewId','reviewHash']);requireValue(id(v.payload.reviewId)&&/^sha256:[a-f0-9]{64}$/.test(v.payload.reviewHash));}
+    else{keys(v.payload,['operationId']);requireValue(id(v.payload.operationId));}return;
+  }
+  if(v.type==='BundleImported'){keys(v.payload,['namespaceId','source','document','namespaceHash']);blob(v.payload.source);document(v.payload.document);requireValue(/^sha256:[a-f0-9]{64}$/.test(v.payload.namespaceHash)&&id(v.payload.namespaceId)&&v.payload.source.mediaType==='application/x-ideogram-project'&&v.documentId===v.payload.document.id&&v.resultingDocumentRevision===v.payload.document.revision&&v.streamId===v.documentId&&v.streamSeq===v.resultingDocumentRevision);return;}
   if(v.type==='ImageEditPreviewPrepared'||v.type==='ImageEditReviewPrepared'||v.type==='AssetRegistered'||v.type==='StagingTransferReviewPrepared'||v.type==='RasterReviewPrepared'||v.type==='StagingOwnershipTransferred'){
     requireValue(v.documentId===null&&v.resultingDocumentRevision===null&&v.streamId==='assets'&&v.streamSeq===v.workspaceSeq);
     if(v.type==='ImageEditPreviewPrepared'){keys(v.payload,['preview']);imageEditPreview(v.payload.preview);}

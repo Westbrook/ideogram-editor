@@ -1,0 +1,109 @@
+✔ public preview rejects duplicate-json-key and preserves source and namespace (671.723375ms)
+✔ public preview rejects noncanonical-json and preserves source and namespace (622.212084ms)
+✔ public preview rejects missing-final-LF and preserves source and namespace (630.512792ms)
+✔ public preview rejects unknown-entity-field and preserves source and namespace (546.074542ms)
+✔ public preview rejects wrong-projection and preserves source and namespace (553.492417ms)
+✔ public preview rejects missing-required-history and preserves source and namespace (546.43675ms)
+✔ public preview rejects duplicate-entity and preserves source and namespace (531.990208ms)
+✔ public preview rejects duplicate-object and preserves source and namespace (545.36225ms)
+✔ public preview rejects event-sequence-duplicate and preserves source and namespace (522.168375ms)
+✔ public preview rejects source-event-mutation and preserves source and namespace (529.837916ms)
+✔ public preview rejects event-beyond-highwater and preserves source and namespace (523.628875ms)
+✔ public preview rejects root-hash-mismatch and preserves source and namespace (597.798209ms)
+✔ public preview rejects unknown-root-field and preserves source and namespace (563.688125ms)
+✔ public preview rejects descriptor-hash-mismatch and preserves source and namespace (584.583209ms)
+✔ public preview rejects oversized-record and preserves source and namespace (569.151709ms)
+✔ public preview rejects index-cycle and preserves source and namespace (636.343084ms)
+✔ unknown format remains inspection-only with original source retained (639.775959ms)
+✔ unknown format-extra remains inspection-only with original source retained (640.011792ms)
+✔ unknown document remains inspection-only with original source retained (745.029333ms)
+✔ unknown payload remains inspection-only with original source retained (686.591208ms)
+✔ unknown record remains inspection-only with original source retained (628.686042ms)
+✔ unknown entity remains inspection-only with original source retained (630.180167ms)
+✔ changed history patch cannot publish a fresh editable namespace (1000.786792ms)
+✔ shared acyclic index pages are accepted without duplicating their records (596.509583ms)
+✔ missing deleted-layer-pixels refuses copy and preserves all other current roots (1159.323542ms)
+✔ missing hidden-branch-pixels refuses copy and preserves all other current roots (1279.194917ms)
+✔ durable preparation remains pinned and cancellation releases only its owned pins after terminal rejection (675.657875ms)
+✔ review UI mappings page every imported checkpoint without a session count cap (4669.579916ms)
+ℹ UI checkpoints persisted
+ℹ Archive copied
+ℹ Archive reviewed
+ℹ Mapping pages read
+ℹ Fresh namespace accepted
+✔ actual SQLite FULL preserves identity and source through same-authority-retry (8916.830875ms)
+ℹ {"recovery":"same-authority-retry","sqlitePageLimit":658,"restoredFreePages":492,"fillerRows":436,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","sourceTablesPreserved":["documents","history","checkpoints","objects","roots","commands","events_v2","assets","asset_dependencies","ui_checkpoints","ui_events","ui_receipts","staged_assets","portable_reviews","portable_review_sources","portable_review_maps","portable_pins"],"originalSourcePreserved":true,"originalCommandId":"33e990d7-dbae-40d0-a3f3-7c136b3e1af4","originalCommandHash":"sha256:848570f9a449aac83c075763cbee5e841e7f50fa0581df6066c65b87904ba365","originalOperationId":"41e60dbf-2d72-43ba-8f75-3982d63f7cf0","originalReviewId":"01681005-70a7-4e7c-a78f-f016ada42da8","acceptedCommandId":"33e990d7-dbae-40d0-a3f3-7c136b3e1af4","acceptedReviewId":"01681005-70a7-4e7c-a78f-f016ada42da8","sameOriginalIdentityPreserved":true,"singleNamespace":true,"singleAcceptedEvent":true,"restartRequiresFreshReview":false}
+✔ actual SQLite FULL preserves identity and source through restart-expired-review (9815.890708ms)
+ℹ {"recovery":"restart-expired-review","sqlitePageLimit":658,"restoredFreePages":492,"fillerRows":436,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","sourceTablesPreserved":["documents","history","checkpoints","objects","roots","commands","events_v2","assets","asset_dependencies","ui_checkpoints","ui_events","ui_receipts","staged_assets","portable_reviews","portable_review_sources","portable_review_maps","portable_pins"],"originalSourcePreserved":true,"originalCommandId":"c1de5dc9-e3ed-4983-ad7b-e6544bee05c7","originalCommandHash":"sha256:4a6d1b9a3cb644a2cc665b1e614f23846dfcacef222936ca425444827e183119","originalOperationId":"830e38dd-49e4-44f6-9fb2-0302c6bf351a","originalReviewId":"64b722ba-6d5f-42ee-8a29-8e7bec85acb3","acceptedCommandId":"a85a2151-e533-40ec-92aa-fbf584fa7070","acceptedReviewId":"0acd09e1-a0cd-4587-9162-a0cde09af279","sameOriginalIdentityPreserved":true,"singleNamespace":true,"singleAcceptedEvent":true,"restartRequiresFreshReview":true}
+✔ empty document real HTTP copy, review, fresh namespace import and exact retry (816.222667ms)
+✔ image retained pixels and old branch reopen in fresh namespace (2167.312834ms)
+✔ copy retains mask, deleted layer, inactive branches, checkpoint, export and exact source events; reopen restarts and navigates all (4202.275792ms)
+ℹ {"retainedHistoryNodes":5,"retainedAssetIds":9,"sourceEventCount":12,"literalPixelOracles":true,"sourceTransactionsPreserved":true,"namespaceFresh":true,"providerEffects":0}
+✔ real non-sparse STORE bytes exceed 4 GiB and a following entry uses an actual 64-bit offset (5615.172125ms)
+ℹ {"fixture":"real repeated nonzero bytes; no sparse file or forged size","payloadBytes":"4296015889","archiveBytes":"4296016564","allocatedBytes":4309651456,"maxIOChunk":1048576,"peakRSS":160940032,"fullTestMs":5509.1359999999995,"qualification":false,"limits":"ZIP transport correctness only; not the R39 document campaign"}
+✔ real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments (7383.397375ms)
+ℹ {"fixture":"synthetic canonical checkpoint records, real bytes","eventRecordCount":10000,"eventIndexBytes":"150650050","eventSegments":2,"rootSegments":3,"peakRSS":245579776,"elapsedMs":6045.319542000001,"qualification":false,"limits":"segmented index transport/parser only; not a coherent full document or 100k-operation campaign"}
+✔ actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (7879.07025ms)
+ℹ {"priorExecutable":"d84c1de55709bbd957222cac854905c41583a4e4","sourceUISeq":"1018","sourceObjects":18,"scopeA":["current_a","history_owned"],"scopeB":["current_b","reused_b"],"sourcePreserved":true}
+✔ legacy required current-bytes failure refuses a complete-copy claim (6389.669708ms)
+✔ legacy required history-ownership failure refuses a complete-copy claim (6197.936542ms)
+✔ real SIGKILL portable-preparation-before-commit preserves pinned copy identity and exact retry (1051.265042ms)
+✔ real SIGKILL portable-preparation-after-commit preserves pinned copy identity and exact retry (956.092ms)
+✔ real SIGKILL portable-export-before-commit preserves pinned copy identity and exact retry (1012.863958ms)
+✔ real SIGKILL portable-before-commit preserves pinned copy identity and exact retry (1005.340458ms)
+✔ real SIGKILL portable-after-commit preserves pinned copy identity and exact retry (959.59975ms)
+✔ real SIGKILL portable-import-after-proofs publishes all fresh namespace or none (1077.09975ms)
+✔ real SIGKILL portable-import-before-commit publishes all fresh namespace or none (1133.628959ms)
+✔ real SIGKILL portable-import-after-commit publishes all fresh namespace or none (1113.661ms)
+✔ source changed after validation preserves namespace and existing shared bytes (942.023667ms)
+✔ source replaced after validation preserves namespace and existing shared bytes (905.446459ms)
+✔ source missing after validation preserves namespace and existing shared bytes (905.571708ms)
+✔ inert provider provenance retains oversized exact prompts and result bytes across import, copy and restart with zero effects (2274.582ms)
+ℹ {"promptBytes":17825805,"exactUTF8":true,"bodyHashTraversed":false,"providerEffects":0,"qualification":false}
+✔ portable provider headers cannot become an editable namespace (591.867584ms)
+✔ portable provider transportURL cannot become an editable namespace (612.467042ms)
+✔ portable provider backendClass cannot become an editable namespace (629.936375ms)
+✔ portable provider bodyReachability cannot become an editable namespace (636.378167ms)
+✔ portable provider invalidUTF8 cannot become an editable namespace (684.577833ms)
+✔ portable provider incomplete cannot become an editable namespace (638.636375ms)
+✔ portable provider timings-array cannot become an editable namespace (633.36475ms)
+✔ known transport-contaminated prompt hash is inspection-only without altering the exact staged original (612.449291ms)
+✔ provider artifact-hash metadata has no invented 200-item format cap (712.021292ms)
+✔ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (3263.092541ms)
+✔ review authority, namespace collision, source integrity and ranges are checked at public boundary (775.374167ms)
+✔ schema7 preserves actual approved schema6 pending preparation and verified rollback (1380.500208ms)
+ℹ {"schema7Migration":{"backup":"schema6-backup-61c0ed2d-aeec-4854-a94b-54f89612d1c7.sqlite","backupHash":"sha256:438ef5b5d4a823ce191e61a0e34eb4f5a4cf0d88abc6830c50ef2fc14e3e3d11","capability":"portable-copy-v1","from":6,"manifest":{"asset_dependencies":{"count":"5","hash":"b7b910a4a27bb1ffef0b0abc4c96b0940ceb77bead1b8a5e13ad9436965061d3"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"47e5a33136a82a03f9f91dcbf2841da4bb8103278daea71dd0939531c96b654d"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"28c68a488309dd324d8456b62fc5fdd191837b087c1c947dc898d05b1f276167"},"commands":{"count":"4","hash":"53f1675251f31fb73b6736cfa995918244dbba305c356311ea63a9e7f6b96468"},"documents":{"count":"1","hash":"f6b85fdd647bf29cf700e9e0e65ff01399abebc14d4014e456f196b2c8e1bee8"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"06271b1b973ff55199037d2d2993fceeda6b8052afe20fda7bad3c092c41904b"},"history":{"count":"1","hash":"7f1980e3e6f78d7736016ad1aab219e31f87e9e88f5deb29fe907512cf679001"},"history_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_edit_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_previews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"f06fcb8376ee4a67e099c8a41a2cdb1b67dc15095f4458c250f92b2d45ac6774"},"raster_preparations":{"count":"1","hash":"3f2318dcdf5359c33687fe5a891dac89156b5fb6eeb4f612f7b42f411324c743"},"raster_reviews":{"count":"1","hash":"d44d5cb1de3361431aae08c413c55240d2f339f69df573b0d3972eed72e19173"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"b9e4efb3298cd44f3e85ebf08e8199780daf72701205113e938c0fc73a1868bf"},"schema_migrations":{"count":"5","hash":"a65fd6ae990f80d394cdf8e1181150dfa97e7dbdf1bb5deb35badb5de309e28f"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f80ac91509af8f313d4fc93d63135aa523ec81b08e908d70cd1e79f13d2681f4","staged_assets":{"count":"3","hash":"0647c519724055904a66c3d338b776938b85187a82293eb23f982d1655a4c0f3"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_receipts":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema6-backup-61c0ed2d-aeec-4854-a94b-54f89612d1c7.sqlite.manifest.json","rollback":{"compatibleExecutable":"d84c1de55709bbd957222cac854905c41583a4e4"},"strategy":"semantic-version-verified-backup-transactional-activation","to":7},"pending":{"command":{"schemaVersion":1,"commandId":"a0721dce-310f-4aef-b435-1c188821bbc7","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"f3b0a944-8801-4ee9-abd9-59f74542cdc7","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"PrepareRaster","assetId":"4be44a49-9105-4c1d-ac85-e30513ccb69b"}},"hash":"sha256:b95277c998ef238b93190f02d56ead8bd4c698d9ddef5dad490b725f386705c4","operationId":"4bdc5209-35f4-4dd6-a014-10d1b96da1fe","phase":"preparing"},"oldRefusal":7,"rollback":{"epoch":"2","state":{"record":{"hash":"sha256:b95277c998ef238b93190f02d56ead8bd4c698d9ddef5dad490b725f386705c4","command":{"body":{"assetId":"4be44a49-9105-4c1d-ac85-e30513ccb69b","type":"PrepareRaster"},"causationId":null,"clientId":"client_1","commandId":"a0721dce-310f-4aef-b435-1c188821bbc7","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"f3b0a944-8801-4ee9-abd9-59f74542cdc7"},"receipt":{"commandId":"a0721dce-310f-4aef-b435-1c188821bbc7","documentRevision":null,"fromSeq":"5","status":"accepted","toSeq":"5","transactionId":"f3b0a944-8801-4ee9-abd9-59f74542cdc7"}},"pending":null}}}
+✔ schema7 preserves actual approved schema6 pending approval and verified rollback (1103.765166ms)
+ℹ {"schema7Migration":{"backup":"schema6-backup-33b8862b-20e5-4100-a04f-3711abb37dac.sqlite","backupHash":"sha256:ff573126a88bcf79153256db8d9faed6a7984dfcedcbbdf620b8a726772ad606","capability":"portable-copy-v1","from":6,"manifest":{"asset_dependencies":{"count":"5","hash":"a36ac958389c8ce7a17c00c64c1de1609f8b25f86914601a6dcd6d55ebdc5b5e"},"asset_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"assets":{"count":"2","hash":"12cafd7044d14ad2778a0bc6ff3e89a196c38c6146f9ad18b9c0b756b17f3d52"},"checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"client_bindings":{"count":"1","hash":"af515595bcbf0c0ca7af039f48fabe49d9fbfdea403d2961cf604cb35835266d"},"commands":{"count":"4","hash":"3b5bf3ddd5451434c83f8697adeab6d6daa2487df46f37905b50f350b0f540a8"},"documents":{"count":"1","hash":"91bf1a21afde820f54bc4f7da93e1aaa5e20d7a191601b4c6ed72c79017fbc1d"},"events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"events_v2":{"count":"4","hash":"fcff2703f55594c92202637569766e8a485362250e8b3d4f100108622c52f6d4"},"history":{"count":"1","hash":"1dee5a305fefc9c9ea0227f2aa4f18a5271fd2b0a319a63c0ab21f8b9c806b3c"},"history_preparations":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_edit_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"image_previews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"meta":{"count":"2","hash":"d87c92e425c23d08fa64c28dc999865857febec7939bc38326c00e4e19dde1cd"},"objects":{"count":"6","hash":"ae878b017069bf96af7eb3e38db8b1adefded456d705da7782366be0e14fc055"},"raster_preparations":{"count":"1","hash":"83088128cd707ae834f955b0bd469e33ac05df7157c9d9e9b99622566c125de2"},"raster_reviews":{"count":"1","hash":"94cfcb6c3e8a4c4e383b2052a40aac26eb39c2eacb9d39c6f72d1469ea1b6f1f"},"read_releases":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"roots":{"count":"11","hash":"048c9e763b9909d865b90299ec7bdc9f638c942578efc7695cbb812f4d9945c7"},"schema_migrations":{"count":"5","hash":"a65fd6ae990f80d394cdf8e1181150dfa97e7dbdf1bb5deb35badb5de309e28f"},"snapshot_roots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"snapshots":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"sqlite_schema":"sha256:f80ac91509af8f313d4fc93d63135aa523ec81b08e908d70cd1e79f13d2681f4","staged_assets":{"count":"3","hash":"200e1bf442ad54c5c80a8981a58c68440603b021937b3fa0dcc50e495aa22fb3"},"transfer_reviews":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_checkpoints":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_events":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"ui_receipts":{"count":"0","hash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},"manifestFile":"schema6-backup-33b8862b-20e5-4100-a04f-3711abb37dac.sqlite.manifest.json","rollback":{"compatibleExecutable":"d84c1de55709bbd957222cac854905c41583a4e4"},"strategy":"semantic-version-verified-backup-transactional-activation","to":7},"pending":{"command":{"schemaVersion":1,"commandId":"124d7584-ddeb-454b-a44e-803215b854c5","clientId":"client_1","sessionId":"session_1","correlationId":"correlation_1","causationId":null,"transactionId":"b5e7daea-e0ae-400a-8a56-bd1a2ff36179","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","byteLength":"33","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","body":{"type":"ApproveRaster","assetId":"008a0e3c-7702-4580-a54d-287b918ae9b4","reviewId":"f1fa1526-5957-4ac8-a3fc-8a305f9c734f","reviewHash":"sha256:b530bbb698cd0d4f6951abe24dbaa1d1c897d89d174c51b197c0ac7f6e2986cb"}},"hash":"sha256:7cfbe0920d43db97171d7b83fa1c5c49ec776f86520535fd58c51388b5f64f68","operationId":"d26133c9-fc6c-4140-97e0-c002d1bcb304","phase":"preparing"},"oldRefusal":7,"rollback":{"epoch":"2","state":{"record":{"hash":"sha256:7cfbe0920d43db97171d7b83fa1c5c49ec776f86520535fd58c51388b5f64f68","command":{"body":{"assetId":"008a0e3c-7702-4580-a54d-287b918ae9b4","reviewHash":"sha256:b530bbb698cd0d4f6951abe24dbaa1d1c897d89d174c51b197c0ac7f6e2986cb","reviewId":"f1fa1526-5957-4ac8-a3fc-8a305f9c734f","type":"ApproveRaster"},"causationId":null,"clientId":"client_1","commandId":"124d7584-ddeb-454b-a44e-803215b854c5","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"b5e7daea-e0ae-400a-8a56-bd1a2ff36179"},"receipt":{"code":"INVALID_INPUT","commandId":"124d7584-ddeb-454b-a44e-803215b854c5","currentRevision":null,"details":{"byteLength":"83","hash":"sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9","mediaType":"application/json"},"status":"rejected"}},"pending":null}}}
+✔ unknown future storage is inspected without mutation and returns explicit recovery guidance (643.502417ms)
+✔ schema7 capacity failure retains schema6 and every request, then retries safely (948.185625ms)
+✔ backup corruption fails verification before activation, retains evidence, and retries without changing requests (905.994667ms)
+✔ activation rechecks the verified database backup before publishing schema7 (912.111042ms)
+✔ activation rechecks the verified manifest backup before publishing schema7 (919.146667ms)
+✔ SIGKILL portable-schema-before-backup preserves pending approval and restarts exactly (920.726209ms)
+✔ SIGKILL portable-schema-backup-written preserves pending approval and restarts exactly (932.319459ms)
+✔ SIGKILL portable-schema-backup-verified preserves pending approval and restarts exactly (919.851583ms)
+✔ SIGKILL portable-schema-before-activation preserves pending approval and restarts exactly (932.621042ms)
+✔ SIGKILL portable-schema-after-activation preserves pending approval and restarts exactly (906.995125ms)
+✔ ZIP64 STORE roundtrip uses real content, exact CRC/hash and 64-bit fields (20.909375ms)
+✔ rejects compression before accepting archive (10.164792ms)
+✔ rejects encryption before accepting archive (7.134125ms)
+✔ rejects descriptor before accepting archive (6.789209ms)
+✔ rejects traversal before accepting archive (6.613666ms)
+✔ rejects crc before accepting archive (6.135708ms)
+✔ rejects payload before accepting archive (7.613583ms)
+✔ rejects trailing before accepting archive (6.313041ms)
+✔ rejects volume before accepting archive (6.814083ms)
+✔ rejects symlink before accepting archive (7.273833ms)
+✔ rejects executable before accepting archive (6.67825ms)
+✔ rejects directory before accepting archive (7.115875ms)
+✔ rejects overlap before accepting archive (6.785625ms)
+✔ rejects zip64Offset before accepting archive (7.157042ms)
+ℹ tests 87
+ℹ suites 0
+ℹ pass 87
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 117203.494584

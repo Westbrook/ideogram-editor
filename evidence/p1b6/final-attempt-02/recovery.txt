@@ -1,0 +1,32 @@
+npm notice run ideogram-editor@0.1.0 test:recovery
+npm notice run npm run build:server && vite build --config tests/recovery/vite.config.ts && playwright test --config tests/recovery/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 11 modules transformed.
+rendering chunks...
+computing gzip size...
+artifacts/p1b6/final-recovery-02/browser-app/index.html                 0.23 kB │ gzip:  0.19 kB
+artifacts/p1b6/final-recovery-02/browser-app/assets/index-CtUW2SMx.js  33.44 kB │ gzip: 10.73 kB
+
+✓ built in 17ms
+
+Running 12 tests using 1 worker
+
+(node:63458) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/recovery/consumer.spec.ts:22:1 › browser snapshot plus pinned tail publishes at H only and preserves prior view on download failure (2.9s)
+  ✓   2 tests/recovery/consumer.spec.ts:44:1 › browser validates large transaction hash, length, count, sequence and pinned context before publication (1.1s)
+  ✓   3 tests/recovery/consumer.spec.ts:62:1 › browser SSE reference is offered only; failed download keeps cursor and reconnect uses applied boundary (1.0s)
+  ✓   4 tests/recovery/consumer.spec.ts:72:1 › browser rejects partial and gapped SSE batches, ignores duplicate delivery, and never accepts a checkpoint cursor (549ms)
+  ✓   5 tests/recovery/consumer.spec.ts:84:1 › browser revoked recovery context and mid-download expiry preserve the previous published projection (2.0s)
+  ✓   6 tests/recovery/consumer.spec.ts:90:1 › browser live SSE applies a complete referenced transaction once and records the applied reconnect cursor (992ms)
+  ✓   7 tests/recovery/consumer.spec.ts:98:1 › browser explicit session revocation during content retrieval preserves the previous view (1.9s)
+  ✓   8 tests/recovery/consumer.spec.ts:105:1 › browser server shutdown during a pinned download leaves the previous view intact (2.0s)
+  ✓   9 tests/recovery/consumer.spec.ts:111:1 › two browser tabs race durable commands and converge through complete recovery with no browser writer authority (647ms)
+  ✓  10 tests/recovery/consumer.spec.ts:123:1 › I-C01 a public cache read overlapping another tab publication retains a complete document (402ms)
+  ✓  11 tests/recovery/consumer.spec.ts:136:1 › I-C01 IndexedDB read lifetime blocks cross-tab publication and deletion until row selection completes (414ms)
+  ✓  12 tests/recovery/consumer.spec.ts:153:1 › asset upload and snapshot recovery publish immutable metadata without unsafe content or backend ownership (2.3s)
+
+  12 passed (16.8s)

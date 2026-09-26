@@ -1,0 +1,26 @@
+✔ missing deleted-layer-pixels refuses copy and preserves all other current roots (1121.185417ms)
+✔ missing hidden-branch-pixels refuses copy and preserves all other current roots (1168.84075ms)
+✔ paused preparation remains pinned and cancellation releases only its owned pins after terminal rejection (669.070125ms)
+✖ review UI mappings page every imported checkpoint without a session count cap (17263.941375ms)
+✔ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (4585.745125ms)
+ℹ {"sqlitePageLimit":166,"actualNamespaceRowsAfterFailure":0,"originalSourcePreserved":true,"restartRequiresFreshReview":true}
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25113.731791
+
+✖ failing tests:
+
+test at tests/portable/failure.test.mjs:27:1
+✖ review UI mappings page every imported checkpoint without a session count cap (17263.941375ms)
+  Error: socket hang up
+      at Socket.socketOnEnd (node:_http_client:800:25)
+      at Socket.emit (node:events:526:24)
+      at endReadableNT (node:internal/streams/readable:1980:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'ECONNRESET'
+  }

@@ -1,0 +1,219 @@
+P1b.6 FULL-HISTORY PORTABLE COPIES — PF-1 / TP-1
+
+Extends STORE.txt, PROTOCOL.txt, ASSETS.txt, RASTER.txt and HISTORY.txt.
+Approved parent: d84c1de55709bbd957222cac854905c41583a4e4.
+Author handoff remains review_required; independent task c91db4c3 gates P1b.7.
+No browser controls, destination acknowledgement, provider work or publishing
+is introduced. The independent report and approved preview are untouched.
+
+RUN AND REVIEW
+
+Use the installed pinned Node 26.10.0 / npm 12.1.0, existing public packages:
+  export PATH="$PWD/.toolchain/bin:$PATH"
+  npm run typecheck
+  npm run build
+  node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/portable/*.test.mjs
+  node --import ./tests/store/no-network.mjs --test tests/portable/volume-fault.mjs
+  node tooling/portable/gates.mjs <new-attempt-number>
+  node tooling/portable/seal-evidence.mjs --verify
+
+The gate runner freezes changed-source hashes before/after every gate and
+records commands, UTC times, exits and complete output under a new numbered
+attempt directory. Existing evidence is never overwritten. The earlier
+numbered development outputs remain exact copies under attempts/, including
+failures; only final gates claim the final source identity. Raster browser
+regressions use an isolated exact source copy to preserve old sealed paths.
+
+PERSISTED VERSIONS
+
+Store schema7 capability portable-copy-v1 follows actual approved schema6.
+Protocol remains1, projection remains3, portable formatVersion1/documentSchema2.
+Migration creates a schema6 backup, table/count/hash manifest and file proofs,
+rechecks identity/hash immediately before transactional activation, and names
+d84c1de as the compatible rollback executable. Prior objects/tables/requests/
+receipts/history/UI pins are not transformed or deleted. Actual d84 executable
+fixtures verify old-reader refusal, backup rollback, pending identities,
+capacity/corruption/substitution and SIGKILL activation boundaries. Future
+storage versions refuse writable startup with matching-reader/backup guidance.
+
+New writer tables own preparations, pins, prepared bundles, reviews and their
+source/mapping records, fresh namespaces/translated rows/maps, cancellation,
+and known transport-contaminated hashes. All edits remain with the sole writer.
+Any future persistence semantics must advance the storage version explicitly.
+
+PUBLIC COMMANDS
+
+Use the existing authenticated strict CommandRequest and exact ID/hash dedup:
+- SaveCopy: body {type:"SaveCopy"}, selected documentId and captured revision.
+  Expected versions can contain that document/version; no arbitrary state setter.
+  Admission freezes the document, retained history/checkpoints, scoped current
+  UI checkpoint, complete selected transactions, object refs and highWater in
+  one writer transaction. A hashed private capture and durable owned pins remain
+  valid through later edits, retry and restart. Live /closure is NOT a snapshot.
+- PreviewBundleImport: workspace command with null document/revision and empty
+  expected versions; body {type,stagingId,expectedSha256}. Upload with purpose
+  bundle, mediaType application/x-ideogram-project, exact declared bytes/hash,
+  the existing <=1 MiB chunk/offset/owner protocol. Bundle stages cannot be
+  FinalizeStaging assets. Preview requires a complete owned upload.
+- ImportBundle: workspace command {type,reviewId,reviewHash}, only after review.
+  Revalidates current client/session/epoch/expiry, exact stage version/file stamp,
+  whole source hash, ZIP/records/closure, typed resources and generated namespace.
+  Rechecks every adopted object's stamp under the atomic writer acceptance.
+- CancelPortable: workspace command {type,operationId}. Cancellation is durable;
+  pending work checks it before publishing, records a terminal rejection when
+  storage permits, and releases only its own pins after ongoing reads stop.
+  Exact same-command retries return the original receipt. Cancellation does
+  not erase source uploads, partial work, global roots or shared objects.
+
+Capacity restoration may resume the exact pending command only under its still
+valid original review authority. Restart expires an uncommitted review: the old
+ID/envelope/hash/operation and explicit rejection stay immutable. Renewed review
+and import use NEW command identities. A committed import retries to its exact
+original receipt after restart without another namespace or event.
+
+SaveCopy/preview/import normally return202 plus the existing receipt lookup.
+Accepted facts are BundlePrepared, BundleImportReviewed or BundleImported.
+BundleImported stores a digest of durable translated namespace rows and the
+persisted ID map; replay verifies it, then projects the same document/assets/
+history/checkpoints without interpreting the archive or contacting providers.
+Original event/transaction bytes and the original archive remain rooted exact
+provenance. Translation changes local identity-bearing typed metadata only;
+original pixels, masks, prompts, exports and all source objects remain exact.
+
+READS AND BROWSER INTEGRATION
+
+GET /api/v1/bundles/:id -> owner-bound Bundle. It has captured revision,
+highWater, scoped uiDigest, immutable BlobRef, complete:true, status:copy-ready
+and destinationStatus:unconfirmed. GET/HEAD /bundles/:id/content is a bounded,
+authenticated immutable attachment with length, ETag and single-range support.
+No caller destination path, generic private-blob read or bearer URL exists.
+
+GET /api/v1/bundle-reviews/:id -> current session/epoch-bound BundleReview.
+It binds whole source hash/length, versions, closure hash, generated namespace/
+document IDs, counts, editable flag/reason and explicit scope disclosure.
+Unknown mandatory format/record/event/entity/resource versions are inspection
+only; malformed/missing/withheld/corrupt mandatory data cannot claim a complete
+editable copy. Known transport-contaminated hashes are inspection only.
+
+GET /api/v1/bundle-reviews/:id/mapping?kind=K&after=sourceId returns <=100
+{sourceId,localId} entries and next; omit after initially. K is document,
+history,checkpoint,asset,ui,attempt,branch,draft or layer. Follow every cursor.
+uiSessionIds in the review is explicitly just the first64 convenient IDs;
+uiSessionCount gives the full count, and kind=ui pages every checkpoint. No
+archive or project session count cap is imposed. After acceptance, the existing
+/ui/:localSessionId route reads restored checkpoints for the importing client.
+Use mapping/history pages to adopt/navigate the fresh local identities.
+
+GET /api/v1/bundles/recovery?after=commandId returns <=100 owner-bound pending
+attempts, phase, safe reason when available, operation/document identity and
+retry-same-command-or-cancel guidance. Storage failures retain the immutable
+request and pins. Failure status is also available in memory when SQLite cannot
+write it; a fresh process rechecks and pauses again if resources remain absent.
+Native SQLite FULL may automatically roll back the whole transaction; its
+original error must survive savepoint handling so recovery stays pending, not
+misreported as a rejected invalid archive. The actual full-database fixture
+exercises this boundary and fresh-review recovery after space is restored.
+Source uploads remain in the existing staging recovery inventory. No cleanup
+or garbage collector was added. Future deletion/GC owners MUST honor durable
+portable_pins, namespace/bundle roots and active content-read proofs. Exclusive
+startup releases only terminal portable operation pins left by a crash after
+receipt commit; all pending pins and original/global roots remain untouched.
+
+Existing document save-status now includes portable pending commands, whether
+its latest copy is outdated relative to both domain revision and scoped UI,
+copyStatus and unconfirmed destinationStatus. Server Copy ready is NOT Saved to
+destination. P1b.7 must observe the real browser/OS write completion before any
+destination-saved claim, and must keep Export image a separate operation.
+
+SCOPED ROOTS AND LEGACY UI
+
+Include every retained branch/node/checkpoint, current/undo/redo image state,
+original/derived/mask/export asset, accepted scoped transaction/event, scoped
+command/receipt metadata and transitive resource bytes. Include current drafts
+and preferences for the selected document across all UI checkpoints. An
+accepted command's exact draft fence proves ownership of its retained draft
+root after clear/compaction; zero or ambiguous matching roots block completion.
+
+A conservative global UI pin is not historical document ownership. Obsolete
+cleared/superseded UI-only generations whose association was erased by schema6
+remain LOCALLY intact and are excluded, as are unrelated documents/private
+library bytes. Do not guess an association, backfill invented ownership,
+resurrect cleared drafts, prune branches or delete source objects. The preview
+exposes scope selected-document-current-drafts-and-retained-domain-history and
+localRetentionExcluded obsolete-unattributed-ui-only without disclosing other
+content/IDs. Actual d84 two-document clear/supersede/reuse/retarget/count+age
+compaction fixtures cover this distinction and required-root failure controls.
+
+PROVENANCE AND FUTURE FAMILIES
+
+TP-1 portable-provider is allowlisted, inert observation data. Safe route ID,
+request ID/status, seed text, artifact hashes, exact requested/submitted/returned
+UTF-8 prompt blobs, typed safe timings and AppliedPrivacyPolicy are retained.
+Source-body hash is evidence metadata, never an export traversal edge. HTTP
+headers, raw backend bodies, signed transport URLs, credentials, session/pairing
+state, staging URL maps, unknown provider fields and executable outbox authority
+are not export families. No provider ingestion or provider client is added.
+
+The future provider owner must derive portable records under TP-1 and record
+known contaminated hashes in portable_quarantined_hashes before admitting them
+to portable closure. Arbitrary authored URL text is content, not a credential
+heuristic; exact prompts are not silently redacted. A quarantine blocks complete
+copy/import. A labelled redacted/incomplete recovery-copy creator is not part
+of this task. Imported observations never schedule jobs or remote requests.
+
+Current source families are document/history/checkpoint/asset/draft and
+portable-provider. Job/candidate/dataset/adapter/text/font/composition entity
+payloads are not yet implemented; archive versions/types outside current
+support remain inspection-only. Future owners must explicitly add typed,
+versioned scope and validation: associated job results include hidden/set-aside/
+unadopted candidate bytes, selected dataset/adapter lineage includes its owned
+artifacts, unrelated private families stay excluded. Unknown mandatory resources
+must never be omitted to issue a complete claim or coerced to supported data.
+
+VALIDATION AND RESOURCE CONTRACT
+
+Normative order: owner/purpose/length/reservation; isolated upload hash/length;
+ZIP directory/header/type/path/duplicate/range checks; streamed CRC/SHA; strict
+canonical versioned manifest/JSONL, refs, acyclic shared index, transactions and
+complete typed closure; sealed resource validation; source/closure/namespace-
+bound review; atomic durable acceptance. No archive code executes.
+
+ZIP uses STORE and BigInt sizes/offsets including real ZIP64 fields. Paths are
+only manifest.json, records/<canonical decimal>.jsonl, objects/<lowercase SHA>.
+Reject compression, encryption/descriptors/multivolume, directory/executable/
+symlink/device/link metadata, traversal/absolute/drive/UNC/backslash/percent/
+casefold or duplicate names, header disagreement, overlap, prefixes/trailing
+payloads and unsupported extras. CRC uses Node's public incremental zlib API.
+
+Disk-backed SQLite indexes/worklists and paged mapping keep closure/index size
+out of unbounded JS maps. IO chunks <=1 MiB; shared workspace two-IO and64
+preparation admission remains in force. Metadata <=64 KiB, event bodies <=16
+KiB, descriptor records <=16 KiB; events retain the frozen PF wrapper overhead.
+Each manifest/JSONL working segment <=128 MiB, with further index segments as
+needed. 128 MiB is NOT a total index cap; 4 GiB is NOT an archive/project cap.
+
+Snapshot capture, temporary metadata/indexes, archive construction/extraction,
+original-source retention and sealed raster workers use shared disk reservation
+with25% overhead, existing1 GiB free margin and64 MiB emergency reserve. Resident
+archive IO is bounded independently from image worker reservations; existing
+512 MiB process envelope stops preparation honestly without quality downgrade.
+No large parse is silently truncated. Native worker reservations/checks remain
+inside the full operation. A failed import may leave unregistered content files;
+it never deletes a shared object or publishes a partial namespace.
+
+QUALIFICATION BOUNDARY
+
+Author tests include real HTTP/writer pixel/history/draft/provider round trips,
+source preservation, post-proof substitution, SIGKILL/restart, actual SQLite
+FULL and mounted ENOSPC/EROFS, legacy executable migration/rollback, hostile ZIP/
+JSONL corpus, no-effects counters, and real >4 GiB non-sparse ZIP transport plus
+real >128 MiB segmented synthetic JSONL. Large transport/index tests are NOT
+coherent R39 workload or100k-operation campaigns. Tiny HTTP clocks include all
+parent work and are reported without exclusion, waiver or performance claim.
+
+R39 512 MiB8/15s and4 GiB60/120s qualification, formal full-envelope/native-memory,
+platform/browser/OS destination behavior and power-loss durability remain open.
+A-R01 remains open. Prior history full metadata max74.743ms (20/20 over50ms) and
+other slow parent samples remain visible; this task does not revise their
+budgets. P1b.7 owns actual painted controls, En Reve-first adoption and exact1px
+splitter feedback, actual destination completion and its full parent clocks.

@@ -1,0 +1,19 @@
+✔ real SIGKILL portable-preparation-before-commit preserves pinned copy identity and exact retry (935.247125ms)
+✔ real SIGKILL portable-preparation-after-commit preserves pinned copy identity and exact retry (881.690791ms)
+✔ real SIGKILL portable-export-before-commit preserves pinned copy identity and exact retry (1225.8875ms)
+✔ real SIGKILL portable-before-commit preserves pinned copy identity and exact retry (1457.398042ms)
+✔ real SIGKILL portable-after-commit preserves pinned copy identity and exact retry (953.324292ms)
+✔ real SIGKILL portable-import-after-proofs publishes all fresh namespace or none (1099.703333ms)
+✔ real SIGKILL portable-import-before-commit publishes all fresh namespace or none (1153.970584ms)
+✔ real SIGKILL portable-import-after-commit publishes all fresh namespace or none (1089.745833ms)
+✔ source changed after validation preserves namespace and existing shared bytes (903.035167ms)
+✔ source replaced after validation preserves namespace and existing shared bytes (960.972917ms)
+✔ source missing after validation preserves namespace and existing shared bytes (863.858625ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11584.486083

@@ -81,7 +81,7 @@ export class Rasters {
     });
     if(!['PrepareRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(body.type))throw new StoreError('UNSUPPORTED_COMMAND');
     if(body.type==='PrepareRaster')this.owner(body.assetId,auth.clientId);
-    if(Number(this.db.prepare('SELECT (SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM history_preparations) AS n').get()!.n)>=64){this.approvalAuth.delete(c.commandId);throw new StoreError('QUEUE_FULL');}
+    if(Number(this.db.prepare('SELECT (SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM history_preparations)+(SELECT count(*) FROM portable_preparations) AS n').get()!.n)>=64){this.approvalAuth.delete(c.commandId);throw new StoreError('QUEUE_FULL');}
     this.transaction(()=>{if(this.db.prepare('SELECT hash FROM asset_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');this.db.prepare('INSERT INTO raster_preparations VALUES (?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,randomUUID(),'preparing');this.barrier(body.type==='ApproveRaster'?'raster-approval-preparation-before-commit':'raster-preparation-before-commit');});
     if(body.type==='ApproveRaster'){this.approvalAuth.set(c.commandId,{auth:{...auth},started:performance.now()});this.barrier('raster-approval-preparation-after-commit');}
     this.barrier('raster-preparation-after-commit');this.schedule(true);return null;
@@ -181,6 +181,11 @@ export class Rasters {
       worker.on('error',()=>{error=new StoreError('CAPACITY');});
       worker.on('exit',()=>{clearInterval(timer);this.worker=undefined;if(error)reject(error);else if(result){result.metrics.supervisorPeakRSS=Math.max(peakRSS,process.memoryUsage().rss);result.metrics.admissionBaselineRSS=baselineRSS;result.metrics.combinedReservedBytes=baselineRSS+result.plan.cpuBytes;resolve(result);}else reject(new StoreError('STORAGE_FAILURE'));});
     });
+  }
+  async validatePortable(path:string,mediaType:string,original:BlobRef,directory:string,slot:string,check:()=>void){
+    if(!this.documentAvailable)throw new StoreError('QUEUE_FULL');this.documentBusy=true;
+    try{return await this.compute({type:'decode',path,mediaType,original,sourceAssetId:'portable-validation',directory},slot,check);}
+    finally{this.documentBusy=false;this.reservedCPU=0;}
   }
   // Internal document owner uses the SAME worker/admission/pixel pipeline. It
   // publishes the result only in its atomic image/history acceptance transaction.

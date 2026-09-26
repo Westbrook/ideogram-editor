@@ -1,0 +1,14 @@
+npm notice run ideogram-editor@0.1.0 test:assets:volume
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test tests/assets/volume-fault.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ actual upload ENOSPC after reservation preserves prior offset and resumes after capacity returns (3337.118875ms)
+ℹ {"fillerBytes":2000109568,"availableAtFault":0,"actualError":"ENOSPC","readOnlyError":"EROFS","offsetBefore":"4","offsetRecovered":"1048580","reservationMarginBytes":"1073741824","powerLossQualified":false}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3386.335084

@@ -1,0 +1,30 @@
+✔ public preview rejects duplicate-json-key and preserves source and namespace (657.470792ms)
+✔ public preview rejects noncanonical-json and preserves source and namespace (544.132583ms)
+✔ public preview rejects missing-final-LF and preserves source and namespace (606.400584ms)
+✔ public preview rejects unknown-entity-field and preserves source and namespace (577.075625ms)
+✔ public preview rejects wrong-projection and preserves source and namespace (589.036625ms)
+✔ public preview rejects missing-required-history and preserves source and namespace (573.234542ms)
+✔ public preview rejects duplicate-entity and preserves source and namespace (585.494042ms)
+✔ public preview rejects duplicate-object and preserves source and namespace (569.010125ms)
+✔ public preview rejects event-sequence-duplicate and preserves source and namespace (592.741125ms)
+✔ public preview rejects source-event-mutation and preserves source and namespace (559.440959ms)
+✔ public preview rejects event-beyond-highwater and preserves source and namespace (582.885917ms)
+✔ public preview rejects root-hash-mismatch and preserves source and namespace (588.632625ms)
+✔ public preview rejects unknown-root-field and preserves source and namespace (590.922208ms)
+✔ public preview rejects descriptor-hash-mismatch and preserves source and namespace (568.685584ms)
+✔ public preview rejects oversized-record and preserves source and namespace (591.450958ms)
+✔ public preview rejects index-cycle and preserves source and namespace (598.746625ms)
+✔ unknown format remains inspection-only with original source retained (599.277625ms)
+✔ unknown document remains inspection-only with original source retained (639.90975ms)
+✔ unknown payload remains inspection-only with original source retained (580.896458ms)
+✔ unknown record remains inspection-only with original source retained (615.296083ms)
+✔ unknown entity remains inspection-only with original source retained (608.6265ms)
+✔ changed history patch cannot publish a fresh editable namespace (1053.777875ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13790.719666

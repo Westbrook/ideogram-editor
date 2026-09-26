@@ -1,0 +1,32 @@
+✖ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (8389.8225ms)
+✔ review authority, namespace collision, source integrity and ranges are checked at public boundary (738.473875ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9475.529583
+
+✖ failing tests:
+
+test at tests/portable/restart.test.mjs:12:1
+✖ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (8389.8225ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"ee3fef9a-5bb4-4855-92bb-b9ad6205ef09","kind":"pending","operationId":"fb8542b5-d8d8-482f-8057-c8888c092faf","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/ee3fef9a-5bb4-4855-92bb-b9ad6205ef09"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async edit (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:8:148)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/restart.test.mjs:19:16)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

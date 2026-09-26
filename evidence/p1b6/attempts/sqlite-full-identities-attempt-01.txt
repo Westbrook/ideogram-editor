@@ -1,0 +1,32 @@
+✖ actual SQLite FULL preserves identity and source through same-authority-retry (14069.322083ms)
+✔ actual SQLite FULL preserves identity and source through restart-expired-review (12024.04925ms)
+ℹ {"recovery":"restart-expired-review","sqlitePageLimit":246,"fillerRows":70,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","sourceTablesPreserved":["documents","history","checkpoints","objects","roots","commands","events_v2","assets","asset_dependencies","ui_checkpoints","ui_events","ui_receipts","staged_assets","portable_reviews","portable_review_sources","portable_review_maps","portable_pins"],"originalSourcePreserved":true,"originalCommandId":"49a0d62a-f987-435c-8135-685eb442ed2a","originalCommandHash":"sha256:09a0b0727c05ae3510ee17f4df091c4bba3a169945e2e64db8af6224656e2816","originalOperationId":"2f69b9be-8149-478e-b6d2-efc3e05a34cd","originalReviewId":"394314af-0d73-4c0e-8d90-96516de2465b","acceptedCommandId":"265add32-388c-4e65-8759-37ee1b3ad4ef","acceptedReviewId":"97197589-0218-4f06-8d09-73ab9a5d66a7","sameOriginalIdentityPreserved":true,"singleNamespace":true,"singleAcceptedEvent":true,"restartRequiresFreshReview":true}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26144.565167
+
+✖ failing tests:
+
+test at tests/portable/failure.test.mjs:28:73
+✖ actual SQLite FULL preserves identity and source through same-authority-retry (14069.322083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - 'accepted'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/failure.test.mjs:62:57)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'accepted',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

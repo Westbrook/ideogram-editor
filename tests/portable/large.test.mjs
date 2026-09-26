@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {join} from 'node:path';
+import {stat} from 'node:fs/promises';
+import {rootFor} from '../store/helpers.mjs';
+import {ZipIndex,writeZip,spool,crc32} from '../../dist/local/server/portable/zip.js';
+import {defineIndex,encodeRecords,decodeRecords,fileSource} from '../../dist/local/server/portable/format.js';
+import {canonical} from '../../dist/local/server/storage/canonical.js';
+const noCheck=()=>{};
+function source(name,b){return {name,bytes:BigInt(b.length),sha256:createHash('sha256').update(b).digest('hex'),crc:(crc32(b)^0xffffffff)>>>0,chunks:async function*(){for(let n=0;n<b.length;n+=1048576)yield b.subarray(n,n+1048576);}};}
+test('real non-sparse STORE bytes exceed 4 GiB and a following entry uses an actual 64-bit offset',async t=>{
+ const root=await rootFor(t),db=spool(join(root,'write.sqlite')),length=4n*1024n**3n+1048593n,block=Buffer.alloc(1048576);for(let i=0;i<block.length;i++)block[i]=1+(i%251);
+ let peak=process.memoryUsage().rss,maxChunk=0;const sample=()=>{peak=Math.max(peak,process.memoryUsage().rss);},timer=setInterval(sample,10);const started=performance.now();
+ try{let crc=0xffffffff;const h=createHash('sha256');for(let at=0n;at<length;at+=BigInt(block.length)){const n=Number(length-at<BigInt(block.length)?length-at:BigInt(block.length)),b=block.subarray(0,n);h.update(b);crc=crc32(b,crc);}const hash=h.digest('hex');
+ const bytes=await writeZip(join(root,'large.zip'),db,(async function*(){yield source('manifest.json',Buffer.from('{}'));yield {name:'objects/'+hash,bytes:length,sha256:hash,crc:(crc^0xffffffff)>>>0,chunks:async function*(){for(let at=0n;at<length;at+=BigInt(block.length)){const n=Number(length-at<BigInt(block.length)?length-at:BigInt(block.length));maxChunk=Math.max(n,maxChunk);yield block.subarray(0,n);}}};yield source('records/0.jsonl',Buffer.from('{}\n'));})(),sample);
+ const index=spool(join(root,'read.sqlite')),zip=new ZipIndex(join(root,'large.zip'),index);try{await zip.headers(sample);assert(zip.entry('records/0.jsonl').offset>0xffffffffn);await zip.hashes(sample);assert.equal(zip.entry('objects/'+hash).sha256,hash);assert.equal(zip.entry('objects/'+hash).bytes,length);}finally{zip.close();index.close();}
+ const disk=await stat(join(root,'large.zip'));assert.equal(BigInt(disk.size),bytes);assert(disk.blocks*512>=Number(length));assert.equal(maxChunk,1048576);assert(peak<512*1048576);t.diagnostic(JSON.stringify({fixture:'real repeated nonzero bytes; no sparse file or forged size',payloadBytes:String(length),archiveBytes:String(bytes),allocatedBytes:disk.blocks*512,maxIOChunk:maxChunk,peakRSS:peak,fullTestMs:performance.now()-started,qualification:false,limits:'ZIP transport correctness only; not the R39 document campaign'}));
+ }finally{clearInterval(timer);db.close();}
+});
+test('real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments',async t=>{
+ const root=await rootFor(t),db=spool(join(root,'encode.sqlite'));db.exec('BEGIN');defineIndex(db);const doc={id:'document_1',revision:'1',width:1,height:1,color:'sRGB',depth:8,orderedLayerIds:[],historyHead:'initial',branchId:'main',checkpoint:null,compositionVersion:null};db.prepare('INSERT INTO entities VALUES (?,?,?,NULL)').run('document',doc.id,canonical(doc));
+ const count=10000;for(let i=1;i<=count;i++){const e={schemaVersion:1,payloadVersion:1,eventId:'event_'+i,workspaceSeq:String(i),streamId:'document_1',streamSeq:String(i+1),documentId:'document_1',resultingDocumentRevision:String(i+1),commandId:'command_'+i,correlationId:'fixture',causationId:null,transactionId:'transaction_'+i,writerEpoch:'1',recordedAt:'2026-09-26T00:00:00.000Z',type:'CheckpointSaved',payload:{checkpoint:{id:'checkpoint_'+i,documentId:'document_1',documentRevision:String(i),historyHead:'initial',highWater:String(i-1),name:'exact index boundary '.repeat(690)}}};db.prepare('INSERT INTO events VALUES (?,?,?)').run(e.workspaceSeq,e.transactionId,canonical(e));}
+ let peak=process.memoryUsage().rss;const check=()=>peak=Math.max(peak,process.memoryUsage().rss),start=performance.now();try{const manifest=await encodeRecords(db,root,doc.id,String(count),check);const events=db.prepare("SELECT * FROM segments WHERE kind='events'").all(),total=events.reduce((n,x)=>n+BigInt(x.bytes),0n);assert(total>128n*1024n*1024n);assert(events.length>1);assert(events.every(x=>BigInt(x.bytes)<=128n*1024n*1024n));
+ await writeZip(join(root,'index.zip'),db,(async function*(){yield await fileSource('manifest.json',join(root,'manifest.json'),check);for(const r of db.prepare('SELECT path FROM segments').iterate())yield await fileSource(r.path,join(root,r.path.replace('/','-')),check);for(const r of db.prepare('SELECT hash,json FROM payloads').iterate())yield source('objects/'+r.hash.slice(7),Buffer.from(r.json));})(),check);
+ const decoded=spool(join(root,'decoded.sqlite')),zip=new ZipIndex(join(root,'index.zip'),decoded);try{decoded.exec('BEGIN');await zip.headers(check);await zip.hashes(check);const result=await decodeRecords(zip,decoded,check);assert.equal(result.unsupported,undefined);assert.equal(decoded.prepare('SELECT count(*) n FROM events').get().n,count);decoded.exec('COMMIT');}finally{zip.close();decoded.close();}assert(peak<512*1048576);t.diagnostic(JSON.stringify({fixture:'synthetic canonical checkpoint records, real bytes',eventRecordCount:count,eventIndexBytes:String(total),eventSegments:events.length,rootSegments:manifest.segments.length,peakRSS:peak,elapsedMs:performance.now()-start,qualification:false,limits:'segmented index transport/parser only; not a coherent full document or 100k-operation campaign'}));
+ }finally{db.exec('COMMIT');db.close();}
+});

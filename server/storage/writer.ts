@@ -1,3 +1,4 @@
+import type { Portables } from './portable.js';
 import { Worker } from 'node:worker_threads';
 import type { BlobRef, Document, DomainEvent, Receipt } from '../../src/protocol/store.js';
 import { acquireRoot } from './ownership.js';
@@ -69,6 +70,14 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
       if (bytes.byteLength > 65536) throw new StoreError('PAYLOAD_TOO_LARGE');
       return request<Receipt>('submit', { bytes, epoch: writerEpoch });
     },
+    portableCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('portableCommand',{bytes,auth}),
+    bundle:(id:string,auth:AssetAuth)=>request<ReturnType<Portables['bundle']>>('bundle',{id,auth}),
+    bundleMapping:(id:string,kind:string,after:string,auth:AssetAuth)=>request<ReturnType<Portables['mapping']>>('bundleMapping',{id,kind,after,auth}),
+    bundleReview:(id:string,auth:AssetAuth)=>request<ReturnType<Portables['review']>>('bundleReview',{id,auth}),
+    bundleVerify:(id:string,auth:AssetAuth)=>request<Awaited<ReturnType<Portables['verifyBundle']>>>('bundleVerify',{id,auth}),
+    bundleContent:(handle:string,offset:string,length:number,auth:AssetAuth)=>request<Uint8Array>('bundleContent',{handle,offset,length,auth}),
+    bundleRelease:(handle:string)=>request<void>('bundleRelease',{handle}),
+    portableInventory:(after:string,auth:AssetAuth)=>request<ReturnType<Portables['inventory']>>('portableInventory',{after,auth}),
     assetCreate: (value:unknown,auth:AssetAuth)=>request<ReturnType<Assets['create']>>('assetCreate',{value,auth}),
     assetGet: (id:string,auth:AssetAuth)=>request<ReturnType<Assets['get']>>('assetGet',{id,auth}),
     assetInventory: (cursor:string|null,auth:AssetAuth)=>request<ReturnType<Assets['inventory']>>('assetInventory',{cursor,auth}),

@@ -1,0 +1,12 @@
+✔ actual SQLite FULL preserves identity and source through same-authority-retry (11218.242875ms)
+ℹ {"recovery":"same-authority-retry","sqlitePageLimit":658,"restoredFreePages":492,"fillerRows":436,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","sourceTablesPreserved":["documents","history","checkpoints","objects","roots","commands","events_v2","assets","asset_dependencies","ui_checkpoints","ui_events","ui_receipts","staged_assets","portable_reviews","portable_review_sources","portable_review_maps","portable_pins"],"originalSourcePreserved":true,"originalCommandId":"25927c26-a75f-46df-b83e-5a56bd362352","originalCommandHash":"sha256:e824dd3481ceb4ac4401e72a3f41d254ea0c9a089930137178a0a427be697f19","originalOperationId":"441a0aa1-56f8-41cf-bdaf-8e1390f74455","originalReviewId":"bf986f4d-a5d4-4c36-be8e-f87b3ffcf60a","acceptedCommandId":"25927c26-a75f-46df-b83e-5a56bd362352","acceptedReviewId":"bf986f4d-a5d4-4c36-be8e-f87b3ffcf60a","sameOriginalIdentityPreserved":true,"singleNamespace":true,"singleAcceptedEvent":true,"restartRequiresFreshReview":false}
+✔ actual SQLite FULL preserves identity and source through restart-expired-review (12240.835916ms)
+ℹ {"recovery":"restart-expired-review","sqlitePageLimit":658,"restoredFreePages":492,"fillerRows":436,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","sourceTablesPreserved":["documents","history","checkpoints","objects","roots","commands","events_v2","assets","asset_dependencies","ui_checkpoints","ui_events","ui_receipts","staged_assets","portable_reviews","portable_review_sources","portable_review_maps","portable_pins"],"originalSourcePreserved":true,"originalCommandId":"88d5817a-2552-4367-b613-63f7fcedf110","originalCommandHash":"sha256:8de9c7b4c034df01f0bfde559c4b47573c96114edef1d2256d8e30e9da6fdc82","originalOperationId":"7888a9f4-c37c-481c-8379-5272fea1635b","originalReviewId":"ad49539c-16d4-4ef7-b42f-296803ff718b","acceptedCommandId":"7a7c9e42-565d-4cda-af5c-43d385bce4d6","acceptedReviewId":"54546428-6297-4b67-8a8b-0aaf4e7234fa","sameOriginalIdentityPreserved":true,"singleNamespace":true,"singleAcceptedEvent":true,"restartRequiresFreshReview":true}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23512.134791

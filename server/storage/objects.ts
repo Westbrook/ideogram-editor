@@ -106,6 +106,12 @@ export class Objects {
     // Keep abandoned bytes for startup inventory; cleanup is a later explicit operation.
     this.reserved -= stage.reserved; this.stages.delete(id);this.available();
   }
+  putMetadataInSlot(bytes:Uint8Array,slot:string):BlobRef {
+    // A synchronous metadata write borrows its caller's existing IO permit.
+    // No callback can admit another task until the permit is restored.
+    if(!this.slots.delete(slot))throw new StoreError('CAPACITY');
+    try{return this.putMetadata(bytes);}finally{this.slots.add(slot);}
+  }
   putMetadata(bytes: Uint8Array): BlobRef {
     const id = this.begin(String(bytes.byteLength), 'application/json', undefined, true);
     try { this.chunk(id, bytes); return this.finish(id); } finally { this.abort(id); }

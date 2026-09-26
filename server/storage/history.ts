@@ -80,9 +80,9 @@ export class Histories {
     if(c.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');if(!isHistoryCommand(c.body.type))throw new StoreError('UNSUPPORTED_COMMAND');
     const prior=this.db.prepare('SELECT hash,receipt FROM commands WHERE id=?').get(c.commandId);
     if(prior){if(prior.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(prior.receipt));}
-    for(const table of ['asset_preparations','raster_preparations'])if(this.db.prepare(`SELECT id FROM ${table} WHERE id=?`).get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
+    for(const table of ['asset_preparations','raster_preparations','portable_preparations'])if(this.db.prepare(`SELECT id FROM ${table} WHERE id=?`).get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
     const pending=this.pending(c.commandId);if(pending){if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');if(['ReviewImageEdit','ResampleImage','CreateFlattenedCopy'].includes(c.body.type))this.authorities.set(c.commandId,{auth:{...auth},started:performance.now()});this.paused.delete(c.commandId);this.schedule(true);return null;}
-    if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM history_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
+    if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM history_preparations)+(SELECT count(*) FROM portable_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
     this.db.exec('BEGIN IMMEDIATE');try{
       this.db.prepare('INSERT INTO history_preparations VALUES (?,?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,randomUUID(),'preparing',canonical(c.body.type==='ExportDocument'?this.document(c.documentId!):null));
       this.barrier('history-preparation-before-commit');this.db.exec('COMMIT');this.barrier('history-preparation-after-commit');if(c.body.type==='ResampleImage'||c.body.type==='CreateFlattenedCopy')this.barrier('image-edit-preparation-after-commit');
@@ -145,6 +145,7 @@ export class Histories {
   }
   private usedLayer(documentId:string,id:string):boolean {
     // Layer IDs are never recycled, including identities only on inactive branches.
+    if(this.db.prepare("SELECT 1 FROM portable_maps m JOIN portable_namespaces n ON n.id=m.namespace WHERE n.document_id=? AND m.kind='layer' AND m.local_id=? LIMIT 1").get(documentId,id))return true;
     return !!this.db.prepare("SELECT 1 FROM commands WHERE json_extract(canonical,'$.command.documentId')=? AND json_extract(receipt,'$.status')='accepted' AND (json_extract(canonical,'$.command.body.layerId')=? OR json_extract(canonical,'$.command.body.newLayerId')=?) LIMIT 1").get(documentId,id,id);
   }
   private patch(before:ImageState,after:ImageState,operation:HistoryBody['type']):ImagePatch {
@@ -187,7 +188,7 @@ export class Histories {
     const c=pending.command,b=c.body as HistoryBody,bytes=Buffer.from(String(this.db.prepare('SELECT original FROM history_preparations WHERE id=?').get(id)!.original));
     const proofs:Proof[]=[];const check=()=>{this.check();if(this.closing)throw new StoreError('CLOSED');};
     const protect=async(ref:BlobRef)=>{if(!proofs.some(p=>p.ref.hash===ref.hash))proofs.push({ref,token:await this.objects.prove(ref,check)});};
-    const metadata=async(value:unknown)=>{const ref=this.objects.putMetadata(Buffer.from(canonical(value)));await protect(ref);return ref;};
+    const metadata=async(value:unknown)=>{const ref=this.objects.putMetadataInSlot(Buffer.from(canonical(value)),slot);await protect(ref);return ref;};
     const assetIds=new Set<string>();
     const protectAsset=async(id:string):Promise<void>=>{
       if(assetIds.has(id))return;assetIds.add(id);if(assetIds.size>512)throw new StoreError('CAPACITY');

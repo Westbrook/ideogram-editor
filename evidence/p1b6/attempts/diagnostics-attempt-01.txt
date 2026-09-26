@@ -1,0 +1,28 @@
+✔ missing deleted-layer-pixels refuses copy and preserves all other current roots (1275.023ms)
+✔ missing hidden-branch-pixels refuses copy and preserves all other current roots (1230.602208ms)
+✔ durable preparation remains pinned and cancellation releases only its owned pins after terminal rejection (688.330542ms)
+✔ review UI mappings page every imported checkpoint without a session count cap (4400.313125ms)
+ℹ UI checkpoints persisted
+ℹ Archive copied
+ℹ Archive reviewed
+ℹ Mapping pages read
+ℹ Fresh namespace accepted
+✔ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (4427.904292ms)
+ℹ {"sqlitePageLimit":167,"actualNamespaceRowsAfterFailure":0,"originalSourcePreserved":true,"restartRequiresFreshReview":true}
+✔ inert provider provenance retains oversized exact prompts and result bytes across import, copy and restart with zero effects (2388.446292ms)
+ℹ {"promptBytes":17825805,"exactUTF8":true,"bodyHashTraversed":false,"providerEffects":0,"qualification":false}
+✔ portable provider headers cannot become an editable namespace (646.357166ms)
+✔ portable provider transportURL cannot become an editable namespace (616.999542ms)
+✔ portable provider backendClass cannot become an editable namespace (613.482375ms)
+✔ portable provider bodyReachability cannot become an editable namespace (621.49975ms)
+✔ portable provider invalidUTF8 cannot become an editable namespace (662.868041ms)
+✔ portable provider incomplete cannot become an editable namespace (648.824ms)
+✔ known transport-contaminated prompt hash is inspection-only without altering the exact staged original (602.6165ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18944.504625

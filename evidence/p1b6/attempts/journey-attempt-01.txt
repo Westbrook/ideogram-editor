@@ -1,0 +1,21 @@
+✖ copy retains mask, deleted layer, inactive branches, checkpoint, export and exact source events; reopen restarts and navigates all (18823.828417ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18896.361833
+
+✖ failing tests:
+
+test at tests/portable/journey.test.mjs:14:1
+✖ copy retains mask, deleted layer, inactive branches, checkpoint, export and exact source events; reopen restarts and navigates all (18823.828417ms)
+  Error: socket hang up
+      at Socket.socketOnEnd (node:_http_client:800:25)
+      at Socket.emit (node:events:526:24)
+      at endReadableNT (node:internal/streams/readable:1980:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'ECONNRESET'
+  }

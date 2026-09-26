@@ -22,6 +22,7 @@ try {
   store.assets.schedule(true);
   store.rasters.schedule(true);
   store.histories.schedule(true);
+  store.portables.schedule();
 } catch (error) {
   port.postMessage({ type: 'startup-error', code: safeError(error).code, detail:safeError(error).detail }); port.close();
 }
@@ -32,12 +33,20 @@ port.on('message', async message => {
     if(method!=='close')store.fence(args.epoch);
     // Reads/close may wait for a pending snapshot. Receipts normally do not;
     // only an exhausted tail waits for recovery before applying backpressure.
-    if ((method==='submit'||method==='assetCommand'||method==='rasterCommand'||method==='historyCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
+    if ((method==='submit'||method==='assetCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
     else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
-    if (method === 'close') { await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
+    if (method === 'close') { await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
     else {
       store.fence(args.epoch);
       switch (method) {
+        case 'portableCommand':result=store.portables.command(args.bytes,args.auth);break;
+        case 'bundle':result=store.portables.bundle(args.id,args.auth);break;
+        case 'bundleMapping':result=store.portables.mapping(args.id,args.auth,args.kind,args.after);break;
+        case 'bundleReview':result=store.portables.review(args.id,args.auth);break;
+        case 'bundleVerify':result=await store.portables.verifyBundle(args.id,args.auth);break;
+        case 'bundleContent':result=store.portables.content(args.handle,args.offset,args.length,args.auth);break;
+        case 'bundleRelease':store.portables.release(args.handle);result=null;break;
+        case 'portableInventory':result=store.portables.inventory(args.auth,args.after);break;
         case 'assetCreate': result=store.assets.create(args.value,args.auth);break;
         case 'assetGet': result=store.assets.get(args.id,args.auth);break;
         case 'assetInventory': result=store.assets.inventory(args.cursor,args.auth);break;
@@ -53,7 +62,7 @@ port.on('message', async message => {
         case 'imageState': result=store.histories.state(args.id);break;
         case 'historyClosure': result=store.histories.closure(args.id,args.after);break;
         case 'historyPage': result=store.histories.page(args.id,args.after,args.kind);break;
-        case 'saveStatus': result=store.histories.status(args.id,args.auth,args.sessionId);break;
+        case 'saveStatus': result=store.histories.status(args.id,args.auth,args.sessionId);(result as any).pendingCommandCount+=store.portables.pendingCount(args.id,args.auth.clientId);const bundle=store.portables.latest(args.id);(result as any).bundleOutdated=!bundle||bundle.documentRevision!==store.document(args.id)?.revision||bundle.uiDigest!==store.portables.currentUIDigest(args.id);(result as any).copyStatus=bundle?'copy-ready':'none';(result as any).destinationStatus='unconfirmed';break;
         case 'uiRead': result=store.ui.read(args.id,args.auth);break;
         case 'uiPersist': result=await store.ui.persist(args.bytes,args.auth);break;
         case 'rasterCommand': result=store.rasters.command(args.bytes,args.auth);break;
@@ -69,7 +78,7 @@ port.on('message', async message => {
         case 'rememberClient': store.rememberClient(args.hash,args.clientId,args.expires,args.oldHash); result = null; break;
         case 'forgetClient': store.forgetClient(args.hash); result = null; break;
         case 'submit': result = store.submit(args.bytes, args.epoch); break;
-        case 'commandState': result={record:store.lookup(args.id),pending:store.assets.pending(args.id)??store.rasters.pending(args.id)??store.histories.pending(args.id)};break;
+        case 'commandState': result={record:store.lookup(args.id),pending:store.assets.pending(args.id)??store.rasters.pending(args.id)??store.histories.pending(args.id)??store.portables.pending(args.id)};break;
         case 'lookup': result = store.lookup(args.id); break;
         case 'document': result = store.document(args.id); break;
         case 'history': result = store.entity('history', args.id); break;

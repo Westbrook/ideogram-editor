@@ -1,0 +1,22 @@
+✔ ZIP64 STORE roundtrip uses real content, exact CRC/hash and 64-bit fields (76.346541ms)
+✔ rejects compression before accepting archive (6.434875ms)
+✔ rejects encryption before accepting archive (9.484ms)
+✔ rejects descriptor before accepting archive (7.444541ms)
+✔ rejects traversal before accepting archive (6.730334ms)
+✔ rejects crc before accepting archive (5.965208ms)
+✔ rejects payload before accepting archive (6.411ms)
+✔ rejects trailing before accepting archive (6.351958ms)
+✔ rejects volume before accepting archive (5.796292ms)
+✔ rejects symlink before accepting archive (6.097166ms)
+✔ rejects executable before accepting archive (5.9965ms)
+✔ rejects directory before accepting archive (6.173042ms)
+✔ rejects overlap before accepting archive (5.869166ms)
+✔ rejects zip64Offset before accepting archive (6.026458ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 460.204542

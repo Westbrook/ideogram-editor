@@ -1,0 +1,10 @@
+✔ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (3016.458ms)
+✔ review authority, namespace collision, source integrity and ranges are checked at public boundary (804.071958ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4141.619666

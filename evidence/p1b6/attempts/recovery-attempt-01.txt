@@ -1,0 +1,27 @@
+✔ empty document real HTTP copy, review, fresh namespace import and exact retry (835.646583ms)
+✔ image retained pixels and old branch reopen in fresh namespace (2167.795917ms)
+✔ actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (8274.923125ms)
+ℹ {"priorExecutable":"d84c1de55709bbd957222cac854905c41583a4e4","sourceUISeq":"1018","sourceObjects":18,"scopeA":["current_a","history_owned"],"scopeB":["current_b","reused_b"],"sourcePreserved":true}
+✔ legacy required current-bytes failure refuses a complete-copy claim (6098.729458ms)
+✔ legacy required history-ownership failure refuses a complete-copy claim (6030.943834ms)
+✔ real SIGKILL portable-preparation-before-commit preserves pinned copy identity and exact retry (1004.403084ms)
+✔ real SIGKILL portable-preparation-after-commit preserves pinned copy identity and exact retry (937.8865ms)
+✔ real SIGKILL portable-export-before-commit preserves pinned copy identity and exact retry (920.667666ms)
+✔ real SIGKILL portable-before-commit preserves pinned copy identity and exact retry (900.494042ms)
+✔ real SIGKILL portable-after-commit preserves pinned copy identity and exact retry (928.386208ms)
+✔ real SIGKILL portable-import-after-proofs publishes all fresh namespace or none (1140.373459ms)
+✔ real SIGKILL portable-import-before-commit publishes all fresh namespace or none (1097.915417ms)
+✔ real SIGKILL portable-import-after-commit publishes all fresh namespace or none (1121.880042ms)
+✔ source changed after validation preserves namespace and existing shared bytes (885.300917ms)
+✔ source replaced after validation preserves namespace and existing shared bytes (905.546083ms)
+✔ source missing after validation preserves namespace and existing shared bytes (895.407792ms)
+✔ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (3426.644084ms)
+✔ review authority, namespace collision, source integrity and ranges are checked at public boundary (821.825791ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39150.28525

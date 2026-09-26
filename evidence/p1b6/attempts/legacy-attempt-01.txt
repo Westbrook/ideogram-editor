@@ -1,0 +1,49 @@
+✖ actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (6437.508291ms)
+✖ legacy required current-bytes failure refuses a complete-copy claim (6069.608ms)
+✖ legacy required history-ownership failure refuses a complete-copy claim (5861.529541ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18430.228958
+
+✖ failing tests:
+
+test at tests/portable/legacy.test.mjs:52:1
+✖ actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (6437.508291ms)
+  Error: STORAGE_FAILURE
+      at Worker.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:65:25)
+      at Worker.emit (node:events:514:20)
+      at MessagePort.<anonymous> (node:internal/worker:354:14)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:872:20)
+      at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28) {
+    code: 'STORAGE_FAILURE',
+    detail: undefined
+  }
+
+test at tests/portable/legacy.test.mjs:58:58
+✖ legacy required current-bytes failure refuses a complete-copy claim (6069.608ms)
+  Error: STORAGE_FAILURE
+      at Worker.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:65:25)
+      at Worker.emit (node:events:514:20)
+      at MessagePort.<anonymous> (node:internal/worker:354:14)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:872:20)
+      at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28) {
+    code: 'STORAGE_FAILURE',
+    detail: undefined
+  }
+
+test at tests/portable/legacy.test.mjs:58:58
+✖ legacy required history-ownership failure refuses a complete-copy claim (5861.529541ms)
+  Error: STORAGE_FAILURE
+      at Worker.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:65:25)
+      at Worker.emit (node:events:514:20)
+      at MessagePort.<anonymous> (node:internal/worker:354:14)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:872:20)
+      at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28) {
+    code: 'STORAGE_FAILURE',
+    detail: undefined
+  }

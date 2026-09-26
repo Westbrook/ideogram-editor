@@ -43,7 +43,7 @@ export class RecoveryCache {
     const previous=event.documentId?await this.value(generation,'document',event.documentId)??null:null;
     requireValue(!await this.value(generation,'event',event.eventId),'Duplicate event identity');
     if(event.type==='AssetRegistered'){requireValue(!await this.value(generation,'asset',event.payload.asset.id),'Duplicate asset');await this.put(generation,'asset',event.payload.asset.id,event.payload.asset);}
-    else if(event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
+    else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
     const next=reduceDocument(previous,event);
     await this.put(generation,'document',next.id,next);
     if((event.type==='DocumentCreated'||event.type==='ImageEdited')) await this.put(generation,'history',event.payload.history.id,event.payload.history);

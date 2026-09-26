@@ -1,3 +1,4 @@
+import { isPortableCommand } from '../../src/protocol/portable.js';
 import { isHistoryCommand } from '../../src/protocol/history.js';
 import { historyBody } from '../../src/protocol/history-validation.js';
 import { createHash } from 'node:crypto';
@@ -43,7 +44,12 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
   validateBlob(c.expectedEntityVersions);
   const body = c.body as Record<string, unknown>;
   if (!body || typeof body !== 'object' || Array.isArray(body)) bad();
-  if (isHistoryCommand(String(body.type))) {
+  if (isPortableCommand(String(body.type))) {
+    if(body.type==='SaveCopy')keys(body,['type']);
+    else if(body.type==='PreviewBundleImport'){keys(body,['type','stagingId','expectedSha256']);if(!isId(body.stagingId)||typeof body.expectedSha256!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.expectedSha256))bad();}
+    else if(body.type==='ImportBundle'){keys(body,['type','reviewId','reviewHash']);if(!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash))bad();}
+    else{keys(body,['type','operationId']);if(!isId(body.operationId))bad();}
+  } else if (isHistoryCommand(String(body.type))) {
     try { historyBody(body); } catch { bad(); }
   } else if (body.type === 'NewDocument') {
     keys(body, ['type', 'width', 'height', 'color', 'depth']);

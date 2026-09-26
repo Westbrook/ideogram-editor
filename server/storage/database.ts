@@ -1,3 +1,4 @@
+import { Portables, projectNamespace, type PortableCommit } from './portable.js';
 import { closeSync, lstatSync, statfsSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
@@ -16,7 +17,7 @@ import type { AssetFact } from '../../src/protocol/assets.js';
 import { Histories } from './history.js';
 import type { HistoryCommit } from './history.js';
 import { UIStore } from './ui.js';
-import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema } from './schema.js';
 import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
@@ -49,6 +50,7 @@ export class StoreDatabase {
   readonly rasters: Rasters;
   readonly histories: Histories;
   readonly ui: UIStore;
+  readonly portables: Portables;
   private databaseIdentity;
   private rootIdentity;
   private missing: { hash: string; code: string }[] = [];
@@ -68,7 +70,7 @@ export class StoreDatabase {
     try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
     finally { reader.close(); }
     // Unknown future roots are inspected with a read-only connection only.
-    if (![0,1,2,3,4,5,6].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+    if (![0,1,2,3,4,5,6,7].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
       kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
     });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
@@ -87,6 +89,7 @@ export class StoreDatabase {
       rasterSchema(this.db, root, options.quotaBytes,version===0);
       approvalSchema(this.db, root, barrier, options.quotaBytes,version===0);
       historySchema(this.db, root, barrier, options.quotaBytes,version===0);
+      portableSchema(this.db, root, barrier, options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
@@ -111,7 +114,8 @@ export class StoreDatabase {
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.ui=new UIStore(this.db,this.objects,this.assets,()=>this.fence(this.epoch),barrier,id=>this.histories.state(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitHistory(bytes,build),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
-      this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();this.histories.schedule();});
+      this.portables=new Portables(this.db,this.objects,this.assets,this.rasters,root,this.epoch,()=>this.fence(this.epoch),barrier,(bytes,build,slot)=>this.commitPortable(bytes,build,slot),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();this.histories.schedule();this.portables.schedule();});
       if (options.maxPageCount !== undefined) {
         if (!Number.isSafeInteger(options.maxPageCount) || options.maxPageCount < 1) throw new Error('Invalid test page limit');
         this.db.exec(`PRAGMA max_page_count=${options.maxPageCount}`);
@@ -158,6 +162,8 @@ export class StoreDatabase {
     return row ? JSON.parse(String(row.json)) : null;
   }
   private project(event: DomainEvent): void {
+    if(event.type==='BundleImported'){projectNamespace(this.db,event.payload.namespaceId,event.payload.namespaceHash);return;}
+    if(['BundlePrepared','BundleImportReviewed','PortableCancelled'].includes(event.type))return;
     if(event.type==='AssetRegistered') {
       this.db.prepare('INSERT INTO assets VALUES (?,?)').run(event.payload.asset.id,canonical(event.payload.asset));
       for(const ref of [event.payload.asset.blob,...event.payload.asset.dependencies])this.db.prepare('INSERT OR IGNORE INTO asset_dependencies VALUES (?,?)').run(event.payload.asset.id,ref.hash);
@@ -329,7 +335,7 @@ export class StoreDatabase {
   private assertPendingIdentity(id:string,hash:string):void {
     // The acceptance transaction owns this check. HTTP prechecks can race another
     // request that durably reserves the ID while this command is queued.
-    for(const table of ['asset_preparations','raster_preparations','history_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
+    for(const table of ['asset_preparations','raster_preparations','history_preparations','portable_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
       if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');}
   }
   private commitAsset(bytes: Uint8Array, build:()=>AssetFact, failure?:()=>void):Receipt {
@@ -409,6 +415,26 @@ export class StoreDatabase {
       this.appendMs.push(performance.now()-start);if(this.appendMs.length>100)this.appendMs.shift();return receipt;
     }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
   }
+  private commitPortable(bytes:Uint8Array,build:Parameters<PortableCommit>[1],slot?:string):Receipt {
+    this.fence(this.epoch);const request=parseCommand(bytes),c=request.command,serialized=canonical(request),hash=hashBytes(serialized);
+    this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
+    try{const prior=this.lookup(c.commandId);if(prior){if(prior.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return prior.receipt;}
+      this.assertPendingIdentity(c.commandId,hash);if(this.missingCount)throw new StoreError('CORRUPT_STORE');let receipt:Receipt;
+      this.db.exec('SAVEPOINT portable_effect');
+      try{
+        const expected=parseExpected(this.objects.verify(c.expectedEntityVersions,true)!);if(c.expectedEntityVersions.mediaType!=='application/json'||canonical(expected)!==Buffer.from(this.objects.verify(c.expectedEntityVersions,true)!).toString())throw new AssetRejection('INVALID_INPUT','INVALID_VERSION_MAP');
+        if(c.body.type==='SaveCopy'){const p=this.db.prepare('SELECT frozen FROM portable_preparations WHERE id=?').get(c.commandId);const frozen=p?JSON.parse(String(p.frozen)):null;if(!frozen||c.documentId!==frozen.document.id||c.expectedDocumentRevision!==frozen.document.revision||expected.entities.some(x=>x.entityType!=='document'||x.entityId!==c.documentId||x.version!==c.expectedDocumentRevision))throw new AssetRejection('STALE_REVISION','CAPTURE_CHANGED');}
+        else if(c.documentId!==null||c.expectedDocumentRevision!==null||expected.entities.length)throw new AssetRejection('INVALID_INPUT','WORKSPACE_COMMAND_REQUIRED');
+        if(this.db.prepare('SELECT 1 FROM events_v2 WHERE transaction_id=?').get(c.transactionId))throw new AssetRejection('INVALID_INPUT','TRANSACTION_ID_REUSE');
+        if(BigInt(this.meta('highWater'))-BigInt(this.recovery.latest(true)?.seq??'0')>=500n)throw new AssetRejection('CAPACITY','SNAPSHOT_REQUIRED');
+        const result=build(),seq=String(BigInt(this.meta('highWater'))+1n),imported=result.fact.type==='BundleImported'?result.fact.payload.document:null;
+        const e:DomainEvent={schemaVersion:1,payloadVersion:1,eventId:randomUUID(),workspaceSeq:seq,streamId:imported?imported.id:'portable',streamSeq:imported?imported.revision:seq,documentId:imported?imported.id:null,resultingDocumentRevision:imported?imported.revision:null,commandId:c.commandId,correlationId:c.correlationId,causationId:c.causationId,transactionId:c.transactionId,writerEpoch:this.epoch,recordedAt:new Date().toISOString(),...result.fact};
+        validateEvent(e);if(Buffer.byteLength(canonical(e))>16384)throw new AssetRejection('CAPACITY','EVENT_SIZE_LIMIT');this.register('command:'+c.commandId,c.expectedEntityVersions);this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq,c.transactionId,c.commandId,canonical(e));this.project(e);this.setMeta('highWater',seq);
+        receipt={status:'accepted',commandId:c.commandId,fromSeq:seq,toSeq:seq,documentRevision:result.documentRevision,transactionId:c.transactionId};this.db.exec('RELEASE portable_effect');
+      }catch(e){if(!(e instanceof AssetRejection))throw e;this.db.exec('ROLLBACK TO portable_effect; RELEASE portable_effect');const detailBytes=Buffer.from(canonical({kind:'fields',issues:[{path:e.field,code:e.reason}]})),details=slot?this.objects.putMetadataInSlot(detailBytes,slot):this.objects.putMetadata(detailBytes);this.register('receipt:'+c.commandId,details);receipt={status:'rejected',commandId:c.commandId,code:e.code,currentRevision:null,details};}
+      this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString(),serialized,canonical(receipt));this.db.prepare('DELETE FROM portable_preparations WHERE id=?').run(c.commandId);this.barrier('portable-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('portable-after-commit');if(c.body.type==='ImportBundle')this.barrier('portable-import-after-commit');this.recovery.maintain();return receipt;
+    }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+  }
   protocolDefaults(): void {
     // A fixed safe precondition value makes the existing narrow commands usable
     // on a new root. This is not arbitrary blob upload or repair of missing roots.
@@ -456,6 +482,7 @@ export class StoreDatabase {
       assets: this.assets.diagnostics(),
       rasters: this.rasters.diagnostics(),
       history: {observations:this.histories.observations},
+      portable: {observations:this.portables.observations},
       observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,
         buildMs: this.recovery.snapshotBuildMs, sliceMaxMs: this.recovery.snapshotSliceMaxMs, activationMs: this.recovery.snapshotActivationMs }, qualification: false },
       processMemory: process.memoryUsage(), sqliteIntegrity: this.db.prepare('PRAGMA quick_check').get() };

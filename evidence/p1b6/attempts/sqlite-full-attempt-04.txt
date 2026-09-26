@@ -1,0 +1,31 @@
+✖ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7349.483833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7399.183834
+
+✖ failing tests:
+
+test at tests/portable/failure.test.mjs:28:1
+✖ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7349.483833ms)
+  AssertionError [ERR_ASSERTION]: {"waiting":{"protocolVersion":1,"items":[{"commandId":"b4055d44-493e-43d8-97e3-f1bdf4eff2d6","operationId":"5d8a7e4d-8074-4ebd-bdd7-e757a31a6c02","phase":"preparing","reason":null,"operation":"ImportBundle","documentId":null,"recovery":"retry-same-command-or-cancel"}],"next":null},"terminal":{"hash":"sha256:c4730ced020920b622c5caf0a4e5dfe1c506dc480a236e9feb12d2242fd57d3d","command":{"body":{"reviewHash":"sha256:539795958731df50df4bf986d60401d6eec675b48f747ea629d335a4d3a4bce9","reviewId":"ae38a181-4495-4884-862d-3071f1bfbc13","type":"ImportBundle"},"causationId":null,"clientId":"6cdf6f7b-a1e6-490c-bb3a-330b5f781434","commandId":"b4055d44-493e-43d8-97e3-f1bdf4eff2d6","correlationId":"correlation_1","documentId":null,"expectedDocumentRevision":null,"expectedEntityVersions":{"byteLength":"33","hash":"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069","mediaType":"application/json"},"issuedAt":"2026-09-26T03:00:00.000Z","schemaVersion":1,"sessionId":"session_1","transactionId":"1c9c569d-78d1-4cb6-814d-9f9896454866"},"receipt":{"code":"INVALID_INPUT","commandId":"b4055d44-493e-43d8-97e3-f1bdf4eff2d6","currentRevision":null,"details":{"byteLength":"86","hash":"sha256:95fc3af1ade331e8d3b605904c0edce644f8782f0b0cd26ac8fee4cb72c5490d","mediaType":"application/json"},"status":"rejected"}},"diagnostics":{"node":"26.10.0","sqlite":{"version":"3.53.4","source":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"},"settings":{"journal_mode":"wal","synchronous":2,"foreign_keys":1,"busy_timeout":250,"fullfsync":1,"checkpoint_fullfsync":1,"page_size":4096,"page_count":246,"max_page_count":246},"writerEpoch":"4","highWater":"3","projectionDigest":"sha256:81cbb2a958ad08fa5f8975eb140f95afc62092f5478f9a87aa4946c7e412062f","inventory":{"orphanCount":"182","stagingCount":"0"},"missingCount":0,"missing":[],"filesystem":{"type":"26","blockSize":"4096","availableBytes":"650193477632","totalBytes":"1995165736960"},"diskWarning":false,"resources":{"ioChunkBytes":1048576,"maxTransfers":2,"admissionOverheadPercent":25,"freeMarginBytes":"1073741824","metadataHeadroomBytes":"67108864","metadataHeadroomPhysicallyPreallocated":false,"snapshotTailCeiling":500},"assets":{"orphanUploadCount":"0","orphanUploadBytes":"0","committedBytes":"208631","failedCount":"0","preparations":"0","stages":"1","reservedBytes":"0","activeTransfers":0,"preparationMs":[]},"rasters":{"preparations":0,"approvalAuthorities":0,"activeWorkers":0,"reservedCPU":0,"observations":[]},"history":{"observations":[]},"portable":{"observations":[{"commandId":"8859b6ea-df87-4084-94ec-b4c60df47bef","operation":"PreviewBundleImport","confirmationToTerminalMs":863,"preparationMs":857.3441250000001,"rss":112410624,"qualification":false},{"commandId":"b4055d44-493e-43d8-97e3-f1bdf4eff2d6","operation":"ImportBundle","confirmationToTerminalMs":3511,"preparationMs":3507.389459,"error":"PORTABLE_INVALID_ARCHIVE"}]},"observations":{"appendMs":[],"replayMs":9.53483399999999,"snapshot":{"target":250,"pressure":false,"latest":null,"buildMs":0,"sliceMaxMs":0,"activationMs":0},"qualification":false},"processMemory":{"rss":116113408,"heapTotal":19546112,"heapUsed":12003328,"external":15170858,"arrayBuffers":10765743},"sqliteIntegrity":{"quick_check":"ok"}}}
+  + actual - expected
+  
+  + null
+  - 'STORAGE_FULL'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/failure.test.mjs:48:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'STORAGE_FULL',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

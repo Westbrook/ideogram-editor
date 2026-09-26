@@ -1,0 +1,121 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-raster-browser-IgcnkM/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/raster/playwright.config.ts"
+    ],
+    "configFile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-raster-browser-IgcnkM/tests/raster/playwright.config.ts",
+    "rootDir": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-raster-browser-IgcnkM/tests/raster",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-raster-browser-IgcnkM/artifacts/p1b4/browser-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-raster-browser-IgcnkM/tests/raster",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../evidence/p1b4/browser-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "consumer.spec.ts",
+      "file": "consumer.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "actual decoded conversion preview, explicit en-reve approval, canonical recovery projection and PNG content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 802,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T09:59:58.765Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c1cf76b2c3e27e53bcdc-46b594ccc2f222012af5",
+          "file": "consumer.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T09:59:58.518Z",
+    "duration": 1142.0720000000001,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

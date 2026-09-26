@@ -1,0 +1,17 @@
+✔ inert provider provenance retains oversized exact prompts and result bytes across import, copy and restart with zero effects (2284.178292ms)
+ℹ {"promptBytes":17825805,"exactUTF8":true,"bodyHashTraversed":false,"providerEffects":0,"qualification":false}
+✔ portable provider headers cannot become an editable namespace (596.603834ms)
+✔ portable provider transportURL cannot become an editable namespace (586.041917ms)
+✔ portable provider backendClass cannot become an editable namespace (630.0275ms)
+✔ portable provider bodyReachability cannot become an editable namespace (588.023667ms)
+✔ portable provider invalidUTF8 cannot become an editable namespace (639.337375ms)
+✔ portable provider incomplete cannot become an editable namespace (555.152167ms)
+✔ known transport-contaminated prompt hash is inspection-only without altering the exact staged original (501.488541ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6435.785042

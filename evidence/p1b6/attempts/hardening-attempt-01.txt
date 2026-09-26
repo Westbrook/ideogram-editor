@@ -1,0 +1,26 @@
+✔ empty document real HTTP copy, review, fresh namespace import and exact retry (737.0385ms)
+✔ image retained pixels and old branch reopen in fresh namespace (2038.122334ms)
+✔ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (3315.035625ms)
+✔ review authority, namespace collision, source integrity and ranges are checked at public boundary (747.089792ms)
+✔ ZIP64 STORE roundtrip uses real content, exact CRC/hash and 64-bit fields (25.14125ms)
+✔ rejects compression before accepting archive (8.259542ms)
+✔ rejects encryption before accepting archive (7.423792ms)
+✔ rejects descriptor before accepting archive (6.749125ms)
+✔ rejects traversal before accepting archive (6.865ms)
+✔ rejects crc before accepting archive (7.171333ms)
+✔ rejects payload before accepting archive (7.521375ms)
+✔ rejects trailing before accepting archive (6.9715ms)
+✔ rejects volume before accepting archive (7.224542ms)
+✔ rejects symlink before accepting archive (7.229583ms)
+✔ rejects executable before accepting archive (6.685125ms)
+✔ rejects directory before accepting archive (6.742958ms)
+✔ rejects overlap before accepting archive (7.232083ms)
+✔ rejects zip64Offset before accepting archive (7.070167ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7417.8395

@@ -1,0 +1,25 @@
+✔ real non-sparse STORE bytes exceed 4 GiB and a following entry uses an actual 64-bit offset (5610.952458ms)
+ℹ {"fixture":"real repeated nonzero bytes; no sparse file or forged size","payloadBytes":"4296015889","archiveBytes":"4296016564","allocatedBytes":4310700032,"maxIOChunk":1048576,"peakRSS":164888576,"fullTestMs":5481.739708,"qualification":false,"limits":"ZIP transport correctness only; not the R39 document campaign"}
+✖ real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments (3063.873625ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8719.19575
+
+✖ failing tests:
+
+test at tests/portable/large.test.mjs:21:1
+✖ real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments (3063.873625ms)
+  Error: Invalid recovery data
+      at requireValue (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/src/protocol/validate.js:3:11)
+      at keys (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/src/protocol/validate.js:6:35)
+      at entity (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/src/protocol/validate.js:115:9)
+      at event (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/src/protocol/validate.js:220:9)
+      at decodeRecords (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/portable/format.js:307:17)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/large.test.mjs:26:188)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

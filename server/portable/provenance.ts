@@ -1,0 +1,12 @@
+import { keys, requireValue as ok, blob, id } from '../../src/protocol/validate.js';
+// TP-1 is observation-only. There is deliberately no command, transport URL,
+// credential, scheduler status restoration, or outbox field in this profile.
+export function providerRecord(v:any){
+ keys(v,['class','attemptId','endpoint','requestId','status','assetHashes','requestedPromptRef','submittedPromptRef','returnedPromptRef','seedText','safeTimingsRef','privacyPolicyRef','derivation']);
+ ok(v.class==='portable-provider'&&id(v.attemptId)&&typeof v.endpoint==='string'&&/^[a-z0-9_-]+(?:\/[a-z0-9_-]+)*$/.test(v.endpoint)&&v.endpoint.length<=256&&(v.requestId===null||id(v.requestId))&&typeof v.status==='string'&&/^[a-z][a-z0-9_-]{0,63}$/.test(v.status)&&Array.isArray(v.assetHashes)&&v.assetHashes.every((x:unknown)=>typeof x==='string'&&/^sha256:[a-f0-9]{64}$/.test(x))&&(v.seedText===null||typeof v.seedText==='string'&&/^-?[0-9]+$/.test(v.seedText)));
+ for(const k of ['requestedPromptRef','submittedPromptRef','returnedPromptRef'])if(v[k]!==null){blob(v[k]);ok(v[k].mediaType==='text/plain');}
+ for(const k of ['safeTimingsRef','privacyPolicyRef'])if(v[k]!==null){blob(v[k]);ok(v[k].mediaType==='application/json');}
+ ok(v.privacyPolicyRef!==null);keys(v.derivation,['profile','sourceBodyHash','complete']);ok(v.derivation.profile==='TP-1'&&/^sha256:[a-f0-9]{64}$/.test(v.derivation.sourceBodyHash)&&typeof v.derivation.complete==='boolean');
+}
+export function privacyPolicy(v:any){keys(v,['profileId','profileVersion','evidenceDigest','requestedStoreIO','requestedAccess','appliedLifecycleSeconds','appliedACL','enforcement','fallbackAcknowledgementId']);ok(id(v.profileId)&&Number.isSafeInteger(v.profileVersion)&&v.profileVersion>0&&/^sha256:[a-f0-9]{64}$/.test(v.evidenceDigest)&&v.requestedStoreIO==='0'&&v.requestedAccess==='most-private-compatible'&&(v.appliedLifecycleSeconds===null||Number.isSafeInteger(v.appliedLifecycleSeconds)&&v.appliedLifecycleSeconds>=0)&&(v.appliedACL===null||['private','authenticated','most-private-compatible'].includes(v.appliedACL))&&['documented','observed','unknown'].includes(v.enforcement)&&(v.fallbackAcknowledgementId===null||id(v.fallbackAcknowledgementId)));}
+export function safeTimings(v:any){ok(v&&typeof v==='object'&&!Array.isArray(v));for(const [k,n]of Object.entries(v)){ok(['queuedMs','processingMs','totalMs','receivedAtEpochMs'].includes(k)&&typeof n==='number'&&Number.isFinite(n)&&n>=0);}}

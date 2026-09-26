@@ -1,0 +1,6 @@
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+server/storage/database.ts(117,185): error TS2554: Expected 2 arguments, but got 3.
+server/storage/database.ts(434,239): error TS2304: Cannot find name 'slot'.
+server/storage/database.ts(434,287): error TS2304: Cannot find name 'slot'.
+server/storage/portable.ts(163,156): error TS18048: 'source' is possibly 'undefined'.

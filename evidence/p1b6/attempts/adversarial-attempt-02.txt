@@ -1,0 +1,31 @@
+✔ public preview rejects duplicate-json-key and preserves source and namespace (675.761959ms)
+✔ public preview rejects noncanonical-json and preserves source and namespace (578.837292ms)
+✔ public preview rejects missing-final-LF and preserves source and namespace (585.360625ms)
+✔ public preview rejects unknown-entity-field and preserves source and namespace (583.237209ms)
+✔ public preview rejects wrong-projection and preserves source and namespace (583.041958ms)
+✔ public preview rejects missing-required-history and preserves source and namespace (578.452458ms)
+✔ public preview rejects duplicate-entity and preserves source and namespace (586.324667ms)
+✔ public preview rejects duplicate-object and preserves source and namespace (603.984791ms)
+✔ public preview rejects event-sequence-duplicate and preserves source and namespace (592.781833ms)
+✔ public preview rejects source-event-mutation and preserves source and namespace (580.295416ms)
+✔ public preview rejects event-beyond-highwater and preserves source and namespace (595.579625ms)
+✔ public preview rejects root-hash-mismatch and preserves source and namespace (590.872ms)
+✔ public preview rejects unknown-root-field and preserves source and namespace (640.467917ms)
+✔ public preview rejects descriptor-hash-mismatch and preserves source and namespace (618.570708ms)
+✔ public preview rejects oversized-record and preserves source and namespace (630.446875ms)
+✔ public preview rejects index-cycle and preserves source and namespace (627.415458ms)
+✔ unknown format remains inspection-only with original source retained (626.671208ms)
+✔ unknown document remains inspection-only with original source retained (591.255333ms)
+✔ unknown payload remains inspection-only with original source retained (621.272334ms)
+✔ unknown record remains inspection-only with original source retained (601.415791ms)
+✔ unknown entity remains inspection-only with original source retained (615.346333ms)
+✔ changed history patch cannot publish a fresh editable namespace (1002.859333ms)
+✔ shared acyclic index pages are accepted without duplicating their records (575.450375ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14340.348292

@@ -1,0 +1,73 @@
+{
+  "startedAt": "2026-09-26T10:00:28.491Z",
+  "sourceIdentity": "sha256:d1b6f47b6d13ab3e5c0b4395af7b40fce9b9dd55a98a2bcb1c9012ea502bb1b8",
+  "qualification": false,
+  "fixture": "tiny 3x2 retained image; serial HTTP on this nonexclusive host",
+  "limits": "Full observed public calls include queue/capture/hash/CRC/parse/codec/import/receipt and client polling. Download verification is included in copyReadyAndDownloadedMs. uploadPreviewAndImportMs includes uploading and previewing before explicit ImportBundle. No R39 512 MiB/4 GiB document campaign, supported-envelope, browser paint, destination write, native-memory or power-loss qualification.",
+  "observations": [
+    {
+      "run": 1,
+      "archiveBytes": 26131,
+      "copyReadyAndDownloadedMs": 105.71604200000002,
+      "uploadAndPreviewMs": 262.980417,
+      "importConfirmedToReceiptMs": 536.227208,
+      "uploadPreviewAndImportMs": 799.2082090000001,
+      "parentTotalMs": 906.053667,
+      "rss": 146391040,
+      "destinationStatus": "unconfirmed"
+    },
+    {
+      "run": 2,
+      "archiveBytes": 26132,
+      "copyReadyAndDownloadedMs": 110.80749999999989,
+      "uploadAndPreviewMs": 284.4853750000002,
+      "importConfirmedToReceiptMs": 373.8396660000003,
+      "uploadPreviewAndImportMs": 658.32575,
+      "parentTotalMs": 769.7178749999998,
+      "rss": 152305664,
+      "destinationStatus": "unconfirmed"
+    },
+    {
+      "run": 3,
+      "archiveBytes": 26132,
+      "copyReadyAndDownloadedMs": 103.478208,
+      "uploadAndPreviewMs": 274.8470000000002,
+      "importConfirmedToReceiptMs": 363.62933399999974,
+      "uploadPreviewAndImportMs": 638.4771249999999,
+      "parentTotalMs": 742.4881660000001,
+      "rss": 161300480,
+      "destinationStatus": "unconfirmed"
+    },
+    {
+      "run": 4,
+      "archiveBytes": 26132,
+      "copyReadyAndDownloadedMs": 97.41049999999996,
+      "uploadAndPreviewMs": 265.44704200000024,
+      "importConfirmedToReceiptMs": 356.5765000000001,
+      "uploadPreviewAndImportMs": 622.0241249999999,
+      "parentTotalMs": 719.962458,
+      "rss": 165904384,
+      "destinationStatus": "unconfirmed"
+    },
+    {
+      "run": 5,
+      "archiveBytes": 26132,
+      "copyReadyAndDownloadedMs": 100.62595900000042,
+      "uploadAndPreviewMs": 270.58783399999993,
+      "importConfirmedToReceiptMs": 365.63545799999974,
+      "uploadPreviewAndImportMs": 636.2240839999995,
+      "parentTotalMs": 737.5257090000005,
+      "rss": 166838272,
+      "destinationStatus": "unconfirmed"
+    }
+  ],
+  "maxima": {
+    "copyReadyAndDownloadedMs": 110.80749999999989,
+    "uploadAndPreviewMs": 284.4853750000002,
+    "importConfirmedToReceiptMs": 536.227208,
+    "uploadPreviewAndImportMs": 799.2082090000001,
+    "parentTotalMs": 906.053667
+  },
+  "status": "passed",
+  "finishedAt": "2026-09-26T10:00:32.757Z"
+}

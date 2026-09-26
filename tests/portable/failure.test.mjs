@@ -1,0 +1,73 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {join} from 'node:path';
+import {unlink,writeFile,readFile} from 'node:fs/promises';
+import {randomUUID,createHash} from 'node:crypto';
+import {setup,copy,preview,workspace,terminal,edit,doc,upload} from './helpers.mjs';
+import {importRaster} from '../raster/helpers.mjs';
+import {openWriter} from '../../dist/local/server/storage/writer.js';
+import {command,encode,childFor} from '../store/helpers.mjs';
+import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
+const pause=()=>new Promise(r=>setTimeout(r,5));
+async function wait(w,c,a){let receipt=await w.portableCommand(encode(c),a);for(let n=0;!receipt&&n<1000;n++){receipt=(await w.commandState(c.command.commandId)).record?.receipt;await pause();}return receipt;}
+for(const failure of ['deleted-layer-pixels','hidden-branch-pixels'])test('missing '+failure+' refuses copy and preserves all other current roots',async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const {asset}=await importRaster(f,'hidden-alpha.png');const first=await edit(f,{type:'ImportAsset',assetId:asset.id,layerId:'picture',name:'Picture',draft:null});
+ if(failure==='deleted-layer-pixels')await edit(f,{type:'DeleteLayer',layerId:'picture',layerVersion:'1',draft:null});else{const h=await edit(f,{type:'SetLayerProperties',layerId:'picture',layerVersion:'1',properties:{visible:false},draft:null});await edit(f,{type:'Undo',historyHead:h.document.historyHead});await edit(f,{type:'SetLayerProperties',layerId:'picture',layerVersion:'1',properties:{name:'Other branch'},draft:null});}
+ const path=join(f.root,'objects','sha256',asset.raster.pixels.hash.slice(7,9),asset.raster.pixels.hash.slice(7)),bytes=await readFile(path),before=await doc(f),db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true}),roots=db.prepare('SELECT * FROM roots ORDER BY owner,hash').all();db.close();await unlink(path);
+ const c=f.command({expectedDocumentRevision:before.revision,body:{type:'SaveCopy'}}),r=await terminal(f,c);assert.equal(r.json.receipt.status,'rejected');assert.equal(r.json.receipt.code,'MISSING_ASSET');assert.deepEqual(await doc(f),before);const after=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});for(const x of roots)assert(after.prepare('SELECT 1 FROM roots WHERE owner=? AND hash=?').get(x.owner,x.hash));assert.equal(after.prepare('SELECT count(*) n FROM portable_bundles').get().n,0);after.close();await writeFile(path,bytes,{mode:0o600});await copy(f);assert.deepEqual((await terminal(f,c)).json.receipt,r.json.receipt);
+});
+test('durable preparation remains pinned and cancellation releases only its owned pins after terminal rejection',async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:1,height:1}));await f.server.close();const gate=new SharedArrayBuffer(4);let hit;const reached=new Promise(r=>hit=r),a={clientId:f.paired.json.clientId,sessionHash:'b'.repeat(64),now:Date.now(),expires:Date.now()+1800000};let w=await openWriter({root:f.root},{phase:'portable-preparation-after-commit',gate,onBarrier:hit});const c=command(EMPTY_EXPECTED_VERSIONS,{clientId:a.clientId,expectedDocumentRevision:'1',body:{type:'SaveCopy'}}),sent=w.portableCommand(encode(c),a);await reached;const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true}),pins=db.prepare('SELECT * FROM portable_pins').all(),operation=db.prepare('SELECT operation_id FROM portable_preparations').get().operation_id;db.close();assert(pins.length>0);Atomics.store(new Int32Array(gate),0,1);Atomics.notify(new Int32Array(gate),0);await sent;
+ // The writer may already be working; cancellation fences its next yielded step.
+ const cancelled=command(EMPTY_EXPECTED_VERSIONS,{clientId:a.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'CancelPortable',operationId:operation}});const result=await wait(w,cancelled,a);assert.equal(result.status,'accepted');let final;for(let n=0;n<1000;n++){final=(await w.commandState(c.command.commandId)).record;if(final)break;await pause();}assert.equal(final.receipt.status,'rejected');assert.deepEqual(await w.portableCommand(encode(cancelled),a),result);const end=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});assert.equal(end.prepare('SELECT count(*) n FROM portable_pins WHERE operation_id=?').get(operation).n,0);assert.equal(end.prepare('SELECT count(*) n FROM portable_bundles').get().n,0);assert(end.prepare('SELECT count(*) n FROM roots').get().n>0);end.close();await w.close();
+});
+test('review UI mappings page every imported checkpoint without a session count cap',async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:1,height:1}));for(let i=0;i<105;i++){const sessionId='editor_'+String(i).padStart(3,'0'),r=await f.post('/api/v1/ui/'+sessionId,{protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:'0',body:{type:'SetPreferences',preferences:{documentId:'document_1',tool:'select',viewport:{x:0,y:0,zoom:1},panels:{left:280,right:280,active:'layers'},selectedLayerIds:[]}}});assert.equal(r.json.status,'accepted');}t.diagnostic('UI checkpoints persisted');const saved=await copy(f);t.diagnostic('Archive copied');const p=await preview(f,saved.bytes);t.diagnostic('Archive reviewed');assert.equal(p.review.uiSessionCount,'105');assert.equal(p.review.uiSessionIds.length,64);const first=(await f.read('/api/v1/bundle-reviews/'+p.review.reviewId+'/mapping?kind=ui')).json,second=(await f.read('/api/v1/bundle-reviews/'+p.review.reviewId+'/mapping?kind=ui&after='+first.next)).json;t.diagnostic('Mapping pages read');assert.equal(first.items.length,100);assert.equal(second.items.length,5);assert.equal(second.next,null);assert.equal(new Set([...first.items,...second.items].map(x=>x.localId)).size,105);await workspace(f,{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash});t.diagnostic('Fresh namespace accepted');for(const x of [...first.items,...second.items])assert.equal((await f.read('/api/v1/ui/'+x.localId)).json.preferences.documentId,p.review.documentId);
+});
+for(const recovery of ['same-authority-retry','restart-expired-review'])test('actual SQLite FULL preserves identity and source through '+recovery,async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:1,height:1}));
+ for(let i=0;i<180;i++){
+  const sessionId='session_'+i;assert.equal((await f.post('/api/v1/ui/'+sessionId,{protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:'0',body:{type:'SetPreferences',preferences:{documentId:'document_1',tool:'select',viewport:{x:0,y:0,zoom:1},panels:{left:280,right:280,active:'layers'},selectedLayerIds:[]}}})).json.status,'accepted');
+ }
+ const saved=await copy(f),s=await upload(f,saved.bytes),a={clientId:f.paired.json.clientId,sessionHash:'b'.repeat(64),now:Date.now(),expires:Date.now()+1800000};await f.server.close();
+ let w=await openWriter({root:f.root});await w.rememberClient(a.sessionHash,a.clientId,a.expires);const pages=(await w.diagnostics()).settings.page_count;await w.close();
+ const limit=pages+512,full=await childFor(t,f.root,{maxPageCount:limit,phase:'portable-import-after-proofs'}),adapter={portableCommand:(...args)=>full.call('portableCommand',...args),commandState:(...args)=>full.call('commandState',...args)};
+ assert.equal((await full.call('diagnostics')).settings.max_page_count,limit);
+ const c=body=>command(EMPTY_EXPECTED_VERSIONS,{clientId:a.clientId,documentId:null,expectedDocumentRevision:null,body});
+ const reviewReceipt=await wait(adapter,c({type:'PreviewBundleImport',stagingId:s.stagingId,expectedSha256:s.sha256}),a);assert.equal(reviewReceipt?.status,'accepted');
+ const e=(await full.call('events',String(BigInt(reviewReceipt.fromSeq)-1n))).events[0],review=await full.call('bundleReview',e.payload.reviewId,a),accepted=c({type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});
+ assert.equal(await adapter.portableCommand(encode(accepted),a),null);await full.wait('barrier');
+ const inspect=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true}),pendingBefore=inspect.prepare('SELECT * FROM portable_preparations WHERE id=?').get(accepted.command.commandId);
+ assert.equal(pendingBefore.original,JSON.stringify(accepted));assert.equal(pendingBefore.hash,'sha256:'+createHash('sha256').update(pendingBefore.canonical).digest('hex'));
+ const sourceTables=['documents','history','checkpoints','objects','roots','commands','events_v2','assets','asset_dependencies','ui_checkpoints','ui_events','ui_receipts','staged_assets','portable_reviews','portable_review_sources','portable_review_maps','portable_pins'];
+ const originalRows=Object.fromEntries(sourceTables.map(table=>[table,inspect.prepare('SELECT * FROM '+table+' ORDER BY 1,2').all()]));inspect.close();
+ // Deliberate fault injection in this disposable SQLite file only. Consume its
+ // free pages after the real preparation is durable and before final acceptance.
+ // No production setter or fabricated error code is used.
+ const fill=new DatabaseSync(join(f.root,'metadata.sqlite'));fill.exec('PRAGMA max_page_count='+limit);fill.exec('CREATE TABLE portable_fault_filler(id INTEGER PRIMARY KEY,bytes BLOB NOT NULL) STRICT');
+ let fillerRows=0,nativeCode;try{for(;;){fill.prepare('INSERT INTO portable_fault_filler(bytes) VALUES (zeroblob(4096))').run();fillerRows++;}}catch(e){nativeCode=e.errcode;assert.equal(nativeCode,13);}finally{fill.close();}
+ await full.call('release');let waiting;
+ for(let n=0;n<2000;n++){waiting=await full.call('portableInventory','',a);if(waiting.items.find(x=>x.commandId===accepted.command.commandId)?.reason||await full.call('lookup',accepted.command.commandId))break;await pause();}
+ assert.equal(waiting.items.find(x=>x.commandId===accepted.command.commandId)?.reason,'STORAGE_FULL',JSON.stringify({waiting,terminal:await full.call('lookup',accepted.command.commandId),diagnostics:await full.call('diagnostics')}));assert.equal(await full.call('lookup',accepted.command.commandId),null);assert.equal(await full.call('document',review.documentId),null);
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('SELECT count(*) n FROM portable_namespaces').get().n,0);assert.equal(db.prepare('SELECT count(*) n FROM portable_rows').get().n,0);
+ const pendingAfter=db.prepare('SELECT * FROM portable_preparations WHERE id=?').get(accepted.command.commandId);for(const key of ['id','hash','original','canonical','operation_id','frozen','confirmed_at'])assert.equal(pendingAfter[key],pendingBefore[key],key);
+ assert.equal(waiting.items.find(x=>x.commandId===accepted.command.commandId).operationId,pendingBefore.operation_id);assert.equal(waiting.items.find(x=>x.commandId===accepted.command.commandId).phase,'waiting-for-resources');
+ for(const table of sourceTables)assert.deepEqual(db.prepare('SELECT * FROM '+table+' ORDER BY 1,2').all(),originalRows[table],table);
+ const name=db.prepare('SELECT filename FROM staged_assets WHERE id=?').get(s.stagingId).filename;db.close();assert.deepEqual(await readFile(join(f.root,'uploads',name)),saved.bytes);await full.assertNoEffects();
+ if(recovery==='restart-expired-review')await full.close();
+ const restore=new DatabaseSync(join(f.root,'metadata.sqlite'));restore.exec('DROP TABLE portable_fault_filler');const restoredFreePages=restore.prepare('PRAGMA freelist_count').get().freelist_count;assert(restoredFreePages>128);restore.close();
+ let acceptedReceipt,acceptedCommand=accepted,freshReview=review;
+ if(recovery==='same-authority-retry'){
+  acceptedReceipt=await wait(adapter,accepted,a);assert.equal(acceptedReceipt?.status,'accepted',JSON.stringify({waiting:await full.call('portableInventory','',a),diagnostics:await full.call('diagnostics')}));assert.deepEqual(await wait(adapter,accepted,a),acceptedReceipt);await full.assertNoEffects();await full.close();
+  w=await openWriter({root:f.root});t.after(()=>w.close());assert.deepEqual(await wait(w,accepted,a),acceptedReceipt);assert(await w.document(review.documentId));
+ }else{
+  w=await openWriter({root:f.root});t.after(()=>w.close());const retry=await wait(w,accepted,a);assert.equal(retry.status,'rejected');assert.equal(await w.document(review.documentId),null);assert.deepEqual(await wait(w,accepted,a),retry);
+  const detail=JSON.parse(await readFile(join(f.root,'objects','sha256',retry.details.hash.slice(7,9),retry.details.hash.slice(7)),'utf8'));assert.equal(detail.issues[0].code,'BUNDLE_REVIEW_EXPIRED');
+  const next=await wait(w,c({type:'PreviewBundleImport',stagingId:s.stagingId,expectedSha256:s.sha256}),a);assert.equal(next.status,'accepted');const event=(await w.events(String(BigInt(next.fromSeq)-1n))).events[0];freshReview=await w.bundleReview(event.payload.reviewId,a);
+  acceptedCommand=c({type:'ImportBundle',reviewId:freshReview.reviewId,reviewHash:freshReview.reviewHash});assert.notEqual(acceptedCommand.command.commandId,accepted.command.commandId);assert.notEqual(freshReview.reviewId,review.reviewId);
+  acceptedReceipt=await wait(w,acceptedCommand,a);assert.equal(acceptedReceipt?.status,'accepted');assert.deepEqual(await wait(w,acceptedCommand,a),acceptedReceipt);assert.deepEqual(await wait(w,accepted,a),retry);assert(await w.document(freshReview.documentId));
+ }
+ const end=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});assert.equal(end.prepare('SELECT count(*) n FROM portable_namespaces').get().n,1);assert.equal(end.prepare('SELECT count(*) n FROM events_v2 WHERE command_id=?').get(acceptedCommand.command.commandId).n,1);assert.equal(end.prepare('SELECT count(*) n FROM portable_preparations WHERE id=?').get(accepted.command.commandId).n,0);assert.equal(end.prepare('SELECT count(*) n FROM portable_pins WHERE operation_id=?').get(pendingBefore.operation_id).n,0);end.close();
+ t.diagnostic(JSON.stringify({recovery,sqlitePageLimit:limit,restoredFreePages,fillerRows,nativeSQLiteCode:nativeCode,actualNamespaceRowsAfterFailure:0,observedFailure:waiting.items.find(x=>x.commandId===accepted.command.commandId).reason,sourceTablesPreserved:sourceTables,originalSourcePreserved:true,originalCommandId:accepted.command.commandId,originalCommandHash:pendingBefore.hash,originalOperationId:pendingBefore.operation_id,originalReviewId:review.reviewId,acceptedCommandId:acceptedCommand.command.commandId,acceptedReviewId:freshReview.reviewId,sameOriginalIdentityPreserved:true,singleNamespace:true,singleAcceptedEvent:true,restartRequiresFreshReview:recovery==='restart-expired-review'}));
+});

@@ -1,0 +1,552 @@
+{
+  "note": "Exact byte copies of all original development outputs, including failed source and harness attempts. Source-bound candidate gates are recorded separately. No failure was erased or reclassified as a final-source pass.",
+  "attempts": [
+    {
+      "originalLog": "evidence/p1b6/adversarial-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/adversarial-attempt-01.txt",
+      "bytes": 2188,
+      "sha256": "573d493509127f79583c6a3876b5743a93c6345d24acc6f908c52f366efa90ca",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/adversarial-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/adversarial-attempt-02.txt",
+      "bytes": 2281,
+      "sha256": "12b1c1b105fd6ec110467e98325a02407424c24f1095e534a66674db15fcba0e",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-01.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-02.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-03.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-03.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-04.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-04.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-05.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-05.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-06.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-06.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-07.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-07.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-08.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-08.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-09.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-09.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-10.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-10.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-11.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-11.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-12.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-12.txt",
+      "bytes": 179,
+      "sha256": "4afaf7b349f10bef381300623e464d70fed9c51f0f788e4cb84dad4133f047b8",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "server/storage/portable.ts(160,156): error TS18048: 'source' is possibly 'undefined'."
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-13.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-13.txt",
+      "bytes": 415,
+      "sha256": "1db2ed74f250a405937ac8dcc28c9e9b5fcef5c5443b5a862cc5ba5cb95e5dd5",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "server/storage/database.ts(117,185): error TS2554: Expected 2 arguments, but got 3.",
+        "server/storage/database.ts(434,239): error TS2304: Cannot find name 'slot'.",
+        "server/storage/database.ts(434,287): error TS2304: Cannot find name 'slot'.",
+        "server/storage/portable.ts(163,156): error TS18048: 'source' is possibly 'undefined'."
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-14.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-14.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-15.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-15.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-16.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-16.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-17.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-17.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-18.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-18.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-19.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-19.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-20.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-20.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-21.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-21.txt",
+      "bytes": 93,
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/build-attempt-22.log",
+      "retainedOutput": "evidence/p1b6/attempts/build-attempt-22.txt",
+      "bytes": 20769,
+      "sha256": "4aa234155c1e1fc4ee4cc5904af9d57563bdd41d20ccc32f618cf64555ab4154",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/diagnostics-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/diagnostics-attempt-01.txt",
+      "bytes": 1802,
+      "sha256": "b27dc8255ad023716283ecf0d8ce3cda7133160598304db7dddbc05625cbc7ae",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/failure-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/failure-attempt-01.txt",
+      "bytes": 1258,
+      "sha256": "62641e7fdacc503ecbada8d4841024512b4bceae67a80ccc5c891270a1ab3157",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 review UI mappings page every imported checkpoint without a session count cap (17263.941375ms)",
+        "\u2716 failing tests:",
+        "\u2716 review UI mappings page every imported checkpoint without a session count cap (17263.941375ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/failure-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/failure-attempt-02.txt",
+      "bytes": 1245,
+      "sha256": "39477b1a7e825199aab792dbdb8ef65b4dc85f48c93f26da9a08422fd56f696c",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/final-adjustments-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/final-adjustments-attempt-01.txt",
+      "bytes": 4942,
+      "sha256": "f2658efb5064166a84f17240aabe789ee2e3dcf754f78ca97435c3286d709c78",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (4050.199541ms)",
+        "\u2716 failing tests:",
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (4050.199541ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/final-run-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/final-run-02.txt",
+      "bytes": 922,
+      "sha256": "abceb7e64e6000defc220a3de87bd1214b893c59c871cb72ccdca7b2f6b5a3e8",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/final-run-03.log",
+      "retainedOutput": "evidence/p1b6/attempts/final-run-03.txt",
+      "bytes": 922,
+      "sha256": "7bb9a977a06675cfaa9276d03b6490501ae0cafd0d05595eeb6515d1e170352e",
+      "sourceAttribution": "final-source gate orchestration; exact identity/commands in final-gates-03.json; no performance qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/future-format-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/future-format-attempt-01.txt",
+      "bytes": 209,
+      "sha256": "006fc2a7e8b6e372f062a7a4f5807b9685ed28cca32a4e7063adb7929aad399e",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/hardening-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/hardening-attempt-01.txt",
+      "bytes": 1386,
+      "sha256": "6573e2a4f11846d29ccc83bd007238f27962517cacfd86f318f67ce3fc98db0e",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/http-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/http-attempt-01.txt",
+      "bytes": 294,
+      "sha256": "af81eef96a465a1d282b4783fa5268e7fc20ca3274a5776b1a877c867778998a",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/http-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/http-attempt-02.txt",
+      "bytes": 292,
+      "sha256": "b562423b1925504717733f92430df078a7a7a1821345e932f2605c173a276222",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/journey-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/journey-attempt-01.txt",
+      "bytes": 786,
+      "sha256": "63214ae6ce8c525acd911c6d72d98b0f9e7c86edeb15ff97bb6647da4060ef34",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 copy retains mask, deleted layer, inactive branches, checkpoint, export and exact source events; reopen restarts and navigates all (18823.828417ms)",
+        "\u2716 failing tests:",
+        "\u2716 copy retains mask, deleted layer, inactive branches, checkpoint, export and exact source events; reopen restarts and navigates all (18823.828417ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/large-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/large-attempt-01.txt",
+      "bytes": 1696,
+      "sha256": "377424a374260947578a089747434a4ad2ad3ebdc1befa6d308cabffa18acc21",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments (3063.873625ms)",
+        "\u2716 failing tests:",
+        "\u2716 real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments (3063.873625ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/large-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/large-attempt-02.txt",
+      "bytes": 981,
+      "sha256": "bb0f590381373cb127b23a7ba9e21f001fd4e00b0ca3c2d3772a9e0a6efdd961",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/legacy-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/legacy-attempt-01.txt",
+      "bytes": 2317,
+      "sha256": "44e03985b7a3152f30b2dfa86482526d71dd9fec934ab11a4acdd203d0516ceb",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (6437.508291ms)",
+        "\u2716 legacy required current-bytes failure refuses a complete-copy claim (6069.608ms)",
+        "\u2716 legacy required history-ownership failure refuses a complete-copy claim (5861.529541ms)",
+        "\u2716 failing tests:",
+        "\u2716 actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (6437.508291ms)",
+        "\u2716 legacy required current-bytes failure refuses a complete-copy claim (6069.608ms)",
+        "\u2716 legacy required history-ownership failure refuses a complete-copy claim (5861.529541ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/legacy-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/legacy-attempt-02.txt",
+      "bytes": 637,
+      "sha256": "7985ceedee6eecf761c08af05ebaf37e8bfaed20d4119de676455b7c2a99e396",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/mapping-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/mapping-attempt-01.txt",
+      "bytes": 749,
+      "sha256": "98aad0a5e5602c909bfd26eb651a67163a0d07e76fb8a761f29bef5c6d7152c3",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 review UI mappings page every imported checkpoint without a session count cap (17294.224375ms)",
+        "\u2716 failing tests:",
+        "\u2716 review UI mappings page every imported checkpoint without a session count cap (17294.224375ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/process-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/process-attempt-01.txt",
+      "bytes": 1251,
+      "sha256": "a9899c7d14b32bdc44b46a5dd0078508057f3d824c1480183bd355fd2a3312ef",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/provenance-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/provenance-attempt-01.txt",
+      "bytes": 1007,
+      "sha256": "76f5e78c86a22732d31ba136fbe76c3fec76641df1043cb5f60ce17130fbc708",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/recovery-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/recovery-attempt-01.txt",
+      "bytes": 2185,
+      "sha256": "61c0e280265a7b8390ad5cd0251735f104812c6e00b91eca2e31583ab20d9760",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/restart-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/restart-attempt-01.txt",
+      "bytes": 1556,
+      "sha256": "3c60235f83ec36248cd703b92d8bd2498664f43002cc3be77f4010bac2034d83",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (8389.8225ms)",
+        "\u2716 failing tests:",
+        "\u2716 pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (8389.8225ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/restart-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/restart-attempt-02.txt",
+      "bytes": 348,
+      "sha256": "88c375b8a9db50b27ddbb4418d10d43dd2da8b90f4b00853f059242ea16bd3f9",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/schema-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/schema-attempt-01.txt",
+      "bytes": 8984,
+      "sha256": "e203feed49eb52c9893c8454959418e417893268099bf40341fef99cb99e76b5",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 schema7 preserves actual approved schema6 pending preparation and verified rollback (1571.373917ms)",
+        "\u2716 schema7 preserves actual approved schema6 pending approval and verified rollback (677.245792ms)",
+        "\u2716 schema7 capacity failure retains schema6 and every request, then retries safely (875.098291ms)",
+        "\u2716 backup corruption fails verification before activation, retains evidence, and retries without changing requests (882.349583ms)",
+        "\u2716 SIGKILL portable-schema-before-backup preserves pending approval and restarts exactly (679.655667ms)",
+        "\u2716 SIGKILL portable-schema-backup-written preserves pending approval and restarts exactly (682.937375ms)",
+        "\u2716 SIGKILL portable-schema-backup-verified preserves pending approval and restarts exactly (708.016167ms)",
+        "\u2716 SIGKILL portable-schema-before-activation preserves pending approval and restarts exactly (703.2095ms)",
+        "\u2716 SIGKILL portable-schema-after-activation preserves pending approval and restarts exactly (707.09775ms)",
+        "\u2716 failing tests:",
+        "\u2716 schema7 preserves actual approved schema6 pending preparation and verified rollback (1571.373917ms)",
+        "\u2716 schema7 preserves actual approved schema6 pending approval and verified rollback (677.245792ms)",
+        "\u2716 schema7 capacity failure retains schema6 and every request, then retries safely (875.098291ms)",
+        "\u2716 backup corruption fails verification before activation, retains evidence, and retries without changing requests (882.349583ms)",
+        "\u2716 SIGKILL portable-schema-before-backup preserves pending approval and restarts exactly (679.655667ms)",
+        "\u2716 SIGKILL portable-schema-backup-written preserves pending approval and restarts exactly (682.937375ms)",
+        "\u2716 SIGKILL portable-schema-backup-verified preserves pending approval and restarts exactly (708.016167ms)",
+        "\u2716 SIGKILL portable-schema-before-activation preserves pending approval and restarts exactly (703.2095ms)",
+        "\u2716 SIGKILL portable-schema-after-activation preserves pending approval and restarts exactly (707.09775ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/schema-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/schema-attempt-02.txt",
+      "bytes": 11713,
+      "sha256": "d1808f032892993f7a50fda5bfb050ea4aaa11753fd129afcde032a5a82c44fe",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/sqlite-full-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/sqlite-full-attempt-02.txt",
+      "bytes": 1094,
+      "sha256": "63d54c58444162011df2ae1f41424e59c2efaa9155dbd2d59a643675b6e19eb2",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7477.3985ms)",
+        "\u2716 failing tests:",
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7477.3985ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/sqlite-full-attempt-03.log",
+      "retainedOutput": "evidence/p1b6/attempts/sqlite-full-attempt-03.txt",
+      "bytes": 1096,
+      "sha256": "24fbe0e5f337ccbe1795f5e0564fc0f0f8bf5fa8e2b138d695823bc9c742cb8f",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7211.091208ms)",
+        "\u2716 failing tests:",
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7211.091208ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/sqlite-full-attempt-04.log",
+      "retainedOutput": "evidence/p1b6/attempts/sqlite-full-attempt-04.txt",
+      "bytes": 4326,
+      "sha256": "14cc1cc8929bce3810a8e3a667493fd5ea5cd2cbcf6c0041415a8bc2d4bd3925",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7349.483833ms)",
+        "\u2716 failing tests:",
+        "\u2716 actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (7349.483833ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/sqlite-full-attempt-05.log",
+      "retainedOutput": "evidence/p1b6/attempts/sqlite-full-attempt-05.txt",
+      "bytes": 474,
+      "sha256": "e2a2a006e158e2abad9eb6269198d72ba89bc220932f13d39bfd08cb25fb2c6a",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/sqlite-full-identities-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/sqlite-full-identities-attempt-01.txt",
+      "bytes": 2034,
+      "sha256": "f870ce201547f8744770ecb2aa851c342bdbd31936d68c7a4e4ca61321580523",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 actual SQLite FULL preserves identity and source through same-authority-retry (14069.322083ms)",
+        "\u2716 failing tests:",
+        "\u2716 actual SQLite FULL preserves identity and source through same-authority-retry (14069.322083ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/sqlite-full-identities-attempt-02.log",
+      "retainedOutput": "evidence/p1b6/attempts/sqlite-full-identities-attempt-02.txt",
+      "bytes": 3417,
+      "sha256": "bf0e541dca2be80561d72a234b923b5b0a95143377b0afbbe14a49db7670eb4b",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 actual SQLite FULL preserves identity and source through same-authority-retry (14370.126917ms)",
+        "\u2716 failing tests:",
+        "\u2716 actual SQLite FULL preserves identity and source through same-authority-retry (14370.126917ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/sqlite-full-identities-attempt-03.log",
+      "retainedOutput": "evidence/p1b6/attempts/sqlite-full-identities-attempt-03.txt",
+      "bytes": 2346,
+      "sha256": "776d22eccbe135b15405a52e7b239504ee0304667ba56efde5d920faf04af3be",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/typecheck-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/typecheck-attempt-01.txt",
+      "bytes": 338,
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/types-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/types-attempt-01.txt",
+      "bytes": 1952,
+      "sha256": "68bae89337181b6472e88d6d9fa7828cde9094d310e12bb148ae3036373f3000",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": [
+        "\u2716 image retained pixels and old branch reopen in fresh namespace (1105.480084ms)",
+        "\u2716 failing tests:",
+        "\u2716 image retained pixels and old branch reopen in fresh namespace (1105.480084ms)"
+      ]
+    },
+    {
+      "originalLog": "evidence/p1b6/volume-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/volume-attempt-01.txt",
+      "bytes": 478,
+      "sha256": "6ea71bdc5c942741457eb7f5ff7a19dd7461bd894312bff0f6cc26d6fb9b9c5c",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    },
+    {
+      "originalLog": "evidence/p1b6/zip-attempt-01.log",
+      "retainedOutput": "evidence/p1b6/attempts/zip-attempt-01.txt",
+      "bytes": 972,
+      "sha256": "4c2c6c6be9303124cbd991e77b7dda01098591f333f5216ddc3df3cc9c55f969",
+      "sourceAttribution": "development attempt; not final-source qualification",
+      "failures": []
+    }
+  ]
+}

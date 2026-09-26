@@ -1,0 +1,12 @@
+✔ real non-sparse STORE bytes exceed 4 GiB and a following entry uses an actual 64-bit offset (5173.8305ms)
+ℹ {"fixture":"real repeated nonzero bytes; no sparse file or forged size","payloadBytes":"4296015889","archiveBytes":"4296016564","allocatedBytes":4307554304,"maxIOChunk":1048576,"peakRSS":170033152,"fullTestMs":5064.7895,"qualification":false,"limits":"ZIP transport correctness only; not the R39 document campaign"}
+✔ real canonical JSONL index exceeds 128 MiB in bounded writer/parser segments (7771.607792ms)
+ℹ {"fixture":"synthetic canonical checkpoint records, real bytes","eventRecordCount":10000,"eventIndexBytes":"150650050","eventSegments":2,"rootSegments":3,"peakRSS":246661120,"elapsedMs":6426.853499999999,"qualification":false,"limits":"segmented index transport/parser only; not a coherent full document or 100k-operation campaign"}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12989.285666

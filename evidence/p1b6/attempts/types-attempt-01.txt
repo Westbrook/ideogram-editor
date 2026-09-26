@@ -1,0 +1,36 @@
+✔ empty document real HTTP copy, review, fresh namespace import and exact retry (823.0905ms)
+✖ image retained pixels and old branch reopen in fresh namespace (1105.480084ms)
+✔ pinned concurrent history and UI, draft isolation, exact reopen/export and original-command retry (3880.060625ms)
+✔ review authority, namespace collision, source integrity and ranges are checked at public boundary (845.327167ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7320.07875
+
+✖ failing tests:
+
+test at tests/portable/http.test.mjs:10:1
+✖ image retained pixels and old branch reopen in fresh namespace (1105.480084ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"code":"INVALID_INPUT","commandId":"383540f4-a692-469f-bf28-4037b60fc7a5","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"rejectionDetails":{"kind":"inline","value":{"issues":[{"code":"PORTABLE_MALFORMED_REQUEST","path":"command.body"}],"kind":"fields"}}}
+  + actual - expected
+  
+  + 'rejected'
+  - 'accepted'
+  
+      at workspace (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:9:142)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async preview (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:16:87)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/http.test.mjs:11:528)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'rejected',
+    expected: 'accepted',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

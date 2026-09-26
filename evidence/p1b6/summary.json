@@ -1,0 +1,197 @@
+{
+  "task": "P1b.6 \u2014 Implement full-history portable copies",
+  "taskNoteId": "8c5b65fb-17c0-4a5a-97e3-ec95cf7f126b",
+  "status": "review_required",
+  "independentReviewTask": "c91db4c3-2a29-4b3d-b3a3-0329b48fbc55",
+  "prContext": "cbd63320-6def-4beb-b78f-de897caf3cdf",
+  "base": "d84c1de55709bbd957222cac854905c41583a4e4",
+  "branch": "ideogram-editor-p1",
+  "commit": "Containing Git commit; exact committed HEAD is recorded in the task and shared PR Context.",
+  "pr": null,
+  "ciRun": null,
+  "sourceIdentity": "sha256:0aa92abdc711433c8fa6a1de6e1b9336d1d4e87a118b06a11c1faef9f779ae8b",
+  "finalGates": "evidence/p1b6/final-gates-03.json",
+  "gateCount": 24,
+  "gatePasses": 24,
+  "portableTests": 87,
+  "startedAt": "2026-09-26T10:02:32.524Z",
+  "finishedAt": "2026-09-26T10:09:10.967Z",
+  "toolchain": {
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "dependencies": "Existing approved public vendored paths; no dependency, vendor or lockfile changes."
+  },
+  "implementation": [
+    "PF-1 ZIP64 STORE with BigInt offsets, disk-backed indexes/worklists and <=1 MiB streaming IO; real 4 GiB transport and multi-segment >128 MiB index boundaries, neither a total project cap.",
+    "Pinned scoped capture of document/history/branches/checkpoints/accepted draft fences/current UI at one highWater; exact original resources and source transaction/event bytes.",
+    "Strict authenticated SaveCopy, PreviewBundleImport, ImportBundle and CancelPortable; owner/session-bound immutable ranged bundle content, paged review mappings and durable recovery inventory.",
+    "Normative validation before typed resource proof and atomic fresh-namespace acceptance; persisted identity mapping, exact archive provenance and replay digest.",
+    "Inert allowlisted provider provenance, exact UTF-8 prompt/result bytes and secret/transport quarantine; no provider effects.",
+    "Explicit schema7 migration from the actual approved schema6 executable, verified compatible rollback and prior data/pending-identity preservation.",
+    "Server copy-ready and destination-unconfirmed status, concurrent-edit/UI outdated status, precise required-root failures and explicit scope disclosure."
+  ],
+  "verification": {
+    "command": "PATH=\"$PWD/.toolchain/bin:$PATH\" node tooling/portable/gates.mjs 03",
+    "gateDetails": "final-gates-03.json contains every exact command, UTC interval, exit, output path and before/after source identity.",
+    "coverage": [
+      "Real HTTP/writer literal hidden-alpha pixels, mask, deleted layers, inactive branches, undo/redo, checkpoint/export/drafts and exact source-event roundtrip/restart.",
+      "Concurrent later edits outside pinned copy, lost receipt/same-ID retry, stale/cross-session review, fresh namespace collisions and mapping pagination.",
+      "Missing hidden/deleted required bytes and ambiguous history-draft ownership refuse complete success; originals remain retained.",
+      "Actual d84 two-document clear/supersede/reuse/retarget/count+age compaction fixtures preserve local obsolete/unattributed UI-only bytes while excluding them from scoped copies.",
+      "Real SIGKILL preparation/export/import/receipt boundaries, post-proof substitution and terminal-owned pin restart cleanup.",
+      "Native SQLite FULL at final acceptance, mounted archive ENOSPC and EROFS, cancellation and exact identity recovery.",
+      "Hostile ZIP/JSONL/hash/header/path/overlap/closure corpus, future-format inspection and genuine invalid-archive rejections.",
+      "Prior-executable migration/rollback, backup capacity/corruption/substitution/SIGKILL controls, zero-effects guards and affected storage/protocol/session/raster/history/browser/consumer regressions."
+    ],
+    "preservation": "Final preservation gate confirms docs, vendor, lockfile, report and prior evidence remain unchanged from d84."
+  },
+  "A-PF01": {
+    "status": "OPEN pending independent exact-target approval",
+    "origin": "Author observation 2026-09-26T09:52:53Z on the uncommitted portable candidate; not the independently approved d84 baseline.",
+    "withdrawnClaim": "The earlier fixed-wait check could observe unfinished preparation and was not proof of SQLite FULL. Those original observations remain retained and are not reclassified as fault coverage.",
+    "productFinding": "SQLite FULL automatically rolled back the transaction; a subsequent savepoint rollback masked native13 and incorrectly produced an invalid-archive rejection.",
+    "candidateCorrection": "Native errors propagate to the outer portable transaction handler before domain-rejection savepoint handling. Actual native13 now leaves waiting-for-resources/STORAGE_FULL with no receipt or namespace publication.",
+    "retrySemantics": "Same-authority capacity-restored retry resumes the identical command and survives committed-receipt restart without duplicate publication. Pending-restart retains the original BUNDLE_REVIEW_EXPIRED outcome; new review and new command identity are required for renewed import.",
+    "finalCorrelations": [
+      {
+        "recovery": "same-authority-retry",
+        "sqlitePageLimit": 658,
+        "restoredFreePages": 492,
+        "fillerRows": 436,
+        "nativeSQLiteCode": 13,
+        "actualNamespaceRowsAfterFailure": 0,
+        "observedFailure": "STORAGE_FULL",
+        "sourceTablesPreserved": [
+          "documents",
+          "history",
+          "checkpoints",
+          "objects",
+          "roots",
+          "commands",
+          "events_v2",
+          "assets",
+          "asset_dependencies",
+          "ui_checkpoints",
+          "ui_events",
+          "ui_receipts",
+          "staged_assets",
+          "portable_reviews",
+          "portable_review_sources",
+          "portable_review_maps",
+          "portable_pins"
+        ],
+        "originalSourcePreserved": true,
+        "originalCommandId": "33e990d7-dbae-40d0-a3f3-7c136b3e1af4",
+        "originalCommandHash": "sha256:848570f9a449aac83c075763cbee5e841e7f50fa0581df6066c65b87904ba365",
+        "originalOperationId": "41e60dbf-2d72-43ba-8f75-3982d63f7cf0",
+        "originalReviewId": "01681005-70a7-4e7c-a78f-f016ada42da8",
+        "acceptedCommandId": "33e990d7-dbae-40d0-a3f3-7c136b3e1af4",
+        "acceptedReviewId": "01681005-70a7-4e7c-a78f-f016ada42da8",
+        "sameOriginalIdentityPreserved": true,
+        "singleNamespace": true,
+        "singleAcceptedEvent": true,
+        "restartRequiresFreshReview": false
+      },
+      {
+        "recovery": "restart-expired-review",
+        "sqlitePageLimit": 658,
+        "restoredFreePages": 492,
+        "fillerRows": 436,
+        "nativeSQLiteCode": 13,
+        "actualNamespaceRowsAfterFailure": 0,
+        "observedFailure": "STORAGE_FULL",
+        "sourceTablesPreserved": [
+          "documents",
+          "history",
+          "checkpoints",
+          "objects",
+          "roots",
+          "commands",
+          "events_v2",
+          "assets",
+          "asset_dependencies",
+          "ui_checkpoints",
+          "ui_events",
+          "ui_receipts",
+          "staged_assets",
+          "portable_reviews",
+          "portable_review_sources",
+          "portable_review_maps",
+          "portable_pins"
+        ],
+        "originalSourcePreserved": true,
+        "originalCommandId": "c1de5dc9-e3ed-4983-ad7b-e6544bee05c7",
+        "originalCommandHash": "sha256:4a6d1b9a3cb644a2cc665b1e614f23846dfcacef222936ca425444827e183119",
+        "originalOperationId": "830e38dd-49e4-44f6-9fb2-0302c6bf351a",
+        "originalReviewId": "64b722ba-6d5f-42ee-8a29-8e7bec85acb3",
+        "acceptedCommandId": "a85a2151-e533-40ec-92aa-fbf584fa7070",
+        "acceptedReviewId": "0acd09e1-a0cd-4587-9162-a0cde09af279",
+        "sameOriginalIdentityPreserved": true,
+        "singleNamespace": true,
+        "singleAcceptedEvent": true,
+        "restartRequiresFreshReview": true
+      }
+    ],
+    "independentClosure": false
+  },
+  "largeFixtures": [
+    {
+      "fixture": "real repeated nonzero bytes; no sparse file or forged size",
+      "payloadBytes": "4296015889",
+      "archiveBytes": "4296016564",
+      "allocatedBytes": 4309651456,
+      "maxIOChunk": 1048576,
+      "peakRSS": 160940032,
+      "fullTestMs": 5509.1359999999995,
+      "qualification": false,
+      "limits": "ZIP transport correctness only; not the R39 document campaign"
+    },
+    {
+      "fixture": "synthetic canonical checkpoint records, real bytes",
+      "eventRecordCount": 10000,
+      "eventIndexBytes": "150650050",
+      "eventSegments": 2,
+      "rootSegments": 3,
+      "peakRSS": 245579776,
+      "elapsedMs": 6045.319542000001,
+      "qualification": false,
+      "limits": "segmented index transport/parser only; not a coherent full document or 100k-operation campaign"
+    }
+  ],
+  "tinyTimingObservations": {
+    "evidence": "final-attempt-03/observations.json",
+    "fixture": "tiny 3x2 retained image; serial HTTP on this nonexclusive host",
+    "limits": "Full observed public calls include queue/capture/hash/CRC/parse/codec/import/receipt and client polling. Download verification is included in copyReadyAndDownloadedMs. uploadPreviewAndImportMs includes uploading and previewing before explicit ImportBundle. No R39 512 MiB/4 GiB document campaign, supported-envelope, browser paint, destination write, native-memory or power-loss qualification.",
+    "maxima": {
+      "copyReadyAndDownloadedMs": 110.79416600000002,
+      "uploadAndPreviewMs": 271.58412499999986,
+      "importConfirmedToReceiptMs": 435.899459,
+      "uploadPreviewAndImportMs": 699.9309590000001,
+      "parentTotalMs": 811.451416
+    },
+    "qualification": false
+  },
+  "qualification": false,
+  "limits": [
+    "Author passes are not independent approval, task completion credit or A-PF01 closure.",
+    "Full R39 coherent 512 MiB/4 GiB document and 100k-operation campaigns remain unqualified. Real large fixtures are transport/index correctness only.",
+    "A-R01 full-envelope/native-memory/platform/power-loss qualification remains open. No performance budget waiver, quality downgrade or pruning.",
+    "Prior history metadata max74.743ms with20/20 over50ms and other slow parent samples remain visible; bounded tiny authority-to-client10.986ms/all29 max16.699ms does not qualify them.",
+    "Browser controls/adoption, actual destination-write acknowledgement, En Reve-first adoption and exact1px feedback belong to P1b.7 and remain open.",
+    "Unsupported future job/candidate/dataset/adapter/text/font/composition families remain inspection-only until their owners add explicit typed/versioned closure.",
+    "Obsolete unattributed UI-only retained bytes remain local; no ownership backfill, cleanup or GC. Current scoped/domain/history dependencies remain mandatory.",
+    "No PR, hosted CI, paid/provider/publishing/deployment action was performed; no baseline CI failure claim is made without a base run link."
+  ],
+  "priorAttempts": {
+    "firstFrozen": "final-gates-01.json \u2014 23/24 on its own earlier source; obsolete session route expectation failed. Its weak fixed-wait SQLite claim is withdrawn.",
+    "secondFrozen": "final-gates-02.json \u2014 24/24 on its own source before the added identity/retry assertions and integration wording.",
+    "development": "development-attempts.json retains exact original outputs, including failures; development-findings.json explains fixes and test limitations. Only attempt03 is the final source."
+  },
+  "integrationContract": "tooling/PORTABLE.txt",
+  "seals": [
+    "source-manifest.json",
+    "build-manifest.json",
+    "SHA256SUMS"
+  ],
+  "reviewAction": "Coordinator should delegate the existing included reviewer on the exact containing commit. Keep P1b.7 gated and A-PF01/A-R01/user feedback open until the respective independent decisions."
+}

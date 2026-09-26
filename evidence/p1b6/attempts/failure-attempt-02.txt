@@ -1,0 +1,21 @@
+✔ missing deleted-layer-pixels refuses copy and preserves all other current roots (1167.852167ms)
+✔ missing hidden-branch-pixels refuses copy and preserves all other current roots (1093.243042ms)
+✔ durable preparation remains pinned and cancellation releases only its owned pins after terminal rejection (607.818792ms)
+✔ review UI mappings page every imported checkpoint without a session count cap (4575.660959ms)
+ℹ UI checkpoints persisted
+ℹ Archive copied
+ℹ Archive reviewed
+ℹ Mapping pages read
+ℹ Fresh namespace accepted
+✔ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (4597.693333ms)
+ℹ {"sqlitePageLimit":166,"actualNamespaceRowsAfterFailure":0,"originalSourcePreserved":true,"restartRequiresFreshReview":true}
+✔ copy retains mask, deleted layer, inactive branches, checkpoint, export and exact source events; reopen restarts and navigates all (4140.440292ms)
+ℹ {"retainedHistoryNodes":5,"retainedAssetIds":9,"sourceEventCount":12,"literalPixelOracles":true,"sourceTransactionsPreserved":true,"namespaceFresh":true,"providerEffects":0}
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16303.085083

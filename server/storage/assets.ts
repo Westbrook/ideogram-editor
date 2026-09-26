@@ -11,7 +11,7 @@ import { IO_CHUNK, type Objects, type Barrier } from './objects.js';
 
 export type AssetAuth = { clientId: string; sessionHash: string; expires: number; now: number };
 export class AssetRejection extends Error {
-  constructor(readonly code: RejectionCode, readonly reason: string, readonly currentRevision: string | null = null) {super(reason);}
+  constructor(readonly code: RejectionCode, readonly reason: string, readonly currentRevision: string | null = null, readonly field = 'command.body') {super(reason);}
 }
 type StoredStage = { record: StagingRecord; createdAt: string; filename: string };
 type Lease = { id: string; owner: string; version: string; offset: string; length: number; at: number };
@@ -60,7 +60,7 @@ export class Assets {
     if(existing){const stage=this.fromRow(existing);this.owner(stage,auth.clientId);const r=stage.record;
       if(canonical(request)!==canonical({protocolVersion:r.protocolVersion,stagingId:r.stagingId,purpose:r.purpose,expectedBytes:r.expectedBytes,sha256:r.sha256,mediaType:r.mediaType}))throw new StoreError('STAGING_ID_REUSE');
       return {created:false,record:r};}
-    const allowed=request.purpose==='image'?['image/png','image/jpeg','image/webp']:request.purpose==='mask'?['image/png']:request.purpose==='caption'?['text/plain','application/json']:[];
+    const allowed=request.purpose==='image'?['image/png','image/jpeg','image/webp']:request.purpose==='mask'?['image/png']:request.purpose==='caption'?['text/plain','application/json']:request.purpose==='bundle'?['application/x-ideogram-project']:[];
     if(!allowed.includes(request.mediaType))throw new StoreError('MEDIA_TYPE');
     // Deferred parsers never gain eligibility from a declared type or signature.
     const reservation='upload:'+request.stagingId;this.objects.reserve(reservation,BigInt(request.expectedBytes));
@@ -73,6 +73,7 @@ export class Assets {
       return {created:true,record};
     }catch(e){this.objects.unreserve(reservation);throw e;}
   }
+  bundleSource(id:string,auth:AssetAuth){const s=this.stage(id);this.owner(s,auth.clientId);if(s.record.purpose!=='bundle'||s.record.state!=='complete')throw new StoreError('CONTENT_WITHHELD');return {record:s.record,path:this.path(s)};}
   get(id:string,auth:AssetAuth){const s=this.stage(id);this.owner(s,auth.clientId);return s.record;}
   private minimal(s:StoredStage):StagingRecoveryItem {
     if(s.record.state==='finalized')throw new StoreError('NOT_FOUND');const r=s.record;
@@ -127,16 +128,17 @@ export class Assets {
     const c=parseCommand(bytes).command;if(c.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');
     const previous=this.db.prepare('SELECT hash,receipt FROM commands WHERE id=?').get(c.commandId);const hash=hashBytes(canonical({protocolVersion:1,command:c}));
     if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(previous.receipt)) as Receipt;}
-    if(this.db.prepare('SELECT id FROM raster_preparations WHERE id=?').get(c.commandId)||this.db.prepare('SELECT id FROM history_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
+    if(this.db.prepare('SELECT id FROM portable_preparations WHERE id=?').get(c.commandId)||this.db.prepare('SELECT id FROM raster_preparations WHERE id=?').get(c.commandId)||this.db.prepare('SELECT id FROM history_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
     const pending=this.pending(c.commandId);if(pending){if(pending.command.clientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.paused.delete(c.commandId);this.schedule(true);return null;}
     const body=c.body;if(!('stagingId' in body))throw new StoreError('UNSUPPORTED_COMMAND');
     const s=this.stage(body.stagingId);
     if(body.type==='FinalizeStaging'){
+      if(s.record.purpose==='bundle')throw new StoreError('MEDIA_TYPE');
       this.owner(s,auth.clientId);
       // Validate inside the same writer transaction that journals preparation.
       if(s.record.state!=='complete'||body.expectedSha256!==s.record.sha256)return this.commit(bytes,()=>{throw new AssetRejection(s.record.state==='finalized'?'INCOMPATIBLE':'INVALID_INPUT','STAGING_NOT_MATCHING_COMPLETE');});
       if(this.db.prepare('SELECT id FROM asset_preparations WHERE staging_id=?').get(s.record.stagingId))return this.commit(bytes,()=>{throw new AssetRejection('CAPACITY','STAGING_PREPARATION_ACTIVE');});
-      if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM history_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
+      if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM history_preparations)+(SELECT count(*) FROM portable_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
       this.transaction(()=>{this.db.prepare('INSERT INTO asset_preparations VALUES (?,?,?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),canonical({protocolVersion:1,command:c}),randomUUID(),s.record.stagingId,s.record.version,'preparing');this.barrier('preparation-before-commit');});
       this.barrier('preparation-after-commit');this.schedule(true);return null;
     }
@@ -154,7 +156,7 @@ export class Assets {
       if(review.reviewHash!==body.reviewHash||review.staging.stagingId!==body.stagingId)throw new AssetRejection('INVALID_INPUT','REVIEW_MISMATCH');
       const r=current.record;
       if(body.expectedVersion!==r.version||body.expectedOwnerClientId!==r.ownerClientId||review.staging.version!==r.version||review.staging.ownerClientId!==r.ownerClientId||review.staging.state!==r.state)throw new AssetRejection('STALE_REVISION','STAGING_CHANGED',r.version);
-      if(this.db.prepare('SELECT id FROM asset_preparations WHERE staging_id=?').get(body.stagingId))throw new AssetRejection('CAPACITY','PREPARATION_MUST_QUIESCE',r.version);
+      if(this.db.prepare("SELECT 1 FROM portable_preparations WHERE json_extract(frozen,'$.stagingId')=? OR json_extract(frozen,'$.reviewId') IN (SELECT id FROM portable_review_sources WHERE staging_id=?)").get(body.stagingId,body.stagingId)||this.db.prepare('SELECT id FROM asset_preparations WHERE staging_id=?').get(body.stagingId))throw new AssetRejection('CAPACITY','PREPARATION_MUST_QUIESCE',r.version);
       // All disk writes execute synchronously on this sole worker. Network leases
       // have no file callback: revoke before commit; queued IPC tokens fail closed.
       for(const [token,lease]of this.leases)if(lease.id===r.stagingId)this.abortChunk(token);

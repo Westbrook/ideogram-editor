@@ -1,0 +1,12 @@
+✔ actual d84 two-document clear, supersede, retarget, reuse and count/age compaction retain only scoped required drafts (7560.87125ms)
+ℹ {"priorExecutable":"d84c1de55709bbd957222cac854905c41583a4e4","sourceUISeq":"1018","sourceObjects":18,"scopeA":["current_a","history_owned"],"scopeB":["current_b","reused_b"],"sourcePreserved":true}
+✔ legacy required current-bytes failure refuses a complete-copy claim (6229.682166ms)
+✔ legacy required history-ownership failure refuses a complete-copy claim (6435.345791ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20283.266041

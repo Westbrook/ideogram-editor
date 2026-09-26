@@ -4,6 +4,7 @@ import type { Document, DomainEvent } from '../protocol/store.js';
 // acceptance apply exactly the same facts, with captured IDs and time.
 export function reduceDocument(previous: Document | null, event: DomainEvent): Document {
   if (event.schemaVersion !== 1 || event.payloadVersion !== 1) throw new Error('Unsupported event schema');
+  if(event.type==='BundleImported'){if(previous!==null)throw new Error('Namespace collision');return event.payload.document;}
   if (event.type === 'DocumentCreated') {
     if (previous !== null || event.resultingDocumentRevision !== '1' || event.payload.document.id !== event.documentId) throw new Error('Invalid creation');
     return event.payload.document;

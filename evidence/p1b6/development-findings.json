@@ -1,0 +1,106 @@
+{
+  "status": "corrected before final candidate; independent review pending",
+  "items": [
+    {
+      "finding": "Shared two-IO admission could leave concurrent history metadata waiting while archive work held its permit.",
+      "evidence": [
+        "attempts/restart-attempt-01.txt"
+      ],
+      "resolution": "Synchronous history metadata borrows its existing IO permit; portable rejection metadata also borrows its own permit. Limits remain two transfers.",
+      "verification": "final portable concurrent capture/restart and affected history/raster/assets regressions"
+    },
+    {
+      "finding": "Transaction validator required identical recordedAt across all events; approved writer emits an individual timestamp for each fact.",
+      "evidence": [
+        "attempts/types-attempt-01.txt"
+      ],
+      "resolution": "Retain exact timestamps; validate common transaction command/correlation/causation/epoch and contiguous sequence without inventing timestamp equality.",
+      "verification": "exact source event/transaction preservation in journey fixture and final portable suite"
+    },
+    {
+      "finding": "New mapping route matched but was absent from the main protocol dispatch, leaving HTTP requests unanswered.",
+      "evidence": [
+        "attempts/failure-attempt-01.txt",
+        "attempts/mapping-attempt-01.txt",
+        "attempts/journey-attempt-01.txt"
+      ],
+      "resolution": "Add bundle-mapping dispatch and real 105-session paged adoption checks.",
+      "verification": "final mapping pagination and full history journey"
+    },
+    {
+      "finding": "Development TypeScript signature/narrowing errors.",
+      "evidence": [
+        "attempts/build-attempt-12.txt",
+        "attempts/build-attempt-13.txt"
+      ],
+      "resolution": "Thread optional IO permit through PortableCommit and narrow proven non-null rows.",
+      "verification": "final typecheck and build"
+    },
+    {
+      "finding": "Initial migration harness had copied version assertions for its prior task and assumed at least two columns in every table.",
+      "evidence": [
+        "attempts/schema-attempt-01.txt"
+      ],
+      "resolution": "Assert schema6 backup/schema7 activation correctly; cancellation rows explicitly retain their reason alongside identity.",
+      "verification": "actual d84 reader rollback/migration/SIGKILL fixtures and prior migration regressions"
+    },
+    {
+      "finding": "Legacy fixture attempted to insert an already existing test client binding.",
+      "evidence": [
+        "attempts/legacy-attempt-01.txt"
+      ],
+      "resolution": "Renew the same fixture binding using the explicit old-hash argument; source preservation assertions remain intact.",
+      "verification": "actual d84 two-document legacy fixtures"
+    },
+    {
+      "finding": "First synthetic large-index fixture omitted mandatory checkpoint highWater and document compositionVersion.",
+      "evidence": [
+        "attempts/large-attempt-01.txt"
+      ],
+      "resolution": "Use complete canonical current-schema synthetic records; keep the failed parser result.",
+      "verification": "real 150650050-byte segmented JSONL writer/parser fixture"
+    },
+    {
+      "finding": "The initial SQLite FULL fixed-wait check could pass while preparation was unfinished; its SQLite FULL claim is withdrawn. A replacement actual filled-database test exposed native SQLite FULL being masked by a missing-savepoint rollback error after SQLite automatic rollback. The operation was incorrectly rejected as an invalid archive.",
+      "findingId": "A-PF01",
+      "status": "OPEN pending independent review",
+      "evidence": [
+        "final-attempt-01/portable.txt",
+        "attempts/final-adjustments-attempt-01.txt",
+        "attempts/sqlite-full-attempt-02.txt",
+        "attempts/sqlite-full-attempt-03.txt",
+        "attempts/sqlite-full-attempt-04.txt",
+        "attempts/sqlite-full-attempt-05.txt"
+      ],
+      "resolution": "The new portable commit propagates native errors to its outer transaction handler before any domain-rejection savepoint rollback. Native error13 stays a pending STORAGE_FULL recovery; author focused pass is not independent closure. Final assertions distinguish same-authority retry from expired-review restart.",
+      "verification": "actual SQLite page exhaustion at the import acceptance barrier, plus final source-bound faults/restart/adversarial suites"
+    },
+    {
+      "finding": "First frozen gate run retained an obsolete session assertion expecting the unfinished bundle route to return503. Implemented missing bundle correctly returns404.",
+      "evidence": [
+        "final-attempt-01/session.txt"
+      ],
+      "resolution": "Assert404 for a missing prepared bundle and405 for the unsupported pseudo-import POST; add anonymous review/mapping/recovery denial checks.",
+      "verification": "final session gate"
+    },
+    {
+      "finding": "Final source review found terminal operation pins could survive a process death after receipt commit and before cleanup.",
+      "resolution": "Exclusive startup releases only terminal portable pins, retaining all pending/global/source roots.",
+      "verification": "actual SIGKILL post-commit copy tests assert no terminal pins after recovery"
+    },
+    {
+      "finding": "Final source review found an extra provider asset-hash count limit, weak safeTimings object validation, and overly strict unknown-format root fields.",
+      "resolution": "Remove unapproved provider hash-count limit; require nonarray timing object; allow extra unknown-format root metadata for inspection-only future versions while preserving strict frozen v1.",
+      "verification": "201 provider artifact hashes, invalid timing array and future-format extra metadata tests"
+    },
+    {
+      "finding": "The first same-authority FULL retry fixture freed its filler but left a page cap too small for the complete 180-checkpoint import. Retry correctly remained STORAGE_FULL; no terminal invalid-archive receipt or partial namespace appeared.",
+      "evidence": [
+        "attempts/sqlite-full-identities-attempt-01.txt",
+        "attempts/sqlite-full-identities-attempt-02.txt"
+      ],
+      "resolution": "Use a larger disposable page ceiling, still fill it to actual native13 at the same barrier, then free and record sufficient reusable pages for the full import. No production resource limit, timeout or quality policy changed.",
+      "verification": "final same-authority retry and distinct expired-review restart cases preserve correlated command/review/operation identities and original source tables"
+    }
+  ]
+}

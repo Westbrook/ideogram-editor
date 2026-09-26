@@ -1,0 +1,31 @@
+✖ actual SQLite FULL preserves identity and source through same-authority-retry (14370.126917ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14417.942875
+
+✖ failing tests:
+
+test at tests/portable/failure.test.mjs:28:73
+✖ actual SQLite FULL preserves identity and source through same-authority-retry (14370.126917ms)
+  AssertionError [ERR_ASSERTION]: {"waiting":{"protocolVersion":1,"items":[{"commandId":"3281c46a-c3c6-498f-ada1-53405da85402","operationId":"d01800a3-73cb-4730-a26a-0d7ab555e38b","phase":"waiting-for-resources","reason":"STORAGE_FULL","operation":"ImportBundle","documentId":null,"recovery":"retry-same-command-or-cancel"}],"next":null},"diagnostics":{"node":"26.10.0","sqlite":{"version":"3.53.4","source":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"},"settings":{"journal_mode":"wal","synchronous":2,"foreign_keys":1,"busy_timeout":250,"fullfsync":1,"checkpoint_fullfsync":1,"page_size":4096,"page_count":246,"max_page_count":246},"writerEpoch":"4","highWater":"3","projectionDigest":"sha256:6c42d92212ed4e8cc700e8065835ae5c35145a810e2fac54fba67a501f3ff88d","inventory":{"orphanCount":"182","stagingCount":"0"},"missingCount":0,"missing":[],"filesystem":{"type":"26","blockSize":"4096","availableBytes":"650740916224","totalBytes":"1995165736960"},"diskWarning":false,"resources":{"ioChunkBytes":1048576,"maxTransfers":2,"admissionOverheadPercent":25,"freeMarginBytes":"1073741824","metadataHeadroomBytes":"67108864","metadataHeadroomPhysicallyPreallocated":false,"snapshotTailCeiling":500},"assets":{"orphanUploadCount":"0","orphanUploadBytes":"0","committedBytes":"208631","failedCount":"0","preparations":"0","stages":"1","reservedBytes":"0","activeTransfers":0,"preparationMs":[]},"rasters":{"preparations":0,"approvalAuthorities":0,"activeWorkers":0,"reservedCPU":0,"observations":[]},"history":{"observations":[]},"portable":{"observations":[{"commandId":"4f888311-37be-4992-a7be-4ee4e8784cf8","operation":"PreviewBundleImport","confirmationToTerminalMs":891,"preparationMs":885.6779590000001,"rss":111919104,"qualification":false},{"commandId":"3281c46a-c3c6-498f-ada1-53405da85402","operation":"ImportBundle","confirmationToTerminalMs":3647,"preparationMs":3640.812167,"error":"STORAGE_FULL"},{"commandId":"3281c46a-c3c6-498f-ada1-53405da85402","operation":"ImportBundle","confirmationToTerminalMs":4679,"preparationMs":1014.8617080000004,"error":"STORAGE_FULL"}]},"observations":{"appendMs":[],"replayMs":8.464708000000002,"snapshot":{"target":250,"pressure":false,"latest":null,"buildMs":0,"sliceMaxMs":0,"activationMs":0},"qualification":false},"processMemory":{"rss":125911040,"heapTotal":27672576,"heapUsed":18133056,"external":9469802,"arrayBuffers":5064687},"sqliteIntegrity":{"quick_check":"ok"}}}
+  + actual - expected
+  
+  + undefined
+  - 'accepted'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/failure.test.mjs:62:57)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'accepted',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,48 @@
+npm notice run ideogram-editor@0.1.0 test:session
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/session/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (316.8615ms)
+✔ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (255.05525ms)
+✔ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (244.970417ms)
+✔ SEC03: one-use pairing is atomic and expires at precisely five minutes (264.216958ms)
+✔ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (266.784417ms)
+✔ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (387.549875ms)
+✔ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (272.655875ms)
+✖ session boundary: implemented routes stay authenticated, unfinished routes deny access, and keys never reach responses (256.260417ms)
+✔ SEC06: real private root/file permissions, symlink and insecure-root rejection (497.694875ms)
+✔ SEC03/06: root replacement invalidates the running boundary without modifying user data (262.317708ms)
+✔ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (243.165125ms)
+ℹ Host supports case aliases.
+✔ SEC03: actual killed-process restart rejects old cookie, CSRF and unused pairing; leaves root data intact (539.444042ms)
+✔ SEC03/05: trusted static build and synchronous fragment-removal contract before shell resources (265.005125ms)
+✔ Launcher: private fragment goes only to browser callback; executable launch records an OS-selected origin (560.205666ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4735.349208
+
+✖ failing tests:
+
+test at tests/session/http.test.mjs:198:1
+✖ session boundary: implemented routes stay authenticated, unfinished routes deny access, and keys never reach responses (256.260417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  404 !== 503
+  
+      at denied (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:9:10)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/http.test.mjs:209:5)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 404,
+    expected: 503,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

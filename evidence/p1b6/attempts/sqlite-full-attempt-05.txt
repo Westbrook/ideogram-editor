@@ -1,0 +1,10 @@
+✔ actual SQLite FULL during namespace acceptance publishes no partial namespace and preserves staged source (9637.82575ms)
+ℹ {"sqlitePageLimit":246,"fillerRows":70,"nativeSQLiteCode":13,"actualNamespaceRowsAfterFailure":0,"observedFailure":"STORAGE_FULL","originalSourcePreserved":true,"restartRequiresFreshReview":true,"freshReviewImportSucceeded":true}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9946.88575
