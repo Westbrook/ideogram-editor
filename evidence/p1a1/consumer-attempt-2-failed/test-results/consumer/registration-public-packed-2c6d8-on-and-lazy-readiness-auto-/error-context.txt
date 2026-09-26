@@ -1,0 +1,65 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: registration.spec.ts >> public packed registration, interaction and lazy readiness (auto)
+- Location: tests/consumer/registration.spec.ts:4:3
+
+# Error details
+
+```
+Error: expect(locator).toHaveText(expected) failed
+
+Locator:  getByLabel('Count')
+Expected: "1"
+Received: "0"
+Timeout:  5000ms
+
+Call log:
+  - Expect "toHaveText" getByLabel('Count') with timeout 5000ms
+  - waiting for getByLabel('Count')
+    14 × locator resolved to <output aria-label="Count">…</output>
+       - unexpected value "0"
+
+```
+
+```yaml
+- status "Count": "0"
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | for (const registry of ['auto', 'global']) {
+  4  |   test(`public packed registration, interaction and lazy readiness (${registry})`, async ({ page }) => {
+  5  |     const errors: string[] = [];
+  6  |     const external: string[] = [];
+  7  |     page.on('pageerror', error => errors.push(error.message));
+  8  |     await page.route('**/*', route => {
+  9  |       const url = new URL(route.request().url());
+  10 |       if (url.hostname !== '127.0.0.1') { external.push(url.origin); return route.abort(); }
+  11 |       return route.continue();
+  12 |     });
+  13 |     await page.goto(`/?registry=${registry}`);
+  14 |     await expect(page.getByRole('status', { name: 'Package readiness' })).toHaveText(/^Ready: (scoped|global)$/);
+  15 |     await page.getByRole('button', { name: 'Increment', exact: true }).click();
+> 16 |     await expect(page.getByLabel('Count')).toHaveText('1');
+     |                                            ^ Error: expect(locator).toHaveText(expected) failed
+  17 |     await page.getByRole('button', { name: 'Load text field', exact: true }).click();
+  18 |     await expect(page.getByRole('status', { name: 'Package readiness' })).toHaveText(/lazy field rendered/);
+  19 |     const input = page.getByRole('textbox', { name: 'Consumer input' });
+  20 |     await expect(input).toHaveValue('Packed source');
+  21 |     await input.fill('Installed independently');
+  22 |     await expect(input).toHaveValue('Installed independently');
+  23 |     expect(errors).toEqual([]);
+  24 |     expect(external).toEqual([]);
+  25 |   });
+  26 | }
+  27 | 
+```
