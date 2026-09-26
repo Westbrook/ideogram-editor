@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "projectId": "ideogram-editor-implementation",
+  "reportWorkspace": "../ideogram-edit-progress-report",
+  "stateLocation": "../ideogram-edit-progress-report/data/project.json",
+  "reportUrl": "http://127.0.0.1:4381/",
+  "apps": {
+    "local": {
+      "url": "http://127.0.0.1:5173/?progress-report",
+      "availability": "planned; shell owner confirms app port and integrates Developer UI return link"
+    }
+  },
+  "continuationOf": {
+    "source": "intent://local/upon-build/note/b6884312-45fe-4295-a5a3-70180a701223",
+    "state": "archived read-only planning report",
+    "frozenCheckpoint": "docs/handoff/snapshots/20260926T020523Z/b6884312-45fe-4295-a5a3-70180a701223.md",
+    "frozenCheckpointMeaning": "historical snapshot, not live state",
+    "approvedTechnicalCommit": "409e4afb1a7168f706e9015e5e62122a74d40453",
+    "approvedArchiveCommit": "082a3fab650c55712e8a390802e409f1c11f1d75"
+  }
+}
