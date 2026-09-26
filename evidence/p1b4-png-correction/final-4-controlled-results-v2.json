@@ -1,0 +1,279 @@
+[
+  {
+    "name": "valid-unknown-icc-before.png",
+    "inputHash": "sha256:adb7c5511a67037e6eea4ac02a056ba11eafd2283c7eb0e6d134704409cdfe95",
+    "receipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "d5d49610-fb5e-4807-9f8f-2d2599f67c82",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "76",
+        "hash": "sha256:c918c6efaec61f85e76f7d27b3b82a12a2cab4e6ff3e89a02f8d76f8da18c3fa",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "originalContentStatus": 403
+  },
+  {
+    "name": "valid-unknown-icc-after.png",
+    "inputHash": "sha256:3de62a83539212e331970d05dbd46817103e5a44f463c66a0ef57d38fd97c2a2",
+    "receipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "88bba511-c408-4537-a40b-1f15693e291b",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "75",
+        "hash": "sha256:97ebfc3ad1194afccc4b10ffce030a6f222cc34e98643e68f914d0422d075887",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "originalContentStatus": 403
+  },
+  {
+    "name": "orientation-6-after.png",
+    "inputHash": "sha256:fdda538c7965fc7d600a0fc2b0c8aef772fc49c1e96b778d3e78666126080dcb",
+    "receipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "779c8472-5f03-4348-ad21-8581f55b8bc9",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "75",
+        "hash": "sha256:97ebfc3ad1194afccc4b10ffce030a6f222cc34e98643e68f914d0422d075887",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "originalContentStatus": 403
+  },
+  {
+    "name": "trns-rgba.png",
+    "inputHash": "sha256:4b985eb5bb9c684a601aa2c6a38eee66caef4a50b49822d5258df27a20e27a42",
+    "receipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "b07c939d-ac66-4fa6-84e3-cb56968bbb7f",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "75",
+        "hash": "sha256:97ebfc3ad1194afccc4b10ffce030a6f222cc34e98643e68f914d0422d075887",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "originalContentStatus": 403
+  },
+  {
+    "name": "srgb-bad-size.png",
+    "inputHash": "sha256:f6867ccc3fcc4c76284a261814bf2ee0a2576ef7a2a4783e83e45571422f0bfb",
+    "receipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "546e8950-fb0e-4895-89b4-a26239158d54",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "76",
+        "hash": "sha256:c918c6efaec61f85e76f7d27b3b82a12a2cab4e6ff3e89a02f8d76f8da18c3fa",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "originalContentStatus": 403
+  },
+  {
+    "name": "idat-trailing-data.png",
+    "inputHash": "sha256:7a83a607eca8f944c744a71f34b504ffa4ee4ed2ad9522e35664501ab0f4e895",
+    "receipt": {
+      "commandId": "77c48d4a-c141-48f4-87a0-d58dc04b85dd",
+      "documentRevision": null,
+      "fromSeq": "7",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "885d1df8-3128-4719-bc40-eb273b19a4be"
+    },
+    "originalContentStatus": 403,
+    "preview": {
+      "availability": "available",
+      "blob": {
+        "byteLength": "95",
+        "hash": "sha256:50958639c6d461906104cf2a70b9c90066e6c32f08b90cd6b833d31c86c75728",
+        "mediaType": "image/png"
+      },
+      "dependencies": [
+        {
+          "byteLength": "996",
+          "hash": "sha256:9af32cffea31e2ca1efa6acd7e26ea904ee02f9c087f82d10a3ce3019e1ae16c",
+          "mediaType": "application/json"
+        },
+        {
+          "byteLength": "4",
+          "hash": "sha256:c6c573a7627010d21e766c6186ead83f9a450006e3fe77ab0076e3c2e9d07f10",
+          "mediaType": "application/x-ideogram-rgba8"
+        }
+      ],
+      "id": "4b137cb8-0388-4416-a8b2-411b0ac882ab",
+      "measuredMediaType": "image/png",
+      "purpose": "image",
+      "qualification": "raster-preview",
+      "raster": {
+        "conversion": {
+          "colorChanged": false,
+          "encodedHeight": 1,
+          "encodedWidth": 1,
+          "orientation": 1,
+          "orientationChanged": false,
+          "profile": "untagged-srgb",
+          "profileHash": null,
+          "resized": false
+        },
+        "height": 1,
+        "manifest": {
+          "byteLength": "996",
+          "hash": "sha256:9af32cffea31e2ca1efa6acd7e26ea904ee02f9c087f82d10a3ce3019e1ae16c",
+          "mediaType": "application/json"
+        },
+        "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+        "pixelIdentity": "sha256:e4037be601128a7eb0573e97db7a5abff907ebefb7ad5c4a2f53597f52c301fd",
+        "pixels": {
+          "byteLength": "4",
+          "hash": "sha256:c6c573a7627010d21e766c6186ead83f9a450006e3fe77ab0076e3c2e9d07f10",
+          "mediaType": "application/x-ideogram-rgba8"
+        },
+        "role": "native",
+        "schemaVersion": 1,
+        "sourceAssetIds": [
+          "24c05331-931c-4ca2-a496-35b2a3a6b935"
+        ],
+        "width": 1
+      },
+      "safety": "safe",
+      "version": "1"
+    },
+    "contentStatus": 200,
+    "review": {
+      "assetId": "4b137cb8-0388-4416-a8b2-411b0ac882ab",
+      "conversion": {
+        "colorChanged": false,
+        "encodedHeight": 1,
+        "encodedWidth": 1,
+        "orientation": 1,
+        "orientationChanged": false,
+        "profile": "untagged-srgb",
+        "profileHash": null,
+        "resized": false
+      },
+      "expiresAt": "2026-09-26T07:54:13.548Z",
+      "manifestHash": "sha256:9af32cffea31e2ca1efa6acd7e26ea904ee02f9c087f82d10a3ce3019e1ae16c",
+      "pixelIdentity": "sha256:e4037be601128a7eb0573e97db7a5abff907ebefb7ad5c4a2f53597f52c301fd",
+      "previewAssetId": "4b137cb8-0388-4416-a8b2-411b0ac882ab",
+      "protocolVersion": 1,
+      "reviewHash": "sha256:bef7dbe5fa3ec71a032e7563d754e898d21d68b01ed80f1e42d19f7b16cb3a3b",
+      "reviewId": "200c4117-91a8-4a7c-ac78-1fdd890b6ea3",
+      "targetClientId": "ef08ddbc-6a44-483d-94b5-8a75f1438ca7"
+    },
+    "approved": {
+      "availability": "available",
+      "blob": {
+        "byteLength": "95",
+        "hash": "sha256:50958639c6d461906104cf2a70b9c90066e6c32f08b90cd6b833d31c86c75728",
+        "mediaType": "image/png"
+      },
+      "dependencies": [
+        {
+          "byteLength": "996",
+          "hash": "sha256:9af32cffea31e2ca1efa6acd7e26ea904ee02f9c087f82d10a3ce3019e1ae16c",
+          "mediaType": "application/json"
+        },
+        {
+          "byteLength": "4",
+          "hash": "sha256:c6c573a7627010d21e766c6186ead83f9a450006e3fe77ab0076e3c2e9d07f10",
+          "mediaType": "application/x-ideogram-rgba8"
+        }
+      ],
+      "id": "1c61c9cf-69ff-450b-bad9-bd0c148260c6",
+      "measuredMediaType": "image/png",
+      "purpose": "image",
+      "qualification": "canonical-raster",
+      "raster": {
+        "conversion": {
+          "colorChanged": false,
+          "encodedHeight": 1,
+          "encodedWidth": 1,
+          "orientation": 1,
+          "orientationChanged": false,
+          "profile": "untagged-srgb",
+          "profileHash": null,
+          "resized": false
+        },
+        "height": 1,
+        "manifest": {
+          "byteLength": "996",
+          "hash": "sha256:9af32cffea31e2ca1efa6acd7e26ea904ee02f9c087f82d10a3ce3019e1ae16c",
+          "mediaType": "application/json"
+        },
+        "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+        "pixelIdentity": "sha256:e4037be601128a7eb0573e97db7a5abff907ebefb7ad5c4a2f53597f52c301fd",
+        "pixels": {
+          "byteLength": "4",
+          "hash": "sha256:c6c573a7627010d21e766c6186ead83f9a450006e3fe77ab0076e3c2e9d07f10",
+          "mediaType": "application/x-ideogram-rgba8"
+        },
+        "role": "native",
+        "schemaVersion": 1,
+        "sourceAssetIds": [
+          "24c05331-931c-4ca2-a496-35b2a3a6b935"
+        ],
+        "width": 1
+      },
+      "safety": "safe",
+      "version": "1"
+    },
+    "exported": {
+      "availability": "available",
+      "blob": {
+        "byteLength": "95",
+        "hash": "sha256:50958639c6d461906104cf2a70b9c90066e6c32f08b90cd6b833d31c86c75728",
+        "mediaType": "image/png"
+      },
+      "dependencies": [
+        {
+          "byteLength": "924",
+          "hash": "sha256:a6897d4ed30cf2cdc8abff55576ec9ced102b971dc15c39c5cf3b43fa9e5a9c2",
+          "mediaType": "application/json"
+        },
+        {
+          "byteLength": "4",
+          "hash": "sha256:c6c573a7627010d21e766c6186ead83f9a450006e3fe77ab0076e3c2e9d07f10",
+          "mediaType": "application/x-ideogram-rgba8"
+        }
+      ],
+      "id": "4ab73564-48c0-4166-bbf9-696e5d55b975",
+      "measuredMediaType": "image/png",
+      "purpose": "image",
+      "qualification": "canonical-png",
+      "raster": {
+        "conversion": null,
+        "height": 1,
+        "manifest": {
+          "byteLength": "924",
+          "hash": "sha256:a6897d4ed30cf2cdc8abff55576ec9ced102b971dc15c39c5cf3b43fa9e5a9c2",
+          "mediaType": "application/json"
+        },
+        "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+        "pixelIdentity": "sha256:e4037be601128a7eb0573e97db7a5abff907ebefb7ad5c4a2f53597f52c301fd",
+        "pixels": {
+          "byteLength": "4",
+          "hash": "sha256:c6c573a7627010d21e766c6186ead83f9a450006e3fe77ab0076e3c2e9d07f10",
+          "mediaType": "application/x-ideogram-rgba8"
+        },
+        "role": "export",
+        "schemaVersion": 1,
+        "sourceAssetIds": [
+          "1c61c9cf-69ff-450b-bad9-bd0c148260c6"
+        ],
+        "width": 1
+      },
+      "safety": "safe",
+      "version": "1"
+    }
+  }
+]

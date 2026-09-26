@@ -39,3 +39,20 @@ for(const phase of ['raster-before-register','raster-after-register'])test('SIGK
  const response=first.post('/api/v1/commands',c).catch(()=>null);await first.wait('barrier');await first.kill();await response;
  const next=await child(t,f.root);await next.pair(oldCookie);const done=await terminal(next,c);assert.equal(done.json.receipt.status,'accepted');const event=await eventFor(next,done.json.receipt);assert.deepEqual((await binary(next,event.payload.asset.id)).bytes,expected);await next.effects();
 });
+
+for(const phase of ['raster-approval-preparation-before-commit','raster-approval-preparation-after-commit','raster-approval-after-proofs','raster-approval-before-register','raster-approval-after-register'])test('SIGKILL approval '+phase+' preserves identity and requires a live review before publication',async t=>{
+ const f=await setup(t),input=await original(f,'hidden-alpha.png');
+ const prepared=await terminal(f,f.command({documentId:null,body:{type:'PrepareRaster',assetId:input.id}})),preview=(await eventFor(f,prepared.json.receipt)).payload.asset;
+ const cookie=cookieFrom(f.paired);await f.server.close();const first=await child(t,f.root,phase);await first.pair(cookie);const oldCookie=cookieFrom(first.paired);
+ const reviewCommand=command(EMPTY_EXPECTED_VERSIONS,{clientId:first.paired.json.clientId,documentId:null,body:{type:'ReviewRaster',assetId:preview.id}});
+ const rr=await terminal(first,reviewCommand),re=(await eventFor(first,rr.json.receipt)).payload,review=(await first.read('/api/v1/assets/raster-reviews/'+re.reviewId)).json;
+ const c=command(EMPTY_EXPECTED_VERSIONS,{clientId:first.paired.json.clientId,documentId:null,body:{type:'ApproveRaster',assetId:preview.id,reviewId:review.reviewId,reviewHash:review.reviewHash}});
+ const response=first.post('/api/v1/commands',c).catch(()=>null);await first.wait('barrier');await first.effects();await first.kill();await response;
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true}),pending=db.prepare('SELECT * FROM raster_preparations WHERE id=?').get(c.command.commandId),saved=db.prepare('SELECT * FROM commands WHERE id=?').get(c.command.commandId);
+ if(phase.endsWith('preparation-before-commit')){assert.equal(pending,undefined);assert.equal(saved,undefined);}else{assert.ok(pending||saved);assert.equal((pending??saved).original,JSON.stringify(c));assert.equal((pending??saved).hash,digest(canonical(c)));}db.close();
+ const next=await child(t,f.root);await next.pair(oldCookie);const result=await terminal(next,c);
+ if(phase==='raster-approval-after-register'){assert.equal(result.json.receipt.status,'accepted');assert.deepEqual((await eventFor(next,result.json.receipt)).payload.asset.raster,preview.raster);}
+ else{assert.equal(result.json.receipt.status,'rejected');assert.equal(result.json.rejectionDetails.value.issues[0].code,'RASTER_REVIEW_EXPIRED');}
+ assert.deepEqual((await next.post('/api/v1/commands',c)).json,result.json);assert.equal((await next.post('/api/v1/commands',{...c,command:{...c.command,sessionId:'different'}})).status,409);
+ assert.equal((await binary(next,preview.id)).status,200);await next.effects();
+});

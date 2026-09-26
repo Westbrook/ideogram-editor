@@ -1,0 +1,73 @@
+{
+  "startedAt": "2026-09-26T07:15:22.596442+00:00",
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-2/source",
+  "qualification": false,
+  "gates": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:raster"
+      ],
+      "at": "2026-09-26T07:15:22.596585+00:00",
+      "finishedAt": "2026-09-26T07:15:23.764773+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-2-00.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "at": "2026-09-26T07:15:23.765128+00:00",
+      "finishedAt": "2026-09-26T07:15:25.987092+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-2-01.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "at": "2026-09-26T07:15:25.987625+00:00",
+      "finishedAt": "2026-09-26T07:15:29.509120+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-2-02.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:vendor"
+      ],
+      "at": "2026-09-26T07:15:29.509566+00:00",
+      "finishedAt": "2026-09-26T07:15:29.790881+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-2-03.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:vendor"
+      ],
+      "at": "2026-09-26T07:15:29.791251+00:00",
+      "finishedAt": "2026-09-26T07:15:30.166381+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-2-04.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:raster"
+      ],
+      "at": "2026-09-26T07:15:30.166717+00:00",
+      "finishedAt": "2026-09-26T07:16:31.897340+00:00",
+      "exitCode": 1,
+      "log": "evidence/p1b4-png-correction/logs/final-2-05.txt"
+    }
+  ]
+}

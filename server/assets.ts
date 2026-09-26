@@ -10,7 +10,7 @@ export type AssetRoute={allow:string[];kind:string;id?:string;query:string[]};
 export class AssetRoutes {
   private streams=0;
   constructor(private writer:Writer,private now:()=>number){}
-  auth(s:Session):AssetAuth{return {clientId:s.clientId,sessionHash:s.cookieHash,expires:s.expires,now:this.now()};}
+  auth(s:Session):AssetAuth{return {clientId:s.clientId,sessionHash:s.cookieHash,expires:Math.min(s.expires,s.idle),now:this.now()};}
   match(path:string):AssetRoute|null {
     if(path==='/api/v1/assets/staging')return {allow:['POST'],kind:'asset-create',query:[]};
     if(path==='/api/v1/assets/staging/recovery')return {allow:['GET'],kind:'asset-inventory',query:['cursor']};

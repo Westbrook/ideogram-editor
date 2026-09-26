@@ -1,0 +1,19 @@
+{"input":"tests/raster/fixtures/normal-jpeg.jpg","status":"completed","observations":[{"type":"FinalizeStaging","elapsedMs":25.289457999999968},{"type":"PrepareRaster","elapsedMs":220.96829099999997},{"type":"ReviewRaster","elapsedMs":4.663541000000009},{"type":"ApproveRaster","elapsedMs":18.820791999999983},{"type":"ComposeRaster","elapsedMs":330.43670800000007},{"type":"ExportRaster","elapsedMs":173.782917},{"type":"ComposeRaster","elapsedMs":112.45916699999998}],"peakRSS":230342656}
+        1.18 real         0.79 user         0.26 sys
+           230342656  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               16178  page reclaims
+                 113  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   2  messages sent
+                   2  messages received
+                   0  signals received
+                 316  voluntary context switches
+               31236  involuntary context switches
+         13120353103  instructions retired
+          4156478121  cycles elapsed
+           168192656  peak memory footprint

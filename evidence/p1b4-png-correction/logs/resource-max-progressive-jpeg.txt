@@ -1,0 +1,19 @@
+{"input":"tests/raster/fixtures/max-progressive-jpeg.jpg","status":"resource-pending","error":"Error: Resource admission: {\"command\":{\"schemaVersion\":1,\"commandId\":\"ad66c8b2-068b-461c-b27a-31f23187c39b\",\"clientId\":\"measure\",\"sessionId\":\"measure-provenance\",\"correlationId\":\"502e850e-cd33-42c1-a04a-e62ef1e4f4ca\",\"causationId\":null,\"transactionId\":\"7f943caa-b174-4c96-8173-09097803b04b\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T07:24:48.320Z\",\"body\":{\"type\":\"PrepareRaster\",\"assetId\":\"ed2ecb22-900f-4610-9287-7563e86531fe\"}},\"hash\":\"sha256:e018aae9cb646c5ffda6039f6e94dbb88d06972d3ac565236c3b25fa87e2d242\",\"operationId\":\"a48cf0f7-4e1a-4ca2-bed1-5dbfb86dc7e7\",\"phase\":\"waiting-for-resources\"}","observations":[{"type":"FinalizeStaging","elapsedMs":24.089292}],"peakRSS":132694016}
+        0.37 real         0.15 user         0.06 sys
+           132694016  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                9445  page reclaims
+                  99  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   2  messages sent
+                   2  messages received
+                   0  signals received
+                 129  voluntary context switches
+                 865  involuntary context switches
+          1857636874  instructions retired
+           686546612  cycles elapsed
+            70263424  peak memory footprint

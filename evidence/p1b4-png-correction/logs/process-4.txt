@@ -1,0 +1,27 @@
+✔ SIGKILL raster-preparation-before-commit keeps original raster command, operation and encoded source (1113.268375ms)
+✔ SIGKILL raster-preparation-after-commit keeps original raster command, operation and encoded source (1032.604292ms)
+✔ SIGKILL raster-after-worker keeps original raster command, operation and encoded source (1033.760167ms)
+✔ SIGKILL raster-before-flush keeps original raster command, operation and encoded source (1054.706958ms)
+✔ SIGKILL raster-after-flush keeps original raster command, operation and encoded source (1030.391167ms)
+✔ SIGKILL raster-before-rename keeps original raster command, operation and encoded source (1053.3755ms)
+✔ SIGKILL raster-after-rename keeps original raster command, operation and encoded source (995.464875ms)
+✔ SIGKILL raster-after-directory-sync keeps original raster command, operation and encoded source (1037.619667ms)
+✔ SIGKILL raster-before-register keeps original raster command, operation and encoded source (1045.675667ms)
+✔ SIGKILL asset-before-commit keeps original raster command, operation and encoded source (1023.567458ms)
+✔ SIGKILL asset-after-commit keeps original raster command, operation and encoded source (1012.172083ms)
+✔ SIGKILL raster-after-register keeps original raster command, operation and encoded source (1005.207959ms)
+✔ SIGKILL frozen PNG export raster-before-register reopens exact existing canonical bytes (1162.970958ms)
+✔ SIGKILL frozen PNG export raster-after-register reopens exact existing canonical bytes (1115.732167ms)
+✔ SIGKILL approval raster-approval-preparation-before-commit preserves identity and requires a live review before publication (1031.9445ms)
+✔ SIGKILL approval raster-approval-preparation-after-commit preserves identity and requires a live review before publication (1031.29325ms)
+✔ SIGKILL approval raster-approval-after-proofs preserves identity and requires a live review before publication (1012.761125ms)
+✔ SIGKILL approval raster-approval-before-register preserves identity and requires a live review before publication (1034.161333ms)
+✔ SIGKILL approval raster-approval-after-register preserves identity and requires a live review before publication (1006.373666ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20144.6575

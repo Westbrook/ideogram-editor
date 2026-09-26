@@ -1,0 +1,12 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+[Error: ENOENT: no such file or directory, open '/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-4/resource-max-webp-lossy.webp.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-4/resource-max-webp-lossy.webp.json'
+}
+
+Node.js v26.10.0

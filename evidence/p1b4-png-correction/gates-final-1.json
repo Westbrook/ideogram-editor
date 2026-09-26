@@ -1,0 +1,40 @@
+{
+  "startedAt": "2026-09-26T07:14:39.423715+00:00",
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-1/source",
+  "qualification": false,
+  "gates": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:raster"
+      ],
+      "at": "2026-09-26T07:14:39.423855+00:00",
+      "finishedAt": "2026-09-26T07:14:39.612843+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-1-00.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "at": "2026-09-26T07:14:39.613200+00:00",
+      "finishedAt": "2026-09-26T07:14:40.702777+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-1-01.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "at": "2026-09-26T07:14:40.703146+00:00",
+      "finishedAt": "2026-09-26T07:14:41.288608+00:00",
+      "exitCode": 1,
+      "log": "evidence/p1b4-png-correction/logs/final-1-02.txt"
+    }
+  ]
+}

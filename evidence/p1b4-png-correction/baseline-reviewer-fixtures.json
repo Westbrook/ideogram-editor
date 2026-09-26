@@ -1,0 +1,94 @@
+{
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/dfa383d-independent/fixtures",
+  "target": "dfa383d56d21bc9c7bb40248db8a503fe33e6e46",
+  "fixtures": [
+    {
+      "name": "reviewer-srgb-bad-size.png",
+      "originalName": "srgb-bad-size.png",
+      "bytes": 84,
+      "sha256": "f6867ccc3fcc4c76284a261814bf2ee0a2576ef7a2a4783e83e45571422f0bfb",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-srgb-bad-intent.png",
+      "originalName": "srgb-bad-intent.png",
+      "bytes": 83,
+      "sha256": "0698573cf0d17af80096198ffda0bf44c08a4c44760d84387bda02ddc871d127",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-trns-rgba.png",
+      "originalName": "trns-rgba.png",
+      "bytes": 88,
+      "sha256": "4b985eb5bb9c684a601aa2c6a38eee66caef4a50b49822d5258df27a20e27a42",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-duplicate-idat-stream.png",
+      "originalName": "duplicate-idat-stream.png",
+      "bytes": 95,
+      "sha256": "1c48677ba6316b14cbd9ef3b8e8831e6fec9e45dd12efef1a143165987fe835d",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-idat-trailing-data.png",
+      "originalName": "idat-trailing-data.png",
+      "bytes": 92,
+      "sha256": "7a83a607eca8f944c744a71f34b504ffa4ee4ed2ad9522e35664501ab0f4e895",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-icc-after-idat.png",
+      "originalName": "icc-after-idat.png",
+      "bytes": 126,
+      "sha256": "9e14e8af2067a96c75dc76ab0827945ce8970318168f9356d1eb840d6d906511",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-valid-unknown-icc-before.png",
+      "originalName": "valid-unknown-icc-before.png",
+      "bytes": 410,
+      "sha256": "adb7c5511a67037e6eea4ac02a056ba11eafd2283c7eb0e6d134704409cdfe95",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-valid-unknown-icc-after.png",
+      "originalName": "valid-unknown-icc-after.png",
+      "bytes": 410,
+      "sha256": "3de62a83539212e331970d05dbd46817103e5a44f463c66a0ef57d38fd97c2a2",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-exif-after-idat.png",
+      "originalName": "exif-after-idat.png",
+      "bytes": 96,
+      "sha256": "acd75fd4381d588ffa3fdca6fc99d0db8d17deb8b3e4cd71394b3a1211ac44af",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-orientation-6-after.png",
+      "originalName": "orientation-6-after.png",
+      "bytes": 124,
+      "sha256": "fdda538c7965fc7d600a0fc2b0c8aef772fc49c1e96b778d3e78666126080dcb",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    },
+    {
+      "name": "reviewer-unknown-critical.png",
+      "originalName": "unknown-critical.png",
+      "bytes": 85,
+      "sha256": "54beab20238fd2e2c0f6253371e5f2f367de9483d90455cdbd3179ab3ecabb3f",
+      "valid": false,
+      "reason": "unchanged independent review reproduction"
+    }
+  ]
+}

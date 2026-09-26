@@ -70,7 +70,7 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
   let width:number,height:number,plan:ResourcePlan,conversion:RasterInfo['conversion']=null,sourceAssetIds:string[],dependencies:readonly BlobRef[],description:unknown;
   let decodeMs=0,computeMs=0;const extra:{name:string;ref:BlobRef}[]=[];
   if(job.type==='decode'){
-    const container=inspectContainer(job.path,job.mediaType);check();
+    const container=await inspectContainer(job.path,job.mediaType,check);check();
     plan=resourcePlan(container.width,container.height,true,container.metadataBytes,job.mediaType.slice(6));await admit(plan);check();
     const options={failOn:'warning' as const,limitInputPixels:25000000,sequentialRead:true,ignoreIcc:true};
     const metadata=await sharp(job.path,options).metadata();
@@ -79,6 +79,7 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
     extent(metadata.width,metadata.height);if(metadata.width!==container.width||metadata.height!==container.height)throw new Error('RASTER_EXTENT');
     const orientation=metadata.orientation??1;if(!Number.isInteger(orientation)||orientation<1||orientation>8)throw new Error('RASTER_ORIENTATION');
     const profileHash=metadata.icc?hash(metadata.icc):null;
+    if(container.pngMetadata&&(container.pngMetadata.iccHash!==profileHash||container.pngMetadata.exifHash!==(metadata.exif?hash(metadata.exif):null)))throw new Error('RASTER_METADATA');
     let profile:'untagged-srgb'|'srgb'|'p3'='untagged-srgb';
     if(profileHash){if(profileHash===CODECS.profiles.srgb.hash)profile='srgb';else if(profileHash===CODECS.profiles.p3.hash)profile='p3';else throw new Error('RASTER_PROFILE');}
     width=orientation>=5?metadata.height:metadata.width;height=orientation>=5?metadata.width:metadata.height;

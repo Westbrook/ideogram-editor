@@ -1,0 +1,19 @@
+{"input":"tests/raster/fixtures/normal-webp-lossless.webp","status":"completed","observations":[{"type":"FinalizeStaging","elapsedMs":25.076707999999996},{"type":"PrepareRaster","elapsedMs":221.181084},{"type":"ReviewRaster","elapsedMs":5.119374999999934},{"type":"ApproveRaster","elapsedMs":18.94170900000006},{"type":"ComposeRaster","elapsedMs":324.139416},{"type":"ExportRaster","elapsedMs":171.61987499999998},{"type":"ComposeRaster","elapsedMs":118.37549999999987}],"peakRSS":300613632}
+        1.18 real         0.79 user         0.26 sys
+           300613632  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               20480  page reclaims
+                 103  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   2  messages sent
+                   2  messages received
+                   0  signals received
+                 314  voluntary context switches
+               31331  involuntary context switches
+         13135726346  instructions retired
+          4156105703  cycles elapsed
+           238611304  peak memory footprint

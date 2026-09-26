@@ -48,6 +48,17 @@ writer epoch, decoded manifest/pixel identity and expiry (at most30 minutes).
 ApproveRaster requires that exact review and returns a canonical-raster logical
 asset sharing the exact preview bytes. Approval does not decode or bake again.
 Session renewal/restart expires the old review; obtain a fresh review.
+Approval now journals its own pending command before202 and cooperatively proves
+the preview PNG, raw pixels, manifest, extracted ICC/EXIF and original-source
+closure in the shared IO queue. It checks private file identities again at commit.
+Missing/corrupt/substituted dependencies produce a terminal MISSING_ASSET receipt
+with RASTER_DEPENDENCY_MISSING/CORRUPT details. Repair never changes that receipt;
+submit a new command after repair with a still-current review (or obtain a new one).
+Authority is bounded by review, absolute/idle session expiry and the live cookie
+binding. A restart cannot restore a pending approval's session authority: the
+original command is retained and rejected RASTER_REVIEW_EXPIRED. A committed
+approval still replays its exact receipt across restart. These rules add no
+editor/history command, external delivery or automatic repair.
 
 GET /api/v1/assets/:assetId/raster returns the typed immutable manifest.
 GET /api/v1/assets/:assetId/content uses existing owned, safe-content verification,
@@ -133,7 +144,7 @@ licenses and clean-install receipts are separately sealed in evidence/p1b4.
 Static8-bit PNG (including palette/grayscale),8-bit RGB/grayscale baseline/progressive
 JPEG, and static lossy/lossless WebP are eligible only after full native decode.
 Strict streamed container validation rejects truncation, CRC errors, animation,
-trailing frames/data and invalid dimensions before publication. APNG/WebP animations
+invalid dimensions and bytes outside the container before publication. APNG/WebP animations
 are rejected. No16-bit/HDR/CMYK/unknown-profile conversion is silently attempted.
 Metadata decompression/parser workspace is bounded4MiB before native metadata.
 Dimensions stay<=8192 each and<=25,000,000 pixels; no silent resize.
@@ -145,6 +156,22 @@ are retained. EXIF orientation1–8 normalizes once by exact RGBA sample rearran
 Conversion review reports original/working dimensions, profile hash, orientation,
 color/orientation changes, no-resize flag, manifest identity and actual preview.
 Unknown profiles remain recoverable originals, not a claim of universal ICC support.
+
+PNG correction I-R01 follows PNG3 https://www.w3.org/TR/png-3/ sections5.6/11:
+ordered/singleton color and EXIF chunks, exact sRGB intent, legal depth/color and
+palette/transparency payloads are checked before native parsing. Extracted ICC and
+EXIF hashes must match native metadata; only the existing pinned ICC set is allowed.
+Image inflation validates scanline lengths, filters, Adam7 passes and palette
+indices in64KiB blocks with at most two8192-byte palette rows. Native decode still
+produces the retained pixels. Unknown ancillary data stays in the original.
+PNG3 section11.2.3 permits unused compressed bytes at the end of IDAT: those bytes,
+including an unused extra zlib stream, are accepted when the image itself is valid.
+They are explicitly excluded from the original review's failure classification.
+Compressed metadata remains bounded and must be one complete stream. Suggested
+palette names are capped1024 under the metadata-workspace resource policy.
+The new generator/tests and evidence/p1b4-png-correction preserve both the initial
+exploratory classification and the corrected acceptance criteria; dfa383d and its
+original evidence remain unchanged. This correction does not rewrite past receipts.
 
 make-fixtures.mjs authors original CC0 inputs; PNG frames/EXIF are independent literal
 bytes, JPEG/WebP use sealed encoders. Expected CP pixels are hand-derived constants,
@@ -173,6 +200,11 @@ row caches, K/output, Float64 accumulator, mask scalars and1MiB tile hashing),4M
 metadata,4MiB PNG/hash IO,80MiB runtime and16MiB concurrent backend headroom. This
 conservative plan is correlated with actual RSS; native internal allocators are not
 individually instrumented. Parent snapshots/receipts retain their existing bounds.
+Approval proof preparation reserves8MiB above current process RSS within the same
+512MiB admission limit, uses one shared IO slot and no raster worker, and checks
+RSS while traversing the bounded closure. This is reservation accounting, not
+proof of an operating-system memory ceiling. PNG validation adds bounded zlib
+state/block/row buffers within the existing128MiB preflight reservation.
 Workers check process RSS during work; the supervisor checks root/disk pressure and
 RSS, and rejects before publication if the ceiling is exceeded. It is not an OS
 memory sandbox or hard real-time peak limiter. CPU work for extreme minification

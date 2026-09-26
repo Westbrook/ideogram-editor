@@ -1,0 +1,183 @@
+{
+  "startedAt": "2026-09-26T07:17:30.883943+00:00",
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-3/source",
+  "qualification": false,
+  "gates": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:raster"
+      ],
+      "at": "2026-09-26T07:17:30.884095+00:00",
+      "finishedAt": "2026-09-26T07:17:31.566128+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-00.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "at": "2026-09-26T07:17:31.566589+00:00",
+      "finishedAt": "2026-09-26T07:17:32.951551+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-01.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "at": "2026-09-26T07:17:32.951888+00:00",
+      "finishedAt": "2026-09-26T07:17:36.239429+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-02.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:vendor"
+      ],
+      "at": "2026-09-26T07:17:36.239782+00:00",
+      "finishedAt": "2026-09-26T07:17:36.482021+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-03.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:vendor"
+      ],
+      "at": "2026-09-26T07:17:36.482345+00:00",
+      "finishedAt": "2026-09-26T07:17:36.849937+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-04.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:raster"
+      ],
+      "at": "2026-09-26T07:17:36.850323+00:00",
+      "finishedAt": "2026-09-26T07:18:39.051329+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-05.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:assets"
+      ],
+      "at": "2026-09-26T07:18:39.051785+00:00",
+      "finishedAt": "2026-09-26T07:19:04.850314+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-06.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:protocol"
+      ],
+      "at": "2026-09-26T07:19:04.850914+00:00",
+      "finishedAt": "2026-09-26T07:19:25.711373+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-07.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:session"
+      ],
+      "at": "2026-09-26T07:19:25.711860+00:00",
+      "finishedAt": "2026-09-26T07:19:30.198424+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-08.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:store"
+      ],
+      "at": "2026-09-26T07:19:30.198848+00:00",
+      "finishedAt": "2026-09-26T07:19:45.662034+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-09.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:recovery"
+      ],
+      "at": "2026-09-26T07:19:45.662414+00:00",
+      "finishedAt": "2026-09-26T07:20:02.884156+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-10.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:shell"
+      ],
+      "at": "2026-09-26T07:20:02.884560+00:00",
+      "finishedAt": "2026-09-26T07:20:09.233351+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-11.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:raster:browser"
+      ],
+      "at": "2026-09-26T07:20:09.233725+00:00",
+      "finishedAt": "2026-09-26T07:20:10.794460+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-12.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:assets:volume"
+      ],
+      "at": "2026-09-26T07:20:10.794831+00:00",
+      "finishedAt": "2026-09-26T07:20:14.547167+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-13.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:store:volume"
+      ],
+      "at": "2026-09-26T07:20:14.547613+00:00",
+      "finishedAt": "2026-09-26T07:20:17.904879+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-png-correction/logs/final-3-14.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:consumer"
+      ],
+      "at": "2026-09-26T07:20:17.905355+00:00",
+      "finishedAt": "2026-09-26T07:20:18.085461+00:00",
+      "exitCode": 1,
+      "log": "evidence/p1b4-png-correction/logs/final-3-15.txt"
+    }
+  ]
+}

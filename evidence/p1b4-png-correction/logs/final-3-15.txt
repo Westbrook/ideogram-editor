@@ -1,0 +1,35 @@
+npm notice run ideogram-editor@0.1.0 test:consumer
+npm notice run node tooling/test-consumer.mjs
+pinned-npm-cli --version: 1 (0.02s)
+Consumer receipt: /Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-3/source/artifacts/consumer-L0zcTt/consumer-receipt.json
+Isolated consumer retained: /var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-consumer-4Ln22v
+file:///Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-3/source/tooling/test-consumer.mjs:32
+  if (result.status !== 0) throw new Error(`${entry.args.join(' ')} failed\n${result.stdout}\n${result.stderr}`);
+                                 ^
+
+Error: pinned-npm-cli --version failed
+
+node:internal/modules/cjs/loader:1595
+  throw err;
+  ^
+
+Error: Cannot find module '/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-3/source/.toolchain/npm-12.1.0/package/bin/npm-cli.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1591:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1145:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1169:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1196:12)
+    at Module._load (node:internal/modules/cjs/loader:1368:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v26.10.0
+
+    at run (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-3/source/tooling/test-consumer.mjs:32:34)
+    at npm (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-3/source/tooling/test-consumer.mjs:35:26)
+    at file:///Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-final-3/source/tooling/test-consumer.mjs:42:7
+
+Node.js v26.10.0

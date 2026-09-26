@@ -1,0 +1,18 @@
+✖ queued approval authorities are bounded and released when a retry rejects an expired review (7497.730875ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7558.852792
+
+✖ failing tests:
+
+test at tests/raster/approval-integrity.test.mjs:53:1
+✖ queued approval authorities are bounded and released when a retry rejects an expired review (7497.730875ms)
+  TypeError [Error]: Cannot read properties of null (reading 'receipt')
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/approval-integrity.test.mjs:67:194)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)

@@ -1,0 +1,2164 @@
+▶ sealed independent PNG container/profile/stream fixtures
+  ✔ valid-srgb-0.png (1.2315ms)
+  ✔ valid-srgb-1.png (0.431625ms)
+  ✔ valid-srgb-2.png (0.261ms)
+  ✔ valid-srgb-3.png (0.22675ms)
+  ✖ srgb-empty.png (1.028666ms)
+  ✖ srgb-0000.png (0.395625ms)
+  ✖ srgb-04.png (0.254ms)
+  ✖ srgb-ff.png (0.226916ms)
+  ✔ srgb-duplicate.png (0.3155ms)
+  ✖ srgb-late.png (0.348917ms)
+  ✖ trns-rgba.png (0.289959ms)
+  ✖ trns-gray-alpha.png (0.224583ms)
+  ✖ trns-rgb-short.png (0.202375ms)
+  ✖ trns-late.png (0.197875ms)
+  ✖ ihdr-depth-color.png (0.246042ms)
+  ✖ unknown-critical.png (0.222042ms)
+  ✖ reserved-name-bit.png (0.191084ms)
+  ✖ idat-duplicate-stream.png (0.20575ms)
+  ✖ idat-tail.png (0.285125ms)
+  ✖ idat-extra-row.png (0.3065ms)
+  ✖ idat-short-row.png (0.199542ms)
+  ✖ idat-filter.png (0.206042ms)
+  ✖ idat-truncated-zlib.png (0.201917ms)
+  ✔ idat-noncontiguous.png (0.427291ms)
+  ✔ valid-split-idat.png (0.233166ms)
+  ✔ gAMA-late.png (0.155125ms)
+  ✔ cHRM-late.png (0.703042ms)
+  ✖ sBIT-late.png (0.180792ms)
+  ✖ pHYs-late.png (0.187917ms)
+  ✖ bKGD-late.png (0.164792ms)
+  ✖ eXIf-late.png (0.159667ms)
+  ✖ hIST-late.png (0.174875ms)
+  ✖ sPLT-late.png (0.284792ms)
+  ✔ gAMA-invalid.png (0.223792ms)
+  ✔ cHRM-invalid.png (0.159542ms)
+  ✖ sBIT-invalid.png (0.132458ms)
+  ✖ pHYs-invalid.png (0.165875ms)
+  ✖ bKGD-invalid.png (0.2145ms)
+  ✖ tIME-invalid.png (0.206417ms)
+  ✖ eXIf-invalid.png (0.169833ms)
+  ✖ hIST-invalid.png (0.165042ms)
+  ✖ sPLT-invalid.png (0.154084ms)
+  ✖ zTXt-extra-stream.png (0.400208ms)
+  ✖ zTXt-keyword.png (0.175459ms)
+  ✖ iCCP-extra-stream.png (0.177833ms)
+  ✖ iCCP-keyword.png (0.165875ms)
+  ✖ itxt-extra-stream.png (0.217833ms)
+  ✖ itxt-invalid-utf8.png (0.230209ms)
+  ✖ text-invalid-keyword.png (0.189417ms)
+  ✖ text-null.png (0.168291ms)
+  ✔ valid-text.png (0.259916ms)
+  ✖ plte-empty.png (0.151ms)
+  ✖ plte-short.png (0.621417ms)
+  ✖ plte-too-many.png (0.14975ms)
+  ✖ plte-gray.png (0.142333ms)
+  ✖ plte-missing.png (0.144791ms)
+  ✖ plte-after-trns.png (0.140416ms)
+  ✖ srgb-after-plte.png (0.142209ms)
+  ✖ trns-palette-long.png (0.171625ms)
+  ✖ palette-index.png (0.129125ms)
+  ✔ valid-0-1.png (0.119833ms)
+  ✔ valid-3-1.png (0.087375ms)
+  ✔ valid-0-2.png (0.111458ms)
+  ✔ valid-3-2.png (0.1025ms)
+  ✔ valid-0-4.png (0.082333ms)
+  ✔ valid-3-4.png (0.082542ms)
+  ✔ valid-0-8.png (0.080166ms)
+  ✔ valid-3-8.png (0.094917ms)
+  ✔ valid-rgb-trns.png (0.084917ms)
+  ✔ valid-gray-alpha.png (0.098334ms)
+  ✔ valid-adam7-1-False.png (0.07975ms)
+  ✔ valid-adam7-1-True.png (0.087959ms)
+  ✔ valid-adam7-9-False.png (0.083792ms)
+  ✔ valid-adam7-9-True.png (0.081792ms)
+  ✖ reviewer-srgb-bad-size.png (0.154458ms)
+  ✖ reviewer-srgb-bad-intent.png (0.137375ms)
+  ✖ reviewer-trns-rgba.png (0.138792ms)
+  ✖ reviewer-duplicate-idat-stream.png (0.13ms)
+  ✖ reviewer-idat-trailing-data.png (0.1305ms)
+  ✖ reviewer-icc-after-idat.png (0.218375ms)
+  ✖ reviewer-valid-unknown-icc-before.png (0.178708ms)
+  ✖ reviewer-valid-unknown-icc-after.png (0.197083ms)
+  ✖ reviewer-exif-after-idat.png (0.663625ms)
+  ✖ reviewer-orientation-6-after.png (0.21ms)
+  ✖ reviewer-unknown-critical.png (0.16025ms)
+✖ sealed independent PNG container/profile/stream fixtures (21.604959ms)
+▶ public PNG rejection retains original, exact durable receipt and no usable raster through restart
+  ✖ srgb-empty.png (165.57125ms)
+  ✖ srgb-0000.png (143.309ms)
+  ✖ srgb-04.png (149.309625ms)
+  ✖ srgb-ff.png (156.675167ms)
+  ✔ srgb-duplicate.png (129.517625ms)
+  ✖ srgb-late.png (157.441ms)
+  ✖ trns-rgba.png (127.488417ms)
+  ✖ trns-gray-alpha.png (139.244084ms)
+  ✖ trns-rgb-short.png (151.3145ms)
+  ✖ trns-late.png (158.287208ms)
+  ✔ ihdr-depth-color.png (127.800041ms)
+  ✔ unknown-critical.png (119.308042ms)
+  ✔ reserved-name-bit.png (118.62575ms)
+  ✖ idat-duplicate-stream.png (157.507292ms)
+  ✖ idat-tail.png (145.581208ms)
+  ✖ idat-extra-row.png (149.456541ms)
+  ✔ idat-short-row.png (115.065ms)
+  ✔ idat-filter.png (129.030875ms)
+  ✔ idat-truncated-zlib.png (161.418083ms)
+  ✔ idat-noncontiguous.png (121.862167ms)
+  ✔ gAMA-late.png (135.024791ms)
+  ✔ cHRM-late.png (147.208875ms)
+  ✖ sBIT-late.png (168.829333ms)
+  ✖ pHYs-late.png (212.198667ms)
+  ✖ bKGD-late.png (177.520292ms)
+  ✖ eXIf-late.png (171.179541ms)
+  ✖ hIST-late.png (126.898334ms)
+  ✖ sPLT-late.png (179.866208ms)
+  ✔ gAMA-invalid.png (96.505875ms)
+  ✔ cHRM-invalid.png (136.405542ms)
+  ✖ sBIT-invalid.png (164.895292ms)
+  ✖ pHYs-invalid.png (128.446334ms)
+  ✖ bKGD-invalid.png (170.206917ms)
+  ✖ tIME-invalid.png (126.864792ms)
+  ✖ eXIf-invalid.png (182.089166ms)
+  ✖ hIST-invalid.png (215.756333ms)
+  ✖ sPLT-invalid.png (187.308042ms)
+  ✖ zTXt-extra-stream.png (144.64875ms)
+  ✖ zTXt-keyword.png (185.1385ms)
+  ✖ iCCP-extra-stream.png (191.639917ms)
+  ✖ iCCP-keyword.png (140.09325ms)
+  ✖ itxt-extra-stream.png (122.863917ms)
+  ✖ itxt-invalid-utf8.png (126.934667ms)
+  ✖ text-invalid-keyword.png (113.548042ms)
+  ✖ text-null.png (123.618875ms)
+  ✔ plte-empty.png (109.787542ms)
+  ✔ plte-short.png (99.277792ms)
+  ✔ plte-too-many.png (100.617666ms)
+  ✖ plte-gray.png (143.363417ms)
+  ✔ plte-missing.png (111.322208ms)
+  ✖ plte-after-trns.png (140.820542ms)
+  ✖ srgb-after-plte.png (122.959833ms)
+  ✖ trns-palette-long.png (122.173708ms)
+  ✖ palette-index.png (118.658708ms)
+  ✖ reviewer-srgb-bad-size.png (137.832917ms)
+  ✖ reviewer-srgb-bad-intent.png (136.051667ms)
+  ✖ reviewer-trns-rgba.png (120.687917ms)
+  ✖ reviewer-duplicate-idat-stream.png (109.342916ms)
+  ✖ reviewer-idat-trailing-data.png (112.496834ms)
+  ✖ reviewer-icc-after-idat.png (120.278375ms)
+  ✔ reviewer-valid-unknown-icc-before.png (102.753875ms)
+  ✖ reviewer-valid-unknown-icc-after.png (122.162917ms)
+  ✖ reviewer-exif-after-idat.png (114.747292ms)
+  ✖ reviewer-orientation-6-after.png (134.654542ms)
+  ✔ reviewer-unknown-critical.png (107.875625ms)
+✖ public PNG rejection retains original, exact durable receipt and no usable raster through restart (9884.401542ms)
+▶ valid PNG depths, palette transparency, split streams, metadata and Adam7 retain independent pixels
+  ✔ valid-srgb-0.png (156.088542ms)
+  ✔ valid-srgb-1.png (139.164792ms)
+  ✔ valid-srgb-2.png (125.16775ms)
+  ✔ valid-srgb-3.png (120.934917ms)
+  ✔ valid-split-idat.png (127.55475ms)
+  ✔ valid-text.png (117.961833ms)
+  ✔ valid-0-1.png (144.571209ms)
+  ✔ valid-3-1.png (144.849792ms)
+  ✔ valid-0-2.png (131.247958ms)
+  ✔ valid-3-2.png (134.696042ms)
+  ✔ valid-0-4.png (126.8875ms)
+  ✔ valid-3-4.png (116.269834ms)
+  ✔ valid-0-8.png (121.8055ms)
+  ✔ valid-3-8.png (122.222458ms)
+  ✔ valid-rgb-trns.png (114.963083ms)
+  ✔ valid-gray-alpha.png (140.7ms)
+  ✔ valid-adam7-1-False.png (150.499667ms)
+  ✔ valid-adam7-1-True.png (156.670958ms)
+  ✔ valid-adam7-9-False.png (159.634917ms)
+  ✔ valid-adam7-9-True.png (149.765666ms)
+✔ valid PNG depths, palette transparency, split streams, metadata and Adam7 retain independent pixels (3132.04325ms)
+ℹ tests 173
+ℹ suites 0
+ℹ pass 65
+ℹ fail 108
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13128.122917
+
+✖ failing tests:
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ srgb-empty.png (1.028666ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ srgb-0000.png (0.395625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ srgb-04.png (0.254ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ srgb-ff.png (0.226916ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ srgb-late.png (0.348917ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ trns-rgba.png (0.289959ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ trns-gray-alpha.png (0.224583ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ trns-rgb-short.png (0.202375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ trns-late.png (0.197875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ ihdr-depth-color.png (0.246042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ unknown-critical.png (0.222042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reserved-name-bit.png (0.191084ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ idat-duplicate-stream.png (0.20575ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ idat-tail.png (0.285125ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ idat-extra-row.png (0.3065ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ idat-short-row.png (0.199542ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ idat-filter.png (0.206042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ idat-truncated-zlib.png (0.201917ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ sBIT-late.png (0.180792ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ pHYs-late.png (0.187917ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ bKGD-late.png (0.164792ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ eXIf-late.png (0.159667ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ hIST-late.png (0.174875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ sPLT-late.png (0.284792ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ sBIT-invalid.png (0.132458ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ pHYs-invalid.png (0.165875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ bKGD-invalid.png (0.2145ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ tIME-invalid.png (0.206417ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ eXIf-invalid.png (0.169833ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ hIST-invalid.png (0.165042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ sPLT-invalid.png (0.154084ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ zTXt-extra-stream.png (0.400208ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ zTXt-keyword.png (0.175459ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ iCCP-extra-stream.png (0.177833ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ iCCP-keyword.png (0.165875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ itxt-extra-stream.png (0.217833ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ itxt-invalid-utf8.png (0.230209ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ text-invalid-keyword.png (0.189417ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ text-null.png (0.168291ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ plte-empty.png (0.151ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ plte-short.png (0.621417ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ plte-too-many.png (0.14975ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ plte-gray.png (0.142333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ plte-missing.png (0.144791ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ plte-after-trns.png (0.140416ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ srgb-after-plte.png (0.142209ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ trns-palette-long.png (0.171625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ palette-index.png (0.129125ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-srgb-bad-size.png (0.154458ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-srgb-bad-intent.png (0.137375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-trns-rgba.png (0.138792ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-duplicate-idat-stream.png (0.13ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-idat-trailing-data.png (0.1305ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-icc-after-idat.png (0.218375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-valid-unknown-icc-before.png (0.178708ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-valid-unknown-icc-after.png (0.197083ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-exif-after-idat.png (0.663625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-orientation-6-after.png (0.21ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:16:37
+✖ reviewer-unknown-critical.png (0.16025ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:20:8)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:16:29)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /RASTER_/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ srgb-empty.png (165.57125ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"4931de36-4103-48e3-83ae-775ffec0768a","documentRevision":null,"fromSeq":"2","status":"accepted","toSeq":"2","transactionId":"56b0ff94-e0a0-4745-bd88-b234f6bf792c"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ srgb-0000.png (143.309ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"513ee718-2291-4246-8efa-e11cb1745613","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"46000f83-fb9a-4411-9815-682078e2a05d"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ srgb-04.png (149.309625ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"27776295-e19d-49ea-91c3-3170421f4076","documentRevision":null,"fromSeq":"6","status":"accepted","toSeq":"6","transactionId":"86f29c06-3617-4433-9d38-856180b208c4"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ srgb-ff.png (156.675167ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"ed8ac2e5-4658-4444-b54f-84b2115c75ee","documentRevision":null,"fromSeq":"8","status":"accepted","toSeq":"8","transactionId":"ba7344ca-c2b5-4391-bd6e-50606ac23054"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ srgb-late.png (157.441ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"1f5630e4-881a-4a69-b8e4-0e635973a872","documentRevision":null,"fromSeq":"11","status":"accepted","toSeq":"11","transactionId":"1c0c4c7e-707f-4ce7-a282-955eede591e8"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ trns-rgba.png (127.488417ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"b214e91c-906e-42ab-86a0-a9e3f5753880","documentRevision":null,"fromSeq":"13","status":"accepted","toSeq":"13","transactionId":"6f4190df-b61e-48e9-a9b2-c25864326911"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ trns-gray-alpha.png (139.244084ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"12e2914a-9b90-4a12-a9f6-c6a68e39d965","documentRevision":null,"fromSeq":"15","status":"accepted","toSeq":"15","transactionId":"d1777973-880b-40ec-b28d-3d0307e29a12"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ trns-rgb-short.png (151.3145ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"1c5eacfb-46f5-4377-9117-0a69b4bbadf9","documentRevision":null,"fromSeq":"17","status":"accepted","toSeq":"17","transactionId":"bc2353d1-77ee-4b91-9b15-dff7920a9695"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ trns-late.png (158.287208ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"acd281cb-fd80-4688-a342-0651971f1a6d","documentRevision":null,"fromSeq":"19","status":"accepted","toSeq":"19","transactionId":"6da5c4ad-8f18-4dc3-b9a3-e91c3754b04b"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ idat-duplicate-stream.png (157.507292ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"7bef3d5b-6e3b-4b72-929f-7e3b535333e4","documentRevision":null,"fromSeq":"24","status":"accepted","toSeq":"24","transactionId":"b1ac8388-af52-41fc-b11e-3cd429c941fd"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ idat-tail.png (145.581208ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"71742fbc-e562-448a-b3b7-2ab200ebc432","documentRevision":null,"fromSeq":"26","status":"accepted","toSeq":"26","transactionId":"07170ce3-cd20-4558-9973-14b340f97a9b"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ idat-extra-row.png (149.456541ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"d99a2f2d-1ff5-43a5-99df-cdc4092015e6","documentRevision":null,"fromSeq":"28","status":"accepted","toSeq":"28","transactionId":"a63b50d8-15b5-4677-b8c0-ad1d117178fd"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ sBIT-late.png (168.829333ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"50871461-dd11-4508-8249-bb534fdaefd1","documentRevision":null,"fromSeq":"36","status":"accepted","toSeq":"36","transactionId":"83e9801c-94f2-4216-98d7-e1ef460bd87a"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ pHYs-late.png (212.198667ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"c7d7ef46-038f-4b6e-9805-88d18c84d16c","documentRevision":null,"fromSeq":"38","status":"accepted","toSeq":"38","transactionId":"74d84e9f-7ff5-4c0e-9ad1-891d041eae21"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ bKGD-late.png (177.520292ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"c42e35dc-428d-4e28-8d19-de4f8a94d53a","documentRevision":null,"fromSeq":"40","status":"accepted","toSeq":"40","transactionId":"5baa1cfb-5843-4abd-942c-4ddba95f58a3"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ eXIf-late.png (171.179541ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"2b938a87-bfab-45c2-9b2f-5e1f93c18919","documentRevision":null,"fromSeq":"42","status":"accepted","toSeq":"42","transactionId":"f05d38e8-62e9-4444-8210-648be7e0f3fc"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ hIST-late.png (126.898334ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"2ff23cd6-1138-454e-8e71-31e65cb47134","documentRevision":null,"fromSeq":"44","status":"accepted","toSeq":"44","transactionId":"7a3cde0a-511d-4849-9602-1968a5b69aca"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ sPLT-late.png (179.866208ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"ee85fa53-ee76-428d-ac1b-a7efa3e0f384","documentRevision":null,"fromSeq":"46","status":"accepted","toSeq":"46","transactionId":"480c1108-6596-4681-b499-e3549ff8cae5"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ sBIT-invalid.png (164.895292ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"091b1a34-6c67-4aa3-9ae8-ec7ef3e2ee12","documentRevision":null,"fromSeq":"50","status":"accepted","toSeq":"50","transactionId":"52b9bf84-44ce-41c1-9803-5bcb62137b9e"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ pHYs-invalid.png (128.446334ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"25761228-c51c-4672-90a8-10e33a8165e0","documentRevision":null,"fromSeq":"52","status":"accepted","toSeq":"52","transactionId":"e2ecb76e-ab42-4eb4-ae1c-729c683ca229"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ bKGD-invalid.png (170.206917ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"85752c72-b1d9-4162-9b46-dedcde276471","documentRevision":null,"fromSeq":"54","status":"accepted","toSeq":"54","transactionId":"ec97ca4f-8d14-430b-988e-54ac94ff6491"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ tIME-invalid.png (126.864792ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"8de03a50-550b-4291-8f74-3800d28e654a","documentRevision":null,"fromSeq":"56","status":"accepted","toSeq":"56","transactionId":"134ba264-0cd7-44ac-bac9-9378515e03cc"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ eXIf-invalid.png (182.089166ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"cd047c55-40cb-4eef-9a2a-81cbda96eb44","documentRevision":null,"fromSeq":"58","status":"accepted","toSeq":"58","transactionId":"7578c907-1913-4b72-a972-5ba289805a82"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ hIST-invalid.png (215.756333ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"ad96ef52-f52a-435e-8f81-3ace61c24616","documentRevision":null,"fromSeq":"60","status":"accepted","toSeq":"60","transactionId":"2a788ada-dca5-487f-8cbe-6006afa385c3"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ sPLT-invalid.png (187.308042ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"5c5aea94-b6b4-4ff9-b593-1b87f56f6db1","documentRevision":null,"fromSeq":"62","status":"accepted","toSeq":"62","transactionId":"6a3a2d12-e78c-424b-a7b2-4ec7ab955c4c"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ zTXt-extra-stream.png (144.64875ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"0e9789e2-2787-4cca-993b-407fa6668676","documentRevision":null,"fromSeq":"64","status":"accepted","toSeq":"64","transactionId":"85c25174-c839-4e17-9c0e-c7c5f5127c0a"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ zTXt-keyword.png (185.1385ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"f90efa10-af6e-4e39-863a-61e691d858dc","documentRevision":null,"fromSeq":"66","status":"accepted","toSeq":"66","transactionId":"2a68b73f-6dda-4846-99fb-f5030e659fb5"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ iCCP-extra-stream.png (191.639917ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"66a83db5-a4a9-4da8-8fc2-df7177d9d5b1","documentRevision":null,"fromSeq":"68","status":"accepted","toSeq":"68","transactionId":"16822549-bf57-4eb1-b3df-1733aa139add"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ iCCP-keyword.png (140.09325ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"a9281aec-b7f8-4c21-9abd-af3aca254e36","documentRevision":null,"fromSeq":"70","status":"accepted","toSeq":"70","transactionId":"5bc1092d-b7e5-49c9-8fa7-8c4a5bb5d1bc"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ itxt-extra-stream.png (122.863917ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"d001dc1b-452e-40f6-8596-ee36f5b5f1dd","documentRevision":null,"fromSeq":"72","status":"accepted","toSeq":"72","transactionId":"99453558-9496-4dda-bfa2-98359abf0d9c"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ itxt-invalid-utf8.png (126.934667ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"128409a7-2350-488f-9c53-a99938b2e61f","documentRevision":null,"fromSeq":"74","status":"accepted","toSeq":"74","transactionId":"93b15a72-31c9-4707-94fc-3aab3ecd4a4e"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ text-invalid-keyword.png (113.548042ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"251809c1-dcf7-4281-aec0-f935658d9048","documentRevision":null,"fromSeq":"76","status":"accepted","toSeq":"76","transactionId":"f89342a3-bdcc-4fc2-a791-67bcedc21546"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ text-null.png (123.618875ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"50f604d0-4d1d-4f09-b5ba-6accc52676e6","documentRevision":null,"fromSeq":"78","status":"accepted","toSeq":"78","transactionId":"5d39bfa2-bcaa-4e55-99cd-a61b12f14935"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ plte-gray.png (143.363417ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"ef35c75b-d78e-44e3-8eeb-7fc052160183","documentRevision":null,"fromSeq":"83","status":"accepted","toSeq":"83","transactionId":"979fb45e-42fc-4018-a660-6fe5e17917df"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ plte-after-trns.png (140.820542ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"03a8b12f-f50f-4db4-b0c1-17c193ae5006","documentRevision":null,"fromSeq":"86","status":"accepted","toSeq":"86","transactionId":"e13f8d03-5417-49d9-8805-2f0754b1535e"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ srgb-after-plte.png (122.959833ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"0a3d2b49-b4d5-4da0-b4f9-68eeab5e6a9e","documentRevision":null,"fromSeq":"88","status":"accepted","toSeq":"88","transactionId":"7772030f-398b-45ca-92f0-26a0dd2583d2"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ trns-palette-long.png (122.173708ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"230128b7-fc29-449f-b0d0-ef9aefaf7760","documentRevision":null,"fromSeq":"90","status":"accepted","toSeq":"90","transactionId":"fb702d26-71e8-421d-9426-7b9105b97c82"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ palette-index.png (118.658708ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"b70a3e6a-e9ad-4d60-8cea-298431c19d3b","documentRevision":null,"fromSeq":"92","status":"accepted","toSeq":"92","transactionId":"b241f8ce-6cd9-4fc2-92e8-74dbf0353f85"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-srgb-bad-size.png (137.832917ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"fee3bf5e-9090-448c-aa03-4c1762788d95","documentRevision":null,"fromSeq":"94","status":"accepted","toSeq":"94","transactionId":"64b09de6-9deb-436b-812c-2cf82e90cf2c"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-srgb-bad-intent.png (136.051667ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"dc611ccf-dc20-4072-bff1-c7f3d228945b","documentRevision":null,"fromSeq":"96","status":"accepted","toSeq":"96","transactionId":"c3738262-0b6a-44a2-95bc-5b9e8572c32d"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-trns-rgba.png (120.687917ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"ed97c8bb-f232-4dc8-960d-4388016556f2","documentRevision":null,"fromSeq":"98","status":"accepted","toSeq":"98","transactionId":"7edf0647-9a9f-4f75-b5e4-7c7ebe2f6d12"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-duplicate-idat-stream.png (109.342916ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"741e1fba-2692-447d-82e0-007211fc0e37","documentRevision":null,"fromSeq":"100","status":"accepted","toSeq":"100","transactionId":"d6cad14f-8998-46fa-946b-10c0d373c8fd"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-idat-trailing-data.png (112.496834ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"275898c7-402c-4ddc-a07a-29d6f2e9f669","documentRevision":null,"fromSeq":"102","status":"accepted","toSeq":"102","transactionId":"0ee23759-98da-435b-97cb-de86d93e9132"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-icc-after-idat.png (120.278375ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"f4ed9443-6da2-47dd-a459-faa3d8b68525","documentRevision":null,"fromSeq":"104","status":"accepted","toSeq":"104","transactionId":"c83c645b-44f1-4570-9a97-6e4ff62507ef"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-valid-unknown-icc-after.png (122.162917ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"ef24ff5e-48d4-414c-aed0-324d46181f6d","documentRevision":null,"fromSeq":"107","status":"accepted","toSeq":"107","transactionId":"0bf42a38-1122-42a6-9270-e16432f42ca1"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-exif-after-idat.png (114.747292ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"64559b75-bd06-4121-b2ca-efe6df98c4f1","documentRevision":null,"fromSeq":"109","status":"accepted","toSeq":"109","transactionId":"8097be23-3d8b-48f3-af82-97c84d3da97f"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/png-validation.test.mjs:25:57
+✖ reviewer-orientation-6-after.png (134.654542ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"452215e1-e76e-4023-9909-f020dd0871f8","documentRevision":null,"fromSeq":"111","status":"accepted","toSeq":"111","transactionId":"e8edcb71-c5a6-4f93-ac86-93e382866302"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:27:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/png-validation.test.mjs:25:49)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

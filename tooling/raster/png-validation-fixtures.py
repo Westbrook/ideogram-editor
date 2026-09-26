@@ -1,0 +1,122 @@
+"""Independent literal PNG regression inputs; no application code or decoder outputs.
+
+Run with Python 3 standard library. Generated fixtures are project-owned test data.
+Reviewer reproductions in reviewer-* are copied unchanged separately and not generated.
+"""
+import hashlib
+import json
+import pathlib
+import struct
+import zlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+OUT = ROOT / 'tests/raster/png-validation'
+OUT.mkdir(exist_ok=True)
+SIG = b'\x89PNG\r\n\x1a\n'
+def chunk(name, data=b''):
+    kind = name.encode('ascii')
+    return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+def header(w=1, h=1, depth=8, color=6, interlace=0):
+    return chunk('IHDR', struct.pack('>IIBBBBB', w, h, depth, color, 0, 0, interlace))
+IEND = chunk('IEND')
+RAW = b'\0\x11\x63\xe7\0'
+IDAT = chunk('IDAT', zlib.compress(RAW))
+fixtures = []
+def save(name, data, reason, rgba=None, width=1, height=1):
+    (OUT / name).write_bytes(data)
+    fixtures.append(dict(name=name, bytes=len(data), sha256=hashlib.sha256(data).hexdigest(),
+                         reason=reason, valid=rgba is not None, expectedRGBA=rgba,
+                         width=width, height=height, provenance='literal Python standard-library generator'))
+def bad(name, middle, reason, hdr=None, data=IDAT, after=b''):
+    save(name+'.png', SIG+(hdr or header())+middle+data+after+IEND, reason)
+
+for intent in range(4):
+    save(f'valid-srgb-{intent}.png', SIG+header()+chunk('sRGB', bytes([intent]))+IDAT+IEND,
+         'valid rendering intent and hidden RGB', [17, 99, 231, 0])
+for payload in [b'', b'\0\0', b'\4', b'\xff']:
+    bad('srgb-'+(payload.hex() or 'empty'), chunk('sRGB', payload), 'invalid sRGB payload')
+bad('srgb-duplicate', chunk('sRGB', b'\0')*2, 'duplicate singleton')
+bad('srgb-late', b'', 'color metadata after image', after=chunk('sRGB', b'\0'))
+bad('trns-rgba', chunk('tRNS', b'\0'), 'tRNS forbidden with alpha')
+bad('trns-gray-alpha', chunk('tRNS', b'\0\0'), 'tRNS forbidden with alpha', header(color=4))
+bad('trns-rgb-short', chunk('tRNS', b'\0\0'), 'wrong truecolor tRNS size', header(color=2))
+bad('trns-late', b'', 'transparency after image', header(color=2), after=chunk('tRNS', b'\0'*6))
+bad('ihdr-depth-color', b'', 'invalid low-depth truecolor', header(depth=4))
+bad('unknown-critical', chunk('ABCD', b'foo'), 'unknown critical chunk')
+bad('reserved-name-bit', chunk('abca'), 'reserved chunk name bit')
+save('idat-duplicate-stream.png', SIG+header()+IDAT*2+IEND, 'PNG3 11.2.3 permits trailing unused compressed bytes', [17,99,231,0])
+save('idat-tail.png', SIG+header()+chunk('IDAT',zlib.compress(RAW)+b'\0')+IEND, 'PNG3 11.2.3 permits trailing unused compressed bytes', [17,99,231,0])
+bad('idat-extra-row', b'', 'extra decompressed row', data=chunk('IDAT', zlib.compress(RAW*2)))
+bad('idat-short-row', b'', 'short decompressed row', data=chunk('IDAT', zlib.compress(RAW[:-1])))
+bad('idat-filter', b'', 'unknown filter', data=chunk('IDAT', zlib.compress(b'\5'+RAW[1:])))
+bad('idat-truncated-zlib', b'', 'missing Adler32', data=chunk('IDAT', zlib.compress(RAW)[:-2]))
+bad('idat-noncontiguous', b'', 'interrupted image chunks', data=IDAT+chunk('tEXt', b'Note\0x')+chunk('IDAT'))
+compressed = zlib.compress(RAW)
+save('valid-split-idat.png', SIG+header()+chunk('IDAT')+b''.join(chunk('IDAT', bytes([b])) for b in compressed)+chunk('IDAT')+IEND,
+     'one stream split across arbitrary and empty IDAT chunks', [17,99,231,0])
+for kind in ['gAMA','cHRM','sBIT','pHYs','bKGD','eXIf','hIST','sPLT']:
+    bad(kind+'-late', b'', 'late ancillary metadata', after=chunk(kind, b'\0'*8))
+for kind in ['gAMA','cHRM','sBIT','pHYs','bKGD','tIME','eXIf','hIST','sPLT']:
+    bad(kind+'-invalid', chunk(kind, b'\0'), 'invalid ancillary payload')
+for kind in ['zTXt','iCCP']:
+    bad(kind+'-extra-stream', chunk(kind, b'Name\0\0'+zlib.compress(b'value')*2), 'metadata stream must be completely consumed')
+    bad(kind+'-keyword', chunk(kind, b' bad  name \0\0'+zlib.compress(b'value')), 'invalid keyword')
+bad('itxt-extra-stream', chunk('iTXt', b'Name\0\1\0en\0Name\0'+zlib.compress(b'value')*2), 'extra international text stream')
+bad('itxt-invalid-utf8', chunk('iTXt', b'Name\0\0\0\0\0\xff'), 'invalid UTF8 text')
+bad('text-invalid-keyword', chunk('tEXt', b'\0text'), 'empty keyword')
+bad('text-null', chunk('tEXt', b'Name\0a\0b'), 'null in text')
+text = chunk('tEXt', b'Name\0plain')+chunk('zTXt', b'Name\0\0'+zlib.compress(b'plain'))+chunk('iTXt', b'Name\0\1\0en\0Name\0'+zlib.compress(b'plain'))
+save('valid-text.png', SIG+header()+text+IDAT+chunk('tIME', struct.pack('>HBBBBB',2026,9,26,7,0,0))+chunk('vpAg',b'private')+IEND,
+     'bounded text, compressed text, timestamp and private ancillary chunk', [17,99,231,0])
+
+palette = chunk('PLTE', bytes([17,99,231,255,0,0]))
+for name, plte in [('plte-empty',b''),('plte-short',b'\0'),('plte-too-many',b'\0'*771)]:
+    bad(name,chunk('PLTE',plte),'invalid palette size',header(color=3))
+bad('plte-gray',palette,'palette forbidden for gray',header(color=0))
+bad('plte-missing',b'','palette required for indexed image',header(color=3))
+bad('plte-after-trns',chunk('tRNS',b'\0')+palette,'palette must precede transparency',header(color=3))
+bad('srgb-after-plte',palette+chunk('sRGB',b'\0'),'profile before palette',header(color=3))
+bad('trns-palette-long',palette+chunk('tRNS',b'\0'*3),'alpha table exceeds palette',header(color=3))
+bad('palette-index',palette,'out-of-range palette index',header(color=3),chunk('IDAT',zlib.compress(b'\0\2')))
+
+for depth in [1,2,4,8]:
+    for color in [0,3]:
+        # Two pixels (zero and maximum for grayscale, indices 0/1 for palette).
+        samples=[0, (1<<depth)-1 if color==0 else 1]
+        packed=bytes(samples) if depth==8 else bytes([samples[0]<<(8-depth) | samples[1]<<(8-depth*2)])
+        middle=chunk('tRNS',b'\0\0') if color==0 else palette+chunk('tRNS',b'\0\x80')
+        expected=[0,0,0,0,255,255,255,255] if color==0 else [17,99,231,0,255,0,0,128]
+        save(f'valid-{color}-{depth}.png', SIG+header(2,1,depth,color)+middle+chunk('IDAT',zlib.compress(b'\0'+packed))+IEND,
+             'legal packed samples and transparency',expected,2,1)
+save('valid-rgb-trns.png',SIG+header(color=2)+chunk('tRNS',struct.pack('>HHH',17,99,231))+chunk('IDAT',zlib.compress(RAW[:-1]))+IEND,
+     'truecolor transparent sample',[17,99,231,0])
+save('valid-gray-alpha.png',SIG+header(color=4)+chunk('IDAT',zlib.compress(b'\0\x63\x80'))+IEND,
+     'gray and alpha',[99,99,99,128])
+
+# Adam7 with literal color coordinates and standard filter equations. Expected
+# pixels come from this coordinate formula, never from a decoder or the app.
+passes=[(0,0,8,8),(4,0,8,8),(0,4,4,8),(2,0,4,4),(0,2,2,4),(1,0,2,2),(0,1,1,2)]
+def paeth(a,b,c):
+    p=a+b-c; ds=[abs(p-a),abs(p-b),abs(p-c)];return [a,b,c][ds.index(min(ds))]
+for size in [1,9]:
+    for indexed in [False,True]:
+        stream=bytearray(); pixel=lambda x,y: [x*17,y*19,(x+y)*11,0 if x==y else 255]
+        for x0,y0,dx,dy in passes:
+            prev=[]
+            for row,y in enumerate(range(y0,size,dy)):
+                xs=list(range(x0,size,dx))
+                if not xs:continue
+                values=[(x+y)%2 for x in xs] if indexed else [v for x in xs for v in pixel(x,y)]
+                f=row%5; bpp=1 if indexed else 4; encoded=[]
+                for i,v in enumerate(values):
+                    a=values[i-bpp] if i>=bpp else 0;b=prev[i] if prev else 0;c=prev[i-bpp] if prev and i>=bpp else 0
+                    encoded.append((v-[0,a,b,(a+b)//2,paeth(a,b,c)][f])%256)
+                stream.extend([f]+encoded);prev=values
+        expected=[v for y in range(size) for x in range(size) for v in ([17,99,231,255] if (x+y)%2==0 else [255,0,0,255])] if indexed else [v for y in range(size) for x in range(size) for v in pixel(x,y)]
+        data=SIG+header(size,size,8,3 if indexed else 6,1)+(palette if indexed else b'')+chunk('IDAT',zlib.compress(stream))+IEND
+        save(f'valid-adam7-{size}-{indexed}.png',data,'Adam7 pass geometry and filters',expected,size,size)
+
+manifest={'schemaVersion':1,'license':'Project-owned synthetic test data; no third-party image content',
+          'generator':'tooling/raster/png-validation-fixtures.py','pythonZlib':zlib.ZLIB_RUNTIME_VERSION,'fixtures':fixtures}
+(OUT/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+print(f'Generated {len(fixtures)} independent inputs')

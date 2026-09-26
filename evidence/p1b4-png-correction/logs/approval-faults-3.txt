@@ -1,0 +1,32 @@
+✔ approval rechecks file identity after proofs: missing (508.734084ms)
+✔ approval rechecks file identity after proofs: corrupt (437.841375ms)
+✔ approval rechecks file identity after proofs: same-bytes-replacement (432.776166ms)
+✔ approval rechecks file identity after proofs: symlink (435.298833ms)
+✔ approval rechecks file identity after proofs: hardlink (431.015375ms)
+✔ approval rechecks live session binding after proofs and keeps the original rejected identity (446.791167ms)
+✔ approval rejects missing pixels dependency without a usable canonical asset (659.932792ms)
+✔ approval rejects corrupt pixels dependency without a usable canonical asset (618.528083ms)
+✔ approval rejects substituted pixels dependency without a usable canonical asset (615.367833ms)
+✔ approval rejects missing manifest dependency without a usable canonical asset (595.167667ms)
+✔ approval rejects corrupt manifest dependency without a usable canonical asset (589.742333ms)
+✔ approval rejects substituted manifest dependency without a usable canonical asset (544.85525ms)
+✔ approval rejects missing png dependency without a usable canonical asset (554.499ms)
+✔ approval rejects corrupt png dependency without a usable canonical asset (556.906542ms)
+✔ approval rejects substituted png dependency without a usable canonical asset (603.708833ms)
+✔ approval rejects missing original dependency without a usable canonical asset (612.236ms)
+✔ approval rejects corrupt original dependency without a usable canonical asset (604.595667ms)
+✔ approval rejects substituted original dependency without a usable canonical asset (621.922375ms)
+✔ approval rejects missing exif dependency without a usable canonical asset (597.211916ms)
+✔ approval rejects corrupt exif dependency without a usable canonical asset (605.229125ms)
+✔ approval rejects substituted exif dependency without a usable canonical asset (613.23825ms)
+✔ approval rejects missing icc dependency without a usable canonical asset (607.19475ms)
+✔ approval rejects corrupt icc dependency without a usable canonical asset (643.776708ms)
+✔ approval rejects substituted icc dependency without a usable canonical asset (635.7445ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13879.317625

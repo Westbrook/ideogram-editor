@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-26T07:16:14.361207+00:00",
+  "bundles": [
+    {
+      "root": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4",
+      "entries": 166,
+      "failures": [],
+      "sealSha256": "05f57eb643c9e676e76a294295194ff0f17e537e9874db002a201522a1c06d92"
+    },
+    {
+      "root": "/Users/westbrook/Documents/repos/ideogram-edit-verification/dfa383d-independent",
+      "entries": 117,
+      "failures": [],
+      "sealSha256": "2de3aadfba3a46c597bde87889b267c3929009da0e9eca67f3619c56127c47ae"
+    }
+  ],
+  "originalCommittedSource": {
+    "commit": "dfa383d56d21bc9c7bb40248db8a503fe33e6e46",
+    "entries": 109,
+    "failures": []
+  }
+}

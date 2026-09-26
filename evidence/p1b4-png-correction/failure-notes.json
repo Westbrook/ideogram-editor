@@ -1,0 +1,57 @@
+{
+  "at": "2026-09-26T07:22:12.703221+00:00",
+  "base": "dfa383d56d21bc9c7bb40248db8a503fe33e6e46",
+  "classificationCorrection": {
+    "reason": "PNG3 11.2.3 permits unused compressed IDAT bytes. Trailing/duplicate compressed streams and unknown WebP/JUNK are not required failures.",
+    "preserved": [
+      "logs/fail-before.txt",
+      "baseline-test.txt",
+      "baseline-generator.txt",
+      "baseline-fixtures.json",
+      "baseline-reviewer-fixtures.json"
+    ],
+    "requiredBaseline": [
+      "logs/corrected-fail-before.txt",
+      "corrected-baseline-source.json",
+      "logs/approval-fail-before.txt",
+      "approval-baseline.json"
+    ],
+    "currentCriteria": "Final original reviewer probes/findings-v2.test.mjs and corrected task I-R01/I-R02. No superseded findings.test.mjs acceptance claim."
+  },
+  "attempts": [
+    {
+      "log": "logs/png-after-1.txt",
+      "result": "Public native decode rejected truncated zlib, but container-only test returned before the stream error. Fixed by awaiting both readable and writable completion; no malformed preview was published in that attempt."
+    },
+    {
+      "log": "logs/final-1-02.txt",
+      "result": "Isolated setup used linked node_modules. The existing consumer provenance gate correctly rejected modules outside the isolated source. Replaced with local dependency copy."
+    },
+    {
+      "log": "logs/final-2-05.txt",
+      "result": "240/241 assertions passed; rollback test required git archive but isolated source was a file copy. Replaced with detached clone retaining original history."
+    },
+    {
+      "log": "logs/final-3-15.txt",
+      "result": "All preceding gates passed; fresh consumer could not find its source-relative pinned npm CLI. Exposed the unchanged pinned .toolchain to the isolated source."
+    },
+    {
+      "log": "logs/authority-cleanup.txt",
+      "result": "New queue test incorrectly expected terminal rejection while both IO slots also blocked receipt metadata. Corrected its busy-slot expectation."
+    },
+    {
+      "log": "logs/authority-cleanup-2.txt",
+      "result": "Queue test incorrectly expected a resource-pending diagnostic to retry itself after slot release. Corrected to replay the exact original command, matching the existing explicit-retry contract."
+    },
+    {
+      "log": "logs/authority-cleanup-3.txt",
+      "result": "Corrected queue test passes, including released authority contexts and exact terminal rejection after retry."
+    },
+    {
+      "log": "logs/resource-reopen.txt",
+      "result": "First reopen invocation prepared files relative to the wrong working directory. No product operation ran; copied the inputs with absolute paths and reran the unchanged probe successfully in resource-reopen-2.txt."
+    }
+  ],
+  "sourceAttribution": "Each broad gate attempt has source-<attempt>.json. Initial exploratory test/generator bytes and identities are preserved separately. Earlier attempts are not attributed retrospectively to the final correction source. Two initial TypeScript diagnostics (literal-union includes and unsupported highWaterMark option type) occurred before the first saved build and were corrected; no separate initial compiler log was captured.",
+  "qualification": false
+}

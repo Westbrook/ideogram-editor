@@ -1,0 +1,376 @@
+{
+  "input": "tests/raster/fixtures/normal-jpeg.jpg",
+  "root": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/raster-observe-Mqf7oW",
+  "at": "2026-09-26T07:24:44.685Z",
+  "observations": [
+    {
+      "type": "FinalizeStaging",
+      "elapsedMs": 25.289457999999968,
+      "commandId": "da6746e0-a98b-4a88-9ca6-6ad26bec90dc",
+      "receipt": {
+        "commandId": "da6746e0-a98b-4a88-9ca6-6ad26bec90dc",
+        "documentRevision": null,
+        "fromSeq": "1",
+        "status": "accepted",
+        "toSeq": "1",
+        "transactionId": "10829d11-5a69-4803-8c10-7785b96fce47"
+      }
+    },
+    {
+      "type": "PrepareRaster",
+      "elapsedMs": 220.96829099999997,
+      "commandId": "61242f36-fae9-4490-b9ef-afdba0a4c06f",
+      "receipt": {
+        "commandId": "61242f36-fae9-4490-b9ef-afdba0a4c06f",
+        "documentRevision": null,
+        "fromSeq": "2",
+        "status": "accepted",
+        "toSeq": "2",
+        "transactionId": "97c835da-98c0-41db-8d37-de6f56ecce20"
+      }
+    },
+    {
+      "type": "ReviewRaster",
+      "elapsedMs": 4.663541000000009,
+      "commandId": "dc5cb358-fb96-4957-81c7-8213fcb3e3da",
+      "receipt": {
+        "commandId": "dc5cb358-fb96-4957-81c7-8213fcb3e3da",
+        "documentRevision": null,
+        "fromSeq": "3",
+        "status": "accepted",
+        "toSeq": "3",
+        "transactionId": "e25b8c7a-c898-4abb-8ebc-3e588fab12e3"
+      }
+    },
+    {
+      "type": "ApproveRaster",
+      "elapsedMs": 18.820791999999983,
+      "commandId": "07b964a5-bf95-4abe-b709-0b940df120b1",
+      "receipt": {
+        "commandId": "07b964a5-bf95-4abe-b709-0b940df120b1",
+        "documentRevision": null,
+        "fromSeq": "4",
+        "status": "accepted",
+        "toSeq": "4",
+        "transactionId": "7e519de9-ade5-443d-b525-563d7d03ff1a"
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "elapsedMs": 330.43670800000007,
+      "commandId": "b12051dc-e337-4050-8970-6adc6d854127",
+      "receipt": {
+        "commandId": "b12051dc-e337-4050-8970-6adc6d854127",
+        "documentRevision": null,
+        "fromSeq": "5",
+        "status": "accepted",
+        "toSeq": "5",
+        "transactionId": "1ac17556-7eb3-4ad4-87f1-e341c2d669f8"
+      }
+    },
+    {
+      "type": "ExportRaster",
+      "elapsedMs": 173.782917,
+      "commandId": "97e0d8e7-d7da-41cd-8745-6ca4ff7e8156",
+      "receipt": {
+        "commandId": "97e0d8e7-d7da-41cd-8745-6ca4ff7e8156",
+        "documentRevision": null,
+        "fromSeq": "6",
+        "status": "accepted",
+        "toSeq": "6",
+        "transactionId": "5edbaeaf-efba-419f-b62a-bccd1a9db863"
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "elapsedMs": 112.45916699999998,
+      "commandId": "ae1b3d12-3b0c-4035-8bc1-18d3ddc1d0f1",
+      "receipt": {
+        "commandId": "ae1b3d12-3b0c-4035-8bc1-18d3ddc1d0f1",
+        "documentRevision": null,
+        "fromSeq": "7",
+        "status": "accepted",
+        "toSeq": "7",
+        "transactionId": "f69459f0-8211-4945-8f34-ea205e2b9081"
+      }
+    }
+  ],
+  "qualification": false,
+  "limits": "Single-host synthetic uniform-white inputs. No formal PERF/H-C/W1/native/platform qualification; no external effects.",
+  "fixture": {
+    "file": "tests/raster/fixtures/normal-jpeg.jpg",
+    "width": 2048,
+    "height": 2048,
+    "format": "jpeg",
+    "sha256": "f10f17f5040adb51c9cc2dc6a84a1c2c2a9d07b31b9cb6b2eb6914afff83db91",
+    "bytes": 49418,
+    "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+  },
+  "encodedBytes": 49418,
+  "encodedHash": "sha256:f10f17f5040adb51c9cc2dc6a84a1c2c2a9d07b31b9cb6b2eb6914afff83db91",
+  "stageAndFinalizeMs": 42.91754199999997,
+  "width": 2048,
+  "height": 2048,
+  "expectedRawHash": "sha256:dffab0dd410657cb30c7b2fd7f2586a4792e8472e58882b3532581f8111a646d",
+  "status": "completed",
+  "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+  "pixels": {
+    "byteLength": "16777216",
+    "hash": "sha256:dffab0dd410657cb30c7b2fd7f2586a4792e8472e58882b3532581f8111a646d",
+    "mediaType": "application/x-ideogram-rgba8"
+  },
+  "export": {
+    "byteLength": "21271",
+    "hash": "sha256:69375afe6267c7b0eedbd60abae8d38ace1ee237ad5078e0eae2b023c5179c91",
+    "mediaType": "image/png"
+  },
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 69,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "1",
+    "highWater": "7",
+    "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "654121496576",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "49418",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": [
+        19.949791999999945
+      ]
+    },
+    "rasters": {
+      "preparations": 0,
+      "approvalAuthorities": 0,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": [
+        {
+          "commandId": "61242f36-fae9-4490-b9ef-afdba0a4c06f",
+          "operationId": "b72a30e5-0041-47da-8191-8566a652a656",
+          "elapsedMs": 110.867209,
+          "decodeMs": 7.318374999999946,
+          "computeMs": 0,
+          "encodeMs": 63.41679199999999,
+          "rss": 167493632,
+          "maxRSS": 167493632,
+          "supervisorPeakRSS": 164429824,
+          "admissionBaselineRSS": 96403456,
+          "combinedReservedBytes": 291438592,
+          "fullPreparationMs": 216.31704199999996,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 67108864,
+              "rawOutput": 16777216,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 195035136,
+            "diskBytes": 52428800
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "b12051dc-e337-4050-8970-6adc6d854127",
+          "operationId": "03ee51ac-5626-4b52-9e96-9531bdc91b45",
+          "elapsedMs": 252.20766700000001,
+          "decodeMs": 0,
+          "computeMs": 159.28250000000003,
+          "encodeMs": 64.42679199999998,
+          "rss": 227966976,
+          "maxRSS": 227983360,
+          "supervisorPeakRSS": 225492992,
+          "admissionBaselineRSS": 164806656,
+          "combinedReservedBytes": 282247168,
+          "fullPreparationMs": 325.788417,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "97e0d8e7-d7da-41cd-8745-6ca4ff7e8156",
+          "operationId": "d86222c2-8571-4855-a87a-2212ddb40729",
+          "elapsedMs": 94.92320900000004,
+          "decodeMs": 0,
+          "computeMs": 0,
+          "encodeMs": 60.056542000000036,
+          "rss": 229474304,
+          "maxRSS": 229474304,
+          "supervisorPeakRSS": 226443264,
+          "admissionBaselineRSS": 225607680,
+          "combinedReservedBytes": 343048192,
+          "fullPreparationMs": 169.02695800000004,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "ae1b3d12-3b0c-4035-8bc1-18d3ddc1d0f1",
+          "operationId": "f0e00f9a-f965-4c7d-8dce-29aa30e49f6b",
+          "elapsedMs": 22.26737500000013,
+          "decodeMs": 0,
+          "computeMs": 8.00108299999988,
+          "encodeMs": 2.3479999999999563,
+          "rss": 230244352,
+          "maxRSS": 230244352,
+          "supervisorPeakRSS": 227459072,
+          "admissionBaselineRSS": 226557952,
+          "combinedReservedBytes": 343998464,
+          "fullPreparationMs": 107.011708,
+          "plan": {
+            "width": 1,
+            "height": 1,
+            "rawBytes": 4,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 2097164
+          },
+          "externalEffects": 0
+        }
+      ]
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 0.13579099999998334,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 230080512,
+      "heapTotal": 19021824,
+      "heapUsed": 12484608,
+      "external": 6989045,
+      "arrayBuffers": 2575701
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "accounting": {
+    "included": "One Node process: resource driver, storage/raster worker threads, V8, loaded native codecs, buffer copies and OS resident allocator pages. process.resourceUsage maxRSS is whole-process high-water RSS; reservations are separate estimates.",
+    "unmeasured": "Per-native allocator attribution, nonresident address space, OS cache, other processes, GPU/browser, release/settled growth and unsampled transient allocation attribution. No OS hard limit or formal hardware qualification."
+  },
+  "process": {
+    "node": "26.10.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "libffi": "3.8.0",
+    "lief": "0.17.0",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "147",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.8",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026c",
+    "undici": "8.10.2",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "14.6.202.34-node.34",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "peakRSS": 230342656
+}

@@ -1,0 +1,847 @@
+{
+  "at": "2026-09-26T07:24:42.302786+00:00",
+  "sourceManifest": "source-final-4.json",
+  "qualification": false,
+  "runs": [
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/normal-png.png",
+        "width": 2048,
+        "height": 2048,
+        "format": "png",
+        "sha256": "ed3520890863b59db6c81dcc030dc7fdd73b8d9e2bf75b82fd0060900d987fb8",
+        "bytes": 21248,
+        "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+      },
+      "mode": "lossless",
+      "at": "2026-09-26T07:24:42.302956+00:00",
+      "exitCode": 0,
+      "status": "completed",
+      "pendingStage": null,
+      "observedProcessPeakRSSBytes": 232357888,
+      "timePeakRSSBytes": 232357888,
+      "reservations": [
+        {
+          "phase": null,
+          "commandId": "e5fe5c2b-ac83-4af7-8328-e53c139234a0",
+          "admissionBaselineRSS": 95961088,
+          "combinedReservedBytes": 290996312,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 67108864,
+              "rawOutput": 16777216,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194392,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 195035224,
+            "diskBytes": 52428822
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "a40358da-64e2-402b-8c9b-dc0b9a23f69d",
+          "admissionBaselineRSS": 169754624,
+          "combinedReservedBytes": 287195136,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "8b91ba4a-0b6c-4d8b-878b-b2b23503f556",
+          "admissionBaselineRSS": 226787328,
+          "combinedReservedBytes": 344227840,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "39321dd9-8765-424e-8cbd-d1216876a99d",
+          "admissionBaselineRSS": 227393536,
+          "combinedReservedBytes": 344834048,
+          "plan": {
+            "width": 1,
+            "height": 1,
+            "rawBytes": 4,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 2097164
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/normal-png.png",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-normal-png.json"
+      ],
+      "result": "resource-normal-png.json",
+      "log": "logs/resource-normal-png.txt",
+      "encodedMode": {
+        "format": "PNG",
+        "depth": 8,
+        "colorType": 6,
+        "interlace": 0
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/max-png.png",
+        "width": 5000,
+        "height": 5000,
+        "format": "png",
+        "sha256": "4c87842c594ffdc9532402a574d311b11a31eb290a530387c9d7af74ef36eb43",
+        "bytes": 110030,
+        "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+      },
+      "mode": "lossless",
+      "at": "2026-09-26T07:24:43.575674+00:00",
+      "exitCode": 0,
+      "status": "resource-pending",
+      "pendingStage": "PrepareRaster",
+      "observedProcessPeakRSSBytes": 170459136,
+      "timePeakRSSBytes": 170459136,
+      "reservations": [
+        {
+          "phase": "resource-admission",
+          "commandId": null,
+          "admissionBaselineRSS": 96649216,
+          "combinedReservedBytes": 541352792,
+          "plan": {
+            "width": 5000,
+            "height": 5000,
+            "rawBytes": 100000000,
+            "allocations": {
+              "nativeDecoderAndColor": 233554432,
+              "rawOutput": 100000000,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194392,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 444703576,
+            "diskBytes": 302097174
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/max-png.png",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-max-png.json"
+      ],
+      "result": "resource-max-png.json",
+      "log": "logs/resource-max-png.txt",
+      "encodedMode": {
+        "format": "PNG",
+        "depth": 8,
+        "colorType": 6,
+        "interlace": 0
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/aspect-png.png",
+        "width": 8192,
+        "height": 3051,
+        "format": "png",
+        "sha256": "320d1a995fc5ce5873dc2af4e800a97d485dd3eb7a22651ac49590ee834f7d84",
+        "bytes": 102814,
+        "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+      },
+      "mode": "lossless",
+      "at": "2026-09-26T07:24:43.994654+00:00",
+      "exitCode": 0,
+      "status": "resource-pending",
+      "pendingStage": "PrepareRaster",
+      "observedProcessPeakRSSBytes": 170557440,
+      "timePeakRSSBytes": 170557440,
+      "reservations": [
+        {
+          "phase": "resource-admission",
+          "commandId": null,
+          "admissionBaselineRSS": 96829440,
+          "combinedReservedBytes": 541458520,
+          "plan": {
+            "width": 8192,
+            "height": 3051,
+            "rawBytes": 99975168,
+            "allocations": {
+              "nativeDecoderAndColor": 233504768,
+              "rawOutput": 99975168,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194392,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 444629080,
+            "diskBytes": 302022678
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/aspect-png.png",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-aspect-png.json"
+      ],
+      "result": "resource-aspect-png.json",
+      "log": "logs/resource-aspect-png.txt",
+      "encodedMode": {
+        "format": "PNG",
+        "depth": 8,
+        "colorType": 6,
+        "interlace": 0
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/normal-jpeg.jpg",
+        "width": 2048,
+        "height": 2048,
+        "format": "jpeg",
+        "sha256": "f10f17f5040adb51c9cc2dc6a84a1c2c2a9d07b31b9cb6b2eb6914afff83db91",
+        "bytes": 49418,
+        "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+      },
+      "mode": "lossy",
+      "at": "2026-09-26T07:24:44.427346+00:00",
+      "exitCode": 0,
+      "status": "completed",
+      "pendingStage": null,
+      "observedProcessPeakRSSBytes": 230342656,
+      "timePeakRSSBytes": 230342656,
+      "reservations": [
+        {
+          "phase": null,
+          "commandId": "61242f36-fae9-4490-b9ef-afdba0a4c06f",
+          "admissionBaselineRSS": 96403456,
+          "combinedReservedBytes": 291438592,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 67108864,
+              "rawOutput": 16777216,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 195035136,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "b12051dc-e337-4050-8970-6adc6d854127",
+          "admissionBaselineRSS": 164806656,
+          "combinedReservedBytes": 282247168,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "97e0d8e7-d7da-41cd-8745-6ca4ff7e8156",
+          "admissionBaselineRSS": 225607680,
+          "combinedReservedBytes": 343048192,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "ae1b3d12-3b0c-4035-8bc1-18d3ddc1d0f1",
+          "admissionBaselineRSS": 226557952,
+          "combinedReservedBytes": 343998464,
+          "plan": {
+            "width": 1,
+            "height": 1,
+            "rawBytes": 4,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 2097164
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/normal-jpeg.jpg",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-normal-jpeg.json"
+      ],
+      "result": "resource-normal-jpeg.json",
+      "log": "logs/resource-normal-jpeg.txt",
+      "encodedMode": {
+        "format": "JPEG",
+        "frameMarker": 192,
+        "mode": "baseline",
+        "depth": 8
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/normal-webp-lossy.webp",
+        "width": 2048,
+        "height": 2048,
+        "format": "webp",
+        "sha256": "22beca99b42d867a3190094a2082f00ee5d6b500634f29043c089a8266c58aae",
+        "bytes": 7518,
+        "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+      },
+      "mode": "lossy",
+      "at": "2026-09-26T07:24:45.619780+00:00",
+      "exitCode": 0,
+      "status": "completed",
+      "pendingStage": null,
+      "observedProcessPeakRSSBytes": 298024960,
+      "timePeakRSSBytes": 298024960,
+      "reservations": [
+        {
+          "phase": null,
+          "commandId": "19fdbf46-6eb2-435e-8956-bc9f139f2ef4",
+          "admissionBaselineRSS": 95928320,
+          "combinedReservedBytes": 341295104,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 117440512,
+              "rawOutput": 16777216,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 245366784,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "d1a4cabe-0721-4af0-a117-b7b972f7684c",
+          "admissionBaselineRSS": 240173056,
+          "combinedReservedBytes": 357613568,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "e90c3b6f-9ddd-423e-a827-f67f16779172",
+          "admissionBaselineRSS": 293306368,
+          "combinedReservedBytes": 410746880,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "1c1d8b9b-83db-4e8b-a6aa-c416fb801b42",
+          "admissionBaselineRSS": 294092800,
+          "combinedReservedBytes": 411533312,
+          "plan": {
+            "width": 1,
+            "height": 1,
+            "rawBytes": 4,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 2097164
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/normal-webp-lossy.webp",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-normal-webp-lossy.json"
+      ],
+      "result": "resource-normal-webp-lossy.json",
+      "log": "logs/resource-normal-webp-lossy.txt",
+      "encodedMode": {
+        "format": "WebP",
+        "mode": "lossy VP8",
+        "chunks": [
+          "VP8 "
+        ],
+        "static": true
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/normal-webp-lossless.webp",
+        "width": 2048,
+        "height": 2048,
+        "format": "webp",
+        "sha256": "5f0d4193f8c8990ec766c2ae990aa1ccf4ea438bfd36f98e5fd0a6475b64a875",
+        "bytes": 220,
+        "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+      },
+      "mode": "lossless",
+      "at": "2026-09-26T07:24:46.830001+00:00",
+      "exitCode": 0,
+      "status": "completed",
+      "pendingStage": null,
+      "observedProcessPeakRSSBytes": 300613632,
+      "timePeakRSSBytes": 300613632,
+      "reservations": [
+        {
+          "phase": null,
+          "commandId": "7e605503-b4be-44e2-bcfa-dc663e7b9c96",
+          "admissionBaselineRSS": 95846400,
+          "combinedReservedBytes": 341213184,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 117440512,
+              "rawOutput": 16777216,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 245366784,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "636903f2-bb55-46fb-9604-4d22a991dd27",
+          "admissionBaselineRSS": 233324544,
+          "combinedReservedBytes": 350765056,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "dbcbdd84-01ac-464f-8c46-ad6f070ad5eb",
+          "admissionBaselineRSS": 291241984,
+          "combinedReservedBytes": 408682496,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          }
+        },
+        {
+          "phase": null,
+          "commandId": "56b9909e-48c6-4eea-9e80-80ed0548ce2c",
+          "admissionBaselineRSS": 296206336,
+          "combinedReservedBytes": 413646848,
+          "plan": {
+            "width": 1,
+            "height": 1,
+            "rawBytes": 4,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 2097164
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/normal-webp-lossless.webp",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-normal-webp-lossless.json"
+      ],
+      "result": "resource-normal-webp-lossless.json",
+      "log": "logs/resource-normal-webp-lossless.txt",
+      "encodedMode": {
+        "format": "WebP",
+        "mode": "lossless VP8L",
+        "chunks": [
+          "VP8L"
+        ],
+        "static": true
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/max-progressive-jpeg.jpg",
+        "width": 5000,
+        "height": 5000,
+        "format": "jpeg",
+        "sha256": "f38ee3a0582dfa4c5f31114b5acc508be951664415ba4f72a85221d878e898f8",
+        "bytes": 293717,
+        "expected": "All RGBA components255; exact repeated0xff raw hash.",
+        "generator": "Sharp0.35.4 JPEGq90 progressive4:4:4"
+      },
+      "mode": "lossy",
+      "at": "2026-09-26T07:24:48.019610+00:00",
+      "exitCode": 0,
+      "status": "resource-pending",
+      "pendingStage": "PrepareRaster",
+      "observedProcessPeakRSSBytes": 132694016,
+      "timePeakRSSBytes": 132694016,
+      "reservations": [
+        {
+          "phase": "resource-admission",
+          "commandId": null,
+          "admissionBaselineRSS": 97828864,
+          "combinedReservedBytes": 542532352,
+          "plan": {
+            "width": 5000,
+            "height": 5000,
+            "rawBytes": 100000000,
+            "allocations": {
+              "nativeDecoderAndColor": 233554432,
+              "rawOutput": 100000000,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 444703488,
+            "diskBytes": 302097152
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/max-progressive-jpeg.jpg",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-max-progressive-jpeg.json"
+      ],
+      "result": "resource-max-progressive-jpeg.json",
+      "log": "logs/resource-max-progressive-jpeg.txt",
+      "encodedMode": {
+        "format": "JPEG",
+        "frameMarker": 194,
+        "mode": "progressive",
+        "depth": 8
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/max-webp-lossy.webp",
+        "width": 5000,
+        "height": 5000,
+        "format": "webp",
+        "sha256": "d7ad227d6bc2f73b800da4a79f9128b1c96a18898d5e2d06b33682c755251b71",
+        "bytes": 44652,
+        "expected": "All RGBA components255; exact repeated0xff raw hash.",
+        "generator": "Sharp0.35.4 WebPq90 explicitlosslessflag"
+      },
+      "mode": "lossy",
+      "at": "2026-09-26T07:24:48.399759+00:00",
+      "exitCode": 0,
+      "status": "resource-pending",
+      "pendingStage": "PrepareRaster",
+      "observedProcessPeakRSSBytes": 129597440,
+      "timePeakRSSBytes": 129597440,
+      "reservations": [
+        {
+          "phase": "resource-admission",
+          "commandId": null,
+          "admissionBaselineRSS": 96206848,
+          "combinedReservedBytes": 840910336,
+          "plan": {
+            "width": 5000,
+            "height": 5000,
+            "rawBytes": 100000000,
+            "allocations": {
+              "nativeDecoderAndColor": 533554432,
+              "rawOutput": 100000000,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 744703488,
+            "diskBytes": 302097152
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/max-webp-lossy.webp",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-max-webp-lossy.json"
+      ],
+      "result": "resource-max-webp-lossy.json",
+      "log": "logs/resource-max-webp-lossy.txt",
+      "encodedMode": {
+        "format": "WebP",
+        "mode": "lossy VP8",
+        "chunks": [
+          "VP8 "
+        ],
+        "static": true
+      }
+    },
+    {
+      "fixture": {
+        "file": "tests/raster/fixtures/max-webp-lossless.webp",
+        "width": 5000,
+        "height": 5000,
+        "format": "webp",
+        "sha256": "59d2de0e3f6cd91640e1ca79ab4cecd3dfdd037b4404b65c4b20f1348250becd",
+        "bytes": 1022,
+        "expected": "All RGBA components255; exact repeated0xff raw hash.",
+        "generator": "Sharp0.35.4 WebPq90 explicitlosslessflag"
+      },
+      "mode": "lossless",
+      "at": "2026-09-26T07:24:48.780697+00:00",
+      "exitCode": 0,
+      "status": "resource-pending",
+      "pendingStage": "PrepareRaster",
+      "observedProcessPeakRSSBytes": 129794048,
+      "timePeakRSSBytes": 129794048,
+      "reservations": [
+        {
+          "phase": "resource-admission",
+          "commandId": null,
+          "admissionBaselineRSS": 96206848,
+          "combinedReservedBytes": 840910336,
+          "plan": {
+            "width": 5000,
+            "height": 5000,
+            "rawBytes": 100000000,
+            "allocations": {
+              "nativeDecoderAndColor": 533554432,
+              "rawOutput": 100000000,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 744703488,
+            "diskBytes": 302097152
+          }
+        }
+      ],
+      "approvalReservationBytes": 8388608,
+      "approvalReservationMeaning": "Declared static proof admission, not measured resident memory. Whole-process peak includes completed approval when present.",
+      "command": [
+        "/usr/bin/time",
+        "-l",
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+        "--import",
+        "./tests/store/no-network.mjs",
+        "tooling/raster/measure-correction.mjs",
+        "tests/raster/fixtures/max-webp-lossless.webp",
+        "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b4-png-correction/resource-max-webp-lossless.json"
+      ],
+      "result": "resource-max-webp-lossless.json",
+      "log": "logs/resource-max-webp-lossless.txt",
+      "encodedMode": {
+        "format": "WebP",
+        "mode": "lossless VP8L",
+        "chunks": [
+          "VP8L"
+        ],
+        "static": true
+      }
+    }
+  ],
+  "finishedAt": "2026-09-26T07:24:49.192961+00:00",
+  "measurementBoundary": {
+    "included": "Each /usr/bin/time child is one Node driver process containing writer and raster worker threads, V8, loaded native codec/color libraries, their resident allocations, image/output buffers and copies. Driver fixture input reads are included.",
+    "notSeparatelyMeasured": "Per-library/per-allocation peaks, nonresident address space, OS file cache, browser/GPU, other processes and release/settled growth. No isolated-host interval or universal transient ceiling proof.",
+    "reservationMeaning": "Static estimates plus observed admission-baseline RSS; not actual resident allocation or proof of a hard cap. PNG stream buffers live within the existing preflight reservation; approval uses an additional 8 MiB reservation.",
+    "classification": "Four completed and five resource-pending in this exact run; pending is not full-envelope qualification. Original dfa383d failures/results remain separate."
+  }
+}

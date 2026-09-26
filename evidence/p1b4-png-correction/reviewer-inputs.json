@@ -1,0 +1,35 @@
+{
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/dfa383d-independent",
+  "copy": "/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-correction-author",
+  "identities": {
+    "probes/findings-v2.test.mjs": "0375aaf21772e907f6db24081f147343427b1118cb60dc7e09e32cb407cff2d7",
+    "probes/controlled-v2.mjs": "a4abf69c884182f0be254822618c83128f5adb36016a3cf49011279763b667e0",
+    "probes/safety-v2.mjs": "9456f9fa736e7e3b17f9807bb58d08705def667ea23495b3a110e4dd18518df5",
+    "VERDICT.txt": "ec5e4e1950164c270c3162bbabccef9fbd20088f1c03a306a6d0a3e780924b25",
+    "fixtures": {
+      "duplicate-idat-stream.png": "1c48677ba6316b14cbd9ef3b8e8831e6fec9e45dd12efef1a143165987fe835d",
+      "independent.png": "b52a2ed13e1ed77c29475714bc1195e774a5d251ea6ae7f75be8373970bcd34a",
+      "orientation-6-after.png": "fdda538c7965fc7d600a0fc2b0c8aef772fc49c1e96b778d3e78666126080dcb",
+      "white-lossy.webp-unknown-icc.webp": "39d29e847012d28859b9a667979d102948af12e8464b7d076a693959f62864b0",
+      "trns-rgba.png": "4b985eb5bb9c684a601aa2c6a38eee66caef4a50b49822d5258df27a20e27a42",
+      "max-webp-lossy.webp-lying-extent.webp": "bfac1f5c73b9548a2f90965214285b45de20fa43333ed34d3971fe5033facada",
+      "srgb-bad-size.png": "f6867ccc3fcc4c76284a261814bf2ee0a2576ef7a2a4783e83e45571422f0bfb",
+      "max-webp-lossy.webp-original.webp": "d7ad227d6bc2f73b800da4a79f9128b1c96a18898d5e2d06b33682c755251b71",
+      "max-webp-lossy.webp-extended.webp": "0fdc00b66aef070ad9655be93ce751b7035423dacba7fbb7627c2874fcfb02ad",
+      "idat-trailing-data.png": "7a83a607eca8f944c744a71f34b504ffa4ee4ed2ad9522e35664501ab0f4e895",
+      "valid-unknown-icc-after.png": "3de62a83539212e331970d05dbd46817103e5a44f463c66a0ef57d38fd97c2a2",
+      "valid-unknown-icc-before.png": "adb7c5511a67037e6eea4ac02a056ba11eafd2283c7eb0e6d134704409cdfe95",
+      "max-webp-lossless.webp-extended.webp": "e03de9e52d46f4dde71352b036ef8c1c29c2de4886e423275ed4a69ee1a127ed",
+      "alpha-lossless.webp-unknown-icc.webp": "bc104024d16922818e1988485a76890d337f6cd198db3aff75646622dbf06210",
+      "max-webp-lossless.webp-original.webp": "59d2de0e3f6cd91640e1ca79ab4cecd3dfdd037b4404b65c4b20f1348250becd",
+      "unknown-critical.png": "54beab20238fd2e2c0f6253371e5f2f367de9483d90455cdbd3179ab3ecabb3f",
+      "exif-after-idat.png": "acd75fd4381d588ffa3fdca6fc99d0db8d17deb8b3e4cd71394b3a1211ac44af",
+      "max-webp-lossless.webp-lying-extent.webp": "0a23cf5d4a1dc6b56d9232253d4ed9ec4e06098e75512fa1abdd5ffc10c00908",
+      "mask.png": "548c368b76a52578e0e2049c95d648c940916f3f55a08f7fbd436169b8cb2fce",
+      "icc-after-idat.png": "9e14e8af2067a96c75dc76ab0827945ce8970318168f9356d1eb840d6d906511",
+      "white-lossy.webp-junk.webp": "5a05b83862c714ec372f08d83dde310d69ad9a4d4252881dc01290fbee2c3917",
+      "alpha-lossless.webp-junk.webp": "4f839c021bc53c67d389788c60fe6c8aeef547a0185b2f82469ac26100e82134",
+      "srgb-bad-intent.png": "0698573cf0d17af80096198ffda0bf44c08a4c44760d84387bda02ddc871d127"
+    }
+  }
+}

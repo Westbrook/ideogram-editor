@@ -1,0 +1,19 @@
+{"input":"tests/raster/fixtures/aspect-png.png","status":"resource-pending","error":"Error: Resource admission: {\"command\":{\"schemaVersion\":1,\"commandId\":\"f0309cc1-14a6-4a55-b31f-e7e805904df8\",\"clientId\":\"measure\",\"sessionId\":\"measure-provenance\",\"correlationId\":\"a1e544d0-3315-4494-8411-1ae99353e362\",\"causationId\":null,\"transactionId\":\"d05b8753-9b5d-40bd-a057-34ddb3df76dc\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T07:24:44.318Z\",\"body\":{\"type\":\"PrepareRaster\",\"assetId\":\"c475c183-a6e1-4701-a262-c2c49a820e31\"}},\"hash\":\"sha256:0fdbc61019ae9e6cb3a4e703e3e152cecc130398509548e7508113a1bfbac1cd\",\"operationId\":\"19f7c6c5-9e41-4eae-ae65-4ce2165065b2\",\"phase\":\"waiting-for-resources\"}","observations":[{"type":"FinalizeStaging","elapsedMs":27.188999999999965}],"peakRSS":170557440}
+        0.42 real         0.17 user         0.07 sys
+           170557440  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               11735  page reclaims
+                  99  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   2  messages sent
+                   2  messages received
+                   0  signals received
+                 161  voluntary context switches
+                4122  involuntary context switches
+          2163013471  instructions retired
+           869743313  cycles elapsed
+           108405856  peak memory footprint

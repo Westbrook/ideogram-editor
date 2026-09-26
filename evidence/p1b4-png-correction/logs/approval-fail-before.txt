@@ -1,0 +1,388 @@
+✖ approval rejects missing pixels dependency without a usable canonical asset (598.120292ms)
+✖ approval rejects corrupt pixels dependency without a usable canonical asset (588.692792ms)
+✖ approval rejects substituted pixels dependency without a usable canonical asset (580.463916ms)
+✖ approval rejects missing manifest dependency without a usable canonical asset (583.518875ms)
+✖ approval rejects corrupt manifest dependency without a usable canonical asset (585.952333ms)
+✖ approval rejects substituted manifest dependency without a usable canonical asset (570.285167ms)
+✖ approval rejects missing png dependency without a usable canonical asset (570.510417ms)
+✖ approval rejects corrupt png dependency without a usable canonical asset (576.794917ms)
+✖ approval rejects substituted png dependency without a usable canonical asset (580.477875ms)
+✖ approval rejects missing original dependency without a usable canonical asset (572.982792ms)
+✖ approval rejects corrupt original dependency without a usable canonical asset (595.952375ms)
+✖ approval rejects substituted original dependency without a usable canonical asset (571.869292ms)
+✖ approval rejects missing exif dependency without a usable canonical asset (573.16875ms)
+✖ approval rejects corrupt exif dependency without a usable canonical asset (564.386334ms)
+✖ approval rejects substituted exif dependency without a usable canonical asset (566.932333ms)
+✖ approval rejects missing icc dependency without a usable canonical asset (600.877166ms)
+✖ approval rejects corrupt icc dependency without a usable canonical asset (572.805ms)
+✖ approval rejects substituted icc dependency without a usable canonical asset (567.70675ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 0
+ℹ fail 18
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10737.432709
+
+✖ failing tests:
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects missing pixels dependency without a usable canonical asset (598.120292ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"9b061b95-6ab5-4111-a421-b23341f81ce6","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"89293fda-ce83-43dc-b78f-9ae5bd4fa92a"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects corrupt pixels dependency without a usable canonical asset (588.692792ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"f0e645c6-d31f-4246-a364-c94eb4299edd","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"6a20376d-340e-460e-a825-c6c490f3e62a"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects substituted pixels dependency without a usable canonical asset (580.463916ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"c4a5b943-48c7-4e48-8b7d-23e36c205eda","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"bea31d7f-008d-4a49-ab88-9ebf4b71ee32"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects missing manifest dependency without a usable canonical asset (583.518875ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"2d302b54-cabb-4280-91f0-5095fce59860","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"af140d82-8b3e-4e42-a428-31c6f95e42c0"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects corrupt manifest dependency without a usable canonical asset (585.952333ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"be17284c-64d4-418f-95f5-11c0fd5d789b","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"de929127-543e-4146-8f62-9465412b7936"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects substituted manifest dependency without a usable canonical asset (570.285167ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"a2ec103a-343d-4013-b28e-a5fdb8b6aa42","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"c0dda04e-cf47-454c-91c4-4b3a0b84c068"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects missing png dependency without a usable canonical asset (570.510417ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"84240731-c917-4fe4-891e-425378ffc0ae","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"f777552d-4f83-4a42-a195-be9bb1b72fba"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects corrupt png dependency without a usable canonical asset (576.794917ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"5a84c995-5cec-48e9-9c24-733abcbb5fb0","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"c1e57c0f-f4e7-4123-8b27-5d4d8a71a7c7"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects substituted png dependency without a usable canonical asset (580.477875ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"6363b3f3-2f4d-4503-9aa2-c27cc10a4a17","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"0277417c-6680-4f05-aff0-aad3a4021e89"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects missing original dependency without a usable canonical asset (572.982792ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"5debe09f-7c62-4ae8-8238-e68572da9499","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"2a5b096d-90f8-4d58-a8aa-a336dc21a2e2"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects corrupt original dependency without a usable canonical asset (595.952375ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"05bdea16-a0c9-4632-a640-4e19496ed23c","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"546955bb-ed54-4905-a75d-4672426ca4e3"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects substituted original dependency without a usable canonical asset (571.869292ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"d8da0d78-75f8-44d1-97d7-7f12949a3863","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"c490b50f-ce9e-4f39-afb5-b1ebd45ba3d4"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects missing exif dependency without a usable canonical asset (573.16875ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"32bc59d9-2bcd-4177-aaba-f24a55d9b8ac","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"a0c5d60d-0e3f-41cc-bebc-8157ed474881"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects corrupt exif dependency without a usable canonical asset (564.386334ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"f760c347-cf9c-4e4d-879c-83220aa79fa5","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"2e26861c-544e-4e4c-8d80-baacd3271f2b"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects substituted exif dependency without a usable canonical asset (566.932333ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"97a344d6-fdef-4762-9860-9149024f461e","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"a2a2210a-bf2b-4af7-aae5-ab7e5123d246"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects missing icc dependency without a usable canonical asset (600.877166ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"537e16ad-a80a-4e0c-a008-ced28f2df08f","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"169d63b1-afc1-4f4e-9f34-e00159c46d92"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects corrupt icc dependency without a usable canonical asset (572.805ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"92f4e3d6-6cf8-495c-8d12-1e20bdf3cf92","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"7477c29d-b66f-4f43-8b1a-8e8b142c4629"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/approval-integrity.test.mjs:16:2
+✖ approval rejects substituted icc dependency without a usable canonical asset (567.70675ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"commandId":"0bcf3e46-2a32-4976-b21c-528edd509cc7","documentRevision":null,"fromSeq":"4","status":"accepted","toSeq":"4","transactionId":"565e94e8-d0f8-4dd0-9717-ccf1da4dd9b5"}}
+  + actual - expected
+  
+  + 'accepted'
+  - 'rejected'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1b4-approval-baseline-6e67i_tc/tests/raster/approval-integrity.test.mjs:24:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'accepted',
+    expected: 'rejected',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

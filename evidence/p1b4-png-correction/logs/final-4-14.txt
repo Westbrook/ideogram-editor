@@ -1,0 +1,14 @@
+npm notice run ideogram-editor@0.1.0 test:store:volume
+npm notice run npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ isolated mounted ENOSPC and read-only volume: no false receipt; exact state recovers after writable capacity returns (2846.901084ms)
+ℹ {"filesystem":"HFS+ inside isolated 64MiB image; not the APFS production root","beforeAvailableBytes":65204224,"fullAvailableBytes":0,"fillerBytes":65204224,"actualFilesystemError":"ENOSPC","writerOutcome":"STORAGE_FULL","readOnlyFilesystemError":"EROFS","readOnlyPhase":"ownership startup refuses without mutating existing metadata","powerLossQualified":false}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2892.322833

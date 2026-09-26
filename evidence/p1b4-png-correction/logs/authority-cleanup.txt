@@ -1,0 +1,23 @@
+✖ queued approval authorities are bounded and released when a retry rejects an expired review (1153.2465ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1208.954458
+
+✖ failing tests:
+
+test at tests/raster/approval-integrity.test.mjs:53:1
+✖ queued approval authorities are bounded and released when a retry rejects an expired review (1153.2465ms)
+  Error: CAPACITY
+      at Worker.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/storage/writer.js:65:25)
+      at Worker.emit (node:events:514:20)
+      at MessagePort.<anonymous> (node:internal/worker:354:14)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:872:20)
+      at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28) {
+    code: 'CAPACITY',
+    detail: undefined
+  }
