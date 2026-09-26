@@ -6,8 +6,8 @@
   "reportUrl": "http://127.0.0.1:4381/",
   "apps": {
     "local": {
-      "url": "http://127.0.0.1:61717/?progress-report",
-      "availability": "live preview; OS-selected origin, changes on restart",
+      "url": "http://127.0.0.1:52219/?progress-report",
+      "availability": "live approved 85df04f preview; OS-selected origin, changes on restart",
       "urlTemplate": "{actualLaunchOrigin}/?progress-report",
       "integration": "Trusted Developer UI return link. Pair only through the local launcher; shared URLs contain no pairing token."
     }
