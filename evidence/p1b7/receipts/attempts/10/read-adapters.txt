@@ -1,0 +1,12 @@
+✔ exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority (2182.139708ms)
+✔ known referenced multi-event command is bounded, byte exact and session leased (1075.931625ms)
+✔ UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence (796.79125ms)
+✔ pending owner pages preserve exact original bytes and operation identity across terminal races (2352.842459ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6720.061875

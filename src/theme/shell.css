@@ -174,3 +174,66 @@ dt { color: var(--en-color-text-muted); } dd { margin: 0; text-align: right; ove
 @media (forced-colors: active) { .tool[aria-pressed=true], .tabs button[aria-selected=true] { border: 2px solid Highlight; } .status-dot { background: CanvasText; } .report-return { border: 2px solid LinkText; } }
 
 @media (max-width: 480px) { .bar-end { display: grid; grid-template-columns: 1fr auto auto; width: 100%; } .connection-button { grid-column: 1 / -1; text-align: start; } .document-actions { display: grid; grid-template-columns: repeat(5, 1fr); } .document-actions .divider { display: none; } }
+/* App-owned split columns: the exact user-requested 1px layout rule. */
+.outer-grid,.inner-grid { display:grid; isolation:isolate; min-width:0; min-height:0; height:100%; --_en-split-target:max(var(--en-size-target-min,24px),24px); grid-template-columns:minmax(0,calc((100% - 1px) * var(--pane-ratio,.24))) 1px minmax(0,1fr); }
+.outer-grid { flex:1; }
+.inner-grid { --pane-ratio:.73; }
+.outer-grid>en-splitter,.inner-grid>en-splitter { width:var(--_en-split-target); margin-inline:calc(-1 * ((var(--_en-split-target) - 1px) / 2)); z-index:1; }
+.outer-grid>en-splitter::part(grip),.inner-grid>en-splitter::part(grip) { inline-size:1px; }
+.outer-grid>.panel,.inner-grid>.panel,.canvas-panel { position:relative; z-index:0; }
+.document-bar {gap:14px;flex-wrap:wrap;}
+.document-bar en-toolbar {flex:1;min-width:0;}
+en-toolbar::part(base) {flex-wrap:wrap;}
+en-button {max-width:100%;}
+en-button::part(control) {white-space:normal;}
+.bar-end {flex-wrap:wrap;}
+.operation-status {padding:8px 18px;background:var(--en-color-surface);border-bottom:1px solid var(--en-color-line);font-size:12px;}
+.operation-status:has(en-validation-summary) {max-height:180px;overflow:auto;}
+.pending,.actions {display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-block:8px;}
+.request-fields>* {margin-block:12px;}
+.request-fields p {font-size:12px;}
+.canvas-viewport {overflow:hidden;min-height:220px;display:block;}
+.canvas-viewport canvas {position:absolute;inset:0;inline-size:100%;block-size:100%;touch-action:none;}
+.canvas-empty {position:relative;margin:auto;max-width:430px;background:var(--en-color-canvas);}
+.canvas-toolbar en-number-field {max-width:180px;}
+.canvas-caption {flex-wrap:wrap;gap:8px;}
+.pan-fields {display:flex;gap:8px;padding:8px;flex-wrap:wrap;align-items:end;}
+.pan-fields en-number-field {flex:1;min-width:100px;}
+.pan-fields en-button {flex:0 0 auto;}
+.inspector en-tree {padding:10px;}
+.inspector .actions {padding-inline:10px;}
+.properties {padding:16px;}
+.properties>* {margin-block:8px;}
+.property-grid {margin-top:12px;gap:8px;}
+.empty {padding:18px;color:var(--en-color-text-muted);font-size:12px;}
+.results-tray {max-height:260px;overflow:auto;}
+.results-tray en-tabs {display:block;}
+.results-tray en-tab-panel {padding:8px 18px;}
+.results-tray en-activity-feed {--en-activity-padding:8px;}
+.results-tray en-activity-feed::part(list) {max-height:160px;overflow:auto;}
+.download-panel {padding:12px 18px;border-block:1px solid var(--en-color-line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.download-panel p {font-size:12px;}
+en-dialog::part(surface),en-drawer::part(surface) {max-inline-size:calc(100vw - 24px);}
+en-dialog p,en-drawer p {margin-block:10px;overflow-wrap:anywhere;}
+en-dialog en-number-field,en-dialog en-file-upload,en-dialog en-select {margin-block:12px;}
+.review-image {display:block;max-width:100%;max-height:360px;object-fit:contain;image-rendering:auto;margin:auto;}
+.identity-note {font-size:11px;color:var(--en-color-text-muted);}
+.status-bar {flex-wrap:wrap;overflow-wrap:anywhere;}
+@media (any-pointer:coarse) {.outer-grid,.inner-grid {--_en-split-target:max(var(--en-size-target-min,24px),44px);}}
+@media (max-width:1100px) {
+ .outer-grid,.inner-grid {display:block;height:auto;}
+ .outer-grid>en-splitter,.inner-grid>en-splitter {display:none;}
+ .canvas-panel {min-height:540px;}
+ .canvas-viewport {min-height:340px;}
+ .results-tray {max-height:none;}
+ .document-bar .bar-end {display:flex;width:auto;}
+ .properties {padding:18px;}
+}
+@media(max-width:480px){.document-bar{padding:10px;}.document-bar en-toolbar{flex-basis:100%;}.canvas-toolbar en-number-field{max-width:165px;}.pan-fields{display:grid;grid-template-columns:1fr 1fr;}.pan-fields en-button{grid-column:1/-1;}.property-grid{grid-template-columns:1fr;}.request-fields{padding-inline:16px;}.report-return{bottom:12px;}}
+/* Public native-select opt-out avoids the enhanced picker's data-URI mask under LS-1 CSP. */
+en-select {--en-select-appearance:auto;}
+en-select::part(control) {appearance:auto;}
+en-select::part(focus-frame)::before {content:none;mask:none;}
+en-select::part(control)::picker-icon {content:none;mask:none;background:none;}
+
+.help-description {font-size:11px;color:var(--en-color-text-muted);max-inline-size:95px;}

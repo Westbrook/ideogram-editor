@@ -1,0 +1,70 @@
+Retained attempt dispositions (not rewritten as successes)
+01/02: real EnSelect data-URI caret strict-CSP issue; public part/token opt-out fixes.
+03: network oracle incorrectly counted app blob URLs.04 passed.
+05: actual UI sequence recovery bug.06: clock/cookie/Sec-Fetch-Site test assumptions.
+07: mapped portable ID locator.08: anonymous read oracle.09: locator plus real
+ValidationSummary items API misuse.10 read adaptersPASS4.11 splitter locator.
+12 browser7PASS/2fixtureFAIL.13 malformed/review locator.14/15/16 real expired
+session IDB journal closure bug.17 corrected checksPASS.
+18 Firefox unexplained first-click nonactivation remains unclassified; clipboard
+fixture limitation separate.19 focusedPASS;20 ten repeatsPASS, not erased18.
+21 WebKit screenshot tool inserted style causing CSP diagnostics;22/23 prove
+zero workflow CSP before PagePrepareForScreenshots injection. Tool diagnostic
+is not asserted app-correct without the separate pre-screenshot observation.
+24 Chromium6PASS.25 recovery fixtures used wrong columns/reference/assertion.
+26 lost draft/missing resourcePASS;27 pending restartPASS, gap expected409 vs
+actual410 fixtureFAIL;28 WebKit6PASS;29 gap+realSQLiteFULLPASS;30 drop/destinationPASS.
+32 shell6PASS/4FAIL: real EnTooltip dynamic/empty style injection and selectors.
+33 corrected selectors still real tooltip CSP violation.34 core355PASS.
+35 shell9PASS/ARIA oracleFAIL.36 editor16PASS/real microtask late-vetoFAIL.
+37 CDP AX diagnostic;38 corrected B03PASS.39 task-deferred veto repeatedPASS.
+40 editor17PASS + portable129PASS;41 editor19PASS.
+42 Firefox11PASS/composition fixtureFAIL; native fill ended composition in44/45.
+50 corrected explicit synthetic composition testPASS; OS IME remains unqualified.
+43 WebKit11PASS/destinationFAIL.46/47 diagnostics retained.49 standalone
+navigator.storage.getDirectory UnknownError before adapter establishes host OPFS
+unavailable.53 correct visible unavailable/failure plus prepared-byte retention
+PASS. This is NOT a successful WebKit destination save qualification.
+48/51/52 projectionGET413 was first overclaimed as valid-document failure. Fixture
+had2000 IDs exceeding current100-ID Document validator; allocation leak hypothesis
+withdrawn (no leaked content contexts observed). Keep invalid full-doc fixture as
+labelled scalar HEAD stress only; do not relabel as reachable supported document.
+54 browserHEAD2PASS.55 NEW fail-before:100 layers via accepted public commands,
+then ONLY canonical synthetic53000-digit revision; validatorPASS,66660-byte doc,
+119779-byte inline reply, actualGET413. Impossible-scale metadata, not valid
+history at that revision/100k operations. Corrected typed bounded read tested56.
+56 protocol/read19PASS; partial-range JSON parsing oracle caused projectionFAIL.
+57 editor21PASS;58 shell10PASS.59 expected503 but actual contract429;60 expected
+QUEUE_FULL vs actual LOCAL_BUSY;61 expected410 vs existing expiry pruning404.
+62 final corrected projectionPASS with pressure128, expiry, exact bytes/ranges,
+source stability and no-allocationHEAD; A-BR01 remains OPEN for independent review.
+63 full timing FAILED REAL generated mapped inspector draft ID143>128. All prior
+steps, source, slow clocks retained.64 mapped reopen/edit4PASS.65 generation/page
+fencing5PASS;66 editor22PASS;67 actual127/128/129 identityboundaryPASS.
+68 plain wording affectedshell4PASS;69 full timing functionalPASS, performance
+thresholds notPASS.70Firefox4PASS;71WebKit4PASS on finalsource68.
+
+Review service first start failed: assembly copy omitted dist/local/src/raster/core.js
+because an exclusion was incorrectly recursive. launcher.log preserves startup
+failure; complete build copy and identity verification then started55911. No app
+source fix or accepted user data in that failed service start.
+
+Early Playwright trace ZIPs contained request credentials. Evidence retains only
+sanitized copies: all network entries and nonimage resources removed; remaining
+session/pairing/CSRF material redacted. Original private trace archives quarantined
+outside repo in /tmp/p1b7-private-traces(mode700/files600), not review deliverables.
+New traces allowlist event/detail data before writing; trace recording otherwise
+off. Final evidence scanner checks credential values and zip entries; see
+credential-cleanup.json. No credential strings are intentionally included.
+72 review roundtrip test wrongly waited for popup; real app anchor is same-tab.
+It timed out30s and did not reach the pairing step.73 corrected return navigation
+worked, but report207 supplemental apps metadata did not render a55911 anchor.
+Report-owner follow-up required; no application source change. Native fresh-AX
+retry successfully reached report4381, correcting the initial host observation.
+74 report208 had c.inspect.map is not a function from report-owner card data shape;
+209 repairs inspect to an array.75 actual rendered roundtrip and private pairing
+PASS. This does not retroactively pass72/73/74 or claim native full roundtrip.
+Final served-byte probe initially assumed public build metadata/raw index equality;
+404 for hidden/build metadata and transformed root are correct static/bootstrap
+behavior. Corrected compiled loadStatic oracle verifies every served file; old
+observations retained in served-runtime.json.

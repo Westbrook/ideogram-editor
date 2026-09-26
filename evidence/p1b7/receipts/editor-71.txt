@@ -1,0 +1,13 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --grep late version probe|late explicitly requested history|128-character|native composition
+
+Running 4 tests using 1 worker
+
+(node:45033) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (2.8s)
+  ✓  2 tests/editor/recovery.spec.ts:79:1 › late version probe cannot publish mixed side panels across a concurrent checkpoint or renewed session (4.4s)
+  ✓  3 tests/editor/recovery.spec.ts:105:1 › late explicitly requested history page cannot replace a newer complete transaction view (3.5s)
+  ✓  4 tests/editor/recovery.spec.ts:114:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets (7.0s)
+
+  4 passed (18.5s)

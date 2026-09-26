@@ -1,0 +1,30 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 1 test using 1 worker
+
+(node:54036) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+failed request /api/v1/recovery/db017ad4-1a95-468f-bcee-7ae82c1d986a/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/e7d0dd42-d37d-482a-b948-82ac90a36b0a/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/6b2043f3-069c-4f4c-8403-5c3f51d6f5cc/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/54bae9d3-2e85-4d80-ae0f-eb3a61a9ef48/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/2d134e37-daae-4f0c-94d5-f4214a3d30d5/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/b8c90cee-12a9-4a1b-92e5-1d0b3f926e35/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/ab887f7d-0ecd-4cb4-b0e5-f01869ede158/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/0e76aac4-5b5e-45fc-8bfc-79d0133304d2/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/28a3e183-c972-4deb-9794-c947060285a7/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/3001b348-2f29-4aa4-9648-e7e87c25e966/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_INCOMPLETE_CHUNKED_ENCODING' }
+  ✓  1 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (3.3s)
+
+  1 passed (3.6s)

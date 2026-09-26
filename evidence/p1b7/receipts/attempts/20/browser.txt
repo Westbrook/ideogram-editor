@@ -1,0 +1,53 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts interactions.spec.ts journey.spec.ts --repeat-each=2
+
+Running 10 tests using 1 worker
+
+(node:69923) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (2.6s)
+  ✓   2 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (4.7s)
+  ✓   3 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (3.3s)
+  ✓   4 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.1s)
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+  ✓   5 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (2.2s)
+(node:69966) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   6 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (2.1s)
+  ✓   7 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (4.2s)
+  ✓   8 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (3.0s)
+  ✓   9 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.1s)
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+  ✓  10 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (2.3s)
+
+  10 passed (28.0s)

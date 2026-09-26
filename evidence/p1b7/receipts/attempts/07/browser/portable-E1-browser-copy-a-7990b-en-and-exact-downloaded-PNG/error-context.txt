@@ -1,0 +1,298 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: portable.spec.ts >> E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG
+- Location: tests/editor/portable.spec.ts:14:1
+
+# Error details
+
+```
+Error: expect(locator).not.toHaveCount(expected) failed
+
+Locator:  getByRole('button', { name: /^Restore / }).filter({ hasText: /ns_|[a-f0-9]{8}-/ })
+Expected: not 0
+Received: 0
+Timeout:  5000ms
+
+Call log:
+  - Expect "not toHaveCount" getByRole('button', { name: /^Restore / }).filter({ hasText: /ns_|[a-f0-9]{8}-/ }) with timeout 5000ms
+  - waiting for getByRole('button', { name: /^Restore / }).filter({ hasText: /ns_|[a-f0-9]{8}-/ })
+    14 × locator resolved to 0 elements
+       - unexpected value "0"
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f1e3]:
+  - generic:
+    - link "Go to Request" [ref=f1e4] [cursor=pointer]:
+      - /url: "#request"
+    - link "Go to Canvas" [ref=f1e5] [cursor=pointer]:
+      - /url: "#canvas"
+    - link "Go to Layers" [ref=f1e6] [cursor=pointer]:
+      - /url: "#inspector"
+    - link "Go to History" [ref=f1e7] [cursor=pointer]:
+      - /url: "#results"
+  - banner [ref=f1e8]:
+    - generic [ref=f1e13]:
+      - strong [ref=f1e14]: Ideogram Editor
+      - generic [ref=f1e15]: 3 × 2 · revision 5
+    - group "Document actions" [ref=f1e17]:
+      - generic:
+        - button "New" [ref=f1e19] [cursor=pointer]
+        - button "Open" [ref=f1e22] [cursor=pointer]
+        - button "Import image" [ref=f1e25] [cursor=pointer]
+        - button "Undo" [ref=f1e28] [cursor=pointer]
+        - button "Redo" [ref=f1e31] [cursor=pointer]
+    - generic [ref=f1e33]:
+      - button "Connected locally" [ref=f1e35] [cursor=pointer]
+      - generic:
+        - generic: Check connection
+        - generic: Renew connection
+        - generic: Disconnect
+      - button "Save copy" [ref=f1e38] [cursor=pointer]
+      - button "Export image" [ref=f1e41] [cursor=pointer]
+      - button "Help" [ref=f1e44] [cursor=pointer]
+  - region "Operation status" [ref=f1e46]:
+    - status [ref=f1e47]: Action needs attention.
+    - paragraph [ref=f1e48]: Updates interrupted. Recovering complete transactions; the last valid view is retained.
+    - button "Reconnect" [ref=f1e50] [cursor=pointer]
+  - main "Image editor" [ref=f1e52]:
+    - complementary [ref=f1e53]:
+      - toolbar "Canvas tools" [ref=f1e55]:
+        - generic:
+          - button "Move" [disabled] [ref=f1e57]
+          - button "Text" [disabled] [ref=f1e60]
+          - button "Select" [disabled] [ref=f1e63]
+          - button "Mask" [disabled] [ref=f1e66]
+          - button "Crop" [disabled] [ref=f1e69]
+          - button "Pan" [pressed] [ref=f1e72] [cursor=pointer]
+          - button "Zoom" [ref=f1e75] [cursor=pointer]
+    - generic [ref=f1e77]:
+      - region "Request" [ref=f1e78]:
+        - generic [ref=f1e79]:
+          - heading "Request" [level=1] [ref=f1e80]
+          - generic [ref=f1e81]: Draft
+        - generic [ref=f1e82]:
+          - generic [ref=f1e84]:
+            - generic [ref=f1e85]: Operation
+            - combobox "Operation" [ref=f1e88]:
+              - option "Generate image" [selected]
+              - option "Generate with Instant"
+              - option "Generate with Fast"
+              - option "Transform image"
+              - option "Edit masked region"
+              - option "Generate with adapters"
+              - option "Transform with adapters"
+              - option "Edit with adapters"
+          - generic [ref=f1e90]:
+            - generic [ref=f1e91]: Prompt
+            - textbox "Prompt" [ref=f1e94]:
+              - /placeholder: Describe the image you have in mind…
+            - generic [ref=f1e95]: Draft autosaves locally; generation remains unavailable.
+          - paragraph [ref=f1e98]: Portable UI checkpoints available in Open. Choose one to restore its drafts and view.
+          - heading "Explicit inputs" [level=2] [ref=f1e99]
+          - paragraph [ref=f1e100]: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+          - button "Generate" [disabled] [ref=f1e102]
+          - paragraph [ref=f1e104]: Native text, mask drawing and Composition authoring remain required P1c work.
+      - separator "Request panel width" [ref=f1e105]
+      - generic [ref=f1e108]:
+        - region "Canvas" [ref=f1e109]:
+          - generic [ref=f1e110]:
+            - generic [ref=f1e111]: Pan · retained raster
+            - generic [ref=f1e113]:
+              - generic [ref=f1e114]: Zoom percentage
+              - generic [ref=f1e116]:
+                - button "Decrease value" [ref=f1e117] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e120]: −
+                - spinbutton "Zoom percentage" [ref=f1e121]: "100"
+                - button "Increase value" [ref=f1e122] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e125]: +
+            - button "Fit" [ref=f1e127] [cursor=pointer]
+          - generic "Document raster preview" [ref=f1e130]
+          - generic [ref=f1e131]:
+            - generic [ref=f1e132]: 3 × 2 pixels · 0 selected
+            - generic [ref=f1e133]: Paste an image here to review
+          - generic [ref=f1e134]:
+            - generic [ref=f1e136]:
+              - generic [ref=f1e137]: View X (px)
+              - generic [ref=f1e139]:
+                - button "Decrease value" [ref=f1e140] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e143]: −
+                - spinbutton "View X (px)" [ref=f1e144]: "0"
+                - button "Increase value" [ref=f1e145] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e148]: +
+            - generic [ref=f1e150]:
+              - generic [ref=f1e151]: View Y (px)
+              - generic [ref=f1e153]:
+                - button "Decrease value" [ref=f1e154] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e157]: −
+                - spinbutton "View Y (px)" [ref=f1e158]: "0"
+                - button "Increase value" [ref=f1e159] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e162]: +
+            - button "Apply view" [ref=f1e164] [cursor=pointer]
+        - separator "Canvas and inspector width" [ref=f1e166]
+        - complementary "Layers and properties" [ref=f1e169]:
+          - generic [ref=f1e171]:
+            - tablist "Document structure" [ref=f1e172]:
+              - generic:
+                - tab "Layers" [selected] [ref=f1e173] [cursor=pointer]
+                - tab "Composition" [ref=f1e175] [cursor=pointer]
+            - tabpanel "Layers" [ref=f1e178]:
+              - generic [ref=f1e179]:
+                - generic:
+                  - tree "Image layers" [ref=f1e182]:
+                    - treeitem "hidden-alpha.png · visible" [level=1] [ref=f1e183]
+                  - generic [ref=f1e187]:
+                    - button "Duplicate" [disabled] [ref=f1e189]
+                    - button "Delete layer" [disabled] [ref=f1e192]
+                    - button "Move up" [disabled] [ref=f1e195]
+                    - button "Move down" [disabled] [ref=f1e198]
+          - generic [ref=f1e200]:
+            - heading "Image properties" [level=2] [ref=f1e201]
+            - paragraph [ref=f1e202]: Select a layer to inspect it.
+            - generic [ref=f1e203]:
+              - button "Canvas bounds…" [ref=f1e205] [cursor=pointer]
+              - button "Flatten copy…" [ref=f1e208] [cursor=pointer]
+  - region "Activity" [ref=f1e210]:
+    - generic [ref=f1e211]:
+      - heading "Activity" [level=2] [ref=f1e212]
+      - button "Collapse" [ref=f1e214] [cursor=pointer]
+    - generic [ref=f1e217]:
+      - tablist "Activity views" [ref=f1e218]:
+        - generic:
+          - tab "Results" [ref=f1e219] [cursor=pointer]
+          - tab "Jobs" [ref=f1e221] [cursor=pointer]
+          - tab "History" [selected] [ref=f1e223] [cursor=pointer]
+      - tabpanel "History" [ref=f1e226]:
+        - generic [ref=f1e227]:
+          - generic:
+            - generic [ref=f1e229]:
+              - region "Retained document history" [ref=f1e230]:
+                - list "Retained document history" [ref=f1e231]:
+                  - listitem [ref=f1e232]:
+                    - article "History p_1ace0d5b6dbd153adb79365eef70c347c4fab15dbc98b0fd032adf272948b968" [ref=f1e235]:
+                      - generic [ref=f1e236]:
+                        - generic [ref=f1e237]: Document created
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f1e240]: Creation · p_1ace0d5b6dbd153adb79365eef70c347c4fab15dbc98b0fd032adf272948b968
+                  - listitem [ref=f1e241]:
+                    - article "History p_45531f7937aefb5803a9d2c6f3838cb05c0654d9374964c680f85efcb71abb17" [ref=f1e244]:
+                      - generic [ref=f1e245]:
+                        - generic [ref=f1e246]: SetLayerProperties
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f1e249]: SetLayerProperties · p_45531f7937aefb5803a9d2c6f3838cb05c0654d9374964c680f85efcb71abb17
+                      - button "Open this history state" [ref=f1e251] [cursor=pointer]
+                  - listitem [ref=f1e253]:
+                    - article "History p_ea8fe428f0d8cb228f482c9d1bc834778866ada667d7d53db1b20191fed711d0" [ref=f1e256]:
+                      - generic [ref=f1e257]:
+                        - generic [ref=f1e258]: ImportAsset
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f1e261]: ImportAsset · p_ea8fe428f0d8cb228f482c9d1bc834778866ada667d7d53db1b20191fed711d0 · current
+                      - button "Open this history state" [ref=f1e263] [cursor=pointer]
+              - navigation "Retained document history pages" [ref=f1e265]:
+                - button "Newer page" [disabled] [ref=f1e267]
+                - generic [ref=f1e269]: Page 1 of 1
+                - button "Older page" [disabled] [ref=f1e271]
+              - status [ref=f1e273]
+              - button "Load older activity" [disabled] [ref=f1e275]
+            - generic [ref=f1e277]:
+              - generic [ref=f1e279]:
+                - generic [ref=f1e280]: Checkpoint name
+                - textbox "Checkpoint name" [ref=f1e283]: My checkpoint
+              - button "Save checkpoint" [ref=f1e285] [cursor=pointer]
+            - paragraph [ref=f1e287]: 1 checkpoint(s) in this page. Checkpoints retain their full history.
+  - region "Prepared file" [ref=f1e288]:
+    - paragraph [ref=f1e289]: Exact PNG · 111 bytes · Download initiated — destination unconfirmed
+    - button "Download prepared file" [ref=f1e291] [cursor=pointer]
+  - contentinfo [ref=f1e293]:
+    - generic [ref=f1e294]: Accepted edits saved locally · Portable UI checkpoints available in Open. Choose one to restore its drafts and view.
+    - generic [ref=f1e295]: Checkpoint content current · Portable copy outdated · External destination unconfirmed
+  - dialog [ref=f1e296]:
+    - generic [ref=f1e297]:
+      - heading "Open document" [level=2] [ref=f1e298]
+      - button "Close" [ref=f1e301] [cursor=pointer]
+    - generic [ref=f1e307]:
+      - generic:
+        - heading "Recovered local documents" [level=2] [ref=f1e308]
+        - button "d565376e-0984-4020-a924-c3e9ca36372e · 3 × 2 · revision 5" [ref=f1e310] [cursor=pointer]
+        - button "p_3da07e0a6984447269279cbaab2eccbbc44525812b32c2db7cfe92cd0b792457 · 3 × 2 · revision 5" [ref=f1e313] [cursor=pointer]
+        - heading "Saved views and drafts" [level=2] [ref=f1e315]
+        - paragraph [ref=f1e316]: Choose a current checkpoint to restore its view and unapplied drafts. A sequence belongs only to that checkpoint.
+        - button "Restore editor_8d4ef2e3-d86f-4199-9972-96e6a261794e · document p_3da07e0a6984447269279cbaab2eccbbc44525812b32c2db7cfe92cd0b792457 · sequence 6" [ref=f1e318] [cursor=pointer]
+        - button "Restore p_3ecd3f2771d673d55e6e446460c7db3f3e5022a0aa2f4b023398ec4f33f9f3e3 · document p_3da07e0a6984447269279cbaab2eccbbc44525812b32c2db7cfe92cd0b792457 · sequence 5" [ref=f1e321] [cursor=pointer]
+        - generic [ref=f1e324]:
+          - generic [ref=f1e325]: Open portable project
+          - generic [ref=f1e327]:
+            - generic [aria-hidden] [ref=f1e328]: Choose project
+            - generic [aria-hidden] [ref=f1e329]: or drop files here
+            - button "Open portable project" [ref=f1e330] [cursor=pointer]
+    - button "Cancel" [ref=f1e333] [cursor=pointer]
+  - generic:
+    - generic: Cancel review
+    - generic: Apply reviewed result
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect,type Page} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile,writeFile} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join} from 'node:path';
+  5  | import sharp from 'sharp';
+  6  | import {serverProcess} from './process.js';
+  7  | // Test archive reader is independent of the browser adapter; small fixture only.
+  8  | // @ts-ignore
+  9  | import {unpack,records} from '../portable/archive-fixture.mjs';
+  10 | const accepted=(page:Page,type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
+  11 | const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
+  12 | const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+  13 | async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();}
+  14 | test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context})=>{
+  15 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[];
+  16 |  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+  17 |  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  18 |  page.on('request',r=>{const u=new URL(r.url());if(u.protocol!=='blob:'){requests.push(u.pathname);expect(u.hostname).toBe('127.0.0.1');}});
+  19 |  try{
+  20 |  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  21 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');
+  22 |  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');
+  23 |  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();
+  24 |  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');
+  25 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();
+  26 |  const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;
+  27 |  const events=records(entries,'events').values.map((x:any)=>x.event);expect(events.some((e:any)=>e.type==='HistoryNavigated')).toBe(true);expect(events.some((e:any)=>e.type==='CheckpointSaved')).toBe(true);
+  28 |  const entities=all.filter((x:any)=>x.kind==='entity').map((x:any)=>({kind:x.entityType,value:JSON.parse(entries.get('objects/'+x.payloadRef.hash.slice(7)))}));
+  29 |  expect(entities.filter((x:any)=>x.kind==='history').length).toBe(3);expect(entities.filter((x:any)=>x.kind==='checkpoint').length).toBe(1);expect(entities.some((x:any)=>x.kind==='draft')).toBe(true);
+  30 |  const originalPixels=await sharp('tests/raster/fixtures/hidden-alpha.png').ensureAlpha().raw().toBuffer();
+  31 |  const effects=await server.effects();expect(Object.values(effects).every(v=>v===0)).toBe(true);const oldOrigin=server.origin,oldPid=server.pid;await server.kill();
+  32 |  server=await serverProcess(root);expect(server.pid).not.toBe(oldPid);expect(server.origin).not.toBe(oldOrigin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  33 |  expect(await page.evaluate(async()=> (await indexedDB.databases()).filter(d=>d.name?.startsWith('ie-delivery-')).length)).toBe(1);
+  34 |  await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  35 |  await click(page,'Open');await page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath);
+  36 |  await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
+  37 |  await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+> 38 |  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore /}).filter({hasText:/ns_|[a-f0-9]{8}-/});await expect(mapped).not.toHaveCount(0);
+     |                                                                                                                                                  ^ Error: expect(locator).not.toHaveCount(expected) failed
+  39 |  await page.getByRole('button',{name:/^Restore /}).last().click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  40 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+  41 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+  42 |  await page.screenshot({path:join(receipt,'e1.png')});
+  43 |  }finally{await server.close();}
+  44 | });
+  45 | 
+```

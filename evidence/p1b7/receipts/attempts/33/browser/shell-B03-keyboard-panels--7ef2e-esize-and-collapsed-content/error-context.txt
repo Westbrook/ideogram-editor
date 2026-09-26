@@ -1,0 +1,401 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: shell.spec.ts >> B03 keyboard panels, roving tool focus, resize and collapsed content
+- Location: tests/browser/shell.spec.ts:105:1
+
+# Error details
+
+```
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 4
+
+- Array []
++ Array [
++   "Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.",
++   "Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-/vRxpN6eGQgNDV5uGgauy59+bPqAU5pHjPNyMF0Eft8='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.",
++ ]
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic:
+    - link "Go to Request" [ref=e4] [cursor=pointer]:
+      - /url: "#request"
+    - link "Go to Canvas" [ref=e5] [cursor=pointer]:
+      - /url: "#canvas"
+    - link "Go to Layers" [ref=e6] [cursor=pointer]:
+      - /url: "#inspector"
+    - link "Go to History" [ref=e7] [cursor=pointer]:
+      - /url: "#results"
+  - banner [ref=e8]:
+    - generic [ref=e13]:
+      - strong [ref=e14]: Ideogram Editor
+      - generic [ref=e15]: No document open
+    - group "Document actions" [ref=e17]:
+      - generic:
+        - button "New" [ref=e19] [cursor=pointer]
+        - button "Open" [ref=e22] [cursor=pointer]
+        - button "Import image" [ref=e25] [cursor=pointer]
+        - button "Undo" [disabled] [ref=e28]
+        - button "Redo" [disabled] [ref=e31]
+    - generic [ref=e33]:
+      - button "Connected locally" [ref=e35] [cursor=pointer]
+      - generic:
+        - generic: Check connection
+        - generic: Renew connection
+        - generic: Disconnect
+      - button "Save copy" [disabled] [ref=e38]
+      - button "Export image" [disabled] [ref=e41]
+      - button "Help" [expanded] [ref=e44] [cursor=pointer]
+  - region "Operation status" [ref=e46]:
+    - status [ref=e47]: Local recovery complete. Accepted edits are saved locally.
+    - paragraph [ref=e48]: Updates interrupted. Recovering complete transactions; the last valid view is retained.
+    - button "Reconnect" [ref=e50] [cursor=pointer]
+  - main "Image editor" [ref=e52]:
+    - complementary [ref=e53]:
+      - toolbar "Canvas tools" [ref=e55]:
+        - generic:
+          - button "Move" [disabled] [ref=e57]
+          - button "Text" [disabled] [ref=e60]
+          - button "Select" [disabled] [ref=e63]
+          - button "Mask" [disabled] [ref=e66]
+          - button "Crop" [disabled] [ref=e69]
+          - button "Pan" [pressed] [ref=e72] [cursor=pointer]
+          - button "Zoom" [ref=e75] [cursor=pointer]
+    - generic [ref=e77]:
+      - region "Request" [ref=e78]:
+        - generic [ref=e79]:
+          - heading "Request" [level=1] [ref=e80]
+          - generic [ref=e81]: Draft
+        - generic [ref=e82]:
+          - generic [ref=e84]:
+            - generic [ref=e85]: Operation
+            - combobox "Operation" [ref=e88]:
+              - option "Generate image" [selected]
+              - option "Generate with Instant"
+              - option "Generate with Fast"
+              - option "Transform image"
+              - option "Edit masked region"
+              - option "Generate with adapters"
+              - option "Transform with adapters"
+              - option "Edit with adapters"
+          - generic [ref=e90]:
+            - generic [ref=e91]: Prompt
+            - textbox "Prompt" [ref=e94]:
+              - /placeholder: Describe the image you have in mind…
+            - generic [ref=e95]: Open a document to save this draft locally.
+          - paragraph [ref=e98]: Draft has not been applied.
+          - heading "Explicit inputs" [level=2] [ref=e99]
+          - paragraph [ref=e100]: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+          - button "Generate" [disabled] [ref=e102]
+          - paragraph [ref=e104]: Native text, mask drawing and Composition authoring remain required P1c work.
+      - separator "Request panel width" [ref=e105]
+      - generic [ref=e108]:
+        - region "Canvas" [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: Pan · no document
+            - generic [ref=e113]:
+              - generic [ref=e114]: Zoom percentage
+              - generic [ref=e116]:
+                - button "Decrease value" [ref=e117] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e120]: −
+                - spinbutton "Zoom percentage" [ref=e121]: "100"
+                - button "Increase value" [ref=e122] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e125]: +
+            - button "Fit" [disabled] [ref=e127]
+            - button "100%" [disabled] [ref=e130]
+          - generic [ref=e132]:
+            - generic "Document raster preview" [ref=e133]
+            - generic [ref=e134]:
+              - heading "A little room to create." [level=2] [ref=e135]
+              - paragraph [ref=e136]: Choose or drop an image, then review before Apply.
+              - generic [ref=e138]:
+                - generic [ref=e139]: Import an image
+                - generic [ref=e141]:
+                  - generic [aria-hidden] [ref=e142]: Choose image
+                  - generic [aria-hidden] [ref=e143]: or drop files here
+                  - button "Import an image" [ref=e144] [cursor=pointer]
+              - paragraph [ref=e145]: PNG, JPEG or static WebP. Original bytes are retained.
+          - generic [ref=e146]:
+            - generic [ref=e147]: No image accepted
+            - generic [ref=e148]: Paste an image here to review
+          - generic [ref=e149]:
+            - generic [ref=e151]:
+              - generic [ref=e152]: View X (px)
+              - generic [ref=e154]:
+                - button "Decrease value" [ref=e155] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e158]: −
+                - spinbutton "View X (px)" [ref=e159]: "0"
+                - button "Increase value" [ref=e160] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e163]: +
+            - generic [ref=e165]:
+              - generic [ref=e166]: View Y (px)
+              - generic [ref=e168]:
+                - button "Decrease value" [ref=e169] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e172]: −
+                - spinbutton "View Y (px)" [ref=e173]: "0"
+                - button "Increase value" [ref=e174] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e177]: +
+            - button "Apply view" [ref=e179] [cursor=pointer]
+        - separator "Canvas and inspector width" [ref=e181]
+        - complementary "Layers and properties" [ref=e184]:
+          - generic [ref=e186]:
+            - tablist "Document structure" [ref=e187]:
+              - generic:
+                - tab "Layers" [ref=e188] [cursor=pointer]
+                - tab "Composition" [selected] [ref=e190] [cursor=pointer]
+            - tabpanel "Composition" [ref=e193]:
+              - paragraph [ref=e195]: Composition authoring is unavailable in P1b. It remains required P1c work.
+          - generic [ref=e196]:
+            - heading "Image properties" [level=2] [ref=e197]
+            - paragraph [ref=e198]: Select a layer to inspect it.
+            - generic [ref=e199]:
+              - button "Canvas bounds…" [disabled] [ref=e201]
+              - button "Flatten copy…" [disabled] [ref=e204]
+  - region "Activity" [ref=e206]:
+    - generic [ref=e207]:
+      - heading "Activity" [level=2] [ref=e208]
+      - button "Collapse" [ref=e210] [cursor=pointer]
+    - generic [ref=e213]:
+      - tablist "Activity views" [ref=e214]:
+        - generic:
+          - tab "Results" [ref=e215] [cursor=pointer]
+          - tab "Jobs" [selected] [ref=e217] [cursor=pointer]
+          - tab "History" [ref=e219] [cursor=pointer]
+      - tabpanel "Jobs" [ref=e222]:
+        - paragraph [ref=e224]: No jobs submitted. This workflow makes no provider calls.
+  - contentinfo [ref=e225]:
+    - generic [ref=e226]: Accepted edits saved locally · No local draft change
+    - generic [ref=e227]: No document checkpoint · No portable copy · External destination unconfirmed
+  - dialog [ref=e228]:
+    - generic [ref=e229]:
+      - heading "Editor help" [level=2] [ref=e230]
+      - button "Close" [ref=e233] [cursor=pointer]
+    - generic [ref=e239]:
+      - generic:
+        - paragraph [ref=e240]: Import → review → Apply → edit → Undo → Save copy → reopen → Export image.
+        - paragraph [ref=e241]: Cmd/Ctrl+S saves a checkpoint; Shift+Cmd/Ctrl+S prepares a full-history copy; Cmd/Ctrl+O opens a local document or portable file. Native fields keep their own undo and clipboard shortcuts.
+        - paragraph [ref=e242]: "Canvas: H Pan, +/− zoom, 0 Fit. Use numeric view fields without a pointer. Conversion, resample and flatten review require Apply."
+        - paragraph [ref=e243]: Restart the launcher on the same private root, pair, then open recovered documents. An expired review needs a fresh review. Accepted commands and originals stay retained.
+  - generic: Cancel
+  - generic:
+    - generic: Cancel review
+    - generic: Apply reviewed result
+```
+
+# Test source
+
+```ts
+  26  |   context.on('request',request=>{const url=new URL(request.url());expect(url.protocol==='blob:'||['127.0.0.1','localhost'].includes(url.hostname)).toBe(true);});
+  27  | });
+  28  | async function paired(page: import('@playwright/test').Page, server: Server, flag = false) {
+  29  |   const link = new URL(server.issuePairingURL()); if (flag) link.search = '?progress-report';
+  30  |   await Promise.all([page.waitForResponse(response => response.url() === server.origin + '/api/v1/session/bootstrap'), page.goto(link.href)]);
+  31  |   await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+  32  |   await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  33  | }
+  34  | 
+  35  | test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes', async ({ page, context }, info) => {
+  36  |   const directory = await mkdtemp(join(await realpath(tmpdir()), 'ie-launch-browser-'));
+  37  |   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  38  |   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  39  |   await page.addInitScript(() => {
+  40  |     const observations = { cleaned: 0, fetches: [] as { path: string; hash: string; consumed: boolean }[] };
+  41  |     Object.defineProperty(window, '__testObservations', { value: observations });
+  42  |     const replace = history.replaceState.bind(history);
+  43  |     history.replaceState = (...args) => { replace(...args); observations.cleaned = performance.now(); };
+  44  |     const fetchOriginal = window.fetch;
+  45  |     window.fetch = (...args) => {
+  46  |       observations.fetches.push({ path: String(args[0]), hash: location.hash, consumed: !Object.hasOwn(window, '__IE_PAIRING__') });
+  47  |       return fetchOriginal(...args);
+  48  |     };
+  49  |   });
+  50  |   let first = '';
+  51  |   const logs: string[] = [];
+  52  |   const server = await launch({ root: join(directory, 'private'), staticDirectory: resolve('dist/app'), log: line => logs.push(line), openBrowser: async link => { first = link; await page.goto(link); } });
+  53  |   try {
+  54  |     await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+  55  |     const observations = await page.evaluate(() => {
+  56  |       const state = (window as unknown as { __testObservations: { cleaned: number; fetches: unknown[] } }).__testObservations;
+  57  |       return { ...state, resources: performance.getEntriesByType('resource').map(item => ({ path: new URL(item.name).pathname, start: item.startTime })), hash: location.hash, hasPairing: Object.hasOwn(window, '__IE_PAIRING__'), storage: [localStorage.length, sessionStorage.length], cookie: document.cookie };
+  58  |     });
+  59  |     expect(observations.hash).toBe(''); expect(observations.hasPairing).toBe(false); expect(observations.storage[0]).toBe(0); expect(observations.storage[1]).toBeLessThanOrEqual(1); expect(observations.cookie).toBe('');
+  60  |     expect(observations.fetches.slice(0,2)).toEqual([{ path: '/api/v1/session/bootstrap', hash: '', consumed: true }, { path: '/api/v1/capabilities', hash: '', consumed: true }]);
+  61  |     for (const resource of observations.resources) expect(resource.start, resource.path).toBeGreaterThanOrEqual(observations.cleaned);
+  62  |     const cookies = await context.cookies(); expect(cookies).toHaveLength(1); expect(cookies[0].httpOnly).toBe(true); expect(cookies[0].sameSite).toBe('Strict');
+  63  |     expect(logs.join('\n').includes(first.split('#')[1])).toBe(false);
+  64  |     const dom = await page.content(); expect(dom.includes(first.split('pairing=')[1])).toBe(false);
+  65  |     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+  66  |     expect(await page.evaluate(() => (window as unknown as { __testObservations: {fetches: {path:string}[]} }).__testObservations.fetches.slice(0,2).map(x => x.path))).toEqual(['/api/v1/session', '/api/v1/capabilities']);
+  67  |     expect(errors).toEqual([]);
+  68  |     const build = JSON.parse(await readFile('dist/app/build-evidence.json', 'utf8'));
+  69  |     expect(build.observations.D11.startupJsRawBytes).toBeLessThan(1.5 * 1024 * 1024);
+  70  |     expect(build.observations.D11.startupJsGzipBytes).toBeLessThan(500 * 1024);
+  71  |     expect(build.observations.D11.cssGzipBytes).toBeLessThan(200 * 1024);
+  72  |     expect(build.outputs.flatMap((x: {modules:string[]}) => x.modules).some((x:string) => /prosemirror|server\/|tooling\/launcher|elements\/dist\/index.js/.test(x))).toBe(false);
+  73  |     await info.attach('bootstrap-observations', { body: JSON.stringify(observations, null, 2), contentType: 'application/json' });
+  74  |     await page.screenshot({ path: output+'/shell-desktop-1440.png' });
+  75  |   } finally { await server.close(); }
+  76  | });
+  77  | 
+  78  | test('B02 real native prompt drafts, inert text, selection and composition-safe shortcuts', async ({ page, local }) => {
+  79  |   await paired(page, local.server);
+  80  |   const calls: string[] = []; page.on('request', request => { if (request.method() === 'POST') calls.push(new URL(request.url()).pathname); });
+  81  |   const prompt = page.getByRole('textbox', { name: 'Prompt', exact: true });
+  82  |   const hostile = '<img src=x onerror="window.pwned=1">\nשלום 日本語 & untouched';
+  83  |   await prompt.fill(hostile);
+  84  |   await prompt.evaluate(node => (node as HTMLTextAreaElement).setSelectionRange(2, 9, 'backward'));
+  85  |   await page.getByRole('tab', { name: 'Jobs' }).click();
+  86  |   expect(await prompt.evaluate(node => { const n = node as HTMLTextAreaElement; return [n.selectionStart, n.selectionEnd, n.selectionDirection]; })).toEqual([2, 9, 'backward']);
+  87  |   await prompt.focus(); await page.keyboard.press('End'); await page.keyboard.type('hz');
+  88  |   await expect(page.getByRole('button', { name: 'Pan' })).toHaveAttribute('aria-pressed', 'true');
+  89  |   await prompt.dispatchEvent('compositionstart');
+  90  |   await prompt.dispatchEvent('keydown', { key: 'z', bubbles: true, composed: true, isComposing: true });
+  91  |   await prompt.dispatchEvent('compositionend');
+  92  |   await expect(page.getByRole('button', { name: 'Pan' })).toHaveAttribute('aria-pressed', 'true');
+  93  |   const edited = await prompt.inputValue();
+  94  |   await page.getByLabel('Operation', { exact: true }).selectOption({ label: 'Generate with Fast' });
+  95  |   await expect(prompt).toHaveValue(''); await prompt.fill('A separate Fast draft');
+  96  |   await page.getByLabel('Operation', { exact: true }).selectOption({ label: 'Generate image' });
+  97  |   await expect(prompt).toHaveValue(edited);
+  98  |   expect(await page.evaluate(() => Object.hasOwn(window, 'pwned'))).toBe(false);
+  99  |   expect(await page.locator('ie-shell img').count()).toBe(0);
+  100 |   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
+  101 |   await expect(page.getByRole('button', { name: 'Import image', exact: true })).toBeEnabled();
+  102 |   expect(calls).toEqual([]);
+  103 | });
+  104 | 
+  105 | test('B03 keyboard panels, roving tool focus, resize and collapsed content', async ({ page, local }) => {
+  106 |   await paired(page, local.server);
+  107 |   const errors: string[] = []; page.on('console', m => {if(m.type()==='error') errors.push(m.text());});
+  108 |   await page.getByRole('button', { name: 'Pan' }).focus(); await page.keyboard.press('ArrowDown');
+  109 |   await expect(page.getByRole('button', { name: 'Zoom' })).toBeFocused();
+  110 |   await page.keyboard.press('Enter'); await expect(page.getByRole('button', { name: 'Zoom' })).toHaveAttribute('aria-pressed', 'true');
+  111 |   await page.locator('#canvas').focus(); await page.keyboard.press('h'); await expect(page.getByRole('button', { name: 'Pan' })).toHaveAttribute('aria-pressed', 'true');
+  112 |   await page.getByRole('tab', { name: 'Results' }).focus(); await page.keyboard.press('ArrowRight');
+  113 |   await expect(page.getByRole('tab', { name: 'Jobs' })).toBeFocused();
+  114 |   await expect(page.getByText('No jobs submitted. This workflow makes no provider calls.', { exact: true })).toBeVisible();
+  115 |   await page.getByRole('button', { name: 'Collapse', exact: false }).click();
+  116 |   await expect(page.locator('.results-tray en-tabs')).toBeHidden();
+  117 |   await page.getByRole('button', { name: 'Expand', exact: false }).click();
+  118 |   await page.getByRole('tab', { name: 'Composition', exact: true }).click();
+  119 |   await expect(page.getByText('Composition authoring is unavailable in P1b. It remains required P1c work.',{exact:true})).toBeVisible();
+  120 |   const splitter = page.getByRole('separator', { name: 'Request panel width' }).first();
+  121 |   const width = (await page.locator('#request').boundingBox())!.width;
+  122 |   await splitter.focus(); await page.keyboard.press('ArrowRight');
+  123 |   expect((await page.locator('#request').boundingBox())!.width).toBeGreaterThan(width);
+  124 |   console.log('CSP before Help',errors);await page.getByRole('button', { name: 'Help' }).click();console.log('CSP after Help',errors);console.log('style diagnostic',await page.evaluate(()=>{const found:string[]=[];const visit=(root:Document|ShadowRoot)=>{for(const node of root.querySelectorAll('*')){if(node.hasAttribute('style'))found.push(node.localName+' '+node.getAttribute('style'));if(node.shadowRoot)visit(node.shadowRoot);}};visit(document);return found;}));
+  125 |   await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help' })).toBeFocused();
+> 126 |   expect(errors).toEqual([]);
+      |                  ^ Error: expect(received).toEqual(expected) // deep equality
+  127 | });
+  128 | 
+  129 | test('B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing', async ({ page, context, local }) => {
+  130 |   await paired(page, local.server);
+  131 |   const oldCookies = await context.cookies();
+  132 |   const oldCsrf = await page.evaluate(async () => (await (await fetch('/api/v1/session', { headers: { 'X-App-Client': 'LP-1' } })).json()).csrfToken as string);
+  133 |   await page.getByRole('button', { name: 'Connected locally', exact: true }).click();
+  134 |   await page.getByRole('button', { name: 'Renew connection', exact: true }).click();
+  135 |   await expect(page.getByText('Connected to your local workspace.', {exact:true})).toBeVisible();
+  136 |   const rejected = await page.evaluate(async token => (await fetch('/api/v1/session/renew', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-App-CSRF': token }, body: JSON.stringify({ protocolVersion: 1 }) })).status, oldCsrf);
+  137 |   expect(rejected).toBe(403);
+  138 |   const currentCookies = await context.cookies();
+  139 |   await context.addCookies(oldCookies);
+  140 |   const stale = await page.evaluate(async () => (await fetch('/api/v1/session', { headers: { 'X-App-Client': 'LP-1' } })).status);
+  141 |   expect(stale).toBe(401); await context.addCookies(currentCookies);
+  142 |   await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+  143 |   await expect(page.getByRole('button', { name: 'Pairing needed', exact: true })).toBeVisible();
+  144 |   await paired(page, local.server);
+  145 |   local.advance(30 * 60 * 1000);
+  146 |   if (!(await page.getByRole('button', { name: 'Check connection', exact: true }).isVisible())) await page.getByRole('button', { name: 'Connected locally', exact: true }).click();
+  147 |   await page.getByRole('button', { name: 'Check connection', exact: true }).click();
+  148 |   await expect(page.getByRole('button', { name: 'Pairing needed', exact: true })).toBeVisible();
+  149 |   await paired(page, local.server);
+  150 |   const expired = local.server.issuePairingURL(); local.advance(5 * 60 * 1000);
+  151 |   await page.goto(expired); await expect(page.getByRole('button', { name: 'Pairing needed', exact: true })).toBeVisible();
+  152 |   await paired(page, local.server);
+  153 | });
+  154 | 
+  155 | test('B05 browser-controlled hostile origin, null origin, navigation and no marker reads', async ({ page, context, local }, info) => {
+  156 |   await paired(page, local.server);
+  157 |   expect(await page.evaluate(async () => (await fetch('/api/v1/session')).status)).toBe(403);
+  158 |   const statuses: number[] = [];
+  159 |   const hostile = createServer((_req, res) => { res.setHeader('Content-Type', 'text/html'); res.end('<!doctype html><title>Hostile origin test</title>'); });
+  160 |   await new Promise<void>(resolve => hostile.listen(0, '127.0.0.1', resolve));
+  161 |   const address = hostile.address() as {port:number};
+  162 |   const attacker = await context.newPage();
+  163 |   const cdp = await context.newCDPSession(attacker);
+  164 |   await cdp.send('Network.enable');
+  165 |   const ids = new Set<string>();
+  166 |   cdp.on('Network.requestWillBeSent', e => { if(e.request.url.startsWith(local.server.origin + '/api')) ids.add(e.requestId); });
+  167 |   cdp.on('Network.responseReceivedExtraInfo', e => { if(ids.has(e.requestId)) statuses.push(e.statusCode); });
+  168 |   try {
+  169 |     await attacker.goto(`http://localhost:${address.port}`);
+  170 |     const outcome = await attacker.evaluate(async origin => {
+  171 |       const outcomes: string[] = [];
+  172 |       for (const init of [{}, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: '{"protocolVersion":1}' }]) {
+  173 |         try { const result = await fetch(origin + '/api/v1/session/revoke', { ...init, credentials: 'include', mode: 'no-cors' }); outcomes.push(result.type); } catch { outcomes.push('blocked'); }
+  174 |       }
+  175 |       return outcomes;
+  176 |     }, local.server.origin);
+  177 |     expect(outcome.every(x => x === 'opaque' || x === 'blocked')).toBe(true);
+  178 |     await expect.poll(() => statuses.length).toBe(2);
+  179 |     await attacker.goto('data:text/html,<title>Opaque origin security probe</title>');
+  180 |     const nullOriginOutcome = await attacker.evaluate(async origin => { try { const response = await fetch(origin + '/api/v1/session/revoke', { method:'POST', mode:'no-cors', credentials:'include', body:'{}' }); return response.type; } catch { return 'blocked-before-response'; } }, local.server.origin);
+  181 |     expect(['opaque', 'blocked-before-response']).toContain(nullOriginOutcome);
+  182 |     if (nullOriginOutcome === 'opaque') await expect.poll(() => statuses.length).toBe(3);
+  183 |     expect(statuses.every(status => status === 403)).toBe(true);
+  184 |     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact:true })).toBeVisible();
+  185 |     const nav = await context.newPage(); const response = await nav.goto(local.server.origin + '/api/v1/session'); expect(response?.status()).toBe(403); await nav.close();
+  186 |     await info.attach('hostile-browser-outcomes', {body:JSON.stringify({statuses,outcome,nullOriginOutcome}),contentType:'application/json'});
+  187 |   } finally { await attacker.close(); await new Promise<void>(resolve => hostile.close(() => resolve())); }
+  188 | });
+  189 | 
+  190 | test('B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return', async ({ page, local }) => {
+  191 |   await paired(page, local.server);
+  192 |   await page.getByRole('textbox', { name:'Prompt',exact:true }).fill('Keep this draft through reflow');
+  193 |   await page.setViewportSize({width:720,height:450});
+  194 |   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toBeFocused();
+  195 |   await expect(page.getByRole('button', {name:'Hide request',exact:true})).toBeVisible();
+  196 |   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toHaveValue('Keep this draft through reflow');
+  197 |   await page.screenshot({path:output+'/shell-reflow-720.png',fullPage:true});
+  198 |   await page.setViewportSize({width:320,height:800});
+  199 |   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(320);
+  200 |   await page.getByRole('textbox', {name:'Prompt',exact:true}).focus();
+  201 |   await page.getByRole('button', {name:'Hide request',exact:true}).click();
+  202 |   await page.getByRole('button', {name:'Show layers',exact:true}).click();
+  203 |   await page.getByRole('tab',{name:'Composition',exact:true}).click();
+  204 |   await page.getByRole('button',{name:'Hide layers',exact:true}).click();
+  205 |   await page.getByRole('button', {name:'Show request',exact:true}).click();
+  206 |   await page.screenshot({path:output+'/shell-reflow-320.png',fullPage:true});
+  207 | });
+  208 | 
+  209 | test('B07 trusted report flag, navigation fragment, unflagged absence and offline recovery', async ({ page, local }) => {
+  210 |   await paired(page, local.server); await expect(page.getByRole('link',{name:'Progress Report'})).toHaveCount(0);
+  211 |   await page.goto(local.server.origin + '/?progress-report=https://untrusted.example#request');
+  212 |   await expect(page.getByRole('button',{name:'Connected locally',exact:true})).toBeVisible();
+  213 |   await expect(page.getByRole('link',{name:'Progress Report'})).toHaveAttribute('href','http://127.0.0.1:4381/');
+  214 |   expect(new URL(page.url()).hash).toBe('#request');
+  215 |   await page.getByRole('link',{name:'Go to Canvas',exact:true}).focus(); await page.keyboard.press('Enter');
+  216 |   expect(new URL(page.url()).searchParams.has('progress-report')).toBe(true); expect(new URL(page.url()).hash).toBe('#canvas');
+  217 |   await page.reload(); expect(new URL(page.url()).hash).toBe('#canvas');
+  218 |   await expect(page.getByRole('link',{name:'Progress Report'})).toBeVisible();
+  219 |   await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Draft survives failed reads');
+  220 |   await page.getByRole('button',{name:'Connected locally',exact:true}).click();
+  221 |   await local.server.close();
+  222 |   await page.getByRole('button',{name:'Check connection',exact:true}).first().click();
+  223 |   await expect(page.getByRole('button',{name:'Server offline',exact:true})).toBeVisible();
+  224 |   await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('Draft survives failed reads');
+  225 | });
+  226 | 
+```

@@ -1,0 +1,51 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts portable.spec.ts
+
+Running 1 test using 1 worker
+
+(node:60110) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (13.3s)
+
+
+  1) tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+
+    Error: expect(locator).not.toHaveCount(expected) failed
+
+    Locator:  getByRole('button', { name: /^Restore / }).filter({ hasText: /ns_|[a-f0-9]{8}-/ })
+    Expected: not 0
+    Received: 0
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "not toHaveCount" getByRole('button', { name: /^Restore / }).filter({ hasText: /ns_|[a-f0-9]{8}-/ }) with timeout 5000ms
+      - waiting for getByRole('button', { name: /^Restore / }).filter({ hasText: /ns_|[a-f0-9]{8}-/ })
+        14 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      36 |  await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
+      37 |  await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+    > 38 |  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore /}).filter({hasText:/ns_|[a-f0-9]{8}-/});await expect(mapped).not.toHaveCount(0);
+         |                                                                                                                                                  ^
+      39 |  await page.getByRole('button',{name:/^Restore /}).last().click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+      40 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+      41 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:38:146
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/07/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/07/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/07/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/trace.zip
+    Usage:
+
+        npx playwright show-trace artifacts/p1b7/attempts/07/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 

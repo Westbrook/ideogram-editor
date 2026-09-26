@@ -1,0 +1,112 @@
+{
+  "file": "artifacts/p1b7/attempts/63/paint-analysis.json",
+  "actions": [
+    {
+      "name": "import-review-and-apply",
+      "nativeParentMs": 1252.603,
+      "lastIntentMs": 414.903
+    },
+    {
+      "name": "selection",
+      "nativeParentMs": 13.517,
+      "lastIntentMs": 13.517
+    },
+    {
+      "name": "opacity-0",
+      "nativeParentMs": 381.956,
+      "lastIntentMs": 381.956
+    },
+    {
+      "name": "opacity-1",
+      "nativeParentMs": 365.94,
+      "lastIntentMs": 365.94
+    },
+    {
+      "name": "opacity-2",
+      "nativeParentMs": 432.277,
+      "lastIntentMs": 432.277
+    },
+    {
+      "name": "opacity-3",
+      "nativeParentMs": 366.225,
+      "lastIntentMs": 366.225
+    },
+    {
+      "name": "opacity-4",
+      "nativeParentMs": 348.919,
+      "lastIntentMs": 348.919
+    },
+    {
+      "name": "undo",
+      "nativeParentMs": 130.003,
+      "lastIntentMs": 130.003
+    },
+    {
+      "name": "redo",
+      "nativeParentMs": 114.712,
+      "lastIntentMs": 114.712
+    },
+    {
+      "name": "zoom",
+      "nativeParentMs": 58.885,
+      "lastIntentMs": 58.885
+    },
+    {
+      "name": "resample-review-and-apply",
+      "nativeParentMs": 1035.319,
+      "lastIntentMs": 154.719
+    },
+    {
+      "name": "flatten-review-and-apply",
+      "nativeParentMs": 1046.87,
+      "lastIntentMs": 166.37
+    },
+    {
+      "name": "checkpoint",
+      "nativeParentMs": 133.617,
+      "lastIntentMs": 133.617
+    },
+    {
+      "name": "full-copy-ready",
+      "nativeParentMs": 455.216,
+      "lastIntentMs": 389.816
+    },
+    {
+      "name": "full-copy-download",
+      "nativeParentMs": 34.861,
+      "lastIntentMs": 34.861
+    },
+    {
+      "name": "portable-open-review-and-apply",
+      "nativeParentMs": 4381.219,
+      "lastIntentMs": 2532.519
+    },
+    {
+      "name": "exact-export-ready",
+      "nativeParentMs": 184.328,
+      "lastIntentMs": 184.328
+    },
+    {
+      "name": "exact-export-download",
+      "nativeParentMs": 33.024,
+      "lastIntentMs": 33.024
+    }
+  ],
+  "feedbackMaxMs": 64.419,
+  "startup": [
+    {
+      "marker": "ie.test.cold.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 215.593
+    },
+    {
+      "marker": "ie.test.warm.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 166.216
+    },
+    {
+      "marker": "ie.test.warm.test-edit",
+      "qualified": false,
+      "reason": "Missing: attempt did not reach this checkpoint"
+    }
+  ],
+  "serverRSSMiB": 184.078125
+}

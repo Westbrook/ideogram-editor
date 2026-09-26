@@ -1,0 +1,165 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/browser/playwright.config.ts",
+      "--grep",
+      "B03"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/37/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "shell.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/37/shell-browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "shell.spec.ts",
+      "file": "shell.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "B03 keyboard panels, roving tool focus, resize and collapsed content",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5894,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAccessibleDescription\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Help', exact: true })\nExpected: \u001b[32m\"Shortcuts and recovery\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAccessibleDescription\" getByRole('button', { name: 'Help', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Help', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" aria-describedby=\"\" data-variant=\"ghost\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAccessibleDescription\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Help', exact: true })\nExpected: \u001b[32m\"Shortcuts and recovery\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAccessibleDescription\" getByRole('button', { name: 'Help', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Help', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" aria-describedby=\"\" data-variant=\"ghost\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"\"\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:124:787",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts",
+                      "column": 787,
+                      "line": 124
+                    },
+                    "snippet": "  122 |   await splitter.focus(); await page.keyboard.press('ArrowRight');\n  123 |   expect((await page.locator('#request').boundingBox())!.width).toBeGreaterThan(width);\n> 124 |   await expect(page.getByText('Shortcuts and recovery',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Help',exact:true}).hover();await page.getByRole('button',{name:'Help',exact:true}).focus();console.log('Help description refs',await page.locator('#help-trigger').evaluate((h:any)=>({host:h.ariaDescribedByElements?.map((n:Element)=>n.textContent),native:h.shadowRoot.querySelector('button').ariaDescribedByElements?.map((n:Element)=>n.textContent)})));const ax=await(await page.context().newCDPSession(page)).send('Accessibility.getFullAXTree');console.log('Help AX',ax.nodes.filter(n=>n.role?.value==='button'&&n.name?.value==='Help').map(n=>({name:n.name?.value,description:n.description?.value})));await expect(page.getByRole('button',{name:'Help',exact:true})).toHaveAccessibleDescription('Shortcuts and recovery');await page.getByRole('button', { name: 'Help' }).click();\n      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^\n  125 |   await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help' })).toBeFocused();\n  126 |   expect(errors).toEqual([]);\n  127 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts",
+                        "column": 787,
+                        "line": 124
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAccessibleDescription\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Help', exact: true })\nExpected: \u001b[32m\"Shortcuts and recovery\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAccessibleDescription\" getByRole('button', { name: 'Help', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Help', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" aria-describedby=\"\" data-variant=\"ghost\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"\"\u001b[22m\n\n\n  122 |   await splitter.focus(); await page.keyboard.press('ArrowRight');\n  123 |   expect((await page.locator('#request').boundingBox())!.width).toBeGreaterThan(width);\n> 124 |   await expect(page.getByText('Shortcuts and recovery',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Help',exact:true}).hover();await page.getByRole('button',{name:'Help',exact:true}).focus();console.log('Help description refs',await page.locator('#help-trigger').evaluate((h:any)=>({host:h.ariaDescribedByElements?.map((n:Element)=>n.textContent),native:h.shadowRoot.querySelector('button').ariaDescribedByElements?.map((n:Element)=>n.textContent)})));const ax=await(await page.context().newCDPSession(page)).send('Accessibility.getFullAXTree');console.log('Help AX',ax.nodes.filter(n=>n.role?.value==='button'&&n.name?.value==='Help').map(n=>({name:n.name?.value,description:n.description?.value})));await expect(page.getByRole('button',{name:'Help',exact:true})).toHaveAccessibleDescription('Shortcuts and recovery');await page.getByRole('button', { name: 'Help' }).click();\n      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^\n  125 |   await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help' })).toBeFocused();\n  126 |   expect(errors).toEqual([]);\n  127 | });\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:124:787"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Help description refs {\n  host: [ \u001b[32m'Shortcuts and recovery'\u001b[39m ],\n  native: [ \u001b[32m'Shortcuts and recovery'\u001b[39m ]\n}\n"
+                    },
+                    {
+                      "text": "Help AX [ { name: \u001b[32m'Help'\u001b[39m, description: \u001b[32m'Shortcuts and recovery'\u001b[39m } ]\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:35:19.594Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/37/browser/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/37/browser/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts",
+                    "column": 787,
+                    "line": 124
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-f609be8ea01f83d870cf",
+          "file": "shell.spec.ts",
+          "line": 105,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:35:19.329Z",
+    "duration": 6274.601,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

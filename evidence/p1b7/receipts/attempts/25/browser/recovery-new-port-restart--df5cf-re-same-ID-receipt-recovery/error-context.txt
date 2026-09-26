@@ -1,0 +1,270 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: recovery.spec.ts >> new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery
+- Location: tests/editor/recovery.spec.ts:48:1
+
+# Error details
+
+```
+Error: no such column: payload
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic:
+    - link "Go to Request" [ref=e4] [cursor=pointer]:
+      - /url: "#request"
+    - link "Go to Canvas" [ref=e5] [cursor=pointer]:
+      - /url: "#canvas"
+    - link "Go to Layers" [ref=e6] [cursor=pointer]:
+      - /url: "#inspector"
+    - link "Go to History" [ref=e7] [cursor=pointer]:
+      - /url: "#results"
+  - banner [ref=e8]:
+    - generic [ref=e13]:
+      - strong [ref=e14]: Ideogram Editor
+      - generic [ref=e15]: 3 × 2 · revision 2
+    - group "Document actions" [ref=e17]:
+      - generic:
+        - button "New" [ref=e19] [cursor=pointer]
+        - button "Open" [ref=e22] [cursor=pointer]
+        - button "Import image" [ref=e25] [cursor=pointer]
+        - button "Undo" [ref=e28] [cursor=pointer]
+        - button "Redo" [disabled] [ref=e31]
+    - generic [ref=e33]:
+      - button "Connected locally" [ref=e35] [cursor=pointer]
+      - generic:
+        - generic: Check connection
+        - generic: Renew connection
+        - generic: Disconnect
+      - button "Save copy" [ref=e38] [cursor=pointer]
+      - button "Export image" [ref=e41] [cursor=pointer]
+      - button "Help" [ref=e44] [cursor=pointer]
+  - region "Operation status" [ref=e46]:
+    - status [ref=e47]: ImportAsset accepted and saved locally.
+    - paragraph [ref=e48]: Updates interrupted. Recovering complete transactions; the last valid view is retained.
+    - button "Reconnect" [ref=e50] [cursor=pointer]
+  - main "Image editor" [ref=e52]:
+    - complementary [ref=e53]:
+      - toolbar "Canvas tools" [ref=e55]:
+        - generic:
+          - button "Move" [disabled] [ref=e57]
+          - button "Text" [disabled] [ref=e60]
+          - button "Select" [disabled] [ref=e63]
+          - button "Mask" [disabled] [ref=e66]
+          - button "Crop" [disabled] [ref=e69]
+          - button "Pan" [pressed] [ref=e72] [cursor=pointer]
+          - button "Zoom" [ref=e75] [cursor=pointer]
+    - generic [ref=e77]:
+      - region "Request" [ref=e78]:
+        - generic [ref=e79]:
+          - heading "Request" [level=1] [ref=e80]
+          - generic [ref=e81]: Draft
+        - generic [ref=e82]:
+          - generic [ref=e84]:
+            - generic [ref=e85]: Operation
+            - combobox "Operation" [ref=e88]:
+              - option "Generate image" [selected]
+              - option "Generate with Instant"
+              - option "Generate with Fast"
+              - option "Transform image"
+              - option "Edit masked region"
+              - option "Generate with adapters"
+              - option "Transform with adapters"
+              - option "Edit with adapters"
+          - generic [ref=e90]:
+            - generic [ref=e91]: Prompt
+            - textbox "Prompt" [ref=e94]:
+              - /placeholder: Describe the image you have in mind…
+            - generic [ref=e95]: Draft autosaves locally; generation remains unavailable.
+          - paragraph [ref=e98]: Draft has not been applied.
+          - heading "Explicit inputs" [level=2] [ref=e99]
+          - paragraph [ref=e100]: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+          - button "Generate" [disabled] [ref=e102]
+          - paragraph [ref=e104]: Native text, mask drawing and Composition authoring remain required P1c work.
+      - separator "Request panel width" [ref=e105]
+      - generic [ref=e108]:
+        - region "Canvas" [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: Pan · retained raster
+            - generic [ref=e113]:
+              - generic [ref=e114]: Zoom percentage
+              - generic [ref=e116]:
+                - button "Decrease value" [ref=e117] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e120]: −
+                - spinbutton "Zoom percentage" [ref=e121]: "100"
+                - button "Increase value" [ref=e122] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e125]: +
+            - button "Fit" [ref=e127] [cursor=pointer]
+            - button "100%" [ref=e130] [cursor=pointer]
+          - generic "Document raster preview" [ref=e133]
+          - generic [ref=e134]:
+            - generic [ref=e135]: 3 × 2 pixels · 0 selected
+            - generic [ref=e136]: Paste an image here to review
+          - generic [ref=e137]:
+            - generic [ref=e139]:
+              - generic [ref=e140]: View X (px)
+              - generic [ref=e142]:
+                - button "Decrease value" [ref=e143] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e146]: −
+                - spinbutton "View X (px)" [ref=e147]: "0"
+                - button "Increase value" [ref=e148] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e151]: +
+            - generic [ref=e153]:
+              - generic [ref=e154]: View Y (px)
+              - generic [ref=e156]:
+                - button "Decrease value" [ref=e157] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e160]: −
+                - spinbutton "View Y (px)" [ref=e161]: "0"
+                - button "Increase value" [ref=e162] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e165]: +
+            - button "Apply view" [ref=e167] [cursor=pointer]
+        - separator "Canvas and inspector width" [ref=e169]
+        - complementary "Layers and properties" [ref=e172]:
+          - generic [ref=e174]:
+            - tablist "Document structure" [ref=e175]:
+              - generic:
+                - tab "Layers" [selected] [ref=e176] [cursor=pointer]
+                - tab "Composition" [ref=e178] [cursor=pointer]
+            - tabpanel "Layers" [ref=e181]:
+              - generic [ref=e182]:
+                - generic:
+                  - tree "Image layers" [ref=e185]:
+                    - treeitem "hidden-alpha.png · visible" [level=1] [ref=e186]
+                  - generic [ref=e190]:
+                    - button "Duplicate" [disabled] [ref=e192]
+                    - button "Delete layer" [disabled] [ref=e195]
+                    - button "Move up" [disabled] [ref=e198]
+                    - button "Move down" [disabled] [ref=e201]
+          - generic [ref=e203]:
+            - heading "Image properties" [level=2] [ref=e204]
+            - paragraph [ref=e205]: Select a layer to inspect it.
+            - generic [ref=e206]:
+              - button "Canvas bounds…" [ref=e208] [cursor=pointer]
+              - button "Flatten copy…" [ref=e211] [cursor=pointer]
+  - region "Activity" [ref=e213]:
+    - generic [ref=e214]:
+      - heading "Activity" [level=2] [ref=e215]
+      - button "Collapse" [ref=e217] [cursor=pointer]
+    - generic [ref=e220]:
+      - tablist "Activity views" [ref=e221]:
+        - generic:
+          - tab "Results" [ref=e222] [cursor=pointer]
+          - tab "Jobs" [ref=e224] [cursor=pointer]
+          - tab "History" [selected] [ref=e226] [cursor=pointer]
+      - tabpanel "History" [ref=e229]:
+        - generic [ref=e230]:
+          - generic:
+            - generic [ref=e232]:
+              - region "Retained document history" [ref=e233]:
+                - list "Retained document history" [ref=e234]:
+                  - listitem [ref=e235]:
+                    - article "History 85f0fe88-20f6-4698-933f-9f644be38cf9" [ref=e238]:
+                      - generic [ref=e239]:
+                        - generic [ref=e240]: ImportAsset
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=e243]: ImportAsset · 85f0fe88-20f6-4698-933f-9f644be38cf9 · current
+                      - button "Open this history state" [ref=e245] [cursor=pointer]
+                  - listitem [ref=e247]:
+                    - article "History d13425c8-d57c-4c44-a9f4-f665de7f88a5" [ref=e250]:
+                      - generic [ref=e251]:
+                        - generic [ref=e252]: Document created
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=e255]: Creation · d13425c8-d57c-4c44-a9f4-f665de7f88a5
+              - navigation "Retained document history pages" [ref=e256]:
+                - button "Newer page" [disabled] [ref=e258]
+                - generic [ref=e260]: Page 1 of 1
+                - button "Older page" [disabled] [ref=e262]
+              - status [ref=e264]
+              - button "Load older activity" [disabled] [ref=e266]
+            - button "First history page" [ref=e269] [cursor=pointer]
+            - generic [ref=e271]:
+              - generic [ref=e273]:
+                - generic [ref=e274]: Checkpoint name
+                - textbox "Checkpoint name" [ref=e277]: My checkpoint
+              - button "Save checkpoint" [ref=e279] [cursor=pointer]
+            - paragraph [ref=e281]: Checkpoints retain their full history.
+  - contentinfo [ref=e282]:
+    - generic [ref=e283]: Accepted edits saved locally · No local draft change
+    - generic [ref=e284]: Checkpoint outdated · Portable copy outdated · External destination unconfirmed
+  - generic: Cancel
+  - generic:
+    - generic: Cancel review
+    - generic: Apply reviewed result
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect,type Page,type BrowserContext} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile,writeFile,unlink} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join} from 'node:path';
+  5  | import {randomUUID,createHash} from 'node:crypto';
+  6  | import {DatabaseSync} from 'node:sqlite';
+  7  | import {serverProcess} from './process.js';
+  8  | // @ts-ignore
+  9  | import {call,exchange} from '../session/helpers.mjs';
+  10 | // @ts-ignore
+  11 | import {command} from '../store/helpers.mjs';
+  12 | const empty={kind:'empty',byteLength:'0'};
+  13 | const click=(p:Page,n:string)=>p.getByRole('button',{name:n,exact:true}).click();
+  14 | async function setup(page:Page,context:BrowserContext){
+  15 |  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-recovery-ui-')),root=join(dir,'private'),server=await serverProcess(root);let last:any,csrf='';
+  16 |  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'){last=JSON.parse(r.postData()!);csrf=r.headers()['x-app-csrf'];}});
+  17 |  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
+  18 |  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
+  19 |  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
+  20 | }
+  21 | test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
+  22 |  const f=await setup(page,context);try{
+  23 |  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];
+  24 |  await page.route('**/api/v1/ui/*',async route=>{const r=route.request();if(r.method()==='POST'&&JSON.parse(r.postData()!).body.type==='SaveDraft'){sent.push(r.postData()!);if(!dropped){wire=r.postData()!;dropped=true;await route.fetch();await route.abort();return;}}await route.continue();});
+  25 |  await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Lost receipt 日本語');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();
+  26 |  await page.reload();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();await click(page,'Retry original draft delivery');expect(sent).toEqual([wire,wire]);await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Lost receipt 日本語');
+  27 |  await click(page,'Cancel changes');await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');await expect.poll(async()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const n=db.prepare("SELECT count(*) n FROM ui_checkpoints WHERE payload LIKE '%Lost receipt%'").get();db.close();return n?.n??0;}).toBe(0).catch(()=>{});
+  28 |  await page.reload();await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');
+  29 |  }finally{await f.server.close();}
+  30 | });
+  31 | 
+  32 | test('missing retained raster bytes block full copy visibly and remain recoverable',async({page,context})=>{
+  33 |  const f=await setup(page,context);let path='',bytes:Buffer|undefined;try{
+  34 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT payload FROM assets').all() as {payload:string}[];db.close();const asset=rows.map(x=>JSON.parse(x.payload)).find(x=>x.qualification==='canonical-raster');expect(asset).toBeTruthy();path=join(f.root,'objects','sha256',asset.raster.pixels.hash.slice(7,9),asset.raster.pixels.hash.slice(7));bytes=await readFile(path);await unlink(path);
+  35 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByText(/Content unavailable or missing/)).toBeVisible();await expect(page.getByRole('region',{name:'Prepared file'})).toHaveCount(0);await writeFile(path,bytes,{mode:0o600});bytes=undefined;await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Full-history copy');
+  36 |  }finally{if(bytes)await writeFile(path,bytes,{mode:0o600});await f.server.close();}
+  37 | });
+  38 | 
+  39 | test('real snapshot gap recovery publishes the complete current document after offline browser interval',async({page,context})=>{
+  40 |  test.setTimeout(120000);const f=await setup(page,context);try{
+  41 |  const id=f.last.command.documentId,clientId=f.last.command.clientId;const document=(await f.read('/api/v1/documents/'+id)).json;await page.goto('about:blank');
+  42 |  let revision=BigInt(document.document?.revision??document.revision);for(let i=0;i<251;i++){const c=command(empty,{clientId,documentId:id,expectedDocumentRevision:String(revision),body:{type:'SaveCheckpoint',name:'gap '+i}});const r=await call(f.server.origin,'/api/v1/commands',{method:'POST',body:c,headers:f.headers()});expect(r.json.receipt.status).toBe('accepted');revision++;}
+  43 |  const gaps:string[]=[];page.on('response',r=>{if(r.url().includes('/api/v1/events')&&r.status()===409)gaps.push(r.url().split('?')[0]);});
+  44 |  await page.goto(f.server.origin);await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('.document-name')).toContainText('revision '+revision);await expect(page.getByRole('treeitem')).toHaveCount(1);expect(gaps.length).toBeGreaterThan(0);await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);
+  45 |  }finally{await f.server.close();}
+  46 | });
+  47 | 
+  48 | test('new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery',async({page,context})=>{
+  49 |  const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>();let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;
+  50 |  try{
+> 51 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT payload FROM assets').all() as {payload:string}[];db.close();const original=rows.map(x=>JSON.parse(x.payload)).find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();
+     |                                                                                          ^ Error: no such column: payload
+  52 |  for(let i=0;i<2;i++){const stagingId=randomUUID();expect((await call(f.server.origin,'/api/v1/assets/staging',{method:'POST',body:{protocolVersion:1,stagingId,purpose:'caption',expectedBytes:'1',sha256:'sha256:'+createHash('sha256').update('x').digest('hex'),mediaType:'text/plain'},headers:f.headers()})).status).toBe(201);const h=exchange(f.server.origin,'/api/v1/assets/staging/'+stagingId,{method:'PUT',defer:true,headers:{...f.headers(),'Content-Type':'application/octet-stream','Content-Length':'1','Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();holds.push(h);}
+  53 |  await page.waitForTimeout(30);
+  54 |  for(let i=0;i<40;i++){const c=command(empty,{clientId:f.last.command.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'PrepareRaster',assetId:original.id}}),wire=JSON.stringify(c,null,2);originals.set(c.command.commandId,wire);expect((await call(f.server.origin,'/api/v1/commands',{method:'POST',raw:Buffer.from(wire),headers:f.headers()})).status).toBe(202);}
+  55 |  const old=f.server.origin;await f.server.kill();holds.forEach(h=>h.request.destroy());restarted=await serverProcess(f.root);expect(restarted.origin).not.toBe(old);const reads:Promise<void>[]=[];page.on('response',r=>{const match=new URL(r.url()).pathname.match(/commands\/([^/]+)\/original$/);if(match&&originals.has(match[1]))reads.push(r.text().then(text=>{expect(text).toBe(originals.get(match[1]));}));});await page.goto(await restarted.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Check and retry original',exact:true}).first()).toBeVisible();expect(reads.length).toBeGreaterThan(0);await Promise.all(reads);await click(page,'Check and retry original').catch(async()=>page.getByRole('button',{name:'Check and retry original',exact:true}).first().click());await expect(page.getByText('PrepareRaster accepted and saved locally.',{exact:true})).toBeVisible();expect(Object.values(await restarted.effects()).every(x=>x===0)).toBe(true);
+  56 |  }finally{holds.forEach(h=>h.request.destroy());await f.server.close();await restarted?.close();}
+  57 | });
+  58 | 
+```

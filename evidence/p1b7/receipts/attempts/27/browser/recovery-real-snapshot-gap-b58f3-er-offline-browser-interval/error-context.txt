@@ -1,0 +1,364 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: recovery.spec.ts >> real snapshot gap recovery publishes the complete current document after offline browser interval
+- Location: tests/editor/recovery.spec.ts:39:1
+
+# Error details
+
+```
+Error: expect(received).toBeGreaterThan(expected)
+
+Expected: > 0
+Received:   0
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f1e3]:
+  - generic:
+    - link "Go to Request" [ref=f1e4] [cursor=pointer]:
+      - /url: "#request"
+    - link "Go to Canvas" [ref=f1e5] [cursor=pointer]:
+      - /url: "#canvas"
+    - link "Go to Layers" [ref=f1e6] [cursor=pointer]:
+      - /url: "#inspector"
+    - link "Go to History" [ref=f1e7] [cursor=pointer]:
+      - /url: "#results"
+  - banner [ref=f1e8]:
+    - generic [ref=f1e13]:
+      - strong [ref=f1e14]: Ideogram Editor
+      - generic [ref=f1e15]: 3 × 2 · revision 253
+    - group "Document actions" [ref=f1e17]:
+      - generic:
+        - button "New" [ref=f1e19] [cursor=pointer]
+        - button "Open" [ref=f1e22] [cursor=pointer]
+        - button "Import image" [ref=f1e25] [cursor=pointer]
+        - button "Undo" [ref=f1e28] [cursor=pointer]
+        - button "Redo" [disabled] [ref=f1e31]
+    - generic [ref=f1e33]:
+      - button "Connected locally" [ref=f1e35] [cursor=pointer]
+      - generic:
+        - generic: Check connection
+        - generic: Renew connection
+        - generic: Disconnect
+      - button "Save copy" [ref=f1e38] [cursor=pointer]
+      - button "Export image" [ref=f1e41] [cursor=pointer]
+      - button "Help" [ref=f1e44] [cursor=pointer]
+  - region "Operation status" [ref=f1e46]:
+    - status [ref=f1e47]: Local recovery complete. Accepted edits are saved locally.
+    - paragraph [ref=f1e48]: Updates interrupted. Recovering complete transactions; the last valid view is retained.
+    - button "Reconnect" [ref=f1e50] [cursor=pointer]
+  - main "Image editor" [ref=f1e52]:
+    - complementary [ref=f1e53]:
+      - toolbar "Canvas tools" [ref=f1e55]:
+        - generic:
+          - button "Move" [disabled] [ref=f1e57]
+          - button "Text" [disabled] [ref=f1e60]
+          - button "Select" [disabled] [ref=f1e63]
+          - button "Mask" [disabled] [ref=f1e66]
+          - button "Crop" [disabled] [ref=f1e69]
+          - button "Pan" [pressed] [ref=f1e72] [cursor=pointer]
+          - button "Zoom" [ref=f1e75] [cursor=pointer]
+    - generic [ref=f1e77]:
+      - region "Request" [ref=f1e78]:
+        - generic [ref=f1e79]:
+          - heading "Request" [level=1] [ref=f1e80]
+          - generic [ref=f1e81]: Draft
+        - generic [ref=f1e82]:
+          - generic [ref=f1e84]:
+            - generic [ref=f1e85]: Operation
+            - combobox "Operation" [ref=f1e88]:
+              - option "Generate image" [selected]
+              - option "Generate with Instant"
+              - option "Generate with Fast"
+              - option "Transform image"
+              - option "Edit masked region"
+              - option "Generate with adapters"
+              - option "Transform with adapters"
+              - option "Edit with adapters"
+          - generic [ref=f1e90]:
+            - generic [ref=f1e91]: Prompt
+            - textbox "Prompt" [ref=f1e94]:
+              - /placeholder: Describe the image you have in mind…
+            - generic [ref=f1e95]: Draft autosaves locally; generation remains unavailable.
+          - paragraph [ref=f1e98]: Draft has not been applied.
+          - heading "Explicit inputs" [level=2] [ref=f1e99]
+          - paragraph [ref=f1e100]: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+          - button "Generate" [disabled] [ref=f1e102]
+          - paragraph [ref=f1e104]: Native text, mask drawing and Composition authoring remain required P1c work.
+      - separator "Request panel width" [ref=f1e105]
+      - generic [ref=f1e108]:
+        - region "Canvas" [ref=f1e109]:
+          - generic [ref=f1e110]:
+            - generic [ref=f1e111]: Pan · retained raster
+            - generic [ref=f1e113]:
+              - generic [ref=f1e114]: Zoom percentage
+              - generic [ref=f1e116]:
+                - button "Decrease value" [ref=f1e117] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e120]: −
+                - spinbutton "Zoom percentage" [ref=f1e121]: "100"
+                - button "Increase value" [ref=f1e122] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e125]: +
+            - button "Fit" [ref=f1e127] [cursor=pointer]
+            - button "100%" [ref=f1e130] [cursor=pointer]
+          - generic "Document raster preview" [ref=f1e133]
+          - generic [ref=f1e134]:
+            - generic [ref=f1e135]: 3 × 2 pixels · 0 selected
+            - generic [ref=f1e136]: Paste an image here to review
+          - generic [ref=f1e137]:
+            - generic [ref=f1e139]:
+              - generic [ref=f1e140]: View X (px)
+              - generic [ref=f1e142]:
+                - button "Decrease value" [ref=f1e143] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e146]: −
+                - spinbutton "View X (px)" [ref=f1e147]: "0"
+                - button "Increase value" [ref=f1e148] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e151]: +
+            - generic [ref=f1e153]:
+              - generic [ref=f1e154]: View Y (px)
+              - generic [ref=f1e156]:
+                - button "Decrease value" [ref=f1e157] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e160]: −
+                - spinbutton "View Y (px)" [ref=f1e161]: "0"
+                - button "Increase value" [ref=f1e162] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e165]: +
+            - button "Apply view" [ref=f1e167] [cursor=pointer]
+        - separator "Canvas and inspector width" [ref=f1e169]
+        - complementary "Layers and properties" [ref=f1e172]:
+          - generic [ref=f1e174]:
+            - tablist "Document structure" [ref=f1e175]:
+              - generic:
+                - tab "Layers" [selected] [ref=f1e176] [cursor=pointer]
+                - tab "Composition" [ref=f1e178] [cursor=pointer]
+            - tabpanel "Layers" [ref=f1e181]:
+              - generic [ref=f1e182]:
+                - generic:
+                  - tree "Image layers" [ref=f1e185]:
+                    - treeitem "hidden-alpha.png · visible" [level=1] [ref=f1e186]
+                  - generic [ref=f1e190]:
+                    - button "Duplicate" [disabled] [ref=f1e192]
+                    - button "Delete layer" [disabled] [ref=f1e195]
+                    - button "Move up" [disabled] [ref=f1e198]
+                    - button "Move down" [disabled] [ref=f1e201]
+          - generic [ref=f1e203]:
+            - heading "Image properties" [level=2] [ref=f1e204]
+            - paragraph [ref=f1e205]: Select a layer to inspect it.
+            - generic [ref=f1e206]:
+              - button "Canvas bounds…" [ref=f1e208] [cursor=pointer]
+              - button "Flatten copy…" [ref=f1e211] [cursor=pointer]
+  - region "Activity" [ref=f1e213]:
+    - generic [ref=f1e214]:
+      - heading "Activity" [level=2] [ref=f1e215]
+      - button "Collapse" [ref=f1e217] [cursor=pointer]
+    - generic [ref=f1e220]:
+      - tablist "Activity views" [ref=f1e221]:
+        - generic:
+          - tab "Results" [ref=f1e222] [cursor=pointer]
+          - tab "Jobs" [ref=f1e224] [cursor=pointer]
+          - tab "History" [selected] [ref=f1e226] [cursor=pointer]
+      - tabpanel "History" [ref=f1e229]:
+        - generic [ref=f1e230]:
+          - generic:
+            - generic [ref=f1e232]:
+              - region "Retained document history" [ref=f1e233]:
+                - list "Retained document history" [ref=f1e234]:
+                  - listitem [ref=f1e235]:
+                    - article "History a1873526-e685-44d7-b6a0-a6b7d9439ba5" [ref=f1e238]:
+                      - generic [ref=f1e239]:
+                        - generic [ref=f1e240]: ImportAsset
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f1e243]: ImportAsset · a1873526-e685-44d7-b6a0-a6b7d9439ba5 · current
+                      - button "Open this history state" [ref=f1e245] [cursor=pointer]
+                  - listitem [ref=f1e247]:
+                    - article "History ebbbbecd-b157-4904-9701-5b6fee876276" [ref=f1e250]:
+                      - generic [ref=f1e251]:
+                        - generic [ref=f1e252]: Document created
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f1e255]: Creation · ebbbbecd-b157-4904-9701-5b6fee876276
+              - navigation "Retained document history pages" [ref=f1e256]:
+                - button "Newer page" [disabled] [ref=f1e258]
+                - generic [ref=f1e260]: Page 1 of 1
+                - button "Older page" [disabled] [ref=f1e262]
+              - status [ref=f1e264]
+              - button "Load older activity" [disabled] [ref=f1e266]
+            - button "First history page" [ref=f1e269] [cursor=pointer]
+            - generic [ref=f1e271]:
+              - generic [ref=f1e273]:
+                - generic [ref=f1e274]: Checkpoint name
+                - textbox "Checkpoint name" [ref=f1e277]: My checkpoint
+              - button "Save checkpoint" [ref=f1e279] [cursor=pointer]
+            - paragraph [ref=f1e281]: Checkpoints retain their full history.
+            - 'button "Open checkpoint: gap 97" [ref=f1e283] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 52" [ref=f1e286] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 134" [ref=f1e289] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 138" [ref=f1e292] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 3" [ref=f1e295] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 160" [ref=f1e298] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 80" [ref=f1e301] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 190" [ref=f1e304] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 73" [ref=f1e307] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 45" [ref=f1e310] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 79" [ref=f1e313] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 18" [ref=f1e316] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 15" [ref=f1e319] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 61" [ref=f1e322] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 240" [ref=f1e325] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 239" [ref=f1e328] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 176" [ref=f1e331] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 249" [ref=f1e334] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 7" [ref=f1e337] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 146" [ref=f1e340] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 30" [ref=f1e343] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 29" [ref=f1e346] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 186" [ref=f1e349] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 16" [ref=f1e352] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 192" [ref=f1e355] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 119" [ref=f1e358] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 156" [ref=f1e361] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 150" [ref=f1e364] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 141" [ref=f1e367] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 131" [ref=f1e370] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 98" [ref=f1e373] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 8" [ref=f1e376] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 170" [ref=f1e379] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 178" [ref=f1e382] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 245" [ref=f1e385] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 248" [ref=f1e388] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 147" [ref=f1e391] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 23" [ref=f1e394] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 107" [ref=f1e397] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 39" [ref=f1e400] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 124" [ref=f1e403] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 105" [ref=f1e406] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 221" [ref=f1e409] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 19" [ref=f1e412] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 100" [ref=f1e415] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 62" [ref=f1e418] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 230" [ref=f1e421] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 9" [ref=f1e424] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 59" [ref=f1e427] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 206" [ref=f1e430] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 38" [ref=f1e433] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 32" [ref=f1e436] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 33" [ref=f1e439] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 65" [ref=f1e442] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 159" [ref=f1e445] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 169" [ref=f1e448] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 132" [ref=f1e451] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 93" [ref=f1e454] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 219" [ref=f1e457] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 162" [ref=f1e460] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 92" [ref=f1e463] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 182" [ref=f1e466] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 58" [ref=f1e469] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 153" [ref=f1e472] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 101" [ref=f1e475] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 238" [ref=f1e478] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 104" [ref=f1e481] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 174" [ref=f1e484] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 211" [ref=f1e487] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 136" [ref=f1e490] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 2" [ref=f1e493] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 60" [ref=f1e496] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 46" [ref=f1e499] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 225" [ref=f1e502] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 111" [ref=f1e505] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 34" [ref=f1e508] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 224" [ref=f1e511] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 244" [ref=f1e514] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 31" [ref=f1e517] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 168" [ref=f1e520] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 199" [ref=f1e523] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 63" [ref=f1e526] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 120" [ref=f1e529] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 188" [ref=f1e532] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 57" [ref=f1e535] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 64" [ref=f1e538] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 117" [ref=f1e541] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 235" [ref=f1e544] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 167" [ref=f1e547] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 49" [ref=f1e550] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 143" [ref=f1e553] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 72" [ref=f1e556] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 67" [ref=f1e559] [cursor=pointer]'
+            - 'button "Open checkpoint: gap 195" [ref=f1e562] [cursor=pointer]'
+            - button "Next checkpoint page" [ref=f1e565] [cursor=pointer]
+  - contentinfo [ref=f1e567]:
+    - generic [ref=f1e568]: Accepted edits saved locally · No local draft change
+    - generic [ref=f1e569]: Checkpoint content current · Portable copy outdated · External destination unconfirmed
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect,type Page,type BrowserContext} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile,writeFile,unlink} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join} from 'node:path';
+  5  | import {randomUUID,createHash} from 'node:crypto';
+  6  | import {DatabaseSync} from 'node:sqlite';
+  7  | import {serverProcess} from './process.js';
+  8  | // @ts-ignore
+  9  | import {call,exchange} from '../session/helpers.mjs';
+  10 | // @ts-ignore
+  11 | import {command} from '../store/helpers.mjs';
+  12 | const empty={kind:'empty',byteLength:'0'};
+  13 | const click=(p:Page,n:string)=>p.getByRole('button',{name:n,exact:true}).click();
+  14 | async function setup(page:Page,context:BrowserContext){
+  15 |  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-recovery-ui-')),root=join(dir,'private'),server=await serverProcess(root);let last:any,csrf='';
+  16 |  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'){last=JSON.parse(r.postData()!);csrf=r.headers()['x-app-csrf'];}});
+  17 |  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
+  18 |  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
+  19 |  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
+  20 | }
+  21 | test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
+  22 |  const f=await setup(page,context);try{
+  23 |  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];
+  24 |  await page.route('**/api/v1/ui/*',async route=>{const r=route.request();if(r.method()==='POST'&&JSON.parse(r.postData()!).body.type==='SaveDraft'){sent.push(r.postData()!);if(!dropped){wire=r.postData()!;dropped=true;await route.fetch();await route.abort();return;}}await route.continue();});
+  25 |  await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Lost receipt 日本語');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();
+  26 |  await page.reload();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();await click(page,'Retry original draft delivery');await expect.poll(()=>sent).toEqual([wire,wire]);await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Lost receipt 日本語');
+  27 |  await click(page,'Cancel changes');await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');await expect.poll(()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const row=db.prepare('SELECT json FROM ui_checkpoints WHERE session_id=?').get(JSON.parse(wire).sessionId) as {json:string};db.close();return JSON.parse(row.json).drafts.some((d:any)=>d.id===JSON.parse(wire).body.draft.id);}).toBe(false);
+  28 |  await page.reload();await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');
+  29 |  }finally{await f.server.close();}
+  30 | });
+  31 | 
+  32 | test('missing retained raster bytes block full copy visibly and remain recoverable',async({page,context})=>{
+  33 |  const f=await setup(page,context);let path='',bytes:Buffer|undefined;try{
+  34 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT json FROM assets').all() as {json:string}[];db.close();const asset=rows.map(x=>JSON.parse(x.json)).find(x=>x.qualification==='canonical-raster');expect(asset).toBeTruthy();path=join(f.root,'objects','sha256',asset.raster.pixels.hash.slice(7,9),asset.raster.pixels.hash.slice(7));bytes=await readFile(path);await unlink(path);
+  35 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByText(/Content unavailable or missing/)).toBeVisible();await expect(page.getByRole('region',{name:'Prepared file'})).toHaveCount(0);await writeFile(path,bytes,{mode:0o600});bytes=undefined;await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Full-history copy');
+  36 |  }finally{if(bytes)await writeFile(path,bytes,{mode:0o600});await f.server.close();}
+  37 | });
+  38 | 
+  39 | test('real snapshot gap recovery publishes the complete current document after offline browser interval',async({page,context})=>{
+  40 |  test.setTimeout(120000);const f=await setup(page,context);try{
+  41 |  const id=f.last.command.documentId,clientId=f.last.command.clientId;const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const document=JSON.parse((db.prepare('SELECT json FROM documents WHERE id=?').get(id) as {json:string}).json);db.close();await page.goto('about:blank');
+  42 |  let revision=BigInt(document.document?.revision??document.revision);for(let i=0;i<251;i++){const c=command(f.last.command.expectedEntityVersions,{clientId,documentId:id,expectedDocumentRevision:String(revision),body:{type:'SaveCheckpoint',name:'gap '+i}});let r=await call(f.server.origin,'/api/v1/commands',{method:'POST',body:c,headers:f.headers()});for(let n=0;r.status===202&&n<1000;n++){await new Promise(r=>setTimeout(r,5));r=await f.read('/api/v1/commands/'+c.command.commandId);}expect(r.json.receipt?.status,r.text).toBe('accepted');revision++;}
+  43 |  const gaps:string[]=[];page.on('response',r=>{if(r.url().includes('/api/v1/events')&&r.status()===409)gaps.push(r.url().split('?')[0]);});
+> 44 |  await page.goto(f.server.origin);await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('.document-name')).toContainText('revision '+revision);await expect(page.getByRole('treeitem')).toHaveCount(1);expect(gaps.length).toBeGreaterThan(0);await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);
+     |                                                                                                                                                                                                                                                                                                                      ^ Error: expect(received).toBeGreaterThan(expected)
+  45 |  }finally{await f.server.close();}
+  46 | });
+  47 | 
+  48 | test('new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery',async({page,context})=>{
+  49 |  const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>();let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;
+  50 |  try{
+  51 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT json FROM assets').all() as {json:string}[];db.close();const original=rows.map(x=>JSON.parse(x.json)).find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();
+  52 |  for(let i=0;i<2;i++){const stagingId=randomUUID();expect((await call(f.server.origin,'/api/v1/assets/staging',{method:'POST',body:{protocolVersion:1,stagingId,purpose:'caption',expectedBytes:'1',sha256:'sha256:'+createHash('sha256').update('x').digest('hex'),mediaType:'text/plain'},headers:f.headers()})).status).toBe(201);const h=exchange(f.server.origin,'/api/v1/assets/staging/'+stagingId,{method:'PUT',defer:true,headers:{...f.headers(),'Content-Type':'application/octet-stream','Content-Length':'1','Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();holds.push(h);}
+  53 |  await page.waitForTimeout(30);
+  54 |  for(let i=0;i<40;i++){const c=command(f.last.command.expectedEntityVersions,{clientId:f.last.command.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'PrepareRaster',assetId:original.id}}),wire=JSON.stringify(c,null,2);originals.set(c.command.commandId,wire);expect((await call(f.server.origin,'/api/v1/commands',{method:'POST',raw:Buffer.from(wire),headers:f.headers()})).status).toBe(202);}
+  55 |  const old=f.server.origin;await f.server.kill();holds.forEach(h=>h.request.destroy());restarted=await serverProcess(f.root);expect(restarted.origin).not.toBe(old);const reads:Promise<void>[]=[];page.on('response',r=>{const match=new URL(r.url()).pathname.match(/commands\/([^/]+)\/original$/);if(match&&originals.has(match[1]))reads.push(r.text().then(text=>{expect(text).toBe(originals.get(match[1]));}));});await page.goto(await restarted.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Check and retry original',exact:true}).first()).toBeVisible();expect(reads.length).toBeGreaterThan(0);await Promise.all(reads);await page.getByRole('button',{name:'Check and retry original',exact:true}).first().click();await expect(page.getByText('PrepareRaster accepted and saved locally.',{exact:true})).toBeVisible();expect(Object.values(await restarted.effects()).every(x=>x===0)).toBe(true);
+  56 |  }finally{holds.forEach(h=>h.request.destroy());await f.server.close();await restarted?.close();}
+  57 | });
+  58 | 
+```

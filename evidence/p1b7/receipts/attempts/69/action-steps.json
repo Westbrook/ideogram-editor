@@ -1,0 +1,7230 @@
+{
+  "ended": "2026-09-26T12:59:48.210Z",
+  "steps": [
+    {
+      "name": "import-review-and-apply",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 1511.6999998092651,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "2",
+            "selected": []
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 1514.8000001907349,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 1514.8000001907349,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "2",
+            "assetId": "a9dcb713-fad6-47e0-9739-7230d05cd30c"
+          }
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 2",
+      "asset": "a9dcb713-fad6-47e0-9739-7230d05cd30c",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "selection",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 1514.8000001907349,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 1514.8000001907349,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "2",
+            "assetId": "a9dcb713-fad6-47e0-9739-7230d05cd30c"
+          }
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 1956.9000000953674,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "2",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 2",
+      "asset": "a9dcb713-fad6-47e0-9739-7230d05cd30c",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "opacity-0",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 2019.6999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 2366.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 2366.4000000953674,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "3",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 2370.5,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 2370.5,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "3",
+            "assetId": "d13fb523-d976-4f1d-a401-b528e55f14c2"
+          }
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 3",
+      "asset": "d13fb523-d976-4f1d-a401-b528e55f14c2",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "opacity-1",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 2852.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 3255.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 3255.800000190735,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "4",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 3259.199999809265,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 3259.199999809265,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "4",
+            "assetId": "de70da06-9189-4773-a615-95bf9858aa8a"
+          }
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 4",
+      "asset": "de70da06-9189-4773-a615-95bf9858aa8a",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "opacity-2",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 3685.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 4072.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 4072.5,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "5",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 4075.5999999046326,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 4075.5999999046326,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "5",
+            "assetId": "c8edb66d-5c3f-4218-9231-9658dcb1906c"
+          }
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 5",
+      "asset": "c8edb66d-5c3f-4218-9231-9658dcb1906c",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "opacity-3",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 4535.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 4914.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 4914.599999904633,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "6",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 4917.800000190735,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 4917.800000190735,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "6",
+            "assetId": "e2c49769-8588-40ed-9f04-e06e14a667b6"
+          }
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 6",
+      "asset": "e2c49769-8588-40ed-9f04-e06e14a667b6",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "opacity-4",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 5786.800000190735,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "7",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 5789.400000095367,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 5789.400000095367,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "7",
+            "assetId": "409fed3a-b9bc-4d57-aaf7-33e92718cbce"
+          }
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 7",
+      "asset": "409fed3a-b9bc-4d57-aaf7-33e92718cbce",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "undo",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 6305.599999904633,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "8",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 6308.800000190735,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 6308.800000190735,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "8",
+            "assetId": "e2c49769-8588-40ed-9f04-e06e14a667b6"
+          }
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 8",
+      "asset": "e2c49769-8588-40ed-9f04-e06e14a667b6",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "redo",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 6550.5,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "9",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 6554.699999809265,
+          "detail": {
+            "zoom": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 6554.699999809265,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "9",
+            "assetId": "409fed3a-b9bc-4d57-aaf7-33e92718cbce"
+          }
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 9",
+      "asset": "409fed3a-b9bc-4d57-aaf7-33e92718cbce",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "zoom",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 1087.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 1511.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 6554.699999809265,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "9",
+            "assetId": "409fed3a-b9bc-4d57-aaf7-33e92718cbce"
+          }
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 6875.800000190735,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 6887.300000190735,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "9",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        }
+      ],
+      "document": "3 × 2 · revision 9",
+      "asset": "409fed3a-b9bc-4d57-aaf7-33e92718cbce",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "resample-review-and-apply",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 7802,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 7945.800000190735,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 7945.800000190735,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "10",
+            "assetId": "e40f13af-cae6-44ff-a150-0cc6cce002ef"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 7946.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 7947,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "10",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 10",
+      "asset": "e40f13af-cae6-44ff-a150-0cc6cce002ef",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "flatten-review-and-apply",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.flatten-review-and-apply",
+          "startTime": 8015.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open flatten",
+          "startTime": 8054.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open flatten",
+          "startTime": 8076,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare flatten copy",
+          "startTime": 8119.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare flatten copy",
+          "startTime": 8506.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 8935.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 9078.400000095367,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 9078.400000095367,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "11",
+            "assetId": "7720a1c6-a6b7-47a1-9f63-8c045f414525"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 9078.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 9079.5,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "11",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.test.verified.flatten-review-and-apply",
+          "startTime": 9144,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 11",
+      "asset": "7720a1c6-a6b7-47a1-9f63-8c045f414525",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "checkpoint",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.flatten-review-and-apply",
+          "startTime": 8015.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open flatten",
+          "startTime": 8054.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open flatten",
+          "startTime": 8076,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare flatten copy",
+          "startTime": 8119.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare flatten copy",
+          "startTime": 8506.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 8935.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 9078.400000095367,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "11",
+            "assetId": "7720a1c6-a6b7-47a1-9f63-8c045f414525"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 9078.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.flatten-review-and-apply",
+          "startTime": 9144,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.checkpoint",
+          "startTime": 9150.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Save checkpoint",
+          "startTime": 9185.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 9269,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.complete.Save checkpoint",
+          "startTime": 9295.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 9295.900000095367,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "12",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.test.verified.checkpoint",
+          "startTime": 9389.900000095367,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 12",
+      "asset": "7720a1c6-a6b7-47a1-9f63-8c045f414525",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 406.8125
+      }
+    },
+    {
+      "name": "full-copy-ready",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.flatten-review-and-apply",
+          "startTime": 8015.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open flatten",
+          "startTime": 8054.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open flatten",
+          "startTime": 8076,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare flatten copy",
+          "startTime": 8119.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare flatten copy",
+          "startTime": 8506.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 8935.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 9078.400000095367,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "11",
+            "assetId": "7720a1c6-a6b7-47a1-9f63-8c045f414525"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 9078.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.flatten-review-and-apply",
+          "startTime": 9144,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.checkpoint",
+          "startTime": 9150.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Save checkpoint",
+          "startTime": 9185.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Save checkpoint",
+          "startTime": 9295.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.checkpoint",
+          "startTime": 9389.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-ready",
+          "startTime": 9397.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open copy",
+          "startTime": 9436.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open copy",
+          "startTime": 9455.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare full-history copy",
+          "startTime": 9502.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare full-history copy",
+          "startTime": 9869.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 9869.400000095367,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "12",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 9884.900000095367,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.test.verified.full-copy-ready",
+          "startTime": 10319.900000095367,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 12",
+      "asset": "7720a1c6-a6b7-47a1-9f63-8c045f414525",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 345.8125
+      }
+    },
+    {
+      "name": "full-copy-download",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.flatten-review-and-apply",
+          "startTime": 8015.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open flatten",
+          "startTime": 8054.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open flatten",
+          "startTime": 8076,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare flatten copy",
+          "startTime": 8119.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare flatten copy",
+          "startTime": 8506.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 8935.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 9078.400000095367,
+          "detail": {
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "11",
+            "assetId": "7720a1c6-a6b7-47a1-9f63-8c045f414525"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 9078.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.flatten-review-and-apply",
+          "startTime": 9144,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.checkpoint",
+          "startTime": 9150.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Save checkpoint",
+          "startTime": 9185.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Save checkpoint",
+          "startTime": 9295.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.checkpoint",
+          "startTime": 9389.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-ready",
+          "startTime": 9397.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open copy",
+          "startTime": 9436.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open copy",
+          "startTime": 9455.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare full-history copy",
+          "startTime": 9502.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare full-history copy",
+          "startTime": 9869.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 9884.900000095367,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.test.verified.full-copy-ready",
+          "startTime": 10319.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-download",
+          "startTime": 10336,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Write copy",
+          "startTime": 10368,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Write copy",
+          "startTime": 10397.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 10398.5,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "de31fd12-c571-45c0-b216-20ed5f482b81",
+            "revision": "12",
+            "selected": [
+              "9d0d8089-1b97-401c-ad41-127b835a70ab"
+            ]
+          }
+        },
+        {
+          "name": "ie.test.verified.full-copy-download",
+          "startTime": 10405.699999809265,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 12",
+      "asset": "7720a1c6-a6b7-47a1-9f63-8c045f414525",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 345.8125
+      }
+    },
+    {
+      "name": "portable-open-review-and-apply",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.flatten-review-and-apply",
+          "startTime": 8015.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open flatten",
+          "startTime": 8054.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open flatten",
+          "startTime": 8076,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare flatten copy",
+          "startTime": 8119.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare flatten copy",
+          "startTime": 8506.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.flatten-review-and-apply",
+          "startTime": 9144,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.checkpoint",
+          "startTime": 9150.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Save checkpoint",
+          "startTime": 9185.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Save checkpoint",
+          "startTime": 9295.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.checkpoint",
+          "startTime": 9389.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-ready",
+          "startTime": 9397.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open copy",
+          "startTime": 9436.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open copy",
+          "startTime": 9455.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare full-history copy",
+          "startTime": 9502.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare full-history copy",
+          "startTime": 9869.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.full-copy-ready",
+          "startTime": 10319.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-download",
+          "startTime": 10336,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Write copy",
+          "startTime": 10368,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Write copy",
+          "startTime": 10397.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.full-copy-download",
+          "startTime": 10405.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.portable-open-review-and-apply",
+          "startTime": 10413,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open open",
+          "startTime": 10437.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open open",
+          "startTime": 10463.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Inspect portable project",
+          "startTime": 10474.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Inspect portable project",
+          "startTime": 11815,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 12285,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 14826.699999809265,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 14826.699999809265,
+          "detail": {
+            "documentId": "p_78eb975a6925b8776af4e7dbbf9c8cea8c737af5a3f4b047c359bac28cb09be4",
+            "revision": "12",
+            "assetId": "p_57a55179a587360ca930cdc5efdfb35371f992098977dac740dee7e378d95ee2"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 14846.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 14847.699999809265,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "p_78eb975a6925b8776af4e7dbbf9c8cea8c737af5a3f4b047c359bac28cb09be4",
+            "revision": "12",
+            "selected": []
+          }
+        },
+        {
+          "name": "ie.test.verified.portable-open-review-and-apply",
+          "startTime": 15141.300000190735,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 12",
+      "asset": "p_57a55179a587360ca930cdc5efdfb35371f992098977dac740dee7e378d95ee2",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 345.8125
+      }
+    },
+    {
+      "name": "exact-export-ready",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.flatten-review-and-apply",
+          "startTime": 8015.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open flatten",
+          "startTime": 8054.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open flatten",
+          "startTime": 8076,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare flatten copy",
+          "startTime": 8119.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare flatten copy",
+          "startTime": 8506.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.flatten-review-and-apply",
+          "startTime": 9144,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.checkpoint",
+          "startTime": 9150.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Save checkpoint",
+          "startTime": 9185.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Save checkpoint",
+          "startTime": 9295.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.checkpoint",
+          "startTime": 9389.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-ready",
+          "startTime": 9397.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open copy",
+          "startTime": 9436.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open copy",
+          "startTime": 9455.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare full-history copy",
+          "startTime": 9502.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare full-history copy",
+          "startTime": 9869.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.full-copy-ready",
+          "startTime": 10319.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-download",
+          "startTime": 10336,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Write copy",
+          "startTime": 10368,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Write copy",
+          "startTime": 10397.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.full-copy-download",
+          "startTime": 10405.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.portable-open-review-and-apply",
+          "startTime": 10413,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open open",
+          "startTime": 10437.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open open",
+          "startTime": 10463.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Inspect portable project",
+          "startTime": 10474.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Inspect portable project",
+          "startTime": 11815,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 12285,
+          "detail": null
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 14826.699999809265,
+          "detail": {
+            "documentId": "p_78eb975a6925b8776af4e7dbbf9c8cea8c737af5a3f4b047c359bac28cb09be4",
+            "revision": "12",
+            "assetId": "p_57a55179a587360ca930cdc5efdfb35371f992098977dac740dee7e378d95ee2"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 14846.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.portable-open-review-and-apply",
+          "startTime": 15141.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.exact-export-ready",
+          "startTime": 15149.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Export exact PNG",
+          "startTime": 15168.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 15335.400000095367,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.complete.Export exact PNG",
+          "startTime": 15359.5,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 15360.199999809265,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "p_78eb975a6925b8776af4e7dbbf9c8cea8c737af5a3f4b047c359bac28cb09be4",
+            "revision": "12",
+            "selected": []
+          }
+        },
+        {
+          "name": "ie.test.verified.exact-export-ready",
+          "startTime": 15453.5,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 12",
+      "asset": "p_57a55179a587360ca930cdc5efdfb35371f992098977dac740dee7e378d95ee2",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 345.8125
+      }
+    },
+    {
+      "name": "exact-export-download",
+      "marks": [
+        {
+          "name": "ie.test.cold.ready",
+          "startTime": 235.59999990463257,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.import-review-and-apply",
+          "startTime": 236.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare image",
+          "startTime": 245.80000019073486,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare image",
+          "startTime": 636.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.import-review-and-apply",
+          "startTime": 1926.1999998092651,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.selection",
+          "startTime": 1942.4000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Select layers",
+          "startTime": 1954.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.selection",
+          "startTime": 1964.3000001907349,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-0",
+          "startTime": 1979.9000000953674,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-0",
+          "startTime": 2810.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-1",
+          "startTime": 2822.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-1",
+          "startTime": 3640.5999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-2",
+          "startTime": 3652.0999999046326,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-2",
+          "startTime": 4478,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-3",
+          "startTime": 4497.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-3",
+          "startTime": 5328.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.opacity-4",
+          "startTime": 5344.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply properties",
+          "startTime": 5369.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Apply properties",
+          "startTime": 5786.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.opacity-4",
+          "startTime": 6161.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.undo",
+          "startTime": 6169.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Undo",
+          "startTime": 6204.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Undo",
+          "startTime": 6305.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.undo",
+          "startTime": 6393.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.redo",
+          "startTime": 6405.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Redo",
+          "startTime": 6455.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Redo",
+          "startTime": 6550.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.redo",
+          "startTime": 6643.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Pan",
+          "startTime": 6852.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.zoom",
+          "startTime": 6870.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.View zoom",
+          "startTime": 6875.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.zoom",
+          "startTime": 6885.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.resample-review-and-apply",
+          "startTime": 6893.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open resample",
+          "startTime": 6921.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open resample",
+          "startTime": 6943.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare resample",
+          "startTime": 6986.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare resample",
+          "startTime": 7429.199999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.resample-review-and-apply",
+          "startTime": 8007,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.flatten-review-and-apply",
+          "startTime": 8015.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open flatten",
+          "startTime": 8054.400000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open flatten",
+          "startTime": 8076,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare flatten copy",
+          "startTime": 8119.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare flatten copy",
+          "startTime": 8506.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.flatten-review-and-apply",
+          "startTime": 9144,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.checkpoint",
+          "startTime": 9150.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Save checkpoint",
+          "startTime": 9185.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Save checkpoint",
+          "startTime": 9295.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.checkpoint",
+          "startTime": 9389.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-ready",
+          "startTime": 9397.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open copy",
+          "startTime": 9436.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open copy",
+          "startTime": 9455.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Prepare full-history copy",
+          "startTime": 9502.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Prepare full-history copy",
+          "startTime": 9869.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.full-copy-ready",
+          "startTime": 10319.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.full-copy-download",
+          "startTime": 10336,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Write copy",
+          "startTime": 10368,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Write copy",
+          "startTime": 10397.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.full-copy-download",
+          "startTime": 10405.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.portable-open-review-and-apply",
+          "startTime": 10413,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Open open",
+          "startTime": 10437.5,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Open open",
+          "startTime": 10463.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Inspect portable project",
+          "startTime": 10474.099999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Inspect portable project",
+          "startTime": 11815,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Apply reviewed result",
+          "startTime": 12285,
+          "detail": null
+        },
+        {
+          "name": "ie.canvas.drawn",
+          "startTime": 14826.699999809265,
+          "detail": {
+            "documentId": "p_78eb975a6925b8776af4e7dbbf9c8cea8c737af5a3f4b047c359bac28cb09be4",
+            "revision": "12",
+            "assetId": "p_57a55179a587360ca930cdc5efdfb35371f992098977dac740dee7e378d95ee2"
+          }
+        },
+        {
+          "name": "ie.complete.Apply reviewed result",
+          "startTime": 14846.599999904633,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.portable-open-review-and-apply",
+          "startTime": 15141.300000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.exact-export-ready",
+          "startTime": 15149.5,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Export exact PNG",
+          "startTime": 15168.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.viewport.drawn",
+          "startTime": 15335.400000095367,
+          "detail": {
+            "zoom": 1.5,
+            "x": 60,
+            "y": 30
+          }
+        },
+        {
+          "name": "ie.complete.Export exact PNG",
+          "startTime": 15359.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.verified.exact-export-ready",
+          "startTime": 15453.5,
+          "detail": null
+        },
+        {
+          "name": "ie.test.start.exact-export-download",
+          "startTime": 15461.900000095367,
+          "detail": null
+        },
+        {
+          "name": "ie.intent.Write image",
+          "startTime": 15501.699999809265,
+          "detail": null
+        },
+        {
+          "name": "ie.complete.Write image",
+          "startTime": 15523.800000190735,
+          "detail": null
+        },
+        {
+          "name": "ie.editor.updated",
+          "startTime": 15524.599999904633,
+          "detail": {
+            "busy": false,
+            "ready": true,
+            "documentId": "p_78eb975a6925b8776af4e7dbbf9c8cea8c737af5a3f4b047c359bac28cb09be4",
+            "revision": "12",
+            "selected": []
+          }
+        },
+        {
+          "name": "ie.test.verified.exact-export-download",
+          "startTime": 15533,
+          "detail": null
+        }
+      ],
+      "document": "3 × 2 · revision 12",
+      "asset": "p_57a55179a587360ca930cdc5efdfb35371f992098977dac740dee7e378d95ee2",
+      "canvasBackendNodeId": 13,
+      "canvasBox": {
+        "x": 359.578125,
+        "y": 188.1875,
+        "width": 799.421875,
+        "height": 345.8125
+      }
+    }
+  ],
+  "resources": [
+    {
+      "at": 2169.848542,
+      "rss": 99188736,
+      "heapTotal": 13778944,
+      "heapUsed": 10309536,
+      "external": 5267353,
+      "arrayBuffers": 289890
+    },
+    {
+      "at": 2219.840792,
+      "rss": 99221504,
+      "heapTotal": 13778944,
+      "heapUsed": 9691184,
+      "external": 5267405,
+      "arrayBuffers": 289902
+    },
+    {
+      "at": 2271.286708,
+      "rss": 99221504,
+      "heapTotal": 13778944,
+      "heapUsed": 9693584,
+      "external": 5267417,
+      "arrayBuffers": 289914
+    },
+    {
+      "at": 2321.834292,
+      "rss": 99221504,
+      "heapTotal": 13778944,
+      "heapUsed": 9695896,
+      "external": 5267429,
+      "arrayBuffers": 289926
+    },
+    {
+      "at": 2373.290167,
+      "rss": 99221504,
+      "heapTotal": 13778944,
+      "heapUsed": 9698208,
+      "external": 5267441,
+      "arrayBuffers": 289938
+    },
+    {
+      "at": 2423.383542,
+      "rss": 99254272,
+      "heapTotal": 13778944,
+      "heapUsed": 9718992,
+      "external": 5267492,
+      "arrayBuffers": 289989
+    },
+    {
+      "at": 2474.172208,
+      "rss": 99565568,
+      "heapTotal": 14041088,
+      "heapUsed": 10025296,
+      "external": 5267504,
+      "arrayBuffers": 290001
+    },
+    {
+      "at": 2525.104292,
+      "rss": 99631104,
+      "heapTotal": 14041088,
+      "heapUsed": 10121944,
+      "external": 5267516,
+      "arrayBuffers": 290013
+    },
+    {
+      "at": 2574.8785,
+      "rss": 101449728,
+      "heapTotal": 14565376,
+      "heapUsed": 10047328,
+      "external": 5261181,
+      "arrayBuffers": 282591
+    },
+    {
+      "at": 2625.703667,
+      "rss": 101695488,
+      "heapTotal": 14565376,
+      "heapUsed": 10636448,
+      "external": 5266377,
+      "arrayBuffers": 287787
+    },
+    {
+      "at": 2676.155042,
+      "rss": 101711872,
+      "heapTotal": 14565376,
+      "heapUsed": 10811040,
+      "external": 5269199,
+      "arrayBuffers": 290609
+    },
+    {
+      "at": 2727.688583,
+      "rss": 102744064,
+      "heapTotal": 14565376,
+      "heapUsed": 11644728,
+      "external": 5276619,
+      "arrayBuffers": 298029
+    },
+    {
+      "at": 2777.481208,
+      "rss": 105988096,
+      "heapTotal": 15876096,
+      "heapUsed": 13057792,
+      "external": 5288337,
+      "arrayBuffers": 309747
+    },
+    {
+      "at": 2828.661958,
+      "rss": 120569856,
+      "heapTotal": 16924672,
+      "heapUsed": 10609432,
+      "external": 5259864,
+      "arrayBuffers": 281274
+    },
+    {
+      "at": 2880.320292,
+      "rss": 137265152,
+      "heapTotal": 17186816,
+      "heapUsed": 10859856,
+      "external": 5262468,
+      "arrayBuffers": 283878
+    },
+    {
+      "at": 2930.451042,
+      "rss": 137330688,
+      "heapTotal": 17186816,
+      "heapUsed": 11050896,
+      "external": 5265072,
+      "arrayBuffers": 286482
+    },
+    {
+      "at": 2983.230417,
+      "rss": 137691136,
+      "heapTotal": 17186816,
+      "heapUsed": 12148632,
+      "external": 5269692,
+      "arrayBuffers": 291102
+    },
+    {
+      "at": 3033.494042,
+      "rss": 138182656,
+      "heapTotal": 18759680,
+      "heapUsed": 11251688,
+      "external": 5267682,
+      "arrayBuffers": 289092
+    },
+    {
+      "at": 3084.167333,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 11876544,
+      "external": 5274285,
+      "arrayBuffers": 295695
+    },
+    {
+      "at": 3135.456375,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 11878832,
+      "external": 5274297,
+      "arrayBuffers": 295707
+    },
+    {
+      "at": 3185.711208,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 11881120,
+      "external": 5274309,
+      "arrayBuffers": 295719
+    },
+    {
+      "at": 3236.912167,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 11883408,
+      "external": 5274321,
+      "arrayBuffers": 295731
+    },
+    {
+      "at": 3288.083917,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 12014104,
+      "external": 5275917,
+      "arrayBuffers": 297327
+    },
+    {
+      "at": 3339.587625,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 12141288,
+      "external": 5276937,
+      "arrayBuffers": 298347
+    },
+    {
+      "at": 3389.579167,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 12143576,
+      "external": 5276949,
+      "arrayBuffers": 298359
+    },
+    {
+      "at": 3440.849708,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 12145864,
+      "external": 5276961,
+      "arrayBuffers": 298371
+    },
+    {
+      "at": 3492.395542,
+      "rss": 138280960,
+      "heapTotal": 18759680,
+      "heapUsed": 12149208,
+      "external": 5276973,
+      "arrayBuffers": 298383
+    },
+    {
+      "at": 3543.040208,
+      "rss": 138330112,
+      "heapTotal": 18759680,
+      "heapUsed": 12312464,
+      "external": 5278281,
+      "arrayBuffers": 299691
+    },
+    {
+      "at": 3594.544667,
+      "rss": 138543104,
+      "heapTotal": 18759680,
+      "heapUsed": 12556624,
+      "external": 5281683,
+      "arrayBuffers": 303093
+    },
+    {
+      "at": 3644.001375,
+      "rss": 138690560,
+      "heapTotal": 19021824,
+      "heapUsed": 11696024,
+      "external": 5270799,
+      "arrayBuffers": 292209
+    },
+    {
+      "at": 3693.727917,
+      "rss": 138952704,
+      "heapTotal": 19546112,
+      "heapUsed": 11019456,
+      "external": 5262244,
+      "arrayBuffers": 283654
+    },
+    {
+      "at": 3745.252083,
+      "rss": 141885440,
+      "heapTotal": 19546112,
+      "heapUsed": 11181928,
+      "external": 5263552,
+      "arrayBuffers": 284962
+    },
+    {
+      "at": 3795.255667,
+      "rss": 143982592,
+      "heapTotal": 19546112,
+      "heapUsed": 11354888,
+      "external": 5266156,
+      "arrayBuffers": 287566
+    },
+    {
+      "at": 3845.856042,
+      "rss": 143998976,
+      "heapTotal": 19546112,
+      "heapUsed": 11535264,
+      "external": 5267464,
+      "arrayBuffers": 288874
+    },
+    {
+      "at": 3896.422625,
+      "rss": 144113664,
+      "heapTotal": 19546112,
+      "heapUsed": 12778624,
+      "external": 5339556,
+      "arrayBuffers": 360966
+    },
+    {
+      "at": 3946.831958,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12183120,
+      "external": 5336807,
+      "arrayBuffers": 358217
+    },
+    {
+      "at": 3998.009417,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12185200,
+      "external": 5336819,
+      "arrayBuffers": 358229
+    },
+    {
+      "at": 4049.184583,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12187480,
+      "external": 5336831,
+      "arrayBuffers": 358241
+    },
+    {
+      "at": 4100.461,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12189560,
+      "external": 5336843,
+      "arrayBuffers": 358253
+    },
+    {
+      "at": 4150.68975,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12191640,
+      "external": 5336855,
+      "arrayBuffers": 358265
+    },
+    {
+      "at": 4200.511708,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12323808,
+      "external": 5338163,
+      "arrayBuffers": 359573
+    },
+    {
+      "at": 4251.6935,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12325888,
+      "external": 5338175,
+      "arrayBuffers": 359585
+    },
+    {
+      "at": 4302.993292,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12327968,
+      "external": 5338187,
+      "arrayBuffers": 359597
+    },
+    {
+      "at": 4352.805875,
+      "rss": 144195584,
+      "heapTotal": 19546112,
+      "heapUsed": 12330048,
+      "external": 5338199,
+      "arrayBuffers": 359609
+    },
+    {
+      "at": 4404.197,
+      "rss": 144228352,
+      "heapTotal": 19546112,
+      "heapUsed": 12501120,
+      "external": 5341212,
+      "arrayBuffers": 362622
+    },
+    {
+      "at": 4455.504958,
+      "rss": 144277504,
+      "heapTotal": 19546112,
+      "heapUsed": 12632648,
+      "external": 5342520,
+      "arrayBuffers": 363930
+    },
+    {
+      "at": 4505.876833,
+      "rss": 144310272,
+      "heapTotal": 19546112,
+      "heapUsed": 13436912,
+      "external": 5352824,
+      "arrayBuffers": 374234
+    },
+    {
+      "at": 4556.783708,
+      "rss": 144621568,
+      "heapTotal": 19808256,
+      "heapUsed": 12667816,
+      "external": 5344166,
+      "arrayBuffers": 365576
+    },
+    {
+      "at": 4608.147708,
+      "rss": 148832256,
+      "heapTotal": 19808256,
+      "heapUsed": 13772864,
+      "external": 5354246,
+      "arrayBuffers": 375656
+    },
+    {
+      "at": 4658.560958,
+      "rss": 149061632,
+      "heapTotal": 19808256,
+      "heapUsed": 13973032,
+      "external": 5356850,
+      "arrayBuffers": 378260
+    },
+    {
+      "at": 4709.384042,
+      "rss": 149078016,
+      "heapTotal": 19808256,
+      "heapUsed": 14112624,
+      "external": 5358158,
+      "arrayBuffers": 379568
+    },
+    {
+      "at": 4758.634917,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 12998008,
+      "external": 5333261,
+      "arrayBuffers": 354671
+    },
+    {
+      "at": 4810.322,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11489416,
+      "external": 5329462,
+      "arrayBuffers": 350872
+    },
+    {
+      "at": 4860.600708,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11501264,
+      "external": 5329474,
+      "arrayBuffers": 350884
+    },
+    {
+      "at": 4912.266875,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11503344,
+      "external": 5329486,
+      "arrayBuffers": 350896
+    },
+    {
+      "at": 4963.465417,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11505424,
+      "external": 5329498,
+      "arrayBuffers": 350908
+    },
+    {
+      "at": 5013.683875,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11507704,
+      "external": 5329510,
+      "arrayBuffers": 350920
+    },
+    {
+      "at": 5065.376875,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11639672,
+      "external": 5330818,
+      "arrayBuffers": 352228
+    },
+    {
+      "at": 5115.211708,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11641752,
+      "external": 5330830,
+      "arrayBuffers": 352240
+    },
+    {
+      "at": 5166.402667,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11643832,
+      "external": 5330842,
+      "arrayBuffers": 352252
+    },
+    {
+      "at": 5215.436792,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11645912,
+      "external": 5330854,
+      "arrayBuffers": 352264
+    },
+    {
+      "at": 5266.435958,
+      "rss": 149110784,
+      "heapTotal": 19808256,
+      "heapUsed": 11647992,
+      "external": 5330866,
+      "arrayBuffers": 352276
+    },
+    {
+      "at": 5316.107708,
+      "rss": 149159936,
+      "heapTotal": 19808256,
+      "heapUsed": 12248880,
+      "external": 5339120,
+      "arrayBuffers": 360530
+    },
+    {
+      "at": 5365.617458,
+      "rss": 149225472,
+      "heapTotal": 19808256,
+      "heapUsed": 12779888,
+      "external": 5344208,
+      "arrayBuffers": 365618
+    },
+    {
+      "at": 5416.403333,
+      "rss": 149372928,
+      "heapTotal": 20856832,
+      "heapUsed": 12913072,
+      "external": 5406833,
+      "arrayBuffers": 428243
+    },
+    {
+      "at": 5467.033708,
+      "rss": 151257088,
+      "heapTotal": 20856832,
+      "heapUsed": 12981056,
+      "external": 5406845,
+      "arrayBuffers": 428255
+    },
+    {
+      "at": 5517.787167,
+      "rss": 150421504,
+      "heapTotal": 20856832,
+      "heapUsed": 13215344,
+      "external": 5409449,
+      "arrayBuffers": 430859
+    },
+    {
+      "at": 5569.333917,
+      "rss": 150437888,
+      "heapTotal": 20856832,
+      "heapUsed": 13449672,
+      "external": 5412053,
+      "arrayBuffers": 433463
+    },
+    {
+      "at": 5620.383833,
+      "rss": 150667264,
+      "heapTotal": 20856832,
+      "heapUsed": 13569912,
+      "external": 5413361,
+      "arrayBuffers": 434771
+    },
+    {
+      "at": 5670.481833,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14169536,
+      "external": 5410658,
+      "arrayBuffers": 432068
+    },
+    {
+      "at": 5720.782125,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14171616,
+      "external": 5410670,
+      "arrayBuffers": 432080
+    },
+    {
+      "at": 5772.036792,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14173696,
+      "external": 5410682,
+      "arrayBuffers": 432092
+    },
+    {
+      "at": 5823.263833,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14175776,
+      "external": 5410694,
+      "arrayBuffers": 432104
+    },
+    {
+      "at": 5874.515833,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14177856,
+      "external": 5410706,
+      "arrayBuffers": 432116
+    },
+    {
+      "at": 5924.049958,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14310592,
+      "external": 5412014,
+      "arrayBuffers": 433424
+    },
+    {
+      "at": 5975.234125,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14312672,
+      "external": 5412026,
+      "arrayBuffers": 433436
+    },
+    {
+      "at": 6026.41025,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14314952,
+      "external": 5412038,
+      "arrayBuffers": 433448
+    },
+    {
+      "at": 6077.391083,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14317032,
+      "external": 5412050,
+      "arrayBuffers": 433460
+    },
+    {
+      "at": 6127.755958,
+      "rss": 150781952,
+      "heapTotal": 20856832,
+      "heapUsed": 14319112,
+      "external": 5412062,
+      "arrayBuffers": 433472
+    },
+    {
+      "at": 6179.077625,
+      "rss": 150847488,
+      "heapTotal": 20856832,
+      "heapUsed": 11824320,
+      "external": 5398542,
+      "arrayBuffers": 419952
+    },
+    {
+      "at": 6229.001958,
+      "rss": 150880256,
+      "heapTotal": 20856832,
+      "heapUsed": 11560784,
+      "external": 5394172,
+      "arrayBuffers": 415582
+    },
+    {
+      "at": 6278.994958,
+      "rss": 153468928,
+      "heapTotal": 20856832,
+      "heapUsed": 12984976,
+      "external": 5469852,
+      "arrayBuffers": 491262
+    },
+    {
+      "at": 6329.16325,
+      "rss": 155303936,
+      "heapTotal": 20856832,
+      "heapUsed": 13219064,
+      "external": 5472456,
+      "arrayBuffers": 493866
+    },
+    {
+      "at": 6379.863417,
+      "rss": 152748032,
+      "heapTotal": 20856832,
+      "heapUsed": 13337912,
+      "external": 5473764,
+      "arrayBuffers": 495174
+    },
+    {
+      "at": 6430.55775,
+      "rss": 152764416,
+      "heapTotal": 20856832,
+      "heapUsed": 13455896,
+      "external": 5475072,
+      "arrayBuffers": 496482
+    },
+    {
+      "at": 6480.982917,
+      "rss": 152797184,
+      "heapTotal": 20856832,
+      "heapUsed": 14269536,
+      "external": 5474962,
+      "arrayBuffers": 496372
+    },
+    {
+      "at": 6532.004083,
+      "rss": 152797184,
+      "heapTotal": 20856832,
+      "heapUsed": 14430120,
+      "external": 5476270,
+      "arrayBuffers": 497680
+    },
+    {
+      "at": 6583.190708,
+      "rss": 152797184,
+      "heapTotal": 20856832,
+      "heapUsed": 14432200,
+      "external": 5476282,
+      "arrayBuffers": 497692
+    },
+    {
+      "at": 6634.394917,
+      "rss": 152797184,
+      "heapTotal": 20856832,
+      "heapUsed": 14434280,
+      "external": 5476294,
+      "arrayBuffers": 497704
+    },
+    {
+      "at": 6684.594917,
+      "rss": 152797184,
+      "heapTotal": 20856832,
+      "heapUsed": 14436360,
+      "external": 5476306,
+      "arrayBuffers": 497716
+    },
+    {
+      "at": 6734.786708,
+      "rss": 152797184,
+      "heapTotal": 20856832,
+      "heapUsed": 14513824,
+      "external": 5477614,
+      "arrayBuffers": 499024
+    },
+    {
+      "at": 6785.798208,
+      "rss": 152797184,
+      "heapTotal": 21381120,
+      "heapUsed": 11346928,
+      "external": 5455368,
+      "arrayBuffers": 476778
+    },
+    {
+      "at": 6837.126458,
+      "rss": 152797184,
+      "heapTotal": 21381120,
+      "heapUsed": 11349008,
+      "external": 5455380,
+      "arrayBuffers": 476790
+    },
+    {
+      "at": 6887.126333,
+      "rss": 152797184,
+      "heapTotal": 21381120,
+      "heapUsed": 11351088,
+      "external": 5455392,
+      "arrayBuffers": 476802
+    },
+    {
+      "at": 6937.297917,
+      "rss": 152797184,
+      "heapTotal": 21381120,
+      "heapUsed": 11353168,
+      "external": 5455404,
+      "arrayBuffers": 476814
+    },
+    {
+      "at": 6987.217083,
+      "rss": 152797184,
+      "heapTotal": 21381120,
+      "heapUsed": 11540936,
+      "external": 5459526,
+      "arrayBuffers": 480936
+    },
+    {
+      "at": 7038.319667,
+      "rss": 152862720,
+      "heapTotal": 21381120,
+      "heapUsed": 12259096,
+      "external": 5467018,
+      "arrayBuffers": 488428
+    },
+    {
+      "at": 7087.759875,
+      "rss": 152944640,
+      "heapTotal": 21381120,
+      "heapUsed": 11965752,
+      "external": 5527964,
+      "arrayBuffers": 549374
+    },
+    {
+      "at": 7138.972792,
+      "rss": 154730496,
+      "heapTotal": 21381120,
+      "heapUsed": 13573952,
+      "external": 5538045,
+      "arrayBuffers": 559455
+    },
+    {
+      "at": 7189.578208,
+      "rss": 153042944,
+      "heapTotal": 21381120,
+      "heapUsed": 13767760,
+      "external": 5540649,
+      "arrayBuffers": 562059
+    },
+    {
+      "at": 7240.72075,
+      "rss": 153059328,
+      "heapTotal": 21381120,
+      "heapUsed": 13831600,
+      "external": 5540661,
+      "arrayBuffers": 562071
+    },
+    {
+      "at": 7290.935875,
+      "rss": 153174016,
+      "heapTotal": 21381120,
+      "heapUsed": 14169912,
+      "external": 5544561,
+      "arrayBuffers": 565971
+    },
+    {
+      "at": 7342.317292,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11558600,
+      "external": 5521400,
+      "arrayBuffers": 542810
+    },
+    {
+      "at": 7391.925625,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11560680,
+      "external": 5521412,
+      "arrayBuffers": 542822
+    },
+    {
+      "at": 7443.179583,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11562760,
+      "external": 5521424,
+      "arrayBuffers": 542834
+    },
+    {
+      "at": 7494.398,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11564840,
+      "external": 5521436,
+      "arrayBuffers": 542846
+    },
+    {
+      "at": 7544.608417,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11566920,
+      "external": 5521448,
+      "arrayBuffers": 542858
+    },
+    {
+      "at": 7596.162625,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11699304,
+      "external": 5522756,
+      "arrayBuffers": 544166
+    },
+    {
+      "at": 7647.367333,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11701384,
+      "external": 5522768,
+      "arrayBuffers": 544178
+    },
+    {
+      "at": 7697.73625,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11703464,
+      "external": 5522780,
+      "arrayBuffers": 544190
+    },
+    {
+      "at": 7748.015583,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11705544,
+      "external": 5522792,
+      "arrayBuffers": 544202
+    },
+    {
+      "at": 7797.626667,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 11707624,
+      "external": 5522804,
+      "arrayBuffers": 544214
+    },
+    {
+      "at": 7848.124042,
+      "rss": 153223168,
+      "heapTotal": 21643264,
+      "heapUsed": 12394248,
+      "external": 5531812,
+      "arrayBuffers": 553222
+    },
+    {
+      "at": 7897.855667,
+      "rss": 153255936,
+      "heapTotal": 21643264,
+      "heapUsed": 13511056,
+      "external": 5539600,
+      "arrayBuffers": 561010
+    },
+    {
+      "at": 7948.036417,
+      "rss": 153403392,
+      "heapTotal": 21643264,
+      "heapUsed": 13907392,
+      "external": 5603635,
+      "arrayBuffers": 625045
+    },
+    {
+      "at": 7999.272042,
+      "rss": 155860992,
+      "heapTotal": 21643264,
+      "heapUsed": 13974856,
+      "external": 5603647,
+      "arrayBuffers": 625057
+    },
+    {
+      "at": 8050.362833,
+      "rss": 158531584,
+      "heapTotal": 21643264,
+      "heapUsed": 14211000,
+      "external": 5606251,
+      "arrayBuffers": 627661
+    },
+    {
+      "at": 8101.00275,
+      "rss": 155959296,
+      "heapTotal": 21643264,
+      "heapUsed": 14414728,
+      "external": 5608855,
+      "arrayBuffers": 630265
+    },
+    {
+      "at": 8151.698083,
+      "rss": 155975680,
+      "heapTotal": 21643264,
+      "heapUsed": 14575456,
+      "external": 5610163,
+      "arrayBuffers": 631573
+    },
+    {
+      "at": 8202.173,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12042368,
+      "external": 5593160,
+      "arrayBuffers": 614570
+    },
+    {
+      "at": 8253.361917,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12044448,
+      "external": 5593172,
+      "arrayBuffers": 614582
+    },
+    {
+      "at": 8303.552708,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12046528,
+      "external": 5593184,
+      "arrayBuffers": 614594
+    },
+    {
+      "at": 8353.946667,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12048608,
+      "external": 5593196,
+      "arrayBuffers": 614606
+    },
+    {
+      "at": 8405.448458,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12050688,
+      "external": 5593208,
+      "arrayBuffers": 614618
+    },
+    {
+      "at": 8455.182583,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12182192,
+      "external": 5594516,
+      "arrayBuffers": 615926
+    },
+    {
+      "at": 8505.782417,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12184272,
+      "external": 5594528,
+      "arrayBuffers": 615938
+    },
+    {
+      "at": 8556.992292,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12186352,
+      "external": 5594540,
+      "arrayBuffers": 615950
+    },
+    {
+      "at": 8606.715083,
+      "rss": 156041216,
+      "heapTotal": 21643264,
+      "heapUsed": 12188432,
+      "external": 5594552,
+      "arrayBuffers": 615962
+    },
+    {
+      "at": 8658.150125,
+      "rss": 156270592,
+      "heapTotal": 21643264,
+      "heapUsed": 12420344,
+      "external": 5597845,
+      "arrayBuffers": 619255
+    },
+    {
+      "at": 8707.7265,
+      "rss": 156286976,
+      "heapTotal": 21643264,
+      "heapUsed": 11720232,
+      "external": 5587864,
+      "arrayBuffers": 609274
+    },
+    {
+      "at": 8759.0805,
+      "rss": 156286976,
+      "heapTotal": 21643264,
+      "heapUsed": 12192104,
+      "external": 5593172,
+      "arrayBuffers": 614582
+    },
+    {
+      "at": 8808.996,
+      "rss": 156286976,
+      "heapTotal": 21643264,
+      "heapUsed": 12194184,
+      "external": 5593184,
+      "arrayBuffers": 614594
+    },
+    {
+      "at": 8859.575917,
+      "rss": 156286976,
+      "heapTotal": 21643264,
+      "heapUsed": 12196264,
+      "external": 5593196,
+      "arrayBuffers": 614606
+    },
+    {
+      "at": 8910.046833,
+      "rss": 156418048,
+      "heapTotal": 21643264,
+      "heapUsed": 12429616,
+      "external": 5596489,
+      "arrayBuffers": 617899
+    },
+    {
+      "at": 8960.604458,
+      "rss": 156483584,
+      "heapTotal": 21643264,
+      "heapUsed": 11974784,
+      "external": 5657464,
+      "arrayBuffers": 678874
+    },
+    {
+      "at": 9012.061667,
+      "rss": 156565504,
+      "heapTotal": 21643264,
+      "heapUsed": 12252456,
+      "external": 5660068,
+      "arrayBuffers": 681478
+    },
+    {
+      "at": 9061.0105,
+      "rss": 156565504,
+      "heapTotal": 21643264,
+      "heapUsed": 12254536,
+      "external": 5660080,
+      "arrayBuffers": 681490
+    },
+    {
+      "at": 9111.14525,
+      "rss": 156565504,
+      "heapTotal": 21643264,
+      "heapUsed": 12256616,
+      "external": 5660092,
+      "arrayBuffers": 681502
+    },
+    {
+      "at": 9160.540833,
+      "rss": 156565504,
+      "heapTotal": 21643264,
+      "heapUsed": 12258696,
+      "external": 5660104,
+      "arrayBuffers": 681514
+    },
+    {
+      "at": 9210.768167,
+      "rss": 156565504,
+      "heapTotal": 21643264,
+      "heapUsed": 12260776,
+      "external": 5660116,
+      "arrayBuffers": 681526
+    },
+    {
+      "at": 9260.655458,
+      "rss": 156565504,
+      "heapTotal": 21643264,
+      "heapUsed": 12392136,
+      "external": 5661424,
+      "arrayBuffers": 682834
+    },
+    {
+      "at": 9311.432458,
+      "rss": 156614656,
+      "heapTotal": 21643264,
+      "heapUsed": 12755400,
+      "external": 5667446,
+      "arrayBuffers": 688856
+    },
+    {
+      "at": 9361.805125,
+      "rss": 156614656,
+      "heapTotal": 21643264,
+      "heapUsed": 12757480,
+      "external": 5667458,
+      "arrayBuffers": 688868
+    },
+    {
+      "at": 9411.683333,
+      "rss": 156614656,
+      "heapTotal": 21643264,
+      "heapUsed": 12759560,
+      "external": 5667470,
+      "arrayBuffers": 688880
+    },
+    {
+      "at": 9462.914583,
+      "rss": 159711232,
+      "heapTotal": 21643264,
+      "heapUsed": 13017368,
+      "external": 5670815,
+      "arrayBuffers": 692225
+    },
+    {
+      "at": 9514.281042,
+      "rss": 161071104,
+      "heapTotal": 21643264,
+      "heapUsed": 13365824,
+      "external": 5674715,
+      "arrayBuffers": 696125
+    },
+    {
+      "at": 9565.042875,
+      "rss": 158416896,
+      "heapTotal": 21643264,
+      "heapUsed": 13477432,
+      "external": 5676023,
+      "arrayBuffers": 697433
+    },
+    {
+      "at": 9614.663583,
+      "rss": 161136640,
+      "heapTotal": 21643264,
+      "heapUsed": 13591816,
+      "external": 5677331,
+      "arrayBuffers": 698741
+    },
+    {
+      "at": 9665.779167,
+      "rss": 158744576,
+      "heapTotal": 21643264,
+      "heapUsed": 13818792,
+      "external": 5679935,
+      "arrayBuffers": 701345
+    },
+    {
+      "at": 9717.459542,
+      "rss": 158793728,
+      "heapTotal": 21643264,
+      "heapUsed": 13925016,
+      "external": 5681243,
+      "arrayBuffers": 702653
+    },
+    {
+      "at": 9766.90325,
+      "rss": 158793728,
+      "heapTotal": 21643264,
+      "heapUsed": 14053088,
+      "external": 5673644,
+      "arrayBuffers": 695054
+    },
+    {
+      "at": 9817.494375,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 11924704,
+      "external": 5656077,
+      "arrayBuffers": 677487
+    },
+    {
+      "at": 9868.482917,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 13806304,
+      "external": 5669163,
+      "arrayBuffers": 690573
+    },
+    {
+      "at": 9918.697292,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 13808384,
+      "external": 5669175,
+      "arrayBuffers": 690585
+    },
+    {
+      "at": 9969.360667,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 13810464,
+      "external": 5669187,
+      "arrayBuffers": 690597
+    },
+    {
+      "at": 10019.559542,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 14029008,
+      "external": 5671791,
+      "arrayBuffers": 693201
+    },
+    {
+      "at": 10070.765208,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 14031088,
+      "external": 5671803,
+      "arrayBuffers": 693213
+    },
+    {
+      "at": 10121.57675,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 14152384,
+      "external": 5673111,
+      "arrayBuffers": 694521
+    },
+    {
+      "at": 10172.666875,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 14154464,
+      "external": 5673123,
+      "arrayBuffers": 694533
+    },
+    {
+      "at": 10223.43725,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 14156544,
+      "external": 5673135,
+      "arrayBuffers": 694545
+    },
+    {
+      "at": 10273.595083,
+      "rss": 158842880,
+      "heapTotal": 21643264,
+      "heapUsed": 14357456,
+      "external": 5676585,
+      "arrayBuffers": 697995
+    },
+    {
+      "at": 10324.913583,
+      "rss": 158875648,
+      "heapTotal": 21643264,
+      "heapUsed": 14464368,
+      "external": 5677893,
+      "arrayBuffers": 699303
+    },
+    {
+      "at": 10375.694875,
+      "rss": 158875648,
+      "heapTotal": 21643264,
+      "heapUsed": 14439088,
+      "external": 5738660,
+      "arrayBuffers": 760070
+    },
+    {
+      "at": 10426.315625,
+      "rss": 158875648,
+      "heapTotal": 21643264,
+      "heapUsed": 14441168,
+      "external": 5738672,
+      "arrayBuffers": 760082
+    },
+    {
+      "at": 10477.436708,
+      "rss": 158875648,
+      "heapTotal": 21643264,
+      "heapUsed": 14443248,
+      "external": 5738684,
+      "arrayBuffers": 760094
+    },
+    {
+      "at": 10527.233292,
+      "rss": 158875648,
+      "heapTotal": 21643264,
+      "heapUsed": 14445328,
+      "external": 5738696,
+      "arrayBuffers": 760106
+    },
+    {
+      "at": 10578.256583,
+      "rss": 158924800,
+      "heapTotal": 21643264,
+      "heapUsed": 14651672,
+      "external": 5742139,
+      "arrayBuffers": 763549
+    },
+    {
+      "at": 10628.781625,
+      "rss": 163201024,
+      "heapTotal": 21643264,
+      "heapUsed": 14879232,
+      "external": 5744743,
+      "arrayBuffers": 766153
+    },
+    {
+      "at": 10680.2595,
+      "rss": 164888576,
+      "heapTotal": 21643264,
+      "heapUsed": 11899608,
+      "external": 5719064,
+      "arrayBuffers": 740474
+    },
+    {
+      "at": 10730.516042,
+      "rss": 163889152,
+      "heapTotal": 21643264,
+      "heapUsed": 12010344,
+      "external": 5720372,
+      "arrayBuffers": 741782
+    },
+    {
+      "at": 10781.598875,
+      "rss": 163905536,
+      "heapTotal": 21643264,
+      "heapUsed": 12191816,
+      "external": 5722976,
+      "arrayBuffers": 744386
+    },
+    {
+      "at": 10831.860667,
+      "rss": 163954688,
+      "heapTotal": 21643264,
+      "heapUsed": 13799552,
+      "external": 5730785,
+      "arrayBuffers": 752195
+    },
+    {
+      "at": 10883.20825,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12433752,
+      "external": 5726243,
+      "arrayBuffers": 747653
+    },
+    {
+      "at": 10934.262042,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12308504,
+      "external": 5788667,
+      "arrayBuffers": 810077
+    },
+    {
+      "at": 10985.484708,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12310584,
+      "external": 5788679,
+      "arrayBuffers": 810089
+    },
+    {
+      "at": 11035.693667,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12312912,
+      "external": 5788691,
+      "arrayBuffers": 810101
+    },
+    {
+      "at": 11086.051583,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12314992,
+      "external": 5788703,
+      "arrayBuffers": 810113
+    },
+    {
+      "at": 11137.235917,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12425904,
+      "external": 5790011,
+      "arrayBuffers": 811421
+    },
+    {
+      "at": 11187.922583,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12547904,
+      "external": 5791319,
+      "arrayBuffers": 812729
+    },
+    {
+      "at": 11238.203958,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12549984,
+      "external": 5791331,
+      "arrayBuffers": 812741
+    },
+    {
+      "at": 11289.394583,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12552064,
+      "external": 5791343,
+      "arrayBuffers": 812753
+    },
+    {
+      "at": 11340.388583,
+      "rss": 163971072,
+      "heapTotal": 21643264,
+      "heapUsed": 12554144,
+      "external": 5791355,
+      "arrayBuffers": 812765
+    },
+    {
+      "at": 11389.655167,
+      "rss": 163987456,
+      "heapTotal": 21643264,
+      "heapUsed": 12753224,
+      "external": 5794812,
+      "arrayBuffers": 816222
+    },
+    {
+      "at": 11440.082333,
+      "rss": 164003840,
+      "heapTotal": 21643264,
+      "heapUsed": 12980168,
+      "external": 5797416,
+      "arrayBuffers": 818826
+    },
+    {
+      "at": 11489.4245,
+      "rss": 164036608,
+      "heapTotal": 21905408,
+      "heapUsed": 12437512,
+      "external": 5789963,
+      "arrayBuffers": 811373
+    },
+    {
+      "at": 11540.621417,
+      "rss": 164036608,
+      "heapTotal": 21905408,
+      "heapUsed": 12439592,
+      "external": 5789975,
+      "arrayBuffers": 811385
+    },
+    {
+      "at": 11591.895333,
+      "rss": 164052992,
+      "heapTotal": 21905408,
+      "heapUsed": 12441672,
+      "external": 5789987,
+      "arrayBuffers": 811397
+    },
+    {
+      "at": 11641.787167,
+      "rss": 164052992,
+      "heapTotal": 21905408,
+      "heapUsed": 12660696,
+      "external": 5793261,
+      "arrayBuffers": 814671
+    },
+    {
+      "at": 11692.234042,
+      "rss": 164085760,
+      "heapTotal": 21905408,
+      "heapUsed": 13987712,
+      "external": 5806275,
+      "arrayBuffers": 827685
+    },
+    {
+      "at": 11742.310167,
+      "rss": 164102144,
+      "heapTotal": 21905408,
+      "heapUsed": 12263400,
+      "external": 5788552,
+      "arrayBuffers": 809962
+    },
+    {
+      "at": 11793.518667,
+      "rss": 164102144,
+      "heapTotal": 21905408,
+      "heapUsed": 12265480,
+      "external": 5788564,
+      "arrayBuffers": 809974
+    },
+    {
+      "at": 11843.477083,
+      "rss": 164102144,
+      "heapTotal": 21905408,
+      "heapUsed": 12267560,
+      "external": 5788576,
+      "arrayBuffers": 809986
+    },
+    {
+      "at": 11894.931375,
+      "rss": 164102144,
+      "heapTotal": 21905408,
+      "heapUsed": 12269640,
+      "external": 5788588,
+      "arrayBuffers": 809998
+    },
+    {
+      "at": 11946.882292,
+      "rss": 164102144,
+      "heapTotal": 21905408,
+      "heapUsed": 12308776,
+      "external": 5788600,
+      "arrayBuffers": 810010
+    },
+    {
+      "at": 11996.014208,
+      "rss": 167952384,
+      "heapTotal": 21905408,
+      "heapUsed": 14151880,
+      "external": 5865221,
+      "arrayBuffers": 886631
+    },
+    {
+      "at": 12047.169917,
+      "rss": 171966464,
+      "heapTotal": 21905408,
+      "heapUsed": 14260104,
+      "external": 5866529,
+      "arrayBuffers": 887939
+    },
+    {
+      "at": 12097.107,
+      "rss": 172408832,
+      "heapTotal": 21905408,
+      "heapUsed": 14439640,
+      "external": 5869133,
+      "arrayBuffers": 890543
+    },
+    {
+      "at": 12148.141208,
+      "rss": 172589056,
+      "heapTotal": 21905408,
+      "heapUsed": 14582064,
+      "external": 5870441,
+      "arrayBuffers": 891851
+    },
+    {
+      "at": 12198.897583,
+      "rss": 172638208,
+      "heapTotal": 21905408,
+      "heapUsed": 14689640,
+      "external": 5871749,
+      "arrayBuffers": 893159
+    },
+    {
+      "at": 12248.713625,
+      "rss": 173129728,
+      "heapTotal": 21905408,
+      "heapUsed": 12166008,
+      "external": 5850264,
+      "arrayBuffers": 871674
+    },
+    {
+      "at": 12299.283292,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 14784120,
+      "external": 5868462,
+      "arrayBuffers": 889872
+    },
+    {
+      "at": 12350.543458,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 14786200,
+      "external": 5868474,
+      "arrayBuffers": 889884
+    },
+    {
+      "at": 12400.696042,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 14788280,
+      "external": 5868486,
+      "arrayBuffers": 889896
+    },
+    {
+      "at": 12451.884833,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 14790360,
+      "external": 5868498,
+      "arrayBuffers": 889908
+    },
+    {
+      "at": 12503.133,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 14900720,
+      "external": 5869806,
+      "arrayBuffers": 891216
+    },
+    {
+      "at": 12553.597958,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 15035864,
+      "external": 5871114,
+      "arrayBuffers": 892524
+    },
+    {
+      "at": 12604.33975,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 15037944,
+      "external": 5871126,
+      "arrayBuffers": 892536
+    },
+    {
+      "at": 12654.5215,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 15040024,
+      "external": 5871138,
+      "arrayBuffers": 892548
+    },
+    {
+      "at": 12705.705917,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 15042104,
+      "external": 5871150,
+      "arrayBuffers": 892560
+    },
+    {
+      "at": 12756.422083,
+      "rss": 173178880,
+      "heapTotal": 21905408,
+      "heapUsed": 15044184,
+      "external": 5871162,
+      "arrayBuffers": 892572
+    },
+    {
+      "at": 12805.887,
+      "rss": 173359104,
+      "heapTotal": 21905408,
+      "heapUsed": 12272128,
+      "external": 6015111,
+      "arrayBuffers": 1036521
+    },
+    {
+      "at": 12856.134083,
+      "rss": 173359104,
+      "heapTotal": 21905408,
+      "heapUsed": 12274216,
+      "external": 6015123,
+      "arrayBuffers": 1036533
+    },
+    {
+      "at": 12907.063417,
+      "rss": 173375488,
+      "heapTotal": 21905408,
+      "heapUsed": 12600352,
+      "external": 6020563,
+      "arrayBuffers": 1041973
+    },
+    {
+      "at": 12957.060708,
+      "rss": 173703168,
+      "heapTotal": 21118976,
+      "heapUsed": 10758536,
+      "external": 5646378,
+      "arrayBuffers": 667788
+    },
+    {
+      "at": 13008.088,
+      "rss": 173981696,
+      "heapTotal": 21118976,
+      "heapUsed": 10865200,
+      "external": 5647686,
+      "arrayBuffers": 669096
+    },
+    {
+      "at": 13058.139583,
+      "rss": 173981696,
+      "heapTotal": 21118976,
+      "heapUsed": 11199136,
+      "external": 5651586,
+      "arrayBuffers": 672996
+    },
+    {
+      "at": 13109.210917,
+      "rss": 173981696,
+      "heapTotal": 21118976,
+      "heapUsed": 11305912,
+      "external": 5652894,
+      "arrayBuffers": 674304
+    },
+    {
+      "at": 13158.477042,
+      "rss": 173998080,
+      "heapTotal": 21118976,
+      "heapUsed": 11543784,
+      "external": 5655498,
+      "arrayBuffers": 676908
+    },
+    {
+      "at": 13209.756625,
+      "rss": 174030848,
+      "heapTotal": 21118976,
+      "heapUsed": 11660656,
+      "external": 5656806,
+      "arrayBuffers": 678216
+    },
+    {
+      "at": 13261.394583,
+      "rss": 174030848,
+      "heapTotal": 21118976,
+      "heapUsed": 11767240,
+      "external": 5658114,
+      "arrayBuffers": 679524
+    },
+    {
+      "at": 13312.240083,
+      "rss": 174063616,
+      "heapTotal": 21118976,
+      "heapUsed": 12049472,
+      "external": 5662014,
+      "arrayBuffers": 683424
+    },
+    {
+      "at": 13363.095208,
+      "rss": 177897472,
+      "heapTotal": 21118976,
+      "heapUsed": 12207248,
+      "external": 5663322,
+      "arrayBuffers": 684732
+    },
+    {
+      "at": 13413.837167,
+      "rss": 178601984,
+      "heapTotal": 21118976,
+      "heapUsed": 12465424,
+      "external": 5665926,
+      "arrayBuffers": 687336
+    },
+    {
+      "at": 13465.074208,
+      "rss": 178667520,
+      "heapTotal": 21118976,
+      "heapUsed": 12576568,
+      "external": 5667234,
+      "arrayBuffers": 688644
+    },
+    {
+      "at": 13516.510958,
+      "rss": 180666368,
+      "heapTotal": 21118976,
+      "heapUsed": 12787624,
+      "external": 5669838,
+      "arrayBuffers": 691248
+    },
+    {
+      "at": 13566.884542,
+      "rss": 181764096,
+      "heapTotal": 21118976,
+      "heapUsed": 12898904,
+      "external": 5671146,
+      "arrayBuffers": 692556
+    },
+    {
+      "at": 13617.463625,
+      "rss": 181043200,
+      "heapTotal": 21118976,
+      "heapUsed": 13232288,
+      "external": 5675046,
+      "arrayBuffers": 696456
+    },
+    {
+      "at": 13667.736292,
+      "rss": 180879360,
+      "heapTotal": 21118976,
+      "heapUsed": 13343488,
+      "external": 5676354,
+      "arrayBuffers": 697764
+    },
+    {
+      "at": 13718.397625,
+      "rss": 183631872,
+      "heapTotal": 21118976,
+      "heapUsed": 13554448,
+      "external": 5678958,
+      "arrayBuffers": 700368
+    },
+    {
+      "at": 13769.070833,
+      "rss": 183468032,
+      "heapTotal": 21118976,
+      "heapUsed": 13665648,
+      "external": 5680266,
+      "arrayBuffers": 701676
+    },
+    {
+      "at": 13819.76575,
+      "rss": 182730752,
+      "heapTotal": 21118976,
+      "heapUsed": 10640480,
+      "external": 5642018,
+      "arrayBuffers": 663428
+    },
+    {
+      "at": 13871.354208,
+      "rss": 182239232,
+      "heapTotal": 21118976,
+      "heapUsed": 10880224,
+      "external": 5644622,
+      "arrayBuffers": 666032
+    },
+    {
+      "at": 13921.694167,
+      "rss": 183910400,
+      "heapTotal": 21118976,
+      "heapUsed": 11105064,
+      "external": 5647226,
+      "arrayBuffers": 668636
+    },
+    {
+      "at": 13972.571167,
+      "rss": 183500800,
+      "heapTotal": 21118976,
+      "heapUsed": 11216264,
+      "external": 5648534,
+      "arrayBuffers": 669944
+    },
+    {
+      "at": 14023.426,
+      "rss": 182697984,
+      "heapTotal": 21118976,
+      "heapUsed": 11434688,
+      "external": 5651138,
+      "arrayBuffers": 672548
+    },
+    {
+      "at": 14073.998833,
+      "rss": 184025088,
+      "heapTotal": 21118976,
+      "heapUsed": 11541208,
+      "external": 5652446,
+      "arrayBuffers": 673856
+    },
+    {
+      "at": 14124.016708,
+      "rss": 183435264,
+      "heapTotal": 21118976,
+      "heapUsed": 11874304,
+      "external": 5656346,
+      "arrayBuffers": 677756
+    },
+    {
+      "at": 14174.957125,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11981440,
+      "external": 5657654,
+      "arrayBuffers": 679064
+    },
+    {
+      "at": 14224.499,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11221840,
+      "external": 5712802,
+      "arrayBuffers": 734212
+    },
+    {
+      "at": 14276.079125,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11223920,
+      "external": 5712814,
+      "arrayBuffers": 734224
+    },
+    {
+      "at": 14326.686542,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11226000,
+      "external": 5712826,
+      "arrayBuffers": 734236
+    },
+    {
+      "at": 14377.993583,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11334800,
+      "external": 5714134,
+      "arrayBuffers": 735544
+    },
+    {
+      "at": 14428.969542,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11336880,
+      "external": 5714146,
+      "arrayBuffers": 735556
+    },
+    {
+      "at": 14478.966292,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11456928,
+      "external": 5715454,
+      "arrayBuffers": 736864
+    },
+    {
+      "at": 14530.166917,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11459008,
+      "external": 5715466,
+      "arrayBuffers": 736876
+    },
+    {
+      "at": 14581.390917,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11461088,
+      "external": 5715478,
+      "arrayBuffers": 736888
+    },
+    {
+      "at": 14631.615875,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11463168,
+      "external": 5715490,
+      "arrayBuffers": 736900
+    },
+    {
+      "at": 14682.958625,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11465248,
+      "external": 5715502,
+      "arrayBuffers": 736912
+    },
+    {
+      "at": 14732.724292,
+      "rss": 181452800,
+      "heapTotal": 21118976,
+      "heapUsed": 11756480,
+      "external": 5720150,
+      "arrayBuffers": 741560
+    },
+    {
+      "at": 14782.940917,
+      "rss": 181698560,
+      "heapTotal": 21118976,
+      "heapUsed": 11912848,
+      "external": 5721458,
+      "arrayBuffers": 742868
+    },
+    {
+      "at": 14833.594833,
+      "rss": 181731328,
+      "heapTotal": 21118976,
+      "heapUsed": 12019592,
+      "external": 5722766,
+      "arrayBuffers": 744176
+    },
+    {
+      "at": 14884.649333,
+      "rss": 181731328,
+      "heapTotal": 21118976,
+      "heapUsed": 12197424,
+      "external": 5725370,
+      "arrayBuffers": 746780
+    },
+    {
+      "at": 14935.673792,
+      "rss": 181747712,
+      "heapTotal": 21118976,
+      "heapUsed": 12351512,
+      "external": 5726678,
+      "arrayBuffers": 748088
+    },
+    {
+      "at": 14986.908417,
+      "rss": 181747712,
+      "heapTotal": 21118976,
+      "heapUsed": 12563264,
+      "external": 5729282,
+      "arrayBuffers": 750692
+    },
+    {
+      "at": 15036.854208,
+      "rss": 181747712,
+      "heapTotal": 21118976,
+      "heapUsed": 12788328,
+      "external": 5731886,
+      "arrayBuffers": 753296
+    },
+    {
+      "at": 15088.036792,
+      "rss": 181747712,
+      "heapTotal": 21118976,
+      "heapUsed": 12895072,
+      "external": 5733194,
+      "arrayBuffers": 754604
+    },
+    {
+      "at": 15138.315042,
+      "rss": 182190080,
+      "heapTotal": 21118976,
+      "heapUsed": 13005832,
+      "external": 5734502,
+      "arrayBuffers": 755912
+    },
+    {
+      "at": 15189.106917,
+      "rss": 184320000,
+      "heapTotal": 21118976,
+      "heapUsed": 13227152,
+      "external": 5737106,
+      "arrayBuffers": 758516
+    },
+    {
+      "at": 15239.160375,
+      "rss": 183844864,
+      "heapTotal": 21118976,
+      "heapUsed": 13427072,
+      "external": 5739710,
+      "arrayBuffers": 761120
+    },
+    {
+      "at": 15290.365208,
+      "rss": 183713792,
+      "heapTotal": 21118976,
+      "heapUsed": 13672752,
+      "external": 5742314,
+      "arrayBuffers": 763724
+    },
+    {
+      "at": 15340.658292,
+      "rss": 182321152,
+      "heapTotal": 21118976,
+      "heapUsed": 13780136,
+      "external": 5743622,
+      "arrayBuffers": 765032
+    },
+    {
+      "at": 15391.549958,
+      "rss": 185335808,
+      "heapTotal": 21118976,
+      "heapUsed": 10807336,
+      "external": 5707618,
+      "arrayBuffers": 729028
+    },
+    {
+      "at": 15442.531125,
+      "rss": 185008128,
+      "heapTotal": 21118976,
+      "heapUsed": 10918944,
+      "external": 5708926,
+      "arrayBuffers": 730336
+    },
+    {
+      "at": 15492.591667,
+      "rss": 184303616,
+      "heapTotal": 21118976,
+      "heapUsed": 11252640,
+      "external": 5712826,
+      "arrayBuffers": 734236
+    },
+    {
+      "at": 15543.002583,
+      "rss": 185909248,
+      "heapTotal": 21118976,
+      "heapUsed": 11359440,
+      "external": 5714134,
+      "arrayBuffers": 735544
+    },
+    {
+      "at": 15593.677667,
+      "rss": 184909824,
+      "heapTotal": 21118976,
+      "heapUsed": 11575608,
+      "external": 5716738,
+      "arrayBuffers": 738148
+    },
+    {
+      "at": 15645.005125,
+      "rss": 185942016,
+      "heapTotal": 21118976,
+      "heapUsed": 11682480,
+      "external": 5718046,
+      "arrayBuffers": 739456
+    },
+    {
+      "at": 15695.089042,
+      "rss": 176996352,
+      "heapTotal": 21118976,
+      "heapUsed": 11898720,
+      "external": 5720650,
+      "arrayBuffers": 742060
+    },
+    {
+      "at": 15745.093625,
+      "rss": 177274880,
+      "heapTotal": 21118976,
+      "heapUsed": 12123448,
+      "external": 5723254,
+      "arrayBuffers": 744664
+    },
+    {
+      "at": 15795.042292,
+      "rss": 174931968,
+      "heapTotal": 21118976,
+      "heapUsed": 12339544,
+      "external": 5725858,
+      "arrayBuffers": 747268
+    },
+    {
+      "at": 15846.3895,
+      "rss": 174833664,
+      "heapTotal": 21118976,
+      "heapUsed": 12446288,
+      "external": 5727166,
+      "arrayBuffers": 748576
+    },
+    {
+      "at": 15895.792792,
+      "rss": 174440448,
+      "heapTotal": 21118976,
+      "heapUsed": 12662640,
+      "external": 5729770,
+      "arrayBuffers": 751180
+    },
+    {
+      "at": 15946.531167,
+      "rss": 173981696,
+      "heapTotal": 21118976,
+      "heapUsed": 12774264,
+      "external": 5731078,
+      "arrayBuffers": 752488
+    },
+    {
+      "at": 15996.686958,
+      "rss": 174342144,
+      "heapTotal": 21118976,
+      "heapUsed": 13107656,
+      "external": 5734978,
+      "arrayBuffers": 756388
+    },
+    {
+      "at": 16048.309667,
+      "rss": 173621248,
+      "heapTotal": 21118976,
+      "heapUsed": 13215984,
+      "external": 5736286,
+      "arrayBuffers": 757696
+    },
+    {
+      "at": 16098.550875,
+      "rss": 173686784,
+      "heapTotal": 21118976,
+      "heapUsed": 13322760,
+      "external": 5737594,
+      "arrayBuffers": 759004
+    },
+    {
+      "at": 16150.326208,
+      "rss": 173686784,
+      "heapTotal": 21118976,
+      "heapUsed": 13534248,
+      "external": 5740198,
+      "arrayBuffers": 761608
+    },
+    {
+      "at": 16200.554375,
+      "rss": 173686784,
+      "heapTotal": 21118976,
+      "heapUsed": 13640992,
+      "external": 5741506,
+      "arrayBuffers": 762916
+    },
+    {
+      "at": 16250.587042,
+      "rss": 173686784,
+      "heapTotal": 21118976,
+      "heapUsed": 13923024,
+      "external": 5745406,
+      "arrayBuffers": 766816
+    },
+    {
+      "at": 16301.903083,
+      "rss": 173801472,
+      "heapTotal": 21118976,
+      "heapUsed": 10873224,
+      "external": 5708770,
+      "arrayBuffers": 730180
+    },
+    {
+      "at": 16353.460083,
+      "rss": 173801472,
+      "heapTotal": 21118976,
+      "heapUsed": 10979992,
+      "external": 5710078,
+      "arrayBuffers": 731488
+    },
+    {
+      "at": 16404.214417,
+      "rss": 173817856,
+      "heapTotal": 21118976,
+      "heapUsed": 11191416,
+      "external": 5712682,
+      "arrayBuffers": 734092
+    },
+    {
+      "at": 16455.162667,
+      "rss": 173817856,
+      "heapTotal": 21118976,
+      "heapUsed": 11298160,
+      "external": 5713990,
+      "arrayBuffers": 735400
+    },
+    {
+      "at": 16504.848083,
+      "rss": 173817856,
+      "heapTotal": 21118976,
+      "heapUsed": 11475944,
+      "external": 5716594,
+      "arrayBuffers": 738004
+    },
+    {
+      "at": 16555.935833,
+      "rss": 173834240,
+      "heapTotal": 21118976,
+      "heapUsed": 11734232,
+      "external": 5719198,
+      "arrayBuffers": 740608
+    },
+    {
+      "at": 16606.936208,
+      "rss": 173834240,
+      "heapTotal": 21118976,
+      "heapUsed": 11840976,
+      "external": 5720506,
+      "arrayBuffers": 741916
+    },
+    {
+      "at": 16657.65825,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 11947720,
+      "external": 5721814,
+      "arrayBuffers": 743224
+    },
+    {
+      "at": 16709.110875,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 12159256,
+      "external": 5724418,
+      "arrayBuffers": 745828
+    },
+    {
+      "at": 16760.156167,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 12266016,
+      "external": 5725726,
+      "arrayBuffers": 747136
+    },
+    {
+      "at": 16809.955958,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 12561440,
+      "external": 5729626,
+      "arrayBuffers": 751036
+    },
+    {
+      "at": 16861.163583,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 12701824,
+      "external": 5730934,
+      "arrayBuffers": 752344
+    },
+    {
+      "at": 16911.488667,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 12808592,
+      "external": 5732242,
+      "arrayBuffers": 753652
+    },
+    {
+      "at": 16962.409917,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 12986360,
+      "external": 5734846,
+      "arrayBuffers": 756256
+    },
+    {
+      "at": 17012.733917,
+      "rss": 173850624,
+      "heapTotal": 21118976,
+      "heapUsed": 13093304,
+      "external": 5736154,
+      "arrayBuffers": 757564
+    },
+    {
+      "at": 17063.829125,
+      "rss": 173867008,
+      "heapTotal": 21118976,
+      "heapUsed": 13255152,
+      "external": 5738758,
+      "arrayBuffers": 760168
+    },
+    {
+      "at": 17113.420458,
+      "rss": 174145536,
+      "heapTotal": 21118976,
+      "heapUsed": 13571160,
+      "external": 5742082,
+      "arrayBuffers": 763492
+    },
+    {
+      "at": 17164.863,
+      "rss": 174211072,
+      "heapTotal": 21118976,
+      "heapUsed": 11293976,
+      "external": 5720343,
+      "arrayBuffers": 741753
+    },
+    {
+      "at": 17215.171667,
+      "rss": 174211072,
+      "heapTotal": 21118976,
+      "heapUsed": 11853192,
+      "external": 5777220,
+      "arrayBuffers": 798630
+    },
+    {
+      "at": 17265.564667,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 12569896,
+      "external": 5779240,
+      "arrayBuffers": 800650
+    },
+    {
+      "at": 17316.539875,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 12571976,
+      "external": 5779252,
+      "arrayBuffers": 800662
+    },
+    {
+      "at": 17367.758,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 12691432,
+      "external": 5780560,
+      "arrayBuffers": 801970
+    },
+    {
+      "at": 17418.955417,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 12693512,
+      "external": 5780572,
+      "arrayBuffers": 801982
+    },
+    {
+      "at": 17470.143917,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 12695592,
+      "external": 5780584,
+      "arrayBuffers": 801994
+    },
+    {
+      "at": 17520.683167,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 12817288,
+      "external": 5781892,
+      "arrayBuffers": 803302
+    },
+    {
+      "at": 17571.522583,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 12819368,
+      "external": 5781904,
+      "arrayBuffers": 803314
+    },
+    {
+      "at": 17621.752333,
+      "rss": 174227456,
+      "heapTotal": 21118976,
+      "heapUsed": 13043968,
+      "external": 5785268,
+      "arrayBuffers": 806678
+    },
+    {
+      "at": 17672.992875,
+      "rss": 177602560,
+      "heapTotal": 21118976,
+      "heapUsed": 13160024,
+      "external": 5786576,
+      "arrayBuffers": 807986
+    },
+    {
+      "at": 17723.583542,
+      "rss": 175243264,
+      "heapTotal": 21118976,
+      "heapUsed": 13268816,
+      "external": 5787884,
+      "arrayBuffers": 809294
+    },
+    {
+      "at": 17772.828333,
+      "rss": 175243264,
+      "heapTotal": 21118976,
+      "heapUsed": 13468712,
+      "external": 5791404,
+      "arrayBuffers": 812814
+    },
+    {
+      "at": 17824.119417,
+      "rss": 175243264,
+      "heapTotal": 21118976,
+      "heapUsed": 13470792,
+      "external": 5791416,
+      "arrayBuffers": 812826
+    },
+    {
+      "at": 17873.520875,
+      "rss": 175243264,
+      "heapTotal": 21118976,
+      "heapUsed": 13472872,
+      "external": 5791428,
+      "arrayBuffers": 812838
+    },
+    {
+      "at": 17925.16375,
+      "rss": 175243264,
+      "heapTotal": 21118976,
+      "heapUsed": 13474952,
+      "external": 5791440,
+      "arrayBuffers": 812850
+    },
+    {
+      "at": 17975.808,
+      "rss": 175259648,
+      "heapTotal": 21118976,
+      "heapUsed": 13653592,
+      "external": 5794159,
+      "arrayBuffers": 815569
+    },
+    {
+      "at": 18026.250458,
+      "rss": 175374336,
+      "heapTotal": 21118976,
+      "heapUsed": 13887088,
+      "external": 5795467,
+      "arrayBuffers": 816877
+    },
+    {
+      "at": 18076.576292,
+      "rss": 175374336,
+      "heapTotal": 21118976,
+      "heapUsed": 11007720,
+      "external": 5774514,
+      "arrayBuffers": 795924
+    },
+    {
+      "at": 18127.148125,
+      "rss": 175407104,
+      "heapTotal": 21118976,
+      "heapUsed": 13579336,
+      "external": 5792806,
+      "arrayBuffers": 814216
+    },
+    {
+      "at": 18177.543792,
+      "rss": 175407104,
+      "heapTotal": 21118976,
+      "heapUsed": 13581416,
+      "external": 5792818,
+      "arrayBuffers": 814228
+    },
+    {
+      "at": 18228.023,
+      "rss": 175407104,
+      "heapTotal": 21118976,
+      "heapUsed": 13747032,
+      "external": 5795896,
+      "arrayBuffers": 817306
+    },
+    {
+      "at": 18278.23025,
+      "rss": 175407104,
+      "heapTotal": 21118976,
+      "heapUsed": 10917792,
+      "external": 5840206,
+      "arrayBuffers": 861616
+    },
+    {
+      "at": 18327.75475,
+      "rss": 175407104,
+      "heapTotal": 21118976,
+      "heapUsed": 11190656,
+      "external": 5843566,
+      "arrayBuffers": 864976
+    },
+    {
+      "at": 18378.26175,
+      "rss": 175456256,
+      "heapTotal": 21118976,
+      "heapUsed": 12944848,
+      "external": 5851051,
+      "arrayBuffers": 872461
+    },
+    {
+      "at": 18428.690083,
+      "rss": 178061312,
+      "heapTotal": 21118976,
+      "heapUsed": 13193264,
+      "external": 5854699,
+      "arrayBuffers": 876109
+    },
+    {
+      "at": 18480.051917,
+      "rss": 176521216,
+      "heapTotal": 21118976,
+      "heapUsed": 13374504,
+      "external": 5857303,
+      "arrayBuffers": 878713
+    },
+    {
+      "at": 18530.340625,
+      "rss": 176521216,
+      "heapTotal": 21118976,
+      "heapUsed": 13429088,
+      "external": 5857315,
+      "arrayBuffers": 878725
+    },
+    {
+      "at": 18580.027792,
+      "rss": 176553984,
+      "heapTotal": 21118976,
+      "heapUsed": 11651104,
+      "external": 5908327,
+      "arrayBuffers": 929737
+    },
+    {
+      "at": 18630.451292,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 10989808,
+      "external": 5904418,
+      "arrayBuffers": 925828
+    },
+    {
+      "at": 18680.343042,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 10991888,
+      "external": 5904430,
+      "arrayBuffers": 925840
+    },
+    {
+      "at": 18730.229042,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 10993968,
+      "external": 5904442,
+      "arrayBuffers": 925852
+    },
+    {
+      "at": 18781.376875,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 10996048,
+      "external": 5904454,
+      "arrayBuffers": 925864
+    },
+    {
+      "at": 18831.568333,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 10998128,
+      "external": 5904466,
+      "arrayBuffers": 925876
+    },
+    {
+      "at": 18883.245208,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 11119288,
+      "external": 5905774,
+      "arrayBuffers": 927184
+    },
+    {
+      "at": 18934.432292,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 11121368,
+      "external": 5905786,
+      "arrayBuffers": 927196
+    },
+    {
+      "at": 18984.621167,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 11123448,
+      "external": 5905798,
+      "arrayBuffers": 927208
+    },
+    {
+      "at": 19035.761625,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 11125728,
+      "external": 5905810,
+      "arrayBuffers": 927220
+    },
+    {
+      "at": 19087.294625,
+      "rss": 176603136,
+      "heapTotal": 21118976,
+      "heapUsed": 11127808,
+      "external": 5905822,
+      "arrayBuffers": 927232
+    }
+  ],
+  "receipts": [
+    {
+      "commandId": "5bd01888-4320-43b0-ad57-a62c4fc283fe",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 51.255457999999635
+    },
+    {
+      "commandId": "7c6d4611-31ce-4e90-9b8a-39bf5c063ace",
+      "operation": "PrepareRaster",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 191.94541600000002
+    },
+    {
+      "commandId": "f401a65a-c72a-4a0d-877d-0e7fc010b63d",
+      "operation": "ReviewRaster",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 10.939791000000241
+    },
+    {
+      "commandId": "f1f050ff-50b5-4a11-b8e3-22e6bd1c4e4d",
+      "operation": "ApproveRaster",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 45.464750000000095
+    },
+    {
+      "commandId": "21b1dbcd-253d-4193-abef-da88831bf836",
+      "operation": "NewDocument",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 7.979208000000199
+    },
+    {
+      "commandId": "8199de3c-ca6d-47a4-b231-00baa3876ae5",
+      "operation": "ImportAsset",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 213.86191700000018
+    },
+    {
+      "commandId": "019a09d0-8bb7-4b61-b3c9-f9baf98fcbc2",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 40.80108399999972
+    },
+    {
+      "commandId": "feac1604-5f41-4d5b-854e-eaba6ab917bb",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 186.73470799999996
+    },
+    {
+      "commandId": "e610a6e5-66fc-4e45-b7f4-d9823ccbbc2c",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 40.19370799999979
+    },
+    {
+      "commandId": "a7ef30fd-048d-4a56-b24d-c0752ef41414",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 219.4292089999999
+    },
+    {
+      "commandId": "db37850a-ff91-4dbe-b89d-6ad618e3d307",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 39.70054199999959
+    },
+    {
+      "commandId": "19c71f2b-c84d-4910-afe6-bd3d41783047",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 220.09600000000046
+    },
+    {
+      "commandId": "806fa83d-238e-4b3b-b9da-7b4a10ac35f6",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 41.85041600000022
+    },
+    {
+      "commandId": "c7a33184-599c-4d57-a8dc-d79b5bea812c",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 197.86412500000006
+    },
+    {
+      "commandId": "edd8a443-cefd-4822-b8d5-3adddb97489c",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 43.67045899999994
+    },
+    {
+      "commandId": "c71a69de-39c1-45c2-88f8-df116ec7996b",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 228.7440000000006
+    },
+    {
+      "commandId": "ca1e0f0d-b791-4c37-98b6-8fb4c4828a8c",
+      "operation": "Undo",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 48.60466699999961
+    },
+    {
+      "commandId": "7aaa2ce4-7d4a-4d69-a81d-22a50ebcf1ae",
+      "operation": "Redo",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 44.59195799999907
+    },
+    {
+      "commandId": "e8a28abb-b24b-4f1d-a7ef-240d110b4d6b",
+      "operation": "PrepareImageResample",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 309.5189589999991
+    },
+    {
+      "commandId": "bee2ced5-ad5f-4581-bc7a-7a4fa67d7589",
+      "operation": "ReviewImageEdit",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 42.846041000000696
+    },
+    {
+      "commandId": "d4cb5809-0e98-4dac-8e0d-a0425dae1a78",
+      "operation": "ResampleImage",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 82.4116670000003
+    },
+    {
+      "commandId": "560620ca-13ed-4bd8-887f-f0ac597643be",
+      "operation": "PrepareFlattenedCopy",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 258.76166600000033
+    },
+    {
+      "commandId": "186b119f-9a6d-43db-87f9-4af075667b81",
+      "operation": "ReviewImageEdit",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 39.59050000000025
+    },
+    {
+      "commandId": "6af5091b-5f9b-4902-bd54-1b2cbec38dda",
+      "operation": "CreateFlattenedCopy",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 83.4067500000001
+    },
+    {
+      "commandId": "f2d20123-d89b-4b68-9efb-b1811551163a",
+      "operation": "SaveCheckpoint",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 43.36762500000077
+    },
+    {
+      "commandId": "4ee491ea-8985-4ac9-b9fd-6ceb51b0aea5",
+      "operation": "SaveCopy",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 291.5665420000005
+    },
+    {
+      "commandId": "297f0741-c040-4a2b-8311-ac93e499dcbb",
+      "operation": "PreviewBundleImport",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 1260.0229590000017
+    },
+    {
+      "commandId": "73ac8529-6fb3-4c2b-adf0-380241cf5d0e",
+      "operation": "ImportBundle",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 2383.2664170000025
+    },
+    {
+      "commandId": "3cb67598-239e-454c-bb91-01e11a33561c",
+      "operation": "ExportDocument",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 125.24829200000022
+    },
+    {
+      "commandId": "ec8902e9-165a-4c5a-b001-d92db65fda19",
+      "operation": "FinalizeStaging",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 49.062582999998995
+    },
+    {
+      "commandId": "47339942-6662-41d5-adeb-d566e9222d69",
+      "operation": "SetLayerProperties",
+      "status": "accepted",
+      "requestToObservedReceiptMs": 190.47754200000054
+    }
+  ],
+  "limits": "Author tiny fixture observations with tracing and automated review dwell; not formal workload, native/display/OS latency or exclusive-host qualification. HTTP request-to-observed-receipt includes preparation/queue/server/client observation and is not the narrower R20 child. Only renderer Paint after verified app draw/update identifies paint; completion/rAF alone is not paint. Download initiation plus Playwright saveAs are separate measured steps; external destination remains unconfirmed. Server RSS samples include this server process and its threads, not browser or separate children; no complete application peak claim.",
+  "build": {
+    "schema": 1,
+    "workload": "P1a.3 browser shell; all initial dynamic shell imports counted",
+    "observations": {
+      "D11": {
+        "startupJsRawBytes": 502880,
+        "startupJsGzipBytes": 132690,
+        "cssGzipBytes": 12690
+      }
+    },
+    "qualification": "Unqualified: single artifact, no required campaign or evaluated-module timing",
+    "outputs": [
+      {
+        "file": "assets/index-CHAt1K9I.js",
+        "bytes": 1254,
+        "gzipBytes": 690,
+        "entry": true,
+        "imports": [
+          "assets/preload-helper-BZ1Pz5am.js",
+          "assets/shell-BtxkEZsR.js"
+        ],
+        "modules": [
+          "\u0000vite/modulepreload-polyfill.js",
+          "src/theme/shell.css",
+          "src/main.ts",
+          "index.html"
+        ]
+      },
+      {
+        "file": "assets/editor-panels-C8u6k489.js",
+        "bytes": 9411,
+        "gzipBytes": 3322,
+        "entry": false,
+        "imports": [
+          "assets/icon-LNfVOU5p.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/dialog/template.js",
+          "node_modules/@en-reve/elements/dist/dialog/trigger-controller.js",
+          "node_modules/@en-reve/elements/dist/dialog/dialog.js",
+          "node_modules/@en-reve/elements/dist/definitions/dialog.js",
+          "node_modules/@en-reve/elements/dist/drawer/drawer.js",
+          "node_modules/@en-reve/elements/dist/definitions/drawer.js",
+          "src/ui/editor-panels.ts"
+        ]
+      },
+      {
+        "file": "assets/icon-LNfVOU5p.js",
+        "bytes": 137598,
+        "gzipBytes": 31821,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "node_modules/@en-reve/elements/dist/internal/native-surface.js",
+          "node_modules/@lit/reactive-element/css-tag.js",
+          "node_modules/@lit/reactive-element/reactive-element.js",
+          "node_modules/lit-html/lit-html.js",
+          "node_modules/lit-element/lit-element.js",
+          "node_modules/lit/index.js",
+          "node_modules/@en-reve/primitives/dist/interactions/registration.js",
+          "node_modules/@en-reve/elements/dist/internal/element-registry.js",
+          "node_modules/@en-reve/elements/dist/internal/child-upgrades.js",
+          "node_modules/@en-reve/elements/dist/element-scope.js",
+          "node_modules/@en-reve/primitives/dist/interactions/static-styles.js",
+          "node_modules/@en-reve/elements/dist/internal/en-element.js",
+          "node_modules/@en-reve/primitives/dist/interactions/events.js",
+          "node_modules/@en-reve/tokens/dist/defaults.js",
+          "node_modules/@en-reve/tokens/dist/sizing.js",
+          "node_modules/@en-reve/styles/dist/internal/token-values.js",
+          "node_modules/@en-reve/styles/dist/internal/values.js",
+          "node_modules/@en-reve/styles/dist/internal/press.js",
+          "node_modules/@en-reve/styles/dist/internal/focus-core.js",
+          "node_modules/@en-reve/styles/dist/internal/sizing.js",
+          "node_modules/@en-reve/styles/dist/generated/typography.js",
+          "node_modules/@en-reve/styles/dist/foundations.js",
+          "node_modules/@en-reve/styles/dist/internal/target-size.js",
+          "node_modules/@en-reve/styles/dist/internal/control-size.js",
+          "node_modules/@en-reve/styles/dist/internal/inset-action.js",
+          "node_modules/@en-reve/styles/dist/internal/press-recipes.js",
+          "node_modules/@en-reve/styles/dist/internal/field-presentation.js",
+          "node_modules/@en-reve/styles/dist/internal/select-chevron.js",
+          "node_modules/@en-reve/styles/dist/internal/description.js",
+          "node_modules/@en-reve/styles/dist/internal/surface-motion.js",
+          "node_modules/@en-reve/styles/dist/internal/radio-rules.js",
+          "node_modules/@en-reve/styles/dist/internal/option-paint.js",
+          "node_modules/@en-reve/styles/dist/internal/button-rules.js",
+          "node_modules/@en-reve/styles/dist/internal/focus.js",
+          "node_modules/@en-reve/styles/dist/internal/range.js",
+          "node_modules/@en-reve/styles/dist/internal/link-rules.js",
+          "node_modules/@en-reve/styles/dist/internal/control-shared.js",
+          "node_modules/@en-reve/styles/dist/controls.js",
+          "node_modules/@en-reve/styles/dist/overlays.js",
+          "node_modules/@en-reve/elements/dist/internal/id-reference.js",
+          "node_modules/@en-reve/elements/dist/internal/overlay-trigger.js",
+          "node_modules/@en-reve/elements/dist/dialog/focus.js",
+          "node_modules/@en-reve/styles/dist/buttons.js",
+          "node_modules/@en-reve/styles/dist/activity.js",
+          "node_modules/lit-html/directives/if-defined.js",
+          "node_modules/lit/directives/if-defined.js",
+          "node_modules/@en-reve/elements/dist/button/template.js",
+          "node_modules/@en-reve/elements/dist/internal/focus-participant.js",
+          "node_modules/@en-reve/elements/dist/button/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/button.js",
+          "node_modules/@en-reve/styles/dist/feedback.js",
+          "node_modules/@en-reve/elements/dist/icon/template.js",
+          "node_modules/@en-reve/elements/dist/icon/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/icon.js"
+        ]
+      },
+      {
+        "file": "assets/preload-helper-BZ1Pz5am.js",
+        "bytes": 1218,
+        "gzipBytes": 688,
+        "entry": false,
+        "imports": [],
+        "modules": [
+          "\u0000vite/preload-helper.js"
+        ]
+      },
+      {
+        "file": "assets/shell-BtxkEZsR.js",
+        "bytes": 353399,
+        "gzipBytes": 96169,
+        "entry": false,
+        "imports": [
+          "assets/preload-helper-BZ1Pz5am.js",
+          "assets/icon-LNfVOU5p.js",
+          "assets/editor-panels-C8u6k489.js"
+        ],
+        "modules": [
+          "node_modules/@en-reve/primitives/dist/interactions/editing-controller.js",
+          "node_modules/@en-reve/elements/dist/forms-private/default-state.js",
+          "node_modules/@en-reve/primitives/dist/templates/description.js",
+          "node_modules/signal-polyfill/dist/index.js",
+          "node_modules/@en-reve/primitives/dist/state/draft.js",
+          "node_modules/signal-utils/dist/subtle/reaction.ts.js",
+          "node_modules/@en-reve/primitives/dist/interactions/signal-controller.js",
+          "node_modules/@en-reve/primitives/dist/interactions/form-controller.js",
+          "node_modules/@en-reve/elements/dist/forms-private/form-field.js",
+          "node_modules/@en-reve/elements/dist/forms-private/editable-field.js",
+          "node_modules/@en-reve/elements/dist/textarea/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/textarea.js",
+          "node_modules/@en-reve/elements/dist/text-field/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/text-field.js",
+          "node_modules/@en-reve/elements/dist/number-field/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/number-field.js",
+          "node_modules/lit-html/static.js",
+          "node_modules/lit/static-html.js",
+          "node_modules/lit-html/directive.js",
+          "node_modules/lit-html/directive-helpers.js",
+          "node_modules/lit-html/directives/repeat.js",
+          "node_modules/lit/directives/repeat.js",
+          "node_modules/@en-reve/primitives/dist/interactions/selection-children.js",
+          "node_modules/@en-reve/elements/dist/select/element.js",
+          "node_modules/@en-reve/elements/dist/internal/selection-item.js",
+          "node_modules/@en-reve/elements/dist/select-option/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/select-option.js",
+          "node_modules/@en-reve/elements/dist/definitions/select.js",
+          "node_modules/@en-reve/elements/dist/splitter/template.js",
+          "node_modules/@en-reve/elements/dist/splitter/owner.js",
+          "node_modules/@en-reve/primitives/dist/state/value.js",
+          "node_modules/@en-reve/styles/dist/surfaces.js",
+          "node_modules/@en-reve/elements/dist/splitter/splitter.js",
+          "node_modules/@en-reve/elements/dist/definitions/splitter.js",
+          "node_modules/@en-reve/styles/dist/commands.js",
+          "node_modules/@en-reve/primitives/dist/interactions/roving-focus.js",
+          "node_modules/@en-reve/elements/dist/toolbar/template.js",
+          "node_modules/@en-reve/elements/dist/toolbar/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/toolbar.js",
+          "node_modules/@en-reve/elements/dist/internal/interaction-availability.js",
+          "node_modules/@en-reve/elements/dist/tabs/template.js",
+          "node_modules/@en-reve/styles/dist/selection.js",
+          "node_modules/@en-reve/elements/dist/tabs/tabs.js",
+          "node_modules/@en-reve/elements/dist/definitions/tabs.js",
+          "node_modules/@en-reve/elements/dist/tab/template.js",
+          "node_modules/@en-reve/elements/dist/tab/tab.js",
+          "node_modules/@en-reve/elements/dist/definitions/tab.js",
+          "node_modules/@en-reve/elements/dist/tab-panel/template.js",
+          "node_modules/@en-reve/elements/dist/tab-panel/tab-panel.js",
+          "node_modules/@en-reve/elements/dist/definitions/tab-panel.js",
+          "node_modules/@en-reve/elements/dist/forms-private/validation-feedback.js",
+          "node_modules/@en-reve/styles/dist/file-upload.js",
+          "node_modules/@en-reve/primitives/dist/interactions/file-selection.js",
+          "node_modules/@en-reve/elements/dist/file-upload/drop-controller.js",
+          "node_modules/@en-reve/elements/dist/file-upload/template.js",
+          "node_modules/@en-reve/elements/dist/file-upload/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/file-upload.js",
+          "node_modules/@en-reve/primitives/dist/interactions/tree.js",
+          "node_modules/@en-reve/styles/dist/tree.js",
+          "node_modules/@en-reve/elements/dist/internal/dom-kind.js",
+          "node_modules/@en-reve/elements/dist/tree/interaction-controller.js",
+          "node_modules/@en-reve/elements/dist/tree/template.js",
+          "node_modules/@en-reve/primitives/dist/state/collection.js",
+          "node_modules/@en-reve/primitives/dist/state/virtual-collection.js",
+          "node_modules/@en-reve/primitives/dist/interactions/scroll-into-view.js",
+          "node_modules/@en-reve/primitives/dist/interactions/virtual-collection.js",
+          "node_modules/@en-reve/elements/dist/tree/data-controller.js",
+          "node_modules/@en-reve/primitives/dist/interactions/tree-operations.js",
+          "node_modules/@en-reve/elements/dist/tree/lazy-controller.js",
+          "node_modules/@en-reve/elements/dist/tree/move-controller.js",
+          "node_modules/@en-reve/elements/dist/tree/data-template.js",
+          "node_modules/@en-reve/elements/dist/tree/element.js",
+          "node_modules/@en-reve/elements/dist/tree-item/template.js",
+          "node_modules/@en-reve/elements/dist/tree-item/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/tree-item.js",
+          "node_modules/@en-reve/elements/dist/definitions/tree.js",
+          "node_modules/@en-reve/styles/dist/collaboration.js",
+          "node_modules/@en-reve/elements/dist/activity-feed.js",
+          "node_modules/@en-reve/elements/dist/activity-item.js",
+          "node_modules/@en-reve/elements/dist/definitions/activity-item.js",
+          "node_modules/@en-reve/elements/dist/definitions/activity-feed.js",
+          "node_modules/@en-reve/elements/dist/checkbox/template.js",
+          "node_modules/@en-reve/elements/dist/checkbox/choice-base.js",
+          "node_modules/@en-reve/elements/dist/switch/index.js",
+          "node_modules/@en-reve/elements/dist/definitions/switch.js",
+          "node_modules/@en-reve/elements/dist/slider/numeric-base.js",
+          "node_modules/@en-reve/elements/dist/slider/number.js",
+          "node_modules/@en-reve/elements/dist/slider/template.js",
+          "node_modules/@en-reve/elements/dist/slider/index.js",
+          "node_modules/@en-reve/elements/dist/definitions/slider.js",
+          "node_modules/@en-reve/primitives/dist/interactions/form-children.js",
+          "node_modules/@en-reve/styles/dist/form-navigation.js",
+          "node_modules/@en-reve/elements/dist/validation-summary/element.js",
+          "node_modules/@en-reve/elements/dist/definitions/validation-summary.js",
+          "node_modules/@en-reve/elements/dist/internal/overlay-arrow.js",
+          "node_modules/@en-reve/elements/dist/popover/floating-surface.js",
+          "node_modules/@en-reve/elements/dist/popover/template.js",
+          "node_modules/@en-reve/elements/dist/popover/popover.js",
+          "node_modules/@en-reve/elements/dist/definitions/popover.js",
+          "src/state/session-client.ts",
+          "src/state/projection.ts",
+          "src/protocol/json.ts",
+          "src/protocol/validate.ts",
+          "src/state/recovery-cache.ts",
+          "src/protocol/sha256.ts",
+          "src/state/recovery-client.ts",
+          "src/state/browser-journal.ts",
+          "src/state/draft-persistence.ts",
+          "src/protocol/store.ts",
+          "src/state/editor-client.ts",
+          "src/state/destination.ts",
+          "src/ui/adapters.ts",
+          "src/ui/canvas-view.ts",
+          "src/ui/icons.ts",
+          "src/ui/shell.ts"
+        ]
+      },
+      {
+        "file": "assets/index-CgbuBWk0.css",
+        "bytes": 96456,
+        "gzipBytes": 12690,
+        "entry": false,
+        "imports": [],
+        "modules": []
+      }
+    ]
+  }
+}

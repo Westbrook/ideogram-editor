@@ -1,0 +1,85 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 9 tests using 1 worker
+
+(node:64316) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body (5.5s)
+(node:64326) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (995ms)
+(node:64333) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (1.8s)
+  ✓  4 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (1.9s)
+  ✓  5 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (4.4s)
+  ✓  6 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (2.9s)
+  ✓  7 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (937ms)
+  ✓  8 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (2.6s)
+  ✓  9 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (7.7s)
+
+
+  1) tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'Action needs attention', exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('heading', { name: 'Action needs attention', exact: true }) with timeout 5000ms
+      - waiting for getByRole('heading', { name: 'Action needs attention', exact: true })
+
+
+       9 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-fault-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});
+      10 |  try{
+    > 11 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await click(page,'Open');await page.locator('en-file-upload input[type=file]').setInputFiles({name:'bad.ideogram-project',mimeType:'application/octet-stream',buffer:Buffer.from('not a ZIP64 project')});await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();await click(page,'Cancel');
+         |                                                                                                                                                                                                                                                                                                                                                                                                                                                               ^
+      12 |  // Drop only the receipt after the real writer sees and accepts this exact envelope.
+      13 |  let first='';const bodies:string[]=[];await page.route('**/api/v1/commands',async route=>{const text=route.request().postData()!,body=JSON.parse(text);if(body.command.body.type==='NewDocument'){bodies.push(text);if(!first){first=text;await route.fetch();await route.abort('failed');return;}}await route.continue();});
+      14 |  await click(page,'New');await click(page,'Create');await expect(page.getByRole('button',{name:'Check and retry original',exact:true})).toBeVisible();await click(page,'Cancel');await click(page,'Check and retry original');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(bodies).toEqual([first]);await page.unroute('**/api/v1/commands');
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:11:447
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/12/browser/failures-malformed-portabl-ed285-ivery-reuses-its-exact-body/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/12/browser/failures-malformed-portabl-ed285-ivery-reuses-its-exact-body/error-context.md
+
+  2) tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText(/Connection expired or unavailable/)
+    Expected: visible
+    Error: strict mode violation: getByText(/Connection expired or unavailable/) resolved to 2 elements:
+        1) <p>…</p> aka getByRole('banner').getByText('Connection expired or')
+        2) <p>…</p> aka locator('section').filter({ hasText: 'Connection expired or' }).getByRole('paragraph')
+
+    Call log:
+      - Expect "toBeVisible" getByText(/Connection expired or unavailable/) with timeout 5000ms
+      - waiting for getByText(/Connection expired or unavailable/)
+
+
+      20 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-expiry-'));let now=Date.now();const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),now:()=>now});
+      21 |  try{await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();now+=31*60*1000;await click(page,'Apply reviewed result');await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();
+    > 22 |  await click(page,'Cancel review');await click(page,'Connected locally');await click(page,'Check connection');await expect(page.getByText(/Connection expired or unavailable/)).toBeVisible();await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('dialog',{name:'Review image conversion'})).toHaveCount(0);
+         |                                                                                                                                                                                 ^
+      23 |  }finally{await server.close();}
+      24 | });
+      25 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:22:177
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/12/browser/failures-renewal-expires-u-127f3-without-creating-a-document/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/12/browser/failures-renewal-expires-u-127f3-without-creating-a-document/error-context.md
+
+  2 failed
+    tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body 
+    tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document 
+  7 passed (29.7s)

@@ -146,10 +146,49 @@ export class StoreDatabase {
     this.check(); const row = this.db.prepare('SELECT json FROM documents WHERE id=?').get(id);
     return row ? JSON.parse(String(row.json)) : null;
   }
+  documentRevision(id:string):string|null {
+    if(!isId(id))throw new StoreError('MALFORMED_REQUEST');this.check();
+    const row=this.db.prepare("SELECT json_extract(json,'$.revision') AS revision FROM documents WHERE id=?").get(id);
+    if(!row)return null;if(typeof row.revision!=='string'||!isSeq(row.revision))throw new StoreError('CORRUPT_STORE');
+    return row.revision;
+  }
   lookup(id: string) {
     if (!isId(id)) throw new StoreError('MALFORMED_REQUEST');
     this.check(); const row = this.db.prepare('SELECT hash, canonical, receipt FROM commands WHERE id=?').get(id);
     return row ? { hash: String(row.hash), command: JSON.parse(String(row.canonical)).command as Command, receipt: JSON.parse(String(row.receipt)) as Receipt } : null;
+  }
+  // Read-only owner inventory. Keyset pages bound memory; no history or pending row is removed.
+  pendingInventory(clientId: string, after: string, high: string | null) {
+    this.check(); if (!isId(clientId) || after && !isId(after) || high !== null && high !== '' && !isId(high)) throw new StoreError('MALFORMED_REQUEST');
+    const union = ['asset_preparations','raster_preparations','history_preparations','portable_preparations']
+      .map(table => `SELECT id,hash,canonical,operation_id,phase FROM ${table}`).join(' UNION ALL ');
+    const owner = `json_extract(canonical,'$.command.clientId')=?`;
+    const upper = high ?? String(this.db.prepare(`SELECT coalesce(max(id),'') AS id FROM (${union}) WHERE ${owner}`).get(clientId)!.id);
+    const rows = this.db.prepare(`SELECT * FROM (${union}) WHERE ${owner} AND id>? AND id<=? ORDER BY id LIMIT 33`).all(clientId,after,upper);
+    const items = rows.slice(0,32).map(row => {
+      const command = JSON.parse(String(row.canonical)).command as Command;
+      if(command.commandId!==row.id || hashBytes(String(row.canonical))!==row.hash || !isId(row.operation_id) || !['preparing','waiting-for-resources'].includes(String(row.phase))) throw new StoreError('CORRUPT_STORE');
+      return {commandId:command.commandId,commandHash:String(row.hash),operationId:String(row.operation_id),phase:String(row.phase) as 'preparing'|'waiting-for-resources',label:command.body.type};
+    });
+    return {items,high:upper,after:items.at(-1)?.commandId??after,more:rows.length>32};
+  }
+  uiInventory(clientId:string,after:string,high:string|null){
+    this.check();if(!isId(clientId)||after&&!isId(after)||high!==null&&high!==''&&!isId(high))throw new StoreError('MALFORMED_REQUEST');
+    const upper=high??String(this.db.prepare("SELECT coalesce(max(session_id),'') AS id FROM ui_checkpoints WHERE client_id=?").get(clientId)!.id);
+    const rows=this.db.prepare('SELECT session_id,json FROM ui_checkpoints WHERE client_id=? AND session_id>? AND session_id<=? ORDER BY session_id LIMIT 65').all(clientId,after,upper);
+    const items=rows.slice(0,64).map(row=>{const ui=JSON.parse(String(row.json));return {sessionId:String(row.session_id),documentId:ui.preferences.documentId,uiSeq:ui.uiSeq};});
+    return {items,high:upper,after:items.at(-1)?.sessionId??after,more:rows.length>64};
+  }
+  originalCommand(id: string, clientId: string) {
+    this.check(); if(!isId(id)||!isId(clientId))throw new StoreError('MALFORMED_REQUEST');
+    for(const table of ['commands','asset_preparations','raster_preparations','history_preparations','portable_preparations']){
+      const row=this.db.prepare(`SELECT original,canonical,hash FROM ${table} WHERE id=?`).get(id);if(!row)continue;
+      const original=String(row.original),request=parseCommand(Buffer.from(original));
+      if(request.command.clientId!==clientId)throw new StoreError('OWNER_REQUIRED');
+      if(request.command.commandId!==id||canonical(request)!==row.canonical||hashBytes(String(row.canonical))!==row.hash)throw new StoreError('CORRUPT_STORE');
+      return original;
+    }
+    return null;
   }
   events(after: string, limit: number) {
     this.check();

@@ -1,0 +1,357 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: portable.spec.ts >> E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG
+- Location: tests/editor/portable.spec.ts:14:1
+
+# Error details
+
+```
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 5
+
+- Array []
++ Array [
++   "Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING",
++   "Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING",
++   "Failed to load resource: net::ERR_CONNECTION_REFUSED",
++ ]
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f2e3]:
+  - generic:
+    - link "Go to Request" [ref=f2e4] [cursor=pointer]:
+      - /url: "#request"
+    - link "Go to Canvas" [ref=f2e5] [cursor=pointer]:
+      - /url: "#canvas"
+    - link "Go to Layers" [ref=f2e6] [cursor=pointer]:
+      - /url: "#inspector"
+    - link "Go to History" [ref=f2e7] [cursor=pointer]:
+      - /url: "#results"
+  - banner [ref=f2e8]:
+    - generic [ref=f2e13]:
+      - strong [ref=f2e14]: Ideogram Editor
+      - generic [ref=f2e15]: 3 × 2 · revision 5
+    - group "Document actions" [ref=f2e17]:
+      - generic:
+        - button "New" [ref=f2e19] [cursor=pointer]
+        - button "Open" [ref=f2e22] [cursor=pointer]
+        - button "Import image" [ref=f2e25] [cursor=pointer]
+        - button "Undo" [ref=f2e28] [cursor=pointer]
+        - button "Redo" [ref=f2e31] [cursor=pointer]
+    - generic [ref=f2e33]:
+      - button "Connected locally" [ref=f2e35] [cursor=pointer]
+      - generic:
+        - generic: Check connection
+        - generic: Renew connection
+        - generic: Disconnect
+      - button "Save copy" [ref=f2e38] [cursor=pointer]
+      - button "Export image" [ref=f2e41] [cursor=pointer]
+      - button "Help" [ref=f2e44] [cursor=pointer]
+  - region "Operation status" [ref=f2e46]:
+    - status [ref=f2e47]: Download initiated. External destination remains unconfirmed.
+    - paragraph [ref=f2e48]: Updates interrupted. Recovering complete transactions; the last valid view is retained.
+    - button "Reconnect" [ref=f2e50] [cursor=pointer]
+  - main "Image editor" [ref=f2e52]:
+    - complementary [ref=f2e53]:
+      - toolbar "Canvas tools" [ref=f2e55]:
+        - generic:
+          - button "Move" [disabled] [ref=f2e57]
+          - button "Text" [disabled] [ref=f2e60]
+          - button "Select" [disabled] [ref=f2e63]
+          - button "Mask" [disabled] [ref=f2e66]
+          - button "Crop" [disabled] [ref=f2e69]
+          - button "Pan" [pressed] [ref=f2e72] [cursor=pointer]
+          - button "Zoom" [ref=f2e75] [cursor=pointer]
+    - generic [ref=f2e77]:
+      - region "Request" [ref=f2e78]:
+        - generic [ref=f2e79]:
+          - heading "Request" [level=1] [ref=f2e80]
+          - generic [ref=f2e81]: Draft
+        - generic [ref=f2e82]:
+          - generic [ref=f2e84]:
+            - generic [ref=f2e85]: Operation
+            - combobox "Operation" [ref=f2e88]:
+              - option "Generate image" [selected]
+              - option "Generate with Instant"
+              - option "Generate with Fast"
+              - option "Transform image"
+              - option "Edit masked region"
+              - option "Generate with adapters"
+              - option "Transform with adapters"
+              - option "Edit with adapters"
+          - generic [ref=f2e90]:
+            - generic [ref=f2e91]: Prompt
+            - textbox "Prompt" [ref=f2e94]:
+              - /placeholder: Describe the image you have in mind…
+              - text: 日本語 🌿 retained unapplied prompt
+            - generic [ref=f2e95]: Draft autosaves locally; generation remains unavailable.
+          - paragraph [ref=f2e98]: Draft saved locally; not applied to the document
+          - heading "Explicit inputs" [level=2] [ref=f2e99]
+          - paragraph [ref=f2e100]: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+          - button "Generate" [disabled] [ref=f2e102]
+          - paragraph [ref=f2e104]: Native text, mask drawing and Composition authoring remain required P1c work.
+      - separator "Request panel width" [ref=f2e105]
+      - generic [ref=f2e108]:
+        - region "Canvas" [ref=f2e109]:
+          - generic [ref=f2e110]:
+            - generic [ref=f2e111]: Pan · retained raster
+            - generic [ref=f2e113]:
+              - generic [ref=f2e114]: Zoom percentage
+              - generic [ref=f2e116]:
+                - button "Decrease value" [ref=f2e117] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e120]: −
+                - spinbutton "Zoom percentage" [ref=f2e121]: "100"
+                - button "Increase value" [ref=f2e122] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e125]: +
+            - button "Fit" [ref=f2e127] [cursor=pointer]
+            - button "100%" [ref=f2e130] [cursor=pointer]
+          - generic "Document raster preview" [ref=f2e133]
+          - generic [ref=f2e134]:
+            - generic [ref=f2e135]: 3 × 2 pixels · 1 selected
+            - generic [ref=f2e136]: Paste an image here to review
+          - generic [ref=f2e137]:
+            - generic [ref=f2e139]:
+              - generic [ref=f2e140]: View X (px)
+              - generic [ref=f2e142]:
+                - button "Decrease value" [ref=f2e143] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e146]: −
+                - spinbutton "View X (px)" [ref=f2e147]: "0"
+                - button "Increase value" [ref=f2e148] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e151]: +
+            - generic [ref=f2e153]:
+              - generic [ref=f2e154]: View Y (px)
+              - generic [ref=f2e156]:
+                - button "Decrease value" [ref=f2e157] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e160]: −
+                - spinbutton "View Y (px)" [ref=f2e161]: "0"
+                - button "Increase value" [ref=f2e162] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e165]: +
+            - button "Apply view" [ref=f2e167] [cursor=pointer]
+        - separator "Canvas and inspector width" [ref=f2e169]
+        - complementary "Layers and properties" [ref=f2e172]:
+          - generic [ref=f2e174]:
+            - tablist "Document structure" [ref=f2e175]:
+              - generic:
+                - tab "Layers" [selected] [ref=f2e176] [cursor=pointer]
+                - tab "Composition" [ref=f2e178] [cursor=pointer]
+            - tabpanel "Layers" [ref=f2e181]:
+              - generic [ref=f2e182]:
+                - generic:
+                  - tree "Image layers" [ref=f2e185]:
+                    - treeitem "hidden-alpha.png · visible" [level=1] [selected] [ref=f2e186]
+                  - generic [ref=f2e190]:
+                    - button "Duplicate" [ref=f2e192] [cursor=pointer]
+                    - button "Delete layer" [ref=f2e195] [cursor=pointer]
+                    - button "Move up" [ref=f2e198] [cursor=pointer]
+                    - button "Move down" [ref=f2e201] [cursor=pointer]
+          - generic [ref=f2e203]:
+            - heading "Image properties" [level=2] [ref=f2e204]
+            - paragraph [ref=f2e205]: Accepted layer · base revision 5
+            - generic [ref=f2e207]:
+              - generic [ref=f2e208]: Layer name
+              - textbox "Layer name" [ref=f2e211]: hidden-alpha.png
+            - generic [ref=f2e213]:
+              - generic [ref=f2e214]: Opacity (0–1)
+              - generic [ref=f2e216]:
+                - button "Decrease value" [ref=f2e217] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e220]: −
+                - spinbutton "Opacity (0–1)" [ref=f2e221]: "1"
+                - button "Increase value" [ref=f2e222] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f2e225]: +
+            - generic [ref=f2e227]:
+              - generic [ref=f2e228]: Opacity preview
+              - slider "Opacity preview" [ref=f2e232] [cursor=pointer]: "1"
+            - generic [ref=f2e235] [cursor=pointer]:
+              - switch "Visible" [checked] [ref=f2e236]
+              - generic [ref=f2e237]: Visible
+            - generic [ref=f2e242] [cursor=pointer]:
+              - switch "Locked" [ref=f2e243]
+              - generic [ref=f2e244]: Locked
+            - generic [ref=f2e247]:
+              - button "Apply properties" [ref=f2e249] [cursor=pointer]
+              - button "Cancel changes" [ref=f2e252] [cursor=pointer]
+            - heading "Transform" [level=2] [ref=f2e254]
+            - paragraph [ref=f2e255]: Affine coefficients preserve rotation and shear. X/Y use document pixels.
+            - generic [ref=f2e256]:
+              - generic [ref=f2e258]:
+                - generic [ref=f2e259]: X
+                - generic [ref=f2e261]:
+                  - button "Decrease value" [ref=f2e262] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e265]: −
+                  - spinbutton "X" [ref=f2e266]: "0"
+                  - button "Increase value" [ref=f2e267] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e270]: +
+              - generic [ref=f2e272]:
+                - generic [ref=f2e273]: "Y"
+                - generic [ref=f2e275]:
+                  - button "Decrease value" [ref=f2e276] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e279]: −
+                  - spinbutton "Y" [ref=f2e280]: "0"
+                  - button "Increase value" [ref=f2e281] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e284]: +
+              - generic [ref=f2e286]:
+                - generic [ref=f2e287]: A
+                - generic [ref=f2e289]:
+                  - button "Decrease value" [ref=f2e290] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e293]: −
+                  - spinbutton "A" [ref=f2e294]: "1"
+                  - button "Increase value" [ref=f2e295] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e298]: +
+              - generic [ref=f2e300]:
+                - generic [ref=f2e301]: B
+                - generic [ref=f2e303]:
+                  - button "Decrease value" [ref=f2e304] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e307]: −
+                  - spinbutton "B" [ref=f2e308]: "0"
+                  - button "Increase value" [ref=f2e309] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e312]: +
+              - generic [ref=f2e314]:
+                - generic [ref=f2e315]: C
+                - generic [ref=f2e317]:
+                  - button "Decrease value" [ref=f2e318] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e321]: −
+                  - spinbutton "C" [ref=f2e322]: "0"
+                  - button "Increase value" [ref=f2e323] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e326]: +
+              - generic [ref=f2e328]:
+                - generic [ref=f2e329]: D
+                - generic [ref=f2e331]:
+                  - button "Decrease value" [ref=f2e332] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e335]: −
+                  - spinbutton "D" [ref=f2e336]: "1"
+                  - button "Increase value" [ref=f2e337] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f2e340]: +
+            - button "Apply transform" [ref=f2e342] [cursor=pointer]
+            - button "Resample image…" [ref=f2e345] [cursor=pointer]
+            - generic [ref=f2e347]:
+              - button "Canvas bounds…" [ref=f2e349] [cursor=pointer]
+              - button "Flatten copy…" [ref=f2e352] [cursor=pointer]
+  - region "Activity" [ref=f2e354]:
+    - generic [ref=f2e355]:
+      - heading "Activity" [level=2] [ref=f2e356]
+      - button "Collapse" [ref=f2e358] [cursor=pointer]
+    - generic [ref=f2e361]:
+      - tablist "Activity views" [ref=f2e362]:
+        - generic:
+          - tab "Results" [ref=f2e363] [cursor=pointer]
+          - tab "Jobs" [ref=f2e365] [cursor=pointer]
+          - tab "History" [selected] [ref=f2e367] [cursor=pointer]
+      - tabpanel "History" [ref=f2e370]:
+        - generic [ref=f2e371]:
+          - generic:
+            - generic [ref=f2e373]:
+              - region "Retained document history" [ref=f2e374]:
+                - list "Retained document history" [ref=f2e375]:
+                  - listitem [ref=f2e376]:
+                    - article "History p_14feeceb0bab0ecff79eb552dcf28710fac5e8a6f06cb77d6f41819a3e977b92" [ref=f2e379]:
+                      - generic [ref=f2e380]:
+                        - generic [ref=f2e381]: SetLayerProperties
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f2e384]: SetLayerProperties · p_14feeceb0bab0ecff79eb552dcf28710fac5e8a6f06cb77d6f41819a3e977b92
+                      - button "Open this history state" [ref=f2e386] [cursor=pointer]
+                  - listitem [ref=f2e388]:
+                    - article "History p_5c8333a870195316132979a8f0f11398c5037efc95781f7087406e7a5a410423" [ref=f2e391]:
+                      - generic [ref=f2e392]:
+                        - generic [ref=f2e393]: ImportAsset
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f2e396]: ImportAsset · p_5c8333a870195316132979a8f0f11398c5037efc95781f7087406e7a5a410423 · current
+                      - button "Open this history state" [ref=f2e398] [cursor=pointer]
+                  - listitem [ref=f2e400]:
+                    - article "History p_e9adf8f54964e99260a4a2c523f4ff43a04821fa0443414da3e010bea8d3e27a" [ref=f2e403]:
+                      - generic [ref=f2e404]:
+                        - generic [ref=f2e405]: Document created
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=f2e408]: Creation · p_e9adf8f54964e99260a4a2c523f4ff43a04821fa0443414da3e010bea8d3e27a
+              - navigation "Retained document history pages" [ref=f2e409]:
+                - button "Newer page" [disabled] [ref=f2e411]
+                - generic [ref=f2e413]: Page 1 of 1
+                - button "Older page" [disabled] [ref=f2e415]
+              - status [ref=f2e417]
+              - button "Load older activity" [disabled] [ref=f2e419]
+            - generic [ref=f2e421]:
+              - generic [ref=f2e423]:
+                - generic [ref=f2e424]: Checkpoint name
+                - textbox "Checkpoint name" [ref=f2e427]: My checkpoint
+              - button "Save checkpoint" [ref=f2e429] [cursor=pointer]
+            - paragraph [ref=f2e431]: 1 checkpoint(s) in this page. Checkpoints retain their full history.
+  - region "Prepared file" [ref=f2e432]:
+    - paragraph [ref=f2e433]: Full-history copy · 103445 bytes · Download initiated — destination unconfirmed
+    - button "Download prepared file" [ref=f2e435] [cursor=pointer]
+  - contentinfo [ref=f2e437]:
+    - generic [ref=f2e438]: Accepted edits saved locally · Draft saved locally; not applied to the document
+    - generic [ref=f2e439]: Checkpoint content current · Copy state current · External destination unconfirmed
+  - generic: Cancel
+  - generic:
+    - generic: Cancel review
+    - generic: Apply reviewed result
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect,type Page} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile,writeFile} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join} from 'node:path';
+  5  | import sharp from 'sharp';
+  6  | import {serverProcess} from './process.js';
+  7  | // Test archive reader is independent of the browser adapter; small fixture only.
+  8  | // @ts-ignore
+  9  | import {unpack,records} from '../portable/archive-fixture.mjs';
+  10 | const accepted=(page:Page,type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
+  11 | const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
+  12 | const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+  13 | async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();}
+  14 | test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context})=>{
+  15 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[];
+  16 |  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+  17 |  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  18 |  page.on('request',r=>{const u=new URL(r.url());if(u.protocol!=='blob:'){requests.push(u.pathname);expect(u.hostname).toBe('127.0.0.1');}});
+  19 |  try{
+  20 |  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  21 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');
+  22 |  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');
+  23 |  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();
+  24 |  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');
+  25 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();
+  26 |  const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;
+  27 |  const events=records(entries,'events').values.map((x:any)=>x.event);expect(events.some((e:any)=>e.type==='HistoryNavigated')).toBe(true);expect(events.some((e:any)=>e.type==='CheckpointSaved')).toBe(true);
+  28 |  const entities=all.filter((x:any)=>x.kind==='entity').map((x:any)=>({kind:x.entityType,value:JSON.parse(entries.get('objects/'+x.payloadRef.hash.slice(7)))}));
+  29 |  expect(entities.filter((x:any)=>x.kind==='history').length).toBe(3);expect(entities.filter((x:any)=>x.kind==='checkpoint').length).toBe(1);expect(entities.some((x:any)=>x.kind==='draft')).toBe(true);
+  30 |  const originalPixels=await sharp('tests/raster/fixtures/hidden-alpha.png').ensureAlpha().raw().toBuffer();
+  31 |  const effects=await server.effects();expect(Object.values(effects).every(v=>v===0)).toBe(true);const oldOrigin=server.origin,oldPid=server.pid;await server.kill();
+  32 |  server=await serverProcess(root);expect(server.pid).not.toBe(oldPid);expect(server.origin).not.toBe(oldOrigin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  33 |  expect(await page.evaluate(async()=> (await indexedDB.databases()).filter(d=>d.name?.startsWith('ie-delivery-')).length)).toBe(1);
+  34 |  await click(page,'Open');await page.getByRole('button',{name:/^Restore ui_/}).click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  35 |  await click(page,'Open');await page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath);
+  36 |  await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
+  37 |  await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+  38 |  await server.kill();server=await serverProcess(root);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  39 |  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore p_/});await expect(mapped).not.toHaveCount(0);
+  40 |  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  41 |  await click(page,'Save copy');await click(page,'Prepare complete copy');const nestedPath=join(directory,'nested.ideogram-project');await download(page,nestedPath);const nested=await readFile(nestedPath);expect(nested.includes(await readFile(bundlePath))).toBe(true);
+> 42 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+     |                                                                                    ^ Error: expect(received).toEqual(expected) // deep equality
+  43 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+  44 |  await page.screenshot({path:join(receipt,'e1.png')});
+  45 |  }finally{await server.close();}
+  46 | });
+  47 | 
+```

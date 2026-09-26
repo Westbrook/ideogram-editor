@@ -1,0 +1,57 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts journey.spec.ts
+
+Running 1 test using 1 worker
+
+(node:70381) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+  ✘  1 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (3.0s)
+
+
+  1) tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo ─────────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.",
+    + ]
+
+      30 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);
+      31 |  await page.screenshot({path:(process.env.EDITOR_RECEIPT??'artifacts/p1b7/current')+'/editor.png'});
+    > 32 |  expect(errors).toEqual([]);
+         |                 ^
+      33 |  }finally{console.log('journey action diagnostics',commands,await page.evaluate(()=>performance.getEntriesByType('mark').filter(x=>x.name.startsWith('ie.intent.')).map(x=>x.name)));await server.close();}
+      34 | });
+      35 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:32:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/22/browser/journey-E1-real-reviewed-import-edit-and-undo/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/22/browser/journey-E1-real-reviewed-import-edit-and-undo/error-context.md
+
+  1 failed
+    tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo ──────────────────────

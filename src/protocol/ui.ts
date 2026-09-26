@@ -21,3 +21,5 @@ export type UIRequest = {
 export type UIReceipt = { protocolVersion: 1; requestId: string; status: 'accepted' | 'rejected'; uiSeq: string; reason: string | null };
 export type DocumentSaveStatus = { pendingCommandCount: number; draftDirty: boolean; documentChangedSinceCheckpoint: boolean; bundleOutdated: boolean };
 export type { DraftFence };
+
+export type UIInventory = {protocolVersion:1;kind:'ui-inventory';semantics:'current-at-page-read';writerEpoch:string;next:string|null;items:{sessionId:string;documentId:string|null;uiSeq:string}[]};

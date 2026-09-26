@@ -1,0 +1,899 @@
+{
+  "recordedAt": "2026-09-26T13:11:17.316462+00:00",
+  "note": "Receipt modification time is a filesystem observation, not reconstructed exact gate start. Logs and browser JSON preserve actual run durations and outcomes. Earlier results retain their original source/attempt and are not relabelled final-source runs.",
+  "receipts": [
+    {
+      "receipt": "attempts/01/browser.txt",
+      "lastModifiedUTC": "2026-09-26T11:58:18.080626+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "attempts/01/build-app2.txt",
+      "lastModifiedUTC": "2026-09-26T11:58:13.011237+00:00",
+      "summary": [
+        "dist/app/assets/shell-uT2m7hK8.js           352.13 kB \u2502 gzip: 97.25 kB",
+        "",
+        "\u2713 built in 86ms"
+      ]
+    },
+    {
+      "receipt": "attempts/01/build.txt",
+      "lastModifiedUTC": "2026-09-26T11:57:48.545169+00:00",
+      "summary": [
+        "\u2713 built in 86ms",
+        "npm notice run ideogram-editor@0.1.0 build:server",
+        "npm notice run tsc -p tsconfig.server.json"
+      ]
+    },
+    {
+      "receipt": "attempts/02/browser.txt",
+      "lastModifiedUTC": "2026-09-26T11:59:01.668315+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "attempts/02/build.txt",
+      "lastModifiedUTC": "2026-09-26T11:58:57.296588+00:00",
+      "summary": [
+        "dist/app/assets/shell-SSkNjBVl.js           352.57 kB \u2502 gzip: 97.37 kB",
+        "",
+        "\u2713 built in 92ms"
+      ]
+    },
+    {
+      "receipt": "attempts/03/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:01:23.726139+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "attempts/03/build.txt",
+      "lastModifiedUTC": "2026-09-26T12:01:21.039842+00:00",
+      "summary": [
+        "dist/app/assets/shell-SSkNjBVl.js           352.57 kB \u2502 gzip: 97.37 kB",
+        "",
+        "\u2713 built in 100ms"
+      ]
+    },
+    {
+      "receipt": "attempts/04/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:01:36.640902+00:00",
+      "summary": [
+        "  1 passed (3.6s)"
+      ]
+    },
+    {
+      "receipt": "attempts/05/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:05:18.246685+00:00",
+      "summary": [
+        "  1 failed",
+        "  1 passed (12.2s)"
+      ]
+    },
+    {
+      "receipt": "attempts/05/build.txt",
+      "lastModifiedUTC": "2026-09-26T12:05:05.413487+00:00",
+      "summary": [
+        "\u2713 built in 87ms",
+        "npm notice run ideogram-editor@0.1.0 build:server",
+        "npm notice run tsc -p tsconfig.server.json"
+      ]
+    },
+    {
+      "receipt": "attempts/06/build-server.txt",
+      "lastModifiedUTC": "2026-09-26T12:05:39.206827+00:00",
+      "summary": [
+        "npm notice run ideogram-editor@0.1.0 build:server",
+        "npm notice run tsc -p tsconfig.server.json"
+      ]
+    },
+    {
+      "receipt": "attempts/06/read-adapters.txt",
+      "lastModifiedUTC": "2026-09-26T12:05:43.545915+00:00",
+      "summary": [
+        "    operator: 'strictEqual',",
+        "    diff: 'simple'",
+        "  }"
+      ]
+    },
+    {
+      "receipt": "attempts/07/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:06:17.904253+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "attempts/07/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:06:03.376733+00:00",
+      "summary": [
+        "dist/app/assets/shell-BczYYJhF.js           358.13 kB \u2502 gzip: 98.73 kB",
+        "",
+        "\u2713 built in 92ms"
+      ]
+    },
+    {
+      "receipt": "attempts/08/read-adapters.txt",
+      "lastModifiedUTC": "2026-09-26T12:06:08.344419+00:00",
+      "summary": [
+        "    operator: 'strictEqual',",
+        "    diff: 'simple'",
+        "  }"
+      ]
+    },
+    {
+      "receipt": "attempts/09/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:11:49.739953+00:00",
+      "summary": [
+        "  4 failed",
+        "  2 passed (3.4m)"
+      ]
+    },
+    {
+      "receipt": "attempts/09/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:08:25.027809+00:00",
+      "summary": [
+        "dist/app/assets/shell-BWGbzYhT.js           360.01 kB \u2502 gzip: 99.24 kB",
+        "",
+        "\u2713 built in 121ms"
+      ]
+    },
+    {
+      "receipt": "attempts/10/read-adapters.txt",
+      "lastModifiedUTC": "2026-09-26T12:09:50.635971+00:00",
+      "summary": [
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 6720.061875"
+      ]
+    },
+    {
+      "receipt": "attempts/11/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:12:51.230330+00:00",
+      "summary": [
+        "  1 failed",
+        "  5 passed (29.8s)"
+      ]
+    },
+    {
+      "receipt": "attempts/11/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:12:20.988206+00:00",
+      "summary": [
+        "dist/app/assets/shell-C2Z76TCZ.js           362.15 kB \u2502 gzip: 99.74 kB",
+        "",
+        "\u2713 built in 82ms"
+      ]
+    },
+    {
+      "receipt": "attempts/12/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:14:01.586247+00:00",
+      "summary": [
+        "  2 failed",
+        "  7 passed (29.7s)"
+      ]
+    },
+    {
+      "receipt": "attempts/12/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:13:31.478494+00:00",
+      "summary": [
+        "dist/app/assets/shell-BttvhpoC.js           363.26 kB \u2502 gzip: 99.96 kB",
+        "",
+        "\u2713 built in 91ms"
+      ]
+    },
+    {
+      "receipt": "attempts/13/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:14:30.453850+00:00",
+      "summary": [
+        "  2 failed",
+        "  1 passed (9.0s)"
+      ]
+    },
+    {
+      "receipt": "attempts/13/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:14:21.016349+00:00",
+      "summary": [
+        "dist/app/assets/shell-BtmF1p1d.js           363.95 kB \u2502 gzip: 100.03 kB",
+        "",
+        "\u2713 built in 91ms"
+      ]
+    },
+    {
+      "receipt": "attempts/14/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:15:22.062312+00:00",
+      "summary": [
+        "  1 failed",
+        "  2 passed (9.5s)"
+      ]
+    },
+    {
+      "receipt": "attempts/14/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:15:12.223713+00:00",
+      "summary": [
+        "dist/app/assets/shell-WbtEaRhO.js           364.24 kB \u2502 gzip: 100.11 kB",
+        "",
+        "\u2713 built in 74ms"
+      ]
+    },
+    {
+      "receipt": "attempts/15/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:15:59.416712+00:00",
+      "summary": [
+        "  1 failed",
+        "  2 passed (9.5s)"
+      ]
+    },
+    {
+      "receipt": "attempts/15/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:15:49.554669+00:00",
+      "summary": [
+        "dist/app/assets/shell-B3FkfsBm.js           364.37 kB \u2502 gzip: 100.13 kB",
+        "",
+        "\u2713 built in 73ms"
+      ]
+    },
+    {
+      "receipt": "attempts/16/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:16:43.127685+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "attempts/16/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:16:36.449043+00:00",
+      "summary": [
+        "dist/app/assets/shell-Cq5HZnHw.js           364.39 kB \u2502 gzip: 100.13 kB",
+        "",
+        "\u2713 built in 75ms"
+      ]
+    },
+    {
+      "receipt": "attempts/17/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:17:03.793266+00:00",
+      "summary": [
+        "  1 passed (1.3s)"
+      ]
+    },
+    {
+      "receipt": "attempts/17/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:17:02.190744+00:00",
+      "summary": [
+        "dist/app/assets/shell-BdhIWWwD.js           364.42 kB \u2502 gzip: 100.15 kB",
+        "",
+        "\u2713 built in 79ms"
+      ]
+    },
+    {
+      "receipt": "attempts/18/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:18:20.086260+00:00",
+      "summary": [
+        "  2 failed",
+        "  3 passed (20.7s)"
+      ]
+    },
+    {
+      "receipt": "attempts/18/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:17:59.049608+00:00",
+      "summary": [
+        "dist/app/assets/shell-BP5wkF6Y.js           364.88 kB \u2502 gzip: 100.27 kB",
+        "",
+        "\u2713 built in 72ms"
+      ]
+    },
+    {
+      "receipt": "attempts/19/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:19:22.676350+00:00",
+      "summary": [
+        "  1 passed (3.4s)"
+      ]
+    },
+    {
+      "receipt": "attempts/20/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:20:31.843827+00:00",
+      "summary": [
+        "  10 passed (28.0s)"
+      ]
+    },
+    {
+      "receipt": "attempts/20/build-app.txt",
+      "lastModifiedUTC": "2026-09-26T12:20:03.437514+00:00",
+      "summary": [
+        "dist/app/assets/shell-CDf-kuZ5.js           365.47 kB \u2502 gzip: 100.43 kB",
+        "",
+        "\u2713 built in 92ms"
+      ]
+    },
+    {
+      "receipt": "attempts/21/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:21:38.407330+00:00",
+      "summary": [
+        "  1 failed",
+        "  4 passed (17.8s)"
+      ]
+    },
+    {
+      "receipt": "attempts/22/browser.txt",
+      "lastModifiedUTC": "2026-09-26T12:22:32.528740+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "build-24.log",
+      "lastModifiedUTC": "2026-09-26T12:26:26.350422+00:00",
+      "summary": [
+        "\u2713 built in 98ms",
+        "npm notice run ideogram-editor@0.1.0 build:server",
+        "npm notice run tsc -p tsconfig.server.json"
+      ]
+    },
+    {
+      "receipt": "build-31.log",
+      "lastModifiedUTC": "2026-09-26T12:30:35.582491+00:00",
+      "summary": [
+        "dist/app/assets/shell-BrRD057C.js           368.25 kB \u2502 gzip: 101.15 kB",
+        "",
+        "\u2713 built in 95ms"
+      ]
+    },
+    {
+      "receipt": "build-32.log",
+      "lastModifiedUTC": "2026-09-26T12:31:16.887507+00:00",
+      "summary": [
+        "dist/app/assets/shell-Zz1KSth6.js           368.85 kB \u2502 gzip: 101.27 kB",
+        "",
+        "\u2713 built in 90ms"
+      ]
+    },
+    {
+      "receipt": "build-35.log",
+      "lastModifiedUTC": "2026-09-26T12:34:23.632951+00:00",
+      "summary": [
+        "dist/app/assets/shell-BV6QOa8V.js           351.32 kB \u2502 gzip: 96.48 kB",
+        "",
+        "\u2713 built in 112ms"
+      ]
+    },
+    {
+      "receipt": "build-36.log",
+      "lastModifiedUTC": "2026-09-26T12:34:56.951339+00:00",
+      "summary": [
+        "dist/app/assets/shell-DUFj1nDy.js           351.45 kB \u2502 gzip: 96.50 kB",
+        "",
+        "\u2713 built in 107ms"
+      ]
+    },
+    {
+      "receipt": "build-39.log",
+      "lastModifiedUTC": "2026-09-26T12:36:06.843719+00:00",
+      "summary": [
+        "dist/app/assets/shell-CGVvDdhv.js           351.44 kB \u2502 gzip: 96.50 kB",
+        "",
+        "\u2713 built in 119ms"
+      ]
+    },
+    {
+      "receipt": "build-40.log",
+      "lastModifiedUTC": "2026-09-26T12:36:27.243946+00:00",
+      "summary": [
+        "dist/app/assets/shell-CWYcKNPL.js           351.57 kB \u2502 gzip: 96.51 kB",
+        "",
+        "\u2713 built in 83ms"
+      ]
+    },
+    {
+      "receipt": "build-41.log",
+      "lastModifiedUTC": "2026-09-26T12:37:57.321144+00:00",
+      "summary": [
+        "dist/app/assets/shell-CQhnOZcs.js           352.25 kB \u2502 gzip: 96.63 kB",
+        "",
+        "\u2713 built in 130ms"
+      ]
+    },
+    {
+      "receipt": "build-47.log",
+      "lastModifiedUTC": "2026-09-26T12:42:25.788366+00:00",
+      "summary": [
+        "\u2713 built in 97ms",
+        "npm notice run ideogram-editor@0.1.0 build:server",
+        "npm notice run tsc -p tsconfig.server.json"
+      ]
+    },
+    {
+      "receipt": "build-54.log",
+      "lastModifiedUTC": "2026-09-26T12:47:59.771021+00:00",
+      "summary": [
+        "dist/app/assets/shell-DxdlnIib.js           352.81 kB \u2502 gzip: 96.76 kB",
+        "",
+        "\u2713 built in 98ms"
+      ]
+    },
+    {
+      "receipt": "build-64.log",
+      "lastModifiedUTC": "2026-09-26T12:54:41.366441+00:00",
+      "summary": [
+        "dist/app/assets/shell-BFO0t_PQ.js           353.01 kB \u2502 gzip: 96.83 kB",
+        "",
+        "\u2713 built in 156ms"
+      ]
+    },
+    {
+      "receipt": "build-65.log",
+      "lastModifiedUTC": "2026-09-26T12:55:30.456921+00:00",
+      "summary": [
+        "dist/app/assets/shell-CGZSIy0J.js           353.44 kB \u2502 gzip: 96.91 kB",
+        "",
+        "\u2713 built in 153ms"
+      ]
+    },
+    {
+      "receipt": "build-66.log",
+      "lastModifiedUTC": "2026-09-26T12:56:38.520511+00:00",
+      "summary": [
+        "dist/app/assets/shell-CzYo1a2z.js           353.54 kB \u2502 gzip: 96.95 kB",
+        "",
+        "\u2713 built in 126ms"
+      ]
+    },
+    {
+      "receipt": "build-68.log",
+      "lastModifiedUTC": "2026-09-26T12:58:51.540444+00:00",
+      "summary": [
+        "dist/app/assets/shell-BtxkEZsR.js           353.54 kB \u2502 gzip: 96.93 kB",
+        "",
+        "\u2713 built in 209ms"
+      ]
+    },
+    {
+      "receipt": "build-server-56.log",
+      "lastModifiedUTC": "2026-09-26T12:49:08.444757+00:00",
+      "summary": [
+        "npm notice run ideogram-editor@0.1.0 build:server",
+        "npm notice run tsc -p tsconfig.server.json"
+      ]
+    },
+    {
+      "receipt": "editor-70.txt",
+      "lastModifiedUTC": "2026-09-26T13:04:23.501059+00:00",
+      "summary": [
+        "  4 passed (17.6s)"
+      ]
+    },
+    {
+      "receipt": "editor-71.txt",
+      "lastModifiedUTC": "2026-09-26T13:04:52.569851+00:00",
+      "summary": [
+        "  4 passed (18.5s)"
+      ]
+    },
+    {
+      "receipt": "gates/consumer-browser.log",
+      "lastModifiedUTC": "2026-09-26T12:39:33.541446+00:00",
+      "summary": [
+        "  2 passed (3.3s)"
+      ]
+    },
+    {
+      "receipt": "gates/consumer-build.log",
+      "lastModifiedUTC": "2026-09-26T12:39:29.360670+00:00",
+      "summary": [
+        "dist/consumer/assets/dist-ytqzuIeZ.js                     97.49 kB \u2502 gzip: 31.01 kB",
+        "",
+        "\u2713 built in 298ms"
+      ]
+    },
+    {
+      "receipt": "gates/core-34.tap",
+      "lastModifiedUTC": "2026-09-26T12:36:16.707481+00:00",
+      "summary": [
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 202358.856542"
+      ]
+    },
+    {
+      "receipt": "gates/draft-boundary-67.log",
+      "lastModifiedUTC": "2026-09-26T12:57:49.596825+00:00",
+      "summary": [
+        "  1 passed (7.2s)"
+      ]
+    },
+    {
+      "receipt": "gates/draft-id-64.log",
+      "lastModifiedUTC": "2026-09-26T12:55:04.430234+00:00",
+      "summary": [
+        "  4 passed (21.8s)"
+      ]
+    },
+    {
+      "receipt": "gates/editor-40.log",
+      "lastModifiedUTC": "2026-09-26T12:37:35.505683+00:00",
+      "summary": [
+        "  17 passed (1.1m)"
+      ]
+    },
+    {
+      "receipt": "gates/editor-41.log",
+      "lastModifiedUTC": "2026-09-26T12:39:23.887876+00:00",
+      "summary": [
+        "  19 passed (1.2m)"
+      ]
+    },
+    {
+      "receipt": "gates/editor-57.log",
+      "lastModifiedUTC": "2026-09-26T12:51:09.777383+00:00",
+      "summary": [
+        "  21 passed (1.2m)"
+      ]
+    },
+    {
+      "receipt": "gates/editor-66.log",
+      "lastModifiedUTC": "2026-09-26T12:57:58.741616+00:00",
+      "summary": [
+        "  22 passed (1.3m)"
+      ]
+    },
+    {
+      "receipt": "gates/firefox-42.log",
+      "lastModifiedUTC": "2026-09-26T12:40:18.057167+00:00",
+      "summary": [
+        "  1 failed",
+        "  11 passed (50.7s)"
+      ]
+    },
+    {
+      "receipt": "gates/firefox-composition-50.log",
+      "lastModifiedUTC": "2026-09-26T12:43:51.892975+00:00",
+      "summary": [
+        "  1 passed (2.9s)"
+      ]
+    },
+    {
+      "receipt": "gates/head-48.tap",
+      "lastModifiedUTC": "2026-09-26T12:43:42.504847+00:00",
+      "summary": [
+        "      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+        "      at async Test.run (node:internal/test_runner/test:1409:7)",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)"
+      ]
+    },
+    {
+      "receipt": "gates/head-51.tap",
+      "lastModifiedUTC": "2026-09-26T12:44:00.991905+00:00",
+      "summary": [
+        "    operator: 'strictEqual',",
+        "    diff: 'simple'",
+        "  }"
+      ]
+    },
+    {
+      "receipt": "gates/head-52.tap",
+      "lastModifiedUTC": "2026-09-26T12:44:44.276048+00:00",
+      "summary": [
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 13880.173209"
+      ]
+    },
+    {
+      "receipt": "gates/head-browser-54.log",
+      "lastModifiedUTC": "2026-09-26T12:48:07.828081+00:00",
+      "summary": [
+        "  2 passed (7.6s)"
+      ]
+    },
+    {
+      "receipt": "gates/history-browser.log",
+      "lastModifiedUTC": "2026-09-26T12:39:28.326235+00:00",
+      "summary": [
+        "  3 passed (11.2s)"
+      ]
+    },
+    {
+      "receipt": "gates/history-fence-65.log",
+      "lastModifiedUTC": "2026-09-26T12:55:59.781893+00:00",
+      "summary": [
+        "  5 passed (28.3s)"
+      ]
+    },
+    {
+      "receipt": "gates/imports.log",
+      "lastModifiedUTC": "2026-09-26T12:38:12.746022+00:00",
+      "summary": [
+        "Verified 43 consumer en-reve imports against packed public metadata"
+      ]
+    },
+    {
+      "receipt": "gates/portable-40.tap",
+      "lastModifiedUTC": "2026-09-26T12:40:30.013021+00:00",
+      "summary": [
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 236681.771334"
+      ]
+    },
+    {
+      "receipt": "gates/projection-56.tap",
+      "lastModifiedUTC": "2026-09-26T12:50:29.286320+00:00",
+      "summary": [
+        "      at IncomingMessage.emit (node:events:526:24)",
+        "      at endReadableNT (node:internal/streams/readable:1980:12)",
+        "      at process.processTicksAndRejections (node:internal/process/task_queues:90:21)"
+      ]
+    },
+    {
+      "receipt": "gates/projection-59.tap",
+      "lastModifiedUTC": "2026-09-26T12:51:08.757302+00:00",
+      "summary": [
+        "    operator: 'strictEqual',",
+        "    diff: 'simple'",
+        "  }"
+      ]
+    },
+    {
+      "receipt": "gates/projection-60.tap",
+      "lastModifiedUTC": "2026-09-26T12:51:45.802557+00:00",
+      "summary": [
+        "    operator: 'strictEqual',",
+        "    diff: 'simple'",
+        "  }"
+      ]
+    },
+    {
+      "receipt": "gates/projection-61.tap",
+      "lastModifiedUTC": "2026-09-26T12:52:22.700234+00:00",
+      "summary": [
+        "    operator: 'strictEqual',",
+        "    diff: 'simple'",
+        "  }"
+      ]
+    },
+    {
+      "receipt": "gates/projection-62.tap",
+      "lastModifiedUTC": "2026-09-26T12:52:51.460243+00:00",
+      "summary": [
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 17787.08125"
+      ]
+    },
+    {
+      "receipt": "gates/projection-before-55.tap",
+      "lastModifiedUTC": "2026-09-26T12:48:50.527236+00:00",
+      "summary": [
+        "    operator: 'strictEqual',",
+        "    diff: 'simple'",
+        "  }"
+      ]
+    },
+    {
+      "receipt": "gates/raster-browser-build.log",
+      "lastModifiedUTC": "2026-09-26T12:39:17.830800+00:00",
+      "summary": [
+        "artifacts/p1b7/gates/raster/browser-app/assets/index-x9TmLSB9.js   99.19 kB \u2502 gzip: 28.59 kB",
+        "",
+        "\u2713 built in 67ms"
+      ]
+    },
+    {
+      "receipt": "gates/raster-browser.log",
+      "lastModifiedUTC": "2026-09-26T12:39:19.936507+00:00",
+      "summary": [
+        "  1 passed (1.6s)"
+      ]
+    },
+    {
+      "receipt": "gates/raster-inputs.log",
+      "lastModifiedUTC": "2026-09-26T12:38:12.823653+00:00",
+      "summary": [
+        "{\"status\":\"passed\",\"codecIdentity\":\"sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e\",\"codecFiles\":125,\"fixtureManifests\":[\"manifest.json\",\"resource-inputs.json\"],\"node\":\"26.10.0\"}"
+      ]
+    },
+    {
+      "receipt": "gates/recovery-browser.log",
+      "lastModifiedUTC": "2026-09-26T12:38:38.688220+00:00",
+      "summary": [
+        "  12 passed (27.0s)"
+      ]
+    },
+    {
+      "receipt": "gates/recovery-build.log",
+      "lastModifiedUTC": "2026-09-26T12:38:11.280253+00:00",
+      "summary": [
+        "artifacts/p1b7/gates/recovery/browser-app/assets/index-D9tcIZYX.js  38.60 kB \u2502 gzip: 12.05 kB",
+        "",
+        "\u2713 built in 24ms"
+      ]
+    },
+    {
+      "receipt": "gates/shell-58.log",
+      "lastModifiedUTC": "2026-09-26T12:50:09.128227+00:00",
+      "summary": [
+        "  10 passed (8.3s)"
+      ]
+    },
+    {
+      "receipt": "gates/shell-68.log",
+      "lastModifiedUTC": "2026-09-26T12:58:57.471309+00:00",
+      "summary": [
+        "  4 passed (5.0s)"
+      ]
+    },
+    {
+      "receipt": "gates/timing-63.log",
+      "lastModifiedUTC": "2026-09-26T12:53:28.513104+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "gates/timing-69.log",
+      "lastModifiedUTC": "2026-09-26T12:59:48.446747+00:00",
+      "summary": [
+        "  1 passed (20.7s)"
+      ]
+    },
+    {
+      "receipt": "gates/vendor-tests.log",
+      "lastModifiedUTC": "2026-09-26T12:38:13.311750+00:00",
+      "summary": [
+        "Ran 3 tests in 0.339s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "receipt": "gates/vendor.log",
+      "lastModifiedUTC": "2026-09-26T12:38:12.486524+00:00",
+      "summary": [
+        "Verified 2155 frozen files and four archives: 37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4"
+      ]
+    },
+    {
+      "receipt": "gates/webkit-43.log",
+      "lastModifiedUTC": "2026-09-26T12:40:09.772607+00:00",
+      "summary": [
+        "  1 failed",
+        "  11 passed (42.4s)"
+      ]
+    },
+    {
+      "receipt": "gates/webkit-destination-53.log",
+      "lastModifiedUTC": "2026-09-26T12:47:17.186483+00:00",
+      "summary": [
+        "  1 passed (3.3s)"
+      ]
+    },
+    {
+      "receipt": "gates/webkit-probe-49.log",
+      "lastModifiedUTC": "2026-09-26T12:43:55.673790+00:00",
+      "summary": [
+        "  1 failed"
+      ]
+    },
+    {
+      "receipt": "review-72.txt",
+      "lastModifiedUTC": "2026-09-26T13:07:32.850212+00:00",
+      "summary": [
+        "}",
+        "",
+        "Node.js v26.10.0"
+      ]
+    },
+    {
+      "receipt": "review-73.txt",
+      "lastModifiedUTC": "2026-09-26T13:07:49.933157+00:00",
+      "summary": [
+        "}",
+        "",
+        "Node.js v26.10.0"
+      ]
+    },
+    {
+      "receipt": "review-74.txt",
+      "lastModifiedUTC": "2026-09-26T13:08:59.966197+00:00",
+      "summary": [
+        "}",
+        "",
+        "Node.js v26.10.0"
+      ]
+    },
+    {
+      "receipt": "review-75.txt",
+      "lastModifiedUTC": "2026-09-26T13:10:35.588973+00:00",
+      "summary": []
+    },
+    {
+      "receipt": "typecheck-31.log",
+      "lastModifiedUTC": "2026-09-26T12:30:36.089062+00:00",
+      "summary": [
+        "npm notice run tsc --noEmit",
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-32.log",
+      "lastModifiedUTC": "2026-09-26T12:31:15.933063+00:00",
+      "summary": [
+        "npm notice run tsc --noEmit",
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-35.log",
+      "lastModifiedUTC": "2026-09-26T12:34:22.577748+00:00",
+      "summary": [
+        "npm notice run tsc --noEmit",
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-40.log",
+      "lastModifiedUTC": "2026-09-26T12:36:26.375993+00:00",
+      "summary": [
+        "npm notice run tsc --noEmit",
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-41.log",
+      "lastModifiedUTC": "2026-09-26T12:37:56.245854+00:00",
+      "summary": [
+        "npm notice run tsc --noEmit",
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-47.log",
+      "lastModifiedUTC": "2026-09-26T12:42:24.771330+00:00",
+      "summary": [
+        "npm notice run tsc --noEmit",
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-57.log",
+      "lastModifiedUTC": "2026-09-26T12:49:54.369940+00:00",
+      "summary": [
+        "npm notice run tsc --noEmit",
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-64.log",
+      "lastModifiedUTC": "2026-09-26T12:54:41.502086+00:00",
+      "summary": [
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-65.log",
+      "lastModifiedUTC": "2026-09-26T12:55:30.569518+00:00",
+      "summary": [
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    },
+    {
+      "receipt": "typecheck-66.log",
+      "lastModifiedUTC": "2026-09-26T12:56:38.614496+00:00",
+      "summary": [
+        "npm notice run ideogram-editor@0.1.0 typecheck:app",
+        "npm notice run tsc --noEmit -p tsconfig.app.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/browser/playwright.config.ts",
+      "--grep",
+      "B03|B06|B07|B08"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/33/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "shell.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/33/shell-browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "shell.spec.ts",
+      "file": "shell.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "B03 keyboard panels, roving tool focus, resize and collapsed content",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 645,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\",\u001b[39m\n\u001b[31m+   \"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-/vRxpN6eGQgNDV5uGgauy59+bPqAU5pHjPNyMF0Eft8='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\",\u001b[39m\n\u001b[31m+   \"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-/vRxpN6eGQgNDV5uGgauy59+bPqAU5pHjPNyMF0Eft8='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:126:18",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts",
+                      "column": 18,
+                      "line": 126
+                    },
+                    "snippet": "  124 |   console.log('CSP before Help',errors);await page.getByRole('button', { name: 'Help' }).click();console.log('CSP after Help',errors);console.log('style diagnostic',await page.evaluate(()=>{const found:string[]=[];const visit=(root:Document|ShadowRoot)=>{for(const node of root.querySelectorAll('*')){if(node.hasAttribute('style'))found.push(node.localName+' '+node.getAttribute('style'));if(node.shadowRoot)visit(node.shadowRoot);}};visit(document);return found;}));\n  125 |   await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help' })).toBeFocused();\n> 126 |   expect(errors).toEqual([]);\n      |                  ^\n  127 | });\n  128 |\n  129 | test('B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing', async ({ page, context, local }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts",
+                        "column": 18,
+                        "line": 126
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\",\u001b[39m\n\u001b[31m+   \"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-/vRxpN6eGQgNDV5uGgauy59+bPqAU5pHjPNyMF0Eft8='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  124 |   console.log('CSP before Help',errors);await page.getByRole('button', { name: 'Help' }).click();console.log('CSP after Help',errors);console.log('style diagnostic',await page.evaluate(()=>{const found:string[]=[];const visit=(root:Document|ShadowRoot)=>{for(const node of root.querySelectorAll('*')){if(node.hasAttribute('style'))found.push(node.localName+' '+node.getAttribute('style'));if(node.shadowRoot)visit(node.shadowRoot);}};visit(document);return found;}));\n  125 |   await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help' })).toBeFocused();\n> 126 |   expect(errors).toEqual([]);\n      |                  ^\n  127 | });\n  128 |\n  129 | test('B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing', async ({ page, context, local }) => {\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:126:18"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "CSP before Help []\n"
+                    },
+                    {
+                      "text": "CSP after Help [\n  \u001b[32m\"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\"\u001b[39m,\n  \u001b[32m\"Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-/vRxpN6eGQgNDV5uGgauy59+bPqAU5pHjPNyMF0Eft8='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked.\"\u001b[39m\n]\n"
+                    },
+                    {
+                      "text": "style diagnostic [\n  \u001b[32m'en-button '\u001b[39m,\n  \u001b[32m'div inset: 60px auto auto 1139.98px;'\u001b[39m,\n  \u001b[32m'div --pane-ratio: 0.21581850758611182;'\u001b[39m,\n  \u001b[32m'div --pane-ratio: 0.7406018846894316;'\u001b[39m\n]\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:32:35.836Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/33/browser/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/33/browser/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts",
+                    "column": 18,
+                    "line": 126
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-f609be8ea01f83d870cf",
+          "file": "shell.spec.ts",
+          "line": 105,
+          "column": 1
+        },
+        {
+          "title": "B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 711,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:32:36.713Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-c074dc394044298161fc",
+          "file": "shell.spec.ts",
+          "line": 190,
+          "column": 1
+        },
+        {
+          "title": "B07 trusted report flag, navigation fragment, unflagged absence and offline recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 625,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:32:37.499Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-a8062f7bb3a163282122",
+          "file": "shell.spec.ts",
+          "line": 209,
+          "column": 1
+        },
+        {
+          "title": "B08 lost renewal response is read back without retry; restarted server requires pairing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 827,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:32:38.128Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3420664513cb0bae123e-d700188ba25de3b83f48",
+          "file": "shell.spec.ts",
+          "line": 228,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:32:35.642Z",
+    "duration": 3338.688,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

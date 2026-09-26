@@ -1,0 +1,12 @@
+{
+  "started": "2026-09-26T13:00:27.888Z",
+  "pid": 37926,
+  "origin": "http://127.0.0.1:55911",
+  "reviewURL": "http://127.0.0.1:55911/?progress-report",
+  "runtimeSourceSHA256": "6ef9654485dda767ff53d23981a4e88e24b41989bfbe4da55f9959fc96e4e171",
+  "node": "v26.10.0",
+  "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+  "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1b7-preview-6ef96544/",
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1b7-preview-6ef96544/private",
+  "mode": "isolated author review; no independent approval; outgoing effects denied"
+}

@@ -1,0 +1,57 @@
+Isolated author review runtime (not independent approval)
+URL http://127.0.0.1:55911/?progress-report
+Service /Users/westbrook/Documents/repos/ideogram-edit-p1b7-preview-6ef96544
+PID37926; started2026-09-26T13:00:27.888Z; Node26.10.0.
+Private root is service/private. Approved52219 preview and4381 report/locator
+were not repointed or modified by this implementor. Runtime/build identity is
+source.json SHA2566ef9654485dda767ff53d23981a4e88e24b41989bfbe4da55f9959fc96e4e171.
+Every frozen app/server file is checked before server startup; pinned node_modules
+is a symlink to the existing repo install. Runtime has no provider key and uses
+the no-network/no-effects test guards. runtime/effects.json has all8 counters0.
+
+Private pairing (local reviewer; do not put the token URL into notes/evidence):
+1. Send line pair-file to service/control.fifo. Running service writes a fresh
+   one-use local pairing URL to the ignored mode600 file
+   artifacts/p1b7-private-preview/pairing.json in the repository.
+2. The authorized local browser visits that URL. Origin must be55911; app consumes
+   and removes the fragment using the original trusted bootstrap. This is a local
+   owner session, not provider access. Do not copy cookie/CSRF/token into reports.
+3. Unpaired report navigation is still available; pairing is deliberately separate.
+   The review-runtime.mjs probe reads this file directly without logging/tracing it.
+A new token is needed if it expires or was already consumed. Public origin alone
+must never authenticate a browser. Do not disable authentication for review.
+
+Do not terminate/restart the approved preview. For this isolated service only,
+SIGTERM its verified PID stops the writer and HTTP service. To restart, ensure
+there is no live writer for this private root, keep its frozen build and trusted
+no-effects import, and attach stdin to its control FIFO. The ephemeral port may
+change; record the new runtime.json and ask the report owner to update only the
+supplemental link. Do not replace the approved locator/default.
+
+Browser host observations
+Workspace listTabs returned[] immediately after openTab returned a visible tab,
+and operations against that returned ID said not-found. Native CUA confirmed the
+existing Intent preview. First report click showed no observed navigation; retry
+with a fresh AX state successfully navigated this same pane to report4381. The
+initial claim that the anchor used target=_blank was wrong: source/public DOM
+shows ordinary same-tab navigation. Attempt72's popup-wait test failed accordingly.
+Attempt73's corrected browser reached4381 but report207 had no visible55911 anchor;
+its supplemental apps metadata alone is not rendered by the report. Report owner
+was asked to expose an existing focused-card deliverable link without changing
+the approved default. Later successful evidence, when present, is appended below.
+
+Final navigation result: attempt75 PASS,2026-09-26T13:10:36.961Z–13:10:37.523Z,
+Chromium153.0.8010.12. Actual55911 preview→4381report209→visible supplemental
+55911link→preview; private pairing then consumed and cleared fragment, clean-root
+local recovery complete. All recorded request origins local55911/4381 only.
+Native Intent preview→report observed; full native roundtrip was not completed.
+Screenshots and credential-free receipt are receipts/attempts/75/.
+Report208 temporarily failed rendering because the new card inspect field was
+not an array. Report owner repaired its data in209; author did not edit the report.
+
+served-runtime.json verifies all public assets AND server-transformed root HTML.
+The root intentionally differs from raw index.html because trusted bootstrap
+moves resources into an inert template before pairing-fragment removal. Hidden
+manifest/build metadata are intentionally404. Initial probes that assumed every
+build file was public and that raw HTML equaled served root were oracle errors;
+their observations remain in that receipt beside the corrected loadStatic oracle.

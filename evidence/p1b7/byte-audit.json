@@ -1,0 +1,69 @@
+{
+  "at": "2026-09-26T13:11:17.316462+00:00",
+  "runtimeSourceSHA256": "6ef9654485dda767ff53d23981a4e88e24b41989bfbe4da55f9959fc96e4e171",
+  "startup": {
+    "startupJsRawBytes": 502880,
+    "startupJsGzipBytes": 132690,
+    "cssGzipBytes": 12690
+  },
+  "targets": {
+    "jsGzipBytes": 307200,
+    "jsGzipCeilingBytes": 512000,
+    "evaluatedRawTargetBytes": 1048576,
+    "evaluatedRawCeilingBytes": 1572864,
+    "cssFontsGzipTargetBytes": 102400,
+    "cssFontsGzipCeilingBytes": 204800
+  },
+  "lazyDialogDrawerGzipBytes": 3322,
+  "limits": "Single final artifact observation below byte targets. Runtime evaluation census and five-build campaign not performed. The inherited build-evidence workload label P1a.3 is stale metadata; this manifest measures actual integrated P1b.7 source68 outputs. Shared imports counted once; no authoring fonts or shaping engine loaded.",
+  "finalEmittedArtifact": {
+    "at": "2026-09-26T13:10:45.359Z",
+    "source": "Final emitted on-disk app68 bytes, Node26.10 zlib gzip defaults matching build plugin",
+    "initialManifestClosure": {
+      "rawBytes": 493789,
+      "gzipBytes": 129529
+    },
+    "allJsIncludingLazyUpperBound": {
+      "rawBytes": 503200,
+      "gzipBytes": 132851
+    },
+    "css": {
+      "rawBytes": 96444,
+      "gzipBytes": 12676
+    },
+    "rows": [
+      {
+        "name": "editor-panels-C8u6k489.js",
+        "bytes": 9411,
+        "gzipBytes": 3322
+      },
+      {
+        "name": "icon-LNfVOU5p.js",
+        "bytes": 137598,
+        "gzipBytes": 31821
+      },
+      {
+        "name": "index-CHAt1K9I.js",
+        "bytes": 1429,
+        "gzipBytes": 760
+      },
+      {
+        "name": "index-CgbuBWk0.css",
+        "bytes": 96444,
+        "gzipBytes": 12676
+      },
+      {
+        "name": "preload-helper-BZ1Pz5am.js",
+        "bytes": 1218,
+        "gzipBytes": 688
+      },
+      {
+        "name": "shell-BtxkEZsR.js",
+        "bytes": 353544,
+        "gzipBytes": 96260
+      }
+    ],
+    "limitation": "One artifact. Actual evaluated-module census and five-build campaign unqualified. Initial import closure includes dynamic shell; explicit editor-panels group is lazy."
+  },
+  "correction": "Use final emitted artifact counts for D11, not generateBundle pre-emission counts. Retain original plugin observations unchanged. Initial493789raw/129529gzip; conservative allJS503200raw/132851gzip; CSS12676gzip; lazy3322gzip."
+}

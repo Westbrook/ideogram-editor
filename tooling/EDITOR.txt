@@ -1,0 +1,86 @@
+P1b.7 browser integration — author work in progress
+
+Base: approved d55769bf3d16b67e2034e363bc3d82e622480cc4.
+No provider calls, publication, credentials in view/state caches, or changes to
+pinned En Reve packages, frozen specifications, approved preview or report.
+
+Additive read adapters (coordinator-authorized in task292d3ac5 / shared PR Context):
+GET /api/v1/commands/:id/result returns the existing CommandResult for pending,
+unknown or rejected work. An accepted command gets one complete EventPage over
+its immutable receipt's exact from/to/transaction range, even when ordinary
+recovery now requires a newer snapshot. Existing bounded inline/reference
+encoding and current-session, writer-epoch read leases apply. This is result
+inspection, never publication of a domain recovery cursor or renewed review.
+GET /api/v1/commands/:id/original returns the exact validated original UTF-8
+request bytes, only to the currently authenticated original client. Pending to
+terminal movement does not change this identity. Unknown remains unknown.
+GET /api/v1/commands/pending?cursor= lists only that client's currently pending
+journals. Pages contain at most32 metadata records and stay below64KiB.
+GET /api/v1/ui?cursor= lists at most64 current owned UI checkpoint metadata rows
+(sessionId, documentId, uiSeq), with selected content read using existing GET.
+Both inventories use opaque current-owner/session/epoch-scoped keyset cursors,
+a fixed initial upper key, and30-minute/session-bounded read lifetimes. They
+are live at each page read, not frozen membership snapshots: completion before
+visiting a pending row removes it from that page; later admission may require
+a fresh listing. Listed pending IDs remain lookupable through terminal races.
+UI changes are checked again against selected sessionId/uiSeq before restoration;
+sequences from different UI sessions never establish cross-session ordering.
+No total-count cap, schema change, history pruning or domain cursor publication.
+Queries use existing tables, so repeated JSON ownership scans are not a100k
+operation qualification. Existing bounded read-context limits still apply.
+
+Each browser tab owns a logical UI session, retained in sessionStorage for its
+reload. It is data identity, not authentication. New-origin restart discovers
+owned checkpoints; the user explicitly chooses the view/drafts to restore.
+No automatic choice among several saved sessions, no resurrection of applied
+or cleared drafts. Commands keep original owner/session/correlation/transaction
+identities. The disposable browser delivery journal never stores cookies,
+pairing tokens or CSRF. Unuploaded bytes and unknown requests lost with the
+origin cannot be invented; transfer recovery asks for the exact original file.
+
+Verification and known limits are recorded in the task and final evidence
+manifest. Browser automation does not qualify native OS pickers, IME/AT,
+power-loss, large-envelope or formal platform/performance campaigns. The
+existing A-R01 and historical timing failures remain open and disclosed.
+
+Additive document revision probe (explicit P1b.7 extension, not baseline behavior):
+HEAD /api/v1/documents/:id uses the same current authentication/root boundary as
+GET and returns X-App-Entity-Version as the canonical decimal revision string.
+It has no body, projection serialization, content registration or read lease.
+Unknown, expired, foreign-origin, query and method errors preserve the existing
+boundary without disclosing a revision. It is mutable metadata, never a token.
+The browser binds this final equality check to its selected document, connection
+lifetime and recovered cache generation. Image content hash plus the monotonic
+document revision cover its image/history/checkpoint domain transactions; UI
+checkpoints remain independently fenced by sessionId/uiSeq/generation. This is
+not an atomic snapshot API and does not advance the recovery cursor.
+
+Bounded existing document-read correction (A-BR01, coordinator-assigned):
+GET /documents/:id now captures the typed canonical Document and highWater in
+one writer turn. An oversized inline envelope uses the existing lp1-json
+content-reference contract with reserved, chunked, atomically installed object
+bytes. Its outer envelope still must fit64KiB; the generic metadata64KiB guard
+is unchanged. Existing owner/session content checks, ranges,128 live handles,
+expiry and exact byte verification apply; expired handles prune before reads.
+The original413 fixture in attempts48/51/52 had2000IDs and was NOT a valid
+Document. New55 uses100 layers accepted through public commands plus an
+explicitly synthetic53000-digit revision; Document validation passes, body is
+66660bytes and inline envelope119779bytes. It proves a bounded synthetic wire
+contract defect, not a reachable ordinary-document failure, valid history at
+that revision or formal large-envelope qualification. Historical claims remain
+corrected in the task/report. A-BR01 stays OPEN for independent review.
+
+Generated inspector/prompt draft identities:
+Existing derived IDs up to128characters keep their former spelling. ONLY a newly
+generated longer identity uses kind + '_' + SHA256(JSON.stringify([kind,...parts])).
+The unambiguous array retains document/layer/draft-kind scope; existing persisted,
+mapped or queued IDs and original request bodies are never rewritten. The real
+portable mapped143-character failure from timing63 remains retained in evidence;
+actual127/128/129 boundary, distinct target and reload tests cover the correction.
+
+Accepted completion now reads exact result proof and complete recovery concurrently.
+Both remain mandatory; a joined older recovery repeats until published cursor is
+at least the immutable receipt.toSeq. Existing root/epoch/generation checks apply.
+Explicit history/checkpoint pages use the same current document/version/cache
+and connection fences as whole-view refresh; a stale page cannot replace newer
+complete transaction state or publish a recovery cursor.

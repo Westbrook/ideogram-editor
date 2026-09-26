@@ -23,3 +23,6 @@ export type CommandResult =
   | { protocolVersion: 1; kind: 'receipt'; receipt: Receipt; rejectionDetails?: WireValue<LocalErrorDetail> }
   | { protocolVersion: 1; kind: 'pending'; commandId: string; operationId: string; phase: 'preparing' | 'waiting-for-resources'; receiptUrl: string }
   | { protocolVersion: 1; kind: 'unknown'; commandId: string };
+
+export type PendingInventory = { protocolVersion:1; kind:'pending-inventory'; semantics:'pending-at-page-read'; writerEpoch:string; next:string|null;
+  items:{commandId:string;commandHash:string;operationId:string;phase:'preparing'|'waiting-for-resources';label:string}[] };

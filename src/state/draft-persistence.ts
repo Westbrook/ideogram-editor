@@ -1,5 +1,7 @@
 import type { Draft, UICheckpoint, UIReceipt, UIRequest } from '../protocol/ui.js';
 
+type DeliveryJournal={put(key:string,value:unknown):Promise<void>;entries<T>(prefix:string):Promise<T[]>};
+type SavedDelivery={request:UIRequest;draftId:string;generation:string;done?:boolean};
 type Transport = (path:string,init?:RequestInit)=>Promise<Response>;
 type LocalDraft = Omit<Draft,'assetId'|'status'> & { text:string; savedGeneration:string|null; pending:boolean; error:string|null };
 // The editor adapter owns native controls. This owner only records current draft
@@ -9,12 +11,13 @@ export class DraftPersistence {
   private requests=new Map<string,{request:UIRequest;draftId:string;generation:string}>();
   readonly drafts=new Map<string,LocalDraft>();
   checkpoint:UICheckpoint|null=null;
-  constructor(readonly sessionId:string,private transport:Transport,private csrf:()=>string){}
+  constructor(readonly sessionId:string,private transport:Transport,private csrf:()=>string,private journal?:DeliveryJournal){}
   async restore(){
     const lifetime=this.lifetime,r=await this.transport('/api/v1/ui/'+this.sessionId);if(!r.ok)throw new Error('Draft checkpoint unavailable');
     const checkpoint=await r.json() as UICheckpoint;
     if(lifetime!==this.lifetime)return;
     this.checkpoint=checkpoint;
+    if(this.journal)for(const item of await this.journal.entries<SavedDelivery>('ui-request:'+this.sessionId+':'))if(!item.done)this.requests.set(item.request.requestId,item);
     return checkpoint;
   }
   // The editor chooses its bounded text reader/viewer before loading a draft.
@@ -37,6 +40,7 @@ export class DraftPersistence {
   async save(id:string,prepare:(text:string)=>Promise<string>){
     if(!this.checkpoint)throw new Error('Load the draft checkpoint first');
     const current=this.drafts.get(id);if(!current)throw new Error('Draft missing');
+    for(const [requestId,pending] of this.requests)if(pending.draftId===id)return this.deliver(requestId,this.lifetime);
     const lifetime=this.lifetime,generation=current.generation,text=current.text;current.pending=true;current.error=null;
     let assetId:string;
     try{assetId=await prepare(text);}catch(error){if(this.owns(id,generation,lifetime)){current.pending=false;current.error='Draft bytes were not saved';}throw error;}
@@ -49,15 +53,23 @@ export class DraftPersistence {
   }
   // Unknown delivery is retried under the exact original ID and envelope.
   retry(requestId:string){return this.deliver(requestId,this.lifetime);}
+  dispatch(request:UIRequest){
+    if(request.sessionId!==this.sessionId)throw Error('UI session changed');
+    this.requests.set(request.requestId,{request,draftId:'',generation:'0'});
+    return this.deliver(request.requestId,this.lifetime);
+  }
   pendingRequests(){return [...this.requests.keys()];}
   private owns(id:string,generation:string,lifetime:number){return this.lifetime===lifetime&&this.drafts.get(id)?.generation===generation;}
   private async deliver(id:string,lifetime:number):Promise<UIReceipt>{
     const pending=this.requests.get(id);if(!pending)throw new Error('Unknown draft delivery');
     try{
+      await this.journal?.put('ui-request:'+this.sessionId+':'+id,pending);
       const response=await this.transport('/api/v1/ui/'+this.sessionId,{method:'POST',headers:{'Content-Type':'application/json','X-App-Csrf':this.csrf()},body:JSON.stringify(pending.request)});
       if(!response.ok)throw new Error('Draft receipt unavailable');const receipt=await response.json() as UIReceipt;
       if(receipt.requestId!==id||receipt.protocolVersion!==1||!['accepted','rejected'].includes(receipt.status)||!/^(0|[1-9][0-9]*)$/.test(receipt.uiSeq))throw new Error('Invalid draft receipt');
+      await this.journal?.put('ui-request:'+this.sessionId+':'+id,{...pending,done:true});
       this.requests.delete(id);
+      if(receipt.status==='accepted'&&pending.request.body.type==='ClearDraft')this.drafts.delete(pending.request.body.draftId);
       if(this.lifetime===lifetime&&this.checkpoint&&BigInt(receipt.uiSeq)>BigInt(this.checkpoint.uiSeq))this.checkpoint.uiSeq=receipt.uiSeq;
       if(this.owns(pending.draftId,pending.generation,lifetime)){
         const draft=this.drafts.get(pending.draftId)!;draft.pending=false;

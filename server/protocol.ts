@@ -45,6 +45,7 @@ export class ProtocolRoutes {
   private leases = new Map<string, Lease>();
   private content = new Map<string, Content>();
   private streams = 0;
+  private inventories = new Map<string,{kind:string;clientId:string;sessionHash:string;epoch:string;expires:number;after:string;high:string;parent:string|null}>();
   private assets: AssetRoutes;
   private portable: PortableRoutes;
   constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
@@ -52,6 +53,15 @@ export class ProtocolRoutes {
     const portable=this.portable.match(path);if(portable)return portable;
     const asset=this.assets.match(path);if(asset)return asset;
     if (path === PREFIX + 'commands') return { allow: ['POST'], kind: 'submit', query: [] };
+    if(path===PREFIX+'ui')return {allow:['GET'],kind:'ui-inventory',query:['cursor']};
+    if(path===PREFIX+'commands/pending')return {allow:['GET'],kind:'command-inventory',query:['cursor']};
+    const original=/^\/api\/v1\/commands\/([^/]+)\/original$/.exec(path);
+    if(original){if(!isId(original[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'command-original',id:original[1],query:[]};}
+    const commandEvents = /^\/api\/v1\/commands\/([^/]+)\/result$/.exec(path);
+    if (commandEvents) {
+      if (!isId(commandEvents[1])) throw new ProtocolError('MALFORMED_REQUEST');
+      return { allow: ['GET'], kind: 'command-result', id: commandEvents[1], query: [] };
+    }
     if (path === PREFIX + 'events') return { allow: ['GET'], kind: 'events', query: ['after','recoveryId'] };
     if (path === PREFIX + 'events/stream') return { allow: ['GET'], kind: 'stream', query: ['after'] };
     const history=/^\/api\/v1\/documents\/([^/]+)\/(image|history|checkpoints|save-status|closure)$/.exec(path);
@@ -65,7 +75,7 @@ export class ProtocolRoutes {
     if (!isId(match[2])) throw new ProtocolError('MALFORMED_REQUEST');
     const kind = match[1];
     if ((kind === 'recovery') !== (match[3] === '/release')) throw new ProtocolError('NOT_FOUND');
-    return { allow: kind === 'recovery' ? ['POST'] : kind === 'protocol-content' ? ['GET','HEAD'] : ['GET'],
+    return { allow: kind === 'recovery' ? ['POST'] : ['protocol-content','documents'].includes(kind) ? ['GET','HEAD'] : ['GET'],
       kind, id: match[2], query: ['snapshots','protocol-content','namespace-events'].includes(kind) ? ['recoveryId'] : [] };
   }
   private async prune() {
@@ -156,6 +166,28 @@ export class ProtocolRoutes {
     }
     return result;
   }
+  private async commandEvents(id: string, session: Session): Promise<EventPage | CommandResult> {
+    const result = await this.commandResult(id, session);
+    if (result.kind !== 'receipt' || result.receipt.status !== 'accepted') return result;
+    const receipt = result.receipt;
+    await this.prune();
+    if (this.leases.size >= 128) throw new ProtocolError('LOCAL_BUSY', undefined, 'read-or-transfer');
+    const start = String(BigInt(receipt.fromSeq) - 1n);
+    const expires = Math.min(this.now() + IDLE, session.expires);
+    // A new bounded read lease over the original immutable receipt range. This
+    // never changes the live event cursor or resurrects old approval authority.
+    const lease: Lease = { clientId: session.clientId, sessionHash: session.cookieHash,
+      expires, absolute: session.expires, start, snapshot: null, released: false,
+      context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch,
+        projectionSchema: 3, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
+    this.leases.set(lease.context.recoveryId, lease);
+    try {
+      const page = await this.page(start, lease.context.recoveryId, session);
+      const batch = page.batches[0];
+      if (page.batches.length !== 1 || page.more || !batch || batch.transactionId !== receipt.transactionId || batch.fromSeq !== receipt.fromSeq || batch.toSeq !== receipt.toSeq) throw new ProtocolError('RECOVERY_UNAVAILABLE');
+      return page;
+    } catch (error) { lease.released = true; await this.prune(); throw error; }
+  }
   async handle(request: IncomingMessage, response: ServerResponse, route: NonNullable<ReturnType<ProtocolRoutes['match']>>, params: URLSearchParams,
       authenticate: () => Session, assertRoot: () => Promise<void>) {
     const session = authenticate(); const id = route.id!;
@@ -188,16 +220,44 @@ export class ProtocolRoutes {
       } else if(route.kind.startsWith('document-')){
         const result=route.kind==='document-image'?await this.writer.imageState(id):route.kind==='document-save-status'?await this.writer.saveStatus(id,params.get('sessionId')??'',this.assets.auth(session)):route.kind==='document-closure'?await this.writer.historyClosure(id,params.get('after')??''):await this.writer.historyPage(id,params.get('after')??'',route.kind==='document-history'?'history':'checkpoints');
         authenticate();sendJSON(response,200,result);
+      } else if((route.kind==='command-inventory'||route.kind==='ui-inventory')) {
+        for(const [key,value] of this.inventories)if(this.now()>=value.expires)this.inventories.delete(key);
+        const cursor=params.get('cursor');if(cursor&&!isId(cursor))throw new ProtocolError('MALFORMED_REQUEST');
+        const saved=cursor?this.inventories.get(cursor):undefined;
+        if(cursor&&(!saved||saved.kind!==route.kind))throw new ProtocolError('READ_CONTEXT_EXPIRED');
+        if(saved&&saved.clientId!==session.clientId)throw new ProtocolError('OWNER_REQUIRED');
+        if(saved&&(saved.sessionHash!==session.cookieHash||saved.epoch!==this.writer.epoch))throw new ProtocolError('READ_CONTEXT_EXPIRED');
+        const page=route.kind==='ui-inventory'?await this.writer.uiInventory(session.clientId,saved?.after??'',saved?.high??null):await this.writer.pendingInventory(session.clientId,saved?.after??'',saved?.high??null);authenticate();
+        if(saved?.parent)this.inventories.delete(saved.parent);
+        let next:string|null=null;
+        if(page.more){if(this.inventories.size>=128)throw new ProtocolError('LOCAL_BUSY');next=randomUUID();this.inventories.set(next,{kind:route.kind,clientId:session.clientId,sessionHash:session.cookieHash,epoch:this.writer.epoch,expires:Math.min(session.expires,this.now()+IDLE),after:page.after,high:page.high,parent:cursor});}
+        sendJSON(response,200,{protocolVersion:1,kind:route.kind==='ui-inventory'?'ui-inventory':'pending-inventory',semantics:route.kind==='ui-inventory'?'current-at-page-read':'pending-at-page-read',writerEpoch:this.writer.epoch,items:page.items,next});
+      } else if(route.kind==='command-original') {
+        const original=await this.writer.originalCommand(id,session.clientId);authenticate();
+        if(original===null)sendCommandResult(response,{protocolVersion:1,kind:'unknown',commandId:id});
+        else {const bytes=Buffer.from(original);if(bytes.length>65536)throw new ProtocolError('PAYLOAD_TOO_LARGE');response.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Content-Length':bytes.length});response.end(bytes);}
+      } else if (route.kind === 'command-result') {
+        const result = await this.commandEvents(id, session); authenticate();
+        if (result.kind === 'batches') sendJSON(response, 200, result);
+        else sendCommandResult(response, result);
       } else if (route.kind === 'commands') {
         const result = await this.commandResult(id, session); authenticate();
         sendCommandResult(response,result);
       } else if(route.kind.startsWith('asset-')) await this.assets.handle(request,response,route,params,authenticate,assertRoot);
       else if (route.kind === 'documents') {
-        const view = await this.writer.projection(id); if (!view.document) throw new ProtocolError('NOT_FOUND');
-        const result = { protocolVersion: 1, entityVersion: view.document.revision, projectionSchema: 3, highWater: view.highWater,
-          projection: { kind: 'inline', value: view.document } as any };
-        if (Buffer.byteLength(canonical(result)) > 65536) result.projection = { kind: 'content-ref', content: await this.register(await this.writer.safeJSON('document',id), session) };
-        authenticate(); sendJSON(response,200,result);
+        if(request.method==='HEAD'){
+          const revision=await this.writer.documentRevision(id);authenticate();
+          if(revision===null)throw new ProtocolError('NOT_FOUND');
+          response.writeHead(200,{'X-App-Entity-Version':revision});response.end();return;
+        }
+        await this.prune();const view=await this.writer.documentProjection(id);if(!view)throw new ProtocolError('NOT_FOUND');
+        if(view.projection.kind==='stored'){
+          const stored=view.projection.content;
+          try{authenticate();if(response.destroyed){await this.writer.dropContent(stored.handle);return;}}
+          catch(error){await this.writer.dropContent(stored.handle);throw error;}
+          const content=await this.register(stored,session);
+          authenticate();sendJSON(response,200,{...view,projection:{kind:'content-ref',content}});
+        }else{authenticate();sendJSON(response,200,view);}
       } else if (route.kind === 'events') {
         const page = await this.page(params.get('after') ?? '', params.get('recoveryId'), session); authenticate(); sendJSON(response,200,page);
       } else if (route.kind === 'namespace-events') {

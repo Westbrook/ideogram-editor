@@ -1,0 +1,118 @@
+{
+  "at": "2026-09-26T13:10:23.289599+00:00",
+  "runtimeSourceSHA256": "6ef9654485dda767ff53d23981a4e88e24b41989bfbe4da55f9959fc96e4e171",
+  "initialProbeFailures": "Incorrectly required all build files at direct paths; /index.html and build-evidence.json are not exposed. Root serves index; code assets are allowlisted.",
+  "outputs": [
+    {
+      "path": "dist/app/.vite/manifest.json",
+      "httpStatus": 404
+    },
+    {
+      "path": "dist/app/assets/editor-panels-C8u6k489.js",
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "expected": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "match": true,
+      "bytes": 9411,
+      "httpStatus": 200
+    },
+    {
+      "path": "dist/app/assets/icon-LNfVOU5p.js",
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "expected": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "match": true,
+      "bytes": 137598,
+      "httpStatus": 200
+    },
+    {
+      "path": "dist/app/assets/index-CHAt1K9I.js",
+      "sha256": "fc62ff32d389c17e607460f2ab345d7d5cdba2957484bde0e73d0f110577244e",
+      "expected": "fc62ff32d389c17e607460f2ab345d7d5cdba2957484bde0e73d0f110577244e",
+      "match": true,
+      "bytes": 1429,
+      "httpStatus": 200
+    },
+    {
+      "path": "dist/app/assets/index-CgbuBWk0.css",
+      "sha256": "5dbda5e73959d7f979b66be6502ea19383b29d6fb99a21dc8a912f728def1fd8",
+      "expected": "5dbda5e73959d7f979b66be6502ea19383b29d6fb99a21dc8a912f728def1fd8",
+      "match": true,
+      "bytes": 96444,
+      "httpStatus": 200
+    },
+    {
+      "path": "dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "expected": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "match": true,
+      "bytes": 1218,
+      "httpStatus": 200
+    },
+    {
+      "path": "dist/app/assets/shell-BtxkEZsR.js",
+      "sha256": "1c272375a05d346ad936aea2c5e998ea84af06bb76d6d630d361e93e0e64ec45",
+      "expected": "1c272375a05d346ad936aea2c5e998ea84af06bb76d6d630d361e93e0e64ec45",
+      "match": true,
+      "bytes": 353544,
+      "httpStatus": 200
+    },
+    {
+      "path": "dist/app/build-evidence.json",
+      "httpStatus": 404
+    },
+    {
+      "path": "dist/app/index.html",
+      "sha256": "21a78ced67cb44855a5eaf4ac332f3d139bb0af3e4011c50d0333f14f1ab2786",
+      "expected": "d33d643d5e79e914ac9a5e634e449bbe3927d4d3659691b316645d374c0ed4ad",
+      "match": false,
+      "bytes": 2182,
+      "httpStatus": 200
+    }
+  ],
+  "correctedAt": "2026-09-26T13:11:16.956Z",
+  "correctedOracle": "Server loadStatic transforms root index into trusted prelude/inert template; raw index hash is intentionally different. Hidden manifest/build evidence are excluded by public allowlist. All actual served files match compiled loadStatic output.",
+  "served": [
+    {
+      "path": "/assets/editor-panels-C8u6k489.js",
+      "bytes": 9411,
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "status": 200
+    },
+    {
+      "path": "/assets/icon-LNfVOU5p.js",
+      "bytes": 137598,
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "status": 200
+    },
+    {
+      "path": "/assets/index-CHAt1K9I.js",
+      "bytes": 1429,
+      "sha256": "fc62ff32d389c17e607460f2ab345d7d5cdba2957484bde0e73d0f110577244e",
+      "status": 200
+    },
+    {
+      "path": "/assets/index-CgbuBWk0.css",
+      "bytes": 96444,
+      "sha256": "5dbda5e73959d7f979b66be6502ea19383b29d6fb99a21dc8a912f728def1fd8",
+      "status": 200
+    },
+    {
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "bytes": 1218,
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "status": 200
+    },
+    {
+      "path": "/assets/shell-BtxkEZsR.js",
+      "bytes": 353544,
+      "sha256": "1c272375a05d346ad936aea2c5e998ea84af06bb76d6d630d361e93e0e64ec45",
+      "status": 200
+    },
+    {
+      "path": "/",
+      "bytes": 2182,
+      "sha256": "21a78ced67cb44855a5eaf4ac332f3d139bb0af3e4011c50d0333f14f1ab2786",
+      "status": 200
+    }
+  ],
+  "passed": true
+}

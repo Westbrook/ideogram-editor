@@ -1,0 +1,30 @@
+✖ typed oversized document GET is exact, bounded and version coherent; metadata guard and content authority stay intact (18864.331583ms)
+ℹ {"fixture":"publicly accepted100-layer document; synthetic53000-digit revision only","documentBytes":66660,"inlineEnvelopeBytes":119779,"sourceHashes":{"server/protocol.ts":"sha256:73cb5dd1c6d8af1002ace784118bdfbb0af6bcc716f3b226b01c1d16c59e6fbe","server/storage/recovery.ts":"sha256:21cdd835973be2d4307d9bfd128c4eae61d646a378fa43dc065264bc7e79e9fb","server/storage/objects.ts":"sha256:169f5a9224a31fffe32643abfc923b0e06ef5e365e6b271cc31277d2a2d12b4b"}}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18925.337375
+
+✖ failing tests:
+
+test at tests/editor/document-projection.test.mjs:17:1
+✖ typed oversized document GET is exact, bounded and version coherent; metadata guard and content authority stay intact (18864.331583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  429 !== 503
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/document-projection.test.mjs:58:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 429,
+    expected: 503,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

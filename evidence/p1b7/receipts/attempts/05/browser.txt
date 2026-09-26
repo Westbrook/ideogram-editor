@@ -1,0 +1,71 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 2 tests using 1 worker
+
+(node:59578) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+failed request /api/v1/recovery/198589b4-acc1-4512-a306-1a48efb3ac51/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/3d188e3b-4a2c-4016-b440-c6f25ad391d9/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/da915d9f-be17-4338-9b63-6489e614d1d5/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/d67ae650-c91a-412e-a787-fc9f7e1d624d/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/50150f08-7b90-42d8-842c-a54caeeafdb8/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/90b35841-a67d-44f9-b236-d45d5fe940b3/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/1462c6ac-573e-43c3-b412-081570bdef37/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/c2536536-474f-4f59-8cd9-32f9b0ad0aa1/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/c0ad04df-c7a7-4d21-aa88-0dc0aa7eaa0c/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/bd916aac-ccbe-47c4-aa98-9aec7577c654/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_INCOMPLETE_CHUNKED_ENCODING' }
+  ✓  1 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (3.5s)
+  ✘  2 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (7.9s)
+
+
+  1) tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Draft saved locally; not applied to the document').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Draft saved locally; not applied to the document').first() with timeout 5000ms
+      - waiting for getByText('Draft saved locally; not applied to the document').first()
+
+
+      21 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');
+      22 |  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');
+    > 23 |  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();
+         |                                                                                                                                                                                                                                                                 ^
+      24 |  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');
+      25 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();
+      26 |  const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:23:257
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/05/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/05/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/05/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/trace.zip
+    Usage:
+
+        npx playwright show-trace artifacts/p1b7/attempts/05/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+  1 passed (12.2s)

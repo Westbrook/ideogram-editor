@@ -1,0 +1,247 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: portable.spec.ts >> E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG
+- Location: tests/editor/portable.spec.ts:14:1
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByText('Draft saved locally; not applied to the document').first()
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByText('Draft saved locally; not applied to the document').first() with timeout 5000ms
+  - waiting for getByText('Draft saved locally; not applied to the document').first()
+
+```
+
+```yaml
+- link "Go to Request":
+  - /url: "#request"
+- link "Go to Canvas":
+  - /url: "#canvas"
+- link "Go to Layers":
+  - /url: "#inspector"
+- link "Go to History":
+  - /url: "#results"
+- banner:
+  - strong: Ideogram Editor
+  - text: 3 × 2 · revision 4
+  - group "Document actions":
+    - button "New"
+    - button "Open"
+    - button "Import image"
+    - button "Undo"
+    - button "Redo"
+  - button "Connected locally"
+  - button "Save copy"
+  - button "Export image"
+  - button "Help"
+- region "Operation status":
+  - status: FinalizeStaging accepted and saved locally.
+- main "Image editor":
+  - complementary:
+    - toolbar "Canvas tools":
+      - button "Move" [disabled]
+      - button "Text" [disabled]
+      - button "Select" [disabled]
+      - button "Mask" [disabled]
+      - button "Crop" [disabled]
+      - button "Pan" [pressed]
+      - button "Zoom"
+  - region "Request":
+    - heading "Request" [level=1]
+    - text: Draft Operation
+    - combobox "Operation":
+      - option "Generate image" [selected]
+      - option "Generate with Instant"
+      - option "Generate with Fast"
+      - option "Transform image"
+      - option "Edit masked region"
+      - option "Generate with adapters"
+      - option "Transform with adapters"
+      - option "Edit with adapters"
+    - text: Prompt
+    - textbox "Prompt":
+      - /placeholder: Describe the image you have in mind…
+      - text: 日本語 🌿 retained unapplied prompt
+    - text: Draft autosaves locally; generation remains unavailable.
+    - paragraph: Unsaved UI draft
+    - heading "Explicit inputs" [level=2]
+    - paragraph: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+    - button "Generate" [disabled]
+    - paragraph: Native text, mask drawing and Composition authoring remain required P1c work.
+  - separator "Request panel width"
+  - region "Canvas":
+    - text: Pan · retained raster Zoom percentage
+    - button "Decrease value"
+    - spinbutton "Zoom percentage": "100"
+    - button "Increase value"
+    - button "Fit"
+    - text: 3 × 2 pixels · 1 selected Paste an image here to review View X (px)
+    - button "Decrease value"
+    - spinbutton "View X (px)": "0"
+    - button "Increase value"
+    - text: View Y (px)
+    - button "Decrease value"
+    - spinbutton "View Y (px)": "0"
+    - button "Increase value"
+    - button "Apply view"
+  - separator "Canvas and inspector width"
+  - complementary "Layers and properties":
+    - tablist "Document structure":
+      - tab "Layers" [selected]
+      - tab "Composition"
+    - tabpanel "Layers":
+      - tree "Image layers":
+        - treeitem "hidden-alpha.png · visible" [level=1] [selected]
+      - button "Duplicate"
+      - button "Delete layer"
+      - button "Move up"
+      - button "Move down"
+    - heading "Image properties" [level=2]
+    - paragraph: Accepted layer · base revision 4
+    - text: Layer name
+    - textbox "Layer name": hidden-alpha.png
+    - text: Opacity (0–1)
+    - button "Decrease value"
+    - spinbutton "Opacity (0–1)": "1"
+    - button "Increase value"
+    - text: Opacity preview
+    - slider "Opacity preview": "1"
+    - switch "Visible" [checked]
+    - text: Visible
+    - switch "Locked"
+    - text: Locked
+    - button "Apply properties"
+    - button "Cancel changes"
+    - heading "Transform" [level=2]
+    - paragraph: Affine coefficients preserve rotation and shear. X/Y use document pixels.
+    - text: X
+    - button "Decrease value"
+    - spinbutton "X": "0"
+    - button "Increase value"
+    - text: "Y"
+    - button "Decrease value"
+    - spinbutton "Y": "0"
+    - button "Increase value"
+    - text: A
+    - button "Decrease value"
+    - spinbutton "A": "1"
+    - button "Increase value"
+    - text: B
+    - button "Decrease value"
+    - spinbutton "B": "0"
+    - button "Increase value"
+    - text: C
+    - button "Decrease value"
+    - spinbutton "C": "0"
+    - button "Increase value"
+    - text: D
+    - button "Decrease value"
+    - spinbutton "D": "1"
+    - button "Increase value"
+    - button "Apply transform"
+    - button "Resample image…"
+    - button "Canvas bounds…"
+    - button "Flatten copy…"
+- region "Activity":
+  - heading "Activity" [level=2]
+  - button "Collapse"
+  - tablist "Activity views":
+    - tab "Results"
+    - tab "Jobs"
+    - tab "History" [selected]
+  - tabpanel "History":
+    - region "Retained document history":
+      - list "Retained document history":
+        - listitem:
+          - article "History 2a45e54f-6ea4-4427-8ebe-bc98e54fc92f":
+            - text: SetLayerProperties
+            - time
+            - paragraph: SetLayerProperties · 2a45e54f-6ea4-4427-8ebe-bc98e54fc92f
+            - button "Open this history state"
+        - listitem:
+          - article "History a87a005c-acd8-4c90-b135-162432706ba5":
+            - text: Document created
+            - time
+            - paragraph: Creation · a87a005c-acd8-4c90-b135-162432706ba5
+        - listitem:
+          - article "History e22303e3-515a-43dc-a996-072dd2aeea32":
+            - text: ImportAsset
+            - time
+            - paragraph: ImportAsset · e22303e3-515a-43dc-a996-072dd2aeea32 · current
+            - button "Open this history state"
+    - navigation "Retained document history pages":
+      - button "Newer page" [disabled]
+      - text: Page 1 of 1
+      - button "Older page" [disabled]
+    - status
+    - button "Load older activity" [disabled]
+    - text: Checkpoint name
+    - textbox "Checkpoint name": My checkpoint
+    - button "Save checkpoint"
+    - paragraph: 0 checkpoint(s) in this page. Checkpoints retain their full history.
+- contentinfo: Accepted edits saved locally · Unsaved UI draft Checkpoint outdated · Portable copy outdated · External destination unconfirmed
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect,type Page} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile,writeFile} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join} from 'node:path';
+  5  | import sharp from 'sharp';
+  6  | import {serverProcess} from './process.js';
+  7  | // Test archive reader is independent of the browser adapter; small fixture only.
+  8  | // @ts-ignore
+  9  | import {unpack,records} from '../portable/archive-fixture.mjs';
+  10 | const accepted=(page:Page,type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
+  11 | const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
+  12 | const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+  13 | async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();}
+  14 | test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context})=>{
+  15 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[];
+  16 |  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+  17 |  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  18 |  page.on('request',r=>{const u=new URL(r.url());if(u.protocol!=='blob:'){requests.push(u.pathname);expect(u.hostname).toBe('127.0.0.1');}});
+  19 |  try{
+  20 |  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  21 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');
+  22 |  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');
+> 23 |  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();
+     |                                                                                                                                                                                                                                                                 ^ Error: expect(locator).toBeVisible() failed
+  24 |  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');
+  25 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();
+  26 |  const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;
+  27 |  const events=records(entries,'events').values.map((x:any)=>x.event);expect(events.some((e:any)=>e.type==='HistoryNavigated')).toBe(true);expect(events.some((e:any)=>e.type==='CheckpointSaved')).toBe(true);
+  28 |  const entities=all.filter((x:any)=>x.kind==='entity').map((x:any)=>({kind:x.entityType,value:JSON.parse(entries.get('objects/'+x.payloadRef.hash.slice(7)))}));
+  29 |  expect(entities.filter((x:any)=>x.kind==='history').length).toBe(3);expect(entities.filter((x:any)=>x.kind==='checkpoint').length).toBe(1);expect(entities.some((x:any)=>x.kind==='draft')).toBe(true);
+  30 |  const originalPixels=await sharp('tests/raster/fixtures/hidden-alpha.png').ensureAlpha().raw().toBuffer();
+  31 |  const effects=await server.effects();expect(Object.values(effects).every(v=>v===0)).toBe(true);const oldOrigin=server.origin,oldPid=server.pid;await server.kill();
+  32 |  server=await serverProcess(root);expect(server.pid).not.toBe(oldPid);expect(server.origin).not.toBe(oldOrigin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  33 |  expect(await page.evaluate(async()=> (await indexedDB.databases()).filter(d=>d.name?.startsWith('ie-delivery-')).length)).toBe(1);
+  34 |  await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  35 |  await click(page,'Open');await page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath);
+  36 |  await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
+  37 |  await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+  38 |  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore /}).filter({hasText:/ns_|[a-f0-9]{8}-/});await expect(mapped).not.toHaveCount(0);
+  39 |  await page.getByRole('button',{name:/^Restore /}).last().click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  40 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+  41 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+  42 |  await page.screenshot({path:join(receipt,'e1.png')});
+  43 |  }finally{await server.close();}
+  44 | });
+  45 | 
+```

@@ -1,0 +1,70 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 1 test using 1 worker
+
+(node:53973) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+failed request /api/v1/recovery/76d03d57-ec61-4b28-bba5-6b28c4625b60/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/e4a88aef-4c8d-444f-952c-a5e2c2033f05/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/645322a2-a805-4df8-adb2-cfa4fbc0841b/release { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/events/stream { errorText: 'net::ERR_ABORTED' }
+failed request /api/v1/recovery/2a1b6dd6-a640-4864-b7dd-ae7ea94bc6ce/release { errorText: 'net::ERR_ABORTED' }
+  ✘  1 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (1.6s)
+
+
+  1) tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo ─────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "127.0.0.1"
+    Received: ""
+
+       9 |  const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),credentialConfigured:false});
+      10 |  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+    > 11 |  page.on('request',request=>expect(new URL(request.url()).hostname).toBe('127.0.0.1'));
+         |                                                                     ^
+      12 |  page.on('requestfailed',request=>console.log('failed request',new URL(request.url()).pathname,request.failure()));
+      13 |  try{
+      14 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+        at _Page.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:11:69)
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('dialog', { name: 'Review image conversion' })
+    Expected: visible
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('dialog', { name: 'Review image conversion' }) with timeout 5000ms
+      - waiting for getByRole('dialog', { name: 'Review image conversion' })
+      - Test ended.
+
+
+      14 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+      15 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');
+    > 16 |  await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();
+         |                                                                          ^
+      17 |  await expect(page.getByText('No document open',{exact:true})).toBeVisible();
+      18 |  await page.getByRole('button',{name:'Apply reviewed result',exact:true}).click();
+      19 |  await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:16:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/03/browser/journey-E1-real-reviewed-import-edit-and-undo/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/03/browser/journey-E1-real-reviewed-import-edit-and-undo/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/03/browser/journey-E1-real-reviewed-import-edit-and-undo/trace.zip
+    Usage:
+
+        npx playwright show-trace artifacts/p1b7/attempts/03/browser/journey-E1-real-reviewed-import-edit-and-undo/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo ──────────────────────

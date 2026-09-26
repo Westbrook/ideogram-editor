@@ -1,0 +1,109 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 6 tests using 1 worker
+
+(node:62598) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (1.5m)
+(node:63546) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (4.4s)
+  ✘  3 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (8.0s)
+(node:63578) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  4 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.5m)
+(node:63818) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (2.7s)
+  ✘  6 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (7.5s)
+
+
+  1) tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction 
+
+    Test timeout of 90000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/09/browser/interactions-public-adapte-aaca4-board-and-logical-direction/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/09/browser/interactions-public-adapte-aaca4-board-and-logical-direction/error-context.md
+
+  2) tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText(/Stale conflict/)
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText(/Stale conflict/) with timeout 5000ms
+      - waiting for getByText(/Stale conflict/)
+
+
+      35 | test('multi-tab convergence preserves a stale inspector draft and recovers accepted transactions',async({page,context})=>{
+      36 |  const server=await setup(page);try{await imported(page);const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();
+    > 37 |  await second.getByRole('textbox',{name:'Layer name',exact:true}).fill('Other tab unapplied');await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.7');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(second.locator('.document-name')).toHaveText(await page.locator('.document-name').textContent()??'');await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await click(second,'Apply properties');await expect(second.getByText(/Stale conflict/)).toBeVisible();await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await second.close();
+         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ^
+      38 |  }finally{await server.close();}
+      39 | });
+      40 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:37:629
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/09/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/09/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/09/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/error-context.md
+
+  3) tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable 
+
+    Test timeout of 90000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/09/browser/interactions-320px-and-200-13d47--and-native-focus-reachable/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/09/browser/interactions-320px-and-200-13d47--and-native-focus-reachable/error-context.md
+
+  4) tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 5
+
+    - Array []
+    + Array [
+    +   "Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING",
+    +   "Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING",
+    +   "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    + ]
+
+      40 |  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+      41 |  await click(page,'Save copy');await click(page,'Prepare complete copy');const nestedPath=join(directory,'nested.ideogram-project');await download(page,nestedPath);const nested=await readFile(nestedPath);expect(nested.includes(await readFile(bundlePath))).toBe(true);
+    > 42 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+         |                                                                                    ^
+      43 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+      44 |  await page.screenshot({path:join(receipt,'e1.png')});
+      45 |  }finally{await server.close();}
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:42:84
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/09/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/09/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md
+
+  4 failed
+    tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction 
+    tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions 
+    tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable 
+    tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+  2 passed (3.4m)

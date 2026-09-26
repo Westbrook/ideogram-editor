@@ -1,0 +1,90 @@
+Full-action timing — author observations, NOT qualification
+
+Final runtime6ef9654485dda767ff53d23981a4e88e24b41989bfbe4da55f9959fc96e4e171.
+Attempt69 START2026-09-26T12:59:26.357Z END13:00:05.068Z; functionalPASS19.6s,
+command20.7s. These interval durations differ from individual action latency.
+New second reservation was read before START, after the coordinator12:58:21Z
+conditional confirmation and12:58:50Z wording amendment. Exact author receipt
+instant was not recorded; those coordinator timestamps are not invented receipt
+precision. Coordinator separately reconfirmed exact-runtime READY. Assigned
+workload coordination only; never exclusive-host control. Both windows CLOSED.
+
+Method: tests/editor/full-action.timing.ts retains native intent, complete proof,
+recovery/client work, matching revision update and exact asset canvas draw. The
+analysis chooses the subsequent renderer Paint. All preparation, queue, review,
+commit and client work stays in the parent. Automated review dwell remains in
+first-intent parents. An additional Apply-only boundary is explicitly named.
+No clock restart, child subtraction or short server span substitutes for parent.
+A renderer Paint after matching draw/update is software-paint evidence; it does
+not establish GPU DrawFrame or physical presentation. Retained unchanged pixels
+are identified by exact asset; content-changing actions require matching new draw.
+The action's canvas backend node ID and selected Paint event remain in analysis.
+
+69 full native-intent to subsequent renderer Paint, milliseconds:
+import/review/apply1273.280 (Apply431.981)
+opacity365.196,416.164,399.890,382.746,431.813
+Undo114.165; Redo112.728; checkpoint117.362
+resample/review/apply1036.708 (Apply156.008)
+flatten/review/apply1034.016 (Apply153.016)
+full-copy ready448.891; download initiation34.996 (external destination UNCONFIRMED)
+portable open/review/apply4415.548 (Apply2568.048)
+exact-export ready200.379; download initiation33.158 (destination UNCONFIRMED)
+selection14.517; zoom9.308
+
+Owning boundaries/disposition:
+R04: first status-paint maximum66.561ms on tiny actions exceeds50ms target,
+  below100ms ceiling in this observed set. This is not all required startup/error
+  cohorts or physical presentation. Pending paint is not accepted/completed paint.
+R05: cold readiness+subsequent Paint251.667ms excludes required accepted test edit,
+  so does NOT satisfy complete cold boundary. Warm ready190.340ms is similarly
+  intermediate. Warm navigation through accepted mapped test edit+Paint1093.178ms
+  is the observed complete warm boundary: above1s target, below2s ceiling for this
+  tiny author fixture. Module/definition/worker decomposition and formal W0/W1
+  cold/warm populations remain unqualified.
+R07: zoom observation retained. GPU canvas pan can update without a new Paint;
+  per-pan next Paint gaps reach about198ms, but do not prove actual presented
+  pan latency or pass it. App frame attribution, drop population and physical
+  presentation remain unqualified. Do not compare canvas draw alone to33.4ms.
+R08: forced worker/offscreen fallback, context loss and cooperative slice campaign
+  were not qualified. Server-only RSS177.328125MiB includes server threads, not
+  browser/GPU/native children or complete process-tree peak; no memory claim.
+R15: actual image preparation and Apply parents above include all local work.
+  Tiny import Apply431.981ms exceeds the prepared-A250ms ceiling if A is the owning
+  comparable case; this is not the required W1 masked original/candidate/mask
+  cohort. Resample/flatten are not reclassified as formal A/B/C adoption. All
+  observations stay visible and no threshold is waived by the functionalPASS.
+R16: Undo114.165,Redo112.728,checkpoint117.362ms exceed normal100ms ceiling;
+  opacity365–432ms is also slow full edit completion. Selection14.517ms alone
+  cannot establish the entire normal/stress history/split cohort. Integration
+  overlaps accepted-result proof with complete recovery but still waits for
+  both under identity/generation fences; it does not hide either from the clock.
+R20: exact commit-ready authority→durable acknowledgement/client receipt child
+  was NOT measured here. Request→observed receipt includes preparation/queue and
+  is labelled separately. Tiny prior child10.986333ms/all29max16.698958 cannot
+  qualify whole integrated actions or replace unmeasured current R20.
+R22: functional snapshot-gap/transaction/restart recovery passes are separate
+  evidence. This run does not isolate snapshot-read→authoritative projection or
+  qualify500-tail/100k full replay. Correct paint stays in R05/action parent.
+R39: copy-ready448.891ms is prepared complete archive availability, not external
+  destination saved. Portable open/review/apply4415.548ms retains verification,
+  extraction/closure/adoption/client work and automated dwell; it is not formal
+ 512MiB/4GiB or100k closure performance. Full restart/reopen edit and exact
+ downloaded closure/pixels are separately functionally verified by portable.spec.
+ Destination-confirmed/native action cannot be fabricated from anchor/saveAs.
+D11: final emitted initial closure raw493789bytes,gzip129529bytes; all JS including
+ lazy upper bound503200raw/132851gzip; CSSgzip12676; lazy dialog/drawer3322gzip.
+ Pre-emission build plugin reported502880/132690/CSS12690: retained but superseded
+ for packed byte reporting by actual emitted bytes. Below artifact byte targets,
+ not five-build/evaluated-module campaign.
+
+Failed attempt63 remains on its own source6d1d8472e31b4d26a5847c08129254aedd57f7a259bed263cf79f131e0d2525a,
+START12:53:03.599Z END12:53:47.617Z. Warm edit failed because a generated mapped
+inspector draft ID had143characters>128; full trace and preceding slow samples
+retained. Bounded deterministic newly generated ID fix does not migrate old IDs
+or rewrite original commands. Source68 tests actual127/128/129 boundary.
+
+Earlier disclosed failures persist: metadata74.742833ms/all20>50ms;
+tiny opacity171.443917ms; portable reviewer parent1003.224ms/author1013.215ms
+excluded actual paint/destination. Worst-case disk-backed namespace graph scans
+remain repeated/quadratic; correctness is not100k qualification. A-R01 remains
+OPEN. Five prior resource-pending maximum attempts are not successful processing.

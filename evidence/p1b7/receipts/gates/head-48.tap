@@ -1,0 +1,30 @@
+✔ exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority (2324.0625ms)
+✔ known referenced multi-event command is bounded, byte exact and session leased (1091.286417ms)
+✔ UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence (795.433416ms)
+✔ pending owner pages preserve exact original bytes and operation identity across terminal races (2075.228333ms)
+✖ document HEAD exposes canonical revision without projection/content allocation and retains GET authorization (426.30725ms)
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (582.3615ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (809.385083ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2088.398708ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (22.797459ms)
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (604.33475ms)
+✔ a fresh unseeded HTTP root accepts NewDocument with the public fixed empty precondition reference (254.368792ms)
+✔ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (2079.787792ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13251.638666
+
+✖ failing tests:
+
+test at tests/editor/read-adapters.test.mjs:68:1
+✖ document HEAD exposes canonical revision without projection/content allocation and retains GET authorization (426.30725ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'kind')
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/read-adapters.test.mjs:75:96)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

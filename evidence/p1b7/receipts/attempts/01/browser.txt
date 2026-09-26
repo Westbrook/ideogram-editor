@@ -1,0 +1,39 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 1 test using 1 worker
+
+(node:49475) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (4.0s)
+
+
+  1) tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo ─────────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "Loading the image 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E' violates the following Content Security Policy directive: \"img-src 'self' blob:\". The action has been blocked.",
+    + ]
+
+      26 |  await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();
+      27 |  await page.screenshot({path:'artifacts/p1b7/attempts/01/editor.png'});
+    > 28 |  expect(errors).toEqual([]);
+         |                 ^
+      29 |  }finally{await server.close();}
+      30 | });
+      31 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:28:17
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/browser/journey-E1-real-reviewed-import-edit-and-undo/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/browser/journey-E1-real-reviewed-import-edit-and-undo/error-context.md
+
+  1 failed
+    tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo ──────────────────────

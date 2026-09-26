@@ -1,0 +1,80 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: recovery.spec.ts >> real snapshot gap recovery publishes the complete current document after offline browser interval
+- Location: tests/editor/recovery.spec.ts:39:1
+
+# Error details
+
+```
+TypeError: Cannot read properties of undefined (reading 'status')
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect,type Page,type BrowserContext} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile,writeFile,unlink} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join} from 'node:path';
+  5  | import {randomUUID,createHash} from 'node:crypto';
+  6  | import {DatabaseSync} from 'node:sqlite';
+  7  | import {serverProcess} from './process.js';
+  8  | // @ts-ignore
+  9  | import {call,exchange} from '../session/helpers.mjs';
+  10 | // @ts-ignore
+  11 | import {command} from '../store/helpers.mjs';
+  12 | const empty={kind:'empty',byteLength:'0'};
+  13 | const click=(p:Page,n:string)=>p.getByRole('button',{name:n,exact:true}).click();
+  14 | async function setup(page:Page,context:BrowserContext){
+  15 |  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-recovery-ui-')),root=join(dir,'private'),server=await serverProcess(root);let last:any,csrf='';
+  16 |  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'){last=JSON.parse(r.postData()!);csrf=r.headers()['x-app-csrf'];}});
+  17 |  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
+  18 |  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
+  19 |  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
+  20 | }
+  21 | test('lost draft receipt survives reload with exact original request; cleared draft does not return',async({page,context})=>{
+  22 |  const f=await setup(page,context);try{
+  23 |  await page.getByRole('treeitem').click();let wire='';let dropped=false;const sent:string[]=[];
+  24 |  await page.route('**/api/v1/ui/*',async route=>{const r=route.request();if(r.method()==='POST'&&JSON.parse(r.postData()!).body.type==='SaveDraft'){sent.push(r.postData()!);if(!dropped){wire=r.postData()!;dropped=true;await route.fetch();await route.abort();return;}}await route.continue();});
+  25 |  await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Lost receipt 日本語');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();
+  26 |  await page.reload();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();await click(page,'Retry original draft delivery');await expect.poll(()=>sent).toEqual([wire,wire]);await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Lost receipt 日本語');
+  27 |  await click(page,'Cancel changes');await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');await expect.poll(()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const row=db.prepare('SELECT json FROM ui_checkpoints WHERE session_id=?').get(JSON.parse(wire).sessionId) as {json:string};db.close();return JSON.parse(row.json).drafts.some((d:any)=>d.id===JSON.parse(wire).body.draft.id);}).toBe(false);
+  28 |  await page.reload();await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');
+  29 |  }finally{await f.server.close();}
+  30 | });
+  31 | 
+  32 | test('missing retained raster bytes block full copy visibly and remain recoverable',async({page,context})=>{
+  33 |  const f=await setup(page,context);let path='',bytes:Buffer|undefined;try{
+  34 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT json FROM assets').all() as {json:string}[];db.close();const asset=rows.map(x=>JSON.parse(x.json)).find(x=>x.qualification==='canonical-raster');expect(asset).toBeTruthy();path=join(f.root,'objects','sha256',asset.raster.pixels.hash.slice(7,9),asset.raster.pixels.hash.slice(7));bytes=await readFile(path);await unlink(path);
+  35 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByText(/Content unavailable or missing/)).toBeVisible();await expect(page.getByRole('region',{name:'Prepared file'})).toHaveCount(0);await writeFile(path,bytes,{mode:0o600});bytes=undefined;await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Full-history copy');
+  36 |  }finally{if(bytes)await writeFile(path,bytes,{mode:0o600});await f.server.close();}
+  37 | });
+  38 | 
+  39 | test('real snapshot gap recovery publishes the complete current document after offline browser interval',async({page,context})=>{
+  40 |  test.setTimeout(120000);const f=await setup(page,context);try{
+  41 |  const id=f.last.command.documentId,clientId=f.last.command.clientId;const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const document=JSON.parse((db.prepare('SELECT json FROM documents WHERE id=?').get(id) as {json:string}).json);db.close();await page.goto('about:blank');
+> 42 |  let revision=BigInt(document.document?.revision??document.revision);for(let i=0;i<251;i++){const c=command(empty,{clientId,documentId:id,expectedDocumentRevision:String(revision),body:{type:'SaveCheckpoint',name:'gap '+i}});const r=await call(f.server.origin,'/api/v1/commands',{method:'POST',body:c,headers:f.headers()});expect(r.json.receipt.status).toBe('accepted');revision++;}
+     |                                                                                                                                                                                                                                                                                                                                                          ^ TypeError: Cannot read properties of undefined (reading 'status')
+  43 |  const gaps:string[]=[];page.on('response',r=>{if(r.url().includes('/api/v1/events')&&r.status()===409)gaps.push(r.url().split('?')[0]);});
+  44 |  await page.goto(f.server.origin);await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('.document-name')).toContainText('revision '+revision);await expect(page.getByRole('treeitem')).toHaveCount(1);expect(gaps.length).toBeGreaterThan(0);await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);
+  45 |  }finally{await f.server.close();}
+  46 | });
+  47 | 
+  48 | test('new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery',async({page,context})=>{
+  49 |  const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>();let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;
+  50 |  try{
+  51 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT json FROM assets').all() as {json:string}[];db.close();const original=rows.map(x=>JSON.parse(x.json)).find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();
+  52 |  for(let i=0;i<2;i++){const stagingId=randomUUID();expect((await call(f.server.origin,'/api/v1/assets/staging',{method:'POST',body:{protocolVersion:1,stagingId,purpose:'caption',expectedBytes:'1',sha256:'sha256:'+createHash('sha256').update('x').digest('hex'),mediaType:'text/plain'},headers:f.headers()})).status).toBe(201);const h=exchange(f.server.origin,'/api/v1/assets/staging/'+stagingId,{method:'PUT',defer:true,headers:{...f.headers(),'Content-Type':'application/octet-stream','Content-Length':'1','Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();holds.push(h);}
+  53 |  await page.waitForTimeout(30);
+  54 |  for(let i=0;i<40;i++){const c=command(empty,{clientId:f.last.command.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'PrepareRaster',assetId:original.id}}),wire=JSON.stringify(c,null,2);originals.set(c.command.commandId,wire);expect((await call(f.server.origin,'/api/v1/commands',{method:'POST',raw:Buffer.from(wire),headers:f.headers()})).status).toBe(202);}
+  55 |  const old=f.server.origin;await f.server.kill();holds.forEach(h=>h.request.destroy());restarted=await serverProcess(f.root);expect(restarted.origin).not.toBe(old);const reads:Promise<void>[]=[];page.on('response',r=>{const match=new URL(r.url()).pathname.match(/commands\/([^/]+)\/original$/);if(match&&originals.has(match[1]))reads.push(r.text().then(text=>{expect(text).toBe(originals.get(match[1]));}));});await page.goto(await restarted.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Check and retry original',exact:true}).first()).toBeVisible();expect(reads.length).toBeGreaterThan(0);await Promise.all(reads);await page.getByRole('button',{name:'Check and retry original',exact:true}).first().click();await expect(page.getByText('PrepareRaster accepted and saved locally.',{exact:true})).toBeVisible();expect(Object.values(await restarted.effects()).every(x=>x===0)).toBe(true);
+  56 |  }finally{holds.forEach(h=>h.request.destroy());await f.server.close();await restarted?.close();}
+  57 | });
+  58 | 
+```

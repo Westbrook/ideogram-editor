@@ -1,0 +1,334 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: journey.spec.ts >> E1 real reviewed import, edit and undo
+- Location: tests/editor/journey.spec.ts:7:1
+
+# Error details
+
+```
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 3
+
+- Array []
++ Array [
++   "Loading the image 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E' violates the following Content Security Policy directive: \"img-src 'self' blob:\". The action has been blocked.",
++ ]
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic:
+    - link "Go to Request" [ref=e4] [cursor=pointer]:
+      - /url: "#request"
+    - link "Go to Canvas" [ref=e5] [cursor=pointer]:
+      - /url: "#canvas"
+    - link "Go to Layers" [ref=e6] [cursor=pointer]:
+      - /url: "#inspector"
+    - link "Go to History" [ref=e7] [cursor=pointer]:
+      - /url: "#results"
+  - banner [ref=e8]:
+    - generic [ref=e13]:
+      - strong [ref=e14]: Ideogram Editor
+      - generic [ref=e15]: 3 × 2 · revision 4
+    - group "Document actions" [ref=e17]:
+      - generic:
+        - button "New" [ref=e19] [cursor=pointer]
+        - button "Open" [ref=e22] [cursor=pointer]
+        - button "Import image" [ref=e25] [cursor=pointer]
+        - button "Undo" [ref=e28] [cursor=pointer]
+        - button "Redo" [ref=e31] [cursor=pointer]
+    - generic [ref=e33]:
+      - button "Connected locally" [ref=e35] [cursor=pointer]
+      - generic:
+        - generic: Check connection
+        - generic: Renew connection
+        - generic: Disconnect
+      - button "Save copy" [ref=e38] [cursor=pointer]
+      - button "Export image" [ref=e41] [cursor=pointer]
+      - button "Help" [ref=e44] [cursor=pointer]
+  - region "Operation status" [ref=e46]:
+    - status [ref=e47]: Undo accepted and saved locally.
+    - paragraph [ref=e48]: Updates interrupted (network error). Reconnect to recover complete transactions; the last valid view is retained.
+    - button "Reconnect" [ref=e50] [cursor=pointer]
+  - main "Image editor" [ref=e52]:
+    - complementary [ref=e53]:
+      - toolbar "Canvas tools" [ref=e55]:
+        - generic:
+          - button "Move" [disabled] [ref=e57]
+          - button "Text" [disabled] [ref=e60]
+          - button "Select" [disabled] [ref=e63]
+          - button "Mask" [disabled] [ref=e66]
+          - button "Crop" [disabled] [ref=e69]
+          - button "Pan" [pressed] [ref=e72] [cursor=pointer]
+          - button "Zoom" [ref=e75] [cursor=pointer]
+    - generic [ref=e77]:
+      - region "Request" [ref=e78]:
+        - generic [ref=e79]:
+          - heading "Request" [level=1] [ref=e80]
+          - generic [ref=e81]: Draft
+        - generic [ref=e82]:
+          - generic [ref=e84]:
+            - generic [ref=e85]: Operation
+            - combobox "Operation" [ref=e88]:
+              - option "Generate image" [selected]
+              - option "Generate with Instant"
+              - option "Generate with Fast"
+              - option "Transform image"
+              - option "Edit masked region"
+              - option "Generate with adapters"
+              - option "Transform with adapters"
+              - option "Edit with adapters"
+          - generic [ref=e90]:
+            - generic [ref=e91]: Prompt
+            - textbox "Prompt" [ref=e94]:
+              - /placeholder: Describe the image you have in mind…
+            - generic [ref=e95]: Draft autosaves locally; generation remains unavailable.
+          - paragraph [ref=e98]: Draft saved locally; not applied to the document
+          - heading "Explicit inputs" [level=2] [ref=e99]
+          - paragraph [ref=e100]: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+          - button "Generate" [disabled] [ref=e102]
+          - paragraph [ref=e104]: Native text, mask drawing and Composition authoring remain required P1c work.
+      - separator "Request panel width" [ref=e105]
+      - generic [ref=e108]:
+        - region "Canvas" [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: Pan · retained raster
+            - generic [ref=e113]:
+              - generic [ref=e114]: Zoom percentage
+              - generic [ref=e116]:
+                - button "Decrease value" [ref=e117] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e120]: −
+                - spinbutton "Zoom percentage" [ref=e121]: "100"
+                - button "Increase value" [ref=e122] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e125]: +
+            - button "Fit" [ref=e127] [cursor=pointer]
+          - generic "Document raster preview" [ref=e130]
+          - generic [ref=e131]:
+            - generic [ref=e132]: 3 × 2 pixels · 1 selected
+            - generic [ref=e133]: Paste an image here to review
+          - generic [ref=e134]:
+            - generic [ref=e136]:
+              - generic [ref=e137]: View X (px)
+              - generic [ref=e139]:
+                - button "Decrease value" [ref=e140] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e143]: −
+                - spinbutton "View X (px)" [ref=e144]: "0"
+                - button "Increase value" [ref=e145] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e148]: +
+            - generic [ref=e150]:
+              - generic [ref=e151]: View Y (px)
+              - generic [ref=e153]:
+                - button "Decrease value" [ref=e154] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e157]: −
+                - spinbutton "View Y (px)" [ref=e158]: "0"
+                - button "Increase value" [ref=e159] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e162]: +
+            - button "Apply view" [ref=e164] [cursor=pointer]
+        - separator "Canvas and inspector width" [ref=e166]
+        - complementary "Layers and properties" [ref=e169]:
+          - generic [ref=e171]:
+            - tablist "Document structure" [ref=e172]:
+              - generic:
+                - tab "Layers" [selected] [ref=e173] [cursor=pointer]
+                - tab "Composition" [ref=e175] [cursor=pointer]
+            - tabpanel "Layers" [ref=e178]:
+              - generic [ref=e179]:
+                - generic:
+                  - tree "Image layers" [ref=e182]:
+                    - treeitem "hidden-alpha.png · visible" [level=1] [selected] [ref=e183]
+                  - generic [ref=e187]:
+                    - button "Duplicate" [ref=e189] [cursor=pointer]
+                    - button "Delete layer" [ref=e192] [cursor=pointer]
+                    - button "Move up" [ref=e195] [cursor=pointer]
+                    - button "Move down" [ref=e198] [cursor=pointer]
+          - generic [ref=e200]:
+            - heading "Image properties" [level=2] [ref=e201]
+            - paragraph [ref=e202]: Accepted layer · base revision 4
+            - generic [ref=e204]:
+              - generic [ref=e205]: Layer name
+              - textbox "Layer name" [ref=e208]: hidden-alpha.png
+            - generic [ref=e210]:
+              - generic [ref=e211]: Opacity (0–1)
+              - generic [ref=e213]:
+                - button "Decrease value" [ref=e214] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e217]: −
+                - spinbutton "Opacity (0–1)" [ref=e218]: "1"
+                - button "Increase value" [ref=e219] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=e222]: +
+            - generic [ref=e224]:
+              - generic [ref=e225]: Opacity preview
+              - slider "Opacity preview" [ref=e229] [cursor=pointer]: "1"
+            - generic [ref=e232] [cursor=pointer]:
+              - switch "Visible" [checked] [ref=e233]
+              - generic [ref=e234]: Visible
+            - generic [ref=e239] [cursor=pointer]:
+              - switch "Locked" [ref=e240]
+              - generic [ref=e241]: Locked
+            - generic [ref=e244]:
+              - button "Apply properties" [ref=e246] [cursor=pointer]
+              - button "Cancel changes" [ref=e249] [cursor=pointer]
+            - heading "Transform" [level=2] [ref=e251]
+            - paragraph [ref=e252]: Affine coefficients preserve rotation and shear. X/Y use document pixels.
+            - generic [ref=e253]:
+              - generic [ref=e255]:
+                - generic [ref=e256]: X
+                - generic [ref=e258]:
+                  - button "Decrease value" [ref=e259] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e262]: −
+                  - spinbutton "X" [ref=e263]: "0"
+                  - button "Increase value" [ref=e264] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e267]: +
+              - generic [ref=e269]:
+                - generic [ref=e270]: "Y"
+                - generic [ref=e272]:
+                  - button "Decrease value" [ref=e273] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e276]: −
+                  - spinbutton "Y" [ref=e277]: "0"
+                  - button "Increase value" [ref=e278] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e281]: +
+              - generic [ref=e283]:
+                - generic [ref=e284]: A
+                - generic [ref=e286]:
+                  - button "Decrease value" [ref=e287] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e290]: −
+                  - spinbutton "A" [ref=e291]: "1"
+                  - button "Increase value" [ref=e292] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e295]: +
+              - generic [ref=e297]:
+                - generic [ref=e298]: B
+                - generic [ref=e300]:
+                  - button "Decrease value" [ref=e301] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e304]: −
+                  - spinbutton "B" [ref=e305]: "0"
+                  - button "Increase value" [ref=e306] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e309]: +
+              - generic [ref=e311]:
+                - generic [ref=e312]: C
+                - generic [ref=e314]:
+                  - button "Decrease value" [ref=e315] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e318]: −
+                  - spinbutton "C" [ref=e319]: "0"
+                  - button "Increase value" [ref=e320] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e323]: +
+              - generic [ref=e325]:
+                - generic [ref=e326]: D
+                - generic [ref=e328]:
+                  - button "Decrease value" [ref=e329] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e332]: −
+                  - spinbutton "D" [ref=e333]: "1"
+                  - button "Increase value" [ref=e334] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=e337]: +
+            - button "Apply transform" [ref=e339] [cursor=pointer]
+            - button "Resample image…" [ref=e342] [cursor=pointer]
+            - generic [ref=e344]:
+              - button "Canvas bounds…" [ref=e346] [cursor=pointer]
+              - button "Flatten copy…" [ref=e349] [cursor=pointer]
+  - region "Activity" [ref=e351]:
+    - generic [ref=e352]:
+      - heading "Activity" [level=2] [ref=e353]
+      - button "Collapse" [ref=e355] [cursor=pointer]
+    - generic [ref=e358]:
+      - tablist "Activity views" [ref=e359]:
+        - generic:
+          - tab "Results" [ref=e360] [cursor=pointer]
+          - tab "Jobs" [ref=e362] [cursor=pointer]
+          - tab "History" [selected] [ref=e364] [cursor=pointer]
+      - tabpanel "History" [ref=e367]:
+        - generic [ref=e368]:
+          - generic:
+            - generic [ref=e370]:
+              - region "Retained document history" [ref=e371]:
+                - list "Retained document history" [ref=e372]:
+                  - listitem [ref=e373]:
+                    - article "History 1082d22e-3fba-4610-b5b5-7d67f1cdcd01" [ref=e376]:
+                      - generic [ref=e377]:
+                        - generic [ref=e378]: Document created
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=e381]: Creation · 1082d22e-3fba-4610-b5b5-7d67f1cdcd01
+                  - listitem [ref=e382]:
+                    - article "History 4856df32-3231-4203-8683-e73252f0c4cb" [ref=e385]:
+                      - generic [ref=e386]:
+                        - generic [ref=e387]: SetLayerProperties
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=e390]: SetLayerProperties · 4856df32-3231-4203-8683-e73252f0c4cb
+                      - button "Open this history state" [ref=e392] [cursor=pointer]
+                  - listitem [ref=e394]:
+                    - article "History 736f354f-0a76-4b9a-8987-5b2cd6fe8dc4" [ref=e397]:
+                      - generic [ref=e398]:
+                        - generic [ref=e399]: ImportAsset
+                        - generic:
+                          - generic:
+                            - time
+                      - paragraph [ref=e402]: ImportAsset · 736f354f-0a76-4b9a-8987-5b2cd6fe8dc4 · current
+                      - button "Open this history state" [ref=e404] [cursor=pointer]
+              - navigation "Retained document history pages" [ref=e406]:
+                - button "Newer page" [disabled] [ref=e408]
+                - generic [ref=e410]: Page 1 of 1
+                - button "Older page" [disabled] [ref=e412]
+              - status [ref=e414]
+              - button "Load older activity" [disabled] [ref=e416]
+            - generic [ref=e418]:
+              - generic [ref=e420]:
+                - generic [ref=e421]: Checkpoint name
+                - textbox "Checkpoint name" [ref=e424]: My checkpoint
+              - button "Save checkpoint" [ref=e426] [cursor=pointer]
+            - paragraph [ref=e428]: 0 checkpoint(s) in this page. Checkpoints retain their full history.
+  - contentinfo [ref=e429]:
+    - generic [ref=e430]: Accepted edits saved locally · Draft saved locally; not applied to the document
+    - generic [ref=e431]: Checkpoint outdated · Portable copy outdated · External destination unconfirmed
+  - generic: Cancel
+  - generic:
+    - generic: Cancel review
+    - generic: Apply reviewed result
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect} from '@playwright/test';
+  2  | import {mkdtemp,realpath} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join,resolve} from 'node:path';
+  5  | import {pathToFileURL} from 'node:url';
+  6  | const {startLocalServer}=await import(pathToFileURL(resolve('dist/local/server/http.js')).href);
+  7  | test('E1 real reviewed import, edit and undo',async({page,context})=>{
+  8  |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-integrated-'));
+  9  |  const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),credentialConfigured:false});
+  10 |  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  11 |  await context.route('**/*',async route=>{expect(new URL(route.request().url()).hostname).toBe('127.0.0.1');await route.continue();});
+  12 |  try{
+  13 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
+  14 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');
+  15 |  await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();
+  16 |  await expect(page.getByText('No document open',{exact:true})).toBeVisible();
+  17 |  await page.getByRole('button',{name:'Apply reviewed result',exact:true}).click();
+  18 |  await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
+  19 |  await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');
+  20 |  await page.getByRole('treeitem').first().click();
+  21 |  await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');
+  22 |  await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');
+  23 |  await page.getByRole('button',{name:'Apply properties',exact:true}).click();
+  24 |  await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
+  25 |  await page.getByRole('button',{name:'Undo',exact:true}).click();
+  26 |  await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();
+  27 |  await page.screenshot({path:'artifacts/p1b7/attempts/01/editor.png'});
+> 28 |  expect(errors).toEqual([]);
+     |                 ^ Error: expect(received).toEqual(expected) // deep equality
+  29 |  }finally{await server.close();}
+  30 | });
+  31 | 
+```

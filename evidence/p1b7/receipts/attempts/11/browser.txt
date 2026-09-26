@@ -1,0 +1,42 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 6 tests using 1 worker
+
+(node:63999) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (10.6s)
+(node:64026) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (4.5s)
+  ✓  3 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (2.7s)
+  ✓  4 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (945ms)
+  ✓  5 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (2.6s)
+  ✓  6 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (7.8s)
+
+
+  1) tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction 
+
+    TimeoutError: locator.focus: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('#left-divider').getByRole('separator')
+
+
+      13 |  let box=await left.boundingBox(),before=await geometry();expect(before.track).toBe('1px');expect(before.grip).toBe(1);expect(before.host).toBeGreaterThanOrEqual(24);expect(before.z).toBe('1');expect(parseFloat(before.margin)).toBe(-(before.host-1)/2);
+      14 |  await page.mouse.move(box!.x+2,box!.y+70);await page.mouse.down();await page.mouse.move(box!.x+42,box!.y+70);await page.mouse.up();expect((await geometry()).value).toBeGreaterThan(before.value);
+    > 15 |  const handle=left.getByRole('separator');await handle.focus();before=await geometry();await page.keyboard.press('ArrowRight');expect((await geometry()).value).toBeGreaterThan(before.value);
+         |                                                        ^
+      16 |  await page.evaluate(()=>document.documentElement.dir='rtl');before=await geometry();await page.keyboard.press('ArrowLeft');expect((await geometry()).value).toBeGreaterThan(before.value);await page.evaluate(()=>document.documentElement.dir='ltr');
+      17 |  const operation=page.getByRole('combobox',{name:'Operation',exact:true});
+      18 |  await page.locator('en-select').first().evaluate(host=>host.addEventListener('en-change',e=>e.preventDefault(),{once:true}));await operation.selectOption({label:'Generate with Fast'});await expect(operation).toHaveValue('Generate image');
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:15:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/11/browser/interactions-public-adapte-aaca4-board-and-logical-direction/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/11/browser/interactions-public-adapte-aaca4-board-and-logical-direction/error-context.md
+
+  1 failed
+    tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction 
+  5 passed (29.8s)

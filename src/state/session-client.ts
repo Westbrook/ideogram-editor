@@ -63,6 +63,18 @@ export function createSessionClient() {
   }
   return {
     state,
+    // Authority stays in this closure. Views receive only the nonsecret owner ID.
+    identity: () => session?.clientId ?? null,
+    csrf: () => session?.csrfToken ?? '',
+    transport: (path: string, init: RequestInit = {}) => {
+      const headers = new Headers(init.headers);
+      headers.set('X-App-Client', 'LP-1');
+      if (init.method && !['GET', 'HEAD'].includes(init.method)) {
+        if (!session) return Promise.reject(new RequestError('SESSION_REQUIRED'));
+        headers.set('X-App-CSRF', session.csrfToken);
+      }
+      return fetch(path, { ...init, headers, credentials: 'same-origin', cache: 'no-store', redirect: 'error' });
+    },
     start: (token?: string) => run(token ? 'bootstrap' : 'resume', token),
     resume: () => run('resume'), renew: () => run('renew'), revoke: () => run('revoke'),
     dispose() { generation++; active?.abort(); session = null; },

@@ -289,6 +289,35 @@ export class RecoveryStore {
     } else throw new StoreError('MALFORMED_REQUEST');
     return this.issue({blob:this.objects.putMetadata(bytes),encoding:'lp1-json',recordCount:'1'});
   }
+  documentProjection(id:string) {
+    if(!isId(id))throw new StoreError('MALFORMED_REQUEST');this.check();
+    const row=this.db.prepare('SELECT json FROM documents WHERE id=?').get(id);
+    if(!row)return null;
+    // Capture one authoritative value and high-water in this synchronous writer
+    // turn. A second read by ID could pair a newer body with an older revision.
+    const text=String(row.json);let value;
+    try{value=JSON.parse(text);validateEntity('document',value);if(value.id!==id||canonical(value)!==text)throw Error();}
+    catch{throw new StoreError('CORRUPT_STORE');}
+    const common={protocolVersion:1 as const,entityVersion:value.revision as string,projectionSchema:3,highWater:this.highWater()};
+    const inline={...common,projection:{kind:'inline' as const,value}};
+    if(Buffer.byteLength(canonical(inline))<=65536)return inline;
+    const length=String(Buffer.byteLength(text));
+    // LP-1 still bounds the complete control reply. Referencing its value cannot
+    // make an oversized outer entityVersion/highWater legal. These placeholder
+    // fields have exactly the lengths of the eventual public content descriptor.
+    const uuid='00000000-0000-0000-0000-000000000000';
+    const descriptor={contentId:uuid,url:'/api/v1/protocol-content/'+uuid,blob:{hash:'sha256:'+'0'.repeat(64),byteLength:length,mediaType:'application/json'},encoding:'lp1-json',recordCount:'1',expiresAt:'2000-01-01T00:00:00.000Z'};
+    if(Buffer.byteLength(canonical({...common,projection:{kind:'content-ref',content:descriptor}}))>65536)throw new StoreError('PAYLOAD_TOO_LARGE');
+    if(this.handles.size>=128)throw new StoreError('QUEUE_FULL');
+    // Typed projection content uses ordinary reserved, chunked, atomically
+    // installed objects. Generic putMetadata retains its existing64KiB guard.
+    const stage=this.objects.begin(length,'application/json');
+    try{
+      const bytes=Buffer.from(text);
+      for(let at=0;at<bytes.length;at+=IO_CHUNK)this.objects.chunk(stage,bytes.subarray(at,at+IO_CHUNK));
+      return {...common,projection:{kind:'stored' as const,content:this.issue({blob:this.objects.finish(stage),encoding:'lp1-json',recordCount:'1'})}};
+    }finally{this.objects.abort(stage);}
+  }
   issue(content: Omit<StoredContent, 'handle'>): StoredContent {
     if (this.handles.size >= 128) throw new StoreError('QUEUE_FULL');
     this.objects.verify(content.blob);

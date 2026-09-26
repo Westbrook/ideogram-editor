@@ -1,0 +1,84 @@
+P1b.7 — durable browser editing integration
+Task292d3ac5-08c8-4caf-9042-1eefd4cd050f; PR Context cbd63320-6def-4beb-b78f-de897caf3cdf.
+Base d55769bf3d16b67e2034e363bc3d82e622480cc4; branch ideogram-editor-p1.
+The final commit is recorded in the task/PR Context after this evidence is committed.
+No PR was assigned or opened. No CI run for the approved base was supplied in this
+handoff; historical local failures are disclosed in PERFORMANCE.txt and FAILURES.txt.
+This is author evidence for independent review, not approval or P1b completion.
+
+Review entry: http://127.0.0.1:55911/?progress-report
+Frozen source SHA256 6ef9654485dda767ff53d23981a4e88e24b41989bfbe4da55f9959fc96e4e171.
+source.json binds runtime inputs and every app/server build file (app68/server56).
+components.json lists each public control, ownership boundary and native exception.
+SHA256SUMS binds this evidence; test-source.json binds the final verification code.
+RUNTIME.txt describes the isolated service, private pairing and report navigation.
+
+Delivered behavior
+- Real dispatcher, exact accepted-result proof and complete transaction recovery.
+  Final view publication checks selected document, canonical version, connection
+  lifetime and recovery generation; late canvas and explicit history pages fenced.
+- Image picker/drop/canvas paste keeps exact original bytes and explicitly prepares
+  a conversion review. Apply/Cancel own the immutable review and prepared preview;
+  choosing a file never accepts it. Reviewed resample and selected/visible flatten.
+- App-owned raster canvas, pan/zoom, public layer tree, typed inspector drafts,
+  durable history, Undo/Redo, retained branches and checkpoint create/restore.
+- Full-history portable copy and explicit Open, process restart/new-origin reopen,
+  exact PNG export; E1 compares downloaded pixels and full retained closure.
+- Journaled immutable original command bodies and pending IDs, exact retry/result
+  inspection, UI-session inventory, draft restoration, expired-review refusal,
+  disconnected/disk/malformed/missing-resource recovery and multi-tab convergence.
+- Distinct pending, accepted/saved-local, unsaved-draft, stale, outdated-checkpoint,
+  missing-resource, paused-storage, unavailable-content and destination states.
+  Browser writable close acknowledges only that supported destination operation.
+  Download initiation and Playwright saveAs do not establish external user saving.
+- New creates a real empty document. Open/import/export perform implemented work.
+  Provider, text/mask/composition and other unfinished capabilities state unavailable.
+- En Reve public controls replace suitable existing shell controls. Scoped definitions,
+  bounded lazy dialog/drawer group, strict CSP, native-backed input and late veto.
+  Exact user splitter1px grid/margin/z-index rule tested for24px/44px hit target,
+  pointer/keyboard, RTL and neighboring pane stacking. Pre-JS fallback preserved.
+
+Read-contract changes were explicitly authorized in task/PR Context:
+accepted command result/original body/pending owner inventory, owned UI-session
+inventory, no-allocation document HEAD and bounded single-capture typed projection.
+See tooling/EDITOR.txt for their exact scope and live-page semantics.
+A-BR01 remains OPEN: its corrected boundary uses impossible-scale synthetic revision
+metadata; it does not prove a reachable large-document defect or100k qualification.
+
+Verification map (retain source/attempt differences)
+- core34:355/355 server/session/protocol/assets/history/raster, before later HEAD.
+- portable40:129/129 across17 files; formal large.test4GiB fixture suite excluded.
+- recovery browser12/12; history browser3/3; raster browser1/1; consumer2/2.
+- vendor integrity/import allowlist/raster inputs/vendor unit gates PASS.
+- all19 affected protocol/read tests PASS in56; its extra projection test failed
+  from a partial-range JSON oracle. Final corrected projection62 PASS, including
+  threshold/auth/range/corruption/expiry/pressure/stable content/HEAD-no-allocation.
+- full editor57:21PASS and shell58:10PASS on their own source.
+- final logic:64 four PASS,65 five PASS,66 full editor22PASS,67 draft boundaryPASS.
+- final wording/runtime68: four affected shell checksPASS; typecheck/buildPASS.
+- final Firefox70:four PASS; final WebKit71:four PASS for version/page fences,
+  native composition/late veto and127/128/129-character derived draft identities.
+- earlier Firefox42:11/12 plus corrected composition50PASS; WebKit43:11/12 plus
+  destination53PASS for truthful failure. These are separate outcomes, not a
+  relabelled12/12 original run. WebKit OPFS save remains unavailable in this host.
+- timing69 functionalPASS; timing63 FAILED real mapped-draft-ID bug. Both retained.
+  Full parent latency thresholds are NOT passed. See PERFORMANCE.txt.
+
+Reproduction (pinned .toolchain/bin first in PATH; serial workers)
+  npm run typecheck
+  npm run build:app && npm run build:server
+  npx playwright test --config tests/editor/playwright.config.ts
+  EDITOR_BROWSER=firefox EDITOR_RECEIPT=artifacts/review-firefox npx playwright test --config tests/editor/playwright.config.ts
+  EDITOR_BROWSER=webkit EDITOR_RECEIPT=artifacts/review-webkit npx playwright test --config tests/editor/playwright.config.ts
+  node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/editor/read-adapters.test.mjs tests/editor/document-projection.test.mjs
+Actual retained commands/results are in receipts and gates.json. Do not run a new
+measurement alongside another assigned workload: coordinate a new interval first.
+The timing config is separate from ordinary functional specs; there is no rerun
+permission implied by the closed63/69 reservations.
+
+Remaining limits
+Independent final review565666d8-a9e3-4bb2-b09a-286e4da36009 must assess exact commit,
+functional evidence, performance gaps and all three OPEN feedback items. No user
+feedback is closed and P1b stays21/27. Native OS picker, actual OS IME/AT, platform,
+power-loss, formal workloads/resource maxima/100k operation campaigns remain out
+of this evidence. Browser/synthetic composition tests are not substitutes.

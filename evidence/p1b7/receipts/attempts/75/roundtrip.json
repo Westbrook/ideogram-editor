@@ -1,0 +1,123 @@
+{
+  "started": "2026-09-26T13:10:36.961Z",
+  "browser": "153.0.8010.12",
+  "origin": "http://127.0.0.1:55911",
+  "report": "http://127.0.0.1:4381/",
+  "roundTrip": true,
+  "paired": true,
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:55911",
+      "method": "GET"
+    }
+  ],
+  "ended": "2026-09-26T13:10:37.523Z"
+}

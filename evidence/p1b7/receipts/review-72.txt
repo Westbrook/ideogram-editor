@@ -1,0 +1,11 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+browserContext.waitForEvent: Timeout 30000ms exceeded while waiting for event "page"
+    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/review-runtime.mjs:19:22 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v26.10.0

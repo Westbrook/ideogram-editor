@@ -1,0 +1,30 @@
+✖ typed oversized document GET is exact, bounded and version coherent; metadata guard and content authority stay intact (15200.428042ms)
+ℹ {"fixture":"publicly accepted100-layer document; synthetic53000-digit revision only","documentBytes":66660,"inlineEnvelopeBytes":119779,"sourceHashes":{"server/protocol.ts":"sha256:0b90802e4ad984a0dd6d393006977832bd441142548cf85783226d9980ad306e","server/storage/recovery.ts":"sha256:f6df78ba7a538ae19d52d055ca9421a8cd279a26ed525004da2f8ac6fd6a954b","server/storage/objects.ts":"sha256:169f5a9224a31fffe32643abfc923b0e06ef5e365e6b271cc31277d2a2d12b4b"}}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15515.547375
+
+✖ failing tests:
+
+test at tests/editor/document-projection.test.mjs:15:1
+✖ typed oversized document GET is exact, bounded and version coherent; metadata guard and content authority stay intact (15200.428042ms)
+  AssertionError [ERR_ASSERTION]: {"protocolVersion":1,"requestId":"2766698e-09ae-4e23-ac71-97d39b80f70d","error":{"code":"PAYLOAD_TOO_LARGE","retry":"none","message":"The control request exceeds 64 KiB."}}
+  
+  413 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/document-projection.test.mjs:33:67)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 413,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

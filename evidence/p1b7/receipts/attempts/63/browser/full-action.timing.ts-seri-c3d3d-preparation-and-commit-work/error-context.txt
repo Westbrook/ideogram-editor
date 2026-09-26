@@ -1,0 +1,288 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: full-action.timing.ts >> serial integrated parent actions through renderer Paint, with full preparation and commit work
+- Location: tests/editor/full-action.timing.ts:6:1
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms
+  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+
+```
+
+```yaml
+- link "Go to Request":
+  - /url: "#request"
+- link "Go to Canvas":
+  - /url: "#canvas"
+- link "Go to Layers":
+  - /url: "#inspector"
+- link "Go to History":
+  - /url: "#results"
+- banner:
+  - strong: Ideogram Editor
+  - text: 3 × 2 · revision 12
+  - group "Document actions":
+    - button "New"
+    - button "Open"
+    - button "Import image"
+    - button "Undo"
+    - button "Redo" [disabled]
+  - button "Connected locally"
+  - button "Save copy"
+  - button "Export image"
+  - button "Help"
+  - text: Shortcuts and recovery
+- region "Operation status":
+  - status: Action needs attention.
+  - paragraph: UI change receipt unknown. Current draft text is retained.
+  - button "Retry original draft delivery"
+- main "Image editor":
+  - complementary:
+    - toolbar "Canvas tools":
+      - button "Move" [disabled]
+      - button "Text" [disabled]
+      - button "Select" [disabled]
+      - button "Mask" [disabled]
+      - button "Crop" [disabled]
+      - button "Pan" [pressed]
+      - button "Zoom"
+  - region "Request":
+    - heading "Request" [level=1]
+    - text: Draft Operation
+    - combobox "Operation":
+      - option "Generate image" [selected]
+      - option "Generate with Instant"
+      - option "Generate with Fast"
+      - option "Transform image"
+      - option "Edit masked region"
+      - option "Generate with adapters"
+      - option "Transform with adapters"
+      - option "Edit with adapters"
+    - text: Prompt
+    - textbox "Prompt":
+      - /placeholder: Describe the image you have in mind…
+    - text: Draft autosaves locally; generation remains unavailable.
+    - paragraph: Unsaved UI draft
+    - heading "Explicit inputs" [level=2]
+    - paragraph: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+    - button "Generate" [disabled]
+    - paragraph: Native text, mask drawing and Composition authoring remain required P1c work.
+  - separator "Request panel width"
+  - region "Canvas":
+    - text: Pan · retained raster Zoom percentage
+    - button "Decrease value"
+    - spinbutton "Zoom percentage": "150"
+    - button "Increase value"
+    - button "Fit"
+    - button "100%"
+    - text: 3 × 2 pixels · 1 selected Paste an image here to review View X (px)
+    - button "Decrease value"
+    - spinbutton "View X (px)": "60"
+    - button "Increase value"
+    - text: View Y (px)
+    - button "Decrease value"
+    - spinbutton "View Y (px)": "30"
+    - button "Increase value"
+    - button "Apply view"
+  - separator "Canvas and inspector width"
+  - complementary "Layers and properties":
+    - tablist "Document structure":
+      - tab "Layers" [selected]
+      - tab "Composition"
+    - tabpanel "Layers":
+      - tree "Image layers":
+        - treeitem "Flattened copy · visible" [level=1] [selected]
+        - treeitem "hidden-alpha.png · visible" [level=1]
+      - button "Duplicate"
+      - button "Delete layer"
+      - button "Move up"
+      - button "Move down"
+    - heading "Image properties" [level=2]
+    - paragraph: Unapplied inspector draft · base revision 12
+    - text: Layer name
+    - textbox "Layer name": Flattened copy
+    - text: Opacity (0–1)
+    - button "Decrease value"
+    - spinbutton "Opacity (0–1)": ".9"
+    - button "Increase value"
+    - text: Opacity preview
+    - slider "Opacity preview": "1"
+    - switch "Visible" [checked]
+    - text: Visible
+    - switch "Locked"
+    - text: Locked
+    - button "Apply properties"
+    - button "Cancel changes"
+    - heading "Transform" [level=2]
+    - paragraph: Affine coefficients preserve rotation and shear. X/Y use document pixels.
+    - text: X
+    - button "Decrease value"
+    - spinbutton "X": "0"
+    - button "Increase value"
+    - text: "Y"
+    - button "Decrease value"
+    - spinbutton "Y": "0"
+    - button "Increase value"
+    - text: A
+    - button "Decrease value"
+    - spinbutton "A": "1"
+    - button "Increase value"
+    - text: B
+    - button "Decrease value"
+    - spinbutton "B": "0"
+    - button "Increase value"
+    - text: C
+    - button "Decrease value"
+    - spinbutton "C": "0"
+    - button "Increase value"
+    - text: D
+    - button "Decrease value"
+    - spinbutton "D": "1"
+    - button "Increase value"
+    - button "Apply transform"
+    - button "Resample image…"
+    - button "Canvas bounds…"
+    - button "Flatten copy…"
+- region "Activity":
+  - heading "Activity" [level=2]
+  - button "Collapse"
+  - tablist "Activity views":
+    - tab "Results"
+    - tab "Jobs"
+    - tab "History" [selected]
+  - tabpanel "History":
+    - region "Retained document history":
+      - list "Retained document history":
+        - listitem:
+          - article "History p_0fb50acbf7c56e298b3a9acc7cbe312e5bf2a5e6ad73d1dc9a1069c13418089c":
+            - text: SetLayerProperties
+            - time
+            - paragraph: SetLayerProperties · p_0fb50acbf7c56e298b3a9acc7cbe312e5bf2a5e6ad73d1dc9a1069c13418089c
+            - button "Open this history state"
+        - listitem:
+          - article "History p_3639e3245b87f77465581b4848831eb90f5bebf0f7df633a5763928a52f9113d":
+            - text: SetLayerProperties
+            - time
+            - paragraph: SetLayerProperties · p_3639e3245b87f77465581b4848831eb90f5bebf0f7df633a5763928a52f9113d
+            - button "Open this history state"
+        - listitem:
+          - article "History p_3a9c1a54faf64b6b3507b465927e2da5f1aa33b28f2f53fff143f5886d78dd7f":
+            - text: SetLayerProperties
+            - time
+            - paragraph: SetLayerProperties · p_3a9c1a54faf64b6b3507b465927e2da5f1aa33b28f2f53fff143f5886d78dd7f
+            - button "Open this history state"
+        - listitem:
+          - article "History p_54655fc0ce88fed44d39b0865384419448cca2c97cdb6a2d48c8bfe9069e0a7e":
+            - text: ImportAsset
+            - time
+            - paragraph: ImportAsset · p_54655fc0ce88fed44d39b0865384419448cca2c97cdb6a2d48c8bfe9069e0a7e
+            - button "Open this history state"
+        - listitem:
+          - article "History p_6fbf33b5f0d90b791686347f2ca20b6b2a7bc8a90cbe551882fdd2c3f1e6973e":
+            - text: Document created
+            - time
+            - paragraph: Creation · p_6fbf33b5f0d90b791686347f2ca20b6b2a7bc8a90cbe551882fdd2c3f1e6973e
+        - listitem:
+          - article "History p_9339c1da5fa2a55156fbbcb066bab82a9a0ec6d4c60b2fc1696d438e29c0be58":
+            - text: ResampleImage
+            - time
+            - paragraph: ResampleImage · p_9339c1da5fa2a55156fbbcb066bab82a9a0ec6d4c60b2fc1696d438e29c0be58
+            - button "Open this history state"
+        - listitem:
+          - article "History p_af13ac3d9e149ab58a2162c35d6174a998faf0514505bf2a35328754884532f5":
+            - text: SetLayerProperties
+            - time
+            - paragraph: SetLayerProperties · p_af13ac3d9e149ab58a2162c35d6174a998faf0514505bf2a35328754884532f5
+            - button "Open this history state"
+        - listitem:
+          - article "History p_dd77f7ab550a5f95604106ed4eb7a33506c7dfb4796af56cca5afceaea03239d":
+            - text: CreateFlattenedCopy
+            - time
+            - paragraph: CreateFlattenedCopy · p_dd77f7ab550a5f95604106ed4eb7a33506c7dfb4796af56cca5afceaea03239d · current
+            - button "Open this history state"
+        - listitem:
+          - article "History p_f16909d923375a6d1b846020f53a4ad8a1bde864dd486384657c540af4b033fe":
+            - text: SetLayerProperties
+            - time
+            - paragraph: SetLayerProperties · p_f16909d923375a6d1b846020f53a4ad8a1bde864dd486384657c540af4b033fe
+            - button "Open this history state"
+    - navigation "Retained document history pages":
+      - button "Newer page" [disabled]
+      - text: Page 1 of 1
+      - button "Older page" [disabled]
+    - status
+    - button "Load older activity" [disabled]
+    - button "First history page"
+    - text: Checkpoint name
+    - textbox "Checkpoint name": My checkpoint
+    - button "Save checkpoint"
+    - paragraph: Checkpoints retain their full history.
+    - 'button "Open checkpoint: My checkpoint"'
+- contentinfo: Accepted edits saved locally · Unsaved UI draft Checkpoint content current · Portable copy outdated · External destination unconfirmed
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect} from '@playwright/test';
+  2  | import {mkdtemp,realpath,writeFile,readFile} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';import {join} from 'node:path';
+  4  | import {serverProcess} from './process.js';
+  5  | const output=process.env.EDITOR_RECEIPT!;
+  6  | test('serial integrated parent actions through renderer Paint, with full preparation and commit work',async({page,context})=>{
+  7  |  test.setTimeout(180000);const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-parent-paint-')),server=await serverProcess(join(dir,'private'));
+  8  |  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+  9  |  const resources:any[]=[];let sampling=false;const sample=setInterval(()=>{if(sampling)return;sampling=true;void server.resources().then(value=>resources.push({at:performance.now(),...value})).finally(()=>sampling=false);},50);
+  10 |  const cdp=await context.newCDPSession(page),events:any[]=[],steps:any[]=[],receipts:any[]=[],pending=new Map<string,{operation:string;at:number}>();
+  11 |  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'){const c=JSON.parse(r.postData()!).command;pending.set(c.commandId,{operation:c.body.type,at:performance.now()});}});
+  12 |  page.on('response',r=>{if(/\/api\/v1\/commands(?:\/[^/]+)?$/.test(new URL(r.url()).pathname))void r.json().then(v=>{const c=v.receipt&&pending.get(v.receipt.commandId);if(c){receipts.push({commandId:v.receipt.commandId,operation:c.operation,status:v.receipt.status,requestToObservedReceiptMs:performance.now()-c.at});pending.delete(v.receipt.commandId);}}).catch(()=>{});});
+  13 |  // Allow-list trace evidence at receipt time: no URLs, headers, source text,
+  14 |  // request bodies, cookies, tokens, network or credential-bearing trace records.
+  15 |  cdp.on('Tracing.dataCollected',({value})=>{for(const e of value)if(e.name.startsWith('ie.')||['Paint','EventDispatch','RunTask','FunctionCall','Layout','UpdateLayoutTree','DrawFrame','Commit','CompositeLayers','navigationStart','firstContentfulPaint','firstPaint'].includes(e.name))events.push({name:e.name,cat:e.cat,ph:e.ph,pid:e.pid,tid:e.tid,ts:e.ts,dur:e.dur,args:e.name.startsWith('ie.')?{detail:e.args?.data?.detail??e.args?.detail}:e.name==='EventDispatch'?{type:e.args?.data?.type}:e.name==='Paint'?{clip:e.args?.data?.clip,nodeId:e.args?.data?.nodeId,layerId:e.args?.data?.layerId}:undefined});});
+  16 |  await cdp.send('Tracing.start',{categories:'devtools.timeline,blink.user_timing,benchmark,cc',transferMode:'ReportEvents'});
+  17 |  const mark=async(name:string)=>page.evaluate(name=>performance.mark('ie.test.'+name),name);
+  18 |  const click=(name:string)=>page.getByRole('button',{name,exact:true}).click();
+  19 |  async function step(name:string,action:()=>Promise<unknown>,ready:()=>Promise<unknown>){await mark('start.'+name);await action();await ready();await mark('verified.'+name);const dom=await cdp.send('DOM.getDocument'),node=await cdp.send('DOM.querySelector',{nodeId:dom.root.nodeId,selector:'canvas'}),canvas=await cdp.send('DOM.describeNode',{nodeId:node.nodeId});steps.push({name,marks:await page.evaluate(()=>performance.getEntriesByType('mark').filter(x=>x.name.startsWith('ie.')).map(x=>({name:x.name,startTime:x.startTime,detail:(x as PerformanceMark).detail}))),document:await page.locator('.document-name').textContent(),asset:await page.locator('canvas').getAttribute('data-asset'),canvasBackendNodeId:canvas.node.backendNodeId,canvasBox:await page.locator('canvas').boundingBox()});}
+  20 |  try{
+  21 |  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await mark('cold.ready');
+  22 |  await step('import-review-and-apply',async()=>{await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click('Apply reviewed result');},async()=>{await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');});
+  23 |  await step('selection',()=>page.getByRole('treeitem').first().click(),()=>expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png'));
+  24 |  for(let n=0;n<5;n++){const before=await page.locator('.document-name').textContent();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill(String(.5+n*.05));await step('opacity-'+n,()=>click('Apply properties'),async()=>{await expect(page.locator('.document-name')).not.toHaveText(before!);await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('region',{name:'Operation status'})).toHaveAttribute('aria-busy','false');});}
+  25 |  await step('undo',()=>click('Undo'),()=>expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible());
+  26 |  await step('redo',()=>click('Redo'),()=>expect(page.getByText('Redo accepted and saved locally.',{exact:true})).toBeVisible());
+  27 |  const box=await page.locator('canvas').boundingBox();await page.mouse.move(box!.x+box!.width/2,box!.y+box!.height/2);await page.mouse.down();await page.mouse.move(box!.x+box!.width/2+60,box!.y+box!.height/2+30,{steps:12});await page.mouse.up();
+  28 |  await step('zoom',async()=>{await page.getByRole('spinbutton',{name:'Zoom percentage',exact:true}).fill('150');await page.getByRole('spinbutton',{name:'Zoom percentage',exact:true}).press('Enter');},()=>expect(page.getByRole('spinbutton',{name:'Zoom percentage',exact:true})).toHaveValue('150'));
+  29 |  await step('resample-review-and-apply',async()=>{await click('Resample image…');await page.getByRole('spinbutton',{name:'Intrinsic width (px)',exact:true}).fill('6');await page.getByRole('spinbutton',{name:'Intrinsic height (px)',exact:true}).fill('4');await click('Prepare preview');await click('Apply reviewed result');},()=>expect(page.getByText('ResampleImage accepted and saved locally.',{exact:true})).toBeVisible());
+  30 |  await step('flatten-review-and-apply',async()=>{await click('Flatten copy…');await click('Prepare preview');await click('Apply reviewed result');},()=>expect(page.getByText('CreateFlattenedCopy accepted and saved locally.',{exact:true})).toBeVisible());
+  31 |  await step('checkpoint',()=>click('Save checkpoint'),()=>expect(page.getByText('SaveCheckpoint accepted and saved locally.',{exact:true})).toBeVisible());
+  32 |  await step('full-copy-ready',async()=>{await click('Save copy');await click('Prepare complete copy');},()=>expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Full-history copy'));
+  33 |  const bundle=join(dir,'measured.ideogram-project');await step('full-copy-download',async()=>{const downloaded=page.waitForEvent('download');await click('Download prepared file');await(await downloaded).saveAs(bundle);},()=>expect(page.getByText('Download initiated. External destination remains unconfirmed.',{exact:true})).toBeVisible());
+  34 |  await step('portable-open-review-and-apply',async()=>{await click('Open');await page.locator('en-file-upload[label="Open portable project"] input[type=file]').setInputFiles(bundle);await click('Apply reviewed result');},()=>expect(page.getByText('ImportBundle accepted and saved locally.',{exact:true})).toBeVisible());
+  35 |  await step('exact-export-ready',()=>click('Export image'),()=>expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG'));
+  36 |  const png=join(dir,'measured.png');await step('exact-export-download',async()=>{const downloaded=page.waitForEvent('download');await click('Download prepared file');await(await downloaded).saveAs(png);},()=>expect(page.getByText('Download initiated. External destination remains unconfirmed.',{exact:true})).toBeVisible());
+> 37 |  const old=await page.locator('canvas').getAttribute('data-asset');await mark('start.warm-reopen');await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('canvas')).toHaveAttribute('data-asset',old!);await mark('warm.ready');await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.9');await click('Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await mark('warm.test-edit');
+     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^ Error: expect(locator).toBeVisible() failed
+  38 |  await page.screenshot({path:join(output,'timing-final.png')});expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
+  39 |  }finally{
+  40 |  clearInterval(sample);const complete=new Promise<void>(r=>cdp.once('Tracing.tracingComplete',()=>r()));await cdp.send('Tracing.end');await complete;
+  41 |  await writeFile(join(output,'paint-trace.json'),JSON.stringify({traceEvents:events}));await writeFile(join(output,'action-steps.json'),JSON.stringify({ended:new Date().toISOString(),steps,resources,receipts,limits:'Author tiny fixture observations with tracing and automated review dwell; not formal workload, native/display/OS latency or exclusive-host qualification. HTTP request-to-observed-receipt includes preparation/queue/server/client observation and is not the narrower R20 child. Only renderer Paint after verified app draw/update identifies paint; completion/rAF alone is not paint. Download initiation plus Playwright saveAs are separate measured steps; external destination remains unconfirmed. Server RSS samples include this server process and its threads, not browser or separate children; no complete application peak claim.',build:JSON.parse(await readFile('dist/app/build-evidence.json','utf8'))},null,2));await server.close();
+  42 |  }
+  43 | });
+  44 | 
+```

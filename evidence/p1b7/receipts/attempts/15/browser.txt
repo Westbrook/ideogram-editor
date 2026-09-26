@@ -1,0 +1,46 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts failures.spec.ts
+
+Running 3 tests using 1 worker
+
+(node:64965) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body (1.1s)
+  ✘  2 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (6.0s)
+(node:64989) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (1.9s)
+
+
+  1) tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Local recovery complete. Accepted edits are saved locally.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Local recovery complete. Accepted edits are saved locally.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('Local recovery complete. Accepted edits are saved locally.', { exact: true })
+
+
+      20 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-expiry-'));let now=Date.now();const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),now:()=>now});
+      21 |  try{await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();now+=31*60*1000;await click(page,'Apply reviewed result');await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();
+    > 22 |  await click(page,'Cancel review');await click(page,'Connected locally');await click(page,'Check connection');await expect(page.getByText(/Connection expired or unavailable/).first()).toBeVisible();await page.goto(server.issuePairingURL());await click(page,'Close');await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('dialog',{name:'Review image conversion'})).toHaveCount(0);
+         |                                                                                                                                                                                                                                                                                                                                                                                   ^
+      23 |  }finally{await server.close();}
+      24 | });
+      25 |
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:22:371
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/15/browser/failures-renewal-expires-u-127f3-without-creating-a-document/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/15/browser/failures-renewal-expires-u-127f3-without-creating-a-document/error-context.md
+
+  1 failed
+    tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document 
+  2 passed (9.5s)

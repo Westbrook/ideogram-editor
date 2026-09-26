@@ -1,0 +1,5 @@
+{
+  "at": "2026-09-26T13:07:39.429571+00:00",
+  "result": "Stopped erroneous test waiting for popup: real return anchor has no target and uses same-tab navigation; no app source change. Native host missing navigation observation remains separate and does not prove popup behavior.",
+  "nextAttempt": 73
+}

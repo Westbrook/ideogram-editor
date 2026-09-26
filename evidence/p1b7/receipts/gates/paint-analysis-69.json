@@ -1,0 +1,111 @@
+{
+  "file": "artifacts/p1b7/attempts/69/paint-analysis.json",
+  "actions": [
+    {
+      "name": "import-review-and-apply",
+      "nativeParentMs": 1273.28,
+      "lastIntentMs": 431.981
+    },
+    {
+      "name": "selection",
+      "nativeParentMs": 14.517,
+      "lastIntentMs": 14.517
+    },
+    {
+      "name": "opacity-0",
+      "nativeParentMs": 365.196,
+      "lastIntentMs": 365.196
+    },
+    {
+      "name": "opacity-1",
+      "nativeParentMs": 416.164,
+      "lastIntentMs": 416.164
+    },
+    {
+      "name": "opacity-2",
+      "nativeParentMs": 399.89,
+      "lastIntentMs": 399.89
+    },
+    {
+      "name": "opacity-3",
+      "nativeParentMs": 382.746,
+      "lastIntentMs": 382.746
+    },
+    {
+      "name": "opacity-4",
+      "nativeParentMs": 431.813,
+      "lastIntentMs": 431.813
+    },
+    {
+      "name": "undo",
+      "nativeParentMs": 114.165,
+      "lastIntentMs": 114.165
+    },
+    {
+      "name": "redo",
+      "nativeParentMs": 112.728,
+      "lastIntentMs": 112.728
+    },
+    {
+      "name": "zoom",
+      "nativeParentMs": 9.308,
+      "lastIntentMs": 9.308
+    },
+    {
+      "name": "resample-review-and-apply",
+      "nativeParentMs": 1036.708,
+      "lastIntentMs": 156.008
+    },
+    {
+      "name": "flatten-review-and-apply",
+      "nativeParentMs": 1034.016,
+      "lastIntentMs": 153.016
+    },
+    {
+      "name": "checkpoint",
+      "nativeParentMs": 117.362,
+      "lastIntentMs": 117.362
+    },
+    {
+      "name": "full-copy-ready",
+      "nativeParentMs": 448.891,
+      "lastIntentMs": 383.09
+    },
+    {
+      "name": "full-copy-download",
+      "nativeParentMs": 34.996,
+      "lastIntentMs": 34.996
+    },
+    {
+      "name": "portable-open-review-and-apply",
+      "nativeParentMs": 4415.548,
+      "lastIntentMs": 2568.048
+    },
+    {
+      "name": "exact-export-ready",
+      "nativeParentMs": 200.379,
+      "lastIntentMs": 200.379
+    },
+    {
+      "name": "exact-export-download",
+      "nativeParentMs": 33.158,
+      "lastIntentMs": 33.158
+    }
+  ],
+  "feedbackMaxMs": 66.561,
+  "startup": [
+    {
+      "marker": "ie.test.cold.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 251.667
+    },
+    {
+      "marker": "ie.test.warm.ready",
+      "navigationToSubsequentPaintUpperBoundMs": 190.34
+    },
+    {
+      "marker": "ie.test.warm.test-edit",
+      "navigationToSubsequentPaintUpperBoundMs": 1093.178
+    }
+  ],
+  "serverRSSMiB": 177.328125
+}

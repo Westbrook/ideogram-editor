@@ -1,0 +1,59 @@
+✖ exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority (2141.889209ms)
+✖ known referenced multi-event command is bounded, byte exact and session leased (1042.1645ms)
+✖ UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence (684.40025ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3922.094458
+
+✖ failing tests:
+
+test at tests/editor/read-adapters.test.mjs:14:1
+✖ exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority (2141.889209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  401 !== 410
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/read-adapters.test.mjs:25:108)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 401,
+    expected: 410,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/editor/read-adapters.test.mjs:31:1
+✖ known referenced multi-event command is bounded, byte exact and session leased (1042.1645ms)
+  TypeError [Error]: Cannot read properties of undefined (reading '0')
+      at cookieFrom (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/helpers.mjs:36:69)
+      at read (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/read-adapters.test.mjs:33:188)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/read-adapters.test.mjs:35:21)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/editor/read-adapters.test.mjs:39:1
+✖ UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence (684.40025ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  403 !== 401
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/read-adapters.test.mjs:43:287)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 403,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

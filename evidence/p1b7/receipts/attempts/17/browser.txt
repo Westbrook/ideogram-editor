@@ -1,0 +1,18 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts failures.spec.ts -g renewal
+
+Running 1 test using 1 worker
+
+(node:65288) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+reconnect diagnostics {
+  ready: true,
+  busy: false,
+  message: 'Local recovery complete. Accepted edits are saved locally.',
+  error: '',
+  recovery: '',
+  cursor: '3'
+}
+  ✓  1 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (1.0s)
+
+  1 passed (1.3s)

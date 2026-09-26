@@ -1,0 +1,9 @@
+{
+  "started": "2026-09-26T13:07:02.703Z",
+  "browser": "153.0.8010.12",
+  "origin": "http://127.0.0.1:55911",
+  "report": "http://127.0.0.1:4381/",
+  "roundTrip": false,
+  "paired": false,
+  "error": "browserContext.waitForEvent: Timeout 30000ms exceeded while waiting for event \"page\""
+}

@@ -1,0 +1,192 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: failures.spec.ts >> malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body
+- Location: tests/editor/failures.spec.ts:8:1
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('heading', { name: 'Action needs attention', exact: true })
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByRole('heading', { name: 'Action needs attention', exact: true }) with timeout 5000ms
+  - waiting for getByRole('heading', { name: 'Action needs attention', exact: true })
+
+```
+
+```yaml
+- link "Go to Request":
+  - /url: "#request"
+- link "Go to Canvas":
+  - /url: "#canvas"
+- link "Go to Layers":
+  - /url: "#inspector"
+- link "Go to History":
+  - /url: "#results"
+- banner:
+  - strong: Ideogram Editor
+  - text: No document open
+  - group "Document actions":
+    - button "New"
+    - button "Open"
+    - button "Import image"
+    - button "Undo" [disabled]
+    - button "Redo" [disabled]
+  - button "Connected locally"
+  - button "Save copy" [disabled]
+  - button "Export image" [disabled]
+  - button "Help"
+- region "Operation status":
+  - status: Open open…
+- main "Image editor":
+  - complementary:
+    - toolbar "Canvas tools":
+      - button "Move" [disabled]
+      - button "Text" [disabled]
+      - button "Select" [disabled]
+      - button "Mask" [disabled]
+      - button "Crop" [disabled]
+      - button "Pan" [pressed]
+      - button "Zoom"
+  - region "Request":
+    - heading "Request" [level=1]
+    - text: Draft Operation
+    - combobox "Operation":
+      - option "Generate image" [selected]
+      - option "Generate with Instant"
+      - option "Generate with Fast"
+      - option "Transform image"
+      - option "Edit masked region"
+      - option "Generate with adapters"
+      - option "Transform with adapters"
+      - option "Edit with adapters"
+    - text: Prompt
+    - textbox "Prompt":
+      - /placeholder: Describe the image you have in mind…
+    - text: Open a document to save this draft locally.
+    - paragraph: Draft has not been applied.
+    - heading "Explicit inputs" [level=2]
+    - paragraph: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+    - button "Generate" [disabled]
+    - paragraph: Native text, mask drawing and Composition authoring remain required P1c work.
+  - separator "Request panel width"
+  - region "Canvas":
+    - text: Pan · no document Zoom percentage
+    - button "Decrease value"
+    - spinbutton "Zoom percentage": "100"
+    - button "Increase value"
+    - button "Fit" [disabled]
+    - button "100%" [disabled]
+    - heading "A little room to create." [level=2]
+    - paragraph: Choose or drop an image, then review before Apply.
+    - text: Import an image
+    - button "Import an image"
+    - paragraph: PNG, JPEG or static WebP. Original bytes are retained.
+    - text: No image accepted Paste an image here to review View X (px)
+    - button "Decrease value"
+    - spinbutton "View X (px)": "0"
+    - button "Increase value"
+    - text: View Y (px)
+    - button "Decrease value"
+    - spinbutton "View Y (px)": "0"
+    - button "Increase value"
+    - button "Apply view"
+  - separator "Canvas and inspector width"
+  - complementary "Layers and properties":
+    - tablist "Document structure":
+      - tab "Layers" [selected]
+      - tab "Composition"
+    - tabpanel "Layers":
+      - tree "Image layers"
+      - paragraph: No layers yet. Import an image to begin.
+      - button "Duplicate" [disabled]
+      - button "Delete layer" [disabled]
+      - button "Move up" [disabled]
+      - button "Move down" [disabled]
+    - heading "Image properties" [level=2]
+    - paragraph: Select a layer to inspect it.
+    - button "Canvas bounds…" [disabled]
+    - button "Flatten copy…" [disabled]
+- region "Activity":
+  - heading "Activity" [level=2]
+  - button "Collapse"
+  - tablist "Activity views":
+    - tab "Results"
+    - tab "Jobs"
+    - tab "History" [selected]
+  - tabpanel "History":
+    - region "Retained document history":
+      - list "Retained document history"
+    - navigation "Retained document history pages":
+      - button "Newer page" [disabled]
+      - text: Page 1 of 1
+      - button "Older page" [disabled]
+    - text: No activity yet.
+    - status
+    - button "Load older activity" [disabled]
+    - text: Checkpoint name
+    - textbox "Checkpoint name": My checkpoint
+    - button "Save checkpoint" [disabled]
+    - paragraph: Checkpoints retain their full history.
+- contentinfo: Accepted edits saved locally · No local draft change No document checkpoint · No portable copy · External destination unconfirmed
+- dialog "Open document":
+  - heading "Open document" [level=2]
+  - button "Close"
+  - heading "Recovered local documents" [level=2]
+  - heading "Interrupted file transfers" [level=2]
+  - paragraph: Reselect the exact original file to resume from its committed offset. Bytes never uploaded and unadmitted requests cannot be reconstructed after losing this tab.
+  - heading "Saved views and drafts" [level=2]
+  - paragraph: Choose a current checkpoint to restore its view and unapplied drafts. A sequence belongs only to that checkpoint.
+  - text: Open portable project
+  - button "Open portable project"
+  - button "Cancel"
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join,resolve} from 'node:path';
+  5  | import {pathToFileURL} from 'node:url';
+  6  | const {startLocalServer}=await import(pathToFileURL(resolve('dist/local/server/http.js')).href);
+  7  | const click=(p:any,name:string)=>p.getByRole('button',{name,exact:true}).click();
+  8  | test('malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body',async({page})=>{
+  9  |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-fault-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});
+  10 |  try{
+> 11 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await click(page,'Open');await page.locator('en-file-upload input[type=file]').setInputFiles({name:'bad.ideogram-project',mimeType:'application/octet-stream',buffer:Buffer.from('not a ZIP64 project')});await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();await click(page,'Cancel');
+     |                                                                                                                                                                                                                                                                                                                                                                                                                                                               ^ Error: expect(locator).toBeVisible() failed
+  12 |  // Drop only the receipt after the real writer sees and accepts this exact envelope.
+  13 |  let first='';const bodies:string[]=[];await page.route('**/api/v1/commands',async route=>{const text=route.request().postData()!,body=JSON.parse(text);if(body.command.body.type==='NewDocument'){bodies.push(text);if(!first){first=text;await route.fetch();await route.abort('failed');return;}}await route.continue();});
+  14 |  await click(page,'New');await click(page,'Create');await expect(page.getByRole('button',{name:'Check and retry original',exact:true})).toBeVisible();await click(page,'Cancel');await click(page,'Check and retry original');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(bodies).toEqual([first]);await page.unroute('**/api/v1/commands');
+  15 |  await click(page,'Open');await expect(page.getByRole('button',{name:/ · 1024 × 1024 · revision 1$/})).toHaveCount(1);
+  16 |  }finally{await server.close();}
+  17 | });
+  18 | 
+  19 | test('renewal expires unaccepted review and preserves original bytes without creating a document',async({page})=>{
+  20 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-expiry-'));let now=Date.now();const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),now:()=>now});
+  21 |  try{await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();now+=31*60*1000;await click(page,'Apply reviewed result');await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();
+  22 |  await click(page,'Cancel review');await click(page,'Connected locally');await click(page,'Check connection');await expect(page.getByText(/Connection expired or unavailable/)).toBeVisible();await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('dialog',{name:'Review image conversion'})).toHaveCount(0);
+  23 |  }finally{await server.close();}
+  24 | });
+  25 | 
+  26 | test('native composition drafts do not dispatch document actions and a late veto cancels Apply',async({page})=>{
+  27 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-composition-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});const edits:string[]=[];
+  28 |  try{page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')edits.push(JSON.parse(r.postData()!).command.body.type);});await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').click();const name=page.getByRole('textbox',{name:'Layer name',exact:true});await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,composed:true})));await name.fill('日本語 draft');await expect(page.getByRole('button',{name:'Apply properties',exact:true})).toBeDisabled();await name.press('Meta+z');expect(edits).not.toContain('Undo');await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,composed:true})));await name.fill('fresh Unicode 🌿');
+  29 |  await page.locator('en-button').filter({hasText:'Apply properties'}).evaluate(host=>host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Apply properties');await page.waitForTimeout(100);expect(edits).not.toContain('SetLayerProperties');await expect(name).toHaveValue('fresh Unicode 🌿');
+  30 |  }finally{await server.close();}
+  31 | });
+  32 | 
+```

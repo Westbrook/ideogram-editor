@@ -1,0 +1,29 @@
+✖ document HEAD exposes canonical revision without projection/content allocation and retains GET authorization (461.608125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 507.669166
+
+✖ failing tests:
+
+test at tests/editor/read-adapters.test.mjs:68:1
+✖ document HEAD exposes canonical revision without projection/content allocation and retains GET authorization (461.608125ms)
+  AssertionError [ERR_ASSERTION]: {"protocolVersion":1,"requestId":"93e0ce21-72b4-486d-aac6-02aa2e09d01c","error":{"code":"PAYLOAD_TOO_LARGE","retry":"none","message":"The control request exceeds 64 KiB."}}
+  
+  413 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/read-adapters.test.mjs:75:67)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 413,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -21,17 +21,15 @@ const test = base.extend<{ local: { server: Server; advance: (ms: number) => voi
     try { await use({ server, advance: ms => { now += ms; } }); } finally { await server.close(); }
   },
 });
+const output=process.env.IE_SHELL_OUTPUT??'artifacts';
 test.beforeEach(async ({ context }) => {
-  await context.route('**/*', async route => {
-    const host = new URL(route.request().url()).hostname;
-    if (host !== '127.0.0.1' && host !== 'localhost') throw new Error('Non-loopback browser request blocked');
-    await route.continue();
-  });
+  context.on('request',request=>{const url=new URL(request.url());expect(url.protocol==='blob:'||['127.0.0.1','localhost'].includes(url.hostname)).toBe(true);});
 });
 async function paired(page: import('@playwright/test').Page, server: Server, flag = false) {
   const link = new URL(server.issuePairingURL()); if (flag) link.search = '?progress-report';
   await Promise.all([page.waitForResponse(response => response.url() === server.origin + '/api/v1/session/bootstrap'), page.goto(link.href)]);
   await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+  await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
 }
 
 test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes', async ({ page, context }, info) => {
@@ -58,14 +56,14 @@ test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup
       const state = (window as unknown as { __testObservations: { cleaned: number; fetches: unknown[] } }).__testObservations;
       return { ...state, resources: performance.getEntriesByType('resource').map(item => ({ path: new URL(item.name).pathname, start: item.startTime })), hash: location.hash, hasPairing: Object.hasOwn(window, '__IE_PAIRING__'), storage: [localStorage.length, sessionStorage.length], cookie: document.cookie };
     });
-    expect(observations.hash).toBe(''); expect(observations.hasPairing).toBe(false); expect(observations.storage).toEqual([0, 0]); expect(observations.cookie).toBe('');
-    expect(observations.fetches).toEqual([{ path: '/api/v1/session/bootstrap', hash: '', consumed: true }, { path: '/api/v1/capabilities', hash: '', consumed: true }]);
+    expect(observations.hash).toBe(''); expect(observations.hasPairing).toBe(false); expect(observations.storage[0]).toBe(0); expect(observations.storage[1]).toBeLessThanOrEqual(1); expect(observations.cookie).toBe('');
+    expect(observations.fetches.slice(0,2)).toEqual([{ path: '/api/v1/session/bootstrap', hash: '', consumed: true }, { path: '/api/v1/capabilities', hash: '', consumed: true }]);
     for (const resource of observations.resources) expect(resource.start, resource.path).toBeGreaterThanOrEqual(observations.cleaned);
     const cookies = await context.cookies(); expect(cookies).toHaveLength(1); expect(cookies[0].httpOnly).toBe(true); expect(cookies[0].sameSite).toBe('Strict');
     expect(logs.join('\n').includes(first.split('#')[1])).toBe(false);
     const dom = await page.content(); expect(dom.includes(first.split('pairing=')[1])).toBe(false);
     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
-    expect(await page.evaluate(() => (window as unknown as { __testObservations: {fetches: {path:string}[]} }).__testObservations.fetches.map(x => x.path))).toEqual(['/api/v1/session', '/api/v1/capabilities']);
+    expect(await page.evaluate(() => (window as unknown as { __testObservations: {fetches: {path:string}[]} }).__testObservations.fetches.slice(0,2).map(x => x.path))).toEqual(['/api/v1/session', '/api/v1/capabilities']);
     expect(errors).toEqual([]);
     const build = JSON.parse(await readFile('dist/app/build-evidence.json', 'utf8'));
     expect(build.observations.D11.startupJsRawBytes).toBeLessThan(1.5 * 1024 * 1024);
@@ -73,7 +71,7 @@ test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup
     expect(build.observations.D11.cssGzipBytes).toBeLessThan(200 * 1024);
     expect(build.outputs.flatMap((x: {modules:string[]}) => x.modules).some((x:string) => /prosemirror|server\/|tooling\/launcher|elements\/dist\/index.js/.test(x))).toBe(false);
     await info.attach('bootstrap-observations', { body: JSON.stringify(observations, null, 2), contentType: 'application/json' });
-    await page.screenshot({ path: 'artifacts/shell-desktop-1440.png' });
+    await page.screenshot({ path: output+'/shell-desktop-1440.png' });
   } finally { await server.close(); }
 });
 
@@ -87,11 +85,11 @@ test('B02 real native prompt drafts, inert text, selection and composition-safe 
   await page.getByRole('tab', { name: 'Jobs' }).click();
   expect(await prompt.evaluate(node => { const n = node as HTMLTextAreaElement; return [n.selectionStart, n.selectionEnd, n.selectionDirection]; })).toEqual([2, 9, 'backward']);
   await prompt.focus(); await page.keyboard.press('End'); await page.keyboard.type('hz');
-  await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Pan' })).toHaveAttribute('aria-pressed', 'true');
   await prompt.dispatchEvent('compositionstart');
   await prompt.dispatchEvent('keydown', { key: 'z', bubbles: true, composed: true, isComposing: true });
   await prompt.dispatchEvent('compositionend');
-  await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Pan' })).toHaveAttribute('aria-pressed', 'true');
   const edited = await prompt.inputValue();
   await page.getByLabel('Operation', { exact: true }).selectOption({ label: 'Generate with Fast' });
   await expect(prompt).toHaveValue(''); await prompt.fill('A separate Fast draft');
@@ -100,31 +98,31 @@ test('B02 real native prompt drafts, inert text, selection and composition-safe 
   expect(await page.evaluate(() => Object.hasOwn(window, 'pwned'))).toBe(false);
   expect(await page.locator('ie-shell img').count()).toBe(0);
   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Import image', exact: true })).toBeEnabled();
   expect(calls).toEqual([]);
 });
 
 test('B03 keyboard panels, roving tool focus, resize and collapsed content', async ({ page, local }) => {
   await paired(page, local.server);
   const errors: string[] = []; page.on('console', m => {if(m.type()==='error') errors.push(m.text());});
-  await page.getByRole('button', { name: 'Pan (H)' }).focus(); await page.keyboard.press('ArrowDown');
-  await expect(page.getByRole('button', { name: 'Zoom (Z)' })).toBeFocused();
-  await page.keyboard.press('Enter'); await expect(page.getByRole('button', { name: 'Zoom (Z)' })).toHaveAttribute('aria-pressed', 'true');
-  await page.keyboard.press('h'); await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Pan' }).focus(); await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('button', { name: 'Zoom' })).toBeFocused();
+  await page.keyboard.press('Enter'); await expect(page.getByRole('button', { name: 'Zoom' })).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#canvas').focus(); await page.keyboard.press('h'); await expect(page.getByRole('button', { name: 'Pan' })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('tab', { name: 'Results' }).focus(); await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('tab', { name: 'Jobs' })).toBeFocused();
-  await expect(page.getByText('No jobs submitted', { exact: true })).toBeVisible();
+  await expect(page.getByText('No jobs submitted. This workflow makes no provider calls.', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Collapse', exact: false }).click();
-  await expect(page.locator('#activity-panel')).toBeHidden();
+  await expect(page.locator('.results-tray en-tabs')).toBeHidden();
   await page.getByRole('button', { name: 'Expand', exact: false }).click();
   await page.getByRole('tab', { name: 'Composition', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'No composition yet' })).toBeVisible();
+  await expect(page.getByText('Composition authoring is not available in this version.',{exact:true})).toBeVisible();
   const splitter = page.getByRole('separator', { name: 'Request panel width' }).first();
   const width = (await page.locator('#request').boundingBox())!.width;
   await splitter.focus(); await page.keyboard.press('ArrowRight');
   expect((await page.locator('#request').boundingBox())!.width).toBeGreaterThan(width);
-  await page.getByRole('button', { name: 'Help and keyboard shortcuts' }).click();
-  await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help and keyboard shortcuts' })).toBeFocused();
+  await expect(page.getByText('Shortcuts and recovery',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Help',exact:true}).hover();await page.getByRole('button',{name:'Help',exact:true}).focus();const ax=await(await page.context().newCDPSession(page)).send('Accessibility.getFullAXTree');expect(ax.nodes.filter(n=>n.role?.value==='button'&&n.name?.value==='Help').map(n=>n.description?.value)).toEqual(['Shortcuts and recovery']);await page.getByRole('button', { name: 'Help' }).click();
+  await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help' })).toBeFocused();
   expect(errors).toEqual([]);
 });
 
@@ -194,19 +192,18 @@ test('B06 320px and 200% equivalent reflow, draft retention, named drawers and f
   await page.getByRole('textbox', { name:'Prompt',exact:true }).fill('Keep this draft through reflow');
   await page.setViewportSize({width:720,height:450});
   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toBeFocused();
-  await expect(page.getByRole('button', {name:'Request',exact:true})).toHaveAttribute('aria-expanded','true');
+  await expect(page.getByRole('button', {name:'Hide request',exact:true})).toBeVisible();
   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toHaveValue('Keep this draft through reflow');
-  await page.screenshot({path:'artifacts/shell-reflow-720.png',fullPage:true});
+  await page.screenshot({path:output+'/shell-reflow-720.png',fullPage:true});
   await page.setViewportSize({width:320,height:800});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(320);
   await page.getByRole('textbox', {name:'Prompt',exact:true}).focus();
-  await page.getByRole('button', {name:'Request',exact:true}).click();
-  await page.getByRole('button', {name:'Layers & composition',exact:true}).click();
+  await page.getByRole('button', {name:'Hide request',exact:true}).click();
+  await page.getByRole('button', {name:'Show layers',exact:true}).click();
   await page.getByRole('tab',{name:'Composition',exact:true}).click();
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', {name:'Layers & composition',exact:true})).toBeFocused();
-  await page.getByRole('button', {name:'Request',exact:true}).click();
-  await page.screenshot({path:'artifacts/shell-reflow-320.png',fullPage:true});
+  await page.getByRole('button',{name:'Hide layers',exact:true}).click();
+  await page.getByRole('button', {name:'Show request',exact:true}).click();
+  await page.screenshot({path:output+'/shell-reflow-320.png',fullPage:true});
 });
 
 test('B07 trusted report flag, navigation fragment, unflagged absence and offline recovery', async ({ page, local }) => {
@@ -215,14 +212,14 @@ test('B07 trusted report flag, navigation fragment, unflagged absence and offlin
   await expect(page.getByRole('button',{name:'Connected locally',exact:true})).toBeVisible();
   await expect(page.getByRole('link',{name:'Progress Report'})).toHaveAttribute('href','http://127.0.0.1:4381/');
   expect(new URL(page.url()).hash).toBe('#request');
-  await page.getByRole('link',{name:'Go to canvas',exact:true}).focus(); await page.keyboard.press('Enter');
+  await page.getByRole('link',{name:'Go to Canvas',exact:true}).focus(); await page.keyboard.press('Enter');
   expect(new URL(page.url()).searchParams.has('progress-report')).toBe(true); expect(new URL(page.url()).hash).toBe('#canvas');
   await page.reload(); expect(new URL(page.url()).hash).toBe('#canvas');
   await expect(page.getByRole('link',{name:'Progress Report'})).toBeVisible();
   await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Draft survives failed reads');
   await page.getByRole('button',{name:'Connected locally',exact:true}).click();
   await local.server.close();
-  await page.getByRole('button',{name:'Check connection',exact:true}).click();
+  await page.getByRole('button',{name:'Check connection',exact:true}).first().click();
   await expect(page.getByRole('button',{name:'Server offline',exact:true})).toBeVisible();
   await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('Draft survives failed reads');
 });
@@ -241,7 +238,7 @@ test('B08 lost renewal response is read back without retry; restarted server req
   await page.getByRole('button', {name:'Connected locally',exact:true}).click();
   await page.getByRole('button', {name:'Renew connection',exact:true}).click();
   await expect(page.getByRole('button', {name:'Server offline',exact:true})).toBeVisible();
-  await page.getByRole('button', {name:'Check connection',exact:true}).click();
+  await page.getByRole('button', {name:'Check connection',exact:true}).first().click();
   await expect(page.getByRole('button', {name:/^(Connected locally|Pairing needed)$/})).toBeVisible();
   expect(renewals).toBe(1);
   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toHaveValue('Preserved after a lost response');

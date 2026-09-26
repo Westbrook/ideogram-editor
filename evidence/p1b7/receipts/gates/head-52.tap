@@ -1,0 +1,21 @@
+✔ exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority (2307.479708ms)
+✔ known referenced multi-event command is bounded, byte exact and session leased (1087.540625ms)
+✔ UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence (801.826917ms)
+✔ pending owner pages preserve exact original bytes and operation identity across terminal races (2115.82175ms)
+✔ document HEAD exposes canonical revision without projection/content allocation and retains GET authorization (495.935334ms)
+ℹ {"largeProjectionBytes":78267,"revision":"9007199254740995","headCount":140,"first":{"content":0,"leases":0},"lastAfterHEAD":{"content":0,"leases":0},"afterOrdinaryGET":{"content":0,"leases":0},"preexistingLargeGET":"413 PAYLOAD_TOO_LARGE from unchanged putMetadata guard","fixture":"disposable materialized metadata; not domain closure/workload qualification"}
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (597.25975ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (786.220583ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2131.913958ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (23.139ms)
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (638.04275ms)
+✔ a fresh unseeded HTTP root accepts NewDocument with the public fixed empty precondition reference (285.041ms)
+✔ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (2508.597125ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13880.173209

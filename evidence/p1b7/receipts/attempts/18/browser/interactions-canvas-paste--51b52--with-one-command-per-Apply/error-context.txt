@@ -1,0 +1,194 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: interactions.spec.ts >> canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply
+- Location: tests/editor/interactions.spec.ts:25:1
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('dialog', { name: 'Review image conversion' })
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByRole('dialog', { name: 'Review image conversion' }) with timeout 5000ms
+  - waiting for getByRole('dialog', { name: 'Review image conversion' })
+
+```
+
+```yaml
+- link "Go to Request":
+  - /url: "#request"
+- link "Go to Canvas":
+  - /url: "#canvas"
+- link "Go to Layers":
+  - /url: "#inspector"
+- link "Go to History":
+  - /url: "#results"
+- banner:
+  - strong: Ideogram Editor
+  - text: No document open
+  - group "Document actions":
+    - button "New"
+    - button "Open"
+    - button "Import image"
+    - button "Undo" [disabled]
+    - button "Redo" [disabled]
+  - button "Connected locally"
+  - button "Save copy" [disabled]
+  - button "Export image" [disabled]
+  - button "Help"
+- region "Operation status":
+  - status: Local recovery complete. Accepted edits are saved locally.
+- main "Image editor":
+  - complementary:
+    - toolbar "Canvas tools":
+      - button "Move" [disabled]
+      - button "Text" [disabled]
+      - button "Select" [disabled]
+      - button "Mask" [disabled]
+      - button "Crop" [disabled]
+      - button "Pan" [pressed]
+      - button "Zoom"
+  - region "Request":
+    - heading "Request" [level=1]
+    - text: Draft Operation
+    - combobox "Operation":
+      - option "Generate image" [selected]
+      - option "Generate with Instant"
+      - option "Generate with Fast"
+      - option "Transform image"
+      - option "Edit masked region"
+      - option "Generate with adapters"
+      - option "Transform with adapters"
+      - option "Edit with adapters"
+    - text: Prompt
+    - textbox "Prompt":
+      - /placeholder: Describe the image you have in mind…
+    - text: Open a document to save this draft locally.
+    - paragraph: Draft has not been applied.
+    - heading "Explicit inputs" [level=2]
+    - paragraph: Selecting a layer does not attach it to a request. Source, mask, adapters and generation are unavailable until P2.
+    - button "Generate" [disabled]
+    - paragraph: Native text, mask drawing and Composition authoring remain required P1c work.
+  - separator "Request panel width"
+  - region "Canvas":
+    - text: Pan · no document Zoom percentage
+    - button "Decrease value"
+    - spinbutton "Zoom percentage": "100"
+    - button "Increase value"
+    - button "Fit" [disabled]
+    - button "100%" [disabled]
+    - heading "A little room to create." [level=2]
+    - paragraph: Choose or drop an image, then review before Apply.
+    - text: Import an image
+    - button "Import an image"
+    - paragraph: PNG, JPEG or static WebP. Original bytes are retained.
+    - text: No image accepted Paste an image here to review View X (px)
+    - button "Decrease value"
+    - spinbutton "View X (px)": "0"
+    - button "Increase value"
+    - text: View Y (px)
+    - button "Decrease value"
+    - spinbutton "View Y (px)": "0"
+    - button "Increase value"
+    - button "Apply view"
+  - separator "Canvas and inspector width"
+  - complementary "Layers and properties":
+    - tablist "Document structure":
+      - tab "Layers" [selected]
+      - tab "Composition"
+    - tabpanel "Layers":
+      - tree "Image layers"
+      - paragraph: No layers yet. Import an image to begin.
+      - button "Duplicate" [disabled]
+      - button "Delete layer" [disabled]
+      - button "Move up" [disabled]
+      - button "Move down" [disabled]
+    - heading "Image properties" [level=2]
+    - paragraph: Select a layer to inspect it.
+    - button "Canvas bounds…" [disabled]
+    - button "Flatten copy…" [disabled]
+- region "Activity":
+  - heading "Activity" [level=2]
+  - button "Collapse"
+  - tablist "Activity views":
+    - tab "Results"
+    - tab "Jobs"
+    - tab "History" [selected]
+  - tabpanel "History":
+    - region "Retained document history":
+      - list "Retained document history"
+    - navigation "Retained document history pages":
+      - button "Newer page" [disabled]
+      - text: Page 1 of 1
+      - button "Older page" [disabled]
+    - text: No activity yet.
+    - status
+    - button "Load older activity" [disabled]
+    - text: Checkpoint name
+    - textbox "Checkpoint name": My checkpoint
+    - button "Save checkpoint" [disabled]
+    - paragraph: Checkpoints retain their full history.
+- contentinfo: Accepted edits saved locally · No local draft change No document checkpoint · No portable copy · External destination unconfirmed
+```
+
+# Test source
+
+```ts
+  1  | import {test,expect,type Page} from '@playwright/test';
+  2  | import {mkdtemp,realpath,readFile} from 'node:fs/promises';
+  3  | import {tmpdir} from 'node:os';
+  4  | import {join} from 'node:path';
+  5  | import {serverProcess} from './process.js';
+  6  | const click=(p:Page,name:string)=>p.getByRole('button',{name,exact:true}).click();
+  7  | async function setup(page:Page){const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-ui-'));const server=await serverProcess(join(dir,'private'));await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();return server;}
+  8  | async function imported(page:Page){await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();}
+  9  | 
+  10 | test('public adapters, native editing, splitter full target, keyboard and logical direction',async({page})=>{
+  11 |  const server=await setup(page);try{
+  12 |  const left=page.locator('#left-divider');const geometry=()=>left.evaluate((host:any)=>{const b=host.getBoundingClientRect(),grip=host.shadowRoot.querySelector('[part~=grip]').getBoundingClientRect();return {host:b.width,grip:grip.width,track:getComputedStyle(host.parentElement).gridTemplateColumns.split(' ')[1],z:getComputedStyle(host).zIndex,margin:getComputedStyle(host).marginInlineStart,value:host.value};});
+  13 |  let box=await left.boundingBox(),before=await geometry();expect(before.track).toBe('1px');expect(before.grip).toBe(1);expect(before.host).toBeGreaterThanOrEqual(24);expect(before.z).toBe('1');expect(parseFloat(before.margin)).toBe(-(before.host-1)/2);
+  14 |  await page.mouse.move(box!.x+2,box!.y+70);await page.mouse.down();await page.mouse.move(box!.x+42,box!.y+70);await page.mouse.up();expect((await geometry()).value).toBeGreaterThan(before.value);
+  15 |  const handle=page.getByRole('separator',{name:'Request panel width',exact:true});await handle.focus();before=await geometry();await page.keyboard.press('ArrowRight');expect((await geometry()).value).toBeGreaterThan(before.value);
+  16 |  await page.evaluate(()=>document.documentElement.dir='rtl');before=await geometry();await page.keyboard.press('ArrowLeft');expect((await geometry()).value).toBeGreaterThan(before.value);await page.evaluate(()=>document.documentElement.dir='ltr');
+  17 |  const operation=page.getByRole('combobox',{name:'Operation',exact:true});
+  18 |  await page.locator('en-select').first().evaluate(host=>host.addEventListener('en-change',e=>e.preventDefault(),{once:true}));await operation.selectOption({label:'Generate with Fast'});await expect(operation).toHaveValue('Generate image');
+  19 |  await imported(page);const prompt=page.getByRole('textbox',{name:'Prompt',exact:true});await prompt.fill('abc 日本語');await prompt.press('Home');await prompt.press('Shift+End');await expect(prompt).toHaveValue('abc 日本語');
+  20 |  const revision=await page.locator('.document-name').textContent();await prompt.press('Meta+z');expect(await page.locator('.document-name').textContent()).toBe(revision);
+  21 |  await page.locator('#canvas').focus();await page.keyboard.press('ArrowRight');await click(page,'100%');expect(await page.getByRole('spinbutton',{name:'Zoom percentage',exact:true}).inputValue()).toBe('100');
+  22 |  }finally{await server.close();}
+  23 | });
+  24 | 
+  25 | test('canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply',async({page})=>{
+  26 |  const server=await setup(page);const commands:string[]=[];page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')commands.push(JSON.parse(r.postData()!).command.body.type);});
+  27 |  try{
+  28 |  const bytes=[...await readFile('tests/raster/fixtures/hidden-alpha.png')];await page.locator('#canvas').evaluate((host,bytes)=>{const transfer=new DataTransfer();transfer.items.add(new File([new Uint8Array(bytes)],'pasted.png',{type:'image/png'}));host.dispatchEvent(new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true}));},bytes);
+> 29 |  await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Cancel review');await expect(page.getByText('No document open',{exact:true})).toBeVisible();expect(commands).not.toContain('ApproveRaster');await imported(page);
+     |                                                                          ^ Error: expect(locator).toBeVisible() failed
+  30 |  await click(page,'Resample image…');await page.getByRole('spinbutton',{name:'Intrinsic width (px)',exact:true}).fill('6');await page.getByRole('spinbutton',{name:'Intrinsic height (px)',exact:true}).fill('4');await click(page,'Prepare preview');await expect(page.getByRole('dialog',{name:'Review prepared image edit'})).toBeVisible();const count=commands.filter(x=>x==='ResampleImage').length;await click(page,'Apply reviewed result');await expect(page.getByText('ResampleImage accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(x=>x==='ResampleImage').length).toBe(count+1);
+  31 |  await click(page,'Flatten copy…');await click(page,'Prepare preview');await click(page,'Apply reviewed result');await expect(page.getByText('CreateFlattenedCopy accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem')).toHaveCount(2);
+  32 |  }finally{await server.close();}
+  33 | });
+  34 | 
+  35 | test('multi-tab convergence preserves a stale inspector draft and recovers accepted transactions',async({page,context})=>{
+  36 |  const server=await setup(page);try{await imported(page);const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();
+  37 |  await second.getByRole('textbox',{name:'Layer name',exact:true}).fill('Other tab unapplied');await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.7');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(second.locator('.document-name')).toHaveText(await page.locator('.document-name').textContent()??'');await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await click(second,'Apply properties');await expect(second.getByText(/Stale conflict/)).toBeVisible();await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await second.close();
+  38 |  }finally{await server.close();}
+  39 | });
+  40 | 
+  41 | test('320px and 200-percent-equivalent reflow keep controls and native focus reachable',async({page})=>{
+  42 |  const server=await setup(page);try{for(const width of [720,320]){await page.setViewportSize({width,height:850});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await click(page,'Show request');await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toBeVisible();await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('reflow draft');await click(page,'Hide request');await click(page,'Show layers');await expect(page.getByText('No layers yet. Import an image to begin.',{exact:true})).toBeVisible();await click(page,'Hide layers');}
+  43 |  }finally{await server.close();}
+  44 | });
+  45 | 
+```
