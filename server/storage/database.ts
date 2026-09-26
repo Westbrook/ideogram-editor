@@ -13,7 +13,7 @@ import type { Barrier } from './objects.js';
 import { event as validateEvent } from '../../src/protocol/validate.js';
 import { Assets, AssetRejection } from './assets.js';
 import type { AssetFact } from '../../src/protocol/assets.js';
-import { extendSchema, assetSchema, rasterSchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema } from './schema.js';
 import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
@@ -58,14 +58,21 @@ export class StoreDatabase {
     this.path = join(root, 'metadata.sqlite');
     closeSync(privateFile(this.path)); syncDirectory(root);
     this.databaseIdentity = assertPrivate(this.path, false);
+    const reader = new DatabaseSync(this.path, { readOnly: true, allowExtension: false });
+    let version: number;
+    try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
+    finally { reader.close(); }
+    // Unknown future roots are inspected with a read-only connection only.
+    if (![0,1,2,3,4,5].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+      kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
+    });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
     try {
+      if (Number(this.db.prepare('PRAGMA user_version').get()!.user_version) !== version) throw new StoreError('ROOT_UNSAFE');
       this.db.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=250; PRAGMA trusted_schema=OFF; PRAGMA fullfsync=ON; PRAGMA checkpoint_fullfsync=ON;');
       for (const [name, expected] of [['journal_mode', 'wal'], ['synchronous', 2], ['foreign_keys', 1], ['busy_timeout', 250]] as const) {
         if (Object.values(this.db.prepare(`PRAGMA ${name}`).get()!)[0] !== expected) throw new StoreError('UNSUPPORTED_STORAGE');
       }
-      const version = Number(this.db.prepare('PRAGMA user_version').get()!.user_version);
-      if (![0,1,2,3,4].includes(version)) throw new StoreError('CORRUPT_STORE');
       this.db.exec('BEGIN IMMEDIATE');
       this.db.exec(schema);
 
@@ -73,6 +80,7 @@ export class StoreDatabase {
       extendSchema(this.db, root, version, options.quotaBytes);
       assetSchema(this.db, root, options.quotaBytes,version===0);
       rasterSchema(this.db, root, options.quotaBytes,version===0);
+      approvalSchema(this.db, root, barrier, options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.

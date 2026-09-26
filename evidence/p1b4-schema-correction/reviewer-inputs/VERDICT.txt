@@ -1,0 +1,102 @@
+Verification Summary
+
+Verdict: ❌ NOT APPROVED
+Confidence: High for the bounded exact-target findings and tested behavior; no formal memory/performance/platform qualification.
+Target: 7388d1e625a6ac2c563bc64cca6318d264649acc, parent dfa383d56d21bc9c7bb40248db8a503fe33e6e46.
+Bundle: /Users/westbrook/Documents/repos/ideogram-edit-verification/7388d1e-independent
+
+I-R01 (PNG/profile validation) and I-R02 (approval of unavailable pixels) are corrected in the independently tested paths. New finding I-R03 prevents approval: pending ApproveRaster introduces unrecognized durable semantics while retaining schema4, so the actual older writer opens the store writable, changes the pending phase and accepts unrelated writes. The coordinator has assigned a correction. This verdict does not review that ongoing correction, complete either task, release history, close user UI feedback, or earn duplicate review credit. No spec ambiguity blocked this review.
+
+Acceptance Criteria Checklist
+
+1. “Retain originals/profile/orientation; reject animation/corruption/unsupported profile without a half-valid layer.”
+✅ VERIFIED for this supported codec/profile slice — I-R01 corrected.
+Evidence: unchanged original fixtures and findings-v2.test.mjs now pass all four original PNG controls. controlled-results-v2.json rejects the same valid unknown ICC both before and after IDAT; rejects late orientation, invalid sRGB length and RGBA tRNS without producing an approvable preview. The raster suite additionally exercises ordering, singletons, fields, CRC, truncated streams, invalid row/filter/palette indices and Adam7. Original content remains protected and retained. PNG native metadata ICC/EXIF hashes must agree with the independently scanned chunks before publication (server/raster/engine.ts).
+Verification: original findings-v2 and controlled-v2 reruns; npm run test:raster (242 PASS); verify:raster. Independently authored valid-png.py generates 22 legal supported color/depth/Adam7 inputs with all five filters, split and zero-length IDAT, text and unknown ancillary data. Every decoded raw byte equals the separately calculated sample expansion; public approval succeeds. These expectations are not derived from Sharp or app output. Valid P3/orientation fixtures, retained dependencies and unknown-profile rejection also pass.
+Scope: retained original bytes include ancillary metadata even when the new canonical output omits that metadata. The old extra/trailing-IDAT and WebP/JUNK rejection expectations remain withdrawn. Unused compressed bytes in final IDAT are permitted by PNG3 §11.2.3 (https://www.w3.org/TR/png-3/#11IDAT); controlled-v2 and the author's explicit compatibility cases retain acceptance. This is not a claim to accept every PNG feature/profile/depth; unsupported 16-bit, HDR and animation remain explicit rejects under the slice's documented contract.
+
+2. “Preview material conversion.”
+✅ VERIFIED.
+Evidence: real conversion browser test produces a 4×1 P3→sRGB preview with alpha retained and no resize, then requires an explicit en-reve approval button before a canonical asset exists. Accepted blob/pixel identities equal the reviewed preview and recovered client projection. conversion-review.png was visually inspected; browser-results.json and conversion-approved.png preserve the observed state.
+Verification: npm run test:raster:browser (1 PASS); public review/approval checks in valid-png.mjs, approval-proof.mjs and original pixels.mjs. Full editor UI and user en-reve/exact1px feedback are outside this test and remain open.
+
+3. “Implement exact transform→mask→opacity→K RGBA8 quantization, linear Normal fold, singleton and integer-identity passthrough including hidden RGB.”
+✅ VERIFIED within the demonstrated CP-1 slice.
+Evidence: unchanged independent pixel-oracles.json and pixels.mjs reproduce 10 core/public composition/export samples, including affine/flip/rotation/shear/minification/mask/transparent padding. Explicit F01 white0.1→alpha26→90, empty zero, singleton and hidden-RGB preservation checks pass. The original Python oracle uses a separate piecewise trapezoid integration and independently calculated color/alpha rules; it does not call app raster code. The current source core is unchanged from the original sealed review.
+Verification: pixels.mjs PASS10; npm run test:raster core/codec/HTTP cases PASS. PNG output equality is checked with an independent filter0 RGBA parser using Node zlib, not browser or Sharp pixel authority.
+
+4. “Recorded bilinear/area-minification coefficients/edge/halos” and “Same pixels feed capture/ordinary canonical render/export.”
+✅ VERIFIED within this integration slice.
+Evidence: immutable versioned manifests retain input/dependency/geometry/kernel/precision identities. Independent public samples compare expected raw output, exported decoded pixels and exact encoded output after restart. Author seam cases cover128/512 boundaries; frozen historical-pipeline export still passes.
+Verification: pixels.mjs including reopen and same-envelope receipt replay; raster core/HTTP/process gates. The declared separable source-axis convention is tested; this is not a polygonal-area filter claim. Full document/history capture integration belongs to the gated later tasks.
+
+5. “Record pipeline identity and golden fixtures; envelope8192-side/25MP/100 mixed layers remains unchanged.”
+✅ VERIFIED for identity and preserved limits; successful full-envelope qualification is not claimed.
+Evidence: identity-results.json verifies all127 correction seals,389 committed source entries against exact Git and checkout bytes,39 compiled outputs,49 spec and42 handoff seals. Fresh npm ci and fresh isolated consumer pass. Codec identity remains41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e. Original fixtures/profiles/native inputs remain sealed; verify:raster confirms installed pinned artifacts. Independent previous native-oracle results remain preserved and core/public samples were rerun here.
+Verification: verify-identities.py, verify:raster, build/typecheck/vendor gates and test:consumer. Native codecs were installed as pinned macOS-arm64 prebuilds, not rebuilt from source. Previous LCMS/WebP direct APIs share native libraries; previous Pillow JPEG is separate. No new native-oracle run is claimed. A100-contribution1×1 smoke and pending maxima do not establish the full mixed-layer envelope.
+
+6. Required immutable input/output identity proofs, durable approval, live authority, pre-202 identity, shared admission and immutable receipts.
+✅ VERIFIED for the new approval path — I-R02 corrected.
+Evidence: original safety-v2 now rejects missing pixels with MISSING_ASSET; it no longer publishes an unavailable usable asset. Independent approval-proof.mjs mutates original bytes (missing, corrupt and identical-byte inode replacement), EXIF (symlink), or ICC (hardlink) after all proofs are computed. All five approvals reject, repair cannot rewrite the terminal receipt, and a new valid command accepts unchanged reviewed pixels. The captured journal predates202 and contains exact original/canonical/hash plus stable operation ID. Author tests independently rerun cover18 missing/corrupt/substituted dependencies across pixels/manifest/PNG/original/EXIF/ICC, five raw-pixel post-proof mutations, session renewal during proof, bounded authority cleanup with both shared IO slots held, and five approval SIGKILL boundaries.
+Verification: original findings-v2/safety-v2, approval-proof.mjs and all242 raster tests. Pending restart retains identity and rejects an old review; completed approval replays exactly. Session14/protocol14/assets29/store24 and recovery12 PASS. Original12 asset/raster ID races and expiry/foreign-owner checks PASS.
+Static evidence: server/storage/raster.ts proves the manifest plus pixel/PNG/native-source/profile/EXIF closure without decoding again, rechecks private identities and live session/review/epoch immediately before synchronous registration, shares one IO slot and the64 preparation limit, reserves bounded approval work, releases proof tokens and clears terminal authority records. No universal filesystem race impossibility or broader editor integration is inferred.
+
+7. “Preserve exact existing roots/receipts under any versioned schema extension and test prior-code rollback as appropriate”; ARCH9.4 explicit schema evolution and unknown-future recovery; corrected assignment's same-schema pending approval check.
+⚠️ DEVIATION — I-R03.
+What differs: schema4 now persists ApproveRaster in raster_preparations, while actual dfa383d only understands Prepare/Compose/Export there. The exact old built writer opens the copied store writable, advances epoch3→4, returns CORRUPT_STORE for the approval, rewrites phase preparing→waiting-for-resources, and accepts an unrelated NewDocument. No new format marker, migration receipt or compatible rollback backup is created for the semantic extension. The existing schema3→4 rollback test passes but does not cover this new case.
+Impact: unsupported older code can mutate a store whose pending durable operation it cannot interpret, and the operation gets a false resource-wait state rather than a version/recovery boundary. No lost original or receipt is claimed: hashes/operation ID and original bytes survive, and reopening7388d1e rejects the expired review. That preservation does not satisfy the required downgrade boundary. The author disclosure that this path was unqualified is not an accepted waiver.
+Evidence: probes/downgrade.mjs and downgrade-results.json record the actual prior writer behavior on a new external private-root copy. probes/downgrade-gate.test.mjs applies two normative assertions to that captured result; both FAIL. The preserved old source/build/evidence were not edited or rebuilt. Source: server/storage/database.ts:68 accepts schema4; server/storage/raster.ts:33 recognizes the added type; server/storage/schema.ts has no corresponding new format transition. Owning text: docs/spec/architecture.md:559.
+Suggested minimal fix: explicitly distinguish/version the durable pending-approval format, prevent incompatible old writers from writing or reclassifying it, retain verified compatible rollback/backup data, and demonstrate corrected recovery without changing command/source identity. Coordinator owns the active author assignment.
+Re-verify: in a NEW exact corrected bundle with a fresh private-downgrade path, run pinned NODE --import ./tests/session/no-egress.mjs ../probes/downgrade.mjs; adapt its observation flow to assert safe old-writer refusal/recovery plus version/verified backup preservation, then NODE --test ../probes/downgrade-gate.test.mjs with the corrected result schema. Run npm run test:raster, test:store, test:assets, test:protocol and test:recovery. Do not overwrite this rejected target or evidence.
+
+8. “Bounded workers/tiles and safe admission include actual decode/halo allocations”; resource receipts must distinguish targets/ceilings and pending operations.
+✅ VERIFIED for tested admission/refusal paths, with bounded A-R01 disposition.
+Evidence: unchanged admission.mjs passes six maximum VP8/VP8L/extended/lying-extent cases; disallowed work reaches zero native metadata calls. Existing shared worker/IO/queue limits pass. Serial independent whole-process observations, including driver/backend/worker/native RSS, were:
+
+Input | Outcome | Peak RSS MiB
+max-webp-lossy.webp | resource-pending |123.50000
+max-webp-lossless.webp | resource-pending |123.37500
+normal-webp-lossy.webp | completed |284.50000
+normal-webp-lossless.webp | completed |288.18750
+normal-png.png | completed |220.31250
+normal-jpeg.jpg | completed |221.50000
+max-png.png | resource-pending |158.70312
+max-progressive-jpeg.jpg | resource-pending |125.93750
+aspect-png.png | resource-pending |168.75000
+
+Verification: resources-correction.py runs the current author resource driver unchanged under /usr/bin/time -l, one input at a time. Four complete preparation/approval/composition/export and the small100-contribution check. Five explicitly remain pending, retain exact source and pending identity on reopen, and still remain pending; reopen-resources.mjs PASS5. They are not successful operations or full-envelope qualification. Peak RSS differs from reservation estimates and excludes browser/GPU/other processes. All observed peaks are below512MiB, while normal WebP exceeds256MiB target. A-R01's observed maximum-WebP native overrun is mitigated by pre-native refusal on tested variants; original615710720/627834880-byte failures remain preserved. No universal transient peak limiter, release/settled growth or formal native-memory campaign is established, and this review does not close report feedback.
+Contention:80 full local HTTP receipts, max42.156833ms, zero above50ms; some exceed20ms target. This is local smoke, not a formal pass. Own workload was serial after correctness/build/consumer work. Resource cases ran07:39:38–45UTC before coordinator acknowledgment delivered07:39:55. Coordinator later reported receiving the author's07:39:59 statement that only source edits occurred and no author build/test/resource workload was running/launched. This retrospective statement is recorded; prior confirmed acknowledgment and exclusive-host isolation are not claimed. measurement-window.json preserves ordering and limits. The old delayed-window addendum is unchanged.
+
+Evidence index
+
+Commits: exact7388d1e and parentdfa383d; old approved e8b9f1a is exercised only by the required existing schema3 rollback test. No remote PR/CI result or pre-existing-failure claim is made.
+Task notes: implementation66937c0c-06cf-4f67-b423-196cd3314f8a, reviewer a48889b6-7c8e-4618-942f-8d635a1d1bd6, PR Context cbd63320-6def-4beb-b78f-de897caf3cdf, spec and owning archived architecture/test/performance contracts.
+Files: server/raster/{png-input,container,engine}; server/storage/{raster,objects,database,schema}; server/assets; src/raster/core; tests/raster and affected public/session/storage/recovery suites; tooling/RASTER.txt and sealed build/codec/provenance inputs.
+Source identity:367de881907a6b600719ce5137d18efbe564e34ba9a7dd92655f2d1ccad98b23.
+127-entry author seal hash:8679f0a7a14be403aa4f4bfd9f517c8c68a0f77f484e45ad0b7dd768bec5e41f.
+39-entry compiled manifest hash:fd695f5b70bec97d281f52e258fe9a81dae486359b2fe62b07a7cbdf9015b2db.
+Original verdict remains ec5e4e1950164c270c3162bbabccef9fbd20088f1c03a306a6d0a3e780924b25; all117 old seals and addendum verify unchanged. New artifact hashes are in evidence-index.json and this bundle's SHA256SUMS; source/dependencies/private test roots are represented by exact identities and recorded receipts, not recursively sealed as review outputs.
+
+Tests/Commands Run
+
+Runtime: Node26.10.0/npm12.1.0, with the repository's existing no-egress/no-network preloads for runtime probes. NODE=/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node; npm CLI=/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js. Run from this bundle's source directory.
+- Fresh npm ci → PASS; npm run typecheck/build/verify:vendor/verify:raster → PASS.
+- npm run test:raster242/assets29/protocol14/session14/store24 → PASS.
+- npm run test:recovery12/test:shell10/test:raster:browser1/test:consumer → PASS.
+- npm run test:assets:volume and test:store:volume → PASS real mounted ENOSPC/EROFS gates.
+- NODE --import ./tests/session/no-egress.mjs --test --test-concurrency=1 ../probes/findings-v2.test.mjs → PASS5 unchanged original regressions.
+- Same NODE/preload with ../probes/controlled-v2.mjs, safety-v2.mjs, pixels.mjs, admission.mjs → PASS recorded controls,12 races,10 pixel cases,6 pre-native cases.
+- python3 ../probes/valid-png.py; NODE/preload ../probes/valid-png.mjs → PASS22 independent valid PNGs, expected raw bytes and approval.
+- NODE/preload ../probes/approval-proof.mjs → PASS5 independent post-proof original/EXIF/ICC changes with immutable rejection and repaired new-command success.
+- NODE/preload ../probes/downgrade.mjs → reproduces I-R03; NODE --test ../probes/downgrade-gate.test.mjs → FAIL2 expected contract assertions against that actual result.
+- python3 ../probes/resources-correction.py →4 completed/5 pending; NODE --import ./tests/store/no-network.mjs ../probes/reopen-resources.mjs → preserved5/5, no successful maximum qualification.
+- NODE/preload ../probes/contention.mjs →80 receipts; bounded observations above.
+- python3 ../probes/verify-identities.py → PASS127 evidence/389 source/39 build/49 spec/42 handoff/original117 seals.
+
+Risk Notes
+
+The only blocking finding in this exact-target verdict is I-R03. Current-code correctness/approval tests do not certify downgrade safety. Broader PNG conformance, unsupported profiles/depths, full editor/history/mask/native-text integration, provider request/adoption, JPEG export/matte, full100-layer workloads, H/C/W1/full100k/AT, cross-platform/native rebuild and power-loss/device-cache/formal performance campaigns remain outside this bounded review. No unmeasured campaign pass is inferred.
+
+No shared source/report/locator/preview edits were made by this reviewer. The browser gate generated its usual report inside the isolated checkout; its result was copied to this external bundle and the committed report bytes restored from the pinned Git object. Exact checkout is clean. The original clone/verdict/seals/addendum remain untouched. Approved preview52219 and report4381 returned200. Shared author I-R03 changes and report revision122 are observed separately in preservation-final.json. User en-reve/exact1px feedback remains open. No paid/provider/publishing calls, duplicate report, user review closure or extra review weight.
+
+Next action: Coordinator continues the already assigned I-R03 correction and explicitly supplies a new exact handoff for independent review. Keep this target and evidence immutable. Reviewer remains review_required; implementation is not completed by this verdict and its correction assignment remains active. History remains gated.

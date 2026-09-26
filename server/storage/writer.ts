@@ -39,7 +39,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   worker.on('error', () => { fail('STORAGE_FAILURE'); readyReject(new StoreError('STORAGE_FAILURE')); });
   worker.on('message', message => {
     if (message.type === 'ready') { readyResolve(message.epoch); return; }
-    if (message.type === 'startup-error') { readyReject(new StoreError(message.code)); return; }
+    if (message.type === 'startup-error') { readyReject(new StoreError(message.code,message.detail)); return; }
     if (message.type === 'barrier') { testing?.onBarrier?.(message.phase); return; }
     if (message.type === 'failure') { testing?.onFailure?.(message.failure); return; }
     const item = pending.get(message.id); if (!item) return;

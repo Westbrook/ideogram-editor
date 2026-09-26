@@ -1,0 +1,7 @@
+npm notice run ideogram-editor@0.1.0 test:vendor
+npm notice run python3 tooling/test-vendor.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.233s
+
+OK

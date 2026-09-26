@@ -1,0 +1,253 @@
+{
+  "newSourceIdentity": "sha256:26fe383985850a6bb54eb60b90db8a57f46badd264abefe52f31b16fff674391",
+  "oldCommit": "dfa383d56d21bc9c7bb40248db8a503fe33e6e46",
+  "originalCommand": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "1796f87b-fed6-463d-9370-d405c6f268e7",
+      "clientId": "10ca35c1-3867-494c-a42a-0ca826aed47e",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "92a5037d-de1f-4d98-8d94-e7a365119798",
+      "documentId": null,
+      "expectedDocumentRevision": null,
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "ApproveRaster",
+        "assetId": "ea1b1303-1345-4c21-8251-9acf3f771a61",
+        "reviewId": "b1793833-14a4-4ee5-ba98-63b542b42180",
+        "reviewHash": "sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157"
+      }
+    }
+  },
+  "beforeClose": {
+    "record": null,
+    "pending": {
+      "command": {
+        "schemaVersion": 1,
+        "commandId": "1796f87b-fed6-463d-9370-d405c6f268e7",
+        "clientId": "10ca35c1-3867-494c-a42a-0ca826aed47e",
+        "sessionId": "session_1",
+        "correlationId": "correlation_1",
+        "causationId": null,
+        "transactionId": "92a5037d-de1f-4d98-8d94-e7a365119798",
+        "documentId": null,
+        "expectedDocumentRevision": null,
+        "expectedEntityVersions": {
+          "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+          "byteLength": "33",
+          "mediaType": "application/json"
+        },
+        "issuedAt": "2026-09-26T03:00:00.000Z",
+        "body": {
+          "type": "ApproveRaster",
+          "assetId": "ea1b1303-1345-4c21-8251-9acf3f771a61",
+          "reviewId": "b1793833-14a4-4ee5-ba98-63b542b42180",
+          "reviewHash": "sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157"
+        }
+      },
+      "hash": "sha256:bae70fd901c521fea81bef5b98b65ec58b906914ff5df220d23d011aa479803a",
+      "operationId": "c00998a6-4e4d-4a97-a71f-408738213039",
+      "phase": "preparing"
+    }
+  },
+  "before": {
+    "version": {
+      "user_version": 5
+    },
+    "epoch": {
+      "key": "writerEpoch",
+      "value": "3"
+    },
+    "pending": {
+      "id": "1796f87b-fed6-463d-9370-d405c6f268e7",
+      "hash": "sha256:bae70fd901c521fea81bef5b98b65ec58b906914ff5df220d23d011aa479803a",
+      "original": "{\"protocolVersion\":1,\"command\":{\"schemaVersion\":1,\"commandId\":\"1796f87b-fed6-463d-9370-d405c6f268e7\",\"clientId\":\"10ca35c1-3867-494c-a42a-0ca826aed47e\",\"sessionId\":\"session_1\",\"correlationId\":\"correlation_1\",\"causationId\":null,\"transactionId\":\"92a5037d-de1f-4d98-8d94-e7a365119798\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"body\":{\"type\":\"ApproveRaster\",\"assetId\":\"ea1b1303-1345-4c21-8251-9acf3f771a61\",\"reviewId\":\"b1793833-14a4-4ee5-ba98-63b542b42180\",\"reviewHash\":\"sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157\"}}}",
+      "canonical": "{\"command\":{\"body\":{\"assetId\":\"ea1b1303-1345-4c21-8251-9acf3f771a61\",\"reviewHash\":\"sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157\",\"reviewId\":\"b1793833-14a4-4ee5-ba98-63b542b42180\",\"type\":\"ApproveRaster\"},\"causationId\":null,\"clientId\":\"10ca35c1-3867-494c-a42a-0ca826aed47e\",\"commandId\":\"1796f87b-fed6-463d-9370-d405c6f268e7\",\"correlationId\":\"correlation_1\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"byteLength\":\"33\",\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"schemaVersion\":1,\"sessionId\":\"session_1\",\"transactionId\":\"92a5037d-de1f-4d98-8d94-e7a365119798\"},\"protocolVersion\":1}",
+      "operation_id": "c00998a6-4e4d-4a97-a71f-408738213039",
+      "phase": "preparing"
+    },
+    "events": {
+      "n": 3
+    },
+    "migrations": [
+      {
+        "version": 2,
+        "receipt": "{\"backup\":null,\"code\":\"lp1-storage-v2\",\"from\":0,\"manifest\":{},\"strategy\":\"additive-copy-validate-transactional-activation\",\"to\":2}"
+      },
+      {
+        "version": 3,
+        "receipt": "{\"backup\":null,\"from\":2,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":3}"
+      },
+      {
+        "version": 4,
+        "receipt": "{\"backup\":null,\"from\":3,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":4}"
+      },
+      {
+        "version": 5,
+        "receipt": "{\"backup\":null,\"backupHash\":null,\"capability\":\"raster-pending-approval-v1\",\"from\":4,\"manifest\":{},\"manifestFile\":null,\"rollback\":null,\"strategy\":\"semantic-version-verified-backup-transactional-activation\",\"to\":5}"
+      }
+    ],
+    "files": [
+      "launch.json",
+      "metadata.sqlite",
+      "metadata.sqlite-shm",
+      "metadata.sqlite-wal",
+      "objects",
+      "raster-work",
+      "staging",
+      "uploads",
+      "writer.lock"
+    ]
+  },
+  "oldOpenError": {
+    "code": "CORRUPT_STORE",
+    "message": "CORRUPT_STORE"
+  },
+  "afterOld": {
+    "version": {
+      "user_version": 5
+    },
+    "epoch": {
+      "key": "writerEpoch",
+      "value": "3"
+    },
+    "pending": {
+      "id": "1796f87b-fed6-463d-9370-d405c6f268e7",
+      "hash": "sha256:bae70fd901c521fea81bef5b98b65ec58b906914ff5df220d23d011aa479803a",
+      "original": "{\"protocolVersion\":1,\"command\":{\"schemaVersion\":1,\"commandId\":\"1796f87b-fed6-463d-9370-d405c6f268e7\",\"clientId\":\"10ca35c1-3867-494c-a42a-0ca826aed47e\",\"sessionId\":\"session_1\",\"correlationId\":\"correlation_1\",\"causationId\":null,\"transactionId\":\"92a5037d-de1f-4d98-8d94-e7a365119798\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"body\":{\"type\":\"ApproveRaster\",\"assetId\":\"ea1b1303-1345-4c21-8251-9acf3f771a61\",\"reviewId\":\"b1793833-14a4-4ee5-ba98-63b542b42180\",\"reviewHash\":\"sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157\"}}}",
+      "canonical": "{\"command\":{\"body\":{\"assetId\":\"ea1b1303-1345-4c21-8251-9acf3f771a61\",\"reviewHash\":\"sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157\",\"reviewId\":\"b1793833-14a4-4ee5-ba98-63b542b42180\",\"type\":\"ApproveRaster\"},\"causationId\":null,\"clientId\":\"10ca35c1-3867-494c-a42a-0ca826aed47e\",\"commandId\":\"1796f87b-fed6-463d-9370-d405c6f268e7\",\"correlationId\":\"correlation_1\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"byteLength\":\"33\",\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"schemaVersion\":1,\"sessionId\":\"session_1\",\"transactionId\":\"92a5037d-de1f-4d98-8d94-e7a365119798\"},\"protocolVersion\":1}",
+      "operation_id": "c00998a6-4e4d-4a97-a71f-408738213039",
+      "phase": "preparing"
+    },
+    "events": {
+      "n": 3
+    },
+    "migrations": [
+      {
+        "version": 2,
+        "receipt": "{\"backup\":null,\"code\":\"lp1-storage-v2\",\"from\":0,\"manifest\":{},\"strategy\":\"additive-copy-validate-transactional-activation\",\"to\":2}"
+      },
+      {
+        "version": 3,
+        "receipt": "{\"backup\":null,\"from\":2,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":3}"
+      },
+      {
+        "version": 4,
+        "receipt": "{\"backup\":null,\"from\":3,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":4}"
+      },
+      {
+        "version": 5,
+        "receipt": "{\"backup\":null,\"backupHash\":null,\"capability\":\"raster-pending-approval-v1\",\"from\":4,\"manifest\":{},\"manifestFile\":null,\"rollback\":null,\"strategy\":\"semantic-version-verified-backup-transactional-activation\",\"to\":5}"
+      }
+    ],
+    "files": [
+      "launch.json",
+      "metadata.sqlite",
+      "metadata.sqlite-shm",
+      "metadata.sqlite-wal",
+      "objects",
+      "raster-work",
+      "staging",
+      "uploads",
+      "writer.lock"
+    ]
+  },
+  "newState": {
+    "record": {
+      "hash": "sha256:bae70fd901c521fea81bef5b98b65ec58b906914ff5df220d23d011aa479803a",
+      "command": {
+        "body": {
+          "assetId": "ea1b1303-1345-4c21-8251-9acf3f771a61",
+          "reviewHash": "sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157",
+          "reviewId": "b1793833-14a4-4ee5-ba98-63b542b42180",
+          "type": "ApproveRaster"
+        },
+        "causationId": null,
+        "clientId": "10ca35c1-3867-494c-a42a-0ca826aed47e",
+        "commandId": "1796f87b-fed6-463d-9370-d405c6f268e7",
+        "correlationId": "correlation_1",
+        "documentId": null,
+        "expectedDocumentRevision": null,
+        "expectedEntityVersions": {
+          "byteLength": "33",
+          "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+          "mediaType": "application/json"
+        },
+        "issuedAt": "2026-09-26T03:00:00.000Z",
+        "schemaVersion": 1,
+        "sessionId": "session_1",
+        "transactionId": "92a5037d-de1f-4d98-8d94-e7a365119798"
+      },
+      "receipt": {
+        "code": "INVALID_INPUT",
+        "commandId": "1796f87b-fed6-463d-9370-d405c6f268e7",
+        "currentRevision": null,
+        "details": {
+          "byteLength": "83",
+          "hash": "sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9",
+          "mediaType": "application/json"
+        },
+        "status": "rejected"
+      }
+    },
+    "pending": null
+  },
+  "afterNew": {
+    "version": {
+      "user_version": 5
+    },
+    "epoch": {
+      "key": "writerEpoch",
+      "value": "4"
+    },
+    "receipt": {
+      "id": "1796f87b-fed6-463d-9370-d405c6f268e7",
+      "hash": "sha256:bae70fd901c521fea81bef5b98b65ec58b906914ff5df220d23d011aa479803a",
+      "original": "{\"protocolVersion\":1,\"command\":{\"schemaVersion\":1,\"commandId\":\"1796f87b-fed6-463d-9370-d405c6f268e7\",\"clientId\":\"10ca35c1-3867-494c-a42a-0ca826aed47e\",\"sessionId\":\"session_1\",\"correlationId\":\"correlation_1\",\"causationId\":null,\"transactionId\":\"92a5037d-de1f-4d98-8d94-e7a365119798\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"body\":{\"type\":\"ApproveRaster\",\"assetId\":\"ea1b1303-1345-4c21-8251-9acf3f771a61\",\"reviewId\":\"b1793833-14a4-4ee5-ba98-63b542b42180\",\"reviewHash\":\"sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157\"}}}",
+      "canonical": "{\"command\":{\"body\":{\"assetId\":\"ea1b1303-1345-4c21-8251-9acf3f771a61\",\"reviewHash\":\"sha256:1d7d68607c1efcc223af97db6ca1dba87868aa83642a86e7973eb5ced2e37157\",\"reviewId\":\"b1793833-14a4-4ee5-ba98-63b542b42180\",\"type\":\"ApproveRaster\"},\"causationId\":null,\"clientId\":\"10ca35c1-3867-494c-a42a-0ca826aed47e\",\"commandId\":\"1796f87b-fed6-463d-9370-d405c6f268e7\",\"correlationId\":\"correlation_1\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"byteLength\":\"33\",\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"schemaVersion\":1,\"sessionId\":\"session_1\",\"transactionId\":\"92a5037d-de1f-4d98-8d94-e7a365119798\"},\"protocolVersion\":1}",
+      "receipt": "{\"code\":\"INVALID_INPUT\",\"commandId\":\"1796f87b-fed6-463d-9370-d405c6f268e7\",\"currentRevision\":null,\"details\":{\"byteLength\":\"83\",\"hash\":\"sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9\",\"mediaType\":\"application/json\"},\"status\":\"rejected\"}"
+    },
+    "events": {
+      "n": 3
+    },
+    "migrations": [
+      {
+        "version": 2,
+        "receipt": "{\"backup\":null,\"code\":\"lp1-storage-v2\",\"from\":0,\"manifest\":{},\"strategy\":\"additive-copy-validate-transactional-activation\",\"to\":2}"
+      },
+      {
+        "version": 3,
+        "receipt": "{\"backup\":null,\"from\":2,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":3}"
+      },
+      {
+        "version": 4,
+        "receipt": "{\"backup\":null,\"from\":3,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":4}"
+      },
+      {
+        "version": 5,
+        "receipt": "{\"backup\":null,\"backupHash\":null,\"capability\":\"raster-pending-approval-v1\",\"from\":4,\"manifest\":{},\"manifestFile\":null,\"rollback\":null,\"strategy\":\"semantic-version-verified-backup-transactional-activation\",\"to\":5}"
+      }
+    ],
+    "files": [
+      "launch.json",
+      "metadata.sqlite",
+      "metadata.sqlite-shm",
+      "metadata.sqlite-wal",
+      "objects",
+      "raster-work",
+      "staging",
+      "uploads",
+      "writer.lock"
+    ]
+  },
+  "originalBytesRetained": true,
+  "conclusion": "Actual dfa383d refuses schema5 before epoch/journal/domain writes; exact before/after state is unchanged. Corrected code retains original command/operation/source identities and rejects expired approval authority on reopening. Migration and verified rollback backups are separately tested in schema.test.mjs."
+}

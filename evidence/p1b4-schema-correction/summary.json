@@ -1,0 +1,107 @@
+{
+  "at": "2026-09-26T07:49:19.959379+00:00",
+  "status": "author review_required; exact scoped commit supplied in task and shared PR Context",
+  "base": "7388d1e625a6ac2c563bc64cca6318d264649acc",
+  "branch": "ideogram-editor-p1",
+  "sourceIdentity": "sha256:26fe383985850a6bb54eb60b90db8a57f46badd264abefe52f31b16fff674391",
+  "sourceManifest": "source-manifest.json",
+  "sourceEntries": 391,
+  "compiledManifest": "compiled-final.json",
+  "codecIdentity": "sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+  "fixtureIdentities": {
+    "tests/raster/png-validation/manifest.json": "8b4848b914ebc2e5bf9dd55d8788b6943c535caeebe61fe4a8e55d054c390668",
+    "tests/raster/png-validation/reviewer-manifest.json": "e3f6f746f18ace7c486bfa78d28e780c5dbc9be228ec2cec3ccc3c2d7cda1260",
+    "tests/raster/fixtures/manifest.json": "1d22a7d31ab77277c8fc4234f350413c4e09e51b44d4e5b18564624019fc020b",
+    "tests/raster/fixtures/resource-inputs.json": "769b404439001de889bb05864ace9050adcc51ebfc67843333b6ade5d852cc16"
+  },
+  "gates": {
+    "manifest": "gates-final-2.json",
+    "count": 18,
+    "allPassed": true,
+    "finishedAt": "2026-09-26T07:48:40.735042+00:00",
+    "rasterTests": 254,
+    "schemaTestsIncluded": 12,
+    "assetsTests": 29,
+    "protocolTests": 14,
+    "sessionTests": 14,
+    "storeTests": 24,
+    "recoveryBrowserTests": 12,
+    "conversionBrowserTests": 1,
+    "volumeFaults": "real isolated mounted ENOSPC/EROFS assets and store suites pass",
+    "freshConsumer": "consumer-receipt.json",
+    "originalFindingsV2": 5,
+    "originalControlledAndSafety": "final-2-controlled-results-v2.json and final-2-safety-results-v2.json",
+    "unchangedIR03Gate": {
+      "tests": 2,
+      "log": "logs/downgrade-gate.txt",
+      "input": "reviewer-inputs/downgrade-gate.test.mjs",
+      "results": "downgrade-corrected-results.json"
+    }
+  },
+  "implementation": [
+    "Schema5 durably marks raster-pending-approval-v1 before writer epoch, replay/scheduling or accepting commands. Actual dfa383d and7388d1e refuse it.",
+    "Existing schema4 data receives a VACUUM INTO backup with integrity/schema/per-table equivalence, fsync and SHA256 identity, retained manifest and final file/hash reproof before atomic migration receipt/version activation. No request/event/projection/root/receipt bytes are transformed.",
+    "Manifest names exact compatible executable dfa383d56d21bc9c7bb40248db8a503fe33e6e46 when no pending approval exists, or7388d1e625a6ac2c563bc64cca6318d264649acc when one exists. Existing pending requests are preserved, never deleted to claim older compatibility.",
+    "Read-only version probe refuses unknown future versions before writable SQLite opening/persistent settings and supplies fixed recovery guidance through launch.",
+    "New code preserves original command/hash/operation and source closure; pending approvals expire on restart, committed receipts remain unchanged."
+  ],
+  "migrationEvidence": {
+    "receipts": "migration-receipts.json",
+    "coverage": [
+      "actual compatible schema4 and existing7388d1e pending-approval roots",
+      "exact tables/roots/receipts/original bytes before activation",
+      "both exact old executables refuse version5 with unchanged epoch/journal/root state",
+      "restored backup works with its named executable",
+      "same pending identity and expired-review recovery",
+      "capacity failure and successful retry",
+      "corrupt backup refuses activation and failed evidence is retained",
+      "backup database and manifest tampering after verification roll back activation",
+      "SIGKILL before backup, backup-written, backup-verified, before activation and after activation",
+      "unknown future version refuses with recovery guidance and unchanged database bytes"
+    ],
+    "backupScope": "Copies database metadata; immutable objects/staging/uploads remain retained. Restore those directories plus the named database into a separate owner-only root. Original/current roots and historical backups remain untouched. A rollback copy represents the prior state, not post-migration work.",
+    "activation": "Additive semantics/version marker; no destructive data migration or lossy upcaster."
+  },
+  "failBefore": {
+    "source": "fail-before-source.json",
+    "originalProbe": "reviewer-inputs/downgrade.mjs",
+    "results": "fail-before-downgrade-results.json",
+    "adaptedCorrectedProbe": "downgrade-corrected.mjs",
+    "classification": "Unchanged reviewer observation probe reproduces unsafe old writes at exact7388d1e; adapted observation now asserts old refusal and exact before/after preservation, then unchanged reviewer gate passes."
+  },
+  "attempts": "attempts.json",
+  "preservation": "preservation.json",
+  "integrationContract": {
+    "path": "tooling/RASTER.txt",
+    "sha256": "34d2f25aa5d7e539956d4c744483e54500cd59b3510553de5aaba5136fe9469b",
+    "storage": "tooling/STORE.txt"
+  },
+  "filesTouched": [
+    "server/storage/database.ts",
+    "server/storage/schema.ts",
+    "server/storage/writer.ts",
+    "tests/assets/storage.test.mjs",
+    "tests/protocol/recovery.test.mjs",
+    "tests/raster/storage.test.mjs",
+    "tooling/RASTER.txt",
+    "tooling/STORE.txt",
+    "tooling/launch.ts",
+    "tests/raster/schema.test.mjs",
+    "tooling/raster/schema-checks.py",
+    "evidence/p1b4-schema-correction/"
+  ],
+  "limitations": [
+    "Author correction only; original dfa383d and7388d1e NOT APPROVED verdicts and all findings remain pending coordinator-assigned exact-target review. No history release or task credit.",
+    "No new timing/resource measurement. A-R01 resource accounting/actual-RSS distinctions and previous incomplete maximum-input cases remain unchanged. This migration is not a universal native-memory ceiling proof.",
+    "Fault tests cover process death and capacity/corruption, not hardware power-loss/device-cache/platform qualification.",
+    "Unknown-future schema inspection is read-only version recognition and refusal with recovery guidance; no generic future-domain reader or exporter is implemented.",
+    "Rollback backup compatibility is named precisely; old code never resumes schema5 itself. Same-OS-user hostile concurrent filesystem modification remains outside the pairing boundary.",
+    "Full editor/history/UI/native-text/mask/provider adoption, JPEG matte/export, full100-layer/full100k/formal PERF/native accessibility/cross-platform qualification remain later work.",
+    "Report/preview/locator/en-reve archives/live sibling and user en-reve-first/exact1px splitter feedback remain preserved. No paid/provider calls or publishing."
+  ],
+  "github": {
+    "pr": null,
+    "ci": null,
+    "baseFailure": "Sealed I-R03 at7388d1e, verdicted33b90d60ffcf4fb194d1bb9a0b0cb94180866e0662079b85f763e0fa362fa3. No remote CI/base CI-run attribution."
+  }
+}

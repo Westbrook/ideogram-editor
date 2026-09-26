@@ -1,0 +1,335 @@
+{
+  "newCommit": "7388d1e625a6ac2c563bc64cca6318d264649acc",
+  "oldCommit": "dfa383d56d21bc9c7bb40248db8a503fe33e6e46",
+  "originalCommand": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "7dbfcc5c-7a50-4415-837f-c96d352eb478",
+      "clientId": "d05f9727-6d5a-4c70-b6dd-a6f534b12eb8",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb",
+      "documentId": null,
+      "expectedDocumentRevision": null,
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "ApproveRaster",
+        "assetId": "474289ba-683c-45d8-83d1-173c10ebaf7a",
+        "reviewId": "fccfbece-0aa7-49c2-ba95-428faf545ec4",
+        "reviewHash": "sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3"
+      }
+    }
+  },
+  "beforeClose": {
+    "record": null,
+    "pending": {
+      "command": {
+        "schemaVersion": 1,
+        "commandId": "7dbfcc5c-7a50-4415-837f-c96d352eb478",
+        "clientId": "d05f9727-6d5a-4c70-b6dd-a6f534b12eb8",
+        "sessionId": "session_1",
+        "correlationId": "correlation_1",
+        "causationId": null,
+        "transactionId": "46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb",
+        "documentId": null,
+        "expectedDocumentRevision": null,
+        "expectedEntityVersions": {
+          "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+          "byteLength": "33",
+          "mediaType": "application/json"
+        },
+        "issuedAt": "2026-09-26T03:00:00.000Z",
+        "body": {
+          "type": "ApproveRaster",
+          "assetId": "474289ba-683c-45d8-83d1-173c10ebaf7a",
+          "reviewId": "fccfbece-0aa7-49c2-ba95-428faf545ec4",
+          "reviewHash": "sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3"
+        }
+      },
+      "hash": "sha256:3b98f4f581e7d414925a42ad1ab53e12f82b5e43af37cac109fbd2826df7757d",
+      "operationId": "c0bab223-d64b-474f-9349-01c51256238e",
+      "phase": "preparing"
+    }
+  },
+  "before": {
+    "version": {
+      "user_version": 4
+    },
+    "epoch": {
+      "key": "writerEpoch",
+      "value": "3"
+    },
+    "pending": {
+      "id": "7dbfcc5c-7a50-4415-837f-c96d352eb478",
+      "hash": "sha256:3b98f4f581e7d414925a42ad1ab53e12f82b5e43af37cac109fbd2826df7757d",
+      "original": "{\"protocolVersion\":1,\"command\":{\"schemaVersion\":1,\"commandId\":\"7dbfcc5c-7a50-4415-837f-c96d352eb478\",\"clientId\":\"d05f9727-6d5a-4c70-b6dd-a6f534b12eb8\",\"sessionId\":\"session_1\",\"correlationId\":\"correlation_1\",\"causationId\":null,\"transactionId\":\"46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"body\":{\"type\":\"ApproveRaster\",\"assetId\":\"474289ba-683c-45d8-83d1-173c10ebaf7a\",\"reviewId\":\"fccfbece-0aa7-49c2-ba95-428faf545ec4\",\"reviewHash\":\"sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3\"}}}",
+      "canonical": "{\"command\":{\"body\":{\"assetId\":\"474289ba-683c-45d8-83d1-173c10ebaf7a\",\"reviewHash\":\"sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3\",\"reviewId\":\"fccfbece-0aa7-49c2-ba95-428faf545ec4\",\"type\":\"ApproveRaster\"},\"causationId\":null,\"clientId\":\"d05f9727-6d5a-4c70-b6dd-a6f534b12eb8\",\"commandId\":\"7dbfcc5c-7a50-4415-837f-c96d352eb478\",\"correlationId\":\"correlation_1\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"byteLength\":\"33\",\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"schemaVersion\":1,\"sessionId\":\"session_1\",\"transactionId\":\"46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb\"},\"protocolVersion\":1}",
+      "operation_id": "c0bab223-d64b-474f-9349-01c51256238e",
+      "phase": "preparing"
+    },
+    "events": {
+      "n": 3
+    },
+    "migrations": [
+      {
+        "version": 2,
+        "receipt": "{\"backup\":null,\"code\":\"lp1-storage-v2\",\"from\":0,\"manifest\":{},\"strategy\":\"additive-copy-validate-transactional-activation\",\"to\":2}"
+      },
+      {
+        "version": 3,
+        "receipt": "{\"backup\":null,\"from\":2,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":3}"
+      },
+      {
+        "version": 4,
+        "receipt": "{\"backup\":null,\"from\":3,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":4}"
+      }
+    ],
+    "files": [
+      "launch.json",
+      "metadata.sqlite",
+      "metadata.sqlite-shm",
+      "metadata.sqlite-wal",
+      "objects",
+      "raster-work",
+      "staging",
+      "uploads",
+      "writer.lock"
+    ]
+  },
+  "oldWritableEpoch": "4",
+  "oldCommandStateError": {
+    "code": "CORRUPT_STORE",
+    "message": "CORRUPT_STORE"
+  },
+  "oldUnrelatedWrite": {
+    "status": "accepted",
+    "commandId": "08e45449-2265-4b8a-9ca2-f718ca959781",
+    "fromSeq": "4",
+    "toSeq": "4",
+    "documentRevision": "1",
+    "transactionId": "26ce5b3c-bf12-4aa0-abdc-e08c96a929a6"
+  },
+  "oldDiagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 57,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "4",
+    "highWater": "4",
+    "projectionDigest": "sha256:7c14564d93ed4a1381a335fc950a37da00018d0ea606ad3729e08a165a1d8896",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "656440516608",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "124",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "3",
+      "reservedBytes": "4",
+      "activeTransfers": 0,
+      "preparationMs": []
+    },
+    "rasters": {
+      "preparations": 1,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": []
+    },
+    "observations": {
+      "appendMs": [
+        6.796665999999959
+      ],
+      "replayMs": 13.167915999999877,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 129253376,
+      "heapTotal": 11943936,
+      "heapUsed": 7826560,
+      "external": 3896937,
+      "arrayBuffers": 1325651
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "afterOld": {
+    "version": {
+      "user_version": 4
+    },
+    "epoch": {
+      "key": "writerEpoch",
+      "value": "4"
+    },
+    "pending": {
+      "id": "7dbfcc5c-7a50-4415-837f-c96d352eb478",
+      "hash": "sha256:3b98f4f581e7d414925a42ad1ab53e12f82b5e43af37cac109fbd2826df7757d",
+      "original": "{\"protocolVersion\":1,\"command\":{\"schemaVersion\":1,\"commandId\":\"7dbfcc5c-7a50-4415-837f-c96d352eb478\",\"clientId\":\"d05f9727-6d5a-4c70-b6dd-a6f534b12eb8\",\"sessionId\":\"session_1\",\"correlationId\":\"correlation_1\",\"causationId\":null,\"transactionId\":\"46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"body\":{\"type\":\"ApproveRaster\",\"assetId\":\"474289ba-683c-45d8-83d1-173c10ebaf7a\",\"reviewId\":\"fccfbece-0aa7-49c2-ba95-428faf545ec4\",\"reviewHash\":\"sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3\"}}}",
+      "canonical": "{\"command\":{\"body\":{\"assetId\":\"474289ba-683c-45d8-83d1-173c10ebaf7a\",\"reviewHash\":\"sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3\",\"reviewId\":\"fccfbece-0aa7-49c2-ba95-428faf545ec4\",\"type\":\"ApproveRaster\"},\"causationId\":null,\"clientId\":\"d05f9727-6d5a-4c70-b6dd-a6f534b12eb8\",\"commandId\":\"7dbfcc5c-7a50-4415-837f-c96d352eb478\",\"correlationId\":\"correlation_1\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"byteLength\":\"33\",\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"schemaVersion\":1,\"sessionId\":\"session_1\",\"transactionId\":\"46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb\"},\"protocolVersion\":1}",
+      "operation_id": "c0bab223-d64b-474f-9349-01c51256238e",
+      "phase": "waiting-for-resources"
+    },
+    "events": {
+      "n": 4
+    },
+    "migrations": [
+      {
+        "version": 2,
+        "receipt": "{\"backup\":null,\"code\":\"lp1-storage-v2\",\"from\":0,\"manifest\":{},\"strategy\":\"additive-copy-validate-transactional-activation\",\"to\":2}"
+      },
+      {
+        "version": 3,
+        "receipt": "{\"backup\":null,\"from\":2,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":3}"
+      },
+      {
+        "version": 4,
+        "receipt": "{\"backup\":null,\"from\":3,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":4}"
+      }
+    ],
+    "files": [
+      "launch.json",
+      "metadata.sqlite",
+      "metadata.sqlite-shm",
+      "metadata.sqlite-wal",
+      "objects",
+      "raster-work",
+      "staging",
+      "uploads",
+      "writer.lock"
+    ]
+  },
+  "newState": {
+    "record": {
+      "hash": "sha256:3b98f4f581e7d414925a42ad1ab53e12f82b5e43af37cac109fbd2826df7757d",
+      "command": {
+        "body": {
+          "assetId": "474289ba-683c-45d8-83d1-173c10ebaf7a",
+          "reviewHash": "sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3",
+          "reviewId": "fccfbece-0aa7-49c2-ba95-428faf545ec4",
+          "type": "ApproveRaster"
+        },
+        "causationId": null,
+        "clientId": "d05f9727-6d5a-4c70-b6dd-a6f534b12eb8",
+        "commandId": "7dbfcc5c-7a50-4415-837f-c96d352eb478",
+        "correlationId": "correlation_1",
+        "documentId": null,
+        "expectedDocumentRevision": null,
+        "expectedEntityVersions": {
+          "byteLength": "33",
+          "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+          "mediaType": "application/json"
+        },
+        "issuedAt": "2026-09-26T03:00:00.000Z",
+        "schemaVersion": 1,
+        "sessionId": "session_1",
+        "transactionId": "46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb"
+      },
+      "receipt": {
+        "code": "INVALID_INPUT",
+        "commandId": "7dbfcc5c-7a50-4415-837f-c96d352eb478",
+        "currentRevision": null,
+        "details": {
+          "byteLength": "83",
+          "hash": "sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9",
+          "mediaType": "application/json"
+        },
+        "status": "rejected"
+      }
+    },
+    "pending": null
+  },
+  "afterNew": {
+    "version": {
+      "user_version": 4
+    },
+    "epoch": {
+      "key": "writerEpoch",
+      "value": "5"
+    },
+    "receipt": {
+      "id": "7dbfcc5c-7a50-4415-837f-c96d352eb478",
+      "hash": "sha256:3b98f4f581e7d414925a42ad1ab53e12f82b5e43af37cac109fbd2826df7757d",
+      "original": "{\"protocolVersion\":1,\"command\":{\"schemaVersion\":1,\"commandId\":\"7dbfcc5c-7a50-4415-837f-c96d352eb478\",\"clientId\":\"d05f9727-6d5a-4c70-b6dd-a6f534b12eb8\",\"sessionId\":\"session_1\",\"correlationId\":\"correlation_1\",\"causationId\":null,\"transactionId\":\"46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"body\":{\"type\":\"ApproveRaster\",\"assetId\":\"474289ba-683c-45d8-83d1-173c10ebaf7a\",\"reviewId\":\"fccfbece-0aa7-49c2-ba95-428faf545ec4\",\"reviewHash\":\"sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3\"}}}",
+      "canonical": "{\"command\":{\"body\":{\"assetId\":\"474289ba-683c-45d8-83d1-173c10ebaf7a\",\"reviewHash\":\"sha256:6be0b011f9243e7cf74964b399d0f8cab0a0c7fbfcdf946c8d3b0483ad7e9ca3\",\"reviewId\":\"fccfbece-0aa7-49c2-ba95-428faf545ec4\",\"type\":\"ApproveRaster\"},\"causationId\":null,\"clientId\":\"d05f9727-6d5a-4c70-b6dd-a6f534b12eb8\",\"commandId\":\"7dbfcc5c-7a50-4415-837f-c96d352eb478\",\"correlationId\":\"correlation_1\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"byteLength\":\"33\",\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T03:00:00.000Z\",\"schemaVersion\":1,\"sessionId\":\"session_1\",\"transactionId\":\"46a266a9-f5cb-4a1f-b1a5-4e4ed095eecb\"},\"protocolVersion\":1}",
+      "receipt": "{\"code\":\"INVALID_INPUT\",\"commandId\":\"7dbfcc5c-7a50-4415-837f-c96d352eb478\",\"currentRevision\":null,\"details\":{\"byteLength\":\"83\",\"hash\":\"sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9\",\"mediaType\":\"application/json\"},\"status\":\"rejected\"}"
+    },
+    "events": {
+      "n": 4
+    },
+    "migrations": [
+      {
+        "version": 2,
+        "receipt": "{\"backup\":null,\"code\":\"lp1-storage-v2\",\"from\":0,\"manifest\":{},\"strategy\":\"additive-copy-validate-transactional-activation\",\"to\":2}"
+      },
+      {
+        "version": 3,
+        "receipt": "{\"backup\":null,\"from\":2,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":3}"
+      },
+      {
+        "version": 4,
+        "receipt": "{\"backup\":null,\"from\":3,\"manifest\":{},\"strategy\":\"additive-verified-backup-transactional-activation\",\"to\":4}"
+      }
+    ],
+    "files": [
+      "launch.json",
+      "metadata.sqlite",
+      "metadata.sqlite-shm",
+      "metadata.sqlite-wal",
+      "objects",
+      "raster-work",
+      "staging",
+      "uploads",
+      "writer.lock"
+    ]
+  },
+  "originalBytesRetained": true,
+  "conclusion": "Same schema4 opens writable in dfa383d, pending approval lookup reports CORRUPT_STORE, scheduler rewrites phase to waiting-for-resources; unrelated command accepted. No new format version or backup is recorded. Exact identity/originals survive and current code rejects expired review on return."
+}

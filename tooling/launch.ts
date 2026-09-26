@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { isAbsolute, sep } from 'node:path';
 import { createInterface } from 'node:readline';
 import { launch } from './launcher.js';
+import { StoreError } from '../server/storage/errors.js';
 
 try {
   if (process.versions.node !== '26.10.0') throw new Error();
@@ -30,8 +31,12 @@ try {
   const stop = () => { input.close(); void server.close(); };
   process.once('SIGINT', stop);
   process.once('SIGTERM', stop);
-} catch {
+} catch (error) {
   // Native errors can contain paths/argv; emit only a fixed safe diagnostic.
   console.error('Local launch failed. Use Node 26.10.0, an unused owner-only local root with no symlinks, and --static only for a trusted browser build. If an earlier ~/.ideogram-editor directory exists, select it explicitly with --root; no files are moved.');
+  if (error instanceof StoreError && error.detail?.kind === 'fields' &&
+      error.detail.issues.some(issue => issue.path === 'storage.schemaVersion')) {
+    console.error('This storage version is unsupported. Keep the original root unchanged. Inspect or export a separate copy with its matching application version, or restore a verified backup using the executable named in its manifest. Do not lower the stored version number.');
+  }
   process.exitCode = 1;
 }

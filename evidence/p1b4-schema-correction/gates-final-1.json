@@ -1,0 +1,211 @@
+{
+  "startedAt": "2026-09-26T07:42:46.134617+00:00",
+  "source": "/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-schema-final-1/source",
+  "qualification": false,
+  "gates": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:raster"
+      ],
+      "at": "2026-09-26T07:42:46.134763+00:00",
+      "finishedAt": "2026-09-26T07:42:47.302860+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-00.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "at": "2026-09-26T07:42:47.303243+00:00",
+      "finishedAt": "2026-09-26T07:42:49.247075+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-01.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "at": "2026-09-26T07:42:49.247455+00:00",
+      "finishedAt": "2026-09-26T07:42:52.245300+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-02.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:vendor"
+      ],
+      "at": "2026-09-26T07:42:52.245646+00:00",
+      "finishedAt": "2026-09-26T07:42:52.735152+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-03.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:vendor"
+      ],
+      "at": "2026-09-26T07:42:52.735525+00:00",
+      "finishedAt": "2026-09-26T07:42:53.160976+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-04.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:raster"
+      ],
+      "at": "2026-09-26T07:42:53.161362+00:00",
+      "finishedAt": "2026-09-26T07:44:11.133399+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-05.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:assets"
+      ],
+      "at": "2026-09-26T07:44:11.133882+00:00",
+      "finishedAt": "2026-09-26T07:44:39.458892+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-06.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:protocol"
+      ],
+      "at": "2026-09-26T07:44:39.459335+00:00",
+      "finishedAt": "2026-09-26T07:45:01.159440+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-07.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:session"
+      ],
+      "at": "2026-09-26T07:45:01.159806+00:00",
+      "finishedAt": "2026-09-26T07:45:06.670164+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-08.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:store"
+      ],
+      "at": "2026-09-26T07:45:06.670588+00:00",
+      "finishedAt": "2026-09-26T07:45:25.123975+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-09.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:recovery"
+      ],
+      "at": "2026-09-26T07:45:25.128145+00:00",
+      "finishedAt": "2026-09-26T07:45:46.398685+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-10.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:raster:browser"
+      ],
+      "at": "2026-09-26T07:45:46.399165+00:00",
+      "finishedAt": "2026-09-26T07:45:49.576690+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-11.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:assets:volume"
+      ],
+      "at": "2026-09-26T07:45:49.577075+00:00",
+      "finishedAt": "2026-09-26T07:45:54.485185+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-12.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:store:volume"
+      ],
+      "at": "2026-09-26T07:45:54.485586+00:00",
+      "finishedAt": "2026-09-26T07:45:57.782707+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-13.txt"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:consumer"
+      ],
+      "at": "2026-09-26T07:45:57.783147+00:00",
+      "finishedAt": "2026-09-26T07:46:18.358099+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-14.txt"
+    },
+    {
+      "command": [
+        "node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "../probes/findings-v2.test.mjs"
+      ],
+      "at": "2026-09-26T07:46:18.362134+00:00",
+      "finishedAt": "2026-09-26T07:46:21.444990+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-15.txt"
+    },
+    {
+      "command": [
+        "node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "../probes/controlled-v2.mjs"
+      ],
+      "at": "2026-09-26T07:46:21.445353+00:00",
+      "finishedAt": "2026-09-26T07:46:22.974240+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-16.txt"
+    },
+    {
+      "command": [
+        "node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "../probes/safety-v2.mjs"
+      ],
+      "at": "2026-09-26T07:46:22.974632+00:00",
+      "finishedAt": "2026-09-26T07:46:24.827983+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1b4-schema-correction/logs/final-1-17.txt"
+    }
+  ],
+  "finishedAt": "2026-09-26T07:46:24.836843+00:00"
+}

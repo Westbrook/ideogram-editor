@@ -7,6 +7,12 @@ unavailable HTTP commands/recovery, and absent snapshots). The original data,
 receipts and history remain compatible through an additive verified migration.
 The foundational ownership/object/runtime constraints below still apply.
 
+P1b.4 uses schema5 for durable pending raster approvals. Read tooling/RASTER.txt
+for verified schema4 backup manifests, exact rollback-executable identities and
+unknown-future-version refusal/recovery guidance. A schema4 copy with a pending
+ApproveRaster requires 7388d1e; it must never be restored using dfa383d. Existing
+originals, immutable receipts, journal identities and older backups are retained.
+
 P1b.1 BASELINE REFERENCE (historical slice boundaries follow)
 
 P1b.1 DURABLE WRITER FOUNDATION

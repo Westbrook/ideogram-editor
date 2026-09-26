@@ -1,0 +1,50 @@
+{
+  "at": "2026-09-26T07:46:56.960084+00:00",
+  "baseline": {
+    "commit": "7388d1e625a6ac2c563bc64cca6318d264649acc",
+    "probe": "reviewer-inputs/downgrade.mjs",
+    "result": "Reproduced actual dfa383d unsafe schema4 open, epoch/phase mutation and unrelated write in a separate bundle. Probe exits zero because it records the failure rather than asserting corrected behavior.",
+    "source": "fail-before-source.json",
+    "results": "fail-before-downgrade-results.json"
+  },
+  "iterations": [
+    {
+      "logs": [
+        "logs/build-1.txt",
+        "logs/schema-1.txt"
+      ],
+      "tests": 10,
+      "result": "Pass on interim schema5 implementation; final-1 source snapshot preserves this implementation."
+    },
+    {
+      "logs": [
+        "logs/build-2.txt",
+        "logs/schema-2.txt"
+      ],
+      "tests": 12,
+      "result": "Pass after backup/manifest reproof at activation. This intermediate source was not separately sealed; no final-source attribution."
+    },
+    {
+      "logs": [
+        "logs/build-3.txt",
+        "logs/schema-3.txt"
+      ],
+      "tests": 12,
+      "result": "Pass on final-2 source after explicit read-only future-version probe and detailed migration receipts."
+    }
+  ],
+  "broadRuns": [
+    {
+      "gates": "gates-final-1.json",
+      "source": "source-final-1.json",
+      "result": "All18 gates pass on interim source, superseded by final-2."
+    },
+    {
+      "gates": "gates-final-2.json",
+      "source": "source-final-2.json",
+      "result": "Final target; results recorded per gate."
+    }
+  ],
+  "preservation": "No failed baseline, review input or intermediate log was overwritten. Deliberate CAPACITY, corrupt-copy and SIGKILL injections are passing recovery tests, not concealed product failures.",
+  "measurement": "No new resource or timing qualification was attempted. I-R03 correctness builds/tests began after reviewer measurement END. Some interim and final correctness gates overlap; no exclusive-host claim."
+}

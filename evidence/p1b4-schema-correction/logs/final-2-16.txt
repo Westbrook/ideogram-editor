@@ -1,0 +1,6 @@
+valid-unknown-icc-before.png rejected
+valid-unknown-icc-after.png rejected
+orientation-6-after.png rejected
+trns-rgba.png rejected
+srgb-bad-size.png rejected
+idat-trailing-data.png accepted

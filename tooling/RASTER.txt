@@ -122,6 +122,29 @@ Schema4 additively introduces raster preparation/review journals. Before migrati
 it verifies/fsyncs a complete schema3 backup, records per-table digests and retains
 all previous roots/receipts/backups. Tests build the actual approved e8b9f1a code,
 seed schema3, compare all old tables, and reopen its backup using the old code.
+Schema5 explicitly versions durable pending-approval semantics. Both dfa383d and
+7388d1e refuse a schema5 root before replay/scheduling/epoch/domain writes. Before
+activation, every existing schema4 database is copied with VACUUM INTO, checked
+for integrity, exact schema and all table digests, fsynced and SHA256-sealed.
+The retained schema4-backup-*.sqlite.manifest.json names the exact compatible
+executable: dfa383d56d21bc9c7bb40248db8a503fe33e6e46 when no pending approval is
+present, or 7388d1e625a6ac2c563bc64cca6318d264649acc when one is present. The latter
+copy is NOT compatible with dfa383d. No pending request is erased or rewritten
+to manufacture rollback. Migration receipt and user_version5 activate together;
+fresh empty roots need no prior-data copy. Existing backups remain untouched.
+Rollback means copying the named database and its retained objects/staging/uploads
+directories into a separate owner-only root and using the named executable.
+It is a prior-state copy, not a way to retain work accepted after migration. Keep
+the current root and every backup. Pending approvals retain original command,
+hash and operation identity, but old review authority expires on restart in both
+7388d1e rollback and schema5 recovery. Migration does not reconstruct codec bytes.
+Capacity/verification failures leave the old journal/version intact; failed or
+interrupted backup artifacts are retained, never described as verified. SIGKILL
+coverage spans backup creation, verification and transaction activation.
+Unknown future versions are inspected only for their version and refused before
+persistent DB settings/replay/epoch writes. Startup gives matching-executable or
+verified-backup recovery guidance; no lossy coercion or general future-schema
+domain reader/exporter is claimed. Do not manually lower the version number.
 Accepted events/projections/snapshots validate typed raster metadata and manifests.
 Inputs and outputs have private-file identity proofs checked again at acceptance;
 objects flush, rename on the same filesystem and directory-sync before reference

@@ -1,0 +1,21 @@
+Cloning into '/Users/westbrook/Documents/repos/ideogram-edit-verification/p1b4-schema-final-2/source'...
+done.
+HEAD is now at 7388d1e Validate PNG metadata and prove raster approval dependencies
+verify:raster 0
+typecheck 0
+build 0
+verify:vendor 0
+test:vendor 0
+test:raster 0
+test:assets 0
+test:protocol 0
+test:session 0
+test:store 0
+test:recovery 0
+test:raster:browser 0
+test:assets:volume 0
+test:store:volume 0
+test:consumer 0
+../probes/findings-v2.test.mjs 0
+../probes/controlled-v2.mjs 0
+../probes/safety-v2.mjs 0

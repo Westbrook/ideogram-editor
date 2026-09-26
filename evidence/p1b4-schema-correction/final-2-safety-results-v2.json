@@ -1,0 +1,141 @@
+{
+  "expiry": {
+    "read": 410,
+    "receipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "7ae6639e-ce52-4946-a074-2f37b3f9eb12",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "83",
+        "hash": "sha256:903e1f9b1e3d7cc9d4011a3d0bb14d42330c60032c0e9c535d6edc4c564e9fb9",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    }
+  },
+  "assetRasterRaces": [
+    {
+      "statuses": [
+        409,
+        202
+      ],
+      "winner": "FinalizeStaging",
+      "commandId": "2e90326b-c129-4a6a-b8df-0c299afc6757"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "FinalizeStaging",
+      "commandId": "cbe55342-ec79-406a-8b0a-487e7358537f"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "PrepareRaster",
+      "commandId": "884ef76e-9357-4fdd-8c2a-28339b4ae578"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "FinalizeStaging",
+      "commandId": "a982f53f-3351-495d-8797-0b1d54c44850"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "PrepareRaster",
+      "commandId": "b6746d44-0b6e-41e2-9000-53079fe14aac"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "FinalizeStaging",
+      "commandId": "7522a06a-dd6b-4db6-b7c2-f212480b8b7b"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "PrepareRaster",
+      "commandId": "079806b5-98cc-4bd0-bf60-6fc7b5b69099"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "FinalizeStaging",
+      "commandId": "48c12dc3-d049-442b-9618-a187545f550a"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "PrepareRaster",
+      "commandId": "abb0706b-ede4-4e41-a10b-0f27b8d295d5"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "FinalizeStaging",
+      "commandId": "34eda9b9-fca6-4532-93de-eb689c595961"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "PrepareRaster",
+      "commandId": "4a004089-ed31-486e-9b0c-d26250f7922b"
+    },
+    {
+      "statuses": [
+        202,
+        409
+      ],
+      "winner": "FinalizeStaging",
+      "commandId": "10eab0e5-a04a-4176-9ea8-ee563c6500e5"
+    }
+  ],
+  "missingPixelsApproval": {
+    "kind": "receipt",
+    "protocolVersion": 1,
+    "receipt": {
+      "code": "MISSING_ASSET",
+      "commandId": "145e9b0c-5c00-4f2e-9459-ed26c7a9e4a6",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "87",
+        "hash": "sha256:aa57c0d549ad70dbde42123ce390278862f43de0cea39306342a510b9699c03c",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "rejectionDetails": {
+      "kind": "inline",
+      "value": {
+        "issues": [
+          {
+            "code": "RASTER_DEPENDENCY_MISSING",
+            "path": "command.body"
+          }
+        ],
+        "kind": "fields"
+      }
+    }
+  }
+}

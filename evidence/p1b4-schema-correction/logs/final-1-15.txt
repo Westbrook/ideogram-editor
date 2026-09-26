@@ -1,0 +1,13 @@
+✔ I-R01 malformed input must be rejected: valid-unknown-icc-after.png (672.275542ms)
+✔ I-R01 malformed input must be rejected: orientation-6-after.png (544.451125ms)
+✔ I-R01 malformed input must be rejected: trns-rgba.png (630.632625ms)
+✔ I-R01 malformed input must be rejected: srgb-bad-size.png (518.732792ms)
+✔ I-R02 approval must refuse missing canonical pixels after review (632.558375ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3049.613458

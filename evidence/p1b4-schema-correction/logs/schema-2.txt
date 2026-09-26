@@ -1,0 +1,20 @@
+✔ schema5 preserves dfa383d compatible schema4 and names an actually usable rollback executable (2133.276084ms)
+✔ schema5 preserves 7388d1e pending approval and names an actually usable rollback executable (1597.574584ms)
+✔ unknown future storage is inspected without mutation and returns explicit recovery guidance (730.46125ms)
+✔ schema5 capacity failure retains schema4 and every request, then retries safely (1014.062417ms)
+✔ backup corruption fails verification before activation, retains evidence, and retries without changing requests (949.883334ms)
+✔ activation rechecks the verified database backup before publishing schema5 (909.652416ms)
+✔ activation rechecks the verified manifest backup before publishing schema5 (1045.1285ms)
+✔ SIGKILL approval-schema-before-backup preserves pending approval and restarts exactly (948.24475ms)
+✔ SIGKILL approval-schema-backup-written preserves pending approval and restarts exactly (1058.052875ms)
+✔ SIGKILL approval-schema-backup-verified preserves pending approval and restarts exactly (1083.620625ms)
+✔ SIGKILL approval-schema-before-activation preserves pending approval and restarts exactly (1053.448208ms)
+✔ SIGKILL approval-schema-after-activation preserves pending approval and restarts exactly (1049.358625ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13643.696

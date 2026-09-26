@@ -1,0 +1,20 @@
+{
+  "downgrade-results.json": "4aff41d0aa5ca3e87c4771e78c27a13bb6dc931a33d381d38b643c4058e5da57",
+  "logs/downgrade-gate.txt": "9aef442e22b7aa32c4ca1210734ef6b01473b366d73d4158458e8206cdad0a4c",
+  "approval-proof-results.json": "6567366a5be0ae53e33aa893ad1fca88dc540cf278b451d446a6b1a72fd34cd1",
+  "controlled-results-v2.json": "70aa5b962309568a92963d8aff8776fbbe66cc1cc3c69c49db928b532aa9cac8",
+  "safety-results-v2.json": "f8bc1ed400e720d03b6de97a151cbbedfffa5a9542efd138d2338763bbc430ec",
+  "pixel-results.json": "922e2f816b3e54173b959aaa13531aab94b966e75e8c36071f97c296837556cd",
+  "valid-png-results.json": "543a5b073c660385a1c5640d5ec4d4540b3fd361b9af453dee7eeb2f24400953",
+  "valid-png/manifest.json": "a4530a0ea9f6006fb5584a94c1753ec391d178eb1c45bcb03fc29f80f9a3cdf6",
+  "admission-results.json": "135cef2292585d79dc37c312b4e4c3aba23abf68e44f621ee44e47bc40615712",
+  "resource-results.json": "757d57c4634c08620a46905ea2599e6e85984d21c955b6e409ff4852f140468d",
+  "resource-reopen-results.json": "6db30693965f9ca9a2e7e573a1e8e4ee4ea3966befa22504c28f912f42327db5",
+  "contention-independent.json": "03415726adc29e08871be1203a3cb70825a34216e87510d1e21998a91cc09e1d",
+  "measurement-window.json": "7eaa4592fea82013e37bd890f2b9ea4b9c56a8a8afea1798e73489dc410985c7",
+  "identity-results.json": "08987ae387a8195120c990b7f177d1c25edde8a7ff33f10f468d51c232c8dc20",
+  "preflight.json": "91204d747972a32a97488cf5bc08c42722951b1de26f0f0cb0a2d64bf9bce3b9",
+  "gate-results.json": "d47878777a5928366ef62e95c8f7c7dab3074dbdd6af0a89f214d86327c05799",
+  "independent-results.json": "1be78266f16e353ca923bc7c57f7b445261bd2d3fe68699791a5d86abdd9d01f",
+  "preservation-final.json": "cb10ef6da1eeada49b1dfece5e7145eb5bd12afb71cfff64870fecad326c6fb8"
+}
