@@ -1,0 +1,216 @@
+{
+  "run": "bc2d7b3a-75e7-4120-8c6e-3d10b760086d",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "bc2d7b3a-75e7-4120-8c6e-3d10b760086d",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-GQ0ot9",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:49688",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-GQ0ot9"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:49688",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:49688"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:49688",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "owned-blob",
+      "origin": "http://127.0.0.1:49688",
+      "resourceType": "image"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:49762",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-GQ0ot9"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "ie_session",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict"
+        }
+      ]
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:49762",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 1
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:49762"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:49762",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:49831",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-GQ0ot9"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "ie_session",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict"
+        }
+      ]
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:49831",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 1
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:49831"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:49831",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:49688",
+        "http://127.0.0.1:49762",
+        "http://127.0.0.1:49831"
+      ],
+      "visited": [
+        "http://127.0.0.1:49688",
+        "http://127.0.0.1:49762",
+        "http://127.0.0.1:49831"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "ie_session",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict"
+        }
+      ]
+    },
+    {
+      "phase": "public-reset",
+      "resetCalls": 1
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:49688",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:49762",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:49831",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "post-reset-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ]
+}

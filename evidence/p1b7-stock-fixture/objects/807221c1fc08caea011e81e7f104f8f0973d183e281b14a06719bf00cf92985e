@@ -1,0 +1,35 @@
+from pathlib import Path
+import json,hashlib,shutil,re,subprocess,datetime
+repo=Path('/Users/westbrook/Documents/repos/ideogram-edit');ext=repo.parent/'ideogram-edit-verification';base=repo/'evidence/p1b7-stock-fixture';base.mkdir(exist_ok=False);(base/'objects').mkdir()
+sha=lambda b:hashlib.sha256(b).hexdigest();entries=[]
+def add(logical,p,kind):
+ b=p.read_bytes();h=sha(b);target=base/'objects'/h
+ if not target.exists():target.write_bytes(b)
+ entries.append({'logicalPath':logical,'object':'objects/'+h,'sha256':h,'bytes':len(b),'kind':kind})
+for folder in ['stock-playwright-consumption','stock-reset-author','stock-blob-lifetime-author']:
+ for p in sorted((ext/folder).rglob('*')):
+  if not p.is_file():continue
+  rel=p.relative_to(ext/folder).as_posix()
+  if folder=='stock-reset-author' and (rel.startswith('33-source-build/dist/') or rel=='package-evidence.py'):continue
+  kind='archived-verification-code' if p.suffix in ['.ts','.mjs','.py'] else 'runtime-observation'
+  if folder=='stock-playwright-consumption' and p.suffix=='.md':kind='primary-reference'
+  add(folder+'/'+rel,p,kind)
+for rel in json.loads((ext/'stock-reset-author/33-source-build/BUILD.json').read_text()):add('build/'+rel,ext/'stock-reset-author/33-source-build'/rel,'emitted-build')
+prior=ext/'4fe15d1-independent';selected=['SHA256SUMS','VERDICT.txt','REVERIFY.txt','independent-storage.mjs','independent-storage.json','independent-storage.log.txt']
+idx=dict((l.split('  ',1)[1],l.split('  ',1)[0]) for l in (prior/'SHA256SUMS').read_text().splitlines())
+for name in selected:
+ p=prior/name
+ if name!='SHA256SUMS':assert sha(p.read_bytes())==idx[name]
+ add('prior-4fe/'+name,p,'historical-rejected-evidence')
+add('prior-4fe/closing-receipt.json',ext/'4fe15d1-independent-seal-receipt.json','historical-rejected-evidence')
+code=json.loads((ext/'stock-reset-author/33-source-build/CODE-INPUTS.json').read_text());(base/'CODE-INPUTS.json').write_text(json.dumps(code,indent=2)+'\n')
+(base/'ARTIFACT-MAPPING.json').write_text(json.dumps({'format':'content-addressed exact copies; code inputs separate from observed browser metadata; no redaction needed in selected files','entries':entries},indent=2)+'\n')
+patterns={'pairing-fragment':rb'#pairing=[A-Za-z0-9_-]{20,}','session-cookie':rb'ie_session=[A-Za-z0-9_-]{25,}','authorization':rb'Bearer [A-Za-z0-9_.-]{20,}','session-json':rb'"(?:csrf|csrfToken|sessionToken|pairingToken)"\s*:\s*"[^"\s]{20,}"'}
+found=[]
+for e in entries:
+ b=(base/e['object']).read_bytes()
+ for name,pattern in patterns.items():
+  if re.search(pattern,b):found.append({'logicalPath':e['logicalPath'],'rule':name})
+(base/'CREDENTIAL-SCAN.json').write_text(json.dumps({'at':datetime.datetime.now(datetime.UTC).isoformat(),'rules':list(patterns),'actualLookingValues':found,'limits':'Targeted secret pattern scan plus known safe source/metadata review; no raw private server roots/profiles/pairing files/cookie values copied. Synthetic marker bytes and full synthetic project downloads deliberately included.'},indent=2)+'\n');assert not found,found
+(base/'SOURCE-DIFF.patch').write_bytes(subprocess.check_output(['git','diff','4fe15d1ea86dab66306f85bfd1119b352d154bff','351b2c692ff8fc404751ab2193d8ba0758ab1307','--','src','tests'],cwd=repo))
+print(json.dumps({'mappedFiles':len(entries),'uniqueObjects':len(list((base/'objects').iterdir())),'bytes':sum(p.stat().st_size for p in (base/'objects').iterdir()),'codeInputs':{k:len(code[k]) for k in ['runtimeSource','verificationCode']}}))

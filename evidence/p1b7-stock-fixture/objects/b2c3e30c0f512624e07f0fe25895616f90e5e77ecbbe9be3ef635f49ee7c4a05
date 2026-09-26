@@ -1,0 +1,9 @@
+import sys,subprocess,json,datetime,pathlib,os,hashlib
+root=pathlib.Path('/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-reset-author');out=root/sys.argv[1];out.mkdir(exist_ok=False)
+repo=pathlib.Path('/Users/westbrook/Documents/repos/ideogram-edit');engine=sys.argv[2]
+a=([str(repo/'.toolchain/bin/node'),str(repo/'node_modules/playwright/cli.js'),'test','--config','tests/editor/playwright.config.ts','--output',str(out/'browser'),*sys.argv[3:]] if engine!='command' else sys.argv[3:])
+env=dict(os.environ,EDITOR_BROWSER=engine,EDITOR_RECEIPT=str(out),PATH=str(repo/'.toolchain/bin')+':'+os.environ['PATH']);r={'argv':a,'cwd':str(repo),'browser':engine,'receipt':str(out),'start':datetime.datetime.now(datetime.UTC).isoformat(),'source':{}}
+for name in ['tests/editor/owned-opfs.ts','tests/editor/owned-opfs.spec.ts','tests/editor/portable.spec.ts','tests/editor/destination.spec.ts','tests/editor/error-monitor.ts','tests/editor/error-monitor.spec.ts','tests/editor/shutdown-console.ts','tests/editor/playwright.config.ts','src/state/destination.ts','src/protocol/sha256.ts']:
+ b=(repo/name).read_bytes();p=out/'source'/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b);r['source'][name]=hashlib.sha256(b).hexdigest()
+with (out/'log.txt').open('w') as f:x=subprocess.run(a,cwd=repo,env=env,stdout=f,stderr=subprocess.STDOUT)
+r.update(exit=x.returncode,end=datetime.datetime.now(datetime.UTC).isoformat());(out/'command.json').write_text(json.dumps(r,indent=2));print(json.dumps(r));print((out/'log.txt').read_text());sys.exit(x.returncode)

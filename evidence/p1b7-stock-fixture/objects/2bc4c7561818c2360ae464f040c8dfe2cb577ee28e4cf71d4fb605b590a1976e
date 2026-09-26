@@ -1,0 +1,153 @@
+{
+  "browserName": "firefox",
+  "results": [
+    {
+      "kind": "metadata",
+      "message": "DOWNLOAD_UNAVAILABLE",
+      "remaining": []
+    },
+    {
+      "kind": "corrupt",
+      "message": "DOWNLOAD_CORRUPT",
+      "remaining": []
+    },
+    {
+      "kind": "network",
+      "message": "CONTROLLED_NETWORK_CANCELLED",
+      "samePrimary": true,
+      "remaining": []
+    },
+    {
+      "kind": "collision",
+      "message": "DOWNLOAD_TEMPORARY_COLLISION",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "ie-download-00000000-0000-4000-8000-000000000000"
+      ]
+    },
+    {
+      "kind": "cancel",
+      "samePrimary": true,
+      "calls": 0,
+      "remaining": []
+    },
+    {
+      "kind": "selected-failure",
+      "samePrimary": true,
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "selected-controlled"
+      ]
+    },
+    {
+      "kind": "selected-success",
+      "status": "confirmed",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "selected-controlled"
+      ]
+    }
+  ],
+  "errors": [],
+  "domErrors": [],
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "6ec8e651-e8f7-4c94-9240-ca8893d5c116",
+      "profile": "firefox ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:50310",
+      "profile": "firefox ephemeral"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:50310",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:50310"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:50310"
+      ],
+      "visited": [
+        "http://127.0.0.1:50310"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "public-reset",
+      "resetCalls": 1
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:50310",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "post-reset-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ]
+}

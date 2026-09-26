@@ -1,0 +1,211 @@
+{
+  "run": "b90d17c1-10fa-4c1c-b613-3d8d4a98ca53",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "b90d17c1-10fa-4c1c-b613-3d8d4a98ca53",
+      "profile": "firefox ephemeral context",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:64144",
+      "profile": "firefox ephemeral context"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:64144",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:64144"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:64144",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:64190",
+      "profile": "firefox ephemeral context"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "ie_session",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict"
+        }
+      ]
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:64190",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 1
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:64190"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:64190",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:64228",
+      "profile": "firefox ephemeral context"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "ie_session",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict"
+        }
+      ]
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:64228",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 1
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:64228"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:64228",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:64144",
+        "http://127.0.0.1:64190",
+        "http://127.0.0.1:64228"
+      ],
+      "visited": [
+        "http://127.0.0.1:64144",
+        "http://127.0.0.1:64190",
+        "http://127.0.0.1:64228"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "ie_session",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict"
+        }
+      ]
+    },
+    {
+      "phase": "public-reset",
+      "resetCalls": 1
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:64144",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:64190",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:64228",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "post-reset-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ]
+}

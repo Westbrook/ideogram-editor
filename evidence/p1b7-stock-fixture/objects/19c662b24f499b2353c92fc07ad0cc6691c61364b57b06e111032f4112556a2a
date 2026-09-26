@@ -1,0 +1,510 @@
+{
+  "target": "4fe15d1ea86dab66306f85bfd1119b352d154bff",
+  "start": "2026-09-26T16:35:18.146Z",
+  "scope": "Independent native fixture controls; no timing or product-source changes.",
+  "cases": [
+    {
+      "label": "dirty origin refused before admission without changing foreign bytes",
+      "origin": "http://127.0.0.1:62219",
+      "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-QLLGEs",
+      "start": "2026-09-26T16:35:18.152Z",
+      "cleanup": [
+        {
+          "removed": true,
+          "absent": true
+        }
+      ],
+      "browser": "26.6",
+      "initial": [],
+      "created": {
+        "fileType": "FileSystemFileHandle",
+        "native": true,
+        "bytes": [
+          9,
+          0,
+          255,
+          18,
+          72
+        ]
+      },
+      "refusal": "Error: OPFS_DIRTY_ORIGIN",
+      "foreignAfter": {
+        "exists": true,
+        "bytes": [
+          9,
+          0,
+          255,
+          18,
+          72
+        ]
+      },
+      "dom": [],
+      "pass": true,
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "902d59d8-861e-41a9-a7e4-fe36b62b3abf",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-QLLGEs",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62219",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-QLLGEs"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62219",
+          "entries": [
+            {
+              "name": "independent-d38d3dc0-4fcf-4049-a9a7-9a2c43ac6e2f",
+              "kind": "file"
+            }
+          ],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "refused",
+          "origin": "http://127.0.0.1:62219",
+          "error": "Error: OPFS_DIRTY_ORIGIN"
+        }
+      ],
+      "end": "2026-09-26T16:35:19.284Z"
+    },
+    {
+      "label": "clean native success and workflow failure cleanup",
+      "origin": "http://127.0.0.1:62226",
+      "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-Ew9YTa",
+      "start": "2026-09-26T16:35:19.286Z",
+      "cleanup": [],
+      "browser": "26.6",
+      "initial": [],
+      "success": {
+        "fileType": "FileSystemFileHandle",
+        "native": true,
+        "bytes": [
+          9,
+          0,
+          255,
+          18,
+          72
+        ]
+      },
+      "failure": {
+        "fileType": "FileSystemFileHandle",
+        "native": true,
+        "bytes": [
+          9,
+          0,
+          255,
+          18,
+          72
+        ]
+      },
+      "reused": "Error: OPFS_ORIGIN_REUSED",
+      "dom": [],
+      "pass": true,
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "adcdb924-f0dc-4627-a7e4-6541b45398f9",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-Ew9YTa",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62226",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-Ew9YTa"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62226",
+          "entries": [],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62226"
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "creating",
+          "name": "independent-2e2ba1bd-1812-4600-9af4-38c80f6afa79"
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "created",
+          "name": "independent-2e2ba1bd-1812-4600-9af4-38c80f6afa79"
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "removed",
+          "name": "independent-2e2ba1bd-1812-4600-9af4-38c80f6afa79",
+          "exactHandle": true,
+          "absent": true
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "cleanup",
+          "remaining": []
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "creating",
+          "name": "independent-0a3e568d-0602-42d8-aa2a-c107abf14859"
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "created",
+          "name": "independent-0a3e568d-0602-42d8-aa2a-c107abf14859"
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "removed",
+          "name": "independent-0a3e568d-0602-42d8-aa2a-c107abf14859",
+          "exactHandle": true,
+          "absent": true
+        },
+        {
+          "origin": "http://127.0.0.1:62226",
+          "phase": "cleanup",
+          "remaining": []
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62226",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-Ew9YTa"
+        }
+      ],
+      "end": "2026-09-26T16:35:20.219Z"
+    },
+    {
+      "label": "late foreign residue preserved and cleanup rejected",
+      "origin": "http://127.0.0.1:62233",
+      "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-oeOd0h",
+      "start": "2026-09-26T16:35:20.219Z",
+      "cleanup": [
+        {
+          "removed": true,
+          "absent": true
+        }
+      ],
+      "browser": "26.6",
+      "initial": [],
+      "refusal": "Error: page.evaluate: Error: OPFS_UNKNOWN_REMAINS",
+      "ownedAfter": {
+        "exists": false
+      },
+      "foreignAfter": {
+        "exists": true,
+        "bytes": [
+          9,
+          0,
+          255,
+          18,
+          72
+        ]
+      },
+      "dom": [],
+      "pass": true,
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "6ebbf96b-4f52-45d5-bc51-60a5003808a6",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-oeOd0h",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62233",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-oeOd0h"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62233",
+          "entries": [],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62233"
+        },
+        {
+          "origin": "http://127.0.0.1:62233",
+          "phase": "creating",
+          "name": "independent-9bfcc375-5d53-4266-a0a5-9e78f853d075"
+        },
+        {
+          "origin": "http://127.0.0.1:62233",
+          "phase": "created",
+          "name": "independent-9bfcc375-5d53-4266-a0a5-9e78f853d075"
+        },
+        {
+          "origin": "http://127.0.0.1:62233",
+          "phase": "removed",
+          "name": "independent-9bfcc375-5d53-4266-a0a5-9e78f853d075",
+          "exactHandle": true,
+          "absent": true
+        },
+        {
+          "origin": "http://127.0.0.1:62233",
+          "phase": "cleanup",
+          "remaining": [
+            {
+              "name": "independent-ba72e39f-b4d0-4d1e-8c1f-c4b5b1d86035",
+              "kind": "file"
+            }
+          ]
+        },
+        {
+          "phase": "cleanup-incomplete",
+          "origin": "http://127.0.0.1:62233",
+          "error": "Error: page.evaluate: Error: OPFS_UNKNOWN_REMAINS"
+        },
+        {
+          "origin": "http://127.0.0.1:62233",
+          "phase": "cleanup",
+          "remaining": []
+        }
+      ],
+      "end": "2026-09-26T16:35:21.159Z"
+    },
+    {
+      "label": "lost document handle refuses cleanup and final verification",
+      "origin": "http://127.0.0.1:62239",
+      "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-KUtuHX",
+      "start": "2026-09-26T16:35:21.159Z",
+      "cleanup": [
+        {
+          "removed": true,
+          "absent": true
+        }
+      ],
+      "browser": "26.6",
+      "initial": [],
+      "refusal": "Error: page.evaluate: Error: OPFS_UNKNOWN_REMAINS",
+      "finalRefusal": "Error: OPFS_CLEANUP_INCOMPLETE: [[\"http://127.0.0.1:62239/independent-919bb531-6143-4009-ae65-5b0e1a6e073f\",\"created\"]]",
+      "preserved": {
+        "exists": true,
+        "bytes": [
+          9,
+          0,
+          255,
+          18,
+          72
+        ]
+      },
+      "dom": [],
+      "pass": true,
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "f5eb0d63-94a5-4063-90d9-638ddc81b4bd",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-KUtuHX",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62239",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-KUtuHX"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62239",
+          "entries": [],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62239"
+        },
+        {
+          "origin": "http://127.0.0.1:62239",
+          "phase": "creating",
+          "name": "independent-919bb531-6143-4009-ae65-5b0e1a6e073f"
+        },
+        {
+          "origin": "http://127.0.0.1:62239",
+          "phase": "created",
+          "name": "independent-919bb531-6143-4009-ae65-5b0e1a6e073f"
+        },
+        {
+          "origin": "http://127.0.0.1:62239",
+          "phase": "cleanup",
+          "remaining": [
+            {
+              "name": "independent-919bb531-6143-4009-ae65-5b0e1a6e073f",
+              "kind": "file"
+            }
+          ]
+        },
+        {
+          "phase": "cleanup-incomplete",
+          "origin": "http://127.0.0.1:62239",
+          "error": "Error: page.evaluate: Error: OPFS_UNKNOWN_REMAINS"
+        }
+      ],
+      "end": "2026-09-26T16:35:22.136Z"
+    },
+    {
+      "label": "replaced native handle must be refused and replacement preserved",
+      "origin": "http://127.0.0.1:62246",
+      "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-DSFPRq",
+      "start": "2026-09-26T16:35:22.136Z",
+      "cleanup": [
+        {
+          "name": "independent-b67d3816-76b0-4bcc-9806-5dd65f67f0e0",
+          "alreadyAbsent": true
+        }
+      ],
+      "browser": "26.6",
+      "initial": [],
+      "refusal": null,
+      "replacementAfter": {
+        "exists": false
+      },
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Cleanup accepted a replaced native handle\n    at file:///Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent/independent-storage.mjs:28:427\n    at async scenario (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent/independent-storage.mjs:18:476)\n    at async file:///Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent/independent-storage.mjs:28:1",
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "19a74275-259e-49e7-8c15-320e7eafed86",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-DSFPRq",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62246",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-DSFPRq"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62246",
+          "entries": [],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62246"
+        },
+        {
+          "origin": "http://127.0.0.1:62246",
+          "phase": "creating",
+          "name": "independent-b67d3816-76b0-4bcc-9806-5dd65f67f0e0"
+        },
+        {
+          "origin": "http://127.0.0.1:62246",
+          "phase": "created",
+          "name": "independent-b67d3816-76b0-4bcc-9806-5dd65f67f0e0"
+        },
+        {
+          "origin": "http://127.0.0.1:62246",
+          "phase": "removed",
+          "name": "independent-b67d3816-76b0-4bcc-9806-5dd65f67f0e0",
+          "exactHandle": true,
+          "absent": true
+        },
+        {
+          "origin": "http://127.0.0.1:62246",
+          "phase": "cleanup",
+          "remaining": []
+        }
+      ],
+      "end": "2026-09-26T16:35:23.038Z"
+    },
+    {
+      "label": "creation race must not claim or remove a foreign native file",
+      "origin": "http://127.0.0.1:62252",
+      "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-bj5uL4",
+      "start": "2026-09-26T16:35:23.039Z",
+      "cleanup": [
+        {
+          "name": "independent-608878bb-7264-4166-bb25-8d7aaa5f4420",
+          "alreadyAbsent": true
+        }
+      ],
+      "browser": "26.6",
+      "initial": [],
+      "foreignCreated": {
+        "fileType": "FileSystemFileHandle",
+        "native": true,
+        "bytes": [
+          9,
+          0,
+          255,
+          18,
+          72
+        ]
+      },
+      "createOutcome": {
+        "returned": true
+      },
+      "cleanupRefusal": null,
+      "foreignAfter": {
+        "exists": false
+      },
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Foreign file created during native creation boundary must survive fixture cleanup\n+ actual - expected\n\n  {\n+   exists: false\n-   bytes: [\n-     9,\n-     0,\n-     255,\n-     18,\n-     72\n-   ],\n-   exists: true\n  }\n\n    at file:///Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent/independent-storage.mjs:29:1025\n    at async scenario (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent/independent-storage.mjs:18:476)\n    at async file:///Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent/independent-storage.mjs:29:1",
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "1988cf4d-e901-48d9-ba50-03f21d4615a5",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-bj5uL4",
+          "initialCookieCount": 0
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62252",
+          "profile": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/4fe-independent-bj5uL4"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62252",
+          "entries": [],
+          "localStorage": 0,
+          "cookies": 0,
+          "indexedDB": []
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62252"
+        },
+        {
+          "origin": "http://127.0.0.1:62252",
+          "phase": "creating",
+          "name": "independent-608878bb-7264-4166-bb25-8d7aaa5f4420"
+        },
+        {
+          "origin": "http://127.0.0.1:62252",
+          "phase": "created",
+          "name": "independent-608878bb-7264-4166-bb25-8d7aaa5f4420"
+        },
+        {
+          "origin": "http://127.0.0.1:62252",
+          "phase": "removed",
+          "name": "independent-608878bb-7264-4166-bb25-8d7aaa5f4420",
+          "exactHandle": true,
+          "absent": true
+        },
+        {
+          "origin": "http://127.0.0.1:62252",
+          "phase": "cleanup",
+          "remaining": []
+        }
+      ],
+      "end": "2026-09-26T16:35:23.938Z"
+    }
+  ],
+  "end": "2026-09-26T16:35:23.938Z",
+  "pass": false
+}

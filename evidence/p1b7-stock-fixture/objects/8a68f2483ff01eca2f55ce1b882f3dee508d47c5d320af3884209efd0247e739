@@ -1,0 +1,27 @@
+{
+  "browserName": "firefox",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "32ee33d0-0358-42b2-9533-efd090ab7813",
+      "profile": "firefox ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [],
+      "visited": [],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_CONTEXT_CLOSED",
+      "reasons": []
+    }
+  ]
+}

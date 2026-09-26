@@ -1,0 +1,45 @@
+{
+  "scope": "Small exploratory source/result identity list, recorded after the one invocation; not a qualification packet",
+  "files": [
+    {
+      "path": "consumption.spec.ts",
+      "sha256": "9adba8c1158498b1a929a9458de5cd0fe5cdaec5064a02f0595662bb4417aa73"
+    },
+    {
+      "path": "playwright.config.ts",
+      "sha256": "acc59ac6fb638d851d00581b9da8ea4b2500dff82607ab9276abbff2eb494685"
+    },
+    {
+      "path": "observations.json",
+      "sha256": "41e5492055de23a092257e83021db58a3d05a8cea8f55323193a21590c154431"
+    },
+    {
+      "path": "command.json",
+      "sha256": "5791b10ff1fdb201b23f62815a2b0e48b4e8e68464988b9382269e491bed6718"
+    },
+    {
+      "path": "run.log",
+      "sha256": "6a7ba947bcfb3c4867dd81e3c94b5f6907fadb1456af968652263c4993c0af1a"
+    },
+    {
+      "path": "browser.json",
+      "sha256": "4c06401ca9fbf1724b437594d41ddd952c2686b61d508342b3c445be2239f91f"
+    },
+    {
+      "path": "controlled.bin",
+      "sha256": "8a657160a3b39bd3a9595b9e98d4e3068458155e4c503e71c9f1b02cdf85435d"
+    },
+    {
+      "path": "class-browsercontext.md",
+      "sha256": "56ac1a529995d36ac0920323760c9f9945b500c99f58f7bdafc7de4c662cb2f4"
+    },
+    {
+      "path": "class-browsertype.md",
+      "sha256": "cc78bd8d3bbeb1775cb038f9d3e8624c8a1647bd42968dbe8d75a01785b508fb"
+    },
+    {
+      "path": "FINDINGS.txt",
+      "sha256": "e4d19521dc8f6006bd7e204bd8cdc72aecdd41a6f1c0e6a2ec4ea7952c50f79f"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "run": "a19bd4c2-0fda-4063-a756-57d6b856bb61",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "a19bd4c2-0fda-4063-a756-57d6b856bb61",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-MV6IiF",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:60956",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-webkit-e1-MV6IiF"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:60956",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:60956"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:60956",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNEXPECTED_NETWORK_PROTOCOL"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:60956"
+      ],
+      "visited": [
+        "http://127.0.0.1:60956"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNEXPECTED_NETWORK_PROTOCOL"
+      ]
+    }
+  ]
+}

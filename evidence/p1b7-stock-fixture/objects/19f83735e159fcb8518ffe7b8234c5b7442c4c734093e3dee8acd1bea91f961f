@@ -1,0 +1,57 @@
+
+Running 1 test using 1 worker
+
+(node:68143) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/portable.spec.ts:37:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (13.0s)
+
+
+  1) tests/editor/portable.spec.ts:37:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Apply reviewed result', exact: true })
+        - locator resolved to <button disabled tabindex="0" type="button" part="control" class="en-button" aria-busy="false" data-size="medium" data-variant="primary">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        20 × waiting for element to be visible, enabled and stable
+           - element is not enabled
+         - retrying click action
+           - waiting 500ms
+
+
+      32 | }});
+      33 | const accepted=(page:Page,type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
+    > 34 | const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
+         |                                                                                 ^
+      35 | const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+      36 | async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();await mkdir(receipt,{recursive:true});await copyFile(path,join(receipt,basename(path)));}
+      37 | test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context,browserName,e1Errors,e1Storage})=>{
+        at click (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:34:81)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:46:204
+
+    Error: OPFS_RESET_REFUSED
+
+       at owned-opfs.ts:95
+
+      93 |    try{
+      94 |     if(closed)throw Error('OPFS_CONTEXT_CLOSED');
+    > 95 |     if(reasons.length||[...visited].some(o=>!admitted.has(o)))throw Error('OPFS_RESET_REFUSED');
+         |                                                                     ^
+      96 |     phase='closing';await Promise.all(context.pages().map(p=>p.close()));await auditCookies();
+      97 |     if(reasons.length)throw Error('OPFS_RESET_REFUSED');
+      98 |     if(context.pages().length||workers.size||context.serviceWorkers().length)throw Error('OPFS_WRITERS_NOT_QUIESCENT');
+        at Object.cleanup (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/owned-opfs.ts:95:69)
+        at Object.e1Storage (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:31:52)
+
+    Error Context: ../ideogram-edit-verification/stock-reset-author/07-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md
+
+  1 failed
+    tests/editor/portable.spec.ts:37:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 

@@ -1,0 +1,49 @@
+import {chromium,firefox,webkit} from '/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/index.mjs';
+import {createServer} from 'node:http';
+import {mkdtemp,realpath,rm,writeFile} from 'node:fs/promises';
+import {createReadStream} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomUUID,createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const output=new URL('.',import.meta.url).pathname;
+const record={start:new Date().toISOString(),version:2,candidate:'native stream -> writable close -> getFile -> createObjectURL -> await removeEntry -> native click -> download/saveAs -> exact streaming hash; unchanged ordering and 5000ms download bound',scope:'Native lifetime functionality only; no production success-path change or timing qualification',cases:[]};
+const persist=()=>writeFile(join(output,'observations.json'),JSON.stringify(record,null,2));
+const handled=p=>p.then(value=>({ok:true,value}),error=>({ok:false,error:String(error)}));
+const chunk=Uint8Array.from({length:32768},(_,i)=>i%251),expected=createHash('sha256');for(let i=0;i<32;i++)expected.update(chunk);const expectedHash=expected.digest('hex');
+await persist();
+for(const [name,type] of Object.entries({chromium,firefox,webkit})){
+ const c={engine:name,start:new Date().toISOString(),expectedBytes:1048576,expectedHash,stages:[],cleanup:[]};record.cases.push(c);await persist();
+ async function stage(name,fn){const s={name,start:new Date().toISOString()};c.stages.push(s);await persist();try{const value=await fn();s.outcome='PASS';return value;}catch(e){s.outcome='FAIL';s.error=String(e);throw e;}finally{s.end=new Date().toISOString();await persist();}}
+ const server=createServer((_,r)=>r.end('<!doctype html><title>Native file lifetime</title><button>Download controlled file</button>'));await new Promise(r=>server.listen(0,'127.0.0.1',r));c.origin='http://127.0.0.1:'+server.address().port;
+ let browser,context,profile,page,created=false,admitted=false;const fileName='lifetime-'+randomUUID();c.file=fileName;
+ try{
+  await stage('launch',async()=>{if(name==='webkit'){profile=await mkdtemp(join(await realpath(tmpdir()),'ie-native-lifetime-v2-'));c.profile=profile;context=await type.launchPersistentContext(profile);}else{browser=await type.launch();context=await browser.newContext();}page=context.pages()[0]??await context.newPage();const errors=[];page.on('pageerror',e=>errors.push({name:e.name,message:e.message}));c.errors=errors;});
+  await stage('clean-native-admission',async()=>{await page.goto(c.origin);c.initial=await page.evaluate(async()=>{const root=await navigator.storage.getDirectory(),names=[];for await(const [n] of root.entries())names.push(n);return names;});assert.deepEqual(c.initial,[]);assert.deepEqual(await context.cookies(),[]);admitted=true;});
+  await stage('native-create',async()=>{await page.evaluate(async fileName=>{const root=await navigator.storage.getDirectory(),handle=await root.getFileHandle(fileName,{create:true});window.ownedRoot=root;window.ownedHandle=handle;},fileName);created=true;});
+  await stage('stream-close-file-objectURL',async()=>{await page.evaluate(async()=>{const w=await window.ownedHandle.createWritable(),chunk=Uint8Array.from({length:32768},(_,i)=>i%251);for(let i=0;i<32;i++)await w.write(chunk);await w.close();const file=await window.ownedHandle.getFile();window.ownedURL=URL.createObjectURL(file);});});
+  await stage('unlink-before-click',async()=>{await page.evaluate(async fileName=>{await window.ownedRoot.removeEntry(fileName);document.querySelector('button').onclick=()=>{const a=document.createElement('a');a.href=window.ownedURL;a.download='native.bin';a.click();};},fileName);created=false;c.unlinkedBeforeClick=true;});
+  const download=await stage('native-click-and-download',async()=>{
+   const downloading=handled(page.waitForEvent('download',{timeout:5000}));
+   const clicking=handled(page.getByRole('button',{name:'Download controlled file'}).click({timeout:5000}));
+   const [clickResult,downloadResult]=await Promise.all([clicking,downloading]);
+   c.click={ok:clickResult.ok,error:clickResult.error};c.download={ok:downloadResult.ok,error:downloadResult.error};
+   if(!clickResult.ok||!downloadResult.ok)throw Error('Native click/download failed; see independent outcomes');return downloadResult.value;
+  });
+  await stage('saveAs-and-exact-hash',async()=>{
+   const path=join(output,name+'.bin'),saving=handled(download.saveAs(path));let timer;
+   const result=await Promise.race([saving,new Promise(resolve=>{timer=setTimeout(()=>resolve({ok:false,error:'saveAs exceeded 5000ms'}),5000);})]);clearTimeout(timer);
+   if(!result.ok){c.saveAs=result;await download.cancel();c.cancelledSaveSettlement=await saving;throw Error(result.error);}
+   const hash=createHash('sha256');let length=0;for await(const data of createReadStream(path)){length+=data.length;hash.update(data);}c.actual={bytes:length,hash:hash.digest('hex')};assert.equal(length,c.expectedBytes);assert.equal(c.actual.hash,expectedHash);
+  });
+  assert.deepEqual(c.errors,[]);c.pass=true;
+ }catch(e){c.pass=false;c.error=String(e);await persist();}
+ finally{
+  async function cleanup(name,fn){const r={name,start:new Date().toISOString()};c.cleanup.push(r);try{await fn();r.outcome='PASS';}catch(e){r.outcome='INCOMPLETE';r.error=String(e);c.pass=false;}r.end=new Date().toISOString();await persist();return r.outcome==='PASS';}
+  await cleanup('owned-entry-and-native-absence',async()=>{if(!admitted||!page||page.isClosed())throw Error('Native cleanup unproved; no unknown storage touched');await page.evaluate(async({fileName,created})=>{if(window.ownedURL)URL.revokeObjectURL(window.ownedURL);if(created&&window.ownedRoot)await window.ownedRoot.removeEntry(fileName);},{fileName,created});c.remaining=await page.evaluate(async()=>{const out=[];for await(const [n] of (await navigator.storage.getDirectory()).entries())out.push(n);return out;});assert.deepEqual(c.remaining,[]);});
+  const closed=await cleanup('context-and-browser-close',async()=>{await context?.close();await browser?.close();});
+  if(profile)await cleanup('owned-profile-directory',async()=>{if(!closed)throw Error('Browser shutdown incomplete; profile retained');await rm(profile,{recursive:true});});
+  await cleanup('owned-server-close',()=>new Promise(r=>server.close(r)));c.end=new Date().toISOString();await persist();
+ }
+}
+record.end=new Date().toISOString();record.pass=record.cases.every(x=>x.pass);await persist();console.log(JSON.stringify(record));if(!record.pass)process.exitCode=1;

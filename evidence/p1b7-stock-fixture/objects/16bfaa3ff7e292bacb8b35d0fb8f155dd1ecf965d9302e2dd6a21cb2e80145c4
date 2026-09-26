@@ -1,0 +1,67 @@
+{
+  "browserName": "webkit",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "8fb7006d-b6e7-46e6-a94d-251367caf5b5",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-OJ0sOC",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:63607",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-OJ0sOC"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:63607",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:63607"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNPLANNED_REQUEST: http://127.0.0.1:63608"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:63607"
+      ],
+      "visited": [
+        "http://127.0.0.1:63607",
+        "http://127.0.0.1:63608"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNPLANNED_REQUEST: http://127.0.0.1:63608"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "browserName": "webkit",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "e9dba265-750e-41d8-ae4d-7818589dc921",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-2RDBWa",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:63141",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-2RDBWa"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:63141",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:63141"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNPLANNED_REQUEST: http://127.0.0.1:63142"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNADMITTED_ORIGIN: http://127.0.0.1:63142"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:63141"
+      ],
+      "visited": [
+        "http://127.0.0.1:63141",
+        "http://127.0.0.1:63142"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNPLANNED_REQUEST: http://127.0.0.1:63142",
+        "UNADMITTED_ORIGIN: http://127.0.0.1:63142"
+      ]
+    }
+  ]
+}

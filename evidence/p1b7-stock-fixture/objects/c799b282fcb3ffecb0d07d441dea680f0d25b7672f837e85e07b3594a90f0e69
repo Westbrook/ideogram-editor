@@ -1,0 +1,165 @@
+{
+  "browserName": "chromium",
+  "results": [
+    {
+      "kind": "metadata",
+      "message": "DOWNLOAD_UNAVAILABLE",
+      "remaining": []
+    },
+    {
+      "kind": "corrupt",
+      "message": "DOWNLOAD_CORRUPT",
+      "remaining": []
+    },
+    {
+      "kind": "network",
+      "message": "CONTROLLED_NETWORK_CANCELLED",
+      "samePrimary": true,
+      "remaining": []
+    },
+    {
+      "kind": "collision",
+      "message": "DOWNLOAD_TEMPORARY_COLLISION",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "ie-download-00000000-0000-4000-8000-000000000000"
+      ]
+    },
+    {
+      "kind": "cancel",
+      "samePrimary": true,
+      "calls": 0,
+      "remaining": []
+    },
+    {
+      "kind": "selected-failure",
+      "samePrimary": true,
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "selected-controlled"
+      ]
+    },
+    {
+      "kind": "selected-success",
+      "status": "confirmed",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "selected-controlled"
+      ]
+    },
+    {
+      "kind": "cleanup-failure",
+      "message": "LOCKED_TRANSPORT_FAILED; download cleanup incomplete",
+      "samePrimary": true,
+      "primaryRetained": true,
+      "nativeCleanupError": true,
+      "attemptPresent": true,
+      "nativeEntries": [
+        "ie-download-111b2eca-e060-4cbb-a8b2-b78740ee0a92",
+        "ie-download-111b2eca-e060-4cbb-a8b2-b78740ee0a92.1.crswap"
+      ]
+    }
+  ],
+  "errors": [],
+  "domErrors": [],
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "cbf660fb-d9fa-4173-be5a-c69836d0ba39",
+      "profile": "chromium ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:50178",
+      "profile": "chromium ephemeral"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:50178",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:50178"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:50178"
+      ],
+      "visited": [
+        "http://127.0.0.1:50178"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "public-reset",
+      "resetCalls": 1
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:50178",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "post-reset-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ]
+}

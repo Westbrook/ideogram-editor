@@ -1,0 +1,44 @@
+Exact-target re-verification handoff
+
+Rejected target4fe15d1ea86dab66306f85bfd1119b352d154bff/sourceaa0abbcb8e4408fed072ae06e2c1be5bebb80b56/runtimeccdfab3bf9d9d8d84c9d2399b0364b55fd52f33eb2f615c58a559691209d1a9a.
+Current checkout /Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-checkout.
+Current external bundle /Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent becomes immutable at its closing seal. Never rerun into its outputs. Coordinator must release a bounded correction and assign an exact successor/new functional window. No new timing/profiling/resource campaign for a fixture-only correction.
+
+Blocking criterion / one existing record
+Spec3/task5656/292d and explicit accepted owned-origin contract require actual clean native storage before every origin/pairing, initial fresh full cookie jar, unavailable/dirty refusal without data read/deletion or port/profile retries, native product behavior, exact owned cleanup on success/failure, lost/replaced-handle/unknown-residue refusal and foreign preservation. UI439b owns this same fixture acceptance concern. No duplicate finding, no I-BR01/A-BR01 reopening or product/user-data-loss claim.
+
+Exact current independent reproduction
+Command, under pinned Node26.10.0/Playwright1.63.0/WebKit26.6 on macOS26.6.1:
+node /Users/westbrook/Documents/repos/ideogram-edit-verification/4fe15d1-independent/independent-storage.mjs
+DO NOT execute that command again against the sealed destination. It is the historical command, interval2026-09-26T16:35:17.995669–16:35:23.946247Z, exit1. Actual executable path/versions/hashes in identity-audit.json/browser-identity-reuse.json; test argv/cwd in commands.jsonl.
+Script imports exact checkout native ownedOPFS and recordDOMErrors, uses real pinned Playwright/native FileSystem handles, same-context controlled pre-observer creator page, one newly bound origin per case and explicit new persistent profile. It records relationships before controls. All data are synthetic bytes[9,0,255,18,72] at UUID names. No app code/native storage mocks. Controlled creator reads/removes only its own declared test files; no unknown store search.
+Cases1–4 PASS: dirty admission foreign preservation; native success and deliberate workflow-failure cleanup plus same-origin re-admission refusal; late different-name foreign residue preserved while cleanup rejects; navigation-lost handles cause cleanup and verify refusal, file left intact until controlled owner cleanup.
+Case5 FAIL, originhttp://127.0.0.1:62246: fixture creates native file; controlled pre-observer creator removes it then creates same-name replacement. Unchanged cleanup's native isSameEntry accepts it; fixture deletes replacement and records exactHandle:true/absent:true. No cleanup refusal. No scheduling hook needed for this case. Expected: replacement preserved and cleanup refuses ambiguous/replaced ownership. Native same-name equality is not proof of the promised creation identity.
+Case6 FAIL, originhttp://127.0.0.1:62252: external control wraps only recordOwnedOPFS delivery, calls original binding, then holds its creating response before native getFileHandle(create:true). Pre-observer native creator inserts exact name during that existing async gap; release lets original native create return the foreign file, and cleanup deletes it. Expected: foreign bytes remain and operation truthfully refuses ownership/cleanup. The controlled hold is a deterministic scheduler, not a product/source change or storage simulation. Actual native lookup/create/isSameEntry/remove all remain the target implementation.
+All exact names/profiles/case times, create outcome, replacementAfter/foreignAfter, ledgers and cleanup receipts are in independent-storage.json; original script and failed stdout are retained. The fixture's own ledger reports success in failing cases, so do not validate ownership merely by counting created/removed or final remaining[].
+
+Minimal acceptance-preserving correction
+Fail safely if native unique creation/continued exact ownership cannot be demonstrated. Preserve replacements and files arriving during create, without claiming that a separate absence check and create:true are atomic or that isSameEntry establishes stronger replacement identity than observed. Keep existing clean-origin/cookie/IDB/localStorage/native stream/download/hash/history/pixel/restart/no-provider assertions and error boundaries. Do not widen cleanup to unknown names/root, erase stores, silently recategorize foreign files, mock memory, weaken original controls or retry ports/profiles until green.
+The coordinator owns implementation choice and any explicit contract decision if native primitives cannot establish the existing promise. This review grants no waiver, scope amendment, author correction release or successor pin.
+
+Fresh successor command templates
+NEW_CHECKOUT and NEW_OUT are distinct newly assigned absolute paths. Prepend the pinned .toolchain/bin to PATH. Preserve every original output; use new labels for changed observers/adapters and explain changes.
+npm ci --no-audit --no-fund
+npm run typecheck
+npm run build
+npx tsc --ignoreConfig --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --strict --types node --skipLibCheck tests/editor/owned-opfs.ts tests/editor/owned-opfs.spec.ts tests/editor/portable.spec.ts
+python3 evidence/p1b7-owned-opfs/verify-evidence.py
+EDITOR_BROWSER=webkit EDITOR_RECEIPT=NEW_OUT/webkit npx playwright test --config tests/editor/playwright.config.ts --output NEW_OUT/webkit/browser
+EDITOR_BROWSER=chromium EDITOR_RECEIPT=NEW_OUT/chromium npx playwright test --config tests/editor/playwright.config.ts portable.spec.ts owned-opfs.spec.ts error-monitor.spec.ts --output NEW_OUT/chromium/browser
+EDITOR_BROWSER=firefox EDITOR_RECEIPT=NEW_OUT/firefox npx playwright test --config tests/editor/playwright.config.ts portable.spec.ts owned-opfs.spec.ts error-monitor.spec.ts --output NEW_OUT/firefox/browser
+node --test tests/editor/shutdown-console.test.mjs
+Copy independent-storage.mjs to NEW_OUT and retarget only its declared checkout imports/output path, preserving the original assertions, native calls, markers and scheduler boundary. Record both file hashes/diff before:
+node NEW_OUT/independent-storage.mjs
+If corrected fixture API requires an adapter, preserve original failed control untouched and use a separately versioned minimal adapter with explicit source/behavior mapping; do not silently weaken replacement/race preservation into a mere empty-root check.
+Verify actual new source-bound E1 ledgers before pairing at all three origins, full initial cookie jar, original native downloads and all strict errors through context closure. Preserve WebKit-only skip on other engines; shared controls must execute everywhere. Broaden functional gates only for actual changed scope/new concrete failures. No routine unchanged backend/rail/resource reruns and NO live timing in this fixture-only assignment.
+
+Source attribution and continuation
+Current all2954 Git/disk/archive files,100 runtime/99 verification inputs/61 fresh build bytes,103 package seals/92 mapped observations verified. Independent exact archive3973120bytes c5d82576f020ffaf51f21d1b5e9f443346a6bdf4da631170cf9e58347cf9d8f2 reproduces package integrity without external inputs. Source delta exactly3 fixture files, successor delta104 evidence additions,2359 old evidence files unchanged. Reuse249 unchanged e392 owning backend/recovery inputs and original ecc runtime/UI/read/error/timing observations with their actual dates, fixtures and limitations. New successor requires new source identity/provenance, not relabeling current pass counts.
+Current WebKit31 and Chromium3+1skip/Firefox3+1skip plus classifier2 pass, with three admitted clean E1 origins/three native creates/removals per engine. Those successful ledgers remain scoped and do not erase cases5/6. No new timing; prior ecc82.580/66.638/83.572 and all above-target/full-action/opacity/import/portable/warm/R20/server-only-memory/D11/formal limits remain verbatim in copied prior VERDICT files.
+Preserve exact failed02 stack-bearing strict errors,04 CLI failure,01/03 intermediate-source limits, original ecc rejected seal/native sharing/unknown-origin marker cleanup limitation, e392/eb4 rejects, WebKit09 metadata gap, Firefox unexplained click, lost19/25overwrite/failed24/v2 distinctions. No retroactive pass or invented cause from later green runs.
+No preview restart/repoint:56474 stays frozen bbb/runtimeccdf;56296/55911/approved52219/report4381/default locator unchanged. Prior paired author26 and native UNPAIRED ecc-card7 navigation stay distinct; no new navigation or user review claim. Keep UI439b/A-R01 OPEN and task review_required until coordinator disposition; no reviewer completion/credit/feedback administration.

@@ -1,0 +1,53 @@
+{
+  "browser": "webkit",
+  "retiredOrigins": [
+    "http://127.0.0.1:49688",
+    "http://127.0.0.1:49762"
+  ],
+  "observations": [
+    {
+      "text": "Failed to load resource: The network connection was lost.",
+      "url": "http://127.0.0.1:49688/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: Could not connect to the server.",
+      "url": "http://127.0.0.1:49688/api/v1/events",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: Could not connect to the server.",
+      "url": "http://127.0.0.1:49688/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: The network connection was lost.",
+      "url": "http://127.0.0.1:49762/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: Could not connect to the server.",
+      "url": "http://127.0.0.1:49762/api/v1/events",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: Could not connect to the server.",
+      "url": "http://127.0.0.1:49762/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    }
+  ],
+  "pageErrors": [],
+  "domErrors": []
+}

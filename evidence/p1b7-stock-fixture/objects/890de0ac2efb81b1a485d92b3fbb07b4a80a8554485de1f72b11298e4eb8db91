@@ -1,0 +1,14 @@
+{
+  "recordedAt": "2026-09-26T19:19:57.609543+00:00",
+  "status": "FAILED_INCOMPLETE_ORACLE",
+  "candidate": "stream/close/getFile/createObjectURL/unlink before native click/download/saveAs",
+  "failure": "Download waiter rejection was not handled immediately while awaiting click; Node exited before final observations.json.",
+  "perEngineResults": "unavailable; no downloaded files; do not reconstruct",
+  "cleanup": "No successful postcondition receipt. Later ps query found no matching launcher/profile command lines, not exhaustive native-process attribution. No unknown storage was searched or deleted.",
+  "next": "No automatic rerun or ordering change; coordinator disposition required.",
+  "retained": {
+    "specimen.mjs": "c7efc7b755c3b5e07d1f057f3c13cf68ad13d5c34cd4a551bc296596588157c5",
+    "command.json": "5cc2456b9d04fbf4ab86d03fbffe2ae5b097c0fafc70a7f85080f6decb0b36c7",
+    "run.log": "a7c4de29a23b83e2c5f362f02309fee26fb530340fbc55c255e62b927562fbda"
+  }
+}

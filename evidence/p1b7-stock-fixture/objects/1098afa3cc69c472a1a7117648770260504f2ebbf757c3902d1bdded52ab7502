@@ -1,0 +1,27 @@
+{
+  "browserName": "chromium",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "e40fb013-1659-4ae1-bcc4-532f5fe1f5c7",
+      "profile": "chromium ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [],
+      "visited": [],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_CONTEXT_CLOSED",
+      "reasons": []
+    }
+  ]
+}

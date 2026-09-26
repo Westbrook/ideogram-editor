@@ -1,0 +1,73 @@
+import {test as base, expect, webkit} from '/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/index.mjs';
+import {createServer} from 'node:http';
+import {mkdtemp, realpath, rm, readFile, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomUUID, createHash} from 'node:crypto';
+const output='/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-playwright-consumption';
+const receipt:any={start:new Date().toISOString(),scope:'One stock WebKit consumption specimen; controlled synthetic data; not application E1 or hostile same-origin cleanup proof',events:[]};
+let baseContext:any;
+const test=base.extend({context:async({context,browserName,contextOptions,viewport},use)=>{
+  baseContext=context;
+  const profile=await mkdtemp(join(await realpath(tmpdir()),'ie-stock-consumption-A-'));
+  const persistent=await webkit.launchPersistentContext(profile,{...contextOptions,viewport});
+  receipt.fixture={browserName,profile,distinctBase:context!==persistent,basePages:context.pages().length,persistentInitialPages:persistent.pages().map(p=>p.url())};
+  try{await use(persistent);}finally{await persistent.close();await rm(profile,{recursive:true});receipt.events.push({phase:'A-context-closed-and-run-owned-profile-removed'});}
+}});
+test('stock fixtures, storage availability, stream download and sharing boundary',async({page,context})=>{
+ const requests:any[]=[];
+ const server=createServer((req,res)=>{requests.push({url:req.url,ua:req.headers['user-agent'],probe:req.headers['x-stock-probe']});
+   if(req.url==='/set-cookie')res.setHeader('Set-Cookie','ownedHttp=synthetic; HttpOnly; SameSite=Lax; Path=/');
+   res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>Controlled stock consumption</title><button id="download">Download controlled bytes</button>');});
+ await new Promise<void>(r=>server.listen(0,'127.0.0.1',r));
+ const origin='http://127.0.0.1:'+((server.address()) as any).port;
+ const name='stock-consumption-'+randomUUID();const bytes=[0,255,10,13,127,128,9,18,72];
+ let second:any,profileB:string|undefined,created=false;
+ receipt.origin=origin;receipt.name=name;receipt.browser=context.browser()?.version();
+ try{
+   const ephemeral=await baseContext.newPage();await ephemeral.goto(origin);
+   receipt.ephemeral=await ephemeral.evaluate(async()=>{try{await navigator.storage.getDirectory();return {ok:true};}catch(e:any){return {ok:false,name:e.name,message:e.message};}});
+   await ephemeral.close();
+   expect(receipt.ephemeral.ok).toBe(false);expect(receipt.ephemeral.name).toBe('UnknownError');
+   await page.goto(origin);
+   receipt.fixture.testPages=context.pages().map(p=>p.url());
+   receipt.options=await page.evaluate(()=>({ua:navigator.userAgent,language:navigator.language,width:innerWidth,height:innerHeight}));
+   expect(receipt.options).toEqual({ua:'stock-consumption-probe',language:'fr-FR',width:713,height:511});
+   expect(requests.every(r=>r.probe==='pinned-1.63')).toBe(true);
+   const initial=await page.evaluate(async()=>{const root=await navigator.storage.getDirectory();const names=[];for await(const [n] of (root as any).entries())names.push(n);return names;});
+   receipt.initial=initial;expect(initial).toEqual([]); // dirty origin aborts, no deletion and no retry
+   await page.goto(origin+'/set-cookie');
+   await page.evaluate(async({name,bytes})=>{
+     const root=await navigator.storage.getDirectory();
+     const file=await root.getFileHandle(name,{create:true});
+     const writable=await file.createWritable();
+     await new ReadableStream({start(c){c.enqueue(new Uint8Array(bytes.slice(0,4)));c.enqueue(new Uint8Array(bytes.slice(4)));c.close();}}).pipeTo(writable);
+     (window as any).ownedFile=file;
+     localStorage.setItem('ownedLocal','synthetic');
+     await new Promise<void>((resolve,reject)=>{const r=indexedDB.open('owned-idb');r.onsuccess=()=>{r.result.close();resolve();};r.onerror=()=>reject(r.error);});
+     const url=URL.createObjectURL(await file.getFile());(window as any).ownedBlob=url;
+     document.getElementById('download')!.onclick=()=>{const a=document.createElement('a');a.href=url;a.download='controlled.bin';a.click();};
+   },{name,bytes});created=true;
+   const downloading=page.waitForEvent('download');await page.getByRole('button',{name:'Download controlled bytes'}).click();
+   const downloaded=await downloading;await downloaded.saveAs(join(output,'controlled.bin'));
+   const actual=await readFile(join(output,'controlled.bin'));expect([...actual]).toEqual(bytes);
+   receipt.download={nativeClick:true,event:true,saveAs:true,bytes:actual.length,sha256:createHash('sha256').update(actual).digest('hex')};
+   await page.reload();
+   receipt.reopen=await page.evaluate(async name=>[...new Uint8Array(await(await(await(await navigator.storage.getDirectory()).getFileHandle(name)).getFile()).arrayBuffer())],name);
+   expect(receipt.reopen).toEqual(bytes);
+   profileB=await mkdtemp(join(await realpath(tmpdir()),'ie-stock-consumption-B-'));
+   second=await webkit.launchPersistentContext(profileB);const other=await second.newPage();await other.goto(origin);
+   receipt.second={profile:profileB,cookies:await second.cookies(),storage:await other.evaluate(async name=>({local:localStorage.length,idb:(await indexedDB.databases()).map(x=>x.name),marker:[...new Uint8Array(await(await(await(await navigator.storage.getDirectory()).getFileHandle(name)).getFile()).arrayBuffer())]}),name)};
+   expect(receipt.second.cookies).toEqual([]);expect(receipt.second.storage.local).toBe(0);expect(receipt.second.storage.idb).toEqual([]);expect(receipt.second.storage.marker).toEqual(bytes);
+   receipt.pass=true;
+ }catch(e){receipt.pass=false;receipt.error=String(e);throw e;}
+ finally{
+   // Only this specimen's creator deletes its own declared synthetic name. No arbitrary actor or wrapper is installed.
+   try{if(second)await second.close();if(profileB)await rm(profileB,{recursive:true});
+     if(created){await page.evaluate(async name=>{const root=await navigator.storage.getDirectory();await root.removeEntry(name);},name);created=false;
+       receipt.cleanup={creator:'A',removedOnly:name,remaining:await page.evaluate(async()=>{const names=[];for await(const [n] of (await navigator.storage.getDirectory() as any).entries())names.push(n);return names;})};expect(receipt.cleanup.remaining).toEqual([]);
+     }
+   }finally{await new Promise<void>(r=>server.close(()=>r()));receipt.requests=requests;receipt.end=new Date().toISOString();await writeFile(join(output,'observations.json'),JSON.stringify(receipt,null,2));}
+ }
+});
+test.afterAll(async()=>{receipt.fixtureTeardownRecorded=true;await writeFile(join(output,'observations.json'),JSON.stringify(receipt,null,2));});

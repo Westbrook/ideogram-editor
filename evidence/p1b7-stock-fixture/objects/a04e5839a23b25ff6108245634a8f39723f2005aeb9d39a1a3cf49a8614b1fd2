@@ -1,0 +1,75 @@
+{
+  "browserName": "chromium",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "4567eaca-c175-4659-a099-014b62654942",
+      "profile": "chromium ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNADMITTED_ORIGIN: http://127.0.0.1:64084"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:64084",
+      "profile": "chromium ephemeral"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:64084",
+      "entries": [
+        {
+          "name": "foreign-f32760cb-6568-4a64-8157-d62aa324e1d8",
+          "kind": "file"
+        }
+      ],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "refused",
+      "reason": "ADMISSION_FAILED: http://127.0.0.1:64084"
+    },
+    {
+      "phase": "admission-error",
+      "origin": "http://127.0.0.1:64084",
+      "error": "Error: OPFS_DIRTY_ORIGIN"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [],
+      "visited": [
+        "http://127.0.0.1:64084"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNADMITTED_ORIGIN: http://127.0.0.1:64084",
+        "ADMISSION_FAILED: http://127.0.0.1:64084"
+      ]
+    }
+  ]
+}

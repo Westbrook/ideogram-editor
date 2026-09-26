@@ -1,0 +1,14 @@
+node:internal/process/promises:324
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.waitForEvent: Timeout 5000ms exceeded while waiting for event "download"
+=========================== logs ===========================
+waiting for event "download"
+============================================================
+    at /Users/westbrook/Documents/repos/ideogram-edit-verification/stock-blob-lifetime-author/specimen.mjs:24:26 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v26.10.0

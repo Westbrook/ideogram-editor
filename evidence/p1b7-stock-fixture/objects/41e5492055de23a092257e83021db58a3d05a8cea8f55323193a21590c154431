@@ -1,0 +1,109 @@
+{
+  "start": "2026-09-26T19:02:34.046Z",
+  "scope": "One stock WebKit consumption specimen; controlled synthetic data; not application E1 or hostile same-origin cleanup proof",
+  "events": [
+    {
+      "phase": "A-context-closed-and-run-owned-profile-removed"
+    }
+  ],
+  "fixture": {
+    "browserName": "webkit",
+    "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-stock-consumption-A-R7Q56O",
+    "distinctBase": true,
+    "basePages": 0,
+    "persistentInitialPages": [
+      "about:blank"
+    ],
+    "testPages": [
+      "about:blank",
+      "http://127.0.0.1:57585/"
+    ]
+  },
+  "origin": "http://127.0.0.1:57585",
+  "name": "stock-consumption-3ce4cf78-9984-4692-8419-3ca23de5c3aa",
+  "browser": "26.6",
+  "ephemeral": {
+    "ok": false,
+    "name": "UnknownError",
+    "message": "The operation failed for an unknown transient reason (e.g. out of memory)."
+  },
+  "options": {
+    "ua": "stock-consumption-probe",
+    "language": "fr-FR",
+    "width": 713,
+    "height": 511
+  },
+  "initial": [],
+  "download": {
+    "nativeClick": true,
+    "event": true,
+    "saveAs": true,
+    "bytes": 9,
+    "sha256": "8a657160a3b39bd3a9595b9e98d4e3068458155e4c503e71c9f1b02cdf85435d"
+  },
+  "reopen": [
+    0,
+    255,
+    10,
+    13,
+    127,
+    128,
+    9,
+    18,
+    72
+  ],
+  "second": {
+    "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-stock-consumption-B-ckMOee",
+    "cookies": [],
+    "storage": {
+      "local": 0,
+      "idb": [],
+      "marker": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128,
+        9,
+        18,
+        72
+      ]
+    }
+  },
+  "pass": true,
+  "cleanup": {
+    "creator": "A",
+    "removedOnly": "stock-consumption-3ce4cf78-9984-4692-8419-3ca23de5c3aa",
+    "remaining": []
+  },
+  "requests": [
+    {
+      "url": "/",
+      "ua": "stock-consumption-probe",
+      "probe": "pinned-1.63"
+    },
+    {
+      "url": "/",
+      "ua": "stock-consumption-probe",
+      "probe": "pinned-1.63"
+    },
+    {
+      "url": "/set-cookie",
+      "ua": "stock-consumption-probe",
+      "probe": "pinned-1.63"
+    },
+    {
+      "url": "/set-cookie",
+      "ua": "stock-consumption-probe",
+      "probe": "pinned-1.63"
+    },
+    {
+      "url": "/",
+      "ua": "stock-consumption-probe",
+      "probe": "pinned-1.63"
+    }
+  ],
+  "end": "2026-09-26T19:02:38.256Z",
+  "fixtureTeardownRecorded": true
+}

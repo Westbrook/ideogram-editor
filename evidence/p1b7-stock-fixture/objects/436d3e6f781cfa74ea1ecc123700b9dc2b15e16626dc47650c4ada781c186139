@@ -1,0 +1,40 @@
+{
+  "browserName": "chromium",
+  "dom": [
+    {
+      "channel": "error",
+      "origin": "http://127.0.0.1:64065",
+      "name": "Error",
+      "message": "Uncaught Error: Ordinary application throw"
+    },
+    {
+      "channel": "unhandledrejection",
+      "origin": "http://127.0.0.1:64065",
+      "name": "Error",
+      "message": "Ordinary rejected promise"
+    },
+    {
+      "channel": "error",
+      "origin": "http://127.0.0.1:64065",
+      "name": "Fetch API cannot load http",
+      "message": "Uncaught Fetch API cannot load http: /127.0.0.1:64065/api/v1/events/stream?after=17 due to access control checks."
+    }
+  ],
+  "pageErrors": [
+    {
+      "message": "Ordinary application throw",
+      "expected": false
+    },
+    {
+      "message": "Ordinary rejected promise",
+      "expected": false
+    },
+    {
+      "message": "/127.0.0.1:64065/api/v1/events/stream?after=17 due to access control checks.",
+      "expected": false
+    }
+  ],
+  "consoleErrors": [
+    false
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "browserName": "webkit",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "4b18be72-254a-4b52-8b5f-cc5742a73d2d",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-8bj6gA",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:63113",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-8bj6gA"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:63113",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:63113"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:63114",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-8bj6gA"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:63114",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:63114"
+    },
+    {
+      "phase": "owned-cookie-response",
+      "origin": "http://127.0.0.1:63114",
+      "path": "/api/v1/session/bootstrap",
+      "name": "ie_session",
+      "httpOnly": true,
+      "sameSite": "Strict"
+    },
+    {
+      "phase": "owned-blob",
+      "origin": "http://127.0.0.1:63114",
+      "resourceType": "image"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:63113",
+        "http://127.0.0.1:63114"
+      ],
+      "visited": [
+        "http://127.0.0.1:63113",
+        "http://127.0.0.1:63114"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "ie_session",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict"
+        }
+      ]
+    },
+    {
+      "phase": "public-reset",
+      "resetCalls": 1
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:63113",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:63114",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "post-reset-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ]
+}

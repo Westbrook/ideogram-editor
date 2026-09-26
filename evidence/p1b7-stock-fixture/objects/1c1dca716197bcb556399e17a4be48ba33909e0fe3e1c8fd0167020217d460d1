@@ -1,0 +1,9 @@
+
+Running 1 test using 1 worker
+
+(node:8793) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8793) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+  ✓  1 tests/editor/destination.spec.ts:13:1 › destination failure cleanup preserves original errors, collisions and selected destinations (392ms)
+
+  1 passed (908ms)

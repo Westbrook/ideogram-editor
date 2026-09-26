@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+    "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright/cli.js",
+    "test",
+    "--config",
+    "tests/editor/playwright.config.ts",
+    "--output",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-reset-author/31-webkit-destination-final/browser",
+    "destination.spec.ts"
+  ],
+  "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+  "browser": "webkit",
+  "receipt": "/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-reset-author/31-webkit-destination-final",
+  "start": "2026-09-26T19:31:02.040158+00:00",
+  "source": {
+    "tests/editor/owned-opfs.ts": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+    "tests/editor/owned-opfs.spec.ts": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+    "tests/editor/portable.spec.ts": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+    "tests/editor/destination.spec.ts": "e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+    "tests/editor/error-monitor.ts": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+    "tests/editor/error-monitor.spec.ts": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+    "tests/editor/shutdown-console.ts": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+    "tests/editor/playwright.config.ts": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+    "src/state/destination.ts": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+    "src/protocol/sha256.ts": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684"
+  },
+  "exit": 0,
+  "end": "2026-09-26T19:31:04.096990+00:00"
+}

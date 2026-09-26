@@ -1,0 +1,80 @@
+{
+  "browserName": "chromium",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "bb44a464-a8e5-46b9-9652-44226dccdd71",
+      "profile": "chromium ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:65044",
+      "profile": "chromium ephemeral"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:65044",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:65044"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:65044"
+      ],
+      "visited": [
+        "http://127.0.0.1:65044"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 1,
+      "metadata": [
+        {
+          "name": "controlled-unexplained",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Lax"
+        }
+      ]
+    },
+    {
+      "phase": "refused",
+      "reason": "UNEXPECTED_COOKIE_OWNERSHIP"
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNEXPECTED_COOKIE_OWNERSHIP"
+      ]
+    }
+  ]
+}

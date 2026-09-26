@@ -1,0 +1,13 @@
+
+Running 6 tests using 1 worker
+
+(node:67678) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/error-monitor.spec.ts:8:1 › real console errors, throws and rejected promises survive the network exception across navigation and teardown (584ms)
+  ✓  2 tests/editor/owned-opfs.spec.ts:24:1 › controlled native reset closes writers, clears every admitted origin, and preserves a separate origin (2.4s)
+  ✓  3 tests/editor/owned-opfs.spec.ts:43:1 › dirty tracked origins refuse reset and preserve the controlled foreign creator file (923ms)
+  ✓  4 tests/editor/owned-opfs.spec.ts:55:1 › unplanned origin navigation and closed contexts cannot authorize a storage reset (1.6s)
+  ✓  5 tests/editor/owned-opfs.spec.ts:66:1 › unexplained cookie ownership refuses reset and preserves the controlled cookie (983ms)
+  ✓  6 tests/editor/owned-opfs.spec.ts:77:1 › WebKit native profile sharing remains an environment negative and ephemeral OPFS is unavailable (3.3s)
+
+  6 passed (10.4s)

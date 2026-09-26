@@ -1,0 +1,175 @@
+{
+  "at": "2026-09-26T19:35:24.347Z",
+  "browser": "153.0.8010.12",
+  "host": "macOS author Playwright Chromium, native browser clicks; not native Intent/OS/AT qualification",
+  "origin": "http://127.0.0.1:50646",
+  "report": "http://127.0.0.1:4381/",
+  "sourceCommit": "351b2c692ff8fc404751ab2193d8ba0758ab1307",
+  "version": "351b2c692ff8fc404751ab2193d8ba0758ab1307 · review revision 1",
+  "paired": true,
+  "actualRenderedCard": true,
+  "roundTrip": true,
+  "errors": [],
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:50646",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "method": "GET"
+    }
+  ]
+}

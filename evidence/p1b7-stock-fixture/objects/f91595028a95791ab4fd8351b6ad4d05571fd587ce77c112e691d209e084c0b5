@@ -1,0 +1,75 @@
+{
+  "browserName": "webkit",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "a1d26dba-946a-487e-86f3-8561459b3a40",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-VkSLXf",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNADMITTED_ORIGIN: http://127.0.0.1:63600"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:63600",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-VkSLXf"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:63600",
+      "entries": [
+        {
+          "name": "foreign-7f155282-1d19-4f9d-a160-301843054975",
+          "kind": "file"
+        }
+      ],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "refused",
+      "reason": "ADMISSION_FAILED: http://127.0.0.1:63600"
+    },
+    {
+      "phase": "admission-error",
+      "origin": "http://127.0.0.1:63600",
+      "error": "Error: OPFS_DIRTY_ORIGIN"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [],
+      "visited": [
+        "http://127.0.0.1:63600"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNADMITTED_ORIGIN: http://127.0.0.1:63600",
+        "ADMISSION_FAILED: http://127.0.0.1:63600"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+import {test,expect,type BrowserContext,type Page} from '@playwright/test';
+import {createServer} from 'node:http';
+import {mkdtemp,realpath,mkdir,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomUUID} from 'node:crypto';
+import {ownedOPFS} from './owned-opfs.js';
+const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+const bytes=[0,255,10,13,127,128];
+async function server(){const s=createServer((request,r)=>{if(request.url==='/api/v1/session/bootstrap'&&request.method==='POST')r.setHeader('Set-Cookie','ie_session=synthetic; HttpOnly; SameSite=Strict; Path=/');r.end('<!doctype html><title>Controlled native storage</title>');});await new Promise<void>(r=>s.listen(0,'127.0.0.1',r));return {origin:'http://127.0.0.1:'+(s.address() as {port:number}).port,close:()=>new Promise<void>(r=>s.close(()=>r()))};}
+async function setup(playwright:typeof import('playwright-core'),browserName:string){
+ const profile=browserName==='webkit'?await mkdtemp(join(await realpath(tmpdir()),'ie-controlled-opfs-')):undefined;
+ const browser=profile?undefined:await playwright[browserName as 'chromium'|'firefox'].launch();
+ const context=profile?await playwright.webkit.launchPersistentContext(profile):await browser!.newContext();
+ await Promise.all(context.pages().map(p=>p.close()));
+ return {context,profile:profile??browserName+' ephemeral',async close(){await context.close();await browser?.close();if(profile)await rm(profile,{recursive:true});}};
+}
+async function names(page:Page){return page.evaluate(async()=>{const names=[];for await(const [n] of (await navigator.storage.getDirectory() as any).entries())names.push(n);return names;});}
+async function marker(page:Page,name:string,create=false){return page.evaluate(async({name,create,bytes})=>{const root=await navigator.storage.getDirectory();if(create){const f=await root.getFileHandle(name,{create:true}),w=await f.createWritable();await w.write(new Uint8Array(bytes));await w.close();}const f=await root.getFileHandle(name);return [...new Uint8Array(await(await f.getFile()).arrayBuffer())];},{name,create,bytes});}
+async function creatorRemove(page:Page,name:string){expect(await marker(page,name)).toEqual(bytes);await page.evaluate(async name=>(await navigator.storage.getDirectory()).removeEntry(name),name);expect(await names(page)).not.toContain(name);}
+async function open(context:BrowserContext,origin:string){const p=await context.newPage();await p.goto(origin);return p;}
+async function save(name:string,value:unknown){await mkdir(receipt,{recursive:true});await writeFile(join(receipt,name+'.json'),JSON.stringify(value,null,2));}
+
+test('controlled native reset closes writers, clears every admitted origin, and preserves a separate origin',async({playwright,browserName})=>{
+ const servers=await Promise.all([server(),server(),server()]),one=await setup(playwright,browserName),other=await setup(playwright,browserName),foreign='creator-'+randomUUID();let foreignPage:Page|undefined,created=false;
+ const guard=await ownedOPFS(one.context,one.profile);
+ try{
+  const page=await one.context.newPage();
+  for(const s of servers.slice(0,2)){
+   await guard.admit(page,s.origin);await page.goto(s.origin);await marker(page,'owned-'+guard.run,true);
+   await page.evaluate(async()=>{localStorage.setItem('owned','value');await new Promise<void>((resolve,reject)=>{const r=indexedDB.open('owned');r.onsuccess=()=>{r.result.close();resolve();};r.onerror=()=>reject(r.error);});});
+  }
+  await page.evaluate(async()=>{await fetch('/api/v1/session/bootstrap',{method:'POST'});});
+  foreignPage=await open(other.context,servers[2].origin);expect(await names(foreignPage)).toEqual([]);await marker(foreignPage,foreign,true);created=true;
+  // A workflow failure does not bypass owned teardown or turn it into success.
+  let failure='';try{throw Error('CONTROL_WORKFLOW_FAILURE');}catch(e){failure=String(e);}finally{await guard.cleanup();}
+  expect(failure).toContain('CONTROL_WORKFLOW_FAILURE');guard.verify();expect(one.context.pages()).toHaveLength(0);
+  expect(guard.ledger.filter(e=>e.phase==='post-reset')).toHaveLength(2);expect(await one.context.cookies()).toEqual([]);
+  expect(await marker(foreignPage,foreign)).toEqual(bytes);expect(guard.ledger.filter(e=>e.phase==='public-reset')).toHaveLength(1);
+ }finally{try{if(created&&foreignPage)await creatorRemove(foreignPage,foreign);}finally{await one.close();await other.close();for(const s of servers)await s.close();await save('controlled-reset',{browserName,ledger:guard.ledger});}}
+});
+
+test('dirty tracked origins refuse reset and preserve the controlled foreign creator file',async({playwright,browserName})=>{
+ const s=await server(),owned=await setup(playwright,browserName),name='foreign-'+randomUUID();let page:Page|undefined,created=false,guard:Awaited<ReturnType<typeof ownedOPFS>>|undefined;
+ try{
+  page=await open(owned.context,s.origin);expect(await names(page)).toEqual([]);await marker(page,name,true);created=true;
+  // Deliberately violate the fresh-context precondition. Both preexisting writer
+  // and dirty native origin must poison cleanup, even after its page is closed.
+  guard=await ownedOPFS(owned.context,owned.profile);await expect(guard.admit(page,s.origin)).rejects.toThrow('OPFS_DIRTY_ORIGIN');
+  await expect(guard.cleanup()).rejects.toThrow('OPFS_RESET_REFUSED');expect(()=>guard!.verify()).toThrow('OPFS_CLEANUP_INCOMPLETE');
+  expect(guard.ledger.some(e=>e.phase==='public-reset')).toBe(false);expect(await marker(page,name)).toEqual(bytes);
+ }finally{try{if(created&&page)await creatorRemove(page,name);}finally{await owned.close();await s.close();await save('dirty-reset-refusal',{browserName,ledger:guard?.ledger});}}
+});
+
+test('unplanned origin navigation and closed contexts cannot authorize a storage reset',async({playwright,browserName})=>{
+ const a=await server(),b=await server(),owned=await setup(playwright,browserName),guard=await ownedOPFS(owned.context,owned.profile);
+ try{
+  const page=await owned.context.newPage();await guard.admit(page,a.origin);await page.goto(a.origin);
+  await expect(page.goto(b.origin)).rejects.toThrow();await expect(guard.cleanup()).rejects.toThrow('OPFS_RESET_REFUSED');expect(guard.ledger.some(e=>e.phase==='public-reset')).toBe(false);
+ }finally{await owned.close();await a.close();await b.close();await save('unplanned-origin-refusal',{browserName,ledger:guard.ledger});}
+ const closed=await setup(playwright,browserName),lost=await ownedOPFS(closed.context,closed.profile);
+ try{await closed.context.close();await expect(lost.cleanup()).rejects.toThrow('OPFS_CONTEXT_CLOSED');expect(()=>lost.verify()).toThrow('OPFS_CLEANUP_INCOMPLETE');expect(lost.ledger.some(e=>e.phase==='public-reset')).toBe(false);}
+ finally{await closed.close();await save('closed-context-incomplete',{browserName,ledger:lost.ledger});}
+});
+
+test('unexplained cookie ownership refuses reset and preserves the controlled cookie',async({playwright,browserName})=>{
+ const s=await server(),owned=await setup(playwright,browserName),guard=await ownedOPFS(owned.context,owned.profile);
+ try{
+  const page=await owned.context.newPage();await guard.admit(page,s.origin);await page.goto(s.origin);
+  await owned.context.addCookies([{name:'controlled-unexplained',value:'synthetic',url:s.origin,httpOnly:true}]);
+  await expect(guard.cleanup()).rejects.toThrow('OPFS_RESET_REFUSED');expect(guard.ledger.some(e=>e.phase==='public-reset')).toBe(false);
+  expect((await owned.context.cookies()).map(c=>c.name)).toEqual(['controlled-unexplained']);
+  await owned.context.clearCookies({name:'controlled-unexplained'}); // Explicit controlled creator cleanup only.
+ }finally{await owned.close();await s.close();await save('unexplained-cookie-refusal',{browserName,ledger:guard.ledger});}
+});
+
+test('WebKit native profile sharing remains an environment negative and ephemeral OPFS is unavailable',async({playwright,browserName})=>{
+ test.skip(browserName!=='webkit','Pinned WebKit-specific storage boundary');
+ const s=await server(),first=await setup(playwright,browserName),second=await setup(playwright,browserName),name='shared-'+randomUUID();let creator:Page|undefined,created=false;
+ const observations:any[]=[];
+ try{
+  const browser=await playwright.webkit.launch();const ephemeral=await browser.newContext();const guard=await ownedOPFS(ephemeral,'WebKit ephemeral');
+  try{const p=await ephemeral.newPage();await expect(guard.admit(p,s.origin)).rejects.toThrow(/UnknownError|unknown transient/);await expect(guard.cleanup()).rejects.toThrow('OPFS_RESET_REFUSED');observations.push({phase:'ephemeral-unavailable',ledger:guard.ledger});}finally{await browser.close();}
+  creator=await open(first.context,s.origin);expect(await names(creator)).toEqual([]);await marker(creator,name,true);created=true;
+  const other=await open(second.context,s.origin);expect(await marker(other,name)).toEqual(bytes);observations.push({phase:'same-origin-profiles-share-native-marker',first:first.profile,second:second.profile});
+ }finally{try{if(created&&creator)await creatorRemove(creator,name);}finally{await first.close();await second.close();await s.close();await save('native-profile-boundary',{observations});}}
+});

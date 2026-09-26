@@ -1,0 +1,53 @@
+{
+  "browser": "chromium",
+  "retiredOrigins": [
+    "http://127.0.0.1:65051",
+    "http://127.0.0.1:65089"
+  ],
+  "observations": [
+    {
+      "text": "Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING",
+      "url": "http://127.0.0.1:65051/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "url": "http://127.0.0.1:65051/api/v1/events",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "url": "http://127.0.0.1:65051/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING",
+      "url": "http://127.0.0.1:65089/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "url": "http://127.0.0.1:65089/api/v1/events",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "url": "http://127.0.0.1:65089/api/v1/events/stream",
+      "disrupting": true,
+      "retiredOrigin": true,
+      "expected": true
+    }
+  ],
+  "pageErrors": [],
+  "domErrors": []
+}

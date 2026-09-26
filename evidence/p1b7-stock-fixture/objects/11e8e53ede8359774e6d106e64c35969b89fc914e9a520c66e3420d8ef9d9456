@@ -1,0 +1,65 @@
+{
+  "observations": [
+    {
+      "phase": "ephemeral-unavailable",
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "1d8f8d76-7d17-4493-8198-98c663642f29",
+          "profile": "WebKit ephemeral",
+          "contract": "controlled-origin-v2"
+        },
+        {
+          "phase": "initial-cookies",
+          "count": 0
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:61315",
+          "profile": "WebKit ephemeral"
+        },
+        {
+          "phase": "cookie-audit",
+          "count": 0,
+          "metadata": []
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "refused",
+          "reason": "ADMISSION_FAILED: http://127.0.0.1:61315"
+        },
+        {
+          "phase": "admission-error",
+          "origin": "http://127.0.0.1:61315",
+          "error": "Error: page.evaluate: UnknownError: The operation failed for an unknown transient reason (e.g. out of memory)."
+        },
+        {
+          "phase": "cleanup-start",
+          "admitted": [],
+          "visited": [
+            "http://127.0.0.1:61315"
+          ],
+          "resetCalls": 0
+        },
+        {
+          "phase": "cleanup-incomplete",
+          "resetCalls": 0,
+          "error": "Error: OPFS_RESET_REFUSED",
+          "reasons": [
+            "ADMISSION_FAILED: http://127.0.0.1:61315"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "same-origin-profiles-share-native-marker",
+      "first": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-Abbo9X",
+      "second": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-5ZqIjf"
+    }
+  ]
+}

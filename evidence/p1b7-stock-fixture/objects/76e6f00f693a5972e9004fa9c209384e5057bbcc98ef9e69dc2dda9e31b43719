@@ -1,0 +1,27 @@
+{
+  "browserName": "webkit",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "02347d50-01de-4f9d-932f-b5dc669aad3d",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-Tc1t6i",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [],
+      "visited": [],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_CONTEXT_CLOSED",
+      "reasons": []
+    }
+  ]
+}

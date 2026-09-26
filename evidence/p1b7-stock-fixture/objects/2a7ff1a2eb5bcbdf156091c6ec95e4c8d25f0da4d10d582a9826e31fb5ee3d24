@@ -1,0 +1,75 @@
+{
+  "browserName": "firefox",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "7dc0fd89-e017-49bb-aa7d-e421034eaf26",
+      "profile": "firefox ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNADMITTED_ORIGIN: http://127.0.0.1:64106"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:64106",
+      "profile": "firefox ephemeral"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:64106",
+      "entries": [
+        {
+          "name": "foreign-1cc4cd79-2d51-4a1c-8752-c4e458228642",
+          "kind": "file"
+        }
+      ],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "refused",
+      "reason": "ADMISSION_FAILED: http://127.0.0.1:64106"
+    },
+    {
+      "phase": "admission-error",
+      "origin": "http://127.0.0.1:64106",
+      "error": "Error: OPFS_DIRTY_ORIGIN"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [],
+      "visited": [
+        "http://127.0.0.1:64106"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNADMITTED_ORIGIN: http://127.0.0.1:64106",
+        "ADMISSION_FAILED: http://127.0.0.1:64106"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+Use the exact successor assigned by the coordinator and a fresh external output root. No timing/resource campaign is requested.
+
+1. Offline integrity, including a fresh exact archive without ignored outputs:
+python3 evidence/p1b7-stock-fixture/verify-evidence.py
+
+2. Pinned installed toolchain; normal dependency setup only if needed. No Xcode/custom launcher changes.
+PATH="$PWD/.toolchain/bin:$PATH" npm run typecheck
+PATH="$PWD/.toolchain/bin:$PATH" npm run build
+.toolchain/bin/node node_modules/typescript/bin/tsc --ignoreConfig --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022,DOM,DOM.Iterable --strict --skipLibCheck tests/editor/destination.spec.ts tests/editor/owned-opfs.ts tests/editor/owned-opfs.spec.ts tests/editor/portable.spec.ts
+
+3. For each engine webkit/chromium/firefox, choose a distinct NEW external receipt directory and execute (substitute literals; do not reuse author outputs):
+EDITOR_BROWSER=webkit EDITOR_RECEIPT=/absolute/new/webkit .toolchain/bin/node node_modules/playwright/cli.js test --config tests/editor/playwright.config.ts --output /absolute/new/webkit/browser owned-opfs.spec.ts destination.spec.ts portable.spec.ts error-monitor.spec.ts
+Repeat with distinct chromium/firefox engine and output values. Expect8PASS WebKit;7PASS+1 explicit WebKit-only skip Chromium/Firefox. The real second-writable cleanup-error assertion is scoped to Chromium within its adapter test. Do not reinterpret other-engine absence as that lock test passing.
+Inspect actual e1-storage preflight/reset/post-absence/full-cookie ledgers; e1-console/DOM errors; synthetic downloaded project/history closure/nested bytes/PNG pixels/zero-effect records. No arbitrary port retry, dirty-origin cleanup, forced click, changed timeout or blanket error allowance.
+
+4. New independent negative controls may exercise owned loopback dirty/unexpected origins and incomplete cleanup, with no unknown-store deletion or outside-service requests. The accepted boundary is controlled test origins/writers and truthful refusal, not authentication against an arbitrary malicious same-origin co-owner. Original4fe controls remain archived failures and should not be relabelled under a changed contract.
+
+5. Read native lifetime v1/v2 and unresolved successful staging retention. No further lifetime ordering experiment is implied. Inspect production cleanup error/collision/chosen-destination invariants and exact runtime delta. Reuse unchanged backend/rail evidence only with original source/engine attribution, not as fresh tests. Preserve all original slow timing/resource outcomes and broader limits.

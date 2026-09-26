@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+    "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright/cli.js",
+    "test",
+    "--config",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-playwright-consumption/playwright.config.ts"
+  ],
+  "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-playwright-consumption",
+  "start": "2026-09-26T19:02:33.083142+00:00",
+  "exit": 0,
+  "end": "2026-09-26T19:02:38.335470+00:00"
+}

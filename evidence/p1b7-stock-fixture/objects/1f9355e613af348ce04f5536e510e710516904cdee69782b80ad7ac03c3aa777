@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-blob-lifetime-author/v2/specimen.mjs"
+  ],
+  "sourceSHA256": "0fc64f25341f9dc359514e6629f16bd1679bf1c128c075b649d75f4f066fd679",
+  "start": "2026-09-26T19:27:38.998090+00:00",
+  "exit": 1,
+  "end": "2026-09-26T19:27:52.711160+00:00"
+}

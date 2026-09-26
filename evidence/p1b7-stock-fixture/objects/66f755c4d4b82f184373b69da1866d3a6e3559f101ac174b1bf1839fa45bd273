@@ -1,0 +1,75 @@
+{
+  "browserName": "webkit",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "21a53abb-5b2b-48ed-89e6-1c953e30bf68",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-NBP5FK",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNADMITTED_ORIGIN: http://127.0.0.1:60519"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:60519",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-controlled-opfs-NBP5FK"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:60519",
+      "entries": [
+        {
+          "name": "foreign-3cd89ece-728f-4dd4-ba0f-0d07b73558b5",
+          "kind": "file"
+        }
+      ],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "refused",
+      "reason": "ADMISSION_FAILED: http://127.0.0.1:60519"
+    },
+    {
+      "phase": "admission-error",
+      "origin": "http://127.0.0.1:60519",
+      "error": "Error: OPFS_DIRTY_ORIGIN"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [],
+      "visited": [
+        "http://127.0.0.1:60519"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cleanup-incomplete",
+      "resetCalls": 0,
+      "error": "Error: OPFS_RESET_REFUSED",
+      "reasons": [
+        "UNADMITTED_ORIGIN: http://127.0.0.1:60519",
+        "ADMISSION_FAILED: http://127.0.0.1:60519"
+      ]
+    }
+  ]
+}

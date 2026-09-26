@@ -1,0 +1,53 @@
+
+Running 1 test using 1 worker
+
+(node:70821) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/portable.spec.ts:37:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (12.9s)
+
+
+  1) tests/editor/portable.spec.ts:37:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "/127.0.0.1:61401/api/v1/events/stream?after=14 due to access control checks.",
+    + ]
+
+      69 |  const newDrafts:any[]=[];page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/ui/')&&r.method()==='POST'){const b=JSON.parse(r.postData()!).body;if(b.type==='SaveDraft'&&b.draft.kind==='inspector')newDrafts.push(b.draft);}});
+      70 |  await page.getByRole('treeitem').first().click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Editable after portable reopen');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');expect(newDrafts.length).toBeGreaterThan(0);expect(newDrafts.every(d=>d.id.length<=128&&d.documentId.startsWith('p_')&&d.targetLayerId.startsWith('p_'))).toBe(true);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem',{name:'Editable after portable reopen · visible'})).toBeVisible();
+    > 71 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(domErrors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+         |                                                                                    ^
+      72 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({browserContext:browserName==='webkit'?'fresh profile plus verified empty native OPFS at every origin':'ephemeral',expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+      73 |  succeeded=true;
+      74 |  // Successful rail screenshots are captured separately: WebKit screenshot
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:71:84
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "/127.0.0.1:61401/api/v1/events/stream?after=14 due to access control checks.",
+    + ]
+
+      40 |  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+      41 |  page.on('pageerror',e=>{const observation={browser:browserName,name:e.name,message:e.message,stack:e.stack??'',disrupting,retiredOrigins},expected=expectedShutdownPageError(observation);pageErrors.push({name:e.name,message:e.message,stack:e.stack??'',disrupting,expected});if(!expected)errors.push(e.message);});page.on('console',m=>{if(m.type()==='error'){const url=m.location().url,expected=expectedShutdownConsole({browser:browserName,text:m.text(),url,disrupting,retiredOrigins});let safeUrl='',retiredOrigin=false;try{const parsed=new URL(url);safeUrl=parsed.origin+parsed.pathname;retiredOrigin=retiredOrigins.has(parsed.origin);}catch{}consoleObservations.push({text:m.text(),url:safeUrl,disrupting,retiredOrigin,expected});if(expected)expectedFailures.push(m.text());else errors.push(m.text());}});
+    > 42 |  e1Errors.finish=async()=>{await writeFile(join(receipt,'e1-console.json'),JSON.stringify({browser:browserName,retiredOrigins:[...retiredOrigins],observations:consoleObservations,pageErrors,domErrors},null,2));expect(errors).toEqual([]);};
+         |                                                                                                                                                                                                                                  ^
+      43 |  page.on('request',r=>{const u=new URL(r.url());if(u.protocol!=='blob:'){requests.push(u.pathname);expect(u.hostname).toBe('127.0.0.1');}});
+      44 |  try{
+      45 |  await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
+        at Object.e1Errors.finish (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:42:226)
+        at Object.e1Errors (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:28:56)
+
+    Error Context: ../ideogram-edit-verification/stock-reset-author/10-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md
+
+  1 failed
+    tests/editor/portable.spec.ts:37:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 

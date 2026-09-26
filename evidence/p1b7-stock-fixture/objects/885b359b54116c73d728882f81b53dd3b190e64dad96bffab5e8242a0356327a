@@ -1,0 +1,41 @@
+import {webkit,expect} from '/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/index.mjs';
+import {createServer} from 'node:http';
+import {mkdtemp,realpath,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomUUID} from 'node:crypto';
+const receipt={start:new Date().toISOString(),scope:'ONE controlled stock API reset specimen; no app qualification',cases:[],profiles:[]};
+const contexts=[],servers=[],creators=[];const output=new URL('.',import.meta.url).pathname;
+async function origin(){const s=createServer((_,r)=>r.end('<!doctype html><title>Controlled reset</title>'));await new Promise(r=>s.listen(0,'127.0.0.1',r));servers.push(s);return 'http://127.0.0.1:'+s.address().port;}
+async function context(){const p=await mkdtemp(join(await realpath(tmpdir()),'ie-stock-reset-'));receipt.profiles.push(p);const c=await webkit.launchPersistentContext(p);contexts.push(c);await Promise.all(c.pages().map(p=>p.close()));return c;}
+async function open(c,o){const p=await c.newPage();await p.goto(o);return p;}
+async function state(p){return p.evaluate(async()=>{const root=await navigator.storage.getDirectory(),entries=[];for await(const [n] of root.entries())entries.push(n);return {entries,local:localStorage.length,idb:(await indexedDB.databases()).map(x=>x.name)};});}
+async function seed(c,o){const p=await open(c,o);expect(await state(p)).toEqual({entries:[],local:0,idb:[]});const name='controlled-'+randomUUID();await p.evaluate(async name=>{const root=await navigator.storage.getDirectory(),f=await root.getFileHandle(name,{create:true}),w=await f.createWritable();await w.write(new Uint8Array([9,0,255,18,72]));await w.close();localStorage.setItem('controlled','true');await new Promise((r,j)=>{const q=indexedDB.open('controlled');q.onsuccess=()=>{q.result.close();r();};q.onerror=()=>j(q.error);});},name);await c.addCookies([{name:'ownedHttpOnly',value:'synthetic',url:o,httpOnly:true}]);const owner={context:c,origin:o,name,page:p,removed:false};creators.push(owner);return owner;}
+async function bytes(owner){if(owner.page.isClosed())owner.page=await open(owner.context,owner.origin);return owner.page.evaluate(async name=>[...new Uint8Array(await(await(await(await navigator.storage.getDirectory()).getFileHandle(name)).getFile()).arrayBuffer())],owner.name);}
+async function creatorCleanup(owner){if(owner.removed)return;expect(await bytes(owner)).toEqual([9,0,255,18,72]);await owner.page.evaluate(async name=>{const root=await navigator.storage.getDirectory();await root.removeEntry(name);localStorage.clear();await new Promise((r,j)=>{const q=indexedDB.deleteDatabase('controlled');q.onsuccess=r;q.onerror=()=>j(q.error);q.onblocked=()=>j(Error('creator deletion blocked'));});},owner.name);owner.removed=true;}
+try{
+ const a=await origin(),b=await origin(),dirty=await origin(),broken=await origin();receipt.origins={a,b,dirty,broken};
+ const ca=await context(),cb=await context();const ownA=await seed(ca,a),ownB=await seed(cb,b);
+ await Promise.all(ca.pages().map(p=>p.close()));expect(ca.pages()).toHaveLength(0);
+ await ca.setStorageState({cookies:[],origins:[]});ownA.removed=true;
+ const verify=await open(ca,a);const after=await state(verify);expect(after).toEqual({entries:[],local:0,idb:[]});expect(await ca.cookies()).toEqual([]);
+ receipt.cases.push({case:'clean-public-reset',pass:true,closedWriters:true,after,cookies:[]});
+ expect(await bytes(ownB)).toEqual([9,0,255,18,72]);expect((await cb.cookies()).length).toBe(1);expect(await state(ownB.page)).toEqual({entries:[ownB.name],local:1,idb:['controlled']});
+ receipt.cases.push({case:'separate-unvisited-origin-preserved',pass:true,origin:b});
+ const creatorDirty=await seed(cb,dirty),cd=await context(),probe=await open(cd,dirty);const observed=await state(probe);expect(observed.entries).toEqual([creatorDirty.name]);await probe.close();
+ let resetCalls=0,refusal='';try{if(observed.entries.length)throw Error('DIRTY_ORIGIN_RESET_REFUSED');resetCalls++;await cd.setStorageState({cookies:[],origins:[]});}catch(e){refusal=e.message;}
+ expect(resetCalls).toBe(0);expect(refusal).toBe('DIRTY_ORIGIN_RESET_REFUSED');expect(await bytes(creatorDirty)).toEqual([9,0,255,18,72]);
+ receipt.cases.push({case:'dirty-tracked-origin-refused-and-preserved',pass:true,resetCalls,refusal});
+ const creatorBroken=await seed(cb,broken),cf=await context(),pf=await open(cf,broken);await pf.close();await cf.close();let incomplete='';
+ try{await cf.setStorageState({cookies:[],origins:[]});}catch(e){incomplete=e.message;}
+ expect(incomplete).toMatch(/closed/);expect(await bytes(creatorBroken)).toEqual([9,0,255,18,72]);
+ receipt.cases.push({case:'closed-context-reset-failure-remains-incomplete',pass:true,cleanupCompleted:false,error:incomplete});
+ receipt.pass=true;
+}catch(e){receipt.pass=false;receipt.error=String(e);process.exitCode=1;}
+finally{
+ try{for(const owner of creators)await creatorCleanup(owner);}catch(e){receipt.creatorCleanupError=String(e);receipt.pass=false;process.exitCode=1;}
+ for(const c of contexts)await c.close().catch(e=>{receipt.closeError=String(e);process.exitCode=1;});
+ for(const s of servers)await new Promise(r=>s.close(r));
+ for(const p of receipt.profiles)await rm(p,{recursive:true});
+ receipt.end=new Date().toISOString();await writeFile(join(output,'observations.json'),JSON.stringify(receipt,null,2));console.log(JSON.stringify(receipt));
+}

@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/bin/node",
+    "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/playwright/cli.js",
+    "test",
+    "--config",
+    "tests/editor/playwright.config.ts",
+    "--output",
+    "/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-reset-author/14-webkit-final-fixture/browser",
+    "owned-opfs.spec.ts",
+    "error-monitor.spec.ts",
+    "portable.spec.ts",
+    "--max-failures",
+    "1"
+  ],
+  "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+  "browser": "webkit",
+  "receipt": "/Users/westbrook/Documents/repos/ideogram-edit-verification/stock-reset-author/14-webkit-final-fixture",
+  "start": "2026-09-26T19:22:00.803850+00:00",
+  "source": {
+    "owned-opfs.ts": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+    "owned-opfs.spec.ts": "38bb4251551fd9d0729c536315f6cc42ec48f468a015464d211accc27e6ecd2d",
+    "portable.spec.ts": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387"
+  },
+  "exit": 0,
+  "end": "2026-09-26T19:22:21.039441+00:00"
+}

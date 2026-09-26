@@ -1,0 +1,2 @@
+import {defineConfig} from '/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/index.mjs';
+export default defineConfig({testDir:'.',testMatch:'consumption.spec.ts',workers:1,retries:0,timeout:30000,outputDir:'./test-output',reporter:[['list'],['json',{outputFile:'./browser.json'}]],use:{browserName:'webkit',headless:true,actionTimeout:5000,viewport:{width:713,height:511},userAgent:'stock-consumption-probe',locale:'fr-FR',extraHTTPHeaders:{'x-stock-probe':'pinned-1.63'},trace:'off',screenshot:'off'}});

@@ -1,0 +1,154 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: portable.spec.ts >> E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG
+- Location: tests/editor/portable.spec.ts:37:1
+
+# Error details
+
+```
+TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for getByRole('button', { name: 'Apply reviewed result', exact: true })
+    - locator resolved to <button disabled tabindex="0" type="button" part="control" class="en-button" aria-busy="false" data-size="medium" data-variant="primary">…</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is not enabled
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is not enabled
+    - retrying click action
+      - waiting 100ms
+    20 × waiting for element to be visible, enabled and stable
+       - element is not enabled
+     - retrying click action
+       - waiting 500ms
+
+```
+
+```
+Error: OPFS_RESET_REFUSED
+```
+
+# Test source
+
+```ts
+  1   | import type {BrowserContext,Frame,Page,Worker} from '@playwright/test';
+  2   | import {randomUUID} from 'node:crypto';
+  3   | 
+  4   | // Controlled test origins, not a security boundary against an independent
+  5   | // same-origin writer. Install on a newly created context before any navigation.
+  6   | // A dirty/unexpected origin permanently forbids context-wide storage reset.
+  7   | // Native file methods and the product's download lifetime are left untouched.
+  8   | export async function ownedOPFS(context:BrowserContext,profile:string){
+  9   |  const run=randomUUID(),admitted=new Set<string>(),visited=new Set<string>();
+  10  |  const pages=new Set<Page>(),workers=new Set<Worker>(),probes=new Map<Page,string>();
+  11  |  const cookieValues=new Set<string>(),cookieWork=new Set<Promise<void>>();
+  12  |  const reasons:string[]=[],ledger:any[]=[{phase:'fixture',run,profile,contract:'controlled-origin-v2'}];
+  13  |  let phase='active',completed=false,closed=false,resetCalls=0;
+  14  |  const refuse=(reason:string)=>{if(!reasons.includes(reason)){reasons.push(reason);ledger.push({phase:'refused',reason});}};
+  15  |  const originOf=(url:string)=>{try{const u=new URL(url);return ['http:','https:'].includes(u.protocol)?u.origin:null;}catch{return null;}};
+  16  |  const observe=(url:string,page?:Page)=>{
+  17  |   const origin=originOf(url);
+  18  |   if(origin){visited.add(origin);if(!admitted.has(origin)&&(!page||probes.get(page)!==origin))refuse('UNADMITTED_ORIGIN: '+origin);}
+  19  |   else if(url!=='about:blank'&&url!=='about:srcdoc'&&!(url.startsWith('blob:')&&admitted.has(new URL(url).origin)))refuse('UNEXPECTED_NON_HTTP_DOCUMENT');
+  20  |  };
+  21  |  const register=(page:Page)=>{
+  22  |   if(pages.has(page))return;pages.add(page);ledger.push({phase:'page-registered'});
+  23  |   if(phase==='closing'||phase==='complete')refuse('PAGE_CREATED_DURING_CLEANUP');
+  24  |   observe(page.url(),page);
+  25  |   page.on('framenavigated',(frame:Frame)=>observe(frame.url(),page));
+  26  |   page.on('worker',worker=>{workers.add(worker);ledger.push({phase:'worker-registered'});worker.on('close',()=>workers.delete(worker));});
+  27  |  };
+  28  |  context.on('page',register);for(const page of context.pages())register(page);
+  29  |  context.on('close',()=>{closed=true;});
+  30  |  context.on('serviceworker',()=>refuse('UNOWNED_SERVICE_WORKER'));
+  31  |  if(context.serviceWorkers().length)refuse('PREEXISTING_SERVICE_WORKER');
+  32  |  const initialCookies=await context.cookies();ledger.push({phase:'initial-cookies',count:initialCookies.length});
+  33  |  if(initialCookies.length)refuse('CONTEXT_NOT_FRESH');
+  34  |  context.on('response',response=>{
+  35  |   const work=(async()=>{
+  36  |    const headers=await response.headersArray();
+  37  |    for(const header of headers.filter(h=>h.name.toLowerCase()==='set-cookie')){
+  38  |     const url=new URL(response.url()),parts=header.value.split(';').map(p=>p.trim()),pair=parts[0].split('=');
+  39  |     if(!admitted.has(url.origin)||!['/api/v1/session/bootstrap','/api/v1/session/renew','/api/v1/session/revoke'].includes(url.pathname)||response.request().method()!=='POST'||pair[0]!=='ie_session'||!parts.includes('HttpOnly')||!parts.includes('SameSite=Strict')||!parts.includes('Path=/')||parts.some(p=>/^Domain=/i.test(p))){refuse('UNEXPECTED_COOKIE_RESPONSE');continue;}
+  40  |     cookieValues.add(pair.slice(1).join('='));
+  41  |     ledger.push({phase:'owned-cookie-response',origin:url.origin,path:url.pathname,name:'ie_session',httpOnly:true,sameSite:'Strict'});
+  42  |    }
+  43  |   })().catch(()=>refuse('COOKIE_RESPONSE_UNAVAILABLE'));
+  44  |   cookieWork.add(work);void work.then(()=>cookieWork.delete(work));
+  45  |  });
+  46  |  async function auditCookies(){
+  47  |   await Promise.all(cookieWork);
+  48  |   const cookies=await context.cookies();
+  49  |   ledger.push({phase:'cookie-audit',count:cookies.length,metadata:cookies.map(({name,domain,path,httpOnly,secure,sameSite})=>({name,domain,path,httpOnly,secure,sameSite}))});
+  50  |   if(cookies.some(c=>c.name!=='ie_session'||c.domain!=='127.0.0.1'||c.path!=='/'||!c.httpOnly||c.sameSite!=='Strict'||!cookieValues.has(c.value)))refuse('UNEXPECTED_COOKIE_OWNERSHIP');
+  51  |  }
+  52  |  await context.route('**/*',async route=>{
+  53  |   const request=route.request(),url=new URL(request.url());
+  54  |   if(!['http:','https:'].includes(url.protocol)){refuse('UNEXPECTED_NETWORK_PROTOCOL');await route.abort();return;}
+  55  |   visited.add(url.origin);
+  56  |   let page:Page|undefined;try{page=request.frame().page();}catch{refuse('UNOWNED_REQUEST');}
+  57  |   if(page&&probes.get(page)===url.origin&&url.pathname==='/__e1_storage_'+run){
+  58  |    await route.fulfill({contentType:'text/html',body:'<!doctype html><title>Controlled storage observation</title>'});return;
+  59  |   }
+  60  |   if(phase==='active'&&admitted.has(url.origin)&&page&&pages.has(page)){await route.continue();return;}
+  61  |   refuse('UNPLANNED_REQUEST: '+url.origin);await route.abort();
+  62  |  });
+  63  |  async function nativeState(origin:string){
+  64  |   const probe=await context.newPage();probes.set(probe,origin);
+  65  |   try{
+  66  |    await probe.goto(origin+'/__e1_storage_'+run);
+  67  |    return await probe.evaluate(async()=>{
+  68  |     const root=await navigator.storage.getDirectory(),entries:{name:string;kind:string}[]=[];
+  69  |     for await(const [name,entry] of (root as any).entries())entries.push({name,kind:entry.kind});
+  70  |     const registrations=await navigator.serviceWorker?.getRegistrations()??[];
+  71  |     return {entries,localStorage:localStorage.length,indexedDB:(await indexedDB.databases()).map(d=>d.name),serviceWorkers:registrations.length};
+  72  |    });
+  73  |   }finally{await probe.close();probes.delete(probe);}
+  74  |  }
+  75  |  function assertEmpty(state:Awaited<ReturnType<typeof nativeState>>){
+  76  |   if(state.entries.length||state.localStorage||state.indexedDB.length||state.serviceWorkers)throw Error('OPFS_DIRTY_ORIGIN');
+  77  |  }
+  78  |  return {run,ledger,
+  79  |   async admit(_page:Page,origin:string){
+  80  |    ledger.push({phase:'preflight-start',origin,profile});
+  81  |    try{
+  82  |     const u=new URL(origin);if(u.origin!==origin||u.protocol!=='http:'||u.hostname!=='127.0.0.1'||!u.port)throw Error('ORIGIN_NOT_CONTROLLED');
+  83  |     if(phase!=='active'||admitted.has(origin))throw Error('OPFS_ORIGIN_REUSED');
+  84  |     await auditCookies();const state=await nativeState(origin);ledger.push({phase:'preflight',origin,...state,cookieCount:(await context.cookies()).length});assertEmpty(state);
+  85  |     if(reasons.length)throw Error('CONTEXT_OWNERSHIP_UNCERTAIN');
+  86  |     admitted.add(origin);ledger.push({phase:'admitted',origin});
+  87  |    }catch(e){refuse('ADMISSION_FAILED: '+origin);ledger.push({phase:'admission-error',origin,error:String(e)});throw e;}
+  88  |   },
+  89  |   async cleanup(){
+  90  |    if(completed)return;
+  91  |    if(phase!=='active')throw Error('OPFS_CLEANUP_ALREADY_ATTEMPTED');
+  92  |    ledger.push({phase:'cleanup-start',admitted:[...admitted],visited:[...visited],resetCalls});
+  93  |    try{
+  94  |     if(closed)throw Error('OPFS_CONTEXT_CLOSED');
+> 95  |     if(reasons.length||[...visited].some(o=>!admitted.has(o)))throw Error('OPFS_RESET_REFUSED');
+      |                                                                     ^ Error: OPFS_RESET_REFUSED
+  96  |     phase='closing';await Promise.all(context.pages().map(p=>p.close()));await auditCookies();
+  97  |     if(reasons.length)throw Error('OPFS_RESET_REFUSED');
+  98  |     if(context.pages().length||workers.size||context.serviceWorkers().length)throw Error('OPFS_WRITERS_NOT_QUIESCENT');
+  99  |     phase='resetting';resetCalls++;ledger.push({phase:'public-reset',resetCalls});
+  100 |     await context.setStorageState({cookies:[],origins:[]});
+  101 |     phase='verifying';
+  102 |     for(const origin of admitted){const state=await nativeState(origin);ledger.push({phase:'post-reset',origin,...state});assertEmpty(state);}
+  103 |     const cookies=await context.cookies();ledger.push({phase:'post-reset-cookies',count:cookies.length});
+  104 |     if(cookies.length||reasons.length)throw Error('OPFS_RESET_INCOMPLETE');
+  105 |     phase='complete';completed=true;ledger.push({phase:'cleanup-complete',resetCalls});
+  106 |    }catch(e){phase='incomplete';ledger.push({phase:'cleanup-incomplete',resetCalls,error:String(e),reasons:[...reasons]});throw e;}
+  107 |   },
+  108 |   verify(){if(!completed)throw Error('OPFS_CLEANUP_INCOMPLETE');}
+  109 |  };
+  110 | }
+  111 | 
+```

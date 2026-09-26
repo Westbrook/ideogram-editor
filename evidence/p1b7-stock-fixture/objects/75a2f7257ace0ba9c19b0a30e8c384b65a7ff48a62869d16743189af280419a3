@@ -1,0 +1,9 @@
+from pathlib import Path
+import json,shutil,os,subprocess,datetime
+repo=Path('/Users/westbrook/Documents/repos/ideogram-edit');out=Path(__file__).resolve().parent;service=repo.parent/'ideogram-edit-stock-preview-8d0f3c41';service.mkdir(mode=0o700)
+shutil.copytree(out/'33-source-build/dist',service/'dist');source=json.loads((out/'33-source-build/CODE-INPUTS.json').read_text());source['build']=json.loads((out/'33-source-build/BUILD.json').read_text());(service/'source.json').write_text(json.dumps(source,indent=2)+'\n');(service/'package.json').write_text('{"type":"module"}\n');(service/'node_modules').symlink_to(repo/'node_modules',target_is_directory=True)
+private=repo/'artifacts/stock-review-private';private.mkdir(mode=0o700,parents=True,exist_ok=True)
+s=(repo.parent/'ideogram-edit-webkit-rail-preview-ccdfab3b/run.mjs').read_text().replace('artifacts/webkit-rail-private/pairing.json','artifacts/stock-review-private/pairing.json');(service/'run.mjs').write_text(s)
+os.mkfifo(service/'control',0o600);fd=os.open(service/'control',os.O_RDWR)
+with (service/'service.log').open('wb') as log:process=subprocess.Popen([str(repo/'.toolchain/bin/node'),'--import',str(repo/'tests/protocol/no-effects.mjs'),str(service/'run.mjs')],cwd=service,stdin=fd,stdout=log,stderr=log,start_new_session=True)
+os.close(fd);record={'at':datetime.datetime.now(datetime.UTC).isoformat(),'pid':process.pid,'service':str(service),'sourceCommit':source['sourceCommit'],'runtimeSourceSHA256':source['runtimeSourceSHA256']};(out/'34-preview-start.json').write_text(json.dumps(record,indent=2));print(json.dumps(record))

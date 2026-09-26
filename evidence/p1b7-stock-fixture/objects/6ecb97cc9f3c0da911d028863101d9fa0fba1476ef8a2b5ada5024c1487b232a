@@ -1,0 +1,40 @@
+{
+  "browserName": "webkit",
+  "dom": [
+    {
+      "channel": "error",
+      "origin": "http://127.0.0.1:60490",
+      "name": "Error",
+      "message": "Error: Ordinary application throw"
+    },
+    {
+      "channel": "unhandledrejection",
+      "origin": "http://127.0.0.1:60490",
+      "name": "Error",
+      "message": "Ordinary rejected promise"
+    },
+    {
+      "channel": "error",
+      "origin": "http://127.0.0.1:60490",
+      "name": "Fetch API cannot load http",
+      "message": "Fetch API cannot load http: /127.0.0.1:60490/api/v1/events/stream?after=17 due to access control checks."
+    }
+  ],
+  "pageErrors": [
+    {
+      "message": "Ordinary application throw",
+      "expected": false
+    },
+    {
+      "message": "Error: Ordinary rejected promise",
+      "expected": false
+    },
+    {
+      "message": "/127.0.0.1:60490/api/v1/events/stream?after=17 due to access control checks.",
+      "expected": false
+    }
+  ],
+  "consoleErrors": [
+    false
+  ]
+}

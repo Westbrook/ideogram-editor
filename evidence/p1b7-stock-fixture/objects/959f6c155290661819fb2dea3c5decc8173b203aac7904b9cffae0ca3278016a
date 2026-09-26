@@ -1,0 +1,48 @@
+{
+  "browserName": "chromium",
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "12fade7c-30f5-4cce-962c-3d30a2af5034",
+      "profile": "chromium ephemeral",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:64090",
+      "profile": "chromium ephemeral"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:64090",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:64090"
+    },
+    {
+      "phase": "refused",
+      "reason": "UNPLANNED_REQUEST: http://127.0.0.1:64091"
+    }
+  ]
+}

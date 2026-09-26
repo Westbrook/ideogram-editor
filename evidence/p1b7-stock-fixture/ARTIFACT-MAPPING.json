@@ -1,0 +1,3428 @@
+{
+  "format": "content-addressed exact copies; code inputs separate from observed browser metadata; no redaction needed in selected files",
+  "entries": [
+    {
+      "logicalPath": "stock-playwright-consumption/FINDINGS.txt",
+      "object": "objects/e4d19521dc8f6006bd7e204bd8cdc72aecdd41a6f1c0e6a2ec4ea7952c50f79f",
+      "sha256": "e4d19521dc8f6006bd7e204bd8cdc72aecdd41a6f1c0e6a2ec4ea7952c50f79f",
+      "bytes": 8240,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/browser.json",
+      "object": "objects/4c06401ca9fbf1724b437594d41ddd952c2686b61d508342b3c445be2239f91f",
+      "sha256": "4c06401ca9fbf1724b437594d41ddd952c2686b61d508342b3c445be2239f91f",
+      "bytes": 3299,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/class-browsercontext.md",
+      "object": "objects/56ac1a529995d36ac0920323760c9f9945b500c99f58f7bdafc7de4c662cb2f4",
+      "sha256": "56ac1a529995d36ac0920323760c9f9945b500c99f58f7bdafc7de4c662cb2f4",
+      "bytes": 60141,
+      "kind": "primary-reference"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/class-browsertype.md",
+      "object": "objects/cc78bd8d3bbeb1775cb038f9d3e8624c8a1647bd42968dbe8d75a01785b508fb",
+      "sha256": "cc78bd8d3bbeb1775cb038f9d3e8624c8a1647bd42968dbe8d75a01785b508fb",
+      "bytes": 15623,
+      "kind": "primary-reference"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/command.json",
+      "object": "objects/5791b10ff1fdb201b23f62815a2b0e48b4e8e68464988b9382269e491bed6718",
+      "sha256": "5791b10ff1fdb201b23f62815a2b0e48b4e8e68464988b9382269e491bed6718",
+      "bytes": 528,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/consumption.spec.ts",
+      "object": "objects/9adba8c1158498b1a929a9458de5cd0fe5cdaec5064a02f0595662bb4417aa73",
+      "sha256": "9adba8c1158498b1a929a9458de5cd0fe5cdaec5064a02f0595662bb4417aa73",
+      "bytes": 6780,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/controlled.bin",
+      "object": "objects/8a657160a3b39bd3a9595b9e98d4e3068458155e4c503e71c9f1b02cdf85435d",
+      "sha256": "8a657160a3b39bd3a9595b9e98d4e3068458155e4c503e71c9f1b02cdf85435d",
+      "bytes": 9,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/files.json",
+      "object": "objects/fa38e415c33f413135041a001056304d31ac801902c7b98d82c7f31f4e28386f",
+      "sha256": "fa38e415c33f413135041a001056304d31ac801902c7b98d82c7f31f4e28386f",
+      "bytes": 1438,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/observations.json",
+      "object": "objects/41e5492055de23a092257e83021db58a3d05a8cea8f55323193a21590c154431",
+      "sha256": "41e5492055de23a092257e83021db58a3d05a8cea8f55323193a21590c154431",
+      "bytes": 2398,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/playwright.config.ts",
+      "object": "objects/acc59ac6fb638d851d00581b9da8ea4b2500dff82607ab9276abbff2eb494685",
+      "sha256": "acc59ac6fb638d851d00581b9da8ea4b2500dff82607ab9276abbff2eb494685",
+      "bytes": 533,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/run.log",
+      "object": "objects/6a7ba947bcfb3c4867dd81e3c94b5f6907fadb1456af968652263c4993c0af1a",
+      "sha256": "6a7ba947bcfb3c4867dd81e3c94b5f6907fadb1456af968652263c4993c0af1a",
+      "bytes": 335,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-playwright-consumption/test-output/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/01-fixture-types/log.txt",
+      "object": "objects/5b766b55df5bc15c215149742c8fe88d72a584cb45f5422c7edca1594b6d0cb5",
+      "sha256": "5b766b55df5bc15c215149742c8fe88d72a584cb45f5422c7edca1594b6d0cb5",
+      "bytes": 142,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/02-fixture-types/log.txt",
+      "object": "objects/ef6c26575ecb3b1566813b63664bfb4395c19aa8ee5e08b9e959a7b2e1d40c6b",
+      "sha256": "ef6c26575ecb3b1566813b63664bfb4395c19aa8ee5e08b9e959a7b2e1d40c6b",
+      "bytes": 289,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/03-fixture-types/log.txt",
+      "object": "objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/browser.json",
+      "object": "objects/60029c865a88f7be183bffa7f54ffac8d0e0edaca773c4f2e78125f8b4c88406",
+      "sha256": "60029c865a88f7be183bffa7f54ffac8d0e0edaca773c4f2e78125f8b4c88406",
+      "bytes": 7922,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/closed-context-incomplete.json",
+      "object": "objects/0bb59cf01740e914aff883c6f98375afdadc398b4da0dc060ae21657159168d2",
+      "sha256": "0bb59cf01740e914aff883c6f98375afdadc398b4da0dc060ae21657159168d2",
+      "bytes": 595,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/command.json",
+      "object": "objects/ea8a822fe4d3e88d1a78a078005aa644fe90dc2ce6b8766c70ebbec6ae0886af",
+      "sha256": "ea8a822fe4d3e88d1a78a078005aa644fe90dc2ce6b8766c70ebbec6ae0886af",
+      "bytes": 1024,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/controlled-reset.json",
+      "object": "objects/c380a20d2b25cb78facc2b9c0590c41b77600bc25b1273abf42c6e8782008b34",
+      "sha256": "c380a20d2b25cb78facc2b9c0590c41b77600bc25b1273abf42c6e8782008b34",
+      "bytes": 3011,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/dirty-reset-refusal.json",
+      "object": "objects/66f755c4d4b82f184373b69da1866d3a6e3559f101ac174b1bf1839fa45bd273",
+      "sha256": "66f755c4d4b82f184373b69da1866d3a6e3559f101ac174b1bf1839fa45bd273",
+      "bytes": 1759,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/error-oracle-negatives.json",
+      "object": "objects/6ecb97cc9f3c0da911d028863101d9fa0fba1476ef8a2b5ada5024c1487b232a",
+      "sha256": "6ecb97cc9f3c0da911d028863101d9fa0fba1476ef8a2b5ada5024c1487b232a",
+      "bytes": 978,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/log.txt",
+      "object": "objects/59d2e9fffd852211e3becdd2ab649785e00d8c19b88e2f3bc14a383ed4c3bb2f",
+      "sha256": "59d2e9fffd852211e3becdd2ab649785e00d8c19b88e2f3bc14a383ed4c3bb2f",
+      "bytes": 979,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/native-profile-boundary.json",
+      "object": "objects/e0a5077f012f4ff2063f908ff7fa5bca3543c0ba7694894ede0a2334bcc2c2be",
+      "sha256": "e0a5077f012f4ff2063f908ff7fa5bca3543c0ba7694894ede0a2334bcc2c2be",
+      "bytes": 1776,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/owned-opfs.spec.ts",
+      "object": "objects/eba2f419f581d124dd746b65cd24a9038f896733da32bce29d4649036592c7d9",
+      "sha256": "eba2f419f581d124dd746b65cd24a9038f896733da32bce29d4649036592c7d9",
+      "bytes": 8317,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/owned-opfs.ts",
+      "object": "objects/0c0c9eb91bd9f3c6bb713ca1f095b6f35e8eed677bdb3eec18434a88be41fb00",
+      "sha256": "0c0c9eb91bd9f3c6bb713ca1f095b6f35e8eed677bdb3eec18434a88be41fb00",
+      "bytes": 7642,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/04-webkit-controls/unplanned-origin-refusal.json",
+      "object": "objects/1dee6fcebf1578070ecc4c703e81d6cec121c861804c3d95c5b219d966f1e259",
+      "sha256": "1dee6fcebf1578070ecc4c703e81d6cec121c861804c3d95c5b219d966f1e259",
+      "bytes": 1515,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/05-fixture-types/log.txt",
+      "object": "objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/browser.json",
+      "object": "objects/24f52930227683ddef7c6f27ea1a79c02ed6decc68cd38db8107fa511493c6c0",
+      "sha256": "24f52930227683ddef7c6f27ea1a79c02ed6decc68cd38db8107fa511493c6c0",
+      "bytes": 8976,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/closed-context-incomplete.json",
+      "object": "objects/3df7867a2ba07c8a93e1f1f7c2e511e45719dc35c94082ca3ac5d96b788ebbe8",
+      "sha256": "3df7867a2ba07c8a93e1f1f7c2e511e45719dc35c94082ca3ac5d96b788ebbe8",
+      "bytes": 595,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/command.json",
+      "object": "objects/697ddca4e27d51d79045ebb883609bf292c146e5b49a5c4cbb0a70ed5393cd03",
+      "sha256": "697ddca4e27d51d79045ebb883609bf292c146e5b49a5c4cbb0a70ed5393cd03",
+      "bytes": 1024,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/controlled-reset.json",
+      "object": "objects/b3b2d355bedb60b63bfcf08ae41654a599ac6ea7167a8d411331a00edfb8cde8",
+      "sha256": "b3b2d355bedb60b63bfcf08ae41654a599ac6ea7167a8d411331a00edfb8cde8",
+      "bytes": 3011,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/dirty-reset-refusal.json",
+      "object": "objects/48b6b10e989cb679f704b6f346aed08d686fdf327b6a9147031b6f3838b7971f",
+      "sha256": "48b6b10e989cb679f704b6f346aed08d686fdf327b6a9147031b6f3838b7971f",
+      "bytes": 1759,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/error-oracle-negatives.json",
+      "object": "objects/6f0e670e8f5f7e96e30edbcab12135849d1b8169f95d9b0a062042fe498e7b01",
+      "sha256": "6f0e670e8f5f7e96e30edbcab12135849d1b8169f95d9b0a062042fe498e7b01",
+      "bytes": 978,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/log.txt",
+      "object": "objects/5642ccec23732d2f0bc841a4c6a4ccc00439caf24d504bfac2e4942dc9011308",
+      "sha256": "5642ccec23732d2f0bc841a4c6a4ccc00439caf24d504bfac2e4942dc9011308",
+      "bytes": 1117,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/native-profile-boundary.json",
+      "object": "objects/06e93536c31b70177bd9f80c5844c1b065ff08b05a27ea233986bb9434959945",
+      "sha256": "06e93536c31b70177bd9f80c5844c1b065ff08b05a27ea233986bb9434959945",
+      "bytes": 1776,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/owned-opfs.spec.ts",
+      "object": "objects/992d8b5d76f04a665ae4d5d6f88db207e4a9f84d5b502240ae447f7ba44c292b",
+      "sha256": "992d8b5d76f04a665ae4d5d6f88db207e4a9f84d5b502240ae447f7ba44c292b",
+      "bytes": 9253,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/owned-opfs.ts",
+      "object": "objects/79ba6b1083b1556f612c878d5f709c9427437dcd13e7d52f9c8e524a49dd0126",
+      "sha256": "79ba6b1083b1556f612c878d5f709c9427437dcd13e7d52f9c8e524a49dd0126",
+      "bytes": 7683,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/unexplained-cookie-refusal.json",
+      "object": "objects/92d1709cd3c79bf4c2185933992b2d2e6233667bb09f1268762e37cd155aff69",
+      "sha256": "92d1709cd3c79bf4c2185933992b2d2e6233667bb09f1268762e37cd155aff69",
+      "bytes": 1747,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/06-webkit-controls/unplanned-origin-refusal.json",
+      "object": "objects/a7353367df5d3d191a8c59d994b9ce838d502c5e23107184479dc79c17a2d875",
+      "sha256": "a7353367df5d3d191a8c59d994b9ce838d502c5e23107184479dc79c17a2d875",
+      "bytes": 1515,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/browser/.last-run.json",
+      "object": "objects/1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "bytes": 96,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "object": "objects/63793429cd99bcac916ed39fe9ffc96339ee02ce5325261d658f033d7659a05d",
+      "sha256": "63793429cd99bcac916ed39fe9ffc96339ee02ce5325261d658f033d7659a05d",
+      "bytes": 9898,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/browser.json",
+      "object": "objects/e551a195c7c37c78c5182a0cb6e1cd18caa457635438d0376d21cfeed36fd297",
+      "sha256": "e551a195c7c37c78c5182a0cb6e1cd18caa457635438d0376d21cfeed36fd297",
+      "bytes": 11411,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/command.json",
+      "object": "objects/825a1776fe78e16777ca4e7b05f4e2628f6d8b843d6d9ea943e3e26047e21ae0",
+      "sha256": "825a1776fe78e16777ca4e7b05f4e2628f6d8b843d6d9ea943e3e26047e21ae0",
+      "bytes": 981,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/e1-console.json",
+      "object": "objects/5dd0a6b057873bc80087995f4af763bfead59b917eb2abaa2bc69631879cb5b1",
+      "sha256": "5dd0a6b057873bc80087995f4af763bfead59b917eb2abaa2bc69631879cb5b1",
+      "bytes": 110,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/e1-incomplete-root.json",
+      "object": "objects/755c020b4d9e0fc9b3d0f4a7cb4deebf967a97b14b4dd3d8805fbc5d6a82ebbc",
+      "sha256": "755c020b4d9e0fc9b3d0f4a7cb4deebf967a97b14b4dd3d8805fbc5d6a82ebbc",
+      "bytes": 153,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/e1-storage.json",
+      "object": "objects/ce3a237b5a0a08433712b29eb007b0b3affe35bb843455c06eded6c6f1ce8737",
+      "sha256": "ce3a237b5a0a08433712b29eb007b0b3affe35bb843455c06eded6c6f1ce8737",
+      "bytes": 1680,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/log.txt",
+      "object": "objects/19f83735e159fcb8518ffe7b8234c5b7442c4c734093e3dee8acd1bea91f961f",
+      "sha256": "19f83735e159fcb8518ffe7b8234c5b7442c4c734093e3dee8acd1bea91f961f",
+      "bytes": 3656,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/owned-opfs.spec.ts",
+      "object": "objects/992d8b5d76f04a665ae4d5d6f88db207e4a9f84d5b502240ae447f7ba44c292b",
+      "sha256": "992d8b5d76f04a665ae4d5d6f88db207e4a9f84d5b502240ae447f7ba44c292b",
+      "bytes": 9253,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/owned-opfs.ts",
+      "object": "objects/79ba6b1083b1556f612c878d5f709c9427437dcd13e7d52f9c8e524a49dd0126",
+      "sha256": "79ba6b1083b1556f612c878d5f709c9427437dcd13e7d52f9c8e524a49dd0126",
+      "bytes": 7683,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/07-webkit-e1/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/08-fixture-types/log.txt",
+      "object": "objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/browser.json",
+      "object": "objects/19a57dff3a2776b66f99f4d4b7e5eced339ec4ead9ff0084f0f9b11477e34aa6",
+      "sha256": "19a57dff3a2776b66f99f4d4b7e5eced339ec4ead9ff0084f0f9b11477e34aa6",
+      "bytes": 8984,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/closed-context-incomplete.json",
+      "object": "objects/1d8c7105c34ad047947f4bc2cbff41e74fd86bf99cb01c409562074f1b847bb6",
+      "sha256": "1d8c7105c34ad047947f4bc2cbff41e74fd86bf99cb01c409562074f1b847bb6",
+      "bytes": 595,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/command.json",
+      "object": "objects/04f6baf6ecdb72114288453a534c96531c2d79e42a949f90bc60199eaa1367b6",
+      "sha256": "04f6baf6ecdb72114288453a534c96531c2d79e42a949f90bc60199eaa1367b6",
+      "bytes": 1024,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/controlled-reset.json",
+      "object": "objects/40a564c82816722c5a23a40cf0e01fba9f965cf4362d7034a0c1273b4137af67",
+      "sha256": "40a564c82816722c5a23a40cf0e01fba9f965cf4362d7034a0c1273b4137af67",
+      "bytes": 3125,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/dirty-reset-refusal.json",
+      "object": "objects/1ddf373e50a73379ffd818967005dc5b34664fac87f89bf33075333a1880776a",
+      "sha256": "1ddf373e50a73379ffd818967005dc5b34664fac87f89bf33075333a1880776a",
+      "bytes": 1759,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/error-oracle-negatives.json",
+      "object": "objects/e5eb46d8857e39f434bde921cad32f06156d4e161f60c22265e756a1975a883f",
+      "sha256": "e5eb46d8857e39f434bde921cad32f06156d4e161f60c22265e756a1975a883f",
+      "bytes": 978,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/log.txt",
+      "object": "objects/8c541daa597a3153ec8c7fbc9f90a4b15c374f0c5ccda93d3bcbacfc7344c29b",
+      "sha256": "8c541daa597a3153ec8c7fbc9f90a4b15c374f0c5ccda93d3bcbacfc7344c29b",
+      "bytes": 1116,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/native-profile-boundary.json",
+      "object": "objects/11e8e53ede8359774e6d106e64c35969b89fc914e9a520c66e3420d8ef9d9456",
+      "sha256": "11e8e53ede8359774e6d106e64c35969b89fc914e9a520c66e3420d8ef9d9456",
+      "bytes": 1776,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/owned-opfs.spec.ts",
+      "object": "objects/2b286dea90797682a083384c0fdabce640080ccfb9f0a93ae75c718011d2919b",
+      "sha256": "2b286dea90797682a083384c0fdabce640080ccfb9f0a93ae75c718011d2919b",
+      "bytes": 9866,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/owned-opfs.ts",
+      "object": "objects/1b5abf227cf1d6eba30a0ad97d4cc40257d5a08b9d8b19cfc1f8a95ce95f0538",
+      "sha256": "1b5abf227cf1d6eba30a0ad97d4cc40257d5a08b9d8b19cfc1f8a95ce95f0538",
+      "bytes": 8141,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/unexplained-cookie-refusal.json",
+      "object": "objects/691e6b0f623f4e16cd6d0212c3a64314b90f79941b267363641e9e985b4bf874",
+      "sha256": "691e6b0f623f4e16cd6d0212c3a64314b90f79941b267363641e9e985b4bf874",
+      "bytes": 1747,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/09-webkit-controls/unplanned-origin-refusal.json",
+      "object": "objects/cce6ba5b4470956e697d1b5aae854eb051b5409ad09a7c70009d6e6d0e2efd7f",
+      "sha256": "cce6ba5b4470956e697d1b5aae854eb051b5409ad09a7c70009d6e6d0e2efd7f",
+      "bytes": 1515,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/browser/.last-run.json",
+      "object": "objects/1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "bytes": 96,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "object": "objects/68a50096ca4ce3143526d2b76e508066afbd660a363265da2b2755183ea3cfdc",
+      "sha256": "68a50096ca4ce3143526d2b76e508066afbd660a363265da2b2755183ea3cfdc",
+      "bytes": 13695,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/browser.json",
+      "object": "objects/dfefdeb9c6c19b3de3a6edde2d4206894ded57c6fa26b9f03a6a531d038b9b92",
+      "sha256": "dfefdeb9c6c19b3de3a6edde2d4206894ded57c6fa26b9f03a6a531d038b9b92",
+      "bytes": 12794,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/command.json",
+      "object": "objects/f27d974193e2c87a2b2ce1980ccb85e4dc1684f3fbeb214a1009e6a06899db71",
+      "sha256": "f27d974193e2c87a2b2ce1980ccb85e4dc1684f3fbeb214a1009e6a06899db71",
+      "bytes": 981,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/e1-console.json",
+      "object": "objects/678674389bfc118165abc333bc91c830dd7c44461c687473669cf67f0b62d8d8",
+      "sha256": "678674389bfc118165abc333bc91c830dd7c44461c687473669cf67f0b62d8d8",
+      "bytes": 1927,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/e1-incomplete-root.json",
+      "object": "objects/ccb11c71521f7b1785f12fd5857963764e597fd9206c6befff17c742b0145a91",
+      "sha256": "ccb11c71521f7b1785f12fd5857963764e597fd9206c6befff17c742b0145a91",
+      "bytes": 153,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/e1-storage.json",
+      "object": "objects/1d7ba04c211569271e0116822428b95fae00ec02054bbc5c5f39cfb553a5fd8c",
+      "sha256": "1d7ba04c211569271e0116822428b95fae00ec02054bbc5c5f39cfb553a5fd8c",
+      "bytes": 4855,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/image.png",
+      "object": "objects/a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "sha256": "a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "bytes": 111,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/log.txt",
+      "object": "objects/41ac80afdeb2a67f13b84a86b51ddc731f4c54e75cef8bbeb1a98a78fb48ed24",
+      "sha256": "41ac80afdeb2a67f13b84a86b51ddc731f4c54e75cef8bbeb1a98a78fb48ed24",
+      "bytes": 5311,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/nested.ideogram-project",
+      "object": "objects/61246cc770cc52a5d062a830d1aa2bfff75cc7b20e9d7290840a5922be037607",
+      "sha256": "61246cc770cc52a5d062a830d1aa2bfff75cc7b20e9d7290840a5922be037607",
+      "bytes": 103445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/owned-opfs.spec.ts",
+      "object": "objects/2b286dea90797682a083384c0fdabce640080ccfb9f0a93ae75c718011d2919b",
+      "sha256": "2b286dea90797682a083384c0fdabce640080ccfb9f0a93ae75c718011d2919b",
+      "bytes": 9866,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/owned-opfs.ts",
+      "object": "objects/1b5abf227cf1d6eba30a0ad97d4cc40257d5a08b9d8b19cfc1f8a95ce95f0538",
+      "sha256": "1b5abf227cf1d6eba30a0ad97d4cc40257d5a08b9d8b19cfc1f8a95ce95f0538",
+      "bytes": 8141,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/10-webkit-e1/project.ideogram-project",
+      "object": "objects/f7cf2486484e9ffa2d512ebabd14c6300eacb71955c223af563d942c6f7f3cf8",
+      "sha256": "f7cf2486484e9ffa2d512ebabd14c6300eacb71955c223af563d942c6f7f3cf8",
+      "bytes": 52342,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/11-fixture-types/log.txt",
+      "object": "objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/browser.json",
+      "object": "objects/fe43f3e67c1924646011c3b8b66824ccf735ef25cfb030bd06b8551c3152a711",
+      "sha256": "fe43f3e67c1924646011c3b8b66824ccf735ef25cfb030bd06b8551c3152a711",
+      "bytes": 8975,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/closed-context-incomplete.json",
+      "object": "objects/b3c69934f3389f10e66b7698961ddf9878f794d1e43b59af2f4e44c87fa22823",
+      "sha256": "b3c69934f3389f10e66b7698961ddf9878f794d1e43b59af2f4e44c87fa22823",
+      "bytes": 595,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/command.json",
+      "object": "objects/3e9eaa32362a7fa3db89053afbcf7ff2fccef7bffa551c7101e382d5c9c4eacb",
+      "sha256": "3e9eaa32362a7fa3db89053afbcf7ff2fccef7bffa551c7101e382d5c9c4eacb",
+      "bytes": 1024,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/controlled-reset.json",
+      "object": "objects/9c940e299e2fcc6123b67d7212061519e91e521775e000a61ec987ee81e1084d",
+      "sha256": "9c940e299e2fcc6123b67d7212061519e91e521775e000a61ec987ee81e1084d",
+      "bytes": 3125,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/dirty-reset-refusal.json",
+      "object": "objects/013be249aa9f6f5773794c427a4b1b6024072a40c1bbbb11dfc6c84ced6cdff1",
+      "sha256": "013be249aa9f6f5773794c427a4b1b6024072a40c1bbbb11dfc6c84ced6cdff1",
+      "bytes": 1759,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/error-oracle-negatives.json",
+      "object": "objects/d19ae0884039c4cbb5aafcf8042774511df16ac22560fbe9961583d5745a6528",
+      "sha256": "d19ae0884039c4cbb5aafcf8042774511df16ac22560fbe9961583d5745a6528",
+      "bytes": 978,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/log.txt",
+      "object": "objects/e5532745a6d43ae3f5f2dde181b5bbf3829543ac3f2d883247d817c19e9cc419",
+      "sha256": "e5532745a6d43ae3f5f2dde181b5bbf3829543ac3f2d883247d817c19e9cc419",
+      "bytes": 1116,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/native-profile-boundary.json",
+      "object": "objects/0dbfb1b796cb167622c71134b02f4ebaceae28a6ee8004a2b9c4745e3ac9a8e0",
+      "sha256": "0dbfb1b796cb167622c71134b02f4ebaceae28a6ee8004a2b9c4745e3ac9a8e0",
+      "bytes": 1776,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/owned-opfs.spec.ts",
+      "object": "objects/2357bbcc030352b201635d1388035f0fa4db02a8ffde0dc875b7dfcba64a01ae",
+      "sha256": "2357bbcc030352b201635d1388035f0fa4db02a8ffde0dc875b7dfcba64a01ae",
+      "bytes": 9923,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/owned-opfs.ts",
+      "object": "objects/a49e1d8571b61d1e6f1368d855e789b538dd7ce5b824c92bb31cc7c0352e024c",
+      "sha256": "a49e1d8571b61d1e6f1368d855e789b538dd7ce5b824c92bb31cc7c0352e024c",
+      "bytes": 8062,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/unexplained-cookie-refusal.json",
+      "object": "objects/e1a4199215685b54895430e63770bd8e200e6ac4d94ebd354679b5288e2241a4",
+      "sha256": "e1a4199215685b54895430e63770bd8e200e6ac4d94ebd354679b5288e2241a4",
+      "bytes": 1747,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/12-webkit-controls/unplanned-origin-refusal.json",
+      "object": "objects/8aab33064472e23f7a813a02f3430b56ac951ec8b5d21104614e12d81d8fa4e2",
+      "sha256": "8aab33064472e23f7a813a02f3430b56ac951ec8b5d21104614e12d81d8fa4e2",
+      "bytes": 1667,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/13-fixture-types/log.txt",
+      "object": "objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/browser.json",
+      "object": "objects/af57a5c02aaa348c6c12a1be9e4b0f3a39ee4bcf112d395652ffad42dcd65e37",
+      "sha256": "af57a5c02aaa348c6c12a1be9e4b0f3a39ee4bcf112d395652ffad42dcd65e37",
+      "bytes": 10279,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/closed-context-incomplete.json",
+      "object": "objects/1cdfc7b496ca77a1170ed1e662f22c1f87bd5b8cf9174798be8243d2a75fe38a",
+      "sha256": "1cdfc7b496ca77a1170ed1e662f22c1f87bd5b8cf9174798be8243d2a75fe38a",
+      "bytes": 595,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/command.json",
+      "object": "objects/88269d87ce8d282931c14b0a61a9ed19f9b1dc96892ec86fc6f3657a8c6f7cca",
+      "sha256": "88269d87ce8d282931c14b0a61a9ed19f9b1dc96892ec86fc6f3657a8c6f7cca",
+      "bytes": 1089,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/controlled-reset.json",
+      "object": "objects/7c56792f315b46021ca4532ee45e5303cda95204e19b0a01d4c54da770876508",
+      "sha256": "7c56792f315b46021ca4532ee45e5303cda95204e19b0a01d4c54da770876508",
+      "bytes": 3125,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/dirty-reset-refusal.json",
+      "object": "objects/f91595028a95791ab4fd8351b6ad4d05571fd587ce77c112e691d209e084c0b5",
+      "sha256": "f91595028a95791ab4fd8351b6ad4d05571fd587ce77c112e691d209e084c0b5",
+      "bytes": 1759,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/e1-console.json",
+      "object": "objects/7340cd6d13c37e0ef4b622146ab1bf74a1a775579ab767659719cc4b132b2561",
+      "sha256": "7340cd6d13c37e0ef4b622146ab1bf74a1a775579ab767659719cc4b132b2561",
+      "bytes": 1516,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/e1-storage.json",
+      "object": "objects/a028ed0011d3f4dbe4beb12cccc53c19d648fcf551d2df04dbf2a34dd54c02ff",
+      "sha256": "a028ed0011d3f4dbe4beb12cccc53c19d648fcf551d2df04dbf2a34dd54c02ff",
+      "bytes": 4855,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/e1.json",
+      "object": "objects/75dfbc6d861bda309a8fa6bdf5f9c5d9e6eeee6fcb0a9f8761ccfc31f1695dcb",
+      "sha256": "75dfbc6d861bda309a8fa6bdf5f9c5d9e6eeee6fcb0a9f8761ccfc31f1695dcb",
+      "bytes": 9142,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/error-oracle-negatives.json",
+      "object": "objects/b9ea28c9f53c5c1a103054b0442f134c4dca73002d86ec8fe22c4140f8d96c6f",
+      "sha256": "b9ea28c9f53c5c1a103054b0442f134c4dca73002d86ec8fe22c4140f8d96c6f",
+      "bytes": 978,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/image.png",
+      "object": "objects/a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "sha256": "a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "bytes": 111,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/log.txt",
+      "object": "objects/21ac8aadc146a4b4b581f29fde17ef9f8b3882f275a217a5b617923230558b02",
+      "sha256": "21ac8aadc146a4b4b581f29fde17ef9f8b3882f275a217a5b617923230558b02",
+      "bytes": 1264,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/native-profile-boundary.json",
+      "object": "objects/0163beb1773a77723591d7fbc15dccc1b8e0a81a549ce66fceeb3da130498e36",
+      "sha256": "0163beb1773a77723591d7fbc15dccc1b8e0a81a549ce66fceeb3da130498e36",
+      "bytes": 1776,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/nested.ideogram-project",
+      "object": "objects/8daf8c1a9dbfbfa78233e12c07654f145398b572f254305068aee0407e0a3e5b",
+      "sha256": "8daf8c1a9dbfbfa78233e12c07654f145398b572f254305068aee0407e0a3e5b",
+      "bytes": 103445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/owned-opfs.spec.ts",
+      "object": "objects/38bb4251551fd9d0729c536315f6cc42ec48f468a015464d211accc27e6ecd2d",
+      "sha256": "38bb4251551fd9d0729c536315f6cc42ec48f468a015464d211accc27e6ecd2d",
+      "bytes": 9984,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/project.ideogram-project",
+      "object": "objects/4afc414cb1e2601133f351cf9bb2e3639b94de9043e7ed2bc481dbb626a7af7c",
+      "sha256": "4afc414cb1e2601133f351cf9bb2e3639b94de9043e7ed2bc481dbb626a7af7c",
+      "bytes": 52342,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/unexplained-cookie-refusal.json",
+      "object": "objects/654d77f3dbe2dd181be561eedf3903311082eb7de67dde53f1f509bbb55eeac1",
+      "sha256": "654d77f3dbe2dd181be561eedf3903311082eb7de67dde53f1f509bbb55eeac1",
+      "bytes": 1747,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/14-webkit-final-fixture/unplanned-origin-refusal.json",
+      "object": "objects/16bfaa3ff7e292bacb8b35d0fb8f155dd1ecf965d9302e2dd6a21cb2e80145c4",
+      "sha256": "16bfaa3ff7e292bacb8b35d0fb8f155dd1ecf965d9302e2dd6a21cb2e80145c4",
+      "bytes": 1515,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/browser/.last-run.json",
+      "object": "objects/09e352b557ea09ef7da01360dc4826ed819ecac2df3bf2952945e3f6b576b899",
+      "sha256": "09e352b557ea09ef7da01360dc4826ed819ecac2df3bf2952945e3f6b576b899",
+      "bytes": 243,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/browser/.playwright-artifacts-0/5d03e8673be2b558dcf12646aaca1504.png",
+      "object": "objects/cb9c3b8047859412e8abcaed51ad9ecefb4bd820c8849af4992e593d500d1836",
+      "sha256": "cb9c3b8047859412e8abcaed51ad9ecefb4bd820c8849af4992e593d500d1836",
+      "bytes": 6489,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/browser/.playwright-artifacts-0/60f4d5b393caa7e26d458b748705564d.png",
+      "object": "objects/cb9c3b8047859412e8abcaed51ad9ecefb4bd820c8849af4992e593d500d1836",
+      "sha256": "cb9c3b8047859412e8abcaed51ad9ecefb4bd820c8849af4992e593d500d1836",
+      "bytes": 6489,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/browser/.playwright-artifacts-0/eb6fc93241f195651c34bd6095db41d8.png",
+      "object": "objects/cb9c3b8047859412e8abcaed51ad9ecefb4bd820c8849af4992e593d500d1836",
+      "sha256": "cb9c3b8047859412e8abcaed51ad9ecefb4bd820c8849af4992e593d500d1836",
+      "bytes": 6489,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/browser/owned-opfs-unplanned-origi-0cc5d-t-authorize-a-storage-reset/error-context.md",
+      "object": "objects/5b63ca4f2725897bd55f7cd70120a88f655eaab4959bccf4d3c10b490177b842",
+      "sha256": "5b63ca4f2725897bd55f7cd70120a88f655eaab4959bccf4d3c10b490177b842",
+      "bytes": 11264,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/browser.json",
+      "object": "objects/89751e1c2fb316a863db0f71bb59c800fcdae4f75cc8c76bd8e7f961f73f6d74",
+      "sha256": "89751e1c2fb316a863db0f71bb59c800fcdae4f75cc8c76bd8e7f961f73f6d74",
+      "bytes": 13333,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/command.json",
+      "object": "objects/b3e9dfb6a6f53d13577168f85f63352099d8459cae9814b44e892b4cc1647c27",
+      "sha256": "b3e9dfb6a6f53d13577168f85f63352099d8459cae9814b44e892b4cc1647c27",
+      "bytes": 1083,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/controlled-reset.json",
+      "object": "objects/b1b4b45bce8f2bde34ed24a7539d9d555f010f918b68c743161b5df767ca2c92",
+      "sha256": "b1b4b45bce8f2bde34ed24a7539d9d555f010f918b68c743161b5df767ca2c92",
+      "bytes": 2935,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/dirty-reset-refusal.json",
+      "object": "objects/a04e5839a23b25ff6108245634a8f39723f2005aeb9d39a1a3cf49a8614b1fd2",
+      "sha256": "a04e5839a23b25ff6108245634a8f39723f2005aeb9d39a1a3cf49a8614b1fd2",
+      "bytes": 1633,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/error-oracle-negatives.json",
+      "object": "objects/436d3e6f781cfa74ea1ecc123700b9dc2b15e16626dc47650c4ada781c186139",
+      "sha256": "436d3e6f781cfa74ea1ecc123700b9dc2b15e16626dc47650c4ada781c186139",
+      "bytes": 991,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/log.txt",
+      "object": "objects/052a8fa68c9288fa9d106136110fcc20e2901ec7a8d01c3bd98f04c21486b668",
+      "sha256": "052a8fa68c9288fa9d106136110fcc20e2901ec7a8d01c3bd98f04c21486b668",
+      "bytes": 2650,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/owned-opfs.spec.ts",
+      "object": "objects/38bb4251551fd9d0729c536315f6cc42ec48f468a015464d211accc27e6ecd2d",
+      "sha256": "38bb4251551fd9d0729c536315f6cc42ec48f468a015464d211accc27e6ecd2d",
+      "bytes": 9984,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/15-chromium-fixture/unplanned-origin-refusal.json",
+      "object": "objects/959f6c155290661819fb2dea3c5decc8173b203aac7904b9cffae0ca3278016a",
+      "sha256": "959f6c155290661819fb2dea3c5decc8173b203aac7904b9cffae0ca3278016a",
+      "bytes": 969,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/browser.json",
+      "object": "objects/92ee6c3943e21e581845cc0e638dd1cfa0c851f43a245113c0ec0d8cc6449c7f",
+      "sha256": "92ee6c3943e21e581845cc0e638dd1cfa0c851f43a245113c0ec0d8cc6449c7f",
+      "bytes": 11070,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/closed-context-incomplete.json",
+      "object": "objects/8a68f2483ff01eca2f55ce1b882f3dee508d47c5d320af3884209efd0247e739",
+      "sha256": "8a68f2483ff01eca2f55ce1b882f3dee508d47c5d320af3884209efd0247e739",
+      "bytes": 531,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/command.json",
+      "object": "objects/eaf44eac1e0ea639909efa65b23f5f4e01c4fb6cdcec3a3ae72b1c0385dd130f",
+      "sha256": "eaf44eac1e0ea639909efa65b23f5f4e01c4fb6cdcec3a3ae72b1c0385dd130f",
+      "bytes": 1080,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/controlled-reset.json",
+      "object": "objects/a82d0ea8990a15b1cddb2e42873f7ee9fc0bfd2285114b8aff5d834f617ea6bc",
+      "sha256": "a82d0ea8990a15b1cddb2e42873f7ee9fc0bfd2285114b8aff5d834f617ea6bc",
+      "bytes": 2817,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/dirty-reset-refusal.json",
+      "object": "objects/2a7ff1a2eb5bcbdf156091c6ec95e4c8d25f0da4d10d582a9826e31fb5ee3d24",
+      "sha256": "2a7ff1a2eb5bcbdf156091c6ec95e4c8d25f0da4d10d582a9826e31fb5ee3d24",
+      "bytes": 1630,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/e1-console.json",
+      "object": "objects/bf4134999b4ff2660aab8cdc40983c1d29c3a5f5e46309ae5e710d70e0b9ff2d",
+      "sha256": "bf4134999b4ff2660aab8cdc40983c1d29c3a5f5e46309ae5e710d70e0b9ff2d",
+      "bytes": 173,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/e1-storage.json",
+      "object": "objects/ee36b9e1544b1d1c0bb5cdaeb35c36c66d98834608c61eda8788aa6233a3537c",
+      "sha256": "ee36b9e1544b1d1c0bb5cdaeb35c36c66d98834608c61eda8788aa6233a3537c",
+      "bytes": 4537,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/e1.json",
+      "object": "objects/e2d96eec57903daf15bfb5e5d1528c1a8904c30f95015e93c5a58857b7dec3e7",
+      "sha256": "e2d96eec57903daf15bfb5e5d1528c1a8904c30f95015e93c5a58857b7dec3e7",
+      "bytes": 8698,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/error-oracle-negatives.json",
+      "object": "objects/bc465d6b82d2d28333f54b9987803f382c52042c2d2c11d99053f86c30730d43",
+      "sha256": "bc465d6b82d2d28333f54b9987803f382c52042c2d2c11d99053f86c30730d43",
+      "bytes": 972,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/image.png",
+      "object": "objects/a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "sha256": "a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "bytes": 111,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/log.txt",
+      "object": "objects/6aea43f9d3f3bdc80cc23cead069bac4d2ba0c536d4aa1aa452b5c943afb85ae",
+      "sha256": "6aea43f9d3f3bdc80cc23cead069bac4d2ba0c536d4aa1aa452b5c943afb85ae",
+      "bytes": 1264,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/nested.ideogram-project",
+      "object": "objects/1a6a8eaddcddabe4c2b1927b50544ee228aae8bb432b37845d5ba35580b1eee0",
+      "sha256": "1a6a8eaddcddabe4c2b1927b50544ee228aae8bb432b37845d5ba35580b1eee0",
+      "bytes": 103445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/owned-opfs.spec.ts",
+      "object": "objects/38bb4251551fd9d0729c536315f6cc42ec48f468a015464d211accc27e6ecd2d",
+      "sha256": "38bb4251551fd9d0729c536315f6cc42ec48f468a015464d211accc27e6ecd2d",
+      "bytes": 9984,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/project.ideogram-project",
+      "object": "objects/b591d981f6ab25532a26f8723a330360fca243e88ab33752bca8553e1a451eea",
+      "sha256": "b591d981f6ab25532a26f8723a330360fca243e88ab33752bca8553e1a451eea",
+      "bytes": 52342,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/unexplained-cookie-refusal.json",
+      "object": "objects/95b68bc37e025036fedb2662e7cc18d30e65c1cee12968bcc7848bd9477359e9",
+      "sha256": "95b68bc37e025036fedb2662e7cc18d30e65c1cee12968bcc7848bd9477359e9",
+      "bytes": 1618,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/16-firefox-fixture/unplanned-origin-refusal.json",
+      "object": "objects/80d751e6f32bf9f27e2af3b3c4c2d41b914d08d3f0387a7eae1b9a05bf9f0929",
+      "sha256": "80d751e6f32bf9f27e2af3b3c4c2d41b914d08d3f0387a7eae1b9a05bf9f0929",
+      "bytes": 1386,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/browser.json",
+      "object": "objects/8a0ffb04fe8f37642c6281b98ee20b75aadf4f50b00bc6ed452d4b10689a9803",
+      "sha256": "8a0ffb04fe8f37642c6281b98ee20b75aadf4f50b00bc6ed452d4b10689a9803",
+      "bytes": 9782,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/closed-context-incomplete.json",
+      "object": "objects/1098afa3cc69c472a1a7117648770260504f2ebbf757c3902d1bdded52ab7502",
+      "sha256": "1098afa3cc69c472a1a7117648770260504f2ebbf757c3902d1bdded52ab7502",
+      "bytes": 533,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/command.json",
+      "object": "objects/1a49514105f0f9870da8660992f88af78af47a77f83dd077bb5912cba45ac821",
+      "sha256": "1a49514105f0f9870da8660992f88af78af47a77f83dd077bb5912cba45ac821",
+      "bytes": 1051,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/controlled-reset.json",
+      "object": "objects/0bddbe484b45eece4f63ce729aa26b319e1f9fafad4b31f406a2fb2ce4dc7fe7",
+      "sha256": "0bddbe484b45eece4f63ce729aa26b319e1f9fafad4b31f406a2fb2ce4dc7fe7",
+      "bytes": 2935,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/dirty-reset-refusal.json",
+      "object": "objects/76ee197dcb3ddbbe13b64b4fc5de3df1e2b09db50318415f46c045651df6f2cf",
+      "sha256": "76ee197dcb3ddbbe13b64b4fc5de3df1e2b09db50318415f46c045651df6f2cf",
+      "bytes": 1633,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/e1-console.json",
+      "object": "objects/529b04a81a6ff5fbfb5b320942cba827ad761d27baebd50fe776fe9faa30a985",
+      "sha256": "529b04a81a6ff5fbfb5b320942cba827ad761d27baebd50fe776fe9faa30a985",
+      "bytes": 1506,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/e1-storage.json",
+      "object": "objects/75644050a75fa2dd265c418e930baaf1cdd858abe3fea3bfbb035c852469b285",
+      "sha256": "75644050a75fa2dd265c418e930baaf1cdd858abe3fea3bfbb035c852469b285",
+      "bytes": 4655,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/e1.json",
+      "object": "objects/3060c40458c0d943b300757a8a29c7534282bf9c4fa36acc5a153e08b1cc5ef6",
+      "sha256": "3060c40458c0d943b300757a8a29c7534282bf9c4fa36acc5a153e08b1cc5ef6",
+      "bytes": 9078,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/image.png",
+      "object": "objects/a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "sha256": "a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "bytes": 111,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/log.txt",
+      "object": "objects/3b60f30dc62158b7b7e054098c035152f4bf72b7c9614b860943f09bdf8ab30a",
+      "sha256": "3b60f30dc62158b7b7e054098c035152f4bf72b7c9614b860943f09bdf8ab30a",
+      "bytes": 1096,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/nested.ideogram-project",
+      "object": "objects/2150545133062d8e1d587c64c22c04ea8cc198e203d9306117cb1a271def8a89",
+      "sha256": "2150545133062d8e1d587c64c22c04ea8cc198e203d9306117cb1a271def8a89",
+      "bytes": 103445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/project.ideogram-project",
+      "object": "objects/cfb2ae85013ab6c96c69c88d08d6b0587ab5b977bdecd9c5e6292fb2a35c7bd1",
+      "sha256": "cfb2ae85013ab6c96c69c88d08d6b0587ab5b977bdecd9c5e6292fb2a35c7bd1",
+      "bytes": 52342,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/unexplained-cookie-refusal.json",
+      "object": "objects/120b65ccb457e9bdbc0378e7d9c5988e97aaf53a0ecda49662f7eff4122d2c5e",
+      "sha256": "120b65ccb457e9bdbc0378e7d9c5988e97aaf53a0ecda49662f7eff4122d2c5e",
+      "bytes": 1620,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/17-chromium-fixture/unplanned-origin-refusal.json",
+      "object": "objects/d22fa0ce1041a6bf10f36c66f0ff6931947b524cbaa79fb4f861b55a568a6522",
+      "sha256": "d22fa0ce1041a6bf10f36c66f0ff6931947b524cbaa79fb4f861b55a568a6522",
+      "bytes": 1389,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/browser.json",
+      "object": "objects/bfc6c6ee0c8c269a4cdaa8c8ed7ae64129af0a7a0fe94c7e5585035ae8582541",
+      "sha256": "bfc6c6ee0c8c269a4cdaa8c8ed7ae64129af0a7a0fe94c7e5585035ae8582541",
+      "bytes": 3442,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/closed-context-incomplete.json",
+      "object": "objects/76e6f00f693a5972e9004fa9c209384e5057bbcc98ef9e69dc2dda9e31b43719",
+      "sha256": "76e6f00f693a5972e9004fa9c209384e5057bbcc98ef9e69dc2dda9e31b43719",
+      "bytes": 595,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/command.json",
+      "object": "objects/17dfb0f4372929c2674b061d4e6c8cac152dfe589aaa4e21db5ab20839cb04a5",
+      "sha256": "17dfb0f4372929c2674b061d4e6c8cac152dfe589aaa4e21db5ab20839cb04a5",
+      "bytes": 1039,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/log.txt",
+      "object": "objects/5d274a7240db2a70ab62a8fe1063b11d0ca73fefaa8efae95542287efb01c242",
+      "sha256": "5d274a7240db2a70ab62a8fe1063b11d0ca73fefaa8efae95542287efb01c242",
+      "bytes": 353,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/18-webkit-close-event/unplanned-origin-refusal.json",
+      "object": "objects/f86de4289e6b8ce01269748fdcb09ebe75cad32b829a2fb7827fed846bb6cd24",
+      "sha256": "f86de4289e6b8ce01269748fdcb09ebe75cad32b829a2fb7827fed846bb6cd24",
+      "bytes": 1515,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/browser.json",
+      "object": "objects/22923efa2824ea173063253c4414e33e32b5f88a6f8db9b9f3793f458f9974f6",
+      "sha256": "22923efa2824ea173063253c4414e33e32b5f88a6f8db9b9f3793f458f9974f6",
+      "bytes": 3445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/closed-context-incomplete.json",
+      "object": "objects/7d3668de7ca23d26ed258eb671cfe2e932a21e8ec8299d9f261ba0ea3e6bb72c",
+      "sha256": "7d3668de7ca23d26ed258eb671cfe2e932a21e8ec8299d9f261ba0ea3e6bb72c",
+      "bytes": 531,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/command.json",
+      "object": "objects/818b57005f9edcdd32b5ac86a90bcb0fca9b256fd72cb55a729d4d97f298689c",
+      "sha256": "818b57005f9edcdd32b5ac86a90bcb0fca9b256fd72cb55a729d4d97f298689c",
+      "bytes": 1042,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/log.txt",
+      "object": "objects/c2541b93262cd6d4d0915810cf268ad2afe9a9a14d450510bf74c46cc02feaed",
+      "sha256": "c2541b93262cd6d4d0915810cf268ad2afe9a9a14d450510bf74c46cc02feaed",
+      "bytes": 353,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/19-firefox-close-event/unplanned-origin-refusal.json",
+      "object": "objects/c4cb1973635d47540f76c5f37dd7b506a562f804c408779137d5ceb4a34c2b4a",
+      "sha256": "c4cb1973635d47540f76c5f37dd7b506a562f804c408779137d5ceb4a34c2b4a",
+      "bytes": 1386,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/command.json",
+      "object": "objects/76e85bdbbfc00c9ef5193be5d990fade17781843b3659a309e77b3b77680d901",
+      "sha256": "76e85bdbbfc00c9ef5193be5d990fade17781843b3659a309e77b3b77680d901",
+      "bytes": 1423,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/log.txt",
+      "object": "objects/027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "bytes": 338,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/20-typecheck/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/browser.json",
+      "object": "objects/4ac5ed8b5ae617de8da6643631887aaa838e77fe6649e62bd2d01044cf9d8fb5",
+      "sha256": "4ac5ed8b5ae617de8da6643631887aaa838e77fe6649e62bd2d01044cf9d8fb5",
+      "bytes": 3638,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/command.json",
+      "object": "objects/518723737af1f7c8fa95df0deeadaeb5bdda06efa44b3547724c7e45ee80e108",
+      "sha256": "518723737af1f7c8fa95df0deeadaeb5bdda06efa44b3547724c7e45ee80e108",
+      "bytes": 1785,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/log.txt",
+      "object": "objects/d16ad81523922b6f646ab96f9f9b1bfa87710f96f364bb6d3e943e5002d0c8c8",
+      "sha256": "d16ad81523922b6f646ab96f9f9b1bfa87710f96f364bb6d3e943e5002d0c8c8",
+      "bytes": 474,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/native-destination.json",
+      "object": "objects/88ee20a68be726d5cdcb635b54216a0a7d518f86a08f25e57fc595f3500f90c5",
+      "sha256": "88ee20a68be726d5cdcb635b54216a0a7d518f86a08f25e57fc595f3500f90c5",
+      "bytes": 2806,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/21-chromium-destination/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/browser.json",
+      "object": "objects/aa7a2f3456b7daaf33dae7ec7c38da3f50f8991ef9c520f03a9b97f76814cb79",
+      "sha256": "aa7a2f3456b7daaf33dae7ec7c38da3f50f8991ef9c520f03a9b97f76814cb79",
+      "bytes": 3635,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/command.json",
+      "object": "objects/c3a7a8dac9e37c6469324961b0969bae3f1a3269cb71831ca10e30e4679faff6",
+      "sha256": "c3a7a8dac9e37c6469324961b0969bae3f1a3269cb71831ca10e30e4679faff6",
+      "bytes": 1782,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/log.txt",
+      "object": "objects/1858752d2d9aed7764286e47a3b7fe6ec1f69ce89fc00ca3d689b41d3e8b3d97",
+      "sha256": "1858752d2d9aed7764286e47a3b7fe6ec1f69ce89fc00ca3d689b41d3e8b3d97",
+      "bytes": 474,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/native-destination.json",
+      "object": "objects/5f6d25cffd3d6f1a0a9a89db808d6f2b4c566a79ba206b544d4fcb6ff9ee732b",
+      "sha256": "5f6d25cffd3d6f1a0a9a89db808d6f2b4c566a79ba206b544d4fcb6ff9ee732b",
+      "bytes": 2803,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/22-firefox-destination/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/browser.json",
+      "object": "objects/1aac186601132a6371390da17436ae5e79a12a9381c3530d2c0da6387e5c222f",
+      "sha256": "1aac186601132a6371390da17436ae5e79a12a9381c3530d2c0da6387e5c222f",
+      "bytes": 3622,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/command.json",
+      "object": "objects/52a116a4397a706848ba03814c0dce7f4cbd772bc8b831439bdfa400ddf1e20b",
+      "sha256": "52a116a4397a706848ba03814c0dce7f4cbd772bc8b831439bdfa400ddf1e20b",
+      "bytes": 1779,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/log.txt",
+      "object": "objects/dfc021b49b230d79ee43d2acb189315a0c1c4425ebe6b97f77e83b235cb53262",
+      "sha256": "dfc021b49b230d79ee43d2acb189315a0c1c4425ebe6b97f77e83b235cb53262",
+      "bytes": 474,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/native-destination.json",
+      "object": "objects/66b5985d14fcc79653185c8f6ebc8215a33fe7900dd68c600ac2fe3299ea6be6",
+      "sha256": "66b5985d14fcc79653185c8f6ebc8215a33fe7900dd68c600ac2fe3299ea6be6",
+      "bytes": 2924,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/23-webkit-destination/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/command.json",
+      "object": "objects/3f9eeca00baf2449a5dd555d942480ec84df5ec5e6d75dfad7a428f6a2ffca86",
+      "sha256": "3f9eeca00baf2449a5dd555d942480ec84df5ec5e6d75dfad7a428f6a2ffca86",
+      "bytes": 1415,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/log.txt",
+      "object": "objects/c2313f552aeecf811f7db582a06a4f4909b911ab1dfe9dc1bfee5f4e027c14d8",
+      "sha256": "c2313f552aeecf811f7db582a06a4f4909b911ab1dfe9dc1bfee5f4e027c14d8",
+      "bytes": 21037,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/24-build/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/browser.json",
+      "object": "objects/25a1ae85d7a0085e859105533d96005cf87daca9c2297d14c9ca54baa27f2824",
+      "sha256": "25a1ae85d7a0085e859105533d96005cf87daca9c2297d14c9ca54baa27f2824",
+      "bytes": 4685,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/command.json",
+      "object": "objects/9662ed895831f42e4afdc1d87879795181e4b80643d99f99d4ec6cfd3491f7d8",
+      "sha256": "9662ed895831f42e4afdc1d87879795181e4b80643d99f99d4ec6cfd3491f7d8",
+      "bytes": 1799,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/e1-console.json",
+      "object": "objects/6f5381b10203cde435680943739c141c93a2f93bac2288c9ad447d3a9605590f",
+      "sha256": "6f5381b10203cde435680943739c141c93a2f93bac2288c9ad447d3a9605590f",
+      "bytes": 1516,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/e1-storage.json",
+      "object": "objects/c1ff29d9a934343f238273b1ad1c39a0e5fd9efed379ac02a8b171a92ffbdb00",
+      "sha256": "c1ff29d9a934343f238273b1ad1c39a0e5fd9efed379ac02a8b171a92ffbdb00",
+      "bytes": 4855,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/e1.json",
+      "object": "objects/c461c2b8a636212125c778337d2982ba83e718ef47b0c246a61661872e372547",
+      "sha256": "c461c2b8a636212125c778337d2982ba83e718ef47b0c246a61661872e372547",
+      "bytes": 9140,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/error-oracle-negatives.json",
+      "object": "objects/a915ab42ec582ad32200b7cbb61975978815a715327841db301d293b3fcfff06",
+      "sha256": "a915ab42ec582ad32200b7cbb61975978815a715327841db301d293b3fcfff06",
+      "bytes": 978,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/image.png",
+      "object": "objects/a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "sha256": "a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "bytes": 111,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/log.txt",
+      "object": "objects/3cba4137c4ecf25ef437dcea522118597459aeeb3de27a6fdb3479f87e715ac1",
+      "sha256": "3cba4137c4ecf25ef437dcea522118597459aeeb3de27a6fdb3479f87e715ac1",
+      "bytes": 534,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/nested.ideogram-project",
+      "object": "objects/334358a3f4c82ab5780e2e332a0b2c6f9e42bad8b571c5473a7c93ba4e125438",
+      "sha256": "334358a3f4c82ab5780e2e332a0b2c6f9e42bad8b571c5473a7c93ba4e125438",
+      "bytes": 103445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/project.ideogram-project",
+      "object": "objects/77a1c579ee7b575025ba439ab4bf84a681f252471c6d2128f920dc31d72a93f5",
+      "sha256": "77a1c579ee7b575025ba439ab4bf84a681f252471c6d2128f920dc31d72a93f5",
+      "bytes": 52342,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/25-webkit-combined/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/browser.json",
+      "object": "objects/9f738f240b89b88a39c107df68d04656d7249707d0e4c2ee1152eb6f05f347e5",
+      "sha256": "9f738f240b89b88a39c107df68d04656d7249707d0e4c2ee1152eb6f05f347e5",
+      "bytes": 4683,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/command.json",
+      "object": "objects/5a40acdcdd761810aefeb0bdc5fe299b9823879f50b07a4bcdeb09b05d7321a6",
+      "sha256": "5a40acdcdd761810aefeb0bdc5fe299b9823879f50b07a4bcdeb09b05d7321a6",
+      "bytes": 1805,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/e1-console.json",
+      "object": "objects/4582edb9ef6e29662d4dc2db2534d94b6a0f52eca572010c38a6e8f791a8a8b5",
+      "sha256": "4582edb9ef6e29662d4dc2db2534d94b6a0f52eca572010c38a6e8f791a8a8b5",
+      "bytes": 1506,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/e1-storage.json",
+      "object": "objects/8ca7b560a2957f64a6d91811babb2e9fca868dd3ead30876d2f7fb6fd57162fc",
+      "sha256": "8ca7b560a2957f64a6d91811babb2e9fca868dd3ead30876d2f7fb6fd57162fc",
+      "bytes": 4655,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/e1.json",
+      "object": "objects/6ecdbf524bca1ad08d0de28e26ce9ba7f25a0496718c1bd064f913003b11e293",
+      "sha256": "6ecdbf524bca1ad08d0de28e26ce9ba7f25a0496718c1bd064f913003b11e293",
+      "bytes": 9076,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/error-oracle-negatives.json",
+      "object": "objects/d0324e5065c4e0d3f7469f605ce9ce773c179e50f2bab077c24d0803d0f7c811",
+      "sha256": "d0324e5065c4e0d3f7469f605ce9ce773c179e50f2bab077c24d0803d0f7c811",
+      "bytes": 991,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/image.png",
+      "object": "objects/a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "sha256": "a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "bytes": 111,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/log.txt",
+      "object": "objects/e0fe55ec9b3716e98ccaa4fe603a71268a54a8ece21fdad37b11e5aa5bdd553b",
+      "sha256": "e0fe55ec9b3716e98ccaa4fe603a71268a54a8ece21fdad37b11e5aa5bdd553b",
+      "bytes": 533,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/nested.ideogram-project",
+      "object": "objects/a58071f2967a7a1b46df5b99eb78fc89274e1671770bf4faa4725a6beb8c1b9a",
+      "sha256": "a58071f2967a7a1b46df5b99eb78fc89274e1671770bf4faa4725a6beb8c1b9a",
+      "bytes": 103445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/project.ideogram-project",
+      "object": "objects/e4a0cc9c2dcf1d2e600b8b1d086f919bfc44115299fcf7a7e1c51365bc5de3a5",
+      "sha256": "e4a0cc9c2dcf1d2e600b8b1d086f919bfc44115299fcf7a7e1c51365bc5de3a5",
+      "bytes": 52342,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/26-chromium-combined/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/browser.json",
+      "object": "objects/1028d350d3edfb206ecb1b70c06d289c663688a3c2643daf4598e14435b8a944",
+      "sha256": "1028d350d3edfb206ecb1b70c06d289c663688a3c2643daf4598e14435b8a944",
+      "bytes": 4679,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/command.json",
+      "object": "objects/f11882a48a6cd4b439e54a6df7ba6e3a50eca10eb873c89568079ad5565a2ec0",
+      "sha256": "f11882a48a6cd4b439e54a6df7ba6e3a50eca10eb873c89568079ad5565a2ec0",
+      "bytes": 1802,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/e1-console.json",
+      "object": "objects/d841f48a20c5936b28520c2d9a9d424f7642dd5570dc2de0d21137d97a624dff",
+      "sha256": "d841f48a20c5936b28520c2d9a9d424f7642dd5570dc2de0d21137d97a624dff",
+      "bytes": 173,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/e1-storage.json",
+      "object": "objects/8cdf4c77512da1dd6200b830264bc3fd116fd9310af1191613fa0df03590e464",
+      "sha256": "8cdf4c77512da1dd6200b830264bc3fd116fd9310af1191613fa0df03590e464",
+      "bytes": 4537,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/e1.json",
+      "object": "objects/7a1870162da24ef81c042c00579134195d7dc7fac246ea7ec1f7ecbe867d9128",
+      "sha256": "7a1870162da24ef81c042c00579134195d7dc7fac246ea7ec1f7ecbe867d9128",
+      "bytes": 8696,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/error-oracle-negatives.json",
+      "object": "objects/b9ba04a2de418dbb3052802889262a36704675af5e99dbf6b782a66c5693f721",
+      "sha256": "b9ba04a2de418dbb3052802889262a36704675af5e99dbf6b782a66c5693f721",
+      "bytes": 972,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/image.png",
+      "object": "objects/a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "sha256": "a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+      "bytes": 111,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/log.txt",
+      "object": "objects/5a4a896777394828071400864732f3352b54c04c054448791e9802f464b7eb2c",
+      "sha256": "5a4a896777394828071400864732f3352b54c04c054448791e9802f464b7eb2c",
+      "bytes": 533,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/nested.ideogram-project",
+      "object": "objects/ccb7908d5818c13d09066400c158210835122b906fd8003f5efb14e061015143",
+      "sha256": "ccb7908d5818c13d09066400c158210835122b906fd8003f5efb14e061015143",
+      "bytes": 103445,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/project.ideogram-project",
+      "object": "objects/24b7696cb9c6d06d58471a9fe4b5ea3d257630f0af6d92ee62dbd9635073100a",
+      "sha256": "24b7696cb9c6d06d58471a9fe4b5ea3d257630f0af6d92ee62dbd9635073100a",
+      "bytes": 52342,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/destination.spec.ts",
+      "object": "objects/71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "sha256": "71b36da9e157bb466556f1fe8584670478268efb2fbd3116bab97927c9cdc504",
+      "bytes": 6555,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/27-firefox-combined/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/browser/.last-run.json",
+      "object": "objects/03ee0e750e9051f00ca13acd0d995d74c1cced27c7d6d9a5ccefd552094891f9",
+      "sha256": "03ee0e750e9051f00ca13acd0d995d74c1cced27c7d6d9a5ccefd552094891f9",
+      "bytes": 96,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/browser/destination-destination-fa-55853-s-and-selected-destinations/error-context.md",
+      "object": "objects/768a5515951c32f2fea121d0c1c3fbaeb475ebd532ecb3d6e169e0bb6f6f4a3e",
+      "sha256": "768a5515951c32f2fea121d0c1c3fbaeb475ebd532ecb3d6e169e0bb6f6f4a3e",
+      "bytes": 9120,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/browser.json",
+      "object": "objects/0ce0371730fa95d13452e9b3bc7c69edcc18b88178aac817bc2ec7a39c8446dc",
+      "sha256": "0ce0371730fa95d13452e9b3bc7c69edcc18b88178aac817bc2ec7a39c8446dc",
+      "bytes": 8370,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/command.json",
+      "object": "objects/dfd071bb72981443a0fd8b3c64cbfac59ee228b21e90a38249a0232b3fec91f4",
+      "sha256": "dfd071bb72981443a0fd8b3c64cbfac59ee228b21e90a38249a0232b3fec91f4",
+      "bytes": 1789,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/log.txt",
+      "object": "objects/aafb50c50e5b7dfc52f924f090e47b35d28a16a4906188e31aff46cf0eec4807",
+      "sha256": "aafb50c50e5b7dfc52f924f090e47b35d28a16a4906188e31aff46cf0eec4807",
+      "bytes": 1909,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/native-destination.json",
+      "object": "objects/e5fd60ace1f3a33c1aaf0f70c166e1220da80ce5903f98cc00c3fd504e748268",
+      "sha256": "e5fd60ace1f3a33c1aaf0f70c166e1220da80ce5903f98cc00c3fd504e748268",
+      "bytes": 3038,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/destination.spec.ts",
+      "object": "objects/753895b4b4dc8b13071749e409532e72115471b147e2c873f04de4d99e4072a2",
+      "sha256": "753895b4b4dc8b13071749e409532e72115471b147e2c873f04de4d99e4072a2",
+      "bytes": 7682,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/28-chromium-cleanup-error/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/browser.json",
+      "object": "objects/0e01c140245670fa71a0a0be511d6a2b883fdc69a108aedecbd143d1ebf4b78c",
+      "sha256": "0e01c140245670fa71a0a0be511d6a2b883fdc69a108aedecbd143d1ebf4b78c",
+      "bytes": 3642,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/command.json",
+      "object": "objects/46619768b2f01c1b5c1bc3f40149729bda90ae8745fe11f8c2066256982d8257",
+      "sha256": "46619768b2f01c1b5c1bc3f40149729bda90ae8745fe11f8c2066256982d8257",
+      "bytes": 1789,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/log.txt",
+      "object": "objects/1c1dca716197bcb556399e17a4be48ba33909e0fe3e1c8fd0167020217d460d1",
+      "sha256": "1c1dca716197bcb556399e17a4be48ba33909e0fe3e1c8fd0167020217d460d1",
+      "bytes": 476,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/native-destination.json",
+      "object": "objects/c799b282fcb3ffecb0d07d441dea680f0d25b7672f837e85e07b3594a90f0e69",
+      "sha256": "c799b282fcb3ffecb0d07d441dea680f0d25b7672f837e85e07b3594a90f0e69",
+      "bytes": 3208,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/destination.spec.ts",
+      "object": "objects/e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "sha256": "e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "bytes": 7782,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/29-chromium-cleanup-entry/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/command.json",
+      "object": "objects/53dfcb6e9c4d9aeaf79fb8187ed8ed846e3c49991ee85f40e62db29c24d49b0e",
+      "sha256": "53dfcb6e9c4d9aeaf79fb8187ed8ed846e3c49991ee85f40e62db29c24d49b0e",
+      "bytes": 1831,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/log.txt",
+      "object": "objects/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/destination.spec.ts",
+      "object": "objects/e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "sha256": "e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "bytes": 7782,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/30-final-fixture-types/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/browser.json",
+      "object": "objects/56bed679754e13a7e9f57513378cc0f0d678efdf89a775c93995bf32e6b4ca8b",
+      "sha256": "56bed679754e13a7e9f57513378cc0f0d678efdf89a775c93995bf32e6b4ca8b",
+      "bytes": 3651,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/command.json",
+      "object": "objects/5f0cf9f74b5e954781552f581e9297bac9825b42d7dd7772ec6b093bee7d7ddd",
+      "sha256": "5f0cf9f74b5e954781552f581e9297bac9825b42d7dd7772ec6b093bee7d7ddd",
+      "bytes": 1791,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/log.txt",
+      "object": "objects/bd15aeee1df3fc71c013a278d3fe1c882d0d1bcd683096d1fb156b0b1b0b3076",
+      "sha256": "bd15aeee1df3fc71c013a278d3fe1c882d0d1bcd683096d1fb156b0b1b0b3076",
+      "bytes": 476,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/native-destination.json",
+      "object": "objects/6b5f6ebe7b32d78246a9706e1b187cc9cf5cfae0095557f5680497f9c66de693",
+      "sha256": "6b5f6ebe7b32d78246a9706e1b187cc9cf5cfae0095557f5680497f9c66de693",
+      "bytes": 2924,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/destination.spec.ts",
+      "object": "objects/e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "sha256": "e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "bytes": 7782,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/31-webkit-destination-final/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/browser/.last-run.json",
+      "object": "objects/91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/browser.json",
+      "object": "objects/b72177d74066c2d17c986cd38c1a23e2cc45935142130f69814b6b9cf2b06cc5",
+      "sha256": "b72177d74066c2d17c986cd38c1a23e2cc45935142130f69814b6b9cf2b06cc5",
+      "bytes": 3644,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/command.json",
+      "object": "objects/9cc883891c9ec61e80a0e444f2e0025c3149c28f3a2bb77f450f7b2a3700f523",
+      "sha256": "9cc883891c9ec61e80a0e444f2e0025c3149c28f3a2bb77f450f7b2a3700f523",
+      "bytes": 1794,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/log.txt",
+      "object": "objects/2979ab73e4b6b2cebbb5c822e052a3301f3f20c8e93f5cb7c2b3033336b41eea",
+      "sha256": "2979ab73e4b6b2cebbb5c822e052a3301f3f20c8e93f5cb7c2b3033336b41eea",
+      "bytes": 476,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/native-destination.json",
+      "object": "objects/2bc4c7561818c2360ae464f040c8dfe2cb577ee28e4cf71d4fb605b590a1976e",
+      "sha256": "2bc4c7561818c2360ae464f040c8dfe2cb577ee28e4cf71d4fb605b590a1976e",
+      "bytes": 2803,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/src/protocol/sha256.ts",
+      "object": "objects/6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "bytes": 2672,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/src/state/destination.ts",
+      "object": "objects/11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/destination.spec.ts",
+      "object": "objects/e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "sha256": "e9713f8782945b7ead5d2791d1bee0feccc21b355b84e004fb2aa4a45480bb86",
+      "bytes": 7782,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/error-monitor.spec.ts",
+      "object": "objects/88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "bytes": 2634,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/error-monitor.ts",
+      "object": "objects/ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "bytes": 812,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/owned-opfs.spec.ts",
+      "object": "objects/745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "sha256": "745036d5c7aabdffd5628298346f3520d512a35e632178fd30c94ab9742824cd",
+      "bytes": 10143,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/owned-opfs.ts",
+      "object": "objects/c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "bytes": 8252,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/playwright.config.ts",
+      "object": "objects/49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "sha256": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+      "bytes": 508,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/portable.spec.ts",
+      "object": "objects/2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "sha256": "2faad69eba34dee1d5542c6f0bceaf1d47e919633009576683387e4b25604387",
+      "bytes": 12042,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/32-firefox-destination-final/source/tests/editor/shutdown-console.ts",
+      "object": "objects/d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "bytes": 1800,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/33-source-build/BUILD.json",
+      "object": "objects/123c8242b6a3e12894cfb42b90f0bc898ec65aced19b4fe6047d24ceabd1373a",
+      "sha256": "123c8242b6a3e12894cfb42b90f0bc898ec65aced19b4fe6047d24ceabd1373a",
+      "bytes": 6563,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/33-source-build/CODE-INPUTS.json",
+      "object": "objects/ece380d336a58e0d80f41ef54aa9dec42d8de002321a50193227aa3a08246fe4",
+      "sha256": "ece380d336a58e0d80f41ef54aa9dec42d8de002321a50193227aa3a08246fe4",
+      "bytes": 21126,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/33-source-build/RUNTIME-DELTA.json",
+      "object": "objects/592447ece40bc5625ebe131207ae04d605e3d209d16ece6162ba907a48a9e414",
+      "sha256": "592447ece40bc5625ebe131207ae04d605e3d209d16ece6162ba907a48a9e414",
+      "bytes": 183,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/34-preview-start.json",
+      "object": "objects/a543bf87ebcdda1ed394bde91f627a5698f50c54655c8c07a5d0515784224dc6",
+      "sha256": "a543bf87ebcdda1ed394bde91f627a5698f50c54655c8c07a5d0515784224dc6",
+      "bytes": 303,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/34-start-preview.py",
+      "object": "objects/75a2f7257ace0ba9c19b0a30e8c384b65a7ff48a62869d16743189af280419a3",
+      "sha256": "75a2f7257ace0ba9c19b0a30e8c384b65a7ff48a62869d16743189af280419a3",
+      "bytes": 1604,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/35-preview-identity/identity.json",
+      "object": "objects/6c244d650441fc7c2e4c208f2916a471895245abb79a76f24045dceee7d8e89e",
+      "sha256": "6c244d650441fc7c2e4c208f2916a471895245abb79a76f24045dceee7d8e89e",
+      "bytes": 2139,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/35-preview-identity/paired-preview.png",
+      "object": "objects/85fd7db83b9bd8388864c789c34a12cd43a8a74ccf7dc1f73c0e6c78d99726c2",
+      "sha256": "85fd7db83b9bd8388864c789c34a12cd43a8a74ccf7dc1f73c0e6c78d99726c2",
+      "bytes": 148497,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/35-preview-identity.mjs",
+      "object": "objects/26a98b81c025c05c976214993200b6c3a305f7d45b38d2f634b8c862ba5b9b08",
+      "sha256": "26a98b81c025c05c976214993200b6c3a305f7d45b38d2f634b8c862ba5b9b08",
+      "bytes": 2591,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/command.json",
+      "object": "objects/668c51408905bfa64b60a48e37cf8303a957fc6d5c3e8d715e47e0b0c84872dd",
+      "sha256": "668c51408905bfa64b60a48e37cf8303a957fc6d5c3e8d715e47e0b0c84872dd",
+      "bytes": 393,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/observations.json",
+      "object": "objects/e33a026f7c10914a27049575321cf6513560e6726bb654ae0ba50bc4d91e483e",
+      "sha256": "e33a026f7c10914a27049575321cf6513560e6726bb654ae0ba50bc4d91e483e",
+      "bytes": 1441,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/reset-specimen.mjs",
+      "object": "objects/885b359b54116c73d728882f81b53dd3b190e64dad96bffab5e8242a0356327a",
+      "sha256": "885b359b54116c73d728882f81b53dd3b190e64dad96bffab5e8242a0356327a",
+      "bytes": 5445,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/run-gate.py",
+      "object": "objects/3062ce5ef972526eff5ca1e58bd01753955572bd3df66369a1e04be78fe25bcd",
+      "sha256": "3062ce5ef972526eff5ca1e58bd01753955572bd3df66369a1e04be78fe25bcd",
+      "bytes": 1177,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/run-product-gate.py",
+      "object": "objects/b2c3e30c0f512624e07f0fe25895616f90e5e77ecbbe9be3ef635f49ee7c4a05",
+      "sha256": "b2c3e30c0f512624e07f0fe25895616f90e5e77ecbbe9be3ef635f49ee7c4a05",
+      "bytes": 1577,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/run.log",
+      "object": "objects/f347c60d5f9b3f77cfb1eec99a2aaefd65d0702df7d9c39cad6edda4a8deef12",
+      "sha256": "f347c60d5f9b3f77cfb1eec99a2aaefd65d0702df7d9c39cad6edda4a8deef12",
+      "bytes": 1155,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/command.json",
+      "object": "objects/5cc2456b9d04fbf4ab86d03fbffe2ae5b097c0fafc70a7f85080f6decb0b36c7",
+      "sha256": "5cc2456b9d04fbf4ab86d03fbffe2ae5b097c0fafc70a7f85080f6decb0b36c7",
+      "bytes": 403,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/failure-summary.json",
+      "object": "objects/890de0ac2efb81b1a485d92b3fbb07b4a80a8554485de1f72b11298e4eb8db91",
+      "sha256": "890de0ac2efb81b1a485d92b3fbb07b4a80a8554485de1f72b11298e4eb8db91",
+      "bytes": 976,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/run.log",
+      "object": "objects/a7c4de29a23b83e2c5f362f02309fee26fb530340fbc55c255e62b927562fbda",
+      "sha256": "a7c4de29a23b83e2c5f362f02309fee26fb530340fbc55c255e62b927562fbda",
+      "bytes": 499,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/specimen.mjs",
+      "object": "objects/c7efc7b755c3b5e07d1f057f3c13cf68ad13d5c34cd4a551bc296596588157c5",
+      "sha256": "c7efc7b755c3b5e07d1f057f3c13cf68ad13d5c34cd4a551bc296596588157c5",
+      "bytes": 4401,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/v2/command.json",
+      "object": "objects/1f9355e613af348ce04f5536e510e710516904cdee69782b80ad7ac03c3aa777",
+      "sha256": "1f9355e613af348ce04f5536e510e710516904cdee69782b80ad7ac03c3aa777",
+      "bytes": 393,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/v2/observations.json",
+      "object": "objects/1c49d70769c4a2bba4b2da1bd55b511b2a477b2491184e20734dc6d9886e31fe",
+      "sha256": "1c49d70769c4a2bba4b2da1bd55b511b2a477b2491184e20734dc6d9886e31fe",
+      "bytes": 9653,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/v2/run.log",
+      "object": "objects/92a93399fdde306c7da63f8a2bf1e22cd48b4b7a3eafee837110ecbcf030eff3",
+      "sha256": "92a93399fdde306c7da63f8a2bf1e22cd48b4b7a3eafee837110ecbcf030eff3",
+      "bytes": 6982,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-blob-lifetime-author/v2/specimen.mjs",
+      "object": "objects/0fc64f25341f9dc359514e6629f16bd1679bf1c128c075b649d75f4f066fd679",
+      "sha256": "0fc64f25341f9dc359514e6629f16bd1679bf1c128c075b649d75f4f066fd679",
+      "bytes": 6595,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "build/dist/app/.vite/manifest.json",
+      "object": "objects/a283d840d83aa6b987cf17df17e2e2d1d93b3a615cab4defc20b383b66384def",
+      "sha256": "a283d840d83aa6b987cf17df17e2e2d1d93b3a615cab4defc20b383b66384def",
+      "bytes": 1030,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/assets/editor-panels-C8u6k489.js",
+      "object": "objects/f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "bytes": 9411,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/assets/icon-LNfVOU5p.js",
+      "object": "objects/a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "bytes": 137598,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/assets/index-3qdbjV_g.css",
+      "object": "objects/4dbd26c5d61d312d5dcf86b7a52cf1687cc18ad020bfc0160053950a23f339ea",
+      "sha256": "4dbd26c5d61d312d5dcf86b7a52cf1687cc18ad020bfc0160053950a23f339ea",
+      "bytes": 97169,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/assets/index-BL8f-542.js",
+      "object": "objects/be77a2d98a43d74a9f86edc518b051abd14c405a68750bc7291f6693c1cb689d",
+      "sha256": "be77a2d98a43d74a9f86edc518b051abd14c405a68750bc7291f6693c1cb689d",
+      "bytes": 1429,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "object": "objects/8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "bytes": 1218,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/assets/shell-kIzDs22a.js",
+      "object": "objects/3530f6192a5072404f056f1e2a1d6b2d99591a27ac9033b6e3514279aa3272cc",
+      "sha256": "3530f6192a5072404f056f1e2a1d6b2d99591a27ac9033b6e3514279aa3272cc",
+      "bytes": 355272,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/build-evidence.json",
+      "object": "objects/326fd9a8c552996b478d4e31f2124372c426c43057fcda503f12b41b4fab5a29",
+      "sha256": "326fd9a8c552996b478d4e31f2124372c426c43057fcda503f12b41b4fab5a29",
+      "bytes": 13169,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/app/index.html",
+      "object": "objects/07ec68bcdc06d478c5628675da53a1372ca235336da085469b210c3b6aa95002",
+      "sha256": "07ec68bcdc06d478c5628675da53a1372ca235336da085469b210c3b6aa95002",
+      "bytes": 961,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/assets.js",
+      "object": "objects/560d611c6a86d71afb98c5285646410b228cfc549161d68d4e9680c5b2c4325e",
+      "sha256": "560d611c6a86d71afb98c5285646410b228cfc549161d68d4e9680c5b2c4325e",
+      "bytes": 9990,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/control-json.js",
+      "object": "objects/5edf6a712c0df681675aed35db2aef48783f02622d0090d22f0f7beea949b107",
+      "sha256": "5edf6a712c0df681675aed35db2aef48783f02622d0090d22f0f7beea949b107",
+      "bytes": 2114,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/errors.js",
+      "object": "objects/ae53f08b15f25f561ad3ce6bfb7da003bd93cc6db428b92604d6369dffbaf05d",
+      "sha256": "ae53f08b15f25f561ad3ce6bfb7da003bd93cc6db428b92604d6369dffbaf05d",
+      "bytes": 2726,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/http.js",
+      "object": "objects/0d050f6ccb76c51072656aa31a9283fa444dfd377230df1a9a3813bf81c453ea",
+      "sha256": "0d050f6ccb76c51072656aa31a9283fa444dfd377230df1a9a3813bf81c453ea",
+      "bytes": 15279,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/portable/closure.js",
+      "object": "objects/f4c396ca8f4af65fa28c83aec14c45fd88ffbb4644c32e44c86dcd9e76913ac6",
+      "sha256": "f4c396ca8f4af65fa28c83aec14c45fd88ffbb4644c32e44c86dcd9e76913ac6",
+      "bytes": 14639,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/portable/format.js",
+      "object": "objects/561988ae9458ed7558804f0c468f2dfdda74cbdf697a973cbe720c5a323ab653",
+      "sha256": "561988ae9458ed7558804f0c468f2dfdda74cbdf697a973cbe720c5a323ab653",
+      "bytes": 22241,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/portable/provenance.js",
+      "object": "objects/4c21c347376e8808ad7ff5b9ca79a35c3aa858d16b0666a490e3ee902acbd35f",
+      "sha256": "4c21c347376e8808ad7ff5b9ca79a35c3aa858d16b0666a490e3ee902acbd35f",
+      "bytes": 2719,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/portable/transactions.js",
+      "object": "objects/99a6605309369388cefbcf7d6745a2d0603a0d6488df965ae342f318d83634b5",
+      "sha256": "99a6605309369388cefbcf7d6745a2d0603a0d6488df965ae342f318d83634b5",
+      "bytes": 7764,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/portable/zip.js",
+      "object": "objects/e8436192a4495c5c9e87f0e6325d54cbbf8e2fe8923657f418cb20e90ade412b",
+      "sha256": "e8436192a4495c5c9e87f0e6325d54cbbf8e2fe8923657f418cb20e90ade412b",
+      "bytes": 14775,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/portable.js",
+      "object": "objects/7542ad1645e6412211eec554e77ba665d07385208efa20985f6d23c34a934fb6",
+      "sha256": "7542ad1645e6412211eec554e77ba665d07385208efa20985f6d23c34a934fb6",
+      "bytes": 5436,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/private-root.js",
+      "object": "objects/7e335aa2acae027687d1de188fb70f4ac56c408b76b51885f34b82b52333b124",
+      "sha256": "7e335aa2acae027687d1de188fb70f4ac56c408b76b51885f34b82b52333b124",
+      "bytes": 3839,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/protocol.js",
+      "object": "objects/28db8a4cad4fc65914afa80a92ed9e47352cb8af5a009a91416cfc7853266a5f",
+      "sha256": "28db8a4cad4fc65914afa80a92ed9e47352cb8af5a009a91416cfc7853266a5f",
+      "bytes": 35672,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/raster/container.js",
+      "object": "objects/7266feff722fe6baf6a57cd8e1e0b34f279a963504ea09cb13cbb15ece47847d",
+      "sha256": "7266feff722fe6baf6a57cd8e1e0b34f279a963504ea09cb13cbb15ece47847d",
+      "bytes": 6444,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/raster/engine.js",
+      "object": "objects/c1f35f045014f8ef34c9ffa2b80d1ce0843105f46d60b70c0b837e72da91136d",
+      "sha256": "c1f35f045014f8ef34c9ffa2b80d1ce0843105f46d60b70c0b837e72da91136d",
+      "bytes": 17298,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/raster/identity.js",
+      "object": "objects/397b5e99b48d250e28bbc14a4080fd185d956c588a22cdaed5494cd4906651e5",
+      "sha256": "397b5e99b48d250e28bbc14a4080fd185d956c588a22cdaed5494cd4906651e5",
+      "bytes": 32226,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/raster/png-input.js",
+      "object": "objects/03e84261fa50ffb3921053449b02c0da7e0e90f4fd515e305907e28312e82fe9",
+      "sha256": "03e84261fa50ffb3921053449b02c0da7e0e90f4fd515e305907e28312e82fe9",
+      "bytes": 12912,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/raster/png.js",
+      "object": "objects/777a00bd2578614027dfe91619e7a7f06a250ed760fec03d3af9d8bc5b1af068",
+      "sha256": "777a00bd2578614027dfe91619e7a7f06a250ed760fec03d3af9d8bc5b1af068",
+      "bytes": 2313,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/raster/worker.js",
+      "object": "objects/57f69a6c13eef34acd236a37de204966038c5a85014f5ce5b3ba2886420949ec",
+      "sha256": "57f69a6c13eef34acd236a37de204966038c5a85014f5ce5b3ba2886420949ec",
+      "bytes": 1203,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/sessions.js",
+      "object": "objects/324690207de323e67bd3353fb20b09edd806fb0c6e8afb45e377c99b50b23b36",
+      "sha256": "324690207de323e67bd3353fb20b09edd806fb0c6e8afb45e377c99b50b23b36",
+      "bytes": 3502,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/static.js",
+      "object": "objects/866f2b734df5ec54fa967f60d344abeeb7fa578d806cdc42617bac532a0199e7",
+      "sha256": "866f2b734df5ec54fa967f60d344abeeb7fa578d806cdc42617bac532a0199e7",
+      "bytes": 4650,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/assets.js",
+      "object": "objects/4091b2d898767027c4fd94eac8534581a7f97dad9753abc13c9f798aa6a74331",
+      "sha256": "4091b2d898767027c4fd94eac8534581a7f97dad9753abc13c9f798aa6a74331",
+      "bytes": 33872,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/canonical.js",
+      "object": "objects/62a963acc87465bbd40faaf007518e84c13ebf834f471d79b6943abde0373382",
+      "sha256": "62a963acc87465bbd40faaf007518e84c13ebf834f471d79b6943abde0373382",
+      "bytes": 7584,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/database.js",
+      "object": "objects/7dcd5f3ce0ba7cb3ca46c9b1cca64a56a4b1754aac64ba7bf8b250f1407c3a6c",
+      "sha256": "7dcd5f3ce0ba7cb3ca46c9b1cca64a56a4b1754aac64ba7bf8b250f1407c3a6c",
+      "bytes": 52382,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/errors.js",
+      "object": "objects/73e1b0673732604083ff87a0962914058cbd72e6d3bf00fb353091dfc2b75106",
+      "sha256": "73e1b0673732604083ff87a0962914058cbd72e6d3bf00fb353091dfc2b75106",
+      "bytes": 564,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/files.js",
+      "object": "objects/4d80e2b7af5b884ac5a9c8e6b2ab5e1a5640315897e4e4207217a4b630d974c0",
+      "sha256": "4d80e2b7af5b884ac5a9c8e6b2ab5e1a5640315897e4e4207217a4b630d974c0",
+      "bytes": 3688,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/history.js",
+      "object": "objects/7d89d6d03e18c86dd3ec7070aca46a0c890e2727676886770be6055032b8c44e",
+      "sha256": "7d89d6d03e18c86dd3ec7070aca46a0c890e2727676886770be6055032b8c44e",
+      "bytes": 40676,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/objects.js",
+      "object": "objects/c37741666c49be781e394fa1ac795a55da857f1aed275884f2374af5853a9546",
+      "sha256": "c37741666c49be781e394fa1ac795a55da857f1aed275884f2374af5853a9546",
+      "bytes": 14641,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/ownership.js",
+      "object": "objects/69fe80713016d4aee2b8e5e6f7cf910fda70a3e5c1b97c483d1698aab1a69299",
+      "sha256": "69fe80713016d4aee2b8e5e6f7cf910fda70a3e5c1b97c483d1698aab1a69299",
+      "bytes": 1883,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/portable.js",
+      "object": "objects/8f4b5a36d96ee0e33a6a657e12d8798351664a9c407718ae1c4445cd81d4702c",
+      "sha256": "8f4b5a36d96ee0e33a6a657e12d8798351664a9c407718ae1c4445cd81d4702c",
+      "bytes": 69116,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/raster.js",
+      "object": "objects/580d10c29318f63d9c4e0e718ebf0ad21811ce0fd97d5d8b20be57306d3d7f87",
+      "sha256": "580d10c29318f63d9c4e0e718ebf0ad21811ce0fd97d5d8b20be57306d3d7f87",
+      "bytes": 30048,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/recovery.js",
+      "object": "objects/1acb64cc935a455f062fffaaa8863347ab6e9b877cbb051f71bfd6f831b4bbb0",
+      "sha256": "1acb64cc935a455f062fffaaa8863347ab6e9b877cbb051f71bfd6f831b4bbb0",
+      "bytes": 29438,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/reducer.js",
+      "object": "objects/a11c25360a63d359d8e3f71e255f94eda6de98582abcf1daf0c2a38d6c0b9730",
+      "sha256": "a11c25360a63d359d8e3f71e255f94eda6de98582abcf1daf0c2a38d6c0b9730",
+      "bytes": 64,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/schema.js",
+      "object": "objects/a6da7a69ccf973c263f85bed109e6b3033460f58e931a6da508eeb8b1eeb7f6b",
+      "sha256": "a6da7a69ccf973c263f85bed109e6b3033460f58e931a6da508eeb8b1eeb7f6b",
+      "bytes": 39179,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/ui.js",
+      "object": "objects/a1bc9c44163175695ffe3512e9445b1a25edb3ff080c508a2ab55565205d9b70",
+      "sha256": "a1bc9c44163175695ffe3512e9445b1a25edb3ff080c508a2ab55565205d9b70",
+      "bytes": 11377,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/worker.js",
+      "object": "objects/4b52ec312e539164dae26a220c6c05222894559ca1b1ac69c57f80fc366d13b8",
+      "sha256": "4b52ec312e539164dae26a220c6c05222894559ca1b1ac69c57f80fc366d13b8",
+      "bytes": 13909,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/server/storage/writer.js",
+      "object": "objects/b25b7858b38359708ce3f2e40f3ad13a02b94945e97b90e391ea8c6b4683d85a",
+      "sha256": "b25b7858b38359708ce3f2e40f3ad13a02b94945e97b90e391ea8c6b4683d85a",
+      "bytes": 10677,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/assets.js",
+      "object": "objects/8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "bytes": 11,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/history-validation.js",
+      "object": "objects/8ffd56fbace84af8b50087a5bd088bca7c98789cf2ea16436f6656578a40c540",
+      "sha256": "8ffd56fbace84af8b50087a5bd088bca7c98789cf2ea16436f6656578a40c540",
+      "bytes": 4354,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/history.js",
+      "object": "objects/7e6e86039c51ed5088575c0a209a786aee2c9dc18f33ba3426e4ca61cbbf87b6",
+      "sha256": "7e6e86039c51ed5088575c0a209a786aee2c9dc18f33ba3426e4ca61cbbf87b6",
+      "bytes": 416,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/json.js",
+      "object": "objects/11c2c958ba6682a8c43359c817cc34c7df7613d96d7def6f355a25bff9b2feca",
+      "sha256": "11c2c958ba6682a8c43359c817cc34c7df7613d96d7def6f355a25bff9b2feca",
+      "bytes": 5033,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/portable.js",
+      "object": "objects/d76412ba46fe9aaa6fd4db561a0bb3aed2af7031c4bf7f72bc0af1136b2a4e14",
+      "sha256": "d76412ba46fe9aaa6fd4db561a0bb3aed2af7031c4bf7f72bc0af1136b2a4e14",
+      "bytes": 129,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/raster.js",
+      "object": "objects/8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "bytes": 11,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/recovery.js",
+      "object": "objects/8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "bytes": 11,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/session.js",
+      "object": "objects/8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "bytes": 11,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/sha256.js",
+      "object": "objects/afde447a5304453903ca3e360043bb8d73f105e1648cd898476c8a2d409056b3",
+      "sha256": "afde447a5304453903ca3e360043bb8d73f105e1648cd898476c8a2d409056b3",
+      "bytes": 3344,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/store.js",
+      "object": "objects/12ec4a17d70195813e8f02ba67ebce82864e1a4f20967c8ce0c10c4f3e37b0b9",
+      "sha256": "12ec4a17d70195813e8f02ba67ebce82864e1a4f20967c8ce0c10c4f3e37b0b9",
+      "bytes": 264,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/ui.js",
+      "object": "objects/8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "bytes": 11,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/protocol/validate.js",
+      "object": "objects/38b9a8f286d457cde9b382d6044e12786f1e2ddcb983dd05eb76e0d6b071f610",
+      "sha256": "38b9a8f286d457cde9b382d6044e12786f1e2ddcb983dd05eb76e0d6b071f610",
+      "bytes": 17748,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/raster/core.js",
+      "object": "objects/b9ad5306ba5de38ba9b0c58c91bfce0003f6530da2ffd1ca0b0fca6aa1b5fe46",
+      "sha256": "b9ad5306ba5de38ba9b0c58c91bfce0003f6530da2ffd1ca0b0fca6aa1b5fe46",
+      "bytes": 8802,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/src/state/projection.js",
+      "object": "objects/b0ff3d1f60ca642516c64bde77c8537a45b4288fd6782489c285e54d003f59fa",
+      "sha256": "b0ff3d1f60ca642516c64bde77c8537a45b4288fd6782489c285e54d003f59fa",
+      "bytes": 2185,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/tooling/launch.js",
+      "object": "objects/dcff289c33c963c793e71dfa20c46582ffa20fb68affd2805063404f47910dbe",
+      "sha256": "dcff289c33c963c793e71dfa20c46582ffa20fb68affd2805063404f47910dbe",
+      "bytes": 2480,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "build/dist/local/tooling/launcher.js",
+      "object": "objects/41f9735a421ca1c3a1527434f2b9ef957cff60a58078d6a470d03007c56629da",
+      "sha256": "41f9735a421ca1c3a1527434f2b9ef957cff60a58078d6a470d03007c56629da",
+      "bytes": 2580,
+      "kind": "emitted-build"
+    },
+    {
+      "logicalPath": "prior-4fe/SHA256SUMS",
+      "object": "objects/8a28cb4eaf82301827cade40713342a981e17fbe9e1ae74d81fb9eb4839cf92c",
+      "sha256": "8a28cb4eaf82301827cade40713342a981e17fbe9e1ae74d81fb9eb4839cf92c",
+      "bytes": 6453,
+      "kind": "historical-rejected-evidence"
+    },
+    {
+      "logicalPath": "prior-4fe/VERDICT.txt",
+      "object": "objects/1221d215762e073b3e44a851c2749a75cfd94b78264976ec975c5715f5168771",
+      "sha256": "1221d215762e073b3e44a851c2749a75cfd94b78264976ec975c5715f5168771",
+      "bytes": 17248,
+      "kind": "historical-rejected-evidence"
+    },
+    {
+      "logicalPath": "prior-4fe/REVERIFY.txt",
+      "object": "objects/74a94cb85a6709c7ca78e81eb99b90570c2655096c0004646b187d137ae6bf7e",
+      "sha256": "74a94cb85a6709c7ca78e81eb99b90570c2655096c0004646b187d137ae6bf7e",
+      "bytes": 8850,
+      "kind": "historical-rejected-evidence"
+    },
+    {
+      "logicalPath": "prior-4fe/independent-storage.mjs",
+      "object": "objects/3d34c03aa6dbba6b73ab93a1a0f9e2c548162dc7558398882638f936ea664d66",
+      "sha256": "3d34c03aa6dbba6b73ab93a1a0f9e2c548162dc7558398882638f936ea664d66",
+      "bytes": 8486,
+      "kind": "historical-rejected-evidence"
+    },
+    {
+      "logicalPath": "prior-4fe/independent-storage.json",
+      "object": "objects/19c662b24f499b2353c92fc07ad0cc6691c61364b57b06e111032f4112556a2a",
+      "sha256": "19c662b24f499b2353c92fc07ad0cc6691c61364b57b06e111032f4112556a2a",
+      "bytes": 15848,
+      "kind": "historical-rejected-evidence"
+    },
+    {
+      "logicalPath": "prior-4fe/independent-storage.log.txt",
+      "object": "objects/35b37d3ff1b8f217bcf76e5f9b2e49eac1744bb5d9c116fa169f93b0c1f12c88",
+      "sha256": "35b37d3ff1b8f217bcf76e5f9b2e49eac1744bb5d9c116fa169f93b0c1f12c88",
+      "bytes": 15849,
+      "kind": "historical-rejected-evidence"
+    },
+    {
+      "logicalPath": "prior-4fe/closing-receipt.json",
+      "object": "objects/c8fc8bfe248385466205aded2009e29ce8c93c77592a66f9b69a5f61889e7afc",
+      "sha256": "c8fc8bfe248385466205aded2009e29ce8c93c77592a66f9b69a5f61889e7afc",
+      "bytes": 2632,
+      "kind": "historical-rejected-evidence"
+    },
+    {
+      "logicalPath": "stock-reset-author/package-evidence.py",
+      "object": "objects/807221c1fc08caea011e81e7f104f8f0973d183e281b14a06719bf00cf92985e",
+      "sha256": "807221c1fc08caea011e81e7f104f8f0973d183e281b14a06719bf00cf92985e",
+      "bytes": 3491,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/36-preview-roundtrip.mjs",
+      "object": "objects/cec76175b98de0354198c74d0f6a47d992de0c4619dd0a4ccee6cb67a538b5cc",
+      "sha256": "cec76175b98de0354198c74d0f6a47d992de0c4619dd0a4ccee6cb67a538b5cc",
+      "bytes": 2519,
+      "kind": "archived-verification-code"
+    },
+    {
+      "logicalPath": "stock-reset-author/36-preview-roundtrip/roundtrip.json",
+      "object": "objects/74476abb5562e2f6e606e8ad5b6053dc89bc38208e187368e33c3387a9dce19f",
+      "sha256": "74476abb5562e2f6e606e8ad5b6053dc89bc38208e187368e33c3387a9dce19f",
+      "bytes": 3573,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/36-preview-roundtrip/returned-preview.png",
+      "object": "objects/9793c0a0b641c63a72013f77195feb8b0c478f64324f3064f1a21f85bf0c1286",
+      "sha256": "9793c0a0b641c63a72013f77195feb8b0c478f64324f3064f1a21f85bf0c1286",
+      "bytes": 150813,
+      "kind": "runtime-observation"
+    },
+    {
+      "logicalPath": "stock-reset-author/36-preview-roundtrip/focused-card.png",
+      "object": "objects/2de95cba9c28c0ba5c948170c0809877ccb28d30a85c4e132e8834319cd635a0",
+      "sha256": "2de95cba9c28c0ba5c948170c0809877ccb28d30a85c4e132e8834319cd635a0",
+      "bytes": 165811,
+      "kind": "runtime-observation"
+    }
+  ]
+}

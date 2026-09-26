@@ -1,0 +1,2 @@
+tests/editor/owned-opfs.spec.ts(1,56): error TS2614: Module '"@playwright/test"' has no exported member 'Playwright'. Did you mean to use 'import Playwright from "@playwright/test"' instead?
+tests/editor/owned-opfs.spec.ts(15,40): error TS7006: Parameter 'p' implicitly has an 'any' type.

@@ -1,0 +1,153 @@
+{
+  "browserName": "webkit",
+  "results": [
+    {
+      "kind": "metadata",
+      "message": "DOWNLOAD_UNAVAILABLE",
+      "remaining": []
+    },
+    {
+      "kind": "corrupt",
+      "message": "DOWNLOAD_CORRUPT",
+      "remaining": []
+    },
+    {
+      "kind": "network",
+      "message": "CONTROLLED_NETWORK_CANCELLED",
+      "samePrimary": true,
+      "remaining": []
+    },
+    {
+      "kind": "collision",
+      "message": "DOWNLOAD_TEMPORARY_COLLISION",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "ie-download-00000000-0000-4000-8000-000000000000"
+      ]
+    },
+    {
+      "kind": "cancel",
+      "samePrimary": true,
+      "calls": 0,
+      "remaining": []
+    },
+    {
+      "kind": "selected-failure",
+      "samePrimary": true,
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "selected-controlled"
+      ]
+    },
+    {
+      "kind": "selected-success",
+      "status": "confirmed",
+      "bytes": [
+        0,
+        255,
+        10,
+        13,
+        127,
+        128
+      ],
+      "remaining": [
+        "selected-controlled"
+      ]
+    }
+  ],
+  "errors": [],
+  "domErrors": [],
+  "ledger": [
+    {
+      "phase": "fixture",
+      "run": "45f3bb30-cd48-49fd-b752-b1186237fb6c",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-destination-5796C8",
+      "contract": "controlled-origin-v2"
+    },
+    {
+      "phase": "initial-cookies",
+      "count": 0
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight-start",
+      "origin": "http://127.0.0.1:49489",
+      "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-destination-5796C8"
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "preflight",
+      "origin": "http://127.0.0.1:49489",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0,
+      "cookieCount": 0
+    },
+    {
+      "phase": "admitted",
+      "origin": "http://127.0.0.1:49489"
+    },
+    {
+      "phase": "cleanup-start",
+      "admitted": [
+        "http://127.0.0.1:49489"
+      ],
+      "visited": [
+        "http://127.0.0.1:49489"
+      ],
+      "resetCalls": 0
+    },
+    {
+      "phase": "cookie-audit",
+      "count": 0,
+      "metadata": []
+    },
+    {
+      "phase": "public-reset",
+      "resetCalls": 1
+    },
+    {
+      "phase": "page-registered"
+    },
+    {
+      "phase": "post-reset",
+      "origin": "http://127.0.0.1:49489",
+      "entries": [],
+      "localStorage": 0,
+      "indexedDB": [],
+      "serviceWorkers": 0
+    },
+    {
+      "phase": "post-reset-cookies",
+      "count": 0
+    },
+    {
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ]
+}

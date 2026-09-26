@@ -1,0 +1,35 @@
+
+Running 7 tests using 1 worker
+
+(node:85333) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/error-monitor.spec.ts:8:1 › real console errors, throws and rejected promises survive the network exception across navigation and teardown (1.2s)
+  ✓  2 tests/editor/owned-opfs.spec.ts:24:1 › controlled native reset closes writers, clears every admitted origin, and preserves a separate origin (860ms)
+  ✓  3 tests/editor/owned-opfs.spec.ts:47:1 › dirty tracked origins refuse reset and preserve the controlled foreign creator file (279ms)
+  ✘  4 tests/editor/owned-opfs.spec.ts:59:1 › unplanned origin navigation and closed contexts cannot authorize a storage reset (267ms)
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) tests/editor/owned-opfs.spec.ts:59:1 › unplanned origin navigation and closed contexts cannot authorize a storage reset 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      61 |  try{
+      62 |   const page=await owned.context.newPage();await guard.admit(page,a.origin);await page.goto(a.origin);
+    > 63 |   await expect(page.goto(b.origin)).rejects.toThrow();expect(page.isClosed()).toBe(true);expect(guard.ledger.some(e=>e.reason==='UNPLANNED_REQUEST: '+b.origin)).toBe(true);await expect(guard.cleanup()).rejects.toThrow('OPFS_RESET_REFUSED');expect(guard.ledger.some(e=>e.phase==='public-reset')).toBe(false);
+         |                                                                               ^
+      64 |  }finally{await owned.close();await a.close();await b.close();await save('unplanned-origin-refusal',{browserName,ledger:guard.ledger});}
+      65 |  const closed=await setup(playwright,browserName),lost=await ownedOPFS(closed.context,closed.profile);
+      66 |  try{await closed.context.close();await expect(lost.cleanup()).rejects.toThrow('OPFS_CONTEXT_CLOSED');expect(()=>lost.verify()).toThrow('OPFS_CLEANUP_INCOMPLETE');expect(lost.ledger.some(e=>e.phase==='public-reset')).toBe(false);}
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/owned-opfs.spec.ts:63:79
+
+    Error Context: ../ideogram-edit-verification/stock-reset-author/15-chromium-fixture/browser/owned-opfs-unplanned-origi-0cc5d-t-authorize-a-storage-reset/error-context.md
+
+  1 failed
+    tests/editor/owned-opfs.spec.ts:59:1 › unplanned origin navigation and closed contexts cannot authorize a storage reset 
+  3 did not run
+  3 passed (4.3s)
+  1 error was not a part of any test, see above for details

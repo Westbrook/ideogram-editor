@@ -1,0 +1,48 @@
+{
+  "start": "2026-09-26T19:06:38.784Z",
+  "scope": "ONE controlled stock API reset specimen; no app qualification",
+  "cases": [
+    {
+      "case": "clean-public-reset",
+      "pass": true,
+      "closedWriters": true,
+      "after": {
+        "entries": [],
+        "local": 0,
+        "idb": []
+      },
+      "cookies": []
+    },
+    {
+      "case": "separate-unvisited-origin-preserved",
+      "pass": true,
+      "origin": "http://127.0.0.1:58772"
+    },
+    {
+      "case": "dirty-tracked-origin-refused-and-preserved",
+      "pass": true,
+      "resetCalls": 0,
+      "refusal": "DIRTY_ORIGIN_RESET_REFUSED"
+    },
+    {
+      "case": "closed-context-reset-failure-remains-incomplete",
+      "pass": true,
+      "cleanupCompleted": false,
+      "error": "browserContext.setStorageState: Target page, context or browser has been closed"
+    }
+  ],
+  "profiles": [
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-stock-reset-F0Owwu",
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-stock-reset-z4ndtg",
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-stock-reset-1Xl85A",
+    "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-stock-reset-Y7fXAG"
+  ],
+  "origins": {
+    "a": "http://127.0.0.1:58771",
+    "b": "http://127.0.0.1:58772",
+    "dirty": "http://127.0.0.1:58773",
+    "broken": "http://127.0.0.1:58774"
+  },
+  "pass": true,
+  "end": "2026-09-26T19:06:42.217Z"
+}

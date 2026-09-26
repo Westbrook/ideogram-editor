@@ -1,0 +1,41 @@
+
+Running 1 test using 1 worker
+
+(node:8387) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8387) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+  ✘  1 tests/editor/destination.spec.ts:13:1 › destination failure cleanup preserves original errors, collisions and selected destinations (2.2s)
+
+
+  1) tests/editor/destination.spec.ts:13:1 › destination failure cleanup preserves original errors, collisions and selected destinations 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -71,9 +71,9 @@
+        Object {
+          "kind": "cleanup-failure",
+          "message": "LOCKED_TRANSPORT_FAILED; download cleanup incomplete",
+          "nativeCleanupError": true,
+          "primaryRetained": true,
+    -     "remaining": 1,
+    +     "remaining": 2,
+          "samePrimary": true,
+        },
+      ]
+
+      64 |    return outcomes;
+      65 |   },{hash,bytes:[...bytes],browserName});
+    > 66 |   expect(results).toEqual([
+         |                   ^
+      67 |    {kind:'metadata',message:'DOWNLOAD_UNAVAILABLE',samePrimary:undefined,remaining:[]},
+      68 |    {kind:'corrupt',message:'DOWNLOAD_CORRUPT',samePrimary:undefined,remaining:[]},
+      69 |    {kind:'network',message:'CONTROLLED_NETWORK_CANCELLED',samePrimary:true,remaining:[]},
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/destination.spec.ts:66:19
+
+    Error Context: ../ideogram-edit-verification/stock-reset-author/28-chromium-cleanup-error/browser/destination-destination-fa-55853-s-and-selected-destinations/error-context.md
+
+  1 failed
+    tests/editor/destination.spec.ts:13:1 › destination failure cleanup preserves original errors, collisions and selected destinations 
