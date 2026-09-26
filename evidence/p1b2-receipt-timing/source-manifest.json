@@ -1,0 +1,8 @@
+{
+  "server/storage/database.ts": "236d8c66dfee4f556790f5765c6b886bd02dfbcddf04dded720a862649deffa8",
+  "server/storage/recovery.ts": "8b5351abd20c7c1f0244a7655ab62fe57e17b6b5767124854fb802bd2c4fe99a",
+  "server/storage/worker.ts": "ab25e2e9da71cf8f7559ba3aedbff92f73a193f3fe6655070ab319caeb809f1f",
+  "tests/protocol/process.test.mjs": "a33ef5901998f64577307399fdbe2fc7b9ca3cefd35c27953095dd725cd8e976",
+  "tests/protocol/recovery.test.mjs": "12e5c7dad46f995d1afa5afaf57d95d871804f63467c0026a41496f61253afe2",
+  "tooling/PROTOCOL.txt": "32c28a38cbc95d4a369137ff0fd1d5c150b248085aa1b0ca70c40c5b5600be44"
+}

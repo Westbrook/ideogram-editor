@@ -1,0 +1,37 @@
+[
+  {
+    "id": "I-P01-before",
+    "source": "70cbe20; storage identical to446ed20",
+    "evidence": "before.json / logs/before.txt",
+    "result": "Snapshot250 HTTP107.837ms; following large-name receipts up to168.955ms; worker max159.620ms."
+  },
+  {
+    "id": "I-P01-exploratory-1",
+    "evidence": "after-first.json / logs/after-first.txt",
+    "result": "Admission cache/batched writes fixed ordinary repeats, but snapshot96.818ms still failed. Uncommitted exploratory iteration, not qualification."
+  },
+  {
+    "id": "I-P01-exploratory-2",
+    "evidence": "after-second.json / logs/after-second.txt",
+    "result": "Faster canonical string experiment still left worker60.488ms. Experiment completely reverted; final serializer unchanged."
+  },
+  {
+    "id": "COMPILE-01",
+    "evidence": "logs/build-third.txt",
+    "result": "Generator.return needed explicit undefined argument; corrected."
+  },
+  {
+    "id": "I-P01-sliced-exploration",
+    "evidence": "after-sliced.json / logs/after-sliced.txt / logs/after-final.txt",
+    "result": "Early uncommitted sliced iterations retained, not final qualification."
+  },
+  {
+    "id": "PROTOCOL-01",
+    "evidence": "logs/protocol-first.txt",
+    "result": "Starting maintenance during read/close repaired before fallback could be observed and touched roots already removed by cleanup (3 failures). Reads/close now wait only for existing work; commands/tail recovery initiate. Original assertions retained; final14/14 pass."
+  },
+  {
+    "id": "EVIDENCE-01",
+    "result": "First inline evidence-generation script had a mismatched closing bracket and did not execute. Corrected by this standalone sealer; no source/test effect."
+  }
+]

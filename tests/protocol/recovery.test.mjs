@@ -56,3 +56,19 @@ test('schema2 migration opens a real e1a0092 fixture with verified backup, uncha
   const migration=JSON.parse(db.prepare('SELECT receipt FROM schema_migrations WHERE version=2').get().receipt);assert.equal(migration.from,1);assert.equal(migration.manifest.events.count,'1');
   assert.deepEqual(db.prepare('SELECT * FROM events').all(),db.prepare('SELECT * FROM events_v2').all());const backup=new DatabaseSync(join(root,migration.backup),{readOnly:true});assert.equal(backup.prepare('PRAGMA integrity_check').get().integrity_check,'ok');assert.equal(backup.prepare('PRAGMA user_version').get().user_version,1);assert.deepEqual(backup.prepare('SELECT * FROM commands').all(),db.prepare('SELECT * FROM commands').all());backup.close();db.close();
 });
+
+test('I-P01 warm snapshot admission detects changed bytes and external root metadata; reads verify and recover pinned state',async t=>{
+  const root=await rootFor(t);const w=await openWriter({root});t.after(()=>w.close());const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);
+  await w.submit(encode(command(ref)),w.epoch);for(let i=1;i<250;i++)await w.submit(encode(checkpoint(ref,String(i),'n'.repeat(8000))),w.epoch);
+  const first=(await w.capture()).snapshot;assert.equal(first.seq,'250');
+  const bytes=await readFile(storedPath(root,first.content.blob));bytes[bytes.length-2]^=1;await writeFile(storedPath(root,first.content.blob),bytes);
+  assert.equal((await w.submit(encode(checkpoint(ref,'250')),w.epoch)).status,'accepted');
+  const second=(await w.capture()).snapshot;assert.equal(second.seq,'250');assert.notEqual(second.id,first.id);
+  await assert.rejects(w.snapshotContent(first.id));
+  const db=new DatabaseSync(join(root,'metadata.sqlite'));db.prepare('UPDATE snapshots SET roots_hash=? WHERE id=?').run('bad',second.id);db.close();
+  assert.equal((await w.submit(encode(checkpoint(ref,'251')),w.epoch)).status,'accepted');
+  const third=(await w.capture()).snapshot;assert.equal(third.seq,'251');assert.notEqual(third.id,second.id);await assert.rejects(w.snapshotContent(second.id));
+  assert.equal((await w.document('document_1')).revision,'252');
+  const diagnostics=await w.diagnostics();assert.equal(diagnostics.highWater,'252');assert.equal(diagnostics.observations.snapshot.pressure,false);
+  assert.ok(diagnostics.observations.snapshot.buildMs>0);assert.ok(diagnostics.observations.snapshot.sliceMaxMs>0);
+});

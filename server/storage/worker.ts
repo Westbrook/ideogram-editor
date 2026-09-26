@@ -22,10 +22,15 @@ try {
 } catch (error) {
   port.postMessage({ type: 'startup-error', code: safeError(error).code }); port.close();
 }
-port.on('message', message => {
+port.on('message', async message => {
   try {
     let result: unknown;
     const { method, args } = message;
+    if(method!=='close')store.fence(args.epoch);
+    // Reads/close may wait for a pending snapshot. Receipts normally do not;
+    // only an exhausted tail waits for recovery before applying backpressure.
+    if (method==='submit'&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
+    else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
     if (method === 'close') { store.close(); result = null; }
     else {
       store.fence(args.epoch);

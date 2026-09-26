@@ -69,7 +69,7 @@ export class StoreDatabase {
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
-      this.recovery = new RecoveryStore(this.db, this.objects);
+      this.recovery = new RecoveryStore(this.db, this.objects, this.path, barrier, () => this.fence(this.epoch));
       this.rebuild();
       for (const row of this.db.prepare('SELECT DISTINCT o.hash, o.byte_length, r.media_type FROM roots r JOIN objects o ON r.hash=o.hash').iterate()) {
         try { this.objects.verify({ hash: String(row.hash), byteLength: String(row.byte_length), mediaType: String(row.media_type) }); }
@@ -208,7 +208,7 @@ export class StoreDatabase {
       if (!c.body.name.trim()) return reject('INVALID_INPUT', 'command.body.name', 'NAME_REQUIRED');
     }
     // Tail backpressure is relative to the latest verified snapshot, never total history.
-    if (BigInt(this.meta('highWater')) - BigInt(this.recovery.latest()?.seq ?? '0') >= 500n) return reject('CAPACITY', 'command.body', 'SNAPSHOT_REQUIRED');
+    if (BigInt(this.meta('highWater')) - BigInt(this.recovery.latest(true)?.seq ?? '0') >= 500n) return reject('CAPACITY', 'command.body', 'SNAPSHOT_REQUIRED');
     return null;
   }
   submit(bytes: Uint8Array, epoch: string): Receipt {
@@ -218,7 +218,7 @@ export class StoreDatabase {
     if (Buffer.byteLength(serialized) > 65536) throw new StoreError('PAYLOAD_TOO_LARGE');
     const hash = hashBytes(serialized);
     const start = performance.now();
-    if (!this.lookup(c.commandId)) { try { this.recovery.snapshot(); } catch { /* Subsequent tail guard reports pressure. */ } }
+    this.recovery.maintain();
     const captured = { eventId: randomUUID(), historyId: randomUUID(), branchId: randomUUID(), checkpointId: randomUUID(), recordedAt: new Date().toISOString() };
     this.db.exec('BEGIN IMMEDIATE');
     let committed = false;
@@ -266,7 +266,7 @@ export class StoreDatabase {
       this.barrier('before-commit'); this.fence(epoch);
       this.db.exec('COMMIT'); committed = true;
       this.barrier('after-commit');
-      try { this.recovery.snapshot(); } catch { /* Receipt is already durable; visible pressure guards subsequent writes. */ }
+      this.recovery.maintain();
       this.appendMs.push(performance.now() - start); if (this.appendMs.length > 100) this.appendMs.shift();
       return receipt;
     } catch (error) {
@@ -318,7 +318,8 @@ export class StoreDatabase {
       filesystem: { type: String(filesystem.type), blockSize: String(filesystem.bsize), availableBytes: String(filesystem.bavail * filesystem.bsize), totalBytes: String(filesystem.blocks * filesystem.bsize) },
       diskWarning: (filesystem.blocks - filesystem.bavail) * 100n >= filesystem.blocks * 80n,
       resources: { ioChunkBytes: 1048576, maxTransfers: 2, admissionOverheadPercent: 25, freeMarginBytes: '1073741824', metadataHeadroomBytes: '67108864', metadataHeadroomPhysicallyPreallocated: false, snapshotTailCeiling: 500 },
-      observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null }, qualification: false },
+      observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,
+        buildMs: this.recovery.snapshotBuildMs, sliceMaxMs: this.recovery.snapshotSliceMaxMs, activationMs: this.recovery.snapshotActivationMs }, qualification: false },
       processMemory: process.memoryUsage(), sqliteIntegrity: this.db.prepare('PRAGMA quick_check').get() };
   }
   close() {

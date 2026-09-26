@@ -27,3 +27,19 @@ for(const phase of ['before-commit','after-commit'])test('real HTTP SIGKILL '+ph
   if(phase==='after-commit')assert.deepEqual(retried.json,lookup.json);
   assert.equal((await read('/api/v1/events?after=0')).json.recovery.highWater,'1');next.p.send('effects');assert.deepEqual((await next.wait('effects')).value,zeroEffects);
 });
+
+test('I-P01 SIGKILL during sliced snapshot construction preserves committed receipt and recovers full history',async t=>{
+  const {checkpoint,encode}=await import('../store/helpers.mjs');const {DatabaseSync}=await import('node:sqlite');const {join}=await import('node:path');
+  const root=await rootFor(t);const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);
+  await w.submit(encode(command(ref)),w.epoch);for(let i=1;i<249;i++)await w.submit(encode(checkpoint(ref,String(i))),w.epoch);await w.close();
+  const first=await child(t,root,'snapshot-before-register');const paired=await first.pair();const cookie=cookieFrom(paired);
+  const c=command(ref,{clientId:paired.json.clientId,expectedDocumentRevision:'249',body:{type:'SaveCheckpoint',name:'durable before snapshot registration'}});
+  const post=exchange(first.origin,'/api/v1/commands',{method:'POST',body:c,headers:{Origin:first.origin,Cookie:cookie,'X-App-Csrf':paired.json.csrfToken}});const delivered=post.response.catch(()=>null);
+  await first.wait('barrier');first.p.send('effects');assert.deepEqual((await first.wait('effects')).value,zeroEffects);await first.kill();await delivered;
+  const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('SELECT count(*) n FROM snapshots').get().n,0);assert.equal(db.prepare('SELECT count(*) n FROM events_v2').get().n,250);db.close();
+  const next=await child(t,root);const fresh=await next.pair(cookie);const read=path=>call(next.origin,path,{headers:readHeaders(cookieFrom(fresh))});
+  const saved=await read('/api/v1/commands/'+c.command.commandId);assert.equal(saved.json.receipt.toSeq,'250');
+  const retry=await call(next.origin,'/api/v1/commands',{method:'POST',body:c,headers:{Origin:next.origin,Cookie:cookieFrom(fresh),'X-App-Csrf':fresh.json.csrfToken}});assert.deepEqual(retry.json,saved.json);
+  const gap=await read('/api/v1/events?after=0');assert.equal(gap.status,410);const snapshot=gap.json.error.details.value.snapshot;assert.equal(snapshot.snapshotSeq,'250');assert.equal((await read(snapshot.content.url)).status,200);
+  next.p.send('effects');assert.deepEqual((await next.wait('effects')).value,zeroEffects);
+});

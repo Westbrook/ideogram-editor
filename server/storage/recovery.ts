@@ -1,31 +1,40 @@
 import { createHash, randomUUID } from 'node:crypto';
-import type { DatabaseSync } from 'node:sqlite';
+import { DatabaseSync } from 'node:sqlite';
 import type { BlobRef, DomainEvent } from '../../src/protocol/store.js';
 import { canonical, isSeq, isId } from './canonical.js';
 import type { Objects } from './objects.js';
 import { entity as validateEntity } from '../../src/protocol/validate.js';
 import { StoreError } from './errors.js';
+import { assertComponents, assertPrivate } from './files.js';
+import { dirname } from 'node:path';
+import { IO_CHUNK } from './objects.js';
+import type { Barrier } from './objects.js';
 
 export type StoredContent = { handle: string; blob: BlobRef; encoding: 'lp1-json' | 'lp1-events-jsonl' | 'lp1-snapshot-jsonl'; recordCount: string };
 export type StoredSnapshot = { id: string; seq: string; content: Omit<StoredContent, 'handle'> };
 const order = 'ORDER BY length(seq),seq';
 export class RecoveryStore {
   private handles = new Map<string, BlobRef>();
+  private verified: { snapshot: StoredSnapshot | null; stamp: string; dataVersion: unknown } | undefined;
+  private maintenance: Promise<void> | undefined;
+  snapshotBuildMs = 0;
+  snapshotSliceMaxMs = 0;
+  snapshotActivationMs = 0;
   snapshotFailure = false;
-  constructor(private db: DatabaseSync, private objects: Objects) {}
+  constructor(private db: DatabaseSync, private objects: Objects, private path: string, private barrier: Barrier, private check: () => void) {}
   highWater() { return String(this.db.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value); }
-  private *entities() {
+  private *entities(db = this.db) {
     for (const [type, table] of [['checkpoint','checkpoints'], ['document','documents'], ['history','history']]) {
-      for (const row of this.db.prepare(`SELECT id,json FROM ${table} ORDER BY id`).iterate()) {
+      for (const row of db.prepare(`SELECT id,json FROM ${table} ORDER BY id`).iterate()) {
         const text = String(row.json); const value = JSON.parse(text);
         yield { type, id: String(row.id), version: type === 'document' ? value.revision : type === 'checkpoint' ? value.documentRevision : value.forward.after.revision, text };
       }
     }
   }
-  private *snapshotRows(id: string, seq: string): Generator<Buffer> {
-    let count = 0n; for (const _ of this.entities()) count++;
+  private *snapshotRows(id: string, seq: string, db = this.db): Generator<Buffer> {
+    const count = db.prepare('SELECT (SELECT count(*) FROM documents)+(SELECT count(*) FROM history)+(SELECT count(*) FROM checkpoints) AS n').get()!.n;
     yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: 2, entityCount: String(count) }) + '\n');
-    for (const entity of this.entities()) {
+    for (const entity of this.entities(db)) {
       // Current narrow projections are individually bounded by the event budget.
       // The wire remains part-based so consumers do not depend on that bound.
       const bytes = Buffer.from(entity.text); const chunks: Buffer[] = [];
@@ -59,31 +68,93 @@ export class RecoveryStore {
     for (const row of (snapshotId ? this.db.prepare('SELECT owner,hash,media_type FROM snapshot_roots WHERE snapshot_id=? ORDER BY owner,hash').iterate(snapshotId) : this.db.prepare('SELECT * FROM roots ORDER BY owner,hash').iterate())) hash.update(canonical(row) + '\n');
     return hash.digest('hex');
   }
-  snapshot(force = false): StoredSnapshot | null {
-    const last = this.latest(); const seq = this.highWater();
-    if (!force && BigInt(seq) - BigInt(last?.seq ?? '0') < 250n) return last;
-    const id = randomUUID();
+  maintain(): void {
+    if (this.maintenance || BigInt(this.highWater())-BigInt(this.latest(true)?.seq??'0')<250n) return;
+    let read: DatabaseSync | undefined;
     try {
-      const content = this.storeRows(() => this.snapshotRows(id, seq), 'lp1-snapshot-jsonl');
-      const snapshot = { id, seq, content };
+      this.check();assertPrivate(this.path,false);
+      // Pin B before yielding. Only this worker writes; this connection retains
+      // an immutable WAL read view while later commands update the live writer.
+      read=new DatabaseSync(this.path,{readOnly:true,allowExtension:false,timeout:250});
+      read.exec('PRAGMA trusted_schema=OFF; BEGIN');
+      const seq=String(read.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value);
+      const steps=this.buildSnapshot(read,seq);
+      const started=performance.now();this.snapshotSliceMaxMs=0;
+      this.maintenance=new Promise<void>(resolve=>{
+        const run=()=>{
+          const start=performance.now();
+          try {
+            this.check();
+            let count=0;
+            do {if(steps.next().done){this.snapshotBuildMs=performance.now()-started;this.snapshotFailure=false;this.maintenance=undefined;resolve();return;}}
+            while(++count<32&&performance.now()-start<2);
+            setImmediate(run);
+          } catch {try {steps.return(undefined);} catch {} try {read?.close();} catch {} this.snapshotFailure=true;this.maintenance=undefined;resolve();}
+          finally {this.snapshotSliceMaxMs=Math.max(this.snapshotSliceMaxMs,performance.now()-start);}
+        };
+        setImmediate(run);
+      });
+    } catch {try {read?.close();} catch {} this.snapshotFailure=true;}
+  }
+  async settle(start = false) {if(start)this.maintain();await this.maintenance;}
+  needsSnapshot() {return BigInt(this.highWater())-BigInt(this.latest(true)?.seq??'0')>=500n;}
+  private *buildSnapshot(read: DatabaseSync, seq: string): Generator<void> {
+    const id=randomUUID();let stage: string|undefined;
+    try {
+      let length=0n;let count=0n;
+      for(const row of this.snapshotRows(id,seq,read)){length+=BigInt(row.length);count++;yield;}
+      stage=this.objects.begin(String(length),'application/x-ndjson');
+      const buffer=Buffer.alloc(IO_CHUNK);let used=0;
+      for(const row of this.snapshotRows(id,seq,read)){
+        if(used+row.length>buffer.length){this.objects.chunk(stage,buffer.subarray(0,used));used=0;}
+        row.copy(buffer,used);used+=row.length;yield;
+      }
+      if(used)this.objects.chunk(stage,buffer.subarray(0,used));
+      const content={blob:this.objects.finish(stage),encoding:'lp1-snapshot-jsonl' as const,recordCount:String(count)};
+      stage=undefined;yield;
+      const projection=createHash('sha256');
+      for(const e of this.entities(read)){projection.update(canonical({type:e.type,id:e.id,version:e.version,text:e.text})+'\n');yield;}
+      const roots=createHash('sha256');
+      for(const row of read.prepare('SELECT * FROM roots ORDER BY owner,hash').iterate()){roots.update(canonical(row)+'\n');yield;}
+      const snapshot={id,seq,content};
+      this.barrier('snapshot-before-register');const activationStart=performance.now();
       this.db.exec('BEGIN IMMEDIATE');
       try {
         this.db.prepare('INSERT OR IGNORE INTO objects VALUES (?,?)').run(content.blob.hash,content.blob.byteLength);
         if (this.db.prepare('SELECT byte_length FROM objects WHERE hash=?').get(content.blob.hash)!.byte_length !== content.blob.byteLength) throw new StoreError('CORRUPT_OBJECT');
-        this.db.prepare('INSERT INTO snapshots VALUES (?,?,?,?,?)').run(id, seq, canonical(snapshot), this.projectionHash(), this.rootsHash());
-        this.db.prepare('INSERT INTO snapshot_roots SELECT ?,owner,hash,media_type FROM roots').run(id);
+        this.db.prepare('INSERT INTO snapshots VALUES (?,?,?,?,?)').run(id, seq, canonical(snapshot), projection.digest('hex'), roots.digest('hex'));
+        const insert=this.db.prepare('INSERT INTO snapshot_roots VALUES (?,?,?,?)');
+        for(const row of read.prepare('SELECT * FROM roots ORDER BY owner,hash').iterate())insert.run(id,row.owner,row.hash,row.media_type);
         this.db.exec('COMMIT');
+        this.snapshotActivationMs=performance.now()-activationStart;
       } catch (e) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw e; }
-      this.snapshotFailure = false; return snapshot;
-    } catch (error) { this.snapshotFailure = true; throw error; }
+      this.remember(snapshot);
+    } finally {if(stage)this.objects.abort(stage);read.close();}
   }
-  latest(): StoredSnapshot | null {
+  private stamp(item: StoredSnapshot | null): string {
+    if (!item) return '';
+    const path=this.objects.path(item.content.blob);assertComponents(dirname(path));
+    const stat=assertPrivate(path,false);
+    return JSON.stringify([stat.dev,stat.ino,stat.size,stat.mtimeMs,stat.ctimeMs]);
+  }
+  private remember(snapshot: StoredSnapshot | null) {
+    this.verified={snapshot,stamp:this.stamp(snapshot),dataVersion:this.db.prepare('PRAGMA data_version').get()!.data_version};
+  }
+  latest(admission = false): StoredSnapshot | null {
+    // Admission reuses the last verified immutable snapshot while its file and
+    // database identities are unchanged. Every recovery/content read still
+    // verifies all bytes, roots and projections; external changes invalidate it.
+    if (admission && this.verified) {
+      try {
+        if (this.verified.dataVersion===this.db.prepare('PRAGMA data_version').get()!.data_version && this.verified.stamp===this.stamp(this.verified.snapshot)) return this.verified.snapshot;
+      } catch { /* Missing/changed bytes require the normal verified fallback. */ }
+    }
     // Invalid latest snapshots never invalidate retained events or the prior copy.
     for (const row of this.db.prepare('SELECT descriptor FROM snapshots ORDER BY length(seq) DESC,seq DESC').iterate()) {
-      try { const item = JSON.parse(String(row.descriptor)) as StoredSnapshot; this.objects.verify(item.content.blob); this.validateSnapshot(item); return item; }
+      try { const item = JSON.parse(String(row.descriptor)) as StoredSnapshot; this.objects.verify(item.content.blob); this.validateSnapshot(item); this.remember(item); return item; }
       catch (e) { if (e instanceof SyntaxError || e instanceof TypeError) continue; if (!(e instanceof StoreError) || !['CORRUPT_OBJECT','MISSING_OBJECT','CORRUPT_STORE','MALFORMED_REQUEST','PAYLOAD_TOO_LARGE'].includes(e.code)) throw e; }
     }
-    return null;
+    this.remember(null); return null;
   }
   private *lines(ref: BlobRef): Generator<Record<string, any>> {
     let pending = Buffer.alloc(0); let offset = 0n;

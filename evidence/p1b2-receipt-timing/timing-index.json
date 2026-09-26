@@ -1,0 +1,15 @@
+{
+  "warning": "Unmodified reviewer driver hardcodes target446ed20 in ALL raw outputs. Use this execution index and source manifest for actual source, not that historical harness field.",
+  "before.json": "Exact70cbe20, storage unchanged from446ed20",
+  "timing-final.json": {
+    "sourceManifestSHA256": "ef96926d349a9b40bbea0208cfcbecddc70950ad19b64a1087923af7c4920206",
+    "driver": "reviewer-original-timing.mjs unchanged",
+    "workload": "260 serial HTTP commands per small and8000-character workload; separate260 worker run"
+  },
+  "timing-760.json": {
+    "sourceManifestSHA256": "ef96926d349a9b40bbea0208cfcbecddc70950ad19b64a1087923af7c4920206",
+    "driver": "timing-760.mjs",
+    "adaptation": "Only loop count260 to760 and output filename changed; original full HTTP receipt interval retained."
+  },
+  "intermediates": "Uncommitted exploratory iterations; retained failure evidence, not final-source qualification."
+}

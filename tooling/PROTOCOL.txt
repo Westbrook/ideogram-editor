@@ -83,7 +83,15 @@ fixture creates an80-event transaction for real HTTP/browser consumption;
 there is no test-only public command. Future command owners must append complete
 ranges, one receipt and all projections/roots in the SAME writer transaction.
 
-Snapshots run in the worker at target250 events since the latest valid snapshot.
+Snapshots start in the worker at target250 events since the latest valid snapshot.
+One private readonly SQLite WAL view pins B while the sole writer continues
+commands. Row encoding/checksum work checks a2ms budget between rows and yields
+after at most32 steps; each row remains bounded. One <=1MiB buffer and the existing two-stage
+reservation limit bound snapshot IO. Flush/verification and atomic registration
+remain indivisible IO/SQLite steps, measured separately in diagnostics; no
+hardware latency or full-history PERF qualification is implied. Pending snapshot
+work is awaited by recovery reads and orderly close. At tail500, commands wait
+for the pending attempt and then retain the same durable backpressure on failure.
 Snapshot bytes stream in bounded rows, hash/flush/rename/verify before a SQLite
 transaction registers descriptor, captured sequence, projection checksum and
 object-root digest/copy. Rows including LF <=16KiB. Projection parts use standard
@@ -91,6 +99,13 @@ padded base64 of canonical metadata UTF-8 split at code-point boundaries, never
 pixels or backend tables. Current document/history/checkpoint entities are
 bounded by existing event/control limits. Registry extensions need typed schema,
 streaming and validation work; arbitrary entity JSON is not accepted.
+
+Command admission reuses a verified snapshot while file device/inode/size/times
+and SQLite data_version remain unchanged, rather than rehashing/parsing its full
+content on every append. Changed bytes or external metadata invalidate this
+cache; startup, capture and content reads still fully validate hash, roots and
+projections before offering or applying a snapshot. Full retained events remain
+authoritative. No schema or canonical byte encoding changed in this correction.
 
 Retain ALL log events, receipts, history and prior snapshots. On corrupt hash,
 count, root digest, projection checksum or version, choose the previous valid

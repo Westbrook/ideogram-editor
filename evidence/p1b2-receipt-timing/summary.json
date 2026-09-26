@@ -1,0 +1,129 @@
+{
+  "at": "2026-09-26T05:02:06.854124+00:00",
+  "taskNoteId": "7406ec5e-004d-4829-a9fd-0dab66b22a60",
+  "reviewTaskNoteId": "400723da-6e2d-49eb-9e82-ed0cc553cb79",
+  "base": "70cbe20ef8d03baa6216e60e73d2c6a4658cd732",
+  "originalReviewTarget": "446ed20a366d26f5b9d0612b1cba468d023b2742",
+  "branch": "ideogram-editor-p1",
+  "status": "author correction; review_required; original independent target not switched",
+  "changes": [
+    "Admission caches verified snapshot identity with file device/inode/size/times and SQLite data_version invalidation. Startup/capture/content still fully verify bytes, roots and projection checksum.",
+    "Snapshot encoding/checksums yield on the sole worker using one pinned readonly WAL view at B. Check2ms between rows and yield after32 steps; one1MiB buffer, existing two-stage/reservation limits. Every slice checks root and writer epoch.",
+    "Flush/hash verification and descriptor/root registration remain indivisible/atomic and measured separately. Recovery/close await only existing work. Commands start target250 snapshots; tail500 waits for the pending attempt then durably rejects CAPACITY/SNAPSHOT_REQUIRED on failure.",
+    "Full history/events/receipts/prior snapshots/schema2/canonical encoding preserved. Crash before registration leaves inventoried bytes; original receipt survives."
+  ],
+  "files": {
+    "server/storage/database.ts": "236d8c66dfee4f556790f5765c6b886bd02dfbcddf04dded720a862649deffa8",
+    "server/storage/recovery.ts": "8b5351abd20c7c1f0244a7655ab62fe57e17b6b5767124854fb802bd2c4fe99a",
+    "server/storage/worker.ts": "ab25e2e9da71cf8f7559ba3aedbff92f73a193f3fe6655070ab319caeb809f1f",
+    "tests/protocol/process.test.mjs": "a33ef5901998f64577307399fdbe2fc7b9ca3cefd35c27953095dd725cd8e976",
+    "tests/protocol/recovery.test.mjs": "12e5c7dad46f995d1afa5afaf57d95d871804f63467c0026a41496f61253afe2",
+    "tooling/PROTOCOL.txt": "32c28a38cbc95d4a369137ff0fd1d5c150b248085aa1b0ca70c40c5b5600be44"
+  },
+  "originalProbe": {
+    "http": [
+      {
+        "label": "small",
+        "nameCharacters": 20,
+        "count": 260,
+        "maxMs": 21.244416,
+        "over50": [],
+        "at250Ms": 6.253500000000031,
+        "maxEventBytes": 1585
+      },
+      {
+        "label": "bounded-large",
+        "nameCharacters": 8000,
+        "count": 260,
+        "maxMs": 25.924375000000055,
+        "over50": [],
+        "at250Ms": 8.113875000000007,
+        "maxEventBytes": 8653
+      }
+    ],
+    "writerMaxMs": 12.192541000000347,
+    "snapshot": {
+      "target": 250,
+      "pressure": false,
+      "latest": "250",
+      "buildMs": 159.10804200000075,
+      "sliceMaxMs": 17.29133399999955,
+      "activationMs": 3.89587500000016
+    }
+  },
+  "extendedProbe": {
+    "http": [
+      {
+        "label": "small",
+        "nameCharacters": 20,
+        "count": 760,
+        "maxMs": 23.942084000000023,
+        "over50": [],
+        "at250Ms": 8.519750000000158,
+        "maxEventBytes": 1585
+      },
+      {
+        "label": "bounded-large",
+        "nameCharacters": 8000,
+        "count": 760,
+        "maxMs": 29.918750000000728,
+        "over50": [],
+        "at250Ms": 7.857874999999694,
+        "maxEventBytes": 8653
+      }
+    ],
+    "writerMaxMs": 17.673875000000407,
+    "snapshot": {
+      "target": 250,
+      "pressure": false,
+      "latest": "750",
+      "buildMs": 289.9601250000014,
+      "sliceMaxMs": 27.634208999999828,
+      "activationMs": 7.8145000000004075
+    }
+  },
+  "measurement": "Whole serial local HTTP send through complete client receipt; no postcommit delay omitted. Worker appendMs excludes cooperative maintenance, whose total/slice/activation times are separately reported. Raw target labels are historical: timing-index.json maps source.",
+  "qualification": "No H/C W1/WQ/W2/p95/full100k campaign, formal R20/PERF, broader platform/native/accessibility/power-loss qualification.50ms ceiling unchanged. Original56.997ms and independent failed evidence retained. Requires exact independent re-review.",
+  "gates": {
+    "typecheck": "PASS",
+    "build": "PASS",
+    "protocol": "PASS14/14",
+    "browserRecovery": "PASS11/11 actual Chromium",
+    "writer": "PASS24/24",
+    "volume": "PASS1/1 actual isolated64MiB HFS+ ENOSPC/EROFS",
+    "session": "PASS14/14",
+    "shell": "PASS10/10 actual Chromium",
+    "consumer": "PASS fresh pinned install/build/browser2/2",
+    "vendor": "PASS",
+    "spec": "PASS",
+    "diffCheck": "PASS",
+    "oldSeals": "PASS278 files in9 bundles"
+  },
+  "runtime": {
+    "node": "v26.10.0",
+    "npm": "12.1.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "os": "25.6.0",
+    "cpu": "Apple M5 Max",
+    "sqlite": "3.53.4 / bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "browser": "153.0.8010.12",
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 2315,
+      "max_page_count": 4294967294
+    },
+    "resources": "128MiB worker old/16MiB young,64 IPC queue,1MiB IO,2 stages,25% overhead+1GiB margin+64MiB metadata accounting unchanged. One extra readonly connection only while a snapshot is pending."
+  },
+  "zeroProviderCalls": true,
+  "effects": "New crash test and existing writer process/replay counters zero; protocol/browser loopback guards active. Dependency provisioning separate.",
+  "preservation": "Approved52219 exact85df04f assets/report4381 HTTP200; locator, old seals,70cbe20 auth/cache fixes, serializer/vendor/lockfile unchanged. No UI/assets/provider/publishing/deployment changes.",
+  "failures": "failures.json and original/iterative logs retained; no assertion weakened. No remote PR/CI/base CI run link exists; no pre-existing CI claim.",
+  "nextOwner": "Coordinator assigns final exact correction to independent reviewer400723da for I-B04/I-C01/I-P01 plus timing/corruption/crash/affected gates before assets. P1b.7 still owns full editor integration, fresh recovery after credential rotation, en-reve and splitter policy."
+}
