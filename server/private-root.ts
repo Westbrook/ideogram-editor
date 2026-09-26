@@ -1,6 +1,6 @@
 import { constants } from 'node:fs';
 import { lstat, mkdir, open } from 'node:fs/promises';
-import { isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
 
 export class PrivateRootError extends Error {
   constructor() { super('Use an owner-only storage directory with no symbolic links (0700 directories, 0600 files).'); }
@@ -12,6 +12,25 @@ export async function checkPath(path: string): Promise<void> {
     current = join(current, part);
     const stat = await lstat(current);
     if (stat.isSymbolicLink()) throw new PrivateRootError();
+  }
+}
+
+export async function assertSeparateDirectories(privatePath: string, staticPath: string): Promise<void> {
+  async function ancestors(path: string): Promise<string[]> {
+    // Reject symlinks before walking actual filesystem identities. Spelling
+    // comparisons miss case/Unicode aliases on filesystems that support them.
+    await checkPath(path);
+    const identities: string[] = [];
+    for (let current = resolve(path); ; current = dirname(current)) {
+      const stat = await lstat(current, { bigint: true });
+      if (!stat.isDirectory() || stat.isSymbolicLink()) throw new PrivateRootError();
+      identities.push(`${stat.dev}:${stat.ino}`);
+      if (dirname(current) === current) return identities;
+    }
+  }
+  const [privateAncestors, staticAncestors] = await Promise.all([ancestors(privatePath), ancestors(staticPath)]);
+  if (privateAncestors.includes(staticAncestors[0]) || staticAncestors.includes(privateAncestors[0])) {
+    throw new Error('The trusted browser build and private storage must be separate.');
   }
 }
 

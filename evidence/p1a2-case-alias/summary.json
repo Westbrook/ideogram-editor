@@ -1,0 +1,39 @@
+{
+  "taskNoteId": "69a3dd83-5f8a-4579-a665-2f44607c06ae",
+  "checkedAt": "2026-09-26T02:50:56.065690+00:00",
+  "base": "1c7120a337e4e664b94dd1de8cd2fefdd927bc59",
+  "status": "author-fix-awaiting-independent-review",
+  "finding": "SEC06 static/private separation bypass through case-insensitive filesystem aliases. The earlier author-only claim for 1c7120a is superseded by this finding.",
+  "reviewerEvidence": "/private/tmp/ideogram-session-review-s8y38d0f/evidence/case-alias.json",
+  "fix": "Compare exact bigint device/inode identities of each root against both ancestor chains after symlink rejection; reject equivalence or containment before static reads/listening. Do not compare lowercased strings.",
+  "commands": [
+    {
+      "command": "node --import ./tests/session/no-egress.mjs --test --test-name-pattern='filesystem-equivalent' tests/session/storage-launch.test.mjs",
+      "result": "FAIL on original compiled 1c7120a as expected: missing rejection; before.txt retained."
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS; typecheck.txt"
+    },
+    {
+      "command": "npm run test:session",
+      "result": "PASS14/14, zero skipped/retries; session.txt. Includes compiled server build."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "hostAliasCases": "Host confirms equal bigint dev/inode for PrivateData and privatedata; equality and both ancestor directions rejected. Shared-parent separate sibling serves successfully. Existing symlink regressions still pass.",
+  "sourceIdentity": {
+    "server/http.ts": "f04b53bbff8eef9674a2851c5f014780ec82491e63fb4b53156ff9056f8ad35d",
+    "server/private-root.ts": "79617493e9746f73479e73c0ba1bbf3e9e87c6d3c9d1525ab95ec29852f613e9",
+    "tests/session/storage-launch.test.mjs": "2baf10dfe1c7f03a2bafea67899d120e3eaca106267e4f389fd568561087888a"
+  },
+  "scope": "Only the concrete review finding; no shell, provider, sealed document, consumer fixture or lock changes.",
+  "limitations": [
+    "The independent reviewer must re-run their probe on the newly assigned commit; author tests do not close the finding.",
+    "No new browser, asset, writer, OS-user or performance qualifications. Prior P1a.2 limitations remain.",
+    "No remote PR or CI exists; no base CI run link or pre-existing failure claim."
+  ]
+}

@@ -56,6 +56,46 @@ test('SEC03/06: root replacement invalidates the running boundary without modify
   assert.equal(await readFile(join(server.root, 'future-job-data'), 'utf8'), 'retained');
 });
 
+test('SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected', async t => {
+  const directory = await mkdtemp(join(await realpath(tmpdir()), 'ideogram-root-alias-'));
+  const privateRoot = join(directory, 'PrivateData');
+  const nested = join(privateRoot, 'assets');
+  const sibling = join(directory, 'private-build');
+  for (const path of [privateRoot, nested, sibling]) {
+    await mkdir(path, { mode: 0o700 });
+    await writeFile(join(path, 'index.html'), '<html><head></head><body>fixture</body></html>', { mode: 0o600 });
+    await writeFile(join(path, 'private.png'), 'PRIVATE-RASTER-SENTINEL', { mode: 0o600 });
+  }
+  const rejectOverlap = async (root, staticDirectory) => {
+    let server;
+    try {
+      await assert.rejects(async () => { server = await startLocalServer({ root, staticDirectory }); }, /must be separate/);
+    } finally { await server?.close(); }
+  };
+  await rejectOverlap(privateRoot, privateRoot);
+  await rejectOverlap(privateRoot, nested);
+  await rejectOverlap(nested, privateRoot);
+  const identity = await lstat(privateRoot, { bigint: true });
+  const alias = join(directory, 'privatedata');
+  const aliased = await lstat(alias, { bigint: true }).catch(error => {
+    if (error.code === 'ENOENT') return undefined;
+    throw error;
+  });
+  if (aliased && aliased.dev === identity.dev && aliased.ino === identity.ino) {
+    t.diagnostic('Host supports case aliases.');
+    await rejectOverlap(privateRoot, alias);
+    await rejectOverlap(privateRoot, join(alias, 'assets'));
+    await rejectOverlap(nested, alias);
+    await rejectOverlap(alias, nested);
+  } else {
+    t.diagnostic('Host has no matching case alias; no case-insensitive filesystem qualification claimed.');
+  }
+  // Shared parents and similar name prefixes must not prohibit separate roots.
+  const server = await startLocalServer({ root: privateRoot, staticDirectory: sibling });
+  try { assert.equal((await call(server.origin, '/')).status, 200); }
+  finally { await server.close(); }
+});
+
 test('SEC03: actual killed-process restart rejects old cookie, CSRF and unused pairing; leaves root data intact', async t => {
   const directory = await mkdtemp(join(await realpath(tmpdir()), 'ideogram-restart-'));
   const root = join(directory, 'private');

@@ -2,12 +2,11 @@ import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { performance } from 'node:perf_hooks';
-import { resolve, sep } from 'node:path';
 import type { CapabilitiesView } from '../src/protocol/session.js';
 import { ProtocolError } from './errors.js';
 import { readSessionRequest } from './control-json.js';
 import { Sessions, readCookie, sessionCookie, expiredCookie } from './sessions.js';
-import { preparePrivateRoot } from './private-root.js';
+import { assertSeparateDirectories, preparePrivateRoot } from './private-root.js';
 import { BOOTSTRAP_CSP, loadStatic } from './static.js';
 
 export type ServerOptions = { root: string; staticDirectory?: string; now?: () => number; credentialConfigured?: boolean };
@@ -57,10 +56,7 @@ function checkAPIContext(request: IncomingMessage): void {
 export async function startLocalServer(options: ServerOptions) {
   const root = await preparePrivateRoot(options.root);
   if (options.staticDirectory) {
-    const assets = resolve(options.staticDirectory);
-    if (assets === root.path || assets.startsWith(root.path + sep) || root.path.startsWith(assets + sep)) {
-      throw new Error('The trusted browser build and private storage must be separate.');
-    }
+    await assertSeparateDirectories(root.path, options.staticDirectory);
   }
   const files = await loadStatic(options.staticDirectory);
   const wall = Date.now();

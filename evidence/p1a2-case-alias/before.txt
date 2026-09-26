@@ -1,0 +1,27 @@
+✖ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (26.902041ms)
+ℹ Host supports case aliases: equality and both ancestor directions exercised.
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92.761292
+
+✖ failing tests:
+
+test at tests/session/storage-launch.test.mjs:59:1
+✖ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (26.902041ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async rejectOverlap (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/storage-launch.test.mjs:72:7)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/session/storage-launch.test.mjs:86:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /must be separate/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
