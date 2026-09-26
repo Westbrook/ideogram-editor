@@ -170,18 +170,23 @@ export class Rasters {
       // before worker construction. Decoded pixel surfaces need a second plan.
       const preflightCPU=128*1024*1024,baselineRSS=process.memoryUsage().rss+this.externalCPU();check();if(baselineRSS+preflightCPU>512*1024*1024)throw new StoreError('CAPACITY');this.reservedCPU=preflightCPU;
       const worker=new Worker(new URL('../raster/worker.js',import.meta.url),{workerData:job,env:{},resourceLimits:{maxOldGenerationSizeMb:48,maxYoungGenerationSizeMb:8},...(process.execArgv.some(a=>a.startsWith('--input-type'))?{execArgv:process.execArgv.filter(a=>!a.startsWith('--input-type'))}:{})});this.worker=worker;
-      let result:RasterResult|undefined,error:unknown,admitted=false;let peakRSS=process.memoryUsage().rss;
+      let result:RasterResult|undefined,error:unknown,admitted=false,planBaselineRSS=baselineRSS;let peakRSS=process.memoryUsage().rss;
       const timer=setInterval(()=>{try{check();peakRSS=Math.max(peakRSS,process.memoryUsage().rss);if(peakRSS+this.externalCPU()>512*1024*1024)throw new StoreError('CAPACITY');this.objects.capacity(0n);}catch(e){error=e;void worker.terminate();}},1000);
       worker.on('message',message=>{
-        if(message.type==='plan'){try{check();const plan=message.plan as ResourcePlan;const combined=baselineRSS+plan.cpuBytes;
-          if(admitted||!Number.isSafeInteger(plan.cpuBytes)||plan.cpuBytes<0||combined>512*1024*1024){this.observations.push({phase:'resource-admission',plan,admissionBaselineRSS:baselineRSS,combinedReservedBytes:combined});if(this.observations.length>32)this.observations.shift();throw new StoreError('CAPACITY');}
+        if(message.type==='plan'){try{check();const plan=message.plan as ResourcePlan;
+          // External owners can change while the worker parses. Replace our
+          // preflight booking atomically; do not add it again to the new plan.
+          const processRSS=process.memoryUsage().rss,externalCPU=this.externalCPU();planBaselineRSS=processRSS+externalCPU;const combined=planBaselineRSS+plan.cpuBytes;
+          const allowed=!admitted&&Number.isSafeInteger(plan.cpuBytes)&&plan.cpuBytes>=0&&combined<=512*1024*1024;
+          this.observations.push({phase:'resource-admission',slot,plan,processRSS,externalCPU,replacedCPU:this.reservedCPU,admissionBaselineRSS:planBaselineRSS,combinedReservedBytes:combined,admitted:allowed});if(this.observations.length>32)this.observations.shift();
+          if(!allowed)throw new StoreError('CAPACITY');
           this.objects.reserve(slot,BigInt(plan.diskBytes));this.reservedCPU=plan.cpuBytes;admitted=true;worker.postMessage({type:'admit'});
         }catch(e){error=e;void worker.terminate();}}
         else if(message.type==='failure'){error=message.code==='RASTER_RESOURCES'?new StoreError('CAPACITY'):new AssetRejection('INVALID_INPUT',message.code);}
         else if(message.type==='result'){if(!admitted){error=new StoreError('CORRUPT_STORE');void worker.terminate();}else result=message.result;}
       });
       worker.on('error',()=>{error=new StoreError('CAPACITY');});
-      worker.on('exit',()=>{clearInterval(timer);this.worker=undefined;if(error)reject(error);else if(result){result.metrics.supervisorPeakRSS=Math.max(peakRSS,process.memoryUsage().rss);result.metrics.admissionBaselineRSS=baselineRSS;result.metrics.combinedReservedBytes=baselineRSS+result.plan.cpuBytes;resolve(result);}else reject(new StoreError('STORAGE_FAILURE'));});
+      worker.on('exit',()=>{clearInterval(timer);this.worker=undefined;if(error)reject(error);else if(result){result.metrics.supervisorPeakRSS=Math.max(peakRSS,process.memoryUsage().rss);result.metrics.admissionBaselineRSS=planBaselineRSS;result.metrics.combinedReservedBytes=planBaselineRSS+result.plan.cpuBytes;resolve(result);}else reject(new StoreError('STORAGE_FAILURE'));});
     });
   }
   async validatePortable(path:string,mediaType:string,original:BlobRef,directory:string,slot:string,check:()=>void){

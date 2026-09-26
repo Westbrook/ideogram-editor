@@ -531,6 +531,7 @@ export class StoreDatabase {
       resources: { ioChunkBytes: 1048576, maxTransfers: 2, admissionOverheadPercent: 25, freeMarginBytes: '1073741824', metadataHeadroomBytes: '67108864', metadataHeadroomPhysicallyPreallocated: false, snapshotTailCeiling: 500 },
       assets: this.assets.diagnostics(),
       rasters: this.rasters.diagnostics(),
+      text: {observations:this.texts.observations,reservedCPU:this.texts.reservedCPU,externalBytes:this.texts.externalBytes()},
       history: {observations:this.histories.observations},
       portable: {observations:this.portables.observations},
       observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,

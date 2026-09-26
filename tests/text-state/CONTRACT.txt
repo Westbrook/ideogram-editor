@@ -118,3 +118,16 @@ Cancellation, crash, deadline and false completion settle only after actual
 worker exit. Atomic object proofs, draft/session/generation/revision/profile
 fences are rechecked after async work. No timer/RSS/termination-call inference
 releases retained browser data. This is logical ownership, not P3 qualification.
+
+Phase admission correction authorized after partial f8f936d:
+New text admission books current process RSS, the actual browser128MiB and
+active backend owners. It does not prebook an unused future CP-1 worker.
+CP-1 still reserves128MiB before construction; at resource-plan arrival it
+rechecks current process RSS and external owners and atomically replaces its
+own preflight reservation. It does not add that reservation twice or leave it
+unbooked. Bounded internal diagnostics retain actual operands/phase IDs.
+The admission test uses real SQLite/private files/native workers; its excess
+owner controls are explicitly synthetic reservations, not physical memory.
+Same11 representative/mixed exact differential cases run independently on
+Chromium, WebKit and Firefox. Actual close observations belong to the harness;
+production continues to use the existing successful terminate ownership rule.

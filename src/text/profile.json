@@ -350,8 +350,8 @@
     },
     {
       "path": "server/storage/text.ts",
-      "bytes": 12913,
-      "sha256": "48fd29b2ea5151696c6f7e3c300c12dce5ec59fd9467273477cc1f73c9b626b4"
+      "bytes": 13296,
+      "sha256": "1486a8ae7349daa55a00a9a4c5979b1b4d062f73c4a0b01c4e00da4f473082d2"
     },
     {
       "path": "server/text/font.ts",
@@ -409,5 +409,5 @@
       "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b"
     }
   ],
-  "id": "sha256:3aa752dbf592a5ebb559b4907ff259656543400b9d2ce240dfde8c17fe48efc5"
+  "id": "sha256:6e8a481ec2ec61ab1ea1edefa1ef478453c49a7617854b4d0162a48ad1525c86"
 }

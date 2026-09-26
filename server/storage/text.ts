@@ -20,6 +20,7 @@ import { keys, requireValue as ok } from '../../src/protocol/validate.js';
 
 export class Texts {
  private verifying=false;private readyLoans=new Set<string>();
+ observations:Record<string,unknown>[]=[];
  reservedCPU=0;backendCPU:()=>number=()=>0;
  constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private epoch:string){}
  // One R35 lane: browser preparation then a booked server verification loan.
@@ -32,7 +33,9 @@ export class Texts {
   const predecessors=phase?this.db.prepare('SELECT * FROM text_admissions WHERE id LIKE ?').all(phase[1]+'_%'):[];
   for(const old of predecessors){const prior=String(old.id).split('_');if(old.client_id!==auth.clientId||old.session_hash!==auth.sessionHash||BigInt(prior[1])>=BigInt(phase![2]))throw new StoreError('OWNER_REQUIRED');}
   if(Number(this.db.prepare('SELECT count(*) n FROM text_admissions').get()!.n)!==predecessors.length||this.reservedCPU)throw new StoreError('CAPACITY');
-  if(process.memoryUsage().rss+this.backendCPU()+134217728+134217728>536870912)throw new StoreError('CAPACITY');
+  const processRSS=process.memoryUsage().rss,backendBytes=this.backendCPU(),browserBytes=134217728,combined=processRSS+backendBytes+browserBytes;
+  this.observations.push({phase:'browser-admission',id,predecessors:predecessors.map(row=>row.id),processRSS,backendBytes,browserBytes,combined,limit:536870912,admitted:combined<=536870912});if(this.observations.length>32)this.observations.shift();
+  if(combined>536870912)throw new StoreError('CAPACITY');
   for(const old of predecessors){this.readyLoans.delete(String(old.id));this.db.prepare('DELETE FROM text_admissions WHERE id=?').run(old.id);}
   this.db.prepare('INSERT INTO text_admissions VALUES (?,?,?,?)').run(id,auth.clientId,auth.sessionHash,this.epoch);return {id,bytes:134217728};
  }
