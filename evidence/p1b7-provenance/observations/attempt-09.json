@@ -1,0 +1,420 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/09/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "interactions.spec.ts",
+      "file": "interactions.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "public adapters, native editing, splitter full target, keyboard and logical direction",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 90057,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:08:25.905Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/interactions-public-adapte-aaca4-board-and-logical-direction/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/interactions-public-adapte-aaca4-board-and-logical-direction/error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-d6f0616291a6e7a8e783",
+          "file": "interactions.spec.ts",
+          "line": 10,
+          "column": 1
+        },
+        {
+          "title": "canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4425,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:09:56.486Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-426658088010404f6540",
+          "file": "interactions.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "multi-tab convergence preserves a stale inspector draft and recovers accepted transactions",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7968,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Stale conflict/)\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Stale conflict/) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Stale conflict/)\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Stale conflict/)\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Stale conflict/) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Stale conflict/)\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:37:629",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                      "column": 629,
+                      "line": 37
+                    },
+                    "snippet": "  35 | test('multi-tab convergence preserves a stale inspector draft and recovers accepted transactions',async({page,context})=>{\n  36 |  const server=await setup(page);try{await imported(page);const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();\n> 37 |  await second.getByRole('textbox',{name:'Layer name',exact:true}).fill('Other tab unapplied');await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.7');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(second.locator('.document-name')).toHaveText(await page.locator('.document-name').textContent()??'');await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await click(second,'Apply properties');await expect(second.getByText(/Stale conflict/)).toBeVisible();await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await second.close();\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ^\n  38 |  }finally{await server.close();}\n  39 | });\n  40 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                        "column": 629,
+                        "line": 37
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Stale conflict/)\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Stale conflict/) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Stale conflict/)\u001b[22m\n\n\n  35 | test('multi-tab convergence preserves a stale inspector draft and recovers accepted transactions',async({page,context})=>{\n  36 |  const server=await setup(page);try{await imported(page);const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();\n> 37 |  await second.getByRole('textbox',{name:'Layer name',exact:true}).fill('Other tab unapplied');await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.7');await click(page,'Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(second.locator('.document-name')).toHaveText(await page.locator('.document-name').textContent()??'');await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await click(second,'Apply properties');await expect(second.getByText(/Stale conflict/)).toBeVisible();await expect(second.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Other tab unapplied');await second.close();\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ^\n  38 |  }finally{await server.close();}\n  39 | });\n  40 |\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:37:629"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:10:00.989Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-2.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/interactions-multi-tab-con-b5037-overs-accepted-transactions/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                    "column": 629,
+                    "line": 37
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-2fcee3bb835ae1526e31",
+          "file": "interactions.spec.ts",
+          "line": 35,
+          "column": 1
+        },
+        {
+          "title": "320px and 200-percent-equivalent reflow keep controls and native focus reachable",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 90047,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:10:09.118Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/interactions-320px-and-200-13d47--and-native-focus-reachable/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/interactions-320px-and-200-13d47--and-native-focus-reachable/error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-7ea3076bdab1bea7bb94",
+          "file": "interactions.spec.ts",
+          "line": 41,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "journey.spec.ts",
+      "file": "journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 real reviewed import, edit and undo",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2710,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:11:39.426Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "bf222bad70f76648f722-799b9fe224efe08de0b3",
+          "file": "journey.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "portable.spec.ts",
+      "file": "portable.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7490,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 5\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING\",\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING\",\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 5\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING\",\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING\",\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:42:84",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                      "column": 84,
+                      "line": 42
+                    },
+                    "snippet": "  40 |  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');\n  41 |  await click(page,'Save copy');await click(page,'Prepare complete copy');const nestedPath=join(directory,'nested.ideogram-project');await download(page,nestedPath);const nested=await readFile(nestedPath);expect(nested.includes(await readFile(bundlePath))).toBe(true);\n> 42 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);\n     |                                                                                    ^\n  43 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));\n  44 |  await page.screenshot({path:join(receipt,'e1.png')});\n  45 |  }finally{await server.close();}"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                        "column": 84,
+                        "line": 42
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 5\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING\",\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING\",\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  40 |  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');\n  41 |  await click(page,'Save copy');await click(page,'Prepare complete copy');const nestedPath=join(directory,'nested.ideogram-project');await download(page,nestedPath);const nested=await readFile(nestedPath);expect(nested.includes(await readFile(bundlePath))).toBe(true);\n> 42 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);\n     |                                                                                    ^\n  43 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));\n  44 |  await page.screenshot({path:join(receipt,'e1.png')});\n  45 |  }finally{await server.close();}\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:42:84"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:11:42.219Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/09/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                    "column": 84,
+                    "line": 42
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "c79a3b05e7f67b52c1b1-218d14430d8fbae0d45e",
+          "file": "portable.spec.ts",
+          "line": 14,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:08:25.602Z",
+    "duration": 204135.606,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

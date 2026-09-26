@@ -1,0 +1,487 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/12/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/12/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "failures.spec.ts",
+      "file": "failures.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5490,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Action needs attention', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: 'Action needs attention', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Action needs attention', exact: true })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Action needs attention', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: 'Action needs attention', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Action needs attention', exact: true })\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:11:447",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                      "column": 447,
+                      "line": 11
+                    },
+                    "snippet": "   9 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-fault-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});\n  10 |  try{\n> 11 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await click(page,'Open');await page.locator('en-file-upload input[type=file]').setInputFiles({name:'bad.ideogram-project',mimeType:'application/octet-stream',buffer:Buffer.from('not a ZIP64 project')});await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();await click(page,'Cancel');\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                               ^\n  12 |  // Drop only the receipt after the real writer sees and accepts this exact envelope.\n  13 |  let first='';const bodies:string[]=[];await page.route('**/api/v1/commands',async route=>{const text=route.request().postData()!,body=JSON.parse(text);if(body.command.body.type==='NewDocument'){bodies.push(text);if(!first){first=text;await route.fetch();await route.abort('failed');return;}}await route.continue();});\n  14 |  await click(page,'New');await click(page,'Create');await expect(page.getByRole('button',{name:'Check and retry original',exact:true})).toBeVisible();await click(page,'Cancel');await click(page,'Check and retry original');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(bodies).toEqual([first]);await page.unroute('**/api/v1/commands');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                        "column": 447,
+                        "line": 11
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Action needs attention', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: 'Action needs attention', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Action needs attention', exact: true })\u001b[22m\n\n\n   9 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-fault-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});\n  10 |  try{\n> 11 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await click(page,'Open');await page.locator('en-file-upload input[type=file]').setInputFiles({name:'bad.ideogram-project',mimeType:'application/octet-stream',buffer:Buffer.from('not a ZIP64 project')});await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();await click(page,'Cancel');\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                               ^\n  12 |  // Drop only the receipt after the real writer sees and accepts this exact envelope.\n  13 |  let first='';const bodies:string[]=[];await page.route('**/api/v1/commands',async route=>{const text=route.request().postData()!,body=JSON.parse(text);if(body.command.body.type==='NewDocument'){bodies.push(text);if(!first){first=text;await route.fetch();await route.abort('failed');return;}}await route.continue();});\n  14 |  await click(page,'New');await click(page,'Create');await expect(page.getByRole('button',{name:'Check and retry original',exact:true})).toBeVisible();await click(page,'Cancel');await click(page,'Check and retry original');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(bodies).toEqual([first]);await page.unroute('**/api/v1/commands');\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:11:447"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:32.136Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/12/browser/failures-malformed-portabl-ed285-ivery-reuses-its-exact-body/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/12/browser/failures-malformed-portabl-ed285-ivery-reuses-its-exact-body/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                    "column": 447,
+                    "line": 11
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ca86dc4f195df8674d02-10b512da4c580047d947",
+          "file": "failures.spec.ts",
+          "line": 8,
+          "column": 1
+        },
+        {
+          "title": "renewal expires unaccepted review and preserves original bytes without creating a document",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 995,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Connection expired or unavailable/)\nExpected: visible\nError: strict mode violation: getByText(/Connection expired or unavailable/) resolved to 2 elements:\n    1) <p>…</p> aka getByRole('banner').getByText('Connection expired or')\n    2) <p>…</p> aka locator('section').filter({ hasText: 'Connection expired or' }).getByRole('paragraph')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Connection expired or unavailable/) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Connection expired or unavailable/)\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Connection expired or unavailable/)\nExpected: visible\nError: strict mode violation: getByText(/Connection expired or unavailable/) resolved to 2 elements:\n    1) <p>…</p> aka getByRole('banner').getByText('Connection expired or')\n    2) <p>…</p> aka locator('section').filter({ hasText: 'Connection expired or' }).getByRole('paragraph')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Connection expired or unavailable/) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Connection expired or unavailable/)\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:22:177",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                      "column": 177,
+                      "line": 22
+                    },
+                    "snippet": "  20 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-expiry-'));let now=Date.now();const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),now:()=>now});\n  21 |  try{await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();now+=31*60*1000;await click(page,'Apply reviewed result');await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();\n> 22 |  await click(page,'Cancel review');await click(page,'Connected locally');await click(page,'Check connection');await expect(page.getByText(/Connection expired or unavailable/)).toBeVisible();await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('dialog',{name:'Review image conversion'})).toHaveCount(0);\n     |                                                                                                                                                                                 ^\n  23 |  }finally{await server.close();}\n  24 | });\n  25 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                        "column": 177,
+                        "line": 22
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Connection expired or unavailable/)\nExpected: visible\nError: strict mode violation: getByText(/Connection expired or unavailable/) resolved to 2 elements:\n    1) <p>…</p> aka getByRole('banner').getByText('Connection expired or')\n    2) <p>…</p> aka locator('section').filter({ hasText: 'Connection expired or' }).getByRole('paragraph')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Connection expired or unavailable/) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Connection expired or unavailable/)\u001b[22m\n\n\n  20 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-expiry-'));let now=Date.now();const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),now:()=>now});\n  21 |  try{await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();now+=31*60*1000;await click(page,'Apply reviewed result');await expect(page.getByRole('heading',{name:'Action needs attention',exact:true})).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();\n> 22 |  await click(page,'Cancel review');await click(page,'Connected locally');await click(page,'Check connection');await expect(page.getByText(/Connection expired or unavailable/)).toBeVisible();await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('dialog',{name:'Review image conversion'})).toHaveCount(0);\n     |                                                                                                                                                                                 ^\n  23 |  }finally{await server.close();}\n  24 | });\n  25 |\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:22:177"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:37.865Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/12/browser/failures-renewal-expires-u-127f3-without-creating-a-document/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/12/browser/failures-renewal-expires-u-127f3-without-creating-a-document/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                    "column": 177,
+                    "line": 22
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ca86dc4f195df8674d02-164a583d83c3521bc5b4",
+          "file": "failures.spec.ts",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "title": "native composition drafts do not dispatch document actions and a late veto cancels Apply",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1835,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:39.086Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ca86dc4f195df8674d02-e565bb47b213f5d35d56",
+          "file": "failures.spec.ts",
+          "line": 26,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "interactions.spec.ts",
+      "file": "interactions.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "public adapters, native editing, splitter full target, keyboard and logical direction",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1930,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:40.994Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-d6f0616291a6e7a8e783",
+          "file": "interactions.spec.ts",
+          "line": 10,
+          "column": 1
+        },
+        {
+          "title": "canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4426,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:42.928Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-426658088010404f6540",
+          "file": "interactions.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "multi-tab convergence preserves a stale inspector draft and recovers accepted transactions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2936,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:47.359Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-2fcee3bb835ae1526e31",
+          "file": "interactions.spec.ts",
+          "line": 35,
+          "column": 1
+        },
+        {
+          "title": "320px and 200-percent-equivalent reflow keep controls and native focus reachable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 937,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:50.299Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-7ea3076bdab1bea7bb94",
+          "file": "interactions.spec.ts",
+          "line": 41,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "journey.spec.ts",
+      "file": "journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 real reviewed import, edit and undo",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2607,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:51.245Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "bf222bad70f76648f722-799b9fe224efe08de0b3",
+          "file": "journey.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "portable.spec.ts",
+      "file": "portable.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7685,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:13:53.870Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c79a3b05e7f67b52c1b1-218d14430d8fbae0d45e",
+          "file": "portable.spec.ts",
+          "line": 14,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:13:31.923Z",
+    "duration": 29661.662,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

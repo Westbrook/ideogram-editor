@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "preservedCommit": "e1fa068e405cf40d6c1e72256a0765967111d7fa",
+  "preservedEvidenceManifest": "evidence/p1b7/SHA256SUMS",
+  "preservedEvidenceManifestSHA256": "4bc71b9c4103ddfb1097ce7bac32fd2d156d48e509e263f98c1a5adc37aea094",
+  "preservedHandoffSHA256": "c2badf2a9d79cff8364509ab5ed25b2558ab2a25399ddbcb23f6006a0d9534ec",
+  "preservedMixedManifestSHA256": "91c2f62bcff8a458cbd1d88d9f600b435e88e8a1e1cc2a3ec974f8463cff0c21",
+  "cause": "Recursive tests/editor file scan included JSON reporter observations. Reporter outputFile is relative to config directory, while outputDir resolves the sibling root artifacts path. Packaging copied root artifacts but not those nested reporter outputs. No old hash was corrupt; old manifest was not self-contained in Git.",
+  "resolution": "All62 original entries are conserved:14 tracked code inputs in verification-code.json;48 byte-identical reporter observations with original-path/digest to committed-copy mapping in browser-observations.json. Every attachment maps to already sealed review evidence with explicit trace sanitization limits.",
+  "originalObservationLocationsRequired": false,
+  "runtimeCodeBuildTestsTimingChanged": false,
+  "testExecution": "None in this evidence-only follow-up; packaging/hash/containment checks only.",
+  "previousEvidenceModified": false,
+  "sourceAttribution": "Historical per-attempt results and source limitations stay as previously documented. JSON timestamps/argv/snippets do not by themselves independently authenticate a run or bind an older run to the final14 code files."
+}

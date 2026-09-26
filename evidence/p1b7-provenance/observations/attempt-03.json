@@ -1,0 +1,191 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/03/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/03/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "journey.spec.ts",
+      "file": "journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 real reviewed import, edit and undo",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1647,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"127.0.0.1\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"127.0.0.1\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n    at _Page.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:11:69)",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts",
+                      "column": 69,
+                      "line": 11
+                    },
+                    "snippet": "   9 |  const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),credentialConfigured:false});\n  10 |  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});\n> 11 |  page.on('request',request=>expect(new URL(request.url()).hostname).toBe('127.0.0.1'));\n     |                                                                     ^\n  12 |  page.on('requestfailed',request=>console.log('failed request',new URL(request.url()).pathname,request.failure()));\n  13 |  try{\n  14 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts",
+                        "column": 69,
+                        "line": 11
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"127.0.0.1\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\n\n   9 |  const server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app'),credentialConfigured:false});\n  10 |  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});\n> 11 |  page.on('request',request=>expect(new URL(request.url()).hostname).toBe('127.0.0.1'));\n     |                                                                     ^\n  12 |  page.on('requestfailed',request=>console.log('failed request',new URL(request.url()).pathname,request.failure()));\n  13 |  try{\n  14 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();\n    at _Page.<anonymous> (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:11:69)"
+                    },
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts",
+                        "column": 74,
+                        "line": 16
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('dialog', { name: 'Review image conversion' })\nExpected: visible\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('dialog', { name: 'Review image conversion' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Review image conversion' })\u001b[22m\n\u001b[2m  - Test ended.\u001b[22m\n\n\n  14 |  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();\n  15 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');\n> 16 |  await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();\n     |                                                                          ^\n  17 |  await expect(page.getByText('No document open',{exact:true})).toBeVisible();\n  18 |  await page.getByRole('button',{name:'Apply reviewed result',exact:true}).click();\n  19 |  await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:16:74"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "failed request /api/v1/recovery/76d03d57-ec61-4b28-bba5-6b28c4625b60/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/e4a88aef-4c8d-444f-952c-a5e2c2033f05/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/645322a2-a805-4df8-adb2-cfa4fbc0841b/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/2a1b6dd6-a640-4864-b7dd-ae7ea94bc6ce/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:01:21.666Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/03/browser/journey-E1-real-reviewed-import-edit-and-undo/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/03/browser/journey-E1-real-reviewed-import-edit-and-undo/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/03/browser/journey-E1-real-reviewed-import-edit-and-undo/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts",
+                    "column": 69,
+                    "line": 11
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "bf222bad70f76648f722-799b9fe224efe08de0b3",
+          "file": "journey.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:01:21.493Z",
+    "duration": 2231.907,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

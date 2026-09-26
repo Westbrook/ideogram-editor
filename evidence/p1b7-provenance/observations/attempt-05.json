@@ -1,0 +1,264 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/05/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/05/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "journey.spec.ts",
+      "file": "journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 real reviewed import, edit and undo",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3460,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "failed request /api/v1/recovery/198589b4-acc1-4512-a306-1a48efb3ac51/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/3d188e3b-4a2c-4016-b440-c6f25ad391d9/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/da915d9f-be17-4338-9b63-6489e614d1d5/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/d67ae650-c91a-412e-a787-fc9f7e1d624d/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/50150f08-7b90-42d8-842c-a54caeeafdb8/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/90b35841-a67d-44f9-b236-d45d5fe940b3/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/1462c6ac-573e-43c3-b412-081570bdef37/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/c2536536-474f-4f59-8cd9-32f9b0ad0aa1/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/c0ad04df-c7a7-4d21-aa88-0dc0aa7eaa0c/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/recovery/bd916aac-ccbe-47c4-aa98-9aec7577c654/release { errorText: \u001b[32m'net::ERR_ABORTED'\u001b[39m }\n"
+                    },
+                    {
+                      "text": "failed request /api/v1/events/stream { errorText: \u001b[32m'net::ERR_INCOMPLETE_CHUNKED_ENCODING'\u001b[39m }\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:05:06.310Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "bf222bad70f76648f722-799b9fe224efe08de0b3",
+          "file": "journey.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "portable.spec.ts",
+      "file": "portable.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7946,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Draft saved locally; not applied to the document').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Draft saved locally; not applied to the document').first() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Draft saved locally; not applied to the document').first()\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Draft saved locally; not applied to the document').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Draft saved locally; not applied to the document').first() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Draft saved locally; not applied to the document').first()\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:23:257",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                      "column": 257,
+                      "line": 23
+                    },
+                    "snippet": "  21 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');\n  22 |  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');\n> 23 |  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();\n     |                                                                                                                                                                                                                                                                 ^\n  24 |  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');\n  25 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();\n  26 |  const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                        "column": 257,
+                        "line": 23
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Draft saved locally; not applied to the document').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Draft saved locally; not applied to the document').first() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Draft saved locally; not applied to the document').first()\u001b[22m\n\n\n  21 |  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');\n  22 |  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');\n> 23 |  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();\n     |                                                                                                                                                                                                                                                                 ^\n  24 |  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');\n  25 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();\n  26 |  const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts:23:257"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:05:10.138Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/05/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/05/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/05/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/portable.spec.ts",
+                    "column": 257,
+                    "line": 23
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "c79a3b05e7f67b52c1b1-218d14430d8fbae0d45e",
+          "file": "portable.spec.ts",
+          "line": 14,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:05:06.019Z",
+    "duration": 12226.731,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,364 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts",
+      "recovery.spec.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/25/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "recovery.spec.ts",
+      "file": "recovery.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "lost draft receipt survives reload with exact original request; cleared draft does not return",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3636,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 0\u001b[39m\n\n\u001b[2m  Array [\u001b[22m\n\u001b[2m    \"{\\\"protocolVersion\\\":1,\\\"requestId\\\":\\\"8236c622-1d3f-4310-8cd0-eef8a0f64d75\\\",\\\"sessionId\\\":\\\"ui_aeb4e46c-c07d-4a75-b2db-ccb2544e1e2f\\\",\\\"expectedUISeq\\\":\\\"2\\\",\\\"body\\\":{\\\"type\\\":\\\"SaveDraft\\\",\\\"draft\\\":{\\\"id\\\":\\\"inspector_03d7c723-b125-4d29-b6ba-d7340132b9c5_ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"generation\\\":\\\"2\\\",\\\"kind\\\":\\\"inspector\\\",\\\"documentId\\\":\\\"03d7c723-b125-4d29-b6ba-d7340132b9c5\\\",\\\"targetLayerId\\\":\\\"ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"expectedDocumentRevision\\\":\\\"2\\\",\\\"composing\\\":false,\\\"assetId\\\":\\\"5530130a-5579-46f6-8faa-09cbe3b4b402\\\"}}}\",\u001b[22m\n\u001b[32m-   \"{\\\"protocolVersion\\\":1,\\\"requestId\\\":\\\"8236c622-1d3f-4310-8cd0-eef8a0f64d75\\\",\\\"sessionId\\\":\\\"ui_aeb4e46c-c07d-4a75-b2db-ccb2544e1e2f\\\",\\\"expectedUISeq\\\":\\\"2\\\",\\\"body\\\":{\\\"type\\\":\\\"SaveDraft\\\",\\\"draft\\\":{\\\"id\\\":\\\"inspector_03d7c723-b125-4d29-b6ba-d7340132b9c5_ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"generation\\\":\\\"2\\\",\\\"kind\\\":\\\"inspector\\\",\\\"documentId\\\":\\\"03d7c723-b125-4d29-b6ba-d7340132b9c5\\\",\\\"targetLayerId\\\":\\\"ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"expectedDocumentRevision\\\":\\\"2\\\",\\\"composing\\\":false,\\\"assetId\\\":\\\"5530130a-5579-46f6-8faa-09cbe3b4b402\\\"}}}\",\u001b[39m\n\u001b[2m  ]\u001b[22m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 0\u001b[39m\n\n\u001b[2m  Array [\u001b[22m\n\u001b[2m    \"{\\\"protocolVersion\\\":1,\\\"requestId\\\":\\\"8236c622-1d3f-4310-8cd0-eef8a0f64d75\\\",\\\"sessionId\\\":\\\"ui_aeb4e46c-c07d-4a75-b2db-ccb2544e1e2f\\\",\\\"expectedUISeq\\\":\\\"2\\\",\\\"body\\\":{\\\"type\\\":\\\"SaveDraft\\\",\\\"draft\\\":{\\\"id\\\":\\\"inspector_03d7c723-b125-4d29-b6ba-d7340132b9c5_ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"generation\\\":\\\"2\\\",\\\"kind\\\":\\\"inspector\\\",\\\"documentId\\\":\\\"03d7c723-b125-4d29-b6ba-d7340132b9c5\\\",\\\"targetLayerId\\\":\\\"ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"expectedDocumentRevision\\\":\\\"2\\\",\\\"composing\\\":false,\\\"assetId\\\":\\\"5530130a-5579-46f6-8faa-09cbe3b4b402\\\"}}}\",\u001b[22m\n\u001b[32m-   \"{\\\"protocolVersion\\\":1,\\\"requestId\\\":\\\"8236c622-1d3f-4310-8cd0-eef8a0f64d75\\\",\\\"sessionId\\\":\\\"ui_aeb4e46c-c07d-4a75-b2db-ccb2544e1e2f\\\",\\\"expectedUISeq\\\":\\\"2\\\",\\\"body\\\":{\\\"type\\\":\\\"SaveDraft\\\",\\\"draft\\\":{\\\"id\\\":\\\"inspector_03d7c723-b125-4d29-b6ba-d7340132b9c5_ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"generation\\\":\\\"2\\\",\\\"kind\\\":\\\"inspector\\\",\\\"documentId\\\":\\\"03d7c723-b125-4d29-b6ba-d7340132b9c5\\\",\\\"targetLayerId\\\":\\\"ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"expectedDocumentRevision\\\":\\\"2\\\",\\\"composing\\\":false,\\\"assetId\\\":\\\"5530130a-5579-46f6-8faa-09cbe3b4b402\\\"}}}\",\u001b[39m\n\u001b[2m  ]\u001b[22m\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:26:188",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                      "column": 188,
+                      "line": 26
+                    },
+                    "snippet": "  24 |  await page.route('**/api/v1/ui/*',async route=>{const r=route.request();if(r.method()==='POST'&&JSON.parse(r.postData()!).body.type==='SaveDraft'){sent.push(r.postData()!);if(!dropped){wire=r.postData()!;dropped=true;await route.fetch();await route.abort();return;}}await route.continue();});\n  25 |  await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Lost receipt 日本語');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();\n> 26 |  await page.reload();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();await click(page,'Retry original draft delivery');expect(sent).toEqual([wire,wire]);await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Lost receipt 日本語');\n     |                                                                                                                                                                                            ^\n  27 |  await click(page,'Cancel changes');await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');await expect.poll(async()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const n=db.prepare(\"SELECT count(*) n FROM ui_checkpoints WHERE payload LIKE '%Lost receipt%'\").get();db.close();return n?.n??0;}).toBe(0).catch(()=>{});\n  28 |  await page.reload();await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');\n  29 |  }finally{await f.server.close();}"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                        "column": 188,
+                        "line": 26
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 0\u001b[39m\n\n\u001b[2m  Array [\u001b[22m\n\u001b[2m    \"{\\\"protocolVersion\\\":1,\\\"requestId\\\":\\\"8236c622-1d3f-4310-8cd0-eef8a0f64d75\\\",\\\"sessionId\\\":\\\"ui_aeb4e46c-c07d-4a75-b2db-ccb2544e1e2f\\\",\\\"expectedUISeq\\\":\\\"2\\\",\\\"body\\\":{\\\"type\\\":\\\"SaveDraft\\\",\\\"draft\\\":{\\\"id\\\":\\\"inspector_03d7c723-b125-4d29-b6ba-d7340132b9c5_ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"generation\\\":\\\"2\\\",\\\"kind\\\":\\\"inspector\\\",\\\"documentId\\\":\\\"03d7c723-b125-4d29-b6ba-d7340132b9c5\\\",\\\"targetLayerId\\\":\\\"ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"expectedDocumentRevision\\\":\\\"2\\\",\\\"composing\\\":false,\\\"assetId\\\":\\\"5530130a-5579-46f6-8faa-09cbe3b4b402\\\"}}}\",\u001b[22m\n\u001b[32m-   \"{\\\"protocolVersion\\\":1,\\\"requestId\\\":\\\"8236c622-1d3f-4310-8cd0-eef8a0f64d75\\\",\\\"sessionId\\\":\\\"ui_aeb4e46c-c07d-4a75-b2db-ccb2544e1e2f\\\",\\\"expectedUISeq\\\":\\\"2\\\",\\\"body\\\":{\\\"type\\\":\\\"SaveDraft\\\",\\\"draft\\\":{\\\"id\\\":\\\"inspector_03d7c723-b125-4d29-b6ba-d7340132b9c5_ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"generation\\\":\\\"2\\\",\\\"kind\\\":\\\"inspector\\\",\\\"documentId\\\":\\\"03d7c723-b125-4d29-b6ba-d7340132b9c5\\\",\\\"targetLayerId\\\":\\\"ff516e2d-1512-4f87-9022-9d07a0dd2237\\\",\\\"expectedDocumentRevision\\\":\\\"2\\\",\\\"composing\\\":false,\\\"assetId\\\":\\\"5530130a-5579-46f6-8faa-09cbe3b4b402\\\"}}}\",\u001b[39m\n\u001b[2m  ]\u001b[22m\n\n  24 |  await page.route('**/api/v1/ui/*',async route=>{const r=route.request();if(r.method()==='POST'&&JSON.parse(r.postData()!).body.type==='SaveDraft'){sent.push(r.postData()!);if(!dropped){wire=r.postData()!;dropped=true;await route.fetch();await route.abort();return;}}await route.continue();});\n  25 |  await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Lost receipt 日本語');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();\n> 26 |  await page.reload();await expect(page.getByRole('button',{name:'Retry original draft delivery',exact:true})).toBeVisible();await click(page,'Retry original draft delivery');expect(sent).toEqual([wire,wire]);await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('Lost receipt 日本語');\n     |                                                                                                                                                                                            ^\n  27 |  await click(page,'Cancel changes');await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');await expect.poll(async()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const n=db.prepare(\"SELECT count(*) n FROM ui_checkpoints WHERE payload LIKE '%Lost receipt%'\").get();db.close();return n?.n??0;}).toBe(0).catch(()=>{});\n  28 |  await page.reload();await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');\n  29 |  }finally{await f.server.close();}\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:26:188"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:28:02.399Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-lost-draft-receip-a739c-eared-draft-does-not-return/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-lost-draft-receip-a739c-eared-draft-does-not-return/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                    "column": 188,
+                    "line": 26
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ef78f3da5c9c24fceacf-1ca07a3bd766de9160c4",
+          "file": "recovery.spec.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "title": "missing retained raster bytes block full copy visibly and remain recoverable",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1679,
+                  "error": {
+                    "message": "Error: no such column: payload",
+                    "stack": "Error: no such column: payload\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:34:90",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                      "column": 90,
+                      "line": 34
+                    },
+                    "snippet": "  32 | test('missing retained raster bytes block full copy visibly and remain recoverable',async({page,context})=>{\n  33 |  const f=await setup(page,context);let path='',bytes:Buffer|undefined;try{\n> 34 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT payload FROM assets').all() as {payload:string}[];db.close();const asset=rows.map(x=>JSON.parse(x.payload)).find(x=>x.qualification==='canonical-raster');expect(asset).toBeTruthy();path=join(f.root,'objects','sha256',asset.raster.pixels.hash.slice(7,9),asset.raster.pixels.hash.slice(7));bytes=await readFile(path);await unlink(path);\n     |                                                                                          ^\n  35 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByText(/Content unavailable or missing/)).toBeVisible();await expect(page.getByRole('region',{name:'Prepared file'})).toHaveCount(0);await writeFile(path,bytes,{mode:0o600});bytes=undefined;await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Full-history copy');\n  36 |  }finally{if(bytes)await writeFile(path,bytes,{mode:0o600});await f.server.close();}\n  37 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                        "column": 90,
+                        "line": 34
+                      },
+                      "message": "Error: no such column: payload\n\n  32 | test('missing retained raster bytes block full copy visibly and remain recoverable',async({page,context})=>{\n  33 |  const f=await setup(page,context);let path='',bytes:Buffer|undefined;try{\n> 34 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT payload FROM assets').all() as {payload:string}[];db.close();const asset=rows.map(x=>JSON.parse(x.payload)).find(x=>x.qualification==='canonical-raster');expect(asset).toBeTruthy();path=join(f.root,'objects','sha256',asset.raster.pixels.hash.slice(7,9),asset.raster.pixels.hash.slice(7));bytes=await readFile(path);await unlink(path);\n     |                                                                                          ^\n  35 |  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByText(/Content unavailable or missing/)).toBeVisible();await expect(page.getByRole('region',{name:'Prepared file'})).toHaveCount(0);await writeFile(path,bytes,{mode:0o600});bytes=undefined;await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Full-history copy');\n  36 |  }finally{if(bytes)await writeFile(path,bytes,{mode:0o600});await f.server.close();}\n  37 | });\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:34:90"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:28:06.537Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-missing-retained--58aef-ibly-and-remain-recoverable/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-missing-retained--58aef-ibly-and-remain-recoverable/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                    "column": 90,
+                    "line": 34
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ef78f3da5c9c24fceacf-004cdfe9565bc9f0bec8",
+          "file": "recovery.spec.ts",
+          "line": 32,
+          "column": 1
+        },
+        {
+          "title": "real snapshot gap recovery publishes the complete current document after offline browser interval",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1644,
+                  "error": {
+                    "message": "TypeError: Cannot convert undefined to a BigInt",
+                    "stack": "TypeError: Cannot convert undefined to a BigInt\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:42:15",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                      "column": 15,
+                      "line": 42
+                    },
+                    "snippet": "  40 |  test.setTimeout(120000);const f=await setup(page,context);try{\n  41 |  const id=f.last.command.documentId,clientId=f.last.command.clientId;const document=(await f.read('/api/v1/documents/'+id)).json;await page.goto('about:blank');\n> 42 |  let revision=BigInt(document.document?.revision??document.revision);for(let i=0;i<251;i++){const c=command(empty,{clientId,documentId:id,expectedDocumentRevision:String(revision),body:{type:'SaveCheckpoint',name:'gap '+i}});const r=await call(f.server.origin,'/api/v1/commands',{method:'POST',body:c,headers:f.headers()});expect(r.json.receipt.status).toBe('accepted');revision++;}\n     |               ^\n  43 |  const gaps:string[]=[];page.on('response',r=>{if(r.url().includes('/api/v1/events')&&r.status()===409)gaps.push(r.url().split('?')[0]);});\n  44 |  await page.goto(f.server.origin);await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('.document-name')).toContainText('revision '+revision);await expect(page.getByRole('treeitem')).toHaveCount(1);expect(gaps.length).toBeGreaterThan(0);await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);\n  45 |  }finally{await f.server.close();}"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                        "column": 15,
+                        "line": 42
+                      },
+                      "message": "TypeError: Cannot convert undefined to a BigInt\n\n  40 |  test.setTimeout(120000);const f=await setup(page,context);try{\n  41 |  const id=f.last.command.documentId,clientId=f.last.command.clientId;const document=(await f.read('/api/v1/documents/'+id)).json;await page.goto('about:blank');\n> 42 |  let revision=BigInt(document.document?.revision??document.revision);for(let i=0;i<251;i++){const c=command(empty,{clientId,documentId:id,expectedDocumentRevision:String(revision),body:{type:'SaveCheckpoint',name:'gap '+i}});const r=await call(f.server.origin,'/api/v1/commands',{method:'POST',body:c,headers:f.headers()});expect(r.json.receipt.status).toBe('accepted');revision++;}\n     |               ^\n  43 |  const gaps:string[]=[];page.on('response',r=>{if(r.url().includes('/api/v1/events')&&r.status()===409)gaps.push(r.url().split('?')[0]);});\n  44 |  await page.goto(f.server.origin);await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('.document-name')).toContainText('revision '+revision);await expect(page.getByRole('treeitem')).toHaveCount(1);expect(gaps.length).toBeGreaterThan(0);await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);\n  45 |  }finally{await f.server.close();}\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:42:15"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:28:08.448Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-real-snapshot-gap-b58f3-er-offline-browser-interval/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-real-snapshot-gap-b58f3-er-offline-browser-interval/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                    "column": 15,
+                    "line": 42
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ef78f3da5c9c24fceacf-4b5e7d97fe938f125b60",
+          "file": "recovery.spec.ts",
+          "line": 39,
+          "column": 1
+        },
+        {
+          "title": "new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1614,
+                  "error": {
+                    "message": "Error: no such column: payload",
+                    "stack": "Error: no such column: payload\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:51:90",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                      "column": 90,
+                      "line": 51
+                    },
+                    "snippet": "  49 |  const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>();let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;\n  50 |  try{\n> 51 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT payload FROM assets').all() as {payload:string}[];db.close();const original=rows.map(x=>JSON.parse(x.payload)).find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();\n     |                                                                                          ^\n  52 |  for(let i=0;i<2;i++){const stagingId=randomUUID();expect((await call(f.server.origin,'/api/v1/assets/staging',{method:'POST',body:{protocolVersion:1,stagingId,purpose:'caption',expectedBytes:'1',sha256:'sha256:'+createHash('sha256').update('x').digest('hex'),mediaType:'text/plain'},headers:f.headers()})).status).toBe(201);const h=exchange(f.server.origin,'/api/v1/assets/staging/'+stagingId,{method:'PUT',defer:true,headers:{...f.headers(),'Content-Type':'application/octet-stream','Content-Length':'1','Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();holds.push(h);}\n  53 |  await page.waitForTimeout(30);\n  54 |  for(let i=0;i<40;i++){const c=command(empty,{clientId:f.last.command.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'PrepareRaster',assetId:original.id}}),wire=JSON.stringify(c,null,2);originals.set(c.command.commandId,wire);expect((await call(f.server.origin,'/api/v1/commands',{method:'POST',raw:Buffer.from(wire),headers:f.headers()})).status).toBe(202);}"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                        "column": 90,
+                        "line": 51
+                      },
+                      "message": "Error: no such column: payload\n\n  49 |  const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>();let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;\n  50 |  try{\n> 51 |  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT payload FROM assets').all() as {payload:string}[];db.close();const original=rows.map(x=>JSON.parse(x.payload)).find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();\n     |                                                                                          ^\n  52 |  for(let i=0;i<2;i++){const stagingId=randomUUID();expect((await call(f.server.origin,'/api/v1/assets/staging',{method:'POST',body:{protocolVersion:1,stagingId,purpose:'caption',expectedBytes:'1',sha256:'sha256:'+createHash('sha256').update('x').digest('hex'),mediaType:'text/plain'},headers:f.headers()})).status).toBe(201);const h=exchange(f.server.origin,'/api/v1/assets/staging/'+stagingId,{method:'PUT',defer:true,headers:{...f.headers(),'Content-Type':'application/octet-stream','Content-Length':'1','Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();holds.push(h);}\n  53 |  await page.waitForTimeout(30);\n  54 |  for(let i=0;i<40;i++){const c=command(empty,{clientId:f.last.command.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'PrepareRaster',assetId:original.id}}),wire=JSON.stringify(c,null,2);originals.set(c.command.commandId,wire);expect((await call(f.server.origin,'/api/v1/commands',{method:'POST',raw:Buffer.from(wire),headers:f.headers()})).status).toBe(202);}\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts:51:90"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:28:10.329Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-new-port-restart--df5cf-re-same-ID-receipt-recovery/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/25/browser/recovery-new-port-restart--df5cf-re-same-ID-receipt-recovery/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/recovery.spec.ts",
+                    "column": 90,
+                    "line": 51
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ef78f3da5c9c24fceacf-e6a2b8cb677b7ebb3ba5",
+          "file": "recovery.spec.ts",
+          "line": 48,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:28:01.918Z",
+    "duration": 10117.701,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

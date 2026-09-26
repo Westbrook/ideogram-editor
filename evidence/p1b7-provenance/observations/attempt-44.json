@@ -1,0 +1,159 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts",
+      "failures.spec.ts",
+      "--grep",
+      "late veto"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/44/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/44/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "failures.spec.ts",
+      "file": "failures.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "native composition drafts do not dispatch document actions and a late veto cancels Apply",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7465,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeDisabled\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Apply properties', exact: true })\nExpected: disabled\nReceived: enabled\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeDisabled\" getByRole('button', { name: 'Apply properties', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Apply properties', exact: true })\u001b[22m\n\u001b[2m    13 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"primary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"enabled\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeDisabled\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Apply properties', exact: true })\nExpected: disabled\nReceived: enabled\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeDisabled\" getByRole('button', { name: 'Apply properties', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Apply properties', exact: true })\u001b[22m\n\u001b[2m    13 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"primary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"enabled\"\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:28:921",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                      "column": 921,
+                      "line": 28
+                    },
+                    "snippet": "  26 | test('native composition drafts do not dispatch document actions and a late veto cancels Apply',async({page})=>{\n  27 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-composition-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});const edits:string[]=[];\n> 28 |  try{page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')edits.push(JSON.parse(r.postData()!).command.body.type);});await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').click();const name=page.getByRole('textbox',{name:'Layer name',exact:true});await name.focus();await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,composed:true})));await name.fill('日本語 draft');await expect(page.getByRole('button',{name:'Apply properties',exact:true})).toBeDisabled();await name.press('Meta+z');expect(edits).not.toContain('Undo');await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,composed:true})));await name.fill('fresh Unicode 🌿');\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ^\n  29 |  await page.locator('en-button').filter({hasText:'Apply properties'}).evaluate(host=>host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Apply properties');await page.waitForTimeout(100);expect(edits).not.toContain('SetLayerProperties');await expect(name).toHaveValue('fresh Unicode 🌿');\n  30 |  }finally{await server.close();}\n  31 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                        "column": 921,
+                        "line": 28
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeDisabled\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Apply properties', exact: true })\nExpected: disabled\nReceived: enabled\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeDisabled\" getByRole('button', { name: 'Apply properties', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Apply properties', exact: true })\u001b[22m\n\u001b[2m    13 × locator resolved to <button tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"primary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"enabled\"\u001b[22m\n\n\n  26 | test('native composition drafts do not dispatch document actions and a late veto cancels Apply',async({page})=>{\n  27 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-composition-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});const edits:string[]=[];\n> 28 |  try{page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')edits.push(JSON.parse(r.postData()!).command.body.type);});await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').click();const name=page.getByRole('textbox',{name:'Layer name',exact:true});await name.focus();await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,composed:true})));await name.fill('日本語 draft');await expect(page.getByRole('button',{name:'Apply properties',exact:true})).toBeDisabled();await name.press('Meta+z');expect(edits).not.toContain('Undo');await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,composed:true})));await name.fill('fresh Unicode 🌿');\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ^\n  29 |  await page.locator('en-button').filter({hasText:'Apply properties'}).evaluate(host=>host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Apply properties');await page.waitForTimeout(100);expect(edits).not.toContain('SetLayerProperties');await expect(name).toHaveValue('fresh Unicode 🌿');\n  30 |  }finally{await server.close();}\n  31 | });\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:28:921"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:41:00.310Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/44/browser/failures-native-compositio-6b436-d-a-late-veto-cancels-Apply/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/44/browser/failures-native-compositio-6b436-d-a-late-veto-cancels-Apply/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts",
+                    "column": 921,
+                    "line": 28
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ca86dc4f195df8674d02-e565bb47b213f5d35d56",
+          "file": "failures.spec.ts",
+          "line": 26,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:41:00.108Z",
+    "duration": 8170.145,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

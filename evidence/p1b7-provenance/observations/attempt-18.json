@@ -1,0 +1,337 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts",
+      "interactions.spec.ts",
+      "journey.spec.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/18/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/18/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "interactions.spec.ts",
+      "file": "interactions.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "public adapters, native editing, splitter full target, keyboard and logical direction",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2925,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:17:59.565Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-d6f0616291a6e7a8e783",
+          "file": "interactions.spec.ts",
+          "line": 10,
+          "column": 1
+        },
+        {
+          "title": "canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5651,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('dialog', { name: 'Review image conversion' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('dialog', { name: 'Review image conversion' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Review image conversion' })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('dialog', { name: 'Review image conversion' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('dialog', { name: 'Review image conversion' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Review image conversion' })\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:29:74",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                      "column": 74,
+                      "line": 29
+                    },
+                    "snippet": "  27 |  try{\n  28 |  const bytes=[...await readFile('tests/raster/fixtures/hidden-alpha.png')];await page.locator('#canvas').evaluate((host,bytes)=>{const transfer=new DataTransfer();transfer.items.add(new File([new Uint8Array(bytes)],'pasted.png',{type:'image/png'}));host.dispatchEvent(new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true}));},bytes);\n> 29 |  await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Cancel review');await expect(page.getByText('No document open',{exact:true})).toBeVisible();expect(commands).not.toContain('ApproveRaster');await imported(page);\n     |                                                                          ^\n  30 |  await click(page,'Resample image…');await page.getByRole('spinbutton',{name:'Intrinsic width (px)',exact:true}).fill('6');await page.getByRole('spinbutton',{name:'Intrinsic height (px)',exact:true}).fill('4');await click(page,'Prepare preview');await expect(page.getByRole('dialog',{name:'Review prepared image edit'})).toBeVisible();const count=commands.filter(x=>x==='ResampleImage').length;await click(page,'Apply reviewed result');await expect(page.getByText('ResampleImage accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(x=>x==='ResampleImage').length).toBe(count+1);\n  31 |  await click(page,'Flatten copy…');await click(page,'Prepare preview');await click(page,'Apply reviewed result');await expect(page.getByText('CreateFlattenedCopy accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem')).toHaveCount(2);\n  32 |  }finally{await server.close();}"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                        "column": 74,
+                        "line": 29
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('dialog', { name: 'Review image conversion' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('dialog', { name: 'Review image conversion' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Review image conversion' })\u001b[22m\n\n\n  27 |  try{\n  28 |  const bytes=[...await readFile('tests/raster/fixtures/hidden-alpha.png')];await page.locator('#canvas').evaluate((host,bytes)=>{const transfer=new DataTransfer();transfer.items.add(new File([new Uint8Array(bytes)],'pasted.png',{type:'image/png'}));host.dispatchEvent(new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true}));},bytes);\n> 29 |  await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Cancel review');await expect(page.getByText('No document open',{exact:true})).toBeVisible();expect(commands).not.toContain('ApproveRaster');await imported(page);\n     |                                                                          ^\n  30 |  await click(page,'Resample image…');await page.getByRole('spinbutton',{name:'Intrinsic width (px)',exact:true}).fill('6');await page.getByRole('spinbutton',{name:'Intrinsic height (px)',exact:true}).fill('4');await click(page,'Prepare preview');await expect(page.getByRole('dialog',{name:'Review prepared image edit'})).toBeVisible();const count=commands.filter(x=>x==='ResampleImage').length;await click(page,'Apply reviewed result');await expect(page.getByText('ResampleImage accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(x=>x==='ResampleImage').length).toBe(count+1);\n  31 |  await click(page,'Flatten copy…');await click(page,'Prepare preview');await click(page,'Apply reviewed result');await expect(page.getByText('CreateFlattenedCopy accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem')).toHaveCount(2);\n  32 |  }finally{await server.close();}\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:29:74"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:18:03.001Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/18/browser/interactions-canvas-paste--51b52--with-one-command-per-Apply/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/18/browser/interactions-canvas-paste--51b52--with-one-command-per-Apply/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                    "column": 74,
+                    "line": 29
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-426658088010404f6540",
+          "file": "interactions.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "multi-tab convergence preserves a stale inspector draft and recovers accepted transactions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3059,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:18:08.936Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-2fcee3bb835ae1526e31",
+          "file": "interactions.spec.ts",
+          "line": 35,
+          "column": 1
+        },
+        {
+          "title": "320px and 200-percent-equivalent reflow keep controls and native focus reachable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1103,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:18:12.294Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-7ea3076bdab1bea7bb94",
+          "file": "interactions.spec.ts",
+          "line": 41,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "journey.spec.ts",
+      "file": "journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 real reviewed import, edit and undo",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6535,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:24:94",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts",
+                      "column": 94,
+                      "line": 24
+                    },
+                    "snippet": "  22 |  await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');\n  23 |  await page.getByRole('button',{name:'Apply properties',exact:true}).click();\n> 24 |  await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();\n     |                                                                                              ^\n  25 |  await page.getByRole('button',{name:'Undo',exact:true}).click();\n  26 |  await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();\n  27 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts",
+                        "column": 94,
+                        "line": 24
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n\n\n  22 |  await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');\n  23 |  await page.getByRole('button',{name:'Apply properties',exact:true}).click();\n> 24 |  await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();\n     |                                                                                              ^\n  25 |  await page.getByRole('button',{name:'Undo',exact:true}).click();\n  26 |  await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();\n  27 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts:24:94"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:18:13.412Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/18/browser/journey-E1-real-reviewed-import-edit-and-undo/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/18/browser/journey-E1-real-reviewed-import-edit-and-undo/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/journey.spec.ts",
+                    "column": 94,
+                    "line": 24
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "bf222bad70f76648f722-799b9fe224efe08de0b3",
+          "file": "journey.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:17:59.372Z",
+    "duration": 20713.146,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

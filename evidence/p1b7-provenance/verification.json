@@ -1,0 +1,21 @@
+{
+  "at": "2026-09-26T13:18:04.800642+00:00",
+  "scope": "Evidence packaging checks only; no app build/test/timing rerun",
+  "sharedCheckoutCommand": "python3 evidence/p1b7-provenance/verify.py",
+  "sharedCheckoutResult": "PASS368 preserved seals,54 initial addendum seals,14code,48 exact observations,76 attachments",
+  "containedCopy": "git archive e1fa068 plus the new addendum only; tests/editor/artifacts and dist absent",
+  "containedCopyCommand": "python3 evidence/p1b7-provenance/verify.py",
+  "containedCopyResult": {
+    "status": "PASS",
+    "preservedSeals": 368,
+    "addendumSeals": 54,
+    "codeInputs": 14,
+    "byteIdenticalObservations": 48,
+    "attachmentMappings": 76,
+    "gitBytesChecked": false,
+    "requiresIgnoredOriginals": false,
+    "appTestsBuildsTimingRun": false
+  },
+  "qualification": "Pre-commit packaging verification. Adding this receipt changes only the addendum seal count; post-commit Git and fresh HEAD archive checks are reported in task/PR Context.",
+  "temporaryCopy": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-provenance-clean-9_e__i8b"
+}

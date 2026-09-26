@@ -1,0 +1,156 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/timing.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/timing.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/63/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "full-action.timing.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/63/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "full-action.timing.ts",
+      "file": "full-action.timing.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "serial integrated parent actions through renderer Paint, with full preparation and commit work",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 23074,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/full-action.timing.ts:37:588",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/full-action.timing.ts",
+                      "column": 588,
+                      "line": 37
+                    },
+                    "snippet": "  35 |  await step('exact-export-ready',()=>click('Export image'),()=>expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG'));\n  36 |  const png=join(dir,'measured.png');await step('exact-export-download',async()=>{const downloaded=page.waitForEvent('download');await click('Download prepared file');await(await downloaded).saveAs(png);},()=>expect(page.getByText('Download initiated. External destination remains unconfirmed.',{exact:true})).toBeVisible());\n> 37 |  const old=await page.locator('canvas').getAttribute('data-asset');await mark('start.warm-reopen');await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('canvas')).toHaveAttribute('data-asset',old!);await mark('warm.ready');await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.9');await click('Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await mark('warm.test-edit');\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^\n  38 |  await page.screenshot({path:join(output,'timing-final.png')});expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);\n  39 |  }finally{\n  40 |  clearInterval(sample);const complete=new Promise<void>(r=>cdp.once('Tracing.tracingComplete',()=>r()));await cdp.send('Tracing.end');await complete;"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/full-action.timing.ts",
+                        "column": 588,
+                        "line": 37
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n\n\n  35 |  await step('exact-export-ready',()=>click('Export image'),()=>expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG'));\n  36 |  const png=join(dir,'measured.png');await step('exact-export-download',async()=>{const downloaded=page.waitForEvent('download');await click('Download prepared file');await(await downloaded).saveAs(png);},()=>expect(page.getByText('Download initiated. External destination remains unconfirmed.',{exact:true})).toBeVisible());\n> 37 |  const old=await page.locator('canvas').getAttribute('data-asset');await mark('start.warm-reopen');await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('canvas')).toHaveAttribute('data-asset',old!);await mark('warm.ready');await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.9');await click('Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await mark('warm.test-edit');\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^\n  38 |  await page.screenshot({path:join(output,'timing-final.png')});expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);\n  39 |  }finally{\n  40 |  clearInterval(sample);const complete=new Promise<void>(r=>cdp.once('Tracing.tracingComplete',()=>r()));await cdp.send('Tracing.end');await complete;\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/full-action.timing.ts:37:588"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:53:04.757Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/63/browser/full-action.timing.ts-seri-c3d3d-preparation-and-commit-work/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/63/browser/full-action.timing.ts-seri-c3d3d-preparation-and-commit-work/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/full-action.timing.ts",
+                    "column": 588,
+                    "line": 37
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "bec282f935dfaa6034eb-a860f686babc30c30d1c",
+          "file": "full-action.timing.ts",
+          "line": 6,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:53:04.496Z",
+    "duration": 24015.841999999997,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

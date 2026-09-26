@@ -1,0 +1,165 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts",
+      "--grep",
+      "writable close"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/49/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/49/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "interactions.spec.ts",
+      "file": "interactions.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7514,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Saved to destination: browser write completed.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Saved to destination: browser write completed.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Saved to destination: browser write completed.', { exact: true })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Saved to destination: browser write completed.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Saved to destination: browser write completed.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Saved to destination: browser write completed.', { exact: true })\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:71:654",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                      "column": 654,
+                      "line": 71
+                    },
+                    "snippet": "  69 |  // Public destination adapter with a real browser-owned writable file. This\n  70 |  // tests close acknowledgment, not a native OS picker or external filesystem.\n> 71 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:async()=>{const root=await navigator.storage.getDirectory();return root.getFileHandle('destination-test.png',{create:true});}}));await click(page,'100%');await click(page,'Choose destination and save');await page.waitForTimeout(200);console.log('destination diagnostic',await page.evaluate(()=>JSON.stringify({writable:typeof FileSystemFileHandle.prototype.createWritable,issues:[...document.querySelectorAll('en-validation-summary')].map((h:any)=>h.items)})));await expect(page.getByText('Saved to destination: browser write completed.',{exact:true})).toBeVisible();const png=await page.evaluate(async()=>[...new Uint8Array(await(await(await navigator.storage.getDirectory()).getFileHandle('destination-test.png')).getFile().then(f=>f.arrayBuffer()))]);expect(Buffer.from(png).subarray(0,8)).toEqual(Buffer.from([137,80,78,71,13,10,26,10]));\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ^\n  72 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:()=>Promise.reject(new DOMException('User canceled destination','AbortError'))}));await click(page,'Choose destination and save');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Destination write failed; local bytes retained');\n  73 |  }finally{await server.close();}\n  74 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                        "column": 654,
+                        "line": 71
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Saved to destination: browser write completed.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Saved to destination: browser write completed.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Saved to destination: browser write completed.', { exact: true })\u001b[22m\n\n\n  69 |  // Public destination adapter with a real browser-owned writable file. This\n  70 |  // tests close acknowledgment, not a native OS picker or external filesystem.\n> 71 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:async()=>{const root=await navigator.storage.getDirectory();return root.getFileHandle('destination-test.png',{create:true});}}));await click(page,'100%');await click(page,'Choose destination and save');await page.waitForTimeout(200);console.log('destination diagnostic',await page.evaluate(()=>JSON.stringify({writable:typeof FileSystemFileHandle.prototype.createWritable,issues:[...document.querySelectorAll('en-validation-summary')].map((h:any)=>h.items)})));await expect(page.getByText('Saved to destination: browser write completed.',{exact:true})).toBeVisible();const png=await page.evaluate(async()=>[...new Uint8Array(await(await(await navigator.storage.getDirectory()).getFileHandle('destination-test.png')).getFile().then(f=>f.arrayBuffer()))]);expect(Buffer.from(png).subarray(0,8)).toEqual(Buffer.from([137,80,78,71,13,10,26,10]));\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ^\n  72 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:()=>Promise.reject(new DOMException('User canceled destination','AbortError'))}));await click(page,'Choose destination and save');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Destination write failed; local bytes retained');\n  73 |  }finally{await server.close();}\n  74 | });\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:71:654"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "standalone OPFS probe {\n  ok: \u001b[33mfalse\u001b[39m,\n  stage: \u001b[32m'directory'\u001b[39m,\n  name: \u001b[32m'UnknownError'\u001b[39m,\n  message: \u001b[32m'The operation failed for an unknown transient reason (e.g. out of memory).'\u001b[39m\n}\n"
+                    },
+                    {
+                      "text": "destination diagnostic {\"writable\":\"function\",\"issues\":[[{\"target\":\"inspector\",\"message\":\"The operation failed for an unknown transient reason (e.g. out of memory).\"}]]}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:43:47.987Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/49/browser/interactions-browser-writa-2b647-led-and-local-file-retained/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/49/browser/interactions-browser-writa-2b647-led-and-local-file-retained/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                    "column": 654,
+                    "line": 71
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-b0eda0e750811fd04400",
+          "file": "interactions.spec.ts",
+          "line": 66,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:43:47.772Z",
+    "duration": 7900.517,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

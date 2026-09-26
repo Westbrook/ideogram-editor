@@ -1,0 +1,342 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/11/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/p1b7/attempts/11/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "interactions.spec.ts",
+      "file": "interactions.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "public adapters, native editing, splitter full target, keyboard and logical direction",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 10638,
+                  "error": {
+                    "message": "TimeoutError: locator.focus: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#left-divider').getByRole('separator')\u001b[22m\n",
+                    "stack": "TimeoutError: locator.focus: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#left-divider').getByRole('separator')\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:15:56",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                      "column": 56,
+                      "line": 15
+                    },
+                    "snippet": "  13 |  let box=await left.boundingBox(),before=await geometry();expect(before.track).toBe('1px');expect(before.grip).toBe(1);expect(before.host).toBeGreaterThanOrEqual(24);expect(before.z).toBe('1');expect(parseFloat(before.margin)).toBe(-(before.host-1)/2);\n  14 |  await page.mouse.move(box!.x+2,box!.y+70);await page.mouse.down();await page.mouse.move(box!.x+42,box!.y+70);await page.mouse.up();expect((await geometry()).value).toBeGreaterThan(before.value);\n> 15 |  const handle=left.getByRole('separator');await handle.focus();before=await geometry();await page.keyboard.press('ArrowRight');expect((await geometry()).value).toBeGreaterThan(before.value);\n     |                                                        ^\n  16 |  await page.evaluate(()=>document.documentElement.dir='rtl');before=await geometry();await page.keyboard.press('ArrowLeft');expect((await geometry()).value).toBeGreaterThan(before.value);await page.evaluate(()=>document.documentElement.dir='ltr');\n  17 |  const operation=page.getByRole('combobox',{name:'Operation',exact:true});\n  18 |  await page.locator('en-select').first().evaluate(host=>host.addEventListener('en-change',e=>e.preventDefault(),{once:true}));await operation.selectOption({label:'Generate with Fast'});await expect(operation).toHaveValue('Generate image');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                        "column": 56,
+                        "line": 15
+                      },
+                      "message": "TimeoutError: locator.focus: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#left-divider').getByRole('separator')\u001b[22m\n\n\n  13 |  let box=await left.boundingBox(),before=await geometry();expect(before.track).toBe('1px');expect(before.grip).toBe(1);expect(before.host).toBeGreaterThanOrEqual(24);expect(before.z).toBe('1');expect(parseFloat(before.margin)).toBe(-(before.host-1)/2);\n  14 |  await page.mouse.move(box!.x+2,box!.y+70);await page.mouse.down();await page.mouse.move(box!.x+42,box!.y+70);await page.mouse.up();expect((await geometry()).value).toBeGreaterThan(before.value);\n> 15 |  const handle=left.getByRole('separator');await handle.focus();before=await geometry();await page.keyboard.press('ArrowRight');expect((await geometry()).value).toBeGreaterThan(before.value);\n     |                                                        ^\n  16 |  await page.evaluate(()=>document.documentElement.dir='rtl');before=await geometry();await page.keyboard.press('ArrowLeft');expect((await geometry()).value).toBeGreaterThan(before.value);await page.evaluate(()=>document.documentElement.dir='ltr');\n  17 |  const operation=page.getByRole('combobox',{name:'Operation',exact:true});\n  18 |  await page.locator('en-select').first().evaluate(host=>host.addEventListener('en-change',e=>e.preventDefault(),{once:true}));await operation.selectOption({label:'Generate with Fast'});await expect(operation).toHaveValue('Generate image');\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:15:56"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:12:21.623Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/11/browser/interactions-public-adapte-aaca4-board-and-logical-direction/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b7/attempts/11/browser/interactions-public-adapte-aaca4-board-and-logical-direction/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts",
+                    "column": 56,
+                    "line": 15
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-d6f0616291a6e7a8e783",
+          "file": "interactions.spec.ts",
+          "line": 10,
+          "column": 1
+        },
+        {
+          "title": "canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4450,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:12:32.497Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-426658088010404f6540",
+          "file": "interactions.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "multi-tab convergence preserves a stale inspector draft and recovers accepted transactions",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2731,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:12:37.019Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-2fcee3bb835ae1526e31",
+          "file": "interactions.spec.ts",
+          "line": 35,
+          "column": 1
+        },
+        {
+          "title": "320px and 200-percent-equivalent reflow keep controls and native focus reachable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 945,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:12:39.755Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e3a1181bd00640addebc-7ea3076bdab1bea7bb94",
+          "file": "interactions.spec.ts",
+          "line": 41,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "journey.spec.ts",
+      "file": "journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 real reviewed import, edit and undo",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2630,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:12:40.718Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "bf222bad70f76648f722-799b9fe224efe08de0b3",
+          "file": "journey.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "portable.spec.ts",
+      "file": "portable.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7833,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T12:12:43.367Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c79a3b05e7f67b52c1b1-218d14430d8fbae0d45e",
+          "file": "portable.spec.ts",
+          "line": 14,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T12:12:21.438Z",
+    "duration": 29791.183,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

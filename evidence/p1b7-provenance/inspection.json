@@ -1,0 +1,178 @@
+{
+  "at": "2026-09-26T13:16:58.695360+00:00",
+  "originalObservationCount": 48,
+  "originalObservationBytes": 627679,
+  "decodedStringsInspected": 3915,
+  "patterns": {
+    "session-cookie": "ie_session=[A-Za-z0-9_-]{8,}",
+    "pairing-fragment": "#(?:pair|pairing)=[A-Za-z0-9_-]{8,}",
+    "bearer-credential": "Bearer\\s+[A-Za-z0-9._-]{12,}",
+    "private-key": "BEGIN .*PRIVATE KEY",
+    "provider-key": "sk-[A-Za-z0-9]{12,}",
+    "sensitive-assignment": "(?:csrfToken|csrf|x-ie-csrf|pairingToken|secret|password|authorization|cookie)\\s*[\"\\x27]?\\s*[:=]\\s*[\"\\x27]?[A-Za-z0-9_+/=-]{16,}"
+  },
+  "matches": {
+    "session-cookie": 0,
+    "pairing-fragment": 0,
+    "bearer-credential": 0,
+    "private-key": 0,
+    "provider-key": 0,
+    "sensitive-assignment": 0
+  },
+  "keywordStringCount": 25,
+  "keywordStringAudit": [
+    {
+      "attempt": "03",
+      "field": "/suites/0/specs/0/tests/0/results/0/error/snippet",
+      "stringSHA256": "bdc1220f881e574ad2847018260a25f1c25dc00630a459bfa07c19a8e0c7835c",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "03",
+      "field": "/suites/0/specs/0/tests/0/results/0/errors/0/message",
+      "stringSHA256": "ba461c9c545ea30c559eeff095fcc76ff81512dd0d0b42739cf746d69d182f3d",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "03",
+      "field": "/suites/0/specs/0/tests/0/results/0/errors/1/message",
+      "stringSHA256": "e9366cb90db2295ae8b8d539d2440da7fcb41f4e5d96b6b7d235ced146f82c0c",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "12",
+      "field": "/suites/0/specs/0/tests/0/results/0/error/snippet",
+      "stringSHA256": "4ac43fdcdacdac575d8397778d0c187784e10e43d0a89c0d5ca3301f7026b491",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "12",
+      "field": "/suites/0/specs/0/tests/0/results/0/errors/0/message",
+      "stringSHA256": "5dbf83aaa44d4640d8a9138e85b81e98975fabf1231c5ab7a60fe615bc6909fd",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "12",
+      "field": "/suites/0/specs/1/tests/0/results/0/error/snippet",
+      "stringSHA256": "d0be5ad58cd894e521809d289a24830d15d59bb11d579048fbbd1cbc66c2e2ee",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "12",
+      "field": "/suites/0/specs/1/tests/0/results/0/errors/0/message",
+      "stringSHA256": "6ab8c852b24b7f31069c04b92865212b01d105299a2a32477c27e23ebf18ade0",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "13",
+      "field": "/suites/0/specs/0/tests/0/results/0/error/snippet",
+      "stringSHA256": "4ac43fdcdacdac575d8397778d0c187784e10e43d0a89c0d5ca3301f7026b491",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "13",
+      "field": "/suites/0/specs/0/tests/0/results/0/errors/0/message",
+      "stringSHA256": "5dbf83aaa44d4640d8a9138e85b81e98975fabf1231c5ab7a60fe615bc6909fd",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "13",
+      "field": "/suites/0/specs/1/tests/0/results/0/error/snippet",
+      "stringSHA256": "25c1bf77318e791be9bbf0a9e175f2f2fdd86b29b032b5c4211eedabf09d72a5",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "13",
+      "field": "/suites/0/specs/1/tests/0/results/0/errors/0/message",
+      "stringSHA256": "4b30e84c6d7fb6d2981221d926bf57ca947225e9c4b3c0839b1f0267381e4605",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "14",
+      "field": "/suites/0/specs/1/tests/0/results/0/error/snippet",
+      "stringSHA256": "38c0e7f7111b453ae6fbed32a0a63747d6a8fbaf427f8fe4fdba873e456bbce3",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "14",
+      "field": "/suites/0/specs/1/tests/0/results/0/errors/0/message",
+      "stringSHA256": "da2b13a0293a4079c74c3ea15d95587d170b201fae25b34b8a141ea0990ead60",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "15",
+      "field": "/suites/0/specs/1/tests/0/results/0/error/snippet",
+      "stringSHA256": "ef1673f178a61106e5933be1506af005fbe8de8a154ded8c40153a5c35db8074",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "15",
+      "field": "/suites/0/specs/1/tests/0/results/0/errors/0/message",
+      "stringSHA256": "875bfac5a52e5b6e433ab707a9c6292835f60ccfef49940d05a57dd045823c70",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "16",
+      "field": "/suites/0/specs/0/tests/0/results/0/error/snippet",
+      "stringSHA256": "2d231dafa19bec29d028acf16bc823a24e7763564012ec84cc463ca6189422b0",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "16",
+      "field": "/suites/0/specs/0/tests/0/results/0/errors/0/message",
+      "stringSHA256": "53b70f3f686bfbfbf0581ddbb33325a31442c52ff0c83cf5c7e84b976d66b99e",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "36",
+      "field": "/suites/0/specs/2/tests/0/results/0/error/snippet",
+      "stringSHA256": "77998473a78e86a723cb42db2971c9b330e8375d5372bf6b0f4dbbd3d90ee667",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "36",
+      "field": "/suites/0/specs/2/tests/0/results/0/errors/0/message",
+      "stringSHA256": "e3fd872e61107163e843beef2063c8621c42ad6acf3fab9b2e543bdad7bf2fae",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "42",
+      "field": "/suites/0/specs/2/tests/0/results/0/error/snippet",
+      "stringSHA256": "ad4446065c77753eb8a021b173850f397d51b8d86d69182d7dc096555cc6258f",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "42",
+      "field": "/suites/0/specs/2/tests/0/results/0/errors/0/message",
+      "stringSHA256": "3efdffb77792cbfb7cdfc44954e28105324d7e30e1565c2254029722df5f8e99",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "44",
+      "field": "/suites/0/specs/0/tests/0/results/0/error/snippet",
+      "stringSHA256": "4241214a22fd28d8fd184d9202eeb6cbbf2d683d4917a6c8a427747660912220",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "44",
+      "field": "/suites/0/specs/0/tests/0/results/0/errors/0/message",
+      "stringSHA256": "3ec613e115f10ec6b23e6db083586c40b06fc72469e6ba4c1ac7ce9614d16f4d",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "45",
+      "field": "/suites/0/specs/0/tests/0/results/0/error/snippet",
+      "stringSHA256": "c6e597cfa1bf2d3e3c855c55ee77e347796571cf9c1f1d161b678e35fd04c23e",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    },
+    {
+      "attempt": "45",
+      "field": "/suites/0/specs/0/tests/0/results/0/errors/0/message",
+      "stringSHA256": "df37d8f373d7be243de6f2476bf516008aedb3df39468d6b06edb0acd2ea9ded",
+      "disposition": "Inspected code snippet/reference to issuePairingURL or surrounding test code; no credential value found."
+    }
+  ],
+  "structuredInspection": "Reporter keys are configuration, test suites/results, diagnostics and attachment path metadata. No storage-state, request/header/environment or embedded attachment-body objects. Source snippets retain function references but no returned pairing/CSRF/cookie values.",
+  "redactedObservationCopies": 0,
+  "limitation": "Author structured/manual and pattern audit, not universal proof of absence of secrets. Previously sanitized trace ZIPs remain separately labelled; no raw private traces copied."
+}

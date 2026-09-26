@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "classification": "Verification code inputs only; successor classification of14 entries from preserved e1fa068 test-source.json",
+  "preservedMixedManifest": "evidence/p1b7/test-source.json",
+  "files": {
+    "tests/editor/analyze-timing.py": "a9efa15e64bd660d1f4280d1d5cb299ad4cfa8ff6fd9806d0ec29e98a3ac899a",
+    "tests/editor/document-projection.test.mjs": "98f922d53621c83df9990ff445d043e64ccff2c4d063f4875db49fe7d6d12e5f",
+    "tests/editor/failures.spec.ts": "cd3f0547df3ee3d3bc12e3c27aef1c68dc68f0256f69dcc21209463a1c1524b6",
+    "tests/editor/full-action.timing.ts": "ae37e7b2f7c321f5279f3b3ba1f4c2a927e20fe53caba3f0257a40eb29b229c3",
+    "tests/editor/interactions.spec.ts": "81bdb06053f572ae4617f3fa51aa8b92c6f1e3a3828c7d77778fb3b8a0b13a6e",
+    "tests/editor/journey.spec.ts": "0fd312314eac66da1247f518748782d38ff5d0eb170b2b8d4188a4af57f025d0",
+    "tests/editor/playwright.config.ts": "49b6b479c18239ec586b6ce3355bfc3317cc76b73a932b6c5d0e8aa7cd051e79",
+    "tests/editor/portable.spec.ts": "33ce4249d21927525111b89a0bccb12ae2188cb4a8f798af94bb42080b40718d",
+    "tests/editor/process-fixture.mjs": "5643f4f46fa937acb1423ea1051a2bf60d47257b3c40951ba60f532e74f31ed9",
+    "tests/editor/process.ts": "e2f00ed3c573880f8d662667b4bc65a6ff902e18d769a55c4a1a966c45e5aee5",
+    "tests/editor/read-adapters.test.mjs": "c76b53d5ba166de08a9edfcd28e24b9b09a8dd6429894f544263d238388fd3f7",
+    "tests/editor/recovery.spec.ts": "fe2ccc531eaba9acc042a817bb3c50a7c1516a68271f00084b564ef497cb8452",
+    "tests/editor/review-runtime.mjs": "53d037e8c73ab21e4d659f107700694cd02f45a7d62543d689c8465463a8ba82",
+    "tests/editor/timing.config.ts": "e2e15db25988be9a54bc323e2f4bf1957d95b293394b64402c70e7a39d0cf700"
+  }
+}
