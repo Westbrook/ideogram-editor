@@ -1,16 +1,16 @@
 {
-  "assembly": "SPEC-A1",
+  "assembly": "SPEC-A2",
   "method": "Exact saved-note readback; deterministic link normalization must equal full repository document byte for byte.",
   "receipts": [
     {
       "noteId": "df180a35-40dd-43d7-b9c6-1f1dd0306088",
       "path": "index.md",
       "noteUrl": "intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088",
-      "sentRawSha256": "056f96e92b4d6d840dc610dd3e69827a117883faf7dca3e85e7d09a67dccdc5d",
-      "readbackRawSha256": "056f96e92b4d6d840dc610dd3e69827a117883faf7dca3e85e7d09a67dccdc5d",
-      "noteBytes": 65511,
+      "sentRawSha256": "b2e355b349f9b30a101edca00a6f5988e91077185e2fa07bee318a7361e6e461",
+      "readbackRawSha256": "b2e355b349f9b30a101edca00a6f5988e91077185e2fa07bee318a7361e6e461",
+      "noteBytes": 66346,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.753Z"
+      "readbackAt": "2026-09-26T00:52:47.573Z"
     },
     {
       "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
@@ -20,7 +20,7 @@
       "readbackRawSha256": "0d28d2ae70c565b807d8dca93b295de71ccac7bd53aa8ad99167017464d07d94",
       "noteBytes": 168715,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.834Z"
+      "readbackAt": "2026-09-26T00:52:47.699Z"
     },
     {
       "noteId": "bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
@@ -30,7 +30,7 @@
       "readbackRawSha256": "664cc45be8d2b2030195f443241d786fe5da79e5daa5140513ccfb811639c365",
       "noteBytes": 50650,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.899Z"
+      "readbackAt": "2026-09-26T00:52:47.811Z"
     },
     {
       "noteId": "3febb57d-ea57-42de-a098-b12fb4e010e4",
@@ -40,7 +40,7 @@
       "readbackRawSha256": "e54ad752b3f2e1d7c69d067c6271821db690e2b2eaa791fdfe1977aeb084fda9",
       "noteBytes": 170332,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.975Z"
+      "readbackAt": "2026-09-26T00:52:47.933Z"
     },
     {
       "noteId": "c0689bcd-8dca-4ce6-bccb-e538e0a45477",
@@ -50,7 +50,7 @@
       "readbackRawSha256": "38e7e98b781bad35cd34f87af891cead78a095856dfe4a48ceab14cd07f56ae6",
       "noteBytes": 188912,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:26.053Z"
+      "readbackAt": "2026-09-26T00:52:48.059Z"
     },
     {
       "noteId": "d7819c6b-68ff-4d89-835d-9acabe779cae",
@@ -60,17 +60,17 @@
       "readbackRawSha256": "d6061817ab188f4b41ca31325d34dcf4a307a557ce8ab94bacfe95297936b670",
       "noteBytes": 101772,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:26.122Z"
+      "readbackAt": "2026-09-26T00:52:48.170Z"
     },
     {
       "noteId": "1b7b659d-d577-4257-b677-4850bbf86143",
       "path": "performance.md",
       "noteUrl": "intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143",
-      "sentRawSha256": "c0612e46d61793939d2685c82a733e9ac62c448183f7fe4384243b21946815ed",
-      "readbackRawSha256": "c0612e46d61793939d2685c82a733e9ac62c448183f7fe4384243b21946815ed",
-      "noteBytes": 178655,
+      "sentRawSha256": "8dd1e9af57b847e00658fbb1efcdc70c69256e8a0e89cd0f78d23ed3f79af235",
+      "readbackRawSha256": "8dd1e9af57b847e00658fbb1efcdc70c69256e8a0e89cd0f78d23ed3f79af235",
+      "noteBytes": 179131,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:26.198Z"
+      "readbackAt": "2026-09-26T00:52:48.302Z"
     }
   ]
 }

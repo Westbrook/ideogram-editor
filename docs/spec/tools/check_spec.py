@@ -113,8 +113,14 @@ if mp.exists():
  tables=lambda s:[m[0] for m in re.finditer(r'(?:^\|[^\n]*\n)+',s,re.M)]
  normalize=lambda t:re.sub(r'PERF-[4-7]|ARCH-1\.3|UX-2\.1',lambda m:'PERF-8' if m[0].startswith('PERF') else ('ARCH-1.4' if m[0].startswith('ARCH') else 'UX-2.2'),t)
  source_main=original.split('## 10. Draft audit and handoff')[0]
- need([normalize(x) for x in tables(source_main)]==tables(current['performance']), 'PERF main tables/campaign inventory changed')
- checks['unchanged_performance_tables']=len(tables(source_main))
+ # FA-01 allows exactly one declared WT wording correction; every other table byte remains pinned.
+ fa01_old='≤201 MiB ZIP including captions/manifest.'
+ fa01_new='≤201 MiB provider ZIP containing only validated image/caption pairs; the app manifest is prepared and persisted separately as a durable sidecar. Manifest preparation/storage remains included in the existing workload and timing/resource accounting.'
+ need(source_main.count(fa01_old)==1 and current['performance'].count(fa01_new)==1,'FA-01 exact WT wording occurrence')
+ need(re.findall(r'\d+(?:\.\d+)?',fa01_old)==re.findall(r'\d+(?:\.\d+)?',fa01_new),'FA-01 WT numerical preservation')
+ permitted=[normalize(x).replace(fa01_old,fa01_new) for x in tables(source_main)]
+ need(permitted==tables(current['performance']), 'PERF main tables/campaign inventory changed outside FA-01 wording')
+ checks['performance_tables_preserved_with_exact_FA01_wording']=len(permitted)
  api_original=read(ROOT/'history'/'2728dafd-4209-4558-a762-3a0192e0610f.md')
  extract=lambda s:s[s.index('## Appendix A'):s.index('## Appendix C')]
  noanchors=lambda s:re.sub(r'<a id="[^"]+"></a>\n\n','',s)

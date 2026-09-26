@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "assembly": "SPEC-A1",
+  "assembly": "SPEC-A2",
   "capturedAt": "2026-09-26T00:25:06.604307+00:00",
   "captureTimeNote": "Times are local snapshot-write timestamps immediately following the note reads; immutable revision identity is the raw-content SHA-256.",
   "branch": "upon-build",
   "baseSha": "7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a",
-  "headAtAssembly": "7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a",
+  "headAtAssembly": "46c10ee7f660cfe9e9f7994a2013dfe7c180002d",
   "commitIdentityRule": "Final commit hash is recorded in task/PR Context handoff; this file cannot contain its own future commit hash.",
   "status": "author-complete; independent-final-review-required",
   "inputs": [
@@ -294,6 +294,26 @@
       "taskStatusAtCapture": null,
       "role": "requirements-decisions-or-handoff-history",
       "snapshotWrittenAt": "2026-09-26T00:25:06.604307+00:00"
+    },
+    {
+      "noteId": "475e1f5c-0697-46e9-b205-decbb4297f00",
+      "title": "Task 7 — FA-01 coordinator authorization",
+      "namedVersion": "FA-01",
+      "role": "correction-authorization",
+      "snapshotPath": "corrections/475e1f5c-0697-46e9-b205-decbb4297f00-FA01.md",
+      "sha256": "559de2ac113576ddf759064b646e9dfc4515fd766b282ed04d5d03f71e5db8d6",
+      "bytes": 27461,
+      "capturedAt": "2026-09-26T00:52:01.143Z"
+    },
+    {
+      "noteId": "769bd9b2-f482-41fa-abc8-0bee99d453ef",
+      "title": "SPEC-A1 independent final review — FA-01",
+      "namedVersion": "FA-01",
+      "role": "correction-review-evidence",
+      "snapshotPath": "corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md",
+      "sha256": "d625bdb69d1e659a26b7db22ad2b7e06fcd5f9fcfb6eca1d1bcd63930b500194",
+      "bytes": 31124,
+      "capturedAt": "2026-09-26T00:52:01.194Z"
     }
   ],
   "inputApprovals": [
@@ -321,6 +341,11 @@
       "version": "TEST-1",
       "approvalNoteId": "0843a4b2-b4f5-449b-b109-2f851e2cca7b",
       "clause": "independent V1 approval; original Task5 complete"
+    },
+    {
+      "version": "PERF-8+A2",
+      "approvalNoteId": "475e1f5c-0697-46e9-b205-decbb4297f00",
+      "clause": "Authorized FA-01 correction — training manifest boundary; bounded correction authorization only, not independent final approval."
     }
   ],
   "noteParity": [
@@ -328,12 +353,12 @@
       "noteId": "df180a35-40dd-43d7-b9c6-1f1dd0306088",
       "path": "index.md",
       "noteUrl": "intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088",
-      "sentRawSha256": "056f96e92b4d6d840dc610dd3e69827a117883faf7dca3e85e7d09a67dccdc5d",
-      "readbackRawSha256": "056f96e92b4d6d840dc610dd3e69827a117883faf7dca3e85e7d09a67dccdc5d",
-      "noteBytes": 65511,
+      "sentRawSha256": "b2e355b349f9b30a101edca00a6f5988e91077185e2fa07bee318a7361e6e461",
+      "readbackRawSha256": "b2e355b349f9b30a101edca00a6f5988e91077185e2fa07bee318a7361e6e461",
+      "noteBytes": 66346,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.753Z",
-      "normalizedReadbackSha256": "9b8bf7621dd64839f51ad4a2eba98dfbb40cdf1ef9f68f7cc3135df9e6cd5d4b"
+      "readbackAt": "2026-09-26T00:52:47.573Z",
+      "normalizedReadbackSha256": "c5eda7c7b0e1bd9f219a67eb29b929654730a5c6004e8fb0a1cd00a8c65dedcb"
     },
     {
       "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
@@ -343,7 +368,7 @@
       "readbackRawSha256": "0d28d2ae70c565b807d8dca93b295de71ccac7bd53aa8ad99167017464d07d94",
       "noteBytes": 168715,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.834Z",
+      "readbackAt": "2026-09-26T00:52:47.699Z",
       "normalizedReadbackSha256": "136039aff6744ade9a07b5e17841d90aac65271c85875fa59197c3ad72239cff"
     },
     {
@@ -354,7 +379,7 @@
       "readbackRawSha256": "664cc45be8d2b2030195f443241d786fe5da79e5daa5140513ccfb811639c365",
       "noteBytes": 50650,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.899Z",
+      "readbackAt": "2026-09-26T00:52:47.811Z",
       "normalizedReadbackSha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378"
     },
     {
@@ -365,7 +390,7 @@
       "readbackRawSha256": "e54ad752b3f2e1d7c69d067c6271821db690e2b2eaa791fdfe1977aeb084fda9",
       "noteBytes": 170332,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:25.975Z",
+      "readbackAt": "2026-09-26T00:52:47.933Z",
       "normalizedReadbackSha256": "73f8325806c604c460486f83b8c16e2e0ac430762a7dc2283bc18259210fe46f"
     },
     {
@@ -376,7 +401,7 @@
       "readbackRawSha256": "38e7e98b781bad35cd34f87af891cead78a095856dfe4a48ceab14cd07f56ae6",
       "noteBytes": 188912,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:26.053Z",
+      "readbackAt": "2026-09-26T00:52:48.059Z",
       "normalizedReadbackSha256": "e8b8f24b37169c591965ac3239045f58d5b4d1ef8fc1e50aaf99f9279aa92aab"
     },
     {
@@ -387,19 +412,19 @@
       "readbackRawSha256": "d6061817ab188f4b41ca31325d34dcf4a307a557ce8ab94bacfe95297936b670",
       "noteBytes": 101772,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:26.122Z",
+      "readbackAt": "2026-09-26T00:52:48.170Z",
       "normalizedReadbackSha256": "cdd5f49a41897c066c025b51070f246155f29723cd5b063250e0a5e44a458ebf"
     },
     {
       "noteId": "1b7b659d-d577-4257-b677-4850bbf86143",
       "path": "performance.md",
       "noteUrl": "intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143",
-      "sentRawSha256": "c0612e46d61793939d2685c82a733e9ac62c448183f7fe4384243b21946815ed",
-      "readbackRawSha256": "c0612e46d61793939d2685c82a733e9ac62c448183f7fe4384243b21946815ed",
-      "noteBytes": 178655,
+      "sentRawSha256": "8dd1e9af57b847e00658fbb1efcdc70c69256e8a0e89cd0f78d23ed3f79af235",
+      "readbackRawSha256": "8dd1e9af57b847e00658fbb1efcdc70c69256e8a0e89cd0f78d23ed3f79af235",
+      "noteBytes": 179131,
       "normalizedExactMatch": true,
-      "readbackAt": "2026-09-26T00:35:26.198Z",
-      "normalizedReadbackSha256": "470d5f9d764c00f540e466b571015518f70e192efd745fd7d728038b160253e3"
+      "readbackAt": "2026-09-26T00:52:48.302Z",
+      "normalizedReadbackSha256": "96e086868ecfe8e3b53af399ef3a43df029f90b4b5b4a92875dc1c692f88af7f"
     }
   ],
   "parityTransform": {
@@ -419,14 +444,24 @@
       "bytes": 188095
     },
     {
+      "path": "corrections/475e1f5c-0697-46e9-b205-decbb4297f00-FA01.md",
+      "sha256": "559de2ac113576ddf759064b646e9dfc4515fd766b282ed04d5d03f71e5db8d6",
+      "bytes": 27461
+    },
+    {
+      "path": "corrections/769bd9b2-f482-41fa-abc8-0bee99d453ef-FA01.md",
+      "sha256": "d625bdb69d1e659a26b7db22ad2b7e06fcd5f9fcfb6eca1d1bcd63930b500194",
+      "bytes": 31124
+    },
+    {
       "path": "design-system.md",
       "sha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378",
       "bytes": 50325
     },
     {
       "path": "editorial-transformations.json",
-      "sha256": "84611658771020f5520c3a3d4c463947e26433f3a4719a6d3319566a86320733",
-      "bytes": 41773
+      "sha256": "cf3f9260354a63255c9537762ebbf60dd422d2cf24543f520c84ed0cf3869069",
+      "bytes": 44385
     },
     {
       "path": "history/060d9fce-0132-4c2e-b066-9e8883a8e1a0.md",
@@ -545,23 +580,23 @@
     },
     {
       "path": "index.md",
-      "sha256": "9b8bf7621dd64839f51ad4a2eba98dfbb40cdf1ef9f68f7cc3135df9e6cd5d4b",
-      "bytes": 57219
+      "sha256": "c5eda7c7b0e1bd9f219a67eb29b929654730a5c6004e8fb0a1cd00a8c65dedcb",
+      "bytes": 57994
     },
     {
       "path": "note-map.json",
-      "sha256": "341e66334fadd1ba1e5abed927c2e11dbbf0ebe5338b7dd993098a0bd0796bb1",
+      "sha256": "56172e7d59238d596a49b8f08be81bf505e79afa26b84f4e78793889eefc5f35",
       "bytes": 1394
     },
     {
       "path": "note-parity.json",
-      "sha256": "8504398e85cba6df959c6b181dc0bdaa36c3075069ad5df7560c76685d3c0419",
+      "sha256": "de0fb591d9b9ccea91078ae75a13de20280ff8693c51bbb09ef97876fd30f60e",
       "bytes": 3543
     },
     {
       "path": "performance.md",
-      "sha256": "470d5f9d764c00f540e466b571015518f70e192efd745fd7d728038b160253e3",
-      "bytes": 178129
+      "sha256": "96e086868ecfe8e3b53af399ef3a43df029f90b4b5b4a92875dc1c692f88af7f",
+      "bytes": 178605
     },
     {
       "path": "testing.md",
@@ -570,12 +605,12 @@
     },
     {
       "path": "tools/check_spec.py",
-      "sha256": "a51446a529c80d7356f8b822a5abef1559657171a77ae197bd90f366fee42716",
-      "bytes": 8841
+      "sha256": "a4fef2cc172fc729071d7e606183cca25779f3f0b81417517867eb0b5f9fd68e",
+      "bytes": 9580
     },
     {
       "path": "traceability.json",
-      "sha256": "6831bc71ae602a75c110bb9e0f77e9bb54e95cdcb76491677ec25edd85721934",
+      "sha256": "d14a4d368f87664fcd3ec86d06346b264b04cb738531cdc551b8de453ef3e293",
       "bytes": 34046
     },
     {
@@ -604,5 +639,14 @@
   "editorialRecord": "editorial-transformations.json",
   "prohibitedWorkPerformed": false,
   "independentVerificationCredit": "0/4",
-  "captureCompletedAt": "2026-09-26T00:26:13.448180+00:00"
+  "captureCompletedAt": "2026-09-26T00:26:13.448180+00:00",
+  "correction": {
+    "id": "FA-01",
+    "version": "PERF-8+A2",
+    "authorization": "Original Task 7, Authorized FA-01 correction — training manifest boundary",
+    "reviewNoteId": "769bd9b2-f482-41fa-abc8-0bee99d453ef",
+    "status": "author-corrected; independent-focused-review-required",
+    "scope": "Only ZIP membership/sidecar wording, unchanged manifest preparation/storage work and all numerical limits/budgets/campaigns. Existing 22 historical inputs remain byte-identical.",
+    "synchronizationCompletedAt": "2026-09-26T00:52:48.302Z"
+  }
 }

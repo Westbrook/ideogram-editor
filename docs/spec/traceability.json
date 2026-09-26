@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "assembly": "SPEC-A1",
+  "assembly": "SPEC-A2",
   "requirements": [
     {
       "id": "REQ-API",
