@@ -1,6 +1,6 @@
 # Architecture — Action Model and Event Log
 
-Assembly revision **ARCH-1.4+A3**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the user-approved audit findings; Task 10 independent readiness verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed.
+Assembly revision **ARCH-1.4+A3.1**, 2026-09-26 UTC, under **SPEC-A3**. Approved SPEC-A2 baseline remains at technical commit **083579cdb1bfd24e3fdb64f4f051524393e50861**; the [prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not approve this readiness revision. Task 9 applies the authorized LP-1-R1 correction to 8B-02 after Task 10 found incomplete recovery/transfer wire contracts; focused independent re-verification is pending. See the [current index](index.md#readiness-dispositions). No application, provider or performance qualification is claimed.
 
 [Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/c0689bcd-8dca-4ce6-bccb-e538e0a45477.md).
 
@@ -1153,8 +1153,56 @@ All paths below are under /api/v1. JSON is UTF-8, duplicate keys, unknown proper
 Canonical command hash LP-1: parse with duplicate detection; validate the §5.2 Command shape and typed body; hash the UTF-8 encoding of {protocolVersion:1,command:Command}. Recursively sort object keys by Unicode scalar value, preserve array order and string code points (no Unicode/newline normalization); encode strings with JSON quotation, escaping quote/backslash and controls U+0000–001F (lowercase four-digit \\u escapes), leaving other scalar values literal. Numbers use ECMAScript JSON.stringify finite binary64 representation (negative zero becomes 0); identities requiring exact large integers already use decimal strings. Omitted optional keys stay omitted; null is distinct. Include every envelope field, body and BlobRef identity/hash/length; do not include HTTP headers, cookie, CSRF token or whitespace. Store original validated envelope plus hash. ClientId/sessionId are immutable command provenance, not current authentication: a renewed session can query/resend its authorized original envelope unchanged. Same ID/different hash is HTTP 409 COMMAND_ID_REUSE with no receipt overwrite or effect, even after restart. Validation must not fetch arbitrary client URLs.
 
 ```ts
+type EmptyProtocolRequest = { protocolVersion: 1 };
+type BootstrapRequest = { protocolVersion: 1; pairingToken: string };
+type SessionView = {
+  protocolVersion: 1; csrfToken: string; clientId: string;
+  sessionExpiresAt: string; idleExpiresAt: string;
+};
+type CapabilitiesView = {
+  protocolVersion: 1; serverVersion: string; projectionSchema: number;
+  credentialConfigured: boolean;
+  storageState: "ready" | "pressure" | "unavailable";
+  connectionState: "online" | "offline" | "unknown";
+  limits: readonly { id: string; value: string; unit: string; classification: "admission" | "qualification" }[];
+  profiles: readonly { id: string; version: string; state: "qualified" | "unqualified" | "unavailable" }[];
+};
+type ProtocolContentRef = {
+  contentId: string; url: string; blob: BlobRef;
+  encoding: "lp1-json" | "lp1-events-jsonl" | "lp1-snapshot-jsonl";
+  recordCount: string; expiresAt: string;
+};
+type WireValue<T> = { kind: "inline"; value: T } | { kind: "content-ref"; content: ProtocolContentRef };
+type RecoveryContext = {
+  recoveryId: string; writerEpoch: Seq; projectionSchema: number;
+  highWater: Seq; expiresAt: string;
+};
+type SnapshotDescriptor = {
+  protocolVersion: 1; snapshotId: string; metadataUrl: string;
+  snapshotSeq: Seq; recovery: RecoveryContext; content: ProtocolContentRef;
+};
+type CursorGap = {
+  kind: "cursor-gap"; requestedAfter: Seq; earliestAvailable: Seq;
+  snapshot: SnapshotDescriptor;
+};
+type LocalErrorDetail =
+  | CursorGap
+  | { kind: "offset"; committedOffset: string; stagingVersion: Seq }
+  | { kind: "cursor"; requestedAfter: Seq; transactionFrom: Seq; transactionTo: Seq }
+  | { kind: "protocol-version"; supportedVersions: readonly number[] }
+  | { kind: "range"; byteLength: string }
+  | { kind: "resource-state"; resourceId: string; state: string }
+  | { kind: "fields"; issues: readonly { path: string; code: string }[] };
+type LocalError = {
+  protocolVersion: 1; requestId: string;
+  error: { code: string; retry: "none" | "same-command" | "read-or-transfer";
+    message: string; commandId?: string; currentRevision?: Seq;
+    details?: WireValue<LocalErrorDetail> };
+};
 type ReadinessCommandBody =
-  | { type: "TransferStagingOwnership"; stagingId: string; expectedOwnerClientId: string; expectedVersion: string }
+  | { type: "PreviewStagingOwnershipTransfer"; stagingId: string }
+  | { type: "TransferStagingOwnership"; stagingId: string; expectedOwnerClientId: string;
+      expectedVersion: Seq; reviewId: string; reviewHash: Hash }
   | { type: "FinalizeStaging"; stagingId: string; expectedSha256: string }
   | { type: "PreviewBundleImport"; stagingId: string }
   | { type: "ImportBundle"; stagingId: string; previewId: string; approvalHash: string }
@@ -1165,69 +1213,129 @@ type ReadinessCommandBody =
       expectedConfigVersion: string }
   | { type: "StartSpendSession"; previousSessionId: string | null;
       cap: number | null; acknowledgeUnresolvedAttempts: boolean };
-type LocalError = {
-  protocolVersion: 1; requestId: string;
-  error: { code: string; retry: "none" | "same-command" | "read-or-transfer";
-    message: string; commandId?: string; currentRevision?: string;
-    detailsRef?: BlobRef };
-};
+type CommandRequest = { protocolVersion: 1; command: Omit<Command, "body"> & { body: CommandBody | ReadinessCommandBody } };
 type CommandResult =
-  | { protocolVersion: 1; kind: "receipt"; receipt: Receipt }
+  | { protocolVersion: 1; kind: "receipt"; receipt: Receipt;
+      rejectionDetails?: WireValue<LocalErrorDetail> }
   | { protocolVersion: 1; kind: "pending"; commandId: string; operationId: string;
       phase: "preparing" | "waiting-for-resources"; receiptUrl: string }
   | { protocolVersion: 1; kind: "unknown"; commandId: string };
-type StagingRecord = {
-  protocolVersion: 1; stagingId: string; ownerClientId: string;
-  purpose: "image" | "mask" | "adapter" | "font" | "caption" | "bundle";
+type StagingPurpose = "image" | "mask" | "adapter" | "font" | "caption" | "bundle";
+type StagingCreateRequest = {
+  protocolVersion: 1; stagingId: string; purpose: StagingPurpose;
   expectedBytes: string; sha256: string; mediaType: string;
-  committedOffset: string; state: "receiving" | "complete" | "finalized" | "failed";
+};
+type StagingRecord = StagingCreateRequest & {
+  ownerClientId: string; version: Seq; committedOffset: string;
+  state: "receiving" | "complete" | "finalized" | "failed";
   assetRef?: BlobRef;
 };
+type StagingRecoveryItem = {
+  stagingId: string; ownerClientId: string; version: Seq; purpose: StagingPurpose;
+  expectedBytes: string; committedOffset: string; createdAt: string;
+  state: "receiving" | "complete" | "failed";
+};
+type StagingRecoveryPage = {
+  protocolVersion: 1; items: readonly StagingRecoveryItem[]; nextCursor: string | null;
+};
+type StagingTransferReview = {
+  protocolVersion: 1; reviewId: string; reviewHash: Hash;
+  targetClientId: string; staging: StagingRecoveryItem; expiresAt: string;
+};
 type EventBatch = {
-  transactionId: string; fromSeq: string; toSeq: string;
+  kind: "inline"; transactionId: string; fromSeq: Seq; toSeq: Seq;
   events: readonly DomainEvent<unknown>[];
 };
+type TransactionReference = {
+  kind: "transaction-ref"; transactionId: string; fromSeq: Seq; toSeq: Seq;
+  eventCount: string; recovery: RecoveryContext; content: ProtocolContentRef;
+};
 type EventPage = {
-  protocolVersion: 1; kind: "batches"; projectionSchema: number;
-  highWater: string; nextCursor: string; batches: readonly EventBatch[];
+  protocolVersion: 1; kind: "batches"; recovery: RecoveryContext;
+  nextCursor: Seq; more: boolean; batches: readonly (EventBatch | TransactionReference)[];
 };
 type StreamEnvelope =
   | { protocolVersion: 1; kind: "batch-part"; transactionId: string;
-      fromSeq: string; toSeq: string; partIndex: number; partCount: number;
+      fromSeq: Seq; toSeq: Seq; partIndex: number; partCount: number;
       events: readonly DomainEvent<unknown>[] }
-  | { protocolVersion: 1; kind: "checkpoint"; highWater: string }
-  | { protocolVersion: 1; kind: "gap"; requestedAfter: string;
-      earliestAvailable: string; snapshotUrl: string; highWater: string };
+  | { protocolVersion: 1; kind: "transaction-ref"; reference: TransactionReference }
+  | { protocolVersion: 1; kind: "checkpoint"; highWater: Seq }
+  | { protocolVersion: 1; kind: "gap"; detail: CursorGap }
+  | { protocolVersion: 1; kind: "error"; error: LocalError };
+type SnapshotWireRecord =
+  | { kind: "header"; snapshotId: string; snapshotSeq: Seq; projectionSchema: number;
+      entityCount: string }
+  | { kind: "projection-part"; entityType: string; entityId: string; entityVersion: Seq;
+      partIndex: number; partCount: number; utf8Base64: string };
+type JobReadView = {
+  jobId: string; documentId: string | null; operation: string; endpoint: string;
+  phase: string; cancelRequested: boolean; requestRef: BlobRef;
+  attemptIds: readonly string[]; candidateIds: readonly string[];
+  safeProvenance: readonly PortableProviderRecord[];
+};
+type ProjectionResponse<T> = {
+  protocolVersion: 1; entityVersion: Seq; projectionSchema: number;
+  highWater: Seq; projection: WireValue<T>;
+};
 ```
 
 | Route | Request and successful response | Failure and retry rule |
 | --- | --- | --- |
-| POST /session/bootstrap | {protocolVersion:1,pairingToken}; 200 {protocolVersion:1,csrfToken,sessionExpiresAt,clientId}, Set-Cookie; single-use launch exchange | 401 expired/used token, 403 origin/host; no retry with consumed token; local launcher issues another |
-| GET /session | Cookie + LS-1 same-origin read checks; 200 same session view and CSRF token | 401 requires local pairing; never caches secrets |
-| POST /session/renew; POST /session/revoke | {protocolVersion:1}; CSRF; renew 200 rotates cookie/token; revoke 204 | Old session/token immediately invalid; no domain mutation; retry by reading current session |
-| GET /capabilities | Authenticated; 200 {protocolVersion:1,serverVersion,projectionSchema,limits,credentialConfigured,storageState,connectionState,profiles} | Missing FAL_KEY is credentialConfigured:false, not HTTP authentication failure |
-| POST /commands | §5.2 Command in {protocolVersion:1,command}; 200 CommandResult receipt or 202 CommandResult pending with Location pointing to /commands/:id | Only complete durable receipt is accepted/rejected. 202 means preparation is pending, zero acceptance/provider dispatch |
-| GET /commands/:id | 200 receipt; 202 same pending identity; 404 CommandResult unknown | Unknown is not proof of failed dispatch. Resend identical command after reconnect; never manufacture new ID |
-| GET /events?after=seq | 200 EventPage at captured highWater, whole transactions only; nextCursor is last complete transaction | 409 CURSOR_INSIDE_TRANSACTION; 410 gap with snapshotUrl/earliestAvailable/highWater; retry safe read |
-| GET /events/stream?after=seq | text/event-stream containing StreamEnvelope; SSE id only on final part is toSeq | Reconnect from last applied complete toSeq; 401 closes stream; gap reloads pinned snapshot plus tail |
-| GET /documents/:id; GET /jobs/:id | 200 {protocolVersion:1,entityVersion,projectionSchema,projection,highWater}; projection is existing typed read model, safe provenance only | 404 unknown; 410 document tombstone; no automatic remote reconnect/submit |
-| POST /assets/staging | {protocolVersion:1,stagingId,purpose,expectedBytes,sha256,mediaType}; 201 StagingRecord; client chooses id for retry dedup | 409 changed metadata/id; 413 unsupported purpose envelope; 507 no reservation; identical retry returns same record |
-| GET /assets/staging/:id | 200 StagingRecord with committedOffset from durable server record | 404 unknown; authorized owner only; resolves lost PUT/finalize response |
-| PUT /assets/staging/:id | application/octet-stream; Upload-Offset decimal header and Content-Length; sequential chunk ≤1MiB; 200 StagingRecord after flush/checkpoint | 409 OFFSET_MISMATCH returns committedOffset; 413 length exceeds declaration/chunk; query offset then resend only missing bytes |
-| POST /assets/staging/:id/finalize | {protocolVersion:1,command}; body names FinalizeStaging with stagingId/expected hash; 200 receipt or 202 pending | Full declared length/hash/type/profile checked; failed validation gives durable INVALID_INPUT receipt when storage works; identical command is idempotent |
-| GET /assets/:version/content | Version authorization + safety gate; 200 bytes or 206 one valid bytes range; ETag immutable SHA-256 | 416 with Content-Range bytes */length for malformed/unsatisfiable/multiple range; If-Range mismatch sends full 200; 403 withheld/quarantined; 404 missing |
-| POST /bundles/import | {protocolVersion:1,command}; ImportBundle references finalized bundle staging plus preview approval, never a path/URL; 200 receipt or 202 pending | Isolated validation/preparation; only final receipt publishes namespace; same command retry |
-| GET /bundles/:id/content | Only ready authorized complete/incomplete-labelled bundle; 200/206 with same range/ETag rules | 409 BUNDLE_NOT_READY; 416 invalid range; download does not confirm external destination saved |
+| POST /session/bootstrap | BootstrapRequest; 200 SessionView and Set-Cookie; single-use launch exchange | 401 expired/used token, 403 origin/host; local launcher issues another token |
+| GET /session | Cookie + LS-1 read checks; 200 SessionView | 401 SESSION_REQUIRED; no secret caching |
+| POST /session/renew; POST /session/revoke | EmptyProtocolRequest + CSRF; renew 200 SessionView rotates credentials; revoke 204 with empty body | Old session/token invalid immediately; on lost response query /session, then re-pair if401 |
+| GET /capabilities | Authenticated; 200 CapabilitiesView | Missing FAL_KEY is credentialConfigured:false; 503 if local capabilities cannot be read |
+| POST /commands | CommandRequest; 200 CommandResult receipt or202 pending; pending Location equals receiptUrl | Only a durable Receipt means accepted/rejected;202 never dispatches provider work |
+| GET /commands/:id | 200 CommandResult receipt;202 pending;404 CommandResult unknown | Unknown is not proof of failed dispatch; resend identical command, never invent a new ID |
+| GET /events?after=seq[&recoveryId=id] | 200 EventPage; first request creates RecoveryContext, later pages retain its pinned highWater; ordered inline/reference batches | 409 CURSOR_INSIDE_TRANSACTION;410 CURSOR_GAP with inline CursorGap details;410 READ_CONTEXT_EXPIRED; safe read retry |
+| GET /events/stream?after=seq | text/event-stream with StreamEnvelope JSON data; SSE id only at transaction end/reference toSeq | Before headers normal LocalError; afterward error/gap frame closes stream; incomplete transaction discarded |
+| GET /snapshots/:id?recoveryId=id | 200 SnapshotDescriptor matching the pinned context and snapshotSeq | 404 NOT_FOUND;410 READ_CONTEXT_EXPIRED;403 for wrong client/root/context; no silently newer snapshot |
+| GET /protocol-content/:id[?recoveryId=id] | 200 exact descriptor bytes or206 verified range; ETag from BlobRef hash; defined JSON/JSONL representation | 416 range detail and Content-Range;404 missing;410 expired context;403 wrong scope; retry same immutable content |
+| POST /recovery/:id/release | EmptyProtocolRequest + CSRF;204 empty body; internal journal action releases only this client's read pins | Repeated authorized release204;403 wrong client; release never deletes domain history |
+| GET /documents/:id; GET /jobs/:id | 200 ProjectionResponse<Document> or ProjectionResponse<JobReadView>; oversized value uses lp1-json ProtocolContentRef | 404 NOT_FOUND;410 DOCUMENT_DELETED; safe provenance only; no automatic remote reconnect |
+| POST /assets/staging | StagingCreateRequest;201 StagingRecord (identical retry200) | 409 STAGING_ID_REUSE for changed metadata;413 envelope;415 type/purpose;507 reservation; no authority from staged ID |
+| GET /assets/staging/recovery[?cursor=id] | LS-1 authenticated JSON read;200 StagingRecoveryPage of minimal recoverable metadata | No bytes/names/paths/hashes/secrets;401 SESSION_REQUIRED or403 origin denial; cursor is opaque and invalid cursor400 |
+| GET /assets/staging/transfer-reviews/:reviewId | Authenticated target client;200 StagingTransferReview created by its accepted preview command | 404 NOT_FOUND;403 other client;410 REVIEW_EXPIRED; does not grant content access |
+| GET /assets/staging/:id | Authorized owner only;200 StagingRecord with version and committedOffset | 404 NOT_FOUND;403 OWNER_REQUIRED; resolves lost PUT/finalize acknowledgement |
+| PUT /assets/staging/:id | Octet-stream; Upload-Offset decimal and Content-Length; sequential chunk≤1MiB;200 StagingRecord after flush/version commit | 409 OFFSET_MISMATCH with offset detail;413 declared/chunk excess;403 stale owner; query record before resend |
+| POST /assets/staging/:id/finalize | CommandRequest with FinalizeStaging body naming the same ID;200 receipt or202 pending | Length/hash/type/profile failures use durable INVALID_INPUT Receipt when possible; identical finalize idempotent |
+| GET /assets/:version/content | Authorized safe local bytes;200 or206 single range; immutable ETag and measured MIME | 416 range detail; If-Range mismatch full200;403 withheld/quarantined;404 missing |
+| POST /bundles/import | CommandRequest with ImportBundle referencing finalized staging and its approved preview;200 receipt or202 pending | Same-command retry; only final receipt publishes namespace; no request path or URL |
+| GET /bundles/:id/content | Authorized prepared bundle;200/206 with MIME application/zip, ETag and range contract | 409 BUNDLE_NOT_READY;416 range detail; content download does not prove external destination saved |
 
-Preflight/auth/parsing/protocol failures are LocalError: 400 MALFORMED_REQUEST, 401 SESSION_REQUIRED, 403 ORIGIN_DENIED/CSRF_DENIED/CONTENT_WITHHELD, 404 NOT_FOUND, 409 COMMAND_ID_REUSE/OFFSET_MISMATCH/CURSOR_INSIDE_TRANSACTION, 410 DOCUMENT_DELETED/CURSOR_GAP, 413 PAYLOAD_TOO_LARGE, 415 MEDIA_TYPE, 426 PROTOCOL_VERSION, 429 LOCAL_BUSY, 503 SERVER_UNAVAILABLE and 507 STORAGE_FULL. No durable domain rejection is implied by these HTTP errors. If the validated command reaches the writer and a receipt can be committed, the unchanged five-code Receipt union applies: STALE_REVISION, INVALID_INPUT, MISSING_ASSET, CAPACITY or INCOMPATIBLE, returned as HTTP 200 kind:receipt/status:rejected. Specific sanitized reason belongs to details, not a new union code. A failed journal write returns 507/503 with retry:same-command and does not claim a rejection was durable. Credential unavailable, provider uncertainty, remote rate limits and expired remote URLs are job/provenance states in projections/events, not an HTTP 401 for the local browser session. All error messages omit request input and secrets.
+LP-1-R1 below defines the closed status/error/detail mapping, including the unchanged five-code durable Receipt boundary. HTTP failures never imply a durable domain rejection. Missing provider credentials, remote uncertainty/rate/expiry remain job/provenance states rather than local session errors; error messages never echo input or secrets.
 
 For example, an unknown query returns {"protocolVersion":1,"kind":"unknown","commandId":"cmd_a"} at HTTP 404; a prepared operation returns {"protocolVersion":1,"kind":"pending","commandId":"cmd_a","operationId":"op_a","phase":"preparing","receiptUrl":"/api/v1/commands/cmd_a"} at HTTP 202. A same-ID conflict returns {"protocolVersion":1,"requestId":"r_a","error":{"code":"COMMAND_ID_REUSE","retry":"none","message":"This command ID belongs to different content.","commandId":"cmd_a"}} at HTTP 409. Local errors describe actual retry classes: reads/transfers may back off; a mutation with lost response is queried or resent byte-equivalently; provider POST never inherits either retry policy.
 
 ReadinessCommandBody extends the illustrative §4 CommandBody inventory through the same envelope and writer; cap is null (off) or a positive safe integer. PreviewDocumentDeletion durably records a plan without changing document revision; its accepted event exposes the plan reference. PreviewBundleImport is a local preparation command bound to staging hash, schema and closure; only its subsequent confirmed ImportBundle command publishes a namespace.
 
-Pending identity is durably bound to commandId/hash before responding 202. Restart resumes only local preparation or reports its known state; acceptance rechecks revisions/roots and commits exactly one receipt. A preparation failure becomes a durable rejection where possible. No outbox authority exists before acceptance. Stage ownership is workspace+client identity, renewable across paired sessions. The trusted local launcher re-pairs an existing client identity using its owner-only local pairing registry; the browser cannot select an arbitrary clientId in bootstrap. If that identity is unavailable, a freshly paired client must request an explicit reviewed TransferStagingOwnership command naming the stage and current owner/version; all clients share the single OS-owner workspace, but no helper read/transfer bypasses this action. Pairing-registry secrets stay backend-only and are excluded from portable copies. For ordinary access, another client cannot inspect/resume/finalize without an explicit ownership-transfer action. An aborted PUT advances only to the last flushed recorded offset; startup truncates any uncommitted tail. Finalization is immutable and one-time; identical retries reference the same asset. Failed staging is inventoried, not silently promoted or counted as owned data.
+Pending identity is durably bound to commandId/hash before202. Restart resumes only local preparation; acceptance rechecks revisions/roots and commits exactly one receipt. Failure becomes a durable rejection where possible; no outbox authority exists before acceptance. Staging ownership is workspace+client identity; ordinary GET/PUT/finalize stay owner-only. The LP-1-R1 recovery inventory and preview/transfer flow below are the narrow reviewed exception for a newly paired client that lost its prior identity. An aborted PUT advances only to the flushed recorded offset; startup truncates any uncommitted tail. Finalization is immutable and one-time; identical retries reference the same asset. Failed staging is inventoried, never silently promoted to owned data. Pairing-registry secrets remain backend-only and excluded from portable copies.
 
-Event transactions never become partly visible. HTTP pages never split a transaction; a transaction too large for the control envelope returns a transaction download reference and count/hash, streamed to bounded staging. SSE splits only wire framing (each frame ≤64KiB); the client buffers parts in bounded local storage, checks IDs/order/count, then applies the whole transaction once. Missing/duplicate/conflicting parts cause discard and safe gap fetch; no revision advances until complete. A snapshot reload is pinned to a high-water mark; replay its full tail before publishing. Heartbeats/checkpoints do not advance the applied cursor. Snapshot/event payloads never contain transport records.
+#### LP-1-R1 — complete wire, recovery and transfer contracts
+
+Task 10's 8B-02 correction completes previously missing wire variants. Protocol major version remains1 because no implementation is shipped. Headers, parameters and bodies above are the full route envelope; command/domain payloads remain the owning §2/4/5/16 contracts. POST /commands is also the route for PreviewStagingOwnershipTransfer and TransferStagingOwnership; helper mutation routes wrap exactly the same CommandRequest, not a second authority. Other command bodies in §4's illustrative inventory retain their existing versions. Every bodyless GET accepts only listed query keys and no request body. HEAD is supported only for immutable content routes and returns the same status/headers without bytes. Unknown method returns405 with Allow; unrecognized path404, invalid query/ID/body400; no route coercion or redirect. Dates are RFC3339 UTC strings; version/count strings use the LP-1 unsigned-decimal rule. Text strings are bounded by the enclosing envelope and never silently truncated. Limits/profiles in CapabilitiesView use the named existing app/PERF/profile IDs and units, not arbitrary settings or secrets; qualification values do not become admission caps. JobReadView.phase/operation use the existing §4/7 vocabulary, preserving unknown observed remote states in safe provenance rather than inventing local terminal transitions.
+
+Status/error mapping is closed for LP-1:400 MALFORMED_REQUEST,401 SESSION_REQUIRED/PAIRING_INVALID,403 ORIGIN_DENIED/CSRF_DENIED/CONTENT_WITHHELD/OWNER_REQUIRED,404 NOT_FOUND,405 METHOD_NOT_ALLOWED,409 COMMAND_ID_REUSE/STAGING_ID_REUSE/OFFSET_MISMATCH/CURSOR_INSIDE_TRANSACTION/BUNDLE_NOT_READY,410 DOCUMENT_DELETED/CURSOR_GAP/READ_CONTEXT_EXPIRED/REVIEW_EXPIRED,413 PAYLOAD_TOO_LARGE,415 MEDIA_TYPE,416 RANGE_NOT_SATISFIABLE,426 PROTOCOL_VERSION,429 LOCAL_BUSY,503 SERVER_UNAVAILABLE/RECOVERY_UNAVAILABLE,507 STORAGE_FULL. All use LocalError except the explicit404 CommandResult unknown from command lookup. NoContent204 has no JSON. 429/503 may include Retry-After as nonnegative integer seconds; it delays only the declared safe local retry class, never repeats a paid POST. A disconnected socket yields no invented response or acceptance.
+
+Error details are typed by code: OFFSET_MISMATCH requires offset; CURSOR_INSIDE_TRANSACTION requires cursor; CURSOR_GAP requires inline CursorGap; PROTOCOL_VERSION requires protocol-version with [1];416 (RANGE_NOT_SATISFIABLE) requires range; resource state/expired/deleted/ownership errors may carry resource-state; validation413/415/400 may carry fields. Other errors omit details. No unknown arbitrary provider body is passed through. If optional details exceed64KiB, use lp1-json ProtocolContentRef for the exact sanitized LocalErrorDetail; if no reference can be prepared (including disk-full), omit optional details and retain the safe code. The required small offset/cursor/gap/version/range variants must fit inline. Receipt rejection codes stay exactly the original five: HTTP200 kind:receipt/status:rejected includes rejectionDetails (inline or reference) whose LP-1 canonical JSON bytes match the Receipt.details BlobRef hash/length/media type. Acceptance must persist that sanitized detail blob first; storage failure instead returns507 with retry:same-command. Accepted receipts omit rejectionDetails. Thus both HTTP errors and durable rejections have readable details without exposing a generic backend blob lookup.
+
+**Immutable content representation.** ProtocolContentRef.url is exactly /api/v1/protocol-content/<contentId>, plus ?recoveryId=<id> when recovery-bound. It is an authenticated lookup, never a bearer capability or filesystem/provider URL. The backend registry binds the ID to client, workspace root/writer epoch, purpose, BlobRef identity and expiry; only sanitized LP-1 errors, projections, event transactions and snapshots are registerable. Transport evidence, secrets, unsafe candidates and arbitrary referenced blobs cannot be registered here. All protocol-content/snapshot/recovery reads require LS-1 JSON-read authentication/client-marker rules even though the body is a stream; the media-navigation exception does not apply. Content references outside recovery use the same30-minute idle/session-bounded lease and are reissued by repeating the safe originating read if expired. Durable receipt details remain retained with the receipt and can obtain a fresh content lease on lookup.
+
+lp1-json is one LP-1 canonical UTF-8 JSON value of the named type, no wrapping/stringification. lp1-events-jsonl is canonical DomainEvent objects, one per LF-terminated line, in committed sequence order, exactly one transaction and exactly eventCount records. lp1-snapshot-jsonl starts with one SnapshotWireRecord header then ordered projection-part records. Each part decodes canonical standard padded base64 into a contiguous chunk of one entity's LP-1 canonical UTF-8 JSON; parts are0-based, contiguous, same entity/version/count, with no interleaving of entities. Split raw UTF-8 only at code-point boundaries; the complete entity validates against its existing projectionSchema domain type before staging publication. Entity types are the current safe document/layer/history/job/candidate/text/composition/asset/dataset/adapter/UI projection families in §§2/5/9/16, never backend transport/outbox/session tables. Sort entities by (entityType,entityId); header.entityCount counts complete unique entities, content.recordCount counts header plus all parts. Snapshot entity refs remain immutable local identities; no provider fetching or executable payload is permitted.
+
+All content descriptors provide exact total BlobRef byteLength/hash/mediaType (application/json or application/x-ndjson), encoding and recordCount; values never rely on a provisional Content-Length. Each event retains the existing≤16KiB canonical event envelope, followed by one JSONL framing LF byte; the LF is transport overhead, not a larger event budget. Snapshot rows including LF stay≤16KiB; binary/base64 splitting includes encoding overhead in that limit. The stream as a whole can exceed64KiB. Read and hash into bounded temporary client storage under existing R31/R38/R39 limits; never materialize an unbounded array/string or publish individual snapshot parts. 200/206 responses set Content-Type, nosniff, Cache-Control:no-store, ETag to the quoted algorithm-qualified hash and Content-Length for the selected bytes;206 also supplies Content-Range. Support one bytes range exactly as other immutable content: invalid/multiple/unsatisfiable→416 with Content-Range:bytes */total and typed range details. If-Range mismatch returns full200, not an appendable206. Any resumed copy must still match the full descriptor digest/length/count before use. Incomplete or changed bytes discard only temporary client staging and never advance applied state. Descriptor hashes, transaction IDs/bounds and snapshot context all must match the decoded content, not just HTTP status.
+
+**Atomic event and pinned snapshot round trip.** First GET /events?after=A atomically captures highWater=H and creates a RecoveryContext tied to the authenticated client/root/epoch; it pins the selected snapshot and all needed complete transactions throughH. Later pages pass recoveryId and an after cursor that is a complete boundary in[A,H]; out-of-range or inconsistent context yields400, mid-transaction409, expired/restarted context410 READ_CONTEXT_EXPIRED. A page fits64KiB by using TransactionReference for a batch too large to inline and limiting the number of entries; more indicates another page withinH. nextCursor is the last OFFERED toSeq (or A for an empty page), not permission to advance the client's applied cursor. The client downloads referenced batches, checks bytes/hash/count/transaction/sequence identities, then applies each complete transaction exactly once and advances only after application. All inline/reference entries are ordered and contain every committed transaction after the requested cursor through that page; no transaction is split across HTTP pages. Completion is more:false with nextCursor=H. A later ordinary read starts a new capturedH; live SSE resumes from the last actually applied boundary.
+
+If A predates the available replay tail, the server chooses a valid snapshot at B≤H with complete retained tail(B,H], pins both, and returns410 LocalError with inline CursorGap containing that SnapshotDescriptor. It must not return an unfulfillable URL: absent valid snapshot/tail means503 RECOVERY_UNAVAILABLE and unchanged client state. GET /snapshots/<snapshotId>?recoveryId=R returns the same descriptor; GET its content URL returns the defined snapshot JSONL bytes. Client validates and builds a temporary projection atB, fetches /events?after=B&recoveryId=R untilH, then swaps the complete validated projection atH atomically. Failed download/parse/gap retains the old published state; never combine an unpinned newer snapshot with this tail. SnapshotDescriptor.snapshotSeq equals the header and B, while recovery.highWater remainsH; every returned transaction reference shares this context. The stored writerEpoch must still match; a backend restart invalidates contexts explicitly rather than silently changing their data.
+
+Recovery pins expire after30 minutes without a successful authorized read, or session revocation/root epoch change; reads renew the server-side idle lease and return the current expiresAt in descriptors without changing bytes/B/H. Expired pins can be recreated only via a fresh initiating read. POST /recovery/<id>/release journals an internal read-pin release (204 idempotent); closing/abandoning a reader does not remove document/history roots. Snapshots/pins are bounded by existing reservations; resource exhaustion returns507/503, never truncates history. SSE can send either existing batch-part frames or one transaction-ref frame for a transaction; its reference owns a matching recovery pin through that toSeq. The client ignores automatic transport Last-Event-ID and explicitly reconnects using its last validated/applied cursor; merely receiving a reference never counts as applying it. Once streaming headers are sent, error/gap frames close the connection; incomplete buffered work is discarded and normal read recovery resumes.
+
+**Reviewed staging transfer round trip.** Ordinary StagingRecord GET/PUT/finalize stay owner-only. The narrow GET /assets/staging/recovery inventory is available to a paired client in this single OS-owner workspace under LS-1 read checks; it reveals only StagingRecoveryItem metadata, never names, paths, content hashes, bytes or credentials. It excludes finalized assets and deleted namespaces, paginates by opaque cursor within64KiB, and is only a discovery view: versions may change before review. No recovered prior client identity is needed to list this metadata. Inventory and transfer-review paths take precedence over /assets/staging/:id and cannot resolve as arbitrary IDs.
+
+The user chooses a stage to review; POST /commands with PreviewStagingOwnershipTransfer(stagingId) goes through the writer, captures its current recoverable metadata, assigns targetClientId from authenticated command ownership and emits StagingTransferReviewPrepared with reviewId/reviewHash in the accepted event. The accepted event payload is exactly {reviewId: string, reviewHash: Hash}; the client locates it by the Receipt sequence range and commandId using the declared event read. Query the declared transfer-review route to obtain StagingTransferReview (including current owner/version) for that target client only. reviewHash is SHA-256 of LP-1 canonical {reviewId,targetClientId,staging,expiresAt}; it is a precondition, not authentication. The review expires with its paired session or after the existing30-minute idle window, and discloses purpose, size/offset, prior owner and takeover effects. Explicit confirmation sends TransferStagingOwnership with that review ID/hash and matching staging ID/owner/version. No content is readable by the new client before successful transfer.
+
+The writer rechecks review target/expiry/hash, expected owner/version, namespace/state and every active IO lease. Each committed staging create/offset/state/owner change increments its version; creation starts at"1". A changed version/state returns durable STALE_REVISION with currentRevision and requires a new preview/new command, never overwrites the old receipt. Expired/invalid review yields INVALID_INPUT detail; finalized stage yields INCOMPATIBLE. Before a successful ownership commit, fence the old uploader and stop any in-flight write at the last durable offset; if it cannot quiesce, retain ownership and return CAPACITY with retry guidance. Atomically change owner, increment version and emit StagingOwnershipTransferred(stagingId,fromClientId,toClientId,version,committedOffset) plus Receipt. Old-owner writes fail403 OWNER_REQUIRED, including callbacks queued before the fence; new owner GET obtains the version/offset and resumes the missing suffix, then hashes/finalizes normally. A lost transfer response resolves via the SAME command receipt; replay cannot transfer twice. A crash before commit leaves the old owner/offset; after commit it restores the new owner and fencing generation. Registry pairing secrets and minimal recovery metadata never grant cross-workspace access.
 
 ### 20.2 Localhost threat, session and content contract LS-1
 

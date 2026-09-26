@@ -1,0 +1,165 @@
+# Task 10 — Final implementation-readiness verification
+
+Independently verify SPEC-A3 against the Goal, REQ-READY and all prior criteria, and confirm every approved finding is closed.
+
+## Scope
+Read-only review by an agent that authored none of Tasks 8A–9.
+
+## Inputs
+SPEC-A3 index and sections, readiness audit notes, Task 9 handoff, [PR Context — upon-build](intent://local/upon-build/note/337dd04c-2911-4227-8217-1e2fc0b6a9f0).
+
+## Definition of Done
+- Versioned verdict appended to a readiness verification note; any failure returned as a focused fix request.
+
+## Verification
+Reproduce Task 9 checks plus targeted reading of every changed clause.
+
+## Independent verification started — SPEC-A3
+
+Review target 59f8317a114ba16a431bab99cf5006401b0161b8; base 86701416fa966b92353a1cff062a81a27a1786b9, from the existing PR Context. Acceptance checklist is REQ-READY plus Task 9 completion criteria and the four recorded user decisions. No source edits. Plan: map all 20 audit findings to owning clauses, rerun checker/mutations/seals and live note parity, inspect preservation and contract consistency, then publish an evidence-based verdict. Initial Spec/report/task feedback is empty.
+
+## Verification checkpoint — checks pass, protocol finding open
+
+Independently reran check_spec.py and all 11 mutation probes: PASS. All 47 seals pass; seven fresh live-note comparisons normalize exactly; all three audit snapshots match their live notes. Reversed all 52 declared operations and compared each result with the actual Git base: 7/7 exact. All 26 pre-existing decision records and 26 performance tables are unchanged; history/corrections/approvals are byte-identical. Semantic review found a remaining 8B-02 gap: LP-1 says large event transactions return a download reference, but EventPage permits only inline batches and supplies no reference variant or download/snapshot response contract. Staging ownership transfer also requires expectedVersion, absent from StagingRecord. These are decision-tagged protocol details within the already approved scope. Continuing bounded consistency review before final verdict; no source edits.
+
+## Verification Summary — SPEC-A3 / Task 10 / V1
+
+- **Verdict: ❌ NOT APPROVED.**
+- **Confidence: High for this documentation verdict.** The required offline checks ran successfully; the remaining defects are demonstrated gaps in the declared wire contract, not inferred application failures.
+- Target: **59f8317a114ba16a431bab99cf5006401b0161b8**, branch upon-build. Base: **86701416fa966b92353a1cff062a81a27a1786b9**, supplied by the same PR Context. No PR exists.
+- **19 of 20 original findings have verified source dispositions. 8B-02 remains partially unresolved**, with two decision-tagged findings below. No accepted policy change or further user preference is needed to finish the already authorized protocol specification.
+- No source files or owning section notes were edited. Tasks 9 and 10 must remain review_required; REQ-READY cannot close at this commit. User acceptance and runtime qualification remain separate.
+
+## Findings list
+
+### R10-01 — decision / P2 — Large-transaction and snapshot recovery lack a wire contract
+
+**Failing criterion:** REQ-READY: “Every finding is resolved at its owning source or deferred with owner and reason.” Also the user decision “Protocol and security — specify all” and original finding 8B-02.
+
+**Evidence:** [Architecture LP-1](intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477#s20), matching docs/spec/architecture.md:1151, 1190–1200, 1211–1212 and 1230. EventPage permits only inline EventBatch[]; the prose requires a transaction exceeding the 64KiB control envelope to return a download reference/count/hash. No response variant represents that reference. StreamEnvelope supplies a snapshotUrl for gaps, but no snapshot retrieval response/schema/identity contract resolves it. The 16-row route inventory and readiness-contracts.json reproduce the omission. LocalError also does not define where the stated CURSOR_GAP metadata is encoded.
+
+**Repro / impact:** A transaction with several individually valid event rows exceeds 64KiB. The frontend must choose an invented response shape to retrieve it. A client behind retained history must invent the snapshot response, verification and replay boundary. The requirement of atomic, pinned snapshot+tail recovery is stated, but independent frontend/backend implementations cannot implement interoperable recovery from the supplied wire contract alone.
+
+**Minimal required change:** Define typed large-transaction/reference and snapshot retrieval responses, metadata/error encoding, identity/hash/high-water validation and retrieval semantics. Existing content routes may be explicitly reused; a new endpoint is not inherently required. Preserve all current limits, complete-transaction publication, auth and safe replay rules. Update PROTO04, route/oracle inventory, owning note/mirror and sealed receipts. This completes the existing decision rather than changing it.
+
+**Re-verify:** Commands below, plus a static round-trip of an atomic transaction >64KiB and a retention-gap snapshot+tail through the declared request/response types; no invented fields or undefined response body may be needed. Future L/B tests remain implementation work.
+
+### R10-02 — decision / P2 — Staging ownership recovery cannot obtain required preconditions
+
+**Failing criterion:** Same REQ-READY/user protocol decision and original 8B-02; REQ-LOCAL upload recovery.
+
+**Evidence:** Architecture LP-1:1157 requires expectedOwnerClientId and expectedVersion for TransferStagingOwnership. StagingRecord:1179–1185 and GET /assets/staging/:id:1215 expose no version. The lost-client recovery paragraph:1228 requires an explicit reviewed transfer using the current owner/version, while ordinary reads deny a different client. No authenticated review/metadata flow supplies these preconditions.
+
+**Repro / impact:** Pair a fresh client after the old client identity is unavailable. It cannot read the stage, and even the owner’s declared StagingRecord lacks the required version. Recovering the upload requires guessing a version or inventing a metadata/auth exception. This defeats the specified recoverable, explicitly reviewed transfer path.
+
+**Minimal required change:** Define an authenticated reviewed transfer-preparation flow and the exact version/precondition fields it returns, including version advancement and stale behavior. Preserve the ordinary cross-client content/read denial and single-owner trust model. Extend PROTO03 with this lost-identity recovery case and synchronize the source/mirror/receipts.
+
+**Re-verify:** Commands below, then walk lost identity → new pairing → authorized review metadata → transfer → resumed offset/finalize, including a changed owner/version between preview and acceptance.
+
+**Editorial findings:** None newly raised. All 11 pre-approved editorial dispositions are verified.
+
+## Acceptance Criteria Checklist
+
+Each row has one outcome. “Verified” is specification evidence, not runtime certification. All changes map to Task 9 / 59f8317; unchanged baseline evidence is retained from the independently audited SPEC-A2 sources.
+
+| Criterion | Outcome | Evidence and verification |
+| --- | --- | --- |
+| Goal and scope: reviewable V4/fal/en-reve specification, notes plus docs/spec, no app implementation | ✅ VERIFIED | Seven current documents/notes; diff contains documentation only; fresh live parity and clean Git status. |
+| REQ-API | ✅ VERIFIED | API A01–A27/C/E and readiness receipt retain original field/schema evidence; 8C live note equals sealed audit; all 63 API typed/JSON blocks and 27 schema appendices preserved. Checked diff, checker and dated 8C semantic comparison. |
+| REQ-CAP | ✅ VERIFIED | CAP-01–24 range fixed; UX §14 distinguishes required app scene from guide-optional field; missing versus empty is explicit and mapped to CAPTION01. Manual missing/empty/present walk and trace/checker. |
+| REQ-OPS | ✅ VERIFIED | Original 26 decision records are unchanged; routing/frozen-input/native pixel clauses are outside the declared changes and reproduce actual Git base. 8A decision trace and changed-clause inspection retain explicit conflicts and no silent fallback. |
+| REQ-UX | ✅ VERIFIED | UX §5 now says hiding keeps bytes and frees no space; document deletion uses preview/receipt/actual GC; §8 preserves four training caps; §14 preserves raw import and explicit conversion. Walked these changed flows against ARCH/TEST. |
+| REQ-STATE | ⚠️ DEVIATION | Durable writer/receipt/replay rules remain, but LP-1 cannot express the required oversized-transaction/snapshot recovery on the wire (R10-01). Complete those schemas and rerun PROTO04/document checks. |
+| REQ-DS | ✅ VERIFIED | DS §1/readiness receipt preserves historical digests and records 8C drift; Q12 retains Build/DS producer ownership and P1 frozen source/lock/license/per-file/archive qualification. Checked exact diff and 8C receipt. |
+| REQ-TEST | ✅ VERIFIED | TEST §13 adds 27 consumer oracles with U/L/B owners and observable outcomes; existing unit > integration > e2e, manual AX/IME and finite PERF campaigns remain. New cases are explicitly future tests; checker/mutation probes are accurately labelled documentation tests. |
+| REQ-PERF | ✅ VERIFIED | Independently compared all 26 performance tables byte-for-byte with actual base; 60 budget rows preserved. Added accounting includes new work; protocol/session/transfer parameters are separately declared, not performance budget changes. |
+| REQ-TRAIN | ✅ VERIFIED | UX §8 four hard caps remain 1–100 / 800MiB / 201MiB / 4KiB; WT 1024²/2MiB examples no longer become admission limits. TRAIN01 covers >2MiB and cap+1; ZIP pairs/sidecar and P4 priority remain. |
+| REQ-LOCAL | ⚠️ DEVIATION | Server-only credentials, staging and polling are retained; new lost-client staging transfer lacks obtainable owner/version preconditions (R10-02). Complete the review/read/version contract and re-walk PROTO03. |
+| REQ-DOCS | ⚠️ DEVIATION | All mirror/link/hash/version/history checks pass, but the two owning-source protocol gaps remain; document existence/parity cannot close them. Repair at ARCH and mirror, not only the disposition table. |
+| REQ-READY | ⚠️ DEVIATION | All three audits are captured, REQ-READY is traced and checker-enforced, but 8B-02 is neither fully resolved nor explicitly deferred. R10-01/02 block approval. |
+| Task 9: every approved finding resolved/deferred; traceability and qualifications updated | ⚠️ DEVIATION | 19 source dispositions verified below; 8B-02 falsely appears author-resolved without complete wire/recovery detail. Minimal task is the focused LP-1 completion above. |
+| Task 9: note/file parity, checker, seals, links, exact diff/transformation record | ✅ VERIFIED | Fresh 7/7 live parity; checker and 11 mutations; 47 seals; actual Git-base reversal of all 52 declared operations; changed-diff whitespace check all pass. |
+
+### User decisions
+
+| Decision | Outcome | Evidence and verification |
+| --- | --- | --- |
+| Protocol/security: specify all | ⚠️ DEVIATION | LS-1/EF-1/PF-1/TP-1 have concrete policies and future qualification owners, but LP-1 has R10-01/02. |
+| Candidate deletion = KEEP BYTES; whole-document deletion reclaims storage | ✅ VERIFIED | UX §5, ARCH §9.2/20.6, TEST DELETE01–03, PERF readiness accounting. Paper root walk confirms no candidate-byte release; document transaction releases only its roots; shared pins, leases, pending GC and late results are explicit. |
+| Minimize remote retention | ✅ VERIFIED | API RP-1/UX readiness/ARCH AppliedPrivacyPolicy; Store-IO:0 request, minimum/private-compatible profile, per-attempt recording, explicit fallback or blocked dispatch, no remote-erasure promise. Undocumented endpoint feasibility remains Q09 Jobs/Assets with reason/trigger. |
+| Optional spend cap, off by default | ✅ VERIFIED | UX readiness/ARCH SG-1, SPEND01/02; durable work session across restart/tabs, atomic reservation, uncertainty retained, visible charge ledger; no guaranteed monetary limit or U07/U08 change. |
+
+## Complete audit disposition trace
+
+| Finding | Tag | Verified source disposition at 59f8317 |
+| --- | --- | --- |
+| 8A-F01 | editorial | Closed: index header/R20/handoff and live Spec agree original Task 7 complete; A3 review remains separate. |
+| 8A-F02 | editorial | Closed as incorporation: REQ-READY exists in Spec/index/traceability/checker and mutation omission fails; readiness closure remains pending correctly. |
+| 8A-F03 | decision | Closed per USER keep-bytes choice, not auditor release recommendation: UX §5, ARCH §9.2/DR-1, DELETE01, PERF accounting. |
+| 8A-F04 | editorial | Closed: UX §8 four hard caps versus WT fixtures; TRAIN01. |
+| 8A-F05 | editorial | Closed: UX §14 missing MISSING_SCENE versus empty/present valid; reviewed conversion preserves raw input; CAPTION01/ARCH §16.4. |
+| 8A-F06 | editorial | Closed: current Spec precedes explicit superseded-history disclosure; preserved chronological body rstrip hash matches 8f52344d665130a4df8ff22f25642be70c135a0ee39d919c243de0475193d8c4. |
+| 8A-F07 | editorial | Closed: CAP-01–CAP-24 summary matches 24 rows in index/traceability. |
+| 8B-01 | editorial | Closed: index P1a/b/c/P2 slice and Q applicability table organize existing E1–E4 and conditional gates; native text remains required within P1. |
+| 8B-02 | decision | **OPEN: R10-01/R10-02.** LP-1 is substantially added, but missing wire/recovery contracts prevent full closure. |
+| 8B-03 | decision | Closed at specification level: LS-1 exact origin/host, token/session rules, sensitive reads, content policy, OS boundary; SEC01–06; actual browser/proxy behavior remains Q26 with owner/trigger. |
+| 8B-04 | decision | Closed: EF-1 queue/upload auth separation, credential-free media, exact host profile, zero redirects, DNS/socket binding, reservations/timeouts, production emulator exclusion; EGRESS01–03. Concrete endpoint hosts explicitly await Jobs/Assets Q09. |
+| 8B-05 | decision | Closed: PF-1 ZIP64 STORE/container/manifest/JSONL and ordered hostile-input validation; streaming >4GiB closure remains supported; FORMAT01–03; runtime parser/closure qualification Q18/Q27. |
+| 8B-06 | decision | Closed policy: API RP-1 selected minimum retention/private compatibility, recorded attempts/disclosure/fallback; PRIV01/02. Endpoint feasibility explicitly unqualified in Q09. |
+| 8B-07 | decision | Closed: TP-1 backend-only exact bodies versus portable allowlist and separately exact prompt blobs; secret contamination blocks complete export; PROV01/02; PERF counts both retained classes. |
+| 8B-08 | decision | Closed: DR-1 deletion preview, atomic root/fence receipt, shared roots, active/uncertain work, late callbacks and lease/quarantine/restart rules; DELETE02/03. |
+| 8B-09 | editorial | Closed: support matrix matches TEST §9 native/automated/Windows/mobile evidence limits; no additional support campaign asserted. |
+| 8B-10 | editorial | Closed: role-based quick-start, authority links and “required now”/reference/history separation; no contracts deleted to shorten text. |
+| 8B-11 | decision | Closed: SG-1 off-by-default durable request cap and unknown-charge ledger; SPEND01/02. |
+| 8C-01 | editorial | Closed receipt: DS §1/readiness, Q12 and PERF D09 retain historical/current-source distinction and frozen producer gate. |
+| 8C-02 | editorial | Closed receipt: API readiness links dated raw-versus-semantic comparisons; original hashes/schema/capability meanings untouched. |
+
+## Evidence index
+
+- Commits: target 59f8317a114ba16a431bab99cf5006401b0161b8; actual base 86701416fa966b92353a1cff062a81a27a1786b9; historical approval identity 083579cdb1bfd24e3fdb64f4f051524393e50861 retained.
+- Notes: current Spec readiness review/triage/user decisions/REQ; Task 9 disposition table; Task 10; same PR Context 337dd04c-2911-4227-8217-1e2fc0b6a9f0; existing Progress Report b6884312-45fe-4295-a5a3-70180a701223; audits b7a93978-262b-4266-aaf7-03cf836db2cf / 5f056a05-3316-4c28-9b1b-eb0d6f9d9349 / f0aea5b2-1d37-42a9-adf3-857e0a4995eb.
+- All seven live source notes were read and compared exactly after the documented link transform. All three live audit notes exactly equal their sealed readiness/*.txt snapshots.
+- Areas: all seven document diffs; architecture LP/LS/EF/PF/TP/DR/SG; API RP/freshness; UX changed flows; TEST §13; PERF tables/accounting; index phases/Q/support; traceability, transformations, hashes, checker and mutations.
+
+## Tests/Commands Run
+
+- `python3 docs/spec/tools/check_spec.py` → **PASS**: 12 REQs, 30 decisions, 24 capabilities, 27 qualifications, 20 findings, 8 profiles, 27 new future consumer cases, 16 route rows, 52 exact transformations, 7 reproduced A2 documents, 243 relative links, 173 tables, 67 JSON examples, 47 seals.
+- `python3 docs/spec/tools/check_spec_mutations.py` → **PASS, 11/11**. Missing REQ-READY/disposition, changed candidate/spend/egress, missing route/case, altered original type/budget/history and undeclared prose all rejected in temporary copies. Run timestamp: 2026-09-26T01:41:03.426779+00:00.
+- `(cd docs/spec && shasum -a 256 -c SHA256SUMS)` → **PASS, 47/47**.
+- `git diff 8670141 59f8317 --check` → **PASS**.
+- `git diff --exit-code 8670141 59f8317 -- docs/spec/history docs/spec/corrections docs/spec/approvals` → **PASS**; separately byte-compared 23 history, 2 correction and 2 approval files to actual Git base.
+- Independent Python reversal of every ledger operation, followed by equality with `git show 86701416fa966b92353a1cff062a81a27a1786b9:docs/spec/<section>.md` → **PASS 7/7**. Compared old traceability decisions with current first 26 → exact parsed equality. Compared all 26 PERF table blocks to base → byte-identical.
+- Fresh workspace `ws.note.read` / `ws.file.read` normalized comparisons → **PASS 7/7**; fresh audit comparisons → **PASS 3/3**.
+- Read-only LP-1 structural probe → confirmed EventPage only inline, mandatory large-transaction reference prose, snapshot URL without retrieval response contract, transfer expectedVersion absent from StagingRecord. These checks support manual contract reasoning, not runtime reproduction.
+- `git status --porcelain=v1` → clean; HEAD still target at final repository check.
+- No application, browser/IME/AT, provider, install/build, benchmark or CI test ran or is claimed. No base rebuild was used. External sources were not re-fetched in Task 10; dated 8C retrieval/comparison evidence was verified against its live audit and owning updates.
+
+### Exact live-parity re-verify query
+
+Run via workspace_api:
+
+```js
+const map = JSON.parse(await ws.file.read("docs/spec/note-map.json"));
+const pairs = [{ noteId: map.indexNoteId, path: "index.md" }, ...map.sections];
+return await Promise.all(pairs.map(async p => {
+  const [n, f] = await Promise.all([
+    ws.note.read(p.noteId), ws.file.read("docs/spec/" + p.path)
+  ]);
+  let s = n.rawContent;
+  for (const [file, url] of Object.entries(map.noteLinkMap))
+    s = s.split(url).join(file);
+  s = s.split(map.supportLinkPrefix).join("");
+  return { noteId: p.noteId, path: p.path, exactNormalizedMatch: s === f };
+}));
+```
+
+## Risk notes and handoff
+
+The acceptance criteria are specific and testable; no spec ambiguity or missing tool prevented this verdict. The missing LP-1 definitions are implementation-readiness defects within approved scope. Existing Q01–Q27 are deliberately future qualification, not hidden failures or passed runtime evidence. Security/profile defaults are specified but not empirically certified.
+
+A structured fix request was sent to the Task 9 implementor and coordinator. **Next owner: Coordinator**, route the bounded LP-1 completion to Task 9, then return its exact revision for targeted Task 10 verification. Do not mark either task complete or infer permission to implement. All source changes must preserve accepted decisions, numeric budgets, historical snapshots and note/file parity. Final Spec/report/task feedback checks were empty; no user review checkbox was changed.
+
+
+## Handoff update
+
+After the V1 findings were sent, the coordinator authorized Task 9’s bounded LP-1 correction round. The author is now responsible for returning a corrected exact commit, after which Task 10 re-verifies. V1 remains NOT APPROVED at 59f8317. No additional user decision is needed; no source edit was made by this verifier.

@@ -1,6 +1,6 @@
 # Ideogram Editor — Technical Specification
 
-Assembly **SPEC-A3**, 2026-09-26 UTC. Status: **author readiness revisions; Task 10 independent verification pending**. Original Task 7 is complete; SPEC-A2 source approval at **083579cdb1bfd24e3fdb64f4f051524393e50861** and closeout **86701416fa966b92353a1cff062a81a27a1786b9** remain historical evidence. [Prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not cover the new readiness contracts. User review/acceptance and runtime qualification remain separate. No implementation, paid calls or PR are authorized by this document.
+Assembly **SPEC-A3**, 2026-09-26 UTC. Status: **LP-1-R1 author correction; Task 10 focused re-verification pending**. Original Task 7 is complete; SPEC-A2 source approval at **083579cdb1bfd24e3fdb64f4f051524393e50861** and closeout **86701416fa966b92353a1cff062a81a27a1786b9** remain historical evidence. [Prior approval](approvals/769bd9b2-f482-41fa-abc8-0bee99d453ef-SPEC-A2.md) does not cover the new readiness contracts. User review/acceptance and runtime qualification remain separate. No implementation, paid calls or PR are authorized by this document.
 
 Build a local, recoverable, Photoshop-like browser editor around the documented Ideogram V4 family on fal.ai and the en-reve design system. The initial product edits native image and text layers, authors separate semantic composition descriptions, and submits explicitly reviewed immutable requests through a localhost backend. It preserves originals, exact canonical pixels outside edit masks, durable history and unused candidates. This is a specification and implementation-planning handoff, not an authorization to start implementation.
 
@@ -272,8 +272,8 @@ Future schema/profile changes require versioned migrations, a verified backup/ol
 | API-1.2 / 2728dafd-4209-4558-a762-3a0192e0610f | [Joint review V2, retained in V1–V5 history](history/176843a5-c21b-4de6-84a6-53ef5b9ca804.md); earlier API-1.1 [foundation approval](history/99dd9c46-10a3-404d-b4b7-458c2c34758d.md) retains original scope | [API-1.2+A3](api.md) |
 | DS-1.1 / bf7b9cc0-391c-4fce-97a8-5da1a660a4a2 | [Foundation approval](history/99dd9c46-10a3-404d-b4b7-458c2c34758d.md) plus accepted package/browser decisions | [DS-1.1+A3](design-system.md) |
 | UX-2.2 / 3febb57d-ea57-42de-a098-b12fb4e010e4 | [Final joint V5 closure](history/176843a5-c21b-4de6-84a6-53ef5b9ca804.md), accepted text/list addenda | [UX-2.2+A3](ux.md) |
-| ARCH-1.4 / c0689bcd-8dca-4ce6-bccb-e538e0a45477 | [Final joint V5 closure](history/176843a5-c21b-4de6-84a6-53ef5b9ca804.md), accepted text/list addenda | [ARCH-1.4+A3](architecture.md) |
-| TEST-1 / d7819c6b-68ff-4d89-835d-9acabe779cae | [Testing independent V1 approval](history/0843a4b2-b4f5-449b-b109-2f851e2cca7b.md) | [TEST-1+A3](testing.md) |
+| ARCH-1.4 / c0689bcd-8dca-4ce6-bccb-e538e0a45477 | [Final joint V5 closure](history/176843a5-c21b-4de6-84a6-53ef5b9ca804.md), accepted text/list addenda | [ARCH-1.4+A3.1](architecture.md) |
+| TEST-1 / d7819c6b-68ff-4d89-835d-9acabe779cae | [Testing independent V1 approval](history/0843a4b2-b4f5-449b-b109-2f851e2cca7b.md) | [TEST-1+A3.1](testing.md) |
 | PERF-8 / 1b7b659d-d577-4257-b677-4850bbf86143 | [PERF-8 independent approval](history/bb86b142-0129-4293-b3c4-ebbb458490d7.md) and joint closure | [PERF-8+A3](performance.md) |
 
 The exact input revisions are content-addressed: named source version plus SHA-256 of raw UTF-8 note content. The note API exposes no numeric revision field, so none is invented. [sync-manifest.json](sync-manifest.json) records every source note ID/hash/snapshot, approval input, output path/note hash and normalized parity identity. [editorial-transformations.json](editorial-transformations.json) records extracted original line ranges and every prose replacement. The API schema appendices, all substantive TypeScript/JSON contracts and all 60 performance budget rows are preserved; checker receipts record the exact comparisons. Version-label updates do not make historical author tests current.
@@ -304,7 +304,7 @@ All 20 findings from [8A](readiness/8A-conformance.txt), [8B](readiness/8B-readi
 | 8A-F06 | Resolved: current decisions/header separated from preserved chronological receipts | Live Spec history disclosure; sealed history untouched |
 | 8A-F07 | Resolved: CAP-01–CAP-24 summary | Index/traceability exact match |
 | 8B-01 | Resolved: first-slice milestones and applicable phase gates | Index below; TEST E1/§13 |
-| 8B-02 | Resolved: LP-1 wire/hash/error/upload/event contract | ARCH §20.1; PROTO01–04 |
+| 8B-02 | Author-corrected in LP-1-R1: typed large-transaction/snapshot recovery, reviewed staging transfer, complete route/error envelopes | ARCH §20.1; extended PROTO03/04 and protocol contract probes; Task 10 re-verification pending |
 | 8B-03 | Resolved: LS-1 threat/session/content policy | ARCH §20.2; SEC01–06; Q26 runtime evidence still required |
 | 8B-04 | Resolved: EF-1 credential-free retrieval and sealed egress | ARCH §20.3/API cross-link; EGRESS01–03; Q09 profile qualification |
 | 8B-05 | Resolved: PF-1 ZIP64 STORE and ordered hostile-input validation | ARCH §20.4; FORMAT01–03; Q18/Q27 qualification |

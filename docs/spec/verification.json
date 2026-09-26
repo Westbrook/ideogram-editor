@@ -10,13 +10,16 @@
     "capabilities": 24,
     "qualifications": 27,
     "planning_findings": 20,
+    "protocol_wire_types_checked": 26,
+    "protocol_recovery_clauses_checked": 20,
+    "LP1_correction_operations": 16,
     "readiness_findings": 20,
     "readiness_profiles": 8,
     "readiness_consumer_oracles": 27,
-    "local_protocol_route_rows": 16,
-    "declared_A3_transformations": 52,
+    "local_protocol_route_rows": 21,
+    "declared_A3_transformations": 68,
     "reproduced_A2_documents": 7,
-    "input_snapshots": 30,
+    "input_snapshots": 32,
     "resolved_note_references": 405,
     "synchronized_notes": 7,
     "api_contract_blocks": 63,
@@ -24,7 +27,7 @@
     "unchanged_budget_rows": 60,
     "performance_tables_preserved_with_exact_FA01_wording": 26,
     "api_schema_appendices": 27,
-    "sealed_files": 47
+    "sealed_files": 49
   },
   "errors": [],
   "limits": [
@@ -32,15 +35,16 @@
     "Stored note hashes attest to the recorded readback; a future live note edit requires a fresh synchronization readback."
   ],
   "assembly": "SPEC-A3",
-  "executedAt": "2026-09-26T01:38:28.212312+00:00",
+  "correctionId": "LP-1-R1",
+  "executedAt": "2026-09-26T01:53:45.690564+00:00",
   "command": "python3 docs/spec/tools/check_spec.py",
-  "verificationClass": "Author readiness-revision documentation checks; independent Task 10 pending",
-  "baseSha": "86701416fa966b92353a1cff062a81a27a1786b9",
-  "independentVerificationCredit": "SPEC-A3 pending; prior SPEC-A2 approval preserved",
+  "verificationClass": "Author LP-1 correction documentation checks; Task 10 focused independent re-verification pending",
+  "baseSha": "59f8317a114ba16a431bab99cf5006401b0161b8",
+  "independentVerificationCredit": "Task 10 V1 NOT APPROVED at base; corrected revision awaits re-verification",
   "liveNoteParity": "7/7 exact fresh readbacks",
   "gitChecks": {
     "currentChange": "git diff --check: PASS",
-    "sealedHistory": "history/corrections/approvals unchanged",
+    "sealedHistory": "history/corrections/approvals unchanged from 59f8317",
     "branch": "upon-build",
     "scope": "docs/spec only"
   },
@@ -188,8 +192,40 @@
       "userAcceptance": "pending"
     }
   },
+  "historicalSPEC_A3_author": {
+    "commit": "59f8317a114ba16a431bab99cf5006401b0161b8",
+    "executedAt": "2026-09-26T01:38:28.212312+00:00",
+    "checks": {
+      "current_documents": 7,
+      "relative_links": 243,
+      "markdown_tables": 173,
+      "json_examples": 67,
+      "requirements": 12,
+      "decisions": 30,
+      "capabilities": 24,
+      "qualifications": 27,
+      "planning_findings": 20,
+      "readiness_findings": 20,
+      "readiness_profiles": 8,
+      "readiness_consumer_oracles": 27,
+      "local_protocol_route_rows": 16,
+      "declared_A3_transformations": 52,
+      "reproduced_A2_documents": 7,
+      "input_snapshots": 30,
+      "resolved_note_references": 405,
+      "synchronized_notes": 7,
+      "api_contract_blocks": 63,
+      "architecture_contract_blocks": 10,
+      "unchanged_budget_rows": 60,
+      "performance_tables_preserved_with_exact_FA01_wording": 26,
+      "api_schema_appendices": 27,
+      "sealed_files": 47
+    },
+    "status": "PASS",
+    "limits": "Original author checks passed but Task 10 found R10-01/R10-02; not independent approval."
+  },
   "checkerNegativeProbes": {
-    "executedAt": "2026-09-26T01:38:28.131929+00:00",
+    "executedAt": "2026-09-26T01:51:49.342468+00:00",
     "scope": "Isolated temporary documentation copies only; original files and notes unchanged",
     "cases": [
       {
@@ -223,6 +259,46 @@
         "expectedFailure": "LP-1 route inventory"
       },
       {
+        "probe": "LP-1 inline-only event page",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1-R1 wire EventPage"
+      },
+      {
+        "probe": "LP-1 missing snapshot content",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1-R1 wire SnapshotDescriptor"
+      },
+      {
+        "probe": "LP-1 missing stage version",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1-R1 wire StagingRecord"
+      },
+      {
+        "probe": "LP-1 missing transfer review precondition",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1-R1 wire ReadinessCommandBody"
+      },
+      {
+        "probe": "LP-1 missing recovery discovery route",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1 route inventory"
+      },
+      {
+        "probe": "LP-1 lost snapshot atomic publication",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1-R1 recovery/auth clause"
+      },
+      {
+        "probe": "LP-1 missing typed error details",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1-R1 wire LocalError"
+      },
+      {
+        "probe": "LP-1 weakened transfer consumer oracle",
+        "result": "PASS: checker rejected mutation",
+        "expectedFailure": "LP-1-R1 consumer oracle PROTO03"
+      },
+      {
         "probe": "missing new consumer case",
         "result": "PASS: checker rejected mutation",
         "expectedFailure": "readiness test row DELETE01"
@@ -247,7 +323,13 @@
         "result": "PASS: checker rejected mutation",
         "expectedFailure": "A3 undeclared change: architecture"
       }
-    ],
-    "command": "python3 docs/spec/tools/check_spec_mutations.py"
-  }
+    ]
+  },
+  "paperRoundTrips": {
+    "class": "Manual source-contract walks; no HTTP/application execution",
+    "largeTransaction": "PASS: offered reference retains applied cursor; full hash/length/count/bounds verified before atomic application",
+    "snapshotTail": "PASS: B/H context pins snapshot and tail; temporary projection published only at H; expiry/restart/failure retains old state",
+    "lostClientTransfer": "PASS: paired metadata inventory → target-bound preview → owner/version/hash confirmation → fenced transfer receipt → resumed offset; stale preview requires new review"
+  },
+  "sealedFiles": 49
 }

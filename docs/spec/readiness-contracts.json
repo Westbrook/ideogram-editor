@@ -85,8 +85,8 @@
     {
       "id": "8B-02",
       "status": "author-resolved",
-      "disposition": "Resolved: LP-1 wire/hash/error/upload/event contract",
-      "ownerAndVerification": "ARCH §20.1; PROTO01–04",
+      "disposition": "Author-corrected in LP-1-R1: typed large-transaction/snapshot recovery, reviewed staging transfer, complete route/error envelopes",
+      "ownerAndVerification": "ARCH §20.1; extended PROTO03/04 and protocol contract probes; Task 10 re-verification pending",
       "independentReview": "pending Task 10"
     },
     {
@@ -193,7 +193,12 @@
         "PROTO02",
         "PROTO03",
         "PROTO04"
-      ]
+      ],
+      "revision": "LP-1-R1",
+      "largeTransaction": "typed-reference-verified-before-atomic-apply",
+      "snapshotRecovery": "pinned-snapshot-plus-tail-before-publish",
+      "stagingTransfer": "authenticated-metadata-preview-owner-version-confirmation",
+      "details": "typed-inline-or-authenticated-reference"
     },
     "LS-1": {
       "owner": "architecture.md#s20",
@@ -294,83 +299,108 @@
   "routes": [
     {
       "route": "POST /session/bootstrap",
-      "requestAndSuccess": "{protocolVersion:1,pairingToken}; 200 {protocolVersion:1,csrfToken,sessionExpiresAt,clientId}, Set-Cookie; single-use launch exchange",
-      "failureAndRetry": "401 expired/used token, 403 origin/host; no retry with consumed token; local launcher issues another"
+      "requestAndSuccess": "BootstrapRequest; 200 SessionView and Set-Cookie; single-use launch exchange",
+      "failureAndRetry": "401 expired/used token, 403 origin/host; local launcher issues another token"
     },
     {
       "route": "GET /session",
-      "requestAndSuccess": "Cookie + LS-1 same-origin read checks; 200 same session view and CSRF token",
-      "failureAndRetry": "401 requires local pairing; never caches secrets"
+      "requestAndSuccess": "Cookie + LS-1 read checks; 200 SessionView",
+      "failureAndRetry": "401 SESSION_REQUIRED; no secret caching"
     },
     {
       "route": "POST /session/renew; POST /session/revoke",
-      "requestAndSuccess": "{protocolVersion:1}; CSRF; renew 200 rotates cookie/token; revoke 204",
-      "failureAndRetry": "Old session/token immediately invalid; no domain mutation; retry by reading current session"
+      "requestAndSuccess": "EmptyProtocolRequest + CSRF; renew 200 SessionView rotates credentials; revoke 204 with empty body",
+      "failureAndRetry": "Old session/token invalid immediately; on lost response query /session, then re-pair if401"
     },
     {
       "route": "GET /capabilities",
-      "requestAndSuccess": "Authenticated; 200 {protocolVersion:1,serverVersion,projectionSchema,limits,credentialConfigured,storageState,connectionState,profiles}",
-      "failureAndRetry": "Missing FAL_KEY is credentialConfigured:false, not HTTP authentication failure"
+      "requestAndSuccess": "Authenticated; 200 CapabilitiesView",
+      "failureAndRetry": "Missing FAL_KEY is credentialConfigured:false; 503 if local capabilities cannot be read"
     },
     {
       "route": "POST /commands",
-      "requestAndSuccess": "§5.2 Command in {protocolVersion:1,command}; 200 CommandResult receipt or 202 CommandResult pending with Location pointing to /commands/:id",
-      "failureAndRetry": "Only complete durable receipt is accepted/rejected. 202 means preparation is pending, zero acceptance/provider dispatch"
+      "requestAndSuccess": "CommandRequest; 200 CommandResult receipt or202 pending; pending Location equals receiptUrl",
+      "failureAndRetry": "Only a durable Receipt means accepted/rejected;202 never dispatches provider work"
     },
     {
       "route": "GET /commands/:id",
-      "requestAndSuccess": "200 receipt; 202 same pending identity; 404 CommandResult unknown",
-      "failureAndRetry": "Unknown is not proof of failed dispatch. Resend identical command after reconnect; never manufacture new ID"
+      "requestAndSuccess": "200 CommandResult receipt;202 pending;404 CommandResult unknown",
+      "failureAndRetry": "Unknown is not proof of failed dispatch; resend identical command, never invent a new ID"
     },
     {
-      "route": "GET /events?after=seq",
-      "requestAndSuccess": "200 EventPage at captured highWater, whole transactions only; nextCursor is last complete transaction",
-      "failureAndRetry": "409 CURSOR_INSIDE_TRANSACTION; 410 gap with snapshotUrl/earliestAvailable/highWater; retry safe read"
+      "route": "GET /events?after=seq[&recoveryId=id]",
+      "requestAndSuccess": "200 EventPage; first request creates RecoveryContext, later pages retain its pinned highWater; ordered inline/reference batches",
+      "failureAndRetry": "409 CURSOR_INSIDE_TRANSACTION;410 CURSOR_GAP with inline CursorGap details;410 READ_CONTEXT_EXPIRED; safe read retry"
     },
     {
       "route": "GET /events/stream?after=seq",
-      "requestAndSuccess": "text/event-stream containing StreamEnvelope; SSE id only on final part is toSeq",
-      "failureAndRetry": "Reconnect from last applied complete toSeq; 401 closes stream; gap reloads pinned snapshot plus tail"
+      "requestAndSuccess": "text/event-stream with StreamEnvelope JSON data; SSE id only at transaction end/reference toSeq",
+      "failureAndRetry": "Before headers normal LocalError; afterward error/gap frame closes stream; incomplete transaction discarded"
+    },
+    {
+      "route": "GET /snapshots/:id?recoveryId=id",
+      "requestAndSuccess": "200 SnapshotDescriptor matching the pinned context and snapshotSeq",
+      "failureAndRetry": "404 NOT_FOUND;410 READ_CONTEXT_EXPIRED;403 for wrong client/root/context; no silently newer snapshot"
+    },
+    {
+      "route": "GET /protocol-content/:id[?recoveryId=id]",
+      "requestAndSuccess": "200 exact descriptor bytes or206 verified range; ETag from BlobRef hash; defined JSON/JSONL representation",
+      "failureAndRetry": "416 range detail and Content-Range;404 missing;410 expired context;403 wrong scope; retry same immutable content"
+    },
+    {
+      "route": "POST /recovery/:id/release",
+      "requestAndSuccess": "EmptyProtocolRequest + CSRF;204 empty body; internal journal action releases only this client's read pins",
+      "failureAndRetry": "Repeated authorized release204;403 wrong client; release never deletes domain history"
     },
     {
       "route": "GET /documents/:id; GET /jobs/:id",
-      "requestAndSuccess": "200 {protocolVersion:1,entityVersion,projectionSchema,projection,highWater}; projection is existing typed read model, safe provenance only",
-      "failureAndRetry": "404 unknown; 410 document tombstone; no automatic remote reconnect/submit"
+      "requestAndSuccess": "200 ProjectionResponse<Document> or ProjectionResponse<JobReadView>; oversized value uses lp1-json ProtocolContentRef",
+      "failureAndRetry": "404 NOT_FOUND;410 DOCUMENT_DELETED; safe provenance only; no automatic remote reconnect"
     },
     {
       "route": "POST /assets/staging",
-      "requestAndSuccess": "{protocolVersion:1,stagingId,purpose,expectedBytes,sha256,mediaType}; 201 StagingRecord; client chooses id for retry dedup",
-      "failureAndRetry": "409 changed metadata/id; 413 unsupported purpose envelope; 507 no reservation; identical retry returns same record"
+      "requestAndSuccess": "StagingCreateRequest;201 StagingRecord (identical retry200)",
+      "failureAndRetry": "409 STAGING_ID_REUSE for changed metadata;413 envelope;415 type/purpose;507 reservation; no authority from staged ID"
+    },
+    {
+      "route": "GET /assets/staging/recovery[?cursor=id]",
+      "requestAndSuccess": "LS-1 authenticated JSON read;200 StagingRecoveryPage of minimal recoverable metadata",
+      "failureAndRetry": "No bytes/names/paths/hashes/secrets;401 SESSION_REQUIRED or403 origin denial; cursor is opaque and invalid cursor400"
+    },
+    {
+      "route": "GET /assets/staging/transfer-reviews/:reviewId",
+      "requestAndSuccess": "Authenticated target client;200 StagingTransferReview created by its accepted preview command",
+      "failureAndRetry": "404 NOT_FOUND;403 other client;410 REVIEW_EXPIRED; does not grant content access"
     },
     {
       "route": "GET /assets/staging/:id",
-      "requestAndSuccess": "200 StagingRecord with committedOffset from durable server record",
-      "failureAndRetry": "404 unknown; authorized owner only; resolves lost PUT/finalize response"
+      "requestAndSuccess": "Authorized owner only;200 StagingRecord with version and committedOffset",
+      "failureAndRetry": "404 NOT_FOUND;403 OWNER_REQUIRED; resolves lost PUT/finalize acknowledgement"
     },
     {
       "route": "PUT /assets/staging/:id",
-      "requestAndSuccess": "application/octet-stream; Upload-Offset decimal header and Content-Length; sequential chunk ≤1MiB; 200 StagingRecord after flush/checkpoint",
-      "failureAndRetry": "409 OFFSET_MISMATCH returns committedOffset; 413 length exceeds declaration/chunk; query offset then resend only missing bytes"
+      "requestAndSuccess": "Octet-stream; Upload-Offset decimal and Content-Length; sequential chunk≤1MiB;200 StagingRecord after flush/version commit",
+      "failureAndRetry": "409 OFFSET_MISMATCH with offset detail;413 declared/chunk excess;403 stale owner; query record before resend"
     },
     {
       "route": "POST /assets/staging/:id/finalize",
-      "requestAndSuccess": "{protocolVersion:1,command}; body names FinalizeStaging with stagingId/expected hash; 200 receipt or 202 pending",
-      "failureAndRetry": "Full declared length/hash/type/profile checked; failed validation gives durable INVALID_INPUT receipt when storage works; identical command is idempotent"
+      "requestAndSuccess": "CommandRequest with FinalizeStaging body naming the same ID;200 receipt or202 pending",
+      "failureAndRetry": "Length/hash/type/profile failures use durable INVALID_INPUT Receipt when possible; identical finalize idempotent"
     },
     {
       "route": "GET /assets/:version/content",
-      "requestAndSuccess": "Version authorization + safety gate; 200 bytes or 206 one valid bytes range; ETag immutable SHA-256",
-      "failureAndRetry": "416 with Content-Range bytes */length for malformed/unsatisfiable/multiple range; If-Range mismatch sends full 200; 403 withheld/quarantined; 404 missing"
+      "requestAndSuccess": "Authorized safe local bytes;200 or206 single range; immutable ETag and measured MIME",
+      "failureAndRetry": "416 range detail; If-Range mismatch full200;403 withheld/quarantined;404 missing"
     },
     {
       "route": "POST /bundles/import",
-      "requestAndSuccess": "{protocolVersion:1,command}; ImportBundle references finalized bundle staging plus preview approval, never a path/URL; 200 receipt or 202 pending",
-      "failureAndRetry": "Isolated validation/preparation; only final receipt publishes namespace; same command retry"
+      "requestAndSuccess": "CommandRequest with ImportBundle referencing finalized staging and its approved preview;200 receipt or202 pending",
+      "failureAndRetry": "Same-command retry; only final receipt publishes namespace; no request path or URL"
     },
     {
       "route": "GET /bundles/:id/content",
-      "requestAndSuccess": "Only ready authorized complete/incomplete-labelled bundle; 200/206 with same range/ETag rules",
-      "failureAndRetry": "409 BUNDLE_NOT_READY; 416 invalid range; download does not confirm external destination saved"
+      "requestAndSuccess": "Authorized prepared bundle;200/206 with MIME application/zip, ETag and range contract",
+      "failureAndRetry": "409 BUNDLE_NOT_READY;416 range detail; content download does not prove external destination saved"
     }
   ],
   "testIds": [
@@ -441,5 +471,44 @@
     "Q25",
     "Q26",
     "Q27"
-  ]
+  ],
+  "protocolRecovery": {
+    "revision": "LP-1-R1",
+    "types": [
+      "ProtocolContentRef",
+      "RecoveryContext",
+      "SnapshotDescriptor",
+      "CursorGap",
+      "LocalErrorDetail",
+      "StagingRecoveryPage",
+      "StagingTransferReview",
+      "TransactionReference",
+      "SnapshotWireRecord"
+    ],
+    "eventPageVariants": [
+      "EventBatch",
+      "TransactionReference"
+    ],
+    "contentEncodings": [
+      "lp1-json",
+      "lp1-events-jsonl",
+      "lp1-snapshot-jsonl"
+    ],
+    "stagingVersionField": "version: Seq",
+    "transferPreconditions": [
+      "expectedOwnerClientId",
+      "expectedVersion",
+      "reviewId",
+      "reviewHash"
+    ],
+    "tests": [
+      "PROTO03",
+      "PROTO04"
+    ],
+    "paperRoundTrips": [
+      "large-transaction",
+      "snapshot-tail",
+      "lost-client-staging-transfer"
+    ]
+  }
 }

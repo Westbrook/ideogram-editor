@@ -129,11 +129,113 @@ need(set(contracts['testIds'])==expected_test_ids and len(contracts['testIds'])=
 for id in expected_test_ids:need(len(re.findall(r'^\| '+id+r' /',current['testing'],re.M))==1,'readiness test row '+id)
 need({t for p in profiles.values() for t in p['tests']}|set(contracts['editorialCases'])==expected_test_ids,'readiness profile/test closure')
 route_rows=current['architecture'].split('### 20.1')[1].split('### 20.2')[0]
-expected_routes=['POST /session/bootstrap', 'GET /session', 'POST /session/renew; POST /session/revoke', 'GET /capabilities', 'POST /commands', 'GET /commands/:id', 'GET /events?after=seq', 'GET /events/stream?after=seq', 'GET /documents/:id; GET /jobs/:id', 'POST /assets/staging', 'GET /assets/staging/:id', 'PUT /assets/staging/:id', 'POST /assets/staging/:id/finalize', 'GET /assets/:version/content', 'POST /bundles/import', 'GET /bundles/:id/content']
+expected_routes=['POST /session/bootstrap', 'GET /session', 'POST /session/renew; POST /session/revoke', 'GET /capabilities', 'POST /commands', 'GET /commands/:id', 'GET /events?after=seq[&recoveryId=id]', 'GET /events/stream?after=seq', 'GET /snapshots/:id?recoveryId=id', 'GET /protocol-content/:id[?recoveryId=id]', 'POST /recovery/:id/release', 'GET /documents/:id; GET /jobs/:id', 'POST /assets/staging', 'GET /assets/staging/recovery[?cursor=id]', 'GET /assets/staging/transfer-reviews/:reviewId', 'GET /assets/staging/:id', 'PUT /assets/staging/:id', 'POST /assets/staging/:id/finalize', 'GET /assets/:version/content', 'POST /bundles/import', 'GET /bundles/:id/content']
 need([r['route'] for r in contracts['routes']]==expected_routes,'LP-1 route inventory')
 for route in contracts['routes']:
  row='| '+route['route']+' | '+route['requestAndSuccess']+' | '+route['failureAndRetry']+' |'
  need(row in route_rows,'LP-1 route/schema mismatch '+route['route'])
+# LP-1-R1 semantic oracles are independent of the declared replacement hashes.
+# They catch the review's missing wire edges even if a new table hash is declared.
+need(a3.get('corrections') and len(a3['corrections'])==1,'LP-1-R1 correction declaration')
+correction=a3['corrections'][0]
+need(correction.get('id')=='LP-1-R1' and correction.get('baseCommit')=='59f8317a114ba16a431bab99cf5006401b0161b8','LP-1-R1 correction base')
+correction_ops=[o for o in a3['operations'] if o.get('correctionId')=='LP-1-R1']
+need(len(correction_ops)==correction['operationCount']==16,'LP-1-R1 exact operation inventory')
+for name,expected_hash in correction['preCorrectionDocumentSha256'].items():
+ before=current[name]
+ for op in reversed(correction_ops):
+  if op['section']==name:before=before.replace(op['new'],op['old'],1)
+ need(digest(before.encode())==expected_hash,'LP-1-R1 prior source reconstruction '+name)
+need('LP-1-R1' in trace['correctionIds'],'LP-1-R1 traceability')
+expected_recovery={'revision': 'LP-1-R1', 'types': ['ProtocolContentRef', 'RecoveryContext', 'SnapshotDescriptor', 'CursorGap', 'LocalErrorDetail', 'StagingRecoveryPage', 'StagingTransferReview', 'TransactionReference', 'SnapshotWireRecord'], 'eventPageVariants': ['EventBatch', 'TransactionReference'], 'contentEncodings': ['lp1-json', 'lp1-events-jsonl', 'lp1-snapshot-jsonl'], 'stagingVersionField': 'version: Seq', 'transferPreconditions': ['expectedOwnerClientId', 'expectedVersion', 'reviewId', 'reviewHash'], 'tests': ['PROTO03', 'PROTO04'], 'paperRoundTrips': ['large-transaction', 'snapshot-tail', 'lost-client-staging-transfer']}
+need(contracts.get('protocolRecovery')==expected_recovery,'LP-1-R1 typed recovery inventory')
+need(profiles['LP-1'].get('revision')=='LP-1-R1','LP-1-R1 policy revision')
+need(profiles['LP-1'].get('largeTransaction')=='typed-reference-verified-before-atomic-apply','LP-1-R1 policy largeTransaction')
+need(profiles['LP-1'].get('snapshotRecovery')=='pinned-snapshot-plus-tail-before-publish','LP-1-R1 policy snapshotRecovery')
+need(profiles['LP-1'].get('stagingTransfer')=='authenticated-metadata-preview-owner-version-confirmation','LP-1-R1 policy stagingTransfer')
+need(profiles['LP-1'].get('details')=='typed-inline-or-authenticated-reference','LP-1-R1 policy details')
+wire=re.search(r'^```ts\n(type EmptyProtocolRequest.*?)(?=^```)',route_rows,re.M|re.S)
+need(wire is not None,'LP-1-R1 typed wire block')
+wire_types={m[1]:m[2] for m in re.finditer(r'^type (\w+)(?:<[^>\n]+>)? =\s*(.*?)(?=^type |\Z)',wire[1] if wire else '',re.M|re.S)}
+wire_members={'EmptyProtocolRequest': ['protocolVersion: 1'],
+ 'BootstrapRequest': ['protocolVersion: 1', 'pairingToken: string'],
+ 'SessionView': ['csrfToken: string', 'clientId: string', 'sessionExpiresAt: string', 'idleExpiresAt: string'],
+ 'CapabilitiesView': ['credentialConfigured: boolean',
+                      'storageState:',
+                      'connectionState:',
+                      'limits: readonly',
+                      'profiles: readonly'],
+ 'ProtocolContentRef': ['contentId: string',
+                        'url: string',
+                        'blob: BlobRef',
+                        'recordCount: string',
+                        'expiresAt: string',
+                        '"lp1-json" | "lp1-events-jsonl" | "lp1-snapshot-jsonl"'],
+ 'WireValue': ['kind: "inline"; value: T', 'kind: "content-ref"; content: ProtocolContentRef'],
+ 'RecoveryContext': ['recoveryId: string',
+                     'writerEpoch: Seq',
+                     'projectionSchema: number',
+                     'highWater: Seq',
+                     'expiresAt: string'],
+ 'SnapshotDescriptor': ['snapshotId: string',
+                        'metadataUrl: string',
+                        'snapshotSeq: Seq',
+                        'recovery: RecoveryContext',
+                        'content: ProtocolContentRef'],
+ 'CursorGap': ['requestedAfter: Seq', 'earliestAvailable: Seq', 'snapshot: SnapshotDescriptor'],
+ 'LocalErrorDetail': ['CursorGap',
+                      'committedOffset: string; stagingVersion: Seq',
+                      'transactionFrom: Seq; transactionTo: Seq',
+                      'supportedVersions: readonly number[]',
+                      'byteLength: string',
+                      'resourceId: string; state: string',
+                      'issues: readonly'],
+ 'LocalError': ['details?: WireValue<LocalErrorDetail>'],
+ 'ReadinessCommandBody': ['type: "PreviewStagingOwnershipTransfer"; stagingId: string',
+                          'type: "TransferStagingOwnership"; stagingId: string; expectedOwnerClientId: string;',
+                          'expectedVersion: Seq; reviewId: string; reviewHash: Hash'],
+ 'CommandRequest': ['protocolVersion: 1', 'body: CommandBody | ReadinessCommandBody'],
+ 'CommandResult': ['rejectionDetails?: WireValue<LocalErrorDetail>',
+                   'kind: "receipt"',
+                   'kind: "pending"',
+                   'kind: "unknown"'],
+ 'StagingCreateRequest': ['stagingId: string',
+                          'purpose: StagingPurpose',
+                          'expectedBytes: string',
+                          'sha256: string',
+                          'mediaType: string'],
+ 'StagingRecord': ['ownerClientId: string; version: Seq; committedOffset: string'],
+ 'StagingRecoveryItem': ['stagingId: string; ownerClientId: string; version: Seq',
+                         'expectedBytes: string; committedOffset: string; createdAt: string'],
+ 'StagingRecoveryPage': ['items: readonly StagingRecoveryItem[]', 'nextCursor: string | null'],
+ 'StagingTransferReview': ['reviewId: string; reviewHash: Hash',
+                           'targetClientId: string; staging: StagingRecoveryItem; expiresAt: string'],
+ 'EventBatch': ['kind: "inline"', 'events: readonly DomainEvent<unknown>[]'],
+ 'TransactionReference': ['kind: "transaction-ref"',
+                          'fromSeq: Seq; toSeq: Seq',
+                          'eventCount: string; recovery: RecoveryContext; content: ProtocolContentRef'],
+ 'EventPage': ['recovery: RecoveryContext',
+               'nextCursor: Seq; more: boolean; batches: readonly (EventBatch | TransactionReference)[]'],
+ 'StreamEnvelope': ['kind: "transaction-ref"; reference: TransactionReference',
+                    'kind: "gap"; detail: CursorGap',
+                    'kind: "error"; error: LocalError'],
+ 'SnapshotWireRecord': ['snapshotId: string; snapshotSeq: Seq; projectionSchema: number',
+                        'entityCount: string',
+                        'entityType: string; entityId: string; entityVersion: Seq',
+                        'partIndex: number; partCount: number; utf8Base64: string'],
+ 'JobReadView': ['phase: string', 'safeProvenance: readonly PortableProviderRecord[]'],
+ 'ProjectionResponse': ['entityVersion: Seq; projectionSchema: number',
+                        'highWater: Seq; projection: WireValue<T>']}
+for name,members in wire_members.items():
+ for member in members:need(member in wire_types.get(name,''),'LP-1-R1 wire '+name+' missing '+member)
+recovery_clauses=['CURSOR_GAP requires inline CursorGap', 'HTTP200 kind:receipt/status:rejected includes rejectionDetails', 'whose LP-1 canonical JSON bytes match the Receipt.details BlobRef hash/length/media type', 'only sanitized LP-1 errors, projections, event transactions and snapshots are registerable', 'even though the body is a stream; the media-navigation exception does not apply', 'exactly one transaction and exactly eventCount records', 'content.recordCount counts header plus all parts', 'never advance applied state', 'nextCursor is the last OFFERED toSeq', 'Completion is more:false with nextCursor=H', 'pins both', 'then swaps the complete validated projection atH atomically', 'a backend restart invalidates contexts explicitly', 'explicitly reconnects using its last validated/applied cursor', 'No recovered prior client identity is needed', 'reviewHash is SHA-256 of LP-1 canonical {reviewId,targetClientId,staging,expiresAt}', 'No content is readable by the new client before successful transfer', 'Each committed staging create/offset/state/owner change increments its version', 'fence the old uploader', 'same CommandRequest, not a second authority']
+for clause in recovery_clauses:need(clause in route_rows,'LP-1-R1 recovery/auth clause '+clause)
+for id,terms in {'PROTO03':['lost prior identity','stale review rejects','old writer fenced','same-command retry transfers once'],'PROTO04':['transaction >64KiB','pinned tail to H','full hash/count check before atomic apply','temporary snapshot+tail published only at H']}.items():
+ row=next((line for line in current['testing'].splitlines() if line.startswith('| '+id+' /')),'')
+ for term in terms:need(term in row,'LP-1-R1 consumer oracle '+id+' missing '+term)
+need('LP-1-R1 paper round trips (source checks, not executed HTTP tests)' in current['testing'],'LP-1-R1 paper validation disclosure')
+checks.update(protocol_wire_types_checked=len(wire_members),protocol_recovery_clauses_checked=len(recovery_clauses),LP1_correction_operations=len(correction_ops))
+
 need('MISSING_SCENE' in current['ux'] and 'explicit empty string passes' in current['ux'],'caption missing/empty contract')
 need('A prepared image >2MiB' in current['ux'] and 'not per-image or square-only admission limits' in current['ux'],'training fixture/admission distinction')
 need('Hiding results does not free disk space' in current['ux'],'candidate byte retention disclosure')
