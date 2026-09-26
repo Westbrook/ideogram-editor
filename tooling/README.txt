@@ -23,9 +23,11 @@ installs the pinned browser revision, then runs real browser registration, nativ
 button/input and lazy-readiness tests. Browser requests outside loopback fail.
 This is filesystem/dependency isolation, not an OS permission sandbox.
 
-The initial root build targets tests/consumer/fixture only. The production editor
-and localhost backend are separate later tasks. No provider key or paid call is
-used. Neither the fixture nor its passing checks certify the editor's behavior.
+build:consumer and typecheck:consumer target tests/consumer/fixture only. Root
+build/typecheck also cover the local server; test:consumer remains independently
+scoped and does not need server source. No provider key or paid call is used.
+Neither the fixture nor its passing checks certify the editor's behavior.
+Local session run/integration commands and limits: tooling/SESSION.txt.
 
 Production from a new source selection (read-only live source input):
 

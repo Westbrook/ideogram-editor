@@ -1,0 +1,118 @@
+{
+  "taskNoteId": "69a3dd83-5f8a-4579-a665-2f44607c06ae",
+  "checkedAt": "2026-09-26T02:46:11.181771+00:00",
+  "status": "author-checked-awaiting-independent-review",
+  "branch": "ideogram-editor-p1",
+  "base": "2bfee8b53bf5dc691d08f367c3dc79020be1fffe",
+  "head": "Recorded by Git and the task/PR Context handoff; this receipt is part of that commit.",
+  "runtime": {
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "platform": "macOS-26.6.1-arm64-arm-64bit-Mach-O",
+    "typescript": "7.0.2"
+  },
+  "scope": "P1a.2 localhost server, trusted launcher, LP-1 session types and real session/security tests only.",
+  "gates": [
+    {
+      "command": "npm run typecheck",
+      "result": "PASS",
+      "receipt": "typecheck-final.txt"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS: public consumer fixture and compiled server",
+      "receipt": "build-final.txt"
+    },
+    {
+      "command": "npm run test:session",
+      "result": "PASS: 13 tests, 0 failed/skipped/retried",
+      "receipt": "session-final-flag.txt"
+    },
+    {
+      "command": "npm run test:consumer",
+      "result": "PASS: independent npm ci, graph, public import/type/build and 2 Chromium tests",
+      "receipt": "consumer-receipt.json",
+      "startedAt": "2026-09-26T02:43:25.950Z",
+      "finishedAt": "2026-09-26T02:43:48.346Z"
+    },
+    {
+      "command": "python3 docs/spec/tools/check_spec.py",
+      "result": "PASS: unchanged sealed specification"
+    },
+    {
+      "command": "python3 docs/spec/tools/check_spec_mutations.py",
+      "result": "PASS: 19 mutation probes"
+    },
+    {
+      "command": "SHA256 file comparison against docs/spec/SHA256SUMS and docs/handoff/SHA256SUMS",
+      "result": "PASS: 49/49 and 42/42",
+      "receipts": [
+        "spec-integrity.json",
+        "handoff-integrity.json"
+      ]
+    },
+    {
+      "command": "git diff --exit-code 2bfee8b53bf5dc691d08f367c3dc79020be1fffe -- docs/spec docs/handoff tests/consumer vendor/en-reve package-lock.json",
+      "result": "PASS: no changes"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "securityEvidence": [
+    "Actual HTTP hostile Host/Origin/forwarded/fetch-metadata/client-marker requests rejected without token consumption.",
+    "Controlled-clock real session store: exact five-minute pairing, thirty-minute idle and twelve-hour absolute expiry; concurrent one-use pairing/renewal, CSRF, revoke and pending mutation rejection.",
+    "Actual SIGKILL/restart rejects cookie, CSRF, used and unused launch tokens; retained sentinel file remains intact.",
+    "Strict control JSON: duplicate and escaped duplicate keys, unknown keys, invalid UTF-8, scalar Unicode, overflow numbers, version/media/query/method/body and fixed/chunked 64KiB boundaries.",
+    "POSIX root/file mode, symlink components/launch file, insecure existing file, root replacement and static/root overlap tests.",
+    "Compiled launcher opens only fragment URL via injected browser callback; actual no-open CLI binds/records origin, terminates cleanly and omits secrets from logs.",
+    "No outbound transport exists. Entire session campaign has test-only literal-loopback socket guard; provider environment sentinel never appears in responses/logs.",
+    "Actual served security headers and VM execution prove prelude order/fragment removal before shell resource markup; actual browser qualification remains pending.",
+    "Progress-report is a display flag only: arbitrary value ignored; extra query keys rejected. Tested after final server change."
+  ],
+  "limits": [
+    "Session author checks are not independent approval or integrated P1a completion.",
+    "Browser cookie/fetch/fragment/history/hostile-site Q26 and production shell integration remain pending.",
+    "SEC04 retained/withheld asset, thumbnail/range authorization and SEC05 user-content browser rendering remain P1b/P2 work.",
+    "No document writer, durable jobs, OS-held writer lock/epoch, streams or provider/egress implementation. Sentinel retention is not job durability proof.",
+    "No separate OS-account access test, Windows ACL, HTTPS, proxy, native/AT or performance qualification.",
+    "Some correctness/build checks overlapped; their elapsed times are not performance samples.",
+    "No remote/PR/CI exists; base CI failures are unassessed and no CI run link exists."
+  ],
+  "preserved": [
+    "Sealed docs/spec and docs/handoff",
+    "Public-consumer fixture",
+    "Vendored en-reve archive identity",
+    "Dependency lock",
+    "Live design-system source (untouched)"
+  ],
+  "failuresReceipt": "failures.json",
+  "runAndIntegrationContract": "tooling/SESSION.txt",
+  "filesTouched": [
+    "package.json",
+    "server/control-json.ts",
+    "server/errors.ts",
+    "server/http.ts",
+    "server/private-root.ts",
+    "server/sessions.ts",
+    "server/static.ts",
+    "src/protocol/session.ts",
+    "tests/session/helpers.mjs",
+    "tests/session/http.test.mjs",
+    "tests/session/no-egress.mjs",
+    "tests/session/process-fixture.mjs",
+    "tests/session/storage-launch.test.mjs",
+    "tooling/README.txt",
+    "tooling/SESSION.txt",
+    "tooling/launch.ts",
+    "tooling/launcher.ts",
+    "tooling/test-consumer.mjs",
+    "tsconfig.server.json"
+  ],
+  "networkSourcesConsulted": [
+    "https://nodejs.org/api/http.html",
+    "https://nodejs.org/api/fs.html",
+    "https://nodejs.org/api/child_process.html"
+  ]
+}

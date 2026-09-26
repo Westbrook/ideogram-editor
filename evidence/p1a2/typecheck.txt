@@ -1,0 +1,4 @@
+npm notice run ideogram-editor@0.1.0 typecheck
+npm notice run npm run typecheck:consumer && tsc --noEmit -p tsconfig.server.json
+npm notice run ideogram-editor@0.1.0 typecheck:consumer
+npm notice run tsc --noEmit

@@ -62,9 +62,9 @@ try {
     }
     console.log('Installed graph has no sibling links and matches the lock');
   `]);
-  npm('run', 'typecheck');
+  npm('run', 'typecheck:consumer');
   const buildStart = performance.now();
-  npm('run', 'build');
+  npm('run', 'build:consumer');
   receipt.buildElapsedMs = performance.now() - buildStart;
   receipt.buildEvidence = JSON.parse(await readFile(join(fixture, 'dist/consumer/build-evidence.json')));
   run(process.execPath, ['node_modules/@playwright/test/cli.js', 'install', 'chromium']);

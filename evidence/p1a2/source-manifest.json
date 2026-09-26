@@ -1,0 +1,21 @@
+{
+  "package.json": "f425c194d2d16f136995c1cfb78aa02d2a983bea65da99decf386b2a891fc5ad",
+  "server/control-json.ts": "5764379926b58618e9a6be1355fcdfc67c8e8d285ca708e930455f81ddce71dd",
+  "server/errors.ts": "29e2cf7f5feb6fddf277eb964368d57ebc33c3515159e4126e85004530a6ba82",
+  "server/http.ts": "e1a0a1d04fbea0372959088df1e89db25ffb33b9c73af326efc1b545525ce295",
+  "server/private-root.ts": "98a5a0422393d96bbce0b9cafc6695aa4d5e4d6dd3bdd96806a673610e9f721f",
+  "server/sessions.ts": "7796cfc796f30cdcc32063482b185ea1ed4535b31c6cbf7542ef80c7334c3159",
+  "server/static.ts": "6f858cff931140c7cc2b11502ac1a272c3a0ee7d3a8566bbc595ac344dfaf87f",
+  "src/protocol/session.ts": "145f15cfbf75a7f6820bf6967d2d0cbe54ecba719c8435ab710e4eef127427fc",
+  "tests/session/helpers.mjs": "f6739f54cbda385c6ef8272d1c24da20e82082679cbe5323e1b1be26db6b1cce",
+  "tests/session/http.test.mjs": "576de0338550e204a3e26b1362191ffd50f858ada04d756d4584efa501f2e6ab",
+  "tests/session/no-egress.mjs": "dcd17fb70dcc09abd84727a1dd75836bdd5b44612a47ed3600bbe63d18c1a58f",
+  "tests/session/process-fixture.mjs": "aac2248de6d0b195b7a59854890b91fcf0e4bfee954aae06ac5dcbb129409f0b",
+  "tests/session/storage-launch.test.mjs": "af6e4fee92ae294eab22991c5759db22ebfec679c971fdc5a1aad6e1548c4a52",
+  "tooling/README.txt": "b61558f1f3688c433d11ebbde5aa2d56f68963663216a15b4109f98e6142d2f3",
+  "tooling/SESSION.txt": "2dd0200421b06d2c209dd5936cc846f68219c553b98e57d90c7261cb4d95d078",
+  "tooling/launch.ts": "0fe0f3578f51026299bcba408aef7247f06579a10118bf5777ac4e53c85e9d08",
+  "tooling/launcher.ts": "aa4f4ab5efe70241a3bd2f27e08b34b914931debf371a0e9f8fd44797b502a13",
+  "tooling/test-consumer.mjs": "adcfc9d420df3c2a77658b3da486d53c438ccbb1c05d51ca766ef1eea4578636",
+  "tsconfig.server.json": "44a2bc6873718700b99c81574b25c9644d35c4172409a00f47e0955643da9e30"
+}

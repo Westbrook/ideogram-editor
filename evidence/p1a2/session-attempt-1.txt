@@ -1,0 +1,20 @@
+npm notice run ideogram-editor@0.1.0 test:session
+npm notice run npm run build:server && node --test --test-concurrency=1 tests/session/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (40.692166ms)
+✔ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (29.736ms)
+✔ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (19.055792ms)
+✔ SEC03: one-use pairing is atomic and expires at precisely five minutes (13.679792ms)
+✔ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (20.644125ms)
+✔ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (48.385709ms)
+✔ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (32.47675ms)
+✔ P1a boundary: all unfinished routes deny content and mutations; keys never reach responses (49.572333ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 339.390167

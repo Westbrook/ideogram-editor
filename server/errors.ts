@@ -1,0 +1,33 @@
+import type { LocalError, LocalErrorDetail } from '../src/protocol/session.js';
+import { randomUUID } from 'node:crypto';
+
+const errors = {
+  MALFORMED_REQUEST: [400, 'The request does not match the local protocol.'],
+  SESSION_REQUIRED: [401, 'Open the editor from the local launcher to pair again.'],
+  PAIRING_INVALID: [401, 'This pairing link is expired or already used. Open a fresh link from the local launcher.'],
+  ORIGIN_DENIED: [403, 'This request is not from the editor launch origin.'],
+  CSRF_DENIED: [403, 'The session security token is missing or invalid.'],
+  NOT_FOUND: [404, 'This local route is not available.'],
+  METHOD_NOT_ALLOWED: [405, 'This method is not allowed for this route.'],
+  PAYLOAD_TOO_LARGE: [413, 'The control request exceeds 64 KiB.'],
+  MEDIA_TYPE: [415, 'Send an uncompressed UTF-8 application/json request.'],
+  PROTOCOL_VERSION: [426, 'This server supports local protocol version 1.'],
+  SERVER_UNAVAILABLE: [503, 'This local service is not available.'],
+} as const;
+export class ProtocolError extends Error {
+  readonly code: keyof typeof errors;
+  readonly status: number;
+  constructor(code: keyof typeof errors) {
+    super(errors[code][1]);
+    this.code = code;
+    this.status = errors[code][0];
+  }
+  toWire(): LocalError {
+    const detail: LocalErrorDetail | undefined = this.code === 'PROTOCOL_VERSION'
+      ? { kind: 'protocol-version', supportedVersions: [1] } : undefined;
+    return { protocolVersion: 1, requestId: randomUUID(), error: {
+      code: this.code, retry: 'none', message: this.message,
+      ...(detail ? { details: { kind: 'inline', value: detail } as const } : {}),
+    } };
+  }
+}

@@ -1,0 +1,25 @@
+npm notice run ideogram-editor@0.1.0 test:session
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/session/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (47.130833ms)
+✔ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (31.70675ms)
+✔ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (23.54675ms)
+✔ SEC03: one-use pairing is atomic and expires at precisely five minutes (27.73625ms)
+✔ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (35.478375ms)
+✔ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (77.029542ms)
+✔ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (47.569833ms)
+✔ P1a boundary: all unfinished routes deny content and mutations; keys never reach responses (50.917666ms)
+✔ SEC06: real private root/file permissions, symlink and insecure-root rejection (35.239458ms)
+✔ SEC03/06: root replacement invalidates the running boundary without modifying user data (25.252083ms)
+✔ SEC03: actual killed-process restart rejects old cookie, CSRF and unused pairing; leaves root data intact (201.584583ms)
+✔ SEC03/05: trusted static build and synchronous fragment-removal contract before shell resources (30.527458ms)
+✔ Launcher: private fragment goes only to browser callback; executable launch records an OS-selected origin (110.797375ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1003.076083
