@@ -1,0 +1,374 @@
+{
+  "scope": "All 32 exact snapshots; API image metadata, Markdown image links, HTML img tags, workspace-asset URLs, local file URLs, absolute local paths and common image/video extensions inspected.",
+  "embeddedImageMetadataCount": 0,
+  "actualLocalMediaReferences": [],
+  "copiedMediaFiles": [],
+  "missingRequiredMedia": [],
+  "wireframe": {
+    "path": "docs/handoff/snapshots/20260926T020523Z/1dd17672-e2f0-4c89-a9bb-414f871fa7a4.md",
+    "representation": "Complete Unicode text diagram; no raster image was referenced."
+  },
+  "mediaLikeMentions": [
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 338,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 393,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 444,
+      "text": "  \"image_url\": \"https://example.org/image.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 452,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 504,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 518,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 561,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 605,
+      "text": "  \"image_url\": \"https://example.org/image.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 653,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 654,
+      "text": "  \"mask_url\": \"https://example.org/mask.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 662,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 715,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 716,
+      "text": "  \"mask_url\": \"https://example.org/mask.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 730,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 784,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 847,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 984,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1051,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1231,
+      "text": "    \"https://example.org/character.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1240,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1284,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1285,
+      "text": "  \"mask_url\": \"https://example.org/mask.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1287,
+      "text": "    \"https://example.org/character.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1296,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1343,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1345,
+      "text": "    \"https://example.org/character.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1354,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1391,
+      "text": "  \"image_url\": \"https://example.org/image.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1399,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1450,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1493,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1494,
+      "text": "  \"mask_url\": \"https://example.org/mask.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1502,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1548,
+      "text": "  \"image_url\": \"https://example.org/image.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1555,
+      "text": "    \"url\": \"https://example.org/image.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1596,
+      "text": "  \"image_url\": \"https://example.org/image.png\","
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1605,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1650,
+      "text": "  \"image_url\": \"https://example.org/image.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1658,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1701,
+      "text": "  \"image_url\": \"https://example.org/image.png\""
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "line": 1709,
+      "text": "      \"url\": \"https://example.org/result.png\""
+    },
+    {
+      "noteId": "3febb57d-ea57-42de-a098-b12fb4e010e4",
+      "line": 424,
+      "text": "Package construction proposal: deterministic unique safe stems (e.g. image-0001.png and image-0001.txt) in a flat archive; crop/normalize prepared static PNG/JPEG images explicitly; UTF-8 captions, one for every included image; retain originals, edited captions, crop transforms, prepared files and manifest/hash in owned storage. Local manifest contains full provenance; do not assume provider accepts arbitrary manifest members—upload archive includes only validated image/caption pairs initially, with manifest retained separately. No paths, symlinks, executable files or uncontrolled archive extraction needed because builder creates the package. Default-caption and naming decisions remain visible. Custom repositioning is applied to prepared image bytes; provider centered crop of those already-sized images is still a provider behavior to verify. Auto is computed/previewed as an app preparation policy using documented intent; if exact provider auto algorithm remains unknown, label expected crop and require explicit concrete resolution for a predictable prepared dataset. Never label an app crop as observed provider output."
+    },
+    {
+      "noteId": "c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+      "line": 285,
+      "text": "{\"endpoint\":\"ideogram/v4/inpaint/lora\",\"input\":{\"prompt\":\"Replace the sign lettering\",\"image_url\":\"https://media.example/source.png\",\"mask_url\":\"https://media.example/mask.png\",\"loras\":[{\"path\":\"https://media.example/v4.safetensors\",\"scale\":1}],\"strength\":1,\"image_size\":\"auto\",\"num_images\":1,\"expansion_model\":\"None\",\"rendering_speed\":\"BALANCED\",\"acceleration\":\"none\",\"output_format\":\"png\",\"sync_mode\":false,\"enable_safety_checker\":true}}"
+    }
+  ],
+  "mediaMentionDisposition": "All extension matches are example.org/media.example schema placeholders or the illustrative image-0001.png training filename; no generated/source image artifact is claimed or required.",
+  "externalLocalReferences": [
+    {
+      "path": "/Users/westbrook/Documents/repos/design-system",
+      "referencedByNoteIds": [
+        "spec",
+        "6e3a136c-c367-4007-a141-7eb82c5f6a0f",
+        "bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+        "bb86b142-0129-4293-b3c4-ebbb458490d7",
+        "3febb57d-ea57-42de-a098-b12fb4e010e4",
+        "176843a5-c21b-4de6-84a6-53ef5b9ca804",
+        "f0aea5b2-1d37-42a9-adf3-857e0a4995eb"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/tool-outputs",
+      "referencedByNoteIds": [
+        "176843a5-c21b-4de6-84a6-53ef5b9ca804",
+        "0843a4b2-b4f5-449b-b109-2f851e2cca7b"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/tool-outputs/2026-09-25T22-46-56.45093Z-44acdce9.txt",
+      "referencedByNoteIds": [
+        "bb86b142-0129-4293-b3c4-ebbb458490d7"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/tool-outputs/2026-09-25T23-02-05.889942Z-bb6679ac.txt",
+      "referencedByNoteIds": [
+        "bb86b142-0129-4293-b3c4-ebbb458490d7"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/tool-outputs/2026-09-26T00-15-25.368039Z-0398cca9.txt",
+      "referencedByNoteIds": [
+        "0843a4b2-b4f5-449b-b109-2f851e2cca7b"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/tool-outputs/2026-09-26T00-15-49.069717Z-e5f657a9.txt",
+      "referencedByNoteIds": [
+        "0843a4b2-b4f5-449b-b109-2f851e2cca7b"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-api-evidence/build_appendix.py",
+      "referencedByNoteIds": [
+        "d3202a13-080b-426e-8bac-c2a25ee2ae49"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-audit-8a/check_conformance.py",
+      "referencedByNoteIds": [
+        "b7a93978-262b-4266-aaf7-03cf836db2cf"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-composition-evidence",
+      "referencedByNoteIds": [
+        "2728dafd-4209-4558-a762-3a0192e0610f",
+        "176843a5-c21b-4de6-84a6-53ef5b9ca804"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-foundation-verification/check_api.py",
+      "referencedByNoteIds": [
+        "337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+        "99dd9c46-10a3-404d-b4b7-458c2c34758d"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-readiness-8c",
+      "referencedByNoteIds": [
+        "f0aea5b2-1d37-42a9-adf3-857e0a4995eb"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-readiness-8c/check_api.py",
+      "referencedByNoteIds": [
+        "337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+        "f0aea5b2-1d37-42a9-adf3-857e0a4995eb"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-readiness-8c/compare.py",
+      "referencedByNoteIds": [
+        "337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+        "f0aea5b2-1d37-42a9-adf3-857e0a4995eb"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-readiness-8c/local_receipt.py",
+      "referencedByNoteIds": [
+        "337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+        "f0aea5b2-1d37-42a9-adf3-857e0a4995eb"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-readiness-8c/more_sources.py",
+      "referencedByNoteIds": [
+        "337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+        "f0aea5b2-1d37-42a9-adf3-857e0a4995eb"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    },
+    {
+      "path": "/tmp/ideogram-readiness-8c/refetch.py",
+      "referencedByNoteIds": [
+        "337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+        "f0aea5b2-1d37-42a9-adf3-857e0a4995eb"
+      ],
+      "existsOnCaptureMachine": true,
+      "archiveDisposition": "Not copied. Historical temporary evidence/tool output or sibling source, not a planning-note/media artifact. No claim of portable access to this external path."
+    }
+  ],
+  "systemConfiguration": "No system configuration, credentials, .env files, caches, home directories or sibling repository contents were archived. Absolute path mentions remain only as exact source text."
+}

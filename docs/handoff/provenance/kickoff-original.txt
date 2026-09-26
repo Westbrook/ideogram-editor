@@ -1,0 +1,118 @@
+Implement the approved Ideogram Editor plan in this repository.
+
+The planning and independent review are complete. I accept SPEC-A3 as the implementation baseline. Start building the initial editor through phases P1–P3, in small, verified milestones. Begin with P1a, then the P1b durable editing workflow. Do not stop after producing another plan.
+
+PROJECT AND APPROVED BASELINE
+
+Repository: /Users/westbrook/Documents/repos/ideogram-edit
+Planning branch: upon-build
+Exact approved technical commit:
+409e4afb1a7168f706e9015e5e62122a74d40453
+
+Build a local, recoverable, Photoshop-like browser editor using the Ideogram V4 family on fal.ai and the en-reve design system. The initial release includes native image and text editing, separate semantic composition descriptions, durable history, and explicitly reviewed queued generation/editing requests.
+
+Task 10’s independent V2 review approved this exact commit with high confidence for specification readiness. All 20 audit findings and all requirements, including REQ-READY, were verified. Tasks 9 and 10 are complete.
+
+Some sealed documents still say “review pending.” These are pre-verdict status labels, not unresolved technical findings. Preserve the approved technical identity and historical evidence. Do not restart the planning review because of these labels.
+
+Final approval:
+intent://local/task/45decaa2-2459-4100-8461-d7680076c4d3
+
+Existing progress report:
+intent://local/upon-build/note/b6884312-45fe-4295-a5a3-70180a701223
+
+Shared planning context:
+intent://local/upon-build/note/337dd04c-2911-4227-8217-1e2fc0b6a9f0
+
+READ BEFORE IMPLEMENTING
+
+Start with docs/spec/index.md, particularly:
+- Accepted decisions and requirement traceability.
+- Implementation phases.
+- Implementer quick-start.
+- P1 sub-milestones and first slice.
+- Qualification register and phase applicability.
+- Initial support matrix.
+
+Then read the owning sections relevant to your milestone:
+- ux.md: user experience and recovery.
+- architecture.md: authoritative state, raster, persistence and job contracts, including §20 readiness contracts and LP-1-R1.
+- design-system.md: actual component APIs, packaging and consumer setup.
+- api.md: endpoint-specific contracts and provider evidence.
+- testing.md: observable outcomes and required verification.
+- performance.md: numerical budgets, workloads and measurement rules.
+
+The full specification governs implementation; this prompt is a starting guide, not a replacement. Historical snapshots provide provenance, not competing current requirements.
+
+FIRST ACTIONS
+
+1. Read applicable repository instructions, inspect the checkout and preserve existing work. Confirm the approved commit is available; inspect any subsequent changes rather than resetting them.
+2. Read the existing progress report and unresolved feedback. Follow the progress-report skill at /Users/westbrook/.agents/skills/progress-report/SKILL.md. Reuse the project report and distinguish completed planning from new implementation work.
+3. Verify the documentation baseline:
+   python3 docs/spec/tools/check_spec.py
+   python3 docs/spec/tools/check_spec_mutations.py
+   Run shasum -a 256 -c SHA256SUMS from docs/spec.
+   These verify documentation integrity, not application behavior.
+4. Record a concise implementation breakdown with dependencies, acceptance evidence and the first milestone. Then begin implementation. Resolve ordinary engineering choices within the approved contracts without asking me to repeat settled decisions.
+
+IMPLEMENTATION ORDER
+
+P1a — Reproducible local shell:
+Freeze and qualify the design-system and toolchain inputs. Produce coherent, immutable en-reve package archives and an independent locked consumer installation as specified. Build the browser shell and local session/security boundary. The shell must work without a provider key.
+
+The design-system source is currently at:
+/Users/westbrook/Documents/repos/design-system
+
+Use it as a packaging input, not a runtime or CI dependency. Its audited working tree contained changes, so HEAD alone does not identify the approved source. Preserve exact source/build provenance, package in isolation, and avoid modifying the live sibling repository. Use public package exports and relative vendored archives; do not substitute another UI framework or depend on sibling node_modules.
+
+P1b — First durable editing workflow:
+Implement the single writer, asset registration, event/projection boundary and canonical raster pipeline. Demonstrate:
+import → edit → undo → full-history portable copy → restart/reopen → exact export.
+Use real persistence and zero provider calls. This must be a working vertical slice, not merely a visual mockup.
+
+P1c — Complete initial authoring:
+Add native text and fonts, masks, separate linked Layers and Composition lists, and the specified recovery/history behavior. P1b is a milestone, not permission to ship a raster-only initial release.
+
+P2 — Queued model workflows:
+Implement the approved inference operations and local adapter library using a deterministic provider emulator first. Cover frozen request review, uncertain submission, restart/cancel races, retained results and explicit safe adoption.
+
+P3 — Initial release qualification:
+Run the applicable functional, accessibility, browser/native-input, durability, security and performance checks. Use the existing qualification matrix and campaigns rather than inventing a second acceptance scheme.
+
+Keep lower-priority training implementation in P4. Features explicitly marked Future remain outside this initial implementation scope.
+
+DECISIONS AND INVARIANTS TO PRESERVE
+
+- Use explicit operations and attachments. Never silently switch models, downgrade inputs or change an in-flight request.
+- Keep FAL_KEY server-side. Enforce the specified localhost authentication, CSRF, egress, upload and portable-file boundaries.
+- Preserve originals and exact canonical pixels outside approved edit masks. Follow the specified adoption rules.
+- Keep event replay free of external effects. Durable job recovery is separate; uncertain paid submissions must never automatically resubmit.
+- Include native editable text, explicit Apply/Cancel, one typography style per text box, and reviewed missing-font substitution.
+- Keep Layers and Composition distinct, with explicit field links.
+- Default portable copies to full editing history and referenced asset closure.
+- Deleting an unused candidate hides it and KEEPS its bytes. Explicit whole-document deletion may reclaim exclusively owned data through the specified preview, receipt and recovery flow.
+- Request minimum provider retention and the most private compatible access. Disclose unverified guarantees; local deletion does not imply remote deletion.
+- Include the optional durable per-session paid-request cap, OFF by default, and uncertain-charge ledger. Estimates are not guaranteed billing limits.
+- Preserve accepted limits and performance budgets. Qualification fixtures are not automatically product admission limits.
+
+VERIFICATION AND WORKING STYLE
+
+Implement real consumer behavior and test public boundaries. Use unit tests for pure behavior, integration tests for persistence/protocol/recovery, real browser tests for native input and components, and focused end-to-end workflows. Add failure and restart coverage where the contracts require it.
+
+Keep each milestone traceable to its requirements, tests and applicable performance budgets. Obtain independent review before declaring a milestone complete; fix findings and re-verify affected behavior.
+
+Q01–Q27 are owned implementation qualifications, not completed runtime tests. Record measured results separately from targets, emulator results and source reasoning. If the required hardware or provider evidence is unavailable, leave the affected claim explicitly unqualified.
+
+Do not weaken tests, security, durability, scope or budgets to make a milestone pass. If implementation reveals a genuine contradiction or requires changing an accepted decision, report the exact clauses, practical impact and recommended resolution. Continue unrelated authorized work.
+
+Keep progress updates short and plain. At each milestone provide:
+- What now works and how I can run or review it.
+- Verification actually performed and its results.
+- Remaining limitations or qualifications.
+- The next concrete milestone.
+
+Maintain the owning documentation and traceability when implementation requires an approved contract revision. Preserve sealed history and synchronize note/file changes when workspace notes are available.
+
+Local implementation, dependency installation, isolated packaging and testing are authorized by this task. Paid provider calls, publishing, deployment and changes to deferred product scope require separate authorization.
+
+Start by confirming the baseline and first milestone, then implement P1a.
