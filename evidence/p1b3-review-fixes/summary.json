@@ -1,0 +1,103 @@
+{
+  "kind": "author-correction-handoff-review-required",
+  "task": "83720c82-0338-445d-9ad2-2354700091ce",
+  "reviewerTask": "aff95449-61c6-4514-b0d5-4468e4b960a8",
+  "base": "7469f99e0af9710bb0b6f8c0b7091d3018babfe4",
+  "approvedFoundation": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+  "branch": "ideogram-editor-p1",
+  "at": "2026-09-26T05:51:30.090526+00:00",
+  "findings": {
+    "I-A01": "Pending canonical identity is checked inside BEGIN IMMEDIATE in synchronous and asset receipt acceptance. Conflicting commands reject before writing events, receipts or projections. Removed redundant racy HTTP pending precheck; original owner precheck remains. Preparation admission runs synchronously on the same sole writer. No schema/data migration or cleanup.",
+    "I-A02": "Shared CommandResult response helper sets Location=receiptUrl for every pending result, covering command submission, original retry, lookup and staging finalize helper.",
+    "I-A03": "Successful original-content GET/HEAD/full/suffix/range/If-Range fallback receive sandbox CSP with default-src none. Measured text/plain, sanitized attachment name, nosniff and no-store remain; shell CSP untouched."
+  },
+  "coverage": {
+    "assets": 29,
+    "independentOriginalProbe": 5,
+    "independentConcurrentRaces": 80,
+    "newProcessRaceCommands": 42,
+    "processRaceDetails": "Two explicit winner orderings plus40 concurrent requests in alternating send order while uploads hold both IO slots; checks one persisted hash, pending identity/Location on all routes, SIGKILL, restored original client, exact receipts/envelopes/hash, same operation ID and loser rejection. No external effects.",
+    "protocol": 14,
+    "recoveryChromium": 12,
+    "store": 24,
+    "session": 14,
+    "shellChromium": 10,
+    "other": "typecheck, build, vendor/spec, source-only diff check"
+  },
+  "failBefore": {
+    "independent": "Original copied suite fails A01 missing Location, A02 missing sandbox, A05 conflicting records; A03/A04 pass. Unchanged script passes5/5 after fix.",
+    "author": "New/extended focused regressions fail all3 against unchanged7469f99 compiled source: sandbox, pending Location, direct writer missing rejection. They pass after fix.",
+    "output": "logs/*before.log and independent-before-facts.json, retained verbatim."
+  },
+  "filesTouched": [
+    "server/assets.ts",
+    "server/protocol.ts",
+    "server/storage/database.ts",
+    "tests/assets/http.test.mjs",
+    "tests/assets/process.test.mjs",
+    "tests/assets/storage.test.mjs",
+    "tooling/ASSETS.txt"
+  ],
+  "sourceManifestSha256": "772924c5a97a63b68726099e4bddbe4a4f07c49f91be9928e180a6e3de0d91a6",
+  "timing": {
+    "runs": [
+      {
+        "label": "small",
+        "samples": 760,
+        "httpMaxMs": 27.80520800000022,
+        "over50": 0
+      },
+      {
+        "label": "bounded-large",
+        "samples": 760,
+        "httpMaxMs": 30.488666999999623,
+        "over50": 0
+      }
+    ],
+    "writerMaxMs": 15.576708000000508,
+    "snapshot": {
+      "target": 250,
+      "pressure": false,
+      "latest": "750",
+      "buildMs": 277.7918329999993,
+      "sliceMaxMs": 23.433791999999812,
+      "activationMs": 12.053208999999697
+    },
+    "qualification": false
+  },
+  "preservation": {
+    "evidence": {
+      "files": 288,
+      "changed": []
+    },
+    ".progress-report": {
+      "files": 1,
+      "changed": []
+    }
+  },
+  "services": {
+    "at": "2026-09-26T05:50:46.833618+00:00",
+    "checks": [
+      {
+        "url": "http://127.0.0.1:52219/?progress-report",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:4381/",
+        "status": 200
+      }
+    ]
+  },
+  "limitations": [
+    "Author evidence only; independent reviewer stays pinned to7469f99 until coordinator explicitly assigns this correction. Findings remain open and task review_required until independent approval.",
+    "No new mounted ENOSPC/EROFS or fresh consumer installation campaign for this bounded correction. Existing sealed7469f99 evidence remains; current asset suite reruns real SQLite capacity, migrations, replay and process-fault tests.",
+    "Timings are synthetic single-host observations, not formal PERF/H/C qualification, full100k replay, power-loss/device-cache, other-platform, native/AT or full-editor qualification.",
+    "All image/mask originals remain unknown/pending-decoder and unavailable for content; raster decoder/canonical eligibility stays with P1b.4.",
+    "No automatic repair or destructive cleanup of retained data; deliberately corrupted reviewer reproduction roots remain separate diagnostic artifacts.",
+    "No provider/paid calls, publication, UI, approved preview, locator, canonical report or live design-system changes."
+  ],
+  "pr": null,
+  "ci": null,
+  "baseCiRun": null,
+  "preExistingCiFailures": "No remote PR/CI run configured or claimed; local fail-before product evidence is retained explicitly."
+}

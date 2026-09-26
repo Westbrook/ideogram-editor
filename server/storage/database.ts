@@ -243,6 +243,7 @@ export class StoreDatabase {
         if (previous.hash !== hash) throw new StoreError('COMMAND_ID_REUSE');
         this.db.exec('ROLLBACK'); return previous.receipt;
       }
+      this.assertPendingIdentity(c.commandId,hash);
       if (this.missingCount) throw new StoreError('CORRUPT_STORE');
       const document = c.documentId ? this.document(c.documentId) : null;
       let rejection = this.rejection(c, document);
@@ -288,11 +289,18 @@ export class StoreDatabase {
       throw error;
     }
   }
+  private assertPendingIdentity(id:string,hash:string):void {
+    // The acceptance transaction owns this check. HTTP prechecks can race another
+    // request that durably reserves the ID while this command is queued.
+    const pending=this.db.prepare('SELECT hash FROM asset_preparations WHERE id=?').get(id);
+    if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');
+  }
   private commitAsset(bytes: Uint8Array, build:()=>AssetFact, failure?:()=>void):Receipt {
     this.fence(this.epoch);const request=parseCommand(bytes);const c=request.command;const serialized=canonical(request);const hash=hashBytes(serialized);
     this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try {
       const previous=this.lookup(c.commandId);if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return previous.receipt;}
+      this.assertPendingIdentity(c.commandId,hash);
       if(this.missingCount)throw new StoreError('CORRUPT_STORE');
       let receipt:Receipt;
       // A savepoint prevents a rejected builder from publishing partial indexes.

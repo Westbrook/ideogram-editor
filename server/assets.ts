@@ -55,7 +55,7 @@ export class AssetRoutes {
         if(start>end||start>=total)bad();status=206;
         if(req.headers['if-range']!==undefined&&req.headers['if-range']!==etag){status=200;start=0n;end=total-1n;}
       }
-      res.writeHead(status,{'Content-Type':asset.measuredMediaType,'Content-Disposition':'attachment; filename="asset.txt"','X-Content-Type-Options':'nosniff','Cache-Control':'no-store',ETag:etag,'Accept-Ranges':'bytes','Content-Length':String(end-start+1n),...(status===206?{'Content-Range':`bytes ${start}-${end}/${total}`}:{})});
+      res.writeHead(status,{'Content-Type':asset.measuredMediaType,'Content-Disposition':'attachment; filename="asset.txt"','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",'X-Content-Type-Options':'nosniff','Cache-Control':'no-store',ETag:etag,'Accept-Ranges':'bytes','Content-Length':String(end-start+1n),...(status===206?{'Content-Range':`bytes ${start}-${end}/${total}`}:{})});
       if(req.method==='HEAD'){res.end();return;}
       for(let at=start;at<=end;){await assertRoot();authenticate();const n=Number(end-at+1n>32768n?32768n:end-at+1n);const bytes=await this.writer.assetContent(id,handle,String(at),n);authenticate();if(res.destroyed)return;await new Promise<void>((resolve,reject)=>res.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}res.end();
     }finally{if(handle)await this.writer.assetRelease(handle);this.streams--;}

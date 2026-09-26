@@ -1,0 +1,52 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import { writeFile,readFile,link,unlink,rename,mkdir,stat } from 'node:fs/promises';
+import { fixture,create,put,upload,finish,terminal,assetFor,heldUpload,record,hash,call,pair,cookieFrom,readHeaders,mutationHeaders,exchange,DatabaseSync,join,randomUUID,startLocalServer } from './probe-lib.mjs';
+import { canonical } from './source/dist/local/server/storage/canonical.js';
+
+test('A01 pending202 durable identity, original hash conflict and terminal lookup atomicity',async t=>{
+ const f=await fixture(t,'pending');const target=await create(f,Buffer.alloc(0));const holds=[await heldUpload(f),await heldUpload(f)];t.after(()=>holds.forEach(h=>h.request.destroy()));
+ const c=f.command({type:'FinalizeStaging',stagingId:target.stagingId,expectedSha256:target.sha256});const initial=await f.post('/api/v1/commands',c);assert.equal(initial.status,202,initial.text);
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const pending=db.prepare('SELECT * FROM asset_preparations WHERE id=?').get(c.command.commandId);assert.ok(pending);assert.equal(pending.hash,hash(canonical(c)));assert.equal(pending.original,JSON.stringify(c));assert.equal(pending.operation_id,initial.json.operationId);assert.equal(pending.phase,'preparing');assert.equal(db.prepare('SELECT count(*) n FROM commands WHERE id=?').get(c.command.commandId).n,0);db.close();
+ const lookups=await Promise.all(Array.from({length:20},()=>f.read('/api/v1/commands/'+c.command.commandId)));for(const r of lookups)assert.deepEqual(r.json,initial.json);
+ const duplicate=await f.post('/api/v1/commands',c);assert.deepEqual(duplicate.json,initial.json);const changed=await f.post('/api/v1/commands',{...c,command:{...c.command,sessionId:'changed'}});assert.equal(changed.status,409);const other=await pair(f.server);assert.equal((await call(f.server.origin,'/api/v1/commands/'+c.command.commandId,{headers:readHeaders(cookieFrom(other))})).status,403);
+ holds[0].request.end('bc');await holds[0].response;const states=[];let last;for(let i=0;i<600;i++){last=await f.read('/api/v1/commands/'+c.command.commandId);states.push(last.status);assert.ok([200,202].includes(last.status));if(last.status===200)break;}assert.equal(last.json.receipt.status,'accepted');const a=await assetFor(f,last);assert.equal(a.id,initial.json.operationId);assert.deepEqual((await f.post('/api/v1/commands',c)).json,last.json);holds[1].request.end('bc');await holds[1].response;
+ await record('A01',{pendingDurable:true,states,initialHeaders:initial.headers,duplicateHeaders:duplicate.headers,expectedLocation:initial.json.receiptUrl});
+ assert.equal(initial.headers.location,initial.json.receiptUrl,'LP-1 202 must include Location');
+});
+
+test('A02 content safety matrix, complete UTF8, hostile text and required sandbox',async t=>{
+ const f=await fixture(t,'content');const b=Buffer.from('<!doctype html><script>fetch("https://example.invalid/p");globalThis.pwned=1</script>\u0000東京');const s=await upload(f,b,{mediaType:'application/json'});const fin=await finish(f,s);assert.equal(fin.r.json.receipt.status,'accepted');const a=await assetFor(f,fin.r);const path='/api/v1/assets/'+a.id+'/content';const success=await f.read(path);assert.equal(success.text,b.toString());assert.equal(success.headers['content-type'],'text/plain');assert.equal(success.headers['x-content-type-options'],'nosniff');assert.match(success.headers['content-disposition'],/^attachment/);
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'));const matrix=[];
+ for(const field of ['safety','availability'])for(const value of (field==='safety'?['unknown','withheld','quarantined']:['missing','corrupt'])){db.prepare('UPDATE assets SET json=? WHERE id=?').run(JSON.stringify({...a,[field]:value}),a.id);for(const method of ['GET','HEAD'])for(const headers of [{},{Range:'bytes=0-5'},{Range:'bytes=0-5','If-Range':'"wrong"'}]){const r=await call(f.server.origin,path,{method,headers:{...readHeaders(cookieFrom(f.paired)),...headers}});assert.equal(r.status,field==='safety'?403:404);matrix.push({field,value,method,headers,status:r.status});}}
+ db.prepare('UPDATE assets SET json=? WHERE id=?').run(JSON.stringify(a),a.id);db.close();
+ for(const id of [s.stagingId,a.blob.hash.slice(7)])assert.equal((await f.read('/api/v1/assets/'+id+'/content')).status,404);
+ for(const bytes of [Buffer.from([0xc0,0xaf]),Buffer.from([0xe2,0x82]),Buffer.from([0xed,0xa0,0x80]),Buffer.from([0x80])]){const bad=await upload(f,bytes);const done=await finish(f,bad);assert.equal(done.r.json.receipt.code,'INVALID_INPUT');assert.deepEqual((await f.post('/api/v1/commands',done.c)).json,done.r.json);assert.equal((await f.read('/api/v1/assets/staging/'+bad.stagingId)).json.state,'failed');}
+ const split=Buffer.concat([Buffer.alloc(1048575,97),Buffer.from('😀')]);const bs=await upload(f,split);assert.equal((await finish(f,bs)).r.json.receipt.status,'accepted');
+ const originalPath=join(f.root,'objects','sha256',a.blob.hash.slice(7,9),a.blob.hash.slice(7));await writeFile(originalPath,Buffer.alloc(b.length,120));for(const method of ['GET','HEAD'])assert.equal((await call(f.server.origin,path,{method,headers:{...readHeaders(cookieFrom(f.paired)),Range:'bytes=0-2'}})).status,404);
+ await record('A02',{matrix,utf8Cases:5,headers:success.headers});assert.match(success.headers['content-security-policy'],/(?:^|;)\s*sandbox(?:;|$)/,'LS-1 original attachments require CSP sandbox');
+});
+
+test('A03 same-client re-pair fences review and cursor, exact inventory and foreign finalize',async t=>{
+ const f=await fixture(t,'transfer');const s=await create(f,Buffer.from('abcd'));await put(f,s,Buffer.from('ab'));const owner=f.paired;f.paired=await pair(f.server);
+ assert.equal((await f.read('/api/v1/assets/staging/'+s.stagingId)).status,403);assert.equal((await finish(f,s)).r.status,403);
+ for(let i=0;i<230;i++)await create(f,Buffer.alloc(0),{stagingId:'long_stage_'+String(i).padStart(4,'0')+'x'.repeat(90)});
+ const page=(await f.read('/api/v1/assets/staging/recovery')).json;assert.ok(page.nextCursor);for(const item of page.items)assert.deepEqual(Object.keys(item).sort(),['stagingId','ownerClientId','version','purpose','expectedBytes','committedOffset','createdAt','state'].sort());assert.ok(!JSON.stringify(page).includes(s.sha256));
+ const c=f.command({type:'PreviewStagingOwnershipTransfer',stagingId:s.stagingId});const pr=await f.post('/api/v1/commands',c);const event=(await f.read('/api/v1/events?after='+String(BigInt(pr.json.receipt.fromSeq)-1n))).json.batches[0].events[0];assert.deepEqual(Object.keys(event.payload).sort(),['reviewHash','reviewId']);const review=(await f.read('/api/v1/assets/staging/transfer-reviews/'+event.payload.reviewId)).json;assert.equal(review.reviewHash,hash(canonical({reviewId:review.reviewId,targetClientId:review.targetClientId,staging:review.staging,expiresAt:review.expiresAt})));
+ const old=f.paired;f.paired=await call(f.server.origin,'/api/v1/session/bootstrap',{method:'POST',headers:{Origin:f.server.origin,Cookie:cookieFrom(old)},body:{protocolVersion:1,pairingToken:new URL(f.server.issuePairingURL()).hash.slice(9)}});assert.equal(f.paired.json.clientId,old.json.clientId);
+ assert.equal((await call(f.server.origin,'/api/v1/session',{headers:readHeaders(cookieFrom(old))})).status,401);assert.equal((await f.read('/api/v1/assets/staging/transfer-reviews/'+review.reviewId)).status,410);assert.equal((await f.read('/api/v1/assets/staging/recovery?cursor='+page.nextCursor)).status,400);
+ const tr=f.command({type:'TransferStagingOwnership',stagingId:s.stagingId,expectedOwnerClientId:owner.json.clientId,expectedVersion:review.staging.version,reviewId:review.reviewId,reviewHash:review.reviewHash});const rejected=await f.post('/api/v1/commands',tr);assert.equal(rejected.json.receipt.code,'INVALID_INPUT');assert.deepEqual((await f.post('/api/v1/commands',tr)).json,rejected.json);
+ await record('A03',{inventoryFirst:page.items.length,reviewInvalidated:true,cursorInvalidated:true,originalOwnerRetained:true});
+});
+
+test('A04 early abort, hardlink staging protection and no invented offset',async t=>{
+ const f=await fixture(t,'abort');const s=await create(f,Buffer.from('abcd'));const h=exchange(f.server.origin,'/api/v1/assets/staging/'+s.stagingId,{method:'PUT',defer:true,headers:{...mutationHeaders(f.server,f.paired),'Content-Type':'application/octet-stream','Content-Length':4,'Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();h.request.write('ab');await new Promise(r=>setTimeout(r,25));h.request.destroy();await new Promise(r=>setTimeout(r,25));assert.equal((await f.read('/api/v1/assets/staging/'+s.stagingId)).json.committedOffset,'0');
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const file=join(f.root,'uploads',db.prepare('SELECT filename FROM staged_assets WHERE id=?').get(s.stagingId).filename);db.close();const alias=join(f.root,'alias');await link(file,alias);const r=await put(f,s,Buffer.from('abcd'));assert.ok([403,503].includes(r.status));assert.equal((await stat(alias)).size,0);await unlink(alias);assert.equal((await put(f,s,Buffer.from('abcd'))).status,200);assert.equal((await finish(f,s)).r.json.receipt.status,'accepted');await record('A04',{abortedOffset:'0',hardlinkDeniedStatus:r.status,resume:'accepted'});
+});
+
+test('A05 competing synchronous and pending commands never retain conflicting hashes',async t=>{
+ const f=await fixture(t,'cross-command-race');const observations=[];for(let i=0;i<80;i++){
+ const s=await create(f,Buffer.alloc(0));const c=f.command({type:'FinalizeStaging',stagingId:s.stagingId,expectedSha256:s.sha256});const n={...c,command:{...c.command,documentId:randomUUID(),body:{type:'NewDocument',width:1,height:1,color:'sRGB',depth:8}}};
+ const [nr,ar]=await Promise.all([f.post('/api/v1/commands',n),f.post('/api/v1/commands',c)]);await new Promise(r=>setTimeout(r,5));const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const pending=db.prepare('SELECT hash,phase FROM asset_preparations WHERE id=?').get(c.command.commandId);const saved=db.prepare('SELECT hash,receipt FROM commands WHERE id=?').get(c.command.commandId);db.close();observations.push({trial:i,normal:nr.status,asset:ar.status,pending:pending??null,saved:saved??null});if(pending&&saved){await record('A05',{observations});assert.equal(pending,undefined,'One command ID retained both pending and terminal records');}
+ }
+ await record('A05',{observations});
+});

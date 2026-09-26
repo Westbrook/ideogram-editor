@@ -1,0 +1,70 @@
+✖ A01 pending202 durable identity, original hash conflict and terminal lookup atomicity (410.525875ms)
+✖ A02 content safety matrix, complete UTF8, hostile text and required sandbox (476.806833ms)
+✔ A03 same-client re-pair fences review and cursor, exact inventory and foreign finalize (3391.342709ms)
+✔ A04 early abort, hardlink staging protection and no invented offset (337.085833ms)
+✖ A05 competing synchronous and pending commands never retain conflicting hashes (318.9615ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 2
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4991.792291
+
+✖ failing tests:
+
+test at independent.test.mjs:6:1
+✖ A01 pending202 durable identity, original hash conflict and terminal lookup atomicity (410.525875ms)
+  AssertionError [ERR_ASSERTION]: LP-1 202 must include Location
+  + actual - expected
+  
+  + undefined
+  - '/api/v1/commands/443ca2f8-ca92-4a98-995b-c20dc0a362cd'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b3-review-fixes/before/independent.test.mjs:14:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '/api/v1/commands/443ca2f8-ca92-4a98-995b-c20dc0a362cd',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at independent.test.mjs:17:1
+✖ A02 content safety matrix, complete UTF8, hostile text and required sandbox (476.806833ms)
+  AssertionError [ERR_ASSERTION]: LS-1 original attachments require CSP sandbox
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b3-review-fixes/before/independent.test.mjs:26:74)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:61632; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+    expected: /(?:^|;)\s*sandbox(?:;|$)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at independent.test.mjs:46:1
+✖ A05 competing synchronous and pending commands never retain conflicting hashes (318.9615ms)
+  AssertionError [ERR_ASSERTION]: One command ID retained both pending and terminal records
+  + actual - expected
+  
+  + [Object: null prototype] {
+  +   hash: 'sha256:98df25ccb10bb57b8827c69467e1ef6fbe046e23bb081afb3c349061b99af92d',
+  +   phase: 'preparing'
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1b3-review-fixes/before/independent.test.mjs:49:583)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { hash: 'sha256:98df25ccb10bb57b8827c69467e1ef6fbe046e23bb081afb3c349061b99af92d', phase: 'preparing' },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

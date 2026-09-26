@@ -1,0 +1,366 @@
+[
+  {
+    "id": "A01",
+    "pendingDurable": true,
+    "states": [
+      200
+    ],
+    "initialHeaders": {
+      "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:61594; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      "cache-control": "no-store",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "same-origin",
+      "x-frame-options": "DENY",
+      "content-type": "application/json; charset=utf-8",
+      "content-length": "231",
+      "date": "Sat, 26 Sep 2026 05:47:34 GMT",
+      "connection": "close"
+    },
+    "duplicateHeaders": {
+      "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:61594; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      "cache-control": "no-store",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "same-origin",
+      "x-frame-options": "DENY",
+      "content-type": "application/json; charset=utf-8",
+      "content-length": "231",
+      "date": "Sat, 26 Sep 2026 05:47:34 GMT",
+      "connection": "close"
+    },
+    "expectedLocation": "/api/v1/commands/443ca2f8-ca92-4a98-995b-c20dc0a362cd"
+  },
+  {
+    "id": "A02",
+    "matrix": [
+      {
+        "field": "safety",
+        "value": "unknown",
+        "method": "GET",
+        "headers": {},
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "unknown",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "unknown",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "unknown",
+        "method": "HEAD",
+        "headers": {},
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "unknown",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "unknown",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "withheld",
+        "method": "GET",
+        "headers": {},
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "withheld",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "withheld",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "withheld",
+        "method": "HEAD",
+        "headers": {},
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "withheld",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "withheld",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "quarantined",
+        "method": "GET",
+        "headers": {},
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "quarantined",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "quarantined",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "quarantined",
+        "method": "HEAD",
+        "headers": {},
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "quarantined",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 403
+      },
+      {
+        "field": "safety",
+        "value": "quarantined",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 403
+      },
+      {
+        "field": "availability",
+        "value": "missing",
+        "method": "GET",
+        "headers": {},
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "missing",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "missing",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "missing",
+        "method": "HEAD",
+        "headers": {},
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "missing",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "missing",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "corrupt",
+        "method": "GET",
+        "headers": {},
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "corrupt",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "corrupt",
+        "method": "GET",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "corrupt",
+        "method": "HEAD",
+        "headers": {},
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "corrupt",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5"
+        },
+        "status": 404
+      },
+      {
+        "field": "availability",
+        "value": "corrupt",
+        "method": "HEAD",
+        "headers": {
+          "Range": "bytes=0-5",
+          "If-Range": "\"wrong\""
+        },
+        "status": 404
+      }
+    ],
+    "utf8Cases": 5,
+    "headers": {
+      "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:61632; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      "cache-control": "no-store",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "same-origin",
+      "x-frame-options": "DENY",
+      "content-type": "text/plain",
+      "content-disposition": "attachment; filename=\"asset.txt\"",
+      "etag": "\"sha256:89e6b76e13316292bb60e1fc14971c0c8d3bb6bbb141469e72a6c64d5b329d23\"",
+      "accept-ranges": "bytes",
+      "content-length": "92",
+      "date": "Sat, 26 Sep 2026 05:47:34 GMT",
+      "connection": "close"
+    }
+  },
+  {
+    "id": "A03",
+    "inventoryFirst": 192,
+    "reviewInvalidated": true,
+    "cursorInvalidated": true,
+    "originalOwnerRetained": true
+  },
+  {
+    "id": "A04",
+    "abortedOffset": "0",
+    "hardlinkDeniedStatus": 503,
+    "resume": "accepted"
+  },
+  {
+    "id": "A05",
+    "observations": [
+      {
+        "trial": 0,
+        "normal": 409,
+        "asset": 202,
+        "pending": {
+          "hash": "sha256:f1587660a00785ad6a5e78e0f97ab20094a2a90d25d8bc7de1e672903ae3cc77",
+          "phase": "preparing"
+        },
+        "saved": null
+      },
+      {
+        "trial": 1,
+        "normal": 200,
+        "asset": 409,
+        "pending": null,
+        "saved": {
+          "hash": "sha256:5130ff16995e6b6bade57097291c519378a1b0ecfa2bb1c455e8abe3b5b39b80",
+          "receipt": "{\"commandId\":\"ef89ef21-91c3-4b03-914a-525e640556e8\",\"documentRevision\":\"1\",\"fromSeq\":\"2\",\"status\":\"accepted\",\"toSeq\":\"2\",\"transactionId\":\"fecbf237-a617-4abe-8dbd-ff17ccd8a667\"}"
+        }
+      },
+      {
+        "trial": 2,
+        "normal": 200,
+        "asset": 200,
+        "pending": {
+          "hash": "sha256:98df25ccb10bb57b8827c69467e1ef6fbe046e23bb081afb3c349061b99af92d",
+          "phase": "preparing"
+        },
+        "saved": {
+          "hash": "sha256:65ee448892624270513397bdc5c6b8121f0632500c0eab7322ac60f219192ba9",
+          "receipt": "{\"commandId\":\"80db1956-f88b-44c9-be43-bb6ee96e88dd\",\"documentRevision\":\"1\",\"fromSeq\":\"3\",\"status\":\"accepted\",\"toSeq\":\"3\",\"transactionId\":\"aa47cafa-40e5-4fcb-a139-aef3c529556e\"}"
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "execution": "current correction source as bound by source-manifest.json",
+  "sourceManifestSha256": "772924c5a97a63b68726099e4bddbe4a4f07c49f91be9928e180a6e3de0d91a6",
+  "originalDriver": "ideogram-edit-verification/7ef07dd-independent/timing-760.mjs",
+  "driverSha256": "4964d706fd0c5eff4a2aadc55366dc103be1d9947227e8a22ef8e8d60c7c289e",
+  "originalEmbeddedTarget": "446ed20a366d26f5b9d0612b1cba468d023b2742 is historical driver text, not current execution identity",
+  "command": "node --import ./source/tests/session/no-egress.mjs timing-760.mjs",
+  "exit": 0,
+  "at": "2026-09-26T05:50:44.360Z",
+  "observations": {
+    "runs": [
+      {
+        "label": "small",
+        "samples": 760,
+        "httpMaxMs": 27.80520800000022,
+        "over50": 0
+      },
+      {
+        "label": "bounded-large",
+        "samples": 760,
+        "httpMaxMs": 30.488666999999623,
+        "over50": 0
+      }
+    ],
+    "writerMaxMs": 15.576708000000508,
+    "snapshot": {
+      "target": 250,
+      "pressure": false,
+      "latest": "750",
+      "buildMs": 277.7918329999993,
+      "sliceMaxMs": 23.433791999999812,
+      "activationMs": 12.053208999999697
+    },
+    "qualification": false
+  }
+}

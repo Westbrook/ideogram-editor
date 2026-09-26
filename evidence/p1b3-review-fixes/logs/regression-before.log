@@ -1,0 +1,66 @@
+✖ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (486.27275ms)
+✖ competing HTTP command identities stay exclusive through pending responses and SIGKILL restart (573.89725ms)
+✖ durable preparation waits for shared reader slots and retains original command ownership (289.919833ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1485.568417
+
+✖ failing tests:
+
+test at tests/assets/http.test.mjs:19:1
+✖ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (486.27275ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /(?:^|;)\s*sandbox(?:;|$)/. Input:
+  
+  "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:62407; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/http.test.mjs:37:59)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:62407; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+    expected: /(?:^|;)\s*sandbox(?:;|$)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/assets/process.test.mjs:67:1
+✖ competing HTTP command identities stay exclusive through pending responses and SIGKILL restart (573.89725ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - '/api/v1/commands/813fe63a-a838-4625-9bce-55aaa774eea2'
+  
+      at checkPending (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/process.test.mjs:78:67)
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/process.test.mjs:90:27)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '/api/v1/commands/813fe63a-a838-4625-9bce-55aaa774eea2',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/assets/storage.test.mjs:60:1
+✖ durable preparation waits for shared reader slots and retains original command ownership (289.919833ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/storage.test.mjs:66:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'COMMAND_ID_REUSE' },
+    operator: 'rejects',
+    diff: 'simple'
+  }

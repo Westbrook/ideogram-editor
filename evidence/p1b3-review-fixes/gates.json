@@ -1,0 +1,140 @@
+[
+  {
+    "name": "protocol",
+    "command": [
+      "npm",
+      "run",
+      "test:protocol"
+    ],
+    "startedAt": "2026-09-26T05:48:56.334041+00:00",
+    "endedAt": "2026-09-26T05:49:18.911780+00:00",
+    "seconds": 22.577548374887556,
+    "exit": 0,
+    "log": "logs/protocol.log"
+  },
+  {
+    "name": "recovery",
+    "command": [
+      "npm",
+      "run",
+      "test:recovery"
+    ],
+    "startedAt": "2026-09-26T05:49:18.912092+00:00",
+    "endedAt": "2026-09-26T05:49:35.892497+00:00",
+    "seconds": 16.980334542226046,
+    "exit": 0,
+    "log": "logs/recovery.log"
+  },
+  {
+    "name": "store",
+    "command": [
+      "npm",
+      "run",
+      "test:store"
+    ],
+    "startedAt": "2026-09-26T05:49:35.892772+00:00",
+    "endedAt": "2026-09-26T05:49:53.625191+00:00",
+    "seconds": 17.73236420797184,
+    "exit": 0,
+    "log": "logs/store.log"
+  },
+  {
+    "name": "session",
+    "command": [
+      "npm",
+      "run",
+      "test:session"
+    ],
+    "startedAt": "2026-09-26T05:49:53.625524+00:00",
+    "endedAt": "2026-09-26T05:49:59.034410+00:00",
+    "seconds": 5.408894833177328,
+    "exit": 0,
+    "log": "logs/session.log"
+  },
+  {
+    "name": "shell",
+    "command": [
+      "npm",
+      "run",
+      "test:shell"
+    ],
+    "startedAt": "2026-09-26T05:49:59.035532+00:00",
+    "endedAt": "2026-09-26T05:50:05.497421+00:00",
+    "seconds": 6.461900624912232,
+    "exit": 0,
+    "log": "logs/shell.log"
+  },
+  {
+    "name": "vendor",
+    "command": [
+      "npm",
+      "run",
+      "verify:vendor"
+    ],
+    "startedAt": "2026-09-26T05:50:05.497800+00:00",
+    "endedAt": "2026-09-26T05:50:05.764671+00:00",
+    "seconds": 0.26691074995324016,
+    "exit": 0,
+    "log": "logs/vendor.log"
+  },
+  {
+    "name": "spec",
+    "command": [
+      "python3",
+      "docs/spec/tools/check_spec.py"
+    ],
+    "startedAt": "2026-09-26T05:50:05.764947+00:00",
+    "endedAt": "2026-09-26T05:50:05.945109+00:00",
+    "seconds": 0.18019466707482934,
+    "exit": 0,
+    "log": "logs/spec.log"
+  },
+  {
+    "name": "typecheck",
+    "command": "npm run typecheck",
+    "log": "logs/typecheck.log",
+    "exit": 0,
+    "observedAt": "2026-09-26T05:48:20.293050+00:00",
+    "timestampBasis": "log modification time; exact tool exit recorded by author"
+  },
+  {
+    "name": "build",
+    "command": "npm run build",
+    "log": "logs/build.log",
+    "exit": 0,
+    "observedAt": "2026-09-26T05:48:23.108418+00:00",
+    "timestampBasis": "log modification time; exact tool exit recorded by author"
+  },
+  {
+    "name": "assets",
+    "command": "node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs",
+    "log": "logs/assets-after.log",
+    "exit": 0,
+    "observedAt": "2026-09-26T05:48:55.756118+00:00",
+    "timestampBasis": "log modification time; exact tool exit recorded by author"
+  },
+  {
+    "name": "author-regression-before",
+    "command": "node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 --test-name-pattern=\"durable preparation waits|inert text ranges|competing HTTP command identities\" tests/assets/*.test.mjs",
+    "log": "logs/regression-before.log",
+    "exit": 1,
+    "observedAt": "2026-09-26T05:48:06.466742+00:00",
+    "timestampBasis": "log modification time; exact tool exit recorded by author"
+  },
+  {
+    "name": "independent-before",
+    "command": "node --import ./source/tests/session/no-egress.mjs --test --test-concurrency=1 independent.test.mjs",
+    "log": "logs/independent-before.log",
+    "exit": 1,
+    "observedAt": "2026-09-26T05:47:38.725153+00:00",
+    "timestampBasis": "log modification time; exact tool exit recorded by author"
+  },
+  {
+    "name": "independent-after",
+    "command": "node --import ./source/tests/session/no-egress.mjs --test --test-concurrency=1 independent.test.mjs",
+    "log": "logs/independent-after.log",
+    "exit": 0,
+    "observedAt": "2026-09-26T05:48:38.443526+00:00",
+    "timestampBasis": "log modification time; exact tool exit recorded by author"
+  }
+]

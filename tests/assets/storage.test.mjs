@@ -61,6 +61,11 @@ test('durable preparation waits for shared reader slots and retains original com
   const root=await rootFor(t);const w=await openWriter({root});t.after(()=>w.close());await w.protocolDefaults();const original=await own(w,Buffer.from('reader slots'));const asset=(await w.events('0')).events[0].payload.asset;const one=await w.assetVerify(asset.id);const two=await w.assetVerify(asset.id);
   const s=upload(Buffer.alloc(0));await w.assetCreate(s,auth);const c=command(EMPTY_EXPECTED_VERSIONS,{documentId:null,body:{type:'FinalizeStaging',stagingId:s.stagingId,expectedSha256:s.sha256}});assert.equal(await w.assetCommand(encode(c),auth),null);const pending=await w.assetPending(c.command.commandId);assert.equal(pending.command.commandId,c.command.commandId);
   await assert.rejects(w.assetCommand(encode({...c,command:{...c.command,clientId:'other'}}),{...auth,clientId:'other'}),{code:'OWNER_REQUIRED'});
+  // Exercise the sole writer directly: no HTTP precheck may enforce identity for it.
+  const conflicting=command(EMPTY_EXPECTED_VERSIONS,{commandId:c.command.commandId});
+  await assert.rejects(w.submit(encode(conflicting),w.epoch),{code:'COMMAND_ID_REUSE'});
+  assert.deepEqual(await w.assetPending(c.command.commandId),pending);
+  assert.equal(await w.lookup(c.command.commandId),null);
   await w.assetRelease(one.handle);await w.assetRelease(two.handle);let result;for(let i=0;i<200;i++){result=await w.lookup(c.command.commandId);if(result)break;await new Promise(r=>setTimeout(r,5));}assert.equal(result.receipt.status,'accepted');assert.equal((await w.events('1')).events[0].payload.asset.id,pending.operationId);
   assert.deepEqual((await w.lookup(original.c.command.commandId)).receipt,original.r.receipt);
 });

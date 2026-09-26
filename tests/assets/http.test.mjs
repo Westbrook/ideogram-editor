@@ -32,6 +32,11 @@ test('LP-1 resumable offsets, immutable logical identity, safe original receipt 
   assert.equal((await f.read(path,{Range:'bytes=1-2','If-Range':'"different"'})).text,full.text);
   for(const Range of ['bytes=0-1,3-4','bytes=99999-','bytes=-0','garbage'])assert.equal((await f.read(path,{Range})).status,416);
   const head=await call(f.server.origin,path,{method:'HEAD',headers:{...readHeaders(cookieFrom(f.paired)),Range:'bytes=0-2'}});assert.equal(head.status,206);assert.equal(head.text,'');assert.equal(head.headers['content-length'],'3');
+  for(const method of ['GET','HEAD'])for(const headers of [{},{Range:'bytes=1-3'},{Range:'bytes=-3'},{Range:'bytes=1-3','If-Range':'"different"'}]){
+    const response=await call(f.server.origin,path,{method,headers:{...readHeaders(cookieFrom(f.paired)),...headers}});
+    assert.ok([200,206].includes(response.status));assert.match(response.headers['content-security-policy'],/(?:^|;)\s*sandbox(?:;|$)/);
+    assert.equal(response.headers['content-type'],'text/plain');assert.equal(response.headers['x-content-type-options'],'nosniff');assert.match(response.headers['content-disposition'],/^attachment/);
+  }
   assert.equal((await f.read(path,{'X-App-Client':''})).status,403);
   assert.equal((await f.read('/api/v1/assets/'+asset.blob.hash.slice(7)+'/content')).status,404);
   const s2=stage(bytes);await f.post('/api/v1/assets/staging',s2);await put(f,s2,bytes);const second=await finish(f,s2);const a2=await assetFor(f,second.result.json.receipt);assert.notEqual(asset.id,a2.id);assert.deepEqual(asset.blob,a2.blob);

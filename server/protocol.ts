@@ -34,6 +34,10 @@ export function sendJSON(response: ServerResponse, status: number, value: unknow
   if (bytes.length > 65536) throw new ProtocolError('PAYLOAD_TOO_LARGE');
   response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': bytes.length }); response.end(bytes);
 }
+function sendCommandResult(response:ServerResponse,result:CommandResult) {
+  if(result.kind==='pending')response.setHeader('Location',result.receiptUrl);
+  sendJSON(response,result.kind==='unknown'?404:result.kind==='pending'?202:200,result);
+}
 export class ProtocolRoutes {
   private leases = new Map<string, Lease>();
   private content = new Map<string, Content>();
@@ -156,11 +160,11 @@ export class ProtocolRoutes {
         if(route.kind==='asset-finalize'&&(command.body.type!=='FinalizeStaging'||command.body.stagingId!==id))throw new ProtocolError('MALFORMED_REQUEST');
         const state = await this.writer.commandState(command.commandId);const previous=state.record??state.pending;
         if (previous && previous.command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
-        if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));else {const pending=await this.writer.assetPending(command.commandId);if(pending)throw new ProtocolError('COMMAND_ID_REUSE');await this.writer.submit(bytes,this.writer.epoch);}
-        authenticate();const result=await this.commandResult(command.commandId,current);sendJSON(response,result.kind==='pending'?202:200,result);
+        if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));else await this.writer.submit(bytes,this.writer.epoch);
+        authenticate();const result=await this.commandResult(command.commandId,current);sendCommandResult(response,result);
       } else if (route.kind === 'commands') {
         const result = await this.commandResult(id, session); authenticate();
-        sendJSON(response, result.kind === 'unknown' ? 404 : result.kind==='pending'?202:200, result);
+        sendCommandResult(response,result);
       } else if(route.kind.startsWith('asset-')) await this.assets.handle(request,response,route,params,authenticate,assertRoot);
       else if (route.kind === 'documents') {
         const view = await this.writer.projection(id); if (!view.document) throw new ProtocolError('NOT_FOUND');

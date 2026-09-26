@@ -1,0 +1,13 @@
+✔ A01 pending202 durable identity, original hash conflict and terminal lookup atomicity (413.522583ms)
+✔ A02 content safety matrix, complete UTF8, hostile text and required sandbox (656.534375ms)
+✔ A03 same-client re-pair fences review and cursor, exact inventory and foreign finalize (3363.471959ms)
+✔ A04 early abort, hardlink staging protection and no invented offset (346.807667ms)
+✔ A05 competing synchronous and pending commands never retain conflicting hashes (2394.29625ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7227.026416

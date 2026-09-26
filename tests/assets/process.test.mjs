@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash,randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { join } from 'node:path';
+import { canonical } from '../../dist/local/server/storage/canonical.js';
 import { startLocalServer } from '../../dist/local/server/http.js';
 import { rootFor,command,zeroEffects } from '../store/helpers.mjs';
 import { EMPTY_EXPECTED_VERSIONS } from '../../dist/local/src/protocol/store.js';
@@ -61,4 +62,51 @@ for(const phase of ['transfer-before-commit','transfer-after-commit'])test('SIGK
     assert.equal(lookup.status,404);const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const stage=JSON.parse(db.prepare('SELECT json FROM staged_assets WHERE id=?').get(f.stage.stagingId).json);db.close();assert.equal(stage.ownerClientId,f.paired.json.clientId);assert.equal(stage.version,'2');
     const retry=await call(next.origin,'/api/v1/commands',{method:'POST',body:c,headers:mutationHeaders(next,fresh)});assert.equal(retry.json.receipt.code,'INVALID_INPUT');
   }else{assert.equal(lookup.json.receipt.status,'accepted');const retry=await call(next.origin,'/api/v1/commands',{method:'POST',body:c,headers:mutationHeaders(next,fresh)});assert.deepEqual(retry.json,lookup.json);const stage=await call(next.origin,'/api/v1/assets/staging/'+f.stage.stagingId,{headers:readHeaders(cookieFrom(fresh))});assert.equal(stage.json.ownerClientId,fresh.json.clientId);assert.equal(stage.json.version,'3');assert.equal(stage.json.committedOffset,'4');}
+});
+
+test('competing HTTP command identities stay exclusive through pending responses and SIGKILL restart',async t=>{
+  const f=await seeded(t,true);const first=await child(t,f.root);const paired=await first.pair(cookieFrom(f.paired));
+  const post=(path,body)=>call(first.origin,path,{method:'POST',body,headers:mutationHeaders(first,paired)});
+  const holds=[];
+  for(let i=0;i<2;i++){
+    const s={...f.stage,stagingId:randomUUID()};assert.equal((await post('/api/v1/assets/staging',s)).status,201);
+    const wire=exchange(first.origin,'/api/v1/assets/staging/'+s.stagingId,{method:'PUT',defer:true,headers:{...mutationHeaders(first,paired),'Content-Type':'application/octet-stream','Content-Length':bytes.length,'Upload-Offset':'0'}});
+    wire.response.catch(()=>{});wire.request.flushHeaders();wire.request.write(bytes.subarray(0,1));holds.push(wire);
+  }
+  t.after(()=>holds.forEach(h=>h.request.destroy()));await new Promise(r=>setTimeout(r,30));
+  const attempts=[];
+  const checkPending=r=>{assert.equal(r.status,202,r.text);assert.equal(r.headers.location,r.json.receiptUrl);return r.json;};
+  for(let i=0;i<42;i++){
+    const s={...f.stage,stagingId:randomUUID(),expectedBytes:'0',sha256:'sha256:'+createHash('sha256').update('').digest('hex')};assert.equal((await post('/api/v1/assets/staging',s)).status,201);
+    const asset=command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,documentId:null,body:{type:'FinalizeStaging',stagingId:s.stagingId,expectedSha256:s.sha256}});
+    const normal={...asset,command:{...asset.command,documentId:randomUUID(),body:{type:'NewDocument',width:1,height:1,color:'sRGB',depth:8}}};
+    let nr,ar;
+    if(i===0){ar=await post('/api/v1/commands',asset);nr=await post('/api/v1/commands',normal);}
+    else if(i===1){nr=await post('/api/v1/commands',normal);ar=await post('/api/v1/commands',asset);}
+    else if(i%2)[ar,nr]=await Promise.all([post('/api/v1/commands',asset),post('/api/v1/commands',normal)]);
+    else [nr,ar]=await Promise.all([post('/api/v1/commands',normal),post('/api/v1/commands',asset)]);
+    const assetWon=ar.status===202;const winner=assetWon?asset:normal;const loser=assetWon?normal:asset;
+    assert.equal((assetWon?nr:ar).status,409);assert.equal((assetWon?nr:ar).json.error.code,'COMMAND_ID_REUSE');
+    const result=assetWon?checkPending(ar):nr.json;if(!assetWon)assert.equal(nr.json.receipt.status,'accepted');
+    if(assetWon){
+      for(const path of ['/api/v1/commands','/api/v1/assets/staging/'+s.stagingId+'/finalize'])assert.deepEqual(checkPending(await post(path,asset)),result);
+      assert.deepEqual(checkPending(await call(first.origin,'/api/v1/commands/'+asset.command.commandId,{headers:readHeaders(cookieFrom(paired))})),result);
+    }
+    const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});
+    const rows=db.prepare('SELECT hash FROM commands WHERE id=? UNION ALL SELECT hash FROM asset_preparations WHERE id=?').all(asset.command.commandId,asset.command.commandId);db.close();
+    assert.equal(rows.length,1,'one persisted pending or terminal identity');assert.equal(rows[0].hash,'sha256:'+createHash('sha256').update(canonical(winner)).digest('hex'));
+    attempts.push({winner,loser,result,assetWon});
+  }
+  first.p.send('effects');assert.deepEqual((await first.wait('effects')).value,zeroEffects);await first.kill();
+  const next=await child(t,f.root);const renewed=await next.pair(cookieFrom(paired));assert.equal(renewed.json.clientId,paired.json.clientId);
+  for(const {winner,loser,result,assetWon} of attempts){
+    const saved=await receipt(next,renewed,winner.command.commandId);assert.equal(saved.json.receipt.status,'accepted');
+    assert.deepEqual((await call(next.origin,'/api/v1/commands',{method:'POST',body:winner,headers:mutationHeaders(next,renewed)})).json,saved.json);
+    assert.equal((await call(next.origin,'/api/v1/commands',{method:'POST',body:loser,headers:mutationHeaders(next,renewed)})).status,409);
+    const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('SELECT count(*) n FROM asset_preparations WHERE id=?').get(winner.command.commandId).n,0);
+    const record=db.prepare('SELECT * FROM commands WHERE id=?').get(winner.command.commandId);assert.equal(record.original,JSON.stringify(winner));assert.equal(record.hash,'sha256:'+createHash('sha256').update(canonical(winner)).digest('hex'));
+    const event=JSON.parse(db.prepare('SELECT json FROM events_v2 WHERE command_id=?').get(winner.command.commandId).json);db.close();
+    if(assetWon){assert.equal(event.payload.asset.id,result.operationId);assert.equal((await call(next.origin,'/api/v1/documents/'+loser.command.documentId,{headers:readHeaders(cookieFrom(renewed))})).status,404);}else assert.deepEqual(saved.json,result);
+  }
+  next.p.send('effects');assert.deepEqual((await next.wait('effects')).value,zeroEffects);
 });

@@ -36,7 +36,12 @@ DURABLE LOCAL PREPARATION
 
 The pending command envelope, canonical hash, original bytes, client ownership,
 operation ID, staging ID/version and phase are committed before202. Lookup reads
-receipt and pending identity in one worker operation. Startup resumes only that
+receipt and pending identity in one worker operation. Every pending response,
+including lookup, identical retry and the finalize helper, has Location equal to
+receiptUrl. Synchronous acceptance checks the pending hash inside its writer
+transaction, so competing HTTP requests cannot reuse an ID across command kinds.
+Only the same original pending hash may become a terminal asset receipt.
+Startup resumes only that
 local preparation. No remote authority/outbox exists. Changed ID/hash conflicts;
 terminal rejection cannot be overwritten. Journal failure cannot return durable
 pending/accepted. Storage faults retain pending identity and waiting-for-resources;
@@ -56,7 +61,8 @@ staging and unreferenced immutable files. No GC or retained-history cleanup exis
 PROFILE BOUNDARIES
 
 Caption imports are complete opaque UTF-8, served only as measured text/plain
-attachments/nosniff/no-store, even when declared application/json or containing
+attachments with CSP sandbox/nosniff/no-store on GET, HEAD and range responses,
+even when declared application/json or containing
 markup/URLs. No parsed caption/authoring eligibility is implied, and no16MiB raw
 retention cap is invented. Existing command expected-version parsing stays typed
 and64KiB; a finalized application/json caption can carry those exact canonical
