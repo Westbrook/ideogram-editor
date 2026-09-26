@@ -1,0 +1,595 @@
+{
+  "startedAt": "2026-09-26T11:14:31.410Z",
+  "source": {
+    "base": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+    "branch": "ideogram-editor-p1",
+    "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+    "files": [
+      {
+        "path": "server/portable/transactions.ts",
+        "bytes": 7531,
+        "sha256": "757a43f54017b50de99587e274b97c1d2d297534180718670c3c51b0e561ddf8"
+      },
+      {
+        "path": "src/state/recovery-cache.ts",
+        "bytes": 5716,
+        "sha256": "037aa47750f831090d34793f7db700571413f912730d750f3e08f63915eb953e"
+      },
+      {
+        "path": "src/state/recovery-client.ts",
+        "bytes": 22104,
+        "sha256": "80b12c46049cbf8529ac0b91a890c654489999882049e69b0942872d9e96938f"
+      },
+      {
+        "path": "tests/portable/browser-recovery.test.mjs",
+        "bytes": 15360,
+        "sha256": "2fcc6c6dbda4e464213e8a8884b748e6cb7a3dbdbb729327434e75d6aec4479a"
+      },
+      {
+        "path": "tests/portable/revision-consistency.test.mjs",
+        "bytes": 5427,
+        "sha256": "04a5157381cfe654be7b6c4e03c5ea11b67b8050ab635f3fdb5bd8bd425e41df"
+      },
+      {
+        "path": "tooling/PORTABLE.txt",
+        "bytes": 22704,
+        "sha256": "902492d2db4d885226b6bea3cc3ad6fe277a6d11139187b2043894fc4dbd3ce9"
+      },
+      {
+        "path": "tooling/portable/linkage-gates.mjs",
+        "bytes": 4262,
+        "sha256": "c8c0a48743cf709184281d42e2166e2cd5b2f12e0d00e737ddb06beec39dd8ff"
+      },
+      {
+        "path": "tooling/portable/linkage-identity.mjs",
+        "bytes": 982,
+        "sha256": "727edf7eeef1a47db6c638511178a6e09a382f8f0d7ff45cecb20398cb830827"
+      },
+      {
+        "path": "tooling/portable/linkage-observe.mjs",
+        "bytes": 2658,
+        "sha256": "021ee0bdafaae3ee5401e86d035494ad9c6fd2db2980ae4703ce775a0a837a6d"
+      },
+      {
+        "path": "tooling/portable/linkage-originals.mjs",
+        "bytes": 2212,
+        "sha256": "33a3ced8b162501ab2ad170e785610763a234470566dc76d232a490f14383830"
+      },
+      {
+        "path": "tooling/portable/linkage-reviewer.mjs",
+        "bytes": 3837,
+        "sha256": "1d857fb2c190d757b740cba4deb3ca96a6f1ad2528f7230cd6c4f637e472d9c0"
+      },
+      {
+        "path": "tooling/portable/linkage-seal.mjs",
+        "bytes": 1949,
+        "sha256": "33b812b47d084a6bc2c59da39c0d7c82702b0cc5b8a97c3d124f69d90c147aa1"
+      }
+    ]
+  },
+  "gates": [
+    {
+      "name": "typecheck",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-09-26T11:14:31.459Z",
+      "finishedAt": "2026-09-26T11:14:32.591Z",
+      "elapsedMs": 1130.820709,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/typecheck.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "build",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-09-26T11:14:32.655Z",
+      "finishedAt": "2026-09-26T11:14:35.234Z",
+      "elapsedMs": 2579.0955839999997,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/build.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "vendor",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "verify:vendor"
+      ],
+      "startedAt": "2026-09-26T11:14:35.354Z",
+      "finishedAt": "2026-09-26T11:14:35.612Z",
+      "elapsedMs": 258.4401250000001,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/vendor.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "raster-inputs",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "verify:raster"
+      ],
+      "startedAt": "2026-09-26T11:14:35.661Z",
+      "finishedAt": "2026-09-26T11:14:35.802Z",
+      "elapsedMs": 141.19104200000038,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/raster-inputs.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "spec",
+      "executable": "python3",
+      "args": [
+        "docs/spec/tools/check_spec.py"
+      ],
+      "startedAt": "2026-09-26T11:14:35.851Z",
+      "finishedAt": "2026-09-26T11:14:36.032Z",
+      "elapsedMs": 180.84979100000055,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/spec.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "spec-mutations",
+      "executable": "python3",
+      "args": [
+        "docs/spec/tools/check_spec_mutations.py"
+      ],
+      "startedAt": "2026-09-26T11:14:36.080Z",
+      "finishedAt": "2026-09-26T11:14:39.172Z",
+      "elapsedMs": 3092.037792,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/spec-mutations.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "portable",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/portable/adversarial.test.mjs",
+        "tests/portable/browser-recovery.test.mjs",
+        "tests/portable/compatibility.test.mjs",
+        "tests/portable/failure.test.mjs",
+        "tests/portable/http.test.mjs",
+        "tests/portable/imported-drafts.test.mjs",
+        "tests/portable/journey.test.mjs",
+        "tests/portable/large.test.mjs",
+        "tests/portable/legacy.test.mjs",
+        "tests/portable/process.test.mjs",
+        "tests/portable/provenance.test.mjs",
+        "tests/portable/restart.test.mjs",
+        "tests/portable/revision-consistency.test.mjs",
+        "tests/portable/schema.test.mjs",
+        "tests/portable/transaction-schema.test.mjs",
+        "tests/portable/transactions.test.mjs",
+        "tests/portable/zip.test.mjs"
+      ],
+      "startedAt": "2026-09-26T11:14:39.233Z",
+      "finishedAt": "2026-09-26T11:18:10.244Z",
+      "elapsedMs": 211012.784875,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/portable.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "unchanged-browser-repro",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "tooling/portable/linkage-originals.mjs",
+        "browser"
+      ],
+      "startedAt": "2026-09-26T11:18:10.323Z",
+      "finishedAt": "2026-09-26T11:18:12.999Z",
+      "elapsedMs": 2676.1996250000084,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/unchanged-browser-repro.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "unchanged-draft-repro",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "tooling/portable/linkage-originals.mjs",
+        "draft"
+      ],
+      "startedAt": "2026-09-26T11:18:13.052Z",
+      "finishedAt": "2026-09-26T11:18:15.166Z",
+      "elapsedMs": 2114.1458749999874,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/unchanged-draft-repro.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "independent-structural-replay",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "tooling/portable/linkage-reviewer.mjs"
+      ],
+      "startedAt": "2026-09-26T11:18:15.224Z",
+      "finishedAt": "2026-09-26T11:18:27.357Z",
+      "elapsedMs": 12133.243292,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/independent-structural-replay.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "portable-volume",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "--import",
+        "./tests/store/no-network.mjs",
+        "--test",
+        "tests/portable/volume-fault.mjs"
+      ],
+      "startedAt": "2026-09-26T11:18:27.416Z",
+      "finishedAt": "2026-09-26T11:18:30.665Z",
+      "elapsedMs": 3249.2389580000017,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/portable-volume.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "history",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:history"
+      ],
+      "startedAt": "2026-09-26T11:18:30.735Z",
+      "finishedAt": "2026-09-26T11:19:27.211Z",
+      "elapsedMs": 56476.351125000016,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/history.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "raster",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:raster"
+      ],
+      "startedAt": "2026-09-26T11:19:27.292Z",
+      "finishedAt": "2026-09-26T11:20:45.616Z",
+      "elapsedMs": 78324.65937499999,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/raster.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "assets",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:assets"
+      ],
+      "startedAt": "2026-09-26T11:20:45.677Z",
+      "finishedAt": "2026-09-26T11:21:14.255Z",
+      "elapsedMs": 28577.86941699998,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/assets.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "protocol",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:protocol"
+      ],
+      "startedAt": "2026-09-26T11:21:14.331Z",
+      "finishedAt": "2026-09-26T11:21:36.130Z",
+      "elapsedMs": 21799.627999999968,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/protocol.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "session",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:session"
+      ],
+      "startedAt": "2026-09-26T11:21:36.195Z",
+      "finishedAt": "2026-09-26T11:21:41.363Z",
+      "elapsedMs": 5168.137625000032,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/session.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "store",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:store"
+      ],
+      "startedAt": "2026-09-26T11:21:41.519Z",
+      "finishedAt": "2026-09-26T11:21:57.988Z",
+      "elapsedMs": 16459.961708999996,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/store.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "store-volume",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:store:volume"
+      ],
+      "startedAt": "2026-09-26T11:21:58.058Z",
+      "finishedAt": "2026-09-26T11:22:01.342Z",
+      "elapsedMs": 3281.7996660000063,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/store-volume.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "assets-volume",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:assets:volume"
+      ],
+      "startedAt": "2026-09-26T11:22:01.488Z",
+      "finishedAt": "2026-09-26T11:22:05.143Z",
+      "elapsedMs": 3654.231291999982,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/assets-volume.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "recovery",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:recovery"
+      ],
+      "startedAt": "2026-09-26T11:22:05.293Z",
+      "finishedAt": "2026-09-26T11:22:22.664Z",
+      "elapsedMs": 17366.529125,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/recovery.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "history-browser",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/history/playwright.config.ts"
+      ],
+      "startedAt": "2026-09-26T11:22:22.806Z",
+      "finishedAt": "2026-09-26T11:22:30.401Z",
+      "elapsedMs": 7595.12729199999,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/history-browser.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "raster-browser",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "tooling/portable/raster-browser.mjs"
+      ],
+      "startedAt": "2026-09-26T11:22:30.454Z",
+      "finishedAt": "2026-09-26T11:22:31.941Z",
+      "elapsedMs": 1486.8062919999938,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/raster-browser.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "shell",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:shell"
+      ],
+      "startedAt": "2026-09-26T11:22:32.005Z",
+      "finishedAt": "2026-09-26T11:22:39.639Z",
+      "elapsedMs": 7634.132500000007,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/shell.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "fresh-consumer",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/npm-12.1.0/package/bin/npm-cli.js",
+        "run",
+        "test:consumer"
+      ],
+      "startedAt": "2026-09-26T11:22:39.781Z",
+      "finishedAt": "2026-09-26T11:22:59.000Z",
+      "elapsedMs": 19218.05912499997,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/fresh-consumer.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "observations",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "args": [
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "tooling/portable/linkage-observe.mjs"
+      ],
+      "startedAt": "2026-09-26T11:22:59.053Z",
+      "finishedAt": "2026-09-26T11:23:04.689Z",
+      "elapsedMs": 5635.635000000009,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/observations.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "preservation",
+      "executable": "git",
+      "args": [
+        "diff",
+        "--exit-code",
+        "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+        "--",
+        "docs",
+        "vendor",
+        "package-lock.json",
+        ".progress-report",
+        "evidence",
+        ":(exclude)evidence/p1b6-linkage-correction"
+      ],
+      "startedAt": "2026-09-26T11:23:04.753Z",
+      "finishedAt": "2026-09-26T11:23:04.765Z",
+      "elapsedMs": 12.18854200001806,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/preservation.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    },
+    {
+      "name": "source-whitespace",
+      "executable": "git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "server",
+        "src",
+        "tests",
+        "tooling",
+        "package.json"
+      ],
+      "startedAt": "2026-09-26T11:23:04.822Z",
+      "finishedAt": "2026-09-26T11:23:04.835Z",
+      "elapsedMs": 12.610707999963779,
+      "exit": 0,
+      "log": "evidence/p1b6-linkage-correction/final-attempt-01/source-whitespace.txt",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "sourceAfter": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0"
+    }
+  ],
+  "qualification": false,
+  "finishedAt": "2026-09-26T11:23:04.860Z",
+  "finalSource": {
+    "base": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+    "branch": "ideogram-editor-p1",
+    "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+    "files": [
+      {
+        "path": "server/portable/transactions.ts",
+        "bytes": 7531,
+        "sha256": "757a43f54017b50de99587e274b97c1d2d297534180718670c3c51b0e561ddf8"
+      },
+      {
+        "path": "src/state/recovery-cache.ts",
+        "bytes": 5716,
+        "sha256": "037aa47750f831090d34793f7db700571413f912730d750f3e08f63915eb953e"
+      },
+      {
+        "path": "src/state/recovery-client.ts",
+        "bytes": 22104,
+        "sha256": "80b12c46049cbf8529ac0b91a890c654489999882049e69b0942872d9e96938f"
+      },
+      {
+        "path": "tests/portable/browser-recovery.test.mjs",
+        "bytes": 15360,
+        "sha256": "2fcc6c6dbda4e464213e8a8884b748e6cb7a3dbdbb729327434e75d6aec4479a"
+      },
+      {
+        "path": "tests/portable/revision-consistency.test.mjs",
+        "bytes": 5427,
+        "sha256": "04a5157381cfe654be7b6c4e03c5ea11b67b8050ab635f3fdb5bd8bd425e41df"
+      },
+      {
+        "path": "tooling/PORTABLE.txt",
+        "bytes": 22704,
+        "sha256": "902492d2db4d885226b6bea3cc3ad6fe277a6d11139187b2043894fc4dbd3ce9"
+      },
+      {
+        "path": "tooling/portable/linkage-gates.mjs",
+        "bytes": 4262,
+        "sha256": "c8c0a48743cf709184281d42e2166e2cd5b2f12e0d00e737ddb06beec39dd8ff"
+      },
+      {
+        "path": "tooling/portable/linkage-identity.mjs",
+        "bytes": 982,
+        "sha256": "727edf7eeef1a47db6c638511178a6e09a382f8f0d7ff45cecb20398cb830827"
+      },
+      {
+        "path": "tooling/portable/linkage-observe.mjs",
+        "bytes": 2658,
+        "sha256": "021ee0bdafaae3ee5401e86d035494ad9c6fd2db2980ae4703ce775a0a837a6d"
+      },
+      {
+        "path": "tooling/portable/linkage-originals.mjs",
+        "bytes": 2212,
+        "sha256": "33a3ced8b162501ab2ad170e785610763a234470566dc76d232a490f14383830"
+      },
+      {
+        "path": "tooling/portable/linkage-reviewer.mjs",
+        "bytes": 3837,
+        "sha256": "1d857fb2c190d757b740cba4deb3ca96a6f1ad2528f7230cd6c4f637e472d9c0"
+      },
+      {
+        "path": "tooling/portable/linkage-seal.mjs",
+        "bytes": 1949,
+        "sha256": "33b812b47d084a6bc2c59da39c0d7c82702b0cc5b8a97c3d124f69d90c147aa1"
+      }
+    ]
+  }
+}

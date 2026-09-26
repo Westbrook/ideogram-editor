@@ -30,6 +30,17 @@ export class RecoveryCache {
     const tx=this.db.transaction('rows','readwrite');tx.objectStore('rows').put(value,[generation,type,id]);await done(tx);
   }
   async value(generation: string,type: string,id: string) {return this.get('rows',[generation,type,id]);}
+  async *rows(generation: string,type: string) {
+    // One bounded entity per read; callers may await further IndexedDB reads
+    // without keeping a transaction alive or collecting a whole namespace.
+    let after: IDBValidKey = [generation,type];
+    for (;;) {
+      const tx=this.db.transaction('rows');
+      const cursor: IDBCursorWithValue | null=await result(tx.objectStore('rows').openCursor(IDBKeyRange.bound(after,[generation,type,[]],true,true)));
+      if(!cursor)return;after=cursor.key;
+      yield {id:String((cursor.key as string[])[2]),value:cursor.value};
+    }
+  }
   private range(generation: string) {return IDBKeyRange.bound([generation],[generation,[]]);}
   async clone(from: string,to: string) {
     const tx=this.db.transaction('rows','readwrite');const store=tx.objectStore('rows');const cursor=store.openCursor(this.range(from));

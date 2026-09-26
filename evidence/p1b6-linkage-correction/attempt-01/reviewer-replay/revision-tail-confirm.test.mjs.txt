@@ -1,0 +1,33 @@
+✖ confirm domain revision consistency with trailing workspace event through actual import (535.075291ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 597.65425
+
+✖ failing tests:
+
+test at ../revision-tail-confirm.test.mjs:2:1
+✖ confirm domain revision consistency with trailing workspace event through actual import (535.075291ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"code":"INVALID_INPUT","commandId":"03ad2b63-e855-4e6a-8b05-64eb65bd5f7c","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"rejectionDetails":{"kind":"inline","value":{"issues":[{"code":"PORTABLE_MALFORMED_REQUEST","path":"command.body"}],"kind":"fields"}}}
+  + actual - expected
+  
+  + 'rejected'
+  - 'accepted'
+  
+      at workspace (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-linkage-reviewer-axzkXM/source/tests/portable/helpers.mjs:9:142)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async preview (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-linkage-reviewer-axzkXM/source/tests/portable/helpers.mjs:16:87)
+      at async TestContext.<anonymous> (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-linkage-reviewer-axzkXM/revision-tail-confirm.test.mjs:2:591)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'rejected',
+    expected: 'accepted',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

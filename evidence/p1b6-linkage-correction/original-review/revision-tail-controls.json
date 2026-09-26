@@ -1,0 +1,82 @@
+[
+  {
+    "revision": "2",
+    "archiveHash": "23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e",
+    "review": {
+      "capturedHighWater": "8",
+      "closureHash": "sha256:7ff7e6266a7c1141720280aa31a05e68d39211990b0920e5795d5e4a8225a561",
+      "documentId": "p_8f8a4b91b534fe8b73cdf2b1dd5fce5647f2b83aa7d6fdfc561472783c5ce18b",
+      "documentSchema": 2,
+      "editable": true,
+      "entityCount": "7",
+      "eventCount": "4",
+      "expiresAt": "2026-09-26T11:35:44.409Z",
+      "formatVersion": 2,
+      "localRetentionExcluded": "obsolete-unattributed-ui-only",
+      "namespaceId": "b88a788f-0b33-4c19-9ab4-75e893dd60d7",
+      "objectCount": "17",
+      "protocolVersion": 1,
+      "reason": null,
+      "reviewHash": "sha256:0ce055995e7ebbca385e50869cc340967b57acfd2c3e75f9c29e86bd53f08fce",
+      "reviewId": "f4f60260-76e2-4d58-b855-995dd667e911",
+      "scope": "selected-document-current-drafts-and-retained-domain-history",
+      "source": {
+        "byteLength": "28467",
+        "hash": "sha256:23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e",
+        "mediaType": "application/x-ideogram-project"
+      },
+      "sourceNamespace": "document_1",
+      "targetClientId": "0a3ae792-abee-4720-b4ad-0d23cbb42d74",
+      "uiSessionCount": "0",
+      "uiSessionIds": []
+    },
+    "receipt": {
+      "commandId": "7895e418-85b9-4a44-99b5-debf5fd5d901",
+      "documentRevision": "3",
+      "fromSeq": "2",
+      "status": "accepted",
+      "toSeq": "2",
+      "transactionId": "63af28de-bc57-41a4-ac4f-222cdc53fef1"
+    }
+  },
+  {
+    "revision": null,
+    "archiveHash": "9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283",
+    "review": {
+      "capturedHighWater": "8",
+      "closureHash": "sha256:d622662077b78c946a5f85add23e8256e1526b0aeea1100ab8d377916fd3916c",
+      "documentId": "p_61578fda1fab3db69a28d920caf9e504fc7d17f41df6996f9c499ce7ede72235",
+      "documentSchema": 2,
+      "editable": true,
+      "entityCount": "7",
+      "eventCount": "4",
+      "expiresAt": "2026-09-26T11:35:45.779Z",
+      "formatVersion": 2,
+      "localRetentionExcluded": "obsolete-unattributed-ui-only",
+      "namespaceId": "280530f3-ef81-4a03-ac49-20532ef79339",
+      "objectCount": "17",
+      "protocolVersion": 1,
+      "reason": null,
+      "reviewHash": "sha256:b270e746c9a02994c6454102df17b4429cb647cb948ef1bb1fb81373e8ecef1d",
+      "reviewId": "c5c518e7-16db-4225-b129-cfc7a473506e",
+      "scope": "selected-document-current-drafts-and-retained-domain-history",
+      "source": {
+        "byteLength": "28468",
+        "hash": "sha256:9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283",
+        "mediaType": "application/x-ideogram-project"
+      },
+      "sourceNamespace": "document_1",
+      "targetClientId": "05a2d309-d0ee-46d4-81bb-a07481915da9",
+      "uiSessionCount": "0",
+      "uiSessionIds": []
+    },
+    "receipt": {
+      "commandId": "a18604c9-5a02-4967-a270-95bae0d2714f",
+      "documentRevision": "3",
+      "fromSeq": "2",
+      "status": "accepted",
+      "toSeq": "2",
+      "transactionId": "8877167f-a18d-47de-89bb-858cbb0ccf2b"
+    }
+  }
+]

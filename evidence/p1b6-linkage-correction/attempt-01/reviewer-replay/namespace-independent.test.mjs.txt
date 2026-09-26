@@ -1,0 +1,10 @@
+✔ independent namespace HTTP authority, pinned high-water, immutable content and release (2276.077375ms)
+✔ independent Chromium typed namespace faults and cross-tab publication (3046.918125ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5465.007125

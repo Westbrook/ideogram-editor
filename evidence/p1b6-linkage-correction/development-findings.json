@@ -1,0 +1,79 @@
+{
+  "recordedAt": "2026-09-26T11:15:12.046053+00:00",
+  "scope": "Only remaining I-PF01 revision consistency and I-PF02 retained namespace linkage at5dab27d.",
+  "priorEvidence": "All d4ed761 and5dab27d author/reviewer originals remain untouched. This new bundle supplements them; it grants no independent approval or qualification.",
+  "coordination": {
+    "authorSourceOnlyDuringReservedWindow": true,
+    "reviewerEndSent": "2026-09-26T11:06:15.564369Z",
+    "coordinatorReleaseDelivered": "2026-09-26T11:07:06Z",
+    "noAuthorBuildTestProbeDuringHold": true
+  },
+  "attempts": [
+    {
+      "path": "typecheck-01.txt",
+      "result": "FAIL",
+      "classification": "Development TypeScript TS7022 generator cursor inference; explicit IDBCursorWithValue|null annotation fixed. No product-test failure or final-gate claim."
+    },
+    {
+      "path": "build-01.txt",
+      "result": "PASS",
+      "classification": "Preliminary build before frozen final gates."
+    },
+    {
+      "path": "attempt-01/focused.txt",
+      "result": "9/9 PASS",
+      "source": "attempt-01/source.json",
+      "limits": "Preliminary first fixture. Later test-only strengthening selects retained inactive child excluding head and redo, and reaches cycle validation directly."
+    },
+    {
+      "path": "attempt-01/focused-strengthened.txt",
+      "result": "9/9 PASS",
+      "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+      "argv": [
+        "node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/portable/revision-consistency.test.mjs",
+        "tests/portable/browser-recovery.test.mjs"
+      ],
+      "limits": "Preliminary development controls, not independent review."
+    },
+    {
+      "path": "attempt-01/reviewer-replay/ATTRIBUTION.json",
+      "result": "Wrapper PASS",
+      "limits": "Original namespace collector and added assertions are different artifacts; original revision helper tests exit1 at valid early rejection and are not passing unchanged tests."
+    }
+  ],
+  "assertionAttribution": {
+    "originalCollector": {
+      "path": "original-review/namespace-independent.test.mjs",
+      "sha256": "417cbbe9b0a50e8edfe642cb6471509b06822be0d6ea40b26b1bf582145c9864",
+      "meaning": "Unchanged original collector asserts five prior faults but only records the three retained-link faults."
+    },
+    "addedWrapper": {
+      "path": "tooling/portable/linkage-reviewer.mjs",
+      "sha256": "1d857fb2c190d757b740cba4deb3ca96a6f1ad2528f7230cd6c4f637e472d9c0",
+      "meaning": "Runs original collector then asserts error and exact before/after published generation equality for all8 fault records, plus cross-tab winner. Source-bound ATTRIBUTION records exact script argv, UTC and exit."
+    },
+    "directBrowser": {
+      "path": "tests/portable/browser-recovery.test.mjs",
+      "sha256": "2fcc6c6dbda4e464213e8a8884b748e6cb7a3dbdbb729327434e75d6aec4479a",
+      "meaning": "Additional actual Chromium assertions for9 structural faults with recomputed descriptor+content, no imported document visibility, prior sentinel, healthy retained graph and cross-tab CAS."
+    },
+    "directRevision": {
+      "path": "tests/portable/revision-consistency.test.mjs",
+      "sha256": "04a5157381cfe654be7b6c4e03c5ea11b67b8050ab635f3fdb5bd8bd425e41df",
+      "meaning": "Adapted public assertions using exact unchanged original ZIPs: healthy reordered receipt2 imports; receipt999/null rejected before review with no namespace and original staging/source preserved. Real nonmutating document receipt and conflicting-domain-revision controls included."
+    },
+    "unchangedRevisionHelpers": {
+      "paths": [
+        "original-review/revision-tail-confirm.test.mjs",
+        "original-review/revision-tail-controls.test.mjs"
+      ],
+      "meaning": "Run unchanged with their accepted-inspection precondition. Expected exit1 on correct durable rejected receipt is retained as a harness assumption, not product failure or passing unchanged test. Healthy2 is independently asserted by direct test."
+    }
+  },
+  "classification": "Structural consistency under explicitly altered descriptor+content. No transport-hash bypass or external origin/authenticity/signature claim."
+}

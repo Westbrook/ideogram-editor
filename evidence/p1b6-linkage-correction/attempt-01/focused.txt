@@ -1,0 +1,54 @@
+browser fixture ready 80
+browser prior cursor { generation: 'prior', cursor: '0', epoch: null }
+hydration fault missing-descriptor { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:6f12f3c2e64e2c1e1f247e633bb195d5fe7815c27a924882b288183e6e6609db',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault wrong-context { error: 'Error: Recovery context changed' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:6f12f3c2e64e2c1e1f247e633bb195d5fe7815c27a924882b288183e6e6609db',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault missing-content { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:6f12f3c2e64e2c1e1f247e633bb195d5fe7815c27a924882b288183e6e6609db',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault truncated-content { error: 'Error: Content integrity check failed' }
+✔ Chromium restart recovery hydrates a multi-chunk imported namespace before the cursor and survives missing or corrupt pages (7166.332291ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","cursor":"80","assets":3,"history":2,"checkpoints":70,"failedHydrationRetainsPrior":true,"externalRequests":[],"qualification":false}
+SSE reached {
+  published: {
+    generation: '196e7176-a3be-4679-b474-3ac2a000c8a4',
+    cursor: '11',
+    epoch: '3'
+  },
+  failure: undefined
+}
+✔ Chromium SSE import uses its pinned context, publishes complete rows once and ignores duplicate delivery (2032.375458ms)
+✔ Chromium snapshot plus tail includes all imported domain projections after server restart (5694.936542ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","snapshotRecovery":true,"namespaceRowsAgree":true,"externalRequests":[],"qualification":false}
+✔ Chromium validates every retained namespace link despite recomputed descriptor and content, then preserves the cross-tab winner (3727.562583ms)
+ℹ {"finding":"I-PF02","kind":"structural linkage, not hash/authenticity failure","browser":"153.0.8010.12","results":[{"fault":"missing-nonhead-history","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-history-parent","result":{"error":"Error: Invalid imported redo link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-checkpoint-head","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"foreign-history-parent","result":{"error":"Error: Invalid imported redo link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"foreign-checkpoint-head","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"missing-retained-composite","result":{"error":"Error: Missing imported asset link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-asset-source","result":{"error":"Error: Missing imported asset link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"history-cycle","result":{"error":"Error: Invalid imported redo link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"asset-cycle","result":{"error":"Error: Invalid imported asset graph"},"rewroteDescriptorAndContent":true,"priorPreserved":true}],"healthyRetainedHistory":4,"healthyCheckpoints":3,"redo":"p_257b7c6bc92a4274bf2ecfc4fc0069a03f6b7a8cad6ec8a7015ebc82cd06e59f","crossTabWinnerPreserved":true,"qualification":false}
+✔ public trailing workspace event preserves domain revision evidence: revision-tail-control-2.zip (1343.433666ms)
+ℹ {"finding":"I-PF01","originalReviewerArchive":"revision-tail-control-2.zip","archiveHash":"sha256:23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e","previewReceipt":{"commandId":"6e058555-2bcd-4c41-8e5e-894d4168a3d0","documentRevision":null,"fromSeq":"2","status":"accepted","toSeq":"2","transactionId":"e0889f35-c6d3-4506-a549-e152ad577d5e"},"importReceipt":{"commandId":"883dcbbf-e6c4-4b62-9f68-2a25257a03b6","documentRevision":"3","fromSeq":"3","status":"accepted","toSeq":"3","transactionId":"591c3be2-9eb5-4643-815e-c17c4dd159ec"},"sourcePreserved":true}
+✔ public trailing workspace event preserves domain revision evidence: format2-domain-revision-hidden-by-tail.zip (523.074958ms)
+ℹ {"finding":"I-PF01","originalReviewerArchive":"format2-domain-revision-hidden-by-tail.zip","archiveHash":"sha256:c43bb855a4fadc6410ec1801103fb2f361281cb49d653d56fe43e788105c153c","previewReceipt":{"code":"INVALID_INPUT","commandId":"c5f58963-1c78-4d2f-9992-8693d020327a","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"importReceipt":null,"sourcePreserved":true}
+✔ public trailing workspace event preserves domain revision evidence: revision-tail-control-null.zip (526.048833ms)
+ℹ {"finding":"I-PF01","originalReviewerArchive":"revision-tail-control-null.zip","archiveHash":"sha256:9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283","previewReceipt":{"code":"INVALID_INPUT","commandId":"006f3a0e-6712-4631-9dd0-6ff0d1503b32","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"importReceipt":null,"sourcePreserved":true}
+✔ actual nonmutating document receipt retains revision with no domain event in a complete copy (2432.416125ms)
+ℹ {"finding":"I-PF01","noDomainEvents":true,"sourceReceipt":{"commandId":"41c94482-a54c-4c4d-b77a-992e33281445","documentRevision":"2","fromSeq":"8","status":"accepted","toSeq":"8","transactionId":"5bcd33a8-981e-4e2c-b7e5-18db289b6bbf"},"importReceipt":{"commandId":"6b178fb5-746c-4051-bf03-6c4f32bea5ab","documentRevision":"2","fromSeq":"2","status":"accepted","toSeq":"2","transactionId":"8283fba1-11e3-4a27-aa87-95c569f933ef"}}
+✔ public preview rejects conflicting domain revisions inside one otherwise contiguous transaction (1001.556542ms)
+ℹ {"finding":"I-PF01","conflictingDomainRevisions":["2","3"],"receipt":{"code":"INVALID_INPUT","commandId":"cc085911-2afb-4bb0-991e-7504b5544d94","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"}}
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24915.288708

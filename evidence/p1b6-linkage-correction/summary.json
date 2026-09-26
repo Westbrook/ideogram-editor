@@ -1,0 +1,805 @@
+{
+  "task": "P1b.6 full-history portable copies \u2014 remaining I-PF01/I-PF02 correction",
+  "taskNoteId": "8c5b65fb-17c0-4a5a-97e3-ec95cf7f126b",
+  "independentReviewTask": "c91db4c3-2a29-4b3d-b3a3-0329b48fbc55",
+  "prContext": "cbd63320-6def-4beb-b78f-de897caf3cdf",
+  "status": "review_required",
+  "base": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "branch": "ideogram-editor-p1",
+  "commit": "Containing Git commit; exact head is recorded in the task and shared PR Context after the scoped commit.",
+  "pr": null,
+  "ciRun": null,
+  "preExistingBaseCIFailures": "None claimed; no hosted base CI run link exists.",
+  "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+  "sourceFiles": [
+    "server/portable/transactions.ts",
+    "src/state/recovery-cache.ts",
+    "src/state/recovery-client.ts",
+    "tests/portable/browser-recovery.test.mjs",
+    "tests/portable/revision-consistency.test.mjs",
+    "tooling/PORTABLE.txt",
+    "tooling/portable/linkage-gates.mjs",
+    "tooling/portable/linkage-identity.mjs",
+    "tooling/portable/linkage-observe.mjs",
+    "tooling/portable/linkage-originals.mjs",
+    "tooling/portable/linkage-reviewer.mjs",
+    "tooling/portable/linkage-seal.mjs"
+  ],
+  "finalGates": "evidence/p1b6-linkage-correction/final-gates-01.json",
+  "gateCount": 27,
+  "gatePasses": 27,
+  "portableTests": 131,
+  "startedAt": "2026-09-26T11:14:31.410Z",
+  "finishedAt": "2026-09-26T11:23:04.860Z",
+  "toolchain": {
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "browser": "Chromium 153.0.8010.12",
+    "dependencies": "Existing approved public paths; no dependency/vendor/lockfile changes."
+  },
+  "verification": {
+    "command": "PATH=\"$PWD/.toolchain/bin:$PATH\" node tooling/portable/linkage-gates.mjs 01",
+    "gateLog": "final-gates-01.json contains exact executable/argv, UTC intervals, exit, log path and identical before/after source identity.",
+    "gates": [
+      {
+        "name": "typecheck",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:14:31.459Z",
+        "finishedAt": "2026-09-26T11:14:32.591Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/typecheck.txt"
+      },
+      {
+        "name": "build",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:14:32.655Z",
+        "finishedAt": "2026-09-26T11:14:35.234Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/build.txt"
+      },
+      {
+        "name": "vendor",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:14:35.354Z",
+        "finishedAt": "2026-09-26T11:14:35.612Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/vendor.txt"
+      },
+      {
+        "name": "raster-inputs",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:14:35.661Z",
+        "finishedAt": "2026-09-26T11:14:35.802Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/raster-inputs.txt"
+      },
+      {
+        "name": "spec",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:14:35.851Z",
+        "finishedAt": "2026-09-26T11:14:36.032Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/spec.txt"
+      },
+      {
+        "name": "spec-mutations",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:14:36.080Z",
+        "finishedAt": "2026-09-26T11:14:39.172Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/spec-mutations.txt"
+      },
+      {
+        "name": "portable",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:14:39.233Z",
+        "finishedAt": "2026-09-26T11:18:10.244Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/portable.txt"
+      },
+      {
+        "name": "unchanged-browser-repro",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:18:10.323Z",
+        "finishedAt": "2026-09-26T11:18:12.999Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/unchanged-browser-repro.txt"
+      },
+      {
+        "name": "unchanged-draft-repro",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:18:13.052Z",
+        "finishedAt": "2026-09-26T11:18:15.166Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/unchanged-draft-repro.txt"
+      },
+      {
+        "name": "independent-structural-replay",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:18:15.224Z",
+        "finishedAt": "2026-09-26T11:18:27.357Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/independent-structural-replay.txt"
+      },
+      {
+        "name": "portable-volume",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:18:27.416Z",
+        "finishedAt": "2026-09-26T11:18:30.665Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/portable-volume.txt"
+      },
+      {
+        "name": "history",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:18:30.735Z",
+        "finishedAt": "2026-09-26T11:19:27.211Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/history.txt"
+      },
+      {
+        "name": "raster",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:19:27.292Z",
+        "finishedAt": "2026-09-26T11:20:45.616Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/raster.txt"
+      },
+      {
+        "name": "assets",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:20:45.677Z",
+        "finishedAt": "2026-09-26T11:21:14.255Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/assets.txt"
+      },
+      {
+        "name": "protocol",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:21:14.331Z",
+        "finishedAt": "2026-09-26T11:21:36.130Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/protocol.txt"
+      },
+      {
+        "name": "session",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:21:36.195Z",
+        "finishedAt": "2026-09-26T11:21:41.363Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/session.txt"
+      },
+      {
+        "name": "store",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:21:41.519Z",
+        "finishedAt": "2026-09-26T11:21:57.988Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/store.txt"
+      },
+      {
+        "name": "store-volume",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:21:58.058Z",
+        "finishedAt": "2026-09-26T11:22:01.342Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/store-volume.txt"
+      },
+      {
+        "name": "assets-volume",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:22:01.488Z",
+        "finishedAt": "2026-09-26T11:22:05.143Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/assets-volume.txt"
+      },
+      {
+        "name": "recovery",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:22:05.293Z",
+        "finishedAt": "2026-09-26T11:22:22.664Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/recovery.txt"
+      },
+      {
+        "name": "history-browser",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:22:22.806Z",
+        "finishedAt": "2026-09-26T11:22:30.401Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/history-browser.txt"
+      },
+      {
+        "name": "raster-browser",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:22:30.454Z",
+        "finishedAt": "2026-09-26T11:22:31.941Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/raster-browser.txt"
+      },
+      {
+        "name": "shell",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:22:32.005Z",
+        "finishedAt": "2026-09-26T11:22:39.639Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/shell.txt"
+      },
+      {
+        "name": "fresh-consumer",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:22:39.781Z",
+        "finishedAt": "2026-09-26T11:22:59.000Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/fresh-consumer.txt"
+      },
+      {
+        "name": "observations",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:22:59.053Z",
+        "finishedAt": "2026-09-26T11:23:04.689Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/observations.txt"
+      },
+      {
+        "name": "preservation",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:23:04.753Z",
+        "finishedAt": "2026-09-26T11:23:04.765Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/preservation.txt"
+      },
+      {
+        "name": "source-whitespace",
+        "result": "PASS",
+        "startedAt": "2026-09-26T11:23:04.822Z",
+        "finishedAt": "2026-09-26T11:23:04.835Z",
+        "log": "evidence/p1b6-linkage-correction/final-attempt-01/source-whitespace.txt"
+      }
+    ]
+  },
+  "I-PF01": {
+    "status": "OPEN pending exact-target independent approval",
+    "change": "Retain nonnull domain revision evidence across trailing workspace null events. Conflicting domain revisions and mismatching/null receipt revision reject before editable preview; no arbitrary event ordering rule. Valid nonmutating document receipts with no domain event remain accepted.",
+    "format": "Existing explicit PF-1 format2/documentSchema2/schema8 and framing/compatibility unchanged. Original receipt/event bytes are not rewritten. No authenticity/signature guarantee.",
+    "directAssertions": {
+      "path": "tests/portable/revision-consistency.test.mjs",
+      "sha256": "04a5157381cfe654be7b6c4e03c5ea11b67b8050ab635f3fdb5bd8bd425e41df",
+      "meaning": "Adapted public assertions using exact unchanged original ZIPs: healthy reordered receipt2 imports; receipt999/null rejected before review with no namespace and original staging/source preserved. Real nonmutating document receipt and conflicting-domain-revision controls included."
+    },
+    "exactOriginalCorpusResults": [
+      {
+        "finding": "I-PF01",
+        "originalReviewerArchive": "revision-tail-control-2.zip",
+        "archiveHash": "sha256:23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e",
+        "previewReceipt": {
+          "commandId": "4f44e7f1-17ee-44f0-9073-89e2cdee45d4",
+          "documentRevision": null,
+          "fromSeq": "2",
+          "status": "accepted",
+          "toSeq": "2",
+          "transactionId": "ee5901a9-55fb-4aa7-ace8-d4319e4cac1e"
+        },
+        "importReceipt": {
+          "commandId": "5e964505-87b8-4ac7-996c-9519ea557e6f",
+          "documentRevision": "3",
+          "fromSeq": "3",
+          "status": "accepted",
+          "toSeq": "3",
+          "transactionId": "e8b3e72e-549e-4376-af2c-2a85831f1b7d"
+        },
+        "sourcePreserved": true
+      },
+      {
+        "finding": "I-PF01",
+        "originalReviewerArchive": "format2-domain-revision-hidden-by-tail.zip",
+        "archiveHash": "sha256:c43bb855a4fadc6410ec1801103fb2f361281cb49d653d56fe43e788105c153c",
+        "previewReceipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "7d7712e8-d732-471d-8277-c294370bd6cb",
+          "currentRevision": null,
+          "details": {
+            "byteLength": "88",
+            "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "importReceipt": null,
+        "sourcePreserved": true
+      },
+      {
+        "finding": "I-PF01",
+        "originalReviewerArchive": "revision-tail-control-null.zip",
+        "archiveHash": "sha256:9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283",
+        "previewReceipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "4e8e07ff-e067-468f-bd47-75800e984085",
+          "currentRevision": null,
+          "details": {
+            "byteLength": "88",
+            "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "importReceipt": null,
+        "sourcePreserved": true
+      }
+    ],
+    "noDomainReceiptControl": [
+      {
+        "finding": "I-PF01",
+        "noDomainEvents": true,
+        "sourceReceipt": {
+          "commandId": "ad3d31ff-980a-4a14-9f35-cf8d9805c6c9",
+          "documentRevision": "2",
+          "fromSeq": "8",
+          "status": "accepted",
+          "toSeq": "8",
+          "transactionId": "abc8b212-88c4-47f1-a835-c0e47dfde42c"
+        },
+        "importReceipt": {
+          "commandId": "f8a711b1-c646-4b0b-9994-9b4cccf00d1f",
+          "documentRevision": "2",
+          "fromSeq": "2",
+          "status": "accepted",
+          "toSeq": "2",
+          "transactionId": "d4738470-3bfa-4a65-998b-4ade45ff4b6d"
+        }
+      }
+    ],
+    "conflictingDomainControl": [
+      {
+        "finding": "I-PF01",
+        "conflictingDomainRevisions": [
+          "2",
+          "3"
+        ],
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "9c3ca2e3-6870-43e9-b7ad-315be226b879",
+          "currentRevision": null,
+          "details": {
+            "byteLength": "88",
+            "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        }
+      }
+    ]
+  },
+  "I-PF02": {
+    "status": "OPEN pending exact-target independent approval",
+    "change": "Separate private IndexedDB namespace stage, bounded per-entity cursor reads, same-namespace/document history/checkpoint/current/redo/composite/source-asset linkage and disk-backed cycle marks before copying into the private recovery generation and existing atomic publication. No resident whole-namespace graph or total-count/depth cap. Failure preserves prior generation or cross-tab winner.",
+    "classification": "Required internal structural consistency. Faults recompute BOTH descriptor and content with event/header binding retained; this is not a broken transport hash or origin authenticity claim.",
+    "directAssertions": {
+      "path": "tests/portable/browser-recovery.test.mjs",
+      "sha256": "2fcc6c6dbda4e464213e8a8884b748e6cb7a3dbdbb729327434e75d6aec4479a",
+      "meaning": "Additional actual Chromium assertions for9 structural faults with recomputed descriptor+content, no imported document visibility, prior sentinel, healthy retained graph and cross-tab CAS."
+    },
+    "directActualBrowserResults": [
+      {
+        "finding": "I-PF02",
+        "kind": "structural linkage, not hash/authenticity failure",
+        "browser": "153.0.8010.12",
+        "results": [
+          {
+            "fault": "missing-nonhead-history",
+            "result": {
+              "error": "Error: Missing imported history link"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "dangling-history-parent",
+            "result": {
+              "error": "Error: Missing imported history link"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "dangling-checkpoint-head",
+            "result": {
+              "error": "Error: Missing imported history link"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "foreign-history-parent",
+            "result": {
+              "error": "Error: Missing imported history link"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "foreign-checkpoint-head",
+            "result": {
+              "error": "Error: Missing imported history link"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "missing-retained-composite",
+            "result": {
+              "error": "Error: Missing imported asset link"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "dangling-asset-source",
+            "result": {
+              "error": "Error: Missing imported asset link"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "history-cycle",
+            "result": {
+              "error": "Error: Invalid imported history graph"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          },
+          {
+            "fault": "asset-cycle",
+            "result": {
+              "error": "Error: Invalid imported asset graph"
+            },
+            "rewroteDescriptorAndContent": true,
+            "priorPreserved": true
+          }
+        ],
+        "healthyRetainedHistory": 4,
+        "healthyCheckpoints": 3,
+        "redo": "p_f3e283f1e4db215d03cf15dc179ff0448adea249487893ed278f5a6df9ca436b",
+        "crossTabWinnerPreserved": true,
+        "qualification": false
+      }
+    ],
+    "originalCollector": {
+      "path": "original-review/namespace-independent.test.mjs",
+      "sha256": "417cbbe9b0a50e8edfe642cb6471509b06822be0d6ea40b26b1bf582145c9864",
+      "meaning": "Unchanged original collector asserts five prior faults but only records the three retained-link faults."
+    },
+    "addedWrapper": {
+      "path": "tooling/portable/linkage-reviewer.mjs",
+      "sha256": "1d857fb2c190d757b740cba4deb3ca96a6f1ad2528f7230cd6c4f637e472d9c0",
+      "meaning": "Runs original collector then asserts error and exact before/after published generation equality for all8 fault records, plus cross-tab winner. Source-bound ATTRIBUTION records exact script argv, UTC and exit."
+    },
+    "wrapperReadback": [
+      {
+        "fault": "descriptor-hash",
+        "error": "Error: Content descriptor mismatch",
+        "exactPriorPublicationPreserved": true
+      },
+      {
+        "fault": "descriptor-count",
+        "error": "Error: Content integrity check failed",
+        "exactPriorPublicationPreserved": true
+      },
+      {
+        "fault": "descriptor-event",
+        "error": "Error: Invalid recovery data",
+        "exactPriorPublicationPreserved": true
+      },
+      {
+        "fault": "wrong-entity-document",
+        "error": "Error: Invalid recovery data",
+        "exactPriorPublicationPreserved": true
+      },
+      {
+        "fault": "duplicate-row",
+        "error": "Error: Invalid recovery data",
+        "exactPriorPublicationPreserved": true
+      },
+      {
+        "fault": "missing-nonhead-history",
+        "error": "Error: Missing imported history link",
+        "exactPriorPublicationPreserved": true
+      },
+      {
+        "fault": "dangling-history-parent",
+        "error": "Error: Invalid recovery data",
+        "exactPriorPublicationPreserved": true
+      },
+      {
+        "fault": "dangling-checkpoint-head",
+        "error": "Error: Missing imported history link",
+        "exactPriorPublicationPreserved": true
+      }
+    ],
+    "healthyCrossTabWinner": {
+      "generation": "5b0da58b-6672-44bf-80bf-b746a9dbbc3b",
+      "cursor": "11",
+      "epoch": "3"
+    },
+    "externalRequests": [],
+    "snapshotSSEAndRestart": "Existing actual Chromium multi-chunk, SSE duplicate delivery and snapshot-tail restart regressions pass in portable131."
+  },
+  "unchangedReviewerReplay": {
+    "attribution": "final-attempt-01/reviewer-replay/ATTRIBUTION.json",
+    "originalScripts": [
+      {
+        "name": "format2-oracle.test.mjs",
+        "sha256": "381e306fae9c9cc81ffee9804fa1c4e97b753e29f2d226ff2f36028e2bcf7ff6"
+      },
+      {
+        "name": "revision-tail-confirm.test.mjs",
+        "sha256": "442a4d1c1a955a4904fb32e58db9e935ecf66c29d8946640e61992e27641d4d3"
+      },
+      {
+        "name": "revision-tail-controls.test.mjs",
+        "sha256": "30e158f31152f2ebfd691f8393eca73a0779ded5b47456301242b17fc4d11078"
+      },
+      {
+        "name": "namespace-independent.test.mjs",
+        "sha256": "417cbbe9b0a50e8edfe642cb6471509b06822be0d6ea40b26b1bf582145c9864"
+      }
+    ],
+    "runs": [
+      {
+        "name": "browser-build",
+        "args": [
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--config",
+          "tests/recovery/vite.config.ts"
+        ],
+        "startedAt": "2026-09-26T11:18:15.319Z",
+        "finishedAt": "2026-09-26T11:18:15.408Z",
+        "exit": 0,
+        "log": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b6-linkage-correction/final-attempt-01/reviewer-replay/browser-build.txt"
+      },
+      {
+        "name": "format2-oracle.test.mjs",
+        "args": [
+          "--import",
+          "./tests/session/no-egress.mjs",
+          "--test",
+          "../format2-oracle.test.mjs"
+        ],
+        "startedAt": "2026-09-26T11:18:15.408Z",
+        "finishedAt": "2026-09-26T11:18:19.761Z",
+        "exit": 0,
+        "log": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b6-linkage-correction/final-attempt-01/reviewer-replay/format2-oracle.test.mjs.txt"
+      },
+      {
+        "name": "revision-tail-confirm.test.mjs",
+        "args": [
+          "--import",
+          "./tests/session/no-egress.mjs",
+          "--test",
+          "../revision-tail-confirm.test.mjs"
+        ],
+        "startedAt": "2026-09-26T11:18:19.761Z",
+        "finishedAt": "2026-09-26T11:18:20.368Z",
+        "exit": 1,
+        "log": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b6-linkage-correction/final-attempt-01/reviewer-replay/revision-tail-confirm.test.mjs.txt",
+        "disposition": "Expected unchanged inspection-helper assumption fails on genuine rejected archive; not a passing unchanged test. Direct public corpus tests verify preserved source/no namespace, healthy reordered receipt2, and rejection of999/null."
+      },
+      {
+        "name": "revision-tail-controls.test.mjs",
+        "args": [
+          "--import",
+          "./tests/session/no-egress.mjs",
+          "--test",
+          "../revision-tail-controls.test.mjs"
+        ],
+        "startedAt": "2026-09-26T11:18:20.368Z",
+        "finishedAt": "2026-09-26T11:18:22.380Z",
+        "exit": 1,
+        "log": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b6-linkage-correction/final-attempt-01/reviewer-replay/revision-tail-controls.test.mjs.txt",
+        "disposition": "Expected unchanged inspection-helper assumption fails on genuine rejected archive; not a passing unchanged test. Direct public corpus tests verify preserved source/no namespace, healthy reordered receipt2, and rejection of999/null."
+      },
+      {
+        "name": "namespace-independent.test.mjs",
+        "args": [
+          "--import",
+          "./tests/session/no-egress.mjs",
+          "--test",
+          "../namespace-independent.test.mjs"
+        ],
+        "startedAt": "2026-09-26T11:18:22.380Z",
+        "finishedAt": "2026-09-26T11:18:27.339Z",
+        "exit": 0,
+        "log": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b6-linkage-correction/final-attempt-01/reviewer-replay/namespace-independent.test.mjs.txt"
+      }
+    ],
+    "wrapperOutcome": "PASS. Original format2 oracle and namespace collector exit0. Added wrapper explicitly asserts all8 fault errors and unchanged publication; original collector does not assert the3 structural rejections.",
+    "revisionHelperOutcomes": "Both unchanged revision scripts exit1 on corrected durable rejected receipt because their accepted-inspection helper precondition is invalid. Logs retained. These are expected harness outcomes, not passing unchanged tests. Direct public assertions separately prove healthy2, invalid999/null and no-domain receipts.",
+    "historicalLabels": "Unchanged reviewer scripts execute an isolated copy of this correction build. Their hardcoded 5dab27d labels are historical literals, not this execution target. Revision-tail scripts assume accepted inspection; corrected invalid archives reject before that helper precondition. Those nonzero harness outcomes are retained and separated from the direct corrected public tests."
+  },
+  "I-PF03": {
+    "status": "Scoped resolved by coordinator based on independent5dab verdict; author does not grant additional closure.",
+    "regression": "Restored apply/clear/recopy/restart/dedup/exact bytes/privacy/missing-owner/atomic rollback pass. Unchanged original draft reproduction returns200/accepted SaveCopy with mapped owner root.",
+    "readback": "final-attempt-01/unchanged-replay-readback.json"
+  },
+  "A-PF01": {
+    "status": "OPEN administratively pending approved target/coordinator closure",
+    "retrySemantics": "Capacity-restored same-authority retry resumes identical command/hash/operation/review and remains deduplicated after accepted restart. Pending restart retains original expired-review outcome; renewed review and import use NEW command identity.",
+    "finalCorrelations": [
+      {
+        "recovery": "same-authority-retry",
+        "sqlitePageLimit": 660,
+        "restoredFreePages": 493,
+        "fillerRows": 437,
+        "nativeSQLiteCode": 13,
+        "actualNamespaceRowsAfterFailure": 0,
+        "observedFailure": "STORAGE_FULL",
+        "sourceTablesPreserved": [
+          "documents",
+          "history",
+          "checkpoints",
+          "objects",
+          "roots",
+          "commands",
+          "events_v2",
+          "assets",
+          "asset_dependencies",
+          "ui_checkpoints",
+          "ui_events",
+          "ui_receipts",
+          "staged_assets",
+          "portable_reviews",
+          "portable_review_sources",
+          "portable_review_maps",
+          "portable_pins"
+        ],
+        "originalSourcePreserved": true,
+        "originalCommandId": "3a712ef1-5770-492f-ba59-0782d639b264",
+        "originalCommandHash": "sha256:d4efdf602a3d6a3f894bc7ebe8e1c38a338e8eea4dbdb220308f064c588661fb",
+        "originalOperationId": "8446ba2b-ac75-4aeb-a66d-853f3e98338f",
+        "originalReviewId": "2dc0281c-0cc8-4f4f-9bc4-86b8e6553ebf",
+        "acceptedCommandId": "3a712ef1-5770-492f-ba59-0782d639b264",
+        "acceptedReviewId": "2dc0281c-0cc8-4f4f-9bc4-86b8e6553ebf",
+        "sameOriginalIdentityPreserved": true,
+        "singleNamespace": true,
+        "singleAcceptedEvent": true,
+        "restartRequiresFreshReview": false
+      },
+      {
+        "recovery": "restart-expired-review",
+        "sqlitePageLimit": 660,
+        "restoredFreePages": 493,
+        "fillerRows": 437,
+        "nativeSQLiteCode": 13,
+        "actualNamespaceRowsAfterFailure": 0,
+        "observedFailure": "STORAGE_FULL",
+        "sourceTablesPreserved": [
+          "documents",
+          "history",
+          "checkpoints",
+          "objects",
+          "roots",
+          "commands",
+          "events_v2",
+          "assets",
+          "asset_dependencies",
+          "ui_checkpoints",
+          "ui_events",
+          "ui_receipts",
+          "staged_assets",
+          "portable_reviews",
+          "portable_review_sources",
+          "portable_review_maps",
+          "portable_pins"
+        ],
+        "originalSourcePreserved": true,
+        "originalCommandId": "0fd75e57-dc99-43da-8d96-8f29f7856a7c",
+        "originalCommandHash": "sha256:47800001101c759e3613ce4b08497fa7a285406d0166f25abd276196f33af883",
+        "originalOperationId": "6bb317f2-6c94-4692-baaf-69bdf37b8a1e",
+        "originalReviewId": "c31802b2-a3e6-44fb-bb2a-86401dc00a1c",
+        "acceptedCommandId": "211af361-acfc-4335-8a80-84144e6fb134",
+        "acceptedReviewId": "fbf53231-4f50-4b9b-aa11-537da53b1148",
+        "sameOriginalIdentityPreserved": true,
+        "singleNamespace": true,
+        "singleAcceptedEvent": true,
+        "restartRequiresFreshReview": true
+      }
+    ],
+    "independentClosure": false
+  },
+  "originalReview": {
+    "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+    "verdict": "NOT APPROVED",
+    "directory": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent",
+    "verdictSHA256": "c476115d13857efbe83a4196d0dad62f42b410b873d976c25c023b70c5c89d4f",
+    "sealSHA256": "8c668cfff82dd57b6254fcd36a951fafc5056ce45b5d47f7d41c0393df5ae22a",
+    "selectedCopies": "32 unchanged original files, attributed by original-review/ATTRIBUTION.json and SEAL-ATTRIBUTION.json. Original manifest lists158 external files; this selection does not copy all158.",
+    "priorD4Review": {
+      "target": "d4ed76148999978565ca8b37d27612f5b3faa591",
+      "verdict": "NOT APPROVED",
+      "directory": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent",
+      "verdictSHA256": "cc4173dac44efd5b2728889e538bfe985ce1363ca812fa9c68025561327abbae",
+      "original120EntrySealSHA256": "3a7bc356d3bdeadb3d24aefda21929764ef96be505aec935d4db850dc0121c29",
+      "final123EntrySealSHA256": "ffa749bd73391148cd0db0c4c47ff4773e783df6cd68c2fbb349e21eee21c027",
+      "selectedCopies": "original-review/ATTRIBUTION.json and ADDENDUM-ATTRIBUTION.json identify unchanged selected originals. Both original seal lists are preserved; this selection does not contain every external file.",
+      "unchangedReplayAttribution": "Unchanged scripts run against isolated correction build copies. The browser result retains its historical hardcoded d4 target string; actual source identity is in each replay ATTRIBUTION.json. No independent approval is implied.",
+      "serialWindow": "Reviewer explicit END 2026-09-26T10:29:54Z released the original reserved window before author tests. No author builds/tests/probes were run in that window."
+    },
+    "serialWindow": {
+      "authorSourceOnlyDuringReservedWindow": true,
+      "reviewerEndSent": "2026-09-26T11:06:15.564369Z",
+      "coordinatorReleaseDelivered": "2026-09-26T11:07:06Z",
+      "noAuthorBuildTestProbeDuringHold": true
+    }
+  },
+  "largeFixtures": [
+    {
+      "fixture": "real repeated nonzero bytes; no sparse file or forged size",
+      "payloadBytes": "4296015889",
+      "archiveBytes": "4296016564",
+      "allocatedBytes": 4303360000,
+      "maxIOChunk": 1048576,
+      "peakRSS": 158711808,
+      "fullTestMs": 5804.07625,
+      "qualification": false,
+      "limits": "ZIP transport correctness only; not the R39 document campaign"
+    },
+    {
+      "fixture": "synthetic canonical checkpoint records, real bytes",
+      "eventRecordCount": 10000,
+      "eventIndexBytes": "150650050",
+      "eventSegments": 2,
+      "rootSegments": 3,
+      "peakRSS": 350470144,
+      "elapsedMs": 7555.806666999999,
+      "qualification": false,
+      "limits": "segmented index transport/parser only; not a coherent full document or 100k-operation campaign"
+    }
+  ],
+  "tinyTimingObservations": {
+    "evidence": "final-attempt-01/observations.json",
+    "fixture": "tiny 3x2 retained image; serial HTTP on this nonexclusive host",
+    "maxima": {
+      "copyReadyAndDownloadedMs": 136.18479200000002,
+      "uploadAndPreviewMs": 302.92820800000027,
+      "importConfirmedToReceiptMs": 576.6579169999995,
+      "uploadPreviewAndImportMs": 875.6966659999998,
+      "parentTotalMs": 1013.2151670000003
+    },
+    "limits": "Full observed public calls include queue/capture/hash/CRC/parse/codec/import/receipt and client polling. Download verification is included in copyReadyAndDownloadedMs. uploadPreviewAndImportMs includes uploading and previewing before explicit ImportBundle. No R39 512 MiB/4 GiB document campaign, supported-envelope, browser paint, destination write, native-memory or power-loss qualification.",
+    "qualification": false,
+    "prior5dabAuthorMaximaRetained": {
+      "copyReadyAndDownloadedMs": 120.22766599999977,
+      "uploadAndPreviewMs": 272.8212910000001,
+      "importConfirmedToReceiptMs": 562.8869579999996,
+      "uploadPreviewAndImportMs": 828.4312500000001,
+      "parentTotalMs": 942.1125419999998
+    },
+    "prior5dabReviewerParentMaxMs": 845.207,
+    "prior5dabAuthorSyntheticIndexPeakRSS": 411598848,
+    "prior5dabReviewerSyntheticIndexPeakRSS": 393986048
+  },
+  "qualification": false,
+  "independentClosure": false,
+  "limits": [
+    "Author27/27 and131/131 do not close I-PF01/I-PF02/A-PF01 or award P1b credit. Existing included reviewer must assess this exact containing commit. I-PF03 scoped coordinator resolution and regression protection remain separate.",
+    "No R39 coherent512MiB8/15s or4GiB60/120s document campaign,100k-operation campaign, supported-envelope/native-peak/formal-memory/platform/power-loss qualification. Real >4GiB ZIP and >128MiB index are transport/parser correctness, not total project/index caps.",
+    "All parent work/samples retained; tiny calls include queue/capture/hash/CRC/parse/codec/import/receipt/polling and download verification. Browser paint and actual destination write are not measured. No exclusive-host claim.",
+    "A-R01 and prior history full metadata max74.743ms with20/20 above50ms and all prior slow samples remain open/visible. No budget waiver, pruning or quality downgrade.",
+    "P1b.7 browser integration gate, En Reve-first adoption/exact1px user feedback and destination acknowledgement remain open. Copy-ready still means destination unconfirmed.",
+    "Originald4 and5dab rejections, frozen v1 contracts, approved format2 amendment and all older sealed evidence remain unchanged. This correction does not change persisted version interpretation.",
+    "No report/locator/approved preview52219/live sibling/vendor/old evidence edits; no paid/provider/publishing actions. No unrelated/private/secret source expansion.",
+    "No PR or hosted CI; no pre-existing base CI failure claim without a base run link."
+  ],
+  "development": "development-findings.json preserves typecheck inference failure, first focused fixture and strengthened focused run, with separate original/helper/wrapper attribution. Only final-attempt-01 is final frozen-source evidence.",
+  "reportReadback": {
+    "revision": 175,
+    "openFeedbackCount": 5,
+    "openFeedback": [
+      {
+        "id": "439b475b-b1e1-4143-8482-70d37269b0d5",
+        "findingId": null
+      },
+      {
+        "id": "74b84eae-f3f8-477b-9320-0f293afc618d",
+        "findingId": "A-R01"
+      },
+      {
+        "id": "5515e2b6-e79a-4f79-bd75-6125a66ab7d6",
+        "findingId": "A-PF01"
+      },
+      {
+        "id": "4ee8fadc-c779-4c1c-963e-6e424ba05bd3",
+        "findingId": "I-PF01"
+      },
+      {
+        "id": "d9c2ae88-468a-426d-9527-9f05093c7b54",
+        "findingId": "I-PF02"
+      }
+    ],
+    "owner": "Canonical report owner; no report changes by this implementor."
+  },
+  "integrationContract": "tooling/PORTABLE.txt",
+  "integrationContractSHA256": "902492d2db4d885226b6bea3cc3ad6fe277a6d11139187b2043894fc4dbd3ce9",
+  "seals": [
+    "source-manifest.json",
+    "build-manifest.json",
+    "SHA256SUMS"
+  ],
+  "reviewAction": "Coordinator assigns existing included reviewer to exact containing correction commit. Keep review_required, remaining findings open, P1b17/27 and browser gate unchanged until independent disposition."
+}

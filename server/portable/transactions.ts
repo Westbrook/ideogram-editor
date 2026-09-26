@@ -93,7 +93,11 @@ export async function validateTransactions(db: DatabaseSync, highWater: string, 
           event.transactionId !== r.transactionId || event.commandId !== r.commandId) invalid();
       const key = canonical([event.correlationId,event.causationId,event.writerEpoch]);
       if (identity !== undefined && key !== identity) invalid();
-      identity = key; revision=event.resultingDocumentRevision; hash.update(text+'\n'); next++; count++; check(); await tick();
+      if (event.resultingDocumentRevision !== null) {
+        if (revision !== null && revision !== event.resultingDocumentRevision) invalid();
+        revision = event.resultingDocumentRevision;
+      }
+      identity = key; hash.update(text+'\n'); next++; count++; check(); await tick();
     }
     if (next !== end+1n || count !== BigInt(record.eventCount) || (revision!==null&&revision!==r.documentRevision) ||
         'sha256:'+hash.digest('hex') !== record.eventsHash) invalid();

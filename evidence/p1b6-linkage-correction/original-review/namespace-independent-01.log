@@ -1,0 +1,30 @@
+✖ independent namespace HTTP authority, pinned high-water, immutable content and release (1800.333125ms)
+✔ independent Chromium typed namespace faults and cross-tab publication (3923.232ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5875.806083
+
+✖ failing tests:
+
+test at ../namespace-independent.test.mjs:15:1
+✖ independent namespace HTTP authority, pinned high-water, immutable content and release (1800.333125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  204 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-independent.test.mjs:16:920)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 204,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

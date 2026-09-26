@@ -1,0 +1,25 @@
+✖ reviewer format2 receipt framing, nested fresh-workspace roundtrip and hostile structural corpus (4495.815916ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4547.093917
+
+✖ failing tests:
+
+test at ../format2-oracle.test.mjs:6:1
+✖ reviewer format2 receipt framing, nested fresh-workspace roundtrip and hostile structural corpus (4495.815916ms)
+  AssertionError [ERR_ASSERTION]: [{"kind":"domain-revision-hidden-by-tail","status":"accepted","receipt":{"commandId":"b20f1c9a-b9c3-4268-ab09-57fb1c0d79e4","documentRevision":null,"fromSeq":"13","status":"accepted","toSeq":"13","transactionId":"0dd3e9e8-157b-4e9f-bec1-39e1956a01d1"},"sha256":"c43bb855a4fadc6410ec1801103fb2f361281cb49d653d56fe43e788105c153c","sourcePreserved":true}]
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/format2-oracle.test.mjs:30:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

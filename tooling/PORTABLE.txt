@@ -318,3 +318,32 @@ No global root scan, erased-association guess, legacy cleanup or unrelated
 content transfer is used. Original and distinct-document privacy boundaries
 remain intact. Corrected tests exercise genuine format2 import/apply/clear/
 recopy/restart; refusing old format1 import alone is not a correction proof.
+
+SECOND CORRECTION — REMAINING I-PF01 / I-PF02 AT 5dab27d
+
+Correction parent: 5dab27df7555606d6ee09c21bad62015f0ed8d96.
+Format2 framing, exact event bytes, schema8 and legacy compatibility remain
+unchanged. A transaction retains every nonnull document revision as evidence:
+subsequent workspace events with null revision cannot erase it. Contradictory
+domain revisions or a mismatching/null receipt revision fail. Legitimate
+nonmutating document receipts with no domain event remain valid. No event-order
+restriction or external authenticity/signature promise is introduced.
+
+Imported browser domain rows are first staged in an isolated IndexedDB
+namespace. All retained history parents and checkpoint heads, current/redo
+history, composite assets and raster source-asset references resolve only in
+that namespace and document. A bounded cursor reads one typed entity at a time;
+IndexedDB marks check every retained history/asset graph without an in-memory
+namespace collection or invented total-count/depth limit. Valid null roots,
+branches, old checkpoints and redo remain retained. Only after structural and
+transport validation are rows copied into the still-private recovery generation
+and its existing compare-and-swap publication attempted. Failure discards both
+private stages and preserves the prior generation or another tab's winner.
+
+Structural browser controls deliberately recompute BOTH the content descriptor
+and JSONL bytes while preserving event/header namespace binding. Missing links
+are structural inconsistencies, not a broken transport hash, origin-authenticity
+claim or arbitrary compromised-server guarantee. Private UI/provider paths and
+snapshot/tail/SSE ownership remain unchanged. Separate evidence is retained in
+evidence/p1b6-linkage-correction; prior source and evidence stay intact. Author
+passes require a new exact-target independent review and close no findings.

@@ -1,0 +1,253 @@
+{
+  "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "descriptor": {
+    "eventCount": "2",
+    "eventsHash": "sha256:aebf100ee35ee74c8d0e9767a1debbea4a7b2bc8dd09188e2b2566a3d2fe1739",
+    "kind": "transaction",
+    "receipt": {
+      "commandId": "0f9b2cd2-029d-443a-bc5b-389a0383fb9b",
+      "documentRevision": "999",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "f0badd59-bdab-41c1-9230-4da2fa6f1d1c"
+    },
+    "schemaVersion": 1,
+    "sourceArchive": null
+  },
+  "events": [
+    {
+      "causationId": null,
+      "commandId": "0f9b2cd2-029d-443a-bc5b-389a0383fb9b",
+      "correlationId": "correlation_1",
+      "documentId": "document_1",
+      "eventId": "beb19bd4-a3f4-44ec-98d2-6c06a63f0b0a",
+      "payload": {
+        "document": {
+          "branchId": "b97e4024-944d-4bca-929d-0df644f9e60a",
+          "checkpoint": null,
+          "color": "sRGB",
+          "compositionVersion": null,
+          "depth": 8,
+          "height": 2,
+          "historyHead": "b315f8ba-3a20-4b93-9798-8b64fa0731f2",
+          "id": "document_1",
+          "image": {
+            "compositeAssetId": "c708d5ee-03e4-453d-ad6f-4fd2665db7cd",
+            "semanticDigest": "sha256:7a3d3d2a5c94b3e59e656a865b836f1996e724965bd07c1a3cbbded3889e3cec",
+            "state": {
+              "byteLength": "267",
+              "hash": "sha256:3730daacff0dcba90c5ed4a6841a24ace2c6f528f9816f8f0c6cb71cb0cbab2d",
+              "mediaType": "application/json"
+            }
+          },
+          "orderedLayerIds": [
+            "picture"
+          ],
+          "redo": null,
+          "revision": "2",
+          "width": 3
+        },
+        "history": {
+          "after": {
+            "compositeAssetId": "c708d5ee-03e4-453d-ad6f-4fd2665db7cd",
+            "semanticDigest": "sha256:7a3d3d2a5c94b3e59e656a865b836f1996e724965bd07c1a3cbbded3889e3cec",
+            "state": {
+              "byteLength": "267",
+              "hash": "sha256:3730daacff0dcba90c5ed4a6841a24ace2c6f528f9816f8f0c6cb71cb0cbab2d",
+              "mediaType": "application/json"
+            }
+          },
+          "before": {
+            "compositeAssetId": null,
+            "semanticDigest": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+            "state": {
+              "byteLength": "52",
+              "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+              "mediaType": "application/json"
+            }
+          },
+          "branchId": "b97e4024-944d-4bca-929d-0df644f9e60a",
+          "documentId": "document_1",
+          "forward": {
+            "byteLength": "335",
+            "hash": "sha256:984880a0a1aeab56f7907fa1c917402466fe6dc2f0542c5e0aa1b96d7b89da4b",
+            "mediaType": "application/json"
+          },
+          "id": "b315f8ba-3a20-4b93-9798-8b64fa0731f2",
+          "inverse": {
+            "byteLength": "115",
+            "hash": "sha256:c90bc62f2299efb57d57cb16bbf397f6a419562c2b9ddcc803fbd18b1bb141ab",
+            "mediaType": "application/json"
+          },
+          "kind": "image-edit",
+          "operation": "ImportAsset",
+          "parent": "f63fc5f0-efa8-4149-aa2d-1876d2c095b6",
+          "revision": "2",
+          "roots": [
+            {
+              "byteLength": "52",
+              "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "267",
+              "hash": "sha256:3730daacff0dcba90c5ed4a6841a24ace2c6f528f9816f8f0c6cb71cb0cbab2d",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "335",
+              "hash": "sha256:984880a0a1aeab56f7907fa1c917402466fe6dc2f0542c5e0aa1b96d7b89da4b",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "115",
+              "hash": "sha256:c90bc62f2299efb57d57cb16bbf397f6a419562c2b9ddcc803fbd18b1bb141ab",
+              "mediaType": "application/json"
+            }
+          ]
+        }
+      },
+      "payloadVersion": 1,
+      "recordedAt": "2026-09-26T11:04:09.773Z",
+      "resultingDocumentRevision": "2",
+      "schemaVersion": 1,
+      "streamId": "document_1",
+      "streamSeq": "2",
+      "transactionId": "f0badd59-bdab-41c1-9230-4da2fa6f1d1c",
+      "type": "ImageEdited",
+      "workspaceSeq": "6",
+      "writerEpoch": "2"
+    },
+    {
+      "causationId": null,
+      "commandId": "0f9b2cd2-029d-443a-bc5b-389a0383fb9b",
+      "correlationId": "correlation_1",
+      "documentId": null,
+      "eventId": "319edcac-7737-4d3c-85a3-8a050fc7e986",
+      "payload": {
+        "asset": {
+          "availability": "available",
+          "blob": {
+            "byteLength": "111",
+            "hash": "sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+            "mediaType": "image/png"
+          },
+          "dependencies": [
+            {
+              "byteLength": "1019",
+              "hash": "sha256:3d5384b708f2e9437d329e1b382a5af06e186e560b36379dbde9dc8fa2f9e043",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            }
+          ],
+          "id": "c708d5ee-03e4-453d-ad6f-4fd2665db7cd",
+          "measuredMediaType": "image/png",
+          "purpose": "image",
+          "qualification": "canonical-raster",
+          "raster": {
+            "conversion": null,
+            "height": 2,
+            "manifest": {
+              "byteLength": "1019",
+              "hash": "sha256:3d5384b708f2e9437d329e1b382a5af06e186e560b36379dbde9dc8fa2f9e043",
+              "mediaType": "application/json"
+            },
+            "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+            "pixelIdentity": "sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b",
+            "pixels": {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            },
+            "role": "composite",
+            "schemaVersion": 1,
+            "sourceAssetIds": [
+              "4bcb13ea-acd5-4d99-aacf-30d008f42dd0"
+            ],
+            "width": 3
+          },
+          "safety": "safe",
+          "version": "1"
+        }
+      },
+      "payloadVersion": 1,
+      "recordedAt": "2026-09-26T11:04:09.772Z",
+      "resultingDocumentRevision": null,
+      "schemaVersion": 1,
+      "streamId": "assets",
+      "streamSeq": "7",
+      "transactionId": "f0badd59-bdab-41c1-9230-4da2fa6f1d1c",
+      "type": "AssetRegistered",
+      "workspaceSeq": "7",
+      "writerEpoch": "2"
+    }
+  ],
+  "review": {
+    "capturedHighWater": "8",
+    "closureHash": "sha256:ba5d4c65d0b5ca11ba8f2cfb5941ab148891e1f441a35b6c8473b64ac841404f",
+    "documentId": "p_910c4da71a99572e1f2e970503f3f98ef076b95d01b7b3d21af371ec22c4edf9",
+    "documentSchema": 2,
+    "editable": true,
+    "entityCount": "7",
+    "eventCount": "4",
+    "expiresAt": "2026-09-26T11:34:48.213Z",
+    "formatVersion": 2,
+    "localRetentionExcluded": "obsolete-unattributed-ui-only",
+    "namespaceId": "0e4c0830-e810-48ca-a6ab-58f5e6efd52f",
+    "objectCount": "17",
+    "protocolVersion": 1,
+    "reason": null,
+    "reviewHash": "sha256:ecd192efe542bb5ceae3e4524e17ae7782004386980c1cbd8842a9aac3f11854",
+    "reviewId": "bdcba09a-bbaa-42e6-be8e-0b1569b8427a",
+    "scope": "selected-document-current-drafts-and-retained-domain-history",
+    "source": {
+      "byteLength": "28469",
+      "hash": "sha256:c43bb855a4fadc6410ec1801103fb2f361281cb49d653d56fe43e788105c153c",
+      "mediaType": "application/x-ideogram-project"
+    },
+    "sourceNamespace": "document_1",
+    "targetClientId": "e62ee1e2-45bc-436b-b9b1-d69232c6bf97",
+    "uiSessionCount": "0",
+    "uiSessionIds": []
+  },
+  "imported": {
+    "receipt": {
+      "commandId": "d44fc4e8-4e16-4237-a8cb-d295e99404d4",
+      "documentRevision": "3",
+      "fromSeq": "2",
+      "status": "accepted",
+      "toSeq": "2",
+      "transactionId": "0f66c210-b2ab-4ab6-a9da-a82d60c98fa0"
+    },
+    "document": {
+      "branchId": "p_7359af5725d7362b1f8280824ec3fb3663cb7505479a79e788c4502fd20745dc",
+      "checkpoint": "p_2370782dadadc1f60aa8c1fade33836bd27ea3d7429bf59a301a3adc986384f4",
+      "color": "sRGB",
+      "compositionVersion": null,
+      "depth": 8,
+      "height": 2,
+      "historyHead": "p_30c3286985b30cd034ba3411f8ea06af73298bffa236651d4bc92d72d0772229",
+      "id": "p_910c4da71a99572e1f2e970503f3f98ef076b95d01b7b3d21af371ec22c4edf9",
+      "image": {
+        "compositeAssetId": "p_35574e8e511e894ca9a29a0ea7274088801938f97d2f1911f28efaf1159a773e",
+        "semanticDigest": "sha256:58d50877e08fc4060c15bb6d9656ea06ceba855c68bc4e2b9c6668a47dfcbb61",
+        "state": {
+          "byteLength": "356",
+          "hash": "sha256:61cee709dc5c85f618926101b387905f974f291bf925ba2c4187c96facbfef1d",
+          "mediaType": "application/json"
+        }
+      },
+      "orderedLayerIds": [
+        "p_bb53e3f57a50e8f2bcab7fa51358729ee10d5a94c54a34f3bbb649af76808a13"
+      ],
+      "redo": null,
+      "revision": "3",
+      "width": 3
+    }
+  }
+}

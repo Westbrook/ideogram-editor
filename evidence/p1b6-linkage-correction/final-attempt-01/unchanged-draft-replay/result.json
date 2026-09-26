@@ -1,0 +1,169 @@
+{
+  "review": {
+    "capturedHighWater": "8",
+    "closureHash": "sha256:82f8d72e38676b6c7385136816e72df910fdbb5f0e57505079b36ab0790b96d5",
+    "documentId": "p_2c0708e944ee951f783c65017f6da56af2873bf4351d54b8c710ef247787e5a1",
+    "documentSchema": 2,
+    "editable": true,
+    "entityCount": "8",
+    "eventCount": "3",
+    "expiresAt": "2026-09-26T11:48:14.179Z",
+    "formatVersion": 2,
+    "localRetentionExcluded": "obsolete-unattributed-ui-only",
+    "namespaceId": "7bd1dfad-0353-4446-b735-413cb003b722",
+    "objectCount": "19",
+    "protocolVersion": 1,
+    "reason": null,
+    "reviewHash": "sha256:2cb1b9a3ed0c3dda8977a39bc021e1aeab73a22e07bd426270b02297609853d7",
+    "reviewId": "c841a98a-7db0-42c0-bf2a-d131952ccf27",
+    "scope": "selected-document-current-drafts-and-retained-domain-history",
+    "source": {
+      "byteLength": "29723",
+      "hash": "sha256:ec233575c0795a6f6abc58455316358f00c4c0bff06951074afcc78708552afb",
+      "mediaType": "application/x-ideogram-project"
+    },
+    "sourceNamespace": "document_1",
+    "targetClientId": "a7ff9378-c63c-4f52-a511-42a7547f98dd",
+    "uiSessionCount": "1",
+    "uiSessionIds": [
+      "p_4d3e78692af289dd32440d4324d18c5635e2c773f008aacccc4839c45e8e5626"
+    ]
+  },
+  "restoredDraft": {
+    "assetId": "p_5fb25b8c586bd7c348ce4fb721203c91bdbefc40100005f09e0110a5e801b7ce",
+    "composing": false,
+    "documentId": "p_2c0708e944ee951f783c65017f6da56af2873bf4351d54b8c710ef247787e5a1",
+    "expectedDocumentRevision": "2",
+    "generation": "1",
+    "id": "p_0acea998735f18723ce44753cd07bb681d2ee6167f08c8563dba40dac5abab79",
+    "kind": "inspector",
+    "status": "saved-unapplied",
+    "targetLayerId": "p_ba25f5b4ec6a995ce0edd12d90cb49b5b47e0f040273cfba6dd61ef23daeaae9"
+  },
+  "appliedReceipt": {
+    "commandId": "669ae9b2-3329-40b8-9d4a-9c83caa3125a",
+    "documentRevision": "3",
+    "fromSeq": "12",
+    "status": "accepted",
+    "toSeq": "12",
+    "transactionId": "81612d44-be2c-4907-961f-25a8a154e61c"
+  },
+  "copyCommand": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "1784c020-4e00-4e68-a3a3-c6483f62bb41",
+      "clientId": "a7ff9378-c63c-4f52-a511-42a7547f98dd",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "fb45e551-3616-4dca-8280-50a5f63ea202",
+      "documentId": "p_2c0708e944ee951f783c65017f6da56af2873bf4351d54b8c710ef247787e5a1",
+      "expectedDocumentRevision": "3",
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "SaveCopy"
+      }
+    }
+  },
+  "copyResponse": {
+    "status": 200,
+    "json": {
+      "kind": "receipt",
+      "protocolVersion": 1,
+      "receipt": {
+        "commandId": "1784c020-4e00-4e68-a3a3-c6483f62bb41",
+        "documentRevision": "3",
+        "fromSeq": "13",
+        "status": "accepted",
+        "toSeq": "13",
+        "transactionId": "fb45e551-3616-4dca-8280-50a5f63ea202"
+      }
+    }
+  },
+  "expectedDraftOwner": "ui:a7ff9378-c63c-4f52-a511-42a7547f98dd:p_4d3e78692af289dd32440d4324d18c5635e2c773f008aacccc4839c45e8e5626:p_0acea998735f18723ce44753cd07bb681d2ee6167f08c8563dba40dac5abab79:1",
+  "ownerRoots": [
+    {
+      "owner": "ui:a7ff9378-c63c-4f52-a511-42a7547f98dd:p_4d3e78692af289dd32440d4324d18c5635e2c773f008aacccc4839c45e8e5626:p_0acea998735f18723ce44753cd07bb681d2ee6167f08c8563dba40dac5abab79:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    }
+  ],
+  "retainedDraftRoots": [
+    {
+      "owner": "asset:22bd4d03-32c1-499c-bfd1-4b9ba22ccb3c",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "ui:a7ff9378-c63c-4f52-a511-42a7547f98dd:reviewer_editor:rename:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "namespace:7bd1dfad-0353-4446-b735-413cb003b722",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "ui:a7ff9378-c63c-4f52-a511-42a7547f98dd:p_4d3e78692af289dd32440d4324d18c5635e2c773f008aacccc4839c45e8e5626:p_0acea998735f18723ce44753cd07bb681d2ee6167f08c8563dba40dac5abab79:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    }
+  ],
+  "sourceDocument": {
+    "branchId": "f3c4643b-c105-4e2f-98a5-1c8b2534cae3",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "9f0baf7a-669f-4e5a-83f7-c66aad5353a0",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "08368a0d-3a69-46cc-987c-9334407daab1",
+      "semanticDigest": "sha256:ba0ced8ae91c51cf72e0656f1a3a30f03042c8b6075a3f72067db882aff4364c",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:edbdc15b345cbd2cc26733f8bb6a6fd358e67d723b0623fca873d156f886e331",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "importedDocument": {
+    "branchId": "p_4357d2ecf23a95e91f0d9de14fe252b1770f4d1768ef908e6e244038ebc6b1fa",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "946239e0-999c-4d4d-b9af-ac13ef260cd0",
+    "id": "p_2c0708e944ee951f783c65017f6da56af2873bf4351d54b8c710ef247787e5a1",
+    "image": {
+      "compositeAssetId": "p_d750cd0a911db050cedfc1f13bb788fab4753e0ae98df2386e53fbb49d05863d",
+      "semanticDigest": "sha256:6564ebd508a68bd0d16a56a2889600f7477b42940737a86a65ead7565f238139",
+      "state": {
+        "byteLength": "393",
+        "hash": "sha256:be2564a46e8d19d0f0768802952c0461d1f2dc28209a2a10e0dbc5f9b3d47b47",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "p_ba25f5b4ec6a995ce0edd12d90cb49b5b47e0f040273cfba6dd61ef23daeaae9"
+    ],
+    "redo": null,
+    "revision": "3",
+    "width": 3
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "content": {
+    "blob": {
+      "byteLength": "11733",
+      "hash": "sha256:df49562a1098c024865b399301767f1708e0d4fffcc3be18f190e6610ccb36e6",
+      "mediaType": "application/x-ndjson"
+    },
+    "contentId": "1aafd0d3-7ac6-437d-a872-f17bcfd6c8e0",
+    "encoding": "lp1-namespace-jsonl",
+    "expiresAt": "2026-09-26T11:34:18.889Z",
+    "recordCount": "8",
+    "url": "/api/v1/protocol-content/1aafd0d3-7ac6-437d-a872-f17bcfd6c8e0?recoveryId=c578776c-9421-42db-9bf7-96436dc254de"
+  },
+  "eventId": "b93033f1-a7e8-453e-bde0-15a3ca4e1285",
+  "namespaceHash": "sha256:c58aefc6f248e77f212531351a258813bfb477d11cca4ed73e855d3563557ae3",
+  "namespaceId": "2d63256b-8206-485d-900e-77c421d50df1",
+  "protocolVersion": 1,
+  "recovery": {
+    "expiresAt": "2026-09-26T11:34:18.889Z",
+    "highWater": "11",
+    "projectionSchema": 3,
+    "recoveryId": "c578776c-9421-42db-9bf7-96436dc254de",
+    "writerEpoch": "3"
+  },
+  "workspaceSeq": "11"
+}

@@ -1,4 +1,4 @@
-import type { DomainEvent } from '../protocol/store.js';
+import type { Document, DomainEvent } from '../protocol/store.js';
 import type { EventPage, ProtocolContentRef, RecoveryContext, SnapshotDescriptor, TransactionReference, EventBatch, StreamEnvelope } from '../protocol/recovery.js';
 import { canonical, parseControlJSON } from '../protocol/json.js';
 import { SHA256 } from '../protocol/sha256.js';
@@ -72,6 +72,8 @@ export class RecoveryConsumer {
     const descriptor=await this.control(response);keys(descriptor,['protocolVersion','eventId','namespaceId','namespaceHash','workspaceSeq','content','recovery']);
     sameContext(recovery,descriptor.recovery);
     ok(descriptor.protocolVersion===1&&descriptor.eventId===event.eventId&&descriptor.namespaceId===event.payload.namespaceId&&descriptor.namespaceHash===event.payload.namespaceHash&&descriptor.workspaceSeq===event.workspaceSeq);
+    const namespace=crypto.randomUUID();
+    try {
     let expected='',count=0n,previous='',key='',part=0,parts=0,text='',version='',documents=0;
     await this.rows(descriptor.content,recovery,'lp1-namespace-jsonl',async(row,index)=>{
       if(index===0n){
@@ -87,17 +89,53 @@ export class RecoveryConsumer {
         const value=parseControlJSON(encode.encode(text)) as any;ok(canonical(value)===text&&value.id===row.entityId&&entity(row.entityType,value)===version);
         ok(!await this.cache.value(generation,row.entityType,row.entityId),'Namespace row collision');
         if(row.entityType==='document'){ok(canonical(value)===canonical(event.payload.document));documents++;}
-        else{if(row.entityType==='history'||row.entityType==='checkpoint')ok(value.documentId===event.documentId);await this.cache.put(generation,row.entityType,row.entityId,value);}
+        else if(row.entityType==='history'||row.entityType==='checkpoint')ok(value.documentId===event.documentId);
+        await this.cache.put(namespace,row.entityType,row.entityId,value);
         count++;previous=key;part=0;text='';
       }
     });
     ok(part===0&&documents===1&&String(count)===expected,'Incomplete imported namespace');
-    const document=event.payload.document;ok(await this.cache.value(generation,'history',document.historyHead),'Missing imported history');
-    if(document.checkpoint)ok(await this.cache.value(generation,'checkpoint',document.checkpoint),'Missing imported checkpoint');
-    if(document.image?.compositeAssetId)ok(await this.cache.value(generation,'asset',document.image.compositeAssetId),'Missing imported composite');
+    await this.namespaceLinks(namespace,event.payload.document);
+    for(const type of ['asset','checkpoint','history'])for await(const row of this.cache.rows(namespace,type))await this.cache.put(generation,type,row.id,row.value);
     // This marker and all hydrated rows are still private to the staged
     // generation. The existing pointer transaction is the only publication.
     await this.cache.put(generation,'namespace',event.payload.namespaceId,{eventId:event.eventId,namespaceHash:event.payload.namespaceHash});
+    } finally {await this.cache.discard(namespace);}
+  }
+  private async namespaceLinks(namespace:string,document:Document) {
+    // Resolve only rows delivered for this import, never a coincident ID in
+    // an unrelated document or the previously published generation.
+    const owned=async(type:string,id:string)=>{
+      const row=await this.cache.value(namespace,type,id);
+      ok(row&&(type==='asset'||row.documentId===document.id),'Missing imported '+type+' link');return row;
+    };
+    const image=async(value:any)=>{if(value?.compositeAssetId!==null&&value?.compositeAssetId!==undefined)await owned('asset',value.compositeAssetId);};
+    const head=await owned('history',document.historyHead);
+    if(document.checkpoint)await owned('checkpoint',document.checkpoint);
+    if(document.redo){const redo=await owned('history',document.redo);ok(redo.parent===document.historyHead,'Invalid imported redo link');}
+    await image(document.image);
+    if(head.kind==='image-edit')ok(canonical(head.after)===canonical(document.image),'Invalid imported current history');
+    for await(const {value:h} of this.cache.rows(namespace,'history')){
+      if(h.parent!==null){const parent=await owned('history',h.parent),before=parent.kind==='image-edit'?parent.after:parent.forward.after.image;
+        if(before)ok(canonical(h.before)===canonical(before),'Invalid imported history parent state');}
+      await image(h.kind==='image-edit'?h.before:h.forward.after.image);if(h.kind==='image-edit')await image(h.after);
+    }
+    for await(const {value:c} of this.cache.rows(namespace,'checkpoint')){
+      const h=await owned('history',c.historyHead);await image(c.image);
+      if(h.kind==='image-edit')ok(canonical(c.image)===canonical(h.after),'Invalid imported checkpoint state');
+    }
+    for await(const {value:a} of this.cache.rows(namespace,'asset'))for(const id of a.raster?.sourceAssetIds??[])await owned('asset',id);
+    // Bounded IndexedDB marks validate every retained branch/dependency,
+    // including non-head rows and cycles, without a resident graph or depth cap.
+    for(const type of ['history','asset'])for(;;){let remaining=0n,progress=0n;
+      for await(const {id,value} of this.cache.rows(namespace,type)){
+        if(await this.cache.value(namespace,'checked-'+type,id))continue;remaining++;
+        const parents=type==='history'?(value.parent===null?[]:[value.parent]):value.raster?.sourceAssetIds??[];
+        let ready=true;for(const parent of parents)if(!await this.cache.value(namespace,'checked-'+type,parent)){ready=false;break;}
+        if(ready){await this.cache.put(namespace,'checked-'+type,id,true);progress++;}
+      }
+      if(!remaining)break;ok(progress>0n,'Invalid imported '+type+' graph');
+    }
   }
   private async snapshot(generation:string,descriptor:SnapshotDescriptor) {
     keys(descriptor,['protocolVersion','snapshotId','metadataUrl','snapshotSeq','recovery','content']);context(descriptor.recovery);

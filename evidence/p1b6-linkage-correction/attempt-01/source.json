@@ -1,0 +1,67 @@
+{
+  "base": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "branch": "ideogram-editor-p1",
+  "sourceIdentity": "sha256:03b774e9fa79e8fe339c9f13a7c0c1946bae8b919fce041555bd62537fc0f602",
+  "files": [
+    {
+      "path": "server/portable/transactions.ts",
+      "bytes": 7531,
+      "sha256": "757a43f54017b50de99587e274b97c1d2d297534180718670c3c51b0e561ddf8"
+    },
+    {
+      "path": "src/state/recovery-cache.ts",
+      "bytes": 5716,
+      "sha256": "037aa47750f831090d34793f7db700571413f912730d750f3e08f63915eb953e"
+    },
+    {
+      "path": "src/state/recovery-client.ts",
+      "bytes": 22104,
+      "sha256": "80b12c46049cbf8529ac0b91a890c654489999882049e69b0942872d9e96938f"
+    },
+    {
+      "path": "tests/portable/browser-recovery.test.mjs",
+      "bytes": 15158,
+      "sha256": "c85fe7937c6dca5784a16a938bb374183e5744061e3acefdeb522d9712259272"
+    },
+    {
+      "path": "tests/portable/revision-consistency.test.mjs",
+      "bytes": 5427,
+      "sha256": "04a5157381cfe654be7b6c4e03c5ea11b67b8050ab635f3fdb5bd8bd425e41df"
+    },
+    {
+      "path": "tooling/PORTABLE.txt",
+      "bytes": 22704,
+      "sha256": "902492d2db4d885226b6bea3cc3ad6fe277a6d11139187b2043894fc4dbd3ce9"
+    },
+    {
+      "path": "tooling/portable/linkage-gates.mjs",
+      "bytes": 4262,
+      "sha256": "c8c0a48743cf709184281d42e2166e2cd5b2f12e0d00e737ddb06beec39dd8ff"
+    },
+    {
+      "path": "tooling/portable/linkage-identity.mjs",
+      "bytes": 982,
+      "sha256": "727edf7eeef1a47db6c638511178a6e09a382f8f0d7ff45cecb20398cb830827"
+    },
+    {
+      "path": "tooling/portable/linkage-observe.mjs",
+      "bytes": 2658,
+      "sha256": "021ee0bdafaae3ee5401e86d035494ad9c6fd2db2980ae4703ce775a0a837a6d"
+    },
+    {
+      "path": "tooling/portable/linkage-originals.mjs",
+      "bytes": 2212,
+      "sha256": "33a3ced8b162501ab2ad170e785610763a234470566dc76d232a490f14383830"
+    },
+    {
+      "path": "tooling/portable/linkage-reviewer.mjs",
+      "bytes": 3837,
+      "sha256": "1d857fb2c190d757b740cba4deb3ca96a6f1ad2528f7230cd6c4f637e472d9c0"
+    },
+    {
+      "path": "tooling/portable/linkage-seal.mjs",
+      "bytes": 1949,
+      "sha256": "33b812b47d084a6bc2c59da39c0d7c82702b0cc5b8a97c3d124f69d90c147aa1"
+    }
+  ]
+}

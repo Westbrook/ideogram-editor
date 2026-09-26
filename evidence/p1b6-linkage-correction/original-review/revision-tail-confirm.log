@@ -1,0 +1,28 @@
+✖ confirm domain revision consistency with trailing workspace event through actual import (1365.436209ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1412.660083
+
+✖ failing tests:
+
+test at ../revision-tail-confirm.test.mjs:2:1
+✖ confirm domain revision consistency with trailing workspace event through actual import (1365.436209ms)
+  AssertionError [ERR_ASSERTION]: Domain resulting revision2 must not agree with receipt revision999 merely because final workspace event has null revision
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-confirm.test.mjs:2:1045)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

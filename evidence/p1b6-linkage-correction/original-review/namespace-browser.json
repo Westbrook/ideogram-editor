@@ -1,0 +1,430 @@
+{
+  "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "browser": "153.0.8010.12",
+  "out": [
+    {
+      "fault": "descriptor-hash",
+      "result": {
+        "error": "Error: Content descriptor mismatch"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": false
+    },
+    {
+      "fault": "descriptor-count",
+      "result": {
+        "error": "Error: Content integrity check failed"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": false
+    },
+    {
+      "fault": "descriptor-event",
+      "result": {
+        "error": "Error: Invalid recovery data"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": false
+    },
+    {
+      "fault": "wrong-entity-document",
+      "result": {
+        "error": "Error: Invalid recovery data"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "duplicate-row",
+      "result": {
+        "error": "Error: Invalid recovery data"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "missing-nonhead-history",
+      "result": {
+        "cursor": "11"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "e36f3a10-0d72-47fb-b6e9-5720f4b0cb12",
+        "cursor": "11",
+        "epoch": "3"
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "dangling-history-parent",
+      "result": {
+        "cursor": "11"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "e3dbd2b9-b6f3-4a25-918a-1da260024699",
+        "cursor": "11",
+        "epoch": "3"
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "dangling-checkpoint-head",
+      "result": {
+        "cursor": "11"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "8a27c379-8f0f-496c-abbb-c8928af71347",
+        "cursor": "11",
+        "epoch": "3"
+      },
+      "rewroteTrustedDescriptor": true
+    }
+  ],
+  "crossTab": {
+    "first": {
+      "error": "Error: Cache transaction aborted"
+    },
+    "second": {
+      "cursor": "11"
+    },
+    "winner": {
+      "generation": "71341998-50e9-437c-b578-df46dddfb437",
+      "cursor": "11",
+      "epoch": "3"
+    },
+    "rows": {
+      "document": {
+        "branchId": "p_4673e1f73b2a57fc19f9cc9ea554679d1f98a628077395ac8e5c19877049b94f",
+        "checkpoint": "p_f1071fffc54d4948bbabe0430b916e2d5b576f14806b4b8a61f5d63c7011dd59",
+        "color": "sRGB",
+        "compositionVersion": null,
+        "depth": 8,
+        "height": 2,
+        "historyHead": "p_58aeec9f8242eba7a2c4e5a9d08f0eee747d2f71df6741f5e38ef1345786a156",
+        "id": "p_fd95f631a60157498f4340b2c94837fc6a7ea1a2628d113e3cab2487fb851280",
+        "image": {
+          "compositeAssetId": "p_b2361ab8dab0cafe98a136feaad0ba10e50334b469734c2c9ec95234eae01081",
+          "semanticDigest": "sha256:543a6489a3dc1adad2834c042677d9e3a2e8d194ec34204eb992df61e286d19d",
+          "state": {
+            "byteLength": "369",
+            "hash": "sha256:baed4fa5bd0d1a261f99ff57248fe00cf602ba2eb1cf41cc47beb3b2247d7be4",
+            "mediaType": "application/json"
+          }
+        },
+        "orderedLayerIds": [
+          "p_427c3e71c0b61d8a9b220626ff1b22d2b8dacfaf59b45f06ccafed4acbd6ed83"
+        ],
+        "redo": null,
+        "revision": "3",
+        "width": 3
+      },
+      "history": [
+        {
+          "after": {
+            "compositeAssetId": "p_b2361ab8dab0cafe98a136feaad0ba10e50334b469734c2c9ec95234eae01081",
+            "semanticDigest": "sha256:543a6489a3dc1adad2834c042677d9e3a2e8d194ec34204eb992df61e286d19d",
+            "state": {
+              "byteLength": "369",
+              "hash": "sha256:baed4fa5bd0d1a261f99ff57248fe00cf602ba2eb1cf41cc47beb3b2247d7be4",
+              "mediaType": "application/json"
+            }
+          },
+          "before": {
+            "compositeAssetId": null,
+            "semanticDigest": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+            "state": {
+              "byteLength": "52",
+              "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+              "mediaType": "application/json"
+            }
+          },
+          "branchId": "p_4673e1f73b2a57fc19f9cc9ea554679d1f98a628077395ac8e5c19877049b94f",
+          "documentId": "p_fd95f631a60157498f4340b2c94837fc6a7ea1a2628d113e3cab2487fb851280",
+          "forward": {
+            "byteLength": "555",
+            "hash": "sha256:6dfe95f68c7a7ab34d2a71c3f9b00d6a8f36ca4bb1236460f98292817f3596d9",
+            "mediaType": "application/json"
+          },
+          "id": "p_58aeec9f8242eba7a2c4e5a9d08f0eee747d2f71df6741f5e38ef1345786a156",
+          "inverse": {
+            "byteLength": "174",
+            "hash": "sha256:2aee2b7728d074cb8b432209af45def8d009eb64f02d5a478333877ffa19337f",
+            "mediaType": "application/json"
+          },
+          "kind": "image-edit",
+          "operation": "ImportAsset",
+          "parent": "p_898477e8913c6de1621a5292553a52bdaa856dfa3ab134ecb0cff8edbebe10f5",
+          "revision": "2",
+          "roots": [
+            {
+              "byteLength": "52",
+              "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "369",
+              "hash": "sha256:baed4fa5bd0d1a261f99ff57248fe00cf602ba2eb1cf41cc47beb3b2247d7be4",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "555",
+              "hash": "sha256:6dfe95f68c7a7ab34d2a71c3f9b00d6a8f36ca4bb1236460f98292817f3596d9",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "174",
+              "hash": "sha256:2aee2b7728d074cb8b432209af45def8d009eb64f02d5a478333877ffa19337f",
+              "mediaType": "application/json"
+            }
+          ]
+        },
+        {
+          "branchId": "p_4673e1f73b2a57fc19f9cc9ea554679d1f98a628077395ac8e5c19877049b94f",
+          "documentId": "p_fd95f631a60157498f4340b2c94837fc6a7ea1a2628d113e3cab2487fb851280",
+          "forward": {
+            "after": {
+              "branchId": "p_4673e1f73b2a57fc19f9cc9ea554679d1f98a628077395ac8e5c19877049b94f",
+              "checkpoint": null,
+              "color": "sRGB",
+              "compositionVersion": null,
+              "depth": 8,
+              "height": 2,
+              "historyHead": "p_898477e8913c6de1621a5292553a52bdaa856dfa3ab134ecb0cff8edbebe10f5",
+              "id": "p_fd95f631a60157498f4340b2c94837fc6a7ea1a2628d113e3cab2487fb851280",
+              "orderedLayerIds": [],
+              "revision": "1",
+              "width": 3
+            },
+            "before": null
+          },
+          "id": "p_898477e8913c6de1621a5292553a52bdaa856dfa3ab134ecb0cff8edbebe10f5",
+          "inverse": {
+            "after": null,
+            "before": {
+              "branchId": "p_4673e1f73b2a57fc19f9cc9ea554679d1f98a628077395ac8e5c19877049b94f",
+              "checkpoint": null,
+              "color": "sRGB",
+              "compositionVersion": null,
+              "depth": 8,
+              "height": 2,
+              "historyHead": "p_898477e8913c6de1621a5292553a52bdaa856dfa3ab134ecb0cff8edbebe10f5",
+              "id": "p_fd95f631a60157498f4340b2c94837fc6a7ea1a2628d113e3cab2487fb851280",
+              "orderedLayerIds": [],
+              "revision": "1",
+              "width": 3
+            }
+          },
+          "parent": null,
+          "roots": [
+            {
+              "byteLength": "33",
+              "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+              "mediaType": "application/json"
+            }
+          ]
+        }
+      ],
+      "checkpoints": [
+        {
+          "documentId": "p_fd95f631a60157498f4340b2c94837fc6a7ea1a2628d113e3cab2487fb851280",
+          "documentRevision": "2",
+          "highWater": "7",
+          "historyHead": "p_58aeec9f8242eba7a2c4e5a9d08f0eee747d2f71df6741f5e38ef1345786a156",
+          "id": "p_f1071fffc54d4948bbabe0430b916e2d5b576f14806b4b8a61f5d63c7011dd59",
+          "image": {
+            "compositeAssetId": "p_b2361ab8dab0cafe98a136feaad0ba10e50334b469734c2c9ec95234eae01081",
+            "semanticDigest": "sha256:543a6489a3dc1adad2834c042677d9e3a2e8d194ec34204eb992df61e286d19d",
+            "state": {
+              "byteLength": "369",
+              "hash": "sha256:baed4fa5bd0d1a261f99ff57248fe00cf602ba2eb1cf41cc47beb3b2247d7be4",
+              "mediaType": "application/json"
+            }
+          },
+          "name": "Retained checkpoint"
+        }
+      ],
+      "assets": [
+        {
+          "availability": "available",
+          "blob": {
+            "byteLength": "111",
+            "hash": "sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+            "mediaType": "image/png"
+          },
+          "dependencies": [
+            {
+              "byteLength": "1027",
+              "hash": "sha256:e9fded0125e780227ea12e0e88ef86f424b599e3e7d08f46d3b11d0846e115ef",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            }
+          ],
+          "id": "p_0ac06ffbf9a532462873cdf8acca2ac064b2464be4675c64aa8952c0d5d309d7",
+          "measuredMediaType": "image/png",
+          "purpose": "image",
+          "qualification": "canonical-raster",
+          "raster": {
+            "conversion": {
+              "colorChanged": false,
+              "encodedHeight": 2,
+              "encodedWidth": 3,
+              "orientation": 1,
+              "orientationChanged": false,
+              "profile": "untagged-srgb",
+              "profileHash": null,
+              "resized": false
+            },
+            "height": 2,
+            "manifest": {
+              "byteLength": "1027",
+              "hash": "sha256:e9fded0125e780227ea12e0e88ef86f424b599e3e7d08f46d3b11d0846e115ef",
+              "mediaType": "application/json"
+            },
+            "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+            "pixelIdentity": "sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b",
+            "pixels": {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            },
+            "role": "native",
+            "schemaVersion": 1,
+            "sourceAssetIds": [
+              "p_a137bd00560d879bc973ef1e69862419824a26cdc57f6da54e99f5162af61df5"
+            ],
+            "width": 3
+          },
+          "safety": "safe",
+          "version": "1"
+        },
+        {
+          "availability": "available",
+          "blob": {
+            "byteLength": "86",
+            "hash": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9",
+            "mediaType": "image/png"
+          },
+          "dependencies": [],
+          "id": "p_a137bd00560d879bc973ef1e69862419824a26cdc57f6da54e99f5162af61df5",
+          "measuredMediaType": "image/png",
+          "purpose": "image",
+          "qualification": "pending-decoder",
+          "safety": "unknown",
+          "version": "1"
+        },
+        {
+          "availability": "available",
+          "blob": {
+            "byteLength": "111",
+            "hash": "sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+            "mediaType": "image/png"
+          },
+          "dependencies": [
+            {
+              "byteLength": "1050",
+              "hash": "sha256:db116bcd88db805a7c127fcdd3a1ed191cbe4c12d86830362fede7bac40996ce",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            }
+          ],
+          "id": "p_b2361ab8dab0cafe98a136feaad0ba10e50334b469734c2c9ec95234eae01081",
+          "measuredMediaType": "image/png",
+          "purpose": "image",
+          "qualification": "canonical-raster",
+          "raster": {
+            "conversion": null,
+            "height": 2,
+            "manifest": {
+              "byteLength": "1050",
+              "hash": "sha256:db116bcd88db805a7c127fcdd3a1ed191cbe4c12d86830362fede7bac40996ce",
+              "mediaType": "application/json"
+            },
+            "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+            "pixelIdentity": "sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b",
+            "pixels": {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            },
+            "role": "composite",
+            "schemaVersion": 1,
+            "sourceAssetIds": [
+              "p_0ac06ffbf9a532462873cdf8acca2ac064b2464be4675c64aa8952c0d5d309d7"
+            ],
+            "width": 3
+          },
+          "safety": "safe",
+          "version": "1"
+        }
+      ]
+    }
+  },
+  "externalRequests": []
+}

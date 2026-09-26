@@ -1,0 +1,25 @@
+{
+  "copiedAt": "2026-09-26T11:14:09.516748+00:00",
+  "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "note": "Sealed original reviewer verdict supplement. Original review files were copied earlier; no original evidence was changed. This is not approval of the new correction.",
+  "files": [
+    {
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/VERDICT.txt",
+      "copy": "evidence/p1b6-linkage-correction/original-review/VERDICT.txt",
+      "sha256": "c476115d13857efbe83a4196d0dad62f42b410b873d976c25c023b70c5c89d4f",
+      "bytes": 23165
+    },
+    {
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/SEAL.json",
+      "copy": "evidence/p1b6-linkage-correction/original-review/SEAL.json",
+      "sha256": "cf8d103c374974667f4fdf69cfa5a565aee8cb8a52ae40ccb91380836bc8f4bb",
+      "bytes": 1030
+    },
+    {
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/SHA256SUMS",
+      "copy": "evidence/p1b6-linkage-correction/original-review/SHA256SUMS",
+      "sha256": "8c668cfff82dd57b6254fcd36a951fafc5056ce45b5d47f7d41c0393df5ae22a",
+      "bytes": 14631
+    }
+  ]
+}

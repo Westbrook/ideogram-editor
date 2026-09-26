@@ -1,0 +1,573 @@
+{
+  "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "event": {
+    "causationId": null,
+    "commandId": "70f47f48-f3fd-42f8-9133-274592d1ae6c",
+    "correlationId": "correlation_1",
+    "documentId": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+    "eventId": "76fb3f4b-7488-4301-8696-3c0b5b73d15b",
+    "payload": {
+      "document": {
+        "branchId": "p_3f0a3e3cf327a7ce26e6fe322bb3f425ec3cda6af4369c18c05cbfeb3bed8289",
+        "checkpoint": "p_f24d922c9089c86272339dad8ff480304e2537698c541e51bb139d320d5605ff",
+        "color": "sRGB",
+        "compositionVersion": null,
+        "depth": 8,
+        "height": 2,
+        "historyHead": "p_c79f0d60703df77e38a31efde1fad959b10479357d8097a8a40b4da786410377",
+        "id": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+        "image": {
+          "compositeAssetId": "p_d280004ee0b0b4cdb1753729bb8e0207da3ec22268b68a9e48077d858c411667",
+          "semanticDigest": "sha256:4214743a3d3f6eb5eb2d984ecd0a5d7bbf55676291f164a6510eb3951a5a6ea1",
+          "state": {
+            "byteLength": "369",
+            "hash": "sha256:d60fcd7213b39a1fd9537d0f0ab040c080bad0fc0de223dc7cb76619a42437d5",
+            "mediaType": "application/json"
+          }
+        },
+        "orderedLayerIds": [
+          "p_5d5dfccf95830a223f32aba0ba8926d6d567a1e64d87cfa55f74ab7eddb7f4ad"
+        ],
+        "redo": null,
+        "revision": "3",
+        "width": 3
+      },
+      "namespaceHash": "sha256:4ef08f33203a8bf77e8b0d08e79df7ee201cdc9795014c976a192fc547995e07",
+      "namespaceId": "a92e9191-78af-472b-9282-bf7c5ff165ff",
+      "source": {
+        "byteLength": "29551",
+        "hash": "sha256:8c4e480c5f01f70ec4a8ee38bdce7bb20a037d400c41ccd0c1761f19bf895bb6",
+        "mediaType": "application/x-ideogram-project"
+      }
+    },
+    "payloadVersion": 1,
+    "recordedAt": "2026-09-26T11:12:25.988Z",
+    "resultingDocumentRevision": "3",
+    "schemaVersion": 1,
+    "streamId": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+    "streamSeq": "3",
+    "transactionId": "a1e8f472-3156-4276-98e1-6cffc0fad9c1",
+    "type": "BundleImported",
+    "workspaceSeq": "11",
+    "writerEpoch": "2"
+  },
+  "descriptor": {
+    "content": {
+      "blob": {
+        "byteLength": "11801",
+        "hash": "sha256:0ea7ced3e45b0928c49155a370dc4c0c14b6bc5895d710ec9440428eeacd7eb1",
+        "mediaType": "application/x-ndjson"
+      },
+      "contentId": "dfdd8217-a0c6-4d95-b932-c0e65fc69b14",
+      "encoding": "lp1-namespace-jsonl",
+      "expiresAt": "2026-09-26T11:42:24.105Z",
+      "recordCount": "8",
+      "url": "/api/v1/protocol-content/dfdd8217-a0c6-4d95-b932-c0e65fc69b14?recoveryId=4130d03b-d5eb-419e-bd91-63b9ae052905"
+    },
+    "eventId": "76fb3f4b-7488-4301-8696-3c0b5b73d15b",
+    "namespaceHash": "sha256:4ef08f33203a8bf77e8b0d08e79df7ee201cdc9795014c976a192fc547995e07",
+    "namespaceId": "a92e9191-78af-472b-9282-bf7c5ff165ff",
+    "protocolVersion": 1,
+    "recovery": {
+      "expiresAt": "2026-09-26T11:42:24.105Z",
+      "highWater": "11",
+      "projectionSchema": 3,
+      "recoveryId": "4130d03b-d5eb-419e-bd91-63b9ae052905",
+      "writerEpoch": "2"
+    },
+    "workspaceSeq": "11"
+  },
+  "entities": [
+    {
+      "type": "asset",
+      "id": "p_566b7ae304c5de2ce3dfcb64910b72b6b6ad265142881d73012258de24ec09d2",
+      "value": {
+        "availability": "available",
+        "blob": {
+          "byteLength": "86",
+          "hash": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9",
+          "mediaType": "image/png"
+        },
+        "dependencies": [],
+        "id": "p_566b7ae304c5de2ce3dfcb64910b72b6b6ad265142881d73012258de24ec09d2",
+        "measuredMediaType": "image/png",
+        "purpose": "image",
+        "qualification": "pending-decoder",
+        "safety": "unknown",
+        "version": "1"
+      }
+    },
+    {
+      "type": "asset",
+      "id": "p_8817eca85b80f94063969adb99bf105c88ff3e1d0538bf35251fbc053da39725",
+      "value": {
+        "availability": "available",
+        "blob": {
+          "byteLength": "111",
+          "hash": "sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+          "mediaType": "image/png"
+        },
+        "dependencies": [
+          {
+            "byteLength": "1027",
+            "hash": "sha256:18e6f53b3bfb4554076e761cd8b6e25cd451e396451e8d14a449800471f5bdf8",
+            "mediaType": "application/json"
+          },
+          {
+            "byteLength": "24",
+            "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+            "mediaType": "application/x-ideogram-rgba8"
+          }
+        ],
+        "id": "p_8817eca85b80f94063969adb99bf105c88ff3e1d0538bf35251fbc053da39725",
+        "measuredMediaType": "image/png",
+        "purpose": "image",
+        "qualification": "canonical-raster",
+        "raster": {
+          "conversion": {
+            "colorChanged": false,
+            "encodedHeight": 2,
+            "encodedWidth": 3,
+            "orientation": 1,
+            "orientationChanged": false,
+            "profile": "untagged-srgb",
+            "profileHash": null,
+            "resized": false
+          },
+          "height": 2,
+          "manifest": {
+            "byteLength": "1027",
+            "hash": "sha256:18e6f53b3bfb4554076e761cd8b6e25cd451e396451e8d14a449800471f5bdf8",
+            "mediaType": "application/json"
+          },
+          "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+          "pixelIdentity": "sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b",
+          "pixels": {
+            "byteLength": "24",
+            "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+            "mediaType": "application/x-ideogram-rgba8"
+          },
+          "role": "native",
+          "schemaVersion": 1,
+          "sourceAssetIds": [
+            "p_566b7ae304c5de2ce3dfcb64910b72b6b6ad265142881d73012258de24ec09d2"
+          ],
+          "width": 3
+        },
+        "safety": "safe",
+        "version": "1"
+      }
+    },
+    {
+      "type": "asset",
+      "id": "p_d280004ee0b0b4cdb1753729bb8e0207da3ec22268b68a9e48077d858c411667",
+      "value": {
+        "availability": "available",
+        "blob": {
+          "byteLength": "111",
+          "hash": "sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+          "mediaType": "image/png"
+        },
+        "dependencies": [
+          {
+            "byteLength": "1050",
+            "hash": "sha256:75bf64e70538afb3c8b1653945b5db6954ec085005ee3c92b8006622feda8fe5",
+            "mediaType": "application/json"
+          },
+          {
+            "byteLength": "24",
+            "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+            "mediaType": "application/x-ideogram-rgba8"
+          }
+        ],
+        "id": "p_d280004ee0b0b4cdb1753729bb8e0207da3ec22268b68a9e48077d858c411667",
+        "measuredMediaType": "image/png",
+        "purpose": "image",
+        "qualification": "canonical-raster",
+        "raster": {
+          "conversion": null,
+          "height": 2,
+          "manifest": {
+            "byteLength": "1050",
+            "hash": "sha256:75bf64e70538afb3c8b1653945b5db6954ec085005ee3c92b8006622feda8fe5",
+            "mediaType": "application/json"
+          },
+          "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+          "pixelIdentity": "sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b",
+          "pixels": {
+            "byteLength": "24",
+            "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+            "mediaType": "application/x-ideogram-rgba8"
+          },
+          "role": "composite",
+          "schemaVersion": 1,
+          "sourceAssetIds": [
+            "p_8817eca85b80f94063969adb99bf105c88ff3e1d0538bf35251fbc053da39725"
+          ],
+          "width": 3
+        },
+        "safety": "safe",
+        "version": "1"
+      }
+    },
+    {
+      "type": "checkpoint",
+      "id": "p_f24d922c9089c86272339dad8ff480304e2537698c541e51bb139d320d5605ff",
+      "value": {
+        "documentId": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+        "documentRevision": "2",
+        "highWater": "7",
+        "historyHead": "p_c79f0d60703df77e38a31efde1fad959b10479357d8097a8a40b4da786410377",
+        "id": "p_f24d922c9089c86272339dad8ff480304e2537698c541e51bb139d320d5605ff",
+        "image": {
+          "compositeAssetId": "p_d280004ee0b0b4cdb1753729bb8e0207da3ec22268b68a9e48077d858c411667",
+          "semanticDigest": "sha256:4214743a3d3f6eb5eb2d984ecd0a5d7bbf55676291f164a6510eb3951a5a6ea1",
+          "state": {
+            "byteLength": "369",
+            "hash": "sha256:d60fcd7213b39a1fd9537d0f0ab040c080bad0fc0de223dc7cb76619a42437d5",
+            "mediaType": "application/json"
+          }
+        },
+        "name": "Retained checkpoint"
+      }
+    },
+    {
+      "type": "document",
+      "id": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+      "value": {
+        "branchId": "p_3f0a3e3cf327a7ce26e6fe322bb3f425ec3cda6af4369c18c05cbfeb3bed8289",
+        "checkpoint": "p_f24d922c9089c86272339dad8ff480304e2537698c541e51bb139d320d5605ff",
+        "color": "sRGB",
+        "compositionVersion": null,
+        "depth": 8,
+        "height": 2,
+        "historyHead": "p_c79f0d60703df77e38a31efde1fad959b10479357d8097a8a40b4da786410377",
+        "id": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+        "image": {
+          "compositeAssetId": "p_d280004ee0b0b4cdb1753729bb8e0207da3ec22268b68a9e48077d858c411667",
+          "semanticDigest": "sha256:4214743a3d3f6eb5eb2d984ecd0a5d7bbf55676291f164a6510eb3951a5a6ea1",
+          "state": {
+            "byteLength": "369",
+            "hash": "sha256:d60fcd7213b39a1fd9537d0f0ab040c080bad0fc0de223dc7cb76619a42437d5",
+            "mediaType": "application/json"
+          }
+        },
+        "orderedLayerIds": [
+          "p_5d5dfccf95830a223f32aba0ba8926d6d567a1e64d87cfa55f74ab7eddb7f4ad"
+        ],
+        "redo": null,
+        "revision": "3",
+        "width": 3
+      }
+    },
+    {
+      "type": "history",
+      "id": "p_bf5b519f6a51d4bc40edec04f52abb4d86e650e80462b4d54ca58ec227c86b2a",
+      "value": {
+        "branchId": "p_3f0a3e3cf327a7ce26e6fe322bb3f425ec3cda6af4369c18c05cbfeb3bed8289",
+        "documentId": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+        "forward": {
+          "after": {
+            "branchId": "p_3f0a3e3cf327a7ce26e6fe322bb3f425ec3cda6af4369c18c05cbfeb3bed8289",
+            "checkpoint": null,
+            "color": "sRGB",
+            "compositionVersion": null,
+            "depth": 8,
+            "height": 2,
+            "historyHead": "p_bf5b519f6a51d4bc40edec04f52abb4d86e650e80462b4d54ca58ec227c86b2a",
+            "id": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+            "orderedLayerIds": [],
+            "revision": "1",
+            "width": 3
+          },
+          "before": null
+        },
+        "id": "p_bf5b519f6a51d4bc40edec04f52abb4d86e650e80462b4d54ca58ec227c86b2a",
+        "inverse": {
+          "after": null,
+          "before": {
+            "branchId": "p_3f0a3e3cf327a7ce26e6fe322bb3f425ec3cda6af4369c18c05cbfeb3bed8289",
+            "checkpoint": null,
+            "color": "sRGB",
+            "compositionVersion": null,
+            "depth": 8,
+            "height": 2,
+            "historyHead": "p_bf5b519f6a51d4bc40edec04f52abb4d86e650e80462b4d54ca58ec227c86b2a",
+            "id": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+            "orderedLayerIds": [],
+            "revision": "1",
+            "width": 3
+          }
+        },
+        "parent": null,
+        "roots": [
+          {
+            "byteLength": "33",
+            "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+            "mediaType": "application/json"
+          }
+        ]
+      }
+    },
+    {
+      "type": "history",
+      "id": "p_c79f0d60703df77e38a31efde1fad959b10479357d8097a8a40b4da786410377",
+      "value": {
+        "after": {
+          "compositeAssetId": "p_d280004ee0b0b4cdb1753729bb8e0207da3ec22268b68a9e48077d858c411667",
+          "semanticDigest": "sha256:4214743a3d3f6eb5eb2d984ecd0a5d7bbf55676291f164a6510eb3951a5a6ea1",
+          "state": {
+            "byteLength": "369",
+            "hash": "sha256:d60fcd7213b39a1fd9537d0f0ab040c080bad0fc0de223dc7cb76619a42437d5",
+            "mediaType": "application/json"
+          }
+        },
+        "before": {
+          "compositeAssetId": null,
+          "semanticDigest": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+          "state": {
+            "byteLength": "52",
+            "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+            "mediaType": "application/json"
+          }
+        },
+        "branchId": "p_3f0a3e3cf327a7ce26e6fe322bb3f425ec3cda6af4369c18c05cbfeb3bed8289",
+        "documentId": "p_755093227e428ec8dd832f1a1d9849368f58fbd0b1d845e7df832fe14b95b475",
+        "forward": {
+          "byteLength": "555",
+          "hash": "sha256:dd0b7f99a6a3136ba85f427a2b6799144988e5c3142b66eee6111de0e8a44056",
+          "mediaType": "application/json"
+        },
+        "id": "p_c79f0d60703df77e38a31efde1fad959b10479357d8097a8a40b4da786410377",
+        "inverse": {
+          "byteLength": "174",
+          "hash": "sha256:4965f3ab5800bcdaf949105b105a2d15b33e7b37bfd653fd693509bd13eb5184",
+          "mediaType": "application/json"
+        },
+        "kind": "image-edit",
+        "operation": "ImportAsset",
+        "parent": "p_bf5b519f6a51d4bc40edec04f52abb4d86e650e80462b4d54ca58ec227c86b2a",
+        "revision": "2",
+        "roots": [
+          {
+            "byteLength": "52",
+            "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+            "mediaType": "application/json"
+          },
+          {
+            "byteLength": "369",
+            "hash": "sha256:d60fcd7213b39a1fd9537d0f0ab040c080bad0fc0de223dc7cb76619a42437d5",
+            "mediaType": "application/json"
+          },
+          {
+            "byteLength": "555",
+            "hash": "sha256:dd0b7f99a6a3136ba85f427a2b6799144988e5c3142b66eee6111de0e8a44056",
+            "mediaType": "application/json"
+          },
+          {
+            "byteLength": "174",
+            "hash": "sha256:4965f3ab5800bcdaf949105b105a2d15b33e7b37bfd653fd693509bd13eb5184",
+            "mediaType": "application/json"
+          }
+        ]
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "anonymous",
+      "status": 403,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "2a8c37cc-7bc8-48c2-994f-1c1f565ee481",
+        "error": {
+          "code": "ORIGIN_DENIED",
+          "retry": "none",
+          "message": "This request is not from the editor launch origin."
+        }
+      }
+    },
+    {
+      "name": "missing-context",
+      "status": 400,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "fa0d5f1b-4c0c-498a-857b-db6fd1041029",
+        "error": {
+          "code": "MALFORMED_REQUEST",
+          "retry": "none",
+          "message": "The request does not match the local protocol."
+        }
+      }
+    },
+    {
+      "name": "unknown-context",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "dfbd7246-6f65-407c-beaa-901ad14e69d2",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "future-event-beyond-pinned-highwater",
+      "status": 404,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "072418ab-76bc-4954-86e2-5d68ddd55d6e",
+        "error": {
+          "code": "NOT_FOUND",
+          "retry": "none",
+          "message": "This local route is not available."
+        }
+      }
+    },
+    {
+      "name": "non-import-event",
+      "status": 404,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "51edfd6d-faec-4f94-b482-546002d40ff8",
+        "error": {
+          "code": "NOT_FOUND",
+          "retry": "none",
+          "message": "This local route is not available."
+        }
+      }
+    },
+    {
+      "name": "foreign-descriptor",
+      "status": 403,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "1566e3e5-17ed-4fd4-9a72-607b91f0b814",
+        "error": {
+          "code": "OWNER_REQUIRED",
+          "retry": "none",
+          "message": "This resource belongs to another local client."
+        }
+      }
+    },
+    {
+      "name": "foreign-content",
+      "status": 403,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "414d1c7f-a424-4a16-ae84-d2f5e1a6836c",
+        "error": {
+          "code": "OWNER_REQUIRED",
+          "retry": "none",
+          "message": "This resource belongs to another local client."
+        }
+      }
+    },
+    {
+      "name": "released-descriptor",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "2158e52f-1f59-4d20-a02c-fbe52d04841e",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "released-content",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "00e9d78b-936e-492c-bebd-e2ae850b166a",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "same-client-new-session-descriptor",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "4a2b6508-e65b-4873-9ff5-e71bec278ee3",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "same-client-new-session-content",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "98b75477-c8b5-40ba-bba0-bf7dd0521f96",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "idle-expired-descriptor-live-session",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "2e284950-2386-4fe0-8b59-38664f97b891",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "idle-expired-content-live-session",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "82db92d5-dfde-4cf4-a0e1-9223bc4a198c",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "new-writer-epoch-descriptor",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "a62e59ac-541a-4ee0-bef2-b8c14b7dbd8f",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    },
+    {
+      "name": "new-writer-epoch-content",
+      "status": 410,
+      "body": {
+        "protocolVersion": 1,
+        "requestId": "d0bce67e-7cf2-4816-ac49-f4a9d2751351",
+        "error": {
+          "code": "READ_CONTEXT_EXPIRED",
+          "retry": "read-or-transfer",
+          "message": "Start a fresh recovery read."
+        }
+      }
+    }
+  ]
+}

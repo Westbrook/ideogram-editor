@@ -1,0 +1,17 @@
+{
+  "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "verdict": "NOT APPROVED",
+  "confidence": "High",
+  "filesVerified": 158,
+  "verdictSHA256": "c476115d13857efbe83a4196d0dad62f42b410b873d976c25c023b70c5c89d4f",
+  "manifestSHA256": "8c668cfff82dd57b6254fcd36a951fafc5056ce45b5d47f7d41c0393df5ae22a",
+  "manifest": "SHA256SUMS",
+  "sourceManifest": "source-identity-final.json",
+  "buildManifest": "build-identity.json",
+  "sourceFiles": 1446,
+  "buildOutputs": 282,
+  "originalFinalSeal": "ffa749bd73391148cd0db0c4c47ff4773e783df6cd68c2fbb349e21eee21c027",
+  "originalVerdict": "cc4173dac44efd5b2728889e538bfe985ce1363ca812fa9c68025561327abbae",
+  "scopeExclusion": "Isolated source checkout excluded from evidence manifest. All tracked source files and282 build outputs have separate hash manifests; installed node_modules are excluded (lockfile/toolchain/offline-install provenance retained). The exact source checkout remains unchanged and locally available.",
+  "endedMeasurementAt": "2026-09-26T11:06:15.564369Z"
+}

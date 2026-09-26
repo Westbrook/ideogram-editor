@@ -1,0 +1,430 @@
+{
+  "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "browser": "153.0.8010.12",
+  "out": [
+    {
+      "fault": "descriptor-hash",
+      "result": {
+        "error": "Error: Content descriptor mismatch"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": false
+    },
+    {
+      "fault": "descriptor-count",
+      "result": {
+        "error": "Error: Content integrity check failed"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": false
+    },
+    {
+      "fault": "descriptor-event",
+      "result": {
+        "error": "Error: Invalid recovery data"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": false
+    },
+    {
+      "fault": "wrong-entity-document",
+      "result": {
+        "error": "Error: Invalid recovery data"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "duplicate-row",
+      "result": {
+        "error": "Error: Invalid recovery data"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "missing-nonhead-history",
+      "result": {
+        "error": "Error: Missing imported history link"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "dangling-history-parent",
+      "result": {
+        "error": "Error: Invalid recovery data"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": true
+    },
+    {
+      "fault": "dangling-checkpoint-head",
+      "result": {
+        "error": "Error: Missing imported history link"
+      },
+      "before": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "after": {
+        "generation": "prior",
+        "cursor": "0",
+        "epoch": null
+      },
+      "rewroteTrustedDescriptor": true
+    }
+  ],
+  "crossTab": {
+    "first": {
+      "error": "Error: Cache transaction aborted"
+    },
+    "second": {
+      "cursor": "11"
+    },
+    "winner": {
+      "generation": "5b0da58b-6672-44bf-80bf-b746a9dbbc3b",
+      "cursor": "11",
+      "epoch": "3"
+    },
+    "rows": {
+      "document": {
+        "branchId": "p_ce9375abfd474e7b0a11e01fecfc689e8a2133504c7dc9e189192809e4decee1",
+        "checkpoint": "p_06874091ee50be95dacf04523d8f1133a2e617cb4dcd0b8701595cd7021ef3ac",
+        "color": "sRGB",
+        "compositionVersion": null,
+        "depth": 8,
+        "height": 2,
+        "historyHead": "p_f72d14585494007088063bc1679fb51604ff4f7dff1976b1d84389c71e36ebcc",
+        "id": "p_ad0d8ee73f9a895fce8b3c9d2dfe7dc56c72921b0c3b45227a5376b21309c338",
+        "image": {
+          "compositeAssetId": "p_d90f813b6bb6381636d8c60ce680f72704f4250c03df04d6eada639049081534",
+          "semanticDigest": "sha256:8b8485d3a076c9a566032c5b72373640abbeb6a439dc58a64c1903d20d352249",
+          "state": {
+            "byteLength": "369",
+            "hash": "sha256:9de52f5e1ad372bdaa5861458ffeb3d11383c71c5644427c8fabde0e589b45f8",
+            "mediaType": "application/json"
+          }
+        },
+        "orderedLayerIds": [
+          "p_02acc0d1262b47ac52818035691f6022839ac787d7b53dc574e1035bd3f1cd4c"
+        ],
+        "redo": null,
+        "revision": "3",
+        "width": 3
+      },
+      "history": [
+        {
+          "branchId": "p_ce9375abfd474e7b0a11e01fecfc689e8a2133504c7dc9e189192809e4decee1",
+          "documentId": "p_ad0d8ee73f9a895fce8b3c9d2dfe7dc56c72921b0c3b45227a5376b21309c338",
+          "forward": {
+            "after": {
+              "branchId": "p_ce9375abfd474e7b0a11e01fecfc689e8a2133504c7dc9e189192809e4decee1",
+              "checkpoint": null,
+              "color": "sRGB",
+              "compositionVersion": null,
+              "depth": 8,
+              "height": 2,
+              "historyHead": "p_42153d833cbe1e3bb0311a6efb2d97dfe295efea99864863ef2bc6c59930c615",
+              "id": "p_ad0d8ee73f9a895fce8b3c9d2dfe7dc56c72921b0c3b45227a5376b21309c338",
+              "orderedLayerIds": [],
+              "revision": "1",
+              "width": 3
+            },
+            "before": null
+          },
+          "id": "p_42153d833cbe1e3bb0311a6efb2d97dfe295efea99864863ef2bc6c59930c615",
+          "inverse": {
+            "after": null,
+            "before": {
+              "branchId": "p_ce9375abfd474e7b0a11e01fecfc689e8a2133504c7dc9e189192809e4decee1",
+              "checkpoint": null,
+              "color": "sRGB",
+              "compositionVersion": null,
+              "depth": 8,
+              "height": 2,
+              "historyHead": "p_42153d833cbe1e3bb0311a6efb2d97dfe295efea99864863ef2bc6c59930c615",
+              "id": "p_ad0d8ee73f9a895fce8b3c9d2dfe7dc56c72921b0c3b45227a5376b21309c338",
+              "orderedLayerIds": [],
+              "revision": "1",
+              "width": 3
+            }
+          },
+          "parent": null,
+          "roots": [
+            {
+              "byteLength": "33",
+              "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+              "mediaType": "application/json"
+            }
+          ]
+        },
+        {
+          "after": {
+            "compositeAssetId": "p_d90f813b6bb6381636d8c60ce680f72704f4250c03df04d6eada639049081534",
+            "semanticDigest": "sha256:8b8485d3a076c9a566032c5b72373640abbeb6a439dc58a64c1903d20d352249",
+            "state": {
+              "byteLength": "369",
+              "hash": "sha256:9de52f5e1ad372bdaa5861458ffeb3d11383c71c5644427c8fabde0e589b45f8",
+              "mediaType": "application/json"
+            }
+          },
+          "before": {
+            "compositeAssetId": null,
+            "semanticDigest": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+            "state": {
+              "byteLength": "52",
+              "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+              "mediaType": "application/json"
+            }
+          },
+          "branchId": "p_ce9375abfd474e7b0a11e01fecfc689e8a2133504c7dc9e189192809e4decee1",
+          "documentId": "p_ad0d8ee73f9a895fce8b3c9d2dfe7dc56c72921b0c3b45227a5376b21309c338",
+          "forward": {
+            "byteLength": "555",
+            "hash": "sha256:53d7fba9723543d8ba8c095f42b746104b8c93605716ffc373fc922345a7c666",
+            "mediaType": "application/json"
+          },
+          "id": "p_f72d14585494007088063bc1679fb51604ff4f7dff1976b1d84389c71e36ebcc",
+          "inverse": {
+            "byteLength": "174",
+            "hash": "sha256:0e09300015f6c3350ab38a0e9cefdf3342be7d95a70cf11f5dcea76501b47cf9",
+            "mediaType": "application/json"
+          },
+          "kind": "image-edit",
+          "operation": "ImportAsset",
+          "parent": "p_42153d833cbe1e3bb0311a6efb2d97dfe295efea99864863ef2bc6c59930c615",
+          "revision": "2",
+          "roots": [
+            {
+              "byteLength": "52",
+              "hash": "sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "369",
+              "hash": "sha256:9de52f5e1ad372bdaa5861458ffeb3d11383c71c5644427c8fabde0e589b45f8",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "555",
+              "hash": "sha256:53d7fba9723543d8ba8c095f42b746104b8c93605716ffc373fc922345a7c666",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "174",
+              "hash": "sha256:0e09300015f6c3350ab38a0e9cefdf3342be7d95a70cf11f5dcea76501b47cf9",
+              "mediaType": "application/json"
+            }
+          ]
+        }
+      ],
+      "checkpoints": [
+        {
+          "documentId": "p_ad0d8ee73f9a895fce8b3c9d2dfe7dc56c72921b0c3b45227a5376b21309c338",
+          "documentRevision": "2",
+          "highWater": "7",
+          "historyHead": "p_f72d14585494007088063bc1679fb51604ff4f7dff1976b1d84389c71e36ebcc",
+          "id": "p_06874091ee50be95dacf04523d8f1133a2e617cb4dcd0b8701595cd7021ef3ac",
+          "image": {
+            "compositeAssetId": "p_d90f813b6bb6381636d8c60ce680f72704f4250c03df04d6eada639049081534",
+            "semanticDigest": "sha256:8b8485d3a076c9a566032c5b72373640abbeb6a439dc58a64c1903d20d352249",
+            "state": {
+              "byteLength": "369",
+              "hash": "sha256:9de52f5e1ad372bdaa5861458ffeb3d11383c71c5644427c8fabde0e589b45f8",
+              "mediaType": "application/json"
+            }
+          },
+          "name": "Retained checkpoint"
+        }
+      ],
+      "assets": [
+        {
+          "availability": "available",
+          "blob": {
+            "byteLength": "111",
+            "hash": "sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+            "mediaType": "image/png"
+          },
+          "dependencies": [
+            {
+              "byteLength": "1050",
+              "hash": "sha256:fc85ec778b58f0ccc0e086365f2aaad3bd10d1ae72a8af15ddd5914a30930c7a",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            }
+          ],
+          "id": "p_d90f813b6bb6381636d8c60ce680f72704f4250c03df04d6eada639049081534",
+          "measuredMediaType": "image/png",
+          "purpose": "image",
+          "qualification": "canonical-raster",
+          "raster": {
+            "conversion": null,
+            "height": 2,
+            "manifest": {
+              "byteLength": "1050",
+              "hash": "sha256:fc85ec778b58f0ccc0e086365f2aaad3bd10d1ae72a8af15ddd5914a30930c7a",
+              "mediaType": "application/json"
+            },
+            "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+            "pixelIdentity": "sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b",
+            "pixels": {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            },
+            "role": "composite",
+            "schemaVersion": 1,
+            "sourceAssetIds": [
+              "p_83bfd7c1cefa6bea28d358bdfe3222b8967591dd982db58d95fdcc9b763307c8"
+            ],
+            "width": 3
+          },
+          "safety": "safe",
+          "version": "1"
+        },
+        {
+          "availability": "available",
+          "blob": {
+            "byteLength": "111",
+            "hash": "sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6",
+            "mediaType": "image/png"
+          },
+          "dependencies": [
+            {
+              "byteLength": "1027",
+              "hash": "sha256:702667d197e16f564b225b3ab33a4abd2ee2bd92ee1b8993cd2b3e6a583ea065",
+              "mediaType": "application/json"
+            },
+            {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            }
+          ],
+          "id": "p_83bfd7c1cefa6bea28d358bdfe3222b8967591dd982db58d95fdcc9b763307c8",
+          "measuredMediaType": "image/png",
+          "purpose": "image",
+          "qualification": "canonical-raster",
+          "raster": {
+            "conversion": {
+              "colorChanged": false,
+              "encodedHeight": 2,
+              "encodedWidth": 3,
+              "orientation": 1,
+              "orientationChanged": false,
+              "profile": "untagged-srgb",
+              "profileHash": null,
+              "resized": false
+            },
+            "height": 2,
+            "manifest": {
+              "byteLength": "1027",
+              "hash": "sha256:702667d197e16f564b225b3ab33a4abd2ee2bd92ee1b8993cd2b3e6a583ea065",
+              "mediaType": "application/json"
+            },
+            "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+            "pixelIdentity": "sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b",
+            "pixels": {
+              "byteLength": "24",
+              "hash": "sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254",
+              "mediaType": "application/x-ideogram-rgba8"
+            },
+            "role": "native",
+            "schemaVersion": 1,
+            "sourceAssetIds": [
+              "p_4918c5a17cf5bc10d8950c3e6a72e82b17e2dca152450f4fdeb0e1f706cac38d"
+            ],
+            "width": 3
+          },
+          "safety": "safe",
+          "version": "1"
+        },
+        {
+          "availability": "available",
+          "blob": {
+            "byteLength": "86",
+            "hash": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9",
+            "mediaType": "image/png"
+          },
+          "dependencies": [],
+          "id": "p_4918c5a17cf5bc10d8950c3e6a72e82b17e2dca152450f4fdeb0e1f706cac38d",
+          "measuredMediaType": "image/png",
+          "purpose": "image",
+          "qualification": "pending-decoder",
+          "safety": "unknown",
+          "version": "1"
+        }
+      ]
+    }
+  },
+  "externalRequests": []
+}

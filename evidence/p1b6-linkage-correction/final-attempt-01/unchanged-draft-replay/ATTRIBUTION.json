@@ -1,0 +1,77 @@
+{
+  "kind": "draft",
+  "startedAt": "2026-09-26T11:18:13.119Z",
+  "source": {
+    "base": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+    "branch": "ideogram-editor-p1",
+    "sourceIdentity": "sha256:0464519b8dfd86fa2177324ed8e3fb34a91ef04d2238628a6d3cdfbd43287ac0",
+    "files": [
+      {
+        "path": "server/portable/transactions.ts",
+        "bytes": 7531,
+        "sha256": "757a43f54017b50de99587e274b97c1d2d297534180718670c3c51b0e561ddf8"
+      },
+      {
+        "path": "src/state/recovery-cache.ts",
+        "bytes": 5716,
+        "sha256": "037aa47750f831090d34793f7db700571413f912730d750f3e08f63915eb953e"
+      },
+      {
+        "path": "src/state/recovery-client.ts",
+        "bytes": 22104,
+        "sha256": "80b12c46049cbf8529ac0b91a890c654489999882049e69b0942872d9e96938f"
+      },
+      {
+        "path": "tests/portable/browser-recovery.test.mjs",
+        "bytes": 15360,
+        "sha256": "2fcc6c6dbda4e464213e8a8884b748e6cb7a3dbdbb729327434e75d6aec4479a"
+      },
+      {
+        "path": "tests/portable/revision-consistency.test.mjs",
+        "bytes": 5427,
+        "sha256": "04a5157381cfe654be7b6c4e03c5ea11b67b8050ab635f3fdb5bd8bd425e41df"
+      },
+      {
+        "path": "tooling/PORTABLE.txt",
+        "bytes": 22704,
+        "sha256": "902492d2db4d885226b6bea3cc3ad6fe277a6d11139187b2043894fc4dbd3ce9"
+      },
+      {
+        "path": "tooling/portable/linkage-gates.mjs",
+        "bytes": 4262,
+        "sha256": "c8c0a48743cf709184281d42e2166e2cd5b2f12e0d00e737ddb06beec39dd8ff"
+      },
+      {
+        "path": "tooling/portable/linkage-identity.mjs",
+        "bytes": 982,
+        "sha256": "727edf7eeef1a47db6c638511178a6e09a382f8f0d7ff45cecb20398cb830827"
+      },
+      {
+        "path": "tooling/portable/linkage-observe.mjs",
+        "bytes": 2658,
+        "sha256": "021ee0bdafaae3ee5401e86d035494ad9c6fd2db2980ae4703ce775a0a837a6d"
+      },
+      {
+        "path": "tooling/portable/linkage-originals.mjs",
+        "bytes": 2212,
+        "sha256": "33a3ced8b162501ab2ad170e785610763a234470566dc76d232a490f14383830"
+      },
+      {
+        "path": "tooling/portable/linkage-reviewer.mjs",
+        "bytes": 3837,
+        "sha256": "1d857fb2c190d757b740cba4deb3ca96a6f1ad2528f7230cd6c4f637e472d9c0"
+      },
+      {
+        "path": "tooling/portable/linkage-seal.mjs",
+        "bytes": 1949,
+        "sha256": "33b812b47d084a6bc2c59da39c0d7c82702b0cc5b8a97c3d124f69d90c147aa1"
+      }
+    ]
+  },
+  "original": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b6-correction/original-review/imported-draft.test.mjs",
+  "originalScriptSHA256": "0cb8d2e9504899f30ce5a29fb926cb5d8917cd71b9888247eb1c853abd5134a3",
+  "isolatedRoot": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-independent-replay-UvRLPr",
+  "note": "Script bytes unchanged. Any hardcoded d4ed761 target label in original output is historical script text; this replay executes the correction source/build captured here. No independent approval is implied.",
+  "qualification": false,
+  "finishedAt": "2026-09-26T11:18:15.162Z"
+}

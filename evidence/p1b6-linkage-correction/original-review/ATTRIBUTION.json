@@ -1,0 +1,181 @@
+{
+  "target": "5dab27df7555606d6ee09c21bad62015f0ed8d96",
+  "copiedAt": "2026-09-26T11:09:27.083264+00:00",
+  "meaning": "Unchanged selected original reviewer failures/controls; structural browser cases recompute both descriptor and content, not transport hash or origin authenticity failures. Final verdict/seals are still being written by reviewer.",
+  "files": [
+    {
+      "path": "reviewer-archive.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/reviewer-archive.mjs",
+      "bytes": 2968,
+      "sha256": "4baf12545b0f294f6050b44aa04646e354513b53682dcfa2d793663926438761"
+    },
+    {
+      "path": "revision-tail-confirm.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-confirm.json",
+      "bytes": 9464,
+      "sha256": "6f0b1854a1307e630bab3a6d7a8aea48cfd11af3356efb10005736a754ac022b"
+    },
+    {
+      "path": "revision-tail-confirm.test.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-confirm.test.mjs",
+      "bytes": 1461,
+      "sha256": "442a4d1c1a955a4904fb32e58db9e935ecf66c29d8946640e61992e27641d4d3"
+    },
+    {
+      "path": "revision-tail-confirm.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-confirm.log",
+      "bytes": 1035,
+      "sha256": "f857890b22e28af2f3b526405a9e52fdcf1f516d92a00a16e0311270d3dc42d5"
+    },
+    {
+      "path": "revision-tail-controls.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-controls.json",
+      "bytes": 3149,
+      "sha256": "2f98057e18ce726f91a10c50b6e312ab61a2bd4b82a765aaa62365e34cfae9e7"
+    },
+    {
+      "path": "revision-tail-controls.test.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-controls.test.mjs",
+      "bytes": 1782,
+      "sha256": "30e158f31152f2ebfd691f8393eca73a0779ded5b47456301242b17fc4d11078"
+    },
+    {
+      "path": "revision-tail-controls.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-controls.log",
+      "bytes": 1010,
+      "sha256": "12aac02c53ae20b7045760c5f6bd79ecbd13c5bee9c8347bc7169fb67d823d02"
+    },
+    {
+      "path": "revision-tail-control-2.zip",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-control-2.zip",
+      "bytes": 28467,
+      "sha256": "23ef675fb48394f2396e233c2e9326a801f46e33acfa6d8ea8206dae3630a94e"
+    },
+    {
+      "path": "revision-tail-control-null.zip",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/revision-tail-control-null.zip",
+      "bytes": 28468,
+      "sha256": "9770d1a9ace1cc6f5e2993ce77d9f7ff1910029cd59237623e70d0fa7a326283"
+    },
+    {
+      "path": "format2-oracle.test.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/format2-oracle.test.mjs",
+      "bytes": 6871,
+      "sha256": "381e306fae9c9cc81ffee9804fa1c4e97b753e29f2d226ff2f36028e2bcf7ff6"
+    },
+    {
+      "path": "format2-oracle.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/format2-oracle.json",
+      "bytes": 15269,
+      "sha256": "3f0b8a311f4f7e256f809a0f9ad0ba88836b4fa43ebeef4ffd4f91b5019bd7d0"
+    },
+    {
+      "path": "format2-oracle-01.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/format2-oracle-01.log",
+      "bytes": 1236,
+      "sha256": "6e75541ea3006f46a33e7d6f3c21faf53530572c163a00244f1b1acdb04652bd"
+    },
+    {
+      "path": "format2-domain-revision-hidden-by-tail.zip",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/format2-domain-revision-hidden-by-tail.zip",
+      "bytes": 28469,
+      "sha256": "c43bb855a4fadc6410ec1801103fb2f361281cb49d653d56fe43e788105c153c"
+    },
+    {
+      "path": "namespace-independent.test.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-independent.test.mjs",
+      "bytes": 13322,
+      "sha256": "417cbbe9b0a50e8edfe642cb6471509b06822be0d6ea40b26b1bf582145c9864"
+    },
+    {
+      "path": "namespace-independent-01.test.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-independent-01.test.mjs",
+      "bytes": 13322,
+      "sha256": "dff8ef834063c27ce7282610b8088d6f1c4b6b7a7a21e715acad15067cf56370"
+    },
+    {
+      "path": "namespace-independent-01.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-independent-01.log",
+      "bytes": 1115,
+      "sha256": "df5a6656fff941bd20785cfa7b3a1ebcd91b287e10738b4456c06ac054d994a2"
+    },
+    {
+      "path": "namespace-http-02.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-http-02.log",
+      "bytes": 223,
+      "sha256": "6485b2e614c2f285b426376b6676cf08814ab8ea95643662fb803e8a2a15ca55"
+    },
+    {
+      "path": "namespace-browser.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-browser.json",
+      "bytes": 14678,
+      "sha256": "272becd5639f30e2d34e24ee3a48e8b57e3369f80ac16ed8018a7bed2388b426"
+    },
+    {
+      "path": "namespace-expected.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-expected.json",
+      "bytes": 6106,
+      "sha256": "0ab5205a031a1a2c340fe173ad354de62f51333f6eae6bd051c31c03b4cbacd0"
+    },
+    {
+      "path": "namespace-dangling-checkpoint-head.jsonl",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-dangling-checkpoint-head.jsonl",
+      "bytes": 11729,
+      "sha256": "102359893f8213740759de1a207ecdab50b91702ba96cdfaee42feaea8d95989"
+    },
+    {
+      "path": "namespace-dangling-history-parent.jsonl",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-dangling-history-parent.jsonl",
+      "bytes": 11733,
+      "sha256": "df49562a1098c024865b399301767f1708e0d4fffcc3be18f190e6610ccb36e6"
+    },
+    {
+      "path": "namespace-duplicate-row.jsonl",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-duplicate-row.jsonl",
+      "bytes": 14395,
+      "sha256": "dd0bd693e036f89162dea17f1ad78fe151fbe9c50fbc861ba9d77ef094888348"
+    },
+    {
+      "path": "namespace-missing-nonhead-history.jsonl",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-missing-nonhead-history.jsonl",
+      "bytes": 10019,
+      "sha256": "a4d9e140e3884460f790abd4006743f6232048181b213c1b61ee56ee08f3629d"
+    },
+    {
+      "path": "namespace-wrong-entity-document.jsonl",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-wrong-entity-document.jsonl",
+      "bytes": 11733,
+      "sha256": "5e2b607468c405353b687b7ca0107cfa028c22c9cf2b0dd83fa532e0153889a5"
+    },
+    {
+      "path": "namespace-dangling-checkpoint-head-descriptor.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-dangling-checkpoint-head-descriptor.json",
+      "bytes": 940,
+      "sha256": "3f863bf2c6753c9a7b4151f2691545d02e66c272b0f6bcb93b839926af96a295"
+    },
+    {
+      "path": "namespace-dangling-history-parent-descriptor.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-dangling-history-parent-descriptor.json",
+      "bytes": 940,
+      "sha256": "7014e86313d2b4de7a12bf83afcf300a1d0ca557d6460cbed6ac603d31951fa4"
+    },
+    {
+      "path": "namespace-duplicate-row-descriptor.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-duplicate-row-descriptor.json",
+      "bytes": 940,
+      "sha256": "4582d6287b9c9389b518d2892d1435aea48160be21c2a7f612cf93483b38ce0a"
+    },
+    {
+      "path": "namespace-missing-nonhead-history-descriptor.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-missing-nonhead-history-descriptor.json",
+      "bytes": 940,
+      "sha256": "7e628feeef7a0eb05e93c084b2850afcd7f06918d926e65fc6aa1fc9f5d3668e"
+    },
+    {
+      "path": "namespace-wrong-entity-document-descriptor.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/5dab27d-independent/namespace-wrong-entity-document-descriptor.json",
+      "bytes": 940,
+      "sha256": "792a17f52a70b93179c2596dd807122223fd9af44a6c7a8d66fc18b6bf450a39"
+    }
+  ]
+}

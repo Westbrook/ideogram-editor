@@ -1,0 +1,10 @@
+✔ real archive ENOSPC preserves pending identity and pins; writable retry succeeds; EROFS preserves copy (3168.106125ms)
+ℹ {"fillerBytes":1999974400,"availableAtFault":0,"archiveFault":"STORAGE_FULL","underlyingFault":"ENOSPC during archive emit after reservation","readOnlyError":"EROFS","pinsPreserved":true,"exactRetry":true,"powerLossQualified":false}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3222.985167

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {canonical} from '../../dist/local/src/protocol/json.js';
 import {join,resolve} from 'node:path';
 import {chromium} from 'playwright';
 import {rootFor} from '../store/helpers.mjs';
@@ -8,7 +10,10 @@ import {setup,copy,preview,workspace,terminal,edit,doc} from './helpers.mjs';
 import {importRaster} from '../raster/helpers.mjs';
 import {startLocalServer} from '../../dist/local/server/http.js';
 let output,browser;test.before(async t=>{output=await rootFor(t);execFileSync(process.execPath,['node_modules/vite/bin/vite.js','build','--config','tests/recovery/vite.config.ts'],{env:{...process.env,IE_RECOVERY_OUTPUT:output}});browser=await chromium.launch({headless:true});});test.after(async()=>browser?.close());
-async function fixture(t,checkpoints=1){const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const {asset}=await importRaster(f,'hidden-alpha.png');await edit(f,{type:'ImportAsset',assetId:asset.id,layerId:'picture',name:'Recovered image',draft:null});for(let i=0;i<checkpoints;i++)await edit(f,{type:'SaveCheckpoint',name:'Retained checkpoint '+i+' '+(checkpoints>1?'full bounded namespace '.repeat(120):'')});const saved=await copy(f),p=await preview(f,saved.bytes),accepted=await workspace(f,{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash}),document=await doc(f,p.review.documentId),history=(await f.read('/api/v1/documents/'+document.id+'/history')).json.items;
+async function fixture(t,checkpoints=1,branches=false){const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const {asset}=await importRaster(f,'hidden-alpha.png');await edit(f,{type:'ImportAsset',assetId:asset.id,layerId:'picture',name:'Recovered image',draft:null});if(branches){
+ await edit(f,{type:'ResizeCanvas',width:4,height:2,offsetX:0,offsetY:0,draft:null});await edit(f,{type:'SaveCheckpoint',name:'Inactive branch checkpoint'});await edit(f,{type:'Undo',historyHead:(await doc(f)).historyHead});
+ await edit(f,{type:'ResizeCanvas',width:5,height:2,offsetX:0,offsetY:0,draft:null});await edit(f,{type:'SaveCheckpoint',name:'Redo branch checkpoint'});await edit(f,{type:'Undo',historyHead:(await doc(f)).historyHead});
+ }for(let i=0;i<checkpoints;i++)await edit(f,{type:'SaveCheckpoint',name:'Retained checkpoint '+i+' '+(checkpoints>1?'full bounded namespace '.repeat(120):'')});const saved=await copy(f),p=await preview(f,saved.bytes),accepted=await workspace(f,{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash}),document=await doc(f,p.review.documentId),history=(await f.read('/api/v1/documents/'+document.id+'/history')).json.items;
  let cps=[],after='';do{const q=(await f.read('/api/v1/documents/'+document.id+'/checkpoints'+(after?'?after='+after:''))).json;cps.push(...q.items);after=q.next??'';}while(after);
  const ids=(await f.read('/api/v1/bundle-reviews/'+p.review.reviewId+'/mapping?kind=asset')).json.items.map(x=>x.localId),assets=[];for(const id of ids){const r=(await f.read('/api/v1/assets/'+id)).json;assets.push(r.projection?.value??r.asset??r);}
  return {f,p,accepted,expected:{document,history,checkpoints:cps,assets}};}
@@ -30,3 +35,41 @@ test('Chromium SSE import uses its pinned context, publishes complete rows once 
  await page.evaluate(()=>{window.abort=new AbortController();window.running=window.harness.client.consumeStream(window.abort.signal).catch(e=>{window.streamFailure=String(e);return String(e);});});let applied;for(let i=0;i<1000;i++){applied=await published(page);if(applied.cursor===accepted.receipt.toSeq)break;const error=await page.evaluate(()=>window.streamFailure);assert.equal(error,undefined,error);await new Promise(r=>setTimeout(r,5));}assert.equal(applied.cursor,accepted.receipt.toSeq);console.error('SSE reached',await page.evaluate(async()=>({published:await window.harness.cache.published(),failure:window.streamFailure})));await assertRows(page,expected);await page.evaluate(async()=>{window.abort.abort();await window.running;});
  const reference=await page.evaluate(async after=>(await (await window.harness.transport('/api/v1/events?after='+after)).json()).batches[0],String(BigInt(accepted.receipt.fromSeq)-1n));const before=await published(page),frame='id: '+accepted.receipt.toSeq+'\ndata: '+JSON.stringify({protocolVersion:1,kind:'transaction-ref',reference})+'\n\n';await page.route('**/api/v1/events/stream?**',route=>route.fulfill({status:200,contentType:'text/event-stream',body:frame+frame}));await page.evaluate(()=>window.harness.client.consumeStream());assert.deepEqual(await published(page),before);await assertRows(page,expected);assert.deepEqual(external,[]);});
 test('Chromium snapshot plus tail includes all imported domain projections after server restart',async t=>{const {f,expected}=await fixture(t);let current=await doc(f);for(let i=0;i<255;i++){const r=await terminal(f,f.command({expectedDocumentRevision:current.revision,body:{type:'SaveCheckpoint',name:'After import '+i}}));assert.equal(r.json.receipt.status,'accepted');current={...current,revision:r.json.receipt.documentRevision};}const {page,external}=await pageFor(t,f),paths=[];page.on('request',r=>paths.push(r.url()));assert((await recover(page)).cursor);await assertRows(page,expected);assert(paths.some(p=>p.includes('/snapshots/')),'must exercise snapshot recovery');assert.deepEqual(external,[]);t.diagnostic(JSON.stringify({finding:'I-PF02',browser:browser.version(),snapshotRecovery:true,namespaceRowsAgree:true,externalRequests:external,qualification:false}));});
+
+test('Chromium validates every retained namespace link despite recomputed descriptor and content, then preserves the cross-tab winner',async t=>{
+ const {f,accepted,expected}=await fixture(t,1,true),source=await doc(f),{page,server,external}=await pageFor(t,f);
+ assert(expected.history.length>=4);assert(expected.checkpoints.length>=3);assert(expected.document.redo);
+ await page.evaluate(async()=>{const c=window.harness.cache,old=await c.published();await c.put('prior','document','sentinel',{intact:true});await c.publish({generation:'prior',cursor:'0',epoch:null},old);});
+ const prior=await published(page),results=[];
+ const faults=['missing-nonhead-history','dangling-history-parent','dangling-checkpoint-head','foreign-history-parent','foreign-checkpoint-head','missing-retained-composite','dangling-asset-source','history-cycle','asset-cycle'];
+ for(const fault of faults){let injected=false,contentURL='',replacement;
+  await page.route('**/api/v1/namespace-events/**',async route=>{
+   const response=await refetch(route);assert.equal(response.status(),200);const descriptor=await response.json();contentURL=new URL(descriptor.content.url,server.origin).pathname;
+   const raw=await page.request.get(new URL(descriptor.content.url,server.origin).href,{headers:{Origin:server.origin,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}});assert.equal(raw.status(),200);
+   let rows=(await raw.text()).trimEnd().split('\n').map(JSON.parse);assert(rows.slice(1).every(x=>x.partCount===1),'This small real fixture uses one part per entity');
+   const entities=rows.slice(1).map(row=>({row,value:JSON.parse(Buffer.from(row.utf8Base64,'base64').toString())}));
+   const history=entities.filter(x=>x.row.entityType==='history'),head=history.find(x=>x.value.id===expected.document.historyHead),child=history.find(x=>x.value.parent!==null&&x.value.id!==expected.document.historyHead&&x.value.id!==expected.document.redo),checkpoint=entities.find(x=>x.row.entityType==='checkpoint'),asset=entities.find(x=>x.row.entityType==='asset'&&x.value.raster);
+   assert(head&&child&&checkpoint&&asset);
+   if(fault==='missing-nonhead-history')rows=rows.filter(x=>x.entityId!==child.value.id);
+   if(fault==='dangling-history-parent')child.value.parent='missing_parent';
+   if(fault==='dangling-checkpoint-head')checkpoint.value.historyHead='missing_head';
+   if(fault==='foreign-history-parent')child.value.parent=source.historyHead;
+   if(fault==='foreign-checkpoint-head')checkpoint.value.historyHead=source.historyHead;
+   if(fault==='missing-retained-composite'){const id=child.value.after.compositeAssetId;assert(id!==expected.document.image.compositeAssetId);rows=rows.filter(x=>x.entityId!==id);}
+   if(fault==='dangling-asset-source')asset.value.raster.sourceAssetIds=['missing_source'];
+   if(fault==='history-cycle'){child.value.parent=child.value.id;child.value.before=structuredClone(child.value.after);child.value.roots=[child.value.before.state,child.value.after.state,child.value.forward,child.value.inverse];}
+   if(fault==='asset-cycle')asset.value.raster.sourceAssetIds=[asset.value.id];
+   for(const x of entities)x.row.utf8Base64=Buffer.from(canonical(x.value)).toString('base64');rows[0].entityCount=String(rows.length-1);
+   replacement=Buffer.from(rows.map(canonical).join('\n')+'\n');descriptor.content.blob.hash='sha256:'+createHash('sha256').update(replacement).digest('hex');descriptor.content.blob.byteLength=String(replacement.length);descriptor.content.recordCount=String(rows.length);injected=true;
+   await route.fulfill({response,json:descriptor});
+  });
+  await page.route('**/api/v1/protocol-content/**',route=>{if(new URL(route.request().url()).pathname===contentURL&&replacement)return route.fulfill({status:200,headers:{'content-type':'application/x-ndjson','content-length':String(replacement.length),etag:'"sha256:'+createHash('sha256').update(replacement).digest('hex')+'"'},body:replacement});return route.continue();});
+  const result=await recover(page);assert(injected);assert.match(result.error??'',/Missing imported|Invalid imported/,fault);assert.deepEqual(await published(page),prior);assert.deepEqual(await page.evaluate(()=>window.harness.cache.read('document','sentinel')),{intact:true});assert.equal(await page.evaluate(id=>window.harness.cache.read('document',id),expected.document.id),undefined);
+  results.push({fault,result,rewroteDescriptorAndContent:true,priorPreserved:true});await page.unroute('**/api/v1/namespace-events/**');await page.unroute('**/api/v1/protocol-content/**');
+ }
+ const page2=await page.context().newPage();await page2.goto(server.issuePairingURL());await page2.waitForFunction(()=>window.harness);
+ let hit,release;const entered=new Promise(r=>hit=r),gate=new Promise(r=>release=r);await page.route('**/api/v1/namespace-events/**',async route=>{hit();await gate;await route.continue();});
+ const first=recover(page);await Promise.race([entered,first.then(r=>{throw Error('Recovery ended before barrier '+JSON.stringify(r));})]);assert.deepEqual(await published(page),prior);
+ const second=await recover(page2);assert.equal(second.cursor,accepted.receipt.toSeq);const winner=await published(page2);release();assert((await first).error);assert.deepEqual(await published(page),winner);await page.unroute('**/api/v1/namespace-events/**');await assertRows(page2,expected);assert.deepEqual(external,[]);
+ t.diagnostic(JSON.stringify({finding:'I-PF02',kind:'structural linkage, not hash/authenticity failure',browser:browser.version(),results,healthyRetainedHistory:expected.history.length,healthyCheckpoints:expected.checkpoints.length,redo:expected.document.redo,crossTabWinnerPreserved:true,qualification:false}));
+});
