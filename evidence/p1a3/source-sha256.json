@@ -1,0 +1,21 @@
+{
+  ".progress-report/project.json": "466629f9676ba51137e72e4394f8eb997578ffcecb23e622cac7dd76d3a3d85a",
+  "index.html": "c9f8d77330f095677b8c49ab48d3f3eda3cf494d12241cff81053a99cc7102b9",
+  "package.json": "7561600ee512d61e98c1dd23d1e29cdc10ab3b8ccbd03173cc7deb0081bf8535",
+  "server/http.ts": "0b7ca5d75988ee8b86e3e1b35cd62e47d67a7caefe04ca840627f0ce3d0d6f6d",
+  "server/static.ts": "c62a7ada0a16ffe78469ebcb58b15d70108ced7fba9b5fc28e3935f4504e9dd4",
+  "src/main.ts": "fc0c904b0fcabb8c87dbebe3f2f573e2a63efdca9ed0cc1c38bd3be929cbb4a6",
+  "src/state/session-client.ts": "d214937c12076a818281b1dff68f08b259b42faec7852140576a7720d75f82c1",
+  "src/theme/shell.css": "a37adaedd5fd759c4d0faf161e29498a3caa20657f40049bae05aeb690fefef5",
+  "src/ui/icons.ts": "8cd20c908bb2c0805f8dc38c2945a2629967ee886520900258f06450bdc39d3d",
+  "src/ui/shell.ts": "095694bee4cb9d07f847a57d44271743bfaa526cb867063e1d2280e0b2777848",
+  "tests/browser/playwright.config.ts": "18a28736ef4c8e303b26e31dc154c1f4679f7ec2a85591db77228d9b4d692651",
+  "tests/browser/shell.spec.ts": "9baa7fb675bd3030f91f1d8b194df7241dd75959256e1db7a2163de305bba945",
+  "tests/session/storage-launch.test.mjs": "562698d825876c02ee1f9611cf23a531bc92c31102285d64a694e4d6b0c6f5bf",
+  "tooling/SESSION.txt": "251e81d23ebc0c443e809cd50ce2c80fc02c30739b7b37706e6a5de6ab433cd2",
+  "tooling/SHELL.txt": "438334850c8d958bc05e68ef0bdf28ae144c9aada71c9ac84a7347bcb613e2dd",
+  "tooling/build-evidence.ts": "64bfbb144cf64134e58c624b3b53477aff1c640d529974884bdd57ef5f33da9b",
+  "tooling/launch.ts": "939d197d89430117fa48ca1b14b97025d5a0221cbe4b5f45cbdeee6967afd939",
+  "tsconfig.app.json": "1e4c30854f7360c415238f11ad68fb774fc4ba178252f21613934509740e7c14",
+  "vite.app.config.ts": "e12bc225c93381c4434addc67e49519b47d59cf853bcc3d85fef4b2e4430c305"
+}

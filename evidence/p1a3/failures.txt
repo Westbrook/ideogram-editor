@@ -1,0 +1,370 @@
+ATTEMPT first
+npm notice run ideogram-editor@0.1.0 test:shell
+npm notice run npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:app
+npm notice run npm run verify:imports && vite build --config vite.app.config.ts
+npm notice run ideogram-editor@0.1.0 verify:imports
+npm notice run node tooling/verify-imports.mjs
+Verified 18 consumer en-reve imports against packed public metadata
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 101 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/app/.vite/manifest.json          0.38 kB │ gzip:  0.20 kB
+dist/app/index.html                   0.87 kB │ gzip:  0.50 kB
+dist/app/build-evidence.json          6.28 kB │ gzip:  1.14 kB
+dist/app/assets/index-BQDAHLY1.css   92.31 kB │ gzip: 11.79 kB
+dist/app/assets/index-CI_V1xzo.js     2.39 kB │ gzip:  1.17 kB
+dist/app/assets/shell-CVs4bdO_.js   191.31 kB │ gzip: 49.09 kB
+
+✓ built in 143ms
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+
+Running 7 tests using 1 worker
+
+(node:43432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (946ms)
+(node:43479) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/browser/shell.spec.ts:74:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts (538ms)
+  ✘  3 tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (5.2s)
+(node:43520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  4 tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing (5.4s)
+(node:43551) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  5 tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads (5.1s)
+(node:43588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  6 tests/browser/shell.spec.ts:180:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (581ms)
+  ✓  7 tests/browser/shell.spec.ts:199:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (442ms)
+
+
+  1) tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes 
+
+    Error: /assets/index-CI_V1xzo.js
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 16.40000009536743
+    Received:    13.599999904632568
+
+      55 |     expect(observations.hash).toBe(''); expect(observations.hasPairing).toBe(false); expect(observations.storage).toEqual([0, 0]); expect(observations.cookie).toBe('');
+      56 |     expect(observations.fetches).toEqual([{ path: '/api/v1/session/bootstrap', hash: '', consumed: true }, { path: '/api/v1/capabilities', hash: '', consumed: true }]);
+    > 57 |     for (const resource of observations.resources) expect(resource.start, resource.path).toBeGreaterThanOrEqual(observations.cleaned);
+         |                                                                                          ^
+      58 |     const cookies = await context.cookies(); expect(cookies).toHaveLength(1); expect(cookies[0].httpOnly).toBe(true); expect(cookies[0].sameSite).toBe('Strict');
+      59 |     expect(logs.join('\n').includes(first.split('#')[1])).toBe(false);
+      60 |     const dom = await page.content(); expect(dom.includes(first.split('pairing=')[1])).toBe(false);
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:57:90
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B01-launcher-native--dbbc7-ie-reload-and-startup-bytes/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B01-launcher-native--dbbc7-ie-reload-and-startup-bytes/error-context.md
+
+  2) tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content 
+
+    Error: expect(locator).toBeFocused() failed
+
+    Locator:  getByRole('tab', { name: 'Jobs' })
+    Expected: focused
+    Received: inactive
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeFocused" getByRole('tab', { name: 'Jobs' }) with timeout 5000ms
+      - waiting for getByRole('tab', { name: 'Jobs' })
+        14 × locator resolved to <button role="tab" tabindex="0" id="tab-Jobs" aria-selected="true" aria-controls="activity-panel">…</button>
+           - unexpected value "inactive"
+
+
+      107 |   await page.keyboard.press('h'); await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+      108 |   await page.getByRole('tab', { name: 'Results' }).focus(); await page.keyboard.press('ArrowRight');
+    > 109 |   await expect(page.getByRole('tab', { name: 'Jobs' })).toBeFocused();
+          |                                                         ^
+      110 |   await expect(page.getByText('No jobs submitted', { exact: true })).toBeVisible();
+      111 |   await page.getByRole('button', { name: 'Collapse', exact: false }).click();
+      112 |   await expect(page.locator('#activity-panel')).toBeHidden();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:109:57
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B03-keyboard-panels--7ef2e-esize-and-collapsed-content/error-context.md
+
+  3) tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: 'Connected locally', exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: 'Connected locally', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Connected locally', exact: true })
+
+
+      26 |   const link = new URL(server.issuePairingURL()); if (flag) link.search = '?progress-report';
+      27 |   await page.goto(link.href);
+    > 28 |   await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+         |                                                                                      ^
+      29 | }
+      30 |
+      31 | test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes', async ({ page, context }, info) => {
+        at paired (/Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:28:86)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:140:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B04-renew-stale-CSRF-90e84-iry-and-fresh-local-pairing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B04-renew-stale-CSRF-90e84-iry-and-fresh-local-pairing/error-context.md
+
+  4) tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 3
+    Received:    0
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      170 |     }, local.server.origin);
+      171 |     expect(outcome.every(x => x === 'opaque' || x === 'blocked')).toBe(true);
+    > 172 |     await expect.poll(() => statuses.length).toBeGreaterThanOrEqual(3);
+          |                                              ^
+      173 |     expect(statuses.every(status => status === 403)).toBe(true);
+      174 |     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact:true })).toBeVisible();
+      175 |     const nav = await context.newPage(); const response = await nav.goto(local.server.origin + '/api/v1/session'); expect(response?.status()).toBe(403); await nav.close();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:172:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/error-context.md
+
+  4 failed
+    tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes 
+    tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content 
+    tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing 
+    tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+  3 passed (21.7s)
+
+
+ATTEMPT second
+npm notice run ideogram-editor@0.1.0 test:shell
+npm notice run npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:app
+npm notice run npm run verify:imports && vite build --config vite.app.config.ts
+npm notice run ideogram-editor@0.1.0 verify:imports
+npm notice run node tooling/verify-imports.mjs
+Verified 18 consumer en-reve imports against packed public metadata
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 101 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/app/.vite/manifest.json          0.38 kB │ gzip:  0.20 kB
+dist/app/index.html                   0.87 kB │ gzip:  0.50 kB
+dist/app/build-evidence.json          6.28 kB │ gzip:  1.13 kB
+dist/app/assets/index-CbDvuOEx.css   92.31 kB │ gzip: 11.78 kB
+dist/app/assets/index-Byw7HJiE.js     2.39 kB │ gzip:  1.17 kB
+dist/app/assets/shell-CdwiEqUT.js   191.51 kB │ gzip: 49.14 kB
+
+✓ built in 125ms
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+
+Running 7 tests using 1 worker
+
+(node:44026) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (311ms)
+  ✓  2 tests/browser/shell.spec.ts:74:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts (342ms)
+  ✓  3 tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (345ms)
+  ✘  4 tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing (30.0s)
+(node:44480) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads (479ms)
+  ✓  6 tests/browser/shell.spec.ts:185:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (524ms)
+  ✓  7 tests/browser/shell.spec.ts:204:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (431ms)
+
+
+  1) tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Check connection', exact: true })
+
+
+      141 |   local.advance(30 * 60 * 1000);
+      142 |   await page.getByRole('button', { name: 'Connected locally', exact: true }).click();
+    > 143 |   await page.getByRole('button', { name: 'Check connection', exact: true }).click();
+          |                                                                             ^
+      144 |   await expect(page.getByRole('button', { name: 'Pairing needed', exact: true })).toBeVisible();
+      145 |   await paired(page, local.server);
+      146 |   const expired = local.server.issuePairingURL(); local.advance(5 * 60 * 1000);
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:143:77
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B04-renew-stale-CSRF-90e84-iry-and-fresh-local-pairing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B04-renew-stale-CSRF-90e84-iry-and-fresh-local-pairing/error-context.md
+
+  1 failed
+    tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing 
+  6 passed (33.7s)
+
+
+ATTEMPT third
+npm notice run ideogram-editor@0.1.0 test:shell
+npm notice run npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:app
+npm notice run npm run verify:imports && vite build --config vite.app.config.ts
+npm notice run ideogram-editor@0.1.0 verify:imports
+npm notice run node tooling/verify-imports.mjs
+Verified 18 consumer en-reve imports against packed public metadata
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 101 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/app/.vite/manifest.json          0.38 kB │ gzip:  0.20 kB
+dist/app/index.html                   0.87 kB │ gzip:  0.50 kB
+dist/app/build-evidence.json          6.28 kB │ gzip:  1.13 kB
+dist/app/assets/index-CbDvuOEx.css   92.31 kB │ gzip: 11.78 kB
+dist/app/assets/index-Byw7HJiE.js     2.39 kB │ gzip:  1.17 kB
+dist/app/assets/shell-CdwiEqUT.js   191.51 kB │ gzip: 49.14 kB
+
+✓ built in 109ms
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+
+Running 8 tests using 1 worker
+
+(node:46225) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (999ms)
+  ✓  2 tests/browser/shell.spec.ts:74:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts (518ms)
+  ✓  3 tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (587ms)
+  ✓  4 tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing (414ms)
+  ✘  5 tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads (5.1s)
+(node:46349) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  6 tests/browser/shell.spec.ts:185:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (504ms)
+  ✓  7 tests/browser/shell.spec.ts:204:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (325ms)
+  ✓  8 tests/browser/shell.spec.ts:223:1 › B08 lost renewal response is read back without retry; restarted server requires pairing (354ms)
+
+
+  1) tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 3
+    Received:    2
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      175 |     }, local.server.origin);
+      176 |     expect(outcome.every(x => x === 'opaque' || x === 'blocked')).toBe(true);
+    > 177 |     await expect.poll(() => statuses.length).toBeGreaterThanOrEqual(3);
+          |                                              ^
+      178 |     expect(statuses.every(status => status === 403)).toBe(true);
+      179 |     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact:true })).toBeVisible();
+      180 |     const nav = await context.newPage(); const response = await nav.goto(local.server.origin + '/api/v1/session'); expect(response?.status()).toBe(403); await nav.close();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:177:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/error-context.md
+
+  1 failed
+    tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+  7 passed (9.8s)
+
+
+ATTEMPT fourth
+npm notice run ideogram-editor@0.1.0 test:shell
+npm notice run npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:app
+npm notice run npm run verify:imports && vite build --config vite.app.config.ts
+npm notice run ideogram-editor@0.1.0 verify:imports
+npm notice run node tooling/verify-imports.mjs
+Verified 18 consumer en-reve imports against packed public metadata
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 101 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/app/.vite/manifest.json          0.38 kB │ gzip:  0.20 kB
+dist/app/index.html                   0.87 kB │ gzip:  0.50 kB
+dist/app/build-evidence.json          6.28 kB │ gzip:  1.13 kB
+dist/app/assets/index-CbDvuOEx.css   92.31 kB │ gzip: 11.78 kB
+dist/app/assets/index-Byw7HJiE.js     2.39 kB │ gzip:  1.17 kB
+dist/app/assets/shell-CdwiEqUT.js   191.51 kB │ gzip: 49.14 kB
+
+✓ built in 118ms
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+
+Running 9 tests using 1 worker
+
+(node:48957) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/shell.spec.ts:31:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (322ms)
+  ✓  2 tests/browser/shell.spec.ts:74:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts (340ms)
+  ✓  3 tests/browser/shell.spec.ts:101:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (354ms)
+  ✓  4 tests/browser/shell.spec.ts:125:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing (482ms)
+  ✘  5 tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads (5.1s)
+(node:49015) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  6 tests/browser/shell.spec.ts:184:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (521ms)
+  ✓  7 tests/browser/shell.spec.ts:203:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (377ms)
+  ✓  8 tests/browser/shell.spec.ts:222:1 › B08 lost renewal response is read back without retry; restarted server requires pairing (382ms)
+  ✓  9 tests/browser/shell.spec.ts:249:1 › B09 CSP permits only the trusted split styles and blocks injected inline behavior (172ms)
+
+
+  1) tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 3
+    Received: 2
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      174 |     await attacker.goto('data:text/html,<title>Opaque origin security probe</title>');
+      175 |     await attacker.evaluate(async origin => { try { await fetch(origin + '/api/v1/session/revoke', { method:'POST', mode:'no-cors', credentials:'include', body:'{}' }); } catch { /* browser may block response visibility */ } }, local.server.origin);
+    > 176 |     await expect.poll(() => statuses.length).toBe(3);
+          |                                              ^
+      177 |     expect(statuses.every(status => status === 403)).toBe(true);
+      178 |     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact:true })).toBeVisible();
+      179 |     const nav = await context.newPage(); const response = await nav.goto(local.server.origin + '/api/v1/session'); expect(response?.status()).toBe(403); await nav.close();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/browser/shell.spec.ts:176:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/shell/shell-B05-browser-controll-4f735-igation-and-no-marker-reads/error-context.md
+
+  1 failed
+    tests/browser/shell.spec.ts:151:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads 
+  8 passed (9.1s)

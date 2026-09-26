@@ -3,22 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": "26.10.0", "npm": "12.1.0" },
+  "engines": {
+    "node": "26.10.0",
+    "npm": "12.1.0"
+  },
   "packageManager": "npm@12.1.0",
   "scripts": {
     "verify:vendor": "python3 tooling/verify-vendor.py",
     "verify:imports": "node tooling/verify-imports.mjs",
     "test:vendor": "python3 tooling/test-vendor.py",
-    "typecheck": "npm run typecheck:consumer && tsc --noEmit -p tsconfig.server.json",
+    "typecheck": "npm run typecheck:consumer && npm run typecheck:app && tsc --noEmit -p tsconfig.server.json",
     "typecheck:consumer": "tsc --noEmit",
-    "build": "npm run build:consumer && npm run build:server",
+    "build": "npm run build:consumer && npm run build:app && npm run build:server",
     "build:consumer": "npm run verify:imports && vite build",
     "build:server": "tsc -p tsconfig.server.json",
     "start": "node dist/local/tooling/launch.js",
-    "dev": "npm run build:server && npm start",
+    "dev": "npm run build:app && npm run build:server && npm start",
     "test:session": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/session/*.test.mjs",
     "test:consumer": "node tooling/test-consumer.mjs",
-    "test:browser": "playwright test --config tests/consumer/playwright.config.ts"
+    "test:browser": "playwright test --config tests/consumer/playwright.config.ts",
+    "typecheck:app": "tsc --noEmit -p tsconfig.app.json",
+    "build:app": "npm run verify:imports && vite build --config vite.app.config.ts",
+    "test:shell": "npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts"
   },
   "dependencies": {
     "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",

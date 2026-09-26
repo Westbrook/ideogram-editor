@@ -1,4 +1,4 @@
-P1a.2 LOCAL SESSION BOUNDARY — LP-1 / LS-1
+LOCAL SESSION BOUNDARY — LP-1 / LS-1 (P1a browser integration)
 
 Use the qualified toolchain from tooling/README.txt, from the repository root:
 
@@ -26,9 +26,10 @@ components are rejected; there is no automatic chmod of user files. On macOS,
 creating a temporary root. This slice supports POSIX permissions; Windows ACL
 qualification is unavailable and startup fails closed on Windows.
 
-Current default page is a small anonymous "local server ready" placeholder.
-The browser editor shell is a separate task. To integrate a trusted browser
-build, with index.html and hashed JS/CSS/font/raster assets:
+npm start now serves dist/app from the production app build by default.
+The browser shell supports local drafts and session controls; document editing
+and provider dispatch remain unavailable. See tooling/SHELL.txt. To override
+with a trusted browser build, with index.html and hashed JS/CSS/font/raster assets:
 
   npm run build:server
   npm start -- --root /absolute/private/editor-root --static /absolute/build/app
@@ -43,7 +44,7 @@ asset directory, repository root, or untrusted project/archive content.
 
 Development uses this SAME secured listener for static files and /api, including
 the exact recorded Host/Origin and all security headers. npm run dev builds the
-server and launches it; pass launcher options with npm start after building.
+production browser app and server, then launches it; pass launcher options with npm start after building.
 No Vite dev listener, proxy, websocket, HMR, port override, origin alias, CORS or
 forwarded-header exception is supported. The shell owner should build its Vite
 production output and restart this listener while integrating. This deliberate
@@ -57,17 +58,24 @@ BROWSER INTEGRATION CONTRACT
 
 The server injects a fixed inline prelude as the first element of <head>, with
 its exact SHA-256 permitted by CSP. It synchronously captures #pairing=<token>,
-removes the ENTIRE fragment with history.replaceState before discovering shell
-scripts/styles, and places the valid 43-character token in a configurable,
-nonenumerable window.__IE_PAIRING__ property. A malformed fragment is removed
-and yields undefined. The prelude preserves pathname, query and history.state.
+removes the pairing fragment with history.replaceState before any shell
+resource requests. Only exact #request/#canvas/#inspector/#results navigation
+fragments are retained; all other fragments are discarded. Trusted build
+resource tags are placed in an inert template to defeat speculative preloading,
+then activated after cleanup (styles before application modules). The prelude and places the valid 43-character token in a configurable,
+nonenumerable window.__IE_PAIRING__ property. A malformed pairing fragment is removed
+and yields undefined. Same-tab fresh pairing links run the same cleanup and
+notify the shell through a secret-free ie-pairing event. The prelude preserves pathname, query and history.state.
 Do not move scripts/resources before this prelude or add a competing fragment
 bootstrap. The shell's first startup step is:
 
   const pairingToken = window.__IE_PAIRING__;
   delete window.__IE_PAIRING__;
 
-Keep that token and the returned CSRF token only in memory. Never log/store
+Keep that token and the returned CSRF token only in memory.
+The CSP style-src-attr permits only SHA-256 hashes of the two fixed initial
+en-reve splitter style strings (--en-split-ratio:0.24; and 0.73;). Keyboard
+resizing uses CSSOM. Arbitrary inline styles/scripts/handlers remain blocked. Never log/store
 them or place them in URL/query, DOM attributes, localStorage, sessionStorage,
 event/provenance data or a downloadable bundle. No provider-key input exists.
 When a token is present, POST /api/v1/session/bootstrap with exactly:
@@ -77,7 +85,7 @@ Use fetch with credentials:'same-origin', redirect:'error', cache:'no-store'.
 Set Content-Type:application/json for mutation controls and X-App-Client:LP-1
 for JSON reads. Browser-controlled Origin and Sec-Fetch-* headers must be left
 to the browser. Mutations require its exact Origin; reads without Origin also
-require Sec-Fetch-Site:same-origin and X-App-Client:LP-1. Cross-site/same-site,
+require Sec-Fetch-Site:same-origin and X-App-Client:LP-1. Cross-site/same-site API calls,
 null/foreign Origin, navigation/image JSON reads and all forwarded headers fail.
 
 POST /api/v1/session/renew and POST /api/v1/session/revoke take exactly
@@ -109,9 +117,9 @@ checks then return503 SERVER_UNAVAILABLE. No writer, receipt, SSE stream,
 provider dispatch, asset authorization or document durability exists yet.
 
 The only accepted landing query key is progress-report; its value is ignored.
-Shell owner adds its
-trusted Developer UI return link from .progress-report/project.json, then
-verifies flag presence, query/fragment preservation and unflagged absence.
+The shell includes its
+trusted Developer UI return link from .progress-report/project.json. Presence,
+ignored values, allowed navigation fragments and unflagged absence are tested.
 That flag never bypasses session security or specifies an arbitrary URL.
 
 SECURITY/VERIFICATION LIMITS
@@ -125,11 +133,18 @@ database, which are unimplemented. Root launch.json is metadata, not a writer
 lock. An OS-held writer lock/epoch must precede a future document writer.
 
 The bootstrap ordering check executes the actual prelude in a VM and observes
-served HTML/CSP. Real browser cookie/fetch/fragment/history behavior, hostile
-site tests and the full browser Q26 matrix belong to shell integration. SEC05
+served HTML/CSP. P1a.3 adds actual Chromium browser cookie/fetch/fragment/history and hostile
+site tests. The full browser/OS Q26 matrix remains unqualified. SEC05
 user filename/prompt/archive rendering and SEC04 retained/withheld asset,
 thumbnail/range safety remain P1b/P2 work; blanket unavailability is not safety
 qualification. POSIX modes are checked, but another OS account was not used.
 Same-OS-user or compromised-OS processes are outside the pairing defense.
 No performance, native/AT, Windows, HTTPS or deployed/proxy qualification is
 claimed. There is no paid call, publishing or live sibling modification.
+
+ANONYMOUS REPORT NAVIGATION
+A same-site, user-activated top-level GET / navigation without Origin may load
+only the anonymous shell (Sec-Fetch-Mode:navigate, Dest:document, User:?1).
+This lets the independent loopback report link open the editor. Exact Host and
+query checks remain; cross-site, fetch, iframe, asset and all API requests retain
+the original strict checks. The display flag grants no authentication.

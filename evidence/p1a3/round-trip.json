@@ -1,0 +1,15 @@
+{
+  "at": "2026-09-26T03:11:49.418Z",
+  "result": "PASS",
+  "report": "http://127.0.0.1:4381/",
+  "arrival": "http://127.0.0.1:61717/?progress-report",
+  "returned": "http://127.0.0.1:4381/",
+  "anonymousShell": "Pairing needed; no token/cookie inserted",
+  "verifiedLiveArtifacts": [
+    "/assets/shell-C87eLKrM.js",
+    "/assets/index-Ckqhmx9n.css",
+    "/assets/index-BsEZWd8Y.js"
+  ],
+  "independentOutageCheck": "Report HTTP200 while production editor stopped between launches; native-review.txt",
+  "noReviewMutation": true
+}

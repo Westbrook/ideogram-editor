@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { isAbsolute, sep } from 'node:path';
 import { createInterface } from 'node:readline';
 import { launch } from './launcher.js';
@@ -6,7 +7,7 @@ try {
   if (process.versions.node !== '26.10.0') throw new Error();
   const args = process.argv.slice(2);
   let root: string | undefined;
-  let staticDirectory: string | undefined;
+  let staticDirectory: string | undefined = fileURLToPath(new URL('../../app', import.meta.url));
   let open = true;
   const absolute = (path: string) => isAbsolute(path) ? path : `${process.cwd()}${sep}${path}`;
   for (let index = 0; index < args.length; index++) {

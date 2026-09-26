@@ -1,0 +1,290 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: shell.spec.ts >> B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing
+- Location: tests/browser/shell.spec.ts:125:1
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('button', { name: 'Connected locally', exact: true })
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByRole('button', { name: 'Connected locally', exact: true }) with timeout 5000ms
+  - waiting for getByRole('button', { name: 'Connected locally', exact: true })
+
+```
+
+```yaml
+- link "Go to request":
+  - /url: "#request"
+- link "Go to canvas":
+  - /url: "#canvas"
+- link "Go to layers":
+  - /url: "#inspector"
+- link "Go to results":
+  - /url: "#results"
+- banner:
+  - strong: Ideogram Editor
+  - text: No document open
+  - navigation "Document actions":
+    - button "New" [disabled]
+    - button "Open" [disabled]
+    - button "Import" [disabled]
+    - button "Undo" [disabled]
+    - button "Redo" [disabled]
+  - button "Pairing needed" [expanded]
+  - button "Save copy" [disabled]
+  - button "Export" [disabled]
+  - button "Help and keyboard shortcuts": "?"
+- region "Local connection":
+  - strong: Pairing needed
+  - status: Disconnected. Type pair in the launcher terminal to open a fresh connection.
+  - paragraph: Pair from the launcher on this computer. Never paste credentials into the editor.
+  - button "Check connection"
+  - button "Renew connection" [disabled]
+  - button "Disconnect" [disabled]
+- main "Image editor":
+  - complementary "Editing tools":
+    - toolbar "Canvas tools":
+      - button "Move (V)" [disabled]: Move
+      - button "Text (T)" [disabled]: Text
+      - button "Select (M)" [disabled]: Select
+      - button "Mask (B)" [disabled]: Mask
+      - button "Crop (C)" [disabled]: Crop
+      - button "Pan (H)" [pressed]: Pan
+      - button "Zoom (Z)": Zoom
+    - text: LOCAL
+  - region "Request":
+    - heading "Request" [level=1]
+    - text: Draft Operation
+    - combobox "Operation":
+      - option "Generate image" [selected]
+      - option "Generate with Instant"
+      - option "Generate with Fast"
+      - option "Transform image"
+      - option "Edit masked region"
+      - option "Generate with adapters"
+      - option "Transform with adapters"
+      - option "Edit with adapters"
+    - text: PLAIN PROMPT 0 characters Prompt
+    - textbox "Prompt":
+      - /placeholder: Describe the image you have in mind…
+    - text: Draft only · kept in this tab until reload
+    - heading "Inputs" [level=2]
+    - text: None attached
+    - strong: No images attached
+    - paragraph: Sources and masks are always explicit.
+    - button "＋ Source" [disabled]
+    - button "＋ Mask" [disabled]
+    - button "＋ Adapter" [disabled]
+    - group: Request settings Not available yet
+    - heading "Request summary" [level=2]
+    - text: Local draft
+    - term: Operation
+    - definition: Generate image
+    - term: Inputs
+    - definition: None
+    - term: Cost
+    - definition: No request prepared
+    - button "Generate" [disabled]
+    - paragraph: Generation is not available yet. You can explore this workspace without a provider key.
+  - separator "Request panel width"
+  - region "Canvas":
+    - text: Pan · No document
+    - group "Canvas controls":
+      - text: Zoom
+      - spinbutton "Zoom percentage": "100"
+      - text: "%"
+      - button "Reset"
+    - text: YOUR NEXT IDEA STARTS HERE
+    - heading "A little room to create." [level=2]
+    - paragraph: Draft an image request on the left. Import and editing are coming next.
+    - button "Write a prompt"
+    - text: No document · no pixels · nothing sent Canvas preview Document size —
+  - separator "Canvas and inspector width"
+  - complementary "Layers and properties":
+    - tablist "Document structure":
+      - tab "Layers" [selected]
+      - tab "Composition"
+    - tabpanel "Layers":
+      - heading "No layers yet" [level=2]
+      - paragraph: Your document’s image and text layers will appear here.
+      - button "＋ Add layer" [disabled]
+    - region "Properties":
+      - heading "Properties" [level=2]
+      - paragraph: Open a document and select a layer to inspect its properties.
+      - text: X
+      - textbox "X" [disabled]:
+        - /placeholder: —
+      - text: "Y"
+      - textbox "Y" [disabled]:
+        - /placeholder: —
+      - text: Width
+      - textbox "Width" [disabled]:
+        - /placeholder: —
+      - text: Height
+      - textbox "Height" [disabled]:
+        - /placeholder: —
+      - text: Rotation
+      - textbox "Rotation" [disabled]:
+        - /placeholder: —
+      - text: Opacity
+      - textbox "Opacity" [disabled]:
+        - /placeholder: —
+      - paragraph: Selecting a layer never attaches it to a request.
+- region "Results, jobs and history":
+  - tablist "Activity":
+    - tab "Results0" [selected]
+    - tab "Jobs0"
+    - tab "History0"
+  - button "Collapse" [expanded]
+  - tabpanel "Results0":
+    - strong: Your results will land here
+    - paragraph: Generated images stay candidates until you choose to add them.
+- contentinfo: Pan / No layer selected Drafts are not saved · Document storage unavailable
+```
+
+# Test source
+
+```ts
+  1   | import { test as base, expect } from '@playwright/test';
+  2   | import { mkdtemp, realpath, readFile } from 'node:fs/promises';
+  3   | import { tmpdir } from 'node:os';
+  4   | import { join, resolve } from 'node:path';
+  5   | import { createServer } from 'node:http';
+  6   | import { startLocalServer } from '../../server/http.js';
+  7   | import { launch } from '../../tooling/launcher.js';
+  8   | 
+  9   | type Server = Awaited<ReturnType<typeof startLocalServer>>;
+  10  | const test = base.extend<{ local: { server: Server; advance: (ms: number) => void } }>({
+  11  |   local: async ({}, use) => {
+  12  |     let now = Date.now();
+  13  |     const directory = await mkdtemp(join(await realpath(tmpdir()), 'ie-browser-'));
+  14  |     const server = await startLocalServer({ root: join(directory, 'private'), staticDirectory: resolve('dist/app'), credentialConfigured: false, now: () => now });
+  15  |     try { await use({ server, advance: ms => { now += ms; } }); } finally { await server.close(); }
+  16  |   },
+  17  | });
+  18  | test.beforeEach(async ({ context }) => {
+  19  |   await context.route('**/*', async route => {
+  20  |     const host = new URL(route.request().url()).hostname;
+  21  |     if (host !== '127.0.0.1' && host !== 'localhost') throw new Error('Non-loopback browser request blocked');
+  22  |     await route.continue();
+  23  |   });
+  24  | });
+  25  | async function paired(page: import('@playwright/test').Page, server: Server, flag = false) {
+  26  |   const link = new URL(server.issuePairingURL()); if (flag) link.search = '?progress-report';
+  27  |   await page.goto(link.href);
+> 28  |   await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+      |                                                                                      ^ Error: expect(locator).toBeVisible() failed
+  29  | }
+  30  | 
+  31  | test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes', async ({ page, context }, info) => {
+  32  |   const directory = await mkdtemp(join(await realpath(tmpdir()), 'ie-launch-browser-'));
+  33  |   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  34  |   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  35  |   await page.addInitScript(() => {
+  36  |     const observations = { cleaned: 0, fetches: [] as { path: string; hash: string; consumed: boolean }[] };
+  37  |     Object.defineProperty(window, '__testObservations', { value: observations });
+  38  |     const replace = history.replaceState.bind(history);
+  39  |     history.replaceState = (...args) => { replace(...args); observations.cleaned = performance.now(); };
+  40  |     const fetchOriginal = window.fetch;
+  41  |     window.fetch = (...args) => {
+  42  |       observations.fetches.push({ path: String(args[0]), hash: location.hash, consumed: !Object.hasOwn(window, '__IE_PAIRING__') });
+  43  |       return fetchOriginal(...args);
+  44  |     };
+  45  |   });
+  46  |   let first = '';
+  47  |   const logs: string[] = [];
+  48  |   const server = await launch({ root: join(directory, 'private'), staticDirectory: resolve('dist/app'), log: line => logs.push(line), openBrowser: async link => { first = link; await page.goto(link); } });
+  49  |   try {
+  50  |     await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+  51  |     const observations = await page.evaluate(() => {
+  52  |       const state = (window as unknown as { __testObservations: { cleaned: number; fetches: unknown[] } }).__testObservations;
+  53  |       return { ...state, resources: performance.getEntriesByType('resource').map(item => ({ path: new URL(item.name).pathname, start: item.startTime })), hash: location.hash, hasPairing: Object.hasOwn(window, '__IE_PAIRING__'), storage: [localStorage.length, sessionStorage.length], cookie: document.cookie };
+  54  |     });
+  55  |     expect(observations.hash).toBe(''); expect(observations.hasPairing).toBe(false); expect(observations.storage).toEqual([0, 0]); expect(observations.cookie).toBe('');
+  56  |     expect(observations.fetches).toEqual([{ path: '/api/v1/session/bootstrap', hash: '', consumed: true }, { path: '/api/v1/capabilities', hash: '', consumed: true }]);
+  57  |     for (const resource of observations.resources) expect(resource.start, resource.path).toBeGreaterThanOrEqual(observations.cleaned);
+  58  |     const cookies = await context.cookies(); expect(cookies).toHaveLength(1); expect(cookies[0].httpOnly).toBe(true); expect(cookies[0].sameSite).toBe('Strict');
+  59  |     expect(logs.join('\n').includes(first.split('#')[1])).toBe(false);
+  60  |     const dom = await page.content(); expect(dom.includes(first.split('pairing=')[1])).toBe(false);
+  61  |     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact: true })).toBeVisible();
+  62  |     expect(await page.evaluate(() => (window as unknown as { __testObservations: {fetches: {path:string}[]} }).__testObservations.fetches.map(x => x.path))).toEqual(['/api/v1/session', '/api/v1/capabilities']);
+  63  |     expect(errors).toEqual([]);
+  64  |     const build = JSON.parse(await readFile('dist/app/build-evidence.json', 'utf8'));
+  65  |     expect(build.observations.D11.startupJsRawBytes).toBeLessThan(1.5 * 1024 * 1024);
+  66  |     expect(build.observations.D11.startupJsGzipBytes).toBeLessThan(500 * 1024);
+  67  |     expect(build.observations.D11.cssGzipBytes).toBeLessThan(200 * 1024);
+  68  |     expect(build.outputs.flatMap((x: {modules:string[]}) => x.modules).some((x:string) => /prosemirror|server\/|tooling\/launcher|elements\/dist\/index.js/.test(x))).toBe(false);
+  69  |     await info.attach('bootstrap-observations', { body: JSON.stringify(observations, null, 2), contentType: 'application/json' });
+  70  |     await page.screenshot({ path: 'evidence/p1a3/desktop-1440.png' });
+  71  |   } finally { await server.close(); }
+  72  | });
+  73  | 
+  74  | test('B02 real native prompt drafts, inert text, selection and composition-safe shortcuts', async ({ page, local }) => {
+  75  |   await paired(page, local.server);
+  76  |   const calls: string[] = []; page.on('request', request => { if (request.method() === 'POST') calls.push(new URL(request.url()).pathname); });
+  77  |   const prompt = page.getByRole('textbox', { name: 'Prompt', exact: true });
+  78  |   const hostile = '<img src=x onerror="window.pwned=1">\nשלום 日本語 & untouched';
+  79  |   await prompt.fill(hostile);
+  80  |   await prompt.evaluate(node => (node as HTMLTextAreaElement).setSelectionRange(2, 9, 'backward'));
+  81  |   await page.getByRole('tab', { name: 'Jobs' }).click();
+  82  |   expect(await prompt.evaluate(node => { const n = node as HTMLTextAreaElement; return [n.selectionStart, n.selectionEnd, n.selectionDirection]; })).toEqual([2, 9, 'backward']);
+  83  |   await prompt.focus(); await page.keyboard.press('End'); await page.keyboard.type('hz');
+  84  |   await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  85  |   await prompt.dispatchEvent('compositionstart');
+  86  |   await prompt.dispatchEvent('keydown', { key: 'z', bubbles: true, composed: true, isComposing: true });
+  87  |   await prompt.dispatchEvent('compositionend');
+  88  |   await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  89  |   const edited = await prompt.inputValue();
+  90  |   await page.getByLabel('Operation', { exact: true }).selectOption({ label: 'Generate with Fast' });
+  91  |   await expect(prompt).toHaveValue(''); await prompt.fill('A separate Fast draft');
+  92  |   await page.getByLabel('Operation', { exact: true }).selectOption({ label: 'Generate image' });
+  93  |   await expect(prompt).toHaveValue(edited);
+  94  |   expect(await page.evaluate(() => Object.hasOwn(window, 'pwned'))).toBe(false);
+  95  |   expect(await page.locator('ie-shell img').count()).toBe(0);
+  96  |   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
+  97  |   await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
+  98  |   expect(calls).toEqual([]);
+  99  | });
+  100 | 
+  101 | test('B03 keyboard panels, roving tool focus, resize and collapsed content', async ({ page, local }) => {
+  102 |   await paired(page, local.server);
+  103 |   const errors: string[] = []; page.on('console', m => {if(m.type()==='error') errors.push(m.text());});
+  104 |   await page.getByRole('button', { name: 'Pan (H)' }).focus(); await page.keyboard.press('ArrowDown');
+  105 |   await expect(page.getByRole('button', { name: 'Zoom (Z)' })).toBeFocused();
+  106 |   await page.keyboard.press('Enter'); await expect(page.getByRole('button', { name: 'Zoom (Z)' })).toHaveAttribute('aria-pressed', 'true');
+  107 |   await page.keyboard.press('h'); await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  108 |   await page.getByRole('tab', { name: 'Results' }).focus(); await page.keyboard.press('ArrowRight');
+  109 |   await expect(page.getByRole('tab', { name: 'Jobs' })).toBeFocused();
+  110 |   await expect(page.getByText('No jobs submitted', { exact: true })).toBeVisible();
+  111 |   await page.getByRole('button', { name: 'Collapse', exact: false }).click();
+  112 |   await expect(page.locator('#activity-panel')).toBeHidden();
+  113 |   await page.getByRole('button', { name: 'Expand', exact: false }).click();
+  114 |   await page.getByRole('tab', { name: 'Composition', exact: true }).click();
+  115 |   await expect(page.getByRole('heading', { name: 'No composition yet' })).toBeVisible();
+  116 |   const splitter = page.getByRole('separator', { name: 'Request panel width' }).first();
+  117 |   const width = (await page.locator('#request').boundingBox())!.width;
+  118 |   await splitter.focus(); await page.keyboard.press('ArrowRight');
+  119 |   expect((await page.locator('#request').boundingBox())!.width).toBeGreaterThan(width);
+  120 |   await page.getByRole('button', { name: 'Help and keyboard shortcuts' }).click();
+  121 |   await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help and keyboard shortcuts' })).toBeFocused();
+  122 |   expect(errors).toEqual([]);
+  123 | });
+  124 | 
+  125 | test('B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing', async ({ page, context, local }) => {
+  126 |   await paired(page, local.server);
+  127 |   const oldCookies = await context.cookies();
+  128 |   const oldCsrf = await page.evaluate(async () => (await (await fetch('/api/v1/session', { headers: { 'X-App-Client': 'LP-1' } })).json()).csrfToken as string);
+```

@@ -1,0 +1,31 @@
+Native UI inspection, 2026-09-26 UTC
+Host macOS26.6.1 build25G76 arm64. Installed Google Chrome154.0.8037.58.
+Trusted production launcher opened the editor directly; native accessibility
+inspection showed Connected locally, no pairing fragment in the address bar,
+real labelled Prompt textarea, disabled document/generation actions, named
+splitters and distinct Layers/Composition and Results/Jobs/History tabs.
+
+Native Chrome zoom: reset100%, then five native zoom-in actions; browser UI
+explicitly reported Zoom:200%. Named Request and Layers & composition openers
+appeared. Opened Request and visually inspected the single-column readable
+layout and real Prompt field. Typed a temporary native-input string, inspected
+its value, then cleared it. Restored the browser's prior90% zoom. This is a
+manual native-browser observation, not physical IME/AT qualification.
+
+Automated Chromium153.0.8010.12 screenshots:
+ desktop-1440.png: exact1440x900, empty key-free connected shell.
+ reflow-720.png:720x450 CSS viewport, 200%-equivalent layout with active prompt
+   still focused and its request drawer automatically kept open.
+ reflow-320.png:320 CSS pixels, no horizontal document overflow; named panels,
+   request draft, canvas boundary and results reachable in one scroll column.
+
+Native report navigation initially returned403 ORIGIN_DENIED. It exposed that
+all same-site metadata, including anonymous top-level landing, was rejected.
+The corrected boundary admits only same-site explicit user GET / navigation,
+without Origin, mode navigate/destination document/User?1. B10 verifies success
+and unchanged same-site API/fetch/frame denials; cross-site rejection remains.
+Actual final report/app round-trip is recorded separately in round-trip.json.
+
+The independent report returned HTTP200 while the production editor was stopped
+between launch origins. Old origins60394 and61432 are stopped; final live origin
+is http://127.0.0.1:61717/ at handoff. Pairing remains private to the launcher.

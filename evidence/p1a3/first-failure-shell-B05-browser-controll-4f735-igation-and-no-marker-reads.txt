@@ -1,0 +1,349 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: shell.spec.ts >> B05 browser-controlled hostile origin, null origin, navigation and no marker reads
+- Location: tests/browser/shell.spec.ts:151:1
+
+# Error details
+
+```
+Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+Expected: >= 3
+Received:    0
+
+Call Log:
+- Timeout 5000ms exceeded while waiting on the predicate
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic:
+    - link "Go to request" [ref=e4] [cursor=pointer]:
+      - /url: "#request"
+    - link "Go to canvas" [ref=e5] [cursor=pointer]:
+      - /url: "#canvas"
+    - link "Go to layers" [ref=e6] [cursor=pointer]:
+      - /url: "#inspector"
+    - link "Go to results" [ref=e7] [cursor=pointer]:
+      - /url: "#results"
+  - banner [ref=e8]:
+    - generic [ref=e13]:
+      - strong [ref=e14]: Ideogram Editor
+      - generic [ref=e15]: No document open
+    - navigation "Document actions" [ref=e16]:
+      - button "New" [disabled] [ref=e17]
+      - button "Open" [disabled] [ref=e18]
+      - button "Import" [disabled] [ref=e19]
+      - button "Undo" [disabled] [ref=e21]
+      - button "Redo" [disabled] [ref=e24]
+    - generic [ref=e27]:
+      - button "Connected locally" [ref=e28] [cursor=pointer]
+      - button "Save copy" [disabled] [ref=e30]
+      - button "Export" [disabled] [ref=e32]
+      - button "Help and keyboard shortcuts" [ref=e34] [cursor=pointer]: "?"
+  - main "Image editor" [ref=e35]:
+    - complementary "Editing tools" [ref=e36]:
+      - toolbar "Canvas tools" [ref=e38]:
+        - generic:
+          - button "Move (V)" [disabled] [ref=e39]:
+            - generic [ref=e42]: Move
+          - button "Text (T)" [disabled] [ref=e43]:
+            - generic [ref=e46]: Text
+          - button "Select (M)" [disabled] [ref=e47]:
+            - generic [ref=e50]: Select
+          - button "Mask (B)" [disabled] [ref=e51]:
+            - generic [ref=e54]: Mask
+          - button "Crop (C)" [disabled] [ref=e55]:
+            - generic [ref=e58]: Crop
+          - button "Pan (H)" [pressed] [ref=e59] [cursor=pointer]:
+            - generic [ref=e62]: Pan
+          - button "Zoom (Z)" [ref=e63] [cursor=pointer]:
+            - generic [ref=e66]: Zoom
+      - generic [ref=e67]: LOCAL
+    - generic [ref=e70]:
+      - region "Request" [ref=e72]:
+        - generic [ref=e73]:
+          - heading "Request" [level=1] [ref=e74]
+          - generic [ref=e75]: Draft
+        - generic [ref=e76]:
+          - generic [ref=e77]: Operation
+          - combobox "Operation" [ref=e78]:
+            - option "Generate image" [selected]
+            - option "Generate with Instant"
+            - option "Generate with Fast"
+            - option "Transform image"
+            - option "Edit masked region"
+            - option "Generate with adapters"
+            - option "Transform with adapters"
+            - option "Edit with adapters"
+          - generic [ref=e79]:
+            - generic [ref=e80]: PLAIN PROMPT
+            - generic [ref=e81]: 0 characters
+          - generic [ref=e83]:
+            - generic [ref=e84]: Prompt
+            - textbox "Prompt" [ref=e87]:
+              - /placeholder: Describe the image you have in mind…
+            - generic [ref=e88]: Draft only · kept in this tab until reload
+          - generic [ref=e91]:
+            - heading "Inputs" [level=2] [ref=e92]
+            - generic [ref=e93]: None attached
+          - generic [ref=e97]:
+            - strong [ref=e98]: No images attached
+            - paragraph [ref=e99]: Sources and masks are always explicit.
+          - generic [ref=e100]:
+            - button "＋ Source" [disabled] [ref=e101]
+            - button "＋ Mask" [disabled] [ref=e102]
+            - button "＋ Adapter" [disabled] [ref=e103]
+          - group [ref=e104]:
+            - generic "Request settings Not available yet" [ref=e105] [cursor=pointer]:
+              - text: Request settings
+              - generic [ref=e106]: Not available yet
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - heading "Request summary" [level=2] [ref=e109]
+            - generic [ref=e110]: Local draft
+          - generic [ref=e111]:
+            - generic [ref=e112]:
+              - term [ref=e113]: Operation
+              - definition [ref=e114]: Generate image
+            - generic [ref=e115]:
+              - term [ref=e116]: Inputs
+              - definition [ref=e117]: None
+            - generic [ref=e118]:
+              - term [ref=e119]: Cost
+              - definition [ref=e120]: No request prepared
+          - button "Generate" [disabled] [ref=e122]
+          - paragraph [ref=e126]: Generation is not available yet. No provider key is configured. A key is not needed to explore this workspace.
+      - separator "Request panel width" [ref=e127]
+      - generic [ref=e133]:
+        - region "Canvas" [ref=e135]:
+          - generic [ref=e136]:
+            - generic [ref=e137]: Pan · No document
+            - group "Canvas controls" [ref=e140]:
+              - generic [ref=e141]: Zoom
+              - spinbutton "Zoom percentage" [ref=e142]: "100"
+              - generic [ref=e143]: "%"
+              - button "Reset" [ref=e144] [cursor=pointer]
+          - generic [ref=e146]:
+            - text: YOUR NEXT IDEA STARTS HERE
+            - heading "A little room to create." [level=2] [ref=e150]
+            - paragraph [ref=e151]: Draft an image request on the left.Import and editing are coming next.
+            - button "Write a prompt" [ref=e152] [cursor=pointer]: Write a prompt ↗
+            - generic [ref=e153]: No document · no pixels · nothing sent
+          - generic [ref=e154]:
+            - generic [ref=e155]: Canvas preview
+            - generic [ref=e156]: Document size —
+        - separator "Canvas and inspector width" [ref=e157]
+        - complementary "Layers and properties" [ref=e161]:
+          - tablist "Document structure" [ref=e162]:
+            - tab "Layers" [selected] [ref=e163] [cursor=pointer]
+            - tab "Composition" [ref=e164] [cursor=pointer]
+          - tabpanel "Layers" [ref=e165]:
+            - heading "No layers yet" [level=2] [ref=e169]
+            - paragraph [ref=e170]: Your document’s image and text layers will appear here.
+            - button "＋ Add layer" [disabled] [ref=e171]
+          - region [ref=e172]:
+            - heading "Properties" [level=2] [ref=e174]
+            - paragraph [ref=e177]: Open a document and select a layer to inspect its properties.
+            - generic [ref=e178]:
+              - generic [ref=e179]:
+                - text: X
+                - textbox "X" [disabled] [ref=e180]:
+                  - /placeholder: —
+              - generic [ref=e181]:
+                - text: "Y"
+                - textbox "Y" [disabled] [ref=e182]:
+                  - /placeholder: —
+              - generic [ref=e183]:
+                - text: Width
+                - textbox "Width" [disabled] [ref=e184]:
+                  - /placeholder: —
+              - generic [ref=e185]:
+                - text: Height
+                - textbox "Height" [disabled] [ref=e186]:
+                  - /placeholder: —
+              - generic [ref=e187]:
+                - text: Rotation
+                - textbox "Rotation" [disabled] [ref=e188]:
+                  - /placeholder: —
+              - generic [ref=e189]:
+                - text: Opacity
+                - textbox "Opacity" [disabled] [ref=e190]:
+                  - /placeholder: —
+            - paragraph [ref=e191]: Selecting a layer never attaches it to a request.
+  - region "Results, jobs and history" [ref=e192]:
+    - generic [ref=e193]:
+      - tablist "Activity" [ref=e194]:
+        - tab "Results0" [selected] [ref=e195] [cursor=pointer]
+        - tab "Jobs0" [ref=e196] [cursor=pointer]
+        - tab "History0" [ref=e197] [cursor=pointer]
+      - button "Collapse" [expanded] [ref=e198] [cursor=pointer]:
+        - text: Collapse
+        - generic [aria-hidden] [ref=e199]: ⌄
+    - tabpanel "Results0" [ref=e200]:
+      - generic [ref=e204]:
+        - strong [ref=e205]: Your results will land here
+        - paragraph [ref=e206]: Generated images stay candidates until you choose to add them.
+  - contentinfo [ref=e207]:
+    - generic [ref=e208]: Pan / No layer selected
+    - generic [ref=e209]: Drafts are not saved · Document storage unavailable
+```
+
+# Test source
+
+```ts
+  72  | });
+  73  | 
+  74  | test('B02 real native prompt drafts, inert text, selection and composition-safe shortcuts', async ({ page, local }) => {
+  75  |   await paired(page, local.server);
+  76  |   const calls: string[] = []; page.on('request', request => { if (request.method() === 'POST') calls.push(new URL(request.url()).pathname); });
+  77  |   const prompt = page.getByRole('textbox', { name: 'Prompt', exact: true });
+  78  |   const hostile = '<img src=x onerror="window.pwned=1">\nשלום 日本語 & untouched';
+  79  |   await prompt.fill(hostile);
+  80  |   await prompt.evaluate(node => (node as HTMLTextAreaElement).setSelectionRange(2, 9, 'backward'));
+  81  |   await page.getByRole('tab', { name: 'Jobs' }).click();
+  82  |   expect(await prompt.evaluate(node => { const n = node as HTMLTextAreaElement; return [n.selectionStart, n.selectionEnd, n.selectionDirection]; })).toEqual([2, 9, 'backward']);
+  83  |   await prompt.focus(); await page.keyboard.press('End'); await page.keyboard.type('hz');
+  84  |   await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  85  |   await prompt.dispatchEvent('compositionstart');
+  86  |   await prompt.dispatchEvent('keydown', { key: 'z', bubbles: true, composed: true, isComposing: true });
+  87  |   await prompt.dispatchEvent('compositionend');
+  88  |   await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  89  |   const edited = await prompt.inputValue();
+  90  |   await page.getByLabel('Operation', { exact: true }).selectOption({ label: 'Generate with Fast' });
+  91  |   await expect(prompt).toHaveValue(''); await prompt.fill('A separate Fast draft');
+  92  |   await page.getByLabel('Operation', { exact: true }).selectOption({ label: 'Generate image' });
+  93  |   await expect(prompt).toHaveValue(edited);
+  94  |   expect(await page.evaluate(() => Object.hasOwn(window, 'pwned'))).toBe(false);
+  95  |   expect(await page.locator('ie-shell img').count()).toBe(0);
+  96  |   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
+  97  |   await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
+  98  |   expect(calls).toEqual([]);
+  99  | });
+  100 | 
+  101 | test('B03 keyboard panels, roving tool focus, resize and collapsed content', async ({ page, local }) => {
+  102 |   await paired(page, local.server);
+  103 |   const errors: string[] = []; page.on('console', m => {if(m.type()==='error') errors.push(m.text());});
+  104 |   await page.getByRole('button', { name: 'Pan (H)' }).focus(); await page.keyboard.press('ArrowDown');
+  105 |   await expect(page.getByRole('button', { name: 'Zoom (Z)' })).toBeFocused();
+  106 |   await page.keyboard.press('Enter'); await expect(page.getByRole('button', { name: 'Zoom (Z)' })).toHaveAttribute('aria-pressed', 'true');
+  107 |   await page.keyboard.press('h'); await expect(page.getByRole('button', { name: 'Pan (H)' })).toHaveAttribute('aria-pressed', 'true');
+  108 |   await page.getByRole('tab', { name: 'Results' }).focus(); await page.keyboard.press('ArrowRight');
+  109 |   await expect(page.getByRole('tab', { name: 'Jobs' })).toBeFocused();
+  110 |   await expect(page.getByText('No jobs submitted', { exact: true })).toBeVisible();
+  111 |   await page.getByRole('button', { name: 'Collapse', exact: false }).click();
+  112 |   await expect(page.locator('#activity-panel')).toBeHidden();
+  113 |   await page.getByRole('button', { name: 'Expand', exact: false }).click();
+  114 |   await page.getByRole('tab', { name: 'Composition', exact: true }).click();
+  115 |   await expect(page.getByRole('heading', { name: 'No composition yet' })).toBeVisible();
+  116 |   const splitter = page.getByRole('separator', { name: 'Request panel width' }).first();
+  117 |   const width = (await page.locator('#request').boundingBox())!.width;
+  118 |   await splitter.focus(); await page.keyboard.press('ArrowRight');
+  119 |   expect((await page.locator('#request').boundingBox())!.width).toBeGreaterThan(width);
+  120 |   await page.getByRole('button', { name: 'Help and keyboard shortcuts' }).click();
+  121 |   await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Help and keyboard shortcuts' })).toBeFocused();
+  122 |   expect(errors).toEqual([]);
+  123 | });
+  124 | 
+  125 | test('B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing', async ({ page, context, local }) => {
+  126 |   await paired(page, local.server);
+  127 |   const oldCookies = await context.cookies();
+  128 |   const oldCsrf = await page.evaluate(async () => (await (await fetch('/api/v1/session', { headers: { 'X-App-Client': 'LP-1' } })).json()).csrfToken as string);
+  129 |   await page.getByRole('button', { name: 'Connected locally', exact: true }).click();
+  130 |   await page.getByRole('button', { name: 'Renew connection', exact: true }).click();
+  131 |   await expect(page.getByText('Connected to your local workspace.', {exact:true})).toBeVisible();
+  132 |   const rejected = await page.evaluate(async token => (await fetch('/api/v1/session/renew', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-App-CSRF': token }, body: JSON.stringify({ protocolVersion: 1 }) })).status, oldCsrf);
+  133 |   expect(rejected).toBe(403);
+  134 |   const currentCookies = await context.cookies();
+  135 |   await context.addCookies(oldCookies);
+  136 |   const stale = await page.evaluate(async () => (await fetch('/api/v1/session', { headers: { 'X-App-Client': 'LP-1' } })).status);
+  137 |   expect(stale).toBe(401); await context.addCookies(currentCookies);
+  138 |   await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+  139 |   await expect(page.getByRole('button', { name: 'Pairing needed', exact: true })).toBeVisible();
+  140 |   await paired(page, local.server);
+  141 |   local.advance(30 * 60 * 1000);
+  142 |   await page.getByRole('button', { name: 'Connected locally', exact: true }).click();
+  143 |   await page.getByRole('button', { name: 'Check connection', exact: true }).click();
+  144 |   await expect(page.getByRole('button', { name: 'Pairing needed', exact: true })).toBeVisible();
+  145 |   await paired(page, local.server);
+  146 |   const expired = local.server.issuePairingURL(); local.advance(5 * 60 * 1000);
+  147 |   await page.goto(expired); await expect(page.getByRole('button', { name: 'Pairing needed', exact: true })).toBeVisible();
+  148 |   await paired(page, local.server);
+  149 | });
+  150 | 
+  151 | test('B05 browser-controlled hostile origin, null origin, navigation and no marker reads', async ({ page, context, local }, info) => {
+  152 |   await paired(page, local.server);
+  153 |   expect(await page.evaluate(async () => (await fetch('/api/v1/session')).status)).toBe(403);
+  154 |   const statuses: number[] = [];
+  155 |   context.on('response', response => { if (response.url().startsWith(local.server.origin + '/api')) statuses.push(response.status()); });
+  156 |   const hostile = createServer((_req, res) => { res.setHeader('Content-Type', 'text/html'); res.end('<!doctype html><title>Hostile origin test</title>'); });
+  157 |   await new Promise<void>(resolve => hostile.listen(0, '127.0.0.1', resolve));
+  158 |   const address = hostile.address() as {port:number};
+  159 |   const attacker = await context.newPage();
+  160 |   try {
+  161 |     await attacker.goto(`http://localhost:${address.port}`);
+  162 |     const outcome = await attacker.evaluate(async origin => {
+  163 |       const outcomes: string[] = [];
+  164 |       for (const init of [{}, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: '{"protocolVersion":1}' }]) {
+  165 |         try { const result = await fetch(origin + '/api/v1/session/revoke', { ...init, credentials: 'include', mode: 'no-cors' }); outcomes.push(result.type); } catch { outcomes.push('blocked'); }
+  166 |       }
+  167 |       const frame = document.createElement('iframe'); frame.setAttribute('sandbox', 'allow-scripts');
+  168 |       frame.srcdoc = `<script>fetch('${origin}/api/v1/session/revoke',{method:'POST',mode:'no-cors',credentials:'include',body:'{}'})<\/script>`;
+  169 |       document.body.append(frame); return outcomes;
+  170 |     }, local.server.origin);
+  171 |     expect(outcome.every(x => x === 'opaque' || x === 'blocked')).toBe(true);
+> 172 |     await expect.poll(() => statuses.length).toBeGreaterThanOrEqual(3);
+      |                                              ^ Error: expect(received).toBeGreaterThanOrEqual(expected)
+  173 |     expect(statuses.every(status => status === 403)).toBe(true);
+  174 |     await page.reload(); await expect(page.getByRole('button', { name: 'Connected locally', exact:true })).toBeVisible();
+  175 |     const nav = await context.newPage(); const response = await nav.goto(local.server.origin + '/api/v1/session'); expect(response?.status()).toBe(403); await nav.close();
+  176 |     await info.attach('hostile-browser-outcomes', {body:JSON.stringify({statuses,outcome}),contentType:'application/json'});
+  177 |   } finally { await attacker.close(); await new Promise<void>(resolve => hostile.close(() => resolve())); }
+  178 | });
+  179 | 
+  180 | test('B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return', async ({ page, local }) => {
+  181 |   await paired(page, local.server);
+  182 |   await page.getByRole('textbox', { name:'Prompt',exact:true }).fill('Keep this draft through reflow');
+  183 |   await page.setViewportSize({width:720,height:450});
+  184 |   await page.getByRole('button', {name:'Request',exact:true}).click();
+  185 |   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toHaveValue('Keep this draft through reflow');
+  186 |   await page.screenshot({path:'evidence/p1a3/reflow-720.png',fullPage:true});
+  187 |   await page.setViewportSize({width:320,height:800});
+  188 |   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(320);
+  189 |   await page.getByRole('textbox', {name:'Prompt',exact:true}).focus();
+  190 |   await page.getByRole('button', {name:'Request',exact:true}).click();
+  191 |   await page.getByRole('button', {name:'Layers & composition',exact:true}).click();
+  192 |   await page.getByRole('tab',{name:'Composition',exact:true}).click();
+  193 |   await page.keyboard.press('Escape');
+  194 |   await expect(page.getByRole('button', {name:'Layers & composition',exact:true})).toBeFocused();
+  195 |   await page.getByRole('button', {name:'Request',exact:true}).click();
+  196 |   await page.screenshot({path:'evidence/p1a3/reflow-320.png',fullPage:true});
+  197 | });
+  198 | 
+  199 | test('B07 trusted report flag, navigation fragment, unflagged absence and offline recovery', async ({ page, local }) => {
+  200 |   await paired(page, local.server); await expect(page.getByRole('link',{name:'Progress Report'})).toHaveCount(0);
+  201 |   await page.goto(local.server.origin + '/?progress-report=https://untrusted.example#request');
+  202 |   await expect(page.getByRole('button',{name:'Connected locally',exact:true})).toBeVisible();
+  203 |   await expect(page.getByRole('link',{name:'Progress Report'})).toHaveAttribute('href','http://127.0.0.1:4381/');
+  204 |   expect(new URL(page.url()).hash).toBe('#request');
+  205 |   await page.getByRole('link',{name:'Go to canvas',exact:true}).focus(); await page.keyboard.press('Enter');
+  206 |   expect(new URL(page.url()).searchParams.has('progress-report')).toBe(true); expect(new URL(page.url()).hash).toBe('#canvas');
+  207 |   await page.reload(); expect(new URL(page.url()).hash).toBe('#canvas');
+  208 |   await expect(page.getByRole('link',{name:'Progress Report'})).toBeVisible();
+  209 |   await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Draft survives failed reads');
+  210 |   await page.getByRole('button',{name:'Connected locally',exact:true}).click();
+  211 |   await local.server.close();
+  212 |   await page.getByRole('button',{name:'Check connection',exact:true}).click();
+  213 |   await expect(page.getByRole('button',{name:'Server offline',exact:true})).toBeVisible();
+  214 |   await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('Draft survives failed reads');
+  215 | });
+  216 | 
+```

@@ -3,7 +3,7 @@ import type { Plugin } from 'vite';
 import { realpathSync } from 'node:fs';
 import { isAbsolute, sep } from 'node:path';
 
-export function buildEvidence(): Plugin {
+export function buildEvidence(app = false): Plugin {
   return {
     name: 'consumer-build-evidence',
     generateBundle(_options, bundle) {
@@ -16,7 +16,7 @@ export function buildEvidence(): Plugin {
         const bytes = item.type === 'chunk' ? Buffer.from(item.code) : Buffer.from(item.source);
         return { file: item.fileName, bytes: bytes.length, gzipBytes: gzipSync(bytes).length,
           entry: item.type === 'chunk' && item.isEntry,
-          imports: item.type === 'chunk' ? item.imports : [],
+          imports: item.type === 'chunk' ? [...item.imports, ...(app ? item.dynamicImports : [])] : [],
           modules: item.type === 'chunk' ? Object.keys(item.modules).map(path => path.replace(/^.*\/node_modules\//, 'node_modules/').replace(process.cwd() + '/', '')) : [] };
       });
       const startup = new Set<string>();
@@ -30,7 +30,7 @@ export function buildEvidence(): Plugin {
       const forbidden = initial.flatMap(output => output.modules).filter(path => /@en-reve\/elements\/dist\/index\.js$|node_modules\/prosemirror-/.test(path));
       if (forbidden.length) this.error(`Forbidden startup dependency: ${forbidden.join(', ')}`);
       this.emitFile({ type: 'asset', fileName: 'build-evidence.json', source: JSON.stringify({
-        schema: 1, workload: 'P1a.1 qualification fixture; not the editor W0/W1 workload',
+        schema: 1, workload: app ? 'P1a.3 browser shell; all initial dynamic shell imports counted' : 'P1a.1 qualification fixture; not the editor W0/W1 workload',
         observations: { D11: { startupJsRawBytes: initial.reduce((n, item) => n + item.bytes, 0),
           startupJsGzipBytes: initial.reduce((n, item) => n + item.gzipBytes, 0),
           cssGzipBytes: outputs.filter(item => item.file.endsWith('.css')).reduce((n, item) => n + item.gzipBytes, 0) } },

@@ -1,0 +1,68 @@
+P1a BROWSER SHELL — local review and verification
+
+From the repository root:
+  python3 tooling/bootstrap-toolchain.py
+  export PATH="$PWD/.toolchain/bin:$PATH"
+  npm ci
+  npm run build
+  npm start
+
+The trusted launcher starts the same-origin local listener at an OS-selected
+127.0.0.1 port and opens a one-use pairing link directly in the default browser.
+It prints only the nonsecret origin. Type pair in that running terminal to open
+a fresh link. Never paste the pairing fragment into chat/report/config. The
+launcher writes nonsecret origin metadata to ~/.ideogram-editor/launch.json.
+No key is required. No provider calls exist in this slice.
+
+For an isolated review root:
+  npm start -- --root /absolute/owner-only/private-root
+For a headless local process, add --no-open. A browser without a paired cookie
+can inspect the anonymous shell but must pair through the launcher for session
+controls. npm run dev rebuilds app/server and launches this same secure listener.
+There is no HMR, fixed app port or Vite session proxy. Restart to load new build
+bytes. All existing private-root separation/symlink/POSIX permission rules apply.
+
+Author checks:
+  npm run typecheck
+  npm run build
+  npm run test:session
+  npm run test:shell
+  npm run test:consumer
+
+The independent consumer fixture remains build:consumer/typecheck:consumer /
+test:browser/test:consumer, with its existing separate config. test:shell tests
+the production editor on real dynamic local servers, not a mocked session API.
+One Chromium worker, zero retries; loopback-only browser egress. The injected
+lost-response test executes the real renewal first, then drops its response.
+Network traces are off because they serialize CSRF/cookies/pairing bodies;
+safe screenshots, source identities, browser metadata and first failure logs
+are retained instead. No unredacted tokens are put in evidence.
+
+Working shell behavior: per-operation native prompt drafts, panel resizing,
+keyboard/toolbar/tabs, responsive named disclosures, help, zoom preference,
+pair/resume/renew/revoke and actionable offline/expired connection states.
+Prompt drafts are memory-only and are LOST on reload. They are not document
+history, saved checkpoints or provider requests. Pan/Zoom selection and zoom
+percentage are view preferences; no document exists to render or transform.
+Document creation/import/editing, native canvas text, layer/composition authoring,
+undo/save/copy/export, attachments and generation are visibly unavailable.
+
+The report is separate at http://127.0.0.1:4381/ . The app trusts only reportUrl
+from .progress-report/project.json at build time. ?progress-report is a presence
+flag, never a return URL or authentication bypass. Only flagged visits show the
+fixed return link. Internal section navigation retains that query and uses the
+allowed fragment names request/canvas/inspector/results. The locator's live URL
+is a mutable preview; update it and inform the report maintainer after restart.
+The report's canonical data belongs to its maintainer, not this application.
+
+Evidence: evidence/p1a3/summary.json, build.json, browser.json, native-review.txt,
+failures.txt, screenshots and SHA256SUMS. Exact commit is in task78489009 and
+shared PR Context cbd63320. No remote PR/CI exists; no base CI failure is claimed.
+
+Limits: author checks require independent integrated P1a review. This is not
+Q3/R01-R08 performance qualification or a complete Q26 browser/OS cohort. D11
+counts all initial dynamic modules but is a single artifact observation. Native
+200% Chrome inspection and synthetic composition tests do not establish physical
+IME, dictation, AT/screen-reader or all supported browser behavior. CP-1 raster,
+assets, text/fonts/composition, durable writer/history/copies/jobs and providers
+belong to later slices; none is certified by an empty shell.

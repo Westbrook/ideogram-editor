@@ -7,7 +7,7 @@ import { ProtocolError } from './errors.js';
 import { readSessionRequest } from './control-json.js';
 import { Sessions, readCookie, sessionCookie, expiredCookie } from './sessions.js';
 import { assertSeparateDirectories, preparePrivateRoot } from './private-root.js';
-import { BOOTSTRAP_CSP, loadStatic } from './static.js';
+import { BOOTSTRAP_CSP, SHELL_STYLE_CSP, loadStatic } from './static.js';
 
 export type ServerOptions = { root: string; staticDirectory?: string; now?: () => number; credentialConfigured?: boolean };
 const methods: Record<string, readonly string[]> = {
@@ -17,7 +17,7 @@ const methods: Record<string, readonly string[]> = {
 const unavailable = /^\/api\/v1\/(?:commands|events|documents|jobs|assets|bundles|snapshots|protocol-content|recovery)(?:\/|$)/;
 
 function securityHeaders(response: ServerResponse, origin: string): void {
-  response.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' ${BOOTSTRAP_CSP}; style-src 'self'; connect-src ${origin}; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
+  response.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' ${BOOTSTRAP_CSP}; style-src 'self'; style-src-attr 'unsafe-hashes' ${SHELL_STYLE_CSP}; connect-src ${origin}; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Referrer-Policy', 'no-referrer');
   response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -37,7 +37,13 @@ function checkBoundary(request: IncomingMessage, origin: string): void {
   if (request.headers.host !== origin.slice('http://'.length)) throw new ProtocolError('ORIGIN_DENIED');
   if (request.headers.origin !== undefined && request.headers.origin !== origin) throw new ProtocolError('ORIGIN_DENIED');
   const site = request.headers['sec-fetch-site'];
-  if (site !== undefined && site !== 'same-origin' && site !== 'none') throw new ProtocolError('ORIGIN_DENIED');
+  // The independent loopback report may navigate to the anonymous landing
+  // page. This never permits API/assets/fetch/frame access or a foreign Origin.
+  const reportLanding = site === 'same-site' && request.method === 'GET' &&
+    request.url?.split('?')[0] === '/' && request.headers.origin === undefined &&
+    request.headers['sec-fetch-mode'] === 'navigate' &&
+    request.headers['sec-fetch-dest'] === 'document' && request.headers['sec-fetch-user'] === '?1';
+  if (site !== undefined && site !== 'same-origin' && site !== 'none' && !reportLanding) throw new ProtocolError('ORIGIN_DENIED');
   // Reject proxy-form, normalized traversal and query credentials before routing.
   if (!request.url?.startsWith('/') || request.url.startsWith('//') || /[\\#\x00-\x20]/.test(request.url)) throw new ProtocolError('MALFORMED_REQUEST');
 }

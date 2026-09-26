@@ -1,0 +1,94 @@
+{
+  "taskNoteId": "78489009-6f36-401e-bdab-de8adfd76796",
+  "status": "review_required",
+  "branch": "ideogram-editor-p1",
+  "base": "657b07c0b010d7e85737482b45edead29273d9f1",
+  "at": "2026-09-26T03:11:25.857851+00:00",
+  "scope": "P1a browser shell, secure launcher integration and real browser/session behavior only",
+  "runtime": {
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "lit": "3.3.3",
+    "signal-polyfill": "0.2.2",
+    "signal-utils": "0.21.1",
+    "playwright": "1.63.0",
+    "chromium": "153.0.8010.12",
+    "revision": "1243",
+    "host": "macOS26.6.1 build25G76 arm64",
+    "nativeReviewChrome": "154.0.8037.58"
+  },
+  "live": {
+    "url": "http://127.0.0.1:61717/",
+    "flaggedUrl": "http://127.0.0.1:61717/?progress-report",
+    "report": "http://127.0.0.1:4381/",
+    "terminal": 70289,
+    "root": "artifacts/p1a3-live-private",
+    "pairing": "Trusted launcher only; no secret URL in evidence"
+  },
+  "commands": [
+    {
+      "command": "npm run typecheck",
+      "result": "PASS consumer/app/server"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS independent consumer, production app, server"
+    },
+    {
+      "command": "FAL_KEY=p1a3-build-exclusion-sentinel npm run build:app",
+      "result": "PASS; all output bytes exclude sentinel and FAL_KEY"
+    },
+    {
+      "command": "npm run test:session",
+      "result": "PASS14/14; zero skips/retries including original filesystem alias regression"
+    },
+    {
+      "command": "npm run test:shell",
+      "result": "PASS10/10; zero skips/retries; final corrected source"
+    },
+    {
+      "command": "npm run test:consumer",
+      "result": "PASS fresh isolated install/graph/import/type/build; Chromium2/2; receipt consumer-fazMlv"
+    },
+    {
+      "command": "git diff --check (authored source)",
+      "result": "PASS; raw evidence preserves original command whitespace"
+    },
+    {
+      "command": "git diff657b07c -- docs/spec docs/handoff vendor package-lock.json tests/consumer",
+      "result": "empty; approved bytes preserved"
+    },
+    {
+      "command": "node evidence/p1a3/round-trip.mjs",
+      "result": "PASS real report->anonymous shell->report; final live JS/CSS hashes match"
+    }
+  ],
+  "D11": {
+    "startupJsRawBytes": 194052,
+    "startupJsGzipBytes": 50070,
+    "cssGzipBytes": 11842
+  },
+  "securityChanges": [
+    "Inert trusted resource template prevents speculative fetch before pairing cleanup; stylesheet loads precede app modules.",
+    "Same-tab pairing cleanup consumes/deletes the window slot and keeps CSRF in closure memory.",
+    "Exact hashes authorize only two fixed initial splitter style attributes; arbitrary inline script/style/event handlers remain blocked.",
+    "Only same-site user top-level GET landing may load anonymous shell; Host/Origin and all API/asset/fetch/frame checks remain strict.",
+    "Known navigation fragments survive; all pairing/unknown fragments removed."
+  ],
+  "failures": {
+    "retained": "failures.txt and first-failure files; artifacts/p1a3-*-failures preserve subsequent safe screenshots locally",
+    "product": "Initial splitter style denial, speculative preloading before cleanup, tab focus timing and same-tab re-pair were fixed. Report-link403 was fixed with B10 regression.",
+    "harness": "Renewal test toggled an already-open session panel closed; now tests current visibility. Hostile null-origin request can be blocked by Chromium before an HTTP response; now records this separately from two real403 foreign-site responses. It does not claim server-side null-origin browser evidence when Chromium blocked transport."
+  },
+  "limits": [
+    "Author checks only; independent integrated P1a review required.",
+    "No documents/images/layers/history fabricated. Drafts are memory-only, lost on reload; view/tool choices do not edit pixels.",
+    "Editing/import/save/copy/export, native text/fonts/composition, CP-1, assets, durable writer/jobs and provider actions remain unavailable.",
+    "Q26 bounded to pinned Chromium/macOS; full browser/OS, physical IME, AT/screen-reader and dictation cohorts not qualified.",
+    "Single artifact D11 and interaction observations are not PERF R01-R08/D11 campaigns or Q3 qualification.",
+    "Lost-renewal fault injects a dropped response after executing the real server mutation; happy paths use real native fetch/cookies.",
+    "No PR/remote/CI, paid action or publication. Base CI failures are unassessed; no CI run link exists."
+  ],
+  "next": "Independent verifier reviews exact commit and retained original failures; do not credit shell completion before approval.",
+  "reportTab": "Existing native Intent report tab was reused. Native window became unavailable at final focus attempt (cgWindowNotFound); report HTTP and automated round-trip remain verified."
+}
