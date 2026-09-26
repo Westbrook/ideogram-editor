@@ -1,0 +1,155 @@
+{
+  "engine": "firefox",
+  "profile": "sha256:6e8a481ec2ec61ab1ea1edefa1ef478453c49a7617854b4d0162a48ad1525c86",
+  "cases": [
+    {
+      "name": "plain",
+      "admission": {
+        "remainingBrowser": 604821,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 2805736,
+        "comparisonScratch": 2396160,
+        "peak": 70625865,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "nfd",
+      "admission": {
+        "remainingBrowser": 604479,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 2805864,
+        "comparisonScratch": 2396160,
+        "peak": 70625523,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "leading-bom",
+      "admission": {
+        "remainingBrowser": 605062,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 2812520,
+        "comparisonScratch": 2398208,
+        "peak": 70628154,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "rtl",
+      "admission": {
+        "remainingBrowser": 850409,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 4091072,
+        "comparisonScratch": 2582528,
+        "peak": 71057821,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "combining-ligature",
+      "admission": {
+        "remainingBrowser": 606781,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 2949864,
+        "comparisonScratch": 2443264,
+        "peak": 70674929,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "supplementary",
+      "admission": {
+        "remainingBrowser": 692131,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 3062652,
+        "comparisonScratch": 2394112,
+        "peak": 70711127,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "cjk",
+      "admission": {
+        "remainingBrowser": 16472991,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 50410716,
+        "comparisonScratch": 2396160,
+        "peak": 116987319,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "mixed-cjk",
+      "admission": {
+        "remainingBrowser": 17290990,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 54033436,
+        "comparisonScratch": 2791424,
+        "peak": 121823302,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "empty",
+      "admission": {
+        "remainingBrowser": 603591,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 2792680,
+        "comparisonScratch": 2392064,
+        "peak": 70620539,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "clipped",
+      "admission": {
+        "remainingBrowser": 576671,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 2703016,
+        "comparisonScratch": 2402304,
+        "peak": 70603859,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    },
+    {
+      "name": "alpha",
+      "admission": {
+        "remainingBrowser": 604821,
+        "backendStartup": 67624884,
+        "backendResident": 47707452,
+        "requestBytes": 2805736,
+        "comparisonScratch": 2396160,
+        "peak": 70625865,
+        "limit": 134217728,
+        "excessOwnershipRefusedBeforeWorker": true
+      }
+    }
+  ],
+  "workers": 11,
+  "closed": 11,
+  "resets": 0,
+  "backendWorkers": 11,
+  "backendExited": 11,
+  "complete": true
+}

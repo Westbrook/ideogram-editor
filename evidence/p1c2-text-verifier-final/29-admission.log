@@ -1,0 +1,40 @@
+✖ text admission books current owners and preserves the old generation on capacity refusal (10.550333ms)
+✖ real CP-1 worker rechecks owners at plan escalation without duplicating its own preflight (6.491041ms)
+✔ native verifier supervisor refuses crash, false result, deadline and stale authority; subsequent lane works (430.163084ms)
+✔ combined verifier budget has usable CJK headroom and refuses oversized requests (0.446791ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 525.110042
+
+✖ failing tests:
+
+test at tests/text-state/admission.test.mjs:23:1
+✖ text admission books current owners and preserves the old generation on capacity refusal (10.550333ms)
+  Error: no such column: id
+      at new Rasters (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/dist/local/server/storage/raster.js:42:35)
+      at owners (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/admission.test.mjs:17:16)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/admission.test.mjs:24:19)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'ERR_SQLITE_ERROR',
+    errcode: 1,
+    errstr: 'SQL logic error'
+  }
+
+test at tests/text-state/admission.test.mjs:33:1
+✖ real CP-1 worker rechecks owners at plan escalation without duplicating its own preflight (6.491041ms)
+  Error: no such column: id
+      at new Rasters (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/dist/local/server/storage/raster.js:42:35)
+      at owners (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/admission.test.mjs:17:16)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/tests/text-state/admission.test.mjs:34:48)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    code: 'ERR_SQLITE_ERROR',
+    errcode: 1,
+    errstr: 'SQL logic error'
+  }

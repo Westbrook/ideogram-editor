@@ -1,0 +1,12 @@
+{
+  "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+  "command": [
+    "node",
+    "--import",
+    "./tests/session/no-egress.mjs",
+    "../compatibility-text-v1.mjs"
+  ],
+  "start": "2026-09-26T23:07:43.313808+00:00",
+  "end": "2026-09-26T23:07:49.509239+00:00",
+  "exit": 0
+}

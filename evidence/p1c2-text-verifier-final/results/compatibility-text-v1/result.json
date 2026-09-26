@@ -1,0 +1,150 @@
+{
+  "historicalTarget": "648a35abce7c2a91e90c132c38b6868f2790e5a1",
+  "currentProfile": "sha256:6e8a481ec2ec61ab1ea1edefa1ef478453c49a7617854b4d0162a48ad1525c86",
+  "validHistoricalReview": {
+    "capturedHighWater": "29",
+    "closureHash": "sha256:1c6b84cdf02f8a395fc680716b4b52badb96ad328c9bc9505b0c9e50d2c2ef7c",
+    "documentId": "p_242c5726c06c873e04f35fb31dd1148d44a9eb14876e66aaf643b4fcf808aede",
+    "documentSchema": 3,
+    "editable": true,
+    "entityCount": "13",
+    "eventCount": "11",
+    "expiresAt": "2026-09-26T23:37:43.922Z",
+    "formatVersion": 3,
+    "localRetentionExcluded": "obsolete-unattributed-ui-only",
+    "namespaceId": "42141b02-3854-4959-9658-83ede1b69f4f",
+    "objectCount": "44",
+    "protocolVersion": 1,
+    "reason": null,
+    "reviewHash": "sha256:62b950bfe72c4c4501903c7cac1f17a96a6dc1467004172133278c43da3f27a0",
+    "reviewId": "39090da8-aa98-4bee-898a-6f5c83de42ad",
+    "scope": "selected-document-current-drafts-and-retained-domain-history",
+    "source": {
+      "byteLength": "743082",
+      "hash": "sha256:6c06f3e24fb657ec37382e59046dadd995b50a611a47fbf023e96f43d9315355",
+      "mediaType": "application/x-ideogram-project"
+    },
+    "sourceNamespace": "document_1",
+    "targetClientId": "24ffa174-808c-4025-8fc9-4a9d766d7f45",
+    "uiSessionCount": "1",
+    "uiSessionIds": [
+      "p_4e64d69dca652d3fc7c23035814d20f86b5444484930803a37fee21be9c13741"
+    ]
+  },
+  "exactRetainedSource": {
+    "render": {
+      "dependencyHash": "sha256:8be7071cf8fbdeb3c85998f4cb788ea508bd95f0804a1b247b81e14681abb13f",
+      "height": 70,
+      "id": "sha256:b6dc4eba879d01a18f78d2fab32458675aa87c834f79fb96d158669e55f911c4",
+      "layout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "overflow": false,
+      "pixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "rendererProfile": {
+        "id": "sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee",
+        "manifest": {
+          "byteLength": "14238",
+          "hash": "sha256:39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8",
+          "mediaType": "application/json"
+        },
+        "schemaVersion": 1
+      },
+      "resolvedFonts": [
+        "sha256:f2db768e6f0e2bfdba47864395c8044eca49b1ec21fec8edc9a6447b6d818d09"
+      ],
+      "schemaVersion": 1,
+      "textVersion": "sha256:f35048e6f6c847685f5ca64136d903a9d28bc85f58e7f48d695d19ce8e1e75a1",
+      "width": 120
+    },
+    "schemaVersion": 1,
+    "text": {
+      "fonts": [
+        {
+          "bytes": {
+            "byteLength": "569208",
+            "hash": "sha256:b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "mediaType": "application/octet-stream"
+          },
+          "embedding": "permitted",
+          "faceIndex": 0,
+          "format": "static-ttf",
+          "fsType": 0,
+          "id": "sha256:f2db768e6f0e2bfdba47864395c8044eca49b1ec21fec8edc9a6447b6d818d09",
+          "licenseRecord": {
+            "byteLength": "4377",
+            "hash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "mediaType": "text/plain"
+          },
+          "origin": "bundled",
+          "parserProfile": "sfnt-static-1-freetype-canvaskit040",
+          "schemaVersion": 1
+        }
+      ],
+      "frame": {
+        "height": 70,
+        "width": 120
+      },
+      "id": "sha256:f35048e6f6c847685f5ca64136d903a9d28bc85f58e7f48d695d19ce8e1e75a1",
+      "layoutPolicy": "text-layout-1",
+      "schemaVersion": 1,
+      "style": {
+        "align": "start",
+        "direction": "auto",
+        "explicitFallbacks": [],
+        "fill": [
+          40,
+          90,
+          190,
+          255
+        ],
+        "lineHeightMultiplier": 1.2,
+        "primaryFont": "sha256:b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+        "sizePx": 32
+      },
+      "textUtf8": {
+        "byteLength": "2",
+        "hash": "sha256:38164fbd17603d73f696b8b4d72664d735bb6a7c88577687fd2ae33fd6964153",
+        "mediaType": "text/plain"
+      }
+    }
+  },
+  "importedNamespace": "p_242c5726c06c873e04f35fb31dd1148d44a9eb14876e66aaf643b4fcf808aede",
+  "reexportEditable": true,
+  "reopenRetainedBytes": true,
+  "malformedHistoricalResponse": {
+    "kind": "receipt",
+    "protocolVersion": 1,
+    "receipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "ed5ab001-2ada-4f3a-9d39-12e2e8b8a9b3",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "86",
+        "hash": "sha256:95fc3af1ade331e8d3b605904c0edce644f8782f0b0cd26ac8fee4cb72c5490d",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "rejectionDetails": {
+      "kind": "inline",
+      "value": {
+        "issues": [
+          {
+            "code": "PORTABLE_INVALID_ARCHIVE",
+            "path": "command.body"
+          }
+        ],
+        "kind": "fields"
+      }
+    }
+  },
+  "malformedHistoricalEditableRefused": true,
+  "complete": true
+}

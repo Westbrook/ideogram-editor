@@ -1,0 +1,81 @@
+P1c.2 bounded correction: AUTHOR handoff, independent review required
+
+Obtain a new coordinator-assigned serial window. Use a NEW detached source
+checkout of the final evidence commit; never modify or rerun in the sealed648
+review root, earlier author roots, unknown OPFS profiles, or frozen services.
+Source e9ff85681c6ae2ff71a8c094ca237059d685d8dd; profile6e8a481e.
+The final evidence commit changes only this additive evidence directory.
+
+Use the repository's pinned toolchain and a local clean npm install in the new
+checkout. Copy controls-correction-v2.mjs, controls-additive-v2.mjs,
+compatibility-v1.mjs and compatibility-text-reverify-v2.mjs from this directory
+beside the new source directory named source. Helpers refuse existing output
+paths. Preserve their assertions. compatibility-v1 retains the original648
+literal in result metadata; the real current execution identity comes from
+source hashes/command ledger, not that historical literal. The v2 retained-text
+helper uses byte-identical archived fixtures with new input/output paths only;
+its predecessor40 was executed, v2 itself is for fresh re-verification.
+
+Run serially from source with .toolchain/bin first on PATH:
+python3 tooling/bootstrap-toolchain.py
+npm ci
+npm run typecheck
+npm run build
+npm run verify:text
+npm run verify:raster
+npx vite build --config tests/text-state/vite.config.ts
+node --import ./tests/session/no-egress.mjs tests/text-state/equivalence.mjs ../eq-chromium chromium
+node --import ./tests/session/no-egress.mjs tests/text-state/equivalence.mjs ../eq-webkit webkit
+node --import ./tests/session/no-egress.mjs tests/text-state/equivalence.mjs ../eq-firefox firefox
+node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/text-state/admission.test.mjs tests/text-state/verifier.test.mjs
+node --import ./tests/session/no-egress.mjs ../controls-correction-v2.mjs chromium
+node --import ./tests/session/no-egress.mjs ../controls-additive-v2.mjs chromium
+TEXT_STATE_ENGINES=chromium,webkit,firefox node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/text-state/native.test.mjs
+node tests/text-state/reverify-stock.mjs artifacts/reviewer-correction-stock-01
+node --import ./tests/session/no-egress.mjs ../compatibility-v1.mjs
+node --import ./tests/session/no-egress.mjs ../compatibility-text-reverify-v2.mjs
+Then execute the exact43-regressions.receipt.json command array, all44 files,
+concurrency1. It is the same command as original reviewer08, not a smaller set.
+
+Required outcomes: original7 controls accept exact plain/NFD/leading U+FEFF;
+refuse reversed ranges, missing runs, wrong direction and mismatched pixels;
+retain accepted document and unapplied draft. The separate additive8 control
+also refuses internally consistent same-fill CD layout/pixels attached to AB.
+All11 differential cases agree exactly on each engine, including mixed scripts;
+no tolerance, normalization, replacement pixels, or cross-engine inference.
+
+Check actual decision-point operands and phase IDs, usable next preparation,
+old generation preserved on refusal, real CP-1/browser overlap and current-owner
+recheck at plan arrival. Excess-owner test controls use synthetic reservations,
+not physical allocations. Keep actual128MiB text/512MiB shared caps, real CP-1
+preflight/exact plan checks, current RSS and all active owners; no future CP-1
+duplicate or refund of retained caller data. Production termination ownership
+is distinct from actual close/reset evidence in the browser harness.
+
+Review supervisor deadline/crash/stale authority settlement on actual exit and
+atomic command/object/session/draft/revision/profile fences after asynchronous
+verification. Supported editable imports use the same native correspondence
+check for every retained text source; normal saved replay/export/reopen/history
+continue to use retained bytes. Historical valid b895 fixture must import,
+reexport and reopen with exact IDs/bytes; original malformed648 archive refuses
+editable admission. Actual dcd schema8/PF2 migration, backup/prior-reader refusal
+and complete closure remain covered by native3, compatibility and affected519.
+
+final-source-reuse.json records48 unchanged native/recipe/font/parser/contract
+inputs against approved dcd, exact original loader, and the explicit extraction
+and profile-parameter transformation of the shared rendering algorithm. It is
+AUTHOR audit; original native reproduction is reused, not rerun. Changed host,
+writer/import, ownership and adapter integration rely on new gates. A-R01 stays
+open; there is no physical RSS/full-envelope/P3 qualification or cap waiver.
+
+Preserve all old receipts including rejected648, partialf8f/3aa, failures06/15/
+19/22/23 and29/30 fixture failures.31 corrects fixture-only SQLite/private-path
+setup. Gate source maps disclose test-contract prose additions after early
+runs and versioned admission-test corrections; runtime source is unchanged in
+final functional gates. Full source inventories remain external; intermediate
+source contents were not all archived.42 cleanup receipts establish only that
+run's owned reset, not a cause or repair of original unknown-storage failures.
+
+No current GitHub remote/PR/CI. No UI, service, preview, report-file, downstream,
+credit or acceptance action is part of this handoff. Independent reviewer seals
+its verdict and explicit END; coordinator controls acceptance and further work.

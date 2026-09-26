@@ -1,0 +1,10 @@
+{
+  "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+  "command": [
+    "python3",
+    "../legacy-text-fixture-v1.py"
+  ],
+  "start": "2026-09-26T23:07:20.677429+00:00",
+  "end": "2026-09-26T23:07:26.533298+00:00",
+  "exit": 0
+}

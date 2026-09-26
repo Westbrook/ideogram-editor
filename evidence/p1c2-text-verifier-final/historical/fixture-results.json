@@ -1,0 +1,122 @@
+{
+  "engine": "chromium",
+  "target": "648a35abce7c2a91e90c132c38b6868f2790e5a1 valid historical fixture only",
+  "cases": [
+    {
+      "name": "plain",
+      "textUtf8": "4142",
+      "expected": "accepted",
+      "beforeRevision": "1",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "5cefa79c-3e85-42b1-b4d9-34002e79c848",
+          "documentRevision": "2",
+          "fromSeq": "13",
+          "status": "accepted",
+          "toSeq": "15",
+          "transactionId": "9a0efb05-90f3-436e-8954-1b4f99c5c204"
+        }
+      },
+      "afterRevision": "2",
+      "pass": true,
+      "draft": {
+        "assetId": "16ec26b3-dc20-4703-8338-1394021296a9",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "1",
+        "generation": "1",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": null
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true
+    },
+    {
+      "name": "nfd",
+      "textUtf8": "65cc81",
+      "expected": "accepted",
+      "beforeRevision": "2",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:7994ee56acd0e963c669dfdb40e546ae47da86bf537736e685525dba5367495d",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "1668",
+        "hash": "sha256:68cdc6f488060e250c1c3b8cd8f08b155cea819464eb46471faf93ec622cf358",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "79ca4673-fb94-4770-84a7-e4d9829b566a",
+          "documentRevision": "3",
+          "fromSeq": "25",
+          "status": "accepted",
+          "toSeq": "27",
+          "transactionId": "d51a98dd-7c24-46c9-ad6f-4af36bf08c5a"
+        }
+      },
+      "afterRevision": "3",
+      "pass": true,
+      "draft": {
+        "assetId": "f337b497-7f1c-4d9a-a3e8-111d8bb4c49f",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "2",
+        "generation": "2",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": "native_text"
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true,
+      "undoExact": true
+    }
+  ],
+  "resetCalls": 0,
+  "workers": 1,
+  "closed": 1,
+  "ownedBeforeDispose": {
+    "cpuBytes": 450929844,
+    "textBytes": 48276660
+  },
+  "earlyRelease": "TEXT_REALM_STILL_OWNED",
+  "ownedAfterDispose": {
+    "cpuBytes": 403222392,
+    "textBytes": 569208
+  },
+  "duplicateRenewalOneRow": true,
+  "releaseAfterObservedCloseExactlyOnce": true,
+  "fullHistoryReview": {
+    "editable": true,
+    "reason": null,
+    "source": {
+      "byteLength": "743082",
+      "hash": "sha256:6c06f3e24fb657ec37382e59046dadd995b50a611a47fbf023e96f43d9315355",
+      "mediaType": "application/x-ideogram-project"
+    }
+  },
+  "complete": true,
+  "failures": []
+}

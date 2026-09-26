@@ -1,0 +1,14 @@
+✔ native chromium durable text/history/copy/restart exact identities (21580.344375ms)
+ℹ {"closed":8,"copyHash":"sha256:a595251c76da92cceb04bc972331607c8051623f24363dce247e984383bdbcc5","empty":{"commandId":"4de09286-ff8f-4f38-a60b-d8e064d7a233","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"f004d8e9-9cbc-41ef-a0b9-2e6cebfce464"},"engine":"chromium","first":{"commandId":"9a704a9e-14d7-4bcc-a1a0-b433ec558cb9","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"b303177a-cef5-470f-adc1-c82535a7c423"},"profile":"sha256:6e8a481ec2ec61ab1ea1edefa1ef478453c49a7617854b4d0162a48ad1525c86","source":{"byteLength":"2763","hash":"sha256:aab17ee708a77584cd3d9ca71de71cbae17f346ee615bb5ff4bd92986eb862f2","mediaType":"application/json"},"workers":8}
+✔ native webkit durable text/history/copy/restart exact identities (16981.37ms)
+ℹ {"closed":8,"copyHash":"sha256:2687651a72b237a8f0d876569589364e9775598b578f2b044e26e379f134aca3","empty":{"commandId":"5870ca70-016a-45b2-854f-df41bbe8ac2c","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"8a25d962-dfa0-4515-9650-f20ddd168610"},"engine":"webkit","first":{"commandId":"6d40ee65-30da-4330-976c-f396b9beab51","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"e9152eb9-c858-4199-942c-db297f57f6aa"},"profile":"sha256:6e8a481ec2ec61ab1ea1edefa1ef478453c49a7617854b4d0162a48ad1525c86","source":{"byteLength":"2763","hash":"sha256:aab17ee708a77584cd3d9ca71de71cbae17f346ee615bb5ff4bd92986eb862f2","mediaType":"application/json"},"workers":8}
+✔ native firefox durable text/history/copy/restart exact identities (17323.386875ms)
+ℹ {"closed":8,"copyHash":"sha256:b77bcc1d5d5db0364b7fb3a2f4268556182dd653bbaa2ad789fefe20a120378d","empty":{"commandId":"c7be22d1-55ed-4441-ad7e-107056012708","documentRevision":"5","fromSeq":"67","status":"accepted","toSeq":"69","transactionId":"44ffbfe3-51a3-4ef4-9b65-fd4be0c549fb"},"engine":"firefox","first":{"commandId":"d93e3b5f-8375-4018-ae3c-be61108004c6","documentRevision":"2","fromSeq":"15","status":"accepted","toSeq":"17","transactionId":"dd74d75d-5dab-4513-9926-31c60e5c97e4"},"profile":"sha256:6e8a481ec2ec61ab1ea1edefa1ef478453c49a7617854b4d0162a48ad1525c86","source":{"byteLength":"2763","hash":"sha256:aab17ee708a77584cd3d9ca71de71cbae17f346ee615bb5ff4bd92986eb862f2","mediaType":"application/json"},"workers":8}
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56067.440625

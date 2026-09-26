@@ -1,0 +1,400 @@
+{
+  "engine": "chromium",
+  "target": "phase-correct source snapshot in 33-controls.sources.json",
+  "cases": [
+    {
+      "name": "plain",
+      "textUtf8": "4142",
+      "expected": "accepted",
+      "beforeRevision": "1",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "0afce426-d2dc-4517-a614-528410d39022",
+          "documentRevision": "2",
+          "fromSeq": "13",
+          "status": "accepted",
+          "toSeq": "15",
+          "transactionId": "6a9c4bc6-6118-40ae-9687-d11e09607569"
+        }
+      },
+      "afterRevision": "2",
+      "pass": true,
+      "draft": {
+        "assetId": "9d3a1429-d018-491d-89f3-92521f540fde",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "1",
+        "generation": "1",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": null
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true
+    },
+    {
+      "name": "nfd",
+      "textUtf8": "65cc81",
+      "expected": "accepted",
+      "beforeRevision": "2",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:7994ee56acd0e963c669dfdb40e546ae47da86bf537736e685525dba5367495d",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "1668",
+        "hash": "sha256:68cdc6f488060e250c1c3b8cd8f08b155cea819464eb46471faf93ec622cf358",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "6c95b36c-fdbf-4710-b997-f96eb43fe809",
+          "documentRevision": "3",
+          "fromSeq": "25",
+          "status": "accepted",
+          "toSeq": "27",
+          "transactionId": "4ccb44b8-b9bd-4f08-afd2-c8f2da7ae4d1"
+        }
+      },
+      "afterRevision": "3",
+      "pass": true,
+      "draft": {
+        "assetId": "4720d86d-8898-469e-8513-97c2d806611f",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "2",
+        "generation": "2",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": "native_text"
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true,
+      "undoExact": true
+    },
+    {
+      "name": "leading-bom",
+      "textUtf8": "efbbbf4142",
+      "expected": "accepted",
+      "beforeRevision": "4",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2249",
+        "hash": "sha256:f1b916dac6b51d4fb06261b4e08cae3918cbe79b1cfb83c6816762326f18a2ed",
+        "mediaType": "application/json"
+      },
+      "actual": "accepted",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "commandId": "e3952b16-4e73-4deb-b1e7-89590504340a",
+          "documentRevision": "5",
+          "fromSeq": "38",
+          "status": "accepted",
+          "toSeq": "40",
+          "transactionId": "e146f2d9-c86e-4e7c-aea1-bc80644c080e"
+        }
+      },
+      "afterRevision": "5",
+      "pass": true,
+      "draft": {
+        "assetId": "f8dbb7f4-2229-463f-9126-9e54e2a363b7",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "4",
+        "generation": "3",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "applied",
+        "targetLayerId": "native_text"
+      },
+      "savedTextExact": true,
+      "exportMatchesSavedComposite": true,
+      "undoExact": true
+    },
+    {
+      "name": "reversed-line-range",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "3e83800a-0f6f-4fa5-b9d0-f04a7bf23f88",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "81",
+            "hash": "sha256:9220473ce25407c60e91788d7ae40af172bb3efd8d21b4effbc2fc25eeb45c68",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_LAYOUT_INVALID",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "188b4a91-e39b-4ca0-b397-9c7841ac7068",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "4",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    },
+    {
+      "name": "missing-runs",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "91190703-4b7d-4c3a-b60e-f6a132cee2c4",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "81",
+            "hash": "sha256:9220473ce25407c60e91788d7ae40af172bb3efd8d21b4effbc2fc25eeb45c68",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_LAYOUT_INVALID",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "67d089ed-dab0-4f0d-a8a9-17611c201eaf",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "5",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    },
+    {
+      "name": "mismatched-pixels",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "ea6ab330-2ec6-4d2e-baa7-9bcd49cc8d6e",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "82",
+            "hash": "sha256:d8c64f8527e54c36474de620c7cd3348098dd7b7c8557a4b72b980005c0b20d7",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_NATIVE_MISMATCH",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "87b71c5f-83eb-4d1d-afff-9e8aa57be4af",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "6",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    },
+    {
+      "name": "wrong-direction",
+      "textUtf8": "4142",
+      "expected": "rejected",
+      "beforeRevision": "6",
+      "nativePrepared": true,
+      "originalPixels": {
+        "byteLength": "33600",
+        "hash": "sha256:831fe4a1a09083248dad747de7676075ee642db1154d050e9a75092b1c7ac680",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "originalLayout": {
+        "byteLength": "2011",
+        "hash": "sha256:9fbaf2b6331bc9fb59e2f1b39d8d185a61d28b2ac50dfe2637227914abb66bf8",
+        "mediaType": "application/json"
+      },
+      "actual": "rejected",
+      "receipt": {
+        "kind": "receipt",
+        "protocolVersion": 1,
+        "receipt": {
+          "code": "INVALID_INPUT",
+          "commandId": "c9e62379-0298-4c52-a43f-f6e2cd609a0e",
+          "currentRevision": "6",
+          "details": {
+            "byteLength": "82",
+            "hash": "sha256:d8c64f8527e54c36474de620c7cd3348098dd7b7c8557a4b72b980005c0b20d7",
+            "mediaType": "application/json"
+          },
+          "status": "rejected"
+        },
+        "rejectionDetails": {
+          "kind": "inline",
+          "value": {
+            "issues": [
+              {
+                "code": "TEXT_NATIVE_MISMATCH",
+                "path": "command.body"
+              }
+            ],
+            "kind": "fields"
+          }
+        }
+      },
+      "afterRevision": "6",
+      "pass": true,
+      "draft": {
+        "assetId": "bde113d4-480f-4a5b-8c12-4021863f1535",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "6",
+        "generation": "7",
+        "id": "independent_draft",
+        "kind": "text",
+        "status": "saved-unapplied",
+        "targetLayerId": "native_text"
+      }
+    }
+  ],
+  "resetCalls": 0,
+  "workers": 7,
+  "closed": 7,
+  "ownedBeforeDispose": {
+    "cpuBytes": 473308972,
+    "textBytes": 70655788
+  },
+  "earlyRelease": "TEXT_REALM_STILL_OWNED",
+  "ownedAfterDispose": {
+    "cpuBytes": 473308972,
+    "textBytes": 70655788
+  },
+  "duplicateRenewalOneRow": true,
+  "releaseAfterObservedCloseExactlyOnce": true,
+  "fullHistoryReview": {
+    "editable": true,
+    "reason": null,
+    "source": {
+      "byteLength": "780647",
+      "hash": "sha256:2a3788dadcc83037c604e9c6f43499890d200472d4a079b1a42790c3657893f1",
+      "mediaType": "application/x-ideogram-project"
+    }
+  },
+  "complete": true,
+  "failures": []
+}

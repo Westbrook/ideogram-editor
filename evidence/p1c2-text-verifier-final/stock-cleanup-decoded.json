@@ -1,0 +1,325 @@
+[
+  {
+    "browserName": "chromium",
+    "origin": "http://127.0.0.1:50407",
+    "marker": "text-worker-6d4afd6b-7060-4f58-bfb2-6ee429416da8",
+    "outcome": "clean",
+    "error": null,
+    "workers": [
+      {
+        "url": "http://127.0.0.1:50407/assets/worker-QFqgk8wY.js",
+        "closed": true
+      }
+    ],
+    "errors": [],
+    "ledger": [
+      {
+        "phase": "fixture",
+        "run": "9932afe6-3c0f-4f5a-ba3e-5ad507923368",
+        "profile": "chromium ephemeral",
+        "contract": "controlled-origin-v2"
+      },
+      {
+        "phase": "initial-cookies",
+        "count": 0
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "preflight-start",
+        "origin": "http://127.0.0.1:50407",
+        "profile": "chromium ephemeral"
+      },
+      {
+        "phase": "cookie-audit",
+        "count": 0,
+        "metadata": []
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "preflight",
+        "origin": "http://127.0.0.1:50407",
+        "entries": [],
+        "localStorage": 0,
+        "indexedDB": [],
+        "serviceWorkers": 0,
+        "cookieCount": 0
+      },
+      {
+        "phase": "admitted",
+        "origin": "http://127.0.0.1:50407"
+      },
+      {
+        "phase": "worker-registered"
+      },
+      {
+        "phase": "cleanup-start",
+        "admitted": [
+          "http://127.0.0.1:50407"
+        ],
+        "visited": [
+          "http://127.0.0.1:50407"
+        ],
+        "resetCalls": 0
+      },
+      {
+        "phase": "cookie-audit",
+        "count": 0,
+        "metadata": []
+      },
+      {
+        "phase": "public-reset",
+        "resetCalls": 1
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "post-reset",
+        "origin": "http://127.0.0.1:50407",
+        "entries": [],
+        "localStorage": 0,
+        "indexedDB": [],
+        "serviceWorkers": 0
+      },
+      {
+        "phase": "post-reset-cookies",
+        "count": 0
+      },
+      {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    ]
+  },
+  {
+    "browserName": "webkit",
+    "origin": "http://127.0.0.1:50491",
+    "marker": "text-worker-b74bcc95-cb5d-4b5e-961b-6f0bcee401f2",
+    "outcome": "clean",
+    "error": null,
+    "workers": [
+      {
+        "url": "http://127.0.0.1:50491/assets/worker-QFqgk8wY.js",
+        "closed": true
+      }
+    ],
+    "errors": [],
+    "ledger": [
+      {
+        "phase": "fixture",
+        "run": "1b826f8f-62ce-4666-aaeb-441dcbc04466",
+        "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-text-worker-7NQmSA",
+        "contract": "controlled-origin-v2"
+      },
+      {
+        "phase": "initial-cookies",
+        "count": 0
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "preflight-start",
+        "origin": "http://127.0.0.1:50491",
+        "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-text-worker-7NQmSA"
+      },
+      {
+        "phase": "cookie-audit",
+        "count": 0,
+        "metadata": []
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "preflight",
+        "origin": "http://127.0.0.1:50491",
+        "entries": [],
+        "localStorage": 0,
+        "indexedDB": [],
+        "serviceWorkers": 0,
+        "cookieCount": 0
+      },
+      {
+        "phase": "admitted",
+        "origin": "http://127.0.0.1:50491"
+      },
+      {
+        "phase": "worker-registered"
+      },
+      {
+        "phase": "owned-blob",
+        "origin": "http://127.0.0.1:50491",
+        "resourceType": "xhr"
+      },
+      {
+        "phase": "owned-blob",
+        "origin": "http://127.0.0.1:50491",
+        "resourceType": "xhr"
+      },
+      {
+        "phase": "owned-blob",
+        "origin": "http://127.0.0.1:50491",
+        "resourceType": "xhr"
+      },
+      {
+        "phase": "owned-blob",
+        "origin": "http://127.0.0.1:50491",
+        "resourceType": "xhr"
+      },
+      {
+        "phase": "owned-blob",
+        "origin": "http://127.0.0.1:50491",
+        "resourceType": "xhr"
+      },
+      {
+        "phase": "owned-blob",
+        "origin": "http://127.0.0.1:50491",
+        "resourceType": "xhr"
+      },
+      {
+        "phase": "owned-blob",
+        "origin": "http://127.0.0.1:50491",
+        "resourceType": "xhr"
+      },
+      {
+        "phase": "cleanup-start",
+        "admitted": [
+          "http://127.0.0.1:50491"
+        ],
+        "visited": [
+          "http://127.0.0.1:50491"
+        ],
+        "resetCalls": 0
+      },
+      {
+        "phase": "cookie-audit",
+        "count": 0,
+        "metadata": []
+      },
+      {
+        "phase": "public-reset",
+        "resetCalls": 1
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "post-reset",
+        "origin": "http://127.0.0.1:50491",
+        "entries": [],
+        "localStorage": 0,
+        "indexedDB": [],
+        "serviceWorkers": 0
+      },
+      {
+        "phase": "post-reset-cookies",
+        "count": 0
+      },
+      {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    ]
+  },
+  {
+    "browserName": "firefox",
+    "origin": "http://127.0.0.1:50587",
+    "marker": "text-worker-a6be989b-8719-45d3-a291-167d6c5a03f7",
+    "outcome": "clean",
+    "error": null,
+    "workers": [
+      {
+        "url": "http://127.0.0.1:50587/assets/worker-QFqgk8wY.js",
+        "closed": true
+      }
+    ],
+    "errors": [],
+    "ledger": [
+      {
+        "phase": "fixture",
+        "run": "05deb6a6-9216-4a99-a031-0bd69f252df0",
+        "profile": "firefox ephemeral",
+        "contract": "controlled-origin-v2"
+      },
+      {
+        "phase": "initial-cookies",
+        "count": 0
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "preflight-start",
+        "origin": "http://127.0.0.1:50587",
+        "profile": "firefox ephemeral"
+      },
+      {
+        "phase": "cookie-audit",
+        "count": 0,
+        "metadata": []
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "preflight",
+        "origin": "http://127.0.0.1:50587",
+        "entries": [],
+        "localStorage": 0,
+        "indexedDB": [],
+        "serviceWorkers": 0,
+        "cookieCount": 0
+      },
+      {
+        "phase": "admitted",
+        "origin": "http://127.0.0.1:50587"
+      },
+      {
+        "phase": "worker-registered"
+      },
+      {
+        "phase": "cleanup-start",
+        "admitted": [
+          "http://127.0.0.1:50587"
+        ],
+        "visited": [
+          "http://127.0.0.1:50587"
+        ],
+        "resetCalls": 0
+      },
+      {
+        "phase": "cookie-audit",
+        "count": 0,
+        "metadata": []
+      },
+      {
+        "phase": "public-reset",
+        "resetCalls": 1
+      },
+      {
+        "phase": "page-registered"
+      },
+      {
+        "phase": "post-reset",
+        "origin": "http://127.0.0.1:50587",
+        "entries": [],
+        "localStorage": 0,
+        "indexedDB": [],
+        "serviceWorkers": 0
+      },
+      {
+        "phase": "post-reset-cookies",
+        "count": 0
+      },
+      {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,256 @@
+{
+  "24-build-server.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/24-build-server.sources.json",
+    "fullInventorySHA256": "19fc87f0a2f20e84370ceaa29ba2616a4f66b26e20af5c4c097e13b6fc921094",
+    "presentInputs": 452,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [
+      "tests/text-state/admission.test.mjs"
+    ],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "25-fixture.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/25-fixture.sources.json",
+    "fullInventorySHA256": "19fc87f0a2f20e84370ceaa29ba2616a4f66b26e20af5c4c097e13b6fc921094",
+    "presentInputs": 452,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [
+      "tests/text-state/admission.test.mjs"
+    ],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "26-equivalence-webkit.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/26-equivalence-webkit.sources.json",
+    "fullInventorySHA256": "19fc87f0a2f20e84370ceaa29ba2616a4f66b26e20af5c4c097e13b6fc921094",
+    "presentInputs": 452,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [
+      "tests/text-state/admission.test.mjs"
+    ],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "27-equivalence-firefox.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/27-equivalence-firefox.sources.json",
+    "fullInventorySHA256": "19fc87f0a2f20e84370ceaa29ba2616a4f66b26e20af5c4c097e13b6fc921094",
+    "presentInputs": 452,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [
+      "tests/text-state/admission.test.mjs"
+    ],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "28-equivalence-chromium.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/28-equivalence-chromium.sources.json",
+    "fullInventorySHA256": "19fc87f0a2f20e84370ceaa29ba2616a4f66b26e20af5c4c097e13b6fc921094",
+    "presentInputs": 452,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [
+      "tests/text-state/admission.test.mjs"
+    ],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "29-admission.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/29-admission.sources.json",
+    "fullInventorySHA256": "58de3a4a82937635ce0024d034238dd29960178efeea5da48746ae07fa06ab18",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt",
+      "tests/text-state/admission.test.mjs"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb",
+      "tests/text-state/admission.test.mjs": "b8995de89f12c03032890d02fd24b83f5d0996d7dee59c0fa15a33d7f3ab51e8"
+    }
+  },
+  "30-admission.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/30-admission.sources.json",
+    "fullInventorySHA256": "ce8eebaab4d28afa8428dd3626ed7c5f38441c99c7425ed3f111bf2ab0b12a40",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt",
+      "tests/text-state/admission.test.mjs"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb",
+      "tests/text-state/admission.test.mjs": "403854419801717795250ce670b3ddf925cf04d359e67be59b820cb3db2e1a47"
+    }
+  },
+  "31-admission.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/31-admission.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "32-native.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/32-native.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "33-controls.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/33-controls.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "34-additive-controls.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/34-additive-controls.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "35-types.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/35-types.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "36-build.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/36-build.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "37-text-seal.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/37-text-seal.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "38-raster-seal.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/38-raster-seal.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "39-historical-fixture.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/39-historical-fixture.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "40-retained-text.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/40-retained-text.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "41-legacy-pf2.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/41-legacy-pf2.sources.json",
+    "fullInventorySHA256": "b28481e8f3c1b338aca7c79593e1cfbda3a924914d552dfcfd5bbf02f2b74187",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [
+      "tests/text-state/CONTRACT.txt"
+    ],
+    "absentFinalInputs": [],
+    "changedInputs": {
+      "tests/text-state/CONTRACT.txt": "23c616288ff2240252d6ecf0895579f42b45f43f83c95c3b8d7cff68b44634fb"
+    }
+  },
+  "42-stock.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/42-stock.sources.json",
+    "fullInventorySHA256": "6bb65da409d47c8e57b5516f3e0313888f0440842459d57ac1e60902e7791344",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [],
+    "absentFinalInputs": [],
+    "changedInputs": {}
+  },
+  "43-regressions.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/43-regressions.sources.json",
+    "fullInventorySHA256": "6bb65da409d47c8e57b5516f3e0313888f0440842459d57ac1e60902e7791344",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [],
+    "absentFinalInputs": [],
+    "changedInputs": {}
+  },
+  "44-source-audit.sources.json": {
+    "fullExternalInventory": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/44-source-audit.sources.json",
+    "fullInventorySHA256": "6bb65da409d47c8e57b5516f3e0313888f0440842459d57ac1e60902e7791344",
+    "presentInputs": 453,
+    "differentFromFinalInputs": [],
+    "absentFinalInputs": [],
+    "changedInputs": {}
+  }
+}

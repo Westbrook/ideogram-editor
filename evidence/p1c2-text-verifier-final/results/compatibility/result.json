@@ -1,0 +1,95 @@
+{
+  "base": "dcd5f11dbd57cd7ed00c8ddf410857ce4700440e",
+  "target": "648a35abce7c2a91e90c132c38b6868f2790e5a1",
+  "oldManifest": {
+    "capturedHighWater": "8",
+    "complete": true,
+    "documentSchema": 2,
+    "formatVersion": 2,
+    "rootRefs": [
+      {
+        "kind": "document",
+        "logicalId": "document_1",
+        "recordHash": "sha256:731c9e26f7919cba186282b5f80135fe7b03b47ae28b0792f126231fa6c8630d"
+      }
+    ],
+    "segments": [
+      {
+        "bytes": "7146",
+        "kind": "records",
+        "path": "records/0.jsonl",
+        "recordCount": "27",
+        "sha256": "c8ed311d1aedc21694de341e8c55f3af07513801f8c7570bdf0fdd58e85be97a"
+      },
+      {
+        "bytes": "7097",
+        "kind": "events",
+        "path": "records/1.jsonl",
+        "recordCount": "4",
+        "sha256": "9591f7a2779dd5f9ae97a29963a402ad8fa55ac25d22cb4f707af9d63af75a81"
+      }
+    ],
+    "sourceNamespace": "document_1"
+  },
+  "review": {
+    "capturedHighWater": "8",
+    "closureHash": "sha256:206ac4df26b4b64dc6f159655ba63cd9a4f9b9ce5af2cdb462f0bf24cb99f28d",
+    "documentId": "p_f5217a808e917d61c3722be532911835af99e47d009cd0dba37971b71daa2f9c",
+    "documentSchema": 2,
+    "editable": true,
+    "entityCount": "7",
+    "eventCount": "4",
+    "expiresAt": "2026-09-26T23:38:00.042Z",
+    "formatVersion": 2,
+    "localRetentionExcluded": "obsolete-unattributed-ui-only",
+    "namespaceId": "815ec176-78be-478e-bc62-185c2a815f5a",
+    "objectCount": "17",
+    "protocolVersion": 1,
+    "reason": null,
+    "reviewHash": "sha256:15d2f3f637e4f10f98600f477d3cc525e1d12fd8642918b941b7fe8f08595d92",
+    "reviewId": "e10db95a-8567-4688-8c33-b16827eab3fd",
+    "scope": "selected-document-current-drafts-and-retained-domain-history",
+    "source": {
+      "byteLength": "29590",
+      "hash": "sha256:7be0fecf8bcf2b82518e2a7546a37578319b20012195ad85b8e040bff83e2d4c",
+      "mediaType": "application/x-ideogram-project"
+    },
+    "sourceNamespace": "document_1",
+    "targetClientId": "5edee468-5f4c-4ecd-844e-90fb93a792ec",
+    "uiSessionCount": "0",
+    "uiSessionIds": []
+  },
+  "appearanceExact": true,
+  "namespaceChanged": true,
+  "reexportManifest": {
+    "capturedHighWater": "2",
+    "complete": true,
+    "documentSchema": 3,
+    "formatVersion": 3,
+    "rootRefs": [
+      {
+        "kind": "document",
+        "logicalId": "p_f5217a808e917d61c3722be532911835af99e47d009cd0dba37971b71daa2f9c",
+        "recordHash": "sha256:74417d6d4131a12c8de9db0bf04d007cd1577811b4ef46ef42964613e041fbbe"
+      }
+    ],
+    "segments": [
+      {
+        "bytes": "8200",
+        "kind": "records",
+        "path": "records/0.jsonl",
+        "recordCount": "29",
+        "sha256": "d3b67d309e04d330c3a3edbd5247f0a88e8f07856b8cf48685c2eb0c2341c259"
+      },
+      {
+        "bytes": "1762",
+        "kind": "events",
+        "path": "records/1.jsonl",
+        "recordCount": "1",
+        "sha256": "eb95646bc085bd210bf941d5e21da46bd0c7841b0b83ff95fe077fc88becd3a2"
+      }
+    ],
+    "sourceNamespace": "p_f5217a808e917d61c3722be532911835af99e47d009cd0dba37971b71daa2f9c"
+  },
+  "complete": true
+}

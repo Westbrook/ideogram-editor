@@ -1,0 +1,29 @@
+✔ text admission books current owners and preserves the old generation on capacity refusal (14.609667ms)
+ℹ {"positive":{"phase":"browser-admission","id":"11111111-1111-4111-8111-111111111111_2_70000000","predecessors":["11111111-1111-4111-8111-111111111111_1_70000000"],"processRSS":66060288,"backendBytes":0,"browserBytes":134217728,"combined":200278016,"limit":536870912,"admitted":true},"refusal":{"phase":"browser-admission","id":"11111111-1111-4111-8111-111111111111_3_70000000","predecessors":["11111111-1111-4111-8111-111111111111_2_70000000"],"processRSS":66109440,"backendBytes":536870912,"browserBytes":134217728,"combined":737198080,"limit":536870912,"admitted":false},"next":{"phase":"browser-admission","id":"11111111-1111-4111-8111-111111111111_3_70000000","predecessors":["11111111-1111-4111-8111-111111111111_2_70000000"],"processRSS":66174976,"backendBytes":0,"browserBytes":134217728,"combined":200392704,"limit":536870912,"admitted":true},"reservationControl":"synthetic active backend booking, no allocated-memory or RSS peak claim"}
+✖ real CP-1 worker rechecks owners at plan escalation without duplicating its own preflight (82.849958ms)
+✔ native verifier supervisor refuses crash, false result, deadline and stale authority; subsequent lane works (431.874375ms)
+✔ combined verifier budget has usable CJK headroom and refuses oversized requests (0.4265ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 610.423333
+
+✖ failing tests:
+
+test at tests/text-state/admission.test.mjs:33:1
+✖ real CP-1 worker rechecks owners at plan escalation without duplicating its own preflight (82.849958ms)
+  Error: RASTER_DECODE
+      at Worker.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source/dist/local/server/storage/raster.js:460:96)
+      at Worker.emit (node:events:514:20)
+      at MessagePort.<anonymous> (node:internal/worker:354:14)
+      at [nodejs.internal.kHybridDispatch] (node:internal/event_target:872:20)
+      at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28) {
+    code: 'INVALID_INPUT',
+    reason: 'RASTER_DECODE',
+    currentRevision: null,
+    field: 'command.body'
+  }

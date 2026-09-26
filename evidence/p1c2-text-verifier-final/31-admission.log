@@ -1,0 +1,14 @@
+✔ text admission books current owners and preserves the old generation on capacity refusal (11.7455ms)
+ℹ {"positive":{"phase":"browser-admission","id":"11111111-1111-4111-8111-111111111111_2_70000000","predecessors":["11111111-1111-4111-8111-111111111111_1_70000000"],"processRSS":66355200,"backendBytes":0,"browserBytes":134217728,"combined":200572928,"limit":536870912,"admitted":true},"refusal":{"phase":"browser-admission","id":"11111111-1111-4111-8111-111111111111_3_70000000","predecessors":["11111111-1111-4111-8111-111111111111_2_70000000"],"processRSS":66404352,"backendBytes":536870912,"browserBytes":134217728,"combined":737492992,"limit":536870912,"admitted":false},"next":{"phase":"browser-admission","id":"11111111-1111-4111-8111-111111111111_3_70000000","predecessors":["11111111-1111-4111-8111-111111111111_2_70000000"],"processRSS":66486272,"backendBytes":0,"browserBytes":134217728,"combined":200704000,"limit":536870912,"admitted":true},"reservationControl":"synthetic active backend booking, no allocated-memory or RSS peak claim"}
+✔ real CP-1 worker rechecks owners at plan escalation without duplicating its own preflight (96.977958ms)
+ℹ {"allowed":{"phase":"resource-admission","slot":"phase_1","plan":{"width":1,"height":1,"rawBytes":4,"allocations":{"nativeDecoderAndColor":33554440,"rawOutput":4,"orientationRowsAndTiles":2097152,"metadataAndProfileCopies":4194356,"pngAndHashIO":4194304,"workerHeapAndRuntime":83886080,"concurrentBackendHeadroom":16777216},"cpuBytes":144703552,"diskBytes":2097177},"processRSS":102252544,"externalCPU":134217728,"replacedCPU":134217728,"admissionBaselineRSS":236470272,"combinedReservedBytes":381173824,"admitted":true},"refused":{"phase":"resource-admission","slot":"phase_2","plan":{"width":1,"height":1,"rawBytes":4,"allocations":{"nativeDecoderAndColor":33554440,"rawOutput":4,"orientationRowsAndTiles":2097152,"metadataAndProfileCopies":4194356,"pngAndHashIO":4194304,"workerHeapAndRuntime":83886080,"concurrentBackendHeadroom":16777216},"cpuBytes":144703552,"diskBytes":2097177},"processRSS":104038400,"externalCPU":536870912,"replacedCPU":134217728,"admissionBaselineRSS":640909312,"combinedReservedBytes":785612864,"admitted":false},"liveOverlap":"browser admission during actual CP-1 preflight","refusalControl":"synthetic external reservation introduced after preflight; no physical allocation claim"}
+✔ native verifier supervisor refuses crash, false result, deadline and stale authority; subsequent lane works (428.487167ms)
+✔ combined verifier budget has usable CJK headroom and refuses oversized requests (0.483667ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 619.392083

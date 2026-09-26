@@ -1,0 +1,311 @@
+[
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "npm",
+      "run",
+      "build:server"
+    ],
+    "start": "2026-09-26T23:03:44.646298+00:00",
+    "end": "2026-09-26T23:03:46.007601+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "npx",
+      "vite",
+      "build",
+      "--config",
+      "tests/text-state/vite.config.ts"
+    ],
+    "start": "2026-09-26T23:03:51.672423+00:00",
+    "end": "2026-09-26T23:03:52.817605+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "tests/text-state/equivalence.mjs",
+      "../equivalence-webkit-v1",
+      "webkit"
+    ],
+    "start": "2026-09-26T23:03:55.343613+00:00",
+    "end": "2026-09-26T23:03:59.531114+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "tests/text-state/equivalence.mjs",
+      "../equivalence-firefox-v1",
+      "firefox"
+    ],
+    "start": "2026-09-26T23:04:10.821924+00:00",
+    "end": "2026-09-26T23:04:16.426970+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "tests/text-state/equivalence.mjs",
+      "../equivalence-chromium-v2",
+      "chromium"
+    ],
+    "start": "2026-09-26T23:04:31.283951+00:00",
+    "end": "2026-09-26T23:04:35.636962+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/text-state/admission.test.mjs",
+      "tests/text-state/verifier.test.mjs"
+    ],
+    "start": "2026-09-26T23:04:37.509248+00:00",
+    "end": "2026-09-26T23:04:38.212327+00:00",
+    "exit": 1
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/text-state/admission.test.mjs",
+      "tests/text-state/verifier.test.mjs"
+    ],
+    "start": "2026-09-26T23:04:47.582071+00:00",
+    "end": "2026-09-26T23:04:48.374477+00:00",
+    "exit": 1
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/text-state/admission.test.mjs",
+      "tests/text-state/verifier.test.mjs"
+    ],
+    "start": "2026-09-26T23:04:59.286346+00:00",
+    "end": "2026-09-26T23:05:00.116794+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "env",
+      "TEXT_STATE_ENGINES=chromium,webkit,firefox",
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/text-state/native.test.mjs"
+    ],
+    "start": "2026-09-26T23:05:03.571620+00:00",
+    "end": "2026-09-26T23:05:59.843808+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "../controls-correction-v2.mjs",
+      "chromium"
+    ],
+    "start": "2026-09-26T23:06:06.491891+00:00",
+    "end": "2026-09-26T23:06:14.242263+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "../controls-additive-v2.mjs",
+      "chromium"
+    ],
+    "start": "2026-09-26T23:06:34.744966+00:00",
+    "end": "2026-09-26T23:06:44.741513+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "start": "2026-09-26T23:06:44.926951+00:00",
+    "end": "2026-09-26T23:06:46.441137+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "start": "2026-09-26T23:07:01.713321+00:00",
+    "end": "2026-09-26T23:07:05.334162+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "npm",
+      "run",
+      "verify:text"
+    ],
+    "start": "2026-09-26T23:07:14.009582+00:00",
+    "end": "2026-09-26T23:07:14.969997+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "npm",
+      "run",
+      "verify:raster"
+    ],
+    "start": "2026-09-26T23:07:17.003214+00:00",
+    "end": "2026-09-26T23:07:17.303187+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "python3",
+      "../legacy-text-fixture-v1.py"
+    ],
+    "start": "2026-09-26T23:07:20.677429+00:00",
+    "end": "2026-09-26T23:07:26.533298+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "../compatibility-text-v1.mjs"
+    ],
+    "start": "2026-09-26T23:07:43.313808+00:00",
+    "end": "2026-09-26T23:07:49.509239+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "../compatibility-v1.mjs"
+    ],
+    "start": "2026-09-26T23:07:57.274883+00:00",
+    "end": "2026-09-26T23:08:01.249026+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "tests/text-state/reverify-stock.mjs",
+      "artifacts/correction-stock-01"
+    ],
+    "start": "2026-09-26T23:08:07.129441+00:00",
+    "end": "2026-09-26T23:08:52.977897+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/assets/http.test.mjs",
+      "tests/assets/process.test.mjs",
+      "tests/assets/storage.test.mjs",
+      "tests/history/failure.test.mjs",
+      "tests/history/http.test.mjs",
+      "tests/history/process.test.mjs",
+      "tests/history/replay.test.mjs",
+      "tests/history/review.test.mjs",
+      "tests/history/schema.test.mjs",
+      "tests/history/ui.test.mjs",
+      "tests/portable/adversarial.test.mjs",
+      "tests/portable/browser-recovery.test.mjs",
+      "tests/portable/compatibility.test.mjs",
+      "tests/portable/failure.test.mjs",
+      "tests/portable/http.test.mjs",
+      "tests/portable/imported-drafts.test.mjs",
+      "tests/portable/journey.test.mjs",
+      "tests/portable/large.test.mjs",
+      "tests/portable/legacy.test.mjs",
+      "tests/portable/process.test.mjs",
+      "tests/portable/provenance.test.mjs",
+      "tests/portable/restart.test.mjs",
+      "tests/portable/revision-consistency.test.mjs",
+      "tests/portable/schema.test.mjs",
+      "tests/portable/transaction-schema.test.mjs",
+      "tests/portable/transactions.test.mjs",
+      "tests/portable/zip.test.mjs",
+      "tests/protocol/http.test.mjs",
+      "tests/protocol/process.test.mjs",
+      "tests/protocol/recovery.test.mjs",
+      "tests/raster/approval-integrity.test.mjs",
+      "tests/raster/codec.test.mjs",
+      "tests/raster/core.test.mjs",
+      "tests/raster/http.test.mjs",
+      "tests/raster/png-validation.test.mjs",
+      "tests/raster/process.test.mjs",
+      "tests/raster/schema.test.mjs",
+      "tests/raster/storage.test.mjs",
+      "tests/session/http.test.mjs",
+      "tests/session/storage-launch.test.mjs",
+      "tests/store/core.test.mjs",
+      "tests/store/failure.test.mjs",
+      "tests/text-state/font.test.mjs",
+      "tests/text-state/schema.test.mjs"
+    ],
+    "start": "2026-09-26T23:08:55.725298+00:00",
+    "end": "2026-09-26T23:16:59.536295+00:00",
+    "exit": 0
+  },
+  {
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c2-correction-20260926T224900Z/source",
+    "command": [
+      "python3",
+      "../audit-final-v1.py"
+    ],
+    "start": "2026-09-26T23:17:48.407446+00:00",
+    "end": "2026-09-26T23:17:59.695445+00:00",
+    "exit": 0
+  }
+]
