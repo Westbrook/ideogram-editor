@@ -1,0 +1,336 @@
+{
+  "stats": {
+    "startTime": "2026-09-26T22:17:33.756Z",
+    "duration": 38985.723,
+    "expected": 42,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "receipts": [
+    {
+      "browserName": "chromium",
+      "origin": "http://127.0.0.1:62761",
+      "marker": "text-worker-1c2e8183-28e4-48c6-bd20-81b85dcf5441",
+      "outcome": "clean",
+      "error": null,
+      "workers": [
+        {
+          "url": "http://127.0.0.1:62761/assets/worker-RcYXK4Xv.js",
+          "closed": true
+        }
+      ],
+      "errors": [],
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "cc5febea-4f56-496f-b04a-7de6e90f1174",
+          "profile": "chromium ephemeral",
+          "contract": "controlled-origin-v2"
+        },
+        {
+          "phase": "initial-cookies",
+          "count": 0
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62761",
+          "profile": "chromium ephemeral"
+        },
+        {
+          "phase": "cookie-audit",
+          "count": 0,
+          "metadata": []
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62761",
+          "entries": [],
+          "localStorage": 0,
+          "indexedDB": [],
+          "serviceWorkers": 0,
+          "cookieCount": 0
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62761"
+        },
+        {
+          "phase": "worker-registered"
+        },
+        {
+          "phase": "cleanup-start",
+          "admitted": [
+            "http://127.0.0.1:62761"
+          ],
+          "visited": [
+            "http://127.0.0.1:62761"
+          ],
+          "resetCalls": 0
+        },
+        {
+          "phase": "cookie-audit",
+          "count": 0,
+          "metadata": []
+        },
+        {
+          "phase": "public-reset",
+          "resetCalls": 1
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "post-reset",
+          "origin": "http://127.0.0.1:62761",
+          "entries": [],
+          "localStorage": 0,
+          "indexedDB": [],
+          "serviceWorkers": 0
+        },
+        {
+          "phase": "post-reset-cookies",
+          "count": 0
+        },
+        {
+          "phase": "cleanup-complete",
+          "resetCalls": 1
+        }
+      ]
+    },
+    {
+      "browserName": "webkit",
+      "origin": "http://127.0.0.1:62841",
+      "marker": "text-worker-47425fbe-0e09-410c-9003-689c572e27ca",
+      "outcome": "clean",
+      "error": null,
+      "workers": [
+        {
+          "url": "http://127.0.0.1:62841/assets/worker-RcYXK4Xv.js",
+          "closed": true
+        }
+      ],
+      "errors": [],
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "0054605d-8efe-4f2f-988e-9891a4ac5d87",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-text-worker-B1dEtS",
+          "contract": "controlled-origin-v2"
+        },
+        {
+          "phase": "initial-cookies",
+          "count": 0
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62841",
+          "profile": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ie-text-worker-B1dEtS"
+        },
+        {
+          "phase": "cookie-audit",
+          "count": 0,
+          "metadata": []
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62841",
+          "entries": [],
+          "localStorage": 0,
+          "indexedDB": [],
+          "serviceWorkers": 0,
+          "cookieCount": 0
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62841"
+        },
+        {
+          "phase": "worker-registered"
+        },
+        {
+          "phase": "owned-blob",
+          "origin": "http://127.0.0.1:62841",
+          "resourceType": "xhr"
+        },
+        {
+          "phase": "owned-blob",
+          "origin": "http://127.0.0.1:62841",
+          "resourceType": "xhr"
+        },
+        {
+          "phase": "owned-blob",
+          "origin": "http://127.0.0.1:62841",
+          "resourceType": "xhr"
+        },
+        {
+          "phase": "owned-blob",
+          "origin": "http://127.0.0.1:62841",
+          "resourceType": "xhr"
+        },
+        {
+          "phase": "owned-blob",
+          "origin": "http://127.0.0.1:62841",
+          "resourceType": "xhr"
+        },
+        {
+          "phase": "owned-blob",
+          "origin": "http://127.0.0.1:62841",
+          "resourceType": "xhr"
+        },
+        {
+          "phase": "owned-blob",
+          "origin": "http://127.0.0.1:62841",
+          "resourceType": "xhr"
+        },
+        {
+          "phase": "cleanup-start",
+          "admitted": [
+            "http://127.0.0.1:62841"
+          ],
+          "visited": [
+            "http://127.0.0.1:62841"
+          ],
+          "resetCalls": 0
+        },
+        {
+          "phase": "cookie-audit",
+          "count": 0,
+          "metadata": []
+        },
+        {
+          "phase": "public-reset",
+          "resetCalls": 1
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "post-reset",
+          "origin": "http://127.0.0.1:62841",
+          "entries": [],
+          "localStorage": 0,
+          "indexedDB": [],
+          "serviceWorkers": 0
+        },
+        {
+          "phase": "post-reset-cookies",
+          "count": 0
+        },
+        {
+          "phase": "cleanup-complete",
+          "resetCalls": 1
+        }
+      ]
+    },
+    {
+      "browserName": "firefox",
+      "origin": "http://127.0.0.1:62922",
+      "marker": "text-worker-10f234ff-db9f-4810-8305-50f8078f99d0",
+      "outcome": "clean",
+      "error": null,
+      "workers": [
+        {
+          "url": "http://127.0.0.1:62922/assets/worker-RcYXK4Xv.js",
+          "closed": true
+        }
+      ],
+      "errors": [],
+      "ledger": [
+        {
+          "phase": "fixture",
+          "run": "911fd017-df03-4899-b4cd-f82bc8566075",
+          "profile": "firefox ephemeral",
+          "contract": "controlled-origin-v2"
+        },
+        {
+          "phase": "initial-cookies",
+          "count": 0
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "preflight-start",
+          "origin": "http://127.0.0.1:62922",
+          "profile": "firefox ephemeral"
+        },
+        {
+          "phase": "cookie-audit",
+          "count": 0,
+          "metadata": []
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "preflight",
+          "origin": "http://127.0.0.1:62922",
+          "entries": [],
+          "localStorage": 0,
+          "indexedDB": [],
+          "serviceWorkers": 0,
+          "cookieCount": 0
+        },
+        {
+          "phase": "admitted",
+          "origin": "http://127.0.0.1:62922"
+        },
+        {
+          "phase": "worker-registered"
+        },
+        {
+          "phase": "cleanup-start",
+          "admitted": [
+            "http://127.0.0.1:62922"
+          ],
+          "visited": [
+            "http://127.0.0.1:62922"
+          ],
+          "resetCalls": 0
+        },
+        {
+          "phase": "cookie-audit",
+          "count": 0,
+          "metadata": []
+        },
+        {
+          "phase": "public-reset",
+          "resetCalls": 1
+        },
+        {
+          "phase": "page-registered"
+        },
+        {
+          "phase": "post-reset",
+          "origin": "http://127.0.0.1:62922",
+          "entries": [],
+          "localStorage": 0,
+          "indexedDB": [],
+          "serviceWorkers": 0
+        },
+        {
+          "phase": "post-reset-cookies",
+          "count": 0
+        },
+        {
+          "phase": "cleanup-complete",
+          "resetCalls": 1
+        }
+      ]
+    }
+  ],
+  "sourceResults": "artifacts/p1c2/stock-47/receipt/results.json"
+}

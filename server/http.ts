@@ -81,14 +81,15 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
   let rootInvalid = false;
   let closed = false;
   const capabilities: CapabilitiesView = {
-    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 3,
+    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 4,
     credentialConfigured: options.credentialConfigured ?? false,
     storageState: 'unavailable', connectionState: 'unknown', limits: [],
     profiles: [
       { id: 'LP-1', version: '1', state: 'unqualified' },
       { id: 'LS-1', version: '1', state: 'unqualified' },
       { id: 'EF-1', version: '1', state: 'unavailable' },
-      { id: 'PF-1', version: '1', state: 'unavailable' },
+      { id: 'PF-1', version: '3', state: 'unqualified' },
+      { id: 'TEXT-DURABLE', version: '1', state: 'unqualified' },
     ],
   };
   const server = createServer({ maxHeaderSize: 16 * 1024, requestTimeout: 0, headersTimeout: 10_000 }, (request, response) => {

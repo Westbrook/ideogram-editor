@@ -6,7 +6,7 @@ export type Preferences = {
   selectedLayerIds: string[];
 };
 export type Draft = {
-  id: string; generation: string; kind: 'prompt' | 'inspector'; documentId: string;
+  id: string; generation: string; kind: 'prompt' | 'inspector' | 'text'; documentId: string;
   targetLayerId: string | null; expectedDocumentRevision: string; assetId: string;
   composing: boolean; status: 'saved-unapplied' | 'applied';
 };

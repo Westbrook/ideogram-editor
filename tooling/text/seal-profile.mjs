@@ -10,12 +10,13 @@ profile.memory={wasmDeclaredInitialBytes:16777216,wasmDeclaredMaximumBytes:33554
   aggregateFontShapingCeilingQualified:false,
   admission:'shared realm preallocation R35 128MiB within R18 512MiB; MEMORY.txt exact model',
   ownership:'booked reusable worker; <=16 retained exact native faces; bounded latest queue and one cold cache-capacity retry; successful terminate releases private leases once, caller/prepared leases remain; actual API failure retains uncertain capacity',
-  limitation:'logical owned-allocation reservations; no process/backend integration or RSS/P3 qualification'};
+  integration:'durable-state-v1: one realm envelope shared with sole writer font/raster admission; exact output consumption and release',
+  limitation:'logical owned-allocation reservations and process admission guards; no RSS/P3 qualification'};
 profile.rasterProfile='ck040-custom3-cpu-rgba8888-unpremul-srgb-transparent-zero-1';
 profile.unicode.unicodeDataHash='sha256:c12537022ef818991a7bfed41a76d8d6ae962ffbc0e6511ac762a5d0845e7f7c';
 profile.unicode.unicodeDataHashScope='actual pinned ICU flutter/icudtl.dat compiled into custom WASM';
 profile.sourceRecipe=[];
-for(const path of ['tooling/text/source-closure.json','tooling/text/configure-source.py','tooling/text/canvaskit-source.patch','tooling/text/rebuild.py','tooling/text/MEMORY.txt','server/static.ts','server/http.ts']){
+for(const path of ['tooling/text/source-closure.json','tooling/text/configure-source.py','tooling/text/canvaskit-source.patch','tooling/text/rebuild.py','tooling/text/MEMORY.txt','server/static.ts','server/http.ts','server/storage/text.ts','server/text/font.ts','server/text/worker.ts','server/text/validation.ts','src/protocol/text.ts','src/text/retained-profiles/c19791ae.json']){
   const b=await readFile(path);profile.sourceRecipe.push({path,bytes:b.length,sha256:sha(b)});
 }
 profile.notices=[];

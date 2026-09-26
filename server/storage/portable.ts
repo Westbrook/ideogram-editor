@@ -1,3 +1,6 @@
+import {textDraft,draftRefs} from '../../src/protocol/text.js';
+import { UnsupportedText, bundledFont, validateSource, dependencies } from '../text/validation.js';
+import type { Texts } from './text.js';
 import { captureTransactions, addTransaction, validateTransactions } from '../portable/transactions.js';
 import { CODEC_ID } from '../raster/identity.js';
 import { PIXEL_PIPELINE } from '../../src/raster/core.js';
@@ -31,7 +34,7 @@ export class Portables {
  private authorities=new Map<string,{auth:AssetAuth;start:number}>();
  private directory:string;observations:Record<string,unknown>[]=[];
  private reads=new Map<string,{ref:BlobRef;proof:string;client:string;session:string;expires:number;slot:string}>();
- constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private rasters:Rasters,private root:string,private epoch:string,private check:()=>void,private barrier:Barrier,private commit:PortableCommit,private document:(id:string)=>Document|null,private register:(owner:string,ref:BlobRef,proof?:string)=>void){
+ constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private rasters:Rasters,private texts:Texts,private root:string,private epoch:string,private check:()=>void,private barrier:Barrier,private commit:PortableCommit,private document:(id:string)=>Document|null,private register:(owner:string,ref:BlobRef,proof?:string)=>void){
   this.directory=join(root,'portable');privateDirectory(this.directory);
   // Exclusive startup has no surviving readers from the prior process. A crash
   // after receipt commit can leave only our now-terminal operation pins behind.
@@ -68,7 +71,8 @@ export class Portables {
   const dir=join(this.directory,operationId);privateDirectory(dir);const out=spool(join(dir,'capture.sqlite'));defineIndex(out);out.exec('BEGIN IMMEDIATE');
   const addEntity=(kind:string,id:string,value:any)=>{if(kind==='portable-provider')providerRecord(value);else if(kind!=='draft')entity(kind,value);out.prepare('INSERT INTO entities VALUES (?,?,?,NULL)').run(kind,id,canonical(value));references(value,r=>addRef(out,r));};
   const queue=(id:string)=>out.prepare('INSERT OR IGNORE INTO assets_queue(id) VALUES (?)').run(id);
-  const addState=(v:any)=>{if(!v)return;const s=json(this.objects.verify(v.state,true)!);imageState(s);if(semanticDigest(s)!==v.semanticDigest)throw new StoreError('CORRUPT_OBJECT');for(const l of s.layers){queue(l.assetId);if(l.mask)queue(l.mask.assetId);}if(v.compositeAssetId)queue(v.compositeAssetId);};
+  const font=(f:any)=>{const row=this.db.prepare("SELECT id,json FROM assets WHERE json_extract(json,'$.font.id')=? ORDER BY id LIMIT 1").get(f.id);if(!row||canonical(JSON.parse(String(row.json)).font)!==canonical(f))throw new StoreError('MISSING_OBJECT');queue(String(row.id));};
+  const addState=(v:any)=>{if(!v)return;const s=json(this.objects.verify(v.state,true)!);imageState(s);if(semanticDigest(s)!==v.semanticDigest)throw new StoreError('CORRUPT_OBJECT');for(const l of s.layers){if(l.kind==='text'){addRef(out,l.source);const source=validateSource(json(this.objects.verify(l.source,true)!));for(const ref of dependencies(source))addRef(out,ref);source.text.fonts.forEach(font);}queue(l.assetId);if(l.mask)queue(l.mask.assetId);}if(v.compositeAssetId)queue(v.compositeAssetId);};
   try{
    addEntity('document',d.id,d);addState(d.image);
    for(const [table,kind] of [['history','history'],['checkpoints','checkpoint']])for(const r of this.db.prepare(`SELECT id,json FROM ${table} WHERE document_id=? ORDER BY id`).iterate(d.id)){const v=JSON.parse(String(r.json));addEntity(kind,String(r.id),v);if(kind==='history'&&v.kind==='image-edit'){addState(v.before);addState(v.after);}else addState(v.image);}
@@ -76,7 +80,7 @@ export class Portables {
     const all=JSON.parse(String(row.json)),drafts=all.drafts.filter((x:any)=>x.documentId===d.id);if(all.preferences.documentId!==d.id&&!drafts.length)continue;
     const sessionId='ui_'+hashBytes(canonical([row.client_id,row.session_id])).slice(7),v={sessionId,uiSeq:all.uiSeq,preferences:all.preferences.documentId===d.id?all.preferences:null,drafts,reconciledLayerIds:all.preferences.documentId===d.id?all.reconciledLayerIds:[]};validateUI(v,d.id);addEntity('draft',sessionId,v);uiHash.update(canonical(v));for(const draft of drafts){
      const owner='ui:'+row.client_id+':'+row.session_id+':'+draft.id+':'+draft.generation,roots=this.db.prepare('SELECT hash,media_type FROM roots WHERE owner=?').all(owner),asset=this.assets.asset(draft.assetId);
-     if(!asset||!roots.some(root=>root.hash===asset.blob.hash&&root.media_type===asset.blob.mediaType))throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:draft.id,state:'required-current-draft-ownership-unavailable'});queue(draft.assetId);
+     if(!asset||!roots.some(root=>root.hash===asset.blob.hash&&root.media_type===asset.blob.mediaType))throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:draft.id,state:'required-current-draft-ownership-unavailable'});queue(draft.assetId);if(draft.kind==='text'){const text=json(this.objects.verify(asset.blob,true)!);textDraft(text);for(const ref of draftRefs(text))addRef(out,ref);text.fonts.forEach(font);}
     }
    }
    for(const r of this.db.prepare("SELECT e.json FROM events_v2 e JOIN commands c ON c.id=e.command_id WHERE (json_extract(c.canonical,'$.command.documentId')=? AND json_extract(c.canonical,'$.command.body.type')!='SaveCopy') OR json_extract(e.json,'$.documentId')=? ORDER BY length(e.seq),e.seq").iterate(d.id,d.id)){
@@ -89,14 +93,14 @@ export class Portables {
    for(const row of this.db.prepare("SELECT canonical FROM commands WHERE json_extract(canonical,'$.command.documentId')=? AND json_extract(receipt,'$.status')='accepted' AND json_type(canonical,'$.command.body.draft')='object'").iterate(d.id)){
     const c=JSON.parse(String(row.canonical)).command,f=c.body.draft,owner='ui:'+c.clientId+':'+f.sessionId+':'+f.draftId+':'+f.generation;
     const refs=this.db.prepare('SELECT r.hash,o.byte_length,r.media_type FROM roots r JOIN objects o ON o.hash=r.hash WHERE r.owner=?').all(owner);
-    if(refs.length!==1)throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:c.commandId,state:'required-history-draft-ownership-unavailable'});for(const r of refs)addRef(out,{hash:String(r.hash),byteLength:String(r.byte_length),mediaType:String(r.media_type)});
+    if(refs.length<1)throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:c.commandId,state:'required-history-draft-ownership-unavailable'});for(const r of refs)addRef(out,{hash:String(r.hash),byteLength:String(r.byte_length),mediaType:String(r.media_type)});
    }
    for(const r of this.db.prepare("SELECT r.id,r.json,r.namespace FROM portable_rows r JOIN portable_namespaces n ON n.id=r.namespace WHERE n.document_id=? AND r.kind='portable-provider' ORDER BY r.id").iterate(d.id)){
     const v=JSON.parse(String(r.json));addEntity('portable-provider',String(r.id),v);
     for(const hash of v.assetHashes){const rows=this.db.prepare("SELECT id FROM portable_rows WHERE namespace=? AND kind='asset' AND json_extract(json,'$.blob.hash')=?").all(r.namespace,hash);if(!rows.length)throw new StoreError('MISSING_OBJECT');for(const a of rows)queue(String(a.id));}
    }
    for(;;){const q=out.prepare('SELECT id FROM assets_queue WHERE done=0 ORDER BY id LIMIT 1').get();if(!q)break;const a=this.assets.asset(String(q.id));if(!a||a.availability!=='available')throw new StoreError('MISSING_OBJECT');addEntity('asset',a.id,a);
-    if(a.raster){const m=this.rasters.manifest(a.id);references(m,r=>addRef(out,r));for(const source of a.raster.sourceAssetIds)queue(source);}
+    if(a.raster){const m=this.rasters.manifest(a.id);references(m,r=>addRef(out,r));if((m.plan as any).kind==='retained-text'){const source=validateSource(json(this.objects.verify((m.plan as any).source,true)!));for(const ref of dependencies(source))addRef(out,ref);source.text.fonts.forEach(font);}for(const source of a.raster.sourceAssetIds)queue(source);}
     out.prepare('UPDATE assets_queue SET done=1 WHERE id=?').run(q.id);
    }
 
@@ -135,7 +139,7 @@ export class Portables {
    await validateTransactions(db,frozen.highWater,check);
    await this.verifyAncestorTransactions(db,null,attempt,slot,check,true);
    let total=0n;for(const r of db.prepare('SELECT bytes FROM refs').iterate())total+=BigInt(String(r.bytes));const metadataBytes=BigInt(assertPrivate(join(sourceDir,'capture.sqlite'),false).size);this.objects.reserve(slot,total+metadataBytes*8n+1048576n);
-   await encodeRecords(db,attempt,frozen.document.id,frozen.highWater,check);const document=await validateClosure(db,async ref=>this.objects.verify(ref,true)!,check);if(canonical(document)!==canonical(frozen.document))throw new StoreError('CORRUPT_OBJECT');
+   await encodeRecords(db,attempt,frozen.document.id,frozen.highWater,check);const document=await validateClosure(db,async ref=>{if(BigInt(ref.byteLength)>8388608n)throw new StoreError('PAYLOAD_TOO_LARGE');this.texts.guardMetadata(Number(ref.byteLength));this.objects.verify(ref);const b=Buffer.alloc(Number(ref.byteLength));for(let at=0;at<b.length;at+=1048576)b.set(this.objects.readRange(ref,String(at),Math.min(1048576,b.length-at)),at);return b;},check);if(canonical(document)!==canonical(frozen.document))throw new StoreError('CORRUPT_OBJECT');
    const objectSource=async(r:any)=>{const ref=refFrom(r),payload=db.prepare('SELECT json FROM payloads WHERE hash=?').get(ref.hash);let path:string;
     if(payload){path=join(attempt,ref.hash.slice(7));const fd=privateFile(path);try{write(fd,Buffer.from(String(payload.json)));fsyncSync(fd);}finally{closeSync(fd);}}
     else path=this.objects.path(ref);
@@ -193,8 +197,8 @@ export class Portables {
   if(reserve)this.objects.reserve(slot+':archive',BigInt(source.byteLength)*2n+1048576n);const data=await fileSource('source',path,check);if(data.bytes!==BigInt(source.byteLength)||data.sha256!==source.hash.slice(7))throw new StoreError('CORRUPT_OBJECT');
   const db=spool(join(directory,'index.sqlite')),zip=new ZipIndex(path,db);
   try{db.exec('BEGIN IMMEDIATE');await zip.headers(check);this.barrier('portable-headers-validated');await zip.hashes(check);this.barrier('portable-bytes-validated');const manifest=await decodeRecords(zip,db,check);
-   const read=async(ref:BlobRef)=>{if(BigInt(ref.byteLength)>65536n)throw new StoreError('PAYLOAD_TOO_LARGE');const e=zip.entry('objects/'+ref.hash.slice(7));if(e.bytes!==BigInt(ref.byteLength)||e.sha256!==ref.hash.slice(7))invalid();const parts:Buffer[]=[];for await(const b of zip.chunks(e,check))parts.push(Buffer.from(b));return Buffer.concat(parts);};
-   if(!manifest.unsupported){if(!manifest.complete)manifest.unsupported='INCOMPLETE_RECOVERY_COPY';else {const document=await validateClosure(db,read,check);if(document.id!==manifest.sourceNamespace)invalid();}}
+   const read=async(ref:BlobRef)=>{if(BigInt(ref.byteLength)>8388608n)throw new StoreError('PAYLOAD_TOO_LARGE');this.texts.guardMetadata(Number(ref.byteLength));const e=zip.entry('objects/'+ref.hash.slice(7));if(e.bytes!==BigInt(ref.byteLength)||e.sha256!==ref.hash.slice(7))invalid();const parts:Buffer[]=[];for await(const b of zip.chunks(e,check))parts.push(Buffer.from(b));return Buffer.concat(parts);};
+   if(!manifest.unsupported){if(!manifest.complete)manifest.unsupported='INCOMPLETE_RECOVERY_COPY';else {try{const document=await validateClosure(db,read,check);if(document.id!==manifest.sourceNamespace)invalid();}catch(e){if(!(e instanceof UnsupportedText))throw e;manifest.unsupported=e.message;}}}
    for(const row of db.prepare("SELECT json FROM entities WHERE kind='asset'").iterate()){const a=JSON.parse(String(row.json));if(a.raster&&a.raster.pipeline!==PIXEL_PIPELINE+'/'+CODEC_ID)manifest.unsupported='UNSUPPORTED_RESOURCE_PROFILE';}
    for(const r of db.prepare('SELECT hash FROM refs').iterate())if(this.db.prepare('SELECT 1 FROM portable_quarantined_hashes WHERE hash=?').get(r.hash))manifest.unsupported='TRANSPORT_PROVENANCE_QUARANTINED';
    if(ancestors&&!manifest.unsupported){try{await this.verifyAncestorTransactions(db,zip,directory,slot,check,false);}catch(e){if(e instanceof StoreError&&e.code==='TRANSACTION_EVIDENCE_UNAVAILABLE')manifest.unsupported='ORIGINAL_TRANSACTION_BOUNDS_UNAVAILABLE_SOURCE_ARCHIVE_RETAINED';else throw e;}}
@@ -212,7 +216,8 @@ export class Portables {
 
   for(const row of db.prepare("SELECT json FROM entities WHERE kind='asset' ORDER BY id").iterate()){
    const a=JSON.parse(String(row.json)),path=join(directory,a.blob.hash.slice(7));check();
-   if(a.qualification==='opaque-text')await text(a.blob);
+   if(a.qualification==='font'){bundledFont(a.font);const inspected=await this.texts.inspect(a.blob,path);if(inspected.format!==a.font.format||inspected.parserProfile!==a.font.parserProfile||inspected.fsType!==a.font.fsType)invalid();await text(a.font.licenseRecord);}
+   else if(a.qualification==='opaque-text')await text(a.blob);
    else{const work=join(directory,'verify-'+randomUUID());privateDirectory(work);const result=await this.rasters.validatePortable(path,a.measuredMediaType,a.blob,work,slot,check);
     db.prepare('INSERT INTO decoded_pixels VALUES (?,?)').run(a.id,canonical(result.info));if(a.raster&&(result.info.pixels.hash!==a.raster.pixels.hash||result.info.width!==a.raster.width||result.info.height!==a.raster.height))invalid();
    }

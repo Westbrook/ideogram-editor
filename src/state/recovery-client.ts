@@ -10,7 +10,7 @@ const decode = (bytes: Uint8Array) => new TextDecoder('utf-8',{fatal:true}).deco
 type Transport = (path: string, init?: RequestInit) => Promise<Response>;
 function context(value: any): asserts value is RecoveryContext {
   keys(value,['recoveryId','writerEpoch','projectionSchema','highWater','expiresAt']);
-  ok(id(value.recoveryId)&&seq(value.writerEpoch)&&seq(value.highWater)&&[2,3].includes(value.projectionSchema)&&Number.isFinite(Date.parse(value.expiresAt)));
+  ok(id(value.recoveryId)&&seq(value.writerEpoch)&&seq(value.highWater)&&[2,3,4].includes(value.projectionSchema)&&Number.isFinite(Date.parse(value.expiresAt)));
 }
 function sameContext(a: RecoveryContext,b: RecoveryContext) {
   context(a);context(b);ok(a.recoveryId===b.recoveryId&&a.writerEpoch===b.writerEpoch&&a.highWater===b.highWater&&a.projectionSchema===b.projectionSchema,'Recovery context changed');
@@ -144,7 +144,7 @@ export class RecoveryConsumer {
     sameContext(descriptor.recovery,actual.recovery);ok(actual.snapshotId===descriptor.snapshotId&&actual.snapshotSeq===descriptor.snapshotSeq&&canonical(actual.content.blob)===canonical(descriptor.content.blob)&&actual.content.recordCount===descriptor.content.recordCount);
     let count=0n;let expected='';let key='';let previous='';let part=0;let parts=0;let text='';let version='';
     await this.rows(descriptor.content,descriptor.recovery,'lp1-snapshot-jsonl',async(row,index)=>{
-      if(index===0n){keys(row,['kind','snapshotId','snapshotSeq','projectionSchema','entityCount']);ok(row.kind==='header'&&row.snapshotId===descriptor.snapshotId&&row.snapshotSeq===descriptor.snapshotSeq&&[2,3].includes(row.projectionSchema)&&seq(row.entityCount));expected=row.entityCount;return;}
+      if(index===0n){keys(row,['kind','snapshotId','snapshotSeq','projectionSchema','entityCount']);ok(row.kind==='header'&&row.snapshotId===descriptor.snapshotId&&row.snapshotSeq===descriptor.snapshotSeq&&[2,3,4].includes(row.projectionSchema)&&seq(row.entityCount));expected=row.entityCount;return;}
       keys(row,['kind','entityType','entityId','entityVersion','partIndex','partCount','utf8Base64']);
       ok(row.kind==='projection-part'&&['asset','document','history','checkpoint'].includes(row.entityType)&&id(row.entityId)&&seq(row.entityVersion)&&Number.isSafeInteger(row.partIndex)&&Number.isSafeInteger(row.partCount)&&row.partCount>0&&typeof row.utf8Base64==='string');
       const next=row.entityType+':'+row.entityId;

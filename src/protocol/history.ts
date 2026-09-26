@@ -1,16 +1,18 @@
+import type { TextBody } from './text.js';
 import type { BlobRef, Document } from './store.js';
 import type { Affine } from '../raster/core.js';
 import type { RasterLayer } from './raster.js';
 
 export type DraftFence = { sessionId: string; draftId: string; generation: string };
-export type ImageLayer = {
-  id: string; version: string; kind: 'image'; name: string; assetId: string;
+export type LayerProperties = {
+  id: string; version: string; name: string; assetId: string;
   layerToDocument: Affine; opacity: number; visible: boolean; locked: boolean;
   blend: 'normal'; mask: RasterLayer['mask'];
 };
-export type ImageState = { schemaVersion: 1; width: number; height: number; layers: ImageLayer[] };
+export type ImageLayer = LayerProperties & ({kind:'image'} | {kind:'text';source:BlobRef});
+export type ImageState = { schemaVersion: 1 | 2; width: number; height: number; layers: ImageLayer[] };
 export type ImageVersion = { state: BlobRef; semanticDigest: string; compositeAssetId: string | null };
-export type HistoryBody =
+export type HistoryBody = TextBody
   | { type: 'ImportAsset'; assetId: string; layerId: string; name: string; draft: DraftFence | null }
   | { type: 'ApplyTransform'; layerId: string; layerVersion: string; transform: Affine; draft: DraftFence | null }
   | { type: 'SetLayerProperties'; layerId: string; layerVersion: string; properties: Partial<Pick<ImageLayer, 'name' | 'opacity' | 'visible' | 'locked' | 'mask'>>; draft: DraftFence | null }
@@ -43,7 +45,7 @@ export type ImageHistoryNode = {
 // Patches describe specific semantic changes; state objects are retained versions,
 // never a public arbitrary-state command or a source of executable work.
 export type ImagePatch = {
-  schemaVersion: 1; operation: HistoryBody['type'];
+  schemaVersion: 1; stateSchema?: 1 | 2; operation: HistoryBody['type'];
   dimensions: { width: number; height: number } | null;
   layers: { id: string; value: ImageLayer | null }[]; order: string[] | null;
 };
@@ -52,5 +54,5 @@ export type HistoryFact =
   | { type: 'ImageEditPreviewPrepared'; payload: { preview: ImageEditPreview } }
   | { type: 'ImageEditReviewPrepared'; payload: { reviewId: string; reviewHash: string } }
   | { type: 'HistoryNavigated'; payload: { document: Document; previousHead: string; action: 'Undo' | 'Redo' | 'SwitchBranch' } };
-export const historyCommands = ['ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','Undo','Redo','SwitchBranch','ExportDocument','SaveCheckpoint','PrepareImageResample','PrepareFlattenedCopy','ReviewImageEdit','ResampleImage','CreateFlattenedCopy'] as const;
+export const historyCommands = ['ImportFont','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative','ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','Undo','Redo','SwitchBranch','ExportDocument','SaveCheckpoint','PrepareImageResample','PrepareFlattenedCopy','ReviewImageEdit','ResampleImage','CreateFlattenedCopy'] as const;
 export const isHistoryCommand = (type: string): boolean => (historyCommands as readonly string[]).includes(type);

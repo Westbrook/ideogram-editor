@@ -1,3 +1,4 @@
+import { fontVersion } from './text.js';
 import type { Document, DomainEvent } from './store.js';
 import { canonical } from './json.js';
 export function requireValue(value: unknown, message = 'Invalid recovery data'): asserts value { if (!value) throw new Error(message); }
@@ -15,15 +16,17 @@ export function imageVersion(v:any){keys(v,['state','semanticDigest','compositeA
 export function imageEditPreview(v:any){keys(v,['previewId','documentId','documentRevision','kind','plan','source','preparedAssetId','after']);requireValue(id(v.previewId)&&id(v.documentId)&&seq(v.documentRevision)&&['resample-image','flattened-copy'].includes(v.kind)&&id(v.preparedAssetId));blob(v.plan);imageVersion(v.source);imageVersion(v.after);}
 export function asset(v:any) {
   const raster=['raster-preview','canonical-raster','canonical-png'].includes(v?.qualification);
-  keys(v,['id','version','purpose','blob','dependencies','safety','availability','qualification','measuredMediaType',...(raster?['raster']:[])]);
-  requireValue(id(v.id)&&seq(v.version)&&['image','mask','caption'].includes(v.purpose)&&Array.isArray(v.dependencies)&&(raster?v.dependencies.length<=8:v.dependencies.length===0)&&
+  keys(v,['id','version','purpose','blob','dependencies','safety','availability','qualification','measuredMediaType',...(raster?['raster']:[]),...(v?.qualification==='font'?['font']:[])]);
+  requireValue(id(v.id)&&seq(v.version)&&['image','mask','caption','font','text'].includes(v.purpose)&&Array.isArray(v.dependencies)&&(v.qualification==='font'?v.dependencies.length===1:raster?v.dependencies.length<=8:v.dependencies.length===0)&&
     ['safe','unknown','withheld','quarantined'].includes(v.safety)&&['available','missing','corrupt'].includes(v.availability)&&
-    ['opaque-text','pending-decoder','raster-preview','canonical-raster','canonical-png'].includes(v.qualification)&&['text/plain','image/png','image/jpeg','image/webp'].includes(v.measuredMediaType));
+    ['opaque-text','pending-decoder','raster-preview','canonical-raster','canonical-png','pending-text','font'].includes(v.qualification)&&['text/plain','image/png','image/jpeg','image/webp','application/octet-stream'].includes(v.measuredMediaType));
   blob(v.blob);for(const ref of v.dependencies)blob(ref);
   if(raster){requireValue(v.purpose==='image'&&v.measuredMediaType==='image/png'&&v.blob.mediaType==='image/png');rasterInfo(v.raster);
     requireValue(v.dependencies.some((r:any)=>canonical(r)===canonical(v.raster.manifest))&&v.dependencies.some((r:any)=>canonical(r)===canonical(v.raster.pixels)));
     requireValue(v.qualification==='canonical-png'?v.raster.role==='export':v.qualification==='raster-preview'?v.raster.role==='native':v.raster.role!=='export');
-  }else requireValue(v.qualification==='opaque-text'?v.purpose==='caption'&&v.measuredMediaType==='text/plain':v.purpose!=='caption'&&v.safety!=='safe');
+  }else if(v.qualification==='font'){fontVersion(v.font);requireValue(v.purpose==='font'&&v.safety==='safe'&&canonical(v.blob)===canonical(v.font.bytes)&&canonical(v.dependencies)===canonical([v.font.licenseRecord]));}
+  else if(v.qualification==='pending-text')requireValue(['font','text'].includes(v.purpose)&&v.safety==='unknown'&&v.measuredMediaType==='application/octet-stream');
+  else requireValue(v.qualification==='opaque-text'?v.purpose==='caption'&&v.measuredMediaType==='text/plain':v.purpose!=='caption'&&v.safety!=='safe');
 }
 export function rasterInfo(v:any){
   keys(v,['schemaVersion','pipeline','width','height','manifest','pixels','pixelIdentity','role','sourceAssetIds','conversion']);
@@ -54,7 +57,8 @@ export function rasterManifest(v:any):void{
     for(const l of p.layers){keys(l,['assetId','transform','opacity','mask']);requireValue(id(l.assetId)&&Array.isArray(l.transform)&&l.transform.length===6&&l.transform.every((n:unknown)=>typeof n==='number'&&Number.isFinite(n))&&Number.isFinite(l.opacity)&&l.opacity>=0&&l.opacity<=1);const [a,b,c,d]=l.transform;requireValue(Number.isFinite(a*d-b*c)&&a*d-b*c!==0);
       if(l.mask!==null){keys(l.mask,['assetId','mapping','inverted']);requireValue(id(l.mask.assetId)&&l.mask.mapping==='document-luminance-alpha-v1'&&typeof l.mask.inverted==='boolean');}
     }for(const f of p.footprints){keys(f,['x','y','width','height']);requireValue([f.x,f.y,f.width,f.height].every(Number.isSafeInteger)&&f.width>=0&&f.height>=0);}
-  }else throw new Error('Unsupported raster plan');
+  }else if(p.kind==='retained-text'){keys(p,['kind','source']);blob(p.source);requireValue(p.source.mediaType==='application/json');}
+  else throw new Error('Unsupported raster plan');
 }
 export function entity(type: string, value: any) {
   if(type==='asset'){asset(value);return value.version;}
@@ -65,7 +69,7 @@ export function entity(type: string, value: any) {
   }
   if(type==='history'&&value.kind==='image-edit') {
     keys(value,['id','documentId','branchId','parent','revision','kind','operation','before','after','forward','inverse','roots']);
-    requireValue(['id','documentId','branchId','parent'].every(k=>id(value[k]))&&seq(value.revision)&&['ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','ResampleImage','CreateFlattenedCopy'].includes(value.operation));
+    requireValue(['id','documentId','branchId','parent'].every(k=>id(value[k]))&&seq(value.revision)&&['ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','ResampleImage','CreateFlattenedCopy','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(value.operation));
     imageVersion(value.before);imageVersion(value.after);blob(value.forward);blob(value.inverse);
     requireValue(Array.isArray(value.roots)&&value.roots.length===4&&canonical(value.roots)===canonical([value.before.state,value.after.state,value.forward,value.inverse]));return value.revision;
   }

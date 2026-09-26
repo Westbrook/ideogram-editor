@@ -4,8 +4,8 @@ const malformed = (): never => { throw new JSONError('MALFORMED_REQUEST'); };
 
 // JSON.parse alone silently accepts duplicate keys, overflow, and lone surrogates.
 // Validate tokens first, including decoded property names, then use the native parser.
-export function parseControlJSON(bytes: Uint8Array): Record<string, unknown> {
-  if (bytes.byteLength > CONTROL_BYTES) throw new JSONError('PAYLOAD_TOO_LARGE');
+export function parseControlJSON(bytes: Uint8Array, maxBytes = CONTROL_BYTES): Record<string, unknown> {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0 || maxBytes > 8388608 || bytes.byteLength > maxBytes) throw new JSONError('PAYLOAD_TOO_LARGE');
   let source: string;
   try { source = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes); }
   catch { return malformed(); }

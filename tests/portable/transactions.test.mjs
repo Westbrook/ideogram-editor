@@ -7,15 +7,15 @@ import {importRaster} from '../raster/helpers.mjs';
 import {unpack,records,putRecords,pack,encoded,hash} from './archive-fixture.mjs';
 const retained=root=>{const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});try{return {namespaces:db.prepare('SELECT * FROM portable_namespaces').all(),rows:db.prepare('SELECT * FROM portable_rows').all(),roots:db.prepare("SELECT * FROM roots WHERE owner NOT LIKE 'receipt:%' ORDER BY owner,hash").all()};}finally{db.close();}};
 async function fixture(t){const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const {asset}=await importRaster(f,'hidden-alpha.png');const imported=await edit(f,{type:'ImportAsset',assetId:asset.id,layerId:'picture',name:'Exact original',draft:null});await edit(f,{type:'SaveCheckpoint',name:'Whole history'});const saved=await copy(f);return {f,imported,saved};}
-test('format2 public roundtrip retains exact original receipt bounds and canonical event bytes',async t=>{
- const {f,imported,saved}=await fixture(t),entries=await unpack(f.root,saved.bytes),manifest=JSON.parse(entries.get('manifest.json'));assert.equal(manifest.formatVersion,2);assert.equal(manifest.documentSchema,2);
+test('format3 public roundtrip retains exact original receipt bounds and canonical event bytes',async t=>{
+ const {f,imported,saved}=await fixture(t),entries=await unpack(f.root,saved.bytes),manifest=JSON.parse(entries.get('manifest.json'));assert.equal(manifest.formatVersion,3);assert.equal(manifest.documentSchema,3);
  const tx=records(entries).values.find(r=>r.kind==='transaction'&&r.receipt.transactionId===imported.receipt.transactionId),events=records(entries,'events').values.filter(r=>r.event.transactionId===tx.receipt.transactionId);
  assert.deepEqual(tx.receipt,imported.receipt);assert.equal(tx.eventCount,'2');assert.equal(tx.sourceArchive,null);assert.equal(tx.eventsHash,'sha256:'+hash(Buffer.from(events.map(r=>encoded(r.event).toString()+'\n').join(''))));
  const wire=(await f.read('/api/v1/events?after='+String(BigInt(imported.receipt.fromSeq)-1n))).json.batches[0];assert.deepEqual(events.map(x=>x.event),wire.events);
- const p=await preview(f,saved.bytes);assert.equal(p.review.editable,true);assert.equal(p.review.formatVersion,2);await workspace(f,{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash});
+ const p=await preview(f,saved.bytes);assert.equal(p.review.editable,true);assert.equal(p.review.formatVersion,3);await workspace(f,{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash});
  const second=await copy(f,p.review.documentId),g=await setup(t),review=await preview(g,second.bytes);assert.equal(review.review.editable,true);await workspace(g,{type:'ImportBundle',reviewId:review.review.reviewId,reviewHash:review.review.reviewHash});assert.deepEqual((await binary(g,'/api/v1/assets/'+(await doc(g,review.review.documentId)).image.compositeAssetId+'/content')).bytes,(await binary(f,'/api/v1/assets/'+(await doc(f,p.review.documentId)).image.compositeAssetId+'/content')).bytes);
  const nested=records(await unpack(f.root,second.bytes)).values.filter(r=>r.kind==='transaction'&&r.sourceArchive===saved.bundle.blob.hash);assert(nested.some(r=>r.receipt.transactionId===tx.receipt.transactionId));assert.equal(second.bytes.includes(saved.bytes),true);
- t.diagnostic(JSON.stringify({finding:'I-PF01',formatVersion:2,originalReceipt:tx.receipt,eventsHash:tx.eventsHash,sourceArchive:saved.bundle.blob.hash,newArchive:second.bundle.blob.hash,freshWorkspaceImport:review.review.documentId}));
+ t.diagnostic(JSON.stringify({finding:'I-PF01',formatVersion:3,originalReceipt:tx.receipt,eventsHash:tx.eventsHash,sourceArchive:saved.bundle.blob.hash,newArchive:second.bundle.blob.hash,freshWorkspaceImport:review.review.documentId}));
 });
 const mutations={
  prefix:(e,r,tx)=>e.values.splice(e.values.findIndex(x=>x.event.workspaceSeq===tx.receipt.fromSeq),1),
@@ -37,7 +37,7 @@ for(const [name,mutate] of Object.entries(mutations))test('public preview reject
  assert.equal(digest(saved.bytes),saved.bundle.blob.hash);t.diagnostic(JSON.stringify({finding:'I-PF01',mutation:name,originalBounds:imported.receipt,commandId:command.command.commandId,receipt:result.json.receipt,archiveHash:digest(bytes),noNamespace:true}));
 });
 test('legacy format1 retains inspection and explicitly refuses editable publication',async t=>{
- const {f,saved}=await fixture(t),entries=await unpack(f.root,saved.bytes),r=records(entries),m=JSON.parse(entries.get('manifest.json'));m.formatVersion=1;entries.set('manifest.json',encoded(m));putRecords(entries,r.path,r.values.filter(x=>x.kind!=='transaction'));const bytes=await pack(f.root,entries),before=await doc(f),p=await preview(f,bytes);assert.equal(p.review.editable,false);assert.equal(p.review.reason,'LEGACY_TRANSACTION_BOUNDS_UNAVAILABLE');
+ const {f,saved}=await fixture(t),entries=await unpack(f.root,saved.bytes),r=records(entries),m=JSON.parse(entries.get('manifest.json'));m.formatVersion=1;m.documentSchema=2;entries.set('manifest.json',encoded(m));putRecords(entries,r.path,r.values.filter(x=>x.kind!=='transaction'));const bytes=await pack(f.root,entries),before=await doc(f),p=await preview(f,bytes);assert.equal(p.review.editable,false);assert.equal(p.review.reason,'LEGACY_TRANSACTION_BOUNDS_UNAVAILABLE');
  const c=f.command({documentId:null,expectedDocumentRevision:null,body:{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash}}),r0=retained(f.root),result=await terminal(f,c);assert.equal(result.json.receipt.status,'rejected');assert.deepEqual(await doc(f),before);assert.deepEqual(retained(f.root),r0);assert.equal(p.review.source.hash,digest(bytes));
 });
 

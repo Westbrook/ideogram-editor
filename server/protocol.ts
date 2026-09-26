@@ -50,6 +50,7 @@ export class ProtocolRoutes {
   private portable: PortableRoutes;
   constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
+    const text=/^\/api\/v1\/text-admission\/([^/]+)(\/release)?$/.exec(path);if(text){if(!isId(text[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:text[2]?'text-release':'text-admission',id:text[1],query:[]};}
     const portable=this.portable.match(path);if(portable)return portable;
     const asset=this.assets.match(path);if(asset)return asset;
     if (path === PREFIX + 'commands') return { allow: ['POST'], kind: 'submit', query: [] };
@@ -126,7 +127,7 @@ export class ProtocolRoutes {
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
       lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
-        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 3, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
+        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 4, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
       if (captured.snapshot && BigInt(after) < BigInt(captured.snapshot.seq)) {
@@ -179,7 +180,7 @@ export class ProtocolRoutes {
     const lease: Lease = { clientId: session.clientId, sessionHash: session.cookieHash,
       expires, absolute: session.expires, start, snapshot: null, released: false,
       context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch,
-        projectionSchema: 3, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
+        projectionSchema: 4, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
     this.leases.set(lease.context.recoveryId, lease);
     try {
       const page = await this.page(start, lease.context.recoveryId, session);
@@ -194,7 +195,8 @@ export class ProtocolRoutes {
     if (params.has('recoveryId') && !isId(params.get('recoveryId'))) throw new ProtocolError('MALFORMED_REQUEST');
     try {
       await this.prune();
-      if (route.kind === 'submit'||route.kind==='asset-finalize') {
+      if(route.kind==='text-admission'||route.kind==='text-release'){const value=parseControlJSON(await readControlBytes(request)) as any;if(value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const current=authenticate();sendJSON(response,200,await this.writer.textAdmission(id,this.assets.auth(current),route.kind==='text-release')??{released:true});}
+      else if (route.kind === 'submit'||route.kind==='asset-finalize') {
         const bytes = await readControlBytes(request); await assertRoot(); const current = authenticate();
         const command = parseCommand(bytes).command;
         if (command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');

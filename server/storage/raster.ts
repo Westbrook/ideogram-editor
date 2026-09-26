@@ -22,6 +22,8 @@ export class Rasters {
   private documentBusy = false;
   private directory:string;private running:Promise<void>|undefined;private closing=false;private paused=new Set<string>();private worker:Worker|undefined;
   observations:Record<string,unknown>[]=[];private reservedCPU=0;
+  externalCPU:()=>number=()=>0;
+  get reservedBytes(){return this.reservedCPU;}
   private approvalAuth=new Map<string,{auth:AssetAuth;started:number}>();
   constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,root:string,private epoch:string,private check:()=>void,private barrier:Barrier,private commit:Commit,private register:(owner:string,ref:BlobRef,proof:string)=>void){
     this.directory=join(root,'raster-work');privateDirectory(this.directory);
@@ -101,7 +103,7 @@ export class Rasters {
       if(body.type==='ApproveRaster'){
         // One shared IO slot, one reusable 1 MiB hash buffer per proof, at most
         // 512 bounded proof records. No raster worker or pixel copies/decodes.
-        const reservation=8*1024*1024;if(process.memoryUsage().rss+reservation>512*1024*1024)throw new StoreError('CAPACITY');this.reservedCPU=reservation;
+        const reservation=8*1024*1024;if(process.memoryUsage().rss+this.externalCPU()+reservation>512*1024*1024)throw new StoreError('CAPACITY');this.reservedCPU=reservation;
         const a=this.approval(body,this.approvalAuthority(id));
         try{
           await protect(a.raster!.manifest);const manifest=this.manifest(a.id);
@@ -166,10 +168,10 @@ export class Rasters {
     return new Promise((resolve,reject)=>{
       // Parser, native-library load, hash buffers and worker heap are admitted
       // before worker construction. Decoded pixel surfaces need a second plan.
-      const preflightCPU=128*1024*1024,baselineRSS=process.memoryUsage().rss;check();if(baselineRSS+preflightCPU>512*1024*1024)throw new StoreError('CAPACITY');this.reservedCPU=preflightCPU;
+      const preflightCPU=128*1024*1024,baselineRSS=process.memoryUsage().rss+this.externalCPU();check();if(baselineRSS+preflightCPU>512*1024*1024)throw new StoreError('CAPACITY');this.reservedCPU=preflightCPU;
       const worker=new Worker(new URL('../raster/worker.js',import.meta.url),{workerData:job,env:{},resourceLimits:{maxOldGenerationSizeMb:48,maxYoungGenerationSizeMb:8},...(process.execArgv.some(a=>a.startsWith('--input-type'))?{execArgv:process.execArgv.filter(a=>!a.startsWith('--input-type'))}:{})});this.worker=worker;
       let result:RasterResult|undefined,error:unknown,admitted=false;let peakRSS=process.memoryUsage().rss;
-      const timer=setInterval(()=>{try{check();peakRSS=Math.max(peakRSS,process.memoryUsage().rss);if(peakRSS>512*1024*1024)throw new StoreError('CAPACITY');this.objects.capacity(0n);}catch(e){error=e;void worker.terminate();}},1000);
+      const timer=setInterval(()=>{try{check();peakRSS=Math.max(peakRSS,process.memoryUsage().rss);if(peakRSS+this.externalCPU()>512*1024*1024)throw new StoreError('CAPACITY');this.objects.capacity(0n);}catch(e){error=e;void worker.terminate();}},1000);
       worker.on('message',message=>{
         if(message.type==='plan'){try{check();const plan=message.plan as ResourcePlan;const combined=baselineRSS+plan.cpuBytes;
           if(admitted||!Number.isSafeInteger(plan.cpuBytes)||plan.cpuBytes<0||combined>512*1024*1024){this.observations.push({phase:'resource-admission',plan,admissionBaselineRSS:baselineRSS,combinedReservedBytes:combined});if(this.observations.length>32)this.observations.shift();throw new StoreError('CAPACITY');}
@@ -190,19 +192,20 @@ export class Rasters {
   // Internal document owner uses the SAME worker/admission/pixel pipeline. It
   // publishes the result only in its atomic image/history acceptance transaction.
   get documentAvailable(){return !this.running&&!this.documentBusy&&!this.closing;}
-  async prepareDocument(body: Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>, id:string, slot:string, check:()=>void, preparedInput?:Asset) {
+  async prepareDocument(body: Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>|{type:'RetainText';source:BlobRef;pixels:BlobRef;width:number;height:number}, id:string, slot:string, check:()=>void, preparedInput?:Asset) {
     if(this.running||this.documentBusy||this.closing)throw new StoreError('QUEUE_FULL');
     this.documentBusy=true;
     const proofs:{ref:BlobRef;token:string}[]=[];
     try {
-      const ids=body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:[body.assetId];
+      const ids=body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'?[body.assetId]:[];
       const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
       for(const assetId of ids){const a=preparedInput?.id===assetId?preparedInput:this.asset(assetId,true);const info=a.raster!;
         for(const ref of [info.pixels,info.manifest])if(!proofs.some(p=>p.ref.hash===ref.hash))proofs.push({ref,token:await this.objects.prove(ref,check)});
         inputs.push({id:assetId,info,path:this.objects.path(info.pixels)});dependencies.push(info.manifest);
       }
       const directory=join(this.directory,randomUUID());privateDirectory(directory);
-      const job:RasterJob=body.type==='ComposeRaster'?{type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies}:{type:'export',directory,input:inputs[0],dependencies};
+      if(body.type==='RetainText')for(const ref of [body.source,body.pixels])proofs.push({ref,token:await this.objects.prove(ref,check)});
+      const job:RasterJob=body.type==='RetainText'?{type:'text',directory,path:this.objects.path(body.pixels),source:body.source,width:body.width,height:body.height,dependencies:[body.source]}:body.type==='ComposeRaster'?{type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies}:{type:'export',directory,input:inputs[0],dependencies};
       const result=await this.compute(job,slot,check);validateManifest(result.manifest);
       if(hashBytes(canonical(result.manifest))!==result.info.manifest.hash)throw new StoreError('CORRUPT_OBJECT');
       for(const p of proofs)this.objects.proven(p.ref,p.token);

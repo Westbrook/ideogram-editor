@@ -1,3 +1,5 @@
+import { blob } from './validate.js';
+import { isTextCommand, textBody } from './text.js';
 import { keys, id, seq, requireValue as ok } from './validate.js';
 import { inverse, extent } from '../raster/core.js';
 import type { Affine } from '../raster/core.js';
@@ -11,11 +13,12 @@ export function layerMask(v: any) {
 }
 export function imageState(v: any): asserts v is ImageState {
   keys(v, ['schemaVersion','width','height','layers']); extent(v.width,v.height);
-  ok(v.schemaVersion === 1 && Array.isArray(v.layers) && v.layers.length <= 100);
+  ok([1,2].includes(v.schemaVersion) && Array.isArray(v.layers) && v.layers.length <= 100);
   const seen = new Set();
   for (const l of v.layers) {
-    keys(l,['id','version','kind','name','assetId','layerToDocument','opacity','visible','locked','blend','mask']);
-    ok(id(l.id) && seq(l.version) && l.kind === 'image' && id(l.assetId) && !seen.has(l.id)); seen.add(l.id);
+    keys(l,['id','version','kind','name','assetId','layerToDocument','opacity','visible','locked','blend','mask',...(l.kind==='text'?['source']:[])]);
+    if(l.kind==='text'){ok(v.schemaVersion===2);blob(l.source);ok(l.source.mediaType==='application/json'&&BigInt(l.source.byteLength)<=65536n);}
+    ok(id(l.id) && seq(l.version) && ['image','text'].includes(l.kind) && id(l.assetId) && !seen.has(l.id)); seen.add(l.id);
     properties({name:l.name,opacity:l.opacity,visible:l.visible,locked:l.locked,mask:l.mask});
     affine(l.layerToDocument); ok(l.blend === 'normal');
   }
@@ -31,6 +34,7 @@ function properties(v: any) {
   }
 }
 export function historyBody(b: any) {
+  if(isTextCommand(b.type)){textBody(b);return;}
   const fields: Record<string,string[]> = {
     ImportAsset:['assetId','layerId','name','draft'], ApplyTransform:['layerId','layerVersion','transform','draft'],
     SetLayerProperties:['layerId','layerVersion','properties','draft'], DeleteLayer:['layerId','layerVersion','draft'],

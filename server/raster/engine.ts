@@ -18,6 +18,7 @@ export const PIPELINE = PIXEL_PIPELINE + '/' + CODEC_ID;
 export const hash = (bytes: Uint8Array | string) => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 export type InputRaster = { id: string; info: RasterInfo; path: string };
 export type RasterJob = { directory: string } & (
+  | { type:'text'; path:string; width:number;height:number; source:BlobRef;dependencies:readonly BlobRef[] }
   | { type: 'decode'; path: string; mediaType: string; original: BlobRef; sourceAssetId: string }
   | { type: 'compose'; width: number; height: number; layers: readonly RasterLayer[]; inputs: readonly InputRaster[]; dependencies: readonly BlobRef[] }
   | { type: 'export'; input: InputRaster; dependencies: readonly BlobRef[] }
@@ -69,7 +70,10 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
   const raw=join(job.directory,'pixels.rgba'),png=join(job.directory,'output.png');
   let width:number,height:number,plan:ResourcePlan,conversion:RasterInfo['conversion']=null,sourceAssetIds:string[],dependencies:readonly BlobRef[],description:unknown;
   let decodeMs=0,computeMs=0;const extra:{name:string;ref:BlobRef}[]=[];
-  if(job.type==='decode'){
+  if(job.type==='text'){
+    ({width,height}=job);plan=resourcePlan(width,height);await admit(plan);dependencies=job.dependencies;sourceAssetIds=[];description={kind:'retained-text',source:job.source};
+    const source=inputFD(job.path),target=openSync(raw,constants.O_CREAT|constants.O_EXCL|constants.O_RDWR|constants.O_NOFOLLOW,0o600);try{const b=Buffer.alloc(MiB);let at=0,n;while((n=readSync(source,b))){check();for(let i=0;i<n;i+=4)if(b[i+3]===0&&(b[i]||b[i+1]||b[i+2]))throw new Error('TEXT_TRANSPARENT_RGB');writeAll(target,b.subarray(0,n),at);at+=n;}if(at!==width*height*4)throw new Error('TEXT_PIXEL_LENGTH');fsyncSync(target);}finally{closeSync(source);closeSync(target);}
+  }else if(job.type==='decode'){
     const container=await inspectContainer(job.path,job.mediaType,check);check();
     plan=resourcePlan(container.width,container.height,true,container.metadataBytes,job.mediaType.slice(6));await admit(plan);check();
     const options={failOn:'warning' as const,limitInputPixels:25000000,sequentialRead:true,ignoreIcc:true};
@@ -124,6 +128,6 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
   const manifestPath=join(job.directory,'manifest.json');writeFileSync(manifestPath,manifestBytes,{flag:'wx',mode:0o600});
   const manifestRef=fileRef(manifestPath,'application/json',check),encodeStart=performance.now();await encodePNG(raw,png,width,height,check);const encodeMs=performance.now()-encodeStart;
   const pngRef=fileRef(png,'image/png',check);
-  const info:RasterInfo={schemaVersion:1,pipeline,width,height,manifest:manifestRef,pixels,pixelIdentity,role:job.type==='decode'?'native':job.type==='compose'?'composite':'export',sourceAssetIds,conversion};
+  const info:RasterInfo={schemaVersion:1,pipeline,width,height,manifest:manifestRef,pixels,pixelIdentity,role:job.type==='decode'?'native':job.type==='compose'||job.type==='text'?'composite':'export',sourceAssetIds,conversion};
   return {files:[{name:'pixels.rgba',ref:pixels},{name:'manifest.json',ref:manifestRef},{name:'output.png',ref:pngRef},...extra],png:pngRef,info,manifest,plan,metrics:{elapsedMs:performance.now()-started,decodeMs,computeMs,encodeMs,rss:process.memoryUsage().rss,maxRSS:process.resourceUsage().maxRSS*1024}};
 }

@@ -1,3 +1,4 @@
+import {textDraft,draftRefs} from '../../src/protocol/text.js';
 import type { DatabaseSync } from 'node:sqlite';
 import type { DraftFence, ImageState } from '../../src/protocol/history.js';
 import type { UICheckpoint, UIRequest, UIReceipt, Preferences } from '../../src/protocol/ui.js';
@@ -64,20 +65,21 @@ export class UIStore {
     if(b?.type==='SetPreferences'){keys(b,['type','preferences']);preferences(b.preferences);}
     else if(b?.type==='SaveDraft'){
       keys(b,['type','draft']);const d=b.draft;keys(d,['id','generation','kind','documentId','targetLayerId','expectedDocumentRevision','assetId','composing']);
-      if(![d.id,d.documentId,d.assetId].every(isId)||!isSeq(d.generation)||!isSeq(d.expectedDocumentRevision)||!(d.targetLayerId===null||isId(d.targetLayerId))||!['prompt','inspector'].includes(d.kind)||typeof d.composing!=='boolean')throw new StoreError('MALFORMED_REQUEST');
+      if(![d.id,d.documentId,d.assetId].every(isId)||!isSeq(d.generation)||!isSeq(d.expectedDocumentRevision)||!(d.targetLayerId===null||isId(d.targetLayerId))||!['prompt','inspector','text'].includes(d.kind)||typeof d.composing!=='boolean')throw new StoreError('MALFORMED_REQUEST');
     }else if(b?.type==='ClearDraft'){keys(b,['type','draftId','generation']);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else if(b?.type==='FocusRequested'){keys(b,['type','target','generation']);if(!['canvas','inspector','history'].includes(b.target)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else throw new StoreError('MALFORMED_REQUEST');
     const request=v as UIRequest,hash=hashBytes(canonical(request));
     const previous=()=>this.db.prepare('SELECT hash,json FROM ui_receipts WHERE client_id=? AND id=?').get(auth.clientId,request.requestId);
     let old=previous();if(old){if(old.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(old.json));}
-    let proof:string|undefined,ref:BlobRef|undefined;
+    let proof:string|undefined,ref:BlobRef|undefined;const extra:{ref:BlobRef;proof:string}[]=[];
     const slot='ui:'+auth.clientId+':'+request.requestId;this.objects.acquire(slot);
     try{
       if(b.type==='SaveDraft'){
         const a=this.assets.asset(b.draft.assetId);
         if(!a||a.qualification!=='opaque-text'||a.safety!=='safe'||a.availability!=='available')throw new StoreError('MISSING_OBJECT');
         ref=a.blob;proof=await this.objects.prove(ref,()=>this.check());
+        if(b.draft.kind==='text'){const v=parseControlJSON(this.objects.verify(ref,true)!);textDraft(v);for(const dep of draftRefs(v)){try{extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(dep===v.textUtf8||!(e instanceof StoreError)||!['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw e;}}}
       }
       this.db.exec('BEGIN IMMEDIATE');
       try{
@@ -87,7 +89,8 @@ export class UIStore {
           const prior=state.drafts.find(d=>d.id===b.draft.id);
           if(prior&&BigInt(b.draft.generation)<=BigInt(prior.generation))reason='STALE_DRAFT_GENERATION';
           else if(!prior&&state.drafts.length>=64)reason='DRAFT_CHECKPOINT_CAPACITY';
-          else{if(ref&&proof){this.objects.proven(ref,proof);this.register('ui:'+auth.clientId+':'+request.sessionId+':'+b.draft.id+':'+b.draft.generation,ref,proof);}
+          else{for(const p of extra){this.objects.proven(p.ref,p.proof);this.register('ui:'+auth.clientId+':'+request.sessionId+':'+b.draft.id+':'+b.draft.generation,p.ref,p.proof);}
+          if(ref&&proof){this.objects.proven(ref,proof);this.register('ui:'+auth.clientId+':'+request.sessionId+':'+b.draft.id+':'+b.draft.generation,ref,proof);}
             state.drafts=state.drafts.filter(d=>d.id!==b.draft.id);state.drafts.push({...b.draft,status:'saved-unapplied'});}
         }else if(!reason&&b.type==='ClearDraft'){
           const prior=state.drafts.find(d=>d.id===b.draftId);if(!prior||prior.generation!==b.generation)reason='STALE_DRAFT_GENERATION';else state.drafts=state.drafts.filter(d=>d.id!==b.draftId);
@@ -101,6 +104,6 @@ export class UIStore {
         this.db.prepare('INSERT INTO ui_receipts VALUES (?,?,?,?)').run(auth.clientId,request.requestId,hash,canonical(receipt));
         this.barrier('ui-before-commit');this.db.exec('COMMIT');this.barrier('ui-after-commit');return receipt;
       }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
-    }finally{if(proof)this.objects.releaseProof(proof);this.objects.release(slot);}
+    }finally{for(const p of extra)this.objects.releaseProof(p.proof);if(proof)this.objects.releaseProof(proof);this.objects.release(slot);}
   }
 }

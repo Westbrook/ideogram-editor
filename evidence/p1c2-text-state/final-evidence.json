@@ -1,0 +1,351 @@
+{
+  "status": "AUTHOR_VERIFIED_REVIEW_REQUIRED",
+  "recordedAt": "2026-09-26T22:19:05.461891+00:00",
+  "task": "51dd7267-8759-49f3-8fa0-cc7414a05ecd",
+  "base": "dcd5f11dbd57cd7ed00c8ddf410857ce4700440e",
+  "branch": "ideogram-editor-p1",
+  "profile": "sha256:b89503d3870ea8397f005457f74df91335041d71cb3698df3eb400c96b6176ee",
+  "gates": [
+    {
+      "file": "34-build.log",
+      "scope": "Server build",
+      "result": "PASS",
+      "sha256": "081503c0fe4ca358591e09b83122ac49494aa57e790aea5e806e0f2c2a0abf15",
+      "lastWriteUTC": "2026-09-26T22:05:55.764964+00:00"
+    },
+    {
+      "file": "35-fixture.log",
+      "scope": "Owned durable browser fixture",
+      "result": "PASS",
+      "sha256": "08f169aa12b95b7e0d3a92993132abce672dc2e170072d2e38ae927edb41ec49",
+      "lastWriteUTC": "2026-09-26T22:05:56.570497+00:00"
+    },
+    {
+      "file": "37-seal-check.log",
+      "scope": "Exact integration profile/native input seal",
+      "result": "PASS",
+      "sha256": "9bb4e8f92274e8866b0ef2a89380291ef99e1019f0271686ae6d477cce3dbe3d",
+      "lastWriteUTC": "2026-09-26T22:06:15.722151+00:00"
+    },
+    {
+      "file": "38-raster-seal.log",
+      "scope": "Existing CP-1 codec/input seal",
+      "result": "PASS",
+      "sha256": "0e5bbbba4aadcafb66dc4a14dd58cfdb6e935f2a2455ec17baae836c26d7cc48",
+      "lastWriteUTC": "2026-09-26T22:06:15.896682+00:00"
+    },
+    {
+      "file": "40-regressions.log",
+      "scope": "Real filesystem/SQLite/process/protocol/image/portable/migration/font regressions: 519/519",
+      "result": "PASS",
+      "sha256": "7e4d9a7e773ce71ced0ff3c72981471047847583b8abea61eb8756c036e32253",
+      "lastWriteUTC": "2026-09-26T22:16:50.093032+00:00"
+    },
+    {
+      "file": "45-final-types.log",
+      "scope": "Consumer/application/server typecheck",
+      "result": "PASS",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "lastWriteUTC": "2026-09-26T22:14:06.665863+00:00"
+    },
+    {
+      "file": "46-final-native.log",
+      "scope": "Chromium, WebKit, Firefox actual native durable text workflows: 3/3",
+      "result": "PASS",
+      "sha256": "67fd69892fffb40d1a3cb13cefa7f45443f6a621f2bbaab41ec0989fb76131c4",
+      "lastWriteUTC": "2026-09-26T22:16:24.835573+00:00"
+    },
+    {
+      "file": "47-stock-serial.log",
+      "scope": "Byte-identical stock native/reset suite, serialized: 42/42",
+      "result": "PASS",
+      "sha256": "09eccd762fc760a7a7d9e2406a33c74c38be0ed384e93241ef603a4c0b05f8f5",
+      "lastWriteUTC": "2026-09-26T22:18:12.742473+00:00"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "server/http.ts",
+      "sha256": "cbbc11fc595404b465cbff5edf3437509540e02ffab36a1628c57efd13965d5d",
+      "bytes": 14400
+    },
+    {
+      "path": "server/portable/closure.ts",
+      "sha256": "6a88ec14228b08bae80f063fc64ebd1db820a3d0a01e879ce4eb781b07828784",
+      "bytes": 13968
+    },
+    {
+      "path": "server/portable/format.ts",
+      "sha256": "a913cb059476c1102af797471d3bca74a3e9c2d74c35e086f3fe6e912d68b685",
+      "bytes": 17888
+    },
+    {
+      "path": "server/protocol.ts",
+      "sha256": "04e19c6d8f92a242d66cd8f840522450611e8f0340da474dca09492a3514c7c5",
+      "bytes": 31648
+    },
+    {
+      "path": "server/raster/engine.ts",
+      "sha256": "b96bee77f6dd82acd53e8879720eb2097c4ebc8cd0a9d8ad339277a4f47f9ad6",
+      "bytes": 15562
+    },
+    {
+      "path": "server/storage/assets.ts",
+      "sha256": "ee6af0acecd89f1b9f0b52eadb553e8db3d1a2fbcaa29fe8deb1489e9c243ad8",
+      "bytes": 28181
+    },
+    {
+      "path": "server/storage/database.ts",
+      "sha256": "0ca2e3a8e956c39694bb45f6c979ba8905edf3099470652f9a4ee7b98db73a15",
+      "bytes": 46284
+    },
+    {
+      "path": "server/storage/history.ts",
+      "sha256": "170b69bb4b3610b80934227ea7bf7f004d3cc047f09d06fe4fd60ec729faebc1",
+      "bytes": 38488
+    },
+    {
+      "path": "server/storage/portable.ts",
+      "sha256": "6474ac7b7748c774c4ebf749fa920c9283fda75a1dc045f3fd808c6efe4470d0",
+      "bytes": 56392
+    },
+    {
+      "path": "server/storage/raster.ts",
+      "sha256": "4a329e5b9e887dfd0464bffce7c141ac1c566d457701d23fe235f8539766ba32",
+      "bytes": 24870
+    },
+    {
+      "path": "server/storage/recovery.ts",
+      "sha256": "99fa50f851932acc86b0c9a9ab01e30c5ee75e74c075e195a58ac6522a880861",
+      "bytes": 25502
+    },
+    {
+      "path": "server/storage/schema.ts",
+      "sha256": "ab88341a351deb97cfc520f52a72b5411a8387dde1f3d8557178ac45f76f5a74",
+      "bytes": 40567
+    },
+    {
+      "path": "server/storage/text.ts",
+      "sha256": "7e392b7a5047c52c894a45ef9707405e4b29480671acabce7e7916e34d4e1fd0",
+      "bytes": 9476
+    },
+    {
+      "path": "server/storage/ui.ts",
+      "sha256": "a6e8a1de10e2702e94e8a9502d1b8cecefb2e91ba9209e1426f000229980c3ea",
+      "bytes": 10266
+    },
+    {
+      "path": "server/storage/worker.ts",
+      "sha256": "575f6bc583c86b86e55be07a551734359b26c183d25b8904466a94615cf5298f",
+      "bytes": 9982
+    },
+    {
+      "path": "server/storage/writer.ts",
+      "sha256": "d0fc523b6cf52fe0b5f6f29789fe6c2eaf03a3e99c845238e3468098b6c58b40",
+      "bytes": 13333
+    },
+    {
+      "path": "server/text/font.ts",
+      "sha256": "0093e9341c3b39e93065fa4ab4736fb0ae46f39314b5fb4af227d5e22d239ade",
+      "bytes": 4425
+    },
+    {
+      "path": "server/text/validation.ts",
+      "sha256": "5893b6e4e529be9455914d25e6cd4a463e50d676df9a6d4ec2ba7d34081e0a1b",
+      "bytes": 8373
+    },
+    {
+      "path": "server/text/worker.ts",
+      "sha256": "bff44a473836e51538e93a1c56363f009a17c48fa18bbe487596576d41d8848f",
+      "bytes": 561
+    },
+    {
+      "path": "src/protocol/assets.ts",
+      "sha256": "6fa568298861bf2d138a77c62a5290562b2cb342e7e36d34d720baaced22e341",
+      "bytes": 2506
+    },
+    {
+      "path": "src/protocol/history-validation.ts",
+      "sha256": "d34555687153a8d031291ddab0eba4655755f7194ddd4beda66ee1d25fa95b50",
+      "bytes": 4387
+    },
+    {
+      "path": "src/protocol/history.ts",
+      "sha256": "536754e91608a7329d22583c22fd97d463bd2e934f2c7138a494c8d9a2f31f27",
+      "bytes": 4483
+    },
+    {
+      "path": "src/protocol/json.ts",
+      "sha256": "2c7c9fd87dd2312bd144418a8ef6239e496c556c435c11eb326de5aa42f5b7c4",
+      "bytes": 4337
+    },
+    {
+      "path": "src/protocol/portable.ts",
+      "sha256": "5d58f3e8076dd691f0fab9fb4a0a483b3583c426e3248723e6c4da94100813a7",
+      "bytes": 1867
+    },
+    {
+      "path": "src/protocol/text.ts",
+      "sha256": "f54a1057aae3e28d6def4536ad4c62d4246bb858682694d5b9723d703cb219cb",
+      "bytes": 7722
+    },
+    {
+      "path": "src/protocol/ui.ts",
+      "sha256": "f18662d6f44506e88e2f993810090210b0d2ad3333e4549379ef32e5feba1986",
+      "bytes": 1644
+    },
+    {
+      "path": "src/protocol/validate.ts",
+      "sha256": "3bd80b798ffa86259b70235bc8efd56898306f5e667f7f301a957a4280037b6f",
+      "bytes": 16313
+    },
+    {
+      "path": "src/state/recovery-client.ts",
+      "sha256": "6720d64ea9a9d24657eeaf43179161465bf818816eb564304c0717ab901d310b",
+      "bytes": 22108
+    },
+    {
+      "path": "src/text/durable.ts",
+      "sha256": "6ba9a8d70373851c7ce8d33271a7ef44ce868409f4f08b8f6a15aff8eb46e0be",
+      "bytes": 5409
+    },
+    {
+      "path": "src/text/profile.json",
+      "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8",
+      "bytes": 14238
+    },
+    {
+      "path": "src/text/retained-profiles/c19791ae.json",
+      "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b",
+      "bytes": 12986
+    },
+    {
+      "path": "tests/assets/storage.test.mjs",
+      "sha256": "a0963584aefb9e8b583f92301bd4531d6152ec0adfe0b90356955cc6034f153b",
+      "bytes": 14164
+    },
+    {
+      "path": "tests/history/schema.test.mjs",
+      "sha256": "09f02217a8218f58b469768c084b94442c820290e418ff24cebcb5ef00acfc09",
+      "bytes": 14596
+    },
+    {
+      "path": "tests/portable/schema.test.mjs",
+      "sha256": "464dfe6c4feee5fbdac4007382fb82507f1ad29d6b32a3f776fc95ded9d822c2",
+      "bytes": 14601
+    },
+    {
+      "path": "tests/portable/transaction-schema.test.mjs",
+      "sha256": "9c1bf820be2648e5b2b6376b872f33f0fb21cea7987585b02199061b307574e7",
+      "bytes": 8310
+    },
+    {
+      "path": "tests/portable/transactions.test.mjs",
+      "sha256": "9c01a748bfd584934f19edf7ad44ad041183ee1d3fbd0c2009faa5cc749a3a7f",
+      "bytes": 8596
+    },
+    {
+      "path": "tests/protocol/recovery.test.mjs",
+      "sha256": "8fc0db92d98ecd108b28e947daada701a2ad86948ecf2aad0ecb3622f3364f3d",
+      "bytes": 9811
+    },
+    {
+      "path": "tests/raster/schema.test.mjs",
+      "sha256": "9e42d4f5e220a121e28e84558961f88bea090f2ee930a1b1964f982ad96978a0",
+      "bytes": 15244
+    },
+    {
+      "path": "tests/raster/storage.test.mjs",
+      "sha256": "38fbcdbdcacbb96da7c7669dbf3ce3b603fdb232e2b6f48b5261b12dffcc75d9",
+      "bytes": 8786
+    },
+    {
+      "path": "tests/session/http.test.mjs",
+      "sha256": "0fdb1a704e87bb091ffd3daee0be62b8b59d45ffe2cf02eaf38d762f46479ebf",
+      "bytes": 16649
+    },
+    {
+      "path": "tests/text-state/CONTRACT.txt",
+      "sha256": "82302b14dab0a9871cf505a7fc147ca369dcf00ed238191730901099e00218fb",
+      "bytes": 5053
+    },
+    {
+      "path": "tests/text-state/app/index.html",
+      "sha256": "3dd9bfc1c5e71c9fa00c3e6c91c500c56036c75c4cca7133102c37113f7e1f99",
+      "bytes": 159
+    },
+    {
+      "path": "tests/text-state/app/main.ts",
+      "sha256": "cc6d93dae6e288dc5ae2f451b972060f2977621f8e81a739a6d6fdb39fef795a",
+      "bytes": 467
+    },
+    {
+      "path": "tests/text-state/font.test.mjs",
+      "sha256": "a1a33bab48737bd867727c83d5f3bd4fd47d03c42a1d6edb7709ead2d1d28f47",
+      "bytes": 3262
+    },
+    {
+      "path": "tests/text-state/helpers.mjs",
+      "sha256": "ff47c9d2c4cbaf1c93cc09aeecdd509f6ada87ecb602cd39378fed97319112be",
+      "bytes": 1949
+    },
+    {
+      "path": "tests/text-state/native.test.mjs",
+      "sha256": "b76096848f3a57c6320ca83823a4033300b2821cc110ee97352df77a72cbed33",
+      "bytes": 17610
+    },
+    {
+      "path": "tests/text-state/prior-writer.mjs",
+      "sha256": "62786c0f34755a0db804cb22b253b8be7dbc3a198c4c173fee99825da9585b45",
+      "bytes": 2339
+    },
+    {
+      "path": "tests/text-state/process-fixture.mjs",
+      "sha256": "39441ef89d455f8a51c8f91ec698808ce070e2668b55e85098773a16489ccb29",
+      "bytes": 463
+    },
+    {
+      "path": "tests/text-state/reverify-stock.mjs",
+      "sha256": "6cb8744868b89bf7c600b7b4ebbae30b67f799f42343152d69259dc509a10a79",
+      "bytes": 1115
+    },
+    {
+      "path": "tests/text-state/schema.test.mjs",
+      "sha256": "862074c53a98ec302a52b6020560c9f13c6716982cddc089d92b39367c035bd1",
+      "bytes": 8278
+    },
+    {
+      "path": "tests/text-state/vite.config.ts",
+      "sha256": "750292ae97544a503f310dec592dcaf4865d3f97918e0ea67584e63ded62b89a",
+      "bytes": 238
+    },
+    {
+      "path": "tooling/text/seal-profile.mjs",
+      "sha256": "1b53ab47cde30cc18357bee4c3761e513bfbcfbdbfb90db5109b033cf0c5e5fe",
+      "bytes": 3827
+    },
+    {
+      "path": "vendor/text/FILES.json",
+      "sha256": "974e82d87efec22208f4def58501be03312d1ac11f2fd7966e8a6c7c1be9b7b8",
+      "bytes": 9994
+    },
+    {
+      "path": "vendor/text/manifest.json",
+      "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8",
+      "bytes": 14238
+    }
+  ],
+  "retainedFailures": {
+    "01-25": "Early syntax/schema/layout/staging/closure defects and their first failing receipts retained alongside corrections. No earlier pass is relabelled.",
+    "27-regressions.log": "498/516; 18 old schema8/PF2/capability expectations. Updated only current-version assertions/legacy fixture document schema; intermediate historical backup checks preserved. Final 40 passed.",
+    "31-native-seal.log": "Expected honest seal failure after required HTTP capability change; exact old profile retained. Distinct integration seal created, no native artifact rebuild.",
+    "36-integration.log": "Recovery bridge omitted response headers; additional simultaneous retained text reservation caused safe import capacity refusal. Tests now close owned text realm before explicit release; caps unchanged.",
+    "39-native.log": "Recovery bridge still lacked immutable content headers; corrected test harness preserves all real response headers.",
+    "41-native-chromium.log": "Hidden edit correctly reused unchanged composite (two events); test corrected to assert the actual complete AssetRegistered/ImageEdited transaction.",
+    "42-native.log": "2/3; Firefox close event observation ordering. Final test awaits actual close before context close, final 46 passed 3/3.",
+    "43-stock.log": "41/42; WebKit preflight saw an existing unrelated download marker before any worker; reset count zero and owned dirty profile retained. No deletion/waiver. Serialized unchanged-fixture 47 passed 42/42; interference cause is not proven."
+  },
+  "reuse": "source-reuse.json binds unchanged original adapters/native input recipe/artifact descriptor, worker/reset test and lockfiles to approved base; only foundation HTTP metadata differed. Changes invalidate only owning affected gates; no P3 RSS/platform/physical IME/AT qualification.",
+  "external": "No git remote, PR or CI run configured; all evidence is local. No provider calls, publishing, default service change, user checkpoint deletion or canonical report file edits.",
+  "handoff": "Independent review required before four points or downstream release. A-R01 remains open. Coordinator task/PR notes bind eventual commit SHA."
+}

@@ -35,7 +35,8 @@ port.on('message', async message => {
     // only an exhausted tail waits for recovery before applying backpressure.
     if ((method==='submit'||method==='assetCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
     else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
-    if (method === 'close') { await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
+    if(method==='textAdmission'){result=args.release?store.texts.releaseAdmission(args.id,args.auth):store.texts.admission(args.id,args.auth);}
+    else if (method === 'close') { await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
     else {
       store.fence(args.epoch);
       switch (method) {
@@ -117,7 +118,8 @@ port.on('message', async message => {
       }
     }
     port.postMessage({ type: 'result', id: message.id, result });
-    if (method === 'close') port.close();
+    if(method==='textAdmission'){result=args.release?store.texts.releaseAdmission(args.id,args.auth):store.texts.admission(args.id,args.auth);}
+    else if (method === 'close') port.close();
   } catch (error) {
     if (workerData.testing && error && typeof error === 'object') {
       const native = error as { code?: unknown; errcode?: unknown };

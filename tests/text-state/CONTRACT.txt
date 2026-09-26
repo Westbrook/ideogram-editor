@@ -1,0 +1,74 @@
+P1c.2 durable text-state integration (review candidate, not qualification)
+
+Stored identities
+FontVersion hashes canonical font bytes reference, face zero, parser policy,
+fsType, reviewed license record and origin. TextVersion hashes normalized UTF-8,
+style/frame/layout policy and ordered exact font versions. TextRenderVersion
+hashes TextVersion, profile manifest, dependency identity, complete native layout,
+canonical RGBA bytes, dimensions, overflow and resolved font versions. Text layer
+source points to an immutable TextSource. Font substitution is ReplaceTextFont
+with a reviewed dependency hash and a new history node; old source never changes.
+
+Writer/event boundary
+ImportFont and all named text actions use the existing sole writer preparation
+queue, exact command/transaction identities and atomic receipt/event/projection
+commit. The generic ImageEdited event and image-edit history discriminator now
+carry text operations and schema2 layer states as well as image operations.
+Schema9, projection4 and PF3 make that semantic expansion explicit to readers.
+The migration retains a verified schema8 database and names actual approved dcd5f11
+as its compatible executable. PF1/PF2 readers receive an unsupported-version
+inspection result for PF3. Unknown text/font/profile/layout versions are retained
+read-only on import. No prior event or user checkpoint is rewritten.
+
+A saved TextDraft has immutable text/style/frame/font references. Apply fences
+its exact content and generation, document/layer revision, live session/epoch,
+renderer profile and (for reflow) reviewed dependency identity, both before work
+and in the acceptance transaction. Empty existing text is committed as an empty
+render. Empty new text refuses without a history node. Lock and layer identity
+rules remain authoritative. One text Apply is one undo node/transaction.
+
+Appearance and closure
+Replay/undo/redo/restart use saved raster bytes without shaping. Missing historical
+font bytes do not disable exact saved pixels/export. Affected reflow and complete
+project copies require every exact dependency. Current/hidden/branch/checkpoint
+sources, layouts, font bytes/licenses/profile manifests, current drafts and imported
+font records participate in copy/import/re-export and the retained-byte inventory.
+A raster derivative adds an image layer and preserves editable text; source hiding
+is explicit. Existing transform/crop paths retain source; intrinsic resampling
+requires an explicit raster derivative. Broad UI is not part of this slice.
+
+Prepared ownership and resource handoff
+DurableTextPreparation consumes actual foundation PreparedText; it never returns
+the owning Blobs. It stages exact hashes and releasesPrepared only after successful
+consumption or dropping a stale/cancelled result. Idle engines, loader fonts and
+caller leases remain in the foundation realm ledger. Every controller in a realm
+shares one 128MiB envelope persisted by the writer; the existing textMemory ledger
+books the complementary 384MiB. Backend font/raster reservations and the realm
+envelope participate in one 512MiB admission check. Renewal updates the same realm
+record; disconnect/restart/timeouts do not refund uncertain browser ownership.
+releaseTextRealm requires all text leases and preparations to be gone; callers
+must dispose renderers and release loader/caller ownership before invoking it.
+Failed initial admission refunds only a provably empty new realm.
+The storage callback must stream staging in chunks of at most 1MiB within the
+adapter's 3MiB upload scratch reservation; retaining another full Blob copy needs
+a separate caller reservation. Closing a proven owned realm is a lifecycle
+boundary, not evidence of immediate physical native deallocation.
+These are conservative owned-allocation reservations and process admission guards,
+not physical native finalization or P3 peak-RSS qualification. No cap is raised.
+The approved renderer algorithm and native artifact are unchanged. The integration
+profile reseals HTTP capability metadata and the new durable adapter/validators;
+its predecessor is the exact approved dcd5f11/c197 profile retained in evidence. Test contexts observe
+real worker close before closing their isolated origins; no OPFS reset is invoked.
+The foundation's ownedOPFS clean-origin/reset contract remains untouched.
+
+Reverify from repository root using pinned .toolchain/bin in PATH:
+npm run typecheck
+npm run build:server
+npx vite build --config tests/text-state/vite.config.ts
+TEXT_STATE_ENGINES=chromium,webkit,firefox node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/text-state/*.test.mjs
+npm run verify:text
+node tests/text-state/reverify-stock.mjs artifacts/p1c2/stock-UNIQUE-RUN
+Affected existing tests: assets, history, portable, protocol, raster, session,
+store suites, plus browser recovery/history consumers. Keep earlier failures.
+Native build is reusable only while profile, native inputs, patches, lockfiles,
+loader/client/admission/font/memory/worker and fixture reset sources stay exact.

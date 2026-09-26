@@ -64,6 +64,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   let closePromise: Promise<void> | undefined;
   return {
     root: owner.path, epoch,
+    textAdmission:(id:string,auth:AssetAuth,release=false)=>request<{id:string;bytes:number}>('textAdmission',{id,auth,release}),
     get available() { return !ended && !closing; },
     async submit(bytes: Uint8Array, writerEpoch: string): Promise<Receipt> {
       if (!(bytes instanceof Uint8Array)) throw new StoreError('MALFORMED_REQUEST');

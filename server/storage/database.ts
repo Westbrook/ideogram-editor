@@ -1,3 +1,4 @@
+import { Texts } from './text.js';
 import { Portables, projectNamespace, type PortableCommit } from './portable.js';
 import { closeSync, lstatSync, statfsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,7 +18,7 @@ import type { AssetFact } from '../../src/protocol/assets.js';
 import { Histories } from './history.js';
 import type { HistoryCommit } from './history.js';
 import { UIStore } from './ui.js';
-import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema } from './schema.js';
 import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
@@ -50,6 +51,7 @@ export class StoreDatabase {
   readonly rasters: Rasters;
   readonly histories: Histories;
   readonly ui: UIStore;
+  readonly texts: Texts;
   readonly portables: Portables;
   private databaseIdentity;
   private rootIdentity;
@@ -70,7 +72,7 @@ export class StoreDatabase {
     try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
     finally { reader.close(); }
     // Unknown future roots are inspected with a read-only connection only.
-    if (![0,1,2,3,4,5,6,7,8].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+    if (![0,1,2,3,4,5,6,7,8,9].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
       kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
     });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
@@ -91,19 +93,13 @@ export class StoreDatabase {
       historySchema(this.db, root, barrier, options.quotaBytes,version===0);
       portableSchema(this.db, root, barrier, options.quotaBytes,version===0);
       portableTransactionSchema(this.db, root, barrier, options.quotaBytes,version===0);
+      textSchema(this.db, root, barrier, options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
       this.recovery = new RecoveryStore(this.db, this.objects, this.path, barrier, () => this.fence(this.epoch));
       this.rebuild();
-      for (const row of this.db.prepare('SELECT DISTINCT o.hash, o.byte_length, r.media_type FROM roots r JOIN objects o ON r.hash=o.hash').iterate()) {
-        try { this.objects.verify({ hash: String(row.hash), byteLength: String(row.byte_length), mediaType: String(row.media_type) }); }
-        catch (error) {
-          if (!(error instanceof StoreError) || !['MISSING_OBJECT', 'CORRUPT_OBJECT'].includes(error.code)) throw error;
-          this.missingCount++;
-          if (this.missing.length < 100) this.missing.push({ hash: String(row.hash), code: error.code });
-        }
-      }
+      this.scanMissing();
       this.db.exec('BEGIN IMMEDIATE');
       this.epoch = String(BigInt(this.meta('writerEpoch')) + 1n);
       this.setMeta('writerEpoch', this.epoch);
@@ -113,9 +109,12 @@ export class StoreDatabase {
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.rasters=new Rasters(this.db,this.objects,this.assets,root,this.epoch,()=>this.fence(this.epoch),barrier,
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.texts=new Texts(this.db,this.objects,this.assets,this.epoch);
+      this.rasters.externalCPU=()=>this.texts.externalBytes()+this.texts.reservedCPU;
+      this.texts.backendCPU=()=>this.rasters.reservedBytes;
       this.ui=new UIStore(this.db,this.objects,this.assets,()=>this.fence(this.epoch),barrier,id=>this.histories.state(id),(owner,ref,proof)=>this.register(owner,ref,proof));
-      this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitHistory(bytes,build),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
-      this.portables=new Portables(this.db,this.objects,this.assets,this.rasters,root,this.epoch,()=>this.fence(this.epoch),barrier,(bytes,build,slot)=>this.commitPortable(bytes,build,slot),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,this.texts,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitHistory(bytes,build),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.portables=new Portables(this.db,this.objects,this.assets,this.rasters,this.texts,root,this.epoch,()=>this.fence(this.epoch),barrier,(bytes,build,slot)=>this.commitPortable(bytes,build,slot),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();this.histories.schedule();this.portables.schedule();});
       if (options.maxPageCount !== undefined) {
         if (!Number.isSafeInteger(options.maxPageCount) || options.maxPageCount < 1) throw new Error('Invalid test page limit');
@@ -372,6 +371,17 @@ export class StoreDatabase {
       throw error;
     }
   }
+  private scanMissing(){
+    this.missingCount=0;this.missing=[];
+      for (const row of this.db.prepare('SELECT DISTINCT o.hash, o.byte_length, r.media_type FROM roots r JOIN objects o ON r.hash=o.hash').iterate()) {
+        try { this.objects.verify({ hash: String(row.hash), byteLength: String(row.byte_length), mediaType: String(row.media_type) }); }
+        catch (error) {
+          if (!(error instanceof StoreError) || !['MISSING_OBJECT', 'CORRUPT_OBJECT'].includes(error.code)) throw error;
+          this.missingCount++;
+          if (this.missing.length < 100) this.missing.push({ hash: String(row.hash), code: error.code });
+        }
+      }
+  }
   private assertPendingIdentity(id:string,hash:string):void {
     // The acceptance transaction owns this check. HTTP prechecks can race another
     // request that durably reserves the ID while this command is queued.
@@ -384,7 +394,7 @@ export class StoreDatabase {
     try {
       const previous=this.lookup(c.commandId);if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return previous.receipt;}
       this.assertPendingIdentity(c.commandId,hash);
-      if(this.missingCount)throw new StoreError('CORRUPT_STORE');
+      if(this.missingCount)this.scanMissing();
       let receipt:Receipt;
       // A savepoint prevents a rejected builder from publishing partial indexes.
       this.db.exec('SAVEPOINT asset_effect');
@@ -422,7 +432,7 @@ export class StoreDatabase {
     const start=performance.now();this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try {
       const prior=this.lookup(c.commandId);if(prior){if(prior.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return prior.receipt;}
-      this.assertPendingIdentity(c.commandId,hash);if(this.missingCount)throw new StoreError('CORRUPT_STORE');
+      this.assertPendingIdentity(c.commandId,hash);
       let receipt:Receipt;const current=c.documentId?this.document(c.documentId):null;
       this.db.exec('SAVEPOINT history_effect');
       try {
@@ -459,7 +469,7 @@ export class StoreDatabase {
     this.fence(this.epoch);const request=parseCommand(bytes),c=request.command,serialized=canonical(request),hash=hashBytes(serialized);
     this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try{const prior=this.lookup(c.commandId);if(prior){if(prior.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return prior.receipt;}
-      this.assertPendingIdentity(c.commandId,hash);if(this.missingCount)throw new StoreError('CORRUPT_STORE');let receipt:Receipt;
+      this.assertPendingIdentity(c.commandId,hash);let receipt:Receipt;
       this.db.exec('SAVEPOINT portable_effect');
       try{
         const expected=parseExpected(this.objects.verify(c.expectedEntityVersions,true)!);if(c.expectedEntityVersions.mediaType!=='application/json'||canonical(expected)!==Buffer.from(this.objects.verify(c.expectedEntityVersions,true)!).toString())throw new AssetRejection('INVALID_INPUT','INVALID_VERSION_MAP');
