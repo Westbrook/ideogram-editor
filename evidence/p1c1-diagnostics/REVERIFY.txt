@@ -1,0 +1,26 @@
+P1c.1 affected-codepoint correction — reproducible handoff
+
+Executed source: e78e1e733a92901e0c717085d74ef60f816e1706.
+The final evidence successor has identical runtime/test inputs, checked in source-identity.json.
+Create a new detached checkout of that final exact commit. Use a task-owned parent directory.
+Copy evidence/p1c1-diagnostics/controls-v4.mjs to the checkout parent (../controls-v4.mjs).
+Keep the original rejected review and all existing services/evidence unchanged.
+
+python3 tooling/bootstrap-toolchain.py
+export PATH="$PWD/.toolchain/bin:$PATH"
+npm ci
+npm run verify:text
+npm run typecheck
+npm run build
+npx vite build --config tests/text/vite.config.ts
+node ../controls-v4.mjs chromium missing-glyph
+node ../controls-v4.mjs webkit missing-glyph
+node ../controls-v4.mjs firefox missing-glyph
+TEXT_RECEIPT=../review-browser-webkit npx playwright test --config tests/text/playwright.config.ts --project=webkit
+TEXT_RECEIPT=../review-browser-chromium npx playwright test --config tests/text/playwright.config.ts --project=chromium
+TEXT_RECEIPT=../review-browser-firefox npx playwright test --config tests/text/playwright.config.ts --project=firefox
+
+Run engines serially with unique receipt paths. These are bounded correctness checks, not a timing/resource campaign.
+Source-qualified native/host reuse: source-identity.json pins unchanged owning inputs; summary.json names existing author native and host/session receipts. Native/recipe modification requires its own reproduction.
+Original review diagnostic subset and mistaken v1/v2 helper history are exact archived bytes, not relabelled passes. Raw current logs include timestamps, command, cwd, source SHA and toolchain path; initial Chromium focus is separate.
+Current native glyph-zero ranges use UTF8 shape offsets and UTF16 native graphemes, including RTL and supplementary mappings. Native getGlyphInfoAt plus scalar boundary checks determine ranges; no manual TAB list, glyph substitution, normalized text, narrowed input or capped layout is used.

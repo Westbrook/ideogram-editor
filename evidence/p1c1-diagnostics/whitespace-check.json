@@ -1,0 +1,12 @@
+{
+  "allStaged": {
+    "exitCode": 2,
+    "stdout": "evidence/p1c1-diagnostics/source.patch:75: trailing whitespace.\n+ \n",
+    "stderr": ""
+  },
+  "authoredSource": {
+    "command": "git diff --check b7998c3 e78e1e7",
+    "exitCode": 0
+  },
+  "disposition": "The only staged whitespace warning is an intentional original unified-diff blank context line in source.patch; preserve this raw source evidence unchanged."
+}

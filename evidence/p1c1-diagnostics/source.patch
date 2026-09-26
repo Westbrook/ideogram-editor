@@ -1,0 +1,152 @@
+diff --git a/src/text/engine.ts b/src/text/engine.ts
+index dfa38b5..5435914 100644
+--- a/src/text/engine.ts
++++ b/src/text/engine.ts
+@@ -152,12 +152,39 @@ export async function prepareText(request: TextRequest, ck: Kit): Promise<Prepar
+         if (!shaped) fail('TEXT_LAYOUT_BUDGET');
+         const runs: unknown[] = [];
+         try {
++          // The native unresolved list excludes some controls. If such a
++          // character still produces glyph zero, retain the existing refusal
++          // but identify only its native source grapheme, not the paragraph.
++          // Visitor offsets are UTF-8 (including RTL runs); glyph-info ranges
++          // are UTF-16 and may cover multiple scalars in one affected cluster.
++          const missingRanges = new Map<number, {startUtf16: number; endUtf16: number; startUtf8: number; endUtf8: number}>();
++          for (const line of shaped) for (const run of line.runs) {
++            for (let i = 0; i < run.glyphs.length; i++) if (run.glyphs[i] === 0) {
++              const index = utf16(run.offsets[i]) - start16;
++              const glyph = paragraph.getGlyphInfoAt(index);
++              if (!glyph || glyph.isEllipsis) fail('TEXT_CLUSTER_UNAVAILABLE', { utf16: start16 + index });
++              const {start, end} = glyph.graphemeClusterTextRange;
++              if (!(start <= index && index < end)) fail('TEXT_CLUSTER_INDEX');
++              const startUtf8 = utf8(start), endUtf8 = utf8(end);
++              missingRanges.set(start, {startUtf16: start16 + start, endUtf16: start16 + end, startUtf8, endUtf8});
++            }
++          }
++          if (missingRanges.size) {
++            const ranges = [...missingRanges.values()].sort((a,b) => a.startUtf16-b.startUtf16);
++            const codepoints = new Set<number>();
++            let range = 0;
++            for (const scalar of local.scalars) {
++              const index = start16 + scalar.utf16;
++              while (range < ranges.length && index >= ranges[range].endUtf16) range++;
++              if (range < ranges.length && index >= ranges[range].startUtf16) codepoints.add(scalar.codepoint);
++            }
++            fail('TEXT_MISSING_GLYPHS', { codepoints: [...codepoints].sort((a,b) => a-b), ranges });
++          }
+           for (const line of shaped) for (const run of line.runs) {
+             glyphBudget -= run.glyphs.length; runBudget--;
+             const fontHash = faces.find(f => run.typeface?.isAliasOf(f.face))?.hash;
+             if (!fontHash) fail('TEXT_UNRESOLVED_RUN_FONT');
+             if (run.fakeBold || run.fakeItalic) fail('TEXT_SYNTHETIC_FACE');
+-            if (run.glyphs.some(g => g === 0)) fail('TEXT_MISSING_GLYPHS', { codepoints: local.scalars.map(s => s.codepoint) });
+             const offsets = Array.from(run.offsets);
+             const font = new ck.Font(run.typeface, run.size);
+             let inkBounds: number[][];
+diff --git a/src/text/profile.json b/src/text/profile.json
+index 4224252..fc584ff 100644
+--- a/src/text/profile.json
++++ b/src/text/profile.json
+@@ -277,8 +277,8 @@
+     },
+     {
+       "path": "src/text/engine.ts",
+-      "bytes": 16335,
+-      "sha256": "1ce61d04581b2794fae39805cac162b9bb55f32dd8dd1bdfdeef91c0aa070e2f"
++      "bytes": 18097,
++      "sha256": "d442af366266d825f1f8703bb7387c1204b449a4a1538a5fd78e8e444a274d6a"
+     },
+     {
+       "path": "src/text/font.ts",
+@@ -338,5 +338,5 @@
+       "sha256": "a3363488527e40d81ef4f1723b6f84011006846b10f88c206ae43cdfdd0366f6"
+     }
+   ],
+-  "id": "sha256:cfef264028e9e3076165f1370cf9b87db4c6c9690a25c82e1ffa2fbaa22641a1"
++  "id": "sha256:c19791aedcddd732ebcd95ee0b375415d7a1ef96f72d847ad7359f100799ac1e"
+ }
+diff --git a/tests/text/renderer.spec.ts b/tests/text/renderer.spec.ts
+index b7f5f88..0c1b93b 100644
+--- a/tests/text/renderer.spec.ts
++++ b/tests/text/renderer.spec.ts
+@@ -102,6 +102,45 @@ test('CPU straight alpha, fractional clip, wrapping, empty text and explicit dir
+   await info.attach('pixel-controls',{body:JSON.stringify(Object.fromEntries(Object.entries(output).map(([k,v]:[string,any])=>[k,{...v,pixels:undefined}]))),contentType:'application/json'});
+ });
+ 
++test('missing diagnostics identify native affected spans without blaming supported clusters',async({page},info)=>{
++  const result=await page.evaluate(async()=>{
++    const f=(window as any).textFixture, fonts=['NotoSans','NotoSansArabic','NotoSansSymbols2'];
++    const saved=await f.renderer.prepare(await f.request('office A\u0301 🂡 مرحبا',fonts));
++    const beforeHash=await f.hashBytes(saved.rgba), rows=[];
++    for(const [text,expected] of [
++      ['A\tB',[9]], ['A\tB\tC',[9]], ['A\u0301🂡\tB',[9]],
++      ['مرحبا\tعالم',[9]], ['AB\n🂡A\u0301\tB',[9]],
++      ['A\u0301🂡𝄞B',[0x1d11e]], ['A中🂡文B',[0x4e2d,0x6587]],
++    ] as [string,number[]][]){
++      const request=await f.request(text,fonts);
++      try{const p=await f.renderer.prepare(request);rows.push({text,expected,accepted:true});f.releasePrepared(p);}
++      catch(e:any){rows.push({text,expected,code:e.code,details:e.details,unchanged:request.text===text});}
++    }
++    // Native handling of standalone/control/format text is preserved; these
++    // checks do not invent a tab width or require standalone TAB refusal.
++    const controls=[];
++    for(const text of ['AB','\t','A\u200bB','A\u2067مرحبا\u2069B']){
++      const p=await f.renderer.prepare(await f.request(text,fonts));
++      controls.push({text,retained:await p.textUtf8.text()});f.releasePrepared(p);
++    }
++    const afterHash=await f.hashBytes(saved.rgba);f.releasePrepared(saved);f.renderer.dispose();
++    return{rows,controls,beforeHash,afterHash};
++  });
++  await info.attach('affected-codepoint-diagnostics',{body:JSON.stringify(result),contentType:'application/json'});
++  expect(result.afterHash).toBe(result.beforeHash);
++  for(const row of result.rows){
++    expect(row.code,row.text).toBe('TEXT_MISSING_GLYPHS');expect(row.details.codepoints,row.text).toEqual(row.expected);
++    expect(row.unchanged).toBe(true);
++    if(row.text.includes('\t')){
++      const ranges=[];
++      for(let i=0;i<row.text.length;i++)if(row.text[i]==='\t')ranges.push({startUtf16:i,endUtf16:i+1,
++        startUtf8:new TextEncoder().encode(row.text.slice(0,i)).length,endUtf8:new TextEncoder().encode(row.text.slice(0,i+1)).length});
++      expect(row.details.ranges,row.text).toEqual(ranges);
++    }
++  }
++  for(const row of result.controls)expect(row.retained).toBe(row.text);
++});
++
+ test('missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation',async({page},info)=>{
+   await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
+   const results=await page.evaluate(async()=>{
+diff --git a/vendor/text/FILES.json b/vendor/text/FILES.json
+index 0d72730..a5261ef 100644
+--- a/vendor/text/FILES.json
++++ b/vendor/text/FILES.json
+@@ -187,7 +187,7 @@
+   {
+     "path": "vendor/text/manifest.json",
+     "bytes": 12986,
+-    "sha256": "ef292b6a656bcf5408a95632dc3a7c67cbd94dfdc61c92f697a87951642c3277"
++    "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b"
+   },
+   {
+     "path": "vendor/text/notices/Brotli-LICENSE",
+diff --git a/vendor/text/manifest.json b/vendor/text/manifest.json
+index 4224252..fc584ff 100644
+--- a/vendor/text/manifest.json
++++ b/vendor/text/manifest.json
+@@ -277,8 +277,8 @@
+     },
+     {
+       "path": "src/text/engine.ts",
+-      "bytes": 16335,
+-      "sha256": "1ce61d04581b2794fae39805cac162b9bb55f32dd8dd1bdfdeef91c0aa070e2f"
++      "bytes": 18097,
++      "sha256": "d442af366266d825f1f8703bb7387c1204b449a4a1538a5fd78e8e444a274d6a"
+     },
+     {
+       "path": "src/text/font.ts",
+@@ -338,5 +338,5 @@
+       "sha256": "a3363488527e40d81ef4f1723b6f84011006846b10f88c206ae43cdfdd0366f6"
+     }
+   ],
+-  "id": "sha256:cfef264028e9e3076165f1370cf9b87db4c6c9690a25c82e1ffa2fbaa22641a1"
++  "id": "sha256:c19791aedcddd732ebcd95ee0b375415d7a1ef96f72d847ad7359f100799ac1e"
+ }

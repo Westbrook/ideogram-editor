@@ -1,0 +1,305 @@
+{
+  "at": "2026-09-26T21:33:33.492275+00:00",
+  "task": "37acc962-c349-497b-977c-71c881390331",
+  "status": "AUTHOR correction verification complete; review_required; exact evidence successor recorded in task/PR handoff",
+  "branch": "ideogram-editor-p1",
+  "approvedBase": "b3173ff73707eb2e9595be6c941c2afc3df1093c",
+  "rejectedPredecessor": "b7998c35299ebc32c3c5e5544c8b5cbbdbd322c5",
+  "executedSourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+  "profile": "sha256:c19791aedcddd732ebcd95ee0b375415d7a1ef96f72d847ad7359f100799ac1e",
+  "changedFiles": [
+    "src/text/engine.ts",
+    "src/text/profile.json",
+    "tests/text/renderer.spec.ts",
+    "vendor/text/FILES.json",
+    "vendor/text/manifest.json"
+  ],
+  "correction": "Glyph zero fallback refusal uses native visitor UTF8 index and native glyph-info UTF16 grapheme range to collect affected source scalars/ranges. Existing native unresolved list, complete input/rendering, font identity and caps remain unchanged. No new TAB rendering/width policy.",
+  "gates": [
+    {
+      "command": [
+        "python3",
+        "tooling/bootstrap-toolchain.py"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:30:36.960837+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/01-bootstrap",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:30:41.899575+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "ci"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:30:45.815554+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/02-install",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:30:49.445976+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify:text"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:30:49.498615+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/03-verify",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:30:50.379072+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:30:50.433643+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/04-types",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:30:53.035572+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:30:53.089440+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/05-build",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:30:57.494312+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npx",
+        "vite",
+        "build",
+        "--config",
+        "tests/text/vite.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:30:57.542554+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/06-fixture",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:30:58.795777+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "../controls-v4.mjs",
+        "chromium",
+        "missing-glyph"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:31:04.087838+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/07-controls-chromium",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:31:06.148397+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "../controls-v4.mjs",
+        "webkit",
+        "missing-glyph"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:31:06.191341+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/08-controls-webkit",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:31:07.792585+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "../controls-v4.mjs",
+        "firefox",
+        "missing-glyph"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:31:07.836227+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/09-controls-firefox",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:31:09.957468+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/text/playwright.config.ts",
+        "--project=webkit"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:31:13.792130+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/10-stock-webkit",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:31:27.523777+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/text/playwright.config.ts",
+        "--project=chromium"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:31:27.566134+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/11-stock-chromium",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:31:38.315377+00:00",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/text/playwright.config.ts",
+        "--project=firefox"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source",
+      "start": "2026-09-26T21:31:38.360690+00:00",
+      "sourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+      "TEXT_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/browser/12-stock-firefox",
+      "PATH_prefix": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-diagnostic-e78e1e7/source/.toolchain/bin",
+      "end": "2026-09-26T21:31:53.354701+00:00",
+      "exitCode": 0
+    }
+  ],
+  "stockRendererChecks": [
+    {
+      "engine": "webkit",
+      "stats": {
+        "startTime": "2026-09-26T21:31:14.526Z",
+        "duration": 12979.348,
+        "expected": 14,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "engine": "chromium",
+      "stats": {
+        "startTime": "2026-09-26T21:31:28.111Z",
+        "duration": 10188.557999999999,
+        "expected": 14,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "engine": "firefox",
+      "stats": {
+        "startTime": "2026-09-26T21:31:38.927Z",
+        "duration": 14411.206,
+        "expected": 14,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "externalControls": "3/3 sealed controls-v4 missing-glyph author executions PASS",
+  "initialCheck": "1 Chromium focused author regression PASS before fresh checkout; raw retained separately",
+  "sourceIdentity": "source-identity.json",
+  "rawArchive": "raw-author-receipts.tar.gz",
+  "historyArchive": "reviewer-diagnostic-history.tar.gz",
+  "reusedUnchangedHostSessionGates": [
+    {
+      "name": "host",
+      "command": [
+        "node",
+        "--test",
+        "tests/text/host.test.mjs"
+      ],
+      "at": "2026-09-26T20:54:59.697214+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/custom-clean-host.txt"
+    },
+    {
+      "name": "session",
+      "command": [
+        "npm",
+        "run",
+        "test:session"
+      ],
+      "at": "2026-09-26T20:55:00.393825+00:00",
+      "exitCode": 0,
+      "log": "evidence/p1c1/custom-clean-session.txt"
+    }
+  ],
+  "reusedNativeRebuild": {
+    "at": "2026-09-26T21:05:55.986514+00:00",
+    "scope": "custom.3 fresh output directory, same pinned source/tool closure; not independently reacquired toolchain or cross-host reproducibility",
+    "results": [
+      {
+        "part": "js",
+        "bytes": 73594,
+        "first": "867b8ff817783c7554485dcf5b11b6f9de878178a14236b0e81305418fb1189f",
+        "freshOutput": "867b8ff817783c7554485dcf5b11b6f9de878178a14236b0e81305418fb1189f",
+        "equal": true
+      },
+      {
+        "part": "wasm",
+        "bytes": 4979358,
+        "first": "26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19",
+        "freshOutput": "26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19",
+        "equal": true
+      }
+    ]
+  },
+  "nativeRebuildReuseReason": "Native JS/WASM, recipe, source closure, tools, fonts and owning package inputs exactly unchanged from b7998c3. No native rebuild during this adapter-only correction; previous author custom.3 exact reproduction remains source-qualified. Independent predecessor review separately verified same native bytes from reacquired sources on same host; its overall verdict remains NOT APPROVED.",
+  "limits": [
+    "All new executions are AUTHOR; no independent successor acceptance or P1c credit.",
+    "A-R01 remains open; logical reservation checks do not qualify process RSS, broad resources, timing or platform/IME/AT behavior.",
+    "External focused v4 WebKit/Firefox worker close observations are false; context/browser close completed but no reset was performed. These observations are not native-close receipts. Dedicated supplied storage gates are separate and retain their actual close/reset evidence.",
+    "No writer/schema/UI/provider/service/default/branch changes. Existing evidence/p1c1 and original reviewer directory remain unchanged.",
+    "Native unresolvedCodepoints retains its upstream affected-cluster semantics; new ranges are the native glyph-zero fallback graphemes, not a per-codepoint cmap coverage claim."
+  ],
+  "newFailures": [],
+  "whitespaceCheck": {
+    "allStaged": {
+      "exitCode": 2,
+      "stdout": "evidence/p1c1-diagnostics/source.patch:75: trailing whitespace.\n+ \n",
+      "stderr": ""
+    },
+    "authoredSource": {
+      "command": "git diff --check b7998c3 e78e1e7",
+      "exitCode": 0
+    },
+    "disposition": "The only staged whitespace warning is an intentional original unified-diff blank context line in source.patch; preserve this raw source evidence unchanged."
+  }
+}

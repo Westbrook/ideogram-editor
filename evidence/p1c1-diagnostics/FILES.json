@@ -1,0 +1,67 @@
+{
+  "at": "2026-09-26T21:34:10.326174+00:00",
+  "executedSourceCommit": "e78e1e733a92901e0c717085d74ef60f816e1706",
+  "profile": "sha256:c19791aedcddd732ebcd95ee0b375415d7a1ef96f72d847ad7359f100799ac1e",
+  "files": [
+    {
+      "path": "evidence/p1c1-diagnostics/REVERIFY.txt",
+      "bytes": 2025,
+      "sha256": "54689b7c78378a5a8f030a9f5c93684b456ada34010339ea72db187b5f2a7055"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/controls-v4.mjs",
+      "bytes": 11111,
+      "sha256": "fdd7bf92eb8c389f05c84f72a7bc6424be6110e101085ae0fdd4a91050fb23e1"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/diagnostics.json",
+      "bytes": 11115,
+      "sha256": "5420dc821b77c04a983cbc76e9569e180acc60a200962cb7dc3c2c1785a73773"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/external-controls.json",
+      "bytes": 8359,
+      "sha256": "2593dbe061e917a71f429aa8d9c482e733b6e4bdae2838b2f53965f22df68085"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/native-storage-reset.json",
+      "bytes": 8023,
+      "sha256": "eeef404330c68c61409b27c6c8bc2a50f27a4503922525fd86be12870b6346a9"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/preserved-reviewer-history.json",
+      "bytes": 2923,
+      "sha256": "380fc7d28d036b5182cacbd1518a8d8b4bf099fc41bf806f9b10029ce1ed6dff"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/raw-author-receipts.tar.gz",
+      "bytes": 78847,
+      "sha256": "4b82cd860405e7ac12e57e63f9769b43d060cb4242d00cda4dd645041cbbec3b"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/reviewer-diagnostic-history.tar.gz",
+      "bytes": 61280,
+      "sha256": "72baddad32fdd66d72a4fac527d15482dc7602e42305071c5f8fbb5c37ef41ed"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/source-identity.json",
+      "bytes": 98886,
+      "sha256": "bbbb621fc48506c7581527cc767f54fc292abaa2bc54ad4e08ef14f814531a0b"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/source.patch",
+      "bytes": 7994,
+      "sha256": "78fc470cb8f092d505e3f30a0160993772074ef5dbd3cdbcfc0e7492a6e860a3"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/summary.json",
+      "bytes": 12907,
+      "sha256": "e1b379cbe30e6ad17c77c8684e202007ba27c4d278d9acc32f5ac0bf4396d6ae"
+    },
+    {
+      "path": "evidence/p1c1-diagnostics/whitespace-check.json",
+      "bytes": 420,
+      "sha256": "8128e6208a6b188f678a989c3af39e1f0dd60557a117172ffcd9e18832a0e59d"
+    }
+  ]
+}

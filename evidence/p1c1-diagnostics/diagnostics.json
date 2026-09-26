@@ -1,0 +1,500 @@
+[
+  {
+    "engine": "webkit",
+    "attachment": {
+      "rows": [
+        {
+          "text": "A\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 1,
+                "endUtf16": 2,
+                "startUtf8": 1,
+                "endUtf8": 2
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "A\tB\tC",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 1,
+                "endUtf16": 2,
+                "startUtf8": 1,
+                "endUtf8": 2
+              },
+              {
+                "startUtf16": 3,
+                "endUtf16": 4,
+                "startUtf8": 3,
+                "endUtf8": 4
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "Á🂡\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 4,
+                "endUtf16": 5,
+                "startUtf8": 7,
+                "endUtf8": 8
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "مرحبا\tعالم",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 5,
+                "endUtf16": 6,
+                "startUtf8": 10,
+                "endUtf8": 11
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "AB\n🂡Á\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 7,
+                "endUtf16": 8,
+                "startUtf8": 10,
+                "endUtf8": 11
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "Á🂡𝄞B",
+          "expected": [
+            119070
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              119070
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "A中🂡文B",
+          "expected": [
+            20013,
+            25991
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              20013,
+              25991
+            ]
+          },
+          "unchanged": true
+        }
+      ],
+      "controls": [
+        {
+          "text": "AB",
+          "retained": "AB"
+        },
+        {
+          "text": "\t",
+          "retained": "\t"
+        },
+        {
+          "text": "A​B",
+          "retained": "A​B"
+        },
+        {
+          "text": "A⁧مرحبا⁩B",
+          "retained": "A⁧مرحبا⁩B"
+        }
+      ],
+      "beforeHash": "sha256:ea19360597f4c6bf0118219cfb321e990b6541fe92fccd4358e28599598777fc",
+      "afterHash": "sha256:ea19360597f4c6bf0118219cfb321e990b6541fe92fccd4358e28599598777fc"
+    }
+  },
+  {
+    "engine": "chromium",
+    "attachment": {
+      "rows": [
+        {
+          "text": "A\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 1,
+                "endUtf16": 2,
+                "startUtf8": 1,
+                "endUtf8": 2
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "A\tB\tC",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 1,
+                "endUtf16": 2,
+                "startUtf8": 1,
+                "endUtf8": 2
+              },
+              {
+                "startUtf16": 3,
+                "endUtf16": 4,
+                "startUtf8": 3,
+                "endUtf8": 4
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "Á🂡\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 4,
+                "endUtf16": 5,
+                "startUtf8": 7,
+                "endUtf8": 8
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "مرحبا\tعالم",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 5,
+                "endUtf16": 6,
+                "startUtf8": 10,
+                "endUtf8": 11
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "AB\n🂡Á\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 7,
+                "endUtf16": 8,
+                "startUtf8": 10,
+                "endUtf8": 11
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "Á🂡𝄞B",
+          "expected": [
+            119070
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              119070
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "A中🂡文B",
+          "expected": [
+            20013,
+            25991
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              20013,
+              25991
+            ]
+          },
+          "unchanged": true
+        }
+      ],
+      "controls": [
+        {
+          "text": "AB",
+          "retained": "AB"
+        },
+        {
+          "text": "\t",
+          "retained": "\t"
+        },
+        {
+          "text": "A​B",
+          "retained": "A​B"
+        },
+        {
+          "text": "A⁧مرحبا⁩B",
+          "retained": "A⁧مرحبا⁩B"
+        }
+      ],
+      "beforeHash": "sha256:ea19360597f4c6bf0118219cfb321e990b6541fe92fccd4358e28599598777fc",
+      "afterHash": "sha256:ea19360597f4c6bf0118219cfb321e990b6541fe92fccd4358e28599598777fc"
+    }
+  },
+  {
+    "engine": "firefox",
+    "attachment": {
+      "rows": [
+        {
+          "text": "A\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 1,
+                "endUtf16": 2,
+                "startUtf8": 1,
+                "endUtf8": 2
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "A\tB\tC",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 1,
+                "endUtf16": 2,
+                "startUtf8": 1,
+                "endUtf8": 2
+              },
+              {
+                "startUtf16": 3,
+                "endUtf16": 4,
+                "startUtf8": 3,
+                "endUtf8": 4
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "Á🂡\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 4,
+                "endUtf16": 5,
+                "startUtf8": 7,
+                "endUtf8": 8
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "مرحبا\tعالم",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 5,
+                "endUtf16": 6,
+                "startUtf8": 10,
+                "endUtf8": 11
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "AB\n🂡Á\tB",
+          "expected": [
+            9
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              9
+            ],
+            "ranges": [
+              {
+                "startUtf16": 7,
+                "endUtf16": 8,
+                "startUtf8": 10,
+                "endUtf8": 11
+              }
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "Á🂡𝄞B",
+          "expected": [
+            119070
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              119070
+            ]
+          },
+          "unchanged": true
+        },
+        {
+          "text": "A中🂡文B",
+          "expected": [
+            20013,
+            25991
+          ],
+          "code": "TEXT_MISSING_GLYPHS",
+          "details": {
+            "codepoints": [
+              20013,
+              25991
+            ]
+          },
+          "unchanged": true
+        }
+      ],
+      "controls": [
+        {
+          "text": "AB",
+          "retained": "AB"
+        },
+        {
+          "text": "\t",
+          "retained": "\t"
+        },
+        {
+          "text": "A​B",
+          "retained": "A​B"
+        },
+        {
+          "text": "A⁧مرحبا⁩B",
+          "retained": "A⁧مرحبا⁩B"
+        }
+      ],
+      "beforeHash": "sha256:ea19360597f4c6bf0118219cfb321e990b6541fe92fccd4358e28599598777fc",
+      "afterHash": "sha256:ea19360597f4c6bf0118219cfb321e990b6541fe92fccd4358e28599598777fc"
+    }
+  }
+]

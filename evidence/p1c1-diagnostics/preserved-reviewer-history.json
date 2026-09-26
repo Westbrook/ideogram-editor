@@ -1,0 +1,84 @@
+{
+  "originalRoot": "/Users/westbrook/Documents/repos/ideogram-edit-p1c1-review-b7998c3-20260926T211116Z",
+  "originalTarget": "b7998c35299ebc32c3c5e5544c8b5cbbdbd322c5",
+  "originalVerdict": "NOT APPROVED",
+  "originalSealSHA256": "34d72df3337b4e8478d249b73fedd974dba8bc786be7c769e4597af5736f7048",
+  "scope": "Exact diagnostic-related subset of the sealed independent review, not a new review or complete copy of its declared set. All original files remain at originalRoot. Includes v1/v2 mistaken oracles, v3 actual false diagnosis and durable v4.",
+  "copiedEntries": [
+    {
+      "path": "controls-chromium.json",
+      "bytes": 40857,
+      "sha256": "2f18c94240e8d59a99c2545e32849c236fbec225de5c9579a0133c51667636f6"
+    },
+    {
+      "path": "controls-v1.mjs",
+      "bytes": 10138,
+      "sha256": "73457c74aeeaa46e2528e9d2c27e59f326ac24d885cbf6a62f6fca28994ed096"
+    },
+    {
+      "path": "controls-v2-chromium.json",
+      "bytes": 41579,
+      "sha256": "21abb3fbbd733188d546179cdf53d5bbddd888c9713ef1ed47258e82eb4cebb8"
+    },
+    {
+      "path": "controls-v2-webkit.json",
+      "bytes": 59317,
+      "sha256": "4adcb9e85f059e9e31578e8fb22ff70a919bdec0c4c959d3a85846621e1439d3"
+    },
+    {
+      "path": "controls-v2.mjs",
+      "bytes": 10948,
+      "sha256": "110c605542b8e9e1953a811c00f86d90bd3060e793343a8c1441a5acfc1aaf6d"
+    },
+    {
+      "path": "controls-v3-chromium-focused.json",
+      "bytes": 2548,
+      "sha256": "5585738e52bdc501b49807213326bda5e1e093ed41d91b69909ff318d32b89d7"
+    },
+    {
+      "path": "controls-v3-firefox.json",
+      "bytes": 41449,
+      "sha256": "e678aa17e31da846198e8ddd258f5fe506754a96f88eecf8da3af8e8d7a8a512"
+    },
+    {
+      "path": "controls-v3-webkit-focused.json",
+      "bytes": 4131,
+      "sha256": "62edab60cd6e697ae16888fc04c93370175d78da7f68bb9c338d357b1ae4abaf"
+    },
+    {
+      "path": "controls-v3.mjs",
+      "bytes": 11026,
+      "sha256": "3e35d0cb9890edf8a957da490f1c24e32af4606c9b33eba7b8fdb81287ffde8d"
+    },
+    {
+      "path": "controls-v4.mjs",
+      "bytes": 11111,
+      "sha256": "fdd7bf92eb8c389f05c84f72a7bc6424be6110e101085ae0fdd4a91050fb23e1"
+    },
+    {
+      "path": "final-diagnostic-oracle.json",
+      "bytes": 640,
+      "sha256": "e924a7812ecafc7f1689aeeb9d91b46542733f7ea1625e3988466a6898ebc85c"
+    },
+    {
+      "path": "helper-correction.txt",
+      "bytes": 1386,
+      "sha256": "595da9e2b0b7a251d592127c4c50fc9ed3e0a8ba586094bd282565b83d07dbd1"
+    },
+    {
+      "path": "identity-audit.json",
+      "bytes": 50991,
+      "sha256": "eb369d1cf8687c4e21e2876aa8b739f2eafcaa66c8901b9565fb04a414fb7451"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 31397,
+      "sha256": "20ce7cb126ee8bb47377fac83fb847c62015b2f420c786fb981ea50605cec819"
+    },
+    {
+      "path": "verdict.txt",
+      "bytes": 12985,
+      "sha256": "d1b304a6e5daf0f0938fa91d7916980dbe12847761a3101e78c342887d5e51e9"
+    }
+  ]
+}
