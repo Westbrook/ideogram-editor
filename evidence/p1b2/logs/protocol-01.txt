@@ -1,0 +1,32 @@
+✖ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (444.150459ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (666.929667ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2169.750167ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (21.934375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3616.838042
+
+✖ failing tests:
+
+test at tests/protocol/http.test.mjs:13:1
+✖ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (444.150459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  400 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/http.test.mjs:31:81)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

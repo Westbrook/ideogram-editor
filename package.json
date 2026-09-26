@@ -26,7 +26,9 @@
     "build:app": "npm run verify:imports && vite build --config vite.app.config.ts",
     "test:shell": "npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts",
     "test:store": "npm run build:server && node --import ./tests/store/no-network.mjs --test --test-concurrency=1 tests/store/*.test.mjs",
-    "test:store:volume": "npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs"
+    "test:store:volume": "npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs",
+    "test:protocol": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/protocol/*.test.mjs",
+    "test:recovery": "npm run build:server && vite build --config tests/recovery/vite.config.ts && playwright test --config tests/recovery/playwright.config.ts"
   },
   "dependencies": {
     "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",

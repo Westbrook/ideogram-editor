@@ -50,13 +50,13 @@ test('real SQLite SQLITE_FULL rolls back acceptance and rejection receipts, then
   const pageCount = (await setup.call('diagnostics')).settings.page_count; await setup.close();
   const full = await childFor(t, root, { maxPageCount: pageCount });
   const large = checkpoint(ref, '1', 'Retained checkpoint '.repeat(400));
-  await assert.rejects(full.call('submit', encode(large)), { code: 'STORAGE_FAILURE' });
+  await assert.rejects(full.call('submit', encode(large)), { code: 'STORAGE_FULL' });
   assert.equal((await full.wait('failure')).failure.sqliteCode, 13); // SQLITE_FULL
   assert.equal(await full.call('lookup', large.command.commandId), null); assert.equal((await full.call('events')).highWater, '1');
   assert.deepEqual(await full.call('document', 'document_1'), before);
   // Large immutable original envelope forces journal growth even for a semantic rejection.
   const rejected = checkpoint(ref, '0', 'Unchanged rejected draft '.repeat(400));
-  await assert.rejects(full.call('submit', encode(rejected)), { code: 'STORAGE_FAILURE' });
+  await assert.rejects(full.call('submit', encode(rejected)), { code: 'STORAGE_FULL' });
   assert.equal(await full.call('lookup', rejected.command.commandId), null);
   await full.close();
   const restored = await childFor(t, root);

@@ -61,27 +61,5 @@ export function parseExpected(bytes: Uint8Array): ExpectedVersions {
   }
   return value as unknown as ExpectedVersions;
 }
-function scalarOrder(a: string, b: string): number {
-  const aa = Array.from(a, ch => ch.codePointAt(0)!); const bb = Array.from(b, ch => ch.codePointAt(0)!);
-  for (let i = 0; i < Math.min(aa.length, bb.length); i++) if (aa[i] !== bb[i]) return aa[i] - bb[i];
-  return aa.length - bb.length;
-}
-export function canonical(value: unknown): string {
-  if (value === null) return 'null';
-  if (typeof value === 'boolean') return String(value);
-  if (typeof value === 'number') { if (!Number.isFinite(value)) return bad(); return JSON.stringify(value); }
-  if (typeof value === 'string') {
-    let text = '"';
-    for (const ch of value) {
-      const cp = ch.codePointAt(0)!;
-      if (cp >= 0xd800 && cp <= 0xdfff) return bad();
-      text += cp < 32 ? `\\u${cp.toString(16).padStart(4, '0')}` : ch === '"' || ch === '\\' ? `\\${ch}` : ch;
-    }
-    return text + '"';
-  }
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  if (typeof value !== 'object' || !value || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) return bad();
-  const object = value as Record<string, unknown>;
-  return `{${Object.keys(object).sort(scalarOrder).map(key => `${canonical(key)}:${canonical(object[key])}`).join(',')}}`;
-}
+export { canonical } from '../../src/protocol/json.js';
 export const hashBytes = (bytes: Uint8Array | string) => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;

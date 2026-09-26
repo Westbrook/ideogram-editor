@@ -203,7 +203,7 @@ test('application-data defaults are explicit and refuse silent migration of the 
   await assert.rejects(defaultStorageRoot(home, 'darwin'), /Select it deliberately with --root/);
 });
 
-test('large event content is rejected without truncation; snapshot absence backpressures at the 500-event ceiling', async t => {
+test('large event content is rejected without truncation; real snapshots preserve history past 500 events', async t => {
   const root = await rootFor(t); const writer = await childFor(t, root); const ref = await putExpected(writer);
   await writer.call('submit', encode(command(ref)));
   const large = checkpoint(ref, '1', '東京'.repeat(3000));
@@ -211,10 +211,10 @@ test('large event content is rejected without truncation; snapshot absence backp
   assert.equal((await writer.call('lookup', large.command.commandId)).command.body.name, large.command.body.name);
   assert.equal((await writer.call('events')).highWater, '1');
   for (let revision = 1; revision < 500; revision++) assert.equal((await writer.call('submit', encode(checkpoint(ref, String(revision))))).status, 'accepted');
-  const atLimit = await writer.call('submit', encode(checkpoint(ref, '500'))); assert.equal(atLimit.code, 'CAPACITY');
-  assert.match(Buffer.from(await writer.call('readMetadata', atLimit.details)).toString(), /SNAPSHOT_REQUIRED/);
-  const view = await writer.call('events', '0', 500); assert.equal(view.events.length, 500); assert.equal(view.highWater, '500');
-  assert.equal((await writer.call('document', 'document_1')).revision, '500');
+  const atLimit = await writer.call('submit', encode(checkpoint(ref, '500'))); assert.equal(atLimit.status, 'accepted');
+  const health = await writer.call('diagnostics'); assert.equal(health.observations.snapshot.latest,'500'); assert.equal(health.observations.snapshot.pressure,false);
+  const view = await writer.call('events', '0', 500); assert.equal(view.events.length, 500); assert.equal(view.highWater, '501');
+  assert.equal((await writer.call('document', 'document_1')).revision, '501');
   await writer.close(); const again = await childFor(t, root);
-  assert.equal((await again.call('document', 'document_1')).revision, '500'); await again.assertNoEffects(); await again.close();
+  assert.equal((await again.call('document', 'document_1')).revision, '501'); await again.assertNoEffects(); await again.close();
 });

@@ -1,0 +1,23 @@
+npm notice run ideogram-editor@0.1.0 test:protocol
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/protocol/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (593.422834ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (684.981042ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2104.218917ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (20.206625ms)
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (544.95575ms)
+✔ a fresh unseeded HTTP root accepts NewDocument with the public fixed empty precondition reference (207.886042ms)
+✔ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (646.764208ms)
+✔ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (647.293708ms)
+✔ PROTO04 large complete transaction uses immutable reference; interior cursor rejected and restart replay agrees (1038.283875ms)
+✔ R23 corrupt latest snapshot falls back to prior snapshot, then full log; failed snapshots backpressure only the 500-event tail (26644.576541ms)
+✔ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (840.136625ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34106.305333

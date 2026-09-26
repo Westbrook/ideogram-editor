@@ -1,0 +1,9 @@
+✔ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (540.403666ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 583.786833

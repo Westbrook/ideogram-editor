@@ -1,0 +1,10 @@
+✔ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (640.601417ms)
+✔ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (644.590083ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1335.90375

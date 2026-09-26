@@ -1,0 +1,43 @@
+npm notice run ideogram-editor@0.1.0 test:protocol
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/protocol/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (529.746541ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (761.822375ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2153.981083ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (20.739125ms)
+file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/process.test.mjs:29
+
+
+
+SyntaxError: Unexpected end of input
+    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)
+    at #translate (node:internal/modules/esm/loader:441:20)
+    at afterLoad (node:internal/modules/esm/loader:509:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)
+    at afterResolve (node:internal/modules/esm/loader:614:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)
+    at node:internal/modules/esm/loader:639:32
+    at TracingChannel.tracePromise (node:diagnostics_channel:551:22)
+
+Node.js v26.10.0
+✖ tests/protocol/process.test.mjs (22.102292ms)
+✔ PROTO04 large complete transaction uses immutable reference; interior cursor rejected and restart replay agrees (1059.129708ms)
+✔ R23 corrupt latest snapshot falls back to prior snapshot, then full log; failed snapshots backpressure only the 500-event tail (26945.768667ms)
+✔ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (581.071708ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32163.60875
+
+✖ failing tests:
+
+test at tests/protocol/process.test.mjs:1:1
+✖ tests/protocol/process.test.mjs (22.102292ms)
+  'test failed'

@@ -3,6 +3,7 @@ import type { BlobRef, Document, DomainEvent, Receipt } from '../../src/protocol
 import { acquireRoot } from './ownership.js';
 import { StoreError, safeError } from './errors.js';
 import type { StoreErrorCode } from './errors.js';
+import type { RecoveryStore, StoredContent } from './recovery.js';
 import type { StoreDatabase } from './database.js';
 import { IO_CHUNK } from './objects.js';
 import { PrivateRootError } from '../private-root.js';
@@ -69,6 +70,23 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     history: (id: string) => request<ReturnType<StoreDatabase['entity']>>('history', { id }),
     checkpoint: (id: string) => request<ReturnType<StoreDatabase['entity']>>('checkpoint', { id }),
     events: (after = '0', limit = 100) => request<{ highWater: string; events: DomainEvent[] }>('events', { after, limit }),
+    projection: (id: string) => request<{ document: Document | null; highWater: string }>('projection', { id }),
+    safeJSON: (kind: 'document' | 'receipt', id: string) => request<StoredContent>('safeJSON', { kind, id }),
+    protocolDefaults: () => request<void>('protocolDefaults'),
+    recoverClient: (hash: string, now: number) => request<string | null>('recoverClient', { hash, now }),
+    rememberClient: (hash: string, clientId: string, expires: number, oldHash?: string) => request<void>('rememberClient', { hash, clientId, expires, oldHash }),
+    forgetClient: (hash: string) => request<void>('forgetClient', { hash }),
+    capture: () => request<ReturnType<RecoveryStore['capture']>>('capture'),
+    boundary: (after: string, highWater: string) => request<ReturnType<RecoveryStore['boundary']>>('boundary', { after, highWater }),
+    batch: (after: string, highWater: string) => request<ReturnType<RecoveryStore['batch']>>('batch', { after, highWater }),
+    snapshotKnown: (id: string) => request<boolean>('snapshotKnown', { id }),
+    snapshotContent: (id: string) => request<StoredContent>('snapshotContent', { id }),
+    verifyContent: (handle: string) => request<void>('verifyContent', { handle }),
+    content: (handle: string, offset: string, length: number) => request<Uint8Array>('content', { handle, offset, length }),
+    dropContent: (handle: string) => request<void>('dropContent', { handle }),
+    releasedOwner: (id: string) => request<string | null>('releasedOwner', { id }),
+    release: (id: string, clientId: string) => request<void>('release', { id, clientId }),
+    health: () => request<ReturnType<StoreDatabase['health']>>('health'),
     diagnostics: () => request<ReturnType<StoreDatabase['diagnostics']>>('diagnostics'),
     readMetadata: (ref: BlobRef) => request<Uint8Array>('metadata', { ref }),
     async putObject(source: AsyncIterable<Uint8Array> | Iterable<Uint8Array>, descriptor: { byteLength: string; mediaType: string; hash?: string }, writerEpoch: string): Promise<BlobRef> {

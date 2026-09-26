@@ -30,12 +30,33 @@ port.on('message', message => {
     else {
       store.fence(args.epoch);
       switch (method) {
+        case 'protocolDefaults': store.protocolDefaults(); result = null; break;
+        case 'recoverClient': result = store.recoverClient(args.hash,args.now); break;
+        case 'rememberClient': store.rememberClient(args.hash,args.clientId,args.expires,args.oldHash); result = null; break;
+        case 'forgetClient': store.forgetClient(args.hash); result = null; break;
         case 'submit': result = store.submit(args.bytes, args.epoch); break;
         case 'lookup': result = store.lookup(args.id); break;
         case 'document': result = store.document(args.id); break;
         case 'history': result = store.entity('history', args.id); break;
         case 'checkpoint': result = store.entity('checkpoints', args.id); break;
         case 'events': result = store.events(args.after, args.limit); break;
+        case 'projection': result = { document: store.document(args.id), highWater: store.recovery.highWater() }; break;
+        case 'safeJSON': result = store.recovery.safeJSON(args.kind,args.id); break;
+        case 'capture': result = store.recovery.capture(); break;
+        case 'boundary': result = store.recovery.boundary(args.after, args.highWater); break;
+        case 'batch': result = store.recovery.batch(args.after, args.highWater); break;
+        case 'snapshotKnown': result = store.recovery.snapshotKnown(args.id); break;
+        case 'snapshotContent': {
+          const snapshot = store.recovery.getSnapshot(args.id);
+          if (!snapshot) throw new StoreError('MISSING_OBJECT');
+          result = store.recovery.issue(snapshot.content); break;
+        }
+        case 'verifyContent': store.recovery.verifyContent(args.handle); result = null; break;
+        case 'content': result = store.recovery.content(args.handle, args.offset, args.length); break;
+        case 'dropContent': store.recovery.drop(args.handle); result = null; break;
+        case 'releasedOwner': result = store.recovery.releasedOwner(args.id); break;
+        case 'release': store.recovery.release(args.id, args.clientId, args.epoch); result = null; break;
+        case 'health': result = store.health(); break;
         case 'diagnostics': result = store.diagnostics(); break;
         case 'begin': result = store.objects.begin(args.byteLength, args.mediaType, args.hash); break;
         case 'chunk': store.objects.chunk(args.id, args.bytes); result = null; break;

@@ -41,7 +41,7 @@ test('SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed s
   assert.equal(session.json.clientId, paired.json.clientId);
   const capabilities = await call(server.origin, '/api/v1/capabilities', { headers: readHeaders(cookie) });
   assert.deepEqual(capabilities.json, { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 2, credentialConfigured: false,
-    storageState: 'unavailable', connectionState: 'unknown', limits: [], profiles: [
+    storageState: 'ready', connectionState: 'unknown', limits: [], profiles: [
       { id: 'LP-1', version: '1', state: 'unqualified' }, { id: 'LS-1', version: '1', state: 'unqualified' },
       { id: 'EF-1', version: '1', state: 'unavailable' }, { id: 'PF-1', version: '1', state: 'unavailable' }] });
 });
@@ -195,7 +195,7 @@ test('LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pa
   assert.equal((await post(valid + ' '.repeat(65536 - Buffer.byteLength(valid)))).status, 200);
 });
 
-test('P1a boundary: all unfinished routes deny content and mutations; keys never reach responses', async t => {
+test('session boundary: implemented routes stay authenticated, unfinished routes deny access, and keys never reach responses', async t => {
   const sentinel = 'provider-secret-never-returned';
   const saved = process.env.FAL_KEY;
   process.env.FAL_KEY = sentinel;
@@ -205,10 +205,12 @@ test('P1a boundary: all unfinished routes deny content and mutations; keys never
   for (const path of ['/api/v1/commands', '/api/v1/events/stream', '/api/v1/documents/a', '/api/v1/jobs/a', '/api/v1/assets/a/content', '/api/v1/assets/a/thumbnail', '/api/v1/bundles/a/content', '/api/v1/protocol-content/a', '/api/v1/snapshots/a']) {
     denied(await call(server.origin, path, { headers: { Origin: server.origin } }), 401, 'SESSION_REQUIRED');
     const response = await call(server.origin, path, { headers: { ...readHeaders(cookieFrom(paired)), Range: 'bytes=0-7' } });
-    denied(response, 503, 'SERVER_UNAVAILABLE');
+    const expected = path === '/api/v1/commands' ? [405,'METHOD_NOT_ALLOWED'] : ['/api/v1/events/stream','/api/v1/snapshots/a'].includes(path) ? [400,'MALFORMED_REQUEST'] : ['/api/v1/documents/a','/api/v1/protocol-content/a'].includes(path) ? [404,'NOT_FOUND'] : [503,'SERVER_UNAVAILABLE'];
+    denied(response, ...expected);
     assert.ok(!response.text.includes(sentinel));
   }
-  for (const path of ['/api/v1/commands', '/api/v1/assets/staging', '/api/v1/bundles/import']) denied(await call(server.origin, path, { method: 'POST', headers: mutationHeaders(server, paired), body: { protocolVersion: 1 } }), 503, 'SERVER_UNAVAILABLE');
+  denied(await call(server.origin, '/api/v1/commands', { method: 'POST', headers: mutationHeaders(server, paired), body: { protocolVersion: 1 } }), 400, 'MALFORMED_REQUEST');
+  for (const path of ['/api/v1/assets/staging', '/api/v1/bundles/import']) denied(await call(server.origin, path, { method: 'POST', headers: mutationHeaders(server, paired), body: { protocolVersion: 1 } }), 503, 'SERVER_UNAVAILABLE');
   const cap = await call(server.origin, '/api/v1/capabilities', { headers: readHeaders(cookieFrom(paired)) });
   assert.equal(cap.json.credentialConfigured, true); assert.ok(!cap.text.includes(sentinel));
   for (const path of ['/api/v1/unknown', '/api/v1/session/bootstrap/', '/api/v1/%73ession']) denied(await call(server.origin, path, { headers: readHeaders(cookieFrom(paired)) }), 404, 'NOT_FOUND');

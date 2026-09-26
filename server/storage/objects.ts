@@ -123,6 +123,24 @@ export class Objects {
       return read ? Buffer.concat(parts) : undefined;
     } finally { closeSync(fd); }
   }
+  readRange(ref: BlobRef, offset: string, length: number): Uint8Array {
+    this.check(); validateBlob(ref);
+    if (!isSeq(offset) || !Number.isSafeInteger(length) || length < 0 || length > IO_CHUNK ||
+        BigInt(offset) + BigInt(length) > BigInt(ref.byteLength)) throw new StoreError('MALFORMED_REQUEST');
+    assertComponents(this.objects); assertPrivate(this.objects, true);
+    assertPrivate(join(this.objects, ref.hash.slice(7, 9)), true);
+    const identity = assertPrivate(this.path(ref), false);
+    const fd = openSync(this.path(ref), constants.O_RDONLY | constants.O_NOFOLLOW);
+    try {
+      if (!sameFile(identity, fstatSync(fd)) || BigInt(identity.size) !== BigInt(ref.byteLength)) throw new StoreError('CORRUPT_OBJECT');
+      const bytes = Buffer.alloc(length); let read = 0;
+      while (read < length) {
+        const n = readSync(fd, bytes, read, length - read, BigInt(offset) + BigInt(read));
+        if (!n) throw new StoreError('CORRUPT_OBJECT'); read += n;
+      }
+      return bytes;
+    } finally { closeSync(fd); }
+  }
   inventory(registered: Set<string>) {
     const orphans: string[] = [];
     for (const shard of readdirSync(this.objects)) {

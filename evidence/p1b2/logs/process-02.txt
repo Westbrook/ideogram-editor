@@ -1,0 +1,54 @@
+✖ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (10217.657709ms)
+✖ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (10227.740959ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20497.510375
+
+✖ failing tests:
+
+test at tests/protocol/process.test.mjs:16:53
+✖ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (10217.657709ms)
+  Error: file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/no-network.mjs:12
+    throw new Error(`Unexpected network effect: ${name}`);
+          ^
+  
+  Error: Unexpected network effect: dns
+      at Object.lookup (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/no-network.mjs:12:9)
+      at lookupAndListen (node:net:2718:7)
+      at Server.listen (node:net:2620:7)
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:245:20
+      at new Promise (<anonymous>)
+      at startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:243:15)
+      at async file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/process-fixture.mjs:3:14
+  
+  Node.js v26.10.0
+  
+      at Timeout._onTimeout (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/process.test.mjs:12:136)
+      at listOnTimeout (node:internal/timers:685:17)
+      at process.processTimers (node:internal/timers:618:7)
+
+test at tests/protocol/process.test.mjs:16:53
+✖ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (10227.740959ms)
+  Error: file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/no-network.mjs:12
+    throw new Error(`Unexpected network effect: ${name}`);
+          ^
+  
+  Error: Unexpected network effect: dns
+      at Object.lookup (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/store/no-network.mjs:12:9)
+      at lookupAndListen (node:net:2718:7)
+      at Server.listen (node:net:2620:7)
+      at file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:245:20
+      at new Promise (<anonymous>)
+      at startLocalServer (file:///Users/westbrook/Documents/repos/ideogram-edit/dist/local/server/http.js:243:15)
+      at async file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/process-fixture.mjs:3:14
+  
+  Node.js v26.10.0
+  
+      at Timeout._onTimeout (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/protocol/process.test.mjs:12:136)
+      at listOnTimeout (node:internal/timers:685:17)
+      at process.processTimers (node:internal/timers:618:7)

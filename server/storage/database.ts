@@ -1,14 +1,18 @@
 import { closeSync, lstatSync, statfsSync } from 'node:fs';
 import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { DatabaseSync } from 'node:sqlite';
+import { EMPTY_EXPECTED_VERSIONS } from '../../src/protocol/store.js';
 import type { BlobRef, Command, Document, DomainEvent, Receipt, RejectionCode } from '../../src/protocol/store.js';
 import { canonical, hashBytes, isId, isSeq, parseCommand, parseExpected } from './canonical.js';
 import { assertComponents, assertPrivate, inspectTree, privateFile, sameFile, syncDirectory } from './files.js';
 import { StoreError } from './errors.js';
 import { Objects } from './objects.js';
 import type { Barrier } from './objects.js';
+import { event as validateEvent } from '../../src/protocol/validate.js';
+import { extendSchema } from './schema.js';
+import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
 
 const schema = `
@@ -34,6 +38,7 @@ export class StoreDatabase {
   private db: DatabaseSync;
   readonly objects: Objects;
   readonly epoch: string;
+  readonly recovery: RecoveryStore;
   private databaseIdentity;
   private rootIdentity;
   private missing: { hash: string; code: string }[] = [];
@@ -55,14 +60,16 @@ export class StoreDatabase {
         if (Object.values(this.db.prepare(`PRAGMA ${name}`).get()!)[0] !== expected) throw new StoreError('UNSUPPORTED_STORAGE');
       }
       const version = Number(this.db.prepare('PRAGMA user_version').get()!.user_version);
-      if (version !== 0 && version !== 1) throw new StoreError('CORRUPT_STORE');
+      if (![0,1,2].includes(version)) throw new StoreError('CORRUPT_STORE');
       this.db.exec('BEGIN IMMEDIATE');
       this.db.exec(schema);
-      this.db.exec('PRAGMA user_version=1');
+
       this.db.exec('COMMIT');
+      extendSchema(this.db, root, version, options.quotaBytes);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
+      this.recovery = new RecoveryStore(this.db, this.objects);
       this.rebuild();
       for (const row of this.db.prepare('SELECT DISTINCT o.hash, o.byte_length, r.media_type FROM roots r JOIN objects o ON r.hash=o.hash').iterate()) {
         try { this.objects.verify({ hash: String(row.hash), byteLength: String(row.byte_length), mediaType: String(row.media_type) }); }
@@ -114,7 +121,7 @@ export class StoreDatabase {
   events(after: string, limit: number) {
     this.check();
     if (!isSeq(after) || !Number.isSafeInteger(limit) || limit < 1 || limit > 500) throw new StoreError('MALFORMED_REQUEST');
-    const events = this.db.prepare('SELECT json FROM events WHERE length(seq)>length(?) OR (length(seq)=length(?) AND seq>?) ORDER BY length(seq),seq LIMIT ?').all(after, after, after, limit);
+    const events = this.db.prepare('SELECT json FROM events_v2 WHERE length(seq)>length(?) OR (length(seq)=length(?) AND seq>?) ORDER BY length(seq),seq LIMIT ?').all(after, after, after, limit);
     return { highWater: this.meta('highWater'), events: events.map(row => JSON.parse(String(row.json)) as DomainEvent) };
   }
   entity(kind: 'history' | 'checkpoints', id: string) {
@@ -133,19 +140,30 @@ export class StoreDatabase {
     this.db.exec('BEGIN IMMEDIATE');
     try {
       this.db.exec('DELETE FROM checkpoints; DELETE FROM history; DELETE FROM documents;');
-      let highWater = 0n;
-      for (const row of this.db.prepare('SELECT json,seq,transaction_id,command_id FROM events ORDER BY length(seq),seq').iterate()) {
+      const snapshot = this.recovery.latest();
+      if (snapshot) this.recovery.restore(snapshot);
+      let highWater = BigInt(snapshot?.seq ?? '0');
+      let activeTransaction: string | null = null;
+      let transactionEnd = highWater;
+      for (const row of this.db.prepare('SELECT json,seq,transaction_id,command_id FROM events_v2 WHERE length(seq)>length(?) OR (length(seq)=length(?) AND seq>?) ORDER BY length(seq),seq').iterate(String(highWater),String(highWater),String(highWater))) {
         const event = JSON.parse(String(row.json)) as DomainEvent;
+        try { validateEvent(event); } catch { throw new StoreError('CORRUPT_STORE'); }
         highWater++;
         if (event.workspaceSeq !== String(highWater) || event.workspaceSeq !== row.seq ||
             event.transactionId !== row.transaction_id || event.commandId !== row.command_id || Buffer.byteLength(String(row.json)) > 16384) throw new StoreError('CORRUPT_STORE');
         const record = this.lookup(event.commandId);
         if (!record || hashBytes(canonical({ protocolVersion: 1, command: record.command })) !== record.hash ||
-            record.receipt.status !== 'accepted' || record.receipt.fromSeq !== event.workspaceSeq ||
-            record.receipt.toSeq !== event.workspaceSeq || record.receipt.transactionId !== event.transactionId) throw new StoreError('CORRUPT_STORE');
+            record.receipt.status !== 'accepted' || BigInt(record.receipt.fromSeq) > highWater ||
+            BigInt(record.receipt.toSeq) < highWater || record.receipt.transactionId !== event.transactionId) throw new StoreError('CORRUPT_STORE');
+        if (activeTransaction === null) {
+          if (record.receipt.fromSeq !== event.workspaceSeq) throw new StoreError('CORRUPT_STORE');
+          activeTransaction = event.transactionId; transactionEnd = BigInt(record.receipt.toSeq);
+        }
+        if (event.transactionId !== activeTransaction) throw new StoreError('CORRUPT_STORE');
         this.project(event);
+        if (highWater === transactionEnd) activeTransaction = null;
       }
-      if (this.meta('highWater') !== String(highWater)) throw new StoreError('CORRUPT_STORE');
+      if (activeTransaction !== null || this.meta('highWater') !== String(highWater)) throw new StoreError('CORRUPT_STORE');
       this.db.exec('COMMIT');
     } catch (error) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw error; }
     this.replayMs = performance.now() - start;
@@ -179,7 +197,7 @@ export class StoreDatabase {
       if (error instanceof StoreError && ['MALFORMED_REQUEST', 'PAYLOAD_TOO_LARGE'].includes(error.code)) return reject('INVALID_INPUT', 'command.expectedEntityVersions', 'INVALID_VERSION_MAP');
       throw error;
     }
-    if (this.db.prepare('SELECT seq FROM events WHERE transaction_id=?').get(c.transactionId)) return reject('INVALID_INPUT', 'command.transactionId', 'TRANSACTION_ID_REUSE');
+    if (this.db.prepare('SELECT seq FROM events_v2 WHERE transaction_id=?').get(c.transactionId)) return reject('INVALID_INPUT', 'command.transactionId', 'TRANSACTION_ID_REUSE');
     if (c.body.type === 'NewDocument') {
       if (current) return reject('INVALID_INPUT', 'command.documentId', 'DOCUMENT_EXISTS');
       if (c.body.width < 1 || c.body.height < 1) return reject('INVALID_INPUT', 'command.body', 'POSITIVE_DIMENSIONS_REQUIRED');
@@ -189,9 +207,8 @@ export class StoreDatabase {
       if (!current) return reject('INVALID_INPUT', 'command.documentId', 'DOCUMENT_REQUIRED');
       if (!c.body.name.trim()) return reject('INVALID_INPUT', 'command.body.name', 'NAME_REQUIRED');
     }
-    // No snapshot claim in this foundation. Until the recovery owner adds
-    // snapshots, enforce the normative 500-event tail ceiling with backpressure.
-    if (BigInt(this.meta('highWater')) >= 500n) return reject('CAPACITY', 'command.body', 'SNAPSHOT_REQUIRED');
+    // Tail backpressure is relative to the latest verified snapshot, never total history.
+    if (BigInt(this.meta('highWater')) - BigInt(this.recovery.latest()?.seq ?? '0') >= 500n) return reject('CAPACITY', 'command.body', 'SNAPSHOT_REQUIRED');
     return null;
   }
   submit(bytes: Uint8Array, epoch: string): Receipt {
@@ -201,6 +218,7 @@ export class StoreDatabase {
     if (Buffer.byteLength(serialized) > 65536) throw new StoreError('PAYLOAD_TOO_LARGE');
     const hash = hashBytes(serialized);
     const start = performance.now();
+    if (!this.lookup(c.commandId)) { try { this.recovery.snapshot(); } catch { /* Subsequent tail guard reports pressure. */ } }
     const captured = { eventId: randomUUID(), historyId: randomUUID(), branchId: randomUUID(), checkpointId: randomUUID(), recordedAt: new Date().toISOString() };
     this.db.exec('BEGIN IMMEDIATE');
     let committed = false;
@@ -240,7 +258,7 @@ export class StoreDatabase {
       } else {
         this.register(`command:${c.commandId}`, c.expectedEntityVersions);
         this.barrier('before-event-insert');
-        this.db.prepare('INSERT INTO events VALUES (?,?,?,?)').run(seq, c.transactionId, c.commandId, canonical(event));
+        this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq, c.transactionId, c.commandId, canonical(event));
         this.project(event!); this.setMeta('highWater', seq);
         receipt = { status: 'accepted', commandId: c.commandId, fromSeq: seq, toSeq: seq, documentRevision: revision, transactionId: c.transactionId };
       }
@@ -248,6 +266,7 @@ export class StoreDatabase {
       this.barrier('before-commit'); this.fence(epoch);
       this.db.exec('COMMIT'); committed = true;
       this.barrier('after-commit');
+      try { this.recovery.snapshot(); } catch { /* Receipt is already durable; visible pressure guards subsequent writes. */ }
       this.appendMs.push(performance.now() - start); if (this.appendMs.length > 100) this.appendMs.shift();
       return receipt;
     } catch (error) {
@@ -255,10 +274,42 @@ export class StoreDatabase {
       throw error;
     }
   }
+  protocolDefaults(): void {
+    // A fixed safe precondition value makes the existing narrow commands usable
+    // on a new root. This is not arbitrary blob upload or repair of missing roots.
+    if (this.missingCount || this.db.prepare('SELECT hash FROM objects WHERE hash=?').get(EMPTY_EXPECTED_VERSIONS.hash)) return;
+    const ref = this.objects.putMetadata(Buffer.from(canonical({entities:[],schemaVersion:1})));
+    if (canonical(ref) !== canonical(EMPTY_EXPECTED_VERSIONS)) throw new StoreError('CORRUPT_STORE');
+    this.db.exec('BEGIN IMMEDIATE');
+    try { this.register('protocol-default:empty-versions',ref); this.db.exec('COMMIT'); }
+    catch (e) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw e; }
+  }
+  recoverClient(cookieHash: string, now: number): string | null {
+    if (!/^[a-f0-9]{64}$/.test(cookieHash) || !Number.isSafeInteger(now)) throw new StoreError('MALFORMED_REQUEST');
+    const row = this.db.prepare('SELECT client_id,expires FROM client_bindings WHERE cookie_hash=?').get(cookieHash);
+    return row && BigInt(String(row.expires)) > BigInt(now) ? String(row.client_id) : null;
+  }
+  rememberClient(cookieHash: string, clientId: string, expires: number, oldHash?: string) {
+    if (!/^[a-f0-9]{64}$/.test(cookieHash) || !isId(clientId) || !Number.isSafeInteger(expires) ||
+        (oldHash !== undefined && !/^[a-f0-9]{64}$/.test(oldHash))) throw new StoreError('MALFORMED_REQUEST');
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      if (oldHash) this.db.prepare('DELETE FROM client_bindings WHERE cookie_hash=?').run(oldHash);
+      this.db.prepare('INSERT INTO client_bindings VALUES (?,?,?)').run(cookieHash,clientId,String(expires));
+      this.db.exec('COMMIT');
+    } catch (e) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw e; }
+  }
+  forgetClient(cookieHash: string) { this.db.prepare('DELETE FROM client_bindings WHERE cookie_hash=?').run(cookieHash); }
+  health() {
+    this.check(); const fs = statfsSync(this.root,{bigint:true});
+    return { missingCount: this.missingCount, diskWarning: (fs.blocks-fs.bavail)*100n >= fs.blocks*80n, snapshotPressure: this.recovery.snapshotFailure };
+  }
   diagnostics() {
     this.check(); const filesystem = statfsSync(this.root, { bigint: true });
     const pragma = (name: string) => Object.values(this.db.prepare(`PRAGMA ${name}`).get()!)[0];
-    const digest = hashBytes(canonical(this.db.prepare('SELECT json FROM documents ORDER BY id').all().map(row => JSON.parse(String(row.json)))));
+    const projectionHash = createHash('sha256'); projectionHash.update('['); let first = true;
+    for (const row of this.db.prepare('SELECT json FROM documents ORDER BY id').iterate()) { if (!first) projectionHash.update(','); first = false; projectionHash.update(canonical(JSON.parse(String(row.json)))); }
+    projectionHash.update(']'); const digest = 'sha256:' + projectionHash.digest('hex');
     return { node: process.versions.node, sqlite: this.db.prepare('SELECT sqlite_version() AS version, sqlite_source_id() AS source').get(),
       settings: Object.fromEntries(['journal_mode', 'synchronous', 'foreign_keys', 'busy_timeout', 'fullfsync', 'checkpoint_fullfsync', 'page_size', 'page_count', 'max_page_count'].map(k => [k, pragma(k)])),
       writerEpoch: this.epoch, highWater: this.meta('highWater'), projectionDigest: digest,
@@ -267,7 +318,7 @@ export class StoreDatabase {
       filesystem: { type: String(filesystem.type), blockSize: String(filesystem.bsize), availableBytes: String(filesystem.bavail * filesystem.bsize), totalBytes: String(filesystem.blocks * filesystem.bsize) },
       diskWarning: (filesystem.blocks - filesystem.bavail) * 100n >= filesystem.blocks * 80n,
       resources: { ioChunkBytes: 1048576, maxTransfers: 2, admissionOverheadPercent: 25, freeMarginBytes: '1073741824', metadataHeadroomBytes: '67108864', metadataHeadroomPhysicallyPreallocated: false, snapshotTailCeiling: 500 },
-      observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: 'not implemented; writes backpressure at 500 events', qualification: false },
+      observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null }, qualification: false },
       processMemory: process.memoryUsage(), sqliteIntegrity: this.db.prepare('PRAGMA quick_check').get() };
   }
   close() {

@@ -1,0 +1,14 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/recovery/playwright.config.ts
+
+Running 5 tests using 1 worker
+
+(node:58107) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/recovery/consumer.spec.ts:21:1 › browser snapshot plus pinned tail publishes at H only and preserves prior view on download failure (2.9s)
+  ✓  2 tests/recovery/consumer.spec.ts:43:1 › browser validates large transaction hash, length, count, sequence and pinned context before publication (1.0s)
+  ✓  3 tests/recovery/consumer.spec.ts:61:1 › browser SSE reference is offered only; failed download keeps cursor and reconnect uses applied boundary (996ms)
+  ✓  4 tests/recovery/consumer.spec.ts:71:1 › browser rejects partial and gapped SSE batches, ignores duplicate delivery, and never accepts a checkpoint cursor (486ms)
+  ✓  5 tests/recovery/consumer.spec.ts:83:1 › browser revoked recovery context and mid-download expiry preserve the previous published projection (1.9s)
+
+  5 passed (7.9s)

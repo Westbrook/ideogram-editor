@@ -1,0 +1,215 @@
+{
+  "base": "e1a0092eeb0022c445bb348d0602fa0a727c3aee",
+  "files": [
+    {
+      "path": "package.json",
+      "bytes": 2892,
+      "sha256": "6e94aa0685a33d5c90bb5c4f14c05ef65ca45b0f46953ab53e9c200aa4bf3858"
+    },
+    {
+      "path": "server/control-json.ts",
+      "bytes": 2152,
+      "sha256": "1bd96059cc4a930d65c27b493a93378de976061f18029a26d917aaefb4b52026"
+    },
+    {
+      "path": "server/errors.ts",
+      "bytes": 2558,
+      "sha256": "f39328cc7c5eed0204f7bb230529f7d0d224cb0705b182d776c3a0c4f84ece8f"
+    },
+    {
+      "path": "server/http.ts",
+      "bytes": 13875,
+      "sha256": "35efefab6567e2f99db210435f8418d2066bcc281a51079e4cb12db375363f51"
+    },
+    {
+      "path": "server/protocol.ts",
+      "bytes": 20058,
+      "sha256": "22300dedfa392eb902b0911d1ca8116b06d7b97c0302cf56951569bd1a542b20"
+    },
+    {
+      "path": "server/sessions.ts",
+      "bytes": 3877,
+      "sha256": "679b4f99102950e06f12959ddbd31f0cb9a33eb537f7be385194b01124d68662"
+    },
+    {
+      "path": "server/storage/canonical.ts",
+      "bytes": 4004,
+      "sha256": "d54a600a407252aa2046a647e63c8898c265a2f218c85c7618550694d65d0dd7"
+    },
+    {
+      "path": "server/storage/database.ts",
+      "bytes": 23660,
+      "sha256": "a289b31fba667c1c28c9a4046983bb5fbeeafb24c8ac7750135ff10893657026"
+    },
+    {
+      "path": "server/storage/errors.ts",
+      "bytes": 899,
+      "sha256": "e2b650ae0b8a634b3c58fa9057236aaa46ccf89d86ebbb2481b1d1d82ee16df4"
+    },
+    {
+      "path": "server/storage/objects.ts",
+      "bytes": 8781,
+      "sha256": "81e6af67f371cb789dc5c7b8b0d7ee026adbed3ac2d1f5c9e8cd62a82ae5a9cc"
+    },
+    {
+      "path": "server/storage/recovery.ts",
+      "bytes": 15522,
+      "sha256": "da578e381781dcfe7996bd544d64b13d4747d88b32a2161f70de4c2e66e0b97e"
+    },
+    {
+      "path": "server/storage/reducer.ts",
+      "bytes": 64,
+      "sha256": "a11c25360a63d359d8e3f71e255f94eda6de98582abcf1daf0c2a38d6c0b9730"
+    },
+    {
+      "path": "server/storage/schema.ts",
+      "bytes": 4588,
+      "sha256": "0f02c55974bf0cdb23c2a77eb34e9dfd1ac4ac31b62876ab8f362f80cec9d15b"
+    },
+    {
+      "path": "server/storage/worker.ts",
+      "bytes": 4606,
+      "sha256": "7e67c2a27601f8a1d07788c324eaaf5975755da00736c0bdedc6dec6cb9c5921"
+    },
+    {
+      "path": "server/storage/writer.ts",
+      "bytes": 8156,
+      "sha256": "57fdad4de3d0df10e2d7bfdabea49d63ba849c5b2487326ec5a3af214b1825ff"
+    },
+    {
+      "path": "src/protocol/json.ts",
+      "bytes": 4243,
+      "sha256": "4df447c1d0f5259ab233bd5d14f5e084bd54ffab851489fbc74c9d5fc378d945"
+    },
+    {
+      "path": "src/protocol/recovery.ts",
+      "bytes": 2637,
+      "sha256": "cbf77f7994a50df777676f7d21a9f51e8f45a4b08812664d732ecc8e403ef7f5"
+    },
+    {
+      "path": "src/protocol/session.ts",
+      "bytes": 1646,
+      "sha256": "2e3f10e47615fdfee3edaca39f8f7ccfa86635094de4a9f787d45c28f26e1ad4"
+    },
+    {
+      "path": "src/protocol/sha256.ts",
+      "bytes": 2672,
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684"
+    },
+    {
+      "path": "src/protocol/store.ts",
+      "bytes": 2711,
+      "sha256": "52857039e58f47e7004d4db9f9ae122bfe15170f484581d7012f2a6269e35934"
+    },
+    {
+      "path": "src/protocol/validate.ts",
+      "bytes": 3981,
+      "sha256": "63e5f6ab183bf85fcd4f2c1ba5747d43fd0493790fc6c3c69515c6921e1bf36c"
+    },
+    {
+      "path": "src/state/projection.ts",
+      "bytes": 1188,
+      "sha256": "00b1dea558117ccf0aa6e6fd914a675876d85b426ffe0445e5e450d1ee13213a"
+    },
+    {
+      "path": "src/state/recovery-cache.ts",
+      "bytes": 3858,
+      "sha256": "69adf5b3bb476df2a6aaaa6c307bdaf82135159c7e0396d4d97e7ab41d3fe3f1"
+    },
+    {
+      "path": "src/state/recovery-client.ts",
+      "bytes": 15691,
+      "sha256": "17fb3018ab606fc2c5a7e3d546bb27177a315cd792375f42bd1e1832ef77e8b0"
+    },
+    {
+      "path": "tests/protocol/fixtures.mjs",
+      "bytes": 2689,
+      "sha256": "6590c6e45f5878272fa43fc77308fc4cdf63226f3e7f9a9dcb8c2130704baa76"
+    },
+    {
+      "path": "tests/protocol/helpers.mjs",
+      "bytes": 1187,
+      "sha256": "5519770a3abfc75f42ae47b5fc2aa787b57852bcc518e66a21eba6d64c765de1"
+    },
+    {
+      "path": "tests/protocol/http.test.mjs",
+      "bytes": 12828,
+      "sha256": "3249a8a428490dbc681f70c7dfc71e9541324adeefd49cdbd4b02e858e120376"
+    },
+    {
+      "path": "tests/protocol/no-effects.mjs",
+      "bytes": 488,
+      "sha256": "3caffe509c8d6197380024a5b20dcd49b9edd8b6f075eec68b23a84665e4c8ea"
+    },
+    {
+      "path": "tests/protocol/process-fixture.mjs",
+      "bytes": 781,
+      "sha256": "2ebb0718aaa43ab9f6e91fd213ec8702858a5b2317e2775a85893bab3ad00e82"
+    },
+    {
+      "path": "tests/protocol/process.test.mjs",
+      "bytes": 3709,
+      "sha256": "9df4db0cd569f61d83d2ad3bfd0fa5014119fc423605312bf741b1e25a5958dc"
+    },
+    {
+      "path": "tests/protocol/recovery.test.mjs",
+      "bytes": 8151,
+      "sha256": "0c991f89aa828954bd2564cbc6e7f1f9f958e3568e3750385bce6b679b6d1cd9"
+    },
+    {
+      "path": "tests/recovery/app/index.html",
+      "bytes": 207,
+      "sha256": "b6f79f60dee90bd0176ab824e894de3f44f264c45299d37f0139e7bc2db27751"
+    },
+    {
+      "path": "tests/recovery/app/main.ts",
+      "bytes": 1553,
+      "sha256": "e97c670b09f01e8a6f458b60d8eae3d5619d75a220fa53d8d0e323b08c42defb"
+    },
+    {
+      "path": "tests/recovery/consumer.spec.ts",
+      "bytes": 12359,
+      "sha256": "697bd61c98f08ad255bd9845a579b9bbbf787fe3660dd7c39471dc333a046487"
+    },
+    {
+      "path": "tests/recovery/playwright.config.ts",
+      "bytes": 394,
+      "sha256": "f502d528e26e9dd5462a97a3473bfea0ce8e0775b1e2537ef20408d2c76b0ce6"
+    },
+    {
+      "path": "tests/recovery/vite.config.ts",
+      "bytes": 227,
+      "sha256": "eee7ff3d9b82de5da64fa39378190a43466ab53dc00212a860ce1f4501ef15d7"
+    },
+    {
+      "path": "tests/session/http.test.mjs",
+      "bytes": 16199,
+      "sha256": "5ff7220f976701888e137ee232da8affe5dad5b8b6c24a9e94876de46b48c31f"
+    },
+    {
+      "path": "tests/store/core.test.mjs",
+      "bytes": 16819,
+      "sha256": "811073d5703f50187d582f387de168ff5133a0e4198b2f8cf286a94a9ff98fbd"
+    },
+    {
+      "path": "tests/store/failure.test.mjs",
+      "bytes": 7924,
+      "sha256": "9d315a1bb9382bdcfbd44e8dc9e57070c94f3b894681963e8e54316c95d96159"
+    },
+    {
+      "path": "tests/store/volume-fault.mjs",
+      "bytes": 4990,
+      "sha256": "eeea46c794b8fc5c3588c24bcedfa9869f83a1c651f6d1d7ebfd54db1cb81379"
+    },
+    {
+      "path": "tooling/PROTOCOL.txt",
+      "bytes": 11916,
+      "sha256": "286aee116b1609d60be8a495369d605332944ef6f76e455d9467574387038eae"
+    },
+    {
+      "path": "tooling/STORE.txt",
+      "bytes": 11247,
+      "sha256": "210d5b1532c88fca123302080faa253696e530ae0242d8ef36b0815d1a5242b5"
+    }
+  ]
+}

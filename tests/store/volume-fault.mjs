@@ -36,7 +36,7 @@ test('isolated mounted ENOSPC and read-only volume: no false receipt; exact stat
     fsyncSync(fd);
     const full = statfsSync(mount);
     await writer.call('release'); const failure = await pending;
-    assert.equal(failure.code, 'STORAGE_FAILURE');
+    assert.equal(failure.code, 'STORAGE_FULL');
     assert.equal((await writer.wait('failure')).failure.code, 'ENOSPC');
     assert.equal(await writer.call('lookup', c.command.commandId), null);
     assert.equal((await writer.call('events')).highWater, '0'); assert.equal(await writer.call('document', 'document_1'), null);

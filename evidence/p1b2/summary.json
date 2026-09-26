@@ -1,0 +1,64 @@
+{
+  "taskNoteId": "7406ec5e-004d-4829-a9fd-0dab66b22a60",
+  "base": "e1a0092eeb0022c445bb348d0602fa0a727c3aee",
+  "branch": "ideogram-editor-p1",
+  "status": "author-verified-review-required",
+  "at": "2026-09-26T04:34:22.434548+00:00",
+  "scope": [
+    "Strict LP-1 NewDocument/SaveCheckpoint commands, receipt ownership and projection reads",
+    "Complete transaction pages/SSE and scoped exact content/ranges",
+    "Target250/tail500 streamed snapshots, retained full log and corrupt snapshot/full replay fallback",
+    "Additive schema2 migration with a real e1a0092 fixture and verified backup",
+    "Reusable bounded browser IndexedDB recovery consumer; full editor integration remains P1b.7"
+  ],
+  "checks": {
+    "typecheck": "pass",
+    "build": "pass",
+    "protocol": "11/11 pass",
+    "browserRecovery": "9/9 Chromium pass",
+    "store": "24/24 pass",
+    "session": "14/14 pass",
+    "shell": "10/10 Chromium pass",
+    "cleanConsumer": "fresh pinned install/build/browser2/2 pass",
+    "volume": "1/1 actual isolated HFS+ ENOSPC/EROFS pass",
+    "vendor": "pass",
+    "specChecker": "pass",
+    "oldSeals": "all preserved; integrity.json",
+    "providerEffects": "all shared submit/upload/poll/cancel/fetch/socket/DNS/datagram counters0"
+  },
+  "sourceIdentity": "source-manifest.json",
+  "runtimeIdentity": "runtime.json",
+  "commandTimestamps": "gates.json",
+  "failureHistory": "failures.json and logs; includes initial migration mode bug and timing above R20 ceiling",
+  "integrationContract": "tooling/PROTOCOL.txt",
+  "authentication": "Current session authenticates, stored client owns original envelope. Renewal preserves client. Restart requires a new launcher pairing token; prior-cookie possession can recover its private bound client ID. Old sessions/CSRF/context remain invalid. Revoke/rotation remove old cookie binding. IDs never authenticate.",
+  "migration": "Non-destructive additive copy/validate/transactional activation retains original events table and all old domain bytes, with private verified schema1 backup and manifest. No destructive new-root activation or rollback-copy deletion.",
+  "browser": "Pinned Chromium153.0.8010.12; traces disabled to avoid retaining cookies. Real same-origin HTTP. Fault cases intercept only isolated test traffic. Previously published generations/cursors stay intact on hash/count/length/sequence/context/partial-frame/expiry/revoke/shutdown failures.",
+  "performance": "Single observations, not PERF qualification: ordinary receipt6.858ms; receipt including synchronous snapshot56.997ms exceeds R20 ceiling50ms. Snapshot106253 bytes/252 rows at250, descriptor verify9.323ms, startup193.577ms, worker snapshot replay38.336ms. Preserve for independent review; no ceiling changed.",
+  "limits": [
+    "Only two typed synchronous production command families; no202 or local preparation workflow is implemented/qualified. Later preparation owner must durably bind command/hash/operation before202.",
+    "Current entity registry is document/history/checkpoint, each bounded by existing event/control limits; no arbitrary typed entity or backend blob registration.",
+    "No full editor UI, upload/raster/undo/copy/provider integration; no pixels/secrets in snapshots.",
+    "No full100k replay or W1/W2/PERF campaign; one snapshot-spanning receipt observation exceeds R20.",
+    "No power-loss/device-cache, broader platforms or physical accessibility qualification.",
+    "No snapshot/log/history GC; derived transaction objects and crash staging remain inventoried. Future owner must explicitly integrate cleanup/reservations/UI and extend typed readers as needed.",
+    "Client temporary cache is IndexedDB; lifecycle cleanup/cancellation/user error states remain the full editor integration owner\u2019s work."
+  ],
+  "preservation": {
+    "preview": "http://127.0.0.1:52219/?progress-report",
+    "previewSource": "85df04ff1c64ea347ba767759419b7759b3798ec",
+    "locatorCommit": "d067b3d51368fccc33765fad41325bf2086de908",
+    "report": "http://127.0.0.1:4381/",
+    "reportDataOwner": "report maintainer; no canonical state edits by protocol owner",
+    "openFeedback": "439b475b en-reve-first remains open with P1b.7;1px splitter policy unchanged"
+  },
+  "publication": {
+    "remote": null,
+    "pr": null,
+    "ci": null,
+    "preexistingBaseCIFailures": "unassessed; no CI/base-run link exists",
+    "paidProviderCalls": 0,
+    "deployed": false
+  },
+  "nextOwner": "Independent reviewer400723da-6e2d-49eb-9e82-ed0cc553cb79 reviews exact ws.git.commit before P1b.3 assets. Coordinator records approval only after that verdict; report maintainer owns canonical data."
+}

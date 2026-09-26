@@ -1,3 +1,4 @@
+import type { CursorGap, WireValue } from './recovery.js';
 // Browser-safe LP-1 session wire types. No server code or credentials belong here.
 export type EmptyProtocolRequest = { protocolVersion: 1 };
 export type BootstrapRequest = { protocolVersion: 1; pairingToken: string };
@@ -19,6 +20,11 @@ export type CapabilitiesView = {
   profiles: readonly { id: string; version: string; state: 'qualified' | 'unqualified' | 'unavailable' }[];
 };
 export type LocalErrorDetail =
+  | CursorGap
+  | { kind: 'offset'; committedOffset: string; stagingVersion: string }
+  | { kind: 'cursor'; requestedAfter: string; transactionFrom: string; transactionTo: string }
+  | { kind: 'range'; byteLength: string }
+  | { kind: 'resource-state'; resourceId: string; state: string }
   | { kind: 'protocol-version'; supportedVersions: readonly number[] }
   | { kind: 'fields'; issues: readonly { path: string; code: string }[] };
 export type LocalError = {
@@ -30,7 +36,6 @@ export type LocalError = {
     message: string;
     commandId?: string;
     currentRevision?: string;
-    details?: { kind: 'inline'; value: LocalErrorDetail };
+    details?: WireValue<LocalErrorDetail>;
   };
 };
-// Further LP-1 detail/content-reference variants belong to their route owners.

@@ -7,8 +7,8 @@ export const ABSOLUTE_MS = 12 * 60 * 60 * 1000;
 export const IDLE_MS = 30 * 60 * 1000;
 export const COOKIE_NAME = 'ie_session';
 const secret = () => randomBytes(32).toString('base64url');
-const digest = (value: string) => createHash('sha256').update(value).digest('hex');
-type Session = { cookieHash: string; csrf: string; clientId: string; expires: number; idle: number };
+export const cookieDigest = (value: string) => createHash('sha256').update(value).digest('hex');
+export type Session = { cookieHash: string; csrf: string; clientId: string; expires: number; idle: number };
 
 export class Sessions {
   readonly #now: () => number;
@@ -17,22 +17,22 @@ export class Sessions {
   constructor(now: () => number) { this.#now = now; }
   issuePairing(): string {
     const token = secret();
-    this.#pairing = { hash: digest(token), expires: this.#now() + PAIRING_MS };
+    this.#pairing = { hash: cookieDigest(token), expires: this.#now() + PAIRING_MS };
     return token;
   }
-  bootstrap(token: string, oldCookie: string | undefined): { cookie: string; view: SessionView } {
+  bootstrap(token: string, oldCookie: string | undefined, restoredClientId?: string): { cookie: string; view: SessionView } {
     const pairing = this.#pairing;
-    if (!pairing || this.#now() >= pairing.expires || !timingSafeEqual(Buffer.from(pairing.hash), Buffer.from(digest(token)))) {
+    if (!pairing || this.#now() >= pairing.expires || !timingSafeEqual(Buffer.from(pairing.hash), Buffer.from(cookieDigest(token)))) {
       throw new ProtocolError('PAIRING_INVALID');
     }
     // No await between comparison, consumption, and credential creation.
     this.#pairing = undefined;
-    if (oldCookie) this.#sessions.delete(digest(oldCookie));
-    return this.#create(randomUUID(), this.#now() + ABSOLUTE_MS);
+    if (oldCookie) this.#sessions.delete(cookieDigest(oldCookie));
+    return this.#create(restoredClientId ?? randomUUID(), this.#now() + ABSOLUTE_MS);
   }
   authenticate(cookie: string | undefined, csrf?: string): Session {
     this.#prune();
-    const session = cookie && this.#sessions.get(digest(cookie));
+    const session = cookie && this.#sessions.get(cookieDigest(cookie));
     if (!session) throw new ProtocolError('SESSION_REQUIRED');
     if (csrf !== undefined && (!/^[A-Za-z0-9_-]{43}$/.test(csrf) ||
         !timingSafeEqual(Buffer.from(csrf), Buffer.from(session.csrf)))) throw new ProtocolError('CSRF_DENIED');
@@ -52,7 +52,7 @@ export class Sessions {
   #create(clientId: string, expires: number): { cookie: string; view: SessionView } {
     this.#prune();
     const cookie = secret();
-    const session = { cookieHash: digest(cookie), csrf: secret(), clientId, expires, idle: 0 };
+    const session = { cookieHash: cookieDigest(cookie), csrf: secret(), clientId, expires, idle: 0 };
     this.#sessions.set(session.cookieHash, session);
     return { cookie, view: this.view(session) };
   }

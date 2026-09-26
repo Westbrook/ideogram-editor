@@ -5,9 +5,11 @@ import { performance } from 'node:perf_hooks';
 import type { CapabilitiesView } from '../src/protocol/session.js';
 import { ProtocolError } from './errors.js';
 import { readSessionRequest } from './control-json.js';
-import { Sessions, readCookie, sessionCookie, expiredCookie } from './sessions.js';
+import { Sessions, cookieDigest, readCookie, sessionCookie, expiredCookie } from './sessions.js';
 import { assertSeparateDirectories, preparePrivateRoot } from './private-root.js';
 import { BOOTSTRAP_CSP, SHELL_STYLE_CSP, loadStatic } from './static.js';
+import { ProtocolRoutes, storeError } from './protocol.js';
+import type { WriterTestOptions } from './storage/writer.js';
 import { openWriter } from './storage/writer.js';
 
 export type ServerOptions = { root: string; staticDirectory?: string; now?: () => number; credentialConfigured?: boolean };
@@ -60,16 +62,21 @@ function checkAPIContext(request: IncomingMessage): void {
   if (read && (request.headers['transfer-encoding'] !== undefined || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0'))) throw new ProtocolError('MALFORMED_REQUEST');
 }
 
-export async function startLocalServer(options: ServerOptions) {
+// Internal process barriers only; never sourced from HTTP/CLI/environment.
+export async function startLocalServer(options: ServerOptions, testing?: { writer?: WriterTestOptions }) {
   const root = await preparePrivateRoot(options.root);
   if (options.staticDirectory) {
     await assertSeparateDirectories(root.path, options.staticDirectory);
   }
   const files = await loadStatic(options.staticDirectory);
-  const writer = await openWriter({ root: root.path });
+  const writer = await openWriter({ root: root.path },testing?.writer);
+  // Failure to provision the fixed default must not prevent metadata recovery.
+  await writer.protocolDefaults().catch(() => {});
   const wall = Date.now();
   const monotonic = performance.now();
-  const sessions = new Sessions(options.now ?? (() => wall + performance.now() - monotonic));
+  const now = options.now ?? (() => wall + performance.now() - monotonic);
+  const sessions = new Sessions(now);
+  const protocol = new ProtocolRoutes(writer,now);
   let origin = '';
   let rootInvalid = false;
   let closed = false;
@@ -107,7 +114,7 @@ export async function startLocalServer(options: ServerOptions) {
       const path = question < 0 ? target : target.slice(0, question);
       const query = question < 0 ? undefined : target.slice(question + 1);
       // This display flag is never a return URL or an authentication input.
-      if (query !== undefined) {
+      if (query !== undefined && !path.startsWith('/api/')) {
         const entries = [...new URLSearchParams(query)];
         if (path !== '/' || entries.length !== 1 || entries[0][0] !== 'progress-report') throw new ProtocolError('MALFORMED_REQUEST');
       }
@@ -119,13 +126,32 @@ export async function startLocalServer(options: ServerOptions) {
         const mutation = request.method !== 'GET' && request.method !== 'HEAD';
         // Authenticate all API routes except the exact bootstrap exchange.
         if (!bootstrap) sessions.authenticate(cookie, mutation ? String(request.headers['x-app-csrf'] ?? '') : undefined);
-        const allow = methods[path];
+        const route = protocol.match(path);
+        const params = new URLSearchParams(query ?? '');
+        const allowedQuery = route?.query ?? [];
+        const seen = new Set<string>();
+        for (const [key] of params) {
+          if (!allowedQuery.includes(key) || seen.has(key)) throw new ProtocolError('MALFORMED_REQUEST'); seen.add(key);
+        }
+        if (query !== undefined && (!query || /%(?![0-9a-f]{2})/i.test(query))) throw new ProtocolError('MALFORMED_REQUEST');
+        const allow = route?.allow ?? methods[path];
         if (!allow) throw new ProtocolError(unavailable.test(path) ? 'SERVER_UNAVAILABLE' : 'NOT_FOUND');
         if (!allow.includes(request.method!)) { response.setHeader('Allow', allow.join(', ')); throw new ProtocolError('METHOD_NOT_ALLOWED'); }
-        if (bootstrap) {
+        if (route) {
+          await protocol.handle(request,response,route,params,() => {
+            const session = sessions.authenticate(cookie,mutation ? String(request.headers['x-app-csrf'] ?? '') : undefined);
+            sessions.view(session); return session;
+          },assertRoot);
+        } else if (bootstrap) {
           const body = await readSessionRequest(request, true);
           await assertRoot();
-          const paired = sessions.bootstrap(body.pairingToken as string, cookie);
+          // A fresh OS-delivered pairing token is still mandatory after restart.
+          // Possession of the prior cookie can restore only its bound client ID;
+          // it cannot authenticate a request or restore old session credentials.
+          const restored = cookie ? await writer.recoverClient(cookieDigest(cookie),Math.floor(now())) : null;
+          const paired = sessions.bootstrap(body.pairingToken as string, cookie, restored ?? undefined);
+          try { await writer.rememberClient(cookieDigest(paired.cookie),paired.view.clientId,Date.parse(paired.view.sessionExpiresAt),cookie ? cookieDigest(cookie) : undefined); }
+          catch (e) { sessions.invalidate(); throw e; }
           response.setHeader('Set-Cookie', sessionCookie(paired.cookie));
           json(response, 200, paired.view);
         } else if (mutation) {
@@ -135,15 +161,22 @@ export async function startLocalServer(options: ServerOptions) {
           const session = sessions.authenticate(cookie, String(request.headers['x-app-csrf'] ?? ''));
           if (path.endsWith('/renew')) {
             const renewed = sessions.renew(session);
+            try { await writer.rememberClient(cookieDigest(renewed.cookie),renewed.view.clientId,Date.parse(renewed.view.sessionExpiresAt),session.cookieHash); }
+            catch (e) { sessions.invalidate(); throw e; }
             response.setHeader('Set-Cookie', sessionCookie(renewed.cookie));
             json(response, 200, renewed.view);
           } else {
+            await writer.forgetClient(session.cookieHash);
             sessions.revoke(session);
             response.setHeader('Set-Cookie', expiredCookie);
             response.writeHead(204); response.end();
           }
         } else {
           const view = sessions.view(sessions.authenticate(cookie));
+          if (path === '/api/v1/capabilities') {
+            const health = await writer.health();
+            capabilities.storageState = health.missingCount ? 'unavailable' : health.diskWarning || health.snapshotPressure ? 'pressure' : 'ready';
+          }
           json(response, 200, path === '/api/v1/session' ? view : capabilities);
         }
       } else {
@@ -157,7 +190,7 @@ export async function startLocalServer(options: ServerOptions) {
     } catch (error) {
       if (response.destroyed || response.headersSent) { response.destroy(); return; }
       // Never echo a request URL, body, cookie, filesystem path or native error.
-      const safe = error instanceof ProtocolError ? error : new ProtocolError('SERVER_UNAVAILABLE');
+      const safe = storeError(error,request.method === 'POST');
       response.setHeader('Connection', 'close');
       json(response, safe.status, safe.toWire());
     }

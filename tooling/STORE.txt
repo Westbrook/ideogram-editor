@@ -1,3 +1,14 @@
+P1b.2 CURRENT INTEGRATION UPDATE
+
+Read tooling/PROTOCOL.txt for the current schema2, LP-1 HTTP, snapshot/tail,
+client-binding and browser recovery contracts. It supersedes the historical
+P1b.1-only limitations below (one-event log uniqueness, total500 backpressure,
+unavailable HTTP commands/recovery, and absent snapshots). The original data,
+receipts and history remain compatible through an additive verified migration.
+The foundational ownership/object/runtime constraints below still apply.
+
+P1b.1 BASELINE REFERENCE (historical slice boundaries follow)
+
 P1b.1 DURABLE WRITER FOUNDATION
 
 Run from the repository root:

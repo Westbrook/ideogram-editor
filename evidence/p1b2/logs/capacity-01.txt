@@ -1,0 +1,9 @@
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (614.866875ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 660.072375

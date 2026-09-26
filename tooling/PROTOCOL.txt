@@ -1,0 +1,179 @@
+P1b.2 LP-1 COMMANDS AND ATOMIC RECOVERY
+
+Source baseline: independently approved e1a0092eeb0022c445bb348d0602fa0a727c3aee.
+Use exact Node26.10.0/npm12.1.0 from .toolchain/bin. No new dependency or
+provider transport was introduced. Run npm run test:protocol and npm run
+test:recovery; affected store/session/shell/consumer checks remain required.
+The full editor does not import the recovery consumer yet: P1b.7 owns that work.
+The approved P1a preview and independent report are separate running services.
+
+PUBLIC HTTP
+
+All existing Host/Origin/cookie/CSRF/Fetch Metadata, no-CORS, private-root and
+static-root separation rules remain mandatory. Commands and protocol content
+are not authentication channels. Protocol reads use X-App-Client:LP-1 when
+Origin is absent, including streamed content and fetch-based SSE. Only declared
+queries are accepted. HEAD exists only on immutable content. JSON is strict,
+UTF-8 and <=64KiB; unknown fields/discriminators/duplicates fail before acceptance.
+
+POST /api/v1/commands accepts the original complete LP-1 CommandRequest, with
+only NewDocument and SaveCheckpoint bodies in this slice. Expected-version
+manifests remain owned canonical blobs. The service provisions the one fixed
+EMPTY_EXPECTED_VERSIONS reference exported by src/protocol/store.ts so an
+authenticated new-root NewDocument needs no private test setup. It does not repair
+missing registered roots or accept arbitrary caller metadata. There is no public generic putObject,
+raw metadata read or arbitrary blob URL. P1b.3 supplies approved asset/staging
+preparation, including client-owned manifest inputs. Nonempty manifests still require typed preparation owned by later command/asset
+owners. Large-batch fixtures use trusted setup, never a public test route.
+These two synchronous commands return durable receipts, never fabricated202.
+The pending wire variant is defined for later local preparation owners: before
+returning202 they MUST journal original command/hash/operation identity and
+resume that identity after restart. This slice adds no preparation command or
+provider authority and makes no pending-preparation qualification claim.
+
+GET /commands/:id returns the original receipt, or404 kind:unknown without
+creating a command. Same command ID/hash returns the same receipt; changed hash
+is409 COMMAND_ID_REUSE. Five durable rejection codes remain unchanged. HTTP200
+rejections include typed readable details matching Receipt.details exactly.
+Storage exceptions return safe LocalError (including507 same-command for actual
+capacity failures), never a made-up rejected receipt. Lookup and resend first
+use current authentication, then the persisted original client owner. Envelope
+sessionId is original opaque provenance; neither it nor clientId authenticates.
+
+GET /documents/:id returns ProjectionResponse with entityVersion, schema2,
+atomically captured highWater and safe projection. Jobs/assets/bundles remain
+unavailable until their owners implement the reviewed contracts. Capabilities
+reports actual ready/pressure/unavailable storage state without exposing native
+paths or unbounded diagnostic inventories. LP-1 remains labelled unqualified
+until independent review; this is not whole-product qualification.
+
+CLIENT IDENTITY THROUGH RENEWAL/RESTART
+
+Renewal rotates cookie/CSRF, retains clientId and original-envelope ownership.
+The backend-only client_bindings table stores cookie HASH -> clientId/absolute
+expiry, never a raw cookie/token. A restart still invalidates ALL sessions, CSRF,
+pairing tokens, streams and recovery contexts. An old cookie cannot authenticate.
+Only successful NEW launcher pairing, together with possession of the prior
+cookie, can restore its bound clientId and issue fresh credentials. Bootstrap,
+renewal and revoke update this private registry durably before acknowledgement;
+rotation/revoke remove the old binding. Fresh pairing without that cookie gets
+a new client and cannot claim another client's receipts by copying envelope IDs.
+Bindings/session data never enter events, snapshots, protocol content or copies.
+Existing12-hour absolute/30-minute idle/5-minute pairing windows are unchanged.
+
+TRANSACTIONS, SNAPSHOTS AND MIGRATION
+
+Database schema2 is additive. On schema1: preflight backup space, VACUUM INTO a
+private precreated0600 file, fsync, validate integrity and per-table row counts/
+canonical digests, then copy events into events_v2. In one SQLite transaction,
+verify exact copied log digest, create new indexes/tables, record a migration
+receipt and activate user_version2. Original events and immutable triggers stay
+untouched as rollback evidence; objects/commands/history/checkpoints/roots are
+preserved. The verified schema1 backup is retained. No root reset, deletion,
+blob rewriting or destructive root activation occurs. An interrupted SQLite
+migration rolls back; preactivation backup/candidate files remain private.
+Future destructive migrations still require ARCH9.4's new-root activation and
+rollback contract; unsupported future database versions fail closed here.
+
+The active log permits multiple events per transaction/command. Replay validates
+canonical sequence, typed events, command hash/receipt range, complete contiguous
+transaction bounds and pure reducer invariants before publishing indexes. Public
+production commands here still emit one event each. A stopped-root trusted
+fixture creates an80-event transaction for real HTTP/browser consumption;
+there is no test-only public command. Future command owners must append complete
+ranges, one receipt and all projections/roots in the SAME writer transaction.
+
+Snapshots run in the worker at target250 events since the latest valid snapshot.
+Snapshot bytes stream in bounded rows, hash/flush/rename/verify before a SQLite
+transaction registers descriptor, captured sequence, projection checksum and
+object-root digest/copy. Rows including LF <=16KiB. Projection parts use standard
+padded base64 of canonical metadata UTF-8 split at code-point boundaries, never
+pixels or backend tables. Current document/history/checkpoint entities are
+bounded by existing event/control limits. Registry extensions need typed schema,
+streaming and validation work; arbitrary entity JSON is not accepted.
+
+Retain ALL log events, receipts, history and prior snapshots. On corrupt hash,
+count, root digest, projection checksum or version, choose the previous valid
+snapshot; full log replay remains possible when none is usable. Snapshot failure
+is visible pressure. At500 events since the latest valid snapshot, reject new
+mutations with durable CAPACITY/SNAPSHOT_REQUIRED when the journal permits;
+there is no500-total-event or history cap. Repairing snapshot capacity permits
+fresh snapshot creation and later acceptance without resetting existing data.
+Rejection receipts and retained objects remain durable through this recovery.
+
+RECOVERY AND CONTENT
+
+GET /events?after=A captures H once, returns complete transactions in <=64KiB
+pages and a client/root/writer-epoch-bound RecoveryContext. Later pages pass
+recoveryId and retain H. Mid-transaction cursors give typed409. A stale cursor
+returns410 CURSOR_GAP with a valid snapshot B and complete pinned tail(B,H].
+Absent valid bounded recovery gives503, never an unfulfillable snapshot URL.
+GET /snapshots/:id?recoveryId=R retains exact identity/B/H/content. Metadata
+checks content/hash/count/schema before offering it. No newer snapshot is
+substituted. Successful authorized reads renew the30-minute idle lease within
+the session's absolute bound. Expiry/restart give410; wrong client/context403.
+POST /recovery/:id/release journals owner-bound idempotent release with CSRF204.
+Release/expiry never deletes document/history roots. Read pins and content
+handles are bounded128; stream admission16; pressure yields typed local errors.
+
+Oversized transactions use TransactionReference, canonical events JSONL with
+exact count and committed sequence. ProtocolContentRef URLs are authenticated
+registry lookups, not bearer capabilities. Registerable producers are typed
+sanitized receipt details, document projections, transactions and snapshots.
+There is no caller-supplied arbitrary BlobRef registration path. GET/HEAD verify
+owned bytes, support one range, ETag/If-Range, exact length, no-store/nosniff and
+416 typed range details. Transfers use <=32KiB pieces on the HTTP side and
+<=1MiB underlying IO; hashing/SQLite/file work stays in the writer worker.
+Derived transaction files may remain inventoried after lease expiry; no GC is
+implemented or implicitly authorized. Persistent snapshot descriptors root
+snapshot files; their captured object-root sets are retained independently.
+
+Fetch SSE sends complete bounded batch-part frames or a transaction-ref frame.
+SSE id appears only at the transaction end/reference toSeq. It is an OFFERED
+cursor. Authentication/root failure after headers sends an error/gap and closes
+where possible; a disconnected socket is never an acceptance indication.
+
+BROWSER CONSUMER CONTRACT
+
+src/state/recovery-client.ts: new RecoveryConsumer(cache, transport?, csrf?).
+src/state/recovery-cache.ts: await RecoveryCache.open(clientSpecificCacheName).
+Transport defaults to same-origin fetch with credentials and X-App-Client:LP-1.
+Supply csrf:()=>currentToken to release recovery pins after recovery; transport
+must preserve the existing session boundary. Never use EventSource automatic
+Last-Event-ID. reconnectURL() explicitly uses the persisted APPLIED cursor.
+recover() verifies full bytes, SHA256, descriptor length/media/count, schema,
+transaction sequence/identity and pinned context before publication. It builds
+snapshot B plus tail through H in private IndexedDB staging, revalidates the
+lease, then atomically swaps one published generation/cursor pointer. Failure
+removes its staging and preserves the old view. Concurrent cache publication
+uses an IndexedDB compare-and-swap; no browser tab becomes the durable writer.
+consumeStream(signal) stages partial batches and reference downloads, applying
+one complete validated transaction before advancing. Checkpoints/IDs alone
+never advance; partial/gapped/malformed/expired/revoked deliveries fail closed.
+
+Fixed-size incremental SHA256, <=16KiB row parser, <=64KiB current typed entity/
+control materialization and per-row IndexedDB staging avoid whole-log/snapshot
+arrays. Whole snapshot/event transfer size has no invented product cap. Current
+cache contains metadata only. Interrupted process/browser staging is disposable
+client cache; P1b.7 must integrate cache lifecycle, cancellation, session handling,
+UI error states and chosen per-client cache names without treating cache as the
+source of truth. P1b.7 owns full editor integration and en-reve/splitter policies.
+P1b.3 owns uploads, typed asset safety, reservations/settings/repair/GC UI.
+
+QUALIFICATION LIMITS
+
+Named protocol tests exercise real HTTP receipts/renewal/wrong ownership,
+507 journal failure, full snapshot/ranges/expiry/release, large transactions,
+actual SIGKILL before/after commit with exact restart retry and zero outbound
+effect counters, and migration built from exacte1a0092 source. Real Chromium
+consumer tests include corrupted downloads/hash/length/count/context/sequence,
+partial/gapped/duplicate frames, offered SSE reference, successful live SSE,
+revocation/expiry/service shutdown and two-tab command races/recovery.
+
+No provider calls, publication, deployment, live design-system edit, shell UI
+integration, pending preparation workflow, full100k replay, PERF campaign,
+power-loss/device-cache, other-platform or native accessibility qualification is
+claimed. Actual timings/resources are observations in evidence/p1b2. Original
+P1a/P1b1 evidence and failed author attempts remain preserved. Exact source SHA,
+clean-tree receipt and independent-review handoff live in the task/shared PR
+Context; source files do not embed a self-referential commit hash.

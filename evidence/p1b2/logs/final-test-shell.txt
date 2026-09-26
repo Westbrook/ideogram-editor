@@ -1,0 +1,39 @@
+npm notice run ideogram-editor@0.1.0 test:shell
+npm notice run npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:app
+npm notice run npm run verify:imports && vite build --config vite.app.config.ts
+npm notice run ideogram-editor@0.1.0 verify:imports
+npm notice run node tooling/verify-imports.mjs
+Verified 18 consumer en-reve imports against packed public metadata
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 101 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/app/.vite/manifest.json          0.38 kB │ gzip:  0.20 kB
+dist/app/index.html                   0.87 kB │ gzip:  0.50 kB
+dist/app/build-evidence.json          6.28 kB │ gzip:  1.13 kB
+dist/app/assets/index-Ckqhmx9n.css   92.56 kB │ gzip: 11.84 kB
+dist/app/assets/index-BsEZWd8Y.js     2.39 kB │ gzip:  1.17 kB
+dist/app/assets/shell-C87eLKrM.js   191.64 kB │ gzip: 49.16 kB
+
+✓ built in 77ms
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+
+Running 10 tests using 1 worker
+
+(node:65156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/browser/shell.spec.ts:37:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (420ms)
+  ✓   2 tests/browser/shell.spec.ts:80:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts (415ms)
+  ✓   3 tests/browser/shell.spec.ts:107:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (469ms)
+  ✓   4 tests/browser/shell.spec.ts:131:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing (579ms)
+  ✓   5 tests/browser/shell.spec.ts:157:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads (408ms)
+  ✓   6 tests/browser/shell.spec.ts:192:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (544ms)
+  ✓   7 tests/browser/shell.spec.ts:212:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (447ms)
+  ✓   8 tests/browser/shell.spec.ts:231:1 › B08 lost renewal response is read back without retry; restarted server requires pairing (688ms)
+  ✓   9 tests/browser/shell.spec.ts:258:1 › B09 CSP permits only the trusted split styles and blocks injected inline behavior (285ms)
+  ✓  10 tests/browser/shell.spec.ts:273:1 › B10 same-site user navigation opens only the anonymous shell; fetch and frame remain denied (423ms)
+
+  10 passed (5.0s)

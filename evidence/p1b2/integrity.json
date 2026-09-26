@@ -1,0 +1,85 @@
+{
+  "at": "2026-09-26T04:26:33.657774+00:00",
+  "seals": [
+    {
+      "path": "docs/spec",
+      "exitCode": 0,
+      "checked": 49,
+      "errors": ""
+    },
+    {
+      "path": "docs/handoff",
+      "exitCode": 0,
+      "checked": 42,
+      "errors": ""
+    },
+    {
+      "path": "evidence/p1a1",
+      "exitCode": 0,
+      "checked": 18,
+      "errors": ""
+    },
+    {
+      "path": "evidence/p1a2",
+      "exitCode": 0,
+      "checked": 15,
+      "errors": ""
+    },
+    {
+      "path": "evidence/p1a2-case-alias",
+      "exitCode": 0,
+      "checked": 4,
+      "errors": ""
+    },
+    {
+      "path": "evidence/p1a3",
+      "exitCode": 0,
+      "checked": 26,
+      "errors": ""
+    },
+    {
+      "path": "evidence/p1b1",
+      "exitCode": 0,
+      "checked": 38,
+      "errors": ""
+    }
+  ],
+  "protectedTreeUnchanged": true,
+  "live": {
+    "preview": {
+      "url": "http://127.0.0.1:52219/",
+      "status": 200
+    },
+    "report": {
+      "url": "http://127.0.0.1:4381/",
+      "status": 200
+    }
+  },
+  "previewAssets": [
+    {
+      "path": "shell-C87eLKrM.js",
+      "sha256": "97a776945d330845ef7039de22733d1532a1b47660d26a2f6234a0099d47fb57",
+      "matchesUnchangedBuild": true
+    },
+    {
+      "path": "index-Ckqhmx9n.css",
+      "sha256": "75c39e0f3d7ec9542ac3b4cf45f97c99257cd9aa8d657ab17706fdd9a36b0730",
+      "matchesUnchangedBuild": true
+    },
+    {
+      "path": "index-BsEZWd8Y.js",
+      "sha256": "b2760ee7d98a32bebd2add8814cf2704dca7baf5ec4d706fb5e4eff0bf31e647",
+      "matchesUnchangedBuild": true
+    }
+  ],
+  "report": {
+    "revision": 83,
+    "unresolvedFeedback": [
+      {
+        "id": "439b475b-b1e1-4143-8482-70d37269b0d5",
+        "status": "open",
+        "taskId": "78489009-6f36-401e-bdab-de8adfd76796"
+      }
+    ]
+  }
+}

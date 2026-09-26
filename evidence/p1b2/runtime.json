@@ -1,0 +1,68 @@
+{
+  "at": "2026-09-26T04:27:19.242Z",
+  "node": "26.10.0",
+  "npm": "12.1.0",
+  "os": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.6.0"
+  },
+  "sqlite": {
+    "version": "3.53.4",
+    "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+  },
+  "settings": {
+    "journal_mode": "wal",
+    "synchronous": 2,
+    "foreign_keys": 1,
+    "busy_timeout": 250,
+    "fullfsync": 1,
+    "checkpoint_fullfsync": 1,
+    "page_size": 4096,
+    "page_count": 277,
+    "max_page_count": 4294967294
+  },
+  "snapshot": {
+    "seq": "250",
+    "hash": "sha256:c7d9fb37c7f2b7df10c6229f83de5808f61fb64b2f4594e34d2d50f82ded90b2",
+    "byteLength": "106253",
+    "records": "252"
+  },
+  "resources": {
+    "ioChunkBytes": 1048576,
+    "maxTransfers": 2,
+    "admissionOverheadPercent": 25,
+    "freeMarginBytes": "1073741824",
+    "metadataHeadroomBytes": "67108864",
+    "metadataHeadroomPhysicallyPreallocated": false,
+    "snapshotTailCeiling": 500
+  },
+  "processMemory": {
+    "rss": 108724224,
+    "heapTotal": 18497536,
+    "heapUsed": 9832944,
+    "external": 7354665,
+    "arrayBuffers": 2941329
+  },
+  "observations": {
+    "firstReceiptMs": 6.858000000000004,
+    "receiptIncludingSnapshotMs": 56.99700000000007,
+    "verifiedSnapshotDescriptorMs": 9.323292000000038,
+    "reopenMs": 193.57695799999988,
+    "workerReplayMs": 38.33591700000011
+  },
+  "projectionDigestBefore": "sha256:fe0bf72f768156086275f3ca1de69f4db2eae779952cd1d64d7d613b7ff37c00",
+  "projectionDigestAfter": "sha256:fe0bf72f768156086275f3ca1de69f4db2eae779952cd1d64d7d613b7ff37c00",
+  "effects": {
+    "submit": 0,
+    "upload": 0,
+    "poll": 0,
+    "cancel": 0,
+    "fetch": 0,
+    "socket": 0,
+    "dns": 0,
+    "datagram": 0
+  },
+  "qualification": false,
+  "limits": "Single observations, synthetic empty document plus checkpoints; not W1/W2/PERF or full100k replay. Restart span includes OS ownership and worker startup. No provider transport."
+}

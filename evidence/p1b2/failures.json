@@ -1,0 +1,65 @@
+[
+  {
+    "id": "F01",
+    "kind": "author compile",
+    "evidence": "tool output, first server build after routes",
+    "failure": "TS2339: content/eventCount not narrowed on the EventBatch union in server/protocol.ts.",
+    "resolution": "Use an explicit content property discriminator; later type/build gates pass."
+  },
+  {
+    "id": "F02",
+    "kind": "author compile",
+    "evidence": "tool output after client binding addition",
+    "failure": "TS2339: cookieDigest does not exist on type Hash.",
+    "resolution": "Corrected accidental digest-method rename; no runtime or persisted credential value was exposed."
+  },
+  {
+    "id": "F03",
+    "kind": "changed contract expectation",
+    "evidence": "logs/store-01.txt",
+    "failure": "Old total500 stop and generic SQLITE_FULL STORAGE_FAILURE assertions fail against real snapshots and typed STORAGE_FULL.",
+    "resolution": "Replace total500 assertion with snapshot500/highWater501/history retention and keep separate real failed-snapshot tail500 coverage. Assert exact STORAGE_FULL while retaining native SQLITE_FULL13, rollback and same-command retry checks."
+  },
+  {
+    "id": "F04",
+    "kind": "HTTP fixture shape",
+    "evidence": "logs/protocol-01.txt",
+    "failure": "Checkpoint rejection fixture incorrectly merged NewDocument fields, producing400.",
+    "resolution": "Construct the existing exact SaveCheckpoint body; strict production parser was unchanged."
+  },
+  {
+    "id": "F05",
+    "kind": "migration implementation",
+    "evidence": "logs/protocol-02.txt",
+    "failure": "SQLite VACUUM backup creation used ambient file permissions and failed private-root admission.",
+    "resolution": "Precreate the empty destination as0600 before VACUUM INTO; exact e1a0092 migration/backup integrity test now passes."
+  },
+  {
+    "id": "F06",
+    "kind": "process test harness",
+    "evidence": "logs/protocol-03.txt",
+    "failure": "A missing closing brace in process.test.mjs prevented test loading.",
+    "resolution": "Corrected fixture syntax and reran both real SIGKILL cases."
+  },
+  {
+    "id": "F07",
+    "kind": "process guard harness",
+    "evidence": "logs/process-02.txt",
+    "failure": "The store-only DNS guard blocked Node listener lookup of literal127.0.0.1 before HTTP startup.",
+    "resolution": "Protocol guard permits only this literal listen resolution; all outbound sockets/HTTP/fetch/nonliteral DNS/datagrams still count and throw. Final shared effect counters are zero."
+  },
+  {
+    "id": "F08",
+    "kind": "changed contract expectation",
+    "evidence": "logs/final-test-store-volume.txt",
+    "failure": "Real ENOSPC returned typed STORAGE_FULL while the old assertion expected STORAGE_FAILURE.",
+    "resolution": "Updated only that exact expected code. Native ENOSPC/fullAvailableBytes0, no receipt, writable retry, EROFS and byte-preservation checks remain and pass on rerun."
+  },
+  {
+    "id": "O01",
+    "kind": "unqualified timing observation",
+    "evidence": "runtime.json",
+    "failure": "One receipt spanning synchronous snapshot creation measured56.997ms, above the50ms R20 ceiling; first ordinary receipt measured6.858ms.",
+    "resolution": "No R20 performance pass is claimed. Preserve this observation for independent review and the owning performance campaign; no budget was relaxed."
+  }
+]
