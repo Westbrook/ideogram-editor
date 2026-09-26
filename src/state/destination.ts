@@ -10,12 +10,17 @@ export function chooseDestination(name:string):Promise<Destination>|null {
 }
 export async function writeDestination(download:Download,transport:(path:string)=>Promise<Response>,chosen:Promise<Destination>|null){
   let sink:Sink|undefined;let temporary:FileSystemFileHandle|undefined;
+  let temporaryRoot:FileSystemDirectoryHandle|undefined,temporaryName:string|undefined;let handedOff=false;
   try{
     if(chosen)sink=await(await chosen).createWritable();
     else{
       // Disk-backed fallback avoids accumulating an entire project in JS memory.
       const root=await navigator.storage.getDirectory();
-      temporary=await root.getFileHandle('ie-download-'+crypto.randomUUID(),{create:true});
+      const name='ie-download-'+crypto.randomUUID();
+      // Refuse a known collision; the attempt owns only its newly created entry.
+      try{await root.getFileHandle(name);throw Error('DOWNLOAD_TEMPORARY_COLLISION');}
+      catch(error){if(!(error instanceof DOMException)||error.name!=='NotFoundError')throw error;}
+      temporary=await root.getFileHandle(name,{create:true});temporaryRoot=root;temporaryName=name;
       sink=await temporary.createWritable();
     }
     const response=await transport(download.path);
@@ -26,7 +31,15 @@ export async function writeDestination(download:Download,transport:(path:string)
     }}finally{await reader.cancel();}
     if(String(length)!==download.bytes||hash.digest()!==download.hash)throw Error('DOWNLOAD_CORRUPT');
     await sink!.close();sink=undefined;
-    if(temporary){const url=URL.createObjectURL(await temporary.getFile());const link=document.createElement('a');link.href=url;link.download=download.name;link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);return 'unconfirmed' as const;}
+    if(temporary){const url=URL.createObjectURL(await temporary.getFile());const link=document.createElement('a');link.href=url;link.download=download.name;handedOff=true;link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);return 'unconfirmed' as const;}
     return 'confirmed' as const;
-  }catch(error){await sink?.abort().catch(()=>{});throw error;}
+  }catch(error){
+    const cleanupErrors:unknown[]=[];
+    // Settle the writer before unlinking. An uncertain writer leaves the entry
+    // intact and reports incomplete cleanup alongside the original failure.
+    if(sink){try{await sink.abort();sink=undefined;}catch(failure){cleanupErrors.push(failure);}}
+    if(!handedOff&&!sink&&temporaryRoot&&temporaryName){try{await temporaryRoot.removeEntry(temporaryName);}catch(failure){cleanupErrors.push(failure);}}
+    if(cleanupErrors.length)throw new AggregateError([error,...cleanupErrors],(error instanceof Error?error.message:String(error))+'; download cleanup incomplete',{cause:error});
+    throw error;
+  }
 }
