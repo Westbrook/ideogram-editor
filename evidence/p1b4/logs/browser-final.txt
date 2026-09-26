@@ -1,0 +1,22 @@
+npm notice run ideogram-editor@0.1.0 test:raster:browser
+npm notice run npm run build:server && vite build --config tests/raster/vite.config.ts && playwright test --config tests/raster/playwright.config.ts
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 50 modules transformed.
+rendering chunks...
+computing gzip size...
+artifacts/p1b4/browser-app/index.html                  0.63 kB │ gzip:  0.39 kB
+artifacts/p1b4/browser-app/assets/index-K0v3ZUpM.css  79.03 kB │ gzip:  8.74 kB
+artifacts/p1b4/browser-app/assets/index-DkYFmpwa.js   90.04 kB │ gzip: 26.48 kB
+
+✓ built in 38ms
+
+Running 1 test using 1 worker
+
+(node:3387) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/raster/consumer.spec.ts:7:1 › actual decoded conversion preview, explicit en-reve approval, canonical recovery projection and PNG content (1.5s)
+
+  1 passed (2.1s)

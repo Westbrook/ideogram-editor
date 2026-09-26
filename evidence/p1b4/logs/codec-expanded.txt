@@ -1,0 +1,13 @@
+✔ actual frozen PNG/JPEG/static WebP codec inputs; independently specified uniform and literal pixels (100.322625ms)
+✔ all eight EXIF orientations normalize once with exact alpha/hidden samples retained (96.124083ms)
+✔ supported P3 converts with review data and original profile identity retained (16.069625ms)
+✔ actual malformed/animated/profile/extent inputs cannot produce usable canonical output (73.96ms)
+✔ P3 nonprimary conversion matches independent public LittleCMS C oracle, retaining alpha (15.001166ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 354.718667

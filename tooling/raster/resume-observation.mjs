@@ -1,0 +1,13 @@
+import{isDeepStrictEqual}from'node:util';
+import{readFile,writeFile}from'node:fs/promises';import{createHash,randomUUID}from'node:crypto';
+import{openWriter}from'../../dist/local/server/storage/writer.js';import{EMPTY_EXPECTED_VERSIONS}from'../../dist/local/src/protocol/store.js';
+const[input,out]=process.argv.slice(2),prior=JSON.parse(await readFile(input)),w=await openWriter({root:prior.root}),facts={at:new Date().toISOString(),root:prior.root,previous:input,pending:prior.pending,qualification:false,steps:[]};
+const auth={clientId:'measure',sessionHash:'recovered-measure-session',now:Date.now(),expires:Date.now()+43200000};
+const wait=async id=>{for(let n=0;n<12000;n++){const s=await w.commandState(id);if(s.record){if(s.record.receipt.status!=='accepted')throw Error(JSON.stringify(s));return (await w.events(String(BigInt(s.record.receipt.fromSeq)-1n))).events[0].payload.asset;}if(s.pending?.phase==='waiting-for-resources'&&n>2000)throw Error('Still resource-limited');await new Promise(r=>setTimeout(r,5));}throw Error('Timeout');};
+const command=async body=>{const c={protocolVersion:1,command:{schemaVersion:1,commandId:randomUUID(),clientId:'measure',sessionId:'recovery-observation',correlationId:randomUUID(),causationId:null,transactionId:randomUUID(),documentId:null,expectedDocumentRevision:null,expectedEntityVersions:EMPTY_EXPECTED_VERSIONS,issuedAt:new Date().toISOString(),body}};const start=performance.now();await w.rasterCommand(Buffer.from(JSON.stringify(c)),auth);const a=await wait(c.command.commandId);facts.steps.push({type:body.type,elapsedMs:performance.now()-start});return a;};
+try{
+ if(!prior.pending)throw Error('No recorded pending command');const a=await wait(prior.pending.command.commandId);const record=await w.lookup(prior.pending.command.commandId);if(record.command.commandId!==prior.pending.command.commandId||a.id!==prior.pending.operationId||!isDeepStrictEqual(record.command,prior.pending.command))throw Error('Pending identity changed');
+ if(a.raster.pixels.hash!==prior.expectedRawHash)throw Error('Independent raw hash mismatch');facts.recovered=a.raster;facts.receipt=record.receipt;
+ if(a.qualification==='canonical-raster'){const exported=await command({type:'ExportRaster',assetId:a.id});if(exported.raster.pixelIdentity!==a.raster.pixelIdentity)throw Error('Export mismatch');facts.export=exported.blob;}
+ facts.status='passed';
+}catch(e){facts.status='failed';facts.error=String(e);process.exitCode=1;}finally{facts.diagnostics=await w.diagnostics();facts.peakRSS=process.resourceUsage().maxRSS*1024;await w.close();await writeFile(out,JSON.stringify(facts,null,2)+'\n');console.log(JSON.stringify({status:facts.status,error:facts.error,peakRSS:facts.peakRSS}));}

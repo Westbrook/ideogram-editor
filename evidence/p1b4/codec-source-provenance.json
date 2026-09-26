@@ -1,0 +1,781 @@
+{
+  "at": "2026-09-26T06:39:47.493400+00:00",
+  "scope": "Exact installed package source/native hashes plus immutable upstream source and build recipe identities. Native packages were supplied prebuilt, not rebuilt here. GitHub reports signed tag verification; independent cryptographic release verification was not performed.",
+  "sources": [
+    {
+      "repository": "https://github.com/libvips/libvips",
+      "commit": "426af3f44246fce9cfa8dd51a353aa4dfd48c553",
+      "archiveAPI": "https://api.github.com/repos/libvips/libvips/tarball/426af3f44246fce9cfa8dd51a353aa4dfd48c553",
+      "archiveSHA256": "dac4b26cfbb17e0e0bafdc261be05c830866a066679030e5cd96950c2cc66032",
+      "archiveBytes": 27964666,
+      "retainedArchive": "artifacts/p1b4/libvips-source.tar.gz",
+      "sourceAndRecipeFiles": [
+        {
+          "path": "LICENSE",
+          "bytes": 26530,
+          "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+        },
+        {
+          "path": "libvips/colour/CMYK2XYZ.c",
+          "bytes": 5510,
+          "sha256": "2497f9a1fae4d13e1081ce23d64d5b5bbbcd4305c44b84eefd0527ab997acce3"
+        },
+        {
+          "path": "libvips/colour/HSV2sRGB.c",
+          "bytes": 3593,
+          "sha256": "e469ae5eb2eeab38c05d5a3f3ee6fb8d30d72d890dd53b1172cd8a47cab59a31"
+        },
+        {
+          "path": "libvips/colour/LCh2Lab.c",
+          "bytes": 2958,
+          "sha256": "92fe8eceea9f89b564f604218dcceca2d3e38c3b962a5c088efb97246eab82d4"
+        },
+        {
+          "path": "libvips/colour/LCh2UCS.c",
+          "bytes": 5025,
+          "sha256": "23f5034b723f30fc70a5a2552beafe915f11ff3710cdd49190db83ea4a88b38e"
+        },
+        {
+          "path": "libvips/colour/Lab2LCh.c",
+          "bytes": 3112,
+          "sha256": "ef9a085589b8efa579a877bea7f5231c2e0234f55fea26d5f7334a3d67c89266"
+        },
+        {
+          "path": "libvips/colour/Lab2LabQ.c",
+          "bytes": 4436,
+          "sha256": "ced413b03f2d82f11a15e4019a30d7b1a5870ea4161aac159c81a91bdd6c1e51"
+        },
+        {
+          "path": "libvips/colour/Lab2LabS.c",
+          "bytes": 3018,
+          "sha256": "86cea17f408be28525cd25dd35c4248bfb59f0e4771a6f689640e5780819edd3"
+        },
+        {
+          "path": "libvips/colour/Lab2XYZ.c",
+          "bytes": 5473,
+          "sha256": "fe346f04aaf3e4696184f306591b073961d0c99c79de877615d23e0a3417b1ac"
+        },
+        {
+          "path": "libvips/colour/LabQ2Lab.c",
+          "bytes": 3987,
+          "sha256": "0d541acd23986733e43418cb43d2a1361c730cadbc2fa2aa62ef64f06b85fee2"
+        },
+        {
+          "path": "libvips/colour/LabQ2LabS.c",
+          "bytes": 3319,
+          "sha256": "f207979389c827d9fba7b25099c7c10b919b3cd39d3d31b4a59fc7f57933191a"
+        },
+        {
+          "path": "libvips/colour/LabQ2sRGB.c",
+          "bytes": 12018,
+          "sha256": "01f4cf34597feca799b35e98f32237224193713803f32fd0727f4d4a7f0ea9b0"
+        },
+        {
+          "path": "libvips/colour/LabS2Lab.c",
+          "bytes": 2853,
+          "sha256": "a566bda842b2d3f44ca284ad486a9245a30071dbd61974c0640c38092caa3950"
+        },
+        {
+          "path": "libvips/colour/LabS2LabQ.c",
+          "bytes": 3726,
+          "sha256": "33b72b7e2983f834caef8bd6fa92ad1da3da199858a33f9924ab020d380c287a"
+        },
+        {
+          "path": "libvips/colour/Oklab2Oklch.c",
+          "bytes": 2537,
+          "sha256": "5e8a2237500a05ef3099c2d3ca523cd77f8587bc197a263bcc40869d8e27ea75"
+        },
+        {
+          "path": "libvips/colour/Oklab2XYZ.c",
+          "bytes": 3167,
+          "sha256": "6cdcddc4a62dc494de586096af6e561414a679bdb1705764a4259c639898fa64"
+        },
+        {
+          "path": "libvips/colour/Oklch2Oklab.c",
+          "bytes": 2573,
+          "sha256": "a5c8ce4ca97cdb00871fd41dbdd79af71bed9faad3bad25d812020b9860ef876"
+        },
+        {
+          "path": "libvips/colour/UCS2LCh.c",
+          "bytes": 5761,
+          "sha256": "f664407f6e89ac01fb30069d1d04845dccb58365220f9bb7b0d3def636eb8c82"
+        },
+        {
+          "path": "libvips/colour/XYZ2CMYK.c",
+          "bytes": 5581,
+          "sha256": "d7519a7f3a55fdbd9f81de84d601cdae96a748f904ddb443a9872b8e172eabfc"
+        },
+        {
+          "path": "libvips/colour/XYZ2Lab.c",
+          "bytes": 6316,
+          "sha256": "e59568400ccb28f9382eeaf01d30c9fa6594813e540d314b401a3cf08537af78"
+        },
+        {
+          "path": "libvips/colour/XYZ2Oklab.c",
+          "bytes": 3257,
+          "sha256": "1a1d67c20f263e868b039de7ee376bcad0fa383086215c5a55a9fdba0ed97230"
+        },
+        {
+          "path": "libvips/colour/XYZ2Yxy.c",
+          "bytes": 2663,
+          "sha256": "ba9b2d1f2bc47f7dd081d6951db2698559aace1d9fa04c8f89aeab03df8e5a46"
+        },
+        {
+          "path": "libvips/colour/XYZ2scRGB.c",
+          "bytes": 3129,
+          "sha256": "fb7723d7c5be16d413187ff1b87c03f1f16a773ba1f0e9b374f95defd5a398fd"
+        },
+        {
+          "path": "libvips/colour/Yxy2XYZ.c",
+          "bytes": 2729,
+          "sha256": "64227888402fd296b00540aac2bdf6509afce975665ff12d974c5448fb801fb1"
+        },
+        {
+          "path": "libvips/colour/colour.c",
+          "bytes": 16935,
+          "sha256": "25ef5446d879190e269068778aee117e6ea679aeb8a8a25dbf86edd440de1d82"
+        },
+        {
+          "path": "libvips/colour/colourspace.c",
+          "bytes": 28783,
+          "sha256": "c556c5eb0777f77bdf585dd2ab889a425d2b5ae45e5409cf0bf4adbe401cfd4f"
+        },
+        {
+          "path": "libvips/colour/dE00.c",
+          "bytes": 6248,
+          "sha256": "c5ee1d603b9ac707077c12d18d20d3e38ba61db97c14c69120fae59bcc233da2"
+        },
+        {
+          "path": "libvips/colour/dE76.c",
+          "bytes": 3235,
+          "sha256": "c16042f938157d31781681db4c474ad7eca079cb60680c8a9918cbcede9ab1c8"
+        },
+        {
+          "path": "libvips/colour/dECMC.c",
+          "bytes": 2574,
+          "sha256": "cfc158f1f89b737d507f7b6b2aeb1db59fee99e641c396aa8e28e0b6618cf3ee"
+        },
+        {
+          "path": "libvips/colour/float2rad.c",
+          "bytes": 7191,
+          "sha256": "a9178efd5fe9d17e67d3e9bc1958bbec3164a22288ce5e977284563c1a65cdc5"
+        },
+        {
+          "path": "libvips/colour/icc_transform.c",
+          "bytes": 39725,
+          "sha256": "797af572c5e5e76dc46e2876605f361986887da9650848d107b08163af10ca4a"
+        },
+        {
+          "path": "libvips/colour/meson.build",
+          "bytes": 1023,
+          "sha256": "5238d499f4a9419298b1a1ca3c2da1c8c2835cf46f5bef032581bc756bcfbf4c"
+        },
+        {
+          "path": "libvips/colour/pcolour.h",
+          "bytes": 6211,
+          "sha256": "0e746b792bdc034404280a1793a7430c6c31d5f04cc687e00a4a24373d8f7be5"
+        },
+        {
+          "path": "libvips/colour/profile_load.c",
+          "bytes": 5475,
+          "sha256": "3d9d764be5ff2023ba5b91cddaead1b74e21527beb96465114722ba4c4c3369a"
+        },
+        {
+          "path": "libvips/colour/profiles.c",
+          "bytes": 2351541,
+          "sha256": "63b9cae1e6bb4793d7ec91c0f339ff25299b6faee3c861c4090f35ba9efd068b"
+        },
+        {
+          "path": "libvips/colour/profiles.h",
+          "bytes": 291,
+          "sha256": "54ef01e4b2a7a07336bf4bb0aad49f1f6427f9f23ebb7a6eff198914c56156f4"
+        },
+        {
+          "path": "libvips/colour/profiles/cmyk.icm",
+          "bytes": 961644,
+          "sha256": "156e7c14f244cfc4ed83a755ca4803d80e15dd249b40fae82cb127d3902e15c7"
+        },
+        {
+          "path": "libvips/colour/profiles/p3.icm",
+          "bytes": 480,
+          "sha256": "231752984cd4a5278e1b8d2390fe496767d4511fc81f54e1a5c69ae9ab4c42b5"
+        },
+        {
+          "path": "libvips/colour/profiles/sGrey.icm",
+          "bytes": 360,
+          "sha256": "00c0f94e09127520a17dc0e1d9264b5702081d96dbdb1549ee88e3631ce42a9d"
+        },
+        {
+          "path": "libvips/colour/profiles/sRGB.icm",
+          "bytes": 480,
+          "sha256": "c56e1685d888f5edb92fe07f2750f387f8fe8e91b32ff8fb0b56bfbbb9458353"
+        },
+        {
+          "path": "libvips/colour/rad2float.c",
+          "bytes": 6942,
+          "sha256": "005ead253e2d3b6f795c1ae382538983aa64ffba875deaa5db2172e46ee63027"
+        },
+        {
+          "path": "libvips/colour/sRGB2HSV.c",
+          "bytes": 3999,
+          "sha256": "47d969e8a5d683e672e2b8a4e09683dbddbf3abc8266d1a3d3efef4cee978095"
+        },
+        {
+          "path": "libvips/colour/sRGB2scRGB.c",
+          "bytes": 4180,
+          "sha256": "3aba08b2b40ee880fae267379541d145cd98daf32bfa2d8d57129f809f6b38f3"
+        },
+        {
+          "path": "libvips/colour/scRGB2BW.c",
+          "bytes": 4448,
+          "sha256": "c0cf94089670ccf2f23283c48c49cc21c8e43bcf98779f5842a36dde5db3918b"
+        },
+        {
+          "path": "libvips/colour/scRGB2XYZ.c",
+          "bytes": 2919,
+          "sha256": "840e0e659115b055eb7f43e063add8d493c3ba77bd1186b21ef89af1c3d26150"
+        },
+        {
+          "path": "libvips/colour/scRGB2sRGB.c",
+          "bytes": 5258,
+          "sha256": "5b0a6dfc497eaf125e1820ed220d3b66ec09bab8c3c949654493071dd06b4e8f"
+        },
+        {
+          "path": "libvips/colour/uhdr2scRGB.c",
+          "bytes": 7937,
+          "sha256": "b1d604156299f34afa66880ba13810409fa8793ca127719a39bbed36b5c491b6"
+        },
+        {
+          "path": "libvips/colour/wrap-profiles.sh",
+          "bytes": 1111,
+          "sha256": "f93df21bf45525c10496a29ae1fe623d951f074a45d0a7c261d95ea17fb95feb"
+        },
+        {
+          "path": "libvips/foreign/libnsgif/COPYING",
+          "bytes": 1133,
+          "sha256": "1469b759cf18e43c6e1b4ff892307d3962cbbb337ac497620d6690a219fad10c"
+        }
+      ]
+    },
+    {
+      "repository": "https://github.com/lovell/sharp",
+      "commit": "7f1a0a22cc285fe180766f4935d50b55af6e8432",
+      "archiveAPI": "https://api.github.com/repos/lovell/sharp/tarball/7f1a0a22cc285fe180766f4935d50b55af6e8432",
+      "archiveSHA256": "c3a1367c22cf17c810fdc50104c57a4a5f33fddc55e6267037ab3fb9313d0434",
+      "archiveBytes": 41789486,
+      "retainedArchive": "artifacts/p1b4/sharp-source.tar.gz",
+      "sourceAndRecipeFiles": [
+        {
+          "path": "LICENSE",
+          "bytes": 10273,
+          "sha256": "73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68"
+        },
+        {
+          "path": "lib/channel.mjs",
+          "bytes": 5376,
+          "sha256": "6067b0ba5ebcc9682a01d0b450a12b54849a95c8ed017f8485bddb5fd0b9db91"
+        },
+        {
+          "path": "lib/colour.mjs",
+          "bytes": 5610,
+          "sha256": "760e7fa8161432a9cc97f0a3d9f3e0b757e66089c967e6b36f3131c9fdafa1b5"
+        },
+        {
+          "path": "lib/composite.mjs",
+          "bytes": 9325,
+          "sha256": "16eadc26ba57417e90e4bb73aff1116b56ad26766088793ab0b7c4bbdd2bc9fc"
+        },
+        {
+          "path": "lib/constructor.mjs",
+          "bytes": 20340,
+          "sha256": "8be8da679d2a028d0f53b02ce52f07f295134a297caf3068944cd8d0b57ab3d1"
+        },
+        {
+          "path": "lib/index.d.ts",
+          "bytes": 92867,
+          "sha256": "2876b0808194e7e14eb78d59f28aa835d9146bbafd4b7ae150b3fbf1da54b8e6"
+        },
+        {
+          "path": "lib/index.mjs",
+          "bytes": 573,
+          "sha256": "0e8f955c68a1b0bccf0ba5343c924dbfa6a46a76a0d491ec27fe6b328311363e"
+        },
+        {
+          "path": "lib/input.mjs",
+          "bytes": 33729,
+          "sha256": "4b0a51e678f9022cec06a1ffb34e17ea3498cfb707492b54de87541ccac54125"
+        },
+        {
+          "path": "lib/is.mjs",
+          "bytes": 2930,
+          "sha256": "d87220e2c4ce04202290fdfd78105a65d32adce3fead64aaaaca15cfe324f95d"
+        },
+        {
+          "path": "lib/libvips.mjs",
+          "bytes": 5828,
+          "sha256": "d9984601b0aafe44c393b29ce4b0712b1c40890c3d740d4fda49842a4ea5873d"
+        },
+        {
+          "path": "lib/operation.mjs",
+          "bytes": 32875,
+          "sha256": "257872181be8d6b66f3f310fff5f17f3c297ff258ab3005d09a954844b3eeb6b"
+        },
+        {
+          "path": "lib/output.mjs",
+          "bytes": 65399,
+          "sha256": "a5ae31763bec9e0a5d41da3d5cbcea3fcfc7d366218c199f9cece530ce48846a"
+        },
+        {
+          "path": "lib/resize.mjs",
+          "bytes": 22777,
+          "sha256": "641e7493bd89855605d052a9a6a2a867fbb7291d97242252ecd57aeb9ed62ae0"
+        },
+        {
+          "path": "lib/sharp.mjs",
+          "bytes": 6294,
+          "sha256": "994230859dcfa1235dee5bf612069d14844153b997cf7309deb2ea0012ec5419"
+        },
+        {
+          "path": "lib/utility.mjs",
+          "bytes": 9862,
+          "sha256": "761566e165bc1fc90bc6dd67a3b560c1a63e6cfe98009b726d35288606d629b9"
+        },
+        {
+          "path": "src/CPPLINT.cfg",
+          "bytes": 181,
+          "sha256": "ed08ea664d906efe21659e0b8d3dd3c2eb380e2e9a0925d9db98de710d2ea5d4"
+        },
+        {
+          "path": "src/binding.gyp",
+          "bytes": 10805,
+          "sha256": "9d0a43b5db5db4e6a4a662ff059d8bf30e57ea403d2e207fc408a8c6aa0ab8c8"
+        },
+        {
+          "path": "src/common.cc",
+          "bytes": 41423,
+          "sha256": "da681305ad288d1e1947b8ad5f6b1ddbe221236d77f801c67de7bfb637cfc981"
+        },
+        {
+          "path": "src/common.h",
+          "bytes": 10988,
+          "sha256": "fcca4777bbb2363bb9c2ff082eb8e0264096151a975a332a9450dbb97d636fae"
+        },
+        {
+          "path": "src/emscripten/common.gypi",
+          "bytes": 1198,
+          "sha256": "e61478cc034e4e385fa119770b35fa1d6bc8c9396655b32b0f8ee80f59b6bca0"
+        },
+        {
+          "path": "src/emscripten/pre.js",
+          "bytes": 483,
+          "sha256": "50674c87bb266d3a1519b594556bcff03a3f79c58a4d0f4dba9c9e7829761577"
+        },
+        {
+          "path": "src/metadata.cc",
+          "bytes": 15320,
+          "sha256": "a127c134c9e537db9c63962ff1aa1d0762a8d517d746a844e6b43b299e11a581"
+        },
+        {
+          "path": "src/metadata.h",
+          "bytes": 1878,
+          "sha256": "5e02c25ec821a525b0caf31161b1e8675ff32cfd098c17cda0b888440362b057"
+        },
+        {
+          "path": "src/operations.cc",
+          "bytes": 17412,
+          "sha256": "a61e6545cde7d2f2ae508b4eceeeec9db9ef711211d5cba1ed470f9325f914fb"
+        },
+        {
+          "path": "src/operations.h",
+          "bytes": 3625,
+          "sha256": "6f41d329634471dff8e093d12e38ff356293079e2aeecc5b922fc23ba99799e6"
+        },
+        {
+          "path": "src/pipeline.cc",
+          "bytes": 90883,
+          "sha256": "76010d19804f37f2231f3d705afdd0937ac593663797780a36c06c3952cd6571"
+        },
+        {
+          "path": "src/pipeline.h",
+          "bytes": 10131,
+          "sha256": "e09c3dbd873071a373e6d95679b470a6fe1be5fc2ef781b00fd87958b5ab5e98"
+        },
+        {
+          "path": "src/sharp.cc",
+          "bytes": 1529,
+          "sha256": "9f407b50bb2d02e5eb711b769f05d3e6659028430e055c4271e5ab1593f5a257"
+        },
+        {
+          "path": "src/stats.cc",
+          "bytes": 6756,
+          "sha256": "72f8f2ad0e4315951c88b115511eb96741fd0479385ed094141f7bd254739791"
+        },
+        {
+          "path": "src/stats.h",
+          "bytes": 1267,
+          "sha256": "db854f0c3c4a0db1751021ed676413c6d5ca00becc08bdc13258b29047450b8c"
+        },
+        {
+          "path": "src/utilities.cc",
+          "bytes": 9532,
+          "sha256": "694195a5f2aa7e4ef50aa7a97c0381d8a858a6b3a437997e17b972aff093a493"
+        },
+        {
+          "path": "src/utilities.h",
+          "bytes": 741,
+          "sha256": "0b126ab63cf1aedf8e71e6cb8179899d3ef02c46419100e847b2ca4284b8901b"
+        }
+      ]
+    },
+    {
+      "repository": "https://github.com/lovell/sharp-libvips",
+      "commit": "6e5971d333377743163edc3ad9e5d0b897abcbc9",
+      "archiveAPI": "https://api.github.com/repos/lovell/sharp-libvips/tarball/6e5971d333377743163edc3ad9e5d0b897abcbc9",
+      "archiveSHA256": "794b0c5a61a9e87229360f3f595ec920f239bf5f4e56174d3a36d858738a5870",
+      "archiveBytes": 24053,
+      "retainedArchive": "artifacts/p1b4/sharp-libvips-build-source.tar.gz",
+      "sourceAndRecipeFiles": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "bytes": 3543,
+          "sha256": "f8beaaedffc84dabec55f85f26c5bca29703c23949111a415b6e16aa5db4cb97"
+        },
+        {
+          "path": ".github/workflows/latest.yml",
+          "bytes": 843,
+          "sha256": "daa07f200ca533955b50d280b065e6c8428ed012e7866c459fc73a85a30a2b9e"
+        },
+        {
+          "path": ".gitignore",
+          "bytes": 174,
+          "sha256": "b75397c1dcea97ae13fec658100f9af0d4f72e6398c58009f045e9a3b5f0dbc2"
+        },
+        {
+          "path": "LICENSE",
+          "bytes": 11357,
+          "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+        },
+        {
+          "path": "README.md",
+          "bytes": 1998,
+          "sha256": "52f8b2931fa6d496c792a2ed808177414ac24f2f87b667bb13fbc21bf1d99758"
+        },
+        {
+          "path": "THIRD-PARTY-NOTICES.md",
+          "bytes": 4230,
+          "sha256": "25ffcfa69e28b1913ced27ec778b90f24911a1bb3021253577e8b0af55db0d49"
+        },
+        {
+          "path": "build.sh",
+          "bytes": 2804,
+          "sha256": "f32e344b1355b6bcf3836e7f25e2c2de7f25eefeb8c96d02711ad3fcea487488"
+        },
+        {
+          "path": "build/posix.sh",
+          "bytes": 23597,
+          "sha256": "230a0b344ba78116c8dd230383141b1d3498fceeb8f5320c0b573ebf67a61267"
+        },
+        {
+          "path": "build/wasm.sh",
+          "bytes": 1420,
+          "sha256": "53a0ae90da3ef3e212ae696c7cfa97f9f0f0d48092f5fffd8130f9275b5959b7"
+        },
+        {
+          "path": "build/win.sh",
+          "bytes": 1262,
+          "sha256": "52f2d9d76b07d4b4ad1720659b1e9bbc76121b85f21d9d084a85af28014473f3"
+        },
+        {
+          "path": "check-latest-versions.sh",
+          "bytes": 2598,
+          "sha256": "a1bb4e6164704023aa4af141b7b088faf48a58ea46c852cd57c80ce09ef2b5c7"
+        },
+        {
+          "path": "generate-release-notes.sh",
+          "bytes": 258,
+          "sha256": "db8dbe5ccf019cff9cec9ef06c046e1dfee5fbd18bc55ca96c9553795b4b0b3b"
+        },
+        {
+          "path": "npm/darwin-arm64/package.json",
+          "bytes": 826,
+          "sha256": "631dcab984f25e3b2ab96c3c7533531cec7344c4f1f76c78573e9fa4e6c77d2c"
+        },
+        {
+          "path": "npm/darwin-x64/package.json",
+          "bytes": 813,
+          "sha256": "79a5c56911cfd80911b3b06093725b6b2f36b184a21c37e94d1c6c8b43ee6d04"
+        },
+        {
+          "path": "npm/dev-wasm32/THIRD-PARTY-NOTICES.md",
+          "bytes": 3074,
+          "sha256": "2cf12762fdcdcb6f64aeaaf39fcc640adce9b94c283d532a5a75b3a062b39219"
+        },
+        {
+          "path": "npm/dev-wasm32/package.json",
+          "bytes": 807,
+          "sha256": "88ebcef4739b03a3265d2d009a59ba7e0c2307acfb3e5568aab15d41b6c4288b"
+        },
+        {
+          "path": "npm/dev/package.json",
+          "bytes": 779,
+          "sha256": "6c8c5ddf7c8f0d3a4dd2a395b7158c56bc23aae65d2f78648fcf926f26c321df"
+        },
+        {
+          "path": "npm/linux-arm/package.json",
+          "bytes": 895,
+          "sha256": "1497debbb452c513e31cfdf0333f85e668ca07375b7c2082db01d57cf5d9a103"
+        },
+        {
+          "path": "npm/linux-arm64/package.json",
+          "bytes": 901,
+          "sha256": "cb34415c9051fe1eac18ead099f7e950031500010a269f3e19ec204d366d73bc"
+        },
+        {
+          "path": "npm/linux-ppc64/package.json",
+          "bytes": 898,
+          "sha256": "9c52508d73e68674320e7236671cbce5d40956f7ba0250f5ab811ce5934a78f0"
+        },
+        {
+          "path": "npm/linux-riscv64/package.json",
+          "bytes": 910,
+          "sha256": "33fb2667a2532455b6a250b0c7fd7c296fdd7d1a64f54b59c74a0a96bdfb7e48"
+        },
+        {
+          "path": "npm/linux-s390x/package.json",
+          "bytes": 896,
+          "sha256": "dcdb06526c7777f474800000ac13c247733c082447e957ce9daf323f9f83fd22"
+        },
+        {
+          "path": "npm/linux-x64/package.json",
+          "bytes": 888,
+          "sha256": "532394aa37873ad8fd97badac88444649b7bbe2d5aa0426e0d3aa777acf49486"
+        },
+        {
+          "path": "npm/linuxmusl-arm64/package.json",
+          "bytes": 907,
+          "sha256": "79f7356ca712b093e8405db8a53e0c47e99f08732ff4241b997fb5d5c7a931e8"
+        },
+        {
+          "path": "npm/linuxmusl-x64/package.json",
+          "bytes": 894,
+          "sha256": "daac90b7d9c14841cde6a774e3afa88c10de39f9c4f12957234df1c8f130a83a"
+        },
+        {
+          "path": "npm/package.json",
+          "bytes": 377,
+          "sha256": "520c71781eac0fdcf2c22c45770a84f8df097e467ceb206365c38dc7dbfec4e5"
+        },
+        {
+          "path": "npm/win32-arm64/package.json",
+          "bytes": 770,
+          "sha256": "83d544be92da75686d461b3f07b4031dcc4a8796666e2fee0ffc0fe9b46fce29"
+        },
+        {
+          "path": "npm/win32-ia32/package.json",
+          "bytes": 761,
+          "sha256": "22a24d4a5f79d001ecc2994db51def0128b2511357d00b39d37e8ffc2970c1a3"
+        },
+        {
+          "path": "npm/win32-x64/package.json",
+          "bytes": 759,
+          "sha256": "c8c63ed3675a85d618b20ee3d35aacb8bd5ddfe93d08dfcf8ba2696943b013c8"
+        },
+        {
+          "path": "platforms/darwin-arm64v8/Toolchain.cmake",
+          "bytes": 390,
+          "sha256": "752c37ab0b1b9401ec9cad4ef0d6588511b6a1011fe8789acba4066f65cccf99"
+        },
+        {
+          "path": "platforms/darwin-arm64v8/meson.ini",
+          "bytes": 210,
+          "sha256": "d9143811fe878743bc874d92de848a87a2c9a334b0d39e34d49b56c0a025a5ee"
+        },
+        {
+          "path": "platforms/darwin-x64/Toolchain.cmake",
+          "bytes": 363,
+          "sha256": "ef6c4131336a3600023a4e5f332eef53e4b52406d1a1699c5678f2a47d46e3e2"
+        },
+        {
+          "path": "platforms/darwin-x64/meson.ini",
+          "bytes": 210,
+          "sha256": "d9143811fe878743bc874d92de848a87a2c9a334b0d39e34d49b56c0a025a5ee"
+        },
+        {
+          "path": "platforms/linux-arm64v8/Dockerfile",
+          "bytes": 1503,
+          "sha256": "1ba128aaa15a894fcecc2efbc801cd3eae4beaefbf9caecdb2ce35d1102a16c4"
+        },
+        {
+          "path": "platforms/linux-arm64v8/Toolchain.cmake",
+          "bytes": 224,
+          "sha256": "eaf601b65260c4ff1991063f248346d51fe6751e84f7dc83b7fcd3fd4658cad6"
+        },
+        {
+          "path": "platforms/linux-arm64v8/aarch64-linux-gnu-pkgconf",
+          "bytes": 212,
+          "sha256": "c256bf8fcad1bcee36872c22c007d41980ace7cfe74072af130d336ddd92f61e"
+        },
+        {
+          "path": "platforms/linux-arm64v8/meson.ini",
+          "bytes": 185,
+          "sha256": "0d85749d3921b1877e3d68615265a7f158856bf615ab56d6beb75d71a7fd0a41"
+        },
+        {
+          "path": "platforms/linux-armv6/Dockerfile",
+          "bytes": 1535,
+          "sha256": "de6ff99f786f422536b2a01fbfed36be351ca919621bba2f8a026e8f1fd850f2"
+        },
+        {
+          "path": "platforms/linux-armv6/Toolchain.cmake",
+          "bytes": 546,
+          "sha256": "f90f9711d43642eae79f357aed3e886a0c2f6155dfc4f1113f58c540d810c5f7"
+        },
+        {
+          "path": "platforms/linux-armv6/meson.ini",
+          "bytes": 654,
+          "sha256": "c149f44adcff1d5e99ad8cf4df891368d8b15c5ea2be4832d15489d042c3fae1"
+        },
+        {
+          "path": "platforms/linux-ppc64le/Dockerfile",
+          "bytes": 1580,
+          "sha256": "c305ef3159f42b769a27bcd52f4147c8e39d3f398b3d180ee76662dd097eba6d"
+        },
+        {
+          "path": "platforms/linux-ppc64le/Toolchain.cmake",
+          "bytes": 617,
+          "sha256": "40e944a8ad8dce710d9695c56495edc1d52617f0295ba7bf6e4064a4e79c2097"
+        },
+        {
+          "path": "platforms/linux-ppc64le/meson.ini",
+          "bytes": 711,
+          "sha256": "4742b4ea998577736698c08873f1756be51ca51e9c1602e2a6f301e72c9ecca6"
+        },
+        {
+          "path": "platforms/linux-riscv64/Dockerfile",
+          "bytes": 1640,
+          "sha256": "ba231d83c8f7d6802e87564fe8c8565f42c8c09b7a7f13fe0781126e7c3164cd"
+        },
+        {
+          "path": "platforms/linux-riscv64/Toolchain.cmake",
+          "bytes": 540,
+          "sha256": "fdb65322ae0788387a2131e0bff33d51f34402ca045696215cc53e8c34681c08"
+        },
+        {
+          "path": "platforms/linux-riscv64/meson.ini",
+          "bytes": 644,
+          "sha256": "ec13f61802ddf860fd297b96c2ff4b983c4b06c0a3a47ad6faf4268a450cbb69"
+        },
+        {
+          "path": "platforms/linux-s390x/Dockerfile",
+          "bytes": 1721,
+          "sha256": "4d3aedc81f9a01ee140bf237bf86cd08c6f75d28461368cc499f64d6bc1c7af6"
+        },
+        {
+          "path": "platforms/linux-s390x/Toolchain.cmake",
+          "bytes": 583,
+          "sha256": "f69c77b46305c128177460532bbaba6102021d04f3cc1d62e9044a9649be1782"
+        },
+        {
+          "path": "platforms/linux-s390x/meson.ini",
+          "bytes": 658,
+          "sha256": "46719946be406ee26826efcee1fc33c66ffbb2669ca15793146095fe393ed42b"
+        },
+        {
+          "path": "platforms/linux-x64/Dockerfile",
+          "bytes": 1429,
+          "sha256": "1e8bc3981c8f1718cd99ea4fcd6d2e511afb9969f2fe3e0d2dc1ebf5a338a6e3"
+        },
+        {
+          "path": "platforms/linux-x64/Toolchain.cmake",
+          "bytes": 224,
+          "sha256": "eaf601b65260c4ff1991063f248346d51fe6751e84f7dc83b7fcd3fd4658cad6"
+        },
+        {
+          "path": "platforms/linux-x64/meson.ini",
+          "bytes": 185,
+          "sha256": "0d85749d3921b1877e3d68615265a7f158856bf615ab56d6beb75d71a7fd0a41"
+        },
+        {
+          "path": "platforms/linux-x64/x86_64-linux-gnu-pkgconf",
+          "bytes": 212,
+          "sha256": "c256bf8fcad1bcee36872c22c007d41980ace7cfe74072af130d336ddd92f61e"
+        },
+        {
+          "path": "platforms/linuxmusl-arm64v8/Dockerfile",
+          "bytes": 1490,
+          "sha256": "fc8af7add4ae5819bc5ef4130efa7fc83a4450916c767a177dbba5591bc43d27"
+        },
+        {
+          "path": "platforms/linuxmusl-arm64v8/Toolchain.cmake",
+          "bytes": 224,
+          "sha256": "eaf601b65260c4ff1991063f248346d51fe6751e84f7dc83b7fcd3fd4658cad6"
+        },
+        {
+          "path": "platforms/linuxmusl-arm64v8/meson.ini",
+          "bytes": 344,
+          "sha256": "9b9ac8223114dbe407673195f64c075468f394426c5bacbcc233b9048830debf"
+        },
+        {
+          "path": "platforms/linuxmusl-x64/Dockerfile",
+          "bytes": 1420,
+          "sha256": "547187f4c281e8aba140047a4cd1fe1c056004b7ce45495df561705f6561de0a"
+        },
+        {
+          "path": "platforms/linuxmusl-x64/Toolchain.cmake",
+          "bytes": 224,
+          "sha256": "eaf601b65260c4ff1991063f248346d51fe6751e84f7dc83b7fcd3fd4658cad6"
+        },
+        {
+          "path": "platforms/linuxmusl-x64/meson.ini",
+          "bytes": 344,
+          "sha256": "9b9ac8223114dbe407673195f64c075468f394426c5bacbcc233b9048830debf"
+        },
+        {
+          "path": "platforms/win32/Dockerfile",
+          "bytes": 286,
+          "sha256": "df5597d18b29e900e4c87f77fe1781f4632ac548fa5057873f506c9007a1e499"
+        },
+        {
+          "path": "populate-npm-workspace.sh",
+          "bytes": 2628,
+          "sha256": "a960e41223db945832cd63f92ed38e9c297f58a5f72c6f4adea80f805fc12589"
+        },
+        {
+          "path": "versions.properties",
+          "bytes": 595,
+          "sha256": "02253a2d39a6b1cfd2c1deacb0947f7d2a3398a522236f7efc4d57e82cbfe980"
+        }
+      ]
+    }
+  ],
+  "registryMetadata": [
+    {
+      "gitHead": "7f1a0a22cc285fe180766f4935d50b55af6e8432",
+      "dist": {
+        "shasum": "361df3b2959daeb380541289960456c6be0f92de",
+        "tarball": "https://registry.npmjs.org/sharp/-/sharp-0.35.4.tgz",
+        "fileCount": 47,
+        "integrity": "sha512-n++8XWcj+jCOr2IOl7h8LbKnGBDY4aPbmprMONBNFdn0ImXqpGVv5zliDs0V9HbmbCQLpbuo2ej9rAoOQTvMDA==",
+        "signatures": [
+          {
+            "sig": "MEUCIDCUJqK5SizeEyDDsqFzyvrHumwcxPD00fjhtqGUk7/GAiEAisp4kyu4i7t9c/chacusdKGMlXfISSS+u74o0/V/Iok=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEYCIQCpt9y592NSK7thukTtceF5arkgjqMXLZ2ndIiFnYXQRAIhAOGvBZ5GKREZKH3pjKJXVisaxSERwH2LscQxpsFUXrcO",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/sharp@0.35.4",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 960214
+      }
+    }
+  ],
+  "profiles": "Exact sRGB.icm and p3.icm from sealed libvips source archive; Compact ICC profile CC0 notice retained.",
+  "wasm": "None in selected darwin-arm64 codec execution path."
+}

@@ -5,6 +5,7 @@ import { StoreError, safeError } from './errors.js';
 import type { StoreErrorCode } from './errors.js';
 import type { RecoveryStore, StoredContent } from './recovery.js';
 import type { Assets, AssetAuth } from './assets.js';
+import type { Rasters } from './raster.js';
 import type { StoreDatabase } from './database.js';
 import { IO_CHUNK } from './objects.js';
 import { PrivateRootError } from '../private-root.js';
@@ -75,6 +76,9 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     assetChunk: (token:string,bytes:Uint8Array,auth:AssetAuth)=>request<ReturnType<Assets['chunk']>>('assetChunk',{token,bytes,auth}),
     assetAbortChunk: (token:string)=>request<void>('assetAbortChunk',{token}),
     assetCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('assetCommand',{bytes,auth}),
+    rasterCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('rasterCommand',{bytes,auth}),
+    rasterReview: (id:string,auth:AssetAuth)=>request<ReturnType<Rasters['review']>>('rasterReview',{id,auth}),
+    rasterManifest: (id:string)=>request<ReturnType<Rasters['manifest']>>('rasterManifest',{id}),
     assetPending: (id:string)=>request<ReturnType<Assets['pending']>>('assetPending',{id}),
     assetProjection: (id:string)=>request<{asset:ReturnType<Assets['asset']>;highWater:string}>('assetProjection',{id}),
     assetVerify: (id:string)=>request<Awaited<ReturnType<Assets['verify']>>>('assetVerify',{id}),

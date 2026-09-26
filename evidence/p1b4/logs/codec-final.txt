@@ -1,0 +1,16 @@
+✔ actual frozen PNG/JPEG/static WebP codec inputs; independently specified uniform and literal pixels (122.649334ms)
+✔ all eight EXIF orientations normalize once with exact alpha/hidden samples retained (115.678666ms)
+✔ supported P3 converts with review data and original profile identity retained (19.696417ms)
+✔ actual malformed/animated/profile/extent inputs cannot produce usable canonical output (93.698417ms)
+✔ P3 nonprimary conversion matches independent public LittleCMS C oracle, retaining alpha (19.246375ms)
+✔ lossy and lossless alpha WebP match independent public decoder diagnostic including exact alpha (32.383834ms)
+✔ WebP extent and native allocation plan are admitted before invoking its native metadata parser (19.780041ms)
+✔ actual nonwhite JPEG pixels match independently installed Pillow/libjpeg-turbo golden diagnostic (17.540167ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 494.666542

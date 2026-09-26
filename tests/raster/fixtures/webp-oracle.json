@@ -1,0 +1,69 @@
+{
+  "method": "Public libwebp1.6.0 WebPDecodeRGBA and WebPFree C APIs; no Sharp/application code. This is a pinned codec diagnostic, not a separate libwebp implementation qualification.",
+  "fixtures": [
+    {
+      "name": "alpha-lossless.webp",
+      "encodedSHA256": "3f55764d8e433aca7c1c261b8c7210628a49e43085bbfe6c578b03a2722ba31e",
+      "width": 3,
+      "height": 2,
+      "expectedRGBA": [
+        0,
+        0,
+        0,
+        0,
+        255,
+        0,
+        0,
+        128,
+        0,
+        255,
+        0,
+        255,
+        0,
+        0,
+        255,
+        64,
+        255,
+        255,
+        255,
+        255,
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "alpha-lossy.webp",
+      "encodedSHA256": "9cedd4047e95fe5e0bc5ea6a9157c1391f6666d5b77691edd1ff019fd814020a",
+      "width": 3,
+      "height": 2,
+      "expectedRGBA": [
+        153,
+        69,
+        109,
+        0,
+        100,
+        63,
+        66,
+        128,
+        119,
+        176,
+        109,
+        255,
+        86,
+        2,
+        42,
+        64,
+        255,
+        244,
+        247,
+        255,
+        0,
+        26,
+        0,
+        255
+      ]
+    }
+  ]
+}

@@ -13,7 +13,8 @@ import type { Barrier } from './objects.js';
 import { event as validateEvent } from '../../src/protocol/validate.js';
 import { Assets, AssetRejection } from './assets.js';
 import type { AssetFact } from '../../src/protocol/assets.js';
-import { extendSchema, assetSchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema } from './schema.js';
+import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
 
@@ -42,6 +43,7 @@ export class StoreDatabase {
   readonly epoch: string;
   readonly recovery: RecoveryStore;
   readonly assets: Assets;
+  readonly rasters: Rasters;
   private databaseIdentity;
   private rootIdentity;
   private missing: { hash: string; code: string }[] = [];
@@ -63,13 +65,14 @@ export class StoreDatabase {
         if (Object.values(this.db.prepare(`PRAGMA ${name}`).get()!)[0] !== expected) throw new StoreError('UNSUPPORTED_STORAGE');
       }
       const version = Number(this.db.prepare('PRAGMA user_version').get()!.user_version);
-      if (![0,1,2,3].includes(version)) throw new StoreError('CORRUPT_STORE');
+      if (![0,1,2,3,4].includes(version)) throw new StoreError('CORRUPT_STORE');
       this.db.exec('BEGIN IMMEDIATE');
       this.db.exec(schema);
 
       this.db.exec('COMMIT');
       extendSchema(this.db, root, version, options.quotaBytes);
       assetSchema(this.db, root, options.quotaBytes,version===0);
+      rasterSchema(this.db, root, options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
@@ -90,7 +93,9 @@ export class StoreDatabase {
       syncDirectory(root); this.check();
       this.assets=new Assets(this.db,this.objects,root,this.epoch,()=>this.fence(this.epoch),barrier,
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
-      this.objects.onAvailable(()=>this.assets.schedule());
+      this.rasters=new Rasters(this.db,this.objects,this.assets,root,this.epoch,()=>this.fence(this.epoch),barrier,
+        (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();});
       if (options.maxPageCount !== undefined) {
         if (!Number.isSafeInteger(options.maxPageCount) || options.maxPageCount < 1) throw new Error('Invalid test page limit');
         this.db.exec(`PRAGMA max_page_count=${options.maxPageCount}`);
@@ -142,7 +147,7 @@ export class StoreDatabase {
       for(const ref of [event.payload.asset.blob,...event.payload.asset.dependencies])this.db.prepare('INSERT OR IGNORE INTO asset_dependencies VALUES (?,?)').run(event.payload.asset.id,ref.hash);
       return;
     }
-    if(event.type==='StagingTransferReviewPrepared'||event.type==='StagingOwnershipTransferred')return;
+    if(event.type==='StagingTransferReviewPrepared'||event.type==='RasterReviewPrepared'||event.type==='StagingOwnershipTransferred')return;
     const next = reduceDocument(this.document(event.documentId!), event);
     this.db.prepare('INSERT INTO documents VALUES (?,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json').run(next.id, canonical(next));
     if (event.type === 'DocumentCreated') this.db.prepare('INSERT INTO history VALUES (?,?,?)').run(event.payload.history.id, next.id, canonical(event.payload.history));
@@ -292,8 +297,8 @@ export class StoreDatabase {
   private assertPendingIdentity(id:string,hash:string):void {
     // The acceptance transaction owns this check. HTTP prechecks can race another
     // request that durably reserves the ID while this command is queued.
-    const pending=this.db.prepare('SELECT hash FROM asset_preparations WHERE id=?').get(id);
-    if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');
+    for(const table of ['asset_preparations','raster_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
+      if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');}
   }
   private commitAsset(bytes: Uint8Array, build:()=>AssetFact, failure?:()=>void):Receipt {
     this.fence(this.epoch);const request=parseCommand(bytes);const c=request.command;const serialized=canonical(request);const hash=hashBytes(serialized);
@@ -328,6 +333,7 @@ export class StoreDatabase {
         receipt={status:'rejected',commandId:c.commandId,code:error.code,currentRevision:error.currentRevision,details};
         // A rejected original identity is terminal; no preparation can overwrite it.
         this.db.prepare('DELETE FROM asset_preparations WHERE id=?').run(c.commandId);
+        this.db.prepare('DELETE FROM raster_preparations WHERE id=?').run(c.commandId);
       }
       this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,canonical(receipt));
       this.barrier('asset-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('asset-after-commit');this.recovery.maintain();return receipt;
@@ -361,7 +367,7 @@ export class StoreDatabase {
   forgetClient(cookieHash: string) { this.db.prepare('DELETE FROM client_bindings WHERE cookie_hash=?').run(cookieHash); }
   health() {
     this.check(); const fs = statfsSync(this.root,{bigint:true});
-    return { missingCount: this.missingCount, diskWarning: (fs.blocks-fs.bavail)*100n >= fs.blocks*80n, snapshotPressure: this.recovery.snapshotFailure || this.assets.pressure() };
+    return { missingCount: this.missingCount, diskWarning: (fs.blocks-fs.bavail)*100n >= fs.blocks*80n, snapshotPressure: this.recovery.snapshotFailure || this.assets.pressure() || this.rasters.pressure() };
   }
   diagnostics() {
     this.check(); const filesystem = statfsSync(this.root, { bigint: true });
@@ -378,6 +384,7 @@ export class StoreDatabase {
       diskWarning: (filesystem.blocks - filesystem.bavail) * 100n >= filesystem.blocks * 80n,
       resources: { ioChunkBytes: 1048576, maxTransfers: 2, admissionOverheadPercent: 25, freeMarginBytes: '1073741824', metadataHeadroomBytes: '67108864', metadataHeadroomPhysicallyPreallocated: false, snapshotTailCeiling: 500 },
       assets: this.assets.diagnostics(),
+      rasters: this.rasters.diagnostics(),
       observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,
         buildMs: this.recovery.snapshotBuildMs, sliceMaxMs: this.recovery.snapshotSliceMaxMs, activationMs: this.recovery.snapshotActivationMs }, qualification: false },
       processMemory: process.memoryUsage(), sqliteIntegrity: this.db.prepare('PRAGMA quick_check').get() };

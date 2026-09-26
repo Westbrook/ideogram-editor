@@ -1,0 +1,61 @@
+npm notice run ideogram-editor@0.1.0 test:assets
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (641.366541ms)
+✔ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (502.43475ms)
+✔ stale and expired reviews reject durably; hostile declarations and raw images never become usable (510.620084ms)
+✔ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (552.039ms)
+✔ SIGKILL upload-before-write preserves only the journaled offset and missing suffix (701.984792ms)
+✔ SIGKILL upload-before-flush preserves only the journaled offset and missing suffix (716.96975ms)
+✔ SIGKILL upload-after-flush preserves only the journaled offset and missing suffix (716.374541ms)
+✔ SIGKILL upload-before-offset-commit preserves only the journaled offset and missing suffix (700.538083ms)
+✔ SIGKILL upload-after-offset-commit preserves only the journaled offset and missing suffix (723.988917ms)
+✔ SIGKILL preparation-before-commit resolves the original finalize identity once (713.75125ms)
+✔ SIGKILL preparation-after-commit resolves the original finalize identity once (733.261958ms)
+✔ SIGKILL finalize-before-flush resolves the original finalize identity once (736.575ms)
+✔ SIGKILL finalize-after-flush resolves the original finalize identity once (732.993ms)
+✔ SIGKILL finalize-before-rename resolves the original finalize identity once (707.891625ms)
+✔ SIGKILL finalize-after-rename resolves the original finalize identity once (698.641042ms)
+✔ SIGKILL finalize-after-directory-sync resolves the original finalize identity once (701.683959ms)
+✔ SIGKILL finalize-before-register resolves the original finalize identity once (725.289333ms)
+✔ SIGKILL asset-before-commit resolves the original finalize identity once (698.53125ms)
+✔ SIGKILL asset-after-commit resolves the original finalize identity once (742.838291ms)
+✔ SIGKILL transfer-before-commit keeps original owner or transfers exactly once (684.848084ms)
+✔ SIGKILL transfer-after-commit keeps original owner or transfers exactly once (731.471542ms)
+✔ competing HTTP command identities stay exclusive through pending responses and SIGKILL restart (2366.150042ms)
+✖ actual7ef07dd migration preserves all retained tables and verified rollback database (2037.522209ms)
+✔ asset event replay and snapshots keep original bytes and dependencies across restart (1922.532584ms)
+✔ staging symlinks are rejected without writing the target, and reservation pressure retains data (216.749291ms)
+✔ journal capacity failure cannot invent a pending command or replace its original rejection (756.964208ms)
+✔ recovery inventory paginates minimal metadata and content pins detect later file changes (4213.023292ms)
+✔ durable preparation waits for shared reader slots and retains original command ownership (331.079208ms)
+✔ malformed owned manifest is a durable rejection and does not strand or accept the pending original (329.971333ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 28
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26685.859875
+
+✖ failing tests:
+
+test at tests/assets/storage.test.mjs:18:1
+✖ actual7ef07dd migration preserves all retained tables and verified rollback database (2037.522209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  4 !== 3
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/assets/storage.test.mjs:24:76)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 4,
+    expected: 3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -206,3 +206,10 @@ claimed. Actual timings/resources are observations in evidence/p1b2. Original
 P1a/P1b1 evidence and failed author attempts remain preserved. Exact source SHA,
 clean-tree receipt and independent-review handoff live in the task/shared PR
 Context; source files do not embed a self-referential commit hash.
+
+P1b.4 ADDITIVE RASTER BOUNDARY
+PrepareRaster, ReviewRaster, ApproveRaster, ComposeRaster and ExportRaster reuse the
+existing command identity, durable202/receipt and safe-content protocol. Exact
+conversion-review and raster-manifest routes are described in tooling/RASTER.txt.
+No generic object route or editor/history mutation was added. Session/epoch fences
+and zero external effects remain in force.

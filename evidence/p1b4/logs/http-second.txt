@@ -1,0 +1,12 @@
+✔ real original → worker → durable preview → exact review approval → CP-1 capture → PNG export and reopen (1279.058417ms)
+✔ hidden RGB identity, exact mask coordinates, empty output, cache dependencies and lossless JPEG-source export (1524.573417ms)
+✔ conversion review binds actual decoded preview, exact hash, owner, session and writer epoch (694.366583ms)
+✔ malformed, animated and unsupported-profile originals retain bytes and terminal diagnostics without usable asset (1271.532166ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4829.358041

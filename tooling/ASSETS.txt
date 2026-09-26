@@ -126,3 +126,10 @@ provider/network ceilings. Binary image fixtures remain pending decoder. Wider
 100k history, native accessibility, full editor, image/font/adapter/bundle,
 provider and full PERF qualification belong to their assigned later tasks.
 Independent exact-source review is required before this task earns credit.
+
+P1b.4 ADDITIVE RASTER BOUNDARY
+The prior pending-decoder-only scope above describes P1b.3. P1b.4 adds qualified
+raster-preview/canonical-raster/canonical-png assets, without changing the retained
+unknown original's eligibility. See tooling/RASTER.txt for full decode, review,
+resource, manifest, schema4 and integration contracts. Binary signature alone still
+cannot authorize image use. The shared IO/preparation ledger covers both services.

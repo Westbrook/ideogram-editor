@@ -1,0 +1,3 @@
+import{spawnSync}from'node:child_process';import{readFileSync,writeFileSync}from'node:fs';
+const facts=JSON.parse(readFileSync('tests/raster/fixtures/resource-inputs.json'));
+for(const f of facts.fixtures){const label=f.file.split('/').at(-1).replace(/\.(png|jpg|webp)$/,'');const out='evidence/p1b4/'+label+'-final-runtime.json';const r=spawnSync(process.execPath,['--import','./tests/store/no-network.mjs','tooling/raster/measure-one.mjs',f.file,out],{encoding:'utf8',env:{PATH:process.env.PATH},maxBuffer:1024*1024});writeFileSync('evidence/p1b4/logs/'+label+'-final-runtime.txt',(r.stdout??'')+(r.stderr??''));console.log(label,r.status,r.stdout?.trim());if(r.status!==0)process.exitCode=1;}

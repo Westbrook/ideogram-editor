@@ -1,0 +1,444 @@
+{
+  "task": "66937c0c-06cf-4f67-b423-196cd3314f8a",
+  "base": "e8b9f1a379becd97365242cc0a3b1c9d703bcfcb",
+  "at": "2026-09-26T06:50:46.306809+00:00",
+  "status": "implementation complete; independent exact-commit review required",
+  "sourceIdentity": "sha256:beb500c2b73edf36fc60eee6f983d0a98c065f858d708f91b9516ac7524bef35",
+  "codecIdentity": "sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+  "fixtureManifests": {
+    "tests/raster/fixtures/manifest.json": "1d22a7d31ab77277c8fc4234f350413c4e09e51b44d4e5b18564624019fc020b",
+    "tests/raster/fixtures/resource-inputs.json": "769b404439001de889bb05864ace9050adcc51ebfc67843333b6ade5d852cc16",
+    "tests/raster/fixtures/color-oracle.json": "0357507060be69eae9b77595dec1d3f1638f49d1c2f6bfed51f83e57fc85f5d7",
+    "tests/raster/fixtures/webp-oracle.json": "688af84991fb1d9c25dd3283f89a637042ce9d5cc8bf044f9a609c0173e367ed",
+    "tests/raster/fixtures/jpeg-oracle.json": "6793dbb8e907a23df8d3dcb887ff531c73f46e5e5e09b8a5a09ad019321c7ddd"
+  },
+  "integrationContract": "tooling/RASTER.txt",
+  "gates": {
+    "startedAt": "2026-09-26T06:45:02.928Z",
+    "qualification": false,
+    "gates": [
+      {
+        "command": "npm run verify:raster",
+        "at": "2026-09-26T06:45:02.929Z",
+        "elapsedMs": 169.0345,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-verify-raster.txt"
+      },
+      {
+        "command": "npm run typecheck",
+        "at": "2026-09-26T06:45:03.099Z",
+        "elapsedMs": 1098.3151659999999,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-typecheck.txt"
+      },
+      {
+        "command": "npm run build",
+        "at": "2026-09-26T06:45:04.197Z",
+        "elapsedMs": 3100.4372090000006,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-build.txt"
+      },
+      {
+        "command": "npm run verify:vendor",
+        "at": "2026-09-26T06:45:07.298Z",
+        "elapsedMs": 225.63591700000052,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-verify-vendor.txt"
+      },
+      {
+        "command": "npm run test:vendor",
+        "at": "2026-09-26T06:45:07.523Z",
+        "elapsedMs": 364.94387499999993,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-vendor.txt"
+      },
+      {
+        "command": "npm run test:raster",
+        "at": "2026-09-26T06:45:07.889Z",
+        "elapsedMs": 31223.436708,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-raster.txt"
+      },
+      {
+        "command": "npm run test:assets",
+        "at": "2026-09-26T06:45:39.112Z",
+        "elapsedMs": 26130.374499999998,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-assets.txt"
+      },
+      {
+        "command": "npm run test:protocol",
+        "at": "2026-09-26T06:46:05.243Z",
+        "elapsedMs": 20860.952749999997,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-protocol.txt"
+      },
+      {
+        "command": "npm run test:session",
+        "at": "2026-09-26T06:46:26.104Z",
+        "elapsedMs": 4485.907999999996,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-session.txt"
+      },
+      {
+        "command": "npm run test:store",
+        "at": "2026-09-26T06:46:30.590Z",
+        "elapsedMs": 15358.118124999994,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-store.txt"
+      },
+      {
+        "command": "npm run test:recovery",
+        "at": "2026-09-26T06:46:45.948Z",
+        "elapsedMs": 16665.877541999987,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-recovery.txt"
+      },
+      {
+        "command": "npm run test:shell",
+        "at": "2026-09-26T06:47:02.615Z",
+        "elapsedMs": 6583.826375000004,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-shell.txt"
+      },
+      {
+        "command": "npm run test:raster:browser",
+        "at": "2026-09-26T06:47:09.199Z",
+        "elapsedMs": 1499.2569999999978,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-raster-browser.txt"
+      },
+      {
+        "command": "npm run test:assets:volume",
+        "at": "2026-09-26T06:47:10.698Z",
+        "elapsedMs": 3676.353083000009,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-assets-volume.txt"
+      },
+      {
+        "command": "npm run test:store:volume",
+        "at": "2026-09-26T06:47:14.374Z",
+        "elapsedMs": 3495.730125000002,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-store-volume.txt"
+      },
+      {
+        "command": "npm run test:consumer",
+        "at": "2026-09-26T06:47:17.870Z",
+        "elapsedMs": 18880.388791999983,
+        "exit": 0,
+        "log": "evidence/p1b4/logs/final-test-consumer.txt"
+      }
+    ],
+    "finishedAt": "2026-09-26T06:47:36.751Z"
+  },
+  "additionalPassed": [
+    "fresh-codec-install.json",
+    "logs/codec-final.txt",
+    "logs/raster-buffer-final.txt",
+    "logs/raster-native-admission.txt",
+    "logs/browser-report-final.txt",
+    "logs/spec-final.txt",
+    "logs/diff-check.txt",
+    "jpeg-retained-memory-recovery-second.json"
+  ],
+  "testCounts": {
+    "raster": 40,
+    "assets": 29,
+    "protocol": 14,
+    "session": 14,
+    "store": 24,
+    "recoveryBrowser": 12,
+    "shellBrowser": 10,
+    "rasterBrowser": 1,
+    "assetsMountedVolume": 1,
+    "storeMountedVolume": 1
+  },
+  "resourceObservations": [
+    {
+      "evidence": "evidence/p1b4/aspect-png-final-runtime.json",
+      "input": "tests/raster/fixtures/aspect-png.png",
+      "outcome": "resource-pending",
+      "originalRetained": true,
+      "peakRSSMiB": 121.84375,
+      "largestCombinedReservationMiB": 512.0000839233398,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 29.245042000000012
+        }
+      ],
+      "pendingIdentity": "0670e292-54b3-4750-b633-3451c42da8ff"
+    },
+    {
+      "evidence": "evidence/p1b4/max-png-final-runtime.json",
+      "input": "tests/raster/fixtures/max-png.png",
+      "outcome": "completed",
+      "originalRetained": true,
+      "peakRSSMiB": 284.953125,
+      "largestCombinedReservationMiB": 511.39925384521484,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 23.822832999999974
+        },
+        {
+          "type": "PrepareRaster",
+          "ms": 528.54675
+        },
+        {
+          "type": "ReviewRaster",
+          "ms": 4.6164170000000695
+        },
+        {
+          "type": "ApproveRaster",
+          "ms": 4.847875000000045
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 1634.8957500000001
+        },
+        {
+          "type": "ExportRaster",
+          "ms": 524.2741659999997
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 146.41162500000019
+        }
+      ],
+      "pendingIdentity": null
+    },
+    {
+      "evidence": "evidence/p1b4/max-progressive-jpeg-final-runtime.json",
+      "input": "tests/raster/fixtures/max-progressive-jpeg.jpg",
+      "outcome": "resource-pending",
+      "originalRetained": true,
+      "peakRSSMiB": 123.890625,
+      "largestCombinedReservationMiB": 512.539794921875,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 25.03675000000004
+        }
+      ],
+      "pendingIdentity": "2bcb43c5-5223-484c-9472-bf874011b75f"
+    },
+    {
+      "evidence": "evidence/p1b4/max-webp-lossless-final-runtime.json",
+      "input": "tests/raster/fixtures/max-webp-lossless.webp",
+      "outcome": "resource-pending",
+      "originalRetained": true,
+      "peakRSSMiB": 121.234375,
+      "largestCombinedReservationMiB": 797.22021484375,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 24.030209000000013
+        }
+      ],
+      "pendingIdentity": "f51ccc08-ae8f-478c-8fd5-0c3bfd5afa85"
+    },
+    {
+      "evidence": "evidence/p1b4/max-webp-lossy-final-runtime.json",
+      "input": "tests/raster/fixtures/max-webp-lossy.webp",
+      "outcome": "resource-pending",
+      "originalRetained": true,
+      "peakRSSMiB": 121.140625,
+      "largestCombinedReservationMiB": 797.15771484375,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 24.902958000000012
+        }
+      ],
+      "pendingIdentity": "c34cd8ca-6bea-43a1-a179-7585d3c60844"
+    },
+    {
+      "evidence": "evidence/p1b4/normal-jpeg-final-runtime.json",
+      "input": "tests/raster/fixtures/normal-jpeg.jpg",
+      "outcome": "completed",
+      "originalRetained": true,
+      "peakRSSMiB": 196.03125,
+      "largestCombinedReservationMiB": 302.34375,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 24.824416000000014
+        },
+        {
+          "type": "PrepareRaster",
+          "ms": 226.16833300000002
+        },
+        {
+          "type": "ReviewRaster",
+          "ms": 5.161667000000023
+        },
+        {
+          "type": "ApproveRaster",
+          "ms": 4.822916000000021
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 320.373083
+        },
+        {
+          "type": "ExportRaster",
+          "ms": 169.11291700000004
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 108.75733300000002
+        }
+      ],
+      "pendingIdentity": null
+    },
+    {
+      "evidence": "evidence/p1b4/normal-png-final-runtime.json",
+      "input": "tests/raster/fixtures/normal-png.png",
+      "outcome": "completed",
+      "originalRetained": true,
+      "peakRSSMiB": 195.96875,
+      "largestCombinedReservationMiB": 300.578125,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 22.711208999999997
+        },
+        {
+          "type": "PrepareRaster",
+          "ms": 215.421
+        },
+        {
+          "type": "ReviewRaster",
+          "ms": 4.3879159999999615
+        },
+        {
+          "type": "ApproveRaster",
+          "ms": 4.906083000000024
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 324.61575000000005
+        },
+        {
+          "type": "ExportRaster",
+          "ms": 192.73483299999998
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 126.04754100000014
+        }
+      ],
+      "pendingIdentity": null
+    },
+    {
+      "evidence": "evidence/p1b4/normal-webp-lossless-final-runtime.json",
+      "input": "tests/raster/fixtures/normal-webp-lossless.webp",
+      "outcome": "completed",
+      "originalRetained": true,
+      "peakRSSMiB": 260.421875,
+      "largestCombinedReservationMiB": 366.78125,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 24.811791999999997
+        },
+        {
+          "type": "PrepareRaster",
+          "ms": 226.47666700000002
+        },
+        {
+          "type": "ReviewRaster",
+          "ms": 4.197625000000016
+        },
+        {
+          "type": "ApproveRaster",
+          "ms": 4.9647919999999885
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 323.731125
+        },
+        {
+          "type": "ExportRaster",
+          "ms": 180.5597079999999
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 116.69962499999997
+        }
+      ],
+      "pendingIdentity": null
+    },
+    {
+      "evidence": "evidence/p1b4/normal-webp-lossy-final-runtime.json",
+      "input": "tests/raster/fixtures/normal-webp-lossy.webp",
+      "outcome": "completed",
+      "originalRetained": true,
+      "peakRSSMiB": 258.015625,
+      "largestCombinedReservationMiB": 364.328125,
+      "elapsedMs": [
+        {
+          "type": "FinalizeStaging",
+          "ms": 23.07495899999998
+        },
+        {
+          "type": "PrepareRaster",
+          "ms": 222.87958399999997
+        },
+        {
+          "type": "ReviewRaster",
+          "ms": 5.404416000000026
+        },
+        {
+          "type": "ApproveRaster",
+          "ms": 5.791541000000052
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 322.33958400000006
+        },
+        {
+          "type": "ExportRaster",
+          "ms": 181.31837500000006
+        },
+        {
+          "type": "ComposeRaster",
+          "ms": 115.52408300000002
+        }
+      ],
+      "pendingIdentity": null
+    }
+  ],
+  "targetsAndScope": {
+    "R17BackendRSSMiB": {
+      "target": 256,
+      "ceiling": 512
+    },
+    "R18CombinedReservationMiB": {
+      "target": 384,
+      "ceiling": 512
+    },
+    "R20FullHTTPReceiptMs": {
+      "target": 20,
+      "ceiling": 50,
+      "maxObserved": 35.736415999999736,
+      "samples": 80,
+      "overCeiling": 0
+    },
+    "timingBoundary": "Prepare/Compose/Export numbers are complete local command-to-durable-receipt elapsed spans. Native decode/compute/encode child clocks are retained separately. They are not scored R10/R12/R13/R14 cells: fixtures, hardware, starts and cache protocol do not match the formal campaign.",
+    "observations": "Normal2048-square inputs, max5000-square and8192\u00d73051 synthetic uniform white files;100-contribution check is1x1, not100 full visible mixed layers. Zero provider runtime effects. No formal performance pass is claimed."
+  },
+  "scopeExclusions": [
+    "Full editor/history/native-text/viewport integration",
+    "P1c mask authoring and P2 request-domain containment/adoption",
+    "Formal PERF/H-C/W1/full100k/native accessibility/power-loss/device-cache",
+    "Cross-platform/native source-build qualification",
+    "JPEG matte/export and external destination save confirmation"
+  ],
+  "qualification": "Pinned prebuilt macOS arm64 codec and public local-boundary smoke only. Clean install checks package/native/profile hashes and independent encoded diagnostics. No native libraries were rebuilt from source.",
+  "preservation": "preservation.json verifies all10 prior evidence bundles,76 approved base review seals, unchanged protected paths and live52219/4381 endpoints. Pending en-reve-first/exact1px feedback remains with its UI owner.",
+  "failures": "failure-notes.json",
+  "ci": "Not run: no PR or remote CI was created or required for this local scoped task."
+}

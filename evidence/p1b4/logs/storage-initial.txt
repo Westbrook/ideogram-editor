@@ -1,0 +1,12 @@
+✔ shared two IO slots, combined64 preparations, exact pending identity and conflicting writer command (4264.754708ms)
+✔ disk admission retains pending identity and later resumes same operation; original bytes are retained (728.865ms)
+✔ raster typed snapshots retain full closure and exact pixels after full-log and snapshot reopen (2469.212709ms)
+✔ schema4 migration preserves exact approvede8b9f1a data and its prior-code rollback (1082.296917ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8590.376666

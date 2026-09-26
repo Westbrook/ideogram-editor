@@ -1,0 +1,135 @@
+{
+  "at": "2026-09-26T06:45:05.584Z",
+  "root": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/raster-observe-7BiKNM",
+  "previous": "artifacts/p1b4/jpeg-original-recovery-input.json",
+  "pending": {
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "5ac99f5b-4585-4b37-a839-360bef530c02",
+      "clientId": "measure",
+      "sessionId": "measure-provenance",
+      "correlationId": "a9d88b1b-d42b-409f-92a2-043d83c2036a",
+      "causationId": null,
+      "transactionId": "d3f90172-ecb8-48e3-8040-5d6c588e2a2c",
+      "documentId": null,
+      "expectedDocumentRevision": null,
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T06:32:29.522Z",
+      "body": {
+        "type": "ComposeRaster",
+        "width": 5000,
+        "height": 5000,
+        "layers": [
+          {
+            "assetId": "6ce3d3fc-a0e2-402a-829b-7f36927cdc21",
+            "transform": [
+              1,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "opacity": 1,
+            "mask": null
+          }
+        ]
+      }
+    },
+    "hash": "sha256:639c0cc3b5069e6efb9f71cc918fedc9257c47d146af0ac96c219752adf7422f",
+    "operationId": "950b84ff-9365-4aaf-9a13-3538227d384c",
+    "phase": "waiting-for-resources"
+  },
+  "qualification": false,
+  "steps": [],
+  "status": "failed",
+  "error": "Error: Still resource-limited",
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 57,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "2",
+    "highWater": "4",
+    "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "658725191680",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "293717",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 1,
+      "preparationMs": []
+    },
+    "rasters": {
+      "preparations": 1,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": []
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 11.445084000000008,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 102187008,
+      "heapTotal": 18497536,
+      "heapUsed": 9630232,
+      "external": 5741931,
+      "arrayBuffers": 1328627
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "peakRSS": 102514688
+}

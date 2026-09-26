@@ -1,0 +1,22 @@
+✔ SIGKILL raster-preparation-before-commit keeps original raster command, operation and encoded source (957.092834ms)
+✔ SIGKILL raster-preparation-after-commit keeps original raster command, operation and encoded source (920.041833ms)
+✔ SIGKILL raster-after-worker keeps original raster command, operation and encoded source (1018.907333ms)
+✔ SIGKILL raster-before-flush keeps original raster command, operation and encoded source (1061.436334ms)
+✔ SIGKILL raster-after-flush keeps original raster command, operation and encoded source (1059.679458ms)
+✔ SIGKILL raster-before-rename keeps original raster command, operation and encoded source (1117.326291ms)
+✔ SIGKILL raster-after-rename keeps original raster command, operation and encoded source (1050.871709ms)
+✔ SIGKILL raster-after-directory-sync keeps original raster command, operation and encoded source (1069.061792ms)
+✔ SIGKILL raster-before-register keeps original raster command, operation and encoded source (1053.668541ms)
+✔ SIGKILL asset-before-commit keeps original raster command, operation and encoded source (1019.423666ms)
+✔ SIGKILL asset-after-commit keeps original raster command, operation and encoded source (994.54125ms)
+✔ SIGKILL raster-after-register keeps original raster command, operation and encoded source (985.092292ms)
+✔ SIGKILL frozen PNG export raster-before-register reopens exact existing canonical bytes (1181.907417ms)
+✔ SIGKILL frozen PNG export raster-after-register reopens exact existing canonical bytes (1111.582667ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14655.134625

@@ -176,3 +176,10 @@ Author logs, actual settings/resources/OS/source provenance, failed attempts and
 source/evidence hashes are in evidence/p1b1. Independent exact-commit review is
 required before this task earns completion credit. No remote/PR/CI, publication,
 paid/provider calls, source archive or live design-system edits are part of it.
+
+P1b.4 ADDITIVE RASTER BOUNDARY
+Schema4 adds raster preparation/review journals after a verified schema3 backup.
+The raster worker prepares bytes; only the existing sole writer accepts them.
+Shared proof records now have a bounded512 ceiling for100 image+mask pairs and
+outputs. Shared IO remains two, combined preparations64. See tooling/RASTER.txt
+for canonical identities, retained closure, resource accounting and rollback tests.

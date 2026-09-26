@@ -63,7 +63,7 @@ export function extendSchema(db: DatabaseSync, root: string, oldVersion: number,
 }
 
 export function assetSchema(db: DatabaseSync, root: string, quotaBytes?: string, fresh = false) {
-  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) === 3) return;
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) >= 3) return;
   const tables = ['meta','objects','commands','events','events_v2','documents','history','checkpoints','roots','snapshots','snapshot_roots','client_bindings','read_releases','schema_migrations'];
   const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
   const stats = statfsSync(root,{bigint:true}); const required=size+(size+3n)/4n+1073741824n+67108864n;
@@ -90,4 +90,24 @@ export function assetSchema(db: DatabaseSync, root: string, quotaBytes?: string,
     db.prepare('INSERT INTO schema_migrations VALUES (3,?)').run(canonical({from:2,to:3,strategy:'additive-verified-backup-transactional-activation',backup,manifest}));
     db.exec('PRAGMA user_version=3; COMMIT');syncDirectory(root);
   } catch(e){if(db.isTransaction)db.exec('ROLLBACK');throw e;}
+}
+
+export function rasterSchema(db: DatabaseSync, root: string, quotaBytes?: string, fresh = false) {
+  if(Number(db.prepare('PRAGMA user_version').get()!.user_version)>=4)return;
+  const tables=['meta','objects','commands','events','events_v2','documents','history','checkpoints','roots','snapshots','snapshot_roots','client_bindings','read_releases','schema_migrations','staged_assets','transfer_reviews','asset_preparations','assets','asset_dependencies'];
+  const size=BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count)*Number(db.prepare('PRAGMA page_size').get()!.page_size));
+  const fs=statfsSync(root,{bigint:true}),required=size+(size+3n)/4n+1073741824n+67108864n;
+  if(!fresh&&(fs.bavail*fs.bsize<required||(fs.blocks-fs.bavail)*10n>=fs.blocks*9n||(quotaBytes&&inspectTree(root)+required>BigInt(quotaBytes))))throw new StoreError('CAPACITY');
+  const backup=fresh?null:`schema3-backup-${randomUUID()}.sqlite`,manifest:Record<string,unknown>={};
+  if(backup){const path=join(root,backup);closeSync(privateFile(path));db.prepare('VACUUM INTO ?').run(path);assertPrivate(path,false);
+    const saved=new DatabaseSync(path,{readOnly:true,allowExtension:false});try{if(saved.prepare('PRAGMA integrity_check').get()!.integrity_check!=='ok')throw new StoreError('CORRUPT_STORE');
+      for(const table of tables){const before=digest(db,table);if(canonical(before)!==canonical(digest(saved,table)))throw new StoreError('CORRUPT_STORE');manifest[table]=before;}
+    }finally{saved.close();}const fd=privateFile(path);try{fsyncSync(fd);}finally{closeSync(fd);}syncDirectory(root);
+  }
+  db.exec('BEGIN IMMEDIATE');try{
+    db.exec(`CREATE TABLE raster_preparations (id TEXT PRIMARY KEY, hash TEXT NOT NULL, original TEXT NOT NULL, canonical TEXT NOT NULL, operation_id TEXT NOT NULL UNIQUE, phase TEXT NOT NULL) STRICT;
+      CREATE TABLE raster_reviews (id TEXT PRIMARY KEY, json TEXT NOT NULL, session_hash TEXT NOT NULL, epoch TEXT NOT NULL) STRICT;`);
+    db.prepare('INSERT INTO schema_migrations VALUES (4,?)').run(canonical({from:3,to:4,strategy:'additive-verified-backup-transactional-activation',backup,manifest}));
+    db.exec('PRAGMA user_version=4; COMMIT');syncDirectory(root);
+  }catch(e){if(db.isTransaction)db.exec('ROLLBACK');throw e;}
 }

@@ -1,0 +1,282 @@
+{
+  "license": "CC0-1.0",
+  "provenance": "Synthetic original pixels authored for this repository. Sharp and libvips dependency licenses are separately retained; embedded ICC profiles come from the sealed public libvips built-in profiles.",
+  "generator": "tooling/raster/make-fixtures.mjs",
+  "fixtures": [
+    {
+      "name": "seam-checker.png",
+      "sha256": "736299bb8bcf0aa580f8610fcac811e75c662bdca8d270110b16aef0980767a1",
+      "bytes": 97,
+      "source": "Literal alternating red/blue cells across128 and512 boundaries.",
+      "expected": null
+    },
+    {
+      "name": "hidden-alpha.png",
+      "sha256": "a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9",
+      "bytes": 86,
+      "source": "Independent literal RGBA rows and PNG filter0/zlib framing.",
+      "expected": {
+        "width": 3,
+        "height": 2,
+        "rgba": [
+          17,
+          99,
+          231,
+          0,
+          255,
+          0,
+          0,
+          128,
+          0,
+          255,
+          0,
+          255,
+          0,
+          0,
+          255,
+          64,
+          255,
+          255,
+          255,
+          255,
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "name": "white.png",
+      "sha256": "d5a51b6aed15684ec8c123e30fe5703155359d6543b6d7b47cb5766ef44939de",
+      "bytes": 70,
+      "source": "Literal white RGBA.",
+      "expected": {
+        "width": 1,
+        "height": 1,
+        "rgba": [
+          255,
+          255,
+          255,
+          255
+        ]
+      }
+    },
+    {
+      "name": "black.png",
+      "sha256": "abc58d5127d7cdf313beb9ec8ee839860a9c6bfbc48c8b8eb6a3f7d8bb63de6f",
+      "bytes": 70,
+      "source": "Literal black RGBA.",
+      "expected": {
+        "width": 1,
+        "height": 1,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "name": "mask.png",
+      "sha256": "d855c849541fd46e261dea452645aafb8492a95c8f59e9e2ec1039854be57b12",
+      "bytes": 78,
+      "source": "Literal alpha/luminance mask.",
+      "expected": null
+    },
+    {
+      "name": "orientation-2.png",
+      "sha256": "0b9ebcc953181d286f8c71f747d87ba2f2ee085544473beeb95e3d53ea60c1c4",
+      "bytes": 124,
+      "source": "Literal TIFF orientation tag 2; original RGBA rows unchanged.",
+      "expected": null
+    },
+    {
+      "name": "orientation-3.png",
+      "sha256": "e8c3e4c35bc4afed03af7f44f15332b5afb990fa0ef77fef5da3a57b9a2dd8a1",
+      "bytes": 124,
+      "source": "Literal TIFF orientation tag 3; original RGBA rows unchanged.",
+      "expected": null
+    },
+    {
+      "name": "orientation-4.png",
+      "sha256": "24f9bbb6141918790c9618fc1e0093b3f7419eccc23fa8f0a9710f3772078e43",
+      "bytes": 124,
+      "source": "Literal TIFF orientation tag 4; original RGBA rows unchanged.",
+      "expected": null
+    },
+    {
+      "name": "orientation-5.png",
+      "sha256": "c7caa1b90b329fd24875431c391d6ab997c5b7e48ab017f76ef712b63d39c652",
+      "bytes": 124,
+      "source": "Literal TIFF orientation tag 5; original RGBA rows unchanged.",
+      "expected": null
+    },
+    {
+      "name": "orientation-6.png",
+      "sha256": "6f24d5e2d2ae2a925db25c429a7fceb690fc7cb53bb909b52438538b4d9ff02d",
+      "bytes": 124,
+      "source": "Literal TIFF orientation tag 6; original RGBA rows unchanged.",
+      "expected": null
+    },
+    {
+      "name": "orientation-7.png",
+      "sha256": "e19e58517a19b07b1883b90b251f0fc7fd3368f04cbd2d272b1182a3859d2fd9",
+      "bytes": 124,
+      "source": "Literal TIFF orientation tag 7; original RGBA rows unchanged.",
+      "expected": null
+    },
+    {
+      "name": "orientation-8.png",
+      "sha256": "f9ea13f57aabeb9ca9d94ede66b7fa0deb7a5390ef6e4a7965627c5b4d0fd9a5",
+      "bytes": 124,
+      "source": "Literal TIFF orientation tag 8; original RGBA rows unchanged.",
+      "expected": null
+    },
+    {
+      "name": "white.jpg",
+      "sha256": "df6788c9297068523f4254d6e6652bf1da09120453860eced5184cf698de1e44",
+      "bytes": 269,
+      "source": "Sharp0.35.4 mozjpeg encoder; uniform white exact diagnostic.",
+      "expected": {
+        "width": 16,
+        "height": 16,
+        "uniform": [
+          255,
+          255,
+          255,
+          255
+        ]
+      }
+    },
+    {
+      "name": "color.jpg",
+      "sha256": "a38976124ffa442ec12dd6e7e55aeb64d74d6f82bf291ab4e0ed7fc03229309b",
+      "bytes": 281,
+      "source": "Original two-color8px blocks, Sharp0.35.4 JPEG encoder; independent Pillow/libjpeg-turbo diagnostic.",
+      "expected": null
+    },
+    {
+      "name": "white-lossy.webp",
+      "sha256": "31b5f186e54a7a9390faad0af853bd354dd67e5cf741e2eed887396989129178",
+      "bytes": 46,
+      "source": "Sharp0.35.4 WebP1.6.0 lossy encoder; uniform white exact diagnostic.",
+      "expected": {
+        "width": 16,
+        "height": 16,
+        "uniform": [
+          255,
+          255,
+          255,
+          255
+        ]
+      }
+    },
+    {
+      "name": "alpha-lossless.webp",
+      "sha256": "3f55764d8e433aca7c1c261b8c7210628a49e43085bbfe6c578b03a2722ba31e",
+      "bytes": 68,
+      "source": "Sharp0.35.4 WebP1.6.0 lossless encoder; alpha-zero RGB may be discarded by fixture encoder.",
+      "expected": null
+    },
+    {
+      "name": "alpha-lossy.webp",
+      "sha256": "9cedd4047e95fe5e0bc5ea6a9157c1391f6666d5b77691edd1ff019fd814020a",
+      "bytes": 158,
+      "source": "Sharp0.35.4 WebP1.6.0 lossy alpha encoder.",
+      "expected": null
+    },
+    {
+      "name": "animated.webp",
+      "sha256": "cb42f17207091f121432d88022ca1dc8d81bd18043d462ccbc27f49e581f37f2",
+      "bytes": 140,
+      "source": "Real two-frame WebP generated with raw.pageHeight16.",
+      "expected": null
+    },
+    {
+      "name": "animated-marker.png",
+      "sha256": "08c0a4bc1c38cb8d227890a3bf222b133b1f24b347b80ea70720109df79b6b39",
+      "bytes": 106,
+      "source": "APNG animation control must reject before decoder.",
+      "expected": null
+    },
+    {
+      "name": "srgb.png",
+      "sha256": "b65d9cc97a9d7595967e4d94035976d6f98e08b2923abf830f27f3bc621f8583",
+      "bytes": 420,
+      "source": "Literal RGBA and pinned libvips srgb ICC bytes; no fixture conversion.",
+      "expected": null
+    },
+    {
+      "name": "p3.png",
+      "sha256": "9c8ec6d7b03f626364c4ea2b616672b3f3b9943518b1b3b33737d4a3c98130ad",
+      "bytes": 420,
+      "source": "Literal RGBA and pinned libvips p3 ICC bytes; no fixture conversion.",
+      "expected": null
+    },
+    {
+      "name": "p3-color.png",
+      "sha256": "db5fbdc8306c51b91f80d554f9f61c5dab012460e1980e72e27fd15a10d291f5",
+      "bytes": 416,
+      "source": "Original nonprimary P3 values; independent public LittleCMS C oracle in color-oracle.json.",
+      "expected": null
+    },
+    {
+      "name": "animated.png",
+      "sha256": "454966463c07a2f7b34ca225a430b64b5d83f220ec9493d604abec76f44b9cb0",
+      "bytes": 195,
+      "source": "Complete original two-frame APNG with sequenced fcTL/fdAT and red/blue frames.",
+      "expected": null
+    },
+    {
+      "name": "metadata-bomb.png",
+      "sha256": "3a3b5d5ed6321c43733fe70b99c87823ace2ff81d4a5eba60b20d78d39a754f1",
+      "bytes": 5203,
+      "source": "Compressed5MiB text exceeds the bounded parser reservation before native metadata.",
+      "expected": null
+    },
+    {
+      "name": "unknown-profile.png",
+      "sha256": "c9e8f5e45ea387b9f9041a603a607d1dd6f4de141d0dac615ac7067ab5a31f1f",
+      "bytes": 420,
+      "source": "Valid container with unsupported exact ICC identity.",
+      "expected": null
+    },
+    {
+      "name": "bad-crc.png",
+      "sha256": "e256c58f8204fdfbdef27c7a7d84235a5308a91dfe41fa3f2c09e9b66a39f551",
+      "bytes": 86,
+      "source": "Single CRC byte mutation.",
+      "expected": null
+    },
+    {
+      "name": "truncated.png",
+      "sha256": "a9d061440f01a8aec0c48f31545dffbf1e6ab43b27f32d9498ac0d68b9aa43cc",
+      "bytes": 79,
+      "source": "Missing complete IEND.",
+      "expected": null
+    },
+    {
+      "name": "truncated.jpg",
+      "sha256": "8da5292196aef352c4e1d6e1c5d0cd56038a29e37cab7f6e11818b818ca0a854",
+      "bytes": 267,
+      "source": "Missing JPEG EOI.",
+      "expected": null
+    },
+    {
+      "name": "truncated.webp",
+      "sha256": "9f07a8f3ed3894ba60912442f4c42c2fd888e0bbc03d3db3308fb5209e058944",
+      "bytes": 44,
+      "source": "RIFF declared length exceeds actual.",
+      "expected": null
+    },
+    {
+      "name": "oversize.png",
+      "sha256": "4771dbdb3543e03680050d6225c936e0bd8b482ab15ba41787c9b6ad3fbc49db",
+      "bytes": 68,
+      "source": "Valid IHDR CRC with unsupported8193 side; reject before decode.",
+      "expected": null
+    }
+  ]
+}

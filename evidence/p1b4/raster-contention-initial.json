@@ -1,0 +1,507 @@
+{
+  "at": "2026-09-26T06:35:57.248Z",
+  "qualification": false,
+  "root": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/raster-contention-W9hdgA",
+  "fixture": "2048x2048 actual PNG decode/encode/durable publication overlapping serial8KiB checkpoint HTTP receipts and snapshot250. HTTP intervals include dispatch and full response; raster parent preparation is separate.",
+  "targets": {
+    "R20TargetMs": 20,
+    "R20CeilingMs": 50
+  },
+  "rasterAdmissionMs": 9.440833999999995,
+  "terminal": {
+    "commandId": "c8b1b618-7bdc-4e69-87b7-b9daf33a47f9",
+    "documentRevision": null,
+    "fromSeq": "269",
+    "status": "accepted",
+    "toSeq": "269",
+    "transactionId": "aa01a54a-4f1a-46a8-a840-a49075576fdb"
+  },
+  "samples": [
+    {
+      "revision": 249,
+      "seq": "250",
+      "ms": 9.337125000000015
+    },
+    {
+      "revision": 250,
+      "seq": "251",
+      "ms": 11.165500000000065
+    },
+    {
+      "revision": 251,
+      "seq": "252",
+      "ms": 10.748583000000053
+    },
+    {
+      "revision": 252,
+      "seq": "253",
+      "ms": 13.553540999999996
+    },
+    {
+      "revision": 253,
+      "seq": "254",
+      "ms": 10.593999999999824
+    },
+    {
+      "revision": 254,
+      "seq": "255",
+      "ms": 11.103375000000142
+    },
+    {
+      "revision": 255,
+      "seq": "256",
+      "ms": 12.15754099999981
+    },
+    {
+      "revision": 256,
+      "seq": "257",
+      "ms": 10.645874999999933
+    },
+    {
+      "revision": 257,
+      "seq": "258",
+      "ms": 26.276000000000067
+    },
+    {
+      "revision": 258,
+      "seq": "259",
+      "ms": 10.624000000000024
+    },
+    {
+      "revision": 259,
+      "seq": "260",
+      "ms": 11.100250000000187
+    },
+    {
+      "revision": 260,
+      "seq": "261",
+      "ms": 9.764083000000028
+    },
+    {
+      "revision": 261,
+      "seq": "262",
+      "ms": 5.204500000000053
+    },
+    {
+      "revision": 262,
+      "seq": "263",
+      "ms": 8.038874999999734
+    },
+    {
+      "revision": 263,
+      "seq": "264",
+      "ms": 18.491791999999805
+    },
+    {
+      "revision": 264,
+      "seq": "265",
+      "ms": 6.79391700000042
+    },
+    {
+      "revision": 265,
+      "seq": "266",
+      "ms": 6.130707999999686
+    },
+    {
+      "revision": 266,
+      "seq": "267",
+      "ms": 11.821290999999746
+    },
+    {
+      "revision": 267,
+      "seq": "268",
+      "ms": 41.252042000000074
+    },
+    {
+      "revision": 268,
+      "seq": "270",
+      "ms": 6.642915999999786
+    },
+    {
+      "revision": 269,
+      "seq": "271",
+      "ms": 5.894041999999899
+    },
+    {
+      "revision": 270,
+      "seq": "272",
+      "ms": 6.073958999999832
+    },
+    {
+      "revision": 271,
+      "seq": "273",
+      "ms": 6.019416999999976
+    },
+    {
+      "revision": 272,
+      "seq": "274",
+      "ms": 5.88412500000004
+    },
+    {
+      "revision": 273,
+      "seq": "275",
+      "ms": 6.00366699999995
+    },
+    {
+      "revision": 274,
+      "seq": "276",
+      "ms": 6.123125000000073
+    },
+    {
+      "revision": 275,
+      "seq": "277",
+      "ms": 5.789708000000246
+    },
+    {
+      "revision": 276,
+      "seq": "278",
+      "ms": 6.2015409999999065
+    },
+    {
+      "revision": 277,
+      "seq": "279",
+      "ms": 5.8288330000000315
+    },
+    {
+      "revision": 278,
+      "seq": "280",
+      "ms": 6.032040999999936
+    },
+    {
+      "revision": 279,
+      "seq": "281",
+      "ms": 8.012915999999677
+    },
+    {
+      "revision": 280,
+      "seq": "282",
+      "ms": 6.35916700000007
+    },
+    {
+      "revision": 281,
+      "seq": "283",
+      "ms": 5.559375000000273
+    },
+    {
+      "revision": 282,
+      "seq": "284",
+      "ms": 5.0522500000001855
+    },
+    {
+      "revision": 283,
+      "seq": "285",
+      "ms": 4.8493750000002365
+    },
+    {
+      "revision": 284,
+      "seq": "286",
+      "ms": 5.057667000000038
+    },
+    {
+      "revision": 285,
+      "seq": "287",
+      "ms": 4.85287500000004
+    },
+    {
+      "revision": 286,
+      "seq": "288",
+      "ms": 5.1636249999996835
+    },
+    {
+      "revision": 287,
+      "seq": "289",
+      "ms": 4.888832999999977
+    },
+    {
+      "revision": 288,
+      "seq": "290",
+      "ms": 5.186833000000206
+    },
+    {
+      "revision": 289,
+      "seq": "291",
+      "ms": 4.827374999999847
+    },
+    {
+      "revision": 290,
+      "seq": "292",
+      "ms": 5.295583000000079
+    },
+    {
+      "revision": 291,
+      "seq": "293",
+      "ms": 5.733208000000104
+    },
+    {
+      "revision": 292,
+      "seq": "294",
+      "ms": 5.126624999999876
+    },
+    {
+      "revision": 293,
+      "seq": "295",
+      "ms": 4.950415999999677
+    },
+    {
+      "revision": 294,
+      "seq": "296",
+      "ms": 4.989832999999635
+    },
+    {
+      "revision": 295,
+      "seq": "297",
+      "ms": 4.864000000000033
+    },
+    {
+      "revision": 296,
+      "seq": "298",
+      "ms": 5.171125000000302
+    },
+    {
+      "revision": 297,
+      "seq": "299",
+      "ms": 4.76458300000013
+    },
+    {
+      "revision": 298,
+      "seq": "300",
+      "ms": 5.277791999999863
+    },
+    {
+      "revision": 299,
+      "seq": "301",
+      "ms": 4.714124999999967
+    },
+    {
+      "revision": 300,
+      "seq": "302",
+      "ms": 5.150709000000006
+    },
+    {
+      "revision": 301,
+      "seq": "303",
+      "ms": 4.958458999999948
+    },
+    {
+      "revision": 302,
+      "seq": "304",
+      "ms": 5.138541999999688
+    },
+    {
+      "revision": 303,
+      "seq": "305",
+      "ms": 5.873458000000028
+    },
+    {
+      "revision": 304,
+      "seq": "306",
+      "ms": 6.088042000000314
+    },
+    {
+      "revision": 305,
+      "seq": "307",
+      "ms": 5.843125000000327
+    },
+    {
+      "revision": 306,
+      "seq": "308",
+      "ms": 5.237624999999753
+    },
+    {
+      "revision": 307,
+      "seq": "309",
+      "ms": 5.813250000000153
+    },
+    {
+      "revision": 308,
+      "seq": "310",
+      "ms": 6.024041000000125
+    },
+    {
+      "revision": 309,
+      "seq": "311",
+      "ms": 12.883458000000246
+    },
+    {
+      "revision": 310,
+      "seq": "312",
+      "ms": 10.218500000000404
+    },
+    {
+      "revision": 311,
+      "seq": "313",
+      "ms": 5.98108400000001
+    },
+    {
+      "revision": 312,
+      "seq": "314",
+      "ms": 5.895082999999886
+    },
+    {
+      "revision": 313,
+      "seq": "315",
+      "ms": 6.090458000000126
+    },
+    {
+      "revision": 314,
+      "seq": "316",
+      "ms": 6.029040999999779
+    },
+    {
+      "revision": 315,
+      "seq": "317",
+      "ms": 6.018583000000035
+    },
+    {
+      "revision": 316,
+      "seq": "318",
+      "ms": 5.855583000000024
+    },
+    {
+      "revision": 317,
+      "seq": "319",
+      "ms": 6.145790999999917
+    },
+    {
+      "revision": 318,
+      "seq": "320",
+      "ms": 6.006333000000268
+    },
+    {
+      "revision": 319,
+      "seq": "321",
+      "ms": 5.92345800000021
+    },
+    {
+      "revision": 320,
+      "seq": "322",
+      "ms": 5.920916000000034
+    },
+    {
+      "revision": 321,
+      "seq": "323",
+      "ms": 6.103292000000238
+    },
+    {
+      "revision": 322,
+      "seq": "324",
+      "ms": 5.941874999999982
+    },
+    {
+      "revision": 323,
+      "seq": "325",
+      "ms": 6.043791999999939
+    },
+    {
+      "revision": 324,
+      "seq": "326",
+      "ms": 5.9084170000000995
+    },
+    {
+      "revision": 325,
+      "seq": "327",
+      "ms": 6.078541999999743
+    },
+    {
+      "revision": 326,
+      "seq": "328",
+      "ms": 5.997791999999663
+    },
+    {
+      "revision": 327,
+      "seq": "329",
+      "ms": 5.996625000000222
+    },
+    {
+      "revision": 328,
+      "seq": "330",
+      "ms": 5.888750000000073
+    }
+  ],
+  "maxMs": 41.252042000000074,
+  "over50": [],
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 2928,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "2",
+    "highWater": "330",
+    "projectionDigest": "sha256:e3bb58b4ce182edeb2321e17fe5ca2991fc815168e6fc413771307c96703a002",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "661812609024",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "21248",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": []
+    },
+    "rasters": {
+      "preparations": 0,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": []
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 309.966625,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": "250",
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 222150656,
+      "heapTotal": 24526848,
+      "heapUsed": 10890600,
+      "external": 2949570,
+      "arrayBuffers": 380332
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "externalEffects": 0
+}

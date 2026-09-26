@@ -1,0 +1,43 @@
+{
+  "scope": "All earlier logs and measurements are retained. Final-source seals attest to the final implementation, not a retroactive exact-source attestation for unsealed exploratory attempts.",
+  "resolved": [
+    {
+      "evidence": "logs/http-initial.txt",
+      "issue": "Nested worker inherited test-runner-only execArgv and stayed pending.",
+      "resolution": "Use the existing writer convention; only explicitly filter input-type when necessary. Final real HTTP and process recovery tests pass."
+    },
+    {
+      "evidence": "logs/assets-initial.txt",
+      "issue": "One assertion expected schema3 after the additive schema4 migration.",
+      "resolution": "Update the schema expectation; actual approved-base migration/rollback is independently exercised in raster storage tests."
+    },
+    {
+      "evidence": "max-png.json",
+      "issue": "Initial admission double-counted worker/runtime RSS in current RSS plus its complete reservation.",
+      "resolution": "Capture backend baseline before construction and include all worker/native/IO allocations in one reservation; use reusable codec hashing buffer."
+    },
+    {
+      "evidence": [
+        "max-webp-lossy-sealed.json",
+        "max-webp-lossless-sealed.json"
+      ],
+      "issue": "Native allocation exceeded the first WebP estimate; observed peaks615710720/627834880 bytes. No usable output was published.",
+      "resolution": "Parse encoded dimensions before native metadata and reserve5*RGBA+32MiB native work for WebP. Named regression and final measurements reject before native allocation, retaining exact pending identity."
+    },
+    {
+      "evidence": "logs/raster-contention.txt",
+      "issue": "Measurement helper assumed events instead of the existing batches[].events response.",
+      "resolution": "Use the documented response; final contention receipt completed with no sample over50ms."
+    },
+    {
+      "evidence": "jpeg-retained-memory-recovery.json",
+      "issue": "Recovery helper read waiting-for-resources before startup retry had completed.",
+      "resolution": "Wait for the journaled result; jpeg-retained-memory-recovery-second.json proves exact original command/operation and export after reopening."
+    }
+  ],
+  "remaining": [
+    "Final25MP JPEG,25MP WebP lossy/lossless and8192\u00d73051 PNG observation remained resource-pending at strict combined admission; these operations are not counted as completed. Earlier aspect-ratio attempts completed within the same ceiling.",
+    "Native allocator retention may require reopening before another operation fits. A prior blocked JPEG composition recovered exactly after reopening.",
+    "The64KiB manifest/control workspace can explicitly reject a complex dependency plan; full100-layer mixed/text qualification is unclaimed."
+  ]
+}

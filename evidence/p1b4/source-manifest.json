@@ -1,0 +1,553 @@
+{
+  "base": "e8b9f1a379becd97365242cc0a3b1c9d703bcfcb",
+  "branch": "ideogram-editor-p1",
+  "sourceIdentity": "sha256:beb500c2b73edf36fc60eee6f983d0a98c065f858d708f91b9516ac7524bef35",
+  "codecIdentity": "sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "bytes": 70724,
+      "sha256": "4291e866b73fe22b019c039e4f0d1f610d9f8fcbe3ed1e847951a310c3082218"
+    },
+    {
+      "path": "package.json",
+      "bytes": 3559,
+      "sha256": "4edcc65d7b0d53d1ec00753b0624729499d33c8793da2665a8db1a2ed9480f24"
+    },
+    {
+      "path": "server/assets.ts",
+      "bytes": 7559,
+      "sha256": "ecf4beb9d4ad66c6585fe61807aa2de2ccbfa44f4b79e9bd57684d3442853efa"
+    },
+    {
+      "path": "server/protocol.ts",
+      "bytes": 22272,
+      "sha256": "b06c0f638bba46542f98a23e2d92d988e151ff43a75dc17c8b5f77042b77bcf0"
+    },
+    {
+      "path": "server/raster/container.ts",
+      "bytes": 6939,
+      "sha256": "2b35f8338692227c68a2bbeb461b5570d6cfca63aaaf0365a298a1369eec080e"
+    },
+    {
+      "path": "server/raster/engine.ts",
+      "bytes": 14546,
+      "sha256": "5b56221b3abcfb7e3484b8bc35cfb20a094d5131dc5283617d75f6ce2e9937e8"
+    },
+    {
+      "path": "server/raster/identity.ts",
+      "bytes": 27973,
+      "sha256": "1e06e04fcbf92d8a33ee342c5147c1783eda7aab66785e4f7c29984ce01c12be"
+    },
+    {
+      "path": "server/raster/png.ts",
+      "bytes": 2110,
+      "sha256": "1a3b37f40aa94cb1cd9129b73f07c26f00511053970033b12bdbb921ff16d35f"
+    },
+    {
+      "path": "server/raster/worker.ts",
+      "bytes": 1019,
+      "sha256": "1f621e65a1794ed20b136c8da4bff38fde98b3e26d22f390cbf14b6c43d1a734"
+    },
+    {
+      "path": "server/storage/assets.ts",
+      "bytes": 27000,
+      "sha256": "1a423177cee67db3b9942939ca425204e26dbb77a16c9547ac7b748c730b2176"
+    },
+    {
+      "path": "server/storage/canonical.ts",
+      "bytes": 6096,
+      "sha256": "e5e62934820b37cb862e3bc51955e7f0b4a431f8ff32ca7fcf006c3afc30debc"
+    },
+    {
+      "path": "server/storage/database.ts",
+      "bytes": 30274,
+      "sha256": "268efbe8d1dba8ce1fffffb76d23a4dc938780022711bc20501dd0f88bd75522"
+    },
+    {
+      "path": "server/storage/objects.ts",
+      "bytes": 12528,
+      "sha256": "70547257f7b1009c66361b167d14cbceaf384875b03b7c481b6c9f30a15b1e41"
+    },
+    {
+      "path": "server/storage/raster.ts",
+      "bytes": 17266,
+      "sha256": "71a2c5154371a0397b418b2a0fb808143e3168f3b23b8a383d32fc4aa8325116"
+    },
+    {
+      "path": "server/storage/schema.ts",
+      "bytes": 9662,
+      "sha256": "59305b9c044a4500791511e5cd13ba9ea58bcb189f4f194e843e5b78a4d289e2"
+    },
+    {
+      "path": "server/storage/worker.ts",
+      "bytes": 6942,
+      "sha256": "f8663a33661288b6ff2b86544ae71482b72c78a80cb4698cf455d36dafa6a863"
+    },
+    {
+      "path": "server/storage/writer.ts",
+      "bytes": 10264,
+      "sha256": "908cfa22a722c4e8cf02b27ac4c2584f1070a3e9bc3a88f5ccb0288fbf648e96"
+    },
+    {
+      "path": "src/protocol/assets.ts",
+      "bytes": 2402,
+      "sha256": "8106f9d17e950c2b27d6392d5a00138d47de20316bc891ca637442028da2d397"
+    },
+    {
+      "path": "src/protocol/raster.ts",
+      "bytes": 1666,
+      "sha256": "8242ea7b0c2ff495099389ece3f6b53afb2a420b373523caa601f122a6c3616b"
+    },
+    {
+      "path": "src/protocol/store.ts",
+      "bytes": 2868,
+      "sha256": "86318b89e03cd443f52f1ad9471c96b15cc696eda41ed53c162a6964a7aa822f"
+    },
+    {
+      "path": "src/protocol/validate.ts",
+      "bytes": 11071,
+      "sha256": "0b85922929790e5ca79d341962c1521fb8903bf23d7d8ada25b447600ad37a8a"
+    },
+    {
+      "path": "src/raster/core.ts",
+      "bytes": 8804,
+      "sha256": "d8de114ca50149e77c02c5cb5fa5b17b38f2d56cc6933db85a19242c6cd168b3"
+    },
+    {
+      "path": "tests/assets/storage.test.mjs",
+      "bytes": 14164,
+      "sha256": "22b714da14af4e815bf332fa0c8c4bef5c1e377e0d2a67d697f54ad70f66f748"
+    },
+    {
+      "path": "tests/protocol/recovery.test.mjs",
+      "bytes": 9811,
+      "sha256": "1fcf23734eb0c86116ac0582d855ba8ada020748be2f8e2bd089bbe4e8e4ca0b"
+    },
+    {
+      "path": "tests/raster/app/index.html",
+      "bytes": 534,
+      "sha256": "e12fb09eed42832d47ccf6e5098a94e12338f769df672949371b7389800e4337"
+    },
+    {
+      "path": "tests/raster/app/main.ts",
+      "bytes": 4816,
+      "sha256": "ca13b8ea62b630937a8215571bf2c271afb93d2dd0c785ae089a619d6570570d"
+    },
+    {
+      "path": "tests/raster/app/style.css",
+      "bytes": 463,
+      "sha256": "e766b852a1daa5604dddcb6826ee7bd94618c44cdc71c67fd7b9e0f5b034d9ca"
+    },
+    {
+      "path": "tests/raster/codec.test.mjs",
+      "bytes": 6531,
+      "sha256": "26e9b8200a937bd47ab0b534ef68910b03c6618d15c940f6e2907801473f5725"
+    },
+    {
+      "path": "tests/raster/consumer.spec.ts",
+      "bytes": 2313,
+      "sha256": "0c1c78ac09c126832fad0e21dbd2688fb1e44b3734838ee4455f537ba8b00c35"
+    },
+    {
+      "path": "tests/raster/core.test.mjs",
+      "bytes": 5094,
+      "sha256": "d99e8dd97e9e006ebb363b24ac07a3bfcf356ddd2031ce8bdfae3df76f01b2a7"
+    },
+    {
+      "path": "tests/raster/fixtures/alpha-lossless.webp",
+      "bytes": 68,
+      "sha256": "3f55764d8e433aca7c1c261b8c7210628a49e43085bbfe6c578b03a2722ba31e"
+    },
+    {
+      "path": "tests/raster/fixtures/alpha-lossy.webp",
+      "bytes": 158,
+      "sha256": "9cedd4047e95fe5e0bc5ea6a9157c1391f6666d5b77691edd1ff019fd814020a"
+    },
+    {
+      "path": "tests/raster/fixtures/animated-marker.png",
+      "bytes": 106,
+      "sha256": "08c0a4bc1c38cb8d227890a3bf222b133b1f24b347b80ea70720109df79b6b39"
+    },
+    {
+      "path": "tests/raster/fixtures/animated.png",
+      "bytes": 195,
+      "sha256": "454966463c07a2f7b34ca225a430b64b5d83f220ec9493d604abec76f44b9cb0"
+    },
+    {
+      "path": "tests/raster/fixtures/animated.webp",
+      "bytes": 140,
+      "sha256": "cb42f17207091f121432d88022ca1dc8d81bd18043d462ccbc27f49e581f37f2"
+    },
+    {
+      "path": "tests/raster/fixtures/aspect-png.png",
+      "bytes": 102814,
+      "sha256": "320d1a995fc5ce5873dc2af4e800a97d485dd3eb7a22651ac49590ee834f7d84"
+    },
+    {
+      "path": "tests/raster/fixtures/bad-crc.png",
+      "bytes": 86,
+      "sha256": "e256c58f8204fdfbdef27c7a7d84235a5308a91dfe41fa3f2c09e9b66a39f551"
+    },
+    {
+      "path": "tests/raster/fixtures/black.png",
+      "bytes": 70,
+      "sha256": "abc58d5127d7cdf313beb9ec8ee839860a9c6bfbc48c8b8eb6a3f7d8bb63de6f"
+    },
+    {
+      "path": "tests/raster/fixtures/color-oracle.json",
+      "bytes": 614,
+      "sha256": "0357507060be69eae9b77595dec1d3f1638f49d1c2f6bfed51f83e57fc85f5d7"
+    },
+    {
+      "path": "tests/raster/fixtures/color.jpg",
+      "bytes": 281,
+      "sha256": "a38976124ffa442ec12dd6e7e55aeb64d74d6f82bf291ab4e0ed7fc03229309b"
+    },
+    {
+      "path": "tests/raster/fixtures/hidden-alpha.png",
+      "bytes": 86,
+      "sha256": "a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9"
+    },
+    {
+      "path": "tests/raster/fixtures/jpeg-oracle.json",
+      "bytes": 9277,
+      "sha256": "6793dbb8e907a23df8d3dcb887ff531c73f46e5e5e09b8a5a09ad019321c7ddd"
+    },
+    {
+      "path": "tests/raster/fixtures/manifest.json",
+      "bytes": 8686,
+      "sha256": "1d22a7d31ab77277c8fc4234f350413c4e09e51b44d4e5b18564624019fc020b"
+    },
+    {
+      "path": "tests/raster/fixtures/mask.png",
+      "bytes": 78,
+      "sha256": "d855c849541fd46e261dea452645aafb8492a95c8f59e9e2ec1039854be57b12"
+    },
+    {
+      "path": "tests/raster/fixtures/max-png.png",
+      "bytes": 110030,
+      "sha256": "4c87842c594ffdc9532402a574d311b11a31eb290a530387c9d7af74ef36eb43"
+    },
+    {
+      "path": "tests/raster/fixtures/max-progressive-jpeg.jpg",
+      "bytes": 293717,
+      "sha256": "f38ee3a0582dfa4c5f31114b5acc508be951664415ba4f72a85221d878e898f8"
+    },
+    {
+      "path": "tests/raster/fixtures/max-webp-lossless.webp",
+      "bytes": 1022,
+      "sha256": "59d2de0e3f6cd91640e1ca79ab4cecd3dfdd037b4404b65c4b20f1348250becd"
+    },
+    {
+      "path": "tests/raster/fixtures/max-webp-lossy.webp",
+      "bytes": 44652,
+      "sha256": "d7ad227d6bc2f73b800da4a79f9128b1c96a18898d5e2d06b33682c755251b71"
+    },
+    {
+      "path": "tests/raster/fixtures/metadata-bomb.png",
+      "bytes": 5203,
+      "sha256": "3a3b5d5ed6321c43733fe70b99c87823ace2ff81d4a5eba60b20d78d39a754f1"
+    },
+    {
+      "path": "tests/raster/fixtures/normal-jpeg.jpg",
+      "bytes": 49418,
+      "sha256": "f10f17f5040adb51c9cc2dc6a84a1c2c2a9d07b31b9cb6b2eb6914afff83db91"
+    },
+    {
+      "path": "tests/raster/fixtures/normal-png.png",
+      "bytes": 21248,
+      "sha256": "ed3520890863b59db6c81dcc030dc7fdd73b8d9e2bf75b82fd0060900d987fb8"
+    },
+    {
+      "path": "tests/raster/fixtures/normal-webp-lossless.webp",
+      "bytes": 220,
+      "sha256": "5f0d4193f8c8990ec766c2ae990aa1ccf4ea438bfd36f98e5fd0a6475b64a875"
+    },
+    {
+      "path": "tests/raster/fixtures/normal-webp-lossy.webp",
+      "bytes": 7518,
+      "sha256": "22beca99b42d867a3190094a2082f00ee5d6b500634f29043c089a8266c58aae"
+    },
+    {
+      "path": "tests/raster/fixtures/orientation-2.png",
+      "bytes": 124,
+      "sha256": "0b9ebcc953181d286f8c71f747d87ba2f2ee085544473beeb95e3d53ea60c1c4"
+    },
+    {
+      "path": "tests/raster/fixtures/orientation-3.png",
+      "bytes": 124,
+      "sha256": "e8c3e4c35bc4afed03af7f44f15332b5afb990fa0ef77fef5da3a57b9a2dd8a1"
+    },
+    {
+      "path": "tests/raster/fixtures/orientation-4.png",
+      "bytes": 124,
+      "sha256": "24f9bbb6141918790c9618fc1e0093b3f7419eccc23fa8f0a9710f3772078e43"
+    },
+    {
+      "path": "tests/raster/fixtures/orientation-5.png",
+      "bytes": 124,
+      "sha256": "c7caa1b90b329fd24875431c391d6ab997c5b7e48ab017f76ef712b63d39c652"
+    },
+    {
+      "path": "tests/raster/fixtures/orientation-6.png",
+      "bytes": 124,
+      "sha256": "6f24d5e2d2ae2a925db25c429a7fceb690fc7cb53bb909b52438538b4d9ff02d"
+    },
+    {
+      "path": "tests/raster/fixtures/orientation-7.png",
+      "bytes": 124,
+      "sha256": "e19e58517a19b07b1883b90b251f0fc7fd3368f04cbd2d272b1182a3859d2fd9"
+    },
+    {
+      "path": "tests/raster/fixtures/orientation-8.png",
+      "bytes": 124,
+      "sha256": "f9ea13f57aabeb9ca9d94ede66b7fa0deb7a5390ef6e4a7965627c5b4d0fd9a5"
+    },
+    {
+      "path": "tests/raster/fixtures/oversize.png",
+      "bytes": 68,
+      "sha256": "4771dbdb3543e03680050d6225c936e0bd8b482ab15ba41787c9b6ad3fbc49db"
+    },
+    {
+      "path": "tests/raster/fixtures/p3-color.png",
+      "bytes": 416,
+      "sha256": "db5fbdc8306c51b91f80d554f9f61c5dab012460e1980e72e27fd15a10d291f5"
+    },
+    {
+      "path": "tests/raster/fixtures/p3.png",
+      "bytes": 420,
+      "sha256": "9c8ec6d7b03f626364c4ea2b616672b3f3b9943518b1b3b33737d4a3c98130ad"
+    },
+    {
+      "path": "tests/raster/fixtures/resource-inputs.json",
+      "bytes": 3449,
+      "sha256": "769b404439001de889bb05864ace9050adcc51ebfc67843333b6ade5d852cc16"
+    },
+    {
+      "path": "tests/raster/fixtures/seam-checker.png",
+      "bytes": 97,
+      "sha256": "736299bb8bcf0aa580f8610fcac811e75c662bdca8d270110b16aef0980767a1"
+    },
+    {
+      "path": "tests/raster/fixtures/srgb.png",
+      "bytes": 420,
+      "sha256": "b65d9cc97a9d7595967e4d94035976d6f98e08b2923abf830f27f3bc621f8583"
+    },
+    {
+      "path": "tests/raster/fixtures/truncated.jpg",
+      "bytes": 267,
+      "sha256": "8da5292196aef352c4e1d6e1c5d0cd56038a29e37cab7f6e11818b818ca0a854"
+    },
+    {
+      "path": "tests/raster/fixtures/truncated.png",
+      "bytes": 79,
+      "sha256": "a9d061440f01a8aec0c48f31545dffbf1e6ab43b27f32d9498ac0d68b9aa43cc"
+    },
+    {
+      "path": "tests/raster/fixtures/truncated.webp",
+      "bytes": 44,
+      "sha256": "9f07a8f3ed3894ba60912442f4c42c2fd888e0bbc03d3db3308fb5209e058944"
+    },
+    {
+      "path": "tests/raster/fixtures/unknown-profile.png",
+      "bytes": 420,
+      "sha256": "c9e8f5e45ea387b9f9041a603a607d1dd6f4de141d0dac615ac7067ab5a31f1f"
+    },
+    {
+      "path": "tests/raster/fixtures/webp-oracle.json",
+      "bytes": 1206,
+      "sha256": "688af84991fb1d9c25dd3283f89a637042ce9d5cc8bf044f9a609c0173e367ed"
+    },
+    {
+      "path": "tests/raster/fixtures/white-lossy.webp",
+      "bytes": 46,
+      "sha256": "31b5f186e54a7a9390faad0af853bd354dd67e5cf741e2eed887396989129178"
+    },
+    {
+      "path": "tests/raster/fixtures/white.jpg",
+      "bytes": 269,
+      "sha256": "df6788c9297068523f4254d6e6652bf1da09120453860eced5184cf698de1e44"
+    },
+    {
+      "path": "tests/raster/fixtures/white.png",
+      "bytes": 70,
+      "sha256": "d5a51b6aed15684ec8c123e30fe5703155359d6543b6d7b47cb5766ef44939de"
+    },
+    {
+      "path": "tests/raster/helpers.mjs",
+      "bytes": 3324,
+      "sha256": "f937a985db9c61af176ec6df26041a5839efcde66a7329015a1a793236b421f6"
+    },
+    {
+      "path": "tests/raster/http.test.mjs",
+      "bytes": 10202,
+      "sha256": "b3a1991b9aed065772dc6e835f1efb9436fb9bdf7389af554c7d8749a6b35dd2"
+    },
+    {
+      "path": "tests/raster/playwright.config.ts",
+      "bytes": 381,
+      "sha256": "85341cbc83efed0491e0aa3b5f580cbc0e4b67d8bac809ba01358c2412c9e372"
+    },
+    {
+      "path": "tests/raster/process.test.mjs",
+      "bytes": 5776,
+      "sha256": "4049c1372d62a43ec6b2467ba96b57f63f1a4ebf067dab588e4da562fec7ce54"
+    },
+    {
+      "path": "tests/raster/storage.test.mjs",
+      "bytes": 8786,
+      "sha256": "3eabac14a75dd81c42e0e3c0da2fef3907e68de59de02ed29f65c5afdcdd1ebb"
+    },
+    {
+      "path": "tests/raster/vite.config.ts",
+      "bytes": 221,
+      "sha256": "d91028abc3110141e468fa3545a710f03b0e801f65d8525aba57fee018e415c5"
+    },
+    {
+      "path": "tooling/ASSETS.txt",
+      "bytes": 8739,
+      "sha256": "02ae90c72dc6beaa67ada710f50721812a0b84fc38145949a77ecb1bba312e59"
+    },
+    {
+      "path": "tooling/PROTOCOL.txt",
+      "bytes": 14329,
+      "sha256": "73822a5ed8538445b239beb025dc0ab07151e0fa851f5716dde2d597d51d485d"
+    },
+    {
+      "path": "tooling/RASTER.txt",
+      "bytes": 14897,
+      "sha256": "7d416bd7197046d75225a89cafbbdd39c8586605c6beb3154cce8a39e1128a25"
+    },
+    {
+      "path": "tooling/STORE.txt",
+      "bytes": 11681,
+      "sha256": "f69960733ea243b8cae378b0cb9b592757f3eff4b45fd180c0074958a79d96de"
+    },
+    {
+      "path": "tooling/raster/checks.mjs",
+      "bytes": 1141,
+      "sha256": "fd9ca10f6d142d1104e88573f479e7fdab3e38e9f42e271dae987fa3dca84099"
+    },
+    {
+      "path": "tooling/raster/codecs.json",
+      "bytes": 27758,
+      "sha256": "f3686e8b74e8dbea8369d302d2c6015b89c581418f0653aac27262a6e2af3f1e"
+    },
+    {
+      "path": "tooling/raster/color-oracle.py",
+      "bytes": 1632,
+      "sha256": "f0e0e52ebed1163e0d960f26c20dee259154d89da3068b406eafe39468a54918"
+    },
+    {
+      "path": "tooling/raster/contention.mjs",
+      "bytes": 3824,
+      "sha256": "4397d26f0d6700d6a5c465d6717576e3aa2b22f6329e7a1862f999518b77db9f"
+    },
+    {
+      "path": "tooling/raster/fresh-install.mjs",
+      "bytes": 2315,
+      "sha256": "1d61fc3d4beb6d61ff2b7525bc2389572acaa7d70cacad747459366bdaa2c103"
+    },
+    {
+      "path": "tooling/raster/jpeg-oracle.py",
+      "bytes": 799,
+      "sha256": "924f20bd9a010ebb77496c78a74ac80039e1fec1158310feff86ebc34b596bf5"
+    },
+    {
+      "path": "tooling/raster/make-fixtures.mjs",
+      "bytes": 6843,
+      "sha256": "a25855b0206f0faa637f44b19ba3a2ff7f1f9b6cb06cb3489e5749b7ddbc6c91"
+    },
+    {
+      "path": "tooling/raster/make-resource-fixtures.mjs",
+      "bytes": 959,
+      "sha256": "8050fc74a8844a60985f56dd238c2ef1aeb9be57e6bcd5bfcb8ae0659bb3472b"
+    },
+    {
+      "path": "tooling/raster/measure-all.mjs",
+      "bytes": 696,
+      "sha256": "25e35ac765d47bb2da1050bd051c02a3eecba4633e4b315dd2a1a577e453f3ee"
+    },
+    {
+      "path": "tooling/raster/measure-one.mjs",
+      "bytes": 4665,
+      "sha256": "b4c3e08ebc4059d137674e8b5399490809286ed185935ddecbebe608f0d1d4d6"
+    },
+    {
+      "path": "tooling/raster/notices/compact-icc-license.txt",
+      "bytes": 6552,
+      "sha256": "469d87b5fa48f8aaf69e25f4fcac3a309c97dbb7d561b917638abdb640e004d9"
+    },
+    {
+      "path": "tooling/raster/notices/libvips-LICENSE",
+      "bytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "path": "tooling/raster/notices/libvips-package-notices.txt",
+      "bytes": 4333,
+      "sha256": "47083f1ae7e990f74a56f576bcb8434051cb84ed1982fa57932720869e5147fe"
+    },
+    {
+      "path": "tooling/raster/notices/sharp-LICENSE",
+      "bytes": 10273,
+      "sha256": "73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68"
+    },
+    {
+      "path": "tooling/raster/notices/sharp-libvips-build-LICENSE",
+      "bytes": 11357,
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    },
+    {
+      "path": "tooling/raster/notices/sharp-libvips-build-THIRD-PARTY-NOTICES.txt",
+      "bytes": 4230,
+      "sha256": "25ffcfa69e28b1913ced27ec778b90f24911a1bb3021253577e8b0af55db0d49"
+    },
+    {
+      "path": "tooling/raster/notices/sharp-package-LICENSE.txt",
+      "bytes": 10273,
+      "sha256": "73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68"
+    },
+    {
+      "path": "tooling/raster/p3.icc",
+      "bytes": 480,
+      "sha256": "231752984cd4a5278e1b8d2390fe496767d4511fc81f54e1a5c69ae9ab4c42b5"
+    },
+    {
+      "path": "tooling/raster/profiles.json",
+      "bytes": 243,
+      "sha256": "2e6e2dc158edd49ded8b8012d50fdc7472e74db443b985d89b49b50f0dfda197"
+    },
+    {
+      "path": "tooling/raster/resume-observation.mjs",
+      "bytes": 2727,
+      "sha256": "d02fe74cad60e57d20b829cf1667e33196ebdb28ab75bade4859c9cb30ac77a1"
+    },
+    {
+      "path": "tooling/raster/seal-codecs.mjs",
+      "bytes": 1681,
+      "sha256": "bc48e8e2252591ce8f7b7ce8d43641c69f953e677429ed5a0770b16302f017e1"
+    },
+    {
+      "path": "tooling/raster/seal-evidence.mjs",
+      "bytes": 1758,
+      "sha256": "615abaed935d81454765006a68f47689871b5a2ad01dbf6124ab20733d824bc8"
+    },
+    {
+      "path": "tooling/raster/srgb.icc",
+      "bytes": 480,
+      "sha256": "c56e1685d888f5edb92fe07f2750f387f8fe8e91b32ff8fb0b56bfbbb9458353"
+    },
+    {
+      "path": "tooling/raster/verify-inputs.mjs",
+      "bytes": 1470,
+      "sha256": "e54aea1039aa19d59d1e0f732a907887e2dd5f7a125d9c910de3e510da62a883"
+    },
+    {
+      "path": "tooling/raster/webp-oracle.py",
+      "bytes": 1065,
+      "sha256": "483497c84f0f640f72c7cdff04fc76d95ca2e85fa637787b9114b122f4f6dd92"
+    }
+  ]
+}

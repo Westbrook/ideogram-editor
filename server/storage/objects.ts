@@ -1,6 +1,6 @@
 import { constants, closeSync, fsyncSync, fstatSync, lstatSync, openSync, readSync, readdirSync, renameSync, statfsSync, unlinkSync, writeSync } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import type { BlobRef } from '../../src/protocol/store.js';
 import { assertComponents, assertPrivate, inspectTree, privateDirectory, sameFile, syncDirectory } from './files.js';
 import { isSeq, validateBlob } from './canonical.js';
@@ -161,7 +161,7 @@ export class Objects {
     const s=assertPrivate(path,false);return JSON.stringify([s.dev,s.ino,s.size,s.mtimeMs,s.ctimeMs]);
   }
   async prove(ref:BlobRef,check:()=>void):Promise<string> {
-    this.check();if(this.proofs.size>=128)throw new StoreError('CAPACITY');const stamp=this.stamp(ref);const path=this.path(ref);
+    this.check();if(this.proofs.size>=512)throw new StoreError('CAPACITY');const stamp=this.stamp(ref);const path=this.path(ref);
     const fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);
     try {
       if(!sameFile(fstatSync(fd),assertPrivate(path,false)))throw new StoreError('ROOT_UNSAFE');
@@ -173,6 +173,17 @@ export class Objects {
   }
   proven(ref:BlobRef,token:string){this.check();const proof=this.proofs.get(token);if(!proof||proof.ref.hash!==ref.hash||proof.ref.byteLength!==ref.byteLength||proof.ref.mediaType!==ref.mediaType||this.stamp(ref)!==proof.stamp)throw new StoreError('CORRUPT_OBJECT');}
   releaseProof(token:string){this.proofs.delete(token);}
+  // Internal raster output only. The sole writer checks private same-filesystem
+  // bytes, flushes and renames, then cooperatively proves the immutable target.
+  async adoptFile(path:string,ref:BlobRef,check:()=>void):Promise<string>{
+    this.check();validateBlob(ref);assertComponents(dirname(path));const identity=assertPrivate(path,false);
+    const fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);try{if(!sameFile(identity,fstatSync(fd))||String(identity.size)!==ref.byteLength)throw new StoreError('CORRUPT_OBJECT');this.barrier('raster-before-flush');fsyncSync(fd);this.barrier('raster-after-flush');}finally{closeSync(fd);}
+    const target=this.path(ref);privateDirectory(dirname(target));
+    this.barrier('raster-before-rename');
+    try{lstatSync(target);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;renameSync(path,target);}
+    this.barrier('raster-after-rename');syncDirectory(dirname(target));syncDirectory(dirname(path));this.barrier('raster-after-directory-sync');
+    return this.prove(ref,check);
+  }
   inventory(registered: Set<string>) {
     const orphans: string[] = [];
     for (const shard of readdirSync(this.objects)) {

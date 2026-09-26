@@ -1,0 +1,200 @@
+{
+  "input": "tests/raster/fixtures/max-webp-lossless.webp",
+  "root": "/private/tmp/raster-observe-dRRgKe",
+  "at": "2026-09-26T06:48:37.630Z",
+  "observations": [
+    {
+      "type": "FinalizeStaging",
+      "elapsedMs": 24.030209000000013,
+      "commandId": "c238e9bd-331d-45b0-b105-964e0bd48d29",
+      "receipt": {
+        "commandId": "c238e9bd-331d-45b0-b105-964e0bd48d29",
+        "documentRevision": null,
+        "fromSeq": "1",
+        "status": "accepted",
+        "toSeq": "1",
+        "transactionId": "0ccd3fe4-836b-4773-9600-92b20b073270"
+      }
+    }
+  ],
+  "qualification": false,
+  "limits": "Single-host synthetic uniform-white inputs. No formal PERF/H-C/W1/native/platform qualification; no external effects.",
+  "encodedBytes": 1022,
+  "encodedHash": "sha256:59d2de0e3f6cd91640e1ca79ab4cecd3dfdd037b4404b65c4b20f1348250becd",
+  "stageAndFinalizeMs": 40.56329100000002,
+  "pending": {
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "1eb95af1-f9a0-46dd-ac22-d1321abd9860",
+      "clientId": "measure",
+      "sessionId": "measure-provenance",
+      "correlationId": "c79de172-8ae8-482c-b746-6b49905a9490",
+      "causationId": null,
+      "transactionId": "87c1bcbb-8979-400c-8d59-a8f4693bdc93",
+      "documentId": null,
+      "expectedDocumentRevision": null,
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T06:48:37.672Z",
+      "body": {
+        "type": "PrepareRaster",
+        "assetId": "885f3a00-754e-42f9-884d-eb2c10c2647c"
+      }
+    },
+    "hash": "sha256:e2914fbf9dfd278f2b1c43ebfdc2818f550bdd0565bb8e33d3ceb94d351a124b",
+    "operationId": "f51ccc08-ae8f-478c-8fd5-0c3bfd5afa85",
+    "phase": "waiting-for-resources"
+  },
+  "status": "failed",
+  "error": "Error: Resource admission: {\"command\":{\"schemaVersion\":1,\"commandId\":\"1eb95af1-f9a0-46dd-ac22-d1321abd9860\",\"clientId\":\"measure\",\"sessionId\":\"measure-provenance\",\"correlationId\":\"c79de172-8ae8-482c-b746-6b49905a9490\",\"causationId\":null,\"transactionId\":\"87c1bcbb-8979-400c-8d59-a8f4693bdc93\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T06:48:37.672Z\",\"body\":{\"type\":\"PrepareRaster\",\"assetId\":\"885f3a00-754e-42f9-884d-eb2c10c2647c\"}},\"hash\":\"sha256:e2914fbf9dfd278f2b1c43ebfdc2818f550bdd0565bb8e33d3ceb94d351a124b\",\"operationId\":\"f51ccc08-ae8f-478c-8fd5-0c3bfd5afa85\",\"phase\":\"waiting-for-resources\"}",
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 53,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "1",
+    "highWater": "1",
+    "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "657179938816",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "1022",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": [
+        17.952125000000024
+      ]
+    },
+    "rasters": {
+      "preparations": 1,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": [
+        {
+          "phase": "resource-admission",
+          "plan": {
+            "width": 5000,
+            "height": 5000,
+            "rawBytes": 100000000,
+            "allocations": {
+              "nativeDecoderAndColor": 533554432,
+              "rawOutput": 100000000,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 744703488,
+            "diskBytes": 302097152
+          },
+          "admissionBaselineRSS": 91242496,
+          "combinedReservedBytes": 835945984
+        },
+        {
+          "commandId": "1eb95af1-f9a0-46dd-ac22-d1321abd9860",
+          "phase": "failure",
+          "code": "CAPACITY",
+          "message": "CAPACITY"
+        }
+      ]
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 0.12700000000000955,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 124796928,
+      "heapTotal": 14041088,
+      "heapUsed": 10640904,
+      "external": 5741935,
+      "arrayBuffers": 1328591
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "process": {
+    "node": "26.10.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "libffi": "3.8.0",
+    "lief": "0.17.0",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "147",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.8",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026c",
+    "undici": "8.10.2",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "14.6.202.34-node.34",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "peakRSS": 127123456
+}

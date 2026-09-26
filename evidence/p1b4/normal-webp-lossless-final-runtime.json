@@ -1,0 +1,362 @@
+{
+  "input": "tests/raster/fixtures/normal-webp-lossless.webp",
+  "root": "/private/tmp/raster-observe-ThQtD2",
+  "at": "2026-09-26T06:48:35.715Z",
+  "observations": [
+    {
+      "type": "FinalizeStaging",
+      "elapsedMs": 24.811791999999997,
+      "commandId": "6e1012aa-e338-4a68-8d44-ee89cd1aa003",
+      "receipt": {
+        "commandId": "6e1012aa-e338-4a68-8d44-ee89cd1aa003",
+        "documentRevision": null,
+        "fromSeq": "1",
+        "status": "accepted",
+        "toSeq": "1",
+        "transactionId": "cf403406-bbac-4a75-9b32-8ce9cbdc67aa"
+      }
+    },
+    {
+      "type": "PrepareRaster",
+      "elapsedMs": 226.47666700000002,
+      "commandId": "834702dc-71de-41f3-8cbe-ac8d47e8b614",
+      "receipt": {
+        "commandId": "834702dc-71de-41f3-8cbe-ac8d47e8b614",
+        "documentRevision": null,
+        "fromSeq": "2",
+        "status": "accepted",
+        "toSeq": "2",
+        "transactionId": "48ad7f4f-9029-4d06-a842-a2736da40043"
+      }
+    },
+    {
+      "type": "ReviewRaster",
+      "elapsedMs": 4.197625000000016,
+      "commandId": "0338ab27-930e-4d85-aedb-fbb3de59fd1a",
+      "receipt": {
+        "commandId": "0338ab27-930e-4d85-aedb-fbb3de59fd1a",
+        "documentRevision": null,
+        "fromSeq": "3",
+        "status": "accepted",
+        "toSeq": "3",
+        "transactionId": "f0b3520e-839e-48e8-b455-6be128d939f2"
+      }
+    },
+    {
+      "type": "ApproveRaster",
+      "elapsedMs": 4.9647919999999885,
+      "commandId": "215f6063-4550-4fe0-a599-f7f62591a552",
+      "receipt": {
+        "commandId": "215f6063-4550-4fe0-a599-f7f62591a552",
+        "documentRevision": null,
+        "fromSeq": "4",
+        "status": "accepted",
+        "toSeq": "4",
+        "transactionId": "946f3169-9e0a-444e-b29e-2f3ac8cea9f0"
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "elapsedMs": 323.731125,
+      "commandId": "5c651bc5-1b1e-471c-acec-fcb020fd3b17",
+      "receipt": {
+        "commandId": "5c651bc5-1b1e-471c-acec-fcb020fd3b17",
+        "documentRevision": null,
+        "fromSeq": "5",
+        "status": "accepted",
+        "toSeq": "5",
+        "transactionId": "0a0c31cc-a218-4e45-b468-f1a767f250ec"
+      }
+    },
+    {
+      "type": "ExportRaster",
+      "elapsedMs": 180.5597079999999,
+      "commandId": "2a6e45af-098d-44c9-b6de-ce0a43f9afc3",
+      "receipt": {
+        "commandId": "2a6e45af-098d-44c9-b6de-ce0a43f9afc3",
+        "documentRevision": null,
+        "fromSeq": "6",
+        "status": "accepted",
+        "toSeq": "6",
+        "transactionId": "5edf95ae-d762-409c-9ddf-0c89a9b7bab6"
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "elapsedMs": 116.69962499999997,
+      "commandId": "e4500865-edad-4586-8b98-fe6899066843",
+      "receipt": {
+        "commandId": "e4500865-edad-4586-8b98-fe6899066843",
+        "documentRevision": null,
+        "fromSeq": "7",
+        "status": "accepted",
+        "toSeq": "7",
+        "transactionId": "1a003129-6720-4d2f-b749-25c0a65228ab"
+      }
+    }
+  ],
+  "qualification": false,
+  "limits": "Single-host synthetic uniform-white inputs. No formal PERF/H-C/W1/native/platform qualification; no external effects.",
+  "encodedBytes": 220,
+  "encodedHash": "sha256:5f0d4193f8c8990ec766c2ae990aa1ccf4ea438bfd36f98e5fd0a6475b64a875",
+  "stageAndFinalizeMs": 41.43616699999998,
+  "width": 2048,
+  "height": 2048,
+  "expectedRawHash": "sha256:dffab0dd410657cb30c7b2fd7f2586a4792e8472e58882b3532581f8111a646d",
+  "status": "passed",
+  "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+  "pixels": {
+    "byteLength": "16777216",
+    "hash": "sha256:dffab0dd410657cb30c7b2fd7f2586a4792e8472e58882b3532581f8111a646d",
+    "mediaType": "application/x-ideogram-rgba8"
+  },
+  "export": {
+    "byteLength": "21271",
+    "hash": "sha256:69375afe6267c7b0eedbd60abae8d38ace1ee237ad5078e0eae2b023c5179c91",
+    "mediaType": "image/png"
+  },
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 67,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "1",
+    "highWater": "7",
+    "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "657180446720",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "220",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": [
+        18.841334000000018
+      ]
+    },
+    "rasters": {
+      "preparations": 0,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": [
+        {
+          "commandId": "834702dc-71de-41f3-8cbe-ac8d47e8b614",
+          "operationId": "097be06c-474a-4ce8-aca1-7a9011547eb9",
+          "elapsedMs": 120.722625,
+          "decodeMs": 13.780166000000008,
+          "computeMs": 0,
+          "encodeMs": 63.701040999999975,
+          "rss": 231915520,
+          "maxRSS": 232407040,
+          "supervisorPeakRSS": 229474304,
+          "admissionBaselineRSS": 91455488,
+          "combinedReservedBytes": 336822272,
+          "fullPreparationMs": 220.95425,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 117440512,
+              "rawOutput": 16777216,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 245366784,
+            "diskBytes": 52428800
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "5c651bc5-1b1e-471c-acec-fcb020fd3b17",
+          "operationId": "a451f526-c637-4b00-b1a5-f6503c3d7bdd",
+          "elapsedMs": 246.724875,
+          "decodeMs": 0,
+          "computeMs": 155.12041599999998,
+          "encodeMs": 62.029292000000055,
+          "rss": 261521408,
+          "maxRSS": 267091968,
+          "supervisorPeakRSS": 258899968,
+          "admissionBaselineRSS": 231407616,
+          "combinedReservedBytes": 348848128,
+          "fullPreparationMs": 318.38304200000005,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "2a6e45af-098d-44c9-b6de-ce0a43f9afc3",
+          "operationId": "8c25e8d5-3a57-4c08-b4c0-4fb28b9338b4",
+          "elapsedMs": 98.88545799999997,
+          "decodeMs": 0,
+          "computeMs": 0,
+          "encodeMs": 62.79925000000003,
+          "rss": 269926400,
+          "maxRSS": 269926400,
+          "supervisorPeakRSS": 266960896,
+          "admissionBaselineRSS": 258932736,
+          "combinedReservedBytes": 376373248,
+          "fullPreparationMs": 174.92116699999997,
+          "plan": {
+            "width": 2048,
+            "height": 2048,
+            "rawBytes": 16777216,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 52428800
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "e4500865-edad-4586-8b98-fe6899066843",
+          "operationId": "6bc66f20-b885-42b2-baa0-b94e5626740a",
+          "elapsedMs": 22.23412499999995,
+          "decodeMs": 0,
+          "computeMs": 7.731207999999924,
+          "encodeMs": 2.295959000000039,
+          "rss": 272957440,
+          "maxRSS": 272957440,
+          "supervisorPeakRSS": 270139392,
+          "admissionBaselineRSS": 267157504,
+          "combinedReservedBytes": 384598016,
+          "fullPreparationMs": 112.26145799999995,
+          "plan": {
+            "width": 1,
+            "height": 1,
+            "rawBytes": 4,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 2097164
+          },
+          "externalEffects": 0
+        }
+      ]
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 0.12583300000000008,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 272744448,
+      "heapTotal": 18759680,
+      "heapUsed": 10596160,
+      "external": 7054645,
+      "arrayBuffers": 2641301
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "process": {
+    "node": "26.10.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "libffi": "3.8.0",
+    "lief": "0.17.0",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "147",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.8",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026c",
+    "undici": "8.10.2",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "14.6.202.34-node.34",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "peakRSS": 273072128
+}

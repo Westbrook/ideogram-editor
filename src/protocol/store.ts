@@ -1,6 +1,7 @@
 // Foundation commands only. The HTTP/session adapter owns authentication; these
 // identities are immutable provenance, never credentials or authority.
 import type { AssetBody, AssetFact } from './assets.js';
+import type { RasterBody } from './raster.js';
 export type Seq = string;
 export type BlobRef = { hash: string; byteLength: string; mediaType: string };
 export type FoundationBody =
@@ -10,7 +11,7 @@ export type Command = {
   schemaVersion: 1; commandId: string; clientId: string; sessionId: string;
   correlationId: string; causationId: string | null; transactionId: string;
   documentId: string | null; expectedDocumentRevision: Seq | null;
-  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody;
+  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody | RasterBody;
 };
 export type CommandRequest = { protocolVersion: 1; command: Command };
 export type RejectionCode = 'STALE_REVISION' | 'INVALID_INPUT' | 'MISSING_ASSET' | 'CAPACITY' | 'INCOMPATIBLE';

@@ -1,0 +1,237 @@
+{
+  "at": "2026-09-26T06:45:25.125Z",
+  "root": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/raster-observe-7BiKNM",
+  "previous": "artifacts/p1b4/jpeg-original-recovery-input.json",
+  "pending": {
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "5ac99f5b-4585-4b37-a839-360bef530c02",
+      "clientId": "measure",
+      "sessionId": "measure-provenance",
+      "correlationId": "a9d88b1b-d42b-409f-92a2-043d83c2036a",
+      "causationId": null,
+      "transactionId": "d3f90172-ecb8-48e3-8040-5d6c588e2a2c",
+      "documentId": null,
+      "expectedDocumentRevision": null,
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T06:32:29.522Z",
+      "body": {
+        "type": "ComposeRaster",
+        "width": 5000,
+        "height": 5000,
+        "layers": [
+          {
+            "assetId": "6ce3d3fc-a0e2-402a-829b-7f36927cdc21",
+            "transform": [
+              1,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "opacity": 1,
+            "mask": null
+          }
+        ]
+      }
+    },
+    "hash": "sha256:639c0cc3b5069e6efb9f71cc918fedc9257c47d146af0ac96c219752adf7422f",
+    "operationId": "950b84ff-9365-4aaf-9a13-3538227d384c",
+    "phase": "waiting-for-resources"
+  },
+  "qualification": false,
+  "steps": [
+    {
+      "type": "ExportRaster",
+      "elapsedMs": 540.9619580000003
+    }
+  ],
+  "recovered": {
+    "conversion": null,
+    "height": 5000,
+    "manifest": {
+      "byteLength": "13444",
+      "hash": "sha256:23dced9ed04c57bb406f87f353a62aa007dfc744ea072cb935b1153a629ec5af",
+      "mediaType": "application/json"
+    },
+    "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+    "pixelIdentity": "sha256:13eb9509d64e71db0dcde346ee0e0c8261bb7c0f35e332867cbf1b13e7a1e023",
+    "pixels": {
+      "byteLength": "100000000",
+      "hash": "sha256:7425db12b556e02629664437aac54d8f255772acacfec768fd6f62d39df2ed18",
+      "mediaType": "application/x-ideogram-rgba8"
+    },
+    "role": "composite",
+    "schemaVersion": 1,
+    "sourceAssetIds": [
+      "6ce3d3fc-a0e2-402a-829b-7f36927cdc21"
+    ],
+    "width": 5000
+  },
+  "receipt": {
+    "commandId": "5ac99f5b-4585-4b37-a839-360bef530c02",
+    "documentRevision": null,
+    "fromSeq": "5",
+    "status": "accepted",
+    "toSeq": "5",
+    "transactionId": "d3f90172-ecb8-48e3-8040-5d6c588e2a2c"
+  },
+  "export": {
+    "byteLength": "110151",
+    "hash": "sha256:dbe731a0c15d1528de318ca6c20d503ab098a50459fd9354b562dd7180a2303c",
+    "mediaType": "image/png"
+  },
+  "status": "passed",
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 61,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "3",
+    "highWater": "6",
+    "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "658541412352",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "293717",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": []
+    },
+    "rasters": {
+      "preparations": 0,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": [
+        {
+          "commandId": "5ac99f5b-4585-4b37-a839-360bef530c02",
+          "operationId": "950b84ff-9365-4aaf-9a13-3538227d384c",
+          "elapsedMs": 1848.1260829999999,
+          "decodeMs": 0,
+          "computeMs": 1496.3998339999998,
+          "encodeMs": 239.04166699999996,
+          "rss": 293240832,
+          "maxRSS": 293257216,
+          "supervisorPeakRSS": 290603008,
+          "admissionBaselineRSS": 102907904,
+          "combinedReservedBytes": 220348416,
+          "fullPreparationMs": 1997.397125,
+          "plan": {
+            "width": 5000,
+            "height": 5000,
+            "rawBytes": 100000000,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 302097152
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "4938d743-99f2-4a98-a60a-e4f4a4a71bf1",
+          "operationId": "7a5b4e6b-13e8-463d-86b0-e3b98e4c40eb",
+          "elapsedMs": 372.77137500000026,
+          "decodeMs": 0,
+          "computeMs": 0,
+          "encodeMs": 227.51966700000003,
+          "rss": 295747584,
+          "maxRSS": 295747584,
+          "supervisorPeakRSS": 293076992,
+          "admissionBaselineRSS": 291241984,
+          "combinedReservedBytes": 408682496,
+          "fullPreparationMs": 536.0987920000002,
+          "plan": {
+            "width": 5000,
+            "height": 5000,
+            "rawBytes": 100000000,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080,
+              "concurrentBackendHeadroom": 16777216
+            },
+            "cpuBytes": 117440512,
+            "diskBytes": 302097152
+          },
+          "externalEffects": 0
+        }
+      ]
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 8.892291,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 293109760,
+      "heapTotal": 19546112,
+      "heapUsed": 9157448,
+      "external": 10920969,
+      "arrayBuffers": 2311567
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "peakRSS": 295829504
+}

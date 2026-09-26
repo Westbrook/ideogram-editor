@@ -1,0 +1,13 @@
+import {createRequire} from 'node:module';
+import {readFileSync,writeFileSync,readdirSync} from 'node:fs';
+import {dirname,join,relative} from 'node:path';
+import {createHash} from 'node:crypto';
+import sharp from 'sharp';
+const require=createRequire(import.meta.url),hash=b=>'sha256:'+createHash('sha256').update(b).digest('hex');
+const packages=['sharp','@img/sharp-darwin-arm64','@img/sharp-libvips-darwin-arm64','@img/colour','detect-libc','semver'];
+const walk=path=>readdirSync(path,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path+'/'+e.name):[path+'/'+e.name]);
+const files=packages.flatMap(p=>walk('node_modules/'+p)).sort();
+const lock=JSON.parse(readFileSync('package-lock.json'));
+const receipt={schemaVersion:1,packages:packages.map(name=>({name,...lock.packages['node_modules/'+name]})),platform:process.platform,arch:process.arch,node:process.versions.node,zlib:process.versions.zlib,versions:sharp.versions,files:files.map(path=>({path,bytes:readFileSync(path).length,hash:hash(readFileSync(path))})),profiles:JSON.parse(readFileSync('tooling/raster/profiles.json')),interfaces:['https://sharp.pixelplumbing.com/api-constructor/','https://sharp.pixelplumbing.com/api-input/','https://sharp.pixelplumbing.com/api-output/','https://sharp.pixelplumbing.com/api-utility/','https://sharp.pixelplumbing.com/install/']};
+writeFileSync('tooling/raster/codecs.json',JSON.stringify(receipt,null,2)+'\n');
+writeFileSync('server/raster/identity.ts',`// Generated once from the sealed installed inputs; changes require fixture review.\nexport const CODECS = ${JSON.stringify(receipt,null,2)} as const;\nexport const CODEC_ID = '${hash(JSON.stringify(receipt))}';\n`);

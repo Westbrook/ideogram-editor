@@ -1,0 +1,358 @@
+{
+  "input": "tests/raster/fixtures/aspect-png.png",
+  "root": "/private/tmp/raster-observe-svjwud",
+  "at": "2026-09-26T06:27:49.238Z",
+  "observations": [
+    {
+      "type": "FinalizeStaging",
+      "elapsedMs": 24.993499999999983,
+      "commandId": "50715260-734e-4568-8fa5-cb51dba38861",
+      "receipt": {
+        "commandId": "50715260-734e-4568-8fa5-cb51dba38861",
+        "documentRevision": null,
+        "fromSeq": "1",
+        "status": "accepted",
+        "toSeq": "1",
+        "transactionId": "55106fb8-16a2-4d9f-a3a0-a90845b10a05"
+      }
+    },
+    {
+      "type": "PrepareRaster",
+      "elapsedMs": 517.871958,
+      "commandId": "86c9a974-0628-40da-9d7e-b1c7e2393950",
+      "receipt": {
+        "commandId": "86c9a974-0628-40da-9d7e-b1c7e2393950",
+        "documentRevision": null,
+        "fromSeq": "2",
+        "status": "accepted",
+        "toSeq": "2",
+        "transactionId": "06270c10-0db8-4e71-9e77-909a31d820c6"
+      }
+    },
+    {
+      "type": "ReviewRaster",
+      "elapsedMs": 4.654667000000018,
+      "commandId": "5db662fc-176a-459d-81b2-7e59f8aa48e4",
+      "receipt": {
+        "commandId": "5db662fc-176a-459d-81b2-7e59f8aa48e4",
+        "documentRevision": null,
+        "fromSeq": "3",
+        "status": "accepted",
+        "toSeq": "3",
+        "transactionId": "c548948c-ea6c-4a26-9589-c4d8675a9e41"
+      }
+    },
+    {
+      "type": "ApproveRaster",
+      "elapsedMs": 4.90583300000003,
+      "commandId": "4ec05433-b136-4a02-9613-ec07c77971b3",
+      "receipt": {
+        "commandId": "4ec05433-b136-4a02-9613-ec07c77971b3",
+        "documentRevision": null,
+        "fromSeq": "4",
+        "status": "accepted",
+        "toSeq": "4",
+        "transactionId": "8a3c305f-c773-4b05-9f49-ce031df023f9"
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "elapsedMs": 1870.509333,
+      "commandId": "3f7d7a5f-f8c7-4416-b665-5866e52d05bb",
+      "receipt": {
+        "commandId": "3f7d7a5f-f8c7-4416-b665-5866e52d05bb",
+        "documentRevision": null,
+        "fromSeq": "5",
+        "status": "accepted",
+        "toSeq": "5",
+        "transactionId": "cfd58d10-ef4c-4024-8c07-84d5a0734683"
+      }
+    },
+    {
+      "type": "ExportRaster",
+      "elapsedMs": 504.25416700000005,
+      "commandId": "756cf11d-d934-4e56-9d41-bf365d4b8a13",
+      "receipt": {
+        "commandId": "756cf11d-d934-4e56-9d41-bf365d4b8a13",
+        "documentRevision": null,
+        "fromSeq": "6",
+        "status": "accepted",
+        "toSeq": "6",
+        "transactionId": "c94ae6b4-1141-44d1-817d-59d54bcd10ed"
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "elapsedMs": 176.78808299999992,
+      "commandId": "d3b984ad-6bc1-435c-af50-e0b1c242ce39",
+      "receipt": {
+        "commandId": "d3b984ad-6bc1-435c-af50-e0b1c242ce39",
+        "documentRevision": null,
+        "fromSeq": "7",
+        "status": "accepted",
+        "toSeq": "7",
+        "transactionId": "b79c7640-ff62-4d17-bff9-d5f5e245c69a"
+      }
+    }
+  ],
+  "qualification": false,
+  "limits": "Single-host synthetic uniform-white inputs. No formal PERF/H-C/W1/native/platform qualification; no external effects.",
+  "encodedBytes": 102814,
+  "encodedHash": "sha256:320d1a995fc5ce5873dc2af4e800a97d485dd3eb7a22651ac49590ee834f7d84",
+  "stageAndFinalizeMs": 41.13887500000001,
+  "width": 8192,
+  "height": 3051,
+  "expectedRawHash": "sha256:7dbb9dc35c654f99a79c5d3d4466cc55ff391bb65cd6d73aae18080dd25ad105",
+  "status": "passed",
+  "pipeline": "cp1-f64-triangle-area-v1/sha256:7682488669b287dea7bc1bb24641353b3d2ff1396be27ed20c8236402325878a",
+  "pixels": {
+    "byteLength": "99975168",
+    "hash": "sha256:7dbb9dc35c654f99a79c5d3d4466cc55ff391bb65cd6d73aae18080dd25ad105",
+    "mediaType": "application/x-ideogram-rgba8"
+  },
+  "export": {
+    "byteLength": "106813",
+    "hash": "sha256:0cb4abfbf41bf3ab9ad2dfe92ebbe68b5a5b615529678b254df986ce0c35acaa",
+    "mediaType": "image/png"
+  },
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 67,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "1",
+    "highWater": "7",
+    "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "662096809984",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "102814",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": [
+        18.90941700000002
+      ]
+    },
+    "rasters": {
+      "preparations": 0,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": [
+        {
+          "commandId": "86c9a974-0628-40da-9d7e-b1c7e2393950",
+          "operationId": "dc53319e-754b-4679-b878-c52e18d2daac",
+          "elapsedMs": 379.96204099999994,
+          "decodeMs": 21.844832999999994,
+          "computeMs": 0,
+          "encodeMs": 205.68041700000003,
+          "rss": 256917504,
+          "maxRSS": 256933888,
+          "supervisorPeakRSS": 253968384,
+          "admissionBaselineRSS": 91570176,
+          "combinedReservedBytes": 519422040,
+          "fullPreparationMs": 512.876667,
+          "plan": {
+            "width": 8192,
+            "height": 3051,
+            "rawBytes": 99975168,
+            "allocations": {
+              "nativeDecoderAndColor": 233504768,
+              "rawOutput": 99975168,
+              "orientationRowsAndTiles": 2097152,
+              "metadataAndProfileCopies": 4194392,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080
+            },
+            "cpuBytes": 427851864,
+            "diskBytes": 302022678
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "3f7d7a5f-f8c7-4416-b665-5866e52d05bb",
+          "operationId": "f1eacbea-9dc3-4b89-804f-4e7b4fde1d70",
+          "elapsedMs": 1720.180042,
+          "decodeMs": 0,
+          "computeMs": 1396.011375,
+          "encodeMs": 211.03487499999983,
+          "rss": 201244672,
+          "maxRSS": 294240256,
+          "supervisorPeakRSS": 288047104,
+          "admissionBaselineRSS": 254443520,
+          "combinedReservedBytes": 355106816,
+          "fullPreparationMs": 1866.289166,
+          "plan": {
+            "width": 8192,
+            "height": 3051,
+            "rawBytes": 99975168,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080
+            },
+            "cpuBytes": 100663296,
+            "diskBytes": 302022656
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "756cf11d-d934-4e56-9d41-bf365d4b8a13",
+          "operationId": "a2bd7b08-cba3-488e-b56d-efce1f5d6407",
+          "elapsedMs": 364.18716700000004,
+          "decodeMs": 0,
+          "computeMs": 0,
+          "encodeMs": 205.23412499999995,
+          "rss": 203210752,
+          "maxRSS": 294240256,
+          "supervisorPeakRSS": 200310784,
+          "admissionBaselineRSS": 198688768,
+          "combinedReservedBytes": 299352064,
+          "fullPreparationMs": 500.30129199999965,
+          "plan": {
+            "width": 8192,
+            "height": 3051,
+            "rawBytes": 99975168,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080
+            },
+            "cpuBytes": 100663296,
+            "diskBytes": 302022656
+          },
+          "externalEffects": 0
+        },
+        {
+          "commandId": "d3b984ad-6bc1-435c-af50-e0b1c242ce39",
+          "operationId": "ca525234-5619-4f2f-a603-4cb6a425aed1",
+          "elapsedMs": 24.33633400000008,
+          "decodeMs": 0,
+          "computeMs": 10.851958999999624,
+          "encodeMs": 2.568457999999737,
+          "rss": 209731584,
+          "maxRSS": 294240256,
+          "supervisorPeakRSS": 206913536,
+          "admissionBaselineRSS": 202686464,
+          "combinedReservedBytes": 303349760,
+          "fullPreparationMs": 172.2914169999999,
+          "plan": {
+            "width": 1,
+            "height": 1,
+            "rawBytes": 4,
+            "allocations": {
+              "nativeDecoderAndColor": 0,
+              "rawOutput": 0,
+              "orientationRowsAndTiles": 8388608,
+              "metadataAndProfileCopies": 4194304,
+              "pngAndHashIO": 4194304,
+              "workerHeapAndRuntime": 83886080
+            },
+            "cpuBytes": 100663296,
+            "diskBytes": 2097164
+          },
+          "externalEffects": 0
+        }
+      ]
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 0.12541699999999878,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 206995456,
+      "heapTotal": 18759680,
+      "heapUsed": 10845464,
+      "external": 8431221,
+      "arrayBuffers": 4017877
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "process": {
+    "node": "26.10.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "libffi": "3.8.0",
+    "lief": "0.17.0",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "147",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.8",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026c",
+    "undici": "8.10.2",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "14.6.202.34-node.34",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "peakRSS": 294240256
+}

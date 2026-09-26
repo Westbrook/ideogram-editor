@@ -1,0 +1,119 @@
+{
+  "startedAt": "2026-09-26T06:36:27.272Z",
+  "qualification": false,
+  "gates": [
+    {
+      "command": "npm run verify:raster",
+      "at": "2026-09-26T06:36:27.273Z",
+      "elapsedMs": 135.978458,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-verify-raster.txt"
+    },
+    {
+      "command": "npm run typecheck",
+      "at": "2026-09-26T06:36:27.410Z",
+      "elapsedMs": 1092.7411670000001,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-typecheck.txt"
+    },
+    {
+      "command": "npm run build",
+      "at": "2026-09-26T06:36:28.503Z",
+      "elapsedMs": 2457.7360830000002,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-build.txt"
+    },
+    {
+      "command": "npm run verify:vendor",
+      "at": "2026-09-26T06:36:30.961Z",
+      "elapsedMs": 523.9714579999995,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-verify-vendor.txt"
+    },
+    {
+      "command": "npm run test:vendor",
+      "at": "2026-09-26T06:36:31.485Z",
+      "elapsedMs": 394.6813750000001,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-vendor.txt"
+    },
+    {
+      "command": "npm run test:raster",
+      "at": "2026-09-26T06:36:31.879Z",
+      "elapsedMs": 31654.910083000002,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-raster.txt"
+    },
+    {
+      "command": "npm run test:assets",
+      "at": "2026-09-26T06:37:03.535Z",
+      "elapsedMs": 25939.739541999996,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-assets.txt"
+    },
+    {
+      "command": "npm run test:protocol",
+      "at": "2026-09-26T06:37:29.475Z",
+      "elapsedMs": 20800.776958000002,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-protocol.txt"
+    },
+    {
+      "command": "npm run test:session",
+      "at": "2026-09-26T06:37:50.276Z",
+      "elapsedMs": 4615.134250000003,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-session.txt"
+    },
+    {
+      "command": "npm run test:store",
+      "at": "2026-09-26T06:37:54.891Z",
+      "elapsedMs": 15588.688624999995,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-store.txt"
+    },
+    {
+      "command": "npm run test:recovery",
+      "at": "2026-09-26T06:38:10.480Z",
+      "elapsedMs": 16166.060790999996,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-recovery.txt"
+    },
+    {
+      "command": "npm run test:shell",
+      "at": "2026-09-26T06:38:26.646Z",
+      "elapsedMs": 6685.883000000002,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-shell.txt"
+    },
+    {
+      "command": "npm run test:raster:browser",
+      "at": "2026-09-26T06:38:33.332Z",
+      "elapsedMs": 1555.7668750000012,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-raster-browser.txt"
+    },
+    {
+      "command": "npm run test:assets:volume",
+      "at": "2026-09-26T06:38:34.888Z",
+      "elapsedMs": 3677.9781250000087,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-assets-volume.txt"
+    },
+    {
+      "command": "npm run test:store:volume",
+      "at": "2026-09-26T06:38:38.567Z",
+      "elapsedMs": 3248.4981249999837,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-store-volume.txt"
+    },
+    {
+      "command": "npm run test:consumer",
+      "at": "2026-09-26T06:38:41.815Z",
+      "elapsedMs": 18687.40645899999,
+      "exit": 0,
+      "log": "evidence/p1b4/logs/sealed-test-consumer.txt"
+    }
+  ],
+  "finishedAt": "2026-09-26T06:39:00.503Z"
+}

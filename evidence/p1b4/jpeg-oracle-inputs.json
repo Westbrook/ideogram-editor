@@ -1,0 +1,292 @@
+{
+  "python": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "pillow": "11.3.0",
+  "installation": "Private artifacts/p1b4/jpeg-oracle-env; Pillow11.3.0 exact prebuilt wheel. Not an application dependency.",
+  "nativeAndPackageInputs": [
+    {
+      "path": "PIL/.dylibs/libXau.6.dylib",
+      "bytes": 70048,
+      "sha256": "ca0b84bc52d2782a12dfb8f813827a4d03e6457cca6dc3339f1f0894c6d3a22e"
+    },
+    {
+      "path": "PIL/.dylibs/libavif.16.3.0.dylib",
+      "bytes": 2999728,
+      "sha256": "173bc240d1d7ba7cc6fbd4769a942e5743dfe3d5c60f5d1cdf6bfac1c23e3b5b"
+    },
+    {
+      "path": "PIL/.dylibs/libbrotlicommon.1.1.0.dylib",
+      "bytes": 201200,
+      "sha256": "9de349e2275ea9702e3f69ee5bae2645e91f69c0474d6674e0b126ebe3a6d305"
+    },
+    {
+      "path": "PIL/.dylibs/libbrotlidec.1.1.0.dylib",
+      "bytes": 104576,
+      "sha256": "296c21f63059fbe2c426b4abfe7ed9274797a5bff875bd58dd75e362c1121c56"
+    },
+    {
+      "path": "PIL/.dylibs/libfreetype.6.dylib",
+      "bytes": 1208336,
+      "sha256": "25662cfcc8b01db700126023a5e4e032a06d3f08c863899a53eda73d0e37dd65"
+    },
+    {
+      "path": "PIL/.dylibs/libharfbuzz.0.dylib",
+      "bytes": 1772960,
+      "sha256": "74be7efca5f46967668a99acc7eb2b52f4d7d769b5e96d3a70242ae90bddb50e"
+    },
+    {
+      "path": "PIL/.dylibs/libjpeg.62.4.0.dylib",
+      "bytes": 637088,
+      "sha256": "3738d4c83621823e877e389de5c311e3923cef2ed6faf8af613b9c1ab1908ac9"
+    },
+    {
+      "path": "PIL/.dylibs/liblcms2.2.dylib",
+      "bytes": 557776,
+      "sha256": "b42c5cb99e069f860382cebe75034b23d5e8dfe979c1b3715790872d0395b2f8"
+    },
+    {
+      "path": "PIL/.dylibs/liblzma.5.dylib",
+      "bytes": 341680,
+      "sha256": "ef18698f57ab9b0dd03ec46e4d4bbcc0f50c387f0f45f57db7cbe9301b872ec9"
+    },
+    {
+      "path": "PIL/.dylibs/libopenjp2.2.5.3.dylib",
+      "bytes": 716096,
+      "sha256": "7bd2f00352e52f88f703d0ab5f28ec4ceb80dd14c14d0547d14d5cf1b8d36266"
+    },
+    {
+      "path": "PIL/.dylibs/libpng16.16.dylib",
+      "bytes": 360976,
+      "sha256": "525aad7adb778d916456ba0d50b932b31ee1e9ab53f4021dc88ea1be16974da9"
+    },
+    {
+      "path": "PIL/.dylibs/libsharpyuv.0.dylib",
+      "bytes": 86256,
+      "sha256": "bfc4903cc96b1dd88966c284e1fd54f1dd413265674b60fd44400cc9042f80cf"
+    },
+    {
+      "path": "PIL/.dylibs/libtiff.6.dylib",
+      "bytes": 819552,
+      "sha256": "e813f13ecdc2c5eec46fd5529f98a8f07b9d674f65c3235ae0de2e2579ca5330"
+    },
+    {
+      "path": "PIL/.dylibs/libwebp.7.dylib",
+      "bytes": 498848,
+      "sha256": "6a698fbf96bba40c35db11961d3fcc953b21211d1cbf53c0eaf7d79d817d9af5"
+    },
+    {
+      "path": "PIL/.dylibs/libwebpdemux.2.dylib",
+      "bytes": 69904,
+      "sha256": "986801f42dc3709b6e7f0485ded17c9575ae01d755473db9a531984dd5f2bc8b"
+    },
+    {
+      "path": "PIL/.dylibs/libwebpmux.3.dylib",
+      "bytes": 106400,
+      "sha256": "7582199129957992716b815fc1337c6ce6c25a7f9e16773f19538bc6731c9335"
+    },
+    {
+      "path": "PIL/.dylibs/libxcb.1.1.0.dylib",
+      "bytes": 277696,
+      "sha256": "94a9b25c444a90804ccd5af20a254437300c7abe3e22b58a4c4e7265f66d32ee"
+    },
+    {
+      "path": "PIL/.dylibs/libz.1.3.1.zlib-ng.dylib",
+      "bytes": 160128,
+      "sha256": "c6106a27ebcd97896e47be4194b26c09a85796575fd4fefb0c43f4f3b8c52840"
+    },
+    {
+      "path": "PIL/_avif.cpython-314-darwin.so",
+      "bytes": 73968,
+      "sha256": "21ade6fd04ff303308050221c75428a35d096f847c2aa671e8e30ab6f13cf067"
+    },
+    {
+      "path": "PIL/_imaging.cpython-314-darwin.so",
+      "bytes": 573264,
+      "sha256": "04e9dad52f31305f86b12a8d8e82127e45030d943fad71c353ad9d9b3ec7b4e2"
+    },
+    {
+      "path": "PIL/_imagingcms.cpython-314-darwin.so",
+      "bytes": 80976,
+      "sha256": "aac577037752708c5657da3d11352f09bcd80f4f8fda9ca3f1fa7379b1b1f6d9"
+    },
+    {
+      "path": "PIL/_imagingft.cpython-314-darwin.so",
+      "bytes": 116688,
+      "sha256": "8c09bea33586b386e1672311210ed7c1f2ed0b5f3600a9b59e14e777d17f9643"
+    },
+    {
+      "path": "PIL/_imagingmath.cpython-314-darwin.so",
+      "bytes": 55904,
+      "sha256": "179bcc36f8291107f6409424ea1195366baa645b9a12128c7f539ccd1bd46948"
+    },
+    {
+      "path": "PIL/_imagingmorph.cpython-314-darwin.so",
+      "bytes": 51440,
+      "sha256": "499d71611a8e0c6d6e050fb084db0613c3c6be5aa21b83ac511cde2304912175"
+    },
+    {
+      "path": "PIL/_imagingtk.cpython-314-darwin.so",
+      "bytes": 52768,
+      "sha256": "c2d51bb0288041ac983ddd04b531ebe0e02e17b6b8884b350f4b6d755e6187c5"
+    },
+    {
+      "path": "PIL/_webp.cpython-314-darwin.so",
+      "bytes": 75232,
+      "sha256": "1145240d746b62e1500d352813c3d5de826c58ec5cc31aa80bed03ad7d6a392e"
+    },
+    {
+      "path": "pillow-11.3.0.dist-info/METADATA",
+      "bytes": 9023,
+      "sha256": "d53d4d78f8a8efe182396711ef76840386d2ba4ccdad421f58cc00c3b3401f73"
+    },
+    {
+      "path": "pillow-11.3.0.dist-info/WHEEL",
+      "bytes": 136,
+      "sha256": "d8877aaab79eb79b78c19bf9f1b65f8a3279f2aadcdb1930e8e56f59f7aac55d"
+    },
+    {
+      "path": "pillow-11.3.0.dist-info/licenses/LICENSE",
+      "bytes": 66498,
+      "sha256": "2c40a7d8894126ff7a993a752505b915694aafe7a620889ef368acbf54b87144"
+    },
+    {
+      "path": "pip/_vendor/certifi/LICENSE",
+      "bytes": 989,
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+    },
+    {
+      "path": "pip/_vendor/distro/LICENSE",
+      "bytes": 11325,
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14"
+    },
+    {
+      "path": "pip/_vendor/packaging/LICENSE",
+      "bytes": 197,
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+    },
+    {
+      "path": "pip/_vendor/pkg_resources/LICENSE",
+      "bytes": 1023,
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+    },
+    {
+      "path": "pip/_vendor/platformdirs/LICENSE",
+      "bytes": 1089,
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6"
+    },
+    {
+      "path": "pip/_vendor/pygments/LICENSE",
+      "bytes": 1331,
+      "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17"
+    },
+    {
+      "path": "pip/_vendor/pyproject_hooks/LICENSE",
+      "bytes": 1081,
+      "sha256": "1b22b049b5267d6dfc23a67bf4a84d8ec04b9fdfb1a51d360e42b4342c8b4154"
+    },
+    {
+      "path": "pip/_vendor/requests/LICENSE",
+      "bytes": 10142,
+      "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b"
+    },
+    {
+      "path": "pip/_vendor/resolvelib/LICENSE",
+      "bytes": 751,
+      "sha256": "f388fd38cad13112c1dc0f669bbe80e7f84541edbafb72f3030d2ca7642c3c9d"
+    },
+    {
+      "path": "pip/_vendor/rich/LICENSE",
+      "bytes": 1056,
+      "sha256": "deed7c17a4318158190a3ea239cc879a5a50271cebb98ae7025f48fbe58dca15"
+    },
+    {
+      "path": "pip/_vendor/tomli/LICENSE",
+      "bytes": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+    },
+    {
+      "path": "pip/_vendor/tomli_w/LICENSE",
+      "bytes": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+    },
+    {
+      "path": "pip/_vendor/truststore/LICENSE",
+      "bytes": 1086,
+      "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/METADATA",
+      "bytes": 4566,
+      "sha256": "17832de47b5dc23e46253ba16462520036f28d9a27d5c30157784952ca4e69b2"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/WHEEL",
+      "bytes": 82,
+      "sha256": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/certifi/LICENSE",
+      "bytes": 989,
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/distro/LICENSE",
+      "bytes": 11325,
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/packaging/LICENSE",
+      "bytes": 197,
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/pkg_resources/LICENSE",
+      "bytes": 1023,
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/platformdirs/LICENSE",
+      "bytes": 1089,
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/pygments/LICENSE",
+      "bytes": 1331,
+      "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/pyproject_hooks/LICENSE",
+      "bytes": 1081,
+      "sha256": "1b22b049b5267d6dfc23a67bf4a84d8ec04b9fdfb1a51d360e42b4342c8b4154"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/requests/LICENSE",
+      "bytes": 10142,
+      "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/resolvelib/LICENSE",
+      "bytes": 751,
+      "sha256": "f388fd38cad13112c1dc0f669bbe80e7f84541edbafb72f3030d2ca7642c3c9d"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/rich/LICENSE",
+      "bytes": 1056,
+      "sha256": "deed7c17a4318158190a3ea239cc879a5a50271cebb98ae7025f48fbe58dca15"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/tomli/LICENSE",
+      "bytes": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/tomli_w/LICENSE",
+      "bytes": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+    },
+    {
+      "path": "pip-26.1.2.dist-info/licenses/src/pip/_vendor/truststore/LICENSE",
+      "bytes": 1086,
+      "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca"
+    }
+  ]
+}

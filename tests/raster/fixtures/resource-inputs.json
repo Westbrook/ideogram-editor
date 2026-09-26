@@ -1,0 +1,90 @@
+{
+  "license": "CC0-1.0",
+  "generator": "sharp0.35.4 create solid white, PNG defaults/JPEGq90 4:4:4/WebPq90 with separatelossless flag",
+  "fixtures": [
+    {
+      "file": "tests/raster/fixtures/normal-png.png",
+      "width": 2048,
+      "height": 2048,
+      "format": "png",
+      "sha256": "ed3520890863b59db6c81dcc030dc7fdd73b8d9e2bf75b82fd0060900d987fb8",
+      "bytes": 21248,
+      "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+    },
+    {
+      "file": "tests/raster/fixtures/max-png.png",
+      "width": 5000,
+      "height": 5000,
+      "format": "png",
+      "sha256": "4c87842c594ffdc9532402a574d311b11a31eb290a530387c9d7af74ef36eb43",
+      "bytes": 110030,
+      "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+    },
+    {
+      "file": "tests/raster/fixtures/aspect-png.png",
+      "width": 8192,
+      "height": 3051,
+      "format": "png",
+      "sha256": "320d1a995fc5ce5873dc2af4e800a97d485dd3eb7a22651ac49590ee834f7d84",
+      "bytes": 102814,
+      "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+    },
+    {
+      "file": "tests/raster/fixtures/normal-jpeg.jpg",
+      "width": 2048,
+      "height": 2048,
+      "format": "jpeg",
+      "sha256": "f10f17f5040adb51c9cc2dc6a84a1c2c2a9d07b31b9cb6b2eb6914afff83db91",
+      "bytes": 49418,
+      "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+    },
+    {
+      "file": "tests/raster/fixtures/normal-webp-lossy.webp",
+      "width": 2048,
+      "height": 2048,
+      "format": "webp",
+      "sha256": "22beca99b42d867a3190094a2082f00ee5d6b500634f29043c089a8266c58aae",
+      "bytes": 7518,
+      "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+    },
+    {
+      "file": "tests/raster/fixtures/normal-webp-lossless.webp",
+      "width": 2048,
+      "height": 2048,
+      "format": "webp",
+      "sha256": "5f0d4193f8c8990ec766c2ae990aa1ccf4ea438bfd36f98e5fd0a6475b64a875",
+      "bytes": 220,
+      "expected": "All RGBA components255; exact independent raw stream hash can be calculated from repeated0xff."
+    },
+    {
+      "file": "tests/raster/fixtures/max-progressive-jpeg.jpg",
+      "width": 5000,
+      "height": 5000,
+      "format": "jpeg",
+      "sha256": "f38ee3a0582dfa4c5f31114b5acc508be951664415ba4f72a85221d878e898f8",
+      "bytes": 293717,
+      "expected": "All RGBA components255; exact repeated0xff raw hash.",
+      "generator": "Sharp0.35.4 JPEGq90 progressive4:4:4"
+    },
+    {
+      "file": "tests/raster/fixtures/max-webp-lossy.webp",
+      "width": 5000,
+      "height": 5000,
+      "format": "webp",
+      "sha256": "d7ad227d6bc2f73b800da4a79f9128b1c96a18898d5e2d06b33682c755251b71",
+      "bytes": 44652,
+      "expected": "All RGBA components255; exact repeated0xff raw hash.",
+      "generator": "Sharp0.35.4 WebPq90 explicitlosslessflag"
+    },
+    {
+      "file": "tests/raster/fixtures/max-webp-lossless.webp",
+      "width": 5000,
+      "height": 5000,
+      "format": "webp",
+      "sha256": "59d2de0e3f6cd91640e1ca79ab4cecd3dfdd037b4404b65c4b20f1348250becd",
+      "bytes": 1022,
+      "expected": "All RGBA components255; exact repeated0xff raw hash.",
+      "generator": "Sharp0.35.4 WebPq90 explicitlosslessflag"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+npm notice run ideogram-editor@0.1.0 test:raster
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/raster/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ actual frozen PNG/JPEG/static WebP codec inputs; independently specified uniform and literal pixels (140.160625ms)
+✔ all eight EXIF orientations normalize once with exact alpha/hidden samples retained (124.750209ms)
+✔ supported P3 converts with review data and original profile identity retained (20.360917ms)
+✔ actual malformed/animated/profile/extent inputs cannot produce usable canonical output (99.247542ms)
+✔ P3 nonprimary conversion matches independent public LittleCMS C oracle, retaining alpha (20.814959ms)
+✔ lossy and lossless alpha WebP match independent public decoder diagnostic including exact alpha (34.462167ms)
+✔ F01 independent literal: stage2 alpha26, exact shared composite90 and F04 108 versus109 (1.009625ms)
+✔ empty, hidden RGB, singleton, integer translation, M0 and nonidentity alpha-zero arithmetic (0.157ms)
+✔ independent half-pixel bilinear, linear light, transparent padding and premultiplied edge goldens (0.080917ms)
+✔ area-integrated triangle coefficients are independently derived rational constants; no boundary renormalization (0.151166ms)
+✔ transform-mask-opacity ordering and R16 luminance-alpha are explicit (0.07025ms)
+✔ F02 core triangle feather: exact R16 edges, no tile renormalization, radii0/1/2/64 (1.004708ms)
+✔ affine coordinates, bounded envelope and independent seam output at128/512 (0.269542ms)
+✔ real original → worker → durable preview → exact review approval → CP-1 capture → PNG export and reopen (1400.596916ms)
+✔ hidden RGB identity, exact mask coordinates, empty output, cache dependencies and lossless JPEG-source export (1625.94075ms)
+✔ conversion review binds actual decoded preview, exact hash, owner, session and writer epoch (652.911125ms)
+✔ malformed, animated and unsupported-profile originals retain bytes and terminal diagnostics without usable asset (1302.148875ms)
+✔ real worker reconstruction crosses128/512 tile boundaries with independent expected pixels (779.433417ms)
+✔ actual concurrent foundation and raster requests cannot reuse one durable command ID (1211.00275ms)
+✔ SIGKILL raster-preparation-before-commit keeps original raster command, operation and encoded source (1054.754833ms)
+✔ SIGKILL raster-preparation-after-commit keeps original raster command, operation and encoded source (979.470167ms)
+✔ SIGKILL raster-after-worker keeps original raster command, operation and encoded source (1063.36225ms)
+✔ SIGKILL raster-before-flush keeps original raster command, operation and encoded source (1103.194458ms)
+✔ SIGKILL raster-after-flush keeps original raster command, operation and encoded source (1187.982042ms)
+✔ SIGKILL raster-before-rename keeps original raster command, operation and encoded source (1153.781ms)
+✔ SIGKILL raster-after-rename keeps original raster command, operation and encoded source (1381.045542ms)
+✔ SIGKILL raster-after-directory-sync keeps original raster command, operation and encoded source (1078.402042ms)
+✔ SIGKILL raster-before-register keeps original raster command, operation and encoded source (1030.970084ms)
+✔ SIGKILL asset-before-commit keeps original raster command, operation and encoded source (1044.668541ms)
+✔ SIGKILL asset-after-commit keeps original raster command, operation and encoded source (1016.004583ms)
+✔ SIGKILL raster-after-register keeps original raster command, operation and encoded source (1007.51075ms)
+✔ SIGKILL frozen PNG export raster-before-register reopens exact existing canonical bytes (1146.398333ms)
+✔ SIGKILL frozen PNG export raster-after-register reopens exact existing canonical bytes (1095.307458ms)
+✔ shared two IO slots, combined64 preparations, exact pending identity and conflicting writer command (6136.108833ms)
+✔ disk admission retains pending identity and later resumes same operation; original bytes are retained (756.06475ms)
+✔ raster typed snapshots retain full closure and exact pixels after full-log and snapshot reopen (2482.584042ms)
+✔ schema4 migration preserves exact approvede8b9f1a data and its prior-code rollback (1042.087041ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33410.143084

@@ -1,0 +1,11 @@
+import{execFileSync}from'node:child_process';import{readFileSync,writeFileSync,readdirSync,statSync}from'node:fs';import{createHash}from'node:crypto';
+const base='e8b9f1a379becd97365242cc0a3b1c9d703bcfcb',sha=b=>createHash('sha256').update(b).digest('hex');
+const walk=p=>readdirSync(p,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(p+'/'+e.name):[p+'/'+e.name]);
+const entry=path=>{const bytes=readFileSync(path);return{path,bytes:bytes.length,sha256:sha(bytes)};};
+const paths=[...new Set([...execFileSync('git',['diff','--name-only',base],{encoding:'utf8'}).trim().split('\n'),...execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'}).trim().split('\n')])].filter(p=>p&&!p.startsWith('evidence/')).sort();
+const files=paths.map(entry),codecs=JSON.parse(readFileSync('tooling/raster/codecs.json'));
+const source={base,branch:execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim(),sourceIdentity:'sha256:'+sha(JSON.stringify(files)),codecIdentity:'sha256:'+sha(JSON.stringify(codecs)),files};
+writeFileSync('evidence/p1b4/source-manifest.json',JSON.stringify(source,null,2)+'\n');
+writeFileSync('evidence/p1b4/build-manifest.json',JSON.stringify({at:new Date().toISOString(),sourceIdentity:source.sourceIdentity,node:entry(process.execPath),versions:process.versions,outputs:walk('dist/local').sort().map(entry)},null,2)+'\n');
+const evidence=walk('evidence/p1b4').filter(p=>!p.endsWith('/SHA256SUMS')).sort();writeFileSync('evidence/p1b4/SHA256SUMS',evidence.map(p=>sha(readFileSync(p))+'  '+p.slice('evidence/p1b4/'.length)).join('\n')+'\n');
+console.log(JSON.stringify({sourceIdentity:source.sourceIdentity,codecIdentity:source.codecIdentity,sourceFiles:files.length,evidenceFiles:evidence.length}));

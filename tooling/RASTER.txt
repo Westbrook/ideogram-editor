@@ -1,0 +1,214 @@
+P1b.4 CANONICAL RASTER INTEGRATION — CP-1 v1
+
+This slice is a local, durable raster service plus an isolated conversion-review
+consumer. It starts at approved e8b9f1a379becd97365242cc0a3b1c9d703bcfcb.
+It does not attach layers to an editor document, edit history, adopt provider
+results, deliver an external saved file, or complete a native/platform/PERF
+qualification. P1b.5 owns document/history integration; P1b.7 owns editor controls;
+P1c owns mask authoring; P2 owns request containment and provider adoption.
+
+PUBLIC BOUNDARY
+
+Use the existing authenticated protocolVersion1 command envelope, with strict
+schemaVersion1 body fields, original command/session/correlation/transaction IDs,
+null documentId/revision and EMPTY_EXPECTED_VERSIONS for these workspace assets:
+
+  PrepareRaster {assetId}
+  ReviewRaster {assetId}
+  ApproveRaster {assetId,reviewId,reviewHash}
+  ComposeRaster {width,height,layers}
+  ExportRaster {assetId}
+
+Each layer is {assetId,transform:[a,b,c,d,e,f],opacity,mask}; mask is null or
+{assetId,mapping:"document-luminance-alpha-v1",inverted:boolean}. Layer order is
+explicit bottom to top. Inputs and masks must be approved canonical-raster assets.
+Layer masks have exact document dimensions; this v1 boundary admits only recorded
+identity document mapping. A later authoring command must explicitly prepare a
+mapped mask rather than quietly reinterpret it. Rasterized text contributions can
+use this same boundary later; no text shaping/rasterization is implemented here.
+
+POST /api/v1/commands uses existing 202 durable-pending /200 receipt semantics.
+GET /api/v1/commands/:id exposes pending operationId/phase or the terminal receipt.
+The sole writer journals original bytes, canonical hash and operationId before202.
+Retry the original envelope byte-for-byte; sessionId remains provenance while the
+fresh authenticated cookie is the current transport authority. Foundation, asset
+and raster command IDs share one uniqueness boundary, including racing requests.
+Startup resumes only local preparation already journaled; there is no external job.
+Resource failure keeps the exact pending identity in waiting-for-resources, with
+original input retained and private diagnostics. Retry after releasing resources
+or reopening the backend; no quality, radius or product-dimension reduction occurs.
+Invalid encoded input receives a terminal rejected receipt and diagnostic reason.
+
+PrepareRaster consumes an owned pending-decoder original and emits a distinct
+AssetRegistered raster-preview with an actual safe image/png. The original stays
+retained, unknown and withheld; its signature never grants usable raster authority.
+ReviewRaster emits RasterReviewPrepared. Read the exact review at
+GET /api/v1/assets/raster-reviews/:reviewId. It binds owner, current cookie hash,
+writer epoch, decoded manifest/pixel identity and expiry (at most30 minutes).
+ApproveRaster requires that exact review and returns a canonical-raster logical
+asset sharing the exact preview bytes. Approval does not decode or bake again.
+Session renewal/restart expires the old review; obtain a fresh review.
+
+GET /api/v1/assets/:assetId/raster returns the typed immutable manifest.
+GET /api/v1/assets/:assetId/content uses existing owned, safe-content verification,
+proof/range/session fences, measured MIME and no-store/nosniff/sandbox headers.
+No raw hash/path route was added. ExportRaster emits canonical-png from frozen
+canonical-raster pixels. The export asset is durably available, not confirmation
+that a user-selected external destination has been saved.
+
+PIXEL AUTHORITY AND GEOMETRY
+
+src/raster/core.ts is the sole CP-1 arithmetic path. Pipeline identity includes
+cp1-f64-triangle-area-v1 and the SHA256 of the complete pinned codec receipt.
+Native straight sRGB RGBA8 -> linear premultiplied transform -> document-aligned
+R16 layer coverage -> opacity -> straight sRGB Q8 contribution K -> bottom-to-top
+Normal fold in binary64 -> final straight sRGB Q8. Q8 is clamp(floor(255*x+.5)).
+Computed zero alpha writes RGB0 on arithmetic paths. Original hidden RGB is retained.
+Integer-grid identity/translation with no mask and opacity1 copies all four bytes;
+empty stack is transparent zero; singleton returns K exactly. Capture a singleton
+ComposeRaster for K, or the explicit full ordered stack for stage3. Persist that
+asset identity; render/capture/export consumers must not invent another pre-path.
+F01 white opacity.1 is K alpha26 and over black90. F04 108 vs subgroup109 remains a
+prohibition on unsafe flattening under retained overlays, owned by later adoption.
+
+Coordinates are pixel edges with samples at cell centers. Affines must have finite
+coefficients and a finite nonzero determinant/inverse. Inverse row Euclidean norms
+set source-axis minification spans max(1,hypot(row)). Reconstruction is separable
+triangle/bilinear. For span>1 integrate that triangle analytically over the source
+axis box; span<=1 evaluates it at the center. This sealed convention is not a
+polygon-area affine filter under shear. Precision is binary64, fixed summation
+order, source zero extension and no exterior/tile-edge coefficient renormalization.
+Support is1 for span<=1 and span/2+1 otherwise. footprint() records a conservative
+finite source envelope including support; file reads use global source coordinates.
+Compute cores128 square and immutable views512 square share coefficients/halos.
+Very large footprints stream source rows rather than lower sampling quality.
+
+R16 import coverage is Q16((.2126*linearR+.7152*linearG+.0722*linearB)*alpha*65535).
+Mask inversion is65535-M. Core feather has a globally normalized finite triangle,
+product in2D and one final R16 quantization, zero extension by its Coverage source,
+radius0/<=1 identity, radius<=64. It is a pure core function, not a durable mask edit
+or a provider-domain containment implementation. Core preserve() copies S exactly
+at M0, selects mapped candidate at M65535, and blends linear premultiplied values
+otherwise. Full CP05–CP16 domain, expansion/clipping, request and adoption workflows
+remain unimplemented. No claim that the full16-case campaign is complete.
+
+STORAGE AND IDENTITY
+
+Raw pixels are a private immutable row-major RGBA8 object. The manifest describes
+nonoverlapping512-square views and hashes of exact view bytes; these are tile views
+of that object, not a directory of independently encoded PNG tiles. A pixel identity
+hashes ordered tile hashes, extent and complete pipeline identity. A separate
+manifest hash captures sources, transforms, masks, opacity, kernel/precision/edge,
+footprints, original/profile/orientation references and input manifests. No mutable
+cache can substitute a newer source. Same pixels may share pixelIdentity while
+changed dependencies produce a different manifest. Composition is streamed by
+128-square cores; export copies the frozen raw object in1MiB chunks and encodes it
+without a second bake. Historical pixel pipeline/identity stays unchanged on export;
+its new PNG encoder identity is recorded separately in the manifest plan. PNG encoding uses filter0,8-bit RGBA,sRGB chunk and pinned
+Node zlib level6 with64KiB IDAT chunks. Browser/GPU decode is display only.
+
+Schema4 additively introduces raster preparation/review journals. Before migration
+it verifies/fsyncs a complete schema3 backup, records per-table digests and retains
+all previous roots/receipts/backups. Tests build the actual approved e8b9f1a code,
+seed schema3, compare all old tables, and reopen its backup using the old code.
+Accepted events/projections/snapshots validate typed raster metadata and manifests.
+Inputs and outputs have private-file identity proofs checked again at acceptance;
+objects flush, rename on the same filesystem and directory-sync before reference
+publication. Sole writer publishes roots/event/receipt in one transaction. Proof
+records are bounded512 (was128) to cover100 distinct image+mask pairs plus outputs.
+Full original dependency closure remains rooted; no garbage collection is added.
+Failure work/orphan bytes remain retained and included in disk pressure.
+
+CODECS, INPUT ELIGIBILITY AND REPRODUCTION
+
+Sharp0.35.4, libvips8.18.6, LittleCMS2.19.1, WebP1.6.0, libpng1.6.58 and mozjpeg0826579
+are exact prebuilt macOS arm64 inputs. codecs.json seals all installed Sharp,
+platform-native, libvips, colour, detect-libc and semver package files, lock metadata,
+library versions, Node26.10.0/zlib identity and two exact480-byte ICC profiles.
+verifyCodecs() checks these before work. Unknown runtime/platform inputs fail closed;
+historical stored pixels remain stored. This is not a source rebuild or support
+qualification for every native platform. Source/build recipe identities, packaged
+licenses and clean-install receipts are separately sealed in evidence/p1b4.
+
+Static8-bit PNG (including palette/grayscale),8-bit RGB/grayscale baseline/progressive
+JPEG, and static lossy/lossless WebP are eligible only after full native decode.
+Strict streamed container validation rejects truncation, CRC errors, animation,
+trailing frames/data and invalid dimensions before publication. APNG/WebP animations
+are rejected. No16-bit/HDR/CMYK/unknown-profile conversion is silently attempted.
+Metadata decompression/parser workspace is bounded4MiB before native metadata.
+Dimensions stay<=8192 each and<=25,000,000 pixels; no silent resize.
+Untagged input uses documented sRGB assumption. Exact pinned sRGB ICC is identity;
+exact pinned Display P3 uses LittleCMS perceptual conversion to pinned sRGB. Other
+ICC hashes and non-sRGB PNG gamma/chromaticities/HDR metadata fail explicitly.
+Encoded original plus separate extracted ICC/EXIF objects and raw/canonical IDs
+are retained. EXIF orientation1–8 normalizes once by exact RGBA sample rearrangement.
+Conversion review reports original/working dimensions, profile hash, orientation,
+color/orientation changes, no-resize flag, manifest identity and actual preview.
+Unknown profiles remain recoverable originals, not a claim of universal ICC support.
+
+make-fixtures.mjs authors original CC0 inputs; PNG frames/EXIF are independent literal
+bytes, JPEG/WebP use sealed encoders. Expected CP pixels are hand-derived constants,
+not snapshots from CP implementation. color-oracle.py calls public LittleCMS C APIs;
+webp-oracle.py calls public libwebp C APIs directly, independently of Sharp/app code.
+jpeg-oracle.py uses separately installed Pillow11.3.0/libjpeg-turbo for a nonwhite
+JPEG golden; its version and native extension hash are retained in jpeg-oracle.json.
+These codec diagnostics reuse pinned native libraries and are not independent native
+implementations. make-resource-fixtures.mjs reproduces nine actual encoded uniform-
+white inputs with presealed hashes. verify:raster checks package/profile/fixture
+identities. Tests never refresh golden values to make a changed renderer pass.
+
+RESOURCE ACCOUNTING AND LIMITS
+
+One raster worker and two shared object/upload/asset IO slots; at most64 combined
+asset+raster preparations. Worker old/young heap limits48/8MiB; runtime/native memory
+is included in the plan and whole-process RSS checks, not equated with JS heap.
+Pre-worker parser/native-load reservation128MiB. Bounded container parsing obtains
+encoded dimensions and metadata cost BEFORE any native metadata/decode call; then
+admission uses measured current
+backend RSS plus the entire job allocation plan against512MiB. Decode plan reserves
+2*RGBA bytes+32MiB native/color working for PNG/JPEG,5*RGBA+32MiB for WebP, one RGBA output,2MiB rows/tiles,4*metadata+4MiB
+metadata/copies,4MiB PNG/hash IO,80MiB worker/runtime and16MiB concurrent backend IO/
+control headroom. Composition/export reserve8MiB rows/tiles (including two<=1MiB
+row caches, K/output, Float64 accumulator, mask scalars and1MiB tile hashing),4MiB
+metadata,4MiB PNG/hash IO,80MiB runtime and16MiB concurrent backend headroom. This
+conservative plan is correlated with actual RSS; native internal allocators are not
+individually instrumented. Parent snapshots/receipts retain their existing bounds.
+Workers check process RSS during work; the supervisor checks root/disk pressure and
+RSS, and rejects before publication if the ceiling is exceeded. It is not an OS
+memory sandbox or hard real-time peak limiter. CPU work for extreme minification
+can be slow; there is no quality fallback. No100 simultaneous full decoded surfaces.
+Disk admission reserves3*raw bytes+metadata+2MiB, existing25% margin,1GiB free-space
+margin and64MiB emergency margin against the shared disk ledger.
+
+The final25MP progressive-JPEG input also remains resource-pending when its
+combined plan plus backend baseline exceeds512MiB. Maximum25MP WebP requires more than512MiB under the measured conservative native
+plan and is rejected before native metadata/decode, retaining its original and
+pending identity. This is an explicit resource limitation, not format qualification
+for the complete25MP envelope. Native allocator retention can cause a following operation to remain resource-
+pending even after a large decode completes. Reopening the backend releases that
+process memory and resumes the SAME journaled command. Measurements report this
+honestly; neither failure nor latency is removed from the evidence. Manifest/control
+objects remain<=64KiB, with explicit resource failure if a complex dependency plan
+cannot fit; no claim of the formal100-layer full-resolution workload qualification.
+The product layer limit remains100; tests include100 contributions without100 full
+surface allocations, plus exact tile-edge inputs. Full mixed text/canvas performance
+and later segmented plan needs belong to integration qualification.
+
+VERIFICATION AND PRESERVED SCOPE
+
+npm run test:raster covers independent CP/math, encoded codec fixtures, real HTTP
+and durable worker boundaries, identity races, typed snapshot/replay, schema rollback,
+queue/disk pressure and SIGKILL before/after flush/rename/register/commit. The isolated
+browser test consumes real decoded conversion pixels and public en-reve approval;
+it neither changes approved preview52219 nor claims full editor integration.
+Affected assets/protocol/recovery/store/session/shell/consumer and real isolated
+ENOSPC/EROFS gates, build/typecheck, source/fixture seals and local receipt contention
+are recorded with exact logs and timestamps in evidence/p1b4. Failed author attempts
+are retained. R20 HTTP observation includes full receipts under raster/snapshot
+contention; it does not hide preparation work in the commit-ready child clock.
+
+No formal PERF/H-C/W1/full100k/native accessibility, power-loss/device-cache,
+provider/network, JPEG matte/export or cross-platform qualification is claimed.
+No paid/provider calls, publishing, deployment, document edits, report/locator edits,
+en-reve archive/live sibling changes or approved-preview changes were made.
+Independent exact-commit review remains the gate for P1b.5.

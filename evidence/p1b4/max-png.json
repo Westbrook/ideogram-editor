@@ -1,0 +1,153 @@
+{
+  "input": "tests/raster/fixtures/max-png.png",
+  "root": "/private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/raster-observe-eTwiNb",
+  "at": "2026-09-26T06:26:19.993Z",
+  "observations": [
+    {
+      "type": "FinalizeStaging",
+      "elapsedMs": 25.380916999999954,
+      "commandId": "b726fecc-b29a-44f3-9fac-ba211cbbf0d4",
+      "receipt": {
+        "commandId": "b726fecc-b29a-44f3-9fac-ba211cbbf0d4",
+        "documentRevision": null,
+        "fromSeq": "1",
+        "status": "accepted",
+        "toSeq": "1",
+        "transactionId": "0bfc9a7a-2f79-4a6d-8e77-1b8cc0e9663c"
+      }
+    }
+  ],
+  "qualification": false,
+  "limits": "Single-host synthetic uniform-white inputs. No formal PERF/H-C/W1/native/platform qualification; no external effects.",
+  "encodedBytes": 110030,
+  "encodedHash": "sha256:4c87842c594ffdc9532402a574d311b11a31eb290a530387c9d7af74ef36eb43",
+  "stageAndFinalizeMs": 41.602750000000015,
+  "status": "failed",
+  "error": "Error: Resource admission: {\"command\":{\"schemaVersion\":1,\"commandId\":\"d3f963ce-8675-4d19-aca7-eef404232746\",\"clientId\":\"measure\",\"sessionId\":\"measure-provenance\",\"correlationId\":\"3d7df5e0-0b1c-41aa-9379-dff476cd7109\",\"causationId\":null,\"transactionId\":\"c499593e-3ead-499a-a41f-00d30dadaf4e\",\"documentId\":null,\"expectedDocumentRevision\":null,\"expectedEntityVersions\":{\"hash\":\"sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069\",\"byteLength\":\"33\",\"mediaType\":\"application/json\"},\"issuedAt\":\"2026-09-26T06:26:20.036Z\",\"body\":{\"type\":\"PrepareRaster\",\"assetId\":\"534b3b81-0a21-4034-9a21-fdb399f8009b\"}},\"hash\":\"sha256:f49bf835319745ece204bd6b3ced6292f5c80ed7f41feb5afb26c9133336f2fe\",\"operationId\":\"d195aab6-5d49-404b-81d6-9ae4d1fd7c97\",\"phase\":\"waiting-for-resources\"}",
+  "diagnostics": {
+    "node": "26.10.0",
+    "sqlite": {
+      "version": "3.53.4",
+      "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    "settings": {
+      "journal_mode": "wal",
+      "synchronous": 2,
+      "foreign_keys": 1,
+      "busy_timeout": 250,
+      "fullfsync": 1,
+      "checkpoint_fullfsync": 1,
+      "page_size": 4096,
+      "page_count": 53,
+      "max_page_count": 4294967294
+    },
+    "writerEpoch": "1",
+    "highWater": "1",
+    "projectionDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "inventory": {
+      "orphanCount": "0",
+      "stagingCount": "0"
+    },
+    "missingCount": 0,
+    "missing": [],
+    "filesystem": {
+      "type": "26",
+      "blockSize": "4096",
+      "availableBytes": "662988525568",
+      "totalBytes": "1995165736960"
+    },
+    "diskWarning": false,
+    "resources": {
+      "ioChunkBytes": 1048576,
+      "maxTransfers": 2,
+      "admissionOverheadPercent": 25,
+      "freeMarginBytes": "1073741824",
+      "metadataHeadroomBytes": "67108864",
+      "metadataHeadroomPhysicallyPreallocated": false,
+      "snapshotTailCeiling": 500
+    },
+    "assets": {
+      "orphanUploadCount": "0",
+      "orphanUploadBytes": "0",
+      "committedBytes": "110030",
+      "failedCount": "0",
+      "preparations": "0",
+      "stages": "1",
+      "reservedBytes": "0",
+      "activeTransfers": 0,
+      "preparationMs": [
+        20.069124999999985
+      ]
+    },
+    "rasters": {
+      "preparations": 1,
+      "activeWorkers": 0,
+      "reservedCPU": 0,
+      "observations": [
+        {
+          "commandId": "d3f963ce-8675-4d19-aca7-eef404232746",
+          "phase": "failure",
+          "code": "CAPACITY",
+          "message": "CAPACITY"
+        }
+      ]
+    },
+    "observations": {
+      "appendMs": [],
+      "replayMs": 0.12483399999996436,
+      "snapshot": {
+        "target": 250,
+        "pressure": false,
+        "latest": null,
+        "buildMs": 0,
+        "sliceMaxMs": 0,
+        "activationMs": 0
+      },
+      "qualification": false
+    },
+    "processMemory": {
+      "rss": 144113664,
+      "heapTotal": 15613952,
+      "heapUsed": 9661232,
+      "external": 4627795,
+      "arrayBuffers": 214415
+    },
+    "sqliteIntegrity": {
+      "quick_check": "ok"
+    }
+  },
+  "process": {
+    "node": "26.10.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "libffi": "3.8.0",
+    "lief": "0.17.0",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "147",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.8",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026c",
+    "undici": "8.10.2",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "14.6.202.34-node.34",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "peakRSS": 146718720
+}

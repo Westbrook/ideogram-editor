@@ -1,0 +1,9 @@
+file:///Users/westbrook/Documents/repos/ideogram-edit/tooling/raster/contention.mjs:13
+ r=await call(server.origin,'/api/v1/events?after='+String(BigInt(receipt.fromSeq)-1n),{headers:readHeaders(cookieFrom(paired))});const asset=r.json.events[0].payload.asset;
+                                                                                                                                                           ^
+
+TypeError: Cannot read properties of undefined (reading '0')
+    at file:///Users/westbrook/Documents/repos/ideogram-edit/tooling/raster/contention.mjs:13:156
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v26.10.0

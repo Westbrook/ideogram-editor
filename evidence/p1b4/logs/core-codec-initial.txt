@@ -1,0 +1,19 @@
+✔ actual frozen PNG/JPEG/static WebP codec inputs; independently specified uniform and literal pixels (109.372084ms)
+✔ all eight EXIF orientations normalize once with exact alpha/hidden samples retained (96.673417ms)
+✔ supported P3 converts with review data and original profile identity retained (16.802167ms)
+✔ actual malformed/animated/profile/extent inputs cannot produce usable canonical output (61.5275ms)
+✔ F01 independent literal: stage2 alpha26, exact shared composite90 and F04 108 versus109 (1.073791ms)
+✔ empty, hidden RGB, singleton, integer translation, M0 and nonidentity alpha-zero arithmetic (0.149583ms)
+✔ independent half-pixel bilinear, linear light, transparent padding and premultiplied edge goldens (0.07825ms)
+✔ area-integrated triangle coefficients are independently derived rational constants; no boundary renormalization (0.141542ms)
+✔ transform-mask-opacity ordering and R16 luminance-alpha are explicit (0.074125ms)
+✔ F02 core triangle feather: exact R16 edges, no tile renormalization, radii0/1/2/64 (0.981041ms)
+✔ affine coordinates, bounded envelope and independent seam output at128/512 (0.2405ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 908.4445

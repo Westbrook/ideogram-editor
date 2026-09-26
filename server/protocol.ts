@@ -160,7 +160,9 @@ export class ProtocolRoutes {
         if(route.kind==='asset-finalize'&&(command.body.type!=='FinalizeStaging'||command.body.stagingId!==id))throw new ProtocolError('MALFORMED_REQUEST');
         const state = await this.writer.commandState(command.commandId);const previous=state.record??state.pending;
         if (previous && previous.command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
-        if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));else await this.writer.submit(bytes,this.writer.epoch);
+        if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));
+        else if(['PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
+        else await this.writer.submit(bytes,this.writer.epoch);
         authenticate();const result=await this.commandResult(command.commandId,current);sendCommandResult(response,result);
       } else if (route.kind === 'commands') {
         const result = await this.commandResult(id, session); authenticate();

@@ -1,0 +1,95 @@
+✖ real original → worker → durable preview → exact review approval → CP-1 capture → PNG export and reopen (7850.701083ms)
+✖ hidden RGB identity, exact mask coordinates, empty output, cache dependencies and lossless JPEG-source export (7700.156958ms)
+✖ conversion review binds actual decoded preview, exact hash, owner, session and writer epoch (7742.792292ms)
+✖ malformed, animated and unsupported-profile originals retain bytes and terminal diagnostics without usable asset (7682.708459ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31058.878208
+
+✖ failing tests:
+
+test at tests/raster/http.test.mjs:11:1
+✖ real original → worker → durable preview → exact review approval → CP-1 capture → PNG export and reopen (7850.701083ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"f6d7c483-c233-4272-a04d-5ffe6ac06db1","kind":"pending","operationId":"508cf8fc-3034-4bd2-ac2b-f5597929497f","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/f6d7c483-c233-4272-a04d-5ffe6ac06db1"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async operate (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:12:66)
+      at async importRaster (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:17:88)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/http.test.mjs:12:37)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/http.test.mjs:28:1
+✖ hidden RGB identity, exact mask coordinates, empty output, cache dependencies and lossless JPEG-source export (7700.156958ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"f2467e93-7219-4d00-912a-034111be102a","kind":"pending","operationId":"52c0be59-6612-4ccb-8b8b-60d35546b02a","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/f2467e93-7219-4d00-912a-034111be102a"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async operate (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:12:66)
+      at async importRaster (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:17:88)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/http.test.mjs:29:32)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/http.test.mjs:38:1
+✖ conversion review binds actual decoded preview, exact hash, owner, session and writer epoch (7742.792292ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"9df72266-b841-4a88-80be-688d2cd2ef3b","kind":"pending","operationId":"17662e97-8a4d-4fbd-81aa-824f1a3a161b","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/9df72266-b841-4a88-80be-688d2cd2ef3b"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async operate (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:12:66)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/http.test.mjs:39:106)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/raster/http.test.mjs:49:1
+✖ malformed, animated and unsupported-profile originals retain bytes and terminal diagnostics without usable asset (7682.708459ms)
+  AssertionError [ERR_ASSERTION]: {"commandId":"d4768794-1d29-4ff6-93eb-73c3e357f916","kind":"pending","operationId":"312aa375-6e66-4ff2-aa82-f745609cfa8a","phase":"waiting-for-resources","protocolVersion":1,"receiptUrl":"/api/v1/commands/d4768794-1d29-4ff6-93eb-73c3e357f916"}
+  
+  202 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/http.test.mjs:51:94)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

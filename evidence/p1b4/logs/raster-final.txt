@@ -1,0 +1,48 @@
+npm notice run ideogram-editor@0.1.0 test:raster
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/raster/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ actual frozen PNG/JPEG/static WebP codec inputs; independently specified uniform and literal pixels (110.091708ms)
+✔ all eight EXIF orientations normalize once with exact alpha/hidden samples retained (97.716709ms)
+✔ supported P3 converts with review data and original profile identity retained (16.108833ms)
+✔ actual malformed/animated/profile/extent inputs cannot produce usable canonical output (78.473833ms)
+✔ P3 nonprimary conversion matches independent public LittleCMS C oracle, retaining alpha (17.503459ms)
+✔ lossy and lossless alpha WebP match independent public decoder diagnostic including exact alpha (29.237708ms)
+✔ F01 independent literal: stage2 alpha26, exact shared composite90 and F04 108 versus109 (0.895541ms)
+✔ empty, hidden RGB, singleton, integer translation, M0 and nonidentity alpha-zero arithmetic (0.157625ms)
+✔ independent half-pixel bilinear, linear light, transparent padding and premultiplied edge goldens (0.072875ms)
+✔ area-integrated triangle coefficients are independently derived rational constants; no boundary renormalization (0.135792ms)
+✔ transform-mask-opacity ordering and R16 luminance-alpha are explicit (0.068167ms)
+✔ F02 core triangle feather: exact R16 edges, no tile renormalization, radii0/1/2/64 (1.013542ms)
+✔ affine coordinates, bounded envelope and independent seam output at128/512 (0.268ms)
+✔ real original → worker → durable preview → exact review approval → CP-1 capture → PNG export and reopen (1352.364042ms)
+✔ hidden RGB identity, exact mask coordinates, empty output, cache dependencies and lossless JPEG-source export (1487.905083ms)
+✔ conversion review binds actual decoded preview, exact hash, owner, session and writer epoch (670.909417ms)
+✔ malformed, animated and unsupported-profile originals retain bytes and terminal diagnostics without usable asset (1333.397042ms)
+✔ real worker reconstruction crosses128/512 tile boundaries with independent expected pixels (823.9885ms)
+✔ SIGKILL raster-preparation-before-commit keeps original raster command, operation and encoded source (1009.349583ms)
+✔ SIGKILL raster-preparation-after-commit keeps original raster command, operation and encoded source (967.019709ms)
+✔ SIGKILL raster-after-worker keeps original raster command, operation and encoded source (1019.296333ms)
+✔ SIGKILL raster-before-flush keeps original raster command, operation and encoded source (1032.804125ms)
+✔ SIGKILL raster-after-flush keeps original raster command, operation and encoded source (1031.04725ms)
+✔ SIGKILL raster-before-rename keeps original raster command, operation and encoded source (1020.684375ms)
+✔ SIGKILL raster-after-rename keeps original raster command, operation and encoded source (1039.241958ms)
+✔ SIGKILL raster-after-directory-sync keeps original raster command, operation and encoded source (1028.757ms)
+✔ SIGKILL raster-before-register keeps original raster command, operation and encoded source (1056.772166ms)
+✔ SIGKILL asset-before-commit keeps original raster command, operation and encoded source (1071.749541ms)
+✔ SIGKILL asset-after-commit keeps original raster command, operation and encoded source (1085.233583ms)
+✔ SIGKILL raster-after-register keeps original raster command, operation and encoded source (1149.988708ms)
+✔ SIGKILL frozen PNG export raster-before-register reopens exact existing canonical bytes (1266.62725ms)
+✔ SIGKILL frozen PNG export raster-after-register reopens exact existing canonical bytes (1078.3885ms)
+✔ shared two IO slots, combined64 preparations, exact pending identity and conflicting writer command (4238.821583ms)
+✔ disk admission retains pending identity and later resumes same operation; original bytes are retained (765.340291ms)
+✔ raster typed snapshots retain full closure and exact pixels after full-log and snapshot reopen (2544.570417ms)
+✔ schema4 migration preserves exact approvede8b9f1a data and its prior-code rollback (1023.105167ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29778.763625

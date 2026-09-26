@@ -14,6 +14,10 @@ export class AssetRoutes {
   match(path:string):AssetRoute|null {
     if(path==='/api/v1/assets/staging')return {allow:['POST'],kind:'asset-create',query:[]};
     if(path==='/api/v1/assets/staging/recovery')return {allow:['GET'],kind:'asset-inventory',query:['cursor']};
+    let raster=/^\/api\/v1\/assets\/raster-reviews\/([^/]+)$/.exec(path);
+    if(raster){if(!isId(raster[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-raster-review',id:raster[1],query:[]};}
+    raster=/^\/api\/v1\/assets\/([^/]+)\/raster$/.exec(path);
+    if(raster){if(!isId(raster[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-raster-manifest',id:raster[1],query:[]};}
     let m=/^\/api\/v1\/assets\/staging\/transfer-reviews\/([^/]+)$/.exec(path);
     if(m){if(!isId(m[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-review',id:m[1],query:[]};}
     m=/^\/api\/v1\/assets\/staging\/([^/]+)(\/finalize)?$/.exec(path);
@@ -27,6 +31,8 @@ export class AssetRoutes {
     if(route.kind==='asset-create'){const value=parseControlJSON(await readControlBytes(req));await assertRoot();const result=await this.writer.assetCreate(value,auth());authenticate();sendJSON(res,result.created?201:200,result.record);}
     else if(route.kind==='asset-inventory'){const cursor=params.get('cursor');if(cursor!==null&&!isId(cursor))throw new ProtocolError('MALFORMED_REQUEST');const result=await this.writer.assetInventory(cursor,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-review'){const result=await this.writer.assetReview(id,auth());authenticate();sendJSON(res,200,result);}
+    else if(route.kind==='asset-raster-review'){const result=await this.writer.rasterReview(id,auth());authenticate();sendJSON(res,200,result);}
+    else if(route.kind==='asset-raster-manifest'){const result=await this.writer.rasterManifest(id);authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-stage'&&req.method==='GET'){const result=await this.writer.assetGet(id,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-stage'){
       if(req.headers['content-type']!=='application/octet-stream'||req.headers['content-encoding']!==undefined)throw new ProtocolError('MEDIA_TYPE');
@@ -55,7 +61,7 @@ export class AssetRoutes {
         if(start>end||start>=total)bad();status=206;
         if(req.headers['if-range']!==undefined&&req.headers['if-range']!==etag){status=200;start=0n;end=total-1n;}
       }
-      res.writeHead(status,{'Content-Type':asset.measuredMediaType,'Content-Disposition':'attachment; filename="asset.txt"','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",'X-Content-Type-Options':'nosniff','Cache-Control':'no-store',ETag:etag,'Accept-Ranges':'bytes','Content-Length':String(end-start+1n),...(status===206?{'Content-Range':`bytes ${start}-${end}/${total}`}:{})});
+      res.writeHead(status,{'Content-Type':asset.measuredMediaType,'Content-Disposition':asset.measuredMediaType==='image/png'?'attachment; filename="image.png"':'attachment; filename="asset.txt"','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",'X-Content-Type-Options':'nosniff','Cache-Control':'no-store',ETag:etag,'Accept-Ranges':'bytes','Content-Length':String(end-start+1n),...(status===206?{'Content-Range':`bytes ${start}-${end}/${total}`}:{})});
       if(req.method==='HEAD'){res.end();return;}
       for(let at=start;at<=end;){await assertRoot();authenticate();const n=Number(end-at+1n>32768n?32768n:end-at+1n);const bytes=await this.writer.assetContent(id,handle,String(at),n);authenticate();if(res.destroyed)return;await new Promise<void>((resolve,reject)=>res.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}res.end();
     }finally{if(handle)await this.writer.assetRelease(handle);this.streams--;}

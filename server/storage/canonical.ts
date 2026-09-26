@@ -3,6 +3,8 @@ import type { BlobRef, CommandRequest, ExpectedVersions } from '../../src/protoc
 import { parseControlJSON } from '../control-json.js';
 import { ProtocolError } from '../errors.js';
 import { StoreError } from './errors.js';
+import { extent, inverse } from '../../src/raster/core.js';
+import type { Affine } from '../../src/raster/core.js';
 
 const bad = (): never => { throw new StoreError('MALFORMED_REQUEST'); };
 export const isId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value);
@@ -53,6 +55,19 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
     if (!isId(body.stagingId)||!isId(body.expectedOwnerClientId)||!isSeq(body.expectedVersion)||!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash)) bad();
   } else if (body.type === 'FinalizeStaging') {
     keys(body, ['type','stagingId','expectedSha256']); if (!isId(body.stagingId)||typeof body.expectedSha256!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.expectedSha256)) bad();
+  } else if (body.type === 'PrepareRaster' || body.type === 'ReviewRaster' || body.type === 'ExportRaster') {
+    keys(body,['type','assetId']); if(!isId(body.assetId))bad();
+  } else if (body.type === 'ApproveRaster') {
+    keys(body,['type','assetId','reviewId','reviewHash']);if(!isId(body.assetId)||!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash))bad();
+  } else if (body.type === 'ComposeRaster') {
+    keys(body,['type','width','height','layers']);
+    try{extent(body.width as number,body.height as number);}catch{bad();}
+    if(!Array.isArray(body.layers)||body.layers.length>100)bad();
+    for(const layer of body.layers as unknown[]){keys(layer,['assetId','transform','opacity','mask']);
+      if(!isId(layer.assetId)||!Array.isArray(layer.transform)||layer.transform.length!==6||typeof layer.opacity!=='number'||!Number.isFinite(layer.opacity)||layer.opacity<0||layer.opacity>1)bad();
+      try{inverse(layer.transform as unknown as Affine);}catch{bad();}
+      if(layer.mask!==null){keys(layer.mask,['assetId','mapping','inverted']);if(!isId(layer.mask.assetId)||layer.mask.mapping!=='document-luminance-alpha-v1'||typeof layer.mask.inverted!=='boolean')bad();}
+    }
   } else throw new StoreError('UNSUPPORTED_COMMAND');
   return value as unknown as CommandRequest;
 }

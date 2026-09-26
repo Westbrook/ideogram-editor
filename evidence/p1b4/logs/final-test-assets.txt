@@ -1,0 +1,41 @@
+✔ LP-1 resumable offsets, immutable logical identity, safe original receipt and inert text ranges (518.342042ms)
+✔ LP-1-R1 minimal inventory, exact review hash, explicit takeover and old in-flight callback fence (518.536167ms)
+✔ stale and expired reviews reject durably; hostile declarations and raw images never become usable (538.132792ms)
+✔ restart truncates unacknowledged tails, keeps staged offsets and original receipt ownership (640.044584ms)
+✔ SIGKILL upload-before-write preserves only the journaled offset and missing suffix (699.832375ms)
+✔ SIGKILL upload-before-flush preserves only the journaled offset and missing suffix (715.600417ms)
+✔ SIGKILL upload-after-flush preserves only the journaled offset and missing suffix (709.511958ms)
+✔ SIGKILL upload-before-offset-commit preserves only the journaled offset and missing suffix (680.999792ms)
+✔ SIGKILL upload-after-offset-commit preserves only the journaled offset and missing suffix (699.865541ms)
+✔ SIGKILL preparation-before-commit resolves the original finalize identity once (717.649792ms)
+✔ SIGKILL preparation-after-commit resolves the original finalize identity once (660.809125ms)
+✔ SIGKILL finalize-before-flush resolves the original finalize identity once (650.71125ms)
+✔ SIGKILL finalize-after-flush resolves the original finalize identity once (651.079791ms)
+✔ SIGKILL finalize-before-rename resolves the original finalize identity once (687.462583ms)
+✔ SIGKILL finalize-after-rename resolves the original finalize identity once (687.905666ms)
+✔ SIGKILL finalize-after-directory-sync resolves the original finalize identity once (695.030875ms)
+✔ SIGKILL finalize-before-register resolves the original finalize identity once (712.544875ms)
+✔ SIGKILL asset-before-commit resolves the original finalize identity once (675.139709ms)
+✔ SIGKILL asset-after-commit resolves the original finalize identity once (690.422583ms)
+✔ SIGKILL transfer-before-commit keeps original owner or transfers exactly once (706.963333ms)
+✔ SIGKILL transfer-after-commit keeps original owner or transfers exactly once (711.771625ms)
+✔ competing HTTP command identities stay exclusive through pending responses and SIGKILL restart (1967.155041ms)
+✔ actual7ef07dd migration preserves all retained tables and verified rollback database (2581.506292ms)
+✔ asset event replay and snapshots keep original bytes and dependencies across restart (1856.940416ms)
+✔ staging symlinks are rejected without writing the target, and reservation pressure retains data (209.191291ms)
+✔ journal capacity failure cannot invent a pending command or replace its original rejection (777.470209ms)
+✔ recovery inventory paginates minimal metadata and content pins detect later file changes (3673.677459ms)
+✔ durable preparation waits for shared reader slots and retains original command ownership (339.608209ms)
+✔ malformed owned manifest is a durable rejection and does not strand or accept the pending original (327.899291ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25839.7505
+npm notice run ideogram-editor@0.1.0 test:assets
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
