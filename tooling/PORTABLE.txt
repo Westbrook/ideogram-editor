@@ -27,7 +27,8 @@ regressions use an isolated exact source copy to preserve old sealed paths.
 PERSISTED VERSIONS
 
 Store schema7 capability portable-copy-v1 follows actual approved schema6.
-Protocol remains1, projection remains3, portable formatVersion1/documentSchema2.
+Protocol remains1, projection remains3. The original d4ed761 emitted portable
+formatVersion1/documentSchema2; the correction below emits formatVersion2.
 Migration creates a schema6 backup, table/count/hash manifest and file proofs,
 rechecks identity/hash immediately before transactional activation, and names
 d84c1de as the compatible rollback executable. Prior objects/tables/requests/
@@ -217,3 +218,103 @@ A-R01 remains open. Prior history full metadata max74.743ms (20/20 over50ms) and
 other slow parent samples remain visible; this task does not revise their
 budgets. P1b.7 owns actual painted controls, En Reve-first adoption and exact1px
 splitter feedback, actual destination completion and its full parent clocks.
+
+CORRECTED SUCCESSOR CONTRACT — I-PF01 / I-PF02 / I-PF03
+
+Correction parent: d4ed76148999978565ca8b37d27612f5b3faa591 (NOT APPROVED).
+The coordinator-approved PF-1 revision2 amendment in task8c5b65fb/PR Context
+cbd63320 explicitly authorizes the successor format below. Frozen PF-1 v1 and
+all original author/reviewer evidence remain unchanged. Independent review is
+required; author passes do not close any finding. Correction evidence and gates
+use evidence/p1b6-correction and tooling/portable/correction-*.mjs exclusively.
+
+Format2 retains documentSchema2, manifest fields, ZIP64 STORE, event wrapper
+schemaVersion1 and exact original event JSON. Its records segments additionally
+contain <=16KiB canonical schemaVersion1 transaction records:
+  {schemaVersion:1,kind:"transaction",sourceArchive:null|"sha256:<hex>",
+   receipt:{status:"accepted",commandId,transactionId,fromSeq,toSeq,
+            documentRevision:null|"<decimal>"},
+   eventCount:"<decimal>",eventsHash:"sha256:<hex>"}
+Receipt is the exact immutable source accepted receipt, never a MIN/MAX range
+inferred from surviving archive rows. eventCount equals toSeq-fromSeq+1.
+eventsHash is SHA256 of the UTF-8 canonical ORIGINAL event JSON followed by one
+LF byte, concatenated in ascending original workspaceSeq, including the final
+LF. Wrappers are not hashed. No header, salt, normalization or binary separator
+is inserted. This proves internal consistency, not signatures or authenticity.
+
+sourceArchive:null scopes descriptors to this archive's own events. A nonnull
+hash scopes evidence to a retained original archive referenced by a reachable
+BundleImported event. Nested archives are traversed with a disk-backed queue,
+bounded IO and explicit temporary reservations, not a resident archive tree.
+Each reachable archive's descriptors are verified against its exact events;
+conflicting or unreferenced scope records fail. Each scope requires unique
+transaction IDs, command IDs and event IDs, complete nonoverlapping inclusive
+ranges below capturedHighWater, exact command/transaction identity, common
+correlation/causation/epoch, resulting document revision when a domain event
+is present, count and framed hash. Nonmutating document commands may retain
+a current document revision in their receipt without emitting a domain event.
+Missing prefix/tail/interior events, missing/extra/duplicate descriptors,
+split commands and duplicate event identities fail before editable review.
+All unchanged PF-1 validation stages and privacy/resource obligations apply.
+
+Format1 with insufficient transaction evidence is retained for inspection:
+LEGACY_TRANSACTION_BOUNDS_UNAVAILABLE. It is not advertised editable. Existing
+accepted v1 namespaces/archives/history/receipts/roots are never rewritten or
+deleted. A NEW complete copy verifies original v1 ancestry only from matching
+immutable original receipts AND every exact event in their original ranges.
+When those exist locally, the bounded evidence is carried in the new format2
+copy so a fresh workspace can verify it. Confirmed mismatches are malformed;
+missing evidence pauses with TRANSACTION_EVIDENCE_UNAVAILABLE and guidance
+restore-matching-original-history-or-cancel; original-archive-retained.
+A new local BundleImported receipt or survivor-only hash is never substituted.
+Public format2 ancestry missing necessary evidence stays inspection-only with
+ORIGINAL_TRANSACTION_BOUNDS_UNAVAILABLE_SOURCE_ARCHIVE_RETAINED.
+
+New captures record captureVersion2 and receipt descriptors under their frozen
+capture hash. Pending v1 captures keep their original bytes/hash, command,
+operation, UI/highWater and pins: an attempt may derive descriptors only from
+matching original immutable source evidence. It never recaptures live state.
+Unprovable pending originals remain recoverable/cancellable, with no false copy.
+
+Store schema8 capability portable-copy-v2-transaction-bounds fences prior
+writers before their writable startup. It adds an event-transaction lookup
+index and preserves every old table row. A verified schema7 backup/manifest
+names actual d4ed761 as compatible reader and retains objects, staging, uploads
+AND portable capture files. Capacity/integrity/table/schema/file checks precede
+transactional activation; failure preserves the source and every prior backup.
+Actual d4 fixtures cover refusal, full-table/pending identity, backup reopening,
+corruption and SIGKILL on each activation boundary. Schema8 is not a migration
+that fabricates old transaction evidence or restores expired review authority.
+
+Browser recovery of BundleImported now requires its full immutable mapped
+DOMAIN projection before publication. The imported batch uses an LP-1
+transaction reference even when small, giving SSE the same pinned recovery
+context as event-tail recovery. GET /api/v1/namespace-events/:eventId?recoveryId
+is restricted to that owner/session/epoch-bound lease and its highWater. It
+verifies the committed namespace digest, then supplies lp1-namespace-jsonl
+content through the existing hash/length/count/ETag/read-context protocol.
+The header binds namespace ID/hash, event ID/sequence, schema and entity count;
+ordered <=16KiB projection parts reconstruct <=64KiB typed asset, document,
+history and checkpoint rows. There is no whole-namespace resident array.
+Client-owned UI and inert provider observations keep their separate ownership
+and access paths; the shared recovery endpoint does not expose private drafts.
+
+The browser validates context/identity, full content integrity/count, typed
+rows, ordering/collisions and required document/history/checkpoint/composite
+links in a private IndexedDB generation. Only after hydration and existing
+final lease checks does its atomic published-pointer transaction expose the
+imported document and cursor. Missing/inconsistent pages preserve the prior
+valid generation. Snapshot recovery already carries all domain projection
+rows; both snapshot and tail/SSE paths are tested. Duplicate delivery does not
+republish or duplicate the namespace. This adds recovery behavior, not P1b.7 UI.
+
+At atomic import, reviewed source draft bytes and the frozen namespace mapping
+create exact ui:<client>:<mapped-session>:<mapped-draft>:<generation> roots.
+These persist after apply/clear for accepted history fences, alongside the
+original archive and namespace roots. Current and accepted-history ownership
+must be unambiguous; missing owner roots fail explicitly. Failed acceptance
+rolls back mapped UI checkpoints/ownership along with the namespace and receipt.
+No global root scan, erased-association guess, legacy cleanup or unrelated
+content transfer is used. Original and distinct-document privacy boundaries
+remain intact. Corrected tests exercise genuine format2 import/apply/clear/
+recopy/restart; refusing old format1 import alone is not a correction proof.

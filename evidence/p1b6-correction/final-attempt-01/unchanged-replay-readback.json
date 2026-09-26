@@ -1,0 +1,59 @@
+{
+  "readAt": "2026-09-26T10:47:17.075573+00:00",
+  "sourceIdentity": "sha256:fdd95e4aba4ee4884fd83522d53130d765a53145ccf8a3e4806f55c7d9b163ed",
+  "kind": "author result readback of unchanged reviewer scripts executed against correction build",
+  "originalHardcodedTargetLabel": "d4ed76148999978565ca8b37d27612f5b3faa591",
+  "labelMeaning": "Historical literal in unchanged script only; actual execution source is recorded in each replay ATTRIBUTION.json.",
+  "browser": {
+    "version": "153.0.8010.12",
+    "published": {
+      "generation": "25e5eb06-1d0c-485e-b0d9-95cc0a3f23e6",
+      "cursor": "11",
+      "epoch": "3"
+    },
+    "documentExact": true,
+    "mappedRowsPresent": {
+      "assets": 3,
+      "history": 2,
+      "checkpoints": 1
+    },
+    "externalRequests": []
+  },
+  "draft": {
+    "formatVersion": 2,
+    "applyReceipt": {
+      "commandId": "640ae2c6-d0c7-45f8-8272-47b9b14067c9",
+      "documentRevision": "3",
+      "fromSeq": "12",
+      "status": "accepted",
+      "toSeq": "12",
+      "transactionId": "210f745f-b06b-47cb-9329-ce8bbf757bbd"
+    },
+    "copyReceipt": {
+      "commandId": "52bbf056-d138-40a9-92b0-6c0a1fa1c6c9",
+      "documentRevision": "3",
+      "fromSeq": "13",
+      "status": "accepted",
+      "toSeq": "13",
+      "transactionId": "5fbd1990-99b6-40da-aebb-696108e264f0"
+    },
+    "owner": "ui:8eb2e71e-84da-4c3c-b29a-637352627fff:p_35fc1875f6f8f203d9cfd832302f0c2fcd9f576db62383a19a9ff2c7d5b303bf:p_45fd1cc4079c3d568769d2808c6eb68a08dd2bf328eb116a7d8ebb9df733178b:1",
+    "root": {
+      "owner": "ui:8eb2e71e-84da-4c3c-b29a-637352627fff:p_35fc1875f6f8f203d9cfd832302f0c2fcd9f576db62383a19a9ff2c7d5b303bf:p_45fd1cc4079c3d568769d2808c6eb68a08dd2bf328eb116a7d8ebb9df733178b:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    }
+  },
+  "artifacts": [
+    {
+      "path": "evidence/p1b6-correction/final-attempt-01/unchanged-browser-replay/result.json",
+      "sha256": "d15ff7cf624bf6f7cc2013be9d29ec5e00d5327a6549f9ffe60d33f2ad886fde"
+    },
+    {
+      "path": "evidence/p1b6-correction/final-attempt-01/unchanged-draft-replay/result.json",
+      "sha256": "a262f061f92190cb7ae41ad1ae0f3fadbd7fa55bc5c66fa9d8f9220102162e58"
+    }
+  ],
+  "qualification": false,
+  "independentClosure": false
+}

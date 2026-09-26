@@ -1,0 +1,43 @@
+browser fixture ready 80
+browser prior cursor { generation: 'prior', cursor: '0', epoch: null }
+hydration fault missing-descriptor { error: 'TypeError: Failed to fetch' }
+namespace descriptor 403 {
+  protocolVersion: 1,
+  requestId: 'ea5bb88c-2929-4410-b4f3-2fe8dcca91ae',
+  error: {
+    code: 'ORIGIN_DENIED',
+    retry: 'none',
+    message: 'This request is not from the editor launch origin.'
+  }
+}
+hydration fault wrong-context { error: 'Error: Invalid recovery data' }
+namespace descriptor 403 {
+  protocolVersion: 1,
+  requestId: '925e46d6-679e-487e-8e6e-4e0f7261e709',
+  error: {
+    code: 'ORIGIN_DENIED',
+    retry: 'none',
+    message: 'This request is not from the editor launch origin.'
+  }
+}
+hydration fault missing-content { error: 'Error: Invalid recovery data' }
+namespace descriptor 403 {
+  protocolVersion: 1,
+  requestId: '498d2e19-0ee7-4ec8-97a1-a9f9c9131fd2',
+  error: {
+    code: 'ORIGIN_DENIED',
+    retry: 'none',
+    message: 'This request is not from the editor launch origin.'
+  }
+}
+hydration fault truncated-content { error: 'Error: Invalid recovery data' }
+✔ Chromium restart recovery hydrates a multi-chunk imported namespace before the cursor and survives missing or corrupt pages (6691.165167ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","cursor":"80","assets":3,"history":2,"checkpoints":70,"failedHydrationRetainsPrior":true,"externalRequests":[],"qualification":false}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6852.625125

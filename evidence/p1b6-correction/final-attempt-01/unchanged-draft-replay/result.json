@@ -1,0 +1,169 @@
+{
+  "review": {
+    "capturedHighWater": "8",
+    "closureHash": "sha256:44ba1dd4ab4617e1dc0ebfa001b9d52b1d90c3bfbae7523ad16ec7b3fad54266",
+    "documentId": "p_49b74a290a995550560806ca413994f1365e203abc853faf8b8d64f232a8102b",
+    "documentSchema": 2,
+    "editable": true,
+    "entityCount": "8",
+    "eventCount": "3",
+    "expiresAt": "2026-09-26T11:14:40.129Z",
+    "formatVersion": 2,
+    "localRetentionExcluded": "obsolete-unattributed-ui-only",
+    "namespaceId": "1129a5da-cacc-42f6-9034-737008b1c0fd",
+    "objectCount": "19",
+    "protocolVersion": 1,
+    "reason": null,
+    "reviewHash": "sha256:1a138fcd5a3734580bbd002016366b36fa1a5105170bd11427fc78b2e866e9b1",
+    "reviewId": "7fd325ca-57ec-43c0-bf6b-a8e74291a9f9",
+    "scope": "selected-document-current-drafts-and-retained-domain-history",
+    "source": {
+      "byteLength": "29723",
+      "hash": "sha256:37c84b1b2eea0a28b952515ece764cf7632a7d4fd5c1ddb6df000f0b95a063ba",
+      "mediaType": "application/x-ideogram-project"
+    },
+    "sourceNamespace": "document_1",
+    "targetClientId": "8eb2e71e-84da-4c3c-b29a-637352627fff",
+    "uiSessionCount": "1",
+    "uiSessionIds": [
+      "p_35fc1875f6f8f203d9cfd832302f0c2fcd9f576db62383a19a9ff2c7d5b303bf"
+    ]
+  },
+  "restoredDraft": {
+    "assetId": "p_1f4b7784e288a8572afc2bca3a356183be9be182de4fcd39fc9087470047c4d5",
+    "composing": false,
+    "documentId": "p_49b74a290a995550560806ca413994f1365e203abc853faf8b8d64f232a8102b",
+    "expectedDocumentRevision": "2",
+    "generation": "1",
+    "id": "p_45fd1cc4079c3d568769d2808c6eb68a08dd2bf328eb116a7d8ebb9df733178b",
+    "kind": "inspector",
+    "status": "saved-unapplied",
+    "targetLayerId": "p_6a3aa4fdd9697c3a523297a7f25eea970f41a35303ba8b92903d7b5d1b072f00"
+  },
+  "appliedReceipt": {
+    "commandId": "640ae2c6-d0c7-45f8-8272-47b9b14067c9",
+    "documentRevision": "3",
+    "fromSeq": "12",
+    "status": "accepted",
+    "toSeq": "12",
+    "transactionId": "210f745f-b06b-47cb-9329-ce8bbf757bbd"
+  },
+  "copyCommand": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "52bbf056-d138-40a9-92b0-6c0a1fa1c6c9",
+      "clientId": "8eb2e71e-84da-4c3c-b29a-637352627fff",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "5fbd1990-99b6-40da-aebb-696108e264f0",
+      "documentId": "p_49b74a290a995550560806ca413994f1365e203abc853faf8b8d64f232a8102b",
+      "expectedDocumentRevision": "3",
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "SaveCopy"
+      }
+    }
+  },
+  "copyResponse": {
+    "status": 200,
+    "json": {
+      "kind": "receipt",
+      "protocolVersion": 1,
+      "receipt": {
+        "commandId": "52bbf056-d138-40a9-92b0-6c0a1fa1c6c9",
+        "documentRevision": "3",
+        "fromSeq": "13",
+        "status": "accepted",
+        "toSeq": "13",
+        "transactionId": "5fbd1990-99b6-40da-aebb-696108e264f0"
+      }
+    }
+  },
+  "expectedDraftOwner": "ui:8eb2e71e-84da-4c3c-b29a-637352627fff:p_35fc1875f6f8f203d9cfd832302f0c2fcd9f576db62383a19a9ff2c7d5b303bf:p_45fd1cc4079c3d568769d2808c6eb68a08dd2bf328eb116a7d8ebb9df733178b:1",
+  "ownerRoots": [
+    {
+      "owner": "ui:8eb2e71e-84da-4c3c-b29a-637352627fff:p_35fc1875f6f8f203d9cfd832302f0c2fcd9f576db62383a19a9ff2c7d5b303bf:p_45fd1cc4079c3d568769d2808c6eb68a08dd2bf328eb116a7d8ebb9df733178b:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    }
+  ],
+  "retainedDraftRoots": [
+    {
+      "owner": "asset:59d27721-a59e-4f46-ae97-4edca43f3b61",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "ui:8eb2e71e-84da-4c3c-b29a-637352627fff:reviewer_editor:rename:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "namespace:1129a5da-cacc-42f6-9034-737008b1c0fd",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "ui:8eb2e71e-84da-4c3c-b29a-637352627fff:p_35fc1875f6f8f203d9cfd832302f0c2fcd9f576db62383a19a9ff2c7d5b303bf:p_45fd1cc4079c3d568769d2808c6eb68a08dd2bf328eb116a7d8ebb9df733178b:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    }
+  ],
+  "sourceDocument": {
+    "branchId": "bf838d57-570a-470b-8a5e-ee120e3c31ff",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "dbe28d70-2103-4169-bfd4-5225c0bfa0e6",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "201e2d34-df35-4271-a03d-9f8618eb2554",
+      "semanticDigest": "sha256:78888a4ed30eb073e8fdc09b1e00a33e88210e164b898bb0b14043c46fda6f20",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:687109dbda07e85bb72650ed801b2a6406aecf8edea7ab9b507cb7676715d84e",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "importedDocument": {
+    "branchId": "p_9e9b90de488db0078bb9fd0c5f59a1457b8d1c7a0b181d712d53a45263e9a269",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "91b1aeeb-5f52-4481-a281-9f6d30cbfe82",
+    "id": "p_49b74a290a995550560806ca413994f1365e203abc853faf8b8d64f232a8102b",
+    "image": {
+      "compositeAssetId": "p_430760a52ea1738d800d76325d737e4347e57f305c86e81e7dd24353f2e17eae",
+      "semanticDigest": "sha256:2897929822340b9fd83cf6131530cd0f022ce41348981f59a84fc94c39d6dc27",
+      "state": {
+        "byteLength": "393",
+        "hash": "sha256:08a63bd1c0c067791c00445122a2191a0e5c14bed497e9e23a45b6468f05eae1",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "p_6a3aa4fdd9697c3a523297a7f25eea970f41a35303ba8b92903d7b5d1b072f00"
+    ],
+    "redo": null,
+    "revision": "3",
+    "width": 3
+  }
+}

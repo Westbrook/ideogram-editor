@@ -1,0 +1,15 @@
+import {mkdtemp,cp,symlink,mkdir,readFile,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join,resolve} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {source,sha} from './correction-identity.mjs';
+const kind=process.argv[2];assert(['browser','draft'].includes(kind));
+const root=await mkdtemp(join(tmpdir(),'portable-independent-replay-')),code=join(root,'source');await mkdir(code);
+for(const path of ['package.json','src','dist/local','tests'])await cp(path,join(code,path),{recursive:true});await symlink(resolve('node_modules'),join(code,'node_modules'),'dir');
+const name=kind==='browser'?'browser-import.mjs':'imported-draft.test.mjs',original=resolve('evidence/p1b6-correction/original-review',name);await cp(original,join(root,name));assert.equal(sha(await readFile(original)),sha(await readFile(join(root,name))));
+const env={...process.env,IE_RECOVERY_OUTPUT:join(root,'recovery')},run=args=>{const r=spawnSync(process.execPath,args,{cwd:code,env,stdio:'inherit'});assert.equal(r.status,0,JSON.stringify({args,error:r.error?.message,status:r.status}));};
+const receipt={kind,startedAt:new Date().toISOString(),source:source(),original,originalScriptSHA256:sha(await readFile(original)),isolatedRoot:root,note:'Script bytes unchanged. Any hardcoded d4ed761 target label in original output is historical script text; this replay executes the correction source/build captured here. No independent approval is implied.',qualification:false};
+if(kind==='browser')run(['node_modules/vite/bin/vite.js','build','--config','tests/recovery/vite.config.ts']);
+run(['--import','./tests/session/no-egress.mjs',...(kind==='draft'?['--test']:[]),'../'+name]);receipt.finishedAt=new Date().toISOString();
+const output=join(process.env.IE_PORTABLE_EVIDENCE??'evidence/p1b6-correction','unchanged-'+kind+'-replay');await mkdir(output,{recursive:true});await cp(join(root,kind==='browser'?'browser-import.json':'imported-draft.json'),join(output,'result.json'));await cp(original,join(output,name));await writeFile(join(output,'ATTRIBUTION.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));

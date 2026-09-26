@@ -1,0 +1,112 @@
+{
+  "base": "d4ed76148999978565ca8b37d27612f5b3faa591",
+  "branch": "ideogram-editor-p1",
+  "sourceIdentity": "sha256:69581864b4c62091b5438624bc741a7ce635217614fba8664bdfe01b059c7d91",
+  "files": [
+    {
+      "path": "server/portable/format.ts",
+      "bytes": 17438,
+      "sha256": "372bb75bb3940a58681eb0f1173cf7323c3b9b8aec02087bb702129a64989146"
+    },
+    {
+      "path": "server/portable/transactions.ts",
+      "bytes": 6284,
+      "sha256": "bdcd8a5e44982d735b59a0134d5cfb4956645c31be622cf2f050ac4d9e6bd21e"
+    },
+    {
+      "path": "server/protocol.ts",
+      "bytes": 25813,
+      "sha256": "9e5f9198f77a78ce6f6d9d7a4334bd5af467a384a050d6c0bf95d7de42601921"
+    },
+    {
+      "path": "server/storage/database.ts",
+      "bytes": 42453,
+      "sha256": "8c6f640248c2298cb71e4e6b3c8bade18126533aede583d9dd97523160aa6181"
+    },
+    {
+      "path": "server/storage/errors.ts",
+      "bytes": 1141,
+      "sha256": "fbd7014db90650b007f996dbcd7d3d7810b346b1136e28420f006851e8dae9dd"
+    },
+    {
+      "path": "server/storage/portable.ts",
+      "bytes": 54604,
+      "sha256": "b90546ebf6ff52166c37552403d4533aa1cf00c7f51b4a35da56a8d5a7ebb7fd"
+    },
+    {
+      "path": "server/storage/recovery.ts",
+      "bytes": 23277,
+      "sha256": "f6df78ba7a538ae19d52d055ca9421a8cd279a26ed525004da2f8ac6fd6a954b"
+    },
+    {
+      "path": "server/storage/schema.ts",
+      "bytes": 35332,
+      "sha256": "50ddea42423a427e1b55866e48b2d0dd6505f0cecc0a36586e3f3412011f9429"
+    },
+    {
+      "path": "server/storage/worker.ts",
+      "bytes": 9220,
+      "sha256": "a404a288b1abefa7ca436266f82ab32b83601013567f0e6ffa056d104a6ee37d"
+    },
+    {
+      "path": "server/storage/writer.ts",
+      "bytes": 12573,
+      "sha256": "455a8afae7e677a7451fefed594616699103133dac1d454d994b9fd443cb86b0"
+    },
+    {
+      "path": "src/protocol/portable.ts",
+      "bytes": 1867,
+      "sha256": "25b16c6e88a527c61ca16f7ef231621ecedb957209eb5bacdd40137c5281faed"
+    },
+    {
+      "path": "src/protocol/recovery.ts",
+      "bytes": 2661,
+      "sha256": "92255a3d4692b072b7b8e9c5db8eaa92e123dd8e76d5fde9130f9b5fbc536112"
+    },
+    {
+      "path": "src/state/recovery-cache.ts",
+      "bytes": 5129,
+      "sha256": "4244cf3e74e70e573af84ec57b2a69ee628082daf0e1f4079ec74be70f8adae3"
+    },
+    {
+      "path": "src/state/recovery-client.ts",
+      "bytes": 19482,
+      "sha256": "e951903d96d36f94a4a5493df867f6a2607301bd74c64fb6e004a611b2f6a148"
+    },
+    {
+      "path": "tests/portable/compatibility.test.mjs",
+      "bytes": 6932,
+      "sha256": "23e60e6a1111e9186e5803b162f59509c8d86a7d190748bfa57187c0381e5375"
+    },
+    {
+      "path": "tests/portable/large.test.mjs",
+      "bytes": 6162,
+      "sha256": "06575c2dca85990fd645fc2aa332513a006aac00859b18df88e877c32a4be910"
+    },
+    {
+      "path": "tests/portable/prior-writer.mjs",
+      "bytes": 2373,
+      "sha256": "d66f8dab75d1bd5aac8dad9fd7c11b7c3cd988a5dbc4112992b73ffc044e25a0"
+    },
+    {
+      "path": "tests/portable/transaction-schema.test.mjs",
+      "bytes": 8310,
+      "sha256": "adb7d210d8bddf44c6e3448166ab284153847f7a20ab7f60b485701538f68847"
+    },
+    {
+      "path": "tests/portable/transactions.test.mjs",
+      "bytes": 6989,
+      "sha256": "96447dfbbc22013840407cdb68635e28c40f759d6fe4e30b49c978b3cc6a83c8"
+    },
+    {
+      "path": "tests/raster/helpers.mjs",
+      "bytes": 3565,
+      "sha256": "931cb64367698970302379d7bbb5223d1ee009f9655b4422976683ab7da17f09"
+    },
+    {
+      "path": "tooling/portable/correction-identity.mjs",
+      "bytes": 982,
+      "sha256": "c4e3299678db64b736880bf7abdac30308a2ed3acfc7dc57d734474a01d506dd"
+    }
+  ]
+}

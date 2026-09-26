@@ -1,0 +1,163 @@
+{
+  "review": {
+    "capturedHighWater": "8",
+    "closureHash": "sha256:a809ac43441d4ffcb3d6d74969386a707a4db5c754f83f319b1876c2d94f3355",
+    "documentId": "p_9c6cafc3ecd7b30971229bb337f1bda7806eecf5a55aa35dfbed19e4c45d4028",
+    "documentSchema": 2,
+    "editable": true,
+    "entityCount": "8",
+    "eventCount": "3",
+    "expiresAt": "2026-09-26T10:55:37.322Z",
+    "formatVersion": 1,
+    "localRetentionExcluded": "obsolete-unattributed-ui-only",
+    "namespaceId": "9185bc62-cbbb-4443-bd0d-1419b21fbbf2",
+    "objectCount": "19",
+    "protocolVersion": 1,
+    "reason": null,
+    "reviewHash": "sha256:59c6b7625bc778fb201609c4882278b35d10051a9228f39c70fa1fafeb9aefd9",
+    "reviewId": "08d9cc20-4d3f-4c48-a2bb-5c97a423b103",
+    "scope": "selected-document-current-drafts-and-retained-domain-history",
+    "source": {
+      "byteLength": "29017",
+      "hash": "sha256:a29262ce7d2a87ec94919a93e787a6aa1a3c21420534dc568eb57fcfdfe825ee",
+      "mediaType": "application/x-ideogram-project"
+    },
+    "sourceNamespace": "document_1",
+    "targetClientId": "bc669c4f-95a0-4860-b625-9a6696a0238b",
+    "uiSessionCount": "1",
+    "uiSessionIds": [
+      "p_0caae1c7dfd551c2552b1cca2003cfba3566b2048452159854558ec14bf301e2"
+    ]
+  },
+  "restoredDraft": {
+    "assetId": "p_5ede44eea4cae5459ded39b6ede74589b0ebc2a9c78686caec4a3bfce69b0642",
+    "composing": false,
+    "documentId": "p_9c6cafc3ecd7b30971229bb337f1bda7806eecf5a55aa35dfbed19e4c45d4028",
+    "expectedDocumentRevision": "2",
+    "generation": "1",
+    "id": "p_f1ee33fc375c4b9476f37d0bf120a7a5a62785116b404a3adb2cb48b8d0b7524",
+    "kind": "inspector",
+    "status": "saved-unapplied",
+    "targetLayerId": "p_cb8d13d7f0be05bd32647fdce4e8d613195b999d41aa7daf3ba3aec0f032aa66"
+  },
+  "appliedReceipt": {
+    "commandId": "462aad02-3623-4702-8cbb-7f3cb20bd52d",
+    "documentRevision": "3",
+    "fromSeq": "12",
+    "status": "accepted",
+    "toSeq": "12",
+    "transactionId": "399152db-9179-4c07-8103-83fa9fcbc081"
+  },
+  "copyCommand": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "b041ece5-cc52-48ad-8e83-912c46b2328c",
+      "clientId": "bc669c4f-95a0-4860-b625-9a6696a0238b",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "cd889595-9f95-43d8-884e-d0a41f350004",
+      "documentId": "p_9c6cafc3ecd7b30971229bb337f1bda7806eecf5a55aa35dfbed19e4c45d4028",
+      "expectedDocumentRevision": "3",
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "SaveCopy"
+      }
+    }
+  },
+  "copyResponse": {
+    "status": 503,
+    "json": {
+      "protocolVersion": 1,
+      "requestId": "0d8401bc-f3ed-4fc1-884a-b35857b335ce",
+      "error": {
+        "code": "RECOVERY_UNAVAILABLE",
+        "retry": "same-command",
+        "message": "Complete recovery is temporarily unavailable.",
+        "details": {
+          "kind": "inline",
+          "value": {
+            "kind": "resource-state",
+            "resourceId": "462aad02-3623-4702-8cbb-7f3cb20bd52d",
+            "state": "required-history-draft-ownership-unavailable"
+          }
+        }
+      }
+    }
+  },
+  "expectedDraftOwner": "ui:bc669c4f-95a0-4860-b625-9a6696a0238b:p_0caae1c7dfd551c2552b1cca2003cfba3566b2048452159854558ec14bf301e2:p_f1ee33fc375c4b9476f37d0bf120a7a5a62785116b404a3adb2cb48b8d0b7524:1",
+  "ownerRoots": [],
+  "retainedDraftRoots": [
+    {
+      "owner": "asset:1ebf72c8-4c8c-457f-80cb-2b8b73601135",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "ui:bc669c4f-95a0-4860-b625-9a6696a0238b:reviewer_editor:rename:1",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    },
+    {
+      "owner": "namespace:9185bc62-cbbb-4443-bd0d-1419b21fbbf2",
+      "hash": "sha256:42da7b31e8a0b3ea388da7808b7b21c7eda5817e2fdb7058f2d8200774dca78e",
+      "media_type": "text/plain"
+    }
+  ],
+  "sourceDocument": {
+    "branchId": "54b2abc5-04d4-41be-ba26-584e872ef4c4",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "d2528bad-ae9e-49e8-98e2-960b2060ec32",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "68cbb47b-5ef0-4fbd-9e78-a8c1f9419609",
+      "semanticDigest": "sha256:7d673fc72ccc686e99825ac647f98ce16db31d1a339c0a17711cb56a6334445c",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:9772a191416e25960f53bc5cfb682bcb2f91920539b0f3d4cebc4458ea999d6f",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "importedDocument": {
+    "branchId": "p_d572674c7808762b9a8e4bd7f932670ad6a67fb98053fef68e3456b8cbed5740",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "c0a50519-d69e-460d-b877-9421fbe2b901",
+    "id": "p_9c6cafc3ecd7b30971229bb337f1bda7806eecf5a55aa35dfbed19e4c45d4028",
+    "image": {
+      "compositeAssetId": "p_d0d3743a6467f1fe82b12fa14482dd40bfa8f40d07d10c89759df1872c1f5234",
+      "semanticDigest": "sha256:4feb7f312718d7605198de47852030cebb0afbf187d8373c88532ece72ddb404",
+      "state": {
+        "byteLength": "393",
+        "hash": "sha256:779f6df457b03f040b89bee6a99661eab693b6441469a86c69c259bfbe306246",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "p_cb8d13d7f0be05bd32647fdce4e8d613195b999d41aa7daf3ba3aec0f032aa66"
+    ],
+    "redo": null,
+    "revision": "3",
+    "width": 3
+  }
+}

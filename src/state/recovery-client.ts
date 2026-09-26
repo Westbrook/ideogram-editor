@@ -60,8 +60,44 @@ export class RecoveryConsumer {
       else {keys(batch,['kind','transactionId','fromSeq','toSeq','eventCount','recovery','content']);sameContext(recovery,batch.recovery);ok(seq(batch.eventCount)&&batch.eventCount===batch.content.recordCount);
         await this.rows(batch.content,recovery,'lp1-events-jsonl',accept);ok(String(count)===batch.eventCount);}
       ok(count===BigInt(batch.toSeq)-BigInt(batch.fromSeq)+1n,'Incomplete transaction');
-      await this.cache.applyEvents(generation,stage,count);return batch.toSeq;
+      for(let i=0n;i<count;i++){
+        const event=await this.cache.value(stage,'staged',String(i));ok(event);
+        if(event.type==='BundleImported')await this.namespace(generation,event,recovery);
+        await this.cache.apply(generation,event);
+      }return batch.toSeq;
     } finally {await this.cache.discard(stage);}
+  }
+  private async namespace(generation:string,event:Extract<DomainEvent,{type:'BundleImported'}>,recovery:RecoveryContext){
+    const response=await this.transport('/api/v1/namespace-events/'+event.eventId+'?recoveryId='+recovery.recoveryId);ok(response.status===200);
+    const descriptor=await this.control(response);keys(descriptor,['protocolVersion','eventId','namespaceId','namespaceHash','workspaceSeq','content','recovery']);
+    sameContext(recovery,descriptor.recovery);
+    ok(descriptor.protocolVersion===1&&descriptor.eventId===event.eventId&&descriptor.namespaceId===event.payload.namespaceId&&descriptor.namespaceHash===event.payload.namespaceHash&&descriptor.workspaceSeq===event.workspaceSeq);
+    let expected='',count=0n,previous='',key='',part=0,parts=0,text='',version='',documents=0;
+    await this.rows(descriptor.content,recovery,'lp1-namespace-jsonl',async(row,index)=>{
+      if(index===0n){
+        keys(row,['kind','namespaceId','namespaceHash','eventId','workspaceSeq','projectionSchema','entityCount']);
+        ok(row.kind==='header'&&row.namespaceId===event.payload.namespaceId&&row.namespaceHash===event.payload.namespaceHash&&row.eventId===event.eventId&&row.workspaceSeq===event.workspaceSeq&&row.projectionSchema===recovery.projectionSchema&&seq(row.entityCount));expected=row.entityCount;return;
+      }
+      keys(row,['kind','entityType','entityId','entityVersion','partIndex','partCount','utf8Base64']);
+      ok(row.kind==='projection-part'&&['asset','checkpoint','document','history'].includes(row.entityType)&&id(row.entityId)&&seq(row.entityVersion)&&Number.isSafeInteger(row.partIndex)&&Number.isSafeInteger(row.partCount)&&row.partCount>0&&typeof row.utf8Base64==='string');
+      const next=row.entityType+':'+row.entityId;if(!part){ok(next>previous);key=next;parts=row.partCount;version=row.entityVersion;}
+      ok(next===key&&parts===row.partCount&&part===row.partIndex&&version===row.entityVersion);
+      const raw=atob(row.utf8Base64);ok(btoa(raw)===row.utf8Base64);text+=decode(Uint8Array.from(raw,c=>c.charCodeAt(0)));ok(encode.encode(text).length<=65536);
+      if(++part===parts){
+        const value=parseControlJSON(encode.encode(text)) as any;ok(canonical(value)===text&&value.id===row.entityId&&entity(row.entityType,value)===version);
+        ok(!await this.cache.value(generation,row.entityType,row.entityId),'Namespace row collision');
+        if(row.entityType==='document'){ok(canonical(value)===canonical(event.payload.document));documents++;}
+        else{if(row.entityType==='history'||row.entityType==='checkpoint')ok(value.documentId===event.documentId);await this.cache.put(generation,row.entityType,row.entityId,value);}
+        count++;previous=key;part=0;text='';
+      }
+    });
+    ok(part===0&&documents===1&&String(count)===expected,'Incomplete imported namespace');
+    const document=event.payload.document;ok(await this.cache.value(generation,'history',document.historyHead),'Missing imported history');
+    if(document.checkpoint)ok(await this.cache.value(generation,'checkpoint',document.checkpoint),'Missing imported checkpoint');
+    if(document.image?.compositeAssetId)ok(await this.cache.value(generation,'asset',document.image.compositeAssetId),'Missing imported composite');
+    // This marker and all hydrated rows are still private to the staged
+    // generation. The existing pointer transaction is the only publication.
+    await this.cache.put(generation,'namespace',event.payload.namespaceId,{eventId:event.eventId,namespaceHash:event.payload.namespaceHash});
   }
   private async snapshot(generation:string,descriptor:SnapshotDescriptor) {
     keys(descriptor,['protocolVersion','snapshotId','metadataUrl','snapshotSeq','recovery','content']);context(descriptor.recovery);

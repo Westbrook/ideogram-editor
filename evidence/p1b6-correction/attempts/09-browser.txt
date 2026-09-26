@@ -1,0 +1,320 @@
+SSE reached {
+  published: {
+    generation: 'c3438e7a-b814-4577-bd63-ed696e71bbd8',
+    cursor: '1',
+    epoch: '3'
+  },
+  failure: undefined
+}
+✖ Chromium SSE import uses its pinned context, publishes complete rows once and ignores duplicate delivery (2131.14875ms)
+✔ Chromium snapshot plus tail includes all imported domain projections after server restart (5446.387917ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","snapshotRecovery":true,"namespaceRowsAgree":true,"externalRequests":[],"qualification":false}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7723.174917
+
+✖ failing tests:
+
+test at tests/portable/browser-recovery.test.mjs:29:1
+✖ Chromium SSE import uses its pinned context, publishes complete rows once and ignores duplicate delivery (2131.14875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      assets: [
+  +     undefined,
+  +     undefined,
+  +     undefined
+  -     {
+  -       availability: 'available',
+  -       blob: {
+  -         byteLength: '86',
+  -         hash: 'sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9',
+  -         mediaType: 'image/png'
+  -       },
+  -       dependencies: [],
+  -       id: 'p_1178c8271359f19591a880093415e247c181049bf2077ec83ce4ed4bbf255153',
+  -       measuredMediaType: 'image/png',
+  -       purpose: 'image',
+  -       qualification: 'pending-decoder',
+  -       safety: 'unknown',
+  -       version: '1'
+  -     },
+  -     {
+  -       availability: 'available',
+  -       blob: {
+  -         byteLength: '111',
+  -         hash: 'sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6',
+  -         mediaType: 'image/png'
+  -       },
+  -       dependencies: [
+  -         {
+  -           byteLength: '1027',
+  -           hash: 'sha256:cf8ccf9ebd256aea5ee8131ae721e001349d947370e5018163e40f98fa690391',
+  -           mediaType: 'application/json'
+  -         },
+  -         {
+  -           byteLength: '24',
+  -           hash: 'sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254',
+  -           mediaType: 'application/x-ideogram-rgba8'
+  -         }
+  -       ],
+  -       id: 'p_d3676e77b89ebdd1b83028d87d409a54ddd49ad7292f3ca0057e6218dda0cc48',
+  -       measuredMediaType: 'image/png',
+  -       purpose: 'image',
+  -       qualification: 'canonical-raster',
+  -       raster: {
+  -         conversion: {
+  -           colorChanged: false,
+  -           encodedHeight: 2,
+  -           encodedWidth: 3,
+  -           orientation: 1,
+  -           orientationChanged: false,
+  -           profile: 'untagged-srgb',
+  -           profileHash: null,
+  -           resized: false
+  -         },
+  -         height: 2,
+  -         manifest: {
+  -           byteLength: '1027',
+  -           hash: 'sha256:cf8ccf9ebd256aea5ee8131ae721e001349d947370e5018163e40f98fa690391',
+  -           mediaType: 'application/json'
+  -         },
+  -         pipeline: 'cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e',
+  -         pixelIdentity: 'sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b',
+  -         pixels: {
+  -           byteLength: '24',
+  -           hash: 'sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254',
+  -           mediaType: 'application/x-ideogram-rgba8'
+  -         },
+  -         role: 'native',
+  -         schemaVersion: 1,
+  -         sourceAssetIds: [
+  -           'p_1178c8271359f19591a880093415e247c181049bf2077ec83ce4ed4bbf255153'
+  -         ],
+  -         width: 3
+  -       },
+  -       safety: 'safe',
+  -       version: '1'
+  -     },
+  -     {
+  -       availability: 'available',
+  -       blob: {
+  -         byteLength: '111',
+  -         hash: 'sha256:a4ac2c7132f540a65e713a70ee39a7ad68246ed4345757c6d47282deebe565b6',
+  -         mediaType: 'image/png'
+  -       },
+  -       dependencies: [
+  -         {
+  -           byteLength: '1050',
+  -           hash: 'sha256:c972f45d57ccf02456b231c69aeafd3c5a1e9e8d844273dff4cc8fd015371c29',
+  -           mediaType: 'application/json'
+  -         },
+  -         {
+  -           byteLength: '24',
+  -           hash: 'sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254',
+  -           mediaType: 'application/x-ideogram-rgba8'
+  -         }
+  -       ],
+  -       id: 'p_6852d3536f40933d69a007747cdf0693417a8f35290ce011901f15d513272fd9',
+  -       measuredMediaType: 'image/png',
+  -       purpose: 'image',
+  -       qualification: 'canonical-raster',
+  -       raster: {
+  -         conversion: null,
+  -         height: 2,
+  -         manifest: {
+  -           byteLength: '1050',
+  -           hash: 'sha256:c972f45d57ccf02456b231c69aeafd3c5a1e9e8d844273dff4cc8fd015371c29',
+  -           mediaType: 'application/json'
+  -         },
+  -         pipeline: 'cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e',
+  -         pixelIdentity: 'sha256:a0e7be22f39f6aac93140a7eb915934c95a46777557d4dc0cd32e651be107f8b',
+  -         pixels: {
+  -           byteLength: '24',
+  -           hash: 'sha256:4e914d41f40c1d35cb43d6381e3feb3e801cf56f72655883b231c2d323dc8254',
+  -           mediaType: 'application/x-ideogram-rgba8'
+  -         },
+  -         role: 'composite',
+  -         schemaVersion: 1,
+  -         sourceAssetIds: [
+  -           'p_d3676e77b89ebdd1b83028d87d409a54ddd49ad7292f3ca0057e6218dda0cc48'
+  -         ],
+  -         width: 3
+  -       },
+  -       safety: 'safe',
+  -       version: '1'
+  -     }
+      ],
+      checkpoints: [
+  +     undefined
+  -     {
+  -       documentId: 'p_1a5a3ecaa3c139651ba18211a8ea60bf11264a841db1e32c7835b6db053a5ab3',
+  -       documentRevision: '2',
+  -       highWater: '7',
+  -       historyHead: 'p_3a64975361e909d03373644c76dcb5b5e1c9cee48800714f2f14c556d3237c0d',
+  -       id: 'p_ae9c97b849909aed51b32a02d08ba935a86281f3e8cbb09f2f407a865525764b',
+  -       image: {
+  -         compositeAssetId: 'p_6852d3536f40933d69a007747cdf0693417a8f35290ce011901f15d513272fd9',
+  -         semanticDigest: 'sha256:08c447018f446f3e07da258b8c9e746b4831dee65f7d79f4b744321c731fb9dd',
+  -         state: {
+  -           byteLength: '363',
+  -           hash: 'sha256:353c9c5e41f543bb30d3b84ee3e3ec42897a57cae88a06d4cf01d6732189310f',
+  -           mediaType: 'application/json'
+  -         }
+  -       },
+  -       name: 'Retained checkpoint 0 '
+  -     }
+      ],
+  +   document: undefined,
+  -   document: {
+  -     branchId: 'p_57858ac7515b62e5ddbaa426cb1240060abb2c9e0eed964e7fe37d96645fa278',
+  -     checkpoint: 'p_ae9c97b849909aed51b32a02d08ba935a86281f3e8cbb09f2f407a865525764b',
+  -     color: 'sRGB',
+  -     compositionVersion: null,
+  -     depth: 8,
+  -     height: 2,
+  -     historyHead: 'p_3a64975361e909d03373644c76dcb5b5e1c9cee48800714f2f14c556d3237c0d',
+  -     id: 'p_1a5a3ecaa3c139651ba18211a8ea60bf11264a841db1e32c7835b6db053a5ab3',
+  -     image: {
+  -       compositeAssetId: 'p_6852d3536f40933d69a007747cdf0693417a8f35290ce011901f15d513272fd9',
+  -       semanticDigest: 'sha256:08c447018f446f3e07da258b8c9e746b4831dee65f7d79f4b744321c731fb9dd',
+  -       state: {
+  -         byteLength: '363',
+  -         hash: 'sha256:353c9c5e41f543bb30d3b84ee3e3ec42897a57cae88a06d4cf01d6732189310f',
+  -         mediaType: 'application/json'
+  -       }
+  -     },
+  -     orderedLayerIds: [
+  -       'p_396675f74ae5c392439525dfc9769d4c932035161016382a475e094bbaf4dd31'
+  -     ],
+  -     redo: null,
+  -     revision: '3',
+  -     width: 3
+  -   },
+      history: [
+  +     undefined,
+  +     undefined
+  -     {
+  -       after: {
+  -         compositeAssetId: 'p_6852d3536f40933d69a007747cdf0693417a8f35290ce011901f15d513272fd9',
+  -         semanticDigest: 'sha256:08c447018f446f3e07da258b8c9e746b4831dee65f7d79f4b744321c731fb9dd',
+  -         state: {
+  -           byteLength: '363',
+  -           hash: 'sha256:353c9c5e41f543bb30d3b84ee3e3ec42897a57cae88a06d4cf01d6732189310f',
+  -           mediaType: 'application/json'
+  -         }
+  -       },
+  -       before: {
+  -         compositeAssetId: null,
+  -         semanticDigest: 'sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136',
+  -         state: {
+  -           byteLength: '52',
+  -           hash: 'sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136',
+  -           mediaType: 'application/json'
+  -         }
+  -       },
+  -       branchId: 'p_57858ac7515b62e5ddbaa426cb1240060abb2c9e0eed964e7fe37d96645fa278',
+  -       documentId: 'p_1a5a3ecaa3c139651ba18211a8ea60bf11264a841db1e32c7835b6db053a5ab3',
+  -       forward: {
+  -         byteLength: '549',
+  -         hash: 'sha256:381ce388cb719125a661efa1b78e386065a1b20e115de227c73c40182b038214',
+  -         mediaType: 'application/json'
+  -       },
+  -       id: 'p_3a64975361e909d03373644c76dcb5b5e1c9cee48800714f2f14c556d3237c0d',
+  -       inverse: {
+  -         byteLength: '174',
+  -         hash: 'sha256:c7b7eb4ba3ad0f7ac8c60b4911d47376c3fd1139fff4ca9fb6ffbe33abfadde8',
+  -         mediaType: 'application/json'
+  -       },
+  -       kind: 'image-edit',
+  -       operation: 'ImportAsset',
+  -       parent: 'p_c4278c81fb6949578caecd0e56d248d815dd94d20f823a43e7c4f5e6045bb4f2',
+  -       revision: '2',
+  -       roots: [
+  -         {
+  -           byteLength: '52',
+  -           hash: 'sha256:bdb846c17ae0795cda80bb974d7422cf002d4384760bcb089631e1a2cf9cc136',
+  -           mediaType: 'application/json'
+  -         },
+  -         {
+  -           byteLength: '363',
+  -           hash: 'sha256:353c9c5e41f543bb30d3b84ee3e3ec42897a57cae88a06d4cf01d6732189310f',
+  -           mediaType: 'application/json'
+  -         },
+  -         {
+  -           byteLength: '549',
+  -           hash: 'sha256:381ce388cb719125a661efa1b78e386065a1b20e115de227c73c40182b038214',
+  -           mediaType: 'application/json'
+  -         },
+  -         {
+  -           byteLength: '174',
+  -           hash: 'sha256:c7b7eb4ba3ad0f7ac8c60b4911d47376c3fd1139fff4ca9fb6ffbe33abfadde8',
+  -           mediaType: 'application/json'
+  -         }
+  -       ]
+  -     },
+  -     {
+  -       branchId: 'p_57858ac7515b62e5ddbaa426cb1240060abb2c9e0eed964e7fe37d96645fa278',
+  -       documentId: 'p_1a5a3ecaa3c139651ba18211a8ea60bf11264a841db1e32c7835b6db053a5ab3',
+  -       forward: {
+  -         after: {
+  -           branchId: 'p_57858ac7515b62e5ddbaa426cb1240060abb2c9e0eed964e7fe37d96645fa278',
+  -           checkpoint: null,
+  -           color: 'sRGB',
+  -           compositionVersion: null,
+  -           depth: 8,
+  -           height: 2,
+  -           historyHead: 'p_c4278c81fb6949578caecd0e56d248d815dd94d20f823a43e7c4f5e6045bb4f2',
+  -           id: 'p_1a5a3ecaa3c139651ba18211a8ea60bf11264a841db1e32c7835b6db053a5ab3',
+  -           orderedLayerIds: [],
+  -           revision: '1',
+  -           width: 3
+  -         },
+  -         before: null
+  -       },
+  -       id: 'p_c4278c81fb6949578caecd0e56d248d815dd94d20f823a43e7c4f5e6045bb4f2',
+  -       inverse: {
+  -         after: null,
+  -         before: {
+  -           branchId: 'p_57858ac7515b62e5ddbaa426cb1240060abb2c9e0eed964e7fe37d96645fa278',
+  -           checkpoint: null,
+  -           color: 'sRGB',
+  -           compositionVersion: null,
+  -           depth: 8,
+  -           height: 2,
+  -           historyHead: 'p_c4278c81fb6949578caecd0e56d248d815dd94d20f823a43e7c4f5e6045bb4f2',
+  -           id: 'p_1a5a3ecaa3c139651ba18211a8ea60bf11264a841db1e32c7835b6db053a5ab3',
+  -           orderedLayerIds: [],
+  -           revision: '1',
+  -           width: 3
+  -         }
+  -       },
+  -       parent: null,
+  -       roots: [
+  -         {
+  -           byteLength: '33',
+  -           hash: 'sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069',
+  -           mediaType: 'application/json'
+  -         }
+  -       ]
+  -     }
+      ]
+    }
+  
+      at assertRows (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/browser-recovery.test.mjs:19:404)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/browser-recovery.test.mjs:30:461)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { document: undefined, assets: [ undefined, undefined, undefined ], history: [ undefined, undefined ], checkpoints: [ undefined ] },
+    expected: { document: { branchId: 'p_57858ac7515b62e5ddbaa426cb1240060abb2c9e0eed964e7fe37d96645fa278', checkpoint: 'p_ae9c97b849909aed51b32a02d08ba935a86281f3e8cbb09f2f407a865525764b', color: 'sRGB', compositionVersion: null, depth: 8, height: 2, historyHead: 'p_3a64975361e909d03373644c76dcb5b5e1c9cee48800714f2f14c556d3237c0d', id: 'p_1a5a3ecaa3c139651ba18211a8ea60bf11264a841db1e32c7835b6db053a5ab3', image: [Object], orderedLayerIds: [Array], redo: null, revision: '3', width: 3 }, history: [ [Object], [Object] ], checkpoints: [ [Object] ], assets: [ [Object], [Object], [Object] ] },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,52 @@
+{
+  "correctionParent": "d4ed76148999978565ca8b37d27612f5b3faa591",
+  "qualification": false,
+  "independentFindings": [
+    "I-PF01",
+    "I-PF02",
+    "I-PF03"
+  ],
+  "retainedAttempts": [
+    {
+      "attempt": "01-typecheck",
+      "classification": "Candidate type error, fixed a nullable row access; original log retained."
+    },
+    {
+      "attempt": "02-build",
+      "classification": "Candidate build passed; not final frozen-source evidence."
+    },
+    {
+      "attempt": "03-transaction-compatibility",
+      "classification": "13 malicious/inspection controls passed; failures were fixture setup stdout ENOBUFS from git archive and an invalid semantic-digest equality oracle across namespace remapping. Archive now writes directly to a file; roundtrip checks exact composite bytes. Original failure retained."
+    },
+    {
+      "attempt": "04-focused",
+      "classification": "34 functional author controls passed. Final few seconds overlapped browser attempt05 startup by orchestration mistake; these are not serial performance measurements. Final frozen gates will be serial."
+    },
+    {
+      "attempt": "05-browser",
+      "classification": "Author terminated hung fixture. The route interceptor did not handle an error response, causing a missing content descriptor to stall. No product result or timing claim."
+    },
+    {
+      "attempt": "06-browser",
+      "classification": "Author terminated the same interception stall with partial fault trace. Original log retained."
+    },
+    {
+      "attempt": "07-browser",
+      "classification": "Healthy restart hydration passed, but three intended injected faults instead observed ORIGIN_DENIED from Playwright route.fetch. Those specific fault claims are withdrawn; later fixture preserves launch Origin and explicitly proves each injection ran."
+    },
+    {
+      "attempt": "08-browser",
+      "classification": "Real intended hydration faults plus healthy 342374-byte namespace passed. SSE assertion was premature: async waitForFunction returned while cursor was still 1; snapshot setup exhausted 128 read leases by using helper eventFor per checkpoint. These are harness defects; durable cursor polling and command-only snapshot seed correct them."
+    },
+    {
+      "attempt": "09-browser",
+      "classification": "Actual snapshot-plus-tail agreement passed. SSE diagnostic confirms published cursor1, not false advanced cursor; same premature asynchronous predicate fixed in attempt10."
+    },
+    {
+      "attempt": "10-browser",
+      "classification": "All three actual Chromium 153 controls passed: intended hydration faults were asserted, SSE used durable cursor polling, and snapshot plus tail preserved mapped rows. Final source-bound evidence is separately retained in final-attempt-01; this development pass grants no approval or qualification."
+    }
+  ],
+  "evidenceLimits": "Only final-gates-01 binds the full gate set to the final frozen source. Earlier development logs are retained for diagnosis; they are not retrospectively attributed to that source and were not a performance campaign."
+}

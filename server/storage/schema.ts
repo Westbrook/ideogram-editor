@@ -308,7 +308,7 @@ export function historySchema(db: DatabaseSync, root: string, barrier: Barrier, 
 
 export function portableSchema(db: DatabaseSync, root: string, barrier: Barrier, quotaBytes?: string, fresh = false) {
   const capability = 'portable-copy-v1';
-  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) === 7) {
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) >= 7) {
     const row = db.prepare('SELECT receipt FROM schema_migrations WHERE version=7').get();
     if (!row || JSON.parse(String(row.receipt)).capability !== capability) throw new StoreError('CORRUPT_STORE');
     return;
@@ -395,5 +395,86 @@ export function portableSchema(db: DatabaseSync, root: string, barrier: Barrier,
     }
     db.exec('COMMIT'); syncDirectory(root);
     barrier('portable-schema-after-activation');
+  } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
+}
+
+export function portableTransactionSchema(db: DatabaseSync, root: string, barrier: Barrier, quotaBytes?: string, fresh = false) {
+  const capability = 'portable-copy-v2-transaction-bounds';
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) >= 8) {
+    const row = db.prepare('SELECT receipt FROM schema_migrations WHERE version=8').get();
+    if (!row || JSON.parse(String(row.receipt)).capability !== capability) throw new StoreError('CORRUPT_STORE');
+    return;
+  }
+  const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all().map(r=>String(r.name));
+  const compatibleExecutable = 'd4ed76148999978565ca8b37d27612f5b3faa591';
+  const backup = fresh ? null : `schema7-backup-${randomUUID()}.sqlite`;
+  const manifest: Record<string, unknown> = {};
+  let backupHash: string | null = null;
+  let manifestFile: string | null = null;
+  const fileProof = (path: string) => {
+    const identity = assertPrivate(path, false), input = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    const hash = createHash('sha256'), block = Buffer.alloc(1048576);
+    try {
+      if (!sameFile(identity, fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
+      for (;;) { const n = readSync(input, block); if (!n) break; hash.update(block.subarray(0,n)); }
+      const after = assertPrivate(path, false);
+      if (!sameFile(identity, after) || identity.size !== after.size || identity.mtimeMs !== after.mtimeMs || identity.ctimeMs !== after.ctimeMs) throw new StoreError('ROOT_UNSAFE');
+    } finally { closeSync(input); }
+    return { path, identity, hash: `sha256:${hash.digest('hex')}` };
+  };
+  const proofs: ReturnType<typeof fileProof>[] = [];
+  if (backup) {
+    const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
+    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1073741824n + 67108864n;
+    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*10n >= fs.blocks*9n ||
+        (quotaBytes && inspectTree(root)+required > BigInt(quotaBytes))) throw new StoreError('CAPACITY');
+    barrier('portable-transaction-schema-before-backup');
+    const path = join(root, backup);
+    closeSync(privateFile(path));
+    db.prepare('VACUUM INTO ?').run(path); assertPrivate(path, false);
+    barrier('portable-transaction-schema-backup-written');
+    const saved = new DatabaseSync(path, { readOnly: true, allowExtension: false });
+    try {
+      if (saved.prepare('PRAGMA integrity_check').get()!.integrity_check !== 'ok' ||
+          saved.prepare('PRAGMA user_version').get()!.user_version !== 7) throw new StoreError('CORRUPT_STORE');
+      for (const table of tables) {
+        const before = digest(db, table);
+        if (canonical(before) !== canonical(digest(saved, table))) throw new StoreError('CORRUPT_STORE');
+        manifest[table] = before;
+      }
+      const sql = (database: DatabaseSync) => database.prepare('SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name').all();
+      if (canonical(sql(db)) !== canonical(sql(saved))) throw new StoreError('CORRUPT_STORE');
+      manifest.sqlite_schema = hashBytes(canonical(sql(saved)));
+    } finally { saved.close(); }
+    const fd = privateFile(path); try { fsyncSync(fd); } finally { closeSync(fd); }
+    const proof = fileProof(path); proofs.push(proof); backupHash = proof.hash;
+    manifestFile = `${backup}.manifest.json`;
+    const out = privateFile(join(root, manifestFile));
+    try {
+      writeFileSync(out, canonical({ schemaVersion: 1, backup, backupHash, storageVersion: 7,
+        compatibleExecutable, manifest,
+        retainedDirectories: ['objects','staging','uploads','portable'],
+        recovery: 'Copy the backup database and retained directories into a separate owner-only root. Use only the named compatible executable. Keep this root and all prior backups unchanged.' }));
+      fsyncSync(out);
+    } finally { closeSync(out); }
+    proofs.push(fileProof(join(root, manifestFile)));
+    syncDirectory(root);
+    barrier('portable-transaction-schema-backup-verified');
+  }
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    // No pending request, event, projection, receipt or root is transformed.
+    for (const table of tables) if (backup && canonical(manifest[table]) !== canonical(digest(db, table))) throw new StoreError('CORRUPT_STORE');
+    db.prepare('INSERT INTO schema_migrations VALUES (8,?)').run(canonical({ from:7, to:8, capability,
+      strategy:'semantic-version-verified-backup-transactional-activation', backup, backupHash, manifestFile, manifest,
+      rollback: backup ? { compatibleExecutable,  } : null }));
+    db.exec('CREATE INDEX events_v2_transaction_bounds ON events_v2(transaction_id,length(seq),seq); PRAGMA user_version=8');
+    barrier('portable-transaction-schema-before-activation');
+    for (const proof of proofs) {
+      const current = fileProof(proof.path);
+      if (!sameFile(current.identity, proof.identity) || current.hash !== proof.hash) throw new StoreError('CORRUPT_STORE');
+    }
+    db.exec('COMMIT'); syncDirectory(root);
+    barrier('portable-transaction-schema-after-activation');
   } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
 }

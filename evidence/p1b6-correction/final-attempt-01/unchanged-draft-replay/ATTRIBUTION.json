@@ -1,0 +1,187 @@
+{
+  "kind": "draft",
+  "startedAt": "2026-09-26T10:44:39.137Z",
+  "source": {
+    "base": "d4ed76148999978565ca8b37d27612f5b3faa591",
+    "branch": "ideogram-editor-p1",
+    "sourceIdentity": "sha256:fdd95e4aba4ee4884fd83522d53130d765a53145ccf8a3e4806f55c7d9b163ed",
+    "files": [
+      {
+        "path": "server/portable/format.ts",
+        "bytes": 17505,
+        "sha256": "88fb41bdd06bcbed46e051ffc4944c02fc8523274d3c6ecb7529d21e06328893"
+      },
+      {
+        "path": "server/portable/transactions.ts",
+        "bytes": 7369,
+        "sha256": "9caded67013941caec59c220c8746b6ac4b495697bee944ed73c678986170751"
+      },
+      {
+        "path": "server/protocol.ts",
+        "bytes": 25813,
+        "sha256": "9e5f9198f77a78ce6f6d9d7a4334bd5af467a384a050d6c0bf95d7de42601921"
+      },
+      {
+        "path": "server/storage/database.ts",
+        "bytes": 42453,
+        "sha256": "8c6f640248c2298cb71e4e6b3c8bade18126533aede583d9dd97523160aa6181"
+      },
+      {
+        "path": "server/storage/errors.ts",
+        "bytes": 1141,
+        "sha256": "fbd7014db90650b007f996dbcd7d3d7810b346b1136e28420f006851e8dae9dd"
+      },
+      {
+        "path": "server/storage/portable.ts",
+        "bytes": 54598,
+        "sha256": "cfa8948b8a2dbf967f1280542c8c694c00dd6a33b13ddae8a7f47dbc59d3eea8"
+      },
+      {
+        "path": "server/storage/recovery.ts",
+        "bytes": 23277,
+        "sha256": "f6df78ba7a538ae19d52d055ca9421a8cd279a26ed525004da2f8ac6fd6a954b"
+      },
+      {
+        "path": "server/storage/schema.ts",
+        "bytes": 35332,
+        "sha256": "50ddea42423a427e1b55866e48b2d0dd6505f0cecc0a36586e3f3412011f9429"
+      },
+      {
+        "path": "server/storage/worker.ts",
+        "bytes": 9220,
+        "sha256": "a404a288b1abefa7ca436266f82ab32b83601013567f0e6ffa056d104a6ee37d"
+      },
+      {
+        "path": "server/storage/writer.ts",
+        "bytes": 12573,
+        "sha256": "455a8afae7e677a7451fefed594616699103133dac1d454d994b9fd443cb86b0"
+      },
+      {
+        "path": "src/protocol/portable.ts",
+        "bytes": 1867,
+        "sha256": "25b16c6e88a527c61ca16f7ef231621ecedb957209eb5bacdd40137c5281faed"
+      },
+      {
+        "path": "src/protocol/recovery.ts",
+        "bytes": 2661,
+        "sha256": "92255a3d4692b072b7b8e9c5db8eaa92e123dd8e76d5fde9130f9b5fbc536112"
+      },
+      {
+        "path": "src/state/recovery-cache.ts",
+        "bytes": 5129,
+        "sha256": "4244cf3e74e70e573af84ec57b2a69ee628082daf0e1f4079ec74be70f8adae3"
+      },
+      {
+        "path": "src/state/recovery-client.ts",
+        "bytes": 19482,
+        "sha256": "e951903d96d36f94a4a5493df867f6a2607301bd74c64fb6e004a611b2f6a148"
+      },
+      {
+        "path": "tests/assets/storage.test.mjs",
+        "bytes": 14164,
+        "sha256": "cf8e7ba7749b112325493e242cb74eed03bcb6be3ee884d7a4ee8ec943c51fe8"
+      },
+      {
+        "path": "tests/history/schema.test.mjs",
+        "bytes": 14596,
+        "sha256": "8de38268fd9b7545849e54767b9bad1d7e90ac9255e4daea7fafae72945f4e9d"
+      },
+      {
+        "path": "tests/portable/browser-recovery.test.mjs",
+        "bytes": 9086,
+        "sha256": "3920c9279b7bd10093858015e97af4f320842ab654d930945b22f8470ae05e49"
+      },
+      {
+        "path": "tests/portable/compatibility.test.mjs",
+        "bytes": 6932,
+        "sha256": "23e60e6a1111e9186e5803b162f59509c8d86a7d190748bfa57187c0381e5375"
+      },
+      {
+        "path": "tests/portable/imported-drafts.test.mjs",
+        "bytes": 7702,
+        "sha256": "6bc5dcff6650f3efdf472b4605d832511c151ab597f36ad3240da4e54910c8ad"
+      },
+      {
+        "path": "tests/portable/large.test.mjs",
+        "bytes": 6162,
+        "sha256": "06575c2dca85990fd645fc2aa332513a006aac00859b18df88e877c32a4be910"
+      },
+      {
+        "path": "tests/portable/prior-writer.mjs",
+        "bytes": 2339,
+        "sha256": "d4129029e1c18d4454e50851cbb8387b73996a2a241b60cfbaee16f35f04552b"
+      },
+      {
+        "path": "tests/portable/schema.test.mjs",
+        "bytes": 14601,
+        "sha256": "81436a165dc6b73bb5060077bcbe5af1c310327dd4642ddd58bd21550e130f00"
+      },
+      {
+        "path": "tests/portable/transaction-schema.test.mjs",
+        "bytes": 8310,
+        "sha256": "adb7d210d8bddf44c6e3448166ab284153847f7a20ab7f60b485701538f68847"
+      },
+      {
+        "path": "tests/portable/transactions.test.mjs",
+        "bytes": 8577,
+        "sha256": "3e50eb98ac04d346299034b3c0fd942d9deeafd12cc8165354c2de7cc12b4576"
+      },
+      {
+        "path": "tests/protocol/recovery.test.mjs",
+        "bytes": 9811,
+        "sha256": "0de28296bcb6033b749ce6ede56435a5e102bdac734c1f9bce5fe5947d252640"
+      },
+      {
+        "path": "tests/raster/helpers.mjs",
+        "bytes": 3565,
+        "sha256": "931cb64367698970302379d7bbb5223d1ee009f9655b4422976683ab7da17f09"
+      },
+      {
+        "path": "tests/raster/schema.test.mjs",
+        "bytes": 15244,
+        "sha256": "0c69af4234163575563d18ad2ef75cf8a4e90c1073b19a31bea8b2eabc75cd29"
+      },
+      {
+        "path": "tests/raster/storage.test.mjs",
+        "bytes": 8786,
+        "sha256": "889c516ffc77bbd3daabd00f378f2918d60fa25e53500968bca9e6377980d2a8"
+      },
+      {
+        "path": "tooling/PORTABLE.txt",
+        "bytes": 20803,
+        "sha256": "118220fab68c282babc4ea0e5db859b8c061d4949984bc9643bb7c57905745b6"
+      },
+      {
+        "path": "tooling/portable/correction-gates.mjs",
+        "bytes": 4147,
+        "sha256": "cdf3cb2d6896cc84eab9909479af0e9e6dd4eb224c0099bc9a327c1593254855"
+      },
+      {
+        "path": "tooling/portable/correction-identity.mjs",
+        "bytes": 982,
+        "sha256": "c4e3299678db64b736880bf7abdac30308a2ed3acfc7dc57d734474a01d506dd"
+      },
+      {
+        "path": "tooling/portable/correction-observe.mjs",
+        "bytes": 2653,
+        "sha256": "9f87a9c8fc652e026eb6fd0842e6218d65bf1fe8ff4bae67693ca6731fa25c26"
+      },
+      {
+        "path": "tooling/portable/correction-originals.mjs",
+        "bytes": 2207,
+        "sha256": "4fa817c953aaba7d2a517757e29e377d4c219b667e42c8197e2c14f330a3622e"
+      },
+      {
+        "path": "tooling/portable/correction-seal.mjs",
+        "bytes": 1943,
+        "sha256": "c00615586cc2c46a9d7117412fbb72ed7100a3c3167f9365ce781ec4c90474fe"
+      }
+    ]
+  },
+  "original": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1b6-correction/original-review/imported-draft.test.mjs",
+  "originalScriptSHA256": "0cb8d2e9504899f30ce5a29fb926cb5d8917cd71b9888247eb1c853abd5134a3",
+  "isolatedRoot": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/portable-independent-replay-CofNCk",
+  "note": "Script bytes unchanged. Any hardcoded d4ed761 target label in original output is historical script text; this replay executes the correction source/build captured here. No independent approval is implied.",
+  "qualification": false,
+  "finishedAt": "2026-09-26T10:44:41.128Z"
+}

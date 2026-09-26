@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {writeFile} from 'node:fs/promises';
+import {DatabaseSync} from 'node:sqlite';
+import {join} from 'node:path';
+import {setup,copy,preview,workspace,terminal,edit,doc,upload} from './source/tests/portable/helpers.mjs';
+import {importRaster} from './source/tests/raster/helpers.mjs';
+const persist=async(f,sessionId,body)=>{const ui=(await f.read('/api/v1/ui/'+sessionId)).json;const r=await f.post('/api/v1/ui/'+sessionId,{protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:ui.uiSeq,body});assert.equal(r.json.status,'accepted',r.text);return r.json;};
+test('restored current draft can be applied, cleared and included in another full copy',async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const {asset}=await importRaster(f,'hidden-alpha.png');await edit(f,{type:'ImportAsset',assetId:asset.id,layerId:'picture',name:'Original',draft:null});
+ const text=Buffer.from('Reviewer applied current draft — exact 🦋'),s=await upload(f,text,'caption','text/plain'),caption=(await workspace(f,{type:'FinalizeStaging',stagingId:s.stagingId,expectedSha256:s.sha256})).event.payload.asset;
+ await persist(f,'reviewer_editor',{type:'SaveDraft',draft:{id:'rename',generation:'1',kind:'inspector',documentId:'document_1',targetLayerId:'picture',expectedDocumentRevision:'2',assetId:caption.id,composing:false}});
+ const saved=await copy(f),p=await preview(f,saved.bytes);await workspace(f,{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash});const uiId=p.review.uiSessionIds[0],ui=(await f.read('/api/v1/ui/'+uiId)).json,d=ui.drafts[0];assert.equal(d.documentId,p.review.documentId);assert.equal(d.status,'saved-unapplied');
+ const applied=await edit(f,{type:'SetLayerProperties',layerId:d.targetLayerId,layerVersion:'1',properties:{name:text.toString()},draft:{sessionId:uiId,draftId:d.id,generation:d.generation}},p.review.documentId);await persist(f,uiId,{type:'ClearDraft',draftId:d.id,generation:d.generation});
+ const c=f.command({documentId:p.review.documentId,expectedDocumentRevision:applied.document.revision,body:{type:'SaveCopy'}}),result=await f.post('/api/v1/commands',c);let terminalResult=result;if(result.status===202)terminalResult=await terminal(f,c);
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true}),owner='ui:'+f.paired.json.clientId+':'+uiId+':'+d.id+':'+d.generation;const roots=db.prepare('SELECT * FROM roots WHERE owner=?').all(owner),retained=db.prepare('SELECT * FROM roots WHERE hash=?').all(caption.blob.hash);db.close();
+ const evidence={review:p.review,restoredDraft:d,appliedReceipt:applied.receipt,copyCommand:c,copyResponse:{status:terminalResult.status,json:terminalResult.json},expectedDraftOwner:owner,ownerRoots:roots,retainedDraftRoots:retained,sourceDocument:await doc(f),importedDocument:await doc(f,p.review.documentId)};
+ await writeFile(new URL('./imported-draft.json',import.meta.url),JSON.stringify(evidence,null,2));t.diagnostic(JSON.stringify(evidence));assert.equal(terminalResult.json.receipt?.status,'accepted','Known restored draft ownership was not retained for its accepted history fence');
+});

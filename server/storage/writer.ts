@@ -121,6 +121,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     batch: (after: string, highWater: string) => request<ReturnType<RecoveryStore['batch']>>('batch', { after, highWater }),
     snapshotKnown: (id: string) => request<boolean>('snapshotKnown', { id }),
     snapshotContent: (id: string) => request<StoredContent>('snapshotContent', { id }),
+    namespaceContent: (eventId:string, highWater:string) => request<ReturnType<RecoveryStore['namespaceContent']>>('namespaceContent', {eventId,highWater}),
     verifyContent: (handle: string) => request<void>('verifyContent', { handle }),
     content: (handle: string, offset: string, length: number) => request<Uint8Array>('content', { handle, offset, length }),
     dropContent: (handle: string) => request<void>('dropContent', { handle }),

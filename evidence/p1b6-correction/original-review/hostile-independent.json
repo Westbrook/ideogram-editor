@@ -1,0 +1,556 @@
+[
+  {
+    "kind": "healthy",
+    "expected": "editable",
+    "actual": "editable",
+    "passed": true,
+    "archiveSHA256": "13813fcb8fb99b9dd3ebbd2f4be9024b967cebe5ec383d883516b3f7b46ac61c",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "commandId": "2b48d78d-e169-4e89-9793-e58aca7ce82d",
+      "documentRevision": null,
+      "fromSeq": "9",
+      "status": "accepted",
+      "toSeq": "9",
+      "transactionId": "ac17b34d-f9cc-4ae9-9080-16cf54d1e0e2"
+    },
+    "review": {
+      "capturedHighWater": "7",
+      "closureHash": "sha256:17e4930e7b9a804c45b9f3428a36d69d467215045d8da3b8b5accb78c12558fa",
+      "documentId": "p_f41700c4cd6e29e2a4e91773e768db3a6a9f344d08156cb1c0b5125eb518dd8a",
+      "documentSchema": 2,
+      "editable": true,
+      "entityCount": "6",
+      "eventCount": "3",
+      "expiresAt": "2026-09-26T10:56:25.298Z",
+      "formatVersion": 1,
+      "localRetentionExcluded": "obsolete-unattributed-ui-only",
+      "namespaceId": "374f3ed9-2399-44c1-b5d3-1997656cad49",
+      "objectCount": "16",
+      "protocolVersion": 1,
+      "reason": null,
+      "reviewHash": "sha256:a8c335b62753c0d1645ba5aa93a64033d5377f35c617269a64044a9fcf7e0cf0",
+      "reviewId": "9c24000d-992e-4272-8d17-93a2620a0b9a",
+      "scope": "selected-document-current-drafts-and-retained-domain-history",
+      "source": {
+        "byteLength": "25163",
+        "hash": "sha256:13813fcb8fb99b9dd3ebbd2f4be9024b967cebe5ec383d883516b3f7b46ac61c",
+        "mediaType": "application/x-ideogram-project"
+      },
+      "sourceNamespace": "document_1",
+      "targetClientId": "00c52e3d-0cff-4a12-9d14-7909bc316702",
+      "uiSessionCount": "0",
+      "uiSessionIds": []
+    },
+    "accepted": {
+      "commandId": "23e8c5e8-d4a2-432d-a681-2a4ebea7006c",
+      "documentRevision": "2",
+      "fromSeq": "10",
+      "status": "accepted",
+      "toSeq": "10",
+      "transactionId": "28bb8892-55d8-4a04-a6be-8db100d63937"
+    },
+    "sourcePreserved": true
+  },
+  {
+    "kind": "missing-prefix",
+    "expected": "rejected",
+    "actual": "editable",
+    "passed": false,
+    "archiveSHA256": "ee00aeca163f603e6ae53243307556193e335044d04614f3cedf5bab7b9e0703",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "commandId": "0e3eb392-906b-4ce4-96ba-195c7c6b31b4",
+      "documentRevision": null,
+      "fromSeq": "11",
+      "status": "accepted",
+      "toSeq": "11",
+      "transactionId": "bc546d41-5aa3-4e8d-ace4-f15d10e9075f"
+    },
+    "review": {
+      "capturedHighWater": "7",
+      "closureHash": "sha256:73522a2ed0c651914c0f2c1db9adbab569c636246f23f78276ecf6b92b730dbb",
+      "documentId": "p_2bdab184e8df62ce41a97b6bb1096899c86105ad14cebf6bb24b2b1784da615e",
+      "documentSchema": 2,
+      "editable": true,
+      "entityCount": "6",
+      "eventCount": "2",
+      "expiresAt": "2026-09-26T10:56:26.034Z",
+      "formatVersion": 1,
+      "localRetentionExcluded": "obsolete-unattributed-ui-only",
+      "namespaceId": "f7a06611-c66d-4aae-ac58-ef785d1c9475",
+      "objectCount": "16",
+      "protocolVersion": 1,
+      "reason": null,
+      "reviewHash": "sha256:f04acf2341c6257d873d6956c2f7ffd1200ce4f7b038ff1d232f9d1fb0285531",
+      "reviewId": "d30a2868-af40-4aa8-b1c1-63583c19a1fe",
+      "scope": "selected-document-current-drafts-and-retained-domain-history",
+      "source": {
+        "byteLength": "23407",
+        "hash": "sha256:ee00aeca163f603e6ae53243307556193e335044d04614f3cedf5bab7b9e0703",
+        "mediaType": "application/x-ideogram-project"
+      },
+      "sourceNamespace": "document_1",
+      "targetClientId": "00c52e3d-0cff-4a12-9d14-7909bc316702",
+      "uiSessionCount": "0",
+      "uiSessionIds": []
+    },
+    "accepted": {
+      "commandId": "e077bc95-26f4-4276-ba94-d7c1c1288eeb",
+      "documentRevision": "2",
+      "fromSeq": "12",
+      "status": "accepted",
+      "toSeq": "12",
+      "transactionId": "a85266fd-3e4b-4f88-9909-e44e7690fa9d"
+    },
+    "sourcePreserved": true
+  },
+  {
+    "kind": "duplicate-event-id",
+    "expected": "rejected",
+    "actual": "editable",
+    "passed": false,
+    "archiveSHA256": "c6e2adf81f2372c97cac0e4703fa184ac6c9f10866b5000219baba5769fe2c26",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "commandId": "ee31e16b-edd9-45e7-8b26-38c007dddf80",
+      "documentRevision": null,
+      "fromSeq": "13",
+      "status": "accepted",
+      "toSeq": "13",
+      "transactionId": "ab4d20c7-f62d-4e90-b386-33a0e4767ea3"
+    },
+    "review": {
+      "capturedHighWater": "7",
+      "closureHash": "sha256:1c682a55cb6c0b04af8f7d6e21ef5250601c67caeb996a8db81ba363a17feb35",
+      "documentId": "p_ea5a5b0e81327be7706d4f2d706bb9a09477ee1f31300a06c12fd75190b47998",
+      "documentSchema": 2,
+      "editable": true,
+      "entityCount": "6",
+      "eventCount": "3",
+      "expiresAt": "2026-09-26T10:56:26.696Z",
+      "formatVersion": 1,
+      "localRetentionExcluded": "obsolete-unattributed-ui-only",
+      "namespaceId": "3b243fe5-7930-4694-826b-62b77a608e7b",
+      "objectCount": "16",
+      "protocolVersion": 1,
+      "reason": null,
+      "reviewHash": "sha256:b91233881bab1d81369d2b107b2edd988aa356ce0a0c7ef124d2291317160fe1",
+      "reviewId": "05f0ee5c-8f01-4515-8a23-fa03b6311e88",
+      "scope": "selected-document-current-drafts-and-retained-domain-history",
+      "source": {
+        "byteLength": "25163",
+        "hash": "sha256:c6e2adf81f2372c97cac0e4703fa184ac6c9f10866b5000219baba5769fe2c26",
+        "mediaType": "application/x-ideogram-project"
+      },
+      "sourceNamespace": "document_1",
+      "targetClientId": "00c52e3d-0cff-4a12-9d14-7909bc316702",
+      "uiSessionCount": "0",
+      "uiSessionIds": []
+    },
+    "accepted": {
+      "commandId": "ce75061c-1883-4dbe-8463-911c97c9d3c9",
+      "documentRevision": "2",
+      "fromSeq": "14",
+      "status": "accepted",
+      "toSeq": "14",
+      "transactionId": "c854ea99-544e-485a-9011-d61407bd9a83"
+    },
+    "sourcePreserved": true
+  },
+  {
+    "kind": "split-one-command",
+    "expected": "rejected",
+    "actual": "editable",
+    "passed": false,
+    "archiveSHA256": "e6f642af807db51f74d402467f818bb05227edee910bb440442a774361fe620b",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "commandId": "19cb5f8f-e275-4cc6-85b7-7d3fa911bfc3",
+      "documentRevision": null,
+      "fromSeq": "15",
+      "status": "accepted",
+      "toSeq": "15",
+      "transactionId": "c27902cd-3a51-440f-b767-b0b94c73fad7"
+    },
+    "review": {
+      "capturedHighWater": "7",
+      "closureHash": "sha256:8d304581c57df21647769a12159669aa9fa9dcfb227ca9e6dec0ec5ae360110d",
+      "documentId": "p_310b97f0ed545dfc981ed45af79ccd99e89797941bebecb9d7676f531b6bf616",
+      "documentSchema": 2,
+      "editable": true,
+      "entityCount": "6",
+      "eventCount": "3",
+      "expiresAt": "2026-09-26T10:56:27.352Z",
+      "formatVersion": 1,
+      "localRetentionExcluded": "obsolete-unattributed-ui-only",
+      "namespaceId": "453a9b9a-9042-46d9-937c-03c66d723486",
+      "objectCount": "16",
+      "protocolVersion": 1,
+      "reason": null,
+      "reviewHash": "sha256:44114479f9989839f5187970e85042e625a30fe8ce6d7ec825dcc8aa289bc1b1",
+      "reviewId": "fb931b85-e34a-402b-8eef-b549707171a1",
+      "scope": "selected-document-current-drafts-and-retained-domain-history",
+      "source": {
+        "byteLength": "25146",
+        "hash": "sha256:e6f642af807db51f74d402467f818bb05227edee910bb440442a774361fe620b",
+        "mediaType": "application/x-ideogram-project"
+      },
+      "sourceNamespace": "document_1",
+      "targetClientId": "00c52e3d-0cff-4a12-9d14-7909bc316702",
+      "uiSessionCount": "0",
+      "uiSessionIds": []
+    },
+    "accepted": {
+      "commandId": "4d0a18b1-a48c-4a37-ab89-d67f007e13a6",
+      "documentRevision": "2",
+      "fromSeq": "16",
+      "status": "accepted",
+      "toSeq": "16",
+      "transactionId": "aa7f86bc-b95e-46f8-8754-41cf0d448d51"
+    },
+    "sourcePreserved": true
+  },
+  {
+    "kind": "compressed",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "628b7df27d79c2efd560fc4aa05f9f53597821cfe04d88f691c4d93e9b010edd",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "09efc01e-2721-4d6f-8577-01c3bc4fb43f",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "encrypted",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "bba858e7518ce1c9c93ab5eab82f954086a4b289afd4343edafca271e85de795",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "1117b143-466d-4974-bcb5-363c2da39eeb",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "symlink",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "55dc1775296b626c656723fec8dd1ad5a774316b7bc519113773e1c09dd911db",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "f84db108-06f6-408c-a107-5614c2ff9e65",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "executable",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "aaba490489b91445f4fbcbfbbd8955ee2e69603d9e76232612a5e2fd3add9172",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "e03df8de-a5be-429a-9467-189e2c9e2cf8",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "directory-offset",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "0820bccc0da1529e41a7944c41a36a1b4343e25c41bca93ad0553f6a39b48485",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "b95458aa-b42e-4dca-94ae-841c3df271e7",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "crc",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "ed51345238dc31b2d8d9c2c6e16530ce6dea90bcd5f1ae781543efabdcce928d",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "ca4736b2-bb01-4298-aaae-20d9092c81bb",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "sha-object",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "4a5cfcdf2dfbcfbfb91610ceb93fab637b05128c8f6b2cb432eabadd1dfd3394",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "57315b3d-1ab3-40bd-b857-3326e256d424",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "duplicate-decoded-key",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "56226ebbbc69e734456297196f834f866ac5d6b8b7393081011aa39ff7ff34c2",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "fd3aa936-3343-42a7-9d85-b8ee4f5b8d48",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "86",
+        "hash": "sha256:95fc3af1ade331e8d3b605904c0edce644f8782f0b0cd26ac8fee4cb72c5490d",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "missing-object",
+    "expected": "rejected",
+    "actual": "rejected",
+    "passed": true,
+    "archiveSHA256": "00ceae94ba4e0b986be204a49bd46fc6f0ee464bbb0d7af481e8cb1d339c13ad",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "code": "INVALID_INPUT",
+      "commandId": "b6770f08-ef8b-4977-9e11-9863e2e35cc4",
+      "currentRevision": null,
+      "details": {
+        "byteLength": "88",
+        "hash": "sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc",
+        "mediaType": "application/json"
+      },
+      "status": "rejected"
+    },
+    "review": null,
+    "accepted": null,
+    "sourcePreserved": true
+  },
+  {
+    "kind": "unknown-format",
+    "expected": "inspection",
+    "actual": "inspection",
+    "passed": true,
+    "archiveSHA256": "2f8da0f18b51447b38e4b716b4a2fa76ae15eecde38f459f8b0e67be236f2963",
+    "originalTransaction": {
+      "commandId": "aac998be-8c9e-4bc6-b38c-8ed0f1d42bd7",
+      "documentRevision": "2",
+      "fromSeq": "6",
+      "status": "accepted",
+      "toSeq": "7",
+      "transactionId": "81c0592a-ea5d-4738-b404-df918f6245f8"
+    },
+    "previewReceipt": {
+      "commandId": "2b8d6c85-d516-424a-92e1-1fa46aeba001",
+      "documentRevision": null,
+      "fromSeq": "17",
+      "status": "accepted",
+      "toSeq": "17",
+      "transactionId": "14b97ba3-be12-4c1d-a4fa-34caf687497f"
+    },
+    "review": {
+      "capturedHighWater": "7",
+      "closureHash": "sha256:1614ad813691357323b540d84dc2115bc5a19a2e517760375ea597d8f0f8e6b3",
+      "documentId": "p_d9c42a4e52130be06e156c41b61ba1041b4ca1752f0942dff41b3c6ba29d8226",
+      "documentSchema": 2,
+      "editable": false,
+      "entityCount": "0",
+      "eventCount": "0",
+      "expiresAt": "2026-09-26T10:56:28.661Z",
+      "formatVersion": 89,
+      "localRetentionExcluded": "obsolete-unattributed-ui-only",
+      "namespaceId": "5281c07f-c035-4364-805a-d449e967c3d0",
+      "objectCount": "0",
+      "protocolVersion": 1,
+      "reason": "UNSUPPORTED_FORMAT_VERSION",
+      "reviewHash": "sha256:0d4da09e92a0cf19b8b413a43ac1eca84e73c96d3eb5b53d449653703c8ca6de",
+      "reviewId": "74d981d4-8d7d-4d04-9d4b-894eaabd5ea5",
+      "scope": "selected-document-current-drafts-and-retained-domain-history",
+      "source": {
+        "byteLength": "25207",
+        "hash": "sha256:2f8da0f18b51447b38e4b716b4a2fa76ae15eecde38f459f8b0e67be236f2963",
+        "mediaType": "application/x-ideogram-project"
+      },
+      "sourceNamespace": "document_1",
+      "targetClientId": "00c52e3d-0cff-4a12-9d14-7909bc316702",
+      "uiSessionCount": "0",
+      "uiSessionIds": []
+    },
+    "accepted": null,
+    "sourcePreserved": true
+  }
+]

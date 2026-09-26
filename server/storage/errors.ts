@@ -1,7 +1,7 @@
 export type StoreErrorCode = 'ROOT_BUSY' | 'ROOT_UNSAFE' | 'UNSUPPORTED_STORAGE' | 'STALE_EPOCH' |
   'STORAGE_FAILURE' | 'STORAGE_FULL' | 'MISSING_OBJECT' | 'CORRUPT_OBJECT' | 'COMMAND_ID_REUSE' |
   'MALFORMED_REQUEST' | 'PROTOCOL_VERSION' | 'PAYLOAD_TOO_LARGE' | 'UNSUPPORTED_COMMAND' |
-  'OWNER_REQUIRED' | 'NOT_FOUND' | 'CONTENT_WITHHELD' | 'STAGING_ID_REUSE' | 'OFFSET_MISMATCH' | 'REVIEW_EXPIRED' | 'MEDIA_TYPE' | 'CAPACITY' | 'CLOSED' | 'QUEUE_FULL' | 'CORRUPT_STORE';
+  'OWNER_REQUIRED' | 'NOT_FOUND' | 'CONTENT_WITHHELD' | 'STAGING_ID_REUSE' | 'OFFSET_MISMATCH' | 'REVIEW_EXPIRED' | 'MEDIA_TYPE' | 'CAPACITY' | 'CLOSED' | 'QUEUE_FULL' | 'CORRUPT_STORE' | 'TRANSACTION_EVIDENCE_UNAVAILABLE';
 export class StoreError extends Error {
   constructor(readonly code: StoreErrorCode, readonly detail?: import('../../src/protocol/session.js').LocalErrorDetail) {
     super(code === 'ROOT_UNSAFE' ? 'Use owner-only storage without symbolic links or replaced files.' : code);

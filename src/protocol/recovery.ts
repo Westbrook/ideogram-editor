@@ -1,7 +1,7 @@
 import type { BlobRef, DomainEvent, Receipt } from './store.js';
 import type { LocalError, LocalErrorDetail } from './session.js';
 export type ProtocolContentRef = { contentId: string; url: string; blob: BlobRef;
-  encoding: 'lp1-json' | 'lp1-events-jsonl' | 'lp1-snapshot-jsonl'; recordCount: string; expiresAt: string };
+  encoding: 'lp1-json' | 'lp1-events-jsonl' | 'lp1-snapshot-jsonl' | 'lp1-namespace-jsonl'; recordCount: string; expiresAt: string };
 export type WireValue<T> = { kind: 'inline'; value: T } | { kind: 'content-ref'; content: ProtocolContentRef };
 export type RecoveryContext = { recoveryId: string; writerEpoch: string; projectionSchema: number; highWater: string; expiresAt: string };
 export type SnapshotDescriptor = { protocolVersion: 1; snapshotId: string; metadataUrl: string; snapshotSeq: string; recovery: RecoveryContext; content: ProtocolContentRef };

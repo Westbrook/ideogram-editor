@@ -1,3 +1,4 @@
+import { defineTransactions, addTransaction, validateTransactions, validateLegacySurvivors } from './transactions.js';
 import { providerRecord } from './provenance.js';
 import { createHash } from 'node:crypto';
 import { closeSync, constants, openSync, readSync, fsyncSync } from 'node:fs';
@@ -19,7 +20,7 @@ export function defineIndex(db:DatabaseSync){db.exec(`CREATE TABLE entities(kind
  CREATE TABLE assets_queue(id TEXT PRIMARY KEY,done INTEGER NOT NULL DEFAULT 0) STRICT;
  CREATE TABLE payloads(hash TEXT PRIMARY KEY,json TEXT NOT NULL) STRICT;
  CREATE TABLE segments(path TEXT PRIMARY KEY,sha256 TEXT NOT NULL,bytes TEXT NOT NULL,kind TEXT NOT NULL,count TEXT NOT NULL,level INTEGER NOT NULL) STRICT;
- CREATE TABLE records(hash TEXT PRIMARY KEY,kind TEXT NOT NULL,id TEXT NOT NULL,json TEXT NOT NULL) STRICT;`);}
+ CREATE TABLE records(hash TEXT PRIMARY KEY,kind TEXT NOT NULL,id TEXT NOT NULL,json TEXT NOT NULL) STRICT;`);defineTransactions(db);}
 export function addRef(db:DatabaseSync,r:BlobRef){validateBlob(r);const old=db.prepare('SELECT * FROM refs WHERE hash=?').get(r.hash);if(old&&String(old.bytes)!==r.byteLength)invalid();db.prepare('INSERT OR IGNORE INTO refs(hash,bytes,media) VALUES (?,?,?)').run(r.hash,r.byteLength,r.mediaType);}
 export function references(v:unknown,emit:(r:BlobRef)=>void){if(!v||typeof v!=='object')return;if(!Array.isArray(v)&&Object.keys(v).sort().join(',')==='byteLength,hash,mediaType'){validateBlob(v);emit(v);return;}for(const child of Object.values(v))references(child,emit);}
 export function descriptor(r:any):PortableSegment{return {path:String(r.path),sha256:String(r.sha256),bytes:String(r.bytes),kind:r.kind,recordCount:String(r.count)};}
@@ -29,7 +30,7 @@ export async function fileSource(name:string,path:string,check:()=>void):Promise
  return {name,bytes:size,crc:(crc^0xffffffff)>>>0,sha256:h.digest('hex'),chunks:async function*(){const f=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW),b=Buffer.alloc(1048576);try{for(;;){check();const n=readSync(f,b);if(!n)break;yield b.subarray(0,n);}}finally{closeSync(f);}}};
 }
 export async function encodeRecords(db:DatabaseSync,directory:string,sourceNamespace:string,highWater:string,check:()=>void,segmentBytes=SEGMENT_BYTES){
- if(segmentBytes<32768||segmentBytes>SEGMENT_BYTES)invalid();let number=0;
+ if(segmentBytes<32768||segmentBytes>SEGMENT_BYTES)invalid();await validateTransactions(db,highWater,check);let number=0;
  const make=async(kind:'records'|'events'|'index',rows:AsyncIterable<unknown>,level:number)=>{
   let fd=-1,path='',count=0n,bytes=0;
   const end=async()=>{if(fd<0)return;fsyncSync(fd);closeSync(fd);fd=-1;const s=await fileSource(path,join(directory,path.replace('/','-')),check);db.prepare('INSERT INTO segments VALUES (?,?,?,?,?,?)').run(path,s.sha256,String(s.bytes),kind,String(count),level);};
@@ -38,6 +39,7 @@ export async function encodeRecords(db:DatabaseSync,directory:string,sourceNames
   }await end();
  };
  await make('records',(async function*(){
+  for(const r of db.prepare('SELECT json FROM transactions ORDER BY archive,length(first_seq),first_seq').iterate())yield JSON.parse(String(r.json));
   for(const r of db.prepare('SELECT * FROM entities ORDER BY kind,id').iterate()){
    const payload=String(r.json),ref={hash:hashBytes(payload),byteLength:String(Buffer.byteLength(payload)),mediaType:'application/json'};addRef(db,ref);db.prepare('INSERT OR IGNORE INTO payloads VALUES (?,?)').run(ref.hash,payload);
    const record={schemaVersion:1,kind:'entity',entityType:String(r.kind),logicalId:String(r.id),payloadVersion:1,payloadRef:ref,dependencies:[]};const hash=hashBytes(canonical(record));db.prepare('UPDATE entities SET record_hash=? WHERE kind=? AND id=?').run(hash,r.kind,r.id);yield record;
@@ -50,7 +52,7 @@ export async function encodeRecords(db:DatabaseSync,directory:string,sourceNames
   await make('index',(async function*(){let group:PortableSegment[]=[];for(const r of db.prepare('SELECT * FROM segments WHERE level=? ORDER BY path').iterate(level)){group.push(descriptor(r));if(group.length===16){yield {schemaVersion:1,kind:'index',segments:group};group=[];}}if(group.length)yield {schemaVersion:1,kind:'index',segments:group};})(),level+1);level++;
  }
  const doc=db.prepare("SELECT id,record_hash FROM entities WHERE kind='document'").get();if(!doc)invalid();
- const manifest:PortableManifest={formatVersion:1,documentSchema:2,sourceNamespace,capturedHighWater:highWater,complete:true,rootRefs:[{kind:'document',logicalId:String(doc!.id),recordHash:String(doc!.record_hash)}],segments:db.prepare('SELECT * FROM segments WHERE level=? ORDER BY path').all(level).map(descriptor)};
+ const manifest:PortableManifest={formatVersion:2,documentSchema:2,sourceNamespace,capturedHighWater:highWater,complete:true,rootRefs:[{kind:'document',logicalId:String(doc!.id),recordHash:String(doc!.record_hash)}],segments:db.prepare('SELECT * FROM segments WHERE level=? ORDER BY path').all(level).map(descriptor)};
  const fd=privateFile(join(directory,'manifest.json'));try{write(fd,Buffer.from(canonical(manifest)));fsyncSync(fd);}finally{closeSync(fd);}return manifest;
 }
 function segment(s:any){keys(s,['path','sha256','bytes','kind','recordCount']);ok(/^records\/(0|[1-9][0-9]*)\.jsonl$/.test(s.path)&&/^[a-f0-9]{64}$/.test(s.sha256)&&isSeq(s.bytes)&&BigInt(s.bytes)<=BigInt(SEGMENT_BYTES)&&['index','events','records'].includes(s.kind)&&isSeq(s.recordCount));}
@@ -69,16 +71,17 @@ async function root(zip:ZipIndex,db:DatabaseSync,check:()=>void):Promise<any>{
   await expect(34);let name='';for(;;){const b=await take();if(b===34)break;if(!/[A-Za-z]/.test(String.fromCharCode(b))||b<0||name.length>32)invalid();name+=String.fromCharCode(b);}if(name<=last||seen.has(name))invalid();seen.add(name);last=name;await expect(58);
   if(name==='segments'||name==='rootRefs'){await expect(91);let initial=true;for(;;){if(await peek()===93){await take();break;}if(!initial)await expect(44);initial=false;const v=await value();if(name==='segments'){segment(v);db.prepare('INSERT INTO segment_queue VALUES (?,0,?)').run(v.path,canonical(v));}else{keys(v,['kind','logicalId','recordHash']);ok(isId(v.kind)&&isId(v.logicalId)&&/^sha256:[a-f0-9]{64}$/.test(v.recordHash));db.prepare('INSERT INTO portable_roots VALUES (?,?,?)').run(v.kind,v.logicalId,v.recordHash);}}}
   else scalar[name]=await value();
- }if(await peek()!==-1||['capturedHighWater','complete','documentSchema','formatVersion','rootRefs','segments','sourceNamespace'].some(k=>!seen.has(k))||scalar.formatVersion===1&&seen.size!==7)invalid();return scalar;
+ }if(await peek()!==-1||['capturedHighWater','complete','documentSchema','formatVersion','rootRefs','segments','sourceNamespace'].some(k=>!seen.has(k))||[1,2].includes(scalar.formatVersion)&&seen.size!==7)invalid();return scalar;
 }
 export async function decodeRecords(zip:ZipIndex,db:DatabaseSync,check:()=>void){
  defineIndex(db);db.exec('CREATE TABLE segment_queue(path TEXT PRIMARY KEY,state INTEGER NOT NULL,json TEXT NOT NULL) STRICT; CREATE TABLE portable_roots(kind TEXT NOT NULL,id TEXT NOT NULL,hash TEXT NOT NULL,PRIMARY KEY(kind,id)) STRICT; CREATE TABLE segment_edges(parent TEXT NOT NULL,child TEXT NOT NULL,PRIMARY KEY(parent,child)) STRICT; CREATE TABLE dependency_edges(owner TEXT NOT NULL,kind TEXT NOT NULL,id TEXT NOT NULL,hash TEXT NOT NULL) STRICT;');
  const manifest=await root(zip,db,check);if(!Number.isSafeInteger(manifest.formatVersion)||!Number.isSafeInteger(manifest.documentSchema)||!isId(manifest.sourceNamespace)||!isSeq(manifest.capturedHighWater)||typeof manifest.complete!=='boolean')invalid();
- if(manifest.formatVersion!==1||manifest.documentSchema!==2)return {...manifest,unsupported:'UNSUPPORTED_FORMAT_VERSION'};
+ if(![1,2].includes(manifest.formatVersion)||manifest.documentSchema!==2)return {...manifest,unsupported:'UNSUPPORTED_FORMAT_VERSION'};
  for(;;){check();const q=db.prepare('SELECT * FROM segment_queue WHERE state=0 ORDER BY path LIMIT 1').get();if(!q)break;const s=JSON.parse(String(q.json)),e=zip.entry(s.path);if(e.bytes!==BigInt(s.bytes)||e.sha256!==s.sha256)invalid();let count=0n;
   for await(const r of lines(zip,s.path,check)){count++;if(r.schemaVersion!==1)return {...manifest,unsupported:'UNSUPPORTED_RECORD_VERSION'};
    if(r.kind==='index'){keys(r,['schemaVersion','kind','segments']);if(s.kind!=='index'||!Array.isArray(r.segments))invalid();for(const child of r.segments){segment(child);const known=db.prepare('SELECT json FROM segment_queue WHERE path=?').get(child.path);if(known&&known.json!==canonical(child))invalid();if(!known)db.prepare('INSERT INTO segment_queue VALUES (?,0,?)').run(child.path,canonical(child));db.prepare('INSERT OR IGNORE INTO segment_edges VALUES (?,?)').run(s.path,child.path);}}
    else if(r.kind==='event'){keys(r,['schemaVersion','kind','event']);if(s.kind!=='events')invalid();if(r.event?.schemaVersion!==1||r.event?.payloadVersion!==1)return {...manifest,unsupported:'UNSUPPORTED_EVENT_VERSION'};if(!['DocumentCreated','CheckpointSaved','AssetRegistered','ImageEdited','HistoryNavigated','ImageEditPreviewPrepared','ImageEditReviewPrepared','BundleImported','BundlePrepared','BundleImportReviewed','PortableCancelled','StagingTransferReviewPrepared','RasterReviewPrepared','StagingOwnershipTransferred'].includes(r.event.type))return {...manifest,unsupported:'UNSUPPORTED_EVENT_KIND'};event(r.event);if(BigInt(r.event.workspaceSeq)>BigInt(manifest.capturedHighWater))invalid();try{db.prepare('INSERT INTO events VALUES (?,?,?)').run(r.event.workspaceSeq,r.event.transactionId,canonical(r.event));}catch{invalid();}}
+   else if(r.kind==='transaction'){if(manifest.formatVersion!==2||s.kind!=='records')invalid();addTransaction(db,r);}
    else if(r.kind==='object'){keys(r,['schemaVersion','kind','sha256','bytes','mediaType','path']);if(s.kind!=='records'||!isSeq(r.bytes)||r.path!=='objects/'+r.sha256||!/^[0-9a-f]{64}$/.test(r.sha256))invalid();const e=zip.entry(r.path);if(e.bytes!==BigInt(r.bytes)||e.sha256!==r.sha256)invalid();if(db.prepare('SELECT 1 FROM refs WHERE hash=?').get('sha256:'+r.sha256))invalid();addRef(db,{hash:'sha256:'+r.sha256,byteLength:r.bytes,mediaType:r.mediaType});}
    else if(r.kind==='entity'){keys(r,['schemaVersion','kind','logicalId','entityType','payloadVersion','payloadRef','dependencies']);if(s.kind!=='records'||!isId(r.logicalId)||typeof r.entityType!=='string'||!Number.isSafeInteger(r.payloadVersion)||!Array.isArray(r.dependencies))invalid();validateBlob(r.payloadRef);if(r.payloadRef.mediaType!=='application/json')invalid();
     const hash=hashBytes(canonical(r));try{db.prepare('INSERT INTO records VALUES (?,?,?,?)').run(hash,r.entityType,r.logicalId,canonical(r));}catch{invalid();}
@@ -98,9 +101,7 @@ export async function decodeRecords(zip:ZipIndex,db:DatabaseSync,check:()=>void)
  for(const r of db.prepare('SELECT * FROM dependency_edges').iterate())if(!db.prepare('SELECT 1 FROM records WHERE hash=? AND kind=? AND id=?').get(r.hash,r.kind,r.id))invalid();
  for(const r of db.prepare('SELECT * FROM records').iterate()){const v=JSON.parse(String(r.json));if(v.payloadVersion!==1||!['document','history','checkpoint','asset','draft','portable-provider'].includes(v.entityType))return {...manifest,unsupported:'UNSUPPORTED_ENTITY_VERSION'};const ref=v.payloadRef,e=zip.entry('objects/'+ref.hash.slice(7));if(e.bytes!==BigInt(ref.byteLength)||e.bytes>65536n)invalid();const chunks:Buffer[]=[];for await(const b of zip.chunks(e,check))chunks.push(Buffer.from(b));const payload=json(Buffer.concat(chunks));if(v.entityType==='portable-provider')providerRecord(payload);else if(v.entityType!=='draft')entity(v.entityType,payload);db.prepare('INSERT INTO entities VALUES (?,?,?,?)').run(v.entityType,v.logicalId,canonical(payload),r.hash);}
  if(!db.prepare("SELECT 1 FROM portable_roots WHERE kind='document' AND id=?").get(manifest.sourceNamespace))invalid();
- // Transactions may have gaps between them from unrelated workspace activity;
- // each retained transaction is contiguous and cannot recur after another one.
- db.exec('CREATE TABLE seen_transactions(id TEXT PRIMARY KEY) STRICT');let tx='',seq=0n,identity='';
- for(const r of db.prepare('SELECT * FROM events ORDER BY length(seq),seq').iterate()){const e=JSON.parse(String(r.json)),key=canonical([e.commandId,e.correlationId,e.causationId,e.writerEpoch]);if(r.tx!==tx){tx=String(r.tx);identity=key;try{db.prepare('INSERT INTO seen_transactions VALUES (?)').run(tx);}catch{invalid();}}else if(BigInt(String(r.seq))!==seq+1n||key!==identity)invalid();seq=BigInt(String(r.seq));}
+ if(manifest.formatVersion===1){await validateLegacySurvivors(db,check);return {...manifest,unsupported:'LEGACY_TRANSACTION_BOUNDS_UNAVAILABLE'};}
+ await validateTransactions(db,manifest.capturedHighWater,check);
  return manifest;
 }

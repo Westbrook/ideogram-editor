@@ -60,13 +60,13 @@ export class ProtocolRoutes {
     if(imageEdit){if(!isId(imageEdit[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:imageEdit[1],id:imageEdit[2],query:[]};}
     const ui=/^\/api\/v1\/ui\/([^/]+)$/.exec(path);
     if(ui){if(!isId(ui[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET','POST'],kind:'ui',id:ui[1],query:[]};}
-    const match = /^\/api\/v1\/(commands|documents|snapshots|protocol-content|recovery)\/([^/]+)(\/release)?$/.exec(path);
+    const match = /^\/api\/v1\/(commands|documents|snapshots|protocol-content|recovery|namespace-events)\/([^/]+)(\/release)?$/.exec(path);
     if (!match) return null;
     if (!isId(match[2])) throw new ProtocolError('MALFORMED_REQUEST');
     const kind = match[1];
     if ((kind === 'recovery') !== (match[3] === '/release')) throw new ProtocolError('NOT_FOUND');
     return { allow: kind === 'recovery' ? ['POST'] : kind === 'protocol-content' ? ['GET','HEAD'] : ['GET'],
-      kind, id: match[2], query: ['snapshots','protocol-content'].includes(kind) ? ['recoveryId'] : [] };
+      kind, id: match[2], query: ['snapshots','protocol-content','namespace-events'].includes(kind) ? ['recoveryId'] : [] };
   }
   private async prune() {
     const now = this.now();
@@ -200,6 +200,11 @@ export class ProtocolRoutes {
         authenticate(); sendJSON(response,200,result);
       } else if (route.kind === 'events') {
         const page = await this.page(params.get('after') ?? '', params.get('recoveryId'), session); authenticate(); sendJSON(response,200,page);
+      } else if (route.kind === 'namespace-events') {
+        const recoveryId=params.get('recoveryId');if(!recoveryId||!isId(recoveryId))throw new ProtocolError('MALFORMED_REQUEST');
+        const lease=this.lease(recoveryId,session),value=await this.writer.namespaceContent(id,lease.context.highWater);
+        const content=await this.register(value.content,session,lease);authenticate();this.lease(recoveryId,session);
+        sendJSON(response,200,{protocolVersion:1,...value,content,recovery:this.touch(lease)});
       } else if (route.kind === 'snapshots') {
         const recoveryId = params.get('recoveryId'); if (!recoveryId || !isId(recoveryId)) throw new ProtocolError('MALFORMED_REQUEST');
         const lease = this.lease(recoveryId, session);

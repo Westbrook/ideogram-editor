@@ -1,0 +1,103 @@
+{
+  "reviewer": "agent-d63087fb-0272-4b46-8339-4396fafab10a",
+  "target": "d4ed76148999978565ca8b37d27612f5b3faa591",
+  "meaning": "Unchanged selected fail-before artifacts; SHA256SUMS is the original full external manifest, not a claim that this selected copy contains every original artifact.",
+  "files": [
+    {
+      "name": "SEAL.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/SEAL.json",
+      "bytes": 990,
+      "sha256": "0d4c428d08b76cbf50a8eda3a5e5edd37ccc54f70c0138eb4354efd3089801e7"
+    },
+    {
+      "name": "SHA256SUMS",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/SHA256SUMS",
+      "bytes": 10860,
+      "sha256": "3a7bc356d3bdeadb3d24aefda21929764ef96be505aec935d4db850dc0121c29"
+    },
+    {
+      "name": "VERDICT.txt",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/VERDICT.txt",
+      "bytes": 18820,
+      "sha256": "cc4173dac44efd5b2728889e538bfe985ce1363ca812fa9c68025561327abbae"
+    },
+    {
+      "name": "drop-transaction-prefix.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/drop-transaction-prefix.json",
+      "bytes": 2406,
+      "sha256": "becb379bfe23b58c03549a7361fe7a22332406a56d829726b8052f8dd5336f7f"
+    },
+    {
+      "name": "drop-transaction-prefix.zip",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/drop-transaction-prefix.zip",
+      "bytes": 23385,
+      "sha256": "a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd"
+    },
+    {
+      "name": "transaction-boundary-01.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/transaction-boundary-01.log",
+      "bytes": 7656,
+      "sha256": "39bc0a29efddbd29834aad48ad3346115a9a2ab92987564c8977e9dd25c87db5"
+    },
+    {
+      "name": "transaction-boundary.test.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/transaction-boundary.test.mjs",
+      "bytes": 3286,
+      "sha256": "752c25afb05bb30382a9439da101bf6d29e042cbd6f3bebd7dee4756acd3c7db"
+    },
+    {
+      "name": "browser-import.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/browser-import.mjs",
+      "bytes": 3115,
+      "sha256": "02f311fadf3c13f77eaa5c50ff101dc7bbf48be13ac35b75a7864187ea369046"
+    },
+    {
+      "name": "browser-import.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/browser-import.json",
+      "bytes": 8619,
+      "sha256": "d45b21352f2fa69adb383c9a69a5a1ef3777c4adc778f86a9cb05fa4ff6327fd"
+    },
+    {
+      "name": "browser-import-01.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/browser-import-01.log",
+      "bytes": 6868,
+      "sha256": "abfdcff10fba3254f1bb87a2457a8a61bd031abfa207a9845de38f6ca9ba2f41"
+    },
+    {
+      "name": "imported-draft.test.mjs",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/imported-draft.test.mjs",
+      "bytes": 3263,
+      "sha256": "0cb8d2e9504899f30ce5a29fb926cb5d8917cd71b9888247eb1c853abd5134a3"
+    },
+    {
+      "name": "imported-draft.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/imported-draft.json",
+      "bytes": 5918,
+      "sha256": "16cfb5bb51e8aaecbcc798b262e5618ce9a006eaf8ac67eb81f0c6cae55f78d8"
+    },
+    {
+      "name": "imported-draft-01.log",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/imported-draft-01.log",
+      "bytes": 5849,
+      "sha256": "7406e8caad34c41a1ac463677cea10673579ba6515109fed8a74e419d390e500"
+    },
+    {
+      "name": "hostile-independent.json",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/hostile-independent.json",
+      "bytes": 18863,
+      "sha256": "a28cd041d0ce95a90003c718fc41730a53c99e03cac3ca9f1bad1644a067accc"
+    },
+    {
+      "name": "hostile-duplicate-event-id.zip",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/hostile-duplicate-event-id.zip",
+      "bytes": 25163,
+      "sha256": "c6e2adf81f2372c97cac0e4703fa184ac6c9f10866b5000219baba5769fe2c26"
+    },
+    {
+      "name": "hostile-split-one-command.zip",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/hostile-split-one-command.zip",
+      "bytes": 25146,
+      "sha256": "e6f642af807db51f74d402467f818bb05227edee910bb440442a774361fe620b"
+    }
+  ]
+}

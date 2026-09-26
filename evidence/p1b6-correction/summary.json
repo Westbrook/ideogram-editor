@@ -1,0 +1,451 @@
+{
+  "task": "P1b.6 full-history portable copies \u2014 bounded I-PF01/I-PF02/I-PF03 correction",
+  "taskNoteId": "8c5b65fb-17c0-4a5a-97e3-ec95cf7f126b",
+  "independentReviewTask": "c91db4c3-2a29-4b3d-b3a3-0329b48fbc55",
+  "prContext": "cbd63320-6def-4beb-b78f-de897caf3cdf",
+  "status": "review_required",
+  "base": "d4ed76148999978565ca8b37d27612f5b3faa591",
+  "branch": "ideogram-editor-p1",
+  "commit": "Containing Git commit; exact committed HEAD is recorded in the task and shared PR Context.",
+  "pr": null,
+  "ciRun": null,
+  "sourceIdentity": "sha256:fdd95e4aba4ee4884fd83522d53130d765a53145ccf8a3e4806f55c7d9b163ed",
+  "sourceFiles": [
+    "server/portable/format.ts",
+    "server/portable/transactions.ts",
+    "server/protocol.ts",
+    "server/storage/database.ts",
+    "server/storage/errors.ts",
+    "server/storage/portable.ts",
+    "server/storage/recovery.ts",
+    "server/storage/schema.ts",
+    "server/storage/worker.ts",
+    "server/storage/writer.ts",
+    "src/protocol/portable.ts",
+    "src/protocol/recovery.ts",
+    "src/state/recovery-cache.ts",
+    "src/state/recovery-client.ts",
+    "tests/assets/storage.test.mjs",
+    "tests/history/schema.test.mjs",
+    "tests/portable/browser-recovery.test.mjs",
+    "tests/portable/compatibility.test.mjs",
+    "tests/portable/imported-drafts.test.mjs",
+    "tests/portable/large.test.mjs",
+    "tests/portable/prior-writer.mjs",
+    "tests/portable/schema.test.mjs",
+    "tests/portable/transaction-schema.test.mjs",
+    "tests/portable/transactions.test.mjs",
+    "tests/protocol/recovery.test.mjs",
+    "tests/raster/helpers.mjs",
+    "tests/raster/schema.test.mjs",
+    "tests/raster/storage.test.mjs",
+    "tooling/PORTABLE.txt",
+    "tooling/portable/correction-gates.mjs",
+    "tooling/portable/correction-identity.mjs",
+    "tooling/portable/correction-observe.mjs",
+    "tooling/portable/correction-originals.mjs",
+    "tooling/portable/correction-seal.mjs"
+  ],
+  "finalGates": "evidence/p1b6-correction/final-gates-01.json",
+  "gateCount": 26,
+  "gatePasses": 26,
+  "portableTests": 125,
+  "startedAt": "2026-09-26T10:41:12.349Z",
+  "finishedAt": "2026-09-26T10:49:18.815Z",
+  "toolchain": {
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "browser": "Chromium 153.0.8010.12",
+    "dependencies": "Existing approved public paths; no dependency/vendor/lockfile changes."
+  },
+  "verification": {
+    "command": "PATH=\"$PWD/.toolchain/bin:$PATH\" node tooling/portable/correction-gates.mjs 01",
+    "details": "final-gates-01.json records exact commands, UTC intervals, exits, output paths, and matching before/after source identities for every gate.",
+    "gates": [
+      {
+        "name": "typecheck",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:41:12.404Z",
+        "finishedAt": "2026-09-26T10:41:13.522Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/typecheck.txt"
+      },
+      {
+        "name": "build",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:41:13.589Z",
+        "finishedAt": "2026-09-26T10:41:16.216Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/build.txt"
+      },
+      {
+        "name": "vendor",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:41:16.332Z",
+        "finishedAt": "2026-09-26T10:41:16.592Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/vendor.txt"
+      },
+      {
+        "name": "raster-inputs",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:41:16.640Z",
+        "finishedAt": "2026-09-26T10:41:16.795Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/raster-inputs.txt"
+      },
+      {
+        "name": "spec",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:41:16.843Z",
+        "finishedAt": "2026-09-26T10:41:17.014Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/spec.txt"
+      },
+      {
+        "name": "spec-mutations",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:41:17.062Z",
+        "finishedAt": "2026-09-26T10:41:20.091Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/spec-mutations.txt"
+      },
+      {
+        "name": "portable",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:41:20.151Z",
+        "finishedAt": "2026-09-26T10:44:35.436Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/portable.txt"
+      },
+      {
+        "name": "unchanged-browser-repro",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:44:35.514Z",
+        "finishedAt": "2026-09-26T10:44:39.004Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/unchanged-browser-repro.txt"
+      },
+      {
+        "name": "unchanged-draft-repro",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:44:39.067Z",
+        "finishedAt": "2026-09-26T10:44:41.132Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/unchanged-draft-repro.txt"
+      },
+      {
+        "name": "portable-volume",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:44:41.195Z",
+        "finishedAt": "2026-09-26T10:44:44.480Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/portable-volume.txt"
+      },
+      {
+        "name": "history",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:44:44.533Z",
+        "finishedAt": "2026-09-26T10:45:40.860Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/history.txt"
+      },
+      {
+        "name": "raster",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:45:40.948Z",
+        "finishedAt": "2026-09-26T10:46:59.244Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/raster.txt"
+      },
+      {
+        "name": "assets",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:46:59.318Z",
+        "finishedAt": "2026-09-26T10:47:28.762Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/assets.txt"
+      },
+      {
+        "name": "protocol",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:47:28.821Z",
+        "finishedAt": "2026-09-26T10:47:50.612Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/protocol.txt"
+      },
+      {
+        "name": "session",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:47:50.676Z",
+        "finishedAt": "2026-09-26T10:47:55.769Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/session.txt"
+      },
+      {
+        "name": "store",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:47:55.833Z",
+        "finishedAt": "2026-09-26T10:48:12.768Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/store.txt"
+      },
+      {
+        "name": "store-volume",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:48:12.919Z",
+        "finishedAt": "2026-09-26T10:48:15.753Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/store-volume.txt"
+      },
+      {
+        "name": "assets-volume",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:48:15.870Z",
+        "finishedAt": "2026-09-26T10:48:19.552Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/assets-volume.txt"
+      },
+      {
+        "name": "recovery",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:48:19.701Z",
+        "finishedAt": "2026-09-26T10:48:38.638Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/recovery.txt"
+      },
+      {
+        "name": "history-browser",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:48:38.693Z",
+        "finishedAt": "2026-09-26T10:48:46.026Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/history-browser.txt"
+      },
+      {
+        "name": "raster-browser",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:48:46.077Z",
+        "finishedAt": "2026-09-26T10:48:47.537Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/raster-browser.txt"
+      },
+      {
+        "name": "shell",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:48:47.585Z",
+        "finishedAt": "2026-09-26T10:48:54.544Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/shell.txt"
+      },
+      {
+        "name": "fresh-consumer",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:48:54.599Z",
+        "finishedAt": "2026-09-26T10:49:13.597Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/fresh-consumer.txt"
+      },
+      {
+        "name": "observations",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:49:13.653Z",
+        "finishedAt": "2026-09-26T10:49:18.648Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/observations.txt"
+      },
+      {
+        "name": "preservation",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:49:18.710Z",
+        "finishedAt": "2026-09-26T10:49:18.723Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/preservation.txt"
+      },
+      {
+        "name": "source-whitespace",
+        "result": "PASS",
+        "startedAt": "2026-09-26T10:49:18.776Z",
+        "finishedAt": "2026-09-26T10:49:18.789Z",
+        "log": "evidence/p1b6-correction/final-attempt-01/source-whitespace.txt"
+      }
+    ],
+    "preservation": "Preservation gate confirms docs, vendor, package lockfile, report locator and all earlier evidence unchanged from d4ed761. Original reviewer directory was read only."
+  },
+  "corrections": {
+    "I-PF01": {
+      "status": "OPEN pending independent corrected-target approval",
+      "contract": "Coordinator-approved successor PF-1 formatVersion2, documentSchema2, unchanged original event objects/wrappers/bytes. Bounded versioned descriptors use exact source accepted receipts, inclusive ranges/count and SHA256 over canonical original event JSON plus LF per event. This proves internal consistency, not external authenticity.",
+      "behavior": [
+        "Complete ranges, count, hash, command/transaction identity, unique events, common correlation/causation/epoch and domain revision validate before editable review.",
+        "Retained nested archives are traversed using a disk-backed queue and bounded IO; required original history is not omitted.",
+        "Unprovable v1 originals stay inspection-only. Already accepted namespaces remain unchanged; new complete copies require matching immutable original journal/receipts or carried verified scope evidence. Proven mismatch rejects; missing evidence pauses with explicit retained-archive recovery guidance.",
+        "Pending v1 captures retain exact original command/hash/operation/frozen capture/pins. No live recapture, historical backfill, old-ID mutation, pruning or authority renewal.",
+        "Schema8 capability fences old writers, with verified schema7 rollback data and manifest naming actual d4ed761."
+      ],
+      "tests": [
+        "Healthy v2 exact event/receipt roundtrip and nested new-workspace import with exact composite bytes.",
+        "Public prefix/tail/count/range/hash/receipt/descriptor/event-ID/split-command rejection and original source preservation.",
+        "Unchanged original reviewer hostile ZIP corpus cannot publish an editable namespace.",
+        "Actual d4 accepted healthy, truncated and foreign v1 namespaces; proven and unprovable original pending captures.",
+        "Actual d4 refusal and rollback reopening, every original table/file retained, capacity/corrupt backup/manifest and all five activation SIGKILL boundaries."
+      ]
+    },
+    "I-PF02": {
+      "status": "OPEN pending independent corrected-target approval",
+      "behavior": "BundleImported carries a pinned transaction reference even on SSE. Owner/session/epoch/highWater-bound namespace endpoint streams immutable mapped domain rows using LP-1 content integrity. Browser validates and hydrates a private generation before atomic cursor publication. Private UI and inert provider data keep separate access paths.",
+      "tests": [
+        "Actual Chromium with 342374-byte namespace, descriptor abort/context mismatch/content abort/truncation, confirmed injection and prior-generation retention.",
+        "Actual durable SSE cursor polling and duplicate delivery, with all namespace rows matching the server.",
+        "Snapshot plus event-tail recovery after restart.",
+        "Unchanged reviewer browser script replay now has exact document, all3 assets,2 history rows and1 checkpoint at cursor11; zero external requests."
+      ],
+      "readback": "final-attempt-01/unchanged-replay-readback.json"
+    },
+    "I-PF03": {
+      "status": "OPEN pending independent corrected-target approval",
+      "behavior": "Atomic import creates exact target-client/mapped-session/draft/generation roots from reviewed source bytes and frozen mapping; accepted-history ownership persists after apply/clear. No global root scan, guessed association or unrelated legacy cleanup.",
+      "tests": [
+        "Genuine v2 import, restored draft apply, clear, complete recopy, fresh reopen, exact bytes, restart and repeat/dedup.",
+        "Distinct-document private draft exclusion and original prior-schema clear/supersede/retarget/reuse/count+age compaction controls.",
+        "Missing required current or history owner roots still refuse a complete-copy claim.",
+        "Injected atomic import failure rolls back mapped ownership/namespace and preserves originals.",
+        "Unchanged reviewer draft script now returns200 accepted SaveCopy after apply/clear, with the exact mapped owner root retained."
+      ]
+    }
+  },
+  "A-PF01": {
+    "status": "OPEN pending independent disposition",
+    "source": "Prior d4 correction retained; no renewed authority under an expired original command.",
+    "retrySemantics": "Capacity-restored same-authority retry resumes identical command/hash/operation/review and remains deduplicated after accepted restart. Pending restart retains original expired-review outcome; renewed review and import use NEW command identity.",
+    "finalCorrelations": [
+      {
+        "recovery": "same-authority-retry",
+        "sqlitePageLimit": 660,
+        "restoredFreePages": 493,
+        "fillerRows": 437,
+        "nativeSQLiteCode": 13,
+        "actualNamespaceRowsAfterFailure": 0,
+        "observedFailure": "STORAGE_FULL",
+        "sourceTablesPreserved": [
+          "documents",
+          "history",
+          "checkpoints",
+          "objects",
+          "roots",
+          "commands",
+          "events_v2",
+          "assets",
+          "asset_dependencies",
+          "ui_checkpoints",
+          "ui_events",
+          "ui_receipts",
+          "staged_assets",
+          "portable_reviews",
+          "portable_review_sources",
+          "portable_review_maps",
+          "portable_pins"
+        ],
+        "originalSourcePreserved": true,
+        "originalCommandId": "0342c5f3-e0fc-46d8-b885-068f9ffb86a0",
+        "originalCommandHash": "sha256:1d0d76f9c2d39217123f54a75055a98992e1e18e28d2c646370088a835db948f",
+        "originalOperationId": "312e8991-26ee-495a-b726-18995717e562",
+        "originalReviewId": "413ed696-8910-4bbf-b903-09d4904c368f",
+        "acceptedCommandId": "0342c5f3-e0fc-46d8-b885-068f9ffb86a0",
+        "acceptedReviewId": "413ed696-8910-4bbf-b903-09d4904c368f",
+        "sameOriginalIdentityPreserved": true,
+        "singleNamespace": true,
+        "singleAcceptedEvent": true,
+        "restartRequiresFreshReview": false
+      },
+      {
+        "recovery": "restart-expired-review",
+        "sqlitePageLimit": 661,
+        "restoredFreePages": 493,
+        "fillerRows": 437,
+        "nativeSQLiteCode": 13,
+        "actualNamespaceRowsAfterFailure": 0,
+        "observedFailure": "STORAGE_FULL",
+        "sourceTablesPreserved": [
+          "documents",
+          "history",
+          "checkpoints",
+          "objects",
+          "roots",
+          "commands",
+          "events_v2",
+          "assets",
+          "asset_dependencies",
+          "ui_checkpoints",
+          "ui_events",
+          "ui_receipts",
+          "staged_assets",
+          "portable_reviews",
+          "portable_review_sources",
+          "portable_review_maps",
+          "portable_pins"
+        ],
+        "originalSourcePreserved": true,
+        "originalCommandId": "0fe5556f-5464-4ef6-86b5-04db249b14a4",
+        "originalCommandHash": "sha256:6b3f528b1883444d368d9b1d0d4aeae03cee94bff7e7d74a42baf767788129ab",
+        "originalOperationId": "a6231007-747d-4308-a327-46a72d0f530a",
+        "originalReviewId": "a0a7c176-7fdb-47b6-a1a0-8a9e18f05aae",
+        "acceptedCommandId": "75989ee5-b478-46b5-9b27-bed3f85bc07e",
+        "acceptedReviewId": "618a1b55-e0dd-4e33-ab30-12d5bc8a0e7e",
+        "sameOriginalIdentityPreserved": true,
+        "singleNamespace": true,
+        "singleAcceptedEvent": true,
+        "restartRequiresFreshReview": true
+      }
+    ],
+    "independentClosure": false
+  },
+  "originalReview": {
+    "target": "d4ed76148999978565ca8b37d27612f5b3faa591",
+    "verdict": "NOT APPROVED",
+    "directory": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent",
+    "verdictSHA256": "cc4173dac44efd5b2728889e538bfe985ce1363ca812fa9c68025561327abbae",
+    "original120EntrySealSHA256": "3a7bc356d3bdeadb3d24aefda21929764ef96be505aec935d4db850dc0121c29",
+    "final123EntrySealSHA256": "ffa749bd73391148cd0db0c4c47ff4773e783df6cd68c2fbb349e21eee21c027",
+    "selectedCopies": "original-review/ATTRIBUTION.json and ADDENDUM-ATTRIBUTION.json identify unchanged selected originals. Both original seal lists are preserved; this selection does not contain every external file.",
+    "unchangedReplayAttribution": "Unchanged scripts run against isolated correction build copies. The browser result retains its historical hardcoded d4 target string; actual source identity is in each replay ATTRIBUTION.json. No independent approval is implied.",
+    "serialWindow": "Reviewer explicit END 2026-09-26T10:29:54Z released the original reserved window before author tests. No author builds/tests/probes were run in that window."
+  },
+  "largeFixtures": [
+    {
+      "fixture": "real repeated nonzero bytes; no sparse file or forged size",
+      "payloadBytes": "4296015889",
+      "archiveBytes": "4296016564",
+      "allocatedBytes": 4311748608,
+      "maxIOChunk": 1048576,
+      "peakRSS": 161071104,
+      "fullTestMs": 5210.987083,
+      "qualification": false,
+      "limits": "ZIP transport correctness only; not the R39 document campaign"
+    },
+    {
+      "fixture": "synthetic canonical checkpoint records, real bytes",
+      "eventRecordCount": 10000,
+      "eventIndexBytes": "150650050",
+      "eventSegments": 2,
+      "rootSegments": 3,
+      "peakRSS": 411598848,
+      "elapsedMs": 7558.370082999999,
+      "qualification": false,
+      "limits": "segmented index transport/parser only; not a coherent full document or 100k-operation campaign"
+    }
+  ],
+  "tinyTimingObservations": {
+    "evidence": "final-attempt-01/observations.json",
+    "fixture": "tiny 3x2 retained image; serial HTTP on this nonexclusive host",
+    "maxima": {
+      "copyReadyAndDownloadedMs": 120.22766599999977,
+      "uploadAndPreviewMs": 272.8212910000001,
+      "importConfirmedToReceiptMs": 562.8869579999996,
+      "uploadPreviewAndImportMs": 828.4312500000001,
+      "parentTotalMs": 942.1125419999998
+    },
+    "limits": "Full observed public calls include queue/capture/hash/CRC/parse/codec/import/receipt and client polling. Download verification is included in copyReadyAndDownloadedMs. uploadPreviewAndImportMs includes uploading and previewing before explicit ImportBundle. No R39 512 MiB/4 GiB document campaign, supported-envelope, browser paint, destination write, native-memory or power-loss qualification.",
+    "qualification": false
+  },
+  "qualification": false,
+  "independentClosure": false,
+  "limits": [
+    "Author passes do not close I-PF01/I-PF02/I-PF03/A-PF01 or award P1b credit; included review must assess the exact correction commit.",
+    "R39 coherent 512 MiB8/15s and4 GiB60/120s document campaigns and100k-operation campaigns remain unqualified. Real >4 GiB ZIP and >128 MiB index fixtures are transport/index correctness, not total project/index caps.",
+    "A-R01 full-envelope/native-peak/formal-memory/platform/power-loss qualification remains open. No exclusive-host or supported-platform claim, budget waiver, pruning or quality downgrade.",
+    "Prior history full metadata max74.743ms with20/20 above50ms and all prior slow parent samples remain visible; all tiny correction parent observations are retained without excluded work.",
+    "P1b.7 browser controls/adoption, actual destination-write acknowledgement, En Reve-first adoption and exact1px feedback remain open. Copy-ready still means destination unconfirmed.",
+    "Original d4 review remains NOT APPROVED; frozen PF-1 v1 contracts and all old seals remain unchanged. The explicit format2 amendment is documented in tooling/PORTABLE.txt.",
+    "No report, locator, approved preview52219, live sibling, vendor or earlier sealed evidence edits; no paid/provider/publishing actions.",
+    "No PR or hosted CI was run; no pre-existing base CI failure claim is made without a base run link."
+  ],
+  "development": "development-findings.json retains prior failed attempts and withdrawn weak browser-fault claims. Earlier development logs are not retroactively attributed to this frozen source. Attempt04/05 overlap is disclosed and is not serial timing evidence.",
+  "reportReadback": {
+    "revision": 168,
+    "openFeedbackCount": 6,
+    "owner": "Canonical report owner; no report changes made by this implementor."
+  },
+  "integrationContract": "tooling/PORTABLE.txt",
+  "seals": [
+    "source-manifest.json",
+    "build-manifest.json",
+    "SHA256SUMS"
+  ],
+  "reviewAction": "Coordinator should assign the existing included reviewer to the exact containing correction commit, preserving original rejection, all open findings and P1b.7 gate."
+}

@@ -1,0 +1,506 @@
+✖ actual d4 accepted format1 namespace new copy is proven without rewriting original history (36.117125ms)
+✖ actual d4 accepted format1 namespace new copy is truncated without rewriting original history (0.929417ms)
+✖ actual d4 accepted format1 namespace new copy is foreign without rewriting original history (0.086458ms)
+✖ actual d4 pending frozen capture upgrades from immutable receipts (0.105583ms)
+✖ actual d4 pending frozen capture retains exact pending identity when evidence is unavailable (0.030917ms)
+✖ schema8 fences the actual d4 writer and verifies schema7 rollback including pending portable captures (26.465292ms)
+✖ schema8 capacity refusal leaves schema7 and exact pending requests intact (0.727709ms)
+✖ schema8 activation refuses changed backup-written without altering source (0.06275ms)
+✖ schema8 activation refuses changed database without altering source (0.022292ms)
+✖ schema8 activation refuses changed manifest without altering source (0.021166ms)
+✖ schema8 SIGKILL before-backup retains pending identity and original portable files (0.024667ms)
+✖ schema8 SIGKILL backup-written retains pending identity and original portable files (0.024292ms)
+✖ schema8 SIGKILL backup-verified retains pending identity and original portable files (0.021875ms)
+✖ schema8 SIGKILL before-activation retains pending identity and original portable files (0.028083ms)
+✖ schema8 SIGKILL after-activation retains pending identity and original portable files (0.03ms)
+✖ format2 public roundtrip retains exact original receipt bounds and canonical event bytes (3386.758958ms)
+✔ public preview rejects prefix transaction with no namespace or source change (1061.718208ms)
+ℹ {"finding":"I-PF01","mutation":"prefix","originalBounds":{"commandId":"8be9374f-8a96-4e69-a172-7793f56eaaf8","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"7778b888-fef6-4740-80bd-99799447a5f5"},"commandId":"5a879005-e54e-4941-9b31-9b75c526c82e","receipt":{"code":"INVALID_INPUT","commandId":"5a879005-e54e-4941-9b31-9b75c526c82e","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:d5d0d2806e5cf0af92ecf2bf1fb5f65ac5e71d05645848ea3881fa91d7222bd5","noNamespace":true}
+✔ public preview rejects tail transaction with no namespace or source change (1045.93375ms)
+ℹ {"finding":"I-PF01","mutation":"tail","originalBounds":{"commandId":"74de27c3-a279-4949-bb14-3f9e3372b071","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"fbbf6e67-c5f4-46cb-a7b7-e4d7a98c5119"},"commandId":"1d5b1f58-5840-4560-9f65-32784ec538f9","receipt":{"code":"INVALID_INPUT","commandId":"1d5b1f58-5840-4560-9f65-32784ec538f9","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:fc3a192e47acc3351d9b1f89f2b709fc3a44c8b777e1ee656bcba9bfa44003c9","noNamespace":true}
+✔ public preview rejects wrong-count transaction with no namespace or source change (1013.870042ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-count","originalBounds":{"commandId":"276479cd-df52-49b9-bc31-afe60a652ac8","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"554d042d-9844-4c3f-8888-b3b2fe2ad997"},"commandId":"a159a019-6f24-41b5-9250-a9308424c271","receipt":{"code":"INVALID_INPUT","commandId":"a159a019-6f24-41b5-9250-a9308424c271","currentRevision":null,"details":{"byteLength":"86","hash":"sha256:95fc3af1ade331e8d3b605904c0edce644f8782f0b0cd26ac8fee4cb72c5490d","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:95558f9b7b3ef6ca3e65eee5c4d385fa723da8caa5bfae55f1c2376aed90ae6c","noNamespace":true}
+✔ public preview rejects wrong-first transaction with no namespace or source change (1027.860167ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-first","originalBounds":{"commandId":"54234a75-3743-4fcb-9df9-911301f69827","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"e4b62375-8d53-40f4-8671-634e54e3cdae"},"commandId":"b03d7c83-b6c4-40ab-a20d-7023b4ef9fc9","receipt":{"code":"INVALID_INPUT","commandId":"b03d7c83-b6c4-40ab-a20d-7023b4ef9fc9","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:1ef71fd0a6f40ba0f81a4f3c4aefb57940bba94bf47c36cd2ac911f019a7619e","noNamespace":true}
+✔ public preview rejects wrong-last transaction with no namespace or source change (1081.5165ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-last","originalBounds":{"commandId":"14fd924f-4c81-4bc1-b9d7-939032ab3da7","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"0f2e4fb1-cead-4912-a8e4-18efb34972da"},"commandId":"a079a375-0603-4041-9afe-824dd85954ac","receipt":{"code":"INVALID_INPUT","commandId":"a079a375-0603-4041-9afe-824dd85954ac","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:6c6aac196955e12f8906c1a8c4b4ce67daecba1ea429e4c853b452e4227cac74","noNamespace":true}
+✔ public preview rejects wrong-hash transaction with no namespace or source change (1046.163292ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-hash","originalBounds":{"commandId":"b67b1c30-8144-4e67-9445-367c84f89e61","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"e732dc03-76cf-45e2-80d8-04ab3772b91e"},"commandId":"45c1bf5b-9174-43d7-a787-b3a1e194234f","receipt":{"code":"INVALID_INPUT","commandId":"45c1bf5b-9174-43d7-a787-b3a1e194234f","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:5b99f76b321dff25d8e9ab8bdc29908b64ed92caf69ef9d8891bd0a9cdc13ed7","noNamespace":true}
+✔ public preview rejects wrong-command transaction with no namespace or source change (970.322791ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-command","originalBounds":{"commandId":"93472da4-c836-4dfb-8376-4ad237035562","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"b9f45172-624b-44f7-8879-fab16e6fb7ac"},"commandId":"11c780b1-b0d4-4dde-82ad-2720edb5238f","receipt":{"code":"INVALID_INPUT","commandId":"11c780b1-b0d4-4dde-82ad-2720edb5238f","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:4d79bfea6c3ec05e91c749e6aa1b31844689504f5463dd2921426ad2bfcede8b","noNamespace":true}
+✔ public preview rejects wrong-revision transaction with no namespace or source change (980.579458ms)
+ℹ {"finding":"I-PF01","mutation":"wrong-revision","originalBounds":{"commandId":"01a6866d-6c4d-404e-8d7f-683e791917b2","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"45a2180e-f112-4827-9201-b2f63b60cb2f"},"commandId":"0f4dd8ae-921b-445b-9d47-ca014dc41bc5","receipt":{"code":"INVALID_INPUT","commandId":"0f4dd8ae-921b-445b-9d47-ca014dc41bc5","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:e03d6fd7a3463b01bd1b297e1d2b424a663d6243927312d7e44cf03a0738bb2a","noNamespace":true}
+✔ public preview rejects missing-descriptor transaction with no namespace or source change (944.241375ms)
+ℹ {"finding":"I-PF01","mutation":"missing-descriptor","originalBounds":{"commandId":"2aa05667-3907-4341-8038-da5b5ddadcae","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"02445d3a-ea5e-4c6c-8d3e-e47b704b1848"},"commandId":"a1c75155-cb05-4f08-9b96-64039ecd5e34","receipt":{"code":"INVALID_INPUT","commandId":"a1c75155-cb05-4f08-9b96-64039ecd5e34","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:1e09f1c4c798e6804e9114c3894c75848543fec7dd1c26db0d2e28dc1a58d8f1","noNamespace":true}
+✔ public preview rejects duplicate-descriptor transaction with no namespace or source change (919.95775ms)
+ℹ {"finding":"I-PF01","mutation":"duplicate-descriptor","originalBounds":{"commandId":"8ecea037-a8b3-4f7e-8fb3-2b9a100dcff3","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"35e13aa9-4734-4d08-bdcc-67bfd45b375e"},"commandId":"2fc15dba-ddc7-4123-84c3-24e45f2bd336","receipt":{"code":"INVALID_INPUT","commandId":"2fc15dba-ddc7-4123-84c3-24e45f2bd336","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:269a9a2e98d2eaf432fb8448f240c8337d3598a99f6c7e5c2b94b1abfdfa833d","noNamespace":true}
+✔ public preview rejects duplicate-event-id transaction with no namespace or source change (1032.30475ms)
+ℹ {"finding":"I-PF01","mutation":"duplicate-event-id","originalBounds":{"commandId":"f5834a39-fe84-400d-99b8-3cbef5fdc132","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"e3453711-0b3f-4376-9731-2dfd786d51c8"},"commandId":"d00a5f7f-82ff-44a8-8d2b-be9045b06047","receipt":{"code":"INVALID_INPUT","commandId":"d00a5f7f-82ff-44a8-8d2b-be9045b06047","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:57184239daa30018cc6779112b674f2267ad252481eb29c9cb28fdc3467b301f","noNamespace":true}
+✔ public preview rejects split-one-command transaction with no namespace or source change (1081.038875ms)
+ℹ {"finding":"I-PF01","mutation":"split-one-command","originalBounds":{"commandId":"fe3f0fc8-68dd-4e43-9655-2a41382db957","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"c26af3b9-7c0e-4265-aa5e-a30c31853869"},"commandId":"36a0960e-15f9-4b85-807c-e52a70a5f660","receipt":{"code":"INVALID_INPUT","commandId":"36a0960e-15f9-4b85-807c-e52a70a5f660","currentRevision":null,"details":{"byteLength":"88","hash":"sha256:1aebc6e65987f024383db6bf2136acc10ce36bcbd03d6bcc0addcef6792468fc","mediaType":"application/json"},"status":"rejected"},"archiveHash":"sha256:39884a5fb98cf5f9c155af0a4bc5dc1d6279d514b62ba19618dfb1b3f5eb2ec8","noNamespace":true}
+✔ legacy format1 retains inspection and explicitly refuses editable publication (1118.685791ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 13
+ℹ fail 16
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17722.887875
+
+✖ failing tests:
+
+test at tests/portable/compatibility.test.mjs:18:52
+✖ actual d4 accepted format1 namespace new copy is proven without rewriting original history (36.117125ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>, <Buffer > ],
+    pid: 28012,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/compatibility.test.mjs:18:52
+✖ actual d4 accepted format1 namespace new copy is truncated without rewriting original history (0.929417ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>, <Buffer > ],
+    pid: 28012,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/compatibility.test.mjs:18:52
+✖ actual d4 accepted format1 namespace new copy is foreign without rewriting original history (0.086458ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>, <Buffer > ],
+    pid: 28012,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/compatibility.test.mjs:25:34
+✖ actual d4 pending frozen capture upgrades from immutable receipts (0.105583ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>, <Buffer > ],
+    pid: 28012,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/compatibility.test.mjs:25:34
+✖ actual d4 pending frozen capture retains exact pending identity when evidence is unavailable (0.030917ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/compatibility.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>, <Buffer > ],
+    pid: 28012,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1054670 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:19:1
+✖ schema8 fences the actual d4 writer and verifies schema7 rollback including pending portable captures (26.465292ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:25:1
+✖ schema8 capacity refusal leaves schema7 and exact pending requests intact (0.727709ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:26:62
+✖ schema8 activation refuses changed backup-written without altering source (0.06275ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:26:62
+✖ schema8 activation refuses changed database without altering source (0.022292ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:26:62
+✖ schema8 activation refuses changed manifest without altering source (0.021166ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL before-backup retains pending identity and original portable files (0.024667ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL backup-written retains pending identity and original portable files (0.024292ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL backup-verified retains pending identity and original portable files (0.021875ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL before-activation retains pending identity and original portable files (0.028083ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transaction-schema.test.mjs:27:112
+✖ schema8 SIGKILL after-activation retains pending identity and original portable files (0.03ms)
+  Error: spawnSync git ENOBUFS
+      at Object.spawnSync (node:internal/child_process:1175:20)
+      at spawnSync (node:child_process:929:24)
+      at execFileSync (node:child_process:972:15)
+      at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+      at async TestHook.run (node:internal/test_runner/test:1409:7) {
+    errno: -55,
+    code: 'ENOBUFS',
+    syscall: 'spawnSync git',
+    path: 'git',
+    spawnargs: [ 'archive', 'd4ed76148999978565ca8b37d27612f5b3faa591', 'server', 'src', 'tests', 'tooling', 'tsconfig.server.json' ],
+    error: Error: spawnSync git ENOBUFS
+        at Object.spawnSync (node:internal/child_process:1175:20)
+        at spawnSync (node:child_process:929:24)
+        at execFileSync (node:child_process:972:15)
+        at priorWriter (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/prior-writer.mjs:12:43)
+        at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transaction-schema.test.mjs:12:34)
+        at async TestHook.run (node:internal/test_runner/test:1409:7),
+    status: null,
+    signal: 'SIGTERM',
+    output: [ null, <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>, <Buffer > ],
+    pid: 28055,
+    stdout: <Buffer 70 61 78 5f 67 6c 6f 62 61 6c 5f 68 65 61 64 65 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 1085390 more bytes>,
+    stderr: <Buffer >
+  }
+
+test at tests/portable/transactions.test.mjs:10:1
+✖ format2 public roundtrip retains exact original receipt bounds and canonical event bytes (3386.758958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'sha256:d7c5c5d5b08a688e2deef67a8bc1a5a62194925e5d45f40c0d44aff2fa9701b9'
+  - 'sha256:0dbd67d062e54941a3c50c63ce4dcb89332656d14e6933e7590e9339490eacd5'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/transactions.test.mjs:16:261)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'sha256:d7c5c5d5b08a688e2deef67a8bc1a5a62194925e5d45f40c0d44aff2fa9701b9',
+    expected: 'sha256:0dbd67d062e54941a3c50c63ce4dcb89332656d14e6933e7590e9339490eacd5',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,26 @@
+npm notice run ideogram-editor@0.1.0 test:protocol
+npm notice run npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/protocol/*.test.mjs
+npm notice run ideogram-editor@0.1.0 build:server
+npm notice run tsc -p tsconfig.server.json
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (699.1245ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (827.918458ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2093.135167ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (22.81625ms)
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (643.422333ms)
+✔ a fresh unseeded HTTP root accepts NewDocument with the public fixed empty precondition reference (293.438917ms)
+✔ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (2121.915084ms)
+✔ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (714.640708ms)
+✔ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (703.881209ms)
+✔ I-P01 SIGKILL during sliced snapshot construction preserves committed receipt and recovers full history (2227.688625ms)
+✔ PROTO04 large complete transaction uses immutable reference; interior cursor rejected and restart replay agrees (1103.740125ms)
+✔ R23 corrupt latest snapshot falls back to prior snapshot, then full log; failed snapshots backpressure only the 500-event tail (6909.496667ms)
+✔ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (928.097667ms)
+✔ I-P01 warm snapshot admission detects changed bytes and external root metadata; reads verify and recover pinned state (2074.843ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21503.263125

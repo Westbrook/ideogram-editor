@@ -1,0 +1,50 @@
+✔ independent transaction completeness control (2528.010125ms)
+ℹ {"mutation":"control","originalReceipt":{"commandId":"ae5e54bd-77da-445c-bdf2-fa0799e1e465","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"5b64690f-3a1f-4345-b9eb-07cf1a11ef59"},"originalTransaction":[{"seq":"6","type":"AssetRegistered","commandId":"ae5e54bd-77da-445c-bdf2-fa0799e1e465"},{"seq":"7","type":"ImageEdited","commandId":"ae5e54bd-77da-445c-bdf2-fa0799e1e465"}],"removed":[],"archiveSHA256":"30e3842f58b678ee940bbc321bd035096a5233c4010adfdebb0a15a5e09865bf","previewReceipt":{"commandId":"1fa427a6-3cbc-4bed-b0aa-aa5942d29a24","documentRevision":null,"fromSeq":"9","status":"accepted","toSeq":"9","transactionId":"a59af6c9-8668-45bd-8d4c-e0238b027f83"},"review":{"capturedHighWater":"7","closureHash":"sha256:3bb543b6a60d2af9129df93e95809917f562df8b33bfe2da017cabe394b8aa6d","documentId":"p_3d5ec487780fa2bce39e03ec0976e8dbd93c16017cc5fcaa0d0e8266d1240a6c","documentSchema":2,"editable":true,"entityCount":"6","eventCount":"3","expiresAt":"2026-09-26T10:46:30.502Z","formatVersion":1,"localRetentionExcluded":"obsolete-unattributed-ui-only","namespaceId":"c86bef93-a405-4351-bc49-fca1633059ec","objectCount":"16","protocolVersion":1,"reason":null,"reviewHash":"sha256:027cf8f0e1ac9efc33da479c86646ed2364b851860addc98d146740f4f29466a","reviewId":"7ee2213c-98b1-4868-b984-aa5b49a9569b","scope":"selected-document-current-drafts-and-retained-domain-history","source":{"byteLength":"25141","hash":"sha256:30e3842f58b678ee940bbc321bd035096a5233c4010adfdebb0a15a5e09865bf","mediaType":"application/x-ideogram-project"},"sourceNamespace":"document_1","targetClientId":"80abc8dc-b491-419b-8cf4-566e409354c5","uiSessionCount":"0","uiSessionIds":[]},"importReceipt":{"commandId":"b306a84b-df2a-477c-818e-42bc795e4904","documentRevision":"2","fromSeq":"10","status":"accepted","toSeq":"10","transactionId":"4d1fb2d7-676d-4ec9-9e45-42fc4f26ab0f"},"namespaces":1,"sourceDocumentPreserved":true}
+✖ independent transaction completeness drop-transaction-prefix (1758.894792ms)
+ℹ {"mutation":"drop-transaction-prefix","originalReceipt":{"commandId":"6d3f397b-875e-4cb1-9092-dd1df1b24f02","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"9160ed08-cf32-4ca7-a905-3b8ae476cb01"},"originalTransaction":[{"seq":"6","type":"AssetRegistered","commandId":"6d3f397b-875e-4cb1-9092-dd1df1b24f02"},{"seq":"7","type":"ImageEdited","commandId":"6d3f397b-875e-4cb1-9092-dd1df1b24f02"}],"removed":[{"seq":"6","type":"AssetRegistered"}],"archiveSHA256":"a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd","previewReceipt":{"commandId":"21a42b5e-2e8c-415a-8a47-05b686ff778f","documentRevision":null,"fromSeq":"9","status":"accepted","toSeq":"9","transactionId":"ad4aaa56-1d70-4b18-bd67-f9f8b3947db7"},"review":{"capturedHighWater":"7","closureHash":"sha256:457bd503b2e737327a824ad627d96b4cc2f71e6d98270e1c1a056fef33073b4f","documentId":"p_6eedfda1ea4d10dfc7461898696bc18824594840338ccf2645d903cfcd3944f3","documentSchema":2,"editable":true,"entityCount":"6","eventCount":"2","expiresAt":"2026-09-26T10:46:32.260Z","formatVersion":1,"localRetentionExcluded":"obsolete-unattributed-ui-only","namespaceId":"4dab253b-17ab-45bf-9af2-bbde60645246","objectCount":"16","protocolVersion":1,"reason":null,"reviewHash":"sha256:188b34ce9424361d984122f83f601396dc7607a04ef8e4f1c26bb042c995bf17","reviewId":"bd75ea70-59c5-4e21-b372-4feeaeaa7320","scope":"selected-document-current-drafts-and-retained-domain-history","source":{"byteLength":"23385","hash":"sha256:a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd","mediaType":"application/x-ideogram-project"},"sourceNamespace":"document_1","targetClientId":"642d5930-0d8a-427d-b88d-f0d144594853","uiSessionCount":"0","uiSessionIds":[]},"importReceipt":{"commandId":"7cd08bbf-4103-40fc-8104-5a269c68a10e","documentRevision":"2","fromSeq":"10","status":"accepted","toSeq":"10","transactionId":"97d62127-c4b3-4158-9f85-26ed48d5ef99"},"namespaces":1,"sourceDocumentPreserved":true}
+✖ independent transaction completeness change-command-identity (1662.270459ms)
+ℹ {"mutation":"change-command-identity","originalReceipt":{"commandId":"976cabf9-0bb5-4a8a-ba41-f03edd50cea5","documentRevision":"2","fromSeq":"6","status":"accepted","toSeq":"7","transactionId":"e27ca0d3-4815-43a8-a199-2127001f2f47"},"originalTransaction":[{"seq":"6","type":"AssetRegistered","commandId":"976cabf9-0bb5-4a8a-ba41-f03edd50cea5"},{"seq":"7","type":"ImageEdited","commandId":"976cabf9-0bb5-4a8a-ba41-f03edd50cea5"}],"removed":[],"archiveSHA256":"ea0fa0fcf410ee4792c7a1c10ae3719c0cb554c1e94ae1a4c6ce3cf20edfe5b8","previewReceipt":{"commandId":"c623fdaa-f7dc-4163-8bef-9025347c5a27","documentRevision":null,"fromSeq":"9","status":"accepted","toSeq":"9","transactionId":"63023eea-2c46-4428-b1e5-b2ea026301ec"},"review":{"capturedHighWater":"7","closureHash":"sha256:2bd2d96ec9f6ee85c1f0408b0e7ccf0d2f2431fbde0516d22d4ffb62d0e90b20","documentId":"p_02ae4be9bfc2ace336a009d64e4ddf6fdc79456ce4a60fb96cbed5a66dfd338c","documentSchema":2,"editable":true,"entityCount":"6","eventCount":"3","expiresAt":"2026-09-26T10:46:34.017Z","formatVersion":1,"localRetentionExcluded":"obsolete-unattributed-ui-only","namespaceId":"50dfe1a9-f56e-4557-b918-3c8fb3efb784","objectCount":"16","protocolVersion":1,"reason":null,"reviewHash":"sha256:a5d48dafc93cb1cc47482ae4f50e302e2bfc0b554abb5ccc8feff6abaeefe326","reviewId":"75f093d9-5aad-4f8f-b842-92881c67090c","scope":"selected-document-current-drafts-and-retained-domain-history","source":{"byteLength":"25101","hash":"sha256:ea0fa0fcf410ee4792c7a1c10ae3719c0cb554c1e94ae1a4c6ce3cf20edfe5b8","mediaType":"application/x-ideogram-project"},"sourceNamespace":"document_1","targetClientId":"66eb3850-d1e0-4ce8-b580-39acaab6ae8c","uiSessionCount":"0","uiSessionIds":[]},"importReceipt":{"commandId":"623c6ad2-013e-4858-a176-a272595c7068","documentRevision":"2","fromSeq":"10","status":"accepted","toSeq":"10","transactionId":"7f4df8a8-fab8-49d7-96d1-f390d6445d00"},"namespaces":1,"sourceDocumentPreserved":true}
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6265.315042
+
+✖ failing tests:
+
+test at ../transaction-boundary.test.mjs:9:87
+✖ independent transaction completeness drop-transaction-prefix (1758.894792ms)
+  AssertionError [ERR_ASSERTION]: Incomplete/altered transaction was advertised editable and imported
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/transaction-boundary.test.mjs:20:123)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../transaction-boundary.test.mjs:9:87
+✖ independent transaction completeness change-command-identity (1662.270459ms)
+  AssertionError [ERR_ASSERTION]: Incomplete/altered transaction was advertised editable and imported
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/transaction-boundary.test.mjs:20:123)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

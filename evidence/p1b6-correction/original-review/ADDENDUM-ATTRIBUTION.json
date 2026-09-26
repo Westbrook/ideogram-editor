@@ -1,0 +1,18 @@
+{
+  "target": "d4ed76148999978565ca8b37d27612f5b3faa591",
+  "meaning": "Unchanged external addendum and final 123-entry seal list, supplementing the retained original 120-entry list. Neither list claims this selected copy contains every external file.",
+  "files": [
+    {
+      "name": "REVIEW-ADDENDUM.txt",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/REVIEW-ADDENDUM.txt",
+      "bytes": 1469,
+      "sha256": "1fb93b7eaea1dbf9cdda4c38c92f1ab59cb8bfefdf380196e34089766dec58cf"
+    },
+    {
+      "name": "FINAL-SHA256SUMS",
+      "origin": "/Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent/FINAL-SHA256SUMS",
+      "bytes": 11099,
+      "sha256": "ffa749bd73391148cd0db0c4c47ff4773e783df6cd68c2fbb349e21eee21c027"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+browser fixture ready 80
+browser prior cursor { generation: 'prior', cursor: '0', epoch: null }
+hydration fault missing-descriptor { error: 'TypeError: Failed to fetch' }
+
+Interrupted while running:
+
+⚠ tests/portable/browser-recovery.test.mjs (tests/portable/browser-recovery.test.mjs:1:1)
+✖ tests/portable/browser-recovery.test.mjs (46394.190333ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 0
+ℹ cancelled 1
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46396.291084
+
+✖ failing tests:
+
+test at tests/portable/browser-recovery.test.mjs:1:1
+✖ tests/portable/browser-recovery.test.mjs (46394.190333ms)
+  'Promise resolution is still pending but the event loop has already resolved'

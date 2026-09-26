@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {chromium} from './source/node_modules/playwright/index.mjs';
+import {startLocalServer} from './source/dist/local/server/http.js';
+import {setup,copy,preview,workspace,terminal,edit,doc} from './source/tests/portable/helpers.mjs';
+import {importRaster} from './source/tests/raster/helpers.mjs';
+const cleanup=[],t={after:fn=>cleanup.push(fn)};
+try{
+ const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const {asset}=await importRaster(f,'hidden-alpha.png');await edit(f,{type:'ImportAsset',assetId:asset.id,layerId:'picture',name:'Reviewer image',draft:null});await edit(f,{type:'SaveCheckpoint',name:'Imported checkpoint'});
+ const saved=await copy(f),p=await preview(f,saved.bytes);await workspace(f,{type:'ImportBundle',reviewId:p.review.reviewId,reviewHash:p.review.reviewHash});const imported=await doc(f,p.review.documentId),history=(await f.read('/api/v1/documents/'+imported.id+'/history')).json.items,checkpoints=(await f.read('/api/v1/documents/'+imported.id+'/checkpoints')).json.items;const assets=(await f.read('/api/v1/bundle-reviews/'+p.review.reviewId+'/mapping?kind=asset')).json.items.map(x=>x.localId);await f.server.close();
+ const server=await startLocalServer({root:f.root,staticDirectory:resolve('../recovery/browser-app')});cleanup.push(()=>server.close());const browser=await chromium.launch({headless:true});cleanup.push(()=>browser.close());const page=await browser.newPage();const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(server.issuePairingURL());await page.waitForFunction(()=>window.harness);await page.evaluate(()=>window.harness.client.recover());
+ const observed=await page.evaluate(async expected=>{const h=window.harness;return {published:await h.cache.published(),document:await h.cache.read('document',expected.documentId),assets:await Promise.all(expected.assets.map(async id=>({id,present:(await h.cache.read('asset',id))!==undefined}))),history:await Promise.all(expected.history.map(async id=>({id,present:(await h.cache.read('history',id))!==undefined}))),checkpoints:await Promise.all(expected.checkpoints.map(async id=>({id,present:(await h.cache.read('checkpoint',id))!==undefined})))};},{documentId:imported.id,assets,history:history.map(x=>x.id),checkpoints:checkpoints.map(x=>x.id)});
+ const evidence={target:'d4ed76148999978565ca8b37d27612f5b3faa591',browserVersion:browser.version(),expected:{document:imported,assets,history,checkpoints},observed,externalRequests:requests.filter(x=>!x.startsWith(server.origin)),qualification:false};await writeFile(new URL('./browser-import.json',import.meta.url),JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));assert.deepEqual(observed.document,imported);assert(observed.assets.every(x=>x.present)&&observed.history.every(x=>x.present)&&observed.checkpoints.every(x=>x.present),'Browser published the import cursor with missing mapped assets/history/checkpoints');
+}finally{for(const fn of cleanup.reverse())await fn();}

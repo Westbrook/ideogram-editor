@@ -1,0 +1,20 @@
+{
+  "verdict": "NOT APPROVED",
+  "confidence": "High",
+  "target": "d4ed76148999978565ca8b37d27612f5b3faa591",
+  "parent": "d84c1de55709bbd957222cac854905c41583a4e4",
+  "sealedAt": "2026-09-26T10:32:29.200727+00:00",
+  "fileCount": 120,
+  "verdictSHA256": "cc4173dac44efd5b2728889e538bfe985ce1363ca812fa9c68025561327abbae",
+  "sealSHA256": "3a7bc356d3bdeadb3d24aefda21929764ef96be505aec935d4db850dc0121c29",
+  "sourceManifestSHA256": "edc823eaa3f31242854f3422bd8517ea8ed72af9ea8b3fcf56b7a7a083e989ea",
+  "buildManifestSHA256": "bda32f1ce82f35024e1a2d3a7b1d448a48ae5fd600e65843b509e3bf7caa52e8",
+  "findings": [
+    "I-PF01",
+    "I-PF02",
+    "I-PF03"
+  ],
+  "A-PF01": "Bounded native13 recovery independently verified; remains OPEN pending exact approval/coordinator closure.",
+  "manifestScope": "All external evidence files recursively, excluding exact-source clone, SHA256SUMS and this metadata. Full tracked source identity and build manifest included.",
+  "verifiedAllHashes": true
+}

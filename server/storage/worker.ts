@@ -90,6 +90,7 @@ port.on('message', async message => {
         case 'boundary': result = store.recovery.boundary(args.after, args.highWater); break;
         case 'batch': result = store.recovery.batch(args.after, args.highWater); break;
         case 'snapshotKnown': result = store.recovery.snapshotKnown(args.id); break;
+        case 'namespaceContent': result=store.recovery.namespaceContent(args.eventId,args.highWater);break;
         case 'snapshotContent': {
           const snapshot = store.recovery.getSnapshot(args.id);
           if (!snapshot) throw new StoreError('MISSING_OBJECT');

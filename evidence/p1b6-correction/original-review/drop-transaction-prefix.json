@@ -1,0 +1,76 @@
+{
+  "mutation": "drop-transaction-prefix",
+  "originalReceipt": {
+    "commandId": "6d3f397b-875e-4cb1-9092-dd1df1b24f02",
+    "documentRevision": "2",
+    "fromSeq": "6",
+    "status": "accepted",
+    "toSeq": "7",
+    "transactionId": "9160ed08-cf32-4ca7-a905-3b8ae476cb01"
+  },
+  "originalTransaction": [
+    {
+      "seq": "6",
+      "type": "AssetRegistered",
+      "commandId": "6d3f397b-875e-4cb1-9092-dd1df1b24f02"
+    },
+    {
+      "seq": "7",
+      "type": "ImageEdited",
+      "commandId": "6d3f397b-875e-4cb1-9092-dd1df1b24f02"
+    }
+  ],
+  "removed": [
+    {
+      "seq": "6",
+      "type": "AssetRegistered"
+    }
+  ],
+  "archiveSHA256": "a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd",
+  "previewReceipt": {
+    "commandId": "21a42b5e-2e8c-415a-8a47-05b686ff778f",
+    "documentRevision": null,
+    "fromSeq": "9",
+    "status": "accepted",
+    "toSeq": "9",
+    "transactionId": "ad4aaa56-1d70-4b18-bd67-f9f8b3947db7"
+  },
+  "review": {
+    "capturedHighWater": "7",
+    "closureHash": "sha256:457bd503b2e737327a824ad627d96b4cc2f71e6d98270e1c1a056fef33073b4f",
+    "documentId": "p_6eedfda1ea4d10dfc7461898696bc18824594840338ccf2645d903cfcd3944f3",
+    "documentSchema": 2,
+    "editable": true,
+    "entityCount": "6",
+    "eventCount": "2",
+    "expiresAt": "2026-09-26T10:46:32.260Z",
+    "formatVersion": 1,
+    "localRetentionExcluded": "obsolete-unattributed-ui-only",
+    "namespaceId": "4dab253b-17ab-45bf-9af2-bbde60645246",
+    "objectCount": "16",
+    "protocolVersion": 1,
+    "reason": null,
+    "reviewHash": "sha256:188b34ce9424361d984122f83f601396dc7607a04ef8e4f1c26bb042c995bf17",
+    "reviewId": "bd75ea70-59c5-4e21-b372-4feeaeaa7320",
+    "scope": "selected-document-current-drafts-and-retained-domain-history",
+    "source": {
+      "byteLength": "23385",
+      "hash": "sha256:a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd",
+      "mediaType": "application/x-ideogram-project"
+    },
+    "sourceNamespace": "document_1",
+    "targetClientId": "642d5930-0d8a-427d-b88d-f0d144594853",
+    "uiSessionCount": "0",
+    "uiSessionIds": []
+  },
+  "importReceipt": {
+    "commandId": "7cd08bbf-4103-40fc-8104-5a269c68a10e",
+    "documentRevision": "2",
+    "fromSeq": "10",
+    "status": "accepted",
+    "toSeq": "10",
+    "transactionId": "97d62127-c4b3-4158-9f85-26ed48d5ef99"
+  },
+  "namespaces": 1,
+  "sourceDocumentPreserved": true
+}

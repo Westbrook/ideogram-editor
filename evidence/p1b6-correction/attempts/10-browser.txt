@@ -1,0 +1,42 @@
+browser fixture ready 80
+browser prior cursor { generation: 'prior', cursor: '0', epoch: null }
+hydration fault missing-descriptor { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:20010ba26592c44bc88f5e77441b706489f415fd2daa15bc0a06117ef9d2b3e6',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault wrong-context { error: 'Error: Recovery context changed' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:20010ba26592c44bc88f5e77441b706489f415fd2daa15bc0a06117ef9d2b3e6',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault missing-content { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:20010ba26592c44bc88f5e77441b706489f415fd2daa15bc0a06117ef9d2b3e6',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault truncated-content { error: 'Error: Content integrity check failed' }
+✔ Chromium restart recovery hydrates a multi-chunk imported namespace before the cursor and survives missing or corrupt pages (6804.258542ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","cursor":"80","assets":3,"history":2,"checkpoints":70,"failedHydrationRetainsPrior":true,"externalRequests":[],"qualification":false}
+SSE reached {
+  published: {
+    generation: '46443f18-a818-4ccf-99d8-5fe2a36b81f9',
+    cursor: '11',
+    epoch: '3'
+  },
+  failure: undefined
+}
+✔ Chromium SSE import uses its pinned context, publishes complete rows once and ignores duplicate delivery (2010.571ms)
+✔ Chromium snapshot plus tail includes all imported domain projections after server restart (5733.190542ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","snapshotRecovery":true,"namespaceRowsAgree":true,"externalRequests":[],"qualification":false}
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14701.889917

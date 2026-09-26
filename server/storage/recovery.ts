@@ -9,8 +9,9 @@ import { assertComponents, assertPrivate } from './files.js';
 import { dirname } from 'node:path';
 import { IO_CHUNK } from './objects.js';
 import type { Barrier } from './objects.js';
+import { namespaceDigest } from './portable.js';
 
-export type StoredContent = { handle: string; blob: BlobRef; encoding: 'lp1-json' | 'lp1-events-jsonl' | 'lp1-snapshot-jsonl'; recordCount: string };
+export type StoredContent = { handle: string; blob: BlobRef; encoding: 'lp1-json' | 'lp1-events-jsonl' | 'lp1-snapshot-jsonl' | 'lp1-namespace-jsonl'; recordCount: string };
 export type StoredSnapshot = { id: string; seq: string; content: Omit<StoredContent, 'handle'> };
 const order = 'ORDER BY length(seq),seq';
 export class RecoveryStore {
@@ -242,9 +243,33 @@ export class RecoveryStore {
     for (const e of rows()) { size += Buffer.byteLength(String(e.json)) + 1; count++; }
     if (count !== BigInt(receipt.toSeq) - BigInt(receipt.fromSeq) + 1n) throw new StoreError('CORRUPT_STORE');
     const common = { transactionId: receipt.transactionId as string, fromSeq: receipt.fromSeq as string, toSeq: receipt.toSeq as string };
-    if (size <= 48000) return { ...common, events: Array.from(rows(), e => JSON.parse(String(e.json)) as DomainEvent) };
+    const imports=this.db.prepare("SELECT 1 FROM events_v2 WHERE transaction_id=? AND json_extract(json,'$.type')='BundleImported' LIMIT 1").get(receipt.transactionId);
+    // Imported transactions require a recovery context even on the SSE path,
+    // so the browser can hydrate their immutable mapped rows before publishing.
+    if (size <= 48000 && !imports) return { ...common, events: Array.from(rows(), e => JSON.parse(String(e.json)) as DomainEvent) };
     const content = this.storeRows(function* () { for (const e of rows()) yield Buffer.from(String(e.json) + '\n'); }, 'lp1-events-jsonl');
     return { ...common, eventCount: String(count), content: this.issue(content) };
+  }
+  namespaceContent(eventId:string, highWater:string) {
+    if(!isId(eventId)||!isSeq(highWater)||BigInt(highWater)>BigInt(this.highWater()))throw new StoreError('MALFORMED_REQUEST');
+    const row=this.db.prepare("SELECT seq,json FROM events_v2 WHERE json_extract(json,'$.eventId')=? AND json_extract(json,'$.type')='BundleImported'").get(eventId);
+    if(!row||BigInt(String(row.seq))>BigInt(highWater))throw new StoreError('NOT_FOUND');
+    const event=JSON.parse(String(row.json)),namespace=event.payload.namespaceId;
+    if(namespaceDigest(this.db,namespace)!==event.payload.namespaceHash)throw new StoreError('CORRUPT_STORE');
+    const count=this.db.prepare("SELECT count(*) n FROM portable_rows WHERE namespace=? AND kind IN ('asset','checkpoint','document','history')").get(namespace)!.n;
+    const db=this.db;
+    const rows=function*(){
+      yield Buffer.from(canonical({kind:'header',namespaceId:namespace,namespaceHash:event.payload.namespaceHash,eventId,workspaceSeq:event.workspaceSeq,projectionSchema:3,entityCount:String(count)})+'\n');
+      // These are the shared domain projection families. Client-owned UI and
+      // inert provider provenance retain their separate access/ownership paths.
+      for(const row of db.prepare("SELECT kind,id,json FROM portable_rows WHERE namespace=? AND kind IN ('asset','checkpoint','document','history') ORDER BY kind,id").iterate(namespace)){
+        const value=JSON.parse(String(row.json)),version=validateEntity(String(row.kind),value),bytes=Buffer.from(String(row.json));
+        if(bytes.length>65536||value.id!==row.id||canonical(value)!==String(row.json))throw new StoreError('CORRUPT_STORE');
+        const chunks:Buffer[]=[];for(let at=0;at<bytes.length;){let end=Math.min(at+8192,bytes.length);while(end<bytes.length&&(bytes[end]&0xc0)===0x80)end--;chunks.push(bytes.subarray(at,end));at=end;}
+        for(let i=0;i<chunks.length;i++)yield Buffer.from(canonical({kind:'projection-part',entityType:String(row.kind),entityId:String(row.id),entityVersion:version,partIndex:i,partCount:chunks.length,utf8Base64:chunks[i].toString('base64')})+'\n');
+      }
+    };
+    return {eventId,namespaceId:namespace,namespaceHash:event.payload.namespaceHash,workspaceSeq:event.workspaceSeq,content:this.issue(this.storeRows(rows,'lp1-namespace-jsonl'))};
   }
   safeJSON(kind: 'document' | 'receipt', id: string): StoredContent {
     if (!isId(id)) throw new StoreError('MALFORMED_REQUEST');

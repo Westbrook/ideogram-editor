@@ -1,0 +1,94 @@
+Verification Summary
+Verdict: ❌ NOT APPROVED
+Confidence: High for the three reproduced blocking findings and the bounded passing behaviors below. This is not formal platform, native-memory, maximum-envelope or performance qualification.
+Target: d4ed76148999978565ca8b37d27612f5b3faa591
+Approved direct parent: d84c1de55709bbd957222cac854905c41583a4e4
+Reviewer task: c91db4c3-2a29-4b3d-b3a3-0329b48fbc55
+Implementation task: 8c5b65fb-17c0-4a5a-97e3-ec95cf7f126b
+Shared PR Context: cbd63320-6def-4beb-b78f-de897caf3cdf
+Evidence directory: /Users/westbrook/Documents/repos/ideogram-edit-verification/d4ed761-independent
+
+The review remained detached at the original target while the author worked on corrections elsewhere. No corrected target was reviewed. Every one of 1,357 tracked source files matches the original reviewer manifest; Git diff/status are clean. The external pinned-toolchain symlink is excluded only in reviewer Git metadata. Fresh offline install, typecheck and build passed; 281 built files are separately hashed. All 153 preserved author evidence seals verified. No shared source, report, locator, preview, vendor or old evidence was changed.
+
+Acceptance Criteria Checklist
+
+1. "Copies retain all scoped current/undo/redo/branches/checkpoints/original/derived/draft roots at one frozen high-water and exclude unrelated private content/secrets/executable outbox."
+⚠️ DEVIATION — I-PF03
+What differs: a valid restored current inspector draft can be applied and cleared, but its accepted history fence has no mapped UI owner root. A subsequent full SaveCopy returns503 RECOVERY_UNAVAILABLE / required-history-draft-ownership-unavailable.
+Evidence: imported-draft.json; imported-draft-01.log; imported-draft.test.mjs. Accepted edit command462aad02-3623-4702-8cbb-7f3cb20bd52d reached revision3. Exact draft bytes remain under original asset/UI and imported namespace roots; the expected mapped UI owner has zero roots. There is no observed byte deletion. This is not an exemption for missing required history: failing closed is correct, failing to create authoritative ownership is the defect.
+Impact: ordinary use of a restored draft prevents a complete later copy.
+Minimal fix: create the reviewed mapped client/session/draft/generation ownership atomically at import and preserve accepted-history ownership after apply/clear; never guess unrelated obsolete ownership.
+Re-verify: node --import ./tests/session/no-egress.mjs --test ../imported-draft.test.mjs, plus a corrected-format healthy import/apply/clear/recopy/restart and privacy/missing-root controls. A new version's refusal to import old v1 alone is not a fix proof.
+Passing bounded evidence: closure-oracle.json independently verifies literal original/masked/transformed pixels, inactive branches, deleted layer, checkpoint/export, exact captured caption and original/derived/mask assets; unrelated private caption/document are absent. Actual d84 schema6 legacy fixtures in gates/portable.log exercise1,018 UI changes, two-document clear/supersede/retarget/reuse/count+age compaction, preserve18 old objects plus roots/receipts, include required current/history bytes and exclude obsolete unattributed UI-only bytes. They do not claim erased ownership recovery.
+
+2. "Concurrent edits do not alter captured bytes."
+✅ VERIFIED
+Evidence: closure-oracle.json/test/log and gates/portable.log restart/journey cases; storage/portable.ts capture pins frozen document/UI/high-water.
+Verification: public SaveCopy admission followed by concurrent ClearDraft and SaveCheckpoint; exact prior caption bytes remain in the copy, document revision stays captured, later checkpoint makes status outdated, private draft stays excluded. Independently decoded literal PNGs match across mapped branches. Source suite also exercises edit during copy and restart/recopy. These are bounded correctness cases, not scheduling or throughput qualification.
+
+3. "Canonical segmented indexes and exact transaction/event bytes validate without a total4GiB cap."
+⚠️ DEVIATION — I-PF01
+What differs: validation checks contiguity only within the surviving observed transaction, without proving its original bounds. A known native ImportAsset receipt spans6–7; deleting AssetRegistered6 while retaining ImageEdited7, then recomputing valid JSONL descriptors and ZIP CRCs with a reviewer-owned writer, still yields editable preview and accepted import.
+Evidence: drop-transaction-prefix.json/.zip, transaction-boundary-01.log, reviewer-archive.mjs. Original command6d3f397b-875e-4cb1-9092-dd1df1b24f02 / transaction9160ed08-cf32-4ca7-a905-3b8ae476cb01. Truncated archive SHA256 a0dcad5ba6fe2fbb76149cc898aa6981d6bcdaae38fde2e81cae0954bc017ddd. Healthy independently packed control accepted. Additional hostile-independent.json cases accept duplicate event identity and split one command's two events across different transaction IDs. These are internal completeness/identity failures, not an external-origin authentication requirement.
+Impact: incomplete or internally inconsistent retained history can be advertised complete/editable.
+Minimal fix: versioned, verifiable original receipt-derived bounds/count/framed event hash and command/transaction/event consistency, with explicit compatibility/rollback behavior. Coordinator-approved future PF-1 revision2 amendment is read and recorded; it does not change the d4 format1 checklist or approve any correction.
+Re-verify: node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 ../hostile-independent.test.mjs and unchanged prefix controls, adapted explicitly for corrected format plus healthy/legacy/pending compatibility controls. The old transaction-boundary file includes an intentionally withdrawn overstrong all-events-command-ID authenticity assertion; see harness-classifications-final.json, do not count it as a finding.
+Passing bounded evidence: canonical/index/ZIP64 controls pass; actual non-sparse ZIP4,296,016,564bytes and index150,650,050bytes pass streaming boundary tests. This is transport/index correctness only, not a coherent full R39 project campaign.
+
+4. "Missing or corrupt dependencies prevent a false complete-copy claim."
+✅ VERIFIED
+Evidence: gates/portable.log failures for deleted-layer and hidden-branch pixels, changed history patches, required-current missing bytes, required-history missing ownership; hostile-independent.json SHA/missing object; hostile-structure.json missing history. Source closure.ts and storage/portable.ts enumerate required history/source dependencies and fail closed.
+Verification: exact source reruns reject incomplete/corrupt dependency cases and preserve the source document, surviving roots and staged archive. Legacy obsolete UI-only exclusion was exercised separately; it was not used to waive a missing current or domain/history dependency. I-PF01 remains a separate transaction completeness violation.
+
+5. "Hostile archives fail before editable namespace publication and leave existing data/source archive intact."
+⚠️ DEVIATION — I-PF01
+What differs: the truncated transaction, duplicate event ID and split-command transaction corpus entries become editable and are actually imported. Existing source document and uploaded archive bytes remain unchanged, but a fresh invalid editable namespace is published.
+Impact/minimal fix: reject inconsistent or unprovably complete retained transactions before editable review and again at atomic acceptance; preserve source/archive/existing namespaces.
+Evidence: hostile-independent.json and its14 archived inputs; original prefix artifact. Eleven expected outcomes pass; three internal-transaction cases fail. Eighteen additional independent structure controls all pass: parent/absolute/backslash/NUL paths, case/duplicate-name collisions, local/central mismatch, overlap, BigInt ZIP64 offsets above safe integer/outside file, noncanonical JSONL, missing LF, wrong count, duplicate record, missing history, self-index reference, forbidden transport field and unknown record inspection. All preserve original source and no namespace is published for these rejected controls.
+Re-verify: node --import ./tests/session/no-egress.mjs --test ../hostile-structure.test.mjs; node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 ../hostile-independent.test.mjs. Preserve the healthy independent packer control. Format/provenance author-source tests also passed for malformed headers, typed closure, cycles, unsupported families, exact inert prompts/returned bytes, contaminated hash inspection, timing-array rejection and >200 provider hashes without an invented total cap.
+
+6. "Import is reviewed, generation/session/identity fenced, atomically mapped into a fresh namespace and never dispatches providers."
+⚠️ DEVIATION — I-PF02 (explicit assignment includes complete server/browser projections)
+What differs: after public image/checkpoint/copy/review/import and server restart, real Chromium153 RecoveryConsumer/IndexedDB publishes cursor11 and the correct imported document but lacks every mapped asset(3), history row(2), and checkpoint(1) present on the server.
+Evidence: browser-import.json, browser-import-01.log, browser-import.mjs; no external requests. src/protocol/recovery-cache.ts applies BundleImported's document without the complete mapped namespace; server/storage/portable.ts publishes the mapped rows on the server.
+Impact: the browser can report a completed recovery boundary with an incomplete imported projection.
+Minimal fix: bounded authenticated hydration and validation of all required namespace rows before atomic transaction/cursor publication, with restart, duplicate, missing-page and snapshot/tail controls.
+Re-verify: node --import ./tests/session/no-egress.mjs ../browser-import.mjs and corrected browser recovery failure/retry cases. Keep source/server expected rows intact.
+Passing bounded evidence: independent authority.json confirms anonymous401, foreign403, empty foreign inventory, same-byte inode replacement rejection, changed same-ID command409 and renewed-session review410. Source suite proves post-proof changed/replaced/missing source refusal, namespace collision rejection, mapping pagination105 sessions, exact retry, commit crash all-or-none and zero-effect provenance. Public native FULL tests independently preserve17 tables, exact pending identity/source and zero partial namespace. Pin-lifetime-02 preserves shared pending pins and independent read handles across cancellation; its admissions/crashes are public HTTP and deterministic read-slot control uses the actual storage class directly, not a simulated production fault.
+
+7. "Ready/saved-destination and outdated-state labels remain truthful."
+✅ VERIFIED
+Evidence: closure-oracle.json and gates/observations.json, source save-status worker and copy routes, source restart tests.
+Verification: copy is copy-ready only after durable archive/receipt, download hash matches; destination remains unconfirmed; concurrent domain or UI changes cause bundleOutdated. This does not claim an external destination write, user review or browser UI readiness.
+
+8. "Explicit schema changes preserve exact actual-prior data and safe refusal/verified rollback."
+✅ VERIFIED
+Evidence: gates/portable.log schema7 tests use actual immutable d84 schema6 executable, not a mocked version field; source tests/portable/schema.test.mjs, schema migration implementation and backup manifests.
+Verification: prior table/root/receipt and pending preparation/approval identity equality, old executable refusal of schema7, verified schema6 backup reopened with that actual old executable, future schema read-only refusal, capacity and backup/manifest corruption failures before activation, recheck and real SIGKILL at five schema phases all pass. The actual parent executable is built solely for the explicitly required compatibility fixture; no base rebuild was used to excuse a failing current test. Future schema8/d4 compatibility is not reviewed here.
+
+A-PF01 disposition
+OPEN administratively; bounded exact-target recovery correction independently VERIFIED, no original-target approval or coordinator closure granted. Author failed01/weak timer FULL and successful02/03 attribution remain intact.
+Independent public tests filled a real disposable SQLite database at the after-proofs acceptance barrier until native ERR_SQLITE_ERROR errcode13. Both runs used735-page limits,291 filler rows and584 restored free pages. Recovery reported waiting-for-resources/STORAGE_FULL with original command still pending, no invalid-archive rejection and zero fresh namespaces. Exact original/hash/canonical/operation/frozen/confirmed identity and17 source tables, staging upload and source document were unchanged.
+Same-authority: command6e001b83-3861-412d-8630-cd2337e632b4, operation12d7cee1-4341-4ce4-af02-5c29480c2677, hash sha256:70803b80b344b63c5daa6c9fa23bf23102644e75bb073423ee510ef4afe61874. Restore capacity; same command accepts once, repeated and post-restart receipt stable.
+Restart-expired: original2dcd9f60-4b4b-499a-ba66-c0994ae916e5, operation5c039f14-925c-4565-bcc7-d9fa751b78f2, hash sha256:e87dbefbea59aa81bb77be5f6d1a45b19388aa3895a011b2161486a0a4255a6c. Restart keeps original rejected with BUNDLE_REVIEW_EXPIRED; new review and new command8a6e25d1-8a43-42d8-b4ba-3a6a5d849a0f accept exactly once. No authority resurrection or old-body replacement. Each final namespace count1/event count1/terminal pins0; all8 provider/network effect counters0. Genuine-invalid controls still reject. Source process tests also verify terminal-owned pin cleanup after commit crash.
+Evidence: full-http-02-{same-authority,expired-after-restart}.json, full-http-02.log and public-child.mjs. Reverify: node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 ../full-http-02.test.mjs.
+
+Evidence index
+Commits: exact d4ed761 and actual approved prior d84c1de; tracked diff reviewed against that direct parent. No later author edits consumed.
+Notes read: entire existing reviewer task and exact assignment, author8c5b65fb final handoff, Spec, PR Context identity/relevant portable handoff and later coordinator amendments, existing independent progress-report handoff/open feedback. Owning inputs: docs/handoff/README.md; frozen ARCH5/9/20.1/20.2/20.4/20.5/20.6; UX save/recovery; TEST S7/S13/S23/FORMAT/PROV; PERF R31/R38/R39; tooling PORTABLE/HISTORY/STORE/PROTOCOL/ASSETS/RASTER. The historical PR Context contains unrelated prior review material; the relevant exact-target scope was consumed, not silently rederived.
+Areas: portable ZIP/index/typed closure/provenance; capture/preparation/import/mappings; public ownership/content/review routes; storage/schema/objects/roots; UI checkpoints; browser recovery cache/client; parent history/raster/store contracts.
+Source/build identity: source-identity.json, source-identity-final.json, build-identity.json. Author seal checks: author-seals-verified.json. Independent original artifacts and failed logs are sealed alongside successful controls.
+
+Tests/Commands Run
+All commands use external source cwd with Node26.10.0/npm12.1.0 PATH. COMMANDS.json plus run-gates.py and individual harnesses record invocations and logs.
+PASS: npm ci --offline --no-audit --no-fund; npm run typecheck; npm run build.
+PASS: portable87, portable real-volume1, history40, raster254, assets29, protocol14, session14, store24, store-volume1, assets-volume1; recovery browser12, history-browser3, raster-browser1, shell10; verify:vendor, verify:raster, spec check and spec mutation check.
+PASS independent: authority1, literal pixel/closure/capture1, public native FULL2, structure corpus18 cases, pin/read lifetime1, corrected tiny parent-clock observation5 samples.
+FAIL product: transaction-boundary prefix, hostile corpus3 of14 cases, browser import projection, applied/cleared imported draft recopy.
+Retained reviewer corrections: initial full-http restart assertion used the wrong WireValue path; corrected script passes. Initial observation identity tried to read the reviewer toolchain directory symlink as a file; Git-metadata-only exclusion restored exact author source identity and rerun passes. Initial pin test overlooked worker auto-resumption consuming a slot and got expected CAPACITY; deterministic actual-storage-class variant passes. Consistent all-events command-ID mutation was an overstrong exploratory authenticity oracle, explicitly withdrawn; it is not I-PF01. Read-only guessed filename failures are not product failures. See harness-classifications-final.json; originals remain sealed and are not overwritten.
+
+Risk Notes and unclosed limits
+Coordinator confirmed serial assigned resource/timing window at2026-09-26T10:16:37Z before measurement; END sent2026-09-26T10:29:54Z after all builds/tests/measurements. Coordinator did no builds/tests/measurements, author source-only, report maintenance data/HTTP. Reviewer resource workloads ran serially; read-only source inspection/hashing occurred during portions of the gate run. This is assigned-workload coordination, not exclusive-host proof. Later sealing is hashing/documentation only.
+Independent large ZIP: payload4,296,015,889, ZIP4,296,016,564, allocated4,308,602,880bytes, max I/O1,048,576, peakRSS166,920,192, full inner test5,640.676ms. Segmented index150,650,050bytes/10,000 synthetic event records/2 event segments/3 root segments, peakRSS243,793,920, inner5,968.009ms. Outer node-test clocks remain in gates/portable.log. These are real transport/index boundary controls; they do not represent a coherent512MiB/4GiB/100k-history project or full R39 qualification.
+Independent tiny3x2 parent maxima: copy-ready+download106.116ms; upload+preview274.208ms; confirmed import-to-receipt423.713ms; upload+preview+import688.744ms; full parent789.141ms. Include queue/capture/hash/CRC/parse/codec/import/receipt/polling, and copy download verification. They omit destination write and browser paint. Author final03 tiny maxima remain copy110.794ms/import435.899ms/whole811.451ms, separately attributed. Prior history metadata max74.743ms with20/20 over50ms and other slow parents remain visible; later tiny authority-to-client10.986ms/all29max16.699ms do not qualify those parents. No timing reset or omitted-cost speed claim.
+A-R01 broader native memory/full supported-envelope remains OPEN, as do En Reve/exact1px user feedback. No paid/provider/publishing calls, new task delegation, fabricated user review or UI feedback closure. Review weight0; P1b17/27 unchanged pending coordinator credit; browser remains gated. Current review and implementation are not marked complete. Original-target scope is clear; no spec ambiguity blocks this verdict. Future PF-1 revision2/schema8 corrections need their own explicitly assigned exact-target independent review.
