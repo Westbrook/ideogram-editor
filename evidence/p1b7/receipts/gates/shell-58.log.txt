@@ -1,0 +1,19 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/browser/playwright.config.ts
+
+Running 10 tests using 1 worker
+
+(node:13056) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/browser/shell.spec.ts:35:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (692ms)
+  ✓   2 tests/browser/shell.spec.ts:78:1 › B02 real native prompt drafts, inert text, selection and composition-safe shortcuts (648ms)
+  ✓   3 tests/browser/shell.spec.ts:105:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (857ms)
+  ✓   4 tests/browser/shell.spec.ts:129:1 › B04 renew, stale CSRF/cookie rejection, revoke, expiry and fresh local pairing (991ms)
+  ✓   5 tests/browser/shell.spec.ts:155:1 › B05 browser-controlled hostile origin, null origin, navigation and no marker reads (636ms)
+  ✓   6 tests/browser/shell.spec.ts:190:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (926ms)
+  ✓   7 tests/browser/shell.spec.ts:209:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (812ms)
+  ✓   8 tests/browser/shell.spec.ts:228:1 › B08 lost renewal response is read back without retry; restarted server requires pairing (1.1s)
+  ✓   9 tests/browser/shell.spec.ts:255:1 › B09 CSP permits only the trusted split styles and blocks injected inline behavior (628ms)
+  ✓  10 tests/browser/shell.spec.ts:270:1 › B10 same-site user navigation opens only the anonymous shell; fetch and frame remain denied (565ms)
+
+  10 passed (8.3s)

@@ -82,3 +82,7 @@ functional evidence, performance gaps and all three OPEN feedback items. No user
 feedback is closed and P1b stays21/27. Native OS picker, actual OS IME/AT, platform,
 power-loss, formal workloads/resource maxima/100k operation campaigns remain out
 of this evidence. Browser/synthetic composition tests are not substitutes.
+
+Packaging: code commit4a6b9e9 initially omitted ignored .log evidence. The final
+evidence-only follow-up retains those exact bytes as .log.txt and reseals all
+receipts. Review the final head recorded in notes, not the incomplete first commit.

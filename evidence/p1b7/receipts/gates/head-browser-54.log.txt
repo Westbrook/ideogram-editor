@@ -1,0 +1,11 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --grep version probe|version header
+
+Running 2 tests using 1 worker
+
+(node:9029) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/recovery.spec.ts:79:1 › late version probe cannot publish mixed side panels across a concurrent checkpoint or renewed session (4.4s)
+  ✓  2 tests/editor/recovery.spec.ts:96:1 › missing or malformed current version header withholds side panels and reload recovers (2.5s)
+
+  2 passed (7.6s)

@@ -1,0 +1,77 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts interactions.spec.ts journey.spec.ts failures.spec.ts
+
+Running 12 tests using 1 worker
+
+(node:97976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body (1.9s)
+  ✓   2 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (1.8s)
+  ✓   3 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (2.8s)
+  ✓   4 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (2.9s)
+  ✓   5 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (5.2s)
+  ✓   6 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (3.6s)
+  ✓   7 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.2s)
+  ✓   8 tests/editor/interactions.spec.ts:46:1 › intermediate drawers preserve native node, value, selection and composition across reflow (877ms)
+  ✓   9 tests/editor/interactions.spec.ts:56:1 › canvas drop, selected flatten, typed transform/crop and retained branch/checkpoint actions (7.9s)
+  ✘  10 tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained (8.3s)
+(node:99587) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  11 tests/editor/interactions.spec.ts:75:1 › Help uses persistent information and public drawer without component CSP violations (1.3s)
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+screenshot-only diagnostics [
+  "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy."
+]
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Select layers',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+CSP diagnostic {"blocked":"inline","directive":"style-src-elem","line":5,"column":30,"source":"","sample":""}
+  ✓  12 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (3.6s)
+
+
+  1) tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Saved to destination: browser write completed.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Saved to destination: browser write completed.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('Saved to destination: browser write completed.', { exact: true })
+
+
+      68 |  // Public destination adapter with a real browser-owned writable file. This
+      69 |  // tests close acknowledgment, not a native OS picker or external filesystem.
+    > 70 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:async()=>{const root=await navigator.storage.getDirectory();return root.getFileHandle('destination-test.png',{create:true});}}));await click(page,'100%');await click(page,'Choose destination and save');await expect(page.getByText('Saved to destination: browser write completed.',{exact:true})).toBeVisible();const png=await page.evaluate(async()=>[...new Uint8Array(await(await(await navigator.storage.getDirectory()).getFileHandle('destination-test.png')).getFile().then(f=>f.arrayBuffer()))]);expect(Buffer.from(png).subarray(0,8)).toEqual(Buffer.from([137,80,78,71,13,10,26,10]));
+         |                                                                                                                                                                                                                                                                                                                                                                                                           ^
+      71 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:()=>Promise.reject(new DOMException('User canceled destination','AbortError'))}));await click(page,'Choose destination and save');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Destination write failed; local bytes retained');
+      72 |  }finally{await server.close();}
+      73 | });
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:70:395
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/43/browser/interactions-browser-writa-2b647-led-and-local-file-retained/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/43/browser/interactions-browser-writa-2b647-led-and-local-file-retained/error-context.md
+
+  1 failed
+    tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained 
+  11 passed (42.4s)

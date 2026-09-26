@@ -1,0 +1,44 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts
+
+Running 17 tests using 1 worker
+
+(node:90695) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body (2.0s)
+  ✓   2 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (1.5s)
+  ✓   3 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (1.8s)
+  ✓   4 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (2.3s)
+  ✓   5 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (5.4s)
+  ✓   6 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (3.7s)
+  ✓   7 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (955ms)
+  ✓   8 tests/editor/interactions.spec.ts:46:1 › intermediate drawers preserve native node, value, selection and composition across reflow (836ms)
+  ✓   9 tests/editor/interactions.spec.ts:56:1 › canvas drop, selected flatten, typed transform/crop and retained branch/checkpoint actions (7.4s)
+  ✓  10 tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained (3.0s)
+screenshot-only diagnostics []
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Select layers',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+  ✓  11 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (3.4s)
+  ✓  12 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (10.5s)
+  ✓  13 tests/editor/recovery.spec.ts:21:1 › lost draft receipt survives reload with exact original request; cleared draft does not return (4.2s)
+  ✓  14 tests/editor/recovery.spec.ts:32:1 › missing retained raster bytes block full copy visibly and remain recoverable (3.1s)
+  ✓  15 tests/editor/recovery.spec.ts:39:1 › real snapshot gap recovery publishes the complete current document after offline browser interval (7.2s)
+  ✓  16 tests/editor/recovery.spec.ts:48:1 › new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery (3.6s)
+  ✓  17 tests/editor/recovery.spec.ts:59:1 › actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns (1.3s)
+
+  17 passed (1.1m)

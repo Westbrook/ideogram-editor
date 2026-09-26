@@ -1,0 +1,22 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --grep browser writable close
+
+Running 1 test using 1 worker
+
+(node:8735) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+standalone OPFS probe {
+  ok: false,
+  stage: 'directory',
+  name: 'UnknownError',
+  message: 'The operation failed for an unknown transient reason (e.g. out of memory).'
+}
+Browser storage unavailable: failure state verified; successful write/export NOT qualified for this engine. {
+  ok: false,
+  stage: 'directory',
+  name: 'UnknownError',
+  message: 'The operation failed for an unknown transient reason (e.g. out of memory).'
+}
+  ✓  1 tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained (2.8s)
+
+  1 passed (3.3s)

@@ -1,0 +1,75 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts interactions.spec.ts journey.spec.ts failures.spec.ts
+
+Running 12 tests using 1 worker
+
+(node:97975) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/editor/failures.spec.ts:8:1 › malformed portable file is rejected visibly without document acceptance; lost command delivery reuses its exact body (2.6s)
+  ✓   2 tests/editor/failures.spec.ts:19:1 › renewal expires unaccepted review and preserves original bytes without creating a document (2.3s)
+  ✘   3 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (7.6s)
+(node:98245) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   4 tests/editor/interactions.spec.ts:10:1 › public adapters, native editing, splitter full target, keyboard and logical direction (3.6s)
+  ✓   5 tests/editor/interactions.spec.ts:25:1 › canvas paste, explicit cancel, reviewed resample and visible flatten with one command per Apply (6.9s)
+  ✓   6 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (4.9s)
+  ✓   7 tests/editor/interactions.spec.ts:41:1 › 320px and 200-percent-equivalent reflow keep controls and native focus reachable (1.3s)
+  ✓   8 tests/editor/interactions.spec.ts:46:1 › intermediate drawers preserve native node, value, selection and composition across reflow (1.4s)
+  ✓   9 tests/editor/interactions.spec.ts:56:1 › canvas drop, selected flatten, typed transform/crop and retained branch/checkpoint actions (9.0s)
+  ✓  10 tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained (3.7s)
+  ✓  11 tests/editor/interactions.spec.ts:75:1 › Help uses persistent information and public drawer without component CSP violations (1.4s)
+screenshot-only diagnostics []
+journey action diagnostics [
+  'FinalizeStaging',
+  'PrepareRaster',
+  'ReviewRaster',
+  'ApproveRaster',
+  'NewDocument',
+  'ImportAsset',
+  'FinalizeStaging',
+  'SetLayerProperties',
+  'Undo'
+] [
+  'ie.intent.Prepare image',
+  'ie.intent.Apply reviewed result',
+  'ie.intent.Select layers',
+  'ie.intent.Apply properties',
+  'ie.intent.Undo'
+]
+  ✓  12 tests/editor/journey.spec.ts:7:1 › E1 real reviewed import, edit and undo (4.3s)
+
+
+  1) tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply 
+
+    Error: expect(locator).toBeDisabled() failed
+
+    Locator:  getByRole('button', { name: 'Apply properties', exact: true })
+    Expected: disabled
+    Received: enabled
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeDisabled" getByRole('button', { name: 'Apply properties', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Apply properties', exact: true })
+        13 × locator resolved to <button tabindex="0" type="button" part="control" class="en-button" aria-busy="false" data-size="medium" data-variant="primary">…</button>
+           - unexpected value "enabled"
+
+
+      26 | test('native composition drafts do not dispatch document actions and a late veto cancels Apply',async({page})=>{
+      27 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-composition-')),server=await startLocalServer({root:join(directory,'private'),staticDirectory:resolve('dist/app')});const edits:string[]=[];
+    > 28 |  try{page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')edits.push(JSON.parse(r.postData()!).command.body.type);});await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').click();const name=page.getByRole('textbox',{name:'Layer name',exact:true});await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,composed:true})));await name.fill('日本語 draft');await expect(page.getByRole('button',{name:'Apply properties',exact:true})).toBeDisabled();await name.press('Meta+z');expect(edits).not.toContain('Undo');await name.evaluate(input=>input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,composed:true})));await name.fill('fresh Unicode 🌿');
+         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ^
+      29 |  await page.locator('en-button').filter({hasText:'Apply properties'}).evaluate(host=>host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Apply properties');await page.waitForTimeout(100);expect(edits).not.toContain('SetLayerProperties');await expect(name).toHaveValue('fresh Unicode 🌿');
+      30 |  }finally{await server.close();}
+      31 | });
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/failures.spec.ts:28:902
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/42/browser/failures-native-compositio-6b436-d-a-late-veto-cancels-Apply/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/42/browser/failures-native-compositio-6b436-d-a-late-veto-cancels-Apply/error-context.md
+
+  1 failed
+    tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply 
+  11 passed (50.7s)

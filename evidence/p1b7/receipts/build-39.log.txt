@@ -1,0 +1,21 @@
+npm notice run ideogram-editor@0.1.0 build:app
+npm notice run npm run verify:imports && vite build --config vite.app.config.ts
+npm notice run ideogram-editor@0.1.0 verify:imports
+npm notice run node tooling/verify-imports.mjs
+Verified 43 consumer en-reve imports against packed public metadata
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 225 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/app/index.html                           0.96 kB │ gzip:  0.53 kB
+dist/app/.vite/manifest.json                  1.03 kB │ gzip:  0.31 kB
+dist/app/build-evidence.json                 13.16 kB │ gzip:  1.87 kB
+dist/app/assets/index-DfgYeVRp.css           96.44 kB │ gzip: 12.69 kB
+dist/app/assets/preload-helper-BZ1Pz5am.js    1.21 kB │ gzip:  0.69 kB
+dist/app/assets/index-9CfDaEze.js             1.42 kB │ gzip:  0.76 kB
+dist/app/assets/editor-panels-C8u6k489.js     9.41 kB │ gzip:  3.33 kB
+dist/app/assets/icon-LNfVOU5p.js            137.59 kB │ gzip: 31.94 kB
+dist/app/assets/shell-CGVvDdhv.js           351.44 kB │ gzip: 96.50 kB
+
+✓ built in 119ms

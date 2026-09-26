@@ -1,0 +1,10 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --grep 128-character
+
+Running 1 test using 1 worker
+
+(node:33812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/recovery.spec.ts:114:1 › new inspector drafts preserve valid128-character IDs and distinctly bound longer targets (6.6s)
+
+  1 passed (7.2s)

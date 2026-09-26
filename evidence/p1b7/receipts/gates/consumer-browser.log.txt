@@ -1,0 +1,13 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/consumer/playwright.config.ts
+[WebServer] (node:98118) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:98122) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/consumer/registration.spec.ts:4:3 › public packed registration, interaction and lazy readiness (auto) (1.0s)
+  ✓  2 tests/consumer/registration.spec.ts:4:3 › public packed registration, interaction and lazy readiness (global) (517ms)
+
+  2 passed (3.3s)

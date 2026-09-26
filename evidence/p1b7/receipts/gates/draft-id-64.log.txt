@@ -1,0 +1,13 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --grep E1 browser copy|lost draft receipt|composition drafts|multi-tab convergence
+
+Running 4 tests using 1 worker
+
+(node:28665) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/failures.spec.ts:26:1 › native composition drafts do not dispatch document actions and a late veto cancels Apply (3.3s)
+  ✓  2 tests/editor/interactions.spec.ts:35:1 › multi-tab convergence preserves a stale inspector draft and recovers accepted transactions (3.7s)
+  ✓  3 tests/editor/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (9.5s)
+  ✓  4 tests/editor/recovery.spec.ts:21:1 › lost draft receipt survives reload with exact original request; cleared draft does not return (4.3s)
+
+  4 passed (21.8s)

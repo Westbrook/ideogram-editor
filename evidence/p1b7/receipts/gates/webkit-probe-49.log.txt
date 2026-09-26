@@ -1,0 +1,48 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts --grep writable close
+
+Running 1 test using 1 worker
+
+(node:5493) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+standalone OPFS probe {
+  ok: false,
+  stage: 'directory',
+  name: 'UnknownError',
+  message: 'The operation failed for an unknown transient reason (e.g. out of memory).'
+}
+destination diagnostic {"writable":"function","issues":[[{"target":"inspector","message":"The operation failed for an unknown transient reason (e.g. out of memory)."}]]}
+  ✘  1 tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained (7.5s)
+
+
+  1) tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Saved to destination: browser write completed.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('Saved to destination: browser write completed.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('Saved to destination: browser write completed.', { exact: true })
+
+
+      69 |  // Public destination adapter with a real browser-owned writable file. This
+      70 |  // tests close acknowledgment, not a native OS picker or external filesystem.
+    > 71 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:async()=>{const root=await navigator.storage.getDirectory();return root.getFileHandle('destination-test.png',{create:true});}}));await click(page,'100%');await click(page,'Choose destination and save');await page.waitForTimeout(200);console.log('destination diagnostic',await page.evaluate(()=>JSON.stringify({writable:typeof FileSystemFileHandle.prototype.createWritable,issues:[...document.querySelectorAll('en-validation-summary')].map((h:any)=>h.items)})));await expect(page.getByText('Saved to destination: browser write completed.',{exact:true})).toBeVisible();const png=await page.evaluate(async()=>[...new Uint8Array(await(await(await navigator.storage.getDirectory()).getFileHandle('destination-test.png')).getFile().then(f=>f.arrayBuffer()))]);expect(Buffer.from(png).subarray(0,8)).toEqual(Buffer.from([137,80,78,71,13,10,26,10]));
+         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ^
+      72 |  await page.evaluate(()=>Object.defineProperty(window,'showSaveFilePicker',{configurable:true,value:()=>Promise.reject(new DOMException('User canceled destination','AbortError'))}));await click(page,'Choose destination and save');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Destination write failed; local bytes retained');
+      73 |  }finally{await server.close();}
+      74 | });
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/interactions.spec.ts:71:654
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/p1b7/attempts/49/browser/interactions-browser-writa-2b647-led-and-local-file-retained/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/p1b7/attempts/49/browser/interactions-browser-writa-2b647-led-and-local-file-retained/error-context.md
+
+  1 failed
+    tests/editor/interactions.spec.ts:66:1 › browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained 

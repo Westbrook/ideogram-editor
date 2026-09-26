@@ -1,0 +1,13 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/browser/playwright.config.ts --grep B01|B03|B06|B07
+
+Running 4 tests using 1 worker
+
+(node:34974) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/shell.spec.ts:35:1 › B01 launcher, native bootstrap ordering, strict cookie, reload and startup bytes (1.2s)
+  ✓  2 tests/browser/shell.spec.ts:105:1 › B03 keyboard panels, roving tool focus, resize and collapsed content (1.0s)
+  ✓  3 tests/browser/shell.spec.ts:190:1 › B06 320px and 200% equivalent reflow, draft retention, named drawers and focus return (850ms)
+  ✓  4 tests/browser/shell.spec.ts:209:1 › B07 trusted report flag, navigation fragment, unflagged absence and offline recovery (746ms)
+
+  4 passed (5.0s)
