@@ -1,0 +1,140 @@
+diff --git a/src/theme/shell.css b/src/theme/shell.css
+index 140825e..5c6d93f 100644
+--- a/src/theme/shell.css
++++ b/src/theme/shell.css
+@@ -46,9 +46,12 @@ ie-shell { display: flex; flex-direction: column; height: 100dvh; min-height: 65
+ .tool-rail { flex: 0 0 64px; display: flex; align-items: center; flex-direction: column; justify-content: space-between; border-inline-end: 1px solid var(--en-color-line); background: var(--en-color-surface); padding: 18px 6px 16px; }
+ en-toolbar { display: block; }
+ en-toolbar::part(base) { gap: 5px; }
+-.tool { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 48px; min-height: 56px; padding: 6px 2px; }
+-.tool span { font-size: 9px; }
+-.tool[aria-pressed=true] { color: var(--en-color-action); background: var(--en-color-accent-subtle); border-color: var(--en-color-accent-border); }
++/* App-owned rail composition uses the public Button slots, parts and tokens. */
++.tool { inline-size: 48px; --en-button-rest-background: transparent; --en-button-rest-color: var(--en-color-text); --en-button-border-color: transparent; --en-button-radius: var(--en-radius-control); --en-button-hover-background: var(--en-color-surface-subtle); --en-button-hover-color: var(--en-color-text); }
++.tool::part(control) { inline-size: 100%; min-block-size: 56px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 6px 2px; font-size: 9px; font-weight: 500; line-height: 1.2; text-align: center; }
++.tool [slot=prefix] { display: flex; }
++.tool[disabled]::part(control) { background: transparent; border-color: transparent; color: var(--en-color-text-muted); opacity: .65; }
++.tool[aria-pressed=true] { --en-button-rest-color: var(--en-color-action); --en-button-rest-background: var(--en-color-accent-subtle); --en-button-border-color: var(--en-color-accent-border); --en-button-hover-color: var(--en-color-action); --en-button-hover-background: var(--en-color-accent-subtle); }
+ .rail-foot { font-size: 8px; letter-spacing: .14em; color: var(--en-color-text-muted); }
+ .outer-split { flex: 1; min-width: 0; }
+ .inner-split, .outer-split { display: block; height: 100%; --en-splitter-size: 4px; }
+@@ -146,7 +149,8 @@ dt { color: var(--en-color-text-muted); } dd { margin: 0; text-align: right; ove
+   .tool-rail { display: block; padding: 8px 12px; border-bottom: 1px solid var(--en-color-line); border-inline: none; }
+   .rail-foot { display: none; }
+   en-toolbar::part(base) { flex-wrap: wrap; }
+-  .tool { width: 40px; min-height: 48px; }
++  .tool { inline-size: 44px; }
++  .tool::part(control) { min-block-size: 48px; }
+   .outer-split, .inner-split { height: auto; }
+   en-split-view::part(base) { display: block; }
+   en-split-view::part(separator) { display: none; }
+@@ -171,7 +175,7 @@ dt { color: var(--en-color-text-muted); } dd { margin: 0; text-align: right; ove
+ }
+ @media (max-width: 480px) { .bar-end { margin-inline-start: 0; } .document-bar { gap: 6px; } .document-actions { width: 100%; } .canvas-toolbar { padding-inline: 12px; } .canvas-empty h2 { font-size: 24px; } .tray-toggle { padding-inline: 4px; } .status-bar span { overflow-wrap: anywhere; } .connection-actions { flex-direction: column; } }
+ @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+-@media (forced-colors: active) { .tool[aria-pressed=true], .tabs button[aria-selected=true] { border: 2px solid Highlight; } .status-dot { background: CanvasText; } .report-return { border: 2px solid LinkText; } }
++@media (forced-colors: active) { .tool[aria-pressed=true]::part(control) { outline: 2px solid Highlight; outline-offset: -3px; } .tabs button[aria-selected=true] { border: 2px solid Highlight; } .status-dot { background: CanvasText; } .report-return { border: 2px solid LinkText; } }
+ 
+ @media (max-width: 480px) { .bar-end { display: grid; grid-template-columns: 1fr auto auto; width: 100%; } .connection-button { grid-column: 1 / -1; text-align: start; } .document-actions { display: grid; grid-template-columns: repeat(5, 1fr); } .document-actions .divider { display: none; } }
+ /* App-owned split columns: the exact user-requested 1px layout rule. */
+diff --git a/src/ui/shell.ts b/src/ui/shell.ts
+index d578cd2..9a7e514 100644
+--- a/src/ui/shell.ts
++++ b/src/ui/shell.ts
+@@ -272,7 +272,7 @@ class EditorShell extends LitElement {
+     <section class="operation-status" aria-label="Operation status" tabindex="0" @keydown=${this.statusNavigation} aria-busy=${view.busy}><p role="status">${view.message}</p>${view.recovery?html`<p>${view.recovery}</p><en-button @click=${(e:Event)=>this.action(e,'Reconnect',async()=>{this.repaintKey='';await editor.connect();})}>Reconnect</en-button>`:nothing}${view.error&&!this.panel&&!view.review?html`<en-validation-summary heading="Action needs attention" .items=${[{target:'inspector',message:view.error}]} @en-action=${(e:Event)=>{e.preventDefault();this.inspectorOpen=true;this.requestUpdate();void this.updateComplete.then(()=>this.querySelector<HTMLElement>('#inspector')?.focus());}}></en-validation-summary>`:nothing}
+     ${view.uiPending.map(id=>html`<p>UI change receipt unknown. Current draft text is retained.</p><en-button ?disabled=${view.busy||!view.ready} @click=${(e:Event)=>this.action(e,'Retry original UI draft',()=>editor.retryDraft(id))}>Retry original draft delivery</en-button>`)}${view.pending.map(p=>html`<div class="pending"><span>${p.label} · ${p.result?.kind==='pending'?p.result.phase:'receipt unknown'}</span><en-button variant="secondary" ?disabled=${view.busy||!view.ready} @click=${(e:Event)=>this.action(e,'Retry original operation',()=>editor.retry(p.request.command.commandId))}>Check and retry original</en-button></div>`)}</section>
+     <div class="mobile-openers"><en-button variant="secondary" id="request-opener" @click=${()=>void this.togglePane('request')}>${this.requestOpen?'Hide request':'Show request'}</en-button><en-button variant="secondary" id="inspector-opener" @click=${()=>void this.togglePane('inspector')}>${this.inspectorOpen?'Hide layers':'Show layers'}</en-button></div>
+-    <main class="workspace" aria-label="Image editor"><aside class="tool-rail"><en-toolbar label="Canvas tools" orientation=${this.narrow?'horizontal':'vertical'}>${['Move','Text','Select','Mask','Crop','Pan','Zoom'].map(name=>html`<en-button variant="ghost" ?disabled=${!['Pan','Zoom'].includes(name)} aria-pressed=${this.tool===name} @click=${()=>{this.tool=name;this.requestUpdate();}}>${name}</en-button>`)}</en-toolbar></aside>
++    <main class="workspace" aria-label="Image editor"><aside class="tool-rail"><en-toolbar label="Canvas tools" orientation=${this.narrow?'horizontal':'vertical'}>${[['Move','move'],['Text','text'],['Select','select'],['Mask','mask'],['Crop','crop'],['Pan','hand'],['Zoom','zoom']].map(([name,glyph])=>html`<en-button class="tool" variant="ghost" ?disabled=${!['Pan','Zoom'].includes(name)} aria-pressed=${this.tool===name} @click=${()=>{this.tool=name;this.requestUpdate();}}><span slot="prefix" aria-hidden="true">${icon(glyph)}</span><span slot="label">${name}</span></en-button>`)}</en-toolbar></aside>
+     <div class="outer-grid">${this.drawerMode?nothing:this.requestNode}
+     <en-splitter id="left-divider" label="Request panel width" orientation="vertical" .value=${24} .min=${18} .max=${38} @en-change=${this.split} @pointerup=${this.persistSplit} @keyup=${this.persistSplit}></en-splitter>
+     <div class="inner-grid"><section id="canvas" class="canvas-panel" tabindex="0" aria-label="Canvas" @paste=${this.paste} @dragover=${(e:DragEvent)=>{if(e.dataTransfer?.types.includes('Files'))e.preventDefault();}} @drop=${this.drop}><div class="canvas-toolbar"><span>${this.tool} · ${d?'retained raster':'no document'}</span><en-number-field id="zoom" label="Zoom percentage" .value=${String(Math.round(this.zoom*100))} .min=${0.01} .step=${10} @en-change=${(e:Event)=>{const h=e.currentTarget as EnNumberField;this.adapter.settled(e,()=>h.value,v=>{performance.clearMarks('ie.intent.View zoom');performance.mark('ie.intent.View zoom',{startTime:e.timeStamp});this.setZoom(Number(v)/100);});}}></en-number-field><en-button variant="ghost" @click=${(e:Event)=>this.adapter.action(e,()=>this.fit())} ?disabled=${!d}>Fit</en-button><en-button variant="ghost" @click=${(e:Event)=>this.adapter.action(e,()=>this.setZoom(1))} ?disabled=${!d}>100%</en-button></div>
+diff --git a/tests/editor/portable.spec.ts b/tests/editor/portable.spec.ts
+index e7eec71..252b78a 100644
+--- a/tests/editor/portable.spec.ts
++++ b/tests/editor/portable.spec.ts
+@@ -1,20 +1,35 @@
+-import {test,expect,type Page} from '@playwright/test';
++import {test as base,webkit,expect,type Page} from '@playwright/test';
+ import {mkdtemp,realpath,readFile,writeFile} from 'node:fs/promises';
+ import {tmpdir} from 'node:os';
+ import {join} from 'node:path';
+ import sharp from 'sharp';
+ import {serverProcess} from './process.js';
++import {recordDOMErrors} from './error-monitor.js';
++import {expectedShutdownConsole,expectedShutdownPageError} from './shutdown-console.js';
+ // Test archive reader is independent of the browser adapter; small fixture only.
+ // @ts-ignore
+ import {unpack,records} from '../portable/archive-fixture.mjs';
++// WebKit's ephemeral contexts do not expose OPFS. Only this durable portable
++// journey uses a fresh persistent profile; other tests retain ephemeral failure coverage.
++const test=base.extend<{e1Errors:{domErrors:unknown[];finish:()=>Promise<void>}}>({context:async({context,browserName,contextOptions,viewport},use)=>{
++ if(browserName!=='webkit'){await use(context);return;}
++ const profile=await mkdtemp(join(await realpath(tmpdir()),'ie-webkit-e1-'));
++ const persistent=await webkit.launchPersistentContext(profile,{...contextOptions,viewport});
++ try{await use(persistent);}finally{await persistent.close();}
++},e1Errors:async({context},use)=>{
++ const monitor={domErrors:await recordDOMErrors(context),finish:async()=>{}};
++ try{await use(monitor);}finally{await context.close();await monitor.finish();expect(monitor.domErrors).toEqual([]);}
++}});
+ const accepted=(page:Page,type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
+ const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
+ const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+ async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();}
+-test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context})=>{
+- const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[],expectedFailures:string[]=[];let disrupting=false;
++test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context,browserName,e1Errors})=>{
++ const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[],expectedFailures:string[]=[];let disrupting=false;const retiredOrigins=new Set<string>();const consoleObservations:{text:string;url:string;disrupting:boolean;retiredOrigin:boolean;expected:boolean}[]=[];
++ const pageErrors:{name:string;message:string;stack:string;disrupting:boolean;expected:boolean}[]=[],domErrors=e1Errors.domErrors;
+  await context.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+- page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'){if(disrupting&&/ERR_INCOMPLETE_CHUNKED_ENCODING|ERR_CONNECTION_REFUSED|ERR_EMPTY_RESPONSE/.test(m.text()))expectedFailures.push(m.text());else errors.push(m.text());}});
++ page.on('pageerror',e=>{const observation={browser:browserName,name:e.name,message:e.message,stack:e.stack??'',disrupting,retiredOrigins},expected=expectedShutdownPageError(observation);pageErrors.push({name:e.name,message:e.message,stack:e.stack??'',disrupting,expected});if(!expected)errors.push(e.message);});page.on('console',m=>{if(m.type()==='error'){const url=m.location().url,expected=expectedShutdownConsole({browser:browserName,text:m.text(),url,disrupting,retiredOrigins});let safeUrl='',retiredOrigin=false;try{const parsed=new URL(url);safeUrl=parsed.origin+parsed.pathname;retiredOrigin=retiredOrigins.has(parsed.origin);}catch{}consoleObservations.push({text:m.text(),url:safeUrl,disrupting,retiredOrigin,expected});if(expected)expectedFailures.push(m.text());else errors.push(m.text());}});
++ e1Errors.finish=async()=>{await writeFile(join(receipt,'e1-console.json'),JSON.stringify({browser:browserName,retiredOrigins:[...retiredOrigins],observations:consoleObservations,pageErrors,domErrors},null,2));expect(errors).toEqual([]);};
+  page.on('request',r=>{const u=new URL(r.url());if(u.protocol!=='blob:'){requests.push(u.pathname);expect(u.hostname).toBe('127.0.0.1');}});
+  try{
+  await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
+@@ -28,14 +43,14 @@ test('E1 browser copy, actual process restart/new port, reviewed reopen and exac
+  const entities=all.filter((x:any)=>x.kind==='entity').map((x:any)=>({kind:x.entityType,value:JSON.parse(entries.get('objects/'+x.payloadRef.hash.slice(7)))}));
+  expect(entities.filter((x:any)=>x.kind==='history').length).toBe(3);expect(entities.filter((x:any)=>x.kind==='checkpoint').length).toBe(1);expect(entities.some((x:any)=>x.kind==='draft')).toBe(true);
+  const originalPixels=await sharp('tests/raster/fixtures/hidden-alpha.png').ensureAlpha().raw().toBuffer();
+- const effects=await server.effects();expect(Object.values(effects).every(v=>v===0)).toBe(true);const oldOrigin=server.origin,oldPid=server.pid;disrupting=true;await server.kill();
++ const effects=await server.effects();expect(Object.values(effects).every(v=>v===0)).toBe(true);const oldOrigin=server.origin,oldPid=server.pid;disrupting=true;retiredOrigins.add(server.origin);await server.kill();
+  server=await serverProcess(root);expect(server.pid).not.toBe(oldPid);expect(server.origin).not.toBe(oldOrigin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
+  expect(await page.evaluate(async()=> (await indexedDB.databases()).filter(d=>d.name?.startsWith('ie-delivery-')).length)).toBe(1);
+  await click(page,'Open');await page.getByRole('button',{name:/^Restore ui_/}).click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  await click(page,'Open');await page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath);
+  await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
+  await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+- disrupting=true;await server.kill();server=await serverProcess(root);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
++ disrupting=true;retiredOrigins.add(server.origin);await server.kill();server=await serverProcess(root);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
+  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore p_/});await expect(mapped).not.toHaveCount(0);
+  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
+  await click(page,'Save copy');await click(page,'Prepare complete copy');const nestedPath=join(directory,'nested.ideogram-project');await download(page,nestedPath);const nested=await readFile(nestedPath);expect(nested.includes(await readFile(bundlePath))).toBe(true);
+@@ -43,8 +58,9 @@ test('E1 browser copy, actual process restart/new port, reviewed reopen and exac
+  // mapped saved drafts retain their original identities and exact text.
+  const newDrafts:any[]=[];page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/ui/')&&r.method()==='POST'){const b=JSON.parse(r.postData()!).body;if(b.type==='SaveDraft'&&b.draft.kind==='inspector')newDrafts.push(b.draft);}});
+  await page.getByRole('treeitem').first().click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Editable after portable reopen');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');expect(newDrafts.length).toBeGreaterThan(0);expect(newDrafts.every(d=>d.id.length<=128&&d.documentId.startsWith('p_')&&d.targetLayerId.startsWith('p_'))).toBe(true);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem',{name:'Editable after portable reopen · visible'})).toBeVisible();
+- await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+- await writeFile(join(receipt,'e1.json'),JSON.stringify({expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+- await page.screenshot({path:join(receipt,'e1.png')});
+- }finally{await server.close();}
++ await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(domErrors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
++ await writeFile(join(receipt,'e1.json'),JSON.stringify({browserContext:browserName==='webkit'?'fresh persistent WebKit profile':'ephemeral',expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
++ // Successful rail screenshots are captured separately: WebKit screenshot
++ // tooling injects inline styles. Keep this error oracle strict through teardown.
++ }finally{await page.close();await server.close();}
+ });
+diff --git a/tooling/editor-components.json b/tooling/editor-components.json
+index 8d4fce6..e4ff84d 100644
+--- a/tooling/editor-components.json
++++ b/tooling/editor-components.json
+@@ -8,7 +8,7 @@
+         "EnToolbar",
+         "EnButton"
+       ],
+-      "owner": "App actions and truthful capability state; public button controls and keyboard toolbar behavior; deferred action observes final veto."
++      "owner": "App actions and truthful capability state; public button controls and keyboard toolbar behavior; deferred action observes final veto. Canvas tool rail composes decorative SVG in public prefix slot and compact text in label slot; control part and public rest/hover/border/radius tokens restore icon-over-label visuals. Disabled control part remains transparent/muted; public native focus, disabled state and toolbar interaction remain owned by EnButton/EnToolbar."
+     },
+     {
+       "surface": "Connection details",

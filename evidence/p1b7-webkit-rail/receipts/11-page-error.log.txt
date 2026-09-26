@@ -1,0 +1,10 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error-source/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error/browser
+
+Running 1 test using 1 worker
+
+(node:17797) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 ../ideogram-edit-verification/webkit-rail-author/11-page-error-source/portable.spec.ts:23:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (10.5s)
+
+  1 passed (11.0s)

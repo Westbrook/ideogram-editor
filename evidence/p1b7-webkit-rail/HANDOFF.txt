@@ -1,0 +1,161 @@
+P1b.7 public tool rail and WebKit durable workflow — AUTHOR handoff
+Independent affected review required. No user feedback closure or P1b credit.
+
+Source commit bbb00ab5d43dc7910912e9e67653925e5b86e83d, parent rejected
+ e392bef587b976b74106e9fadad3fe4c9d4a96a7. Evidence-only successor is reported in
+ the task/PR Context and may be obtained with git log -- evidence/p1b7-webkit-rail.
+Runtime source SHA256 ccdfab3bf9d9d8d84c9d2399b0364b55fd52f33eb2f615c58a559691209d1a9a.
+Branch ideogram-editor-p1. Task292d3ac5-08c8-4caf-9042-1eefd4cd050f;
+review565666d8-a9e3-4bb2-b09a-286e4da36009;
+PR Context cbd63320-6def-4beb-b78f-de897caf3cdf. No GitHub PR URL/number or base CI
+run exists: these are local AUTHOR gates, not CI or independent approval.
+
+PRODUCT CHANGE
+Only src/ui/shell.ts and src/theme/shell.css change production behavior. The rail
+keeps public EnButton/EnToolbar, existing decorative SVGs in prefix slots and
+compact labels in label slots. Supported control parts and rest/hover/border/
+radius tokens restore the user's previous icon-over-label visual composition.
+Unavailable tools stay natively disabled, muted and transparent. Pan keeps a
+compact rounded tint. Native keyboard/focus/press behavior stays component-owned;
+desktop targets48x56 and narrow targets44x48 wrap at320px. No private imports,
+shadow replacement, vendor change, native-button fallback or domain action added.
+COMPONENTS.json is the complete current inventory with concrete ownership and
+native/custom exceptions. Native pointer/keyboard state, disabled activation,
+selected semantics, desktop/narrow/RTL visuals and layout assertions pass.
+Original user images and actual rendered screenshots are included, separately
+labeled. Coordinator visually inspected composition; user approval is NOT inferred.
+
+WEBKIT DIAGNOSIS AND TEST-ONLY CORRECTION
+Production destination/storage/streaming/hash/byte validation is unchanged.
+Fail-before01 reproduces the original e392 first-download timeout on unchanged
+old build. Safe native stage instrumentation identifies getDirectory rejecting
+UnknownError before file creation, byte fetch/write or anchor activation.
+Control02 holds engine/API/bytes constant: ephemeral context fails; fresh persistent
+profile reads/writes exact bytes. E1 alone therefore uses a NEW isolated persistent
+WebKit profile per test; other WebKit app tests remain ephemeral. Primary sources:
+https://github.com/microsoft/playwright/issues/18235
+https://github.com/microsoft/playwright/blob/main/docs/src/api/class-browsercontext.md
+This is an environment-specific test correction, not native Safari/private-mode
+support qualification, a storage mock, or an acceptance waiver.
+
+Full03/04 still FAIL at their original final console assertion after reaching the
+prior download/pixel/history/restart assertions.04 records all relevant native
+connection messages at the killed exact loopback event endpoints during the real
+restart. The authorized console classifier requires exact engine/message, owned
+retired origin, events/events-stream path and bounded intentional outage.
+
+Full09 remains27PASS/1FAIL, including an unfiltered access-control pageerror.11
+passes without reproducing it and does not erase09. Controls10/12 do not emit a
+pageerror.13 deliberately denies an already HANDLED cross-origin fetch: TypeError
+is caught, DOM error/unhandledrejection are empty, but Playwright emits pageerror
+with exact name Fetch API cannot load http, empty stack and URL/access-control
+message. Installed Playwright1.63 producer maps JavaScript-source console errors
+into pageerror and splits this URL at the colon (pinned producer excerpt/hash in
+ORACLE-PROVENANCE.json).09 lacks name/stack; it is NOT retrospectively reclassified.
+
+The separately authorized NEW pageerror exception accepts only the exact name,
+empty stack, canonical loopback event URL with one canonical after query, retired
+origin and real restart phase. Unknown fields, engine, origin, path, query, message,
+stack or phase still fail. Independent DOM error AND unhandledrejection listeners
+are installed before each app document; a context binding stores records outside
+those documents across navigation, and teardown closes the context then asserts
+all records. Browser negative controls deliberately log, throw, reject and throw
+mimic-shaped errors; they remain detectable. No default prevention or domain input
+interception is involved. Final E1 also checks all unrelated console/page errors.
+
+The optional successful E1 screenshot is omitted because WebKit screenshot tooling
+injects inline style; retained11 shows that artifact-only CSP diagnostic after the
+original assertions. The new E1 error oracle stays strict through teardown. Separate
+rail screenshots and earlier failure captures are retained. Unchanged journey.spec
+still reports screenshot-only CSP diagnostics separately, outside its workflow
+assertions; this is disclosed, not a claim that screenshot tooling caused no events.
+All original workflow assertions/timeouts remain: real downloads, independent
+archive closure/history checks, exact PNG pixels, process/new-port restarts,
+reviewed reopen, retained drafts/identity/command bodies and zero provider effects.
+External download destinations remain UNCONFIRMED; browser initiation is not proof
+of an external save. The ephemeral WebKit unavailable-storage test verifies failure
+only; native OS picker, external filesystem acknowledgment and AT remain untested.
+
+GATES AND SOURCE ATTRIBUTION
+All commands, UTC intervals and stdout are under receipts/commands.jsonl and
+receipts/*.log.txt (byte-identical aliases of original logs). GATE-MATRIX.json binds versions rather than treating every old pass
+as a final-source pass.100 actual runtime inputs,97 actual verification inputs,
+61 emitted build copies; reporter browser.json files are OBSERVATIONS, never code.
+Author type05/build07 PASS; original classifier06 PASS; full Chromium14 28PASS;
+read/projection/classifier15 7PASS; shell16 10PASS; full Firefox17 28PASS.
+14/17 used the prior oracle.17 portable finished before the new oracle edits while
+remaining unchanged tests finished; it is not relabeled an exact final-oracle full
+gate. Final exact-field negatives18 twoPASS; focused WebKit19 twoPASS. Final20 only
+adds safe retired-origin/negative-control receipt fields after19; full WebKit20
+29PASS (END2026-09-26T15:48:48.244248Z). Final affected Chromium21/Firefox22 each
+2PASS. Product source/build stay identical throughout05 onward. Functional20/21/22
+overlap; no timing, resource, profiling or exclusive-host claim is made.
+
+Retained failure08 is the desktop test locator looking for DOM descendants under a
+shadow toolbar role, excluding slotted buttons: fixed locator scopes to app rail
+plus a separate actual toolbar-role assertion, preserving every original geometry/
+state assertion.08 overall FAIL remains despite its E1/narrow PASS. All01/03/04/08/
+09 outputs, actual original e392 failing JSON/log/screenshot/context and verdict/
+seal are retained. Historical verification source captures01/03/04/05/09/11 and
+final20 are included; not every intermediate passing verifier was independently
+frozen.19 differs only in subsequently added receipt fields; no lost source/report
+is reconstructed. This directory's19 is a new WebKit attempt and is unrelated to
+the still-UNAVAILABLE older i-br01-author/19 reporter overwritten by25. Original
+history19 loss, failed24 analyzer, versioned v2, original eb4/e392 verdicts and all
+previous approved/rejected seals remain unchanged.
+
+PERFORMANCE AND LIMITS
+No new action timing or resource campaign was authorized or run. Older e392 bounded
+I-BR01 history65.207/67.378/83.598ms was independently verified and administratively
+resolved only within criterion9; this does not qualify current full W1/H or large
+workloads. All50ms target misses, original history74.742833ms metadata20/20 above50,
+opacity171.443917ms earlier tiny fixture, later opacity299–350ms, original full-parent
+portable1003.224/1013.215 excluding paint/destination, parent multi-second actions,
+repeated/quadratic disk namespace scans,100k/native/platform/power-loss/large-envelope
+campaign limits remain. Short R20 children and the five pending maxima are not
+whole-action or successful-processing qualification. A-R01 stays OPEN.
+
+Actual emitted filesystem bytes, Node26.10 gzipSync defaults per file (zlib version
+recorded in23): startup495120raw/129982gzip; explicit lazy panel9411raw/3322gzip;
+CSS97169raw/12799gzip. All are below D11 byte ceilings, single artifact only.
+Build-evidence.json retains its separate pre-finalization conservative metadata
+504211/133138/CSS12813; do not substitute that metadata for actual emitted hashes
+or infer evaluated-module timing, full memory or cold/warm qualification.
+
+ISOLATED RUNTIME / REVIEW
+http://127.0.0.1:56474/?progress-report serves frozen bbb00ab/runtimeccdfab3b,
+PID26664, started2026-09-26T15:49:23.414Z, distinct service/root
+/Users/westbrook/Documents/repos/ideogram-edit-webkit-rail-preview-ccdfab3b.
+61 prepared build files are checked at service startup.25 verifies seven actual
+served HTML/JS/CSS/lazy responses against frozen loadStatic/build, paired rendered
+shell, scrubbed credential fragment and trusted4381 report href. Shared outgoing
+effect counters are retained separately. Existing56296/55911/approved52219/report4381
+and .progress-report default locator are untouched. New preview is AUTHOR/unreviewed.
+Rendered report roundtrip receipt is added in RUNTIME-HANDOFF.json when performed.
+No new native Intent/OS/AT browser-roundtrip qualification is inferred from Playwright.
+
+Secure pairing, without printing credentials: write pair-file followed by newline
+to the service's0600 control FIFO. It writes ignored artifacts/webkit-rail-private/
+pairing.json with0600 mode. Read the URL privately in the controlled browser and
+never copy it to notes/evidence. Write effects plus newline to the FIFO for the safe
+counter receipt. Do not restart or repoint approved/old preview services. To recreate
+this separate service later, use retained24-start-preview.py with a NEW distinct
+root, current pinned toolchain/dependencies and the61 packaged build aliases mapped
+back by BUILD-MAPPING; do not reuse an occupied root or silently switch review target.
+
+INTEGRITY / HANDOFF
+Run python3 evidence/p1b7-webkit-rail/verify-evidence.py from an exact checkout or
+archive. It checks every new seal, current code identity, build/observation mappings,
+and copied original rejected-target evidence against its original seal index.
+An evidence-only successor and fresh exact Git archive receipt are reported in task
+and PR Context. No ignored/private raw credentials, profiles, SQLite roots or network
+traces are committed. Only pre-existing untracked .intent/.gitignore is outside owned
+changes; do not stage/delete it. Implementation must remain review_required after
+handoff; coordinator assigns existing reviewer5656. P1b21/27; user UI439b475b and
+A-R01 OPEN. Scoped I-BR01/A-BR01 resolutions are unchanged. No self-approval, user
+acknowledgment, completion credit, deployment, publication or paid/provider action.
+
+Packaging preflight27 caught87 ignored paths before staging (26 original .log names
+and61 build/ paths). New committed aliases use .log.txt and emitted/ with exact
+original-path/digest mappings. Initial seal, mappings, packager and disposition are
+retained; no raw ignored file was force-staged, no product/build/test rerun occurred.

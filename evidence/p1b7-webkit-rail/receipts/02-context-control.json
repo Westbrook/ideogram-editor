@@ -1,0 +1,19 @@
+[
+  {
+    "kind": "ephemeral",
+    "ok": false,
+    "stage": "getDirectory",
+    "name": "UnknownError",
+    "message": "The operation failed for an unknown transient reason (e.g. out of memory)."
+  },
+  {
+    "kind": "fresh persistent",
+    "ok": true,
+    "bytes": [
+      0,
+      1,
+      2,
+      255
+    ]
+  }
+]

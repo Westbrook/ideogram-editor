@@ -1,0 +1,27 @@
+      _onConsoleMessage(event) {
+        const { type: type3, level, text: text2, parameters, url: url3, line: lineNumber, column: columnNumber, source: source12 } = event.message;
+        if (level === "error" && source12 === "javascript") {
+          const { name, message } = splitErrorMessage(text2);
+          let stack;
+          if (event.message.stackTrace) {
+            stack = text2 + "\n" + event.message.stackTrace.callFrames.map((callFrame) => {
+              return `    at ${callFrame.functionName || "unknown"} (${callFrame.url}:${callFrame.lineNumber}:${callFrame.columnNumber})`;
+            }).join("\n");
+          } else {
+            stack = "";
+          }
+          this._lastConsoleMessage = null;
+          const error = new Error(message);
+          error.stack = stack;
+          error.name = name;
+          this._page.addPageError(error, {
+            url: url3 || "",
+            lineNumber: (lineNumber || 1) - 1,
+            columnNumber: (columnNumber || 1) - 1
+          });
+          return;
+        }
+        let derivedType = type3 || "";
+        if (type3 === "log")
+          derivedType = level;
+        else if (type3 === "timing")

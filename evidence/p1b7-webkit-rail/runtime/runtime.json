@@ -1,0 +1,12 @@
+{
+  "started": "2026-09-26T15:49:23.414Z",
+  "pid": 26664,
+  "origin": "http://127.0.0.1:56474",
+  "reviewURL": "http://127.0.0.1:56474/?progress-report",
+  "runtimeSourceSHA256": "ccdfab3bf9d9d8d84c9d2399b0364b55fd52f33eb2f615c58a559691209d1a9a",
+  "node": "v26.10.0",
+  "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+  "service": "/Users/westbrook/Documents/repos/ideogram-edit-webkit-rail-preview-ccdfab3b/",
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit-webkit-rail-preview-ccdfab3b/private",
+  "mode": "isolated author review; no independent approval; outgoing effects denied"
+}

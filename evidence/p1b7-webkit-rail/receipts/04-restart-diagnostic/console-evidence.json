@@ -1,0 +1,42 @@
+[
+  {
+    "text": "Failed to load resource: The network connection was lost.",
+    "disrupting": true,
+    "origin": "http://127.0.0.1:62498",
+    "location": {
+      "url": "http://127.0.0.1:62498/api/v1/events/stream",
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  },
+  {
+    "text": "Failed to load resource: The network connection was lost.",
+    "disrupting": true,
+    "origin": "http://127.0.0.1:62528",
+    "location": {
+      "url": "http://127.0.0.1:62528/api/v1/events/stream",
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  },
+  {
+    "text": "Failed to load resource: Could not connect to the server.",
+    "disrupting": true,
+    "origin": "http://127.0.0.1:62528",
+    "location": {
+      "url": "http://127.0.0.1:62528/api/v1/events",
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  },
+  {
+    "text": "Failed to load resource: Could not connect to the server.",
+    "disrupting": true,
+    "origin": "http://127.0.0.1:62528",
+    "location": {
+      "url": "http://127.0.0.1:62528/api/v1/events/stream",
+      "lineNumber": 0,
+      "columnNumber": 0
+    }
+  }
+]

@@ -1,0 +1,61 @@
+{
+  "method": "Actual emitted filesystem bytes; Node gzipSync defaults, per-file sum. Single artifact only; no evaluated-module/resource/timing campaign.",
+  "node": "v26.10.0",
+  "zlib": "1.3.2.1-motley-285e94b",
+  "startup": {
+    "raw": 495120,
+    "gzip": 129982
+  },
+  "lazy": {
+    "raw": 9411,
+    "gzip": 3322
+  },
+  "css": {
+    "raw": 97169,
+    "gzip": 12799
+  },
+  "files": [
+    {
+      "path": "dist/app/assets/editor-panels-C8u6k489.js",
+      "bytes": 9411,
+      "gzipBytes": 3322,
+      "sha256": "f8cc7928740819c5c1180b4488dca6c97071c373cbd24368d87e61a730180b4b",
+      "group": "explicit lazy panel"
+    },
+    {
+      "path": "dist/app/assets/icon-LNfVOU5p.js",
+      "bytes": 137598,
+      "gzipBytes": 31821,
+      "sha256": "a55df1699f187d43aa5bacf75dd41a13ebe0b90086e25143057724e64bcdc122",
+      "group": "startup JavaScript"
+    },
+    {
+      "path": "dist/app/assets/index-3qdbjV_g.css",
+      "bytes": 97169,
+      "gzipBytes": 12799,
+      "sha256": "4dbd26c5d61d312d5dcf86b7a52cf1687cc18ad020bfc0160053950a23f339ea",
+      "group": "css"
+    },
+    {
+      "path": "dist/app/assets/index-CZlJ4lrb.js",
+      "bytes": 1429,
+      "gzipBytes": 760,
+      "sha256": "b90771e0bcd5aaa63f49bdb46b8d5e8d2fd9adf8b572b0180dfcdf213e780175",
+      "group": "startup JavaScript"
+    },
+    {
+      "path": "dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "bytes": 1218,
+      "gzipBytes": 688,
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "group": "startup JavaScript"
+    },
+    {
+      "path": "dist/app/assets/shell-CKvWsoOx.js",
+      "bytes": 354875,
+      "gzipBytes": 96713,
+      "sha256": "875f76168f1c8ddb514aefa0c6aa3ab814c3f4c65ee68c358b5fd49d9323f2fa",
+      "group": "startup JavaScript"
+    }
+  ]
+}

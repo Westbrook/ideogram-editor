@@ -1,0 +1,48 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts portable.spec.ts tool-rail.spec.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/browser
+
+Running 3 tests using 1 worker
+
+(node:12213) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/portable.spec.ts:23:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (10.9s)
+  ✘  2 tests/editor/tool-rail.spec.ts:9:1 › public rail restores icon-over-label surfaces and native disabled, selected, keyboard and pointer behavior (5.8s)
+(node:13546) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/editor/tool-rail.spec.ts:25:1 › rail keeps full targets and visible labels at narrow and RTL reflow (1.6s)
+
+
+  1) tests/editor/tool-rail.spec.ts:9:1 › public rail restores icon-over-label surfaces and native disabled, selected, keyboard and pointer behavior 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('toolbar', { name: 'Canvas tools' }).getByRole('button')
+    Expected: 7
+    Received: 0
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" getByRole('toolbar', { name: 'Canvas tools' }).getByRole('button') with timeout 5000ms
+      - waiting for getByRole('toolbar', { name: 'Canvas tools' }).getByRole('button')
+        14 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      11 |  try{
+      12 |  const rail=page.getByRole('toolbar',{name:'Canvas tools'}),pan=rail.getByRole('button',{name:'Pan',exact:true}),zoom=rail.getByRole('button',{name:'Zoom',exact:true});
+    > 13 |  await expect(rail.getByRole('button')).toHaveCount(7);await expect(pan).toHaveAttribute('aria-pressed','true');
+         |                                         ^
+      14 |  const initial=await geometry(page);expect(initial.map(x=>x.name)).toEqual(['Move','Text','Select','Mask','Crop','Pan','Zoom']);
+      15 |  for(const g of initial){expect(g.width).toBeGreaterThanOrEqual(44);expect(g.height).toBeGreaterThanOrEqual(48);expect(g.width).toBeLessThanOrEqual(48);expect(g.iconBottom).toBeLessThan(g.labelTop);expect(g.centerDifference).toBeLessThan(1);expect(g.fontSize).toBe(9);expect(g.weight).toBe('500');}
+      16 |  for(const name of ['Move','Text','Select','Mask','Crop']){const disabled=rail.getByRole('button',{name,exact:true});await expect(disabled).toBeDisabled();const b=(await disabled.boundingBox())!;await page.mouse.click(b.x+b.width/2,b.y+b.height/2);await expect(pan).toHaveAttribute('aria-pressed','true');const g=initial.find(x=>x.name===name)!;expect(g.background).toBe('rgba(0, 0, 0, 0)');expect(g.border).toBe('rgba(0, 0, 0, 0)');}
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/tool-rail.spec.ts:13:41
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/browser/tool-rail-public-rail-rest-54367-yboard-and-pointer-behavior/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/browser/tool-rail-public-rail-rest-54367-yboard-and-pointer-behavior/error-context.md
+
+  1 failed
+    tests/editor/tool-rail.spec.ts:9:1 › public rail restores icon-over-label surfaces and native disabled, selected, keyboard and pointer behavior 
+  2 passed (19.9s)

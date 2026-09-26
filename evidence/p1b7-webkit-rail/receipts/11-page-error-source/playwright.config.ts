@@ -1,0 +1,1 @@
+import {defineConfig} from '@playwright/test';export default defineConfig({testDir:'.',testMatch:'portable.spec.ts',workers:1,retries:0,timeout:90000,reporter:[['list'],['json',{outputFile:process.env.EDITOR_RECEIPT+'/browser.json'}]],use:{browserName:'webkit',viewport:{width:1440,height:1000},actionTimeout:10000,trace:'off',screenshot:'only-on-failure'}});

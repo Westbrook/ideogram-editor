@@ -1,0 +1,1211 @@
+{
+  "classification": "Browser reporter JSON and historical captures are observations, not live verification code inputs. No ignored original observation is required outside this package. Symlinked node_modules and private profiles/pairing files are deliberately excluded.",
+  "entries": [
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/browser/.last-run.json",
+      "packagePath": "receipts/01-stage-diagnostic/browser/.last-run.json",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "packagePath": "receipts/01-stage-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "sha256": "a1f0298c141d60c3479c614ff7855d2ef6c37ec231ab6b619b92dc29106b0f39",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "packagePath": "receipts/01-stage-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "sha256": "55b7693b5e524f18d1bf3d8e9991e53d5b441f8c27cedde7afb832548e76422f",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/browser.json",
+      "packagePath": "receipts/01-stage-diagnostic/browser.json",
+      "sha256": "da3123ae0c052de39a8ab964a66d191c8ff1beb8572207c83477f66f02ae786e",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/safe-stage-diagnostic.json",
+      "packagePath": "receipts/01-stage-diagnostic/safe-stage-diagnostic.json",
+      "sha256": "634212ea5275646f53b82e82e8f97263f0d9b6e1f24c1caacfedc8f13fbdf240",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/package.json",
+      "packagePath": "receipts/01-stage-diagnostic-source/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/playwright.config.ts",
+      "packagePath": "receipts/01-stage-diagnostic-source/playwright.config.ts",
+      "sha256": "94e69028b960f4371a0a6af2ee5270305b59ab49a7023a7ccd34d0c416a41c13",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/portable.spec.ts",
+      "packagePath": "receipts/01-stage-diagnostic-source/portable.spec.ts",
+      "sha256": "f324e2b6d6c191b8f21173eec32d720eff2e3f952e133be64b9f51281f95bd38",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic.log",
+      "packagePath": "receipts/01-stage-diagnostic.log",
+      "sha256": "bc0aee2ff138567ef6ff371aec7642f543b6e16539b2b3a37e9622a835fcd66a",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/02-context-control.json",
+      "packagePath": "receipts/02-context-control.json",
+      "sha256": "e216d8471278e8e68d0d92dc0d67cd6c5eba44a4ab0e38a60b34ee68ce2b46b8",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/02-context-control.log",
+      "packagePath": "receipts/02-context-control.log",
+      "sha256": "9cda70524d75ad2fd4bc2b2852d2063c9530a7e43d492e5d846191c61f478652",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/02-context-control.mjs",
+      "packagePath": "receipts/02-context-control.mjs",
+      "sha256": "6170a9b2630e27f7400c01a23b717c4fbdc663df44b3efc84386a34801d6a0ad",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser/.last-run.json",
+      "packagePath": "receipts/03-persistent-e1/browser/.last-run.json",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "packagePath": "receipts/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "sha256": "085f5473c35556b18017c1e16719053be463dee376ab4868e998c7037946b73f",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "packagePath": "receipts/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "sha256": "7fda87da1757582b96415a4aadd25ff6cda89b887c47ff36a3a33a235f5a2034",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-2.png",
+      "packagePath": "receipts/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-2.png",
+      "sha256": "cfc542372ed78caa0612dd930a3cfe31670af5b8ddce0a3984b35f37a6d223d2",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser.json",
+      "packagePath": "receipts/03-persistent-e1/browser.json",
+      "sha256": "b3adc306b88c3e0fd366b54f673b85b63534c9d3c4e31e17125e5c1e6aab8580",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/package.json",
+      "packagePath": "receipts/03-persistent-e1-source/package.json",
+      "sha256": "6dc1b06d6b093e9cccb20bee06a93836eee0420ae26803ca2ce4065d82f070d1",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/playwright.config.ts",
+      "packagePath": "receipts/03-persistent-e1-source/playwright.config.ts",
+      "sha256": "94e69028b960f4371a0a6af2ee5270305b59ab49a7023a7ccd34d0c416a41c13",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/portable.spec.ts",
+      "packagePath": "receipts/03-persistent-e1-source/portable.spec.ts",
+      "sha256": "39d4dff4b5761e59fe71ce0258af79bb70e755d2c0bdf03f11e4afff7658dfb4",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1.log",
+      "packagePath": "receipts/03-persistent-e1.log",
+      "sha256": "e63c548cbbad6db3c9901c98bf6db5e4323c4064a8c90b2db617b7c86d8c9da1",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic/browser/.last-run.json",
+      "packagePath": "receipts/04-restart-diagnostic/browser/.last-run.json",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "packagePath": "receipts/04-restart-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "sha256": "59dc4c5ed759a357a2e47edd1ff64def228b07b816b6660ee311d792e2e3e0f7",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "packagePath": "receipts/04-restart-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "sha256": "7fda87da1757582b96415a4aadd25ff6cda89b887c47ff36a3a33a235f5a2034",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-2.png",
+      "packagePath": "receipts/04-restart-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-2.png",
+      "sha256": "ca4fc3afa68a6cbe710039cd1ad2383aa74b5bb753ed2f2955026b81175a8c07",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic/browser.json",
+      "packagePath": "receipts/04-restart-diagnostic/browser.json",
+      "sha256": "f296edc3f9a7279cac2880ea85847d7a4150eb7544141cb53b702b068d68eb3f",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic/console-evidence.json",
+      "packagePath": "receipts/04-restart-diagnostic/console-evidence.json",
+      "sha256": "9cbbeb957230f4efe9d9cb3a249cc16e247a5afd519b817355749ba6faf94331",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic-source/package.json",
+      "packagePath": "receipts/04-restart-diagnostic-source/package.json",
+      "sha256": "6dc1b06d6b093e9cccb20bee06a93836eee0420ae26803ca2ce4065d82f070d1",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic-source/playwright.config.ts",
+      "packagePath": "receipts/04-restart-diagnostic-source/playwright.config.ts",
+      "sha256": "94e69028b960f4371a0a6af2ee5270305b59ab49a7023a7ccd34d0c416a41c13",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic-source/portable.spec.ts",
+      "packagePath": "receipts/04-restart-diagnostic-source/portable.spec.ts",
+      "sha256": "bd6a1243e28c92d60d3d0baa81d9d9dd6b1019ad80ce1d2d6afd0a0da27024f1",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/04-restart-diagnostic.log",
+      "packagePath": "receipts/04-restart-diagnostic.log",
+      "sha256": "75555f2755f68c3c636dd9057a4b8d699fdc36bff2ad9f3cb3b87c25b5d11b04",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/diff.patch",
+      "packagePath": "receipts/05-candidate-source/diff.patch",
+      "sha256": "f73f2e7098fc8cf8e4afc75a565196ec7a6f3b8040a9fffc61e2eed8f3a90716",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/files.json",
+      "packagePath": "receipts/05-candidate-source/files.json",
+      "sha256": "74241949d32bc7197d94a553b18f4799dda47c7e4bda8f6085a0f9b09c237a63",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/src/theme/shell.css",
+      "packagePath": "receipts/05-candidate-source/src/theme/shell.css",
+      "sha256": "5a2ce14516ed62b07a0e0cf12a457a613d0ca7f568a9a7e868d97c8b195e7a1a",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/src/ui/shell.ts",
+      "packagePath": "receipts/05-candidate-source/src/ui/shell.ts",
+      "sha256": "596bb20cbf931c1d3e398dc930e1d04633dfaf63df74c81cf25dd32bb9e19063",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/tests/editor/portable.spec.ts",
+      "packagePath": "receipts/05-candidate-source/tests/editor/portable.spec.ts",
+      "sha256": "58cfda1bc14673f2b4599e73df1c1517108a30e82b81e6bd8b24900034d15138",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/tests/editor/shutdown-console.test.mjs",
+      "packagePath": "receipts/05-candidate-source/tests/editor/shutdown-console.test.mjs",
+      "sha256": "3c72a557ff68cb145bb5bb65f3f773025cc3fb14b5b7992a63fd1f6b1dcb220d",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/tests/editor/shutdown-console.ts",
+      "packagePath": "receipts/05-candidate-source/tests/editor/shutdown-console.ts",
+      "sha256": "57641e156f4020f029a21d96ab0a3b2cc3f9a0e7f890e62256acdbe528fdaed1",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/tests/editor/tool-rail.spec.ts",
+      "packagePath": "receipts/05-candidate-source/tests/editor/tool-rail.spec.ts",
+      "sha256": "ed47c83842b34f231870f7e8970cb8740faf63a0c39178156efaca34d4785763",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-candidate-source/tooling/editor-components.json",
+      "packagePath": "receipts/05-candidate-source/tooling/editor-components.json",
+      "sha256": "bf8ee3a34167880cd3857b7381739cdb7c60b3be1f174e72049d6940b9057553",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/05-typecheck.log",
+      "packagePath": "receipts/05-typecheck.log",
+      "sha256": "027465f4d43518ce4de0e29374ce22774fe18334c8c783a11f60c43abcc18113",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/06-oracle-negatives.log",
+      "packagePath": "receipts/06-oracle-negatives.log",
+      "sha256": "5eb3381f2461bad9d075105e67990c79d781bc1135f9b8d6dc682041a346b8a8",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/07-build.log",
+      "packagePath": "receipts/07-build.log",
+      "sha256": "369d922c09ab71d8624a2c08ff6fa9a24aab9609bf8468062d2baf46a38b16ec",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/browser/.last-run.json",
+      "packagePath": "receipts/08-webkit-portable-rail/browser/.last-run.json",
+      "sha256": "67ecd54dfc9de2b1f15b97bbeb260f2ce45b56f08f9ffce1e63123826f301b35",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/browser/tool-rail-public-rail-rest-54367-yboard-and-pointer-behavior/error-context.md",
+      "packagePath": "receipts/08-webkit-portable-rail/browser/tool-rail-public-rail-rest-54367-yboard-and-pointer-behavior/error-context.md",
+      "sha256": "ca3f95fde1ed24f3155caa60c6d12377e489b85ac2d799c52297754d21e44bb8",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/browser/tool-rail-public-rail-rest-54367-yboard-and-pointer-behavior/test-failed-1.png",
+      "packagePath": "receipts/08-webkit-portable-rail/browser/tool-rail-public-rail-rest-54367-yboard-and-pointer-behavior/test-failed-1.png",
+      "sha256": "3afd0aeca45316db119e58eb52d669b85ac79c9876086e686b0bedfaa601a95b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/browser.json",
+      "packagePath": "receipts/08-webkit-portable-rail/browser.json",
+      "sha256": "e4a750fa9316494f2bf53efd41380ea8355ce75257de796715e11a3835cfea8b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/e1.json",
+      "packagePath": "receipts/08-webkit-portable-rail/e1.json",
+      "sha256": "38b59ba7d88b4e2be48ce3025bb51eabcbf89a36b9d87d96170b820bc4b1305a",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/e1.png",
+      "packagePath": "receipts/08-webkit-portable-rail/e1.png",
+      "sha256": "cf97fefe8873c3889150a19ed9493e4336d2fd616e975a933c62ea8578cc8fd0",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/rail-320-ltr.png",
+      "packagePath": "receipts/08-webkit-portable-rail/rail-320-ltr.png",
+      "sha256": "5fb8fd3672d975c1f93088c9211564c1f0fc1936971c65c1d6f5640bcefe324d",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/rail-320-rtl.png",
+      "packagePath": "receipts/08-webkit-portable-rail/rail-320-rtl.png",
+      "sha256": "b7380ddf2d59ed161ad2c3f31db04b39c6c73c38db199cff53d0f0a612c92aa5",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/rail-720-ltr.png",
+      "packagePath": "receipts/08-webkit-portable-rail/rail-720-ltr.png",
+      "sha256": "27e70e76961be6982f989c1ee36388e143c3de3e26f40079d0bf990e23f8d595",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail/rail-720-rtl.png",
+      "packagePath": "receipts/08-webkit-portable-rail/rail-720-rtl.png",
+      "sha256": "6d82b3559b1d29c62c5543a22aa0ee3d25e5737c4f5f68ed38461531db6acc7c",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/08-webkit-portable-rail.log",
+      "packagePath": "receipts/08-webkit-portable-rail.log",
+      "sha256": "4b1e42edcfb9fdf7f4a45828b801dac7595028f1a9c5230a140ed6799c52ea36",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/CODE-INPUTS.json",
+      "packagePath": "receipts/09-source/CODE-INPUTS.json",
+      "sha256": "b8dc801722c4c315fba6e1a939c57f36752a1803d1f899c94c50dfc9808e9c02",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/diff.patch",
+      "packagePath": "receipts/09-source/diff.patch",
+      "sha256": "6b8456ab497204182ea804aa9b1193e39e656fda909b97132ce79a5e64edfbff",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/src/theme/shell.css",
+      "packagePath": "receipts/09-source/src/theme/shell.css",
+      "sha256": "5a2ce14516ed62b07a0e0cf12a457a613d0ca7f568a9a7e868d97c8b195e7a1a",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/src/ui/shell.ts",
+      "packagePath": "receipts/09-source/src/ui/shell.ts",
+      "sha256": "596bb20cbf931c1d3e398dc930e1d04633dfaf63df74c81cf25dd32bb9e19063",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/tests/editor/portable.spec.ts",
+      "packagePath": "receipts/09-source/tests/editor/portable.spec.ts",
+      "sha256": "a8ea9ed7bcfd44f4bf5798c9b40de279f397fec75f300a884a5efd109ccc8362",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/tests/editor/shutdown-console.test.mjs",
+      "packagePath": "receipts/09-source/tests/editor/shutdown-console.test.mjs",
+      "sha256": "b14492f5c65477c5aa863c5d1c71eacfc9ae94d315a84f914b3a5fa8b6a08365",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/tests/editor/shutdown-console.ts",
+      "packagePath": "receipts/09-source/tests/editor/shutdown-console.ts",
+      "sha256": "57641e156f4020f029a21d96ab0a3b2cc3f9a0e7f890e62256acdbe528fdaed1",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/tests/editor/tool-rail.spec.ts",
+      "packagePath": "receipts/09-source/tests/editor/tool-rail.spec.ts",
+      "sha256": "eb7fe4f5a73efd8303bf99c5fad0515b6c7f2752342e777aadd733e54c8eeb7d",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-source/tooling/editor-components.json",
+      "packagePath": "receipts/09-source/tooling/editor-components.json",
+      "sha256": "bf8ee3a34167880cd3857b7381739cdb7c60b3be1f174e72049d6940b9057553",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/browser/.last-run.json",
+      "packagePath": "receipts/09-webkit-full/browser/.last-run.json",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "packagePath": "receipts/09-webkit-full/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "sha256": "2290b996345ceb0127ea3d05e8c08bf06bc1291439868fe05b7bad67afed434a",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "packagePath": "receipts/09-webkit-full/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "sha256": "7fda87da1757582b96415a4aadd25ff6cda89b887c47ff36a3a33a235f5a2034",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-2.png",
+      "packagePath": "receipts/09-webkit-full/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-2.png",
+      "sha256": "039ec57638cd63eb50856ace6d4a6b0f3d9b0fcd8f4696a3bf5083910a70186b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/browser.json",
+      "packagePath": "receipts/09-webkit-full/browser.json",
+      "sha256": "3aaf97a972b716e37cd585a6c9ebd4f3ee0a3d736d2168fbb740df2efa8ad0e9",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/e1-console.json",
+      "packagePath": "receipts/09-webkit-full/e1-console.json",
+      "sha256": "b82516de3703428c0bc8a7cc004f959d524aaefcdfbc2600c48445435f5f6919",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/editor.png",
+      "packagePath": "receipts/09-webkit-full/editor.png",
+      "sha256": "12d63fda65505db23e105ebe6674bf547843509d821889a8486ee101e96b40e1",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/rail-320-ltr.png",
+      "packagePath": "receipts/09-webkit-full/rail-320-ltr.png",
+      "sha256": "66550676f9be9e72d26cae5d3d5bb8c03ea6af45a4abdb1ec1dc8b4f871ca3d0",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/rail-320-rtl.png",
+      "packagePath": "receipts/09-webkit-full/rail-320-rtl.png",
+      "sha256": "e5d3557423c66ee3350379a020fa7c0175b320462e924419b80b4e6ecabedbb5",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/rail-720-ltr.png",
+      "packagePath": "receipts/09-webkit-full/rail-720-ltr.png",
+      "sha256": "46e03346f94d0b6aea246cdd7ea81c845cce2ec9f19ef3ddd1855c479962a96d",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/rail-720-rtl.png",
+      "packagePath": "receipts/09-webkit-full/rail-720-rtl.png",
+      "sha256": "78ca147d272943491073753c0481c3739e104166f5161a7b809c896eca33bdd8",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full/rail-desktop.png",
+      "packagePath": "receipts/09-webkit-full/rail-desktop.png",
+      "sha256": "490ed04d0b35e47d2eef87f348aec8c2ab36b2b7291323d54c437d3664477d5b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/09-webkit-full.log",
+      "packagePath": "receipts/09-webkit-full.log",
+      "sha256": "476c664cc1e4914c5c6192f1d612a804e06ed2015926cac3da3f20c05b32e2c2",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/10-handled-fetch-control.json",
+      "packagePath": "receipts/10-handled-fetch-control.json",
+      "sha256": "41fc199a44adbb18f5a45f5c2dfc4dd910ca25c9f4719e93b6e06a1d4fefc3f4",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/10-handled-fetch-control.log",
+      "packagePath": "receipts/10-handled-fetch-control.log",
+      "sha256": "cf1dd9e4759148d66e92f6a49b642a9a5266a9ff70eb0a1df46ec6c3fe064c24",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/10-handled-fetch-control.mjs",
+      "packagePath": "receipts/10-handled-fetch-control.mjs",
+      "sha256": "6dbcbdafb0d282a527b471548c69e119563443fadcfe3b28af122d3a550922b0",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error/browser/.last-run.json",
+      "packagePath": "receipts/11-page-error/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error/browser.json",
+      "packagePath": "receipts/11-page-error/browser.json",
+      "sha256": "75b6eca48df35f88fe41c4b098b4fb9e730117cc821f5f06749e1c99e9449774",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error/e1-console.json",
+      "packagePath": "receipts/11-page-error/e1-console.json",
+      "sha256": "0ac0c69e1d44f4ef5d4ddda9b8446ecd382f4c0a43a7be793b947076af1597f2",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error/e1.json",
+      "packagePath": "receipts/11-page-error/e1.json",
+      "sha256": "da456fb7e73d936da7913972b1bca24d59f7719951517c58cafbe978e166fca4",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error/e1.png",
+      "packagePath": "receipts/11-page-error/e1.png",
+      "sha256": "e1d376490e735c647b7a6875d6ecc04d5b7cdff7f3f5332cec3173f82d821a7c",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error-source/package.json",
+      "packagePath": "receipts/11-page-error-source/package.json",
+      "sha256": "6dc1b06d6b093e9cccb20bee06a93836eee0420ae26803ca2ce4065d82f070d1",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error-source/playwright.config.ts",
+      "packagePath": "receipts/11-page-error-source/playwright.config.ts",
+      "sha256": "94e69028b960f4371a0a6af2ee5270305b59ab49a7023a7ccd34d0c416a41c13",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error-source/portable.spec.ts",
+      "packagePath": "receipts/11-page-error-source/portable.spec.ts",
+      "sha256": "5e5768b870398c402989e83da552ade543c98f7e933f6c8fb692c5bc5d5738df",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/11-page-error.log",
+      "packagePath": "receipts/11-page-error.log",
+      "sha256": "6dfb59e995942e287960ac2ca21728365d62164f5ef921bedc2b6ebeecd17b5b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/12-cross-origin-control.json",
+      "packagePath": "receipts/12-cross-origin-control.json",
+      "sha256": "f38931416c1d5762fff085bb08dd5598e8f522a06198cde658f236c3b5db1eb1",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/12-cross-origin-control.log",
+      "packagePath": "receipts/12-cross-origin-control.log",
+      "sha256": "ee6cf8f4ae301bdb94875cffc4cb4472be165f5503071ec5523d1a6871c21470",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/12-cross-origin-control.mjs",
+      "packagePath": "receipts/12-cross-origin-control.mjs",
+      "sha256": "674242b1cda75ce91aba9f361165f52f2a1ada8f9294da7f5ac69c69fb32540d",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/13-handled-cors-control.json",
+      "packagePath": "receipts/13-handled-cors-control.json",
+      "sha256": "a14635e6a24cef2e01f376e2aa9a8e9bff486cb48da2e7ec8b30b4c090453a12",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/13-handled-cors-control.log",
+      "packagePath": "receipts/13-handled-cors-control.log",
+      "sha256": "8323f21ea28f9614a3a1133c9127fe31a9c0e59d4489bc283857d3f68cf02b27",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/13-handled-cors-control.mjs",
+      "packagePath": "receipts/13-handled-cors-control.mjs",
+      "sha256": "67c377fc7ef52f05f6198f4b3df6b3ed8983514ad6defe52a3f4795ac52cc272",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/browser/.last-run.json",
+      "packagePath": "receipts/14-chromium-full/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/browser.json",
+      "packagePath": "receipts/14-chromium-full/browser.json",
+      "sha256": "c41b3617e920e935a54767124c6fb17afc0233ef2a341ead1871cbf98681d828",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/e1-console.json",
+      "packagePath": "receipts/14-chromium-full/e1-console.json",
+      "sha256": "1cfa82cd11d991e7a5b76555c484042b042591d69d02670aa5f7dc90a451de47",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/e1.json",
+      "packagePath": "receipts/14-chromium-full/e1.json",
+      "sha256": "bdcee8fe6b75ba8d925b14c5f1e02833261e9234ce150f42be8fea2aa182b07d",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/e1.png",
+      "packagePath": "receipts/14-chromium-full/e1.png",
+      "sha256": "d8d0d3b4a05616afb6f66359af27c3a8ea8b89befa87791104ed17fcbe4b23e3",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/editor.png",
+      "packagePath": "receipts/14-chromium-full/editor.png",
+      "sha256": "13f9fb27bf973f42cc03509dcc6dea870271c394a73951232f456a5560febb53",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/rail-320-ltr.png",
+      "packagePath": "receipts/14-chromium-full/rail-320-ltr.png",
+      "sha256": "cc202db5072561d8d05240f22b1b806869b95ccf8390f540ae82f5f73e5e27ee",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/rail-320-rtl.png",
+      "packagePath": "receipts/14-chromium-full/rail-320-rtl.png",
+      "sha256": "5601703e8e3603c0bf10d4db4d3d44ec1dab1d68ea43cea5b4a39277766197ef",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/rail-720-ltr.png",
+      "packagePath": "receipts/14-chromium-full/rail-720-ltr.png",
+      "sha256": "c65e07b856bdc945bbcdde7f111642d52301c7c92846d24eb92fde0667b98316",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/rail-720-rtl.png",
+      "packagePath": "receipts/14-chromium-full/rail-720-rtl.png",
+      "sha256": "b90e1e7758db2627ed1e1c19b344f576b8bcd3c179ff27d5ad1716265e45e851",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full/rail-desktop.png",
+      "packagePath": "receipts/14-chromium-full/rail-desktop.png",
+      "sha256": "cac8ad37f9871df4a020645fe92dee09a4abcabcfb33f9e44e63f4780a92536b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/14-chromium-full.log",
+      "packagePath": "receipts/14-chromium-full.log",
+      "sha256": "a13cd85e52982f50f7c3a2fe27f879ec9751eca6a007b907d91ce2fbfcad4f01",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/15-read-oracle-checks.log",
+      "packagePath": "receipts/15-read-oracle-checks.log",
+      "sha256": "a2ed84883ca3f5a10f59bbd4ded376044be9bef3c7b0d24ad6535933acd878c1",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/16-shell/browser/.last-run.json",
+      "packagePath": "receipts/16-shell/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/16-shell/shell-browser.json",
+      "packagePath": "receipts/16-shell/shell-browser.json",
+      "sha256": "a8d4b058007f3bdd8086bf799919fbcd655ceb7ae5d1f98aa4a9f2a5a2de6fad",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/16-shell/shell-desktop-1440.png",
+      "packagePath": "receipts/16-shell/shell-desktop-1440.png",
+      "sha256": "32c23fc1463945a5ac12a8f25e3961585f3556a5340d3a204d41fff2144f8efd",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/16-shell/shell-reflow-320.png",
+      "packagePath": "receipts/16-shell/shell-reflow-320.png",
+      "sha256": "fe8f3443894ad8dadfc16792b00cb448ef86b054947a6f88b0f0f598ea2bd598",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/16-shell/shell-reflow-720.png",
+      "packagePath": "receipts/16-shell/shell-reflow-720.png",
+      "sha256": "1951a90574ed7fcd21fe7ed0f47cfba6006178ad8d28e4417f7276c783d3711e",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/16-shell.log",
+      "packagePath": "receipts/16-shell.log",
+      "sha256": "7610c20600c9bb5c11abc77d8c72f73e8c097c61b75a9edc524edaf725c0f812",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/browser/.last-run.json",
+      "packagePath": "receipts/17-firefox-full/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/browser.json",
+      "packagePath": "receipts/17-firefox-full/browser.json",
+      "sha256": "ec931833e9581d78f6397095e931b09515282ba7b8392d5f3159b85074fc68e0",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/e1-console.json",
+      "packagePath": "receipts/17-firefox-full/e1-console.json",
+      "sha256": "27e317151305d5f07136cdf79895bcedc5c37d72dc8f8ffd766fcc052bb8122d",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/e1.json",
+      "packagePath": "receipts/17-firefox-full/e1.json",
+      "sha256": "6863d25a00ae2b99151b7bd8e1ac437d0f48ce59c63b77002c5f78ba417d1470",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/e1.png",
+      "packagePath": "receipts/17-firefox-full/e1.png",
+      "sha256": "32236fb65654a3e46ec87777432e79b1bc1899877a3bbd54fcce531472731472",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/editor.png",
+      "packagePath": "receipts/17-firefox-full/editor.png",
+      "sha256": "ece95dc222568a6c5b221f054b0cfcfb594c814f7bc09b94824e2b29fe9192e7",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/rail-320-ltr.png",
+      "packagePath": "receipts/17-firefox-full/rail-320-ltr.png",
+      "sha256": "2f5cde685c218fb7172d6bd12974aacbf0ce793a532bfa35bc11f117a1e6dd92",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/rail-320-rtl.png",
+      "packagePath": "receipts/17-firefox-full/rail-320-rtl.png",
+      "sha256": "e648138296ab9949f8b9d83774acfed9ea1445f3e9dd7395324ce171baae9cd8",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/rail-720-ltr.png",
+      "packagePath": "receipts/17-firefox-full/rail-720-ltr.png",
+      "sha256": "90a11e79ac5fbe532ba6989b89d27347e7124fe5eb1357743521dda79e4bce89",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/rail-720-rtl.png",
+      "packagePath": "receipts/17-firefox-full/rail-720-rtl.png",
+      "sha256": "64b27ace25722245f8206c20f0d1fba73d860ef035b743fceddd29ac4c7dd4a3",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full/rail-desktop.png",
+      "packagePath": "receipts/17-firefox-full/rail-desktop.png",
+      "sha256": "8a75fae32f25bbc72bd5f5768199f62c3bcf07c7352fa22a282a8ea3149cbed8",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/17-firefox-full.log",
+      "packagePath": "receipts/17-firefox-full.log",
+      "sha256": "a3488e37fe672823be54d850f8d4c13304a4c69fb572ad125007cc333c82e593",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/18-final-oracle-negatives.log",
+      "packagePath": "receipts/18-final-oracle-negatives.log",
+      "sha256": "28b213e73f760d6c9497d68a1d612d03c91a98bde54330b6443f771f0cadd386",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/19-webkit-oracle-portable/browser/.last-run.json",
+      "packagePath": "receipts/19-webkit-oracle-portable/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/19-webkit-oracle-portable/browser.json",
+      "packagePath": "receipts/19-webkit-oracle-portable/browser.json",
+      "sha256": "f1ca457f53337c2de02731cd0ad6d73cc0168a0c10c083165a9e0fa46dc591b5",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/19-webkit-oracle-portable/e1-console.json",
+      "packagePath": "receipts/19-webkit-oracle-portable/e1-console.json",
+      "sha256": "0978f5a5cfc86b02fc333c6ec67cb90fb20434a5cf5929db31dd59ac05b994d8",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/19-webkit-oracle-portable/e1.json",
+      "packagePath": "receipts/19-webkit-oracle-portable/e1.json",
+      "sha256": "da9717ae29af8cd437380a4bb67b75cd3f93214f6ac468beb23038a482aefe11",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/19-webkit-oracle-portable.log",
+      "packagePath": "receipts/19-webkit-oracle-portable.log",
+      "sha256": "d0d4a10434a0f0ee1264da158ff29c48c1e54414056c57924efdaa0f8254ecfc",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/CODE-INPUTS.json",
+      "packagePath": "receipts/20-final-source/CODE-INPUTS.json",
+      "sha256": "33ee83983c0c419bc1692bb15c7a3f71a7362732ff75c4419eaeef202877e742",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/diff.patch",
+      "packagePath": "receipts/20-final-source/diff.patch",
+      "sha256": "43d845f232908ddd8855131415c6e396fe92bd8cf80e14b42d2cff36dbe22d89",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/src/theme/shell.css",
+      "packagePath": "receipts/20-final-source/src/theme/shell.css",
+      "sha256": "5a2ce14516ed62b07a0e0cf12a457a613d0ca7f568a9a7e868d97c8b195e7a1a",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/src/ui/shell.ts",
+      "packagePath": "receipts/20-final-source/src/ui/shell.ts",
+      "sha256": "596bb20cbf931c1d3e398dc930e1d04633dfaf63df74c81cf25dd32bb9e19063",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/tests/editor/error-monitor.spec.ts",
+      "packagePath": "receipts/20-final-source/tests/editor/error-monitor.spec.ts",
+      "sha256": "88019dcb8cc58cf8c80f0224c12afab52d54669f2576659844ae75d16ebaab60",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/tests/editor/error-monitor.ts",
+      "packagePath": "receipts/20-final-source/tests/editor/error-monitor.ts",
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/tests/editor/portable.spec.ts",
+      "packagePath": "receipts/20-final-source/tests/editor/portable.spec.ts",
+      "sha256": "3b43e73897a05025e35f20606fde13911af898b0feee2683fa3ec7edf25db37a",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/tests/editor/shutdown-console.test.mjs",
+      "packagePath": "receipts/20-final-source/tests/editor/shutdown-console.test.mjs",
+      "sha256": "a01f6f55659e3e24a91e15eaa1be88a928da93d72dbfcdd80d0a2239c762bad8",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/tests/editor/shutdown-console.ts",
+      "packagePath": "receipts/20-final-source/tests/editor/shutdown-console.ts",
+      "sha256": "d2913dcb77981ff32ad4f1fada4a79a20e920fad32c535e8496ee52d0bb1cfac",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/tests/editor/tool-rail.spec.ts",
+      "packagePath": "receipts/20-final-source/tests/editor/tool-rail.spec.ts",
+      "sha256": "eb7fe4f5a73efd8303bf99c5fad0515b6c7f2752342e777aadd733e54c8eeb7d",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-final-source/tooling/editor-components.json",
+      "packagePath": "receipts/20-final-source/tooling/editor-components.json",
+      "sha256": "bf8ee3a34167880cd3857b7381739cdb7c60b3be1f174e72049d6940b9057553",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/browser/.last-run.json",
+      "packagePath": "receipts/20-webkit-full-final/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/browser.json",
+      "packagePath": "receipts/20-webkit-full-final/browser.json",
+      "sha256": "192bc9c4d496be51bfa35fd02e1f1b2bfaf83733bd483f0a74e3aabe73a5e9a3",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/e1-console.json",
+      "packagePath": "receipts/20-webkit-full-final/e1-console.json",
+      "sha256": "20269a21af2ffc36052a2bc07504363347bb15cd8c0959146453d83893dc901e",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/e1.json",
+      "packagePath": "receipts/20-webkit-full-final/e1.json",
+      "sha256": "a102012709ae1100048ab2fa23ff9d11aa57f8d178941df6456004e20edeee12",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/editor.png",
+      "packagePath": "receipts/20-webkit-full-final/editor.png",
+      "sha256": "71e7438d3f05028446d587894b47610b90f794f064b3aa2d441f687bce3ee3b0",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/error-oracle-negatives.json",
+      "packagePath": "receipts/20-webkit-full-final/error-oracle-negatives.json",
+      "sha256": "6f4969e6daed28fc2d89a2c581bef2246dae7bd8de735d7720bea95857e7f208",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/rail-320-ltr.png",
+      "packagePath": "receipts/20-webkit-full-final/rail-320-ltr.png",
+      "sha256": "acb804c4ba36dbcee90c58ddb8f02b03b1b966b520ef88c689c55ca306e19a1c",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/rail-320-rtl.png",
+      "packagePath": "receipts/20-webkit-full-final/rail-320-rtl.png",
+      "sha256": "642726f37a75f1bcfa9af3a5f9d98277984595da280397344c4b4f143bb6f6e1",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/rail-720-ltr.png",
+      "packagePath": "receipts/20-webkit-full-final/rail-720-ltr.png",
+      "sha256": "dc779380c1fb967f57e9813a646ba72789aa6d58412eee3d9137ff6abd69f351",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/rail-720-rtl.png",
+      "packagePath": "receipts/20-webkit-full-final/rail-720-rtl.png",
+      "sha256": "ed9e46c53de61333b985c3d6d5cfbdd49ec7ee222012d02295e22e46ea5485a0",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final/rail-desktop.png",
+      "packagePath": "receipts/20-webkit-full-final/rail-desktop.png",
+      "sha256": "490ed04d0b35e47d2eef87f348aec8c2ab36b2b7291323d54c437d3664477d5b",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/20-webkit-full-final.log",
+      "packagePath": "receipts/20-webkit-full-final.log",
+      "sha256": "f4fd4d9617ceb68fe75db07e68f56b76ead01e9bff31b6847eb46cd9c1f76668",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/21-chromium-final-oracle/browser/.last-run.json",
+      "packagePath": "receipts/21-chromium-final-oracle/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/21-chromium-final-oracle/browser.json",
+      "packagePath": "receipts/21-chromium-final-oracle/browser.json",
+      "sha256": "2f1bc22dd8eae030d77ed4fd546ca9587fb9b2c5b658122facf8199c8c6ceec6",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/21-chromium-final-oracle/e1-console.json",
+      "packagePath": "receipts/21-chromium-final-oracle/e1-console.json",
+      "sha256": "f63b5e7a9de64d39f619e93044fb785b53f09ca797bf517ac5649bbb0669b3a7",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/21-chromium-final-oracle/e1.json",
+      "packagePath": "receipts/21-chromium-final-oracle/e1.json",
+      "sha256": "83c5afe6e5f506e291b3a900dd04ffdac37cde7d4320bcf3442905ffd757e680",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/21-chromium-final-oracle/error-oracle-negatives.json",
+      "packagePath": "receipts/21-chromium-final-oracle/error-oracle-negatives.json",
+      "sha256": "276164c8e236441bdf79e8b7557e48a9f37e28ce43cde15c64d416f091c708ea",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/21-chromium-final-oracle.log",
+      "packagePath": "receipts/21-chromium-final-oracle.log",
+      "sha256": "c70a54b1fff83cb850b71729d385d51303b050b5f0c35e7e20f0a1bcbffe629d",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/22-firefox-final-oracle/browser/.last-run.json",
+      "packagePath": "receipts/22-firefox-final-oracle/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/22-firefox-final-oracle/browser.json",
+      "packagePath": "receipts/22-firefox-final-oracle/browser.json",
+      "sha256": "9b61ba2fdd8915b97a1ed18946c6199f392dcf503eafc7b4f58d376459b67fa7",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/22-firefox-final-oracle/e1-console.json",
+      "packagePath": "receipts/22-firefox-final-oracle/e1-console.json",
+      "sha256": "8a235e9e06a4be50874b4257f6bedb8351b90f67d89ddb8a1b2515b2fa383d19",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/22-firefox-final-oracle/e1.json",
+      "packagePath": "receipts/22-firefox-final-oracle/e1.json",
+      "sha256": "e7b2c1acfe7b32c046dcd92c8d2d322ccb635829b045c0d0e1f4cf9264103cce",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/22-firefox-final-oracle/error-oracle-negatives.json",
+      "packagePath": "receipts/22-firefox-final-oracle/error-oracle-negatives.json",
+      "sha256": "8b78c4c4bc0c168b8c9c2c99fd09bd45a2a53848a5da396bec6a8b40d0d98364",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/22-firefox-final-oracle.log",
+      "packagePath": "receipts/22-firefox-final-oracle.log",
+      "sha256": "26dcfff9ca0bd6445e7898e016718611279314300c5a2a7516bb3f069dc945c1",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/23-build-byte-audit.json",
+      "packagePath": "receipts/23-build-byte-audit.json",
+      "sha256": "f9c82ecd806e34cb92c85ad43e57b88ef1b18950ac0f4bba3020878ddf0af846",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/23-build-byte-audit.log",
+      "packagePath": "receipts/23-build-byte-audit.log",
+      "sha256": "fa0b6783fed5968f229aa21fa5858811e1ebf7b71401bf5273e4e2008679fded",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/23-build-byte-audit.mjs",
+      "packagePath": "receipts/23-build-byte-audit.mjs",
+      "sha256": "dbb734341c8534bd90eef1d0716330a644d4271e1b23c4932c7ac6842e4ea821",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/24-preview-start.json",
+      "packagePath": "receipts/24-preview-start.json",
+      "sha256": "3bb85ccc0562fac2d4e41561b95a6551e8b8745c01e84205b39c84bb365f3098",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/24-start-preview.log",
+      "packagePath": "receipts/24-start-preview.log",
+      "sha256": "9513ac3a21445dc6b63d1475115015d1521b331365d6d2bc6197b565dfe31811",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/24-start-preview.py",
+      "packagePath": "receipts/24-start-preview.py",
+      "sha256": "8d343c86434f2aae46af263200c640cda000a8e732a42e6d61ec2cc23d8233e9",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/25-preview-identity/identity.json",
+      "packagePath": "receipts/25-preview-identity/identity.json",
+      "sha256": "cca77755ef9741cabb007a16658b83c4ca31fda978733103c5ad898e0ccaa6f1",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/25-preview-identity/paired-preview.png",
+      "packagePath": "receipts/25-preview-identity/paired-preview.png",
+      "sha256": "16e4fb06429147c342c9d597a70d961e6db2a19585f3153191134fbe088d2e1f",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/25-preview-identity.log",
+      "packagePath": "receipts/25-preview-identity.log",
+      "sha256": "72c6ade420f4dd357054dc5dcc42e8ade8b61540fc86a90b33bfba63953ec246",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/25-preview-identity.mjs",
+      "packagePath": "receipts/25-preview-identity.mjs",
+      "sha256": "259a3c1bde58b60250aea20c7597084da4f2700c51f704a6b314814ff812e3ca",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/26-preview-roundtrip/focused-card.png",
+      "packagePath": "receipts/26-preview-roundtrip/focused-card.png",
+      "sha256": "bf8d47bd4b4729a06d55cf9535a1df22d7d4b6c1ebef90075d9fe38d4364effa",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/26-preview-roundtrip/returned-preview.png",
+      "packagePath": "receipts/26-preview-roundtrip/returned-preview.png",
+      "sha256": "a0c21c39def977d1bd7b443b0c7a6babd8c14021c052b89784db844d88cdd5ce",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/26-preview-roundtrip/roundtrip.json",
+      "packagePath": "receipts/26-preview-roundtrip/roundtrip.json",
+      "sha256": "66b21922bba8bea444a2f239cac4abf42c68c4802be9f38e6c47869770ee8815",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/26-preview-roundtrip.log",
+      "packagePath": "receipts/26-preview-roundtrip.log",
+      "sha256": "eb18f49819a11a3f9c99d7a1f343a18eaa7e8f3b3dc37043d8873d547f3a4873",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/26-preview-roundtrip.mjs",
+      "packagePath": "receipts/26-preview-roundtrip.mjs",
+      "sha256": "c19ee085d6bd1ff64f73bbb824b7ffe9d4ab67d487de2558e2195c873fd59130",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/baseline-identity.json",
+      "packagePath": "receipts/baseline-identity.json",
+      "sha256": "7fa5feb6de9292d2c5d5284b62c5df8677ae8a09639e6805b7f606ea3044c647",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/commands.jsonl",
+      "packagePath": "receipts/commands.jsonl",
+      "sha256": "c1400115154e4e7fe31bce57989e4affa1639361b40976c33dc833f91349adbe",
+      "category": "observed browser/build/command metadata or visual"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/run.py",
+      "packagePath": "receipts/run.py",
+      "sha256": "c517f307921410f8d2f6b9efc9f0e7068f070cf72a786f4fb226f93f20d548d5",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/verify-package-source.py",
+      "packagePath": "receipts/verify-package-source.py",
+      "sha256": "d93599f7a16f9b753a3bc0f63bd909d68725ea67d9c9deb9d6397db1a2e042ff",
+      "category": "historical verification source"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-webkit-rail-preview-ccdfab3b/source.json",
+      "packagePath": "runtime/source.json",
+      "sha256": "ab94bc4422164cbd1eee1f04eede5036a6e5ce8d8d904221c1581c73a04d5460",
+      "category": "isolated preview identity/control source; no credentials"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-webkit-rail-preview-ccdfab3b/runtime.json",
+      "packagePath": "runtime/runtime.json",
+      "sha256": "942293d60a4b0df2aa34ee8d23d512734783ed6f82fc763c5b5ea5e36b6cca6c",
+      "category": "isolated preview identity/control source; no credentials"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-webkit-rail-preview-ccdfab3b/run.mjs",
+      "packagePath": "runtime/run.mjs",
+      "sha256": "a3302d0d2a3060d3a2a8c7d0b3a8154060be88b4fb3723e464a31d9b1317dc08",
+      "category": "isolated preview identity/control source; no credentials"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-webkit-rail-preview-ccdfab3b/effects.json",
+      "packagePath": "runtime/effects.json",
+      "sha256": "2f7dc247bfe143f1965bb0455ac9d0d939775afaa7eb10ee0e3623a571d9e262",
+      "category": "isolated preview identity/control source; no credentials"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit/.intent/attachments/webkit-rail/image-1790435558120-1.png",
+      "packagePath": "references/user-current.png",
+      "sha256": "aed46a0b07699b4ee65e76d5d0fc86808ee5ffcbf2608212ce32ffdc1acd2084",
+      "category": "original user comparison image"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit/.intent/attachments/webkit-rail/image-1790435558132-2.png",
+      "packagePath": "references/user-desired.png",
+      "sha256": "7f183c0e0ad6141b09ab614e6c56232d304736c86577405b4a2e12a2488afd89",
+      "category": "original user comparison image"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit/tooling/editor-components.json",
+      "packagePath": "COMPONENTS.json",
+      "sha256": "bf8ee3a34167880cd3857b7381739cdb7c60b3be1f174e72049d6940b9057553",
+      "category": "current public component/ownership inventory"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/SHA256SUMS",
+      "packagePath": "prior-e392/SHA256SUMS",
+      "sha256": "b3674e8ec8b638d3dc4b541f324f690d4c0815108bf0a9d417c14f2737ea24a1",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/VERDICT.txt",
+      "packagePath": "prior-e392/VERDICT.txt",
+      "sha256": "b664921677102ab79cc8b27e6416bad9001983c285740305bd01d2c726913a62",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/REVERIFY.txt",
+      "packagePath": "prior-e392/REVERIFY.txt",
+      "sha256": "45ca72bf6aef599c3a089bd2cfce225faf0cb9b9b1c5df56d89c5a3317ceb33c",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit.log.txt",
+      "packagePath": "prior-e392/editor-webkit.log.txt",
+      "sha256": "b0b2b799fb7d804e9fd93b5a2884f2d2409d4259f28e87568f35884e1a834677",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit/browser.json",
+      "packagePath": "prior-e392/editor-webkit/browser.json",
+      "sha256": "1b0c9a67ed3786922339d18c7500d1d856e650a2cabd9824b0c68de62c34fb03",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/attachment-mapping.json",
+      "packagePath": "prior-e392/attachment-mapping.json",
+      "sha256": "1948094af2715459e3df3696ca9b6966d5991f5ff2603af9fbc2d98626868291",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit/browser/.last-run.json",
+      "packagePath": "prior-e392/editor-webkit/browser/.last-run.json",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "packagePath": "prior-e392/editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "sha256": "55b7693b5e524f18d1bf3d8e9991e53d5b441f8c27cedde7afb832548e76422f",
+      "category": "unchanged independently sealed rejected-target evidence"
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "packagePath": "prior-e392/editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "sha256": "7cb41581b1e31d54201250c41fda3a47fbe703c2767a2a22ee79ccaf14ba1f24",
+      "category": "unchanged independently sealed rejected-target evidence"
+    }
+  ]
+}

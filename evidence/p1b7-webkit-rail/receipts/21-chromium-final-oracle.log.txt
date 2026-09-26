@@ -1,0 +1,11 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config tests/editor/playwright.config.ts error-monitor.spec.ts portable.spec.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/21-chromium-final-oracle/browser
+
+Running 2 tests using 1 worker
+
+(node:24732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/error-monitor.spec.ts:8:1 › real console errors, throws and rejected promises survive the network exception across navigation and teardown (1.1s)
+  ✓  2 tests/editor/portable.spec.ts:27:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (11.6s)
+
+  2 passed (13.5s)

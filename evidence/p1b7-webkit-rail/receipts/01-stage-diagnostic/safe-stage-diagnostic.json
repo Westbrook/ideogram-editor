@@ -1,0 +1,17 @@
+{
+  "status": "failed",
+  "stages": [
+    {
+      "stage": "storage.getDirectory",
+      "phase": "start"
+    },
+    {
+      "stage": "storage.getDirectory",
+      "phase": "rejected",
+      "name": "UnknownError",
+      "message": "The operation failed for an unknown transient reason (e.g. out of memory)."
+    }
+  ],
+  "operationStatus": "Action needs attention.\n\nUpdates interrupted. Recovering complete transactions; the last valid view is retained.\n\nReconnect",
+  "prepared": "Full-history copy · 52342 bytes · captured revision 5 · Destination write failed; local bytes retained\n\nDownload prepared file"
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "path": "src/theme/shell.css",
+    "sha256": "5a2ce14516ed62b07a0e0cf12a457a613d0ca7f568a9a7e868d97c8b195e7a1a"
+  },
+  {
+    "path": "src/ui/shell.ts",
+    "sha256": "596bb20cbf931c1d3e398dc930e1d04633dfaf63df74c81cf25dd32bb9e19063"
+  },
+  {
+    "path": "tests/editor/portable.spec.ts",
+    "sha256": "58cfda1bc14673f2b4599e73df1c1517108a30e82b81e6bd8b24900034d15138"
+  },
+  {
+    "path": "tooling/editor-components.json",
+    "sha256": "bf8ee3a34167880cd3857b7381739cdb7c60b3be1f174e72049d6940b9057553"
+  },
+  {
+    "path": "tests/editor/tool-rail.spec.ts",
+    "sha256": "ed47c83842b34f231870f7e8970cb8740faf63a0c39178156efaca34d4785763"
+  },
+  {
+    "path": "tests/editor/shutdown-console.ts",
+    "sha256": "57641e156f4020f029a21d96ab0a3b2cc3f9a0e7f890e62256acdbe528fdaed1"
+  },
+  {
+    "path": "tests/editor/shutdown-console.test.mjs",
+    "sha256": "3c72a557ff68cb145bb5bb65f3f773025cc3fb14b5b7992a63fd1f6b1dcb220d"
+  }
+]

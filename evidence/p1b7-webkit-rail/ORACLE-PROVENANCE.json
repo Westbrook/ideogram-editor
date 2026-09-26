@@ -1,0 +1,18 @@
+{
+  "package": "playwright-core",
+  "version": "1.63.0",
+  "installedProducerPath": "node_modules/playwright-core/lib/coreBundle.js",
+  "producerSHA256": "549070af3acabb3efcc4f55bfe6210f9f7c2fcf633cf7eaa59bfe60719969171",
+  "excerptLines": [
+    47175,
+    47201
+  ],
+  "excerptSHA256": "df979c41723221fa79401ba95fd21fc6bf997a0c5daa611ff9f2e78a9bf6e3ab",
+  "control": "receipts/13-handled-cors-control.json",
+  "original09": "Retained failure; missing original name/stack prevents retrospective classification.",
+  "primarySources": [
+    "https://github.com/microsoft/playwright/issues/18235",
+    "https://github.com/microsoft/playwright/blob/main/docs/src/api/class-browsercontext.md"
+  ],
+  "extension": "Exact engine, name, empty stack, canonical owned retired event URL/query, real bounded restart phase, plus independent zero DOM errors/rejections through context teardown."
+}

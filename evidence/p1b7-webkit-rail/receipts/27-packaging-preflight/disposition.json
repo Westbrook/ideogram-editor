@@ -1,0 +1,6 @@
+{
+  "stage": "pre-commit packaging preflight",
+  "ignoredFiles": 87,
+  "reason": "global *.log and build/ patterns; no force-staging attempted",
+  "correction": "Byte-identical .log.txt and emitted/ aliases, with explicit mappings; initial seal/mappings preserved here; no product change"
+}

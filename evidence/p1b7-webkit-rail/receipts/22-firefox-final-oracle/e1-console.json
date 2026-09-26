@@ -1,0 +1,10 @@
+{
+  "browser": "firefox",
+  "retiredOrigins": [
+    "http://127.0.0.1:54953",
+    "http://127.0.0.1:55056"
+  ],
+  "observations": [],
+  "pageErrors": [],
+  "domErrors": []
+}

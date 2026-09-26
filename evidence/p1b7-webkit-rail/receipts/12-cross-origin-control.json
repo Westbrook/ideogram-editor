@@ -1,0 +1,22 @@
+{
+  "origin": "http://127.0.0.1:64823",
+  "result": {
+    "caught": true,
+    "name": "TypeError",
+    "message": "Load failed"
+  },
+  "domErrors": [],
+  "events": [
+    {
+      "channel": "console",
+      "message": "Failed to load resource: Could not connect to the server.",
+      "location": {
+        "url": "http://127.0.0.1:64823/api/v1/events/stream?after=17",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ]
+}

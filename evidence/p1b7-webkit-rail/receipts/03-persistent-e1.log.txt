@@ -1,0 +1,46 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser
+
+Running 1 test using 1 worker
+
+(node:8838) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 ../ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/portable.spec.ts:15:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (10.7s)
+
+
+  1) ../ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/portable.spec.ts:15:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   "Failed to load resource: The network connection was lost.",
+    +   "Failed to load resource: The network connection was lost.",
+    +   "Failed to load resource: Could not connect to the server.",
+    +   "Failed to load resource: Could not connect to the server.",
+    + ]
+
+      45 |  const newDrafts:any[]=[];page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/ui/')&&r.method()==='POST'){const b=JSON.parse(r.postData()!).body;if(b.type==='SaveDraft'&&b.draft.kind==='inspector')newDrafts.push(b.draft);}});
+      46 |  await page.getByRole('treeitem').first().click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Editable after portable reopen');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');expect(newDrafts.length).toBeGreaterThan(0);expect(newDrafts.every(d=>d.id.length<=128&&d.documentId.startsWith('p_')&&d.targetLayerId.startsWith('p_'))).toBe(true);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('treeitem',{name:'Editable after portable reopen · visible'})).toBeVisible();
+    > 47 |  await expect(page.getByText(/Updates interrupted/)).toHaveCount(0);expect(errors).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
+         |                                                                                    ^
+      48 |  await writeFile(join(receipt,'e1.json'),JSON.stringify({expectedFailures,oldPid,newPid:server.pid,oldOrigin,newOrigin:server.origin,networkPaths:[...new Set(requests)],providerEffects:effects,downloadedBundleBytes:(await readFile(bundlePath)).length,sourceEvents:events.length,sourceEntities:entities.length,exactPixels:true,externalDestination:'unconfirmed',osPicker:'not exercised; real browser fallback download tested'},null,2));
+      49 |  await page.screenshot({path:join(receipt,'e1.png')});
+      50 |  }finally{await server.close();}
+        at /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/portable.spec.ts:47:84
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../ideogram-edit-verification/webkit-rail-author/03-persistent-e1/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md
+
+  1 failed
+    ../ideogram-edit-verification/webkit-rail-author/03-persistent-e1-source/portable.spec.ts:15:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 

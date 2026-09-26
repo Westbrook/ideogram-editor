@@ -1,0 +1,18 @@
+✔ typed oversized document GET is exact, bounded and version coherent; metadata guard and content authority stay intact (21379.392ms)
+ℹ {"fixture":"publicly accepted100-layer document; synthetic53000-digit revision only","documentBytes":66660,"inlineEnvelopeBytes":119779,"sourceHashes":{"server/protocol.ts":"sha256:73cb5dd1c6d8af1002ace784118bdfbb0af6bcc716f3b226b01c1d16c59e6fbe","server/storage/recovery.ts":"sha256:21cdd835973be2d4307d9bfd128c4eae61d646a378fa43dc065264bc7e79e9fb","server/storage/objects.ts":"sha256:169f5a9224a31fffe32643abfc923b0e06ef5e365e6b271cc31277d2a2d12b4b"}}
+ℹ {"threshold":[{"decimalLength":25878,"inlineBytes":65535,"responseBytes":65535,"kind":"inline"},{"decimalLength":25879,"inlineBytes":65537,"responseBytes":26348,"kind":"content-ref"}],"responseBytes":53469,"firstContent":{"content":2,"leases":4},"headCount":140,"pins":1344,"latest":{"content":1,"leases":0},"limits":"Read-boundary correctness only; no full history at synthetic revision or large-envelope qualification."}
+✔ exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority (3365.080208ms)
+✔ known referenced multi-event command is bounded, byte exact and session leased (1858.5645ms)
+✔ UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence (1268.508792ms)
+✔ pending owner pages preserve exact original bytes and operation identity across terminal races (3886.042125ms)
+✔ document HEAD exposes canonical revision without projection/content allocation and retains GET authorization (737.167833ms)
+ℹ {"largeProjectionBytes":78267,"revision":"9007199254740995","headCount":140,"first":{"content":0,"leases":0},"lastAfterHEAD":{"content":0,"leases":0},"afterOrdinaryGET":{"content":0,"leases":0},"fixture":"disposable invalid full metadata for scalar HEAD only; not domain closure/workload qualification. Original GET413 attempts48/51/52 retained."}
+✔ intentional shutdown classification is bounded to the retired origin, event path, engine, message and outage (0.565791ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21455.587834

@@ -1,0 +1,252 @@
+import { providerRecord, privacyPolicy, safeTimings } from './provenance.js';
+import { canonical, hashBytes } from '../storage/canonical.js';
+import { entity, rasterManifest, keys, requireValue as ok, id, seq } from '../../src/protocol/validate.js';
+import { imageState } from '../../src/protocol/history-validation.js';
+import { reduceDocument } from '../../src/state/projection.js';
+import { semanticDigest } from '../storage/history.js';
+import { references, json } from './format.js';
+import { invalid, tick } from './zip.js';
+export function validateUI(v, documentId) {
+    keys(v, ['sessionId', 'uiSeq', 'preferences', 'drafts', 'reconciledLayerIds']);
+    ok(id(v.sessionId) && seq(v.uiSeq) && Array.isArray(v.drafts) && v.drafts.length <= 64 && Array.isArray(v.reconciledLayerIds) && v.reconciledLayerIds.length <= 100 && v.reconciledLayerIds.every(id));
+    if (v.preferences !== null) {
+        const p = v.preferences;
+        keys(p, ['documentId', 'tool', 'viewport', 'panels', 'selectedLayerIds']);
+        keys(p.viewport, ['x', 'y', 'zoom']);
+        keys(p.panels, ['left', 'right', 'active']);
+        ok(p.documentId === documentId && ['select', 'transform', 'crop', 'mask', 'text'].includes(p.tool) && [p.viewport.x, p.viewport.y, p.viewport.zoom, p.panels.left, p.panels.right].every(Number.isFinite) && p.viewport.zoom > 0 && p.panels.left >= 0 && p.panels.right >= 0 && ['layers', 'history', 'assets'].includes(p.panels.active) && Array.isArray(p.selectedLayerIds) && p.selectedLayerIds.length <= 100 && p.selectedLayerIds.every(id));
+    }
+    const seen = new Set();
+    for (const d of v.drafts) {
+        keys(d, ['id', 'generation', 'kind', 'documentId', 'targetLayerId', 'expectedDocumentRevision', 'assetId', 'composing', 'status']);
+        ok(id(d.id) && !seen.has(d.id) && seq(d.generation) && ['prompt', 'inspector'].includes(d.kind) && d.documentId === documentId && (d.targetLayerId === null || id(d.targetLayerId)) && seq(d.expectedDocumentRevision) && id(d.assetId) && typeof d.composing === 'boolean' && ['saved-unapplied', 'applied'].includes(d.status));
+        seen.add(d.id);
+    }
+}
+export async function validateClosure(db, read, check) {
+    const docs = db.prepare("SELECT * FROM entities WHERE kind='document'").all();
+    if (docs.length !== 1)
+        invalid();
+    const d = JSON.parse(String(docs[0].json));
+    entity('document', d);
+    if (d.id !== docs[0].id)
+        invalid();
+    db.exec('CREATE TABLE needed_refs(hash TEXT PRIMARY KEY) STRICT; CREATE TABLE needed_assets(id TEXT PRIMARY KEY) STRICT; CREATE TABLE visited_assets(id TEXT PRIMARY KEY) STRICT;');
+    const needed = (r) => { const item = db.prepare('SELECT * FROM refs WHERE hash=?').get(r.hash); if (!item || item.bytes !== r.byteLength)
+        invalid(); db.prepare('INSERT OR IGNORE INTO needed_refs VALUES (?)').run(r.hash); };
+    const asset = (id) => { if (!db.prepare("SELECT 1 FROM entities WHERE kind='asset' AND id=?").get(id))
+        invalid(); db.prepare('INSERT OR IGNORE INTO needed_assets VALUES (?)').run(id); };
+    const state = async (v) => { needed(v.state); const s = json(await read(v.state)); imageState(s); if (semanticDigest(s) !== v.semanticDigest)
+        invalid(); const raster = (id, full = false) => { asset(id); const a = JSON.parse(String(db.prepare("SELECT json FROM entities WHERE kind='asset' AND id=?").get(id).json)); if (a.qualification !== 'canonical-raster' || a.safety !== 'safe' || !a.raster || full && (a.raster.width !== s.width || a.raster.height !== s.height))
+        invalid(); }; for (const l of s.layers) {
+        raster(l.assetId);
+        if (l.mask)
+            raster(l.mask.assetId, true);
+    } if (v.compositeAssetId)
+        raster(v.compositeAssetId, true);
+    else if (s.layers.length)
+        invalid(); return s; };
+    if (d.image) {
+        const s = await state(d.image);
+        if (s.width !== d.width || s.height !== d.height || canonical(s.layers.map((l) => l.id)) !== canonical(d.orderedLayerIds))
+            invalid();
+    }
+    if (!db.prepare("SELECT 1 FROM entities WHERE kind='history' AND id=?").get(d.historyHead) || d.checkpoint && !db.prepare("SELECT 1 FROM entities WHERE kind='checkpoint' AND id=?").get(d.checkpoint))
+        invalid();
+    for (const row of db.prepare('SELECT * FROM entities ORDER BY kind,id').iterate()) {
+        check();
+        const v = JSON.parse(String(row.json));
+        if (row.kind === 'portable-provider') {
+            providerRecord(v);
+            if (v.attemptId !== row.id || !v.derivation.complete || db.prepare('SELECT 1 FROM refs WHERE hash=?').get(v.derivation.sourceBodyHash))
+                invalid();
+            for (const hash of v.assetHashes) {
+                const r = db.prepare('SELECT * FROM refs WHERE hash=?').get(hash);
+                if (!r)
+                    invalid();
+                needed({ hash, byteLength: String(r.bytes), mediaType: String(r.media) });
+                const matches = db.prepare("SELECT id FROM entities WHERE kind='asset' AND json_extract(json,'$.blob.hash')=?").all(hash);
+                if (!matches.length)
+                    invalid();
+                for (const a of matches)
+                    asset(String(a.id));
+            }
+            privacyPolicy(json(await read(v.privacyPolicyRef)));
+            if (v.safeTimingsRef)
+                safeTimings(json(await read(v.safeTimingsRef)));
+        }
+        else if (row.kind !== 'draft') {
+            entity(String(row.kind), v);
+            if (v.id !== row.id)
+                invalid();
+        }
+        else {
+            validateUI(v, d.id);
+            if (v.sessionId !== row.id)
+                invalid();
+        }
+        if (row.kind !== 'asset')
+            references(v, needed);
+        if (row.kind === 'history') {
+            if (v.documentId !== d.id)
+                invalid();
+            if (v.parent && !db.prepare("SELECT 1 FROM entities WHERE kind='history' AND id=?").get(v.parent))
+                invalid();
+            if (v.kind === 'image-edit') {
+                const before = await state(v.before), after = await state(v.after);
+                for (const [ref, from, to] of [[v.forward, before, after], [v.inverse, after, before]]) {
+                    const p = json(await read(ref));
+                    keys(p, ['schemaVersion', 'operation', 'dimensions', 'layers', 'order']);
+                    const ids = new Set([...from.layers.map((l) => l.id), ...to.layers.map((l) => l.id)]);
+                    const expected = { schemaVersion: 1, operation: v.operation, dimensions: from.width !== to.width || from.height !== to.height ? { width: to.width, height: to.height } : null, layers: [...ids].filter(id => canonical(from.layers.find((l) => l.id === id) ?? null) !== canonical(to.layers.find((l) => l.id === id) ?? null)).map(id => ({ id, value: to.layers.find((l) => l.id === id) ?? null })), order: canonical(from.layers.map((l) => l.id)) !== canonical(to.layers.map((l) => l.id)) ? to.layers.map((l) => l.id) : null };
+                    if (canonical(p) !== canonical(expected))
+                        invalid();
+                }
+            }
+        }
+        else if (row.kind === 'checkpoint') {
+            if (v.documentId !== d.id || !db.prepare("SELECT 1 FROM entities WHERE kind='history' AND id=?").get(v.historyHead))
+                invalid();
+            if (v.image)
+                await state(v.image);
+        }
+        else if (row.kind === 'draft')
+            for (const draft of v.drafts)
+                asset(draft.assetId);
+        await tick();
+    }
+    // A disk-backed topological walk rejects cycles and verifies every retained
+    // branch state, including branches that are not reachable from the current head.
+    db.exec('CREATE TABLE checked_history(id TEXT PRIMARY KEY) STRICT');
+    let roots = 0;
+    for (;;) {
+        let progress = 0, remaining = 0;
+        for (const row of db.prepare("SELECT id,json FROM entities WHERE kind='history' AND id NOT IN (SELECT id FROM checked_history) ORDER BY id").iterate()) {
+            const h = JSON.parse(String(row.json));
+            remaining++;
+            if (h.parent === null) {
+                roots++;
+                if (roots !== 1)
+                    invalid();
+            }
+            else {
+                if (!db.prepare('SELECT 1 FROM checked_history WHERE id=?').get(h.parent))
+                    continue;
+                const parent = JSON.parse(String(db.prepare("SELECT json FROM entities WHERE kind='history' AND id=?").get(h.parent).json));
+                const version = parent.kind === 'image-edit' ? parent.after : parent.forward.after.image;
+                if (version) {
+                    if (canonical(h.before) !== canonical(version))
+                        invalid();
+                }
+                else {
+                    const initial = parent.forward.after, s = json(await read(h.before.state));
+                    if (s.width !== initial.width || s.height !== initial.height || s.layers.length || h.before.compositeAssetId !== null)
+                        invalid();
+                }
+            }
+            db.prepare('INSERT INTO checked_history VALUES (?)').run(h.id);
+            progress++;
+            check();
+            await tick();
+        }
+        if (!remaining)
+            break;
+        if (!progress)
+            invalid();
+    }
+    const head = JSON.parse(String(db.prepare("SELECT json FROM entities WHERE kind='history' AND id=?").get(d.historyHead).json));
+    if (head.kind === 'image-edit' && canonical(d.image) !== canonical(head.after))
+        invalid();
+    if (d.image && d.redo && !db.prepare("SELECT 1 FROM entities WHERE kind='history' AND id=? AND json_extract(json,'$.parent')=?").get(d.redo, d.historyHead))
+        invalid();
+    // All source events are exact provenance, checked against the captured domain
+    // projection. No command/session envelope or live authority is imported.
+    let projection = null;
+    for (const r of db.prepare('SELECT json FROM events ORDER BY length(seq),seq').iterate()) {
+        const e = JSON.parse(String(r.json));
+        references(e, needed);
+        if (e.type === 'ImageEditPreviewPrepared') {
+            await state(e.payload.preview.source);
+            await state(e.payload.preview.after);
+            asset(e.payload.preview.preparedAssetId);
+            json(await read(e.payload.preview.plan));
+        }
+        else if (e.type === 'AssetRegistered') {
+            asset(e.payload.asset.id);
+            const a = db.prepare("SELECT json FROM entities WHERE kind='asset' AND id=?").get(e.payload.asset.id);
+            if (a && String(a.json) !== canonical(e.payload.asset))
+                invalid();
+        }
+        else if (e.documentId !== null) {
+            if (e.documentId !== d.id)
+                invalid();
+            const retained = e.type === 'DocumentCreated' || e.type === 'ImageEdited' ? ['history', e.payload.history] : e.type === 'CheckpointSaved' ? ['checkpoint', e.payload.checkpoint] : null;
+            if (retained) {
+                const row = db.prepare('SELECT json FROM entities WHERE kind=? AND id=?').get(retained[0], retained[1].id);
+                if (!row || row.json !== canonical(retained[1]))
+                    invalid();
+            }
+            projection = reduceDocument(projection, e);
+        }
+    }
+    if (!projection || canonical(projection) !== canonical(d))
+        invalid();
+    // Disk-backed worklist prevents an unbounded transitive closure in memory.
+    for (;;) {
+        const row = db.prepare('SELECT id FROM needed_assets WHERE id NOT IN (SELECT id FROM visited_assets) ORDER BY id LIMIT 1').get();
+        if (!row)
+            break;
+        const a = JSON.parse(String(db.prepare("SELECT json FROM entities WHERE kind='asset' AND id=?").get(row.id).json));
+        if (a.availability !== 'available' || ['withheld', 'quarantined'].includes(a.safety))
+            invalid();
+        references(a, needed);
+        if (a.raster) {
+            const m = json(await read(a.raster.manifest));
+            rasterManifest(m);
+            if (m.width !== a.raster.width || m.height !== a.raster.height || m.pipeline !== a.raster.pipeline || canonical(m.pixels) !== canonical(a.raster.pixels))
+                invalid();
+            references(m, needed);
+            if (a.raster.role === 'native' && (m.plan.kind !== 'decoded-native' || canonical(m.plan.conversion) !== canonical(a.raster.conversion) || canonical(a.raster.sourceAssetIds) !== canonical([m.plan.sourceAssetId])))
+                invalid();
+            for (const source of a.raster.sourceAssetIds)
+                asset(source);
+            const identity = hashBytes(canonical({ pipeline: m.pipeline, width: m.width, height: m.height, tiles: m.tiles }));
+            // The stored pixel identity is verified below by the same frozen descriptor
+            // shape, while tile bytes receive independent streamed hash checks.
+            if (identity !== a.raster.pixelIdentity)
+                invalid();
+        }
+        db.prepare('INSERT INTO visited_assets VALUES (?)').run(row.id);
+        await tick();
+    }
+    db.exec('CREATE TABLE checked_assets(id TEXT PRIMARY KEY) STRICT');
+    for (;;) {
+        let remaining = 0, progress = 0;
+        for (const r of db.prepare("SELECT id,json FROM entities WHERE kind='asset' AND id NOT IN (SELECT id FROM checked_assets)").iterate()) {
+            remaining++;
+            const a = JSON.parse(String(r.json));
+            if (a.raster?.sourceAssetIds.some((id) => !db.prepare('SELECT 1 FROM checked_assets WHERE id=?').get(id)))
+                continue;
+            db.prepare('INSERT INTO checked_assets VALUES (?)').run(r.id);
+            progress++;
+            check();
+            await tick();
+        }
+        if (!remaining)
+            break;
+        if (!progress)
+            invalid();
+    }
+    if (db.prepare("SELECT id FROM entities WHERE kind='asset' AND id NOT IN (SELECT id FROM needed_assets) LIMIT 1").get())
+        invalid();
+    for (const row of db.prepare('SELECT json FROM records').iterate()) {
+        const r = JSON.parse(String(row.json));
+        needed(r.payloadRef);
+    }
+    // Command/receipt metadata is an explicitly scoped retained root on export.
+    // It must be declared by an event/entity reference; arbitrary hidden objects
+    // cannot be smuggled into a complete document archive.
+    // Additional declared object records retain scoped command/checkpoint metadata.
+    // Export selection, not raw global root reachability, owns that provenance.
+    return d;
+}

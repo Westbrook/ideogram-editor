@@ -1,0 +1,35 @@
+npm notice run ideogram-editor@0.1.0 npx
+npm notice run 'playwright' test --config /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/playwright.config.ts --output /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/browser
+
+Running 1 test using 1 worker
+
+(node:3224) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 ../ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG (14.7s)
+
+
+  1) ../ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 
+
+    TimeoutError: page.waitForEvent: Timeout 10000ms exceeded while waiting for event "download"
+    =========================== logs ===========================
+    waiting for event "download"
+    ============================================================
+
+      11 | const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
+      12 | const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+    > 13 | async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();}
+         |                                                                    ^
+      14 | test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context})=>{
+      15 |  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[],expectedFailures:string[]=[];let disrupting=false;
+      16 |
+        at download (/Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/portable.spec.ts:13:68)
+        at /Users/westbrook/Documents/repos/ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/portable.spec.ts:37:68
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md
+
+  1 failed
+    ../ideogram-edit-verification/webkit-rail-author/01-stage-diagnostic-source/portable.spec.ts:14:1 › E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG 

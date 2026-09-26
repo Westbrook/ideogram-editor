@@ -1,0 +1,41 @@
+Exact rejected target e392bef587b976b74106e9fadad3fe4c9d4a96a7; measured parent67199cdacb6d7bd25575868e2586747132ae696a; runtime1c899ccad5923e155d507fbfdbfce111833f47497774dd8104a1694b5876c2b1.
+Current checkout /Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-checkout
+Current sealed output /Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent
+Never overwrite this bundle or rerun inside a closed reservation. New source/workload requires coordinator's exact target and NEW window. Read VERDICT.txt criterion3 and9 before work.
+
+Required WebKit acceptance follow-up
+Owning criterion: Spec3/task292d/5656 full import/edit/undo/full-copy/restart/reopen/exact-export; docs/spec/testing.md267 affected Firefox/WebKit checks and317 failure policy.
+Actual failed boundary: tests/editor/portable.spec.ts:26 first Download prepared file -> page.waitForEvent(download),10000ms timeout. Inputs hidden-alpha.png, actual full closure/current Unicode drafts; browser WebKit26.6/Playwright1.63.0 on macOS26.6.1. No provider calls.
+Failure artifacts: editor-webkit.log.txt; editor-webkit/browser.json; mapped screenshot/error-context at editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/; attachment-mapping.json.
+Minimal work: evidence the actual failing storage/stream/file/anchor/browser event stage without credential-bearing traces; distinguish product, test oracle or environment. Preserve failure and external-save truthfulness. No force/reclick, arbitrary waits, weakening assertions, whole-copy memory buffering or invented WebKit support waiver.
+In a new pinned isolated checkout with new outputs and pinned Node26.10.0/npm12.1.0:
+npm ci --no-audit --no-fund
+npm run typecheck
+npm run build
+EDITOR_BROWSER=webkit EDITOR_RECEIPT='<NEW>/webkit-focused' npx playwright test --config tests/editor/playwright.config.ts tests/editor/portable.spec.ts
+EDITOR_BROWSER=webkit EDITOR_RECEIPT='<NEW>/webkit-full' npx playwright test --config tests/editor/playwright.config.ts
+EDITOR_BROWSER=chromium EDITOR_RECEIPT='<NEW>/chromium' npx playwright test --config tests/editor/playwright.config.ts
+EDITOR_BROWSER=firefox EDITOR_RECEIPT='<NEW>/firefox' npx playwright test --config tests/editor/playwright.config.ts
+Select further read/recovery/backend checks by correction diff; do not repeat unaffected broad campaigns for tool-rail styling alone. Exact source/build/served identities and no-egress proofs remain required. Follow TEST10 retry/failure retention rather than rerun-until-green.
+
+I-BR01 current scoped correction is VERIFIED, not overall approval
+Live observer unchanged tests/editor/full-action.timing.ts and timing.config.ts.
+Original parent unchanged tests/editor/analyze-timing.py.
+Original independent analyzer remains /Users/westbrook/Documents/repos/ideogram-edit-verification/eb4a3e6-independent/analyze-history.py, hash5a3178fc12203924fba0265bf5f4c6f9e644c9899ab54f3e37a044919349d7e5.
+Versioned v2 tests/editor/analyze-history-v2.py, hashb15559793a74c7fac5b119ee39b493a40f8ba0f65db6412613a940463665b1bc.
+Input safe observations: full-action/paint-trace.json and full-action/action-steps.json in this bundle; input hashes in history-v2.json/raw-history-corroboration.json. Native intent START, exact one named completion, expected document/revision/asset, ready=true/busy=false, required changed-asset draw; earliest-required=max(first complete, first settled, first matching draw if changed). FIRST geometrically covering renderer Paint END, bounded before interference if after original verified. Current all Paint precede verified; no extension.
+Scoped outcome65.207/67.378/83.598ms; required marks51.329/50.377/72.022; no formal H/W1/p95 claim, no full-parent substitution.
+If a later correction affects this path, under its new serial window:
+EDITOR_RECEIPT='<NEW>/full-action' npx playwright test --config tests/editor/timing.config.ts
+python3 tests/editor/analyze-timing.py '<NEW>/full-action'
+python3 tests/editor/analyze-history-v2.py '<NEW>/full-action' '<NEW>/history-v2.json'
+python3 tests/editor/validate-history-v2.py evidence/p1b7-history-latency/receipts/22-full-action evidence/p1b7-history-latency/receipts/prior-independent-control '<NEW>/oracle-controls'
+Keep the original observer/parent and all old failure inputs unchanged; independently corroborate raw chronology. Original old analyzer may additionally check compatible traces, but its failed24 historical result stays failed. No clock endpoint movement, child subtraction, threshold change, reduced fixture or selective slow-tail rerun.
+
+Evidence reproduction only, no app measurements
+python3 evidence/p1b7-history-latency/verify-evidence.py
+Original new package482/old368+55 seals, runtime100/code92/build61 and additive483 paths must match declared Git source. Fresh Git archive command is in audit.py; exact output archive hash725a4481ec42db9efc3ac81aaa7bf351cb65b68bff9c0a3bf3aa7ea6f9004eae.
+Prior eb4 rejected seal44a9a3734bbc7c570b89d973cfe6fd1a78b8fad5e3767c4decc27ad14fc552e3 remains immutable; lost19 JSON, failed24, adverse clocks, invalid2000-ID/withdrawn leak scopes and raw-quarantine restriction persist.
+
+Separate tool-rail user correction
+Existing feedback439b475b,15:12:38Z request: public EnButton icon-over-label, compact centered labels, quiet/subdued default/unavailable surfaces and compact tinted Pan selection. Preserve native/public states/targets, order, reflow and tokens. Coordinator releases implementation only after END. New exact successor requires actual visual comparison and relevant native/focus/pointer verification; this task provides no styling implementation or user acknowledgment.

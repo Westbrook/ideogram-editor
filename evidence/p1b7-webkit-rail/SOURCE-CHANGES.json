@@ -1,0 +1,15 @@
+{
+  "base": "e392bef587b976b74106e9fadad3fe4c9d4a96a7",
+  "head": "bbb00ab5d43dc7910912e9e67653925e5b86e83d",
+  "files": [
+    "src/theme/shell.css",
+    "src/ui/shell.ts",
+    "tests/editor/error-monitor.spec.ts",
+    "tests/editor/error-monitor.ts",
+    "tests/editor/portable.spec.ts",
+    "tests/editor/shutdown-console.test.mjs",
+    "tests/editor/shutdown-console.ts",
+    "tests/editor/tool-rail.spec.ts",
+    "tooling/editor-components.json"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "reason": "Existing editor outputDir prefixes ../../ to absolute receipt path. Moved only this review generated outputs byte-identically into external bundle; original reporter JSON retained unchanged.",
+  "entries": [
+    {
+      "originalReporterPath": "Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-chromium/browser/.last-run.json",
+      "bundlePath": "editor-chromium/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "originalReporterPath": "Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-firefox/browser/.last-run.json",
+      "bundlePath": "editor-firefox/browser/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "originalReporterPath": "Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit/browser/.last-run.json",
+      "bundlePath": "editor-webkit/browser/.last-run.json",
+      "sha256": "1a1dbd8821346c6cb394ae8bac6cc7208d11d412594caaa73576e3b9d3e2528b"
+    },
+    {
+      "originalReporterPath": "Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "bundlePath": "editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/error-context.md",
+      "sha256": "7cb41581b1e31d54201250c41fda3a47fbe703c2767a2a22ee79ccaf14ba1f24"
+    },
+    {
+      "originalReporterPath": "Users/westbrook/Documents/repos/ideogram-edit-verification/e392bef-independent/editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "bundlePath": "editor-webkit/browser/portable-E1-browser-copy-a-7990b-en-and-exact-downloaded-PNG/test-failed-1.png",
+      "sha256": "55b7693b5e524f18d1bf3d8e9991e53d5b441f8c27cedde7afb832548e76422f"
+    }
+  ]
+}

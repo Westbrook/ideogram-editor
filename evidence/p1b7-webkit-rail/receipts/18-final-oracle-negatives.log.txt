@@ -1,0 +1,10 @@
+✔ intentional shutdown classification is bounded to the retired origin, event path, engine, message and outage (0.48525ms)
+✔ WebKit network page diagnostic requires every exact field and canonical event query (0.203458ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56.942583
