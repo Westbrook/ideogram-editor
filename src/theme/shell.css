@@ -46,9 +46,12 @@ ie-shell { display: flex; flex-direction: column; height: 100dvh; min-height: 65
 .tool-rail { flex: 0 0 64px; display: flex; align-items: center; flex-direction: column; justify-content: space-between; border-inline-end: 1px solid var(--en-color-line); background: var(--en-color-surface); padding: 18px 6px 16px; }
 en-toolbar { display: block; }
 en-toolbar::part(base) { gap: 5px; }
-.tool { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 48px; min-height: 56px; padding: 6px 2px; }
-.tool span { font-size: 9px; }
-.tool[aria-pressed=true] { color: var(--en-color-action); background: var(--en-color-accent-subtle); border-color: var(--en-color-accent-border); }
+/* App-owned rail composition uses the public Button slots, parts and tokens. */
+.tool { inline-size: 48px; --en-button-rest-background: transparent; --en-button-rest-color: var(--en-color-text); --en-button-border-color: transparent; --en-button-radius: var(--en-radius-control); --en-button-hover-background: var(--en-color-surface-subtle); --en-button-hover-color: var(--en-color-text); }
+.tool::part(control) { inline-size: 100%; min-block-size: 56px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 6px 2px; font-size: 9px; font-weight: 500; line-height: 1.2; text-align: center; }
+.tool [slot=prefix] { display: flex; }
+.tool[disabled]::part(control) { background: transparent; border-color: transparent; color: var(--en-color-text-muted); opacity: .65; }
+.tool[aria-pressed=true] { --en-button-rest-color: var(--en-color-action); --en-button-rest-background: var(--en-color-accent-subtle); --en-button-border-color: var(--en-color-accent-border); --en-button-hover-color: var(--en-color-action); --en-button-hover-background: var(--en-color-accent-subtle); }
 .rail-foot { font-size: 8px; letter-spacing: .14em; color: var(--en-color-text-muted); }
 .outer-split { flex: 1; min-width: 0; }
 .inner-split, .outer-split { display: block; height: 100%; --en-splitter-size: 4px; }
@@ -146,7 +149,8 @@ dt { color: var(--en-color-text-muted); } dd { margin: 0; text-align: right; ove
   .tool-rail { display: block; padding: 8px 12px; border-bottom: 1px solid var(--en-color-line); border-inline: none; }
   .rail-foot { display: none; }
   en-toolbar::part(base) { flex-wrap: wrap; }
-  .tool { width: 40px; min-height: 48px; }
+  .tool { inline-size: 44px; }
+  .tool::part(control) { min-block-size: 48px; }
   .outer-split, .inner-split { height: auto; }
   en-split-view::part(base) { display: block; }
   en-split-view::part(separator) { display: none; }
@@ -171,7 +175,7 @@ dt { color: var(--en-color-text-muted); } dd { margin: 0; text-align: right; ove
 }
 @media (max-width: 480px) { .bar-end { margin-inline-start: 0; } .document-bar { gap: 6px; } .document-actions { width: 100%; } .canvas-toolbar { padding-inline: 12px; } .canvas-empty h2 { font-size: 24px; } .tray-toggle { padding-inline: 4px; } .status-bar span { overflow-wrap: anywhere; } .connection-actions { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
-@media (forced-colors: active) { .tool[aria-pressed=true], .tabs button[aria-selected=true] { border: 2px solid Highlight; } .status-dot { background: CanvasText; } .report-return { border: 2px solid LinkText; } }
+@media (forced-colors: active) { .tool[aria-pressed=true]::part(control) { outline: 2px solid Highlight; outline-offset: -3px; } .tabs button[aria-selected=true] { border: 2px solid Highlight; } .status-dot { background: CanvasText; } .report-return { border: 2px solid LinkText; } }
 
 @media (max-width: 480px) { .bar-end { display: grid; grid-template-columns: 1fr auto auto; width: 100%; } .connection-button { grid-column: 1 / -1; text-align: start; } .document-actions { display: grid; grid-template-columns: repeat(5, 1fr); } .document-actions .divider { display: none; } }
 /* App-owned split columns: the exact user-requested 1px layout rule. */

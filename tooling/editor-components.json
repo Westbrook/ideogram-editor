@@ -8,7 +8,7 @@
         "EnToolbar",
         "EnButton"
       ],
-      "owner": "App actions and truthful capability state; public button controls and keyboard toolbar behavior; deferred action observes final veto."
+      "owner": "App actions and truthful capability state; public button controls and keyboard toolbar behavior; deferred action observes final veto. Canvas tool rail composes decorative SVG in public prefix slot and compact text in label slot; control part and public rest/hover/border/radius tokens restore icon-over-label visuals. Disabled control part remains transparent/muted; public native focus, disabled state and toolbar interaction remain owned by EnButton/EnToolbar."
     },
     {
       "surface": "Connection details",
