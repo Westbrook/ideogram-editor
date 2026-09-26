@@ -1,0 +1,40 @@
+{
+  "assembly": "SPEC-A1",
+  "indexNoteId": "df180a35-40dd-43d7-b9c6-1f1dd0306088",
+  "sections": [
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "path": "api.md"
+    },
+    {
+      "noteId": "bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+      "path": "design-system.md"
+    },
+    {
+      "noteId": "3febb57d-ea57-42de-a098-b12fb4e010e4",
+      "path": "ux.md"
+    },
+    {
+      "noteId": "c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+      "path": "architecture.md"
+    },
+    {
+      "noteId": "d7819c6b-68ff-4d89-835d-9acabe779cae",
+      "path": "testing.md"
+    },
+    {
+      "noteId": "1b7b659d-d577-4257-b677-4850bbf86143",
+      "path": "performance.md"
+    }
+  ],
+  "noteLinkMap": {
+    "api.md": "intent://local/upon-build/note/2728dafd-4209-4558-a762-3a0192e0610f",
+    "design-system.md": "intent://local/upon-build/note/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+    "ux.md": "intent://local/upon-build/note/3febb57d-ea57-42de-a098-b12fb4e010e4",
+    "architecture.md": "intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+    "testing.md": "intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae",
+    "performance.md": "intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143",
+    "index.md": "intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088"
+  },
+  "supportLinkPrefix": "intent://local/file/docs/spec/"
+}

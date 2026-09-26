@@ -1,0 +1,563 @@
+{
+  "assembly": "SPEC-A1",
+  "policy": "Editorial consolidation only; all originals are exact history snapshots. No approved technical contract or budget changes.",
+  "operations": [
+    {
+      "kind": "extract",
+      "section": "api",
+      "sourceNoteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "inclusiveSourceLineRanges": [
+        [
+          1,
+          2002
+        ],
+        [
+          2041,
+          99999
+        ]
+      ],
+      "excludedContent": "Original retained verbatim in history/2728dafd-4209-4558-a762-3a0192e0610f.md; only chronological author receipts are excluded from current reading path."
+    },
+    {
+      "kind": "header",
+      "section": "api",
+      "old": "\nRevision API-1.2, retrieved 2026-09-25 UTC. Draft ready for independent review; provider execution is untested. The API-1.2 amendment below adds structured composition, native editable text boundaries, nested evidence and handling rules while preserving all 27 captured schemas. This reference specifies the provider-facing boundary for the planned local image editor. It does not implement the editor, authorize model calls, or select older-model fallbacks. Canonical policy: [Accepted operation compatibility v1](intent://local/upon-build/note/6df7045b-6f0a-42c5-a32d-879b38d54c51). Parent: [Spec](intent://local/note/spec). Owner: [Task 1](intent://local/task/d3202a13-080b-426e-8bac-c2a25ee2ae49).",
+      "new": "Assembly revision **API-1.2+A1**, 2026-09-26 UTC. Approved technical baseline: **API-1.2** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n\n[Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/2728dafd-4209-4558-a762-3a0192e0610f.md).\n\nCurrent policy: one style per text box, explicit Apply/Cancel, explicit field links between separate Layers and Composition lists, and previewed font substitution are accepted. Engineering choices and performance ceilings remain proposals requiring qualification. API facts retain their original evidence date and class."
+    },
+    {
+      "kind": "replace",
+      "section": "api",
+      "count": 1,
+      "old": "## Review first: provider evidence correction",
+      "new": "## Corrected V4 family scope"
+    },
+    {
+      "kind": "replace",
+      "section": "api",
+      "count": 1,
+      "old": "**App policy proposal for review:**",
+      "new": "**App handling contract (adopted by UX/architecture; runtime qualification pending):**"
+    },
+    {
+      "kind": "replace",
+      "section": "api",
+      "count": 1,
+      "old": "Required handling in proposed app boundary",
+      "new": "Required handling in the app boundary"
+    },
+    {
+      "kind": "replace",
+      "section": "api",
+      "count": 1,
+      "old": "This author's audit is not independent approval. Original Task1 is ready for independent review, not complete.",
+      "new": "This bounded author audit was followed by the recorded API-1.2 source approval. Original Task 1 is complete; the assembled revision still requires final independent verification."
+    },
+    {
+      "kind": "replace",
+      "section": "api",
+      "count": 1,
+      "old": "Repository mirrors remain Task 7's work. No repository files, branch, credentials, dependencies, external messages, paid APIs or deployment were changed.",
+      "new": "The original audit changed no repository files and ran no provider calls. This assembly supplies the documentation mirror; historical receipts remain in the frozen source."
+    },
+    {
+      "kind": "replace",
+      "section": "api",
+      "count": 1,
+      "old": "Original Appendix A through D text has SHA-256",
+      "new": "The pre-assembly source snapshot preserves original Appendix A through D text with SHA-256"
+    },
+    {
+      "kind": "extract",
+      "section": "design-system",
+      "sourceNoteId": "bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+      "inclusiveSourceLineRanges": [
+        [
+          1,
+          99999
+        ]
+      ],
+      "excludedContent": "Original retained verbatim in history/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2.md; only chronological author receipts are excluded from current reading path."
+    },
+    {
+      "kind": "header",
+      "section": "design-system",
+      "old": "Revision: DS-1.1, 2026-09-25. Status: draft ready for independent contract review. Owner: Task 2 (6e3a136c-c367-4007-a141-7eb82c5f6a0f). Covers REQ-DS and foundation inputs to REQ-STATE, REQ-TEST and REQ-PERF; review findings R13, R14 and R17.",
+      "new": "Assembly revision **DS-1.1+A1**, 2026-09-26 UTC. Approved technical baseline: **DS-1.1** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n\n[Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2.md).\n\nCurrent policy: one style per text box, explicit Apply/Cancel, explicit field links between separate Layers and Composition lists, and previewed font substitution are accepted. Engineering choices and performance ceilings remain proposals requiring qualification. API facts retain their original evidence date and class."
+    },
+    {
+      "kind": "replace",
+      "section": "design-system",
+      "count": 1,
+      "old": "### Selected application adapter (proposed app contract)",
+      "new": "### Selected application adapter contract"
+    },
+    {
+      "kind": "replace",
+      "section": "design-system",
+      "count": 1,
+      "old": "Next qualification belongs to future implementation and independent review:\n1. Reviewer verifies the source-to-contract table, adapter authority and vendored dependency decision.\n2. Task 4 specifies durable acceptance/command IDs/revisions/outbox and reconciles the draft/app-event terminology; no component outcome may become durable acceptance implicitly.\n3. Task 3 selects layer row composition and accessible canvas alternatives; Task 5 adds packed-consumer and physical IME/AT tests; Task 6 supplies measured-budget protocol/numbers before UX/architecture drafting.\n4. Package producer selects and seals actual archives/source provenance; run empty-checkout npm ci and public-import/registration/browser gates. This task selected the mechanism, not a shipped artifact.\n5. Optional upstream recommendations: reconcile stale architecture/tree prose, publish clearer release/snapshot identity and strengthen consumer packaging guidance. They are recommendations only; no upstream change is in scope.\n\n",
+      "new": "Future implementation qualification: the package producer seals actual source and archives; Build runs clean installation/public-import/registration/browser gates; UI and QA qualify native-input and accessible canvas/list outcomes; State qualifies durable command acceptance. The architecture, UX, testing and performance sections now own those detailed contracts. Optional upstream documentation recommendations remain outside this task.\n\n"
+    },
+    {
+      "kind": "replace",
+      "section": "design-system",
+      "count": 1,
+      "old": "Review card DS-1: inspect (a) tentative event versus authoritative command boundary, (b) private archive reproducibility without local paths, and (c) app-owned canvas/layer/accessibility gaps. Reading this note does not mean user review or acceptance. Feedback belongs on this note/task; independent verification remains the coordinator's next step. Repository mirrors and portable evidence-link assembly remain Task 7 work.\n\n\n",
+      "new": "Source readiness was independently approved as DS-1.1. User review of this assembled version remains pending; source approval is not clean-install or runtime evidence.\n\n"
+    },
+    {
+      "kind": "replace",
+      "section": "design-system",
+      "count": 1,
+      "old": "This acceptance covers package delivery only; the initial client-rendering recommendation is the next question.",
+      "new": "This acceptance covers package delivery; initial browser rendering was also accepted as recorded below."
+    },
+    {
+      "kind": "extract",
+      "section": "ux",
+      "sourceNoteId": "3febb57d-ea57-42de-a098-b12fb4e010e4",
+      "inclusiveSourceLineRanges": [
+        [
+          1,
+          458
+        ],
+        [
+          498,
+          788
+        ],
+        [
+          808,
+          853
+        ],
+        [
+          866,
+          901
+        ]
+      ],
+      "excludedContent": "Original retained verbatim in history/3febb57d-ea57-42de-a098-b12fb4e010e4.md; only chronological author receipts are excluded from current reading path."
+    },
+    {
+      "kind": "header",
+      "section": "ux",
+      "old": "\nRevision UX-2.2 • 2026-09-25 • Task 3 • Limited PERF-7 reference and campaign mirror update; V4-verified UX behavior unchanged. Independent performance approval and changed-clause review remain required. UX-2 evidence remains historical; its native-overlay grouping and two-control selection promises were rejected in V3.",
+      "new": "Assembly revision **UX-2.2+A1**, 2026-09-26 UTC. Approved technical baseline: **UX-2.2** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n\n[Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/3febb57d-ea57-42de-a098-b12fb4e010e4.md).\n\nCurrent policy: one style per text box, explicit Apply/Cancel, explicit field links between separate Layers and Composition lists, and previewed font substitution are accepted. Engineering choices and performance ceilings remain proposals requiring qualification. API facts retain their original evidence date and class."
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "Routine app design proposals below are explicitly labelled; they do not invent new accepted user choices.",
+      "new": "Accepted product defaults are identified above and in the index; remaining engineering proposals do not imply measured behavior."
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 23,
+      "old": "PERF-7",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 10,
+      "old": "PERF-6",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 9,
+      "old": "PERF-4",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "extract",
+      "section": "architecture",
+      "sourceNoteId": "c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+      "inclusiveSourceLineRanges": [
+        [
+          1,
+          637
+        ],
+        [
+          773,
+          1073
+        ],
+        [
+          1086,
+          1092
+        ],
+        [
+          1103,
+          1186
+        ],
+        [
+          1199,
+          1246
+        ]
+      ],
+      "excludedContent": "Original retained verbatim in history/c0689bcd-8dca-4ce6-bccb-e538e0a45477.md; only chronological author receipts are excluded from current reading path."
+    },
+    {
+      "kind": "header",
+      "section": "architecture",
+      "old": "\nRevision ARCH-1.4 • 2026-09-25 • Task 4 • Limited PERF-7 reference/campaign reconciliation; V4-verified behavior preserved, independent performance and mirror review required. No implementation or measured compliance.",
+      "new": "Assembly revision **ARCH-1.4+A1**, 2026-09-26 UTC. Approved technical baseline: **ARCH-1.4** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n\n[Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/c0689bcd-8dca-4ce6-bccb-e538e0a45477.md).\n\nCurrent policy: one style per text box, explicit Apply/Cancel, explicit field links between separate Layers and Composition lists, and previewed font substitution are accepted. Engineering choices and performance ceilings remain proposals requiring qualification. API facts retain their original evidence date and class."
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "Current performance source is PERF-7; its added budgets are proposed and awaiting independent review, while historical PERF-4 approval remains scoped to its baseline.",
+      "new": "Current performance source is PERF-8, independently approved for specification readiness; all numerical budgets remain unmeasured engineering proposals."
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "## Current revision scope — ARCH-1.4\n\nARCH-1.4 changes current performance references and campaign context only (§19). V4 independently verified the ARCH-1.3/UX-2.1 source behavior; full approval remains withheld pending PERF-7 review and limited mirror reconciliation. All verified behavior and per-action clocks remain unchanged.\n\nARCH-1.3 corrected V3 F04/F05 at operative §§3.4,16.2,16.6 and17.1; §18 records focused regression evidence and reconciliation. V3 did NOT APPROVE ARCH-1.2/UX-2. The previous author claims of no remaining contradiction were disproved and are retained only as historical receipts. Current-document native-overlay replacement is restricted to one original K at its exact rendered slot; multi-layer background grouping is excluded. One connected app-owned native textarea serves both editor presentations. No full-canvas equality scan, private EnTextarea access or new product scope is introduced. [Independent V2 review](intent://local/upon-build/note/176843a5-c21b-4de6-84a6-53ef5b9ca804) verified F01/F02 source corrections and approved API-1.2 E1–E9; it did not approve the whole architecture. CP-1 and pre-freeze feather/reconstruction containment in §3 remain normative and unchanged. Historical author receipts §§14–15 retain their original scope and superseded pending statements.\n\nAll seven latest user choices are accepted: native editable text and composition authoring;25MP/8192-side/100 combined IMAGE+TEXT layers; new-document default for interleaved selected composites; full-history portable copies; local-file adapter imports first; Fast initially and tiling later; guided training limits1–100 images,800MiB original bytes,201MiB prepared package,4KiB UTF-8 per caption. These limits are app policies, not provider limits or measured capacity. §§16–17 define the native-text/composition extension without treating prompt content as provider-native layers. Numerical resource proposals remain subject to the Performance source and independent review. No downstream implementation starts here.\n\n",
+      "new": "## Current revision scope\n\nARCH-1.4 plus accepted addenda retains CP-1, pre-freeze feather/reconstruction containment, the F04 safe-singleton placement rule, and the F05 single connected native textarea. Direct source/mask-plus-LoRA, native editable text, the accepted image/text document envelope, full-history copies, local adapter files, Fast initially and lower-priority guided training remain in scope. PERF-8 owns unchanged action/resource/campaign budgets and its corrected compound cancel/late-work ledger. Historical failed drafts and source corrections are preserved in the linked snapshot; they are not alternate current contracts.\n\n"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 21,
+      "old": "PERF-7",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 4,
+      "old": "PERF-6",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 7,
+      "old": "PERF-4",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "extract",
+      "section": "testing",
+      "sourceNoteId": "d7819c6b-68ff-4d89-835d-9acabe779cae",
+      "inclusiveSourceLineRanges": [
+        [
+          1,
+          459
+        ]
+      ],
+      "excludedContent": "Original retained verbatim in history/d7819c6b-68ff-4d89-835d-9acabe779cae.md; only chronological author receipts are excluded from current reading path."
+    },
+    {
+      "kind": "header",
+      "section": "testing",
+      "old": "\nRevision **TEST-1**, 2026-09-26 UTC. Task 5 author draft for independent specification review. **Every executable check and manual protocol below is future work.** Section 13 records only the bounded source checks actually performed for this notes-only assignment. There is no implemented editor, passing application suite, measured performance baseline or live-provider certification claimed here.",
+      "new": "Assembly revision **TEST-1+A1**, 2026-09-26 UTC. Approved technical baseline: **TEST-1** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n\n[Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/d7819c6b-68ff-4d89-835d-9acabe779cae.md).\n\nCurrent policy: one style per text box, explicit Apply/Cancel, explicit field links between separate Layers and Composition lists, and previewed font substitution are accepted. Engineering choices and performance ceilings remain proposals requiring qualification. API facts retain their original evidence date and class."
+    },
+    {
+      "kind": "replace",
+      "section": "testing",
+      "count": 1,
+      "old": "It does not repair peer sources, implement tests, allocate machines, authorize provider use or start Task 7.",
+      "new": "It does not implement tests, allocate machines or authorize provider use."
+    },
+    {
+      "kind": "replace",
+      "section": "testing",
+      "count": 1,
+      "old": "The author receipt below enumerates bounded checks actually performed.",
+      "new": "The historical source snapshot retains bounded author and reviewer receipts."
+    },
+    {
+      "kind": "replace",
+      "section": "testing",
+      "count": 1,
+      "old": "Original Task5 remains review_required after author handoff. Coordinator commissions independent testing-strategy verification and resolves concrete findings. Task7 stays queued and requires separate continuation; repository mirrors, app code/tests, package installs, benchmarks, provider runs and further delegation are outside this assignment. Shared handoff: [PR Context — upon-build](intent://local/upon-build/note/337dd04c-2911-4227-8217-1e2fc0b6a9f0); existing [Progress Report](intent://local/upon-build/note/b6884312-45fe-4295-a5a3-70180a701223).\n",
+      "new": "TEST-1 was independently approved for specification/source readiness. Task 5 is complete. The assembled revision awaits final independent verification; executable tests, native/manual checks and provider qualification remain future work.\n"
+    },
+    {
+      "kind": "extract",
+      "section": "performance",
+      "sourceNoteId": "1b7b659d-d577-4257-b677-4850bbf86143",
+      "inclusiveSourceLineRanges": [
+        [
+          1,
+          709
+        ],
+        [
+          720,
+          723
+        ]
+      ],
+      "excludedContent": "Original retained verbatim in history/1b7b659d-d577-4257-b677-4850bbf86143.md; only chronological author receipts are excluded from current reading path."
+    },
+    {
+      "kind": "header",
+      "section": "performance",
+      "old": "\nRevision PERF-8 • 2026-09-25 • Task 6 • P7-01 combined cancel/late observation correction; awaiting independent re-review; numerical proposals,no measured editor baseline.",
+      "new": "Assembly revision **PERF-8+A1**, 2026-09-26 UTC. Approved technical baseline: **PERF-8** with accepted Spec addenda. This editorial assembly awaits independent final verification; the underlying source approvals are recorded in the [index](index.md#source-versions-and-approvals). No application, provider or performance qualification is claimed.\n\n[Technical Specification](index.md) · [Traceability](index.md#requirement-traceability) · [Owned qualifications](index.md#qualification-register) · [Exact pre-assembly source and history](history/1b7b659d-d577-4257-b677-4850bbf86143.md).\n\nCurrent policy: one style per text box, explicit Apply/Cancel, explicit field links between separate Layers and Composition lists, and previewed font substitution are accepted. Engineering choices and performance ceilings remain proposals requiring qualification. API facts retain their original evidence date and class."
+    },
+    {
+      "kind": "replace",
+      "section": "performance",
+      "count": 3,
+      "old": "PERF-7",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "performance",
+      "count": 3,
+      "old": "PERF-6",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "performance",
+      "count": 4,
+      "old": "PERF-5",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "performance",
+      "count": 6,
+      "old": "PERF-4",
+      "new": "PERF-8"
+    },
+    {
+      "kind": "replace",
+      "section": "api",
+      "count": 1,
+      "old": "Queue transport is the proposed durable local default.",
+      "new": "Queued finished results are the accepted initial local policy."
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "Review cards for UX-1 (user review is separate from author checks and independent verification):\n1. Layout and operations: inspect §1 persistent-left-panel arrangement and J8 conflict flow; feedback target layout/operation discoverability.\n2. Document and mask recovery: inspect J1–J6/J10/J12/J13 and architecture-linked preservation; feedback target save language, placement and recovery.\n3. Adapters and training: inspect §8; feedback target validation/crop/caption clarity and unknown-compatibility states.\n4. Accessibility and performance: inspect §§7–9; feedback target keyboard alternatives and honest pending/completion.\n\nNo card is marked reviewed by this author. New material versions invalidate only affected review state; unresolved comments stay actionable. Existing project progress note remains the durable report for this notes-only wave.\n",
+      "new": "Review focus: operations and preserved drafts; document/mask recovery; adapters/training; native text and explicit composition links; accessible controls and honest pending states. User review of this assembled revision is pending in the existing Progress Report.\n\n"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "Initial implementation choice: plain multiline content with one typography style per text frame.",
+      "new": "Accepted initial text policy: plain multiline content with one typography style per text frame."
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "This supersedes historical PERF-8 campaign totals only for the expanded scope;",
+      "new": "This is the current expanded-scope campaign;"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "### Performance and architecture reconciliation — historical cross-read and current campaign mirror\n\nHistorical 22:14 UTC saved-source cross-read: ARCH-1.3 §16.2/§16.6/S19 and PERF-8 complete C9/I10C ledger, CP02/R40, IText and T03. The eligibility and editor-session rules above match those operative contracts. Final saved ARCH-1.3 §18 and PERF-8 correction/final-author receipts were cross-read at handoff; both peer authors explicitly confirm agreement with UX-2.1. V4 subsequently verified the UX/architecture behavior but withheld full approval because PERF-8’s H-workflow schedule was rejected; the current performance source and limited mirror are PERF-8/§19.\n\nPERF-8 explicitly keeps all previous CP02 passthrough assertions and adds the rejected108→109 grouping, safe exact-slot108/undo108, new-document and separate full-root outcomes within its named16-fixture set. This is finite three-contribution arithmetic/identity/routing coverage, not a whole-canvas scan. IText retains100 existing actions and adds six presentation requests, reporting106 total; the existing native IME sessions also name the six requests and all original commit/cancel sequences. Actual deferred switching has no invented deadline while composition remains active: honest pending feedback uses R04, completion occurs only after actual composition settles and current-session checks pass.\n\nThe performance owner’s C9/I10C ledger separates recognition, projection/escaping, retained-byte staging, durable append/queue, dispatch and reconciliation/fault responses. PERF-8 retains C9 target/ceiling180/300s and I10C20/30min with explicit resets/setup/receipt reserves; complete direct work remains164.1s/528s respectively. UX’s existing user-operation ceilings and40 P/22 Q3 inventory remain unchanged. The current one-C/one-H core ceilings are100/120min normal/cold, and initial Q3 execution13/17h target/ceiling. PERF-8 supersedes PERF-8’s rejected H-workflow schedule with complete H phase/paint allocation and revised campaign totals (§19); no benchmark feasibility is claimed.\n\nT03 and UX now support only1–100 training images within all four accepted caps;500 is rejection/recovery, not an expanded supported stress path. Supporting a larger dataset would require a separately accepted product amendment before qualification. No user decision is needed to repair these source contradictions.\n\nAuthor checks executed: public DS read/rg/hash checks above; bounded JS arithmetic reproduces capture90/original108/unsafe109/exact-singleton108/undo108/full-root108; UTF-16 fixture length8 and[1,5] selects 😀é; exact API nested JSON/table comparison passes8 definitions/29 properties; saved-note audit passes29 tables/352 consistent rows and balanced fences. Searches confirm the former contiguous-block proof, native EnTextarea inspector and500-image stress-support sentence are absent. These are source/paper checks; actual DOM control identity, focus, arbitrary range restoration and physical IME behavior have not been run or claimed.\n",
+      "new": ""
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "## 19. UX-2.2 — limited PERF-8 mirror update\n\nScope: current performance references and campaign accounting only. V4 independently verified the UX-2.1 behavior, including F04/F05 and all retained non-performance criteria; full approval remained withheld by PERF-8 P6-01. This revision does not reopen or modify those editor semantics. [PERF-8](performance.md) is the current proposed performance source; independent performance approval remains required. It preserves the PERF-8 campaign and action budgets below, with corrected compound cancel/late direct-work allocation. Earlier PERF-8 agreements and its rejected H-workflow schedule are historical, not current approval.\n\n| Exact UX clause | Prior wording/value | Current wording/value |\n| --- | --- | --- |\n| Intro; §9 performance/source references; §16 profile, retention, table heading and reconciliation references | PERF-8 | PERF-8; unchanged underlying action clocks, resources, fixtures and behavior |\n| §16 final campaign paragraph | Core normal45/90min | Core normal50/100min target/ceiling; cold60/120min and initial Q3 execution13/17h unchanged |\n| §18 current C9/I10C campaign mirror | Core90/120min normal/cold ceilings, unchanged-headline claim | Core100/120min normal/cold ceilings; names PERF-8 H-workflow correction and this receipt |\n| §18 earlier saved-source cross-read and22:14 handoff | Then-current UX-2.1/ARCH-1.3/PERF-8 agreement | Explicitly historical; V4 behavior verification preserved and P6-01 schedule rejection disclosed |\n| Current architecture link and §16 cross-read attribution | ARCH-1.3 | ARCH-1.4; three version-label replacements only, preserved contract text |\n| Revision/header | UX-2.1 correction handoff | UX-2.2 limited performance-reference revision |\n\n",
+      "new": "## 19. Current performance campaign mirror\n\nPERF-8 is the source owner for all campaign arithmetic. Source approval is complete; runtime feasibility is unmeasured.\n\n"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "PERF-8’s independently executed H workflows",
+      "new": "PERF-8’s specified independent H workflows"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "Current campaign mirror, checked against PERF-8 and unchanged in PERF-8:",
+      "new": "Current campaign mirror:"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "Current PERF-8 value (unchanged from PERF-8)",
+      "new": "Current PERF-8 value"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "Final exact ARCH-1.3/PERF-8 source reconciliation follows below before handoff; independent review remains required.",
+      "new": "These are source-evidence identities; the approved behavior is retained in this assembly."
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 1,
+      "old": "No mask, source, adoption, native-text, IME, focus, API disposition, training admission, layout or save/history rule changes. All per-user-action completion clocks and resources in §16 remain unchanged; the only numerical changes in existing UX clauses are the two normal-core campaign mirrors above. PERF owns proposed campaign feasibility; neither source arithmetic nor author agreement is a benchmark or independent approval.\n",
+      "new": "PERF-8 owns the detailed phase allocation, finite specimens, sample rules, reserves and regression response. This mirror preserves its numbers; no benchmark has run.\n"
+    },
+    {
+      "kind": "replace",
+      "section": "ux",
+      "count": 4,
+      "old": "UX-2.1",
+      "new": "UX-2.2"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "Bundle/Save copy scope and archive IO introduce an operation not explicitly qualified by naming R14 export-image alone",
+      "new": "Full-history archive IO is specified by R39 and remains empirically unqualified; R14 alone describes image export"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "Task5 identifies archive fixtures and full closure sizes; Performance owner records affected budget/campaign amendment if needed; do not reuse image-export8s as guaranteed archive limit",
+      "new": "State/Assets and QA qualify TEST-1 copy fixtures and PERF-8 R39; do not reuse image-export8s as an archive limit"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "complete integrated re-review still required",
+      "new": "joint source review completed; runtime raster/adoption qualification remains required"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "Shared technical contracts are proposals for joint independent review; only coordinator/user review can establish acceptance.",
+      "new": "Shared technical contracts have source-readiness approval; engineering feasibility still requires the owned qualification gates, and final assembly review is pending."
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "Review card ARCH-1: inspect (1) source-grid exterior invariant and alpha-safe replacement, (2) command receipt versus remote uncertain attempt, (3) save/bundle/asset graph recovery, and (4) replay without provider calls. Current author evidence is source cross-read plus paper scenario checks only; no repository edits, installs, builds, tests, benchmarks, credential access or paid calls. Independent joint UX/architecture review is required before Task5 handoff. Reading this note is not user review approval.\n",
+      "new": "Review focus: exact canonical exterior and safe placement; durable command receipts and uncertain remote attempts; full-history assets and recovery; zero-call replay; native text and composition identities. User review of this assembled revision remains pending.\n\n"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "Final author cross-source reconciliation is recorded below before handoff; independent joint approval is still required. Task4 returns to review_required, never complete from this author receipt. Historical §§14–15 and V1/V2 review outcomes remain intact.",
+      "new": "The joint source approval is recorded in the index. Task 4 is complete; final assembly review is pending. The exact historical source and review outcomes remain in the linked history snapshots."
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "## 19. ARCH-1.4 — limited PERF-8 reference reconciliation\n\nScope: current references and campaign context only. V4 independently verified ARCH-1.3/UX-2.1 source behavior, including F01–F05 and amended native-text/composition/state contracts; full approval remained withheld by PERF-8 P6-01. This amendment preserves those contracts. Current review set: **ARCH-1.4 + UX-2.2 + PERF-8**, with API-1.2/DS-1.1 unchanged. PERF-8 and this limited mirror still require independent review; author agreement is not approval or measured compliance.\n\n### 19.1 Exact changed-clause map\n\n| Clause | Limited change |\n| --- | --- |\n| Revision line and current-scope heading/paragraph | ARCH-1.3 → ARCH-1.4; identify reference-only scope and V4 source verification, retaining the earlier correction history |\n| Canonical inputs | PERF-8 → PERF-8; UX-2.1 → UX-2.2; keep canonical note identities |\n| §11 introduction and CP-1/feather performance paragraph | Current performance owner reference → PERF-8, no algorithm or timing changes |\n| §16.7 raw provenance | R38 source reference → PERF-8; complete streaming/partial recovery rules unchanged |\n| §16.9 heading, adoption paragraph, R35 D11 attribution and campaign paragraph | Source attribution → PERF-8 only; all R33–R42 numbers, boundaries and resource rules unchanged |\n| §17.3 qualification | Current performance feasibility reference → PERF-8 |\n| §18.5 | Label the 22:14 ARCH-1.3/PERF-8 cross-read historical; original receipt body retained |\n| §19 | Add current source-checked campaign context, preservation receipt and next review gate |\n\n",
+      "new": "## 19. Current performance campaign context\n\n"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "Cross-read the saved PERF-8 final 22:38 receipt, D08 schedule, independent H ledger and UX-2.2 §19.",
+      "new": "The current PERF-8 D08 schedule and independent H ledger own these numbers; UX §19 mirrors the same campaign."
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "### 19.3 Preservation and handoff\n\nThe reference edits preserve F01 CP-1 quantization; F02 approved feather/reconstruction containment; F03 endpoint/nested field contracts; F04 exact-slot single-original-K eligibility, unchanged other contributions and multi-background new-document fallback; F05 one connected app-owned native textarea, range/session/focus guards and IME deferral. Native editable text, semantic bindings, source/output placement, originals, replay with zero provider requests, job journal, single writer, undo/redo, full-history portable closure and asset retention are unchanged. No full-image equality scan or second text authority is introduced.\n\nHistorical ARCH-1.3/PERF-8 author receipts remain historical, including their then-current campaign claims; PERF-8 supersedes the rejected H schedule. V4 verification is source-level evidence, not browser/renderer/IME/crash/performance qualification. Saved-note readback checks only the declared reference edits plus this addendum. No repo files, builds, installs, app tests, benchmarks or provider calls were used in this pass.\n\nCoordinator next action: request independent PERF-8 review and limited ARCH-1.4/UX-2.2 changed-clause verification. Original Task4 remains review_required; expanded progress stays 1/9 independently verified, 8 remaining. Tasks5/7 remain unstarted.\n",
+      "new": "All §16.9 action clocks and resource guards remain in force. PERF-8 retains complete compound cancellation/late-result allocation within the existing H4/I6H blocks. Implementation and final assembly verification are separate from prior source approval.\n"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 2,
+      "old": "ARCH-1.3",
+      "new": "ARCH-1.4"
+    },
+    {
+      "kind": "replace",
+      "section": "architecture",
+      "count": 1,
+      "old": "UX-2.1",
+      "new": "UX-2.2"
+    },
+    {
+      "kind": "replace",
+      "section": "performance",
+      "count": 1,
+      "old": "ARCH-1.3",
+      "new": "ARCH-1.4"
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "api",
+      "count": 1,
+      "old": "**Draft for independent review, 2026-09-25 UTC.**",
+      "new": "**API-1.2 evidence amendment, retrieved 2026-09-25 UTC; independently approved for source readiness.**"
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "ux",
+      "count": 1,
+      "old": "new PERF-8 numeric proposals are labelled, not measured or independently approved.",
+      "new": "PERF-8 numerical proposals have source-readiness approval and remain unmeasured."
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "ux",
+      "count": 1,
+      "old": "PERF-8 remains the independently approved baseline. PERF-8 R33–R42 is the performance author's proposed extension for the accepted text/composition/Fast scope; its new numeric bounds require the recorded reconciliation/independent review and are not provider limits or measured compliance.",
+      "new": "PERF-8, including R33–R42 for accepted text/composition/Fast scope, has independent specification-readiness approval. Its numerical bounds remain engineering proposals, not provider limits or measured compliance."
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "architecture",
+      "count": 1,
+      "old": "old PERF-8 total campaign figures",
+      "new": "superseded narrower-scope campaign figures"
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "architecture",
+      "count": 1,
+      "old": "No independent correction approval or runtime performance result is claimed here.",
+      "new": "The subsequent joint V5 closure approved these corrections for specification readiness; no runtime performance result is claimed."
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "performance",
+      "count": 1,
+      "old": "These added counts and costs supersede PERF-8 totals;",
+      "new": "These added counts and costs supersede the historical narrower-scope PERF-4 totals;"
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "performance",
+      "count": 1,
+      "old": "This ledger supersedes the PERF-8 50ms-per-whole-case proof.",
+      "new": "This complete ledger replaces the rejected historical shortcut that omitted whole-case phases and overhead."
+    },
+    {
+      "kind": "final-current-status-reconciliation",
+      "section": "design-system",
+      "count": 1,
+      "old": "Task 6 owns numerical targets/ceilings and acceptance environments before Tasks 3/4 draft.",
+      "new": "PERF-8 owns numerical targets/ceilings and acceptance environments; UX and Architecture now include their reviewed mirrors."
+    }
+  ],
+  "commonTransforms": [
+    "Map current section note links to portable local mirrors; map accepted Spec/compatibility references to current decisions; retain historical evidence links under history.",
+    "Add stable explicit anchors for numbered sections/API appendix records.",
+    "Replace obsolete author-review status with actual source approvals and pending final assembly review.",
+    "Move chronological failed/superseded source receipts out of core reading path while preserving exact snapshots.",
+    "Relabel only current performance-owner references to PERF-8; no timing, resource, sample or campaign arithmetic changes."
+  ]
+}

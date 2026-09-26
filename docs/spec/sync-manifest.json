@@ -1,0 +1,608 @@
+{
+  "schemaVersion": 1,
+  "assembly": "SPEC-A1",
+  "capturedAt": "2026-09-26T00:25:06.604307+00:00",
+  "captureTimeNote": "Times are local snapshot-write timestamps immediately following the note reads; immutable revision identity is the raw-content SHA-256.",
+  "branch": "upon-build",
+  "baseSha": "7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a",
+  "headAtAssembly": "7c41c8e708b08b458ebf0f4fc369e2621ad7cd4a",
+  "commitIdentityRule": "Final commit hash is recorded in task/PR Context handoff; this file cannot contain its own future commit hash.",
+  "status": "author-complete; independent-final-review-required",
+  "inputs": [
+    {
+      "noteId": "060d9fce-0132-4c2e-b066-9e8883a8e1a0",
+      "title": "Task 5 — Testing strategy",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "98cb65858c4b3776ed90bdb7953029149efa6cf82f402304cf7dcac4c8a64a3e",
+      "bytes": 18660,
+      "snapshotPath": "history/060d9fce-0132-4c2e-b066-9e8883a8e1a0.md",
+      "noteUrl": "intent://local/upon-build/note/060d9fce-0132-4c2e-b066-9e8883a8e1a0",
+      "taskStatusAtCapture": "complete",
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:26:13.352998+00:00"
+    },
+    {
+      "noteId": "0843a4b2-b4f5-449b-b109-2f851e2cca7b",
+      "title": "Testing Strategy Independent Verification",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "9bd9cd7b6df5dae816af0ee99a3c5ed7dcce5f59d6331731258946785cdc2c56",
+      "bytes": 19907,
+      "snapshotPath": "history/0843a4b2-b4f5-449b-b109-2f851e2cca7b.md",
+      "noteUrl": "intent://local/upon-build/note/0843a4b2-b4f5-449b-b109-2f851e2cca7b",
+      "taskStatusAtCapture": null,
+      "role": "approval-evidence",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.419962+00:00"
+    },
+    {
+      "noteId": "176843a5-c21b-4de6-84a6-53ef5b9ca804",
+      "title": "UX–architecture verification — V1–V5",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "855ab3fd5df1c76a284808ef567b6d57bf19f45145f68f8397931ccad9ade60e",
+      "bytes": 134956,
+      "snapshotPath": "history/176843a5-c21b-4de6-84a6-53ef5b9ca804.md",
+      "noteUrl": "intent://local/upon-build/note/176843a5-c21b-4de6-84a6-53ef5b9ca804",
+      "taskStatusAtCapture": null,
+      "role": "approval-evidence",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.305217+00:00"
+    },
+    {
+      "noteId": "1b7b659d-d577-4257-b677-4850bbf86143",
+      "title": "Performance Requirements and Metrics",
+      "namedVersion": "PERF-8",
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "10954a7addf8b009a7ac6dfcb6f42b633d87ed081d611dfb6c1bc3f2933a8579",
+      "bytes": 209493,
+      "snapshotPath": "history/1b7b659d-d577-4257-b677-4850bbf86143.md",
+      "noteUrl": "intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143",
+      "taskStatusAtCapture": null,
+      "role": "approved-section",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.183908+00:00"
+    },
+    {
+      "noteId": "1dd17672-e2f0-4c89-a9bb-414f871fa7a4",
+      "title": "Desktop editor wireframe",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "790eb556f84709e98c3acb3d4ba5ebf50349554ccf7a8b6506b899286a36a7cc",
+      "bytes": 3740,
+      "snapshotPath": "history/1dd17672-e2f0-4c89-a9bb-414f871fa7a4.md",
+      "noteUrl": "intent://local/upon-build/note/1dd17672-e2f0-4c89-a9bb-414f871fa7a4",
+      "taskStatusAtCapture": null,
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:26:13.448180+00:00"
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "title": "API Surface — Ideogram V4 on fal.ai",
+      "namedVersion": "API-1.2",
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "ea542ed9adf641bf6a8ad43578ba3e9f5bc4dd34860c52230fe1816fed8f02f2",
+      "bytes": 170221,
+      "snapshotPath": "history/2728dafd-4209-4558-a762-3a0192e0610f.md",
+      "noteUrl": "intent://local/upon-build/note/2728dafd-4209-4558-a762-3a0192e0610f",
+      "taskStatusAtCapture": null,
+      "role": "approved-section",
+      "snapshotWrittenAt": "2026-09-26T00:25:06.884467+00:00"
+    },
+    {
+      "noteId": "308a3de1-3a1e-4ead-9b75-618d778e80ff",
+      "title": "Task 3 — Editor UX and feature plan",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "c309d7c15d4ecd0b80a8c4783132a875dfa60f809a31aa2ae0ea72f753079ab8",
+      "bytes": 35970,
+      "snapshotPath": "history/308a3de1-3a1e-4ead-9b75-618d778e80ff.md",
+      "noteUrl": "intent://local/upon-build/note/308a3de1-3a1e-4ead-9b75-618d778e80ff",
+      "taskStatusAtCapture": "complete",
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:26:13.259474+00:00"
+    },
+    {
+      "noteId": "337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+      "title": "PR Context — upon-build",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "4540f20d2b458bcca7c00e82fc1f00148d4549879a1f23fceb751e76a8cd6c20",
+      "bytes": 119198,
+      "snapshotPath": "history/337dd04c-2911-4227-8217-1e2fc0b6a9f0.md",
+      "noteUrl": "intent://local/upon-build/note/337dd04c-2911-4227-8217-1e2fc0b6a9f0",
+      "taskStatusAtCapture": null,
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:25:06.826096+00:00"
+    },
+    {
+      "noteId": "3febb57d-ea57-42de-a098-b12fb4e010e4",
+      "title": "Editor UX and Feature Map",
+      "namedVersion": "UX-2.2",
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "c8b3b7980b8dc9aa3082ff71b557cd5d0c97356933767e3e88c9980e7835b5a3",
+      "bytes": 191714,
+      "snapshotPath": "history/3febb57d-ea57-42de-a098-b12fb4e010e4.md",
+      "noteUrl": "intent://local/upon-build/note/3febb57d-ea57-42de-a098-b12fb4e010e4",
+      "taskStatusAtCapture": null,
+      "role": "approved-section",
+      "snapshotWrittenAt": "2026-09-26T00:25:06.992578+00:00"
+    },
+    {
+      "noteId": "475e1f5c-0697-46e9-b205-decbb4297f00",
+      "title": "Task 7 — Assemble and reconcile the specification",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "11802e3f1c756e29a142834996b31130a6a311439939ff1e66207702d600810a",
+      "bytes": 14081,
+      "snapshotPath": "history/475e1f5c-0697-46e9-b205-decbb4297f00.md",
+      "noteUrl": "intent://local/upon-build/note/475e1f5c-0697-46e9-b205-decbb4297f00",
+      "taskStatusAtCapture": "in_progress",
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:25:06.686663+00:00"
+    },
+    {
+      "noteId": "6df7045b-6f0a-42c5-a32d-879b38d54c51",
+      "title": "Operation compatibility — accepted",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "05e3184f0ba9553f67122587757c33e9e929f4b5562de19d93c5e62025a862aa",
+      "bytes": 8769,
+      "snapshotPath": "history/6df7045b-6f0a-42c5-a32d-879b38d54c51.md",
+      "noteUrl": "intent://local/upon-build/note/6df7045b-6f0a-42c5-a32d-879b38d54c51",
+      "taskStatusAtCapture": null,
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.236668+00:00"
+    },
+    {
+      "noteId": "6e3a136c-c367-4007-a141-7eb82c5f6a0f",
+      "title": "Task 2 — Design-system integration plan",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "4e252c062177d4ccf58a6e29758e4243b1e998bb9e7f213b83108afaa2fb5a42",
+      "bytes": 9152,
+      "snapshotPath": "history/6e3a136c-c367-4007-a141-7eb82c5f6a0f.md",
+      "noteUrl": "intent://local/upon-build/note/6e3a136c-c367-4007-a141-7eb82c5f6a0f",
+      "taskStatusAtCapture": "complete",
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:26:13.208335+00:00"
+    },
+    {
+      "noteId": "8a596346-7cd0-49db-9a5b-a81cfc239db0",
+      "title": "Task 6 — Performance requirements and metrics",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "9e851ccfb0e12dc564840d794f4e971e14e45301a223f40359436af7612c0d29",
+      "bytes": 51882,
+      "snapshotPath": "history/8a596346-7cd0-49db-9a5b-a81cfc239db0.md",
+      "noteUrl": "intent://local/upon-build/note/8a596346-7cd0-49db-9a5b-a81cfc239db0",
+      "taskStatusAtCapture": "complete",
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:26:13.398030+00:00"
+    },
+    {
+      "noteId": "99dd9c46-10a3-404d-b4b7-458c2c34758d",
+      "title": "Foundation verification — API-1.1 and DS-1.1",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "0b3c5dc58622d6b4c9edfca03b976088966cdcc109d54c3710c4e328edbb57b6",
+      "bytes": 20259,
+      "snapshotPath": "history/99dd9c46-10a3-404d-b4b7-458c2c34758d.md",
+      "noteUrl": "intent://local/upon-build/note/99dd9c46-10a3-404d-b4b7-458c2c34758d",
+      "taskStatusAtCapture": null,
+      "role": "approval-evidence",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.469775+00:00"
+    },
+    {
+      "noteId": "b6884312-45fe-4295-a5a3-70180a701223",
+      "title": "Specification review — progress and findings",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "ef274e5e6f637da56de457163663b5b5e5b7704e5d031b2be85a320f4f04ff79",
+      "bytes": 143587,
+      "snapshotPath": "history/b6884312-45fe-4295-a5a3-70180a701223.md",
+      "noteUrl": "intent://local/upon-build/note/b6884312-45fe-4295-a5a3-70180a701223",
+      "taskStatusAtCapture": null,
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:25:06.761209+00:00"
+    },
+    {
+      "noteId": "bb86b142-0129-4293-b3c4-ebbb458490d7",
+      "title": "Performance independent verification — PERF-8 approved",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "3c9dd387c12269a90c7e3f110cb01684c6f4181367f652f21847cf4ce5c6e7ff",
+      "bytes": 134195,
+      "snapshotPath": "history/bb86b142-0129-4293-b3c4-ebbb458490d7.md",
+      "noteUrl": "intent://local/upon-build/note/bb86b142-0129-4293-b3c4-ebbb458490d7",
+      "taskStatusAtCapture": null,
+      "role": "approval-evidence",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.366915+00:00"
+    },
+    {
+      "noteId": "bc1f99ee-c43d-470b-8111-e478000dafe5",
+      "title": "Task 4 — Architecture: action model and event log",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "fecb03b082a26d47059b18ee6dd0bc6491e9b01601cbd0412f950efd89418b46",
+      "bytes": 35352,
+      "snapshotPath": "history/bc1f99ee-c43d-470b-8111-e478000dafe5.md",
+      "noteUrl": "intent://local/upon-build/note/bc1f99ee-c43d-470b-8111-e478000dafe5",
+      "taskStatusAtCapture": "complete",
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:26:13.308187+00:00"
+    },
+    {
+      "noteId": "bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+      "title": "Design System Integration — en-reve",
+      "namedVersion": "DS-1.1",
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "b3c0b2ff61efcd9f5d5250286e5215a02f039bd6de343de910ca0b93112dd102",
+      "bytes": 50318,
+      "snapshotPath": "history/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2.md",
+      "noteUrl": "intent://local/upon-build/note/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+      "taskStatusAtCapture": null,
+      "role": "approved-section",
+      "snapshotWrittenAt": "2026-09-26T00:25:06.934988+00:00"
+    },
+    {
+      "noteId": "c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+      "title": "Architecture — Action Model and Event Log",
+      "namedVersion": "ARCH-1.4",
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "d66c43add9bcc7bddb166f18043253b374140e029e255265a462d91f9d6340a8",
+      "bytes": 212492,
+      "snapshotPath": "history/c0689bcd-8dca-4ce6-bccb-e538e0a45477.md",
+      "noteUrl": "intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+      "taskStatusAtCapture": null,
+      "role": "approved-section",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.056565+00:00"
+    },
+    {
+      "noteId": "d3202a13-080b-426e-8bac-c2a25ee2ae49",
+      "title": "Task 1 — API surface reference",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "9f981d79462d48eeb3aac5f7d56ff44d6ad4757dbeb264068944e05c3458ace3",
+      "bytes": 13654,
+      "snapshotPath": "history/d3202a13-080b-426e-8bac-c2a25ee2ae49.md",
+      "noteUrl": "intent://local/upon-build/note/d3202a13-080b-426e-8bac-c2a25ee2ae49",
+      "taskStatusAtCapture": "complete",
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:26:13.152986+00:00"
+    },
+    {
+      "noteId": "d7819c6b-68ff-4d89-835d-9acabe779cae",
+      "title": "Testing Strategy",
+      "namedVersion": "TEST-1",
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "f94d779670912c18824eba55a43ec4cdf1f0f342dd12fd1f63edb12e435bb0cf",
+      "bytes": 108903,
+      "snapshotPath": "history/d7819c6b-68ff-4d89-835d-9acabe779cae.md",
+      "noteUrl": "intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae",
+      "taskStatusAtCapture": null,
+      "role": "approved-section",
+      "snapshotWrittenAt": "2026-09-26T00:25:07.112986+00:00"
+    },
+    {
+      "noteId": "spec",
+      "title": "Spec",
+      "namedVersion": null,
+      "revisionScheme": "sha256(rawContent UTF-8); note API exposes no numeric revision",
+      "sha256": "826b4d3c1605c9e49318ce32c5388fdec46cf94bf644910e5aa3214a3204b6c3",
+      "bytes": 72461,
+      "snapshotPath": "history/spec.md",
+      "noteUrl": "intent://local/upon-build/note/spec",
+      "taskStatusAtCapture": null,
+      "role": "requirements-decisions-or-handoff-history",
+      "snapshotWrittenAt": "2026-09-26T00:25:06.604307+00:00"
+    }
+  ],
+  "inputApprovals": [
+    {
+      "version": "API-1.2",
+      "approvalNoteId": "176843a5-c21b-4de6-84a6-53ef5b9ca804",
+      "clause": "V2 source approval retained in V1–V5 review history"
+    },
+    {
+      "version": "DS-1.1",
+      "approvalNoteId": "99dd9c46-10a3-404d-b4b7-458c2c34758d",
+      "clause": "foundation approval; accepted package/browser addenda in frozen Spec"
+    },
+    {
+      "version": "UX-2.2 + ARCH-1.4",
+      "approvalNoteId": "176843a5-c21b-4de6-84a6-53ef5b9ca804",
+      "clause": "final V5 closure; accepted four text defaults/separate lists in Spec"
+    },
+    {
+      "version": "PERF-8",
+      "approvalNoteId": "bb86b142-0129-4293-b3c4-ebbb458490d7",
+      "clause": "P7-01 closed; PERF-8 approved"
+    },
+    {
+      "version": "TEST-1",
+      "approvalNoteId": "0843a4b2-b4f5-449b-b109-2f851e2cca7b",
+      "clause": "independent V1 approval; original Task5 complete"
+    }
+  ],
+  "noteParity": [
+    {
+      "noteId": "df180a35-40dd-43d7-b9c6-1f1dd0306088",
+      "path": "index.md",
+      "noteUrl": "intent://local/upon-build/note/df180a35-40dd-43d7-b9c6-1f1dd0306088",
+      "sentRawSha256": "056f96e92b4d6d840dc610dd3e69827a117883faf7dca3e85e7d09a67dccdc5d",
+      "readbackRawSha256": "056f96e92b4d6d840dc610dd3e69827a117883faf7dca3e85e7d09a67dccdc5d",
+      "noteBytes": 65511,
+      "normalizedExactMatch": true,
+      "readbackAt": "2026-09-26T00:35:25.753Z",
+      "normalizedReadbackSha256": "9b8bf7621dd64839f51ad4a2eba98dfbb40cdf1ef9f68f7cc3135df9e6cd5d4b"
+    },
+    {
+      "noteId": "2728dafd-4209-4558-a762-3a0192e0610f",
+      "path": "api.md",
+      "noteUrl": "intent://local/upon-build/note/2728dafd-4209-4558-a762-3a0192e0610f",
+      "sentRawSha256": "0d28d2ae70c565b807d8dca93b295de71ccac7bd53aa8ad99167017464d07d94",
+      "readbackRawSha256": "0d28d2ae70c565b807d8dca93b295de71ccac7bd53aa8ad99167017464d07d94",
+      "noteBytes": 168715,
+      "normalizedExactMatch": true,
+      "readbackAt": "2026-09-26T00:35:25.834Z",
+      "normalizedReadbackSha256": "136039aff6744ade9a07b5e17841d90aac65271c85875fa59197c3ad72239cff"
+    },
+    {
+      "noteId": "bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+      "path": "design-system.md",
+      "noteUrl": "intent://local/upon-build/note/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2",
+      "sentRawSha256": "664cc45be8d2b2030195f443241d786fe5da79e5daa5140513ccfb811639c365",
+      "readbackRawSha256": "664cc45be8d2b2030195f443241d786fe5da79e5daa5140513ccfb811639c365",
+      "noteBytes": 50650,
+      "normalizedExactMatch": true,
+      "readbackAt": "2026-09-26T00:35:25.899Z",
+      "normalizedReadbackSha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378"
+    },
+    {
+      "noteId": "3febb57d-ea57-42de-a098-b12fb4e010e4",
+      "path": "ux.md",
+      "noteUrl": "intent://local/upon-build/note/3febb57d-ea57-42de-a098-b12fb4e010e4",
+      "sentRawSha256": "e54ad752b3f2e1d7c69d067c6271821db690e2b2eaa791fdfe1977aeb084fda9",
+      "readbackRawSha256": "e54ad752b3f2e1d7c69d067c6271821db690e2b2eaa791fdfe1977aeb084fda9",
+      "noteBytes": 170332,
+      "normalizedExactMatch": true,
+      "readbackAt": "2026-09-26T00:35:25.975Z",
+      "normalizedReadbackSha256": "73f8325806c604c460486f83b8c16e2e0ac430762a7dc2283bc18259210fe46f"
+    },
+    {
+      "noteId": "c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+      "path": "architecture.md",
+      "noteUrl": "intent://local/upon-build/note/c0689bcd-8dca-4ce6-bccb-e538e0a45477",
+      "sentRawSha256": "38e7e98b781bad35cd34f87af891cead78a095856dfe4a48ceab14cd07f56ae6",
+      "readbackRawSha256": "38e7e98b781bad35cd34f87af891cead78a095856dfe4a48ceab14cd07f56ae6",
+      "noteBytes": 188912,
+      "normalizedExactMatch": true,
+      "readbackAt": "2026-09-26T00:35:26.053Z",
+      "normalizedReadbackSha256": "e8b8f24b37169c591965ac3239045f58d5b4d1ef8fc1e50aaf99f9279aa92aab"
+    },
+    {
+      "noteId": "d7819c6b-68ff-4d89-835d-9acabe779cae",
+      "path": "testing.md",
+      "noteUrl": "intent://local/upon-build/note/d7819c6b-68ff-4d89-835d-9acabe779cae",
+      "sentRawSha256": "d6061817ab188f4b41ca31325d34dcf4a307a557ce8ab94bacfe95297936b670",
+      "readbackRawSha256": "d6061817ab188f4b41ca31325d34dcf4a307a557ce8ab94bacfe95297936b670",
+      "noteBytes": 101772,
+      "normalizedExactMatch": true,
+      "readbackAt": "2026-09-26T00:35:26.122Z",
+      "normalizedReadbackSha256": "cdd5f49a41897c066c025b51070f246155f29723cd5b063250e0a5e44a458ebf"
+    },
+    {
+      "noteId": "1b7b659d-d577-4257-b677-4850bbf86143",
+      "path": "performance.md",
+      "noteUrl": "intent://local/upon-build/note/1b7b659d-d577-4257-b677-4850bbf86143",
+      "sentRawSha256": "c0612e46d61793939d2685c82a733e9ac62c448183f7fe4384243b21946815ed",
+      "readbackRawSha256": "c0612e46d61793939d2685c82a733e9ac62c448183f7fe4384243b21946815ed",
+      "noteBytes": 178655,
+      "normalizedExactMatch": true,
+      "readbackAt": "2026-09-26T00:35:26.198Z",
+      "normalizedReadbackSha256": "470d5f9d764c00f540e466b571015518f70e192efd745fd7d728038b160253e3"
+    }
+  ],
+  "parityTransform": {
+    "forward": "Replace portable current-section Markdown targets by note-map.json canonical note URIs; support/history targets by intent://local/file/docs/spec/; preserve anchors and all other bytes.",
+    "reverse": "Invert exact URI map and support prefix; normalized saved readback must equal complete repository document.",
+    "remoteLimits": "Readback receipt attests captured note bytes; repository checker does not contact workspace service. Future changes need fresh live readback."
+  },
+  "outputs": [
+    {
+      "path": "api.md",
+      "sha256": "136039aff6744ade9a07b5e17841d90aac65271c85875fa59197c3ad72239cff",
+      "bytes": 168449
+    },
+    {
+      "path": "architecture.md",
+      "sha256": "e8b8f24b37169c591965ac3239045f58d5b4d1ef8fc1e50aaf99f9279aa92aab",
+      "bytes": 188095
+    },
+    {
+      "path": "design-system.md",
+      "sha256": "53e548967697796fb27130371944c7b827a8cc1841a49454ee6f2aaf93d8f378",
+      "bytes": 50325
+    },
+    {
+      "path": "editorial-transformations.json",
+      "sha256": "84611658771020f5520c3a3d4c463947e26433f3a4719a6d3319566a86320733",
+      "bytes": 41773
+    },
+    {
+      "path": "history/060d9fce-0132-4c2e-b066-9e8883a8e1a0.md",
+      "sha256": "98cb65858c4b3776ed90bdb7953029149efa6cf82f402304cf7dcac4c8a64a3e",
+      "bytes": 18660
+    },
+    {
+      "path": "history/0843a4b2-b4f5-449b-b109-2f851e2cca7b.md",
+      "sha256": "9bd9cd7b6df5dae816af0ee99a3c5ed7dcce5f59d6331731258946785cdc2c56",
+      "bytes": 19907
+    },
+    {
+      "path": "history/176843a5-c21b-4de6-84a6-53ef5b9ca804.md",
+      "sha256": "855ab3fd5df1c76a284808ef567b6d57bf19f45145f68f8397931ccad9ade60e",
+      "bytes": 134956
+    },
+    {
+      "path": "history/1b7b659d-d577-4257-b677-4850bbf86143.md",
+      "sha256": "10954a7addf8b009a7ac6dfcb6f42b633d87ed081d611dfb6c1bc3f2933a8579",
+      "bytes": 209493
+    },
+    {
+      "path": "history/1dd17672-e2f0-4c89-a9bb-414f871fa7a4.md",
+      "sha256": "790eb556f84709e98c3acb3d4ba5ebf50349554ccf7a8b6506b899286a36a7cc",
+      "bytes": 3740
+    },
+    {
+      "path": "history/2728dafd-4209-4558-a762-3a0192e0610f.md",
+      "sha256": "ea542ed9adf641bf6a8ad43578ba3e9f5bc4dd34860c52230fe1816fed8f02f2",
+      "bytes": 170221
+    },
+    {
+      "path": "history/308a3de1-3a1e-4ead-9b75-618d778e80ff.md",
+      "sha256": "c309d7c15d4ecd0b80a8c4783132a875dfa60f809a31aa2ae0ea72f753079ab8",
+      "bytes": 35970
+    },
+    {
+      "path": "history/337dd04c-2911-4227-8217-1e2fc0b6a9f0.md",
+      "sha256": "4540f20d2b458bcca7c00e82fc1f00148d4549879a1f23fceb751e76a8cd6c20",
+      "bytes": 119198
+    },
+    {
+      "path": "history/3febb57d-ea57-42de-a098-b12fb4e010e4.md",
+      "sha256": "c8b3b7980b8dc9aa3082ff71b557cd5d0c97356933767e3e88c9980e7835b5a3",
+      "bytes": 191714
+    },
+    {
+      "path": "history/475e1f5c-0697-46e9-b205-decbb4297f00.md",
+      "sha256": "11802e3f1c756e29a142834996b31130a6a311439939ff1e66207702d600810a",
+      "bytes": 14081
+    },
+    {
+      "path": "history/6df7045b-6f0a-42c5-a32d-879b38d54c51.md",
+      "sha256": "05e3184f0ba9553f67122587757c33e9e929f4b5562de19d93c5e62025a862aa",
+      "bytes": 8769
+    },
+    {
+      "path": "history/6e3a136c-c367-4007-a141-7eb82c5f6a0f.md",
+      "sha256": "4e252c062177d4ccf58a6e29758e4243b1e998bb9e7f213b83108afaa2fb5a42",
+      "bytes": 9152
+    },
+    {
+      "path": "history/8a596346-7cd0-49db-9a5b-a81cfc239db0.md",
+      "sha256": "9e851ccfb0e12dc564840d794f4e971e14e45301a223f40359436af7612c0d29",
+      "bytes": 51882
+    },
+    {
+      "path": "history/99dd9c46-10a3-404d-b4b7-458c2c34758d.md",
+      "sha256": "0b3c5dc58622d6b4c9edfca03b976088966cdcc109d54c3710c4e328edbb57b6",
+      "bytes": 20259
+    },
+    {
+      "path": "history/README.md",
+      "sha256": "ab150a80346795fae23b74846c9ac34f6d1949e86d55303c1d90dde9e641ef4d",
+      "bytes": 981
+    },
+    {
+      "path": "history/b6884312-45fe-4295-a5a3-70180a701223.md",
+      "sha256": "ef274e5e6f637da56de457163663b5b5e5b7704e5d031b2be85a320f4f04ff79",
+      "bytes": 143587
+    },
+    {
+      "path": "history/bb86b142-0129-4293-b3c4-ebbb458490d7.md",
+      "sha256": "3c9dd387c12269a90c7e3f110cb01684c6f4181367f652f21847cf4ce5c6e7ff",
+      "bytes": 134195
+    },
+    {
+      "path": "history/bc1f99ee-c43d-470b-8111-e478000dafe5.md",
+      "sha256": "fecb03b082a26d47059b18ee6dd0bc6491e9b01601cbd0412f950efd89418b46",
+      "bytes": 35352
+    },
+    {
+      "path": "history/bf7b9cc0-391c-4fce-97a8-5da1a660a4a2.md",
+      "sha256": "b3c0b2ff61efcd9f5d5250286e5215a02f039bd6de343de910ca0b93112dd102",
+      "bytes": 50318
+    },
+    {
+      "path": "history/c0689bcd-8dca-4ce6-bccb-e538e0a45477.md",
+      "sha256": "d66c43add9bcc7bddb166f18043253b374140e029e255265a462d91f9d6340a8",
+      "bytes": 212492
+    },
+    {
+      "path": "history/d3202a13-080b-426e-8bac-c2a25ee2ae49.md",
+      "sha256": "9f981d79462d48eeb3aac5f7d56ff44d6ad4757dbeb264068944e05c3458ace3",
+      "bytes": 13654
+    },
+    {
+      "path": "history/d7819c6b-68ff-4d89-835d-9acabe779cae.md",
+      "sha256": "f94d779670912c18824eba55a43ec4cdf1f0f342dd12fd1f63edb12e435bb0cf",
+      "bytes": 108903
+    },
+    {
+      "path": "history/spec.md",
+      "sha256": "826b4d3c1605c9e49318ce32c5388fdec46cf94bf644910e5aa3214a3204b6c3",
+      "bytes": 72461
+    },
+    {
+      "path": "index.md",
+      "sha256": "9b8bf7621dd64839f51ad4a2eba98dfbb40cdf1ef9f68f7cc3135df9e6cd5d4b",
+      "bytes": 57219
+    },
+    {
+      "path": "note-map.json",
+      "sha256": "341e66334fadd1ba1e5abed927c2e11dbbf0ebe5338b7dd993098a0bd0796bb1",
+      "bytes": 1394
+    },
+    {
+      "path": "note-parity.json",
+      "sha256": "8504398e85cba6df959c6b181dc0bdaa36c3075069ad5df7560c76685d3c0419",
+      "bytes": 3543
+    },
+    {
+      "path": "performance.md",
+      "sha256": "470d5f9d764c00f540e466b571015518f70e192efd745fd7d728038b160253e3",
+      "bytes": 178129
+    },
+    {
+      "path": "testing.md",
+      "sha256": "cdd5f49a41897c066c025b51070f246155f29723cd5b063250e0a5e44a458ebf",
+      "bytes": 100996
+    },
+    {
+      "path": "tools/check_spec.py",
+      "sha256": "a51446a529c80d7356f8b822a5abef1559657171a77ae197bd90f366fee42716",
+      "bytes": 8841
+    },
+    {
+      "path": "traceability.json",
+      "sha256": "6831bc71ae602a75c110bb9e0f77e9bb54e95cdcb76491677ec25edd85721934",
+      "bytes": 34046
+    },
+    {
+      "path": "ux.md",
+      "sha256": "73f8325806c604c460486f83b8c16e2e0ac430762a7dc2283bc18259210fe46f",
+      "bytes": 169641
+    },
+    {
+      "path": "SHA256SUMS",
+      "hashExclusionReason": "Outer seal excludes only itself; contains all other artifact hashes."
+    },
+    {
+      "path": "sync-manifest.json",
+      "hashExclusionReason": "Self excluded from embedded hashes; outer SHA256SUMS covers it."
+    },
+    {
+      "path": "verification.json",
+      "hashExclusionReason": "Generated after manifest to avoid recursive evidence hashes; outer SHA256SUMS covers it."
+    }
+  ],
+  "hashBoundary": {
+    "manifest": "Self excluded from embedded hashes; outer SHA256SUMS covers it.",
+    "verification": "Generated after manifest to avoid recursive evidence hashes; outer SHA256SUMS covers it.",
+    "SHA256SUMS": "Outer seal excludes only itself; contains all other artifact hashes."
+  },
+  "editorialRecord": "editorial-transformations.json",
+  "prohibitedWorkPerformed": false,
+  "independentVerificationCredit": "0/4",
+  "captureCompletedAt": "2026-09-26T00:26:13.448180+00:00"
+}
