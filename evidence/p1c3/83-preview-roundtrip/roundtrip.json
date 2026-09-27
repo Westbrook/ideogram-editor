@@ -1,0 +1,300 @@
+{
+  "started": "2026-09-27T00:45:43.165Z",
+  "ended": "2026-09-27T00:45:49.006Z",
+  "passed": true,
+  "browser": "153.0.8010.12",
+  "runtime": {
+    "started": "2026-09-27T00:43:34.680Z",
+    "pid": 44169,
+    "origin": "http://127.0.0.1:57855",
+    "reviewURL": "http://127.0.0.1:57855/?progress-report",
+    "sourceCommit": "e070baff7069a319f92a39e6c369378a31424181",
+    "runtimeSourceSHA256": "9dcfd2d87973e9edb4d883efa78d9c6c308179ee1ed61934e960a05125bb84c3",
+    "buildFiles": 71,
+    "extraRuntimeFiles": 217,
+    "node": "v26.10.0",
+    "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-e070baff/",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-e070baff/private",
+    "mode": "isolated AUTHOR review; no independent approval; outgoing effects denied"
+  },
+  "review": {
+    "itemId": "masks-layers-author-preview",
+    "version": "e070baff7069a319f92a39e6c369378a31424181",
+    "taskId": "de9a33a4-55cd-4132-a497-3b27095ab0ca",
+    "title": "P1c.3 masks and layers e070baff — AUTHOR REVIEW",
+    "summary": "Frozen producte070 + checker a78; AUTHOR gates recorded. Inspect local masks/layers and En Reve controls at isolated57855. Startup identity/HTTP availability are author-reported; served browser identity, native-click roundtrip and independent acceptance pending.",
+    "inspect": [
+      "Review selection, mask draft/review/Apply/Undo, layer authoring, exact sampling and pointer movement; inspect narrow/RTL layouts and public En Reve compositions.",
+      "Exact product e070baff; separate checker a78aa887; profile d047f5be; first product evidence01de7559; runtime source9dcfd2d8, build65. No approval or human-review transfer from older previews.",
+      "AUTHOR browser61–63, backend/current-native and checker79/focused80 results retain their exact source attribution. Original68/68a and older failures remain; A-R01 broader limits are open.",
+      "Actual served browser identity and native-click report/preview roundtrip on this exact card are pending. Final evidence-only successor must preserve this tested-card attribution."
+    ],
+    "contentRevision": 1,
+    "eventIds": [
+      "event-608"
+    ],
+    "current": true,
+    "reviewed": false,
+    "previewIdentity": {
+      "id": "P1c3-author-e070-preview57855-publication-20260927T004416Z",
+      "recordedAt": "2026-09-27T00:45:21.183647+00:00",
+      "attribution": "AUTHOR direct snapshot2026-09-27T00:44:16Z, queued00:43:55.413987Z; standing de9a/PR delivery authorization read. Startup/file identities/HTTP200 are AUTHOR reports, no report-owner hash/browser/service work.",
+      "productCommit": "e070baff7069a319f92a39e6c369378a31424181",
+      "checkerCommit": "a78aa8879291c3bdc938796d64b4aa4926e7df93",
+      "profileSHA256": "d047f5beee2e3ca7f19d5e0ea7150f884a8063c2296b34fa94fb1ffeff434218",
+      "firstEvidenceCommit": "01de7559f6ae02a0d770be550154da11bf18b865",
+      "runtimeSourceSHA256": "9dcfd2d87973e9edb4d883efa78d9c6c308179ee1ed61934e960a05125bb84c3",
+      "buildGate": 65,
+      "url": "http://127.0.0.1:57855/?progress-report",
+      "service": {
+        "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-e070baff",
+        "pid": 44169,
+        "startedAt": "2026-09-27T00:43:34.680Z"
+      },
+      "startupVerification": {
+        "status": "AUTHOR_REPORTED_VERIFIED",
+        "exactBuildOutputs": 71,
+        "additionalRuntimeDependencyFiles": 217,
+        "claims": [
+          "Copied into isolated service",
+          "No shared module symlink",
+          "New private root",
+          "Outgoing effects denied"
+        ],
+        "maintainerVerification": false
+      },
+      "httpAvailability": {
+        "status": 200,
+        "observedAt": "2026-09-27T00:43:48Z",
+        "precision": "seconds",
+        "attribution": "AUTHOR"
+      },
+      "servedBrowserIdentity": {
+        "status": "PENDING",
+        "result": null
+      },
+      "nativeClickRoundtrip": {
+        "status": "PENDING",
+        "result": null
+      },
+      "evidencePath": "81-preview-service/{source,runtime,http,start}.json",
+      "finalEvidenceSuccessor": null,
+      "independentApproval": false,
+      "humanReviewed": false,
+      "acknowledgmentTransfer": false,
+      "credit": 0,
+      "publicationScope": "HTTP report data publication only; actual rendered anchor and navigation checks belong to author"
+    },
+    "independentApproval": false,
+    "openFeedback": [],
+    "observedReportRevision": 420
+  },
+  "displayedVersion": "e070baff7069a319f92a39e6c369378a31424181 · review revision 1",
+  "paired": true,
+  "errors": [],
+  "domErrors": [],
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/index-ILakMHJB.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/shell-I2_8peKy.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/session/bootstrap",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/ui/ui_363d3b72-f705-417b-acc6-38748d43c2d6",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/recovery/e34ce483-dd08-4cf2-aa58-5c6240b86e67/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/index-ILakMHJB.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/shell-I2_8peKy.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/session",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/ui/ui_363d3b72-f705-417b-acc6-38748d43c2d6",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/recovery/0fb14f85-864a-44bc-a0d2-3dee43447fa1/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:57855",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    }
+  ],
+  "scope": "Author stock controlled-origin Chromium native clicks through exact rendered product card. Report requests GET only; no reviewed/approval/checkpoint action. No independent acceptance or OS/AT/resource qualification."
+}

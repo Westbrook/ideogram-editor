@@ -1,0 +1,10 @@
+{
+  "submit": 0,
+  "upload": 0,
+  "poll": 0,
+  "cancel": 0,
+  "fetch": 0,
+  "socket": 0,
+  "dns": 0,
+  "datagram": 0
+}

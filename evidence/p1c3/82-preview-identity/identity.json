@@ -1,0 +1,106 @@
+{
+  "started": "2026-09-27T00:44:20.998Z",
+  "ended": "2026-09-27T00:44:22.152Z",
+  "passed": true,
+  "browser": "153.0.8010.12",
+  "runtime": {
+    "started": "2026-09-27T00:43:34.680Z",
+    "pid": 44169,
+    "origin": "http://127.0.0.1:57855",
+    "reviewURL": "http://127.0.0.1:57855/?progress-report",
+    "sourceCommit": "e070baff7069a319f92a39e6c369378a31424181",
+    "runtimeSourceSHA256": "9dcfd2d87973e9edb4d883efa78d9c6c308179ee1ed61934e960a05125bb84c3",
+    "buildFiles": 71,
+    "extraRuntimeFiles": 217,
+    "node": "v26.10.0",
+    "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-e070baff/",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-e070baff/private",
+    "mode": "isolated AUTHOR review; no independent approval; outgoing effects denied"
+  },
+  "sourceCommit": "e070baff7069a319f92a39e6c369378a31424181",
+  "served": [
+    {
+      "path": "/",
+      "sha256": "bf2fcd5287d77853d4baf9540641eb1000af5277587c061023e26f50ca88fa77",
+      "bytes": 2182,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-WjEVtF_I.css",
+      "sha256": "c1c85e84c7a19e0feccc2b2b625675688ce6e4d152bd289dcb48a2af914c6a79",
+      "bytes": 97801,
+      "status": 200
+    },
+    {
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "bytes": 1218,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-ILakMHJB.js",
+      "sha256": "a6d4b5a649d9c9f87a14587a7dc90a0897a73cb1679a625afcd6107cdbca2d47",
+      "bytes": 1429,
+      "status": 200
+    },
+    {
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "sha256": "990376e3d868a9a462b4fa2c2f6abeb022612ebfb9c3db231d821c7005988907",
+      "bytes": 137665,
+      "status": 200
+    },
+    {
+      "path": "/assets/shell-I2_8peKy.js",
+      "sha256": "726661c15d0530ed7b036e526851a5236c23005874f7a96ebdf520b7fa40c845",
+      "bytes": 412637,
+      "status": 200
+    },
+    {
+      "path": "/assets/editor-panels-DZY6YZJM.js",
+      "sha256": "6f1d4e4b93c943f0b6c12310d15a8c61ed239ee9bcc0879abe3c0cf13c973035",
+      "bytes": 9407,
+      "status": 200
+    },
+    {
+      "path": "/",
+      "sha256": "bf2fcd5287d77853d4baf9540641eb1000af5277587c061023e26f50ca88fa77",
+      "bytes": 2182,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-WjEVtF_I.css",
+      "sha256": "c1c85e84c7a19e0feccc2b2b625675688ce6e4d152bd289dcb48a2af914c6a79",
+      "bytes": 97801,
+      "status": 200
+    },
+    {
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "bytes": 1218,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-ILakMHJB.js",
+      "sha256": "a6d4b5a649d9c9f87a14587a7dc90a0897a73cb1679a625afcd6107cdbca2d47",
+      "bytes": 1429,
+      "status": 200
+    },
+    {
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "sha256": "990376e3d868a9a462b4fa2c2f6abeb022612ebfb9c3db231d821c7005988907",
+      "bytes": 137665,
+      "status": 200
+    },
+    {
+      "path": "/assets/shell-I2_8peKy.js",
+      "sha256": "726661c15d0530ed7b036e526851a5236c23005874f7a96ebdf520b7fa40c845",
+      "bytes": 412637,
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "domErrors": [],
+  "unflaggedReturnAbsent": true,
+  "scope": "Stock controlled-origin Chromium served bytes and paired frozen shell; no independent approval, OS/AT/resource qualification."
+}

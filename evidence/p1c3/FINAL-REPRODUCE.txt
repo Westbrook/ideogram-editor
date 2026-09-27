@@ -1,0 +1,42 @@
+P1c.3 combined author handoff: product e070baff + checker a78aa887
+
+Keep the first packet at 01de7559 and evidence/p1c3/SHA256SUMS.json unchanged.
+That packet describes the earlier vendor failure and product-only checkpoint.
+FINAL.json and FINAL-SHA256SUMS.json add the separately authorized checker fix
+and isolated review delivery; they do not rewrite earlier gate outcomes.
+
+Use .toolchain/bin/node (26.10.0) and .toolchain/bin/npm (12.1.0).
+Product commands/source intervals remain in gates.json and each original receipt.
+Checker commands: python3 tooling/verify-vendor.py; python3 tooling/test-vendor.py.
+Gates79/80 capture the corrected checker bytes later committed as a78aa887.
+No product/profile/native artifact was changed by that checker correction.
+Run reproduction into NEW output directories: run-gate.py refuses to overwrite.
+Do not rerun 81-start-preview.py against the existing service directory.
+
+Frozen preview: http://127.0.0.1:57855/?progress-report
+Service: /Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-e070baff
+Original launch PID44169, 2026-09-27T00:43:34.680Z.
+source.json contains 71 exact build65 file hashes and 217 frozen metadata/dependency
+hashes, all checked at startup. No dependency symlink to the source checkout.
+Private root and all pairing material stay inside the owner-only service directory.
+The service denies outgoing effects and has no provider credentials configured.
+
+Private control FIFO accepts pair-file to write an owner-only pairing.json and
+effects to write effect counters. Read/open the pairing URL privately; never copy
+its fragment into shared evidence, notes or report URLs. Pairing is one-use.
+The report link is the public anonymous review URL above; paired browser sessions
+can use it normally. The report is independently served at http://127.0.0.1:4381/.
+
+If the new service stops: inspect its service.log/runtime.json and actual process
+first. Do not restart old50646,52219 or other services. Using the same frozen run.mjs
+with pinned Node and --import tests/protocol/no-effects.mjs from the new service
+starts a new loopback port and preserves that service's private store. Keep stdin
+attached to its existing owner-only control FIFO. Record the new URL/PID, notify
+the sole report owner, and repeat only required served-identity/navigation checks.
+Never transfer old availability or navigation evidence to a new origin.
+
+Preview checks82/83 use stock Chromium plus the existing ownedOPFS and strict DOM
+error monitor. They close actual pages/workers before resetting their own fresh
+controlled contexts. They do not reset the preview's durable private store or any
+user/browser profile. Report navigation uses GET only and never marks reviewed.
+No native Intent/OS/assistive-technology/resource-memory qualification is claimed.

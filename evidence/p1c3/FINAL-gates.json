@@ -1,0 +1,70 @@
+[
+  {
+    "name": "79-vendor-correction",
+    "command": [
+      "python3",
+      "tooling/verify-vendor.py"
+    ],
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+    "head": "01de7559f6ae02a0d770be550154da11bf18b865",
+    "start": "2026-09-27T00:42:13.070439+00:00",
+    "qualification": "Author functional check only; not performance or independent acceptance",
+    "environment": {},
+    "end": "2026-09-27T00:42:13.276265+00:00",
+    "exitCode": 0,
+    "finalSourceDifferences": [],
+    "receipt": "evidence/p1c3/79-vendor-correction/receipt.json",
+    "output": "evidence/p1c3/79-vendor-correction/output.txt"
+  },
+  {
+    "name": "80-vendor-correction-tests",
+    "command": [
+      "python3",
+      "tooling/test-vendor.py"
+    ],
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+    "head": "01de7559f6ae02a0d770be550154da11bf18b865",
+    "start": "2026-09-27T00:42:17.483728+00:00",
+    "qualification": "Author functional check only; not performance or independent acceptance",
+    "environment": {},
+    "end": "2026-09-27T00:42:21.188738+00:00",
+    "exitCode": 0,
+    "finalSourceDifferences": [],
+    "receipt": "evidence/p1c3/80-vendor-correction-tests/receipt.json",
+    "output": "evidence/p1c3/80-vendor-correction-tests/output.txt"
+  },
+  {
+    "name": "82-preview-identity-gate",
+    "command": [
+      ".toolchain/bin/node",
+      "evidence/p1c3/82-preview-identity.mjs"
+    ],
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+    "head": "a78aa8879291c3bdc938796d64b4aa4926e7df93",
+    "start": "2026-09-27T00:44:19.582993+00:00",
+    "qualification": "Author functional check only; not performance or independent acceptance",
+    "environment": {},
+    "end": "2026-09-27T00:44:22.181560+00:00",
+    "exitCode": 0,
+    "finalSourceDifferences": [],
+    "receipt": "evidence/p1c3/82-preview-identity-gate/receipt.json",
+    "output": "evidence/p1c3/82-preview-identity-gate/output.txt"
+  },
+  {
+    "name": "83-preview-roundtrip-gate",
+    "command": [
+      ".toolchain/bin/node",
+      "evidence/p1c3/83-preview-roundtrip.mjs"
+    ],
+    "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+    "head": "a78aa8879291c3bdc938796d64b4aa4926e7df93",
+    "start": "2026-09-27T00:45:42.633329+00:00",
+    "qualification": "Author functional check only; not performance or independent acceptance",
+    "environment": {},
+    "end": "2026-09-27T00:45:49.033940+00:00",
+    "exitCode": 0,
+    "finalSourceDifferences": [],
+    "receipt": "evidence/p1c3/83-preview-roundtrip-gate/receipt.json",
+    "output": "evidence/p1c3/83-preview-roundtrip-gate/output.txt"
+  }
+]
