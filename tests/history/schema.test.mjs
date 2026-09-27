@@ -71,12 +71,12 @@ test('unknown future storage is inspected without mutation and returns explicit 
 });
 test('schema6 capacity failure retains schema5 and every request, then retries safely',async t=>{
  const f=await seed(t,true),before=inspect(f.root);await assert.rejects(openWriter({root:f.root,quotaBytes:'1'}),{code:'CAPACITY'});assert.deepEqual(inspect(f.root),before);
- const w=await openWriter({root:f.root});assert.equal((await settled(w,f.command.command.commandId)).receipt.status,'rejected');await w.close();assert.equal(inspect(f.root).version,11);
+ const w=await openWriter({root:f.root});assert.equal((await settled(w,f.command.command.commandId)).receipt.status,'rejected');await w.close();assert.equal(inspect(f.root).version,12);
 });
 test('backup corruption fails verification before activation, retains evidence, and retries without changing requests',async t=>{
  const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'history-schema-backup-written',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;
  const name=(await readdir(f.root)).find(x=>/^schema5-backup-.*\.sqlite$/.test(x));const db=new DatabaseSync(join(f.root,name));db.prepare("UPDATE meta SET value='999' WHERE key='writerEpoch'").run();db.close();release(gate);await rejected;assert.deepEqual(inspect(f.root),before);
- const failedHash=digest(await readFile(join(f.root,name))),w=await openWriter({root:f.root});await settled(w,f.command.command.commandId);await w.close();assert.equal(digest(await readFile(join(f.root,name))),failedHash);assert.equal(inspect(f.root).version,11);
+ const failedHash=digest(await readFile(join(f.root,name))),w=await openWriter({root:f.root});await settled(w,f.command.command.commandId);await w.close();assert.equal(digest(await readFile(join(f.root,name))),failedHash);assert.equal(inspect(f.root).version,12);
 });
 for(const target of ['database','manifest'])test('activation rechecks the verified '+target+' backup before publishing schema6',async t=>{
  const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'history-schema-before-activation',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;

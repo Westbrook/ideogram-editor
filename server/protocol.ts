@@ -1,3 +1,4 @@
+import { readTextView } from './text-view.js';
 import { PortableRoutes } from './portable.js';
 import { isPortableCommand } from '../src/protocol/portable.js';
 import { isHistoryCommand } from '../src/protocol/history.js';
@@ -50,6 +51,8 @@ export class ProtocolRoutes {
   private portable: PortableRoutes;
   constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
+    const native=/^\/api\/v1\/(documents|ui)\/([^/]+)\/text$/.exec(path);
+    if(native){if(!isId(native[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:native[1]==='documents'?'text-view':'text-draft-view',id:native[2],query:native[1]==='documents'?['layerId','revision','content']:['draftId','generation','content']};}
     const text=/^\/api\/v1\/text-admission\/([^/]+)(\/release)?$/.exec(path);if(text){if(!isId(text[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:text[2]?'text-release':'text-admission',id:text[1],query:[]};}
     const portable=this.portable.match(path);if(portable)return portable;
     const asset=this.assets.match(path);if(asset)return asset;
@@ -127,7 +130,7 @@ export class ProtocolRoutes {
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
       lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
-        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 6, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
+        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 7, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
       if (captured.snapshot && BigInt(after) < BigInt(captured.snapshot.seq)) {
@@ -180,7 +183,7 @@ export class ProtocolRoutes {
     const lease: Lease = { clientId: session.clientId, sessionHash: session.cookieHash,
       expires, absolute: session.expires, start, snapshot: null, released: false,
       context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch,
-        projectionSchema: 6, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
+        projectionSchema: 7, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
     this.leases.set(lease.context.recoveryId, lease);
     try {
       const page = await this.page(start, lease.context.recoveryId, session);
@@ -195,7 +198,24 @@ export class ProtocolRoutes {
     if (params.has('recoveryId') && !isId(params.get('recoveryId'))) throw new ProtocolError('MALFORMED_REQUEST');
     try {
       await this.prune();
-      if(route.kind==='text-admission'||route.kind==='text-release'){const value=parseControlJSON(await readControlBytes(request)) as any;if(value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const current=authenticate();sendJSON(response,200,await this.writer.textAdmission(id,this.assets.auth(current),route.kind==='text-release')??{released:true});}
+      if(route.kind==='text-view'||route.kind==='text-draft-view'){
+        const target=params.get(route.kind==='text-view'?'layerId':'draftId'),revision=route.kind==='text-view'?params.get('revision'):null;
+        if(!target||!isId(target)||route.kind==='text-view'&&(revision===null||!isSeq(revision)))throw new ProtocolError('MALFORMED_REQUEST');
+        if(params.has('content')&&params.get('content')!=='1')throw new ProtocolError('MALFORMED_REQUEST');
+        const value=await readTextView(this.writer,id,target,revision,this.assets.auth(session));authenticate();
+        if(!params.has('content'))sendJSON(response,200,value);
+        else{
+          if(value.draft&&params.get('generation')!==value.draft.generation)throw new ProtocolError('READ_CONTEXT_EXPIRED');
+          const ref=value.source?value.source.text.textUtf8:value.value!.textUtf8;
+          if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
+          let handle:string|undefined;
+          try{handle=await this.writer.openTextContent(ref);authenticate();
+            response.writeHead(200,{'Content-Type':'text/plain; charset=utf-8','Content-Length':ref.byteLength,ETag:'"'+ref.hash+'"','Cache-Control':'no-store','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff'});
+            for(let at=0n;at<BigInt(ref.byteLength);){await assertRoot();authenticate();if(response.destroyed)return;const n=Number(BigInt(ref.byteLength)-at>32768n?32768n:BigInt(ref.byteLength)-at),bytes=await this.writer.content(handle,String(at),n);authenticate();await new Promise<void>((resolve,reject)=>response.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}response.end();
+          }finally{if(handle)await this.writer.dropContent(handle);this.streams--;}
+        }
+      }
+      else if(route.kind==='text-admission'||route.kind==='text-release'){const value=parseControlJSON(await readControlBytes(request)) as any;if(value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const current=authenticate();sendJSON(response,200,await this.writer.textAdmission(id,this.assets.auth(current),route.kind==='text-release')??{released:true});}
       else if (route.kind === 'submit'||route.kind==='asset-finalize') {
         const bytes = await readControlBytes(request); await assertRoot(); const current = authenticate();
         const command = parseCommand(bytes).command;

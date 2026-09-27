@@ -115,6 +115,7 @@ port.on('message', async message => {
         case 'finish': result = store.objects.finish(args.id); break;
         case 'abort': store.objects.abort(args.id); result = null; break;
         case 'metadata': result = store.objects.verify(args.ref, true); break;
+        case 'textContentOpen': result = store.recovery.openContent(args.ref); break;
         default: throw new StoreError('MALFORMED_REQUEST');
       }
     }

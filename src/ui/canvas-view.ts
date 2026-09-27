@@ -17,6 +17,7 @@ export class CanvasView {
     this.image?.close();this.image=bitmap;this.asset=asset;this.width=width;this.height=height;
   }
   point(clientX:number,clientY:number,zoom:number,x:number,y:number):[number,number]{const b=this.canvas.getBoundingClientRect();return [(clientX-b.left-b.width/2-x)/zoom+this.width/2,(clientY-b.top-b.height/2-y)/zoom+this.height/2];}
+  screenPoint(point:readonly [number,number],zoom:number,x:number,y:number):[number,number]{const b=this.canvas.getBoundingClientRect();return [b.left+b.width/2+x+(point[0]-this.width/2)*zoom,b.top+b.height/2+y+(point[1]-this.height/2)*zoom];}
   draw(zoom:number,x:number,y:number,overlay?:(ctx:CanvasRenderingContext2D)=>void){
     const {width,height}=this.canvas.getBoundingClientRect();
     // Viewport storage, independent from document extent; no canvas-based export.

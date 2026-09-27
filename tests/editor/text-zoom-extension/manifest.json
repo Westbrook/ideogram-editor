@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "C6 owned browser zoom verification",
+  "version": "1.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmpllJ1Kc1/1A0TE3g/FkK3VMno+i+V4jXQ7amq5gDQs8Sa3ubCEoMECB2i8ZY3qVbvC53oMsgku6UJCJDfjwPVfFWLf9dCwS7oXKX5HiulVfvhJ4MwfbYLXB3BmUiFJLqF2ZD1g+mmJUEbyIF/xbSAUFL96EVhyTFSSVjfNR5jxQgWn6TAn6YzDncWvgsPLdUMAHzbqfzZIiJerkvc922sLnm942rpMahjGR2iXyQ713C3PHPGsFbYel393pCopX1MWzNCV43ykE9HIKGOjOdtqqZrOUKKxg2SLJx65mStw478S1y3fNidTOkPRHSNHw4QcZ3F6/z/dq1OwHIEMpdwIDAQAB",
+  "permissions": [
+    "tabs"
+  ]
+}

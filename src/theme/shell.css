@@ -253,3 +253,16 @@ en-select::part(control)::picker-icon {content:none;mask:none;background:none;}
 .properties en-card { display: block; }
 .properties en-accordion-item::part(content) { min-inline-size: 0; }
 .report-return::part(link) { color: inherit; }
+
+/* F05: the editor and its textarea stay in this single connected region.
+   Only geometry changes; responsive drawers never own this subtree. */
+.native-text-editor { position: fixed; z-index: 5; inset-block-start: var(--text-top,155px); left: var(--text-left,30%); inline-size: min(440px, 65vw); max-block-size: calc(100dvh - var(--text-top,155px) - 24px); overflow: auto; overscroll-behavior: contain; min-inline-size: 0; }
+.native-text-editor[data-presentation=inspector] { left: auto; inset-block-start:155px; inset-inline-end: 18px; max-block-size:calc(100dvh - 180px); inline-size: min(380px, 65vw); }
+.native-text-editor en-card { display: block; --en-card-shadow: 0 10px 40px #0004; }
+.native-text-host { min-inline-size: 0; }
+.native-text-host textarea { display:block; box-sizing: border-box; inline-size:100%; min-block-size:140px; max-block-size:45vh; resize:vertical; padding:10px; border:1px solid var(--en-color-boundary); border-radius:var(--en-radius-control); font:inherit; line-height:1.5; background:var(--en-color-canvas); color:var(--en-color-text); }
+.text-style-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px; }
+.native-text-editor en-toolbar::part(base) { flex-wrap:wrap; }
+#native-text-preview { display:block; max-inline-size:100%; block-size:auto; background:repeating-conic-gradient(#ddd 0% 25%,#aaa 0% 50%) 0 0/12px 12px; }
+@media (max-width:1100px) { .native-text-editor, .native-text-editor[data-presentation=inspector] { position:relative; inset:auto; inline-size:100%; max-block-size:none; overflow:visible; flex:none; padding:12px; } }
+@media (max-width:450px) { .text-style-grid {grid-template-columns:minmax(0,1fr);} }

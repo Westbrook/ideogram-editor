@@ -2,6 +2,7 @@ import type { BlobRef } from './store.js';
 import type { DraftFence } from './history.js';
 export type TextStyle={primaryFont:string;explicitFallbacks:readonly string[];sizePx:number;lineHeightMultiplier:number;fill:readonly [number,number,number,number];align:'left'|'center'|'right'|'start'|'end';direction:'auto'|'ltr'|'rtl'};
 export type TextToken={documentId:string;documentRevision:string;layerId:string;layerVersion:string;sessionId:string;generation:number};
+export type TextPlacement={x:number;y:number};
 import { blob, id, keys, seq, requireValue as ok } from './validate.js';
 
 export type FontVersion = { schemaVersion:1; id:string; bytes:BlobRef; faceIndex:0; format:'static-ttf'|'static-otf'; parserProfile:string; fsType:number; licenseRecord:BlobRef; origin:'bundled'|'local-file'; embedding:'permitted' };
@@ -12,7 +13,7 @@ export type TextSource = { schemaVersion:1; text:TextVersion; render:TextRenderV
 export type TextCandidate = { schemaVersion:1; token:TextToken; source:TextSource };
 export type TextBody =
  | {type:'ImportFont'; source:BlobRef; license:BlobRef; origin:'bundled'|'local-file'; embeddingReviewed:true}
- | {type:'CreateTextLayer';layerId:string;name:string;candidate:BlobRef;draft:DraftFence;admissionId:string}
+ | {type:'CreateTextLayer';layerId:string;name:string;candidate:BlobRef;draft:DraftFence;admissionId:string;placement?:TextPlacement}
  | {type:'CommitTextEdit'|'ReplaceTextFont';layerId:string;layerVersion:string;candidate:BlobRef;draft:DraftFence;admissionId:string;reviewedDependencyHash:string}
  | {type:'RasterizeTextDerivative';layerId:string;layerVersion:string;newLayerId:string;name:string;hideOriginal:boolean;reviewedRender:string;draft:DraftFence|null};
 export const textCommands=['ImportFont','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'] as const;
@@ -20,7 +21,8 @@ export const isTextCommand=(type:string)=>(textCommands as readonly string[]).in
 export const hash=(v:unknown):v is string=>typeof v==='string'&&/^sha256:[a-f0-9]{64}$/.test(v);
 export function textBody(b:any){
  const fields:Record<string,string[]>={ImportFont:['source','license','origin','embeddingReviewed'],CreateTextLayer:['layerId','name','candidate','draft','admissionId'],CommitTextEdit:['layerId','layerVersion','candidate','draft','admissionId','reviewedDependencyHash'],ReplaceTextFont:['layerId','layerVersion','candidate','draft','admissionId','reviewedDependencyHash'],RasterizeTextDerivative:['layerId','layerVersion','newLayerId','name','hideOriginal','reviewedRender','draft']};
- keys(b,['type',...fields[b.type]]);
+ keys(b,['type',...fields[b.type],...(b.type==='CreateTextLayer'&&'placement'in b?['placement']:[])]);
+ if('placement'in b)textPlacement(b.placement);
  if(b.type==='ImportFont'){blob(b.source);blob(b.license);ok(['bundled','local-file'].includes(b.origin)&&b.embeddingReviewed===true);return;}
  ok(id(b.layerId));if('layerVersion'in b)ok(seq(b.layerVersion));if('name'in b)ok(typeof b.name==='string'&&b.name.length>0&&new TextEncoder().encode(b.name).length<=1024);
  if('candidate'in b){blob(b.candidate);ok(b.candidate.mediaType==='application/json'&&BigInt(b.candidate.byteLength)<=65536n&&id(b.admissionId));}
@@ -42,8 +44,9 @@ export const textRefs=(s:TextSource):BlobRef[]=>[s.text.textUtf8,s.render.layout
 
 // A current draft is recoverable source, including over-limit text. Apply owns
 // text/style limits. This checkpoint never implies an accepted render.
-export type TextDraft = {schemaVersion:1;kind:'text-draft-1';textUtf8:BlobRef;style:TextStyle;frame:{width:number;height:number};fonts:FontVersion[]};
+export type TextDraft = {textUtf8:BlobRef;style:TextStyle;frame:{width:number;height:number};fonts:FontVersion[]} & ({schemaVersion:1;kind:'text-draft-1'}|{schemaVersion:2;kind:'text-draft-2';placement:TextPlacement});
+export function textPlacement(v:any):asserts v is TextPlacement{keys(v,['x','y']);ok(Number.isFinite(v.x)&&Number.isFinite(v.y));}
 export function textDraft(v:any):asserts v is TextDraft{
- keys(v,['schemaVersion','kind','textUtf8','style','frame','fonts']);blob(v.textUtf8);ok(v.schemaVersion===1&&v.kind==='text-draft-1'&&Array.isArray(v.fonts)&&v.fonts.length<=16&&v.style&&typeof v.style==='object'&&v.frame&&typeof v.frame==='object');v.fonts.forEach(fontVersion);
+ const placed=v.kind==='text-draft-2';keys(v,['schemaVersion','kind','textUtf8','style','frame','fonts',...(placed?['placement']:[])]);blob(v.textUtf8);ok((placed?v.schemaVersion===2:v.schemaVersion===1&&v.kind==='text-draft-1')&&Array.isArray(v.fonts)&&v.fonts.length<=16&&v.style&&typeof v.style==='object'&&v.frame&&typeof v.frame==='object');v.fonts.forEach(fontVersion);if(placed)textPlacement(v.placement);
 }
 export const draftRefs=(v:TextDraft)=>[v.textUtf8,...v.fonts.flatMap(f=>[f.bytes,f.licenseRecord])];

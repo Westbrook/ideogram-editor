@@ -29,6 +29,16 @@ export class RecoveryCache {
     };
     await completed;return value;
   }
+  async collect<T>(type:string,include:(value:T)=>boolean):Promise<T[]> {
+    // Pin publication and the cursor in one transaction; autosave can publish
+    // and discard old generations while a font library lookup is in progress.
+    const tx=this.db.transaction(['meta','rows']),completed=done(tx),values:T[]=[];
+    const pointer=tx.objectStore('meta').get('published');
+    pointer.onsuccess=()=>{const view:Published=pointer.result??{generation:'empty',cursor:'0',epoch:null};
+      const cursor=tx.objectStore('rows').openCursor(IDBKeyRange.bound([view.generation,type],[view.generation,type,[]],true,true));
+      cursor.onsuccess=()=>{const row=cursor.result;if(row){if(include(row.value))values.push(row.value);row.continue();}};
+    };await completed;return values;
+  }
   async put(generation: string,type: string,id: string,value: unknown) {
     const tx=this.db.transaction('rows','readwrite');tx.objectStore('rows').put(value,[generation,type,id]);await done(tx);
   }

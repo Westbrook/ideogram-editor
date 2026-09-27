@@ -323,6 +323,17 @@ export class EditorClient {
     }
     return request;
   }
+  async stageTextBlob(blob:Blob,mediaType:string,purpose:StagingCreateRequest['purpose']='text') {
+    const stage=await this.upload(blob,purpose,purpose==='caption'?'text/plain':'application/octet-stream');
+    const asset=this.asset(await this.command({type:'FinalizeStaging',stagingId:stage.stagingId,expectedSha256:stage.sha256},null));
+    return {...asset.blob,mediaType};
+  }
+  async fontAssets() {
+    const cache=this.cache!,fonts=await cache.collect<Asset>('asset',asset=>!!asset.font);
+    // The immutable snapshot may advance while autosave registers unrelated
+    // draft assets. Exact font bytes are checked again at the content boundary.
+    if(this.cache!==cache)throw Error('FONT_LIBRARY_CHANGED');return fonts;
+  }
   async caption(text:string) {
     const stage=await this.upload(new Blob([text]),'caption','text/plain');
     const events=await this.command({type:'FinalizeStaging',stagingId:stage.stagingId,expectedSha256:stage.sha256},null);
@@ -383,9 +394,10 @@ export class EditorClient {
     const events=await this.command({type:'ExportDocument',historyHead:this.view.document!.historyHead});const asset=this.asset(events);
     this.patch({download:{path:'/api/v1/assets/'+asset.id+'/content',name:'image.png',hash:asset.blob.hash,bytes:asset.blob.byteLength,kind:'image',documentId:document.id,revision:document.revision,status:'ready'},message:'Exact PNG ready. External destination is unconfirmed.'});
   }
-  changeDraft(id:string,kind:'prompt'|'inspector'|'mask',text:string,targetLayerId:string|null,composing:boolean) {
+  changeDraft(id:string,kind:'prompt'|'inspector'|'mask'|'text',text:string,targetLayerId:string|null,composing:boolean,expectedRevision?:string) {
     const document=this.view.document;if(!document||!this.draftOwner)return;
-    this.draftOwner.change({id,kind,text,documentId:document.id,targetLayerId,expectedDocumentRevision:document.revision,composing});
+    const prior=this.draftOwner.drafts.get(id);if(prior&&prior.text===text&&prior.composing===composing&&prior.expectedDocumentRevision===(expectedRevision??document.revision))return;
+    this.draftOwner.change({id,kind,text,documentId:document.id,targetLayerId,expectedDocumentRevision:expectedRevision??document.revision,composing});
     this.patch({drafts:'Unsaved UI draft',save:this.view.save?{...this.view.save,draftDirty:true,bundleOutdated:true}:null});clearTimeout(this.draftTimer);
     this.draftTimer=setTimeout(()=>{void this.flushDrafts().catch(e=>this.fail(e));},700);
   }
@@ -405,9 +417,9 @@ export class EditorClient {
   }
   private async saveDrafts() {
     clearTimeout(this.draftTimer);const owner=this.draftOwner;if(!owner)return;
-    for(const [id,draft] of owner.drafts){if(draft.savedGeneration===draft.generation||draft.pending||draft.composing)continue;
+    for(const [id,draft] of owner.drafts){if(draft.savedGeneration===draft.generation||draft.pending||draft.composing&&draft.kind!=='text')continue;
       this.patch({drafts:'Draft saving…'});await this.uiTail;
-      this.uiTail=owner.save(id,text=>this.caption(text));const receipt=await this.uiTail as UIReceipt|undefined;this.ui=owner.checkpoint!;
+      this.uiTail=owner.save(id,async text=>{if(draft.kind!=='text')return this.caption(text);const value=JSON.parse(text);if(new TextDecoder('utf-8',{ignoreBOM:true}).decode(new TextEncoder().encode(value.text))!==value.text)throw Error('Invalid Unicode draft retained in the editor. Replace the invalid character before saving.');const textUtf8=await this.stageTextBlob(new Blob([value.text]),'text/plain');return this.caption(canonical({...(value.placement?{schemaVersion:2,kind:'text-draft-2',placement:value.placement}:{schemaVersion:1,kind:'text-draft-1'}),textUtf8,style:value.style,frame:value.frame,fonts:value.fonts}));});const receipt=await this.uiTail as UIReceipt|undefined;this.ui=owner.checkpoint!;
       if(receipt?.status==='rejected')throw Error(receipt.reason??'DRAFT_CHANGED');
     }
     if(this.view.document)await this.loadDocument(this.view.document);

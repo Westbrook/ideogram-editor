@@ -1,5 +1,5 @@
 {
-  "scope": "P1c.3 correction: retained mask bounds, exact draft acceptance and public sample status; independent review required",
+  "scope": "P1c.4 native text editing and font recovery; independent review required",
   "registration": "Public definition exports through createElementScope; no private imports. Dialog/drawer definitions load as one bounded group on first explicit panel action.",
   "surfaces": [
     {
@@ -154,6 +154,25 @@
         "EnIcon"
       ],
       "owner": "Public navigation and decorative icon; trusted build-owned report URL and existing focus target logic retained."
+    },
+    {
+      "surface": "Native text editing card, typography and font recovery",
+      "components": [
+        "EnCard",
+        "EnStack",
+        "EnToolbar",
+        "EnButton",
+        "EnBadge",
+        "EnAlert",
+        "EnSelect",
+        "EnSelectOption",
+        "EnNumberField",
+        "EnColorField",
+        "EnAccordionItem",
+        "EnFileUpload",
+        "EnSwitch"
+      ],
+      "owner": "Public surrounding controls, disclosure, validation, status and keyboard actions. EditingController with createDraftModel owns public native-editing bridge; app fences native range direction, scroll, focus intent, composition, source revision, recoverable generation, canonical preview and explicit durable Apply. Initial X/Y belongs to one creation transaction; width/height reflow is distinct from existing affine transform."
     }
   ],
   "nativeOrAppOwnedExceptions": [
@@ -201,7 +220,12 @@
       "surface": "Missing tool glyphs",
       "element": "Decorative SVG in public EnButton prefix slot",
       "contract": "Pinned public icon catalog lacks move/selection/mask/crop/sample/hand/zoom tool symbols. Existing custom glyphs remain aria-hidden; public button label, focus, disabled and pressed semantics own interaction."
+    },
+    {
+      "surface": "F05 native text source and canonical frame preview",
+      "element": "One app-owned textarea and associated native label, stable parent; app canvas pixels/frame geometry",
+      "contract": "F05 explicitly requires same connected native textarea/session/parent and arbitrary native range direction/caret/scroll. EnTextarea and RichTextEditor do not expose that contract; public EditingController accepts the app-owned control. CSS presentation only outside reparented drawers; controls and feedback use public components. Exact canonical pixel preview and affine frame anchoring have no public En Reve raster editor equivalent."
     }
   ],
-  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Attached crop/resize uses versioned retained grids and outside-domain zero coverage, including inversion; no re-feather or clipped-byte replacement on bounds changes. New draft Apply can explicitly re-feather original hard coverage on the current document. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01."
+  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Attached crop/resize uses versioned retained grids and outside-domain zero coverage, including inversion; no re-feather or clipped-byte replacement on bounds changes. New draft Apply can explicitly re-feather original hard coverage on the current document. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01. Text synthetic composition covers event handling only. Physical IME/AT remain unavailable. Text-draft-2, storage12/PF6/projection7 are explicit placement successors; native/layout/raster identity unchanged. No self-acceptance."
 }

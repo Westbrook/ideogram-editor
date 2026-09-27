@@ -137,6 +137,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     health: () => request<ReturnType<StoreDatabase['health']>>('health'),
     diagnostics: () => request<ReturnType<StoreDatabase['diagnostics']>>('diagnostics'),
     readMetadata: (ref: BlobRef) => request<Uint8Array>('metadata', { ref }),
+    openTextContent: (ref: BlobRef) => request<string>('textContentOpen', { ref }),
     async putObject(source: AsyncIterable<Uint8Array> | Iterable<Uint8Array>, descriptor: { byteLength: string; mediaType: string; hash?: string }, writerEpoch: string): Promise<BlobRef> {
       const id = await request<string>('begin', { ...descriptor, epoch: writerEpoch });
       try {
