@@ -46,7 +46,7 @@ test('flatten-copy review freezes selected stacking and actual full preview; hid
  await run(g,{type:'Redo',historyNode:saved.historyHead});assert.equal((await state(g)).layers[2].assetId,preview.preparedAssetId);
  const exported=await run(g,{type:'ExportDocument',historyHead:saved.historyHead});assert.deepEqual(await rgba(g,exported.events.at(-1).payload.asset.id),beforePixels);
 });
-test('document-aligned masks remain attached through resampling and refuse implicit canvas remapping',async t=>{
+test('document-aligned masks remain attached through resampling and retain their grid through canvas resize',async t=>{
  const f=await setup(t);await terminal(f,f.command({}, {width:1,height:1}));const white=await importRaster(f,'white.png');
  await run(f,{type:'ImportAsset',assetId:white.asset.id,layerId:'white',name:'Original',draft:null});
  const mask={assetId:white.asset.id,mapping:'document-luminance-alpha-v1',inverted:false};
@@ -54,8 +54,10 @@ test('document-aligned masks remain attached through resampling and refuse impli
  const before=await doc(f),p=await run(f,{type:'PrepareImageResample',layerId:'white',layerVersion:'2',width:2,height:2}),preview=p.events.at(-1).payload.preview,r=await review(f,preview.previewId);
  const applied=await run(f,{type:'ResampleImage',previewId:preview.previewId,reviewId:r.reviewId,reviewHash:r.reviewHash,draft:null});
  assert.deepEqual((await state(f)).layers[0].mask,mask);assert.deepEqual(await rgba(f,applied.document.image.compositeAssetId),Buffer.from([255,255,255,143]));
- const resize=f.command({expectedDocumentRevision:applied.document.revision,body:{type:'ResizeCanvas',width:2,height:2,offsetX:0,offsetY:0,draft:null}});
- const rejected=(await terminal(f,resize)).json.receipt;assert.equal(rejected.code,'INCOMPATIBLE');assert.equal((await doc(f)).revision,applied.document.revision);
+ const resized=await run(f,{type:'ResizeCanvas',width:2,height:2,offsetX:0,offsetY:0,draft:null});
+ assert.deepEqual((await state(f)).layers[0].mask,{...mask,mapping:'retained-luminance-alpha-v1',offsetX:0,offsetY:0,width:1,height:1,outside:'zero'});
+ assert.deepEqual(await rgba(f,resized.document.image.compositeAssetId),Buffer.from([255,255,255,143,0,0,0,0,0,0,0,0,0,0,0,0]));
+ await run(f,{type:'Undo',historyHead:resized.document.historyHead});assert.deepEqual((await state(f)).layers[0].mask,mask);assert.equal((await doc(f)).image.compositeAssetId,applied.document.image.compositeAssetId);
  await run(f,{type:'Undo',historyHead:applied.document.historyHead});assert.deepEqual((await state(f)).layers[0].mask,mask);assert.equal((await doc(f)).image.compositeAssetId,before.image.compositeAssetId);
 });
 test('review expires on session renewal, locked source refuses hiding and wrong kind cannot apply a prepared image',async t=>{
