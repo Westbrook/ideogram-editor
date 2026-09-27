@@ -1,0 +1,22 @@
+[
+  "FinalizeStaging",
+  "PrepareRaster",
+  "ReviewRaster",
+  "ApproveRaster",
+  "NewDocument",
+  "ImportAsset",
+  "FinalizeStaging",
+  "PrepareMask",
+  "ComposeRaster",
+  "PrepareMask",
+  "SetLayerProperties",
+  "Undo",
+  "FinalizeStaging",
+  "PrepareMask",
+  "ComposeRaster",
+  "PrepareMask",
+  "FinalizeStaging",
+  "PrepareMask",
+  "ComposeRaster",
+  "PrepareMask"
+]

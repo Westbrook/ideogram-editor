@@ -1,0 +1,35 @@
+
+Running 1 test using 1 worker
+
+(node:79676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (19.0s)
+
+
+  1) tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('button', { name: 'Review aligned mask', exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('button', { name: 'Review aligned mask', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Review aligned mask', exact: true })
+
+
+      47 |   await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true}).first()).toBeVisible();await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();await click(page,'Mask');await expect(page.getByText(/1 draft operations/)).toBeVisible();
+      48 |   const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();await field(second,'Opacity (0–1)','0.75');await click(second,'Apply properties');await expect(second.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByText('Stale mask draft',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeDisabled();await second.close();await click(page,'Cancel mask draft');
+    > 49 |   await page.locator('en-file-upload').filter({hasText:'Import PNG mask'}).locator('input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('button',{name:'Review aligned mask',exact:true})).toBeVisible();await field(page,'Imported mask X','0');await click(page,'Review aligned mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();await click(page,'Cancel mask draft');
+         |                                                                                                                                                                                                                                               ^
+      50 |   await click(page,'Lock layer');await expect(page.getByRole('button',{name:'Unlock layer',exact:true})).toBeVisible();await click(page,'Unlock layer');await expect(page.getByRole('button',{name:'Lock layer',exact:true})).toBeVisible();
+      51 |   await click(page,'Move');await click(page,'100%');const canvas=page.locator('canvas'),box=(await canvas.boundingBox())!,cx=box.x+box.width/2,cy=box.y+box.height/2;
+      52 |   const transformCount=commands.filter(c=>c==='ApplyTransform').length;await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+10,cy+5);await page.mouse.up();await expect(page.getByText('ApplyTransform accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(c=>c==='ApplyTransform').length).toBe(transformCount+1);
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:49:239
+
+    Error Context: evidence/p1c3/browser-45/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 

@@ -1,0 +1,131 @@
+[
+  {
+    "phase": "fixture",
+    "run": "c1794a94-8b3d-421f-99d7-4ab3216e4a6e",
+    "profile": "p1c3-",
+    "contract": "controlled-origin-v2"
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "initial-cookies",
+    "count": 0
+  },
+  {
+    "phase": "preflight-start",
+    "origin": "http://127.0.0.1:49812",
+    "profile": "p1c3-"
+  },
+  {
+    "phase": "cookie-audit",
+    "count": 0,
+    "metadata": []
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "preflight",
+    "origin": "http://127.0.0.1:49812",
+    "entries": [],
+    "localStorage": 0,
+    "indexedDB": [],
+    "serviceWorkers": 0,
+    "cookieCount": 0
+  },
+  {
+    "phase": "admitted",
+    "origin": "http://127.0.0.1:49812"
+  },
+  {
+    "phase": "owned-cookie-response",
+    "origin": "http://127.0.0.1:49812",
+    "path": "/api/v1/session/bootstrap",
+    "name": "ie_session",
+    "httpOnly": true,
+    "sameSite": "Strict"
+  },
+  {
+    "phase": "owned-blob",
+    "origin": "http://127.0.0.1:49812",
+    "resourceType": "image"
+  },
+  {
+    "phase": "owned-blob",
+    "origin": "http://127.0.0.1:49812",
+    "resourceType": "image"
+  },
+  {
+    "phase": "owned-blob",
+    "origin": "http://127.0.0.1:49812",
+    "resourceType": "image"
+  },
+  {
+    "phase": "owned-blob",
+    "origin": "http://127.0.0.1:49812",
+    "resourceType": "image"
+  },
+  {
+    "phase": "owned-blob",
+    "origin": "http://127.0.0.1:49812",
+    "resourceType": "image"
+  },
+  {
+    "phase": "owned-blob",
+    "origin": "http://127.0.0.1:49812",
+    "resourceType": "image"
+  },
+  {
+    "phase": "owned-blob",
+    "origin": "http://127.0.0.1:49812",
+    "resourceType": "image"
+  },
+  {
+    "phase": "cleanup-start",
+    "admitted": [
+      "http://127.0.0.1:49812"
+    ],
+    "visited": [
+      "http://127.0.0.1:49812"
+    ],
+    "resetCalls": 0
+  },
+  {
+    "phase": "cookie-audit",
+    "count": 1,
+    "metadata": [
+      {
+        "name": "ie_session",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Strict"
+      }
+    ]
+  },
+  {
+    "phase": "public-reset",
+    "resetCalls": 1
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "post-reset",
+    "origin": "http://127.0.0.1:49812",
+    "entries": [],
+    "localStorage": 0,
+    "indexedDB": [],
+    "serviceWorkers": 0
+  },
+  {
+    "phase": "post-reset-cookies",
+    "count": 0
+  },
+  {
+    "phase": "cleanup-complete",
+    "resetCalls": 1
+  }
+]

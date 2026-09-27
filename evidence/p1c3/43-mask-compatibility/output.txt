@@ -1,0 +1,10 @@
+✔ actual4b2 PF3 opens unchanged; actual4b2 inspects PF4 without editable import; false PF3 mask claims reject (5653.43175ms)
+ℹ {"priorExecutable":"4b2c82ccc41dd72c3f83480f23481b7b62135d23","legacyArchive":{"byteLength":"26837","hash":"sha256:21e91faef745fb50d67107323e45ea3932a06aee2b159be908b0737dc8ee3e20","mediaType":"application/x-ideogram-project"},"currentArchive":{"byteLength":"74283","hash":"sha256:bfa27bd3d76e4b0b198ab580fbcaec3cf64641c569fcb8c7975dde3149fbfc0a","mediaType":"application/x-ideogram-project"},"priorRefusal":"UNSUPPORTED_FORMAT_VERSION","imageState":3,"maskRaster":2,"maskManifest":2}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5741.502708

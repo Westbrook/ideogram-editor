@@ -1,0 +1,153 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/editor/authoring.config.ts",
+      "--grep",
+      "inherited layer"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-57/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "authoring.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-57/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "authoring.spec.ts",
+      "file": "authoring.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "P1c3 inherited layer operations and reviewed geometry remain usable through public controls",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 10766,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n\n    at accepted (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:67:105)\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:72:170",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                      "column": 105,
+                      "line": 67
+                    },
+                    "snippet": "  65 |  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p1c3-inherited-')),server=await serverProcess(join(dir,'private'));\n  66 |  page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands')commands.push(JSON.parse(r.postData()!).command.body);});\n> 67 |  const accepted=(type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();\n     |                                                                                                         ^\n  68 |  try{\n  69 |   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);\n  70 |   await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Renamed original');await field(page,'Opacity (0–1)','0.75');await click(page,'Apply properties');await accepted('SetLayerProperties');await expect(page.getByRole('treeitem')).toContainText('Renamed original');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                        "column": 105,
+                        "line": 67
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })\u001b[22m\n\n\n  65 |  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p1c3-inherited-')),server=await serverProcess(join(dir,'private'));\n  66 |  page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands')commands.push(JSON.parse(r.postData()!).command.body);});\n> 67 |  const accepted=(type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();\n     |                                                                                                         ^\n  68 |  try{\n  69 |   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);\n  70 |   await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Renamed original');await field(page,'Opacity (0–1)','0.75');await click(page,'Apply properties');await accepted('SetLayerProperties');await expect(page.getByRole('treeitem')).toContainText('Renamed original');\n    at accepted (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:67:105)\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:72:170"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T00:24:06.445Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-57/browser/authoring-P1c3-inherited-l-ff7dd-ble-through-public-controls/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                    "column": 105,
+                    "line": 67
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ffbac78a90ea7b98869d-d97ba598d61f779a44e9",
+          "file": "authoring.spec.ts",
+          "line": 63,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-27T00:24:05.928Z",
+    "duration": 11310.797999999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

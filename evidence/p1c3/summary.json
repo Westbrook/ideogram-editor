@@ -1,0 +1,59 @@
+{
+  "taskId": "de9a33a4-55cd-4132-a497-3b27095ab0ca",
+  "status": "review_required; author evidence, no independent acceptance",
+  "base": "4b2c82ccc41dd72c3f83480f23481b7b62135d23",
+  "sourceCommit": "e070baff7069a319f92a39e6c369378a31424181",
+  "profile": "sha256:d047f5beee2e3ca7f19d5e0ea7150f884a8063c2296b34fa94fb1ffeff434218",
+  "sealedAt": "2026-09-27T00:38:24.382459+00:00",
+  "requiredPassingGates": [
+    "61-browser-final-chromium",
+    "62-browser-final-firefox",
+    "63-browser-final-webkit",
+    "56-history",
+    "69-imports",
+    "78-namespace-browser",
+    "71-protocol-session",
+    "77-editor-contracts",
+    "64-types",
+    "74-text-fixture",
+    "70-raster",
+    "72-assets",
+    "76-text-state",
+    "67-raster-seal",
+    "75-current-native",
+    "73-portable",
+    "65-build",
+    "66-text-seal"
+  ],
+  "knownFailedGate": {
+    "name": "68-vendor",
+    "actualBaseReproduction": "68a-base-vendor",
+    "qualification": "Diagnostic success proves identical actual-base failure; vendor gate remains failed."
+  },
+  "firstFailures": "failures.txt",
+  "scopeAndAdoption": [
+    "scope-and-reuse.json",
+    "../../tooling/editor-components.json"
+  ],
+  "sourceMap": "source-inputs.json",
+  "gateMap": "gates.json",
+  "buildMap": "build-files.json",
+  "nativeReuse": "native-reuse.json",
+  "host": "macOS-26.6.1-arm64-arm-64bit-Mach-O",
+  "node": "v26.10.0",
+  "npm": "12.1.0 (pinned packageManager; see package.json)",
+  "browserEvidence": [
+    "browser-61",
+    "browser-62",
+    "browser-63"
+  ],
+  "additionalFirstAttemptEvidence": [
+    "tests/editor/evidence/p1c3/browser-10/browser.json",
+    "tests/editor/evidence/p1c3/browser-13/browser.json"
+  ],
+  "reviewedVisuals": [
+    "browser-55/authoring-desktop.png",
+    "browser-55/mask-controls-320.png"
+  ],
+  "qualification": "Stock serial functional checks; no performance/native-memory/physical IME/AT/platform qualification. A-R01 open. Existing services/evidence retained. No provider calls or publishing."
+}

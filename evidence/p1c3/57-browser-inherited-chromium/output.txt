@@ -1,0 +1,36 @@
+
+Running 1 test using 1 worker
+
+(node:3656) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/authoring.spec.ts:63:1 › P1c3 inherited layer operations and reviewed geometry remain usable through public controls (10.8s)
+
+
+  1) tests/editor/authoring.spec.ts:63:1 › P1c3 inherited layer operations and reviewed geometry remain usable through public controls 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('SetLayerProperties accepted and saved locally.', { exact: true }) with timeout 5000ms
+      - waiting for getByText('SetLayerProperties accepted and saved locally.', { exact: true })
+
+
+      65 |  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p1c3-inherited-')),server=await serverProcess(join(dir,'private'));
+      66 |  page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands')commands.push(JSON.parse(r.postData()!).command.body);});
+    > 67 |  const accepted=(type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
+         |                                                                                                         ^
+      68 |  try{
+      69 |   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);
+      70 |   await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Renamed original');await field(page,'Opacity (0–1)','0.75');await click(page,'Apply properties');await accepted('SetLayerProperties');await expect(page.getByRole('treeitem')).toContainText('Renamed original');
+        at accepted (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:67:105)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:72:170
+
+    Error Context: evidence/p1c3/browser-57/browser/authoring-P1c3-inherited-l-ff7dd-ble-through-public-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:63:1 › P1c3 inherited layer operations and reviewed geometry remain usable through public controls 

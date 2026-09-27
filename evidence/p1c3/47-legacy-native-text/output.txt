@@ -1,0 +1,32 @@
+✖ actual4b2 native6e8 PF3 text retains exact source, fonts and pixels through current R16 mask PF4 (2904.464916ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3086.498291
+
+✖ failing tests:
+
+test at tests/history/mask-text-compatibility.test.mjs:13:1
+✖ actual4b2 native6e8 PF3 text retains exact source, fonts and pixels through current R16 mask PF4 (2904.464916ms)
+  AssertionError [ERR_ASSERTION]: {"kind":"receipt","protocolVersion":1,"receipt":{"code":"INCOMPATIBLE","commandId":"16c3e97a-4428-4e94-a5aa-4ec38f5963aa","currentRevision":"1","details":{"byteLength":"86","hash":"sha256:9fa17ba805885c31563dbd4dca2db0f9dd99471cca4d181268c1d0df6a221230","mediaType":"application/json"},"status":"rejected"},"rejectionDetails":{"kind":"inline","value":{"issues":[{"code":"TEXT_PROFILE_UNSUPPORTED","path":"command.body"}],"kind":"fields"}}}
+  + actual - expected
+  
+  + 'rejected'
+  - 'accepted'
+  
+      at Object.edit (file:///private/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-store-CluxIX/tests/portable/helpers.mjs:8:175)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/mask-text-compatibility.test.mjs:26:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'rejected',
+    expected: 'accepted',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

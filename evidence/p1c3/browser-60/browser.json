@@ -1,0 +1,185 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/editor/authoring.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-60/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "authoring.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-60/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "authoring.spec.ts",
+      "file": "authoring.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 18169,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T00:25:38.681Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ffbac78a90ea7b98869d-78c7350a783856aea36e",
+          "file": "authoring.spec.ts",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "title": "P1c3 inherited layer operations and reviewed geometry remain usable through public controls",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 11291,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeEnabled\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Duplicate', exact: true })\nExpected: enabled\nReceived: disabled\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeEnabled\" getByRole('button', { name: 'Duplicate', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Duplicate', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button disabled tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"secondary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"disabled\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeEnabled\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Duplicate', exact: true })\nExpected: enabled\nReceived: disabled\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeEnabled\" getByRole('button', { name: 'Duplicate', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Duplicate', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button disabled tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"secondary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"disabled\"\u001b[22m\n\n    at accepted (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:68:460)\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:76:36",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                      "column": 460,
+                      "line": 68
+                    },
+                    "snippet": "  66 |  page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const c=JSON.parse(r.postData()!).command;commands.push(c.body);ids.set(c.commandId,c.body.type);}});\n  67 |  page.on('response',async r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/commands')&&r.status()===200){const value=await r.json().catch(()=>null);if(value?.receipt)receipts.set(value.receipt.commandId,value.receipt);}});\n> 68 |  let observedRevision='';const accepted=async(type:string)=>{const count=()=>[...receipts].filter(([id,r])=>ids.get(id)===type&&r.status==='accepted').length;await expect.poll(count).toBeGreaterThan(seen.get(type)??0);seen.set(type,count());await expect(page.locator('.document-name')).not.toHaveText(observedRevision);observedRevision=(await page.locator('.document-name').textContent())!;await expect(page.getByRole('button',{name:'Duplicate',exact:true})).toBeEnabled();};\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^\n  69 |  try{\n  70 |   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);\n  71 |   await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Renamed original');await field(page,'Opacity (0–1)','0.75');await click(page,'Apply properties');await accepted('SetLayerProperties');await expect(page.getByRole('treeitem')).toContainText('Renamed original');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                        "column": 460,
+                        "line": 68
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeEnabled\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('button', { name: 'Duplicate', exact: true })\nExpected: enabled\nReceived: disabled\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeEnabled\" getByRole('button', { name: 'Duplicate', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: 'Duplicate', exact: true })\u001b[22m\n\u001b[2m    14 × locator resolved to <button disabled tabindex=\"0\" type=\"button\" part=\"control\" class=\"en-button\" aria-busy=\"false\" data-size=\"medium\" data-variant=\"secondary\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"disabled\"\u001b[22m\n\n\n  66 |  page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const c=JSON.parse(r.postData()!).command;commands.push(c.body);ids.set(c.commandId,c.body.type);}});\n  67 |  page.on('response',async r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/commands')&&r.status()===200){const value=await r.json().catch(()=>null);if(value?.receipt)receipts.set(value.receipt.commandId,value.receipt);}});\n> 68 |  let observedRevision='';const accepted=async(type:string)=>{const count=()=>[...receipts].filter(([id,r])=>ids.get(id)===type&&r.status==='accepted').length;await expect.poll(count).toBeGreaterThan(seen.get(type)??0);seen.set(type,count());await expect(page.locator('.document-name')).not.toHaveText(observedRevision);observedRevision=(await page.locator('.document-name').textContent())!;await expect(page.getByRole('button',{name:'Duplicate',exact:true})).toBeEnabled();};\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^\n  69 |  try{\n  70 |   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);\n  71 |   await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Renamed original');await field(page,'Opacity (0–1)','0.75');await click(page,'Apply properties');await accepted('SetLayerProperties');await expect(page.getByRole('treeitem')).toContainText('Renamed original');\n    at accepted (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:68:460)\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:76:36"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T00:25:56.863Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-60/browser/authoring-P1c3-inherited-l-ff7dd-ble-through-public-controls/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                    "column": 460,
+                    "line": 68
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ffbac78a90ea7b98869d-d97ba598d61f779a44e9",
+          "file": "authoring.spec.ts",
+          "line": 63,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-27T00:25:38.125Z",
+    "duration": 30046.299,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

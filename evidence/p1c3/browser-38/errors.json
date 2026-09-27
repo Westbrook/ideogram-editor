@@ -1,0 +1,13 @@
+{
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "failedResponses": [
+    {
+      "url": "http://127.0.0.1:49812/api/v1/ui/ui_7b938119-c0e0-45a4-9fad-28815ac64b9d",
+      "status": 503,
+      "body": "<unavailable>"
+    }
+  ]
+}

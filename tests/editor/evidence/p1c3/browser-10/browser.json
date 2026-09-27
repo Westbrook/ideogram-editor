@@ -1,0 +1,152 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/editor/playwright.config.ts",
+      "authoring.spec.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/playwright.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-10/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "*.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "evidence/p1c3/browser-10/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "authoring.spec.ts",
+      "file": "authoring.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 14819,
+                  "error": {
+                    "message": "TimeoutError: locator.check: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('radio', { name: 'hard', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input type=\"radio\" value=\"hard\" name=\"choice\" tabindex=\"-1\" part=\"control\" aria-describedby=\"description\" class=\"en-segmented-input en-sr-only\"/>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+                    "stack": "TimeoutError: locator.check: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('radio', { name: 'hard', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input type=\"radio\" value=\"hard\" name=\"choice\" tabindex=\"-1\" part=\"control\" aria-describedby=\"description\" class=\"en-segmented-input en-sr-only\"/>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:24:58",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                      "column": 58,
+                      "line": 24
+                    },
+                    "snippet": "  22 |   await click(page,'Use selection as mask');await field(page,'Feather radius (document px)','2');await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();\n  23 |   await expect(page.getByText(/Hard support: 2 pixels. Effective support: 6 pixels/)).toBeVisible();\n> 24 |   await page.getByRole('radio',{name:'hard',exact:true}).check();await expect(page.getByAltText('hard mask view')).toBeVisible();await page.getByRole('radio',{name:'effective',exact:true}).check();await page.getByRole('radio',{name:'result',exact:true}).check();\n     |                                                          ^\n  25 |   const before=commands.filter(c=>c==='SetLayerProperties').length;await click(page,'Apply layer mask');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(c=>c==='SetLayerProperties').length).toBe(before+1);\n  26 |   await click(page,'Sample');await field(page,'Sample X','1');await field(page,'Sample Y','0');await click(page,'Sample color');await expect(page.getByText(/sRGB RGBA \\(255, 0, 0, 48\\)/)).toBeVisible();\n  27 |   await click(page,'Undo');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                        "column": 58,
+                        "line": 24
+                      },
+                      "message": "TimeoutError: locator.check: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('radio', { name: 'hard', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input type=\"radio\" value=\"hard\" name=\"choice\" tabindex=\"-1\" part=\"control\" aria-describedby=\"description\" class=\"en-segmented-input en-sr-only\"/>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <span part=\"option-label\" class=\"en-segmented-label\">…</span> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  22 |   await click(page,'Use selection as mask');await field(page,'Feather radius (document px)','2');await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();\n  23 |   await expect(page.getByText(/Hard support: 2 pixels. Effective support: 6 pixels/)).toBeVisible();\n> 24 |   await page.getByRole('radio',{name:'hard',exact:true}).check();await expect(page.getByAltText('hard mask view')).toBeVisible();await page.getByRole('radio',{name:'effective',exact:true}).check();await page.getByRole('radio',{name:'result',exact:true}).check();\n     |                                                          ^\n  25 |   const before=commands.filter(c=>c==='SetLayerProperties').length;await click(page,'Apply layer mask');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(c=>c==='SetLayerProperties').length).toBe(before+1);\n  26 |   await click(page,'Sample');await field(page,'Sample X','1');await field(page,'Sample Y','0');await click(page,'Sample color');await expect(page.getByText(/sRGB RGBA \\(255, 0, 0, 48\\)/)).toBeVisible();\n  27 |   await click(page,'Undo');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:24:58"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-26T23:55:44.020Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-10/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                    "column": 58,
+                    "line": 24
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ffbac78a90ea7b98869d-78c7350a783856aea36e",
+          "file": "authoring.spec.ts",
+          "line": 12,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-26T23:55:43.544Z",
+    "duration": 15742.538999999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

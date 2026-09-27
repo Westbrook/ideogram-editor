@@ -1,0 +1,10 @@
+✔ typed R16 mask preparation, exact CP-1 attachment, stale/lock refusal, Undo and retained closure (1340.377417ms)
+✔ PNG mask alignment, inversion, source closure, complete copy/import, reopen and exact export (3668.231041ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5083.991625

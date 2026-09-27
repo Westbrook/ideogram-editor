@@ -1,0 +1,16 @@
+{
+  "base": "4b2c82ccc41dd72c3f83480f23481b7b62135d23",
+  "root": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/p1c3-base-vendor-vwzv_xjy",
+  "paths": [
+    "tooling/verify-vendor.py",
+    "tooling/toolchain.json",
+    "package.json",
+    "package-lock.json",
+    "vendor/en-reve"
+  ],
+  "archiveSHA256": "8b2bf64124bc3d056a69b067b1e0d71c3718f6273383ee865ac7c8a8b051a337",
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "Nonregistry third-party dependency: node_modules/canvaskit-wasm file:vendor/text/canvaskit-wasm-0.40.0-ideogram.3.tgz\n"
+}
+Confirmed identical failure on actual accepted base; vendor gate is NOT passed.

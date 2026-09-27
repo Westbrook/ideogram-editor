@@ -1,0 +1,40 @@
+
+Running 2 tests using 1 worker
+
+(node:8208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (18.2s)
+  ✘  2 tests/editor/authoring.spec.ts:63:1 › P1c3 inherited layer operations and reviewed geometry remain usable through public controls (11.3s)
+
+
+  1) tests/editor/authoring.spec.ts:63:1 › P1c3 inherited layer operations and reviewed geometry remain usable through public controls 
+
+    Error: expect(locator).toBeEnabled() failed
+
+    Locator:  getByRole('button', { name: 'Duplicate', exact: true })
+    Expected: enabled
+    Received: disabled
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeEnabled" getByRole('button', { name: 'Duplicate', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Duplicate', exact: true })
+        14 × locator resolved to <button disabled tabindex="0" type="button" part="control" class="en-button" aria-busy="false" data-size="medium" data-variant="secondary">…</button>
+           - unexpected value "disabled"
+
+
+      66 |  page.on('request',r=>{if(r.method()==='POST'&&new URL(r.url()).pathname==='/api/v1/commands'){const c=JSON.parse(r.postData()!).command;commands.push(c.body);ids.set(c.commandId,c.body.type);}});
+      67 |  page.on('response',async r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/commands')&&r.status()===200){const value=await r.json().catch(()=>null);if(value?.receipt)receipts.set(value.receipt.commandId,value.receipt);}});
+    > 68 |  let observedRevision='';const accepted=async(type:string)=>{const count=()=>[...receipts].filter(([id,r])=>ids.get(id)===type&&r.status==='accepted').length;await expect.poll(count).toBeGreaterThan(seen.get(type)??0);seen.set(type,count());await expect(page.locator('.document-name')).not.toHaveText(observedRevision);observedRevision=(await page.locator('.document-name').textContent())!;await expect(page.getByRole('button',{name:'Duplicate',exact:true})).toBeEnabled();};
+         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^
+      69 |  try{
+      70 |   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await importImage(page);
+      71 |   await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Renamed original');await field(page,'Opacity (0–1)','0.75');await click(page,'Apply properties');await accepted('SetLayerProperties');await expect(page.getByRole('treeitem')).toContainText('Renamed original');
+        at accepted (/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:68:460)
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:76:36
+
+    Error Context: evidence/p1c3/browser-60/browser/authoring-P1c3-inherited-l-ff7dd-ble-through-public-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:63:1 › P1c3 inherited layer operations and reviewed geometry remain usable through public controls 
+  1 passed (30.0s)

@@ -1,0 +1,18 @@
+P1c.3 author evidence. Independent review is still required.
+
+Source commit: e070baff7069a319f92a39e6c369378a31424181
+Accepted parent: 4b2c82ccc41dd72c3f83480f23481b7b62135d23
+Use the pinned .toolchain/bin Node26.10.0 and npm12.1.0.
+Run workloads serially in a separate checkout and fresh task-owned roots. Never overwrite sealed receipts or existing services/previews.
+
+Every gate directory contains the exact argv, source SHA256 inventory, start/end UTC, result and output. gates.json compares those sources with the committed final source. Early development failures are preserved and explained in failures.txt; an early pass is not silently promoted to a later source.
+
+Author's final build/type/seal/backend/current-native commands are listed in verify-final.py and the individual receipts. The script deliberately refuses to overwrite an existing gate directory; it is an author-run recipe, not an in-place replay command. To reproduce a gate, run its exact argv with PATH="$PWD/.toolchain/bin:$PATH", choosing NEW output directories for EDITOR_RECEIPT, TEXT_STATE_APP and TEXT_STATE_EVIDENCE where applicable. The browser runs use EDITOR_BROWSER=chromium, firefox, then webkit with tests/editor/authoring.config.ts, workers1 and retries0. New native text fixture: node node_modules/vite/bin/vite.js build --config tests/text-state/vite.config.ts --outDir <new absolute fixture path>; native.test.mjs requires TEXT_STATE_APP=<that path>, TEXT_STATE_EVIDENCE=<new directory>, TEXT_STATE_ENGINES=chromium,firefox,webkit.
+
+Browser61/62/63 are the final two-workflow source checks. Their product sources and complete test source match e070baff. browser-invocations.json preserves the exact engine environment from the recorded author commands; no retroactive user-agent/version measurement is claimed. History56 has identical product and loaded history sources; its only later source inventory change is the independent authoring browser-test expansion. Current build65 emits identical app JS/CSS filenames to the browser-tested build52. build-files.json seals exact copied app/server bytes; source-inputs.json binds the complete owning source inventory. The native assets/font/adapter closure is unchanged from accepted4b2; native-reuse.json and verify:text record exact identities. Old executable fixtures are built from archived Git source, not rewritten current code.
+
+Known failure: vendor68 exit1. check-base-vendor.py reproduces the same exit1 on actual accepted4b2 files;68a is a diagnostic pass only. The registry-only check predates the accepted local CanvasKit tarball. No verifier, lockfile, native artifact, profile history or dependency policy was weakened. There is no remote, GitHub PR or CI run link in this workspace.
+
+All tests are bounded functional evidence. No timing/RSS/native-memory/full-envelope/platform/physical IME/AT qualification is claimed. A-R01 remains open. No source changes or new workloads are authorized after final handoff until the coordinator releases the next window.
+
+The inherited transactions.test.mjs display name still says format3; its current-writer assertions and diagnostic explicitly exercise PF4. Genuine PF3 compatibility is separately established by mask-compatibility.test.mjs and mask-text-compatibility.test.mjs using actual archived4b2 code. A test display name is not format provenance.

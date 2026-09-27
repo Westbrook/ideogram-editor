@@ -1,0 +1,37 @@
+✔ typed R16 mask preparation, exact CP-1 attachment, stale/lock refusal, Undo and retained closure (1360.184625ms)
+✔ PNG mask alignment, inversion, source closure, complete copy/import, reopen and exact export (3586.858292ms)
+✖ unapplied imported mask draft retains exact caption and source bindings across nested copies (781.55375ms)
+✔ mask pixel-center rectangle/ellipse/polygon, explicit combinations and stroke hardness (0.777084ms)
+✔ finite feather exact support, R16 edge16384, no document-edge renormalization or extra quantization (10.425167ms)
+✔ invalid geometry and radius are refused without truncating drafts (0.30775ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5854.61175
+
+✖ failing tests:
+
+test at tests/history/mask.test.mjs:45:1
+✖ unapplied imported mask draft retains exact caption and source bindings across nested copies (781.55375ms)
+  AssertionError [ERR_ASSERTION]: {"protocolVersion":1,"requestId":"6e478bbb-4e94-47e0-8a47-0e3ba56a6914","error":{"code":"MALFORMED_REQUEST","retry":"none","message":"The request does not match the local protocol."}}
+  
+  400 !== 200
+  
+      at terminal (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/raster/helpers.mjs:10:225)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async edit (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:8:148)
+      at async copy (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/portable/helpers.mjs:15:60)
+      at async TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/mask.test.mjs:51:16)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

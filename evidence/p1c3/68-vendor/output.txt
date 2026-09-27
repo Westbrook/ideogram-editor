@@ -1,0 +1,1 @@
+Nonregistry third-party dependency: node_modules/canvaskit-wasm file:vendor/text/canvaskit-wasm-0.40.0-ideogram.3.tgz

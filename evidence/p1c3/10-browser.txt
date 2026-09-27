@@ -1,0 +1,51 @@
+
+Running 1 test using 1 worker
+
+(node:32484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/authoring.spec.ts:12:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (14.8s)
+
+
+  1) tests/editor/authoring.spec.ts:12:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 
+
+    TimeoutError: locator.check: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for getByRole('radio', { name: 'hard', exact: true })
+        - locator resolved to <input type="radio" value="hard" name="choice" tabindex="-1" part="control" aria-describedby="description" class="en-segmented-input en-sr-only"/>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <span part="option-label" class="en-segmented-label">…</span> intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <span part="option-label" class="en-segmented-label">…</span> intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <span part="option-label" class="en-segmented-label">…</span> intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+      22 |   await click(page,'Use selection as mask');await field(page,'Feather radius (document px)','2');await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();
+      23 |   await expect(page.getByText(/Hard support: 2 pixels. Effective support: 6 pixels/)).toBeVisible();
+    > 24 |   await page.getByRole('radio',{name:'hard',exact:true}).check();await expect(page.getByAltText('hard mask view')).toBeVisible();await page.getByRole('radio',{name:'effective',exact:true}).check();await page.getByRole('radio',{name:'result',exact:true}).check();
+         |                                                          ^
+      25 |   const before=commands.filter(c=>c==='SetLayerProperties').length;await click(page,'Apply layer mask');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(c=>c==='SetLayerProperties').length).toBe(before+1);
+      26 |   await click(page,'Sample');await field(page,'Sample X','1');await field(page,'Sample Y','0');await click(page,'Sample color');await expect(page.getByText(/sRGB RGBA \(255, 0, 0, 48\)/)).toBeVisible();
+      27 |   await click(page,'Undo');await expect(page.getByText('Undo accepted and saved locally.',{exact:true})).toBeVisible();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:24:58
+
+    Error Context: evidence/p1c3/browser-10/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:12:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 

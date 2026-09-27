@@ -1,0 +1,12 @@
+✔ typed R16 mask preparation, exact CP-1 attachment, stale/lock refusal, Undo and retained closure (1519.647291ms)
+✔ mask pixel-center rectangle/ellipse/polygon, explicit combinations and stroke hardness (0.777875ms)
+✔ finite feather exact support, R16 edge16384, no document-edge renormalization or extra quantization (10.053083ms)
+✔ invalid geometry and radius are refused without truncating drafts (0.283084ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2042.422125

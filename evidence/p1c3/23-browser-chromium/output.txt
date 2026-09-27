@@ -1,0 +1,28 @@
+
+Running 1 test using 1 worker
+
+(node:53211) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (17.8s)
+
+
+  1) tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 
+
+    TimeoutError: locator.evaluate: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('en-button').filter({ hasText: /^Preview mask$/ })
+
+
+      40 |   expect(plans.at(-2).operations).toEqual(plans[0].operations);await click(page,'Cancel mask draft');
+      41 |   await click(page,'Mask');await click(page,'Fill all');const count=commands.filter(c=>c==='PrepareMask').length;
+    > 42 |   await page.locator('en-button').filter({hasText:/^Preview mask$/}).evaluate(host=>host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeEnabled();expect(commands.filter(c=>c==='PrepareMask').length).toBe(count);
+         |                                                                      ^
+      43 |   await field(page,'Brush diameter (document px)','1');const brushBox=(await page.locator('canvas').boundingBox())!,bx=brushBox.x+brushBox.width/2,by=brushBox.y+brushBox.height/2;
+      44 |   await page.getByRole('radio',{name:'subtract',exact:true}).last().focus();await page.keyboard.press('Space');
+      45 |   await page.mouse.move(bx,by);await page.mouse.down();await page.mouse.move(bx+1,by);await page.mouse.up();await expect(page.getByText(/2 draft operations/)).toBeVisible();await click(page,'Undo mask stroke');await expect(page.getByText(/1 draft operations/)).toBeVisible();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:42:70
+
+    Error Context: evidence/p1c3/browser-23/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 

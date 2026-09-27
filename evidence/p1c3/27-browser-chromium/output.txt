@@ -1,0 +1,35 @@
+
+Running 1 test using 1 worker
+
+(node:55516) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (12.5s)
+
+
+  1) tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText(/1 draft operations/)
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText(/1 draft operations/) with timeout 5000ms
+      - waiting for getByText(/1 draft operations/)
+
+
+      44 |   await page.getByRole('radio',{name:'subtract',exact:true}).last().focus();await page.keyboard.press('Space');
+      45 |   await page.mouse.move(bx,by);await page.mouse.down();await page.mouse.move(bx+1,by);await page.mouse.up();await expect(page.getByText(/2 draft operations/)).toBeVisible();await click(page,'Undo mask stroke');await expect(page.getByText(/1 draft operations/)).toBeVisible();
+    > 46 |   await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();await click(page,'Mask');await expect(page.getByText(/1 draft operations/)).toBeVisible();
+         |                                                                                                                                                                                                                                                                          ^
+      47 |   const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();await field(second,'Opacity (0–1)','0.75');await click(second,'Apply properties');await expect(second.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByText('Stale mask draft',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeDisabled();await second.close();await click(page,'Cancel mask draft');
+      48 |   await page.locator('en-file-upload').filter({hasText:'Import PNG mask'}).locator('input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('button',{name:'Review aligned mask',exact:true})).toBeVisible();await field(page,'Imported mask X','0');await click(page,'Review aligned mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();await click(page,'Cancel mask draft');
+      49 |   await click(page,'Lock layer');await expect(page.getByRole('button',{name:'Unlock layer',exact:true})).toBeVisible();await click(page,'Unlock layer');await expect(page.getByRole('button',{name:'Lock layer',exact:true})).toBeVisible();
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:46:266
+
+    Error Context: evidence/p1c3/browser-27/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 

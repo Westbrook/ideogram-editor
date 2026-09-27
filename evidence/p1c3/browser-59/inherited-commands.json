@@ -1,0 +1,65 @@
+[
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "68d7425a-1735-444e-8731-8bb954e97353",
+    "expectedSha256": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9"
+  },
+  {
+    "type": "PrepareRaster",
+    "assetId": "1339f139-804f-494f-8060-8ab825920e03"
+  },
+  {
+    "type": "ReviewRaster",
+    "assetId": "52220f24-8c43-465f-a57b-13f5cd8d433b"
+  },
+  {
+    "type": "ApproveRaster",
+    "assetId": "52220f24-8c43-465f-a57b-13f5cd8d433b",
+    "reviewId": "8b01d02b-5e74-4f58-8002-4137050dedfb",
+    "reviewHash": "sha256:1df700ac77132af03e44dba5a28a81096ee364a6df9a34415bdade9bf7c3d94a"
+  },
+  {
+    "type": "NewDocument",
+    "width": 3,
+    "height": 2,
+    "color": "sRGB",
+    "depth": 8
+  },
+  {
+    "type": "ImportAsset",
+    "assetId": "0006134b-6a3a-49a8-80af-d31ac5589009",
+    "layerId": "03e83252-111b-4c10-a2e1-6a4ec7e87cec",
+    "name": "hidden-alpha.png",
+    "draft": null
+  },
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "f9185f27-90be-449f-906c-36f65b575be8",
+    "expectedSha256": "sha256:1793915e96097947d900ac2c054dd7658aa738612395db41aaecaf5c93cb16bb"
+  },
+  {
+    "type": "SetLayerProperties",
+    "layerId": "03e83252-111b-4c10-a2e1-6a4ec7e87cec",
+    "layerVersion": "1",
+    "properties": {
+      "name": "Renamed original",
+      "opacity": 0.75,
+      "visible": true,
+      "locked": false
+    },
+    "draft": null
+  },
+  {
+    "type": "DuplicateLayer",
+    "layerId": "03e83252-111b-4c10-a2e1-6a4ec7e87cec",
+    "layerVersion": "2",
+    "newLayerId": "889da3c9-17cc-4e8f-9dc4-e50abbfe2bc4",
+    "name": "Renamed original copy",
+    "draft": null
+  },
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "09091963-2e39-4295-a77f-bd6f11c1b0ca",
+    "expectedSha256": "sha256:b01ee8110957f14762fb8c601b4fcd0c88cc7eed846645b83b09423fb9434035"
+  }
+]

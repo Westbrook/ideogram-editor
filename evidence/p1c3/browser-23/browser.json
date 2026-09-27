@@ -1,0 +1,151 @@
+{
+  "config": {
+    "argv": [
+      "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "/Users/westbrook/Documents/repos/ideogram-edit/node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/editor/authoring.config.ts"
+    ],
+    "configFile": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.config.ts",
+    "rootDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-23/browser",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor",
+        "testIgnore": [],
+        "testMatch": [
+          "authoring.spec.ts"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-23/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "authoring.spec.ts",
+      "file": "authoring.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 17764,
+                  "error": {
+                    "message": "TimeoutError: locator.evaluate: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('en-button').filter({ hasText: /^Preview mask$/ })\u001b[22m\n",
+                    "stack": "TimeoutError: locator.evaluate: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('en-button').filter({ hasText: /^Preview mask$/ })\u001b[22m\n\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:42:70",
+                    "location": {
+                      "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                      "column": 70,
+                      "line": 42
+                    },
+                    "snippet": "  40 |   expect(plans.at(-2).operations).toEqual(plans[0].operations);await click(page,'Cancel mask draft');\n  41 |   await click(page,'Mask');await click(page,'Fill all');const count=commands.filter(c=>c==='PrepareMask').length;\n> 42 |   await page.locator('en-button').filter({hasText:/^Preview mask$/}).evaluate(host=>host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeEnabled();expect(commands.filter(c=>c==='PrepareMask').length).toBe(count);\n     |                                                                      ^\n  43 |   await field(page,'Brush diameter (document px)','1');const brushBox=(await page.locator('canvas').boundingBox())!,bx=brushBox.x+brushBox.width/2,by=brushBox.y+brushBox.height/2;\n  44 |   await page.getByRole('radio',{name:'subtract',exact:true}).last().focus();await page.keyboard.press('Space');\n  45 |   await page.mouse.move(bx,by);await page.mouse.down();await page.mouse.move(bx+1,by);await page.mouse.up();await expect(page.getByText(/2 draft operations/)).toBeVisible();await click(page,'Undo mask stroke');await expect(page.getByText(/1 draft operations/)).toBeVisible();"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                        "column": 70,
+                        "line": 42
+                      },
+                      "message": "TimeoutError: locator.evaluate: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('en-button').filter({ hasText: /^Preview mask$/ })\u001b[22m\n\n\n  40 |   expect(plans.at(-2).operations).toEqual(plans[0].operations);await click(page,'Cancel mask draft');\n  41 |   await click(page,'Mask');await click(page,'Fill all');const count=commands.filter(c=>c==='PrepareMask').length;\n> 42 |   await page.locator('en-button').filter({hasText:/^Preview mask$/}).evaluate(host=>host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeEnabled();expect(commands.filter(c=>c==='PrepareMask').length).toBe(count);\n     |                                                                      ^\n  43 |   await field(page,'Brush diameter (document px)','1');const brushBox=(await page.locator('canvas').boundingBox())!,bx=brushBox.x+brushBox.width/2,by=brushBox.y+brushBox.height/2;\n  44 |   await page.getByRole('radio',{name:'subtract',exact:true}).last().focus();await page.keyboard.press('Space');\n  45 |   await page.mouse.move(bx,by);await page.mouse.down();await page.mouse.move(bx+1,by);await page.mouse.up();await expect(page.getByText(/2 draft operations/)).toBeVisible();await click(page,'Undo mask stroke');await expect(page.getByText(/1 draft operations/)).toBeVisible();\n    at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:42:70"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T00:03:01.554Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3/browser-23/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts",
+                    "column": 70,
+                    "line": 42
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ffbac78a90ea7b98869d-78c7350a783856aea36e",
+          "file": "authoring.spec.ts",
+          "line": 19,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-27T00:03:01.060Z",
+    "duration": 18282.816,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

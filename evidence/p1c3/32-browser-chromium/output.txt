@@ -1,0 +1,27 @@
+
+Running 1 test using 1 worker
+
+(node:63699) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (12.5s)
+
+
+  1) tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 
+
+    Error: expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "rgb(243, 245, 247)"
+
+      51 |   const transformCount=commands.filter(c=>c==='ApplyTransform').length;await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+10,cy+5);await page.mouse.up();await expect(page.getByText('ApplyTransform accepted and saved locally.',{exact:true})).toBeVisible();expect(commands.filter(c=>c==='ApplyTransform').length).toBe(transformCount+1);
+      52 |   await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+5,cy+5);await page.locator('#canvas').focus();await page.keyboard.press('Escape');await page.mouse.up();expect(commands.filter(c=>c==='ApplyTransform').length).toBe(transformCount+1);
+    > 53 |   const colors:string[]=[];for(const appearance of ['light','dark']){await page.evaluate(v=>document.documentElement.setAttribute('data-en-appearance',v),appearance);colors.push(await page.locator('body').evaluate(el=>getComputedStyle(el).color));await page.getByRole('button',{name:'Sample color',exact:true}).focus();await expect(page.getByRole('button',{name:'Sample color',exact:true})).toBeFocused();}expect(colors[0]).not.toBe(colors[1]);
+         |                                                                                                                                                                                                                                                                                                                                                                                                                                             ^
+      54 |   await field(page,'Zoom percentage','200');await expect(page.getByRole('spinbutton',{name:'Zoom percentage',exact:true})).toHaveValue('200');await click(page,'100%');
+      55 |   if(browserName!=='webkit')await page.screenshot({path:join(receipt,'authoring-desktop.png'),caret:'initial'});
+      56 |   for(const width of [720,320]){await page.setViewportSize({width,height:950});for(const dir of ['ltr','rtl']){await page.evaluate(d=>document.documentElement.dir=d,dir);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeVisible();}}
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:53:429
+
+    Error Context: evidence/p1c3/browser-32/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 

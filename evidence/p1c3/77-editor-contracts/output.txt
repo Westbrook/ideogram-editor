@@ -1,0 +1,19 @@
+✔ typed oversized document GET is exact, bounded and version coherent; metadata guard and content authority stay intact (18780.143542ms)
+ℹ {"fixture":"publicly accepted100-layer document; synthetic53000-digit revision only","documentBytes":66660,"inlineEnvelopeBytes":119779,"sourceHashes":{"server/protocol.ts":"sha256:5b469a14d0dec7dee7891968c7268c09aa1bd4768388333dae83ce8c4622977c","server/storage/recovery.ts":"sha256:c7ba4c165dc21f384ad499ed593ada1c9fb5e655389269b3437e71b4df906532","server/storage/objects.ts":"sha256:169f5a9224a31fffe32643abfc923b0e06ef5e365e6b271cc31277d2a2d12b4b"}}
+ℹ {"threshold":[{"decimalLength":25878,"inlineBytes":65535,"responseBytes":65535,"kind":"inline"},{"decimalLength":25879,"inlineBytes":65537,"responseBytes":26348,"kind":"content-ref"}],"responseBytes":53469,"firstContent":{"content":2,"leases":4},"headCount":140,"pins":1344,"latest":{"content":1,"leases":0},"limits":"Read-boundary correctness only; no full history at synthetic revision or large-envelope qualification."}
+✔ exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority (2479.250375ms)
+✔ known referenced multi-event command is bounded, byte exact and session leased (1152.344875ms)
+✔ UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence (859.781459ms)
+✔ pending owner pages preserve exact original bytes and operation identity across terminal races (1377.634917ms)
+✔ document HEAD exposes canonical revision without projection/content allocation and retains GET authorization (584.107042ms)
+ℹ {"largeProjectionBytes":78267,"revision":"9007199254740995","headCount":140,"first":{"content":0,"leases":0},"lastAfterHEAD":{"content":0,"leases":0},"afterOrdinaryGET":{"content":0,"leases":0},"fixture":"disposable invalid full metadata for scalar HEAD only; not domain closure/workload qualification. Original GET413 attempts48/51/52 retained."}
+✔ intentional shutdown classification is bounded to the retired origin, event path, engine, message and outage (0.474458ms)
+✔ WebKit network page diagnostic requires every exact field and canonical event query (0.197958ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25407.573458

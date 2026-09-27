@@ -1,0 +1,42 @@
+{
+  "source": "Exact environment and argv from author tool invocations, copied for durable reproduction; no retroactive runtime user-agent/version measurement.",
+  "runtimeConfiguration": "Pinned @playwright/test1.63.0; authoring.config workers1/retries0; new browser context per case, WebKit stock persistent context in task-owned temporary profile.",
+  "runs": [
+    {
+      "gate": "61-browser-final-chromium",
+      "EDITOR_BROWSER": "chromium",
+      "EDITOR_RECEIPT": "evidence/p1c3/browser-61",
+      "argv": [
+        ".toolchain/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/editor/authoring.config.ts"
+      ]
+    },
+    {
+      "gate": "62-browser-final-firefox",
+      "EDITOR_BROWSER": "firefox",
+      "EDITOR_RECEIPT": "evidence/p1c3/browser-62",
+      "argv": [
+        ".toolchain/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/editor/authoring.config.ts"
+      ]
+    },
+    {
+      "gate": "63-browser-final-webkit",
+      "EDITOR_BROWSER": "webkit",
+      "EDITOR_RECEIPT": "evidence/p1c3/browser-63",
+      "argv": [
+        ".toolchain/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/editor/authoring.config.ts"
+      ]
+    }
+  ]
+}

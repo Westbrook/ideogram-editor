@@ -1,0 +1,2 @@
+export const historyCommands = ['ImportFont', 'CreateTextLayer', 'CommitTextEdit', 'ReplaceTextFont', 'RasterizeTextDerivative', 'ImportAsset', 'ApplyTransform', 'SetLayerProperties', 'DeleteLayer', 'DuplicateLayer', 'MoveLayers', 'CropDocument', 'ResizeCanvas', 'Undo', 'Redo', 'SwitchBranch', 'ExportDocument', 'SaveCheckpoint', 'PrepareImageResample', 'PrepareFlattenedCopy', 'ReviewImageEdit', 'ResampleImage', 'CreateFlattenedCopy'];
+export const isHistoryCommand = (type) => historyCommands.includes(type);

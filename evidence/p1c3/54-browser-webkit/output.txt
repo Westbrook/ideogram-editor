@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:88568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (16.8s)
+
+  1 passed (17.3s)

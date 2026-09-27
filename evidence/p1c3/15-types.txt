@@ -1,0 +1,8 @@
+npm notice run ideogram-editor@0.1.0 typecheck
+npm notice run npm run typecheck:consumer && npm run typecheck:app && tsc --noEmit -p tsconfig.server.json
+npm notice run ideogram-editor@0.1.0 typecheck:consumer
+npm notice run tsc --noEmit
+npm notice run ideogram-editor@0.1.0 typecheck:app
+npm notice run tsc --noEmit -p tsconfig.app.json
+src/ui/authoring.ts(46,45): error TS2451: Cannot redeclare block-scoped variable 'layer'.
+src/ui/authoring.ts(59,11): error TS2451: Cannot redeclare block-scoped variable 'layer'.

@@ -1,0 +1,10 @@
+✔ actual4b2 native6e8 PF3 text retains exact source, fonts and pixels through current R16 mask PF4 (6689.684125ms)
+ℹ {"priorExecutable":"4b2c82ccc41dd72c3f83480f23481b7b62135d23","priorProfile":"sha256:6e8a481ec2ec61ab1ea1edefa1ef478453c49a7617854b4d0162a48ad1525c86","legacyArchive":{"byteLength":"672795","hash":"sha256:923f35bf97354c75ae28ddd9904a757869cc8e22c1774e0fc9288d04a2e2ed7a","mediaType":"application/x-ideogram-project"},"currentArchive":{"byteLength":"1463485","hash":"sha256:5965bde8a0c5d2f4810938ded507287ce24fe4b2e7adbc4778bced51e872875b","mediaType":"application/x-ideogram-project"},"retainedSource":{"byteLength":"2075","hash":"sha256:f069c605e642b4678e7d802c725792fb62b7211a1aec7eb1a307d8f99fc6cc90","mediaType":"application/json"},"actualWorkerCloseSignals":1,"oldFixtureFiles":[{"name":"NotoSans-Regular-Dpf_lrdO.ttf","sha256":"b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"},{"name":"NotoSansArabic-Regular-CEibNoL-.ttf","sha256":"ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"},{"name":"NotoSansCJKsc-Regular-DxgKpThH.otf","sha256":"2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"},{"name":"NotoSansSymbols2-Regular-Dcz4cXYm.ttf","sha256":"630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"},{"name":"canvaskit-B2Vb3rWN.wasm","sha256":"26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19"},{"name":"heap-worker-C-1X6f7G.js","sha256":"f6212701cd8a14f135132b24d5ab67413bff092762e0bc5aaa1354521482be25"},{"name":"index-TZLAzFOT.js","sha256":"7aed9c8b89ac949afcb9c00e5ecf633992f1d80e3fe90399d38718f5d38b2090"},{"name":"worker-QFqgk8wY.js","sha256":"e77846ab294e79f6d961979545595203669ccea3c069610efa03d05cd6ffd60c"}]}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6853.922083

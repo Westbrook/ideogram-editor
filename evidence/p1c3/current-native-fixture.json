@@ -1,0 +1,44 @@
+{
+  "sourceCommit": "e070baff7069a319f92a39e6c369378a31424181",
+  "buildGate": "74-text-fixture",
+  "testGate": "75-current-native",
+  "files": {
+    "artifacts/p1c3/text-app/assets/NotoSans-Regular-Dpf_lrdO.ttf": {
+      "bytes": 569208,
+      "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+    },
+    "artifacts/p1c3/text-app/assets/NotoSansArabic-Regular-CEibNoL-.ttf": {
+      "bytes": 240456,
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"
+    },
+    "artifacts/p1c3/text-app/assets/NotoSansCJKsc-Regular-DxgKpThH.otf": {
+      "bytes": 16437364,
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"
+    },
+    "artifacts/p1c3/text-app/assets/NotoSansSymbols2-Regular-Dcz4cXYm.ttf": {
+      "bytes": 656852,
+      "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+    },
+    "artifacts/p1c3/text-app/assets/canvaskit-B2Vb3rWN.wasm": {
+      "bytes": 4979358,
+      "sha256": "26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19"
+    },
+    "artifacts/p1c3/text-app/assets/heap-worker-eismKeQI.js": {
+      "bytes": 89913,
+      "sha256": "5ccfc3fb280225fc83ecc6dbb87baa4077fd0f23379e8ed082d35fc384b7e32d"
+    },
+    "artifacts/p1c3/text-app/assets/index-B9H-G2y_.js": {
+      "bytes": 100061,
+      "sha256": "fb5f49531a75d29567eb93973a0b1ac03fa859587bc81b4a836292c044603297"
+    },
+    "artifacts/p1c3/text-app/assets/worker-DcM7wJQA.js": {
+      "bytes": 120604,
+      "sha256": "0d079d4f70642662b9f37e35c962ca8b7a7b3dd6b22ffb4aa4752f5400efd9cd"
+    },
+    "artifacts/p1c3/text-app/index.html": {
+      "bytes": 190,
+      "sha256": "f7c5b307c9a873af7ca2e03ad848a7bc99a78ddf4655d332eb39caf36165756b"
+    }
+  },
+  "qualification": "New isolated browser wrappers and identity-qualified reused native/font assets; artifact directory retained locally, hashes sealed here without duplicating native binaries."
+}

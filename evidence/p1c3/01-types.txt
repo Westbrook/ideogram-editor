@@ -1,0 +1,21 @@
+
+> ideogram-editor@0.1.0 typecheck
+> npm run typecheck:consumer && npm run typecheck:app && tsc --noEmit -p tsconfig.server.json
+
+
+> ideogram-editor@0.1.0 typecheck:consumer
+> tsc --noEmit
+
+
+> ideogram-editor@0.1.0 typecheck:app
+> tsc --noEmit -p tsconfig.app.json
+
+server/storage/canonical.ts(82,169): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/raster/mask.ts(36,19): error TS2339: Property 'points' does not exist on type 'Shape'.
+  Property 'points' does not exist on type '{ kind: "ellipse" | "rectangle"; x: number; y: number; width: number; height: number; }'.
+src/raster/mask.ts(36,39): error TS2339: Property 'points' does not exist on type 'Shape'.
+  Property 'points' does not exist on type '{ kind: "ellipse" | "rectangle"; x: number; y: number; width: number; height: number; }'.
+src/raster/mask.ts(37,21): error TS2339: Property 'points' does not exist on type 'Shape'.
+  Property 'points' does not exist on type '{ kind: "ellipse" | "rectangle"; x: number; y: number; width: number; height: number; }'.
+src/raster/mask.ts(37,41): error TS2339: Property 'points' does not exist on type 'Shape'.
+  Property 'points' does not exist on type '{ kind: "ellipse" | "rectangle"; x: number; y: number; width: number; height: number; }'.

@@ -1,0 +1,14 @@
+✔ typed R16 mask preparation, exact CP-1 attachment, stale/lock refusal, Undo and retained closure (1488.014625ms)
+✔ PNG mask alignment, inversion, source closure, complete copy/import, reopen and exact export (3791.524917ms)
+✔ unapplied imported mask draft retains exact caption and source bindings across nested copies (2357.917958ms)
+✔ mask pixel-center rectangle/ellipse/polygon, explicit combinations and stroke hardness (0.780834ms)
+✔ finite feather exact support, R16 edge16384, no document-edge renormalization or extra quantization (10.957459ms)
+✔ invalid geometry and radius are refused without truncating drafts (0.312416ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8012.925458

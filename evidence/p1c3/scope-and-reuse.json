@@ -1,0 +1,137 @@
+{
+  "taskId": "de9a33a4-55cd-4132-a497-3b27095ab0ca",
+  "acceptedBase": "4b2c82ccc41dd72c3f83480f23481b7b62135d23",
+  "sourceCommit": "e070baff7069a319f92a39e6c369378a31424181",
+  "status": "author implementation; independent review required",
+  "requirements": [
+    {
+      "requirement": "Rectangle, ellipse and polygon selection; pointer and numeric geometry; replace/add/subtract/intersect",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "src/raster/mask.ts"
+      ],
+      "evidence": [
+        "tests/raster/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Document coordinates; selection is independent of layer selection and provider attachment. Polygon clicks add numeric points and Apply closes the shape."
+    },
+    {
+      "requirement": "Brush/erase, stroke Undo, Fill/Clear/Invert, hard and effective feather",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "src/raster/mask.ts",
+        "server/raster/engine.ts"
+      ],
+      "evidence": [
+        "tests/raster/mask.test.mjs",
+        "tests/history/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Separate protected little-endian R16 hard/effective objects. Finite triangle, zero document extension, one final R16 quantization; radius0..64 and radius<=1 identity. Released stroke is one recoverable draft operation; Apply is one document history edit."
+    },
+    {
+      "requirement": "Reviewed PNG import, alignment, polarity and attachment",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "server/storage/raster.ts"
+      ],
+      "evidence": [
+        "tests/history/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Static PNG, original preserved; linear-sRGB luminance times alpha, native-size whole-pixel placement with explicit document clipping. Hard/effective/original/full-result views and loaded result gate; no implicit provider input or approved request domain."
+    },
+    {
+      "requirement": "Draft Apply/Cancel/stale/late-result, persistence, closure and namespace fidelity",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "server/storage/ui.ts",
+        "server/storage/portable.ts",
+        "server/portable/closure.ts"
+      ],
+      "evidence": [
+        "tests/history/mask.test.mjs",
+        "tests/history/mask-schema.test.mjs",
+        "tests/history/mask-compatibility.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Last valid plan and raw radius retained separately. Unique new draft IDs, exact saved generation/revision/target fences; raw caption bytes unchanged and typed import bindings remapped."
+    },
+    {
+      "requirement": "Layer rename/reorder/visibility/lock/duplicate/delete and atomic transforms",
+      "implementation": [
+        "src/ui/shell.ts",
+        "src/ui/authoring.ts",
+        "server/storage/history.ts"
+      ],
+      "evidence": [
+        "tests/history/http.test.mjs",
+        "tests/history/replay.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "reuse": "Existing exact4b2 typed operations and numeric inspector retained; explicit lock/unlock and pointer Move added. Pointer release makes one ApplyTransform; Escape/final veto/stale result fences. Numeric six-coefficient transform remains one transaction."
+    },
+    {
+      "requirement": "Crop, canvas resize, reviewed intrinsic image resampling and flattened copy",
+      "implementation": [
+        "src/ui/shell.ts",
+        "src/state/editor-client.ts",
+        "server/storage/history.ts"
+      ],
+      "evidence": [
+        "tests/history/review.test.mjs",
+        "tests/history/http.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "reuse": "Existing exact4b2 implementation reused with public surroundings; no resampling arithmetic rebuild. Attached document-grid masks explicitly require detach before bounds changes. Text scaling does not reflow the text frame; image resample is disabled for text."
+    },
+    {
+      "requirement": "Exact color sampling",
+      "implementation": [
+        "server/assets.ts",
+        "server/storage/raster.ts",
+        "src/ui/authoring.ts"
+      ],
+      "evidence": [
+        "tests/history/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Authenticated exact retained RGBA8 sRGB pixel reads, merged or explicitly included active layer with transform/mask/opacity. Document/layer/scope/generation late-result fence."
+    },
+    {
+      "requirement": "Maximal public En Reve adoption and narrow exceptions",
+      "implementation": [
+        "src/ui/shell.ts",
+        "src/ui/authoring.ts",
+        "src/theme/shell.css",
+        "tooling/editor-components.json"
+      ],
+      "evidence": [
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Public fields, segmented modes, color, upload, Toolbar, Stack/Card, Alert/Badge, Accordion, Link/Icon, Tree/Dialog/ValidationSummary retained. Concrete raster/img, flat-order, missing-glyph, pre-JS, modal-only reflow and inherited Tooltip CSP exceptions enumerated; strict CSP unchanged, exact splitter and quiet rail retained."
+    }
+  ],
+  "compatibility": {
+    "storage": "Schema9 to10 semantic-only migration; verified exact4b2-readable backup before activation, capacity/table/object closure and corruption/five SIGKILL barriers.",
+    "portable": "PF4/documentSchema4 declares masks and typed draft bindings. Actual archived4b2 executable produces genuine PF3, accepts restored schema9, refuses writable schema10 and inspects unsupported PF4 without editable import. Current supports genuine legacy formats; false PF3 mask claims reject.",
+    "projections": "Producer session, protocol, snapshot and namespace/individual projections advertise5 because asset masks and image mappings cross recovery. Consumer accepts2/3/4/5. Original historical records are not relabelled.",
+    "raster": "Mask RasterInfo schema2; authored-mask and R16-composition Manifest schema2. Other RasterInfo roles retain schema1; existing plans retain Manifest1.",
+    "image": "ImageState3 and ImagePatch stateSchema3 for document-r16-v1 mapping; native-text operations preserve3 when present. Existing image/text state1/2 remain supported.",
+    "draft": "local-mask-1 caption schema plus typed maskBindings. Caption bytes remain immutable through copies; only binding values change across namespaces. UI envelope, command envelope and domain event envelope remain1 with versioned nested values and storage/PF/projection compatibility fences.",
+    "native": "Additive integration profile d047f5beee2e3ca7f19d5e0ea7150f884a8063c2296b34fa94fb1ffeff434218 changes sourceRecipe for HTTP projection advertisement and retained-profile validation, not adapter/native algorithms. Exact6e8 profile copied byte-for-byte; c197/b895 untouched. Native engine, fonts, adapter sources and native build artifacts reused by exact identity; no native rebuild."
+  },
+  "limits": [
+    "Author functional evidence is not independent acceptance or implementation credit.",
+    "A-R01 remains open; no new maximum-resource/native-memory/timing/full-envelope campaign or cap waiver.",
+    "Physical IME, assistive technology, broader platform and power-loss qualification remain outstanding P3 scope.",
+    "Support hatching is a bounding extent, not exact coverage or a provider-safe interior. Exact Hard/Effective previews are separate; request domain and halo are not approved.",
+    "Native mask plan/control envelope is bounded to48000 UTF-8 bytes; an oversized stroke is refused without truncating the previously valid draft.",
+    "Inherited crop/resize intentionally refuses implicit attached-mask remapping. Imported mask alignment is native-size whole-pixel only.",
+    "No provider calls, publishing, live sibling edits, service/default/preview changes or report DATA/HTTP edits. Existing services remain at their prior source identities.",
+    "No remote/PR/CI is configured for this local branch; PR context is the shared durable note, not a published GitHub PR.",
+    "verify:vendor remains failed: unchanged verifier rejects local CanvasKit ideogram.3. Actual accepted4b2 reproduction68a confirms the same failure; no waiver or PASS relabel. Text/raster seals are separate gates."
+  ],
+  "verificationRecipes": "verify-final.py and individual receipts; preserved immutable old fixtures are never relabelled."
+}

@@ -1,0 +1,6 @@
+{
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING"
+  ]
+}

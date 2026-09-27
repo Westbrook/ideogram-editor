@@ -1,0 +1,42 @@
+
+Running 1 test using 1 worker
+
+(node:66398) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls (12.0s)
+
+
+  1) tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,10 +4,10 @@
+          "mode": "replace",
+          "shape": Object {
+            "height": 2,
+            "kind": "rectangle",
+            "width": 1,
+    -       "x": 1,
+    -       "y": 0,
+    +       "x": 0.508331298828125,
+    +       "y": -0.5,
+          },
+        },
+      ]
+
+      38 |   const selectionBox=(await page.locator('canvas').boundingBox())!,sx=selectionBox.x+selectionBox.width/2-1.5,sy=selectionBox.y+selectionBox.height/2-1;
+      39 |   await page.mouse.move(sx+1,sy);await page.mouse.down();await page.mouse.move(sx+2,sy+2);await page.mouse.up();await click(page,'Use selection as mask');await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();
+    > 40 |   expect(plans.at(-2).operations).toEqual(plans[0].operations);await click(page,'Cancel mask draft');
+         |                                   ^
+      41 |   await click(page,'Mask');await click(page,'Fill all');const count=commands.filter(c=>c==='PrepareMask').length;
+      42 |   await page.getByRole('button',{name:'Preview mask',exact:true}).evaluate(button=>(button.getRootNode() as ShadowRoot).host.addEventListener('click',e=>e.preventDefault(),{once:true}));await click(page,'Preview mask');await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeEnabled();expect(commands.filter(c=>c==='PrepareMask').length).toBe(count);
+      43 |   await field(page,'Brush diameter (document px)','1');const brushBox=(await page.locator('canvas').boundingBox())!,bx=brushBox.x+brushBox.width/2,by=brushBox.y+brushBox.height/2;
+        at /Users/westbrook/Documents/repos/ideogram-edit/tests/editor/authoring.spec.ts:40:35
+
+    Error Context: evidence/p1c3/browser-35/browser/authoring-P1c3-selection-e-32bfc-responsive-En-Reve-controls/error-context.md
+
+  1 failed
+    tests/editor/authoring.spec.ts:19:1 › P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls 

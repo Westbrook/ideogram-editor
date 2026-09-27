@@ -1,0 +1,37 @@
+{
+  "base": "4b2c82ccc41dd72c3f83480f23481b7b62135d23",
+  "sourceCommit": "e070baff7069a319f92a39e6c369378a31424181",
+  "files": [
+    {
+      "path": "src/raster/core.ts",
+      "baseSHA256": "d8de114ca50149e77c02c5cb5fa5b17b38f2d56cc6933db85a19242c6cd168b3",
+      "currentSHA256": "d8de114ca50149e77c02c5cb5fa5b17b38f2d56cc6933db85a19242c6cd168b3",
+      "byteIdentical": true
+    },
+    {
+      "path": "src/ui/adapters.ts",
+      "baseSHA256": "8a3a2476552dba3e8bd33b6d1bbc35e7b6663472e92cbe7999e5409f105b7514",
+      "currentSHA256": "8a3a2476552dba3e8bd33b6d1bbc35e7b6663472e92cbe7999e5409f105b7514",
+      "byteIdentical": true
+    },
+    {
+      "path": "server/text/supervisor.ts",
+      "baseSHA256": "ad066c86979d8e4eb6ae66ba3b53c5b629d7b1f01422bc36fee377e266c96bc1",
+      "currentSHA256": "ad066c86979d8e4eb6ae66ba3b53c5b629d7b1f01422bc36fee377e266c96bc1",
+      "byteIdentical": true
+    },
+    {
+      "path": "tests/editor/owned-opfs.ts",
+      "baseSHA256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "currentSHA256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "byteIdentical": true
+    },
+    {
+      "path": "tests/editor/error-monitor.ts",
+      "baseSHA256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "currentSHA256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "byteIdentical": true
+    }
+  ],
+  "scope": "Only these complete files are asserted byte-identical. Shell, history and storage files changed; inherited operations within them are identified by the task scope map and the actual Git diff, not whole-file identity."
+}

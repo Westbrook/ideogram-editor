@@ -1,0 +1,1 @@
+{"status":"passed","codecIdentity":"sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e","codecFiles":125,"fixtureManifests":["manifest.json","resource-inputs.json"],"node":"26.10.0"}

@@ -1,0 +1,37 @@
+✔ PROTO01 strict commands, five-code receipts, lost delivery, renewal ownership and projection (704.479042ms)
+✔ PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself (972.509333ms)
+✔ PROTO04 pinned snapshot B plus tail H, exact content ranges, ownership, idle expiry and retained full history (2385.2415ms)
+✔ incremental digest matches platform SHA256 across padding and arbitrary chunk boundaries (27.524375ms)
+✔ PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery (782.229625ms)
+✔ a fresh unseeded HTTP root accepts NewDocument with the public fixed empty precondition reference (339.367834ms)
+✔ I-B04 fresh same-server pairing and renewal fence old recovery/content while retaining exact command ownership (2253.72775ms)
+✔ real HTTP SIGKILL before-commit preserves exact retry identity and invalidates old session/context (842.104792ms)
+✔ real HTTP SIGKILL after-commit preserves exact retry identity and invalidates old session/context (878.495ms)
+✔ I-P01 SIGKILL during sliced snapshot construction preserves committed receipt and recovers full history (2690.764125ms)
+✔ PROTO04 large complete transaction uses immutable reference; interior cursor rejected and restart replay agrees (1435.915875ms)
+✔ R23 corrupt latest snapshot falls back to prior snapshot, then full log; failed snapshots backpressure only the 500-event tail (8031.303541ms)
+✔ schema2 migration opens a real e1a0092 fixture with verified backup, unchanged events/receipts/history and duplicate identity (1022.675916ms)
+✔ I-P01 warm snapshot admission detects changed bytes and external root metadata; reads verify and recover pinned state (2458.673708ms)
+✔ SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed session/capabilities (381.783042ms)
+✔ SEC01: hostile hosts, origins, duplicate and forwarded headers do not consume pairing (372.740667ms)
+✔ SEC02: missing-Origin reads require both same-origin metadata and LP-1 marker; no navigation bypass (367.154083ms)
+✔ SEC03: one-use pairing is atomic and expires at precisely five minutes (347.198709ms)
+✔ SEC03: rotation, revoke and concurrent pending mutations invalidate old credentials (362.731208ms)
+✔ SEC03: exact idle and absolute expiry; valid reads slide idle but renewal cannot extend twelve hours (488.039333ms)
+✔ LP-1: strict bounded UTF-8 JSON and exact route envelopes reject before pairing effects (371.32675ms)
+✔ session boundary: implemented routes stay authenticated, unfinished routes deny access, and keys never reach responses (369.32175ms)
+✔ SEC06: real private root/file permissions, symlink and insecure-root rejection (691.059041ms)
+✔ SEC03/06: root replacement invalidates the running boundary without modifying user data (358.358ms)
+✔ SEC06: filesystem-equivalent static/private roots and either ancestor relationship are rejected (355.697625ms)
+ℹ Host supports case aliases.
+✔ SEC03: actual killed-process restart rejects old cookie, CSRF and unused pairing; leaves root data intact (644.593292ms)
+✔ SEC03/05: trusted static build and synchronous fragment-removal contract before shell resources (318.620458ms)
+✔ Launcher: private fragment goes only to browser callback; executable launch records an OS-selected origin (665.289041ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31202.546917
