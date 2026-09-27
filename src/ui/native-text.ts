@@ -95,15 +95,19 @@ export class NativeTextEditing {
   async begin(trigger:HTMLElement,layer?:ImageLayer){
     if(this.session){this.control.focus();return;}
     const d=this.editor.view.document;if(!d||!this.editor.view.ready)return;
-    const epoch=++this.epoch;this.opener=trigger;this.message='Preparing text editor…';this.changed();
+    const epoch=++this.epoch,focus=this.focusEpoch,sessionId=this.editor.sessionId;this.opener=trigger;this.message='Preparing text editor…';this.changed();
     let source:TextSource|undefined,text='',fonts:FontVersion[];
     if(layer){if(layer.kind!=='text')return;const path='/api/v1/documents/'+d.id+'/text?layerId='+layer.id+'&revision='+d.revision,value=await this.editor.json<{source:TextSource;layerVersion:string}>(path);source=value.source;text=await this.readText(path,source.text.textUtf8);fonts=source.text.fonts;}
     else fonts=[await this.library.bundled(fontChoices[0].id)];
-    if(epoch!==this.epoch||this.editor.view.document?.id!==d.id||this.editor.view.document?.revision!==d.revision)return;
+    if(epoch!==this.epoch||this.editor.sessionId!==sessionId||!this.editor.view.ready||this.editor.view.document?.id!==d.id||this.editor.view.document?.revision!==d.revision)return;
     this.session={id:this.editor.sessionId,document:d,layerId:layer?.id??crypto.randomUUID(),layerVersion:layer?.version??'0',name:layer?.name??'Text',draftId:crypto.randomUUID(),original:source,locked:!!layer?.locked,text,fonts,style:source?.text.style??{primaryFont:fonts[0].bytes.hash,explicitFallbacks:[],sizePx:32,lineHeightMultiplier:1.2,fill:[40,40,40,255],align:'start',direction:'auto'},frame:source?.text.frame??{width:Math.min(d.width,360),height:Math.min(d.height,180)},...layer?{}:{placement:{x:0,y:0}}};
     this.fontId=fontChoices.find(f=>'sha256:'+f.sha256===fonts[0].bytes.hash)?.id??fonts[0].id;
     this.model.setValue(text);this.bridge.sync();this.presentation='anchored';this.revision++;this.error='';this.message=layer?.locked?'Unlock to edit. Text remains selectable and copyable.':'Text draft. Preview and Apply explicitly; typing never generates.';
-    void this.checkFonts(this.session);this.changed();await this.host.updateComplete;if(epoch===this.epoch)this.control.focus({preventScroll:true});
+    const s=this.session,revision=this.revision,parent=this.control.parentNode;
+    void this.checkFonts(s);this.changed();await this.host.updateComplete;
+    // Opening may await fonts or retained text. Later input/focus intent owns the
+    // destination even when this session still legitimately finishes opening.
+    if(this.owns(s,epoch,revision)&&this.focusEpoch===focus&&this.control.isConnected&&this.control.parentNode===parent)this.control.focus({preventScroll:true});
   }
   async sync(){
     if(this.session){if(this.stale){this.pendingSwitch=undefined;this.pendingAction=undefined;this.renderer?.cancel();this.preparation?.cancel();}return;}
