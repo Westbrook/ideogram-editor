@@ -1,3 +1,5 @@
+import {parseControlJSON} from '../../src/protocol/json.js';
+import {maskDraftValue,maskBindings} from '../../src/raster/mask.js';
 import {textDraft,draftRefs} from '../../src/protocol/text.js';
 import { UnsupportedText, bundledFont, validateSource, dependencies } from '../text/validation.js';
 import type { Texts } from './text.js';
@@ -80,7 +82,7 @@ export class Portables {
     const all=JSON.parse(String(row.json)),drafts=all.drafts.filter((x:any)=>x.documentId===d.id);if(all.preferences.documentId!==d.id&&!drafts.length)continue;
     const sessionId='ui_'+hashBytes(canonical([row.client_id,row.session_id])).slice(7),v={sessionId,uiSeq:all.uiSeq,preferences:all.preferences.documentId===d.id?all.preferences:null,drafts,reconciledLayerIds:all.preferences.documentId===d.id?all.reconciledLayerIds:[]};validateUI(v,d.id);addEntity('draft',sessionId,v);uiHash.update(canonical(v));for(const draft of drafts){
      const owner='ui:'+row.client_id+':'+row.session_id+':'+draft.id+':'+draft.generation,roots=this.db.prepare('SELECT hash,media_type FROM roots WHERE owner=?').all(owner),asset=this.assets.asset(draft.assetId);
-     if(!asset||!roots.some(root=>root.hash===asset.blob.hash&&root.media_type===asset.blob.mediaType))throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:draft.id,state:'required-current-draft-ownership-unavailable'});queue(draft.assetId);if(draft.kind==='text'){const text=json(this.objects.verify(asset.blob,true)!);textDraft(text);for(const ref of draftRefs(text))addRef(out,ref);text.fonts.forEach(font);}
+     if(!asset||!roots.some(root=>root.hash===asset.blob.hash&&root.media_type===asset.blob.mediaType))throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:draft.id,state:'required-current-draft-ownership-unavailable'});queue(draft.assetId);if(draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(asset.blob,true)!);maskDraftValue(value);for(const id of maskBindings(value.plan,draft.maskBindings))queue(id);}if(draft.kind==='text'){const text=json(this.objects.verify(asset.blob,true)!);textDraft(text);for(const ref of draftRefs(text))addRef(out,ref);text.fonts.forEach(font);}
     }
    }
    for(const r of this.db.prepare("SELECT e.json FROM events_v2 e JOIN commands c ON c.id=e.command_id WHERE (json_extract(c.canonical,'$.command.documentId')=? AND json_extract(c.canonical,'$.command.body.type')!='SaveCopy') OR json_extract(e.json,'$.documentId')=? ORDER BY length(e.seq),e.seq").iterate(d.id,d.id)){
@@ -181,7 +183,7 @@ export class Portables {
       let supplied=false;for(const row of db.prepare('SELECT json FROM transactions WHERE archive=? ORDER BY length(first_seq),first_seq').iterate(queued.hash)){const record=JSON.parse(String(row.json));addTransaction(loaded.db,{...record,sourceArchive:null});supplied=true;}
       if(!supplied){if(!allowOriginalJournal)throw new StoreError('TRANSACTION_EVIDENCE_UNAVAILABLE');captureTransactions(loaded.db,this.db);}
       await validateTransactions(loaded.db,loaded.manifest.capturedHighWater,check);
-      const document=await validateClosure(loaded.db,loaded.read,check);if(document.id!==loaded.manifest.sourceNamespace)invalid();
+      const document=await validateClosure(loaded.db,loaded.read,check,loaded.manifest.formatVersion>=4);if(document.id!==loaded.manifest.sourceNamespace)invalid();
      }else if(loaded.manifest.unsupported||!loaded.manifest.complete)throw new StoreError('TRANSACTION_EVIDENCE_UNAVAILABLE');
      for(const row of loaded.db.prepare('SELECT json FROM transactions ORDER BY archive,length(first_seq),first_seq').iterate()){const record=JSON.parse(String(row.json));merge({...record,sourceArchive:record.sourceArchive??String(queued.hash)});}
      // Every supplied bound must describe the exact retained ancestor, including
@@ -198,7 +200,7 @@ export class Portables {
   const db=spool(join(directory,'index.sqlite')),zip=new ZipIndex(path,db);
   try{db.exec('BEGIN IMMEDIATE');await zip.headers(check);this.barrier('portable-headers-validated');await zip.hashes(check);this.barrier('portable-bytes-validated');const manifest=await decodeRecords(zip,db,check);
    const read=async(ref:BlobRef)=>{if(BigInt(ref.byteLength)>8388608n)throw new StoreError('PAYLOAD_TOO_LARGE');this.texts.guardMetadata(Number(ref.byteLength));const e=zip.entry('objects/'+ref.hash.slice(7));if(e.bytes!==BigInt(ref.byteLength)||e.sha256!==ref.hash.slice(7))invalid();const parts:Buffer[]=[];for await(const b of zip.chunks(e,check))parts.push(Buffer.from(b));return Buffer.concat(parts);};
-   if(!manifest.unsupported){if(!manifest.complete)manifest.unsupported='INCOMPLETE_RECOVERY_COPY';else {try{const document=await validateClosure(db,read,check);if(document.id!==manifest.sourceNamespace)invalid();}catch(e){if(!(e instanceof UnsupportedText))throw e;manifest.unsupported=e.message;}}}
+   if(!manifest.unsupported){if(!manifest.complete)manifest.unsupported='INCOMPLETE_RECOVERY_COPY';else {try{const document=await validateClosure(db,read,check,manifest.formatVersion>=4);if(document.id!==manifest.sourceNamespace)invalid();}catch(e){if(!(e instanceof UnsupportedText))throw e;manifest.unsupported=e.message;}}}
    for(const row of db.prepare("SELECT json FROM entities WHERE kind='asset'").iterate()){const a=JSON.parse(String(row.json));if(a.raster&&a.raster.pipeline!==PIXEL_PIPELINE+'/'+CODEC_ID)manifest.unsupported='UNSUPPORTED_RESOURCE_PROFILE';}
    for(const r of db.prepare('SELECT hash FROM refs').iterate())if(this.db.prepare('SELECT 1 FROM portable_quarantined_hashes WHERE hash=?').get(r.hash))manifest.unsupported='TRANSPORT_PROVENANCE_QUARANTINED';
    if(ancestors&&!manifest.unsupported){try{await this.verifyAncestorTransactions(db,zip,directory,slot,check,false);}catch(e){if(e instanceof StoreError&&e.code==='TRANSACTION_EVIDENCE_UNAVAILABLE')manifest.unsupported='ORIGINAL_TRANSACTION_BOUNDS_UNAVAILABLE_SOURCE_ARCHIVE_RETAINED';else throw e;}}
@@ -222,6 +224,14 @@ export class Portables {
     db.prepare('INSERT INTO decoded_pixels VALUES (?,?)').run(a.id,canonical(result.info));if(a.raster&&(result.info.pixels.hash!==a.raster.pixels.hash||result.info.width!==a.raster.width||result.info.height!==a.raster.height))invalid();
    }
    if(a.raster){const m=json(Buffer.from(await this.readSmall(join(directory,a.raster.manifest.hash.slice(7)))));rasterManifest(m);const fd=openSync(join(directory,m.pixels.hash.slice(7)),constants.O_RDONLY|constants.O_NOFOLLOW);try{for(const t of m.tiles){const h=createHash('sha256'),b=Buffer.alloc(t.width*4);for(let y=0;y<t.height;y++){if(readSync(fd,b,0,b.length,((t.y+y)*m.width+t.x)*4)!==b.length)invalid();h.update(b);}if('sha256:'+h.digest('hex')!==t.hash)invalid();check();await tick();}}finally{closeSync(fd);}}
+  }
+  for(const row of db.prepare("SELECT json FROM entities WHERE kind='asset' AND json_extract(json,'$.raster.role')='mask'").iterate()){
+   const a=JSON.parse(String(row.json)),m=json(Buffer.from(await this.readSmall(join(directory,a.raster.manifest.hash.slice(7)))));
+   if(m.plan.kind!=='authored-mask-v1')invalid();
+   const ids=[...new Set(m.plan.authoring.operations.flatMap((op:any)=>op.kind==='import'?[op.assetId]:[]))];if(canonical(ids)!==canonical(a.raster.sourceAssetIds))invalid();
+   const inputs=ids.map(id=>{const source=JSON.parse(String(db.prepare("SELECT json FROM entities WHERE kind='asset' AND id=?").get(String(id))?.json??'null'));if(!source?.raster||source.raster.role!=='native'||source.qualification!=='canonical-raster'||JSON.parse(String(db.prepare("SELECT json FROM entities WHERE kind='asset' AND id=?").get(source.raster.sourceAssetIds[0])?.json??'null'))?.measuredMediaType!=='image/png')invalid();return {id:String(id),info:source.raster,path:join(directory,source.raster.pixels.hash.slice(7))};});
+   const work=join(directory,'mask-verify-'+randomUUID());privateDirectory(work);const computed=await this.rasters.validateMaskPortable(m.plan.authoring,inputs,work,slot,check),p=computed.manifest.plan as any;
+   if(canonical(p.hard)!==canonical(m.plan.hard)||canonical(p.effective)!==canonical(m.plan.effective)||canonical(p.statistics)!==canonical(m.plan.statistics)||computed.info.pixels.hash!==a.raster.pixels.hash)invalid();
   }
   for(const row of db.prepare('SELECT json FROM text_sources ORDER BY hash').iterate()){await this.texts.verify(JSON.parse(String(row.json)),ref=>join(directory,ref.hash.slice(7)),check);}
   for(const row of db.prepare("SELECT json FROM entities WHERE kind='asset'").iterate()){const a=JSON.parse(String(row.json));if(a.raster?.role==='native'){
@@ -300,7 +310,7 @@ export class Portables {
   // bytes, pixels, prompts and prior manifests stay separately rooted verbatim.
   for(;;){let progress=0,remaining=0;for(const row of db.prepare("SELECT id,json FROM entities WHERE kind='asset' ORDER BY id").iterate()){
    if(db.prepare("SELECT 1 FROM mapped WHERE kind='asset' AND id=?").get(map('asset',String(row.id))!))continue;remaining++;const a=JSON.parse(String(row.json));if(a.raster&&a.raster.sourceAssetIds.some((id:string)=>!db.prepare("SELECT 1 FROM mapped WHERE kind='asset' AND id=?").get(map('asset',id)!)))continue;
-   if(a.raster){const m=await read(a.raster.manifest);m.dependencies=m.dependencies.map((r:BlobRef)=>{const mapped=db.prepare('SELECT json FROM refmap WHERE hash=?').get(r.hash);return mapped?JSON.parse(String(mapped.json)):r;});if(m.plan.sourceAssetId)m.plan.sourceAssetId=map('asset',m.plan.sourceAssetId);if(m.plan.layers)m.plan.layers=m.plan.layers.map((l:any)=>({...l,assetId:map('asset',l.assetId),mask:l.mask?{...l.mask,assetId:map('asset',l.mask.assetId)}:null}));const ref=metadata(m);db.prepare('INSERT OR IGNORE INTO refmap VALUES (?,?)').run(a.raster.manifest.hash,canonical(ref));a.dependencies=a.dependencies.map((r:BlobRef)=>r.hash===a.raster.manifest.hash?ref:r);a.raster={...a.raster,manifest:ref,sourceAssetIds:a.raster.sourceAssetIds.map((id:string)=>map('asset',id))};}
+   if(a.raster){const m=await read(a.raster.manifest);m.dependencies=m.dependencies.map((r:BlobRef)=>{const mapped=db.prepare('SELECT json FROM refmap WHERE hash=?').get(r.hash);return mapped?JSON.parse(String(mapped.json)):r;});if(m.plan.kind==='authored-mask-v1')m.plan.authoring.operations=m.plan.authoring.operations.map((op:any)=>op.kind==='import'?{...op,assetId:map('asset',op.assetId)}:op);if(m.plan.sourceAssetId)m.plan.sourceAssetId=map('asset',m.plan.sourceAssetId);if(m.plan.layers)m.plan.layers=m.plan.layers.map((l:any)=>({...l,assetId:map('asset',l.assetId),mask:l.mask?{...l.mask,assetId:map('asset',l.mask.assetId)}:null}));const ref=metadata(m);db.prepare('INSERT OR IGNORE INTO refmap VALUES (?,?)').run(a.raster.manifest.hash,canonical(ref));a.dependencies=a.dependencies.map((r:BlobRef)=>r.hash===a.raster.manifest.hash?ref:r);a.raster={...a.raster,manifest:ref,sourceAssetIds:a.raster.sourceAssetIds.map((id:string)=>map('asset',id))};}
    a.id=map('asset',a.id);db.prepare('INSERT INTO mapped VALUES (?,?,?)').run('asset',a.id,canonical(a));progress++;check();await tick();
   }if(!remaining)break;if(!progress)invalid();}
   for(const row of db.prepare("SELECT * FROM entities WHERE kind!='asset' ORDER BY kind,id").iterate()){
@@ -312,7 +322,7 @@ export class Portables {
     else{out.forward={before:null,after:await document(v.forward.after)};out.inverse={before:out.forward.after,after:null};}
    }else if(row.kind==='checkpoint')out={...v,id:map('checkpoint',v.id),documentId:map('document',v.documentId),historyHead:map('history',v.historyHead),...(v.image?{image:await version(v.image)}:{})};
    else if(row.kind==='portable-provider')out={...v,attemptId:map('attempt',v.attemptId)};
-   else{out={...v,sessionId:map('ui',v.sessionId),preferences:v.preferences?{...v.preferences,documentId:map('document',v.preferences.documentId),selectedLayerIds:v.preferences.selectedLayerIds.map((id:string)=>map('layer',id))}:null,drafts:v.drafts.map((d:any)=>({...d,id:map('draft',d.id),documentId:map('document',d.documentId),targetLayerId:map('layer',d.targetLayerId),assetId:map('asset',d.assetId)})),reconciledLayerIds:v.reconciledLayerIds.map((id:string)=>map('layer',id))};}
+   else{out={...v,sessionId:map('ui',v.sessionId),preferences:v.preferences?{...v.preferences,documentId:map('document',v.preferences.documentId),selectedLayerIds:v.preferences.selectedLayerIds.map((id:string)=>map('layer',id))}:null,drafts:v.drafts.map((d:any)=>({...d,id:map('draft',d.id),documentId:map('document',d.documentId),targetLayerId:map('layer',d.targetLayerId),assetId:map('asset',d.assetId),...(d.kind==='mask'?{maskBindings:Object.fromEntries(Object.entries(d.maskBindings).map(([key,id])=>[key,map('asset',id as string)]))}:{})})),reconciledLayerIds:v.reconciledLayerIds.map((id:string)=>map('layer',id))};}
    if(row.kind==='portable-provider')providerRecord(out);else if(row.kind!=='draft')entity(String(row.kind),out);db.prepare('INSERT INTO mapped VALUES (?,?,?)').run(row.kind,out.id??out.sessionId??out.attemptId,canonical(out));check();await tick();
   }
  }

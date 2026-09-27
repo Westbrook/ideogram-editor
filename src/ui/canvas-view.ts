@@ -16,7 +16,8 @@ export class CanvasView {
     if(generation!==this.generation){bitmap.close();return;}
     this.image?.close();this.image=bitmap;this.asset=asset;this.width=width;this.height=height;
   }
-  draw(zoom:number,x:number,y:number){
+  point(clientX:number,clientY:number,zoom:number,x:number,y:number):[number,number]{const b=this.canvas.getBoundingClientRect();return [(clientX-b.left-b.width/2-x)/zoom+this.width/2,(clientY-b.top-b.height/2-y)/zoom+this.height/2];}
+  draw(zoom:number,x:number,y:number,overlay?:(ctx:CanvasRenderingContext2D)=>void){
     const {width,height}=this.canvas.getBoundingClientRect();
     // Viewport storage, independent from document extent; no canvas-based export.
     const ratio=devicePixelRatio||1;
@@ -33,7 +34,7 @@ export class CanvasView {
     const right=Math.min(Math.ceil(this.width/side),left+Math.ceil(width/zoom/side)+2);
     const bottom=Math.min(Math.ceil(this.height/side),top+Math.ceil(height/zoom/side)+2);
     for(let iy=top;iy<bottom;iy++)for(let ix=left;ix<right;ix++)if((ix+iy)%2)ctx.fillRect(ix*side,iy*side,side,side);
-    if(this.image)ctx.drawImage(this.image,0,0);ctx.restore();
+    if(this.image)ctx.drawImage(this.image,0,0);ctx.restore();overlay?.(ctx);
     this.canvas.dataset.asset=this.asset??'';
   }
   dispose(){this.generation++;this.image?.close();this.image=null;}

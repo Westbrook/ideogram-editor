@@ -383,7 +383,7 @@ export class EditorClient {
     const events=await this.command({type:'ExportDocument',historyHead:this.view.document!.historyHead});const asset=this.asset(events);
     this.patch({download:{path:'/api/v1/assets/'+asset.id+'/content',name:'image.png',hash:asset.blob.hash,bytes:asset.blob.byteLength,kind:'image',documentId:document.id,revision:document.revision,status:'ready'},message:'Exact PNG ready. External destination is unconfirmed.'});
   }
-  changeDraft(id:string,kind:'prompt'|'inspector',text:string,targetLayerId:string|null,composing:boolean) {
+  changeDraft(id:string,kind:'prompt'|'inspector'|'mask',text:string,targetLayerId:string|null,composing:boolean) {
     const document=this.view.document;if(!document||!this.draftOwner)return;
     this.draftOwner.change({id,kind,text,documentId:document.id,targetLayerId,expectedDocumentRevision:document.revision,composing});
     this.patch({drafts:'Unsaved UI draft',save:this.view.save?{...this.view.save,draftDirty:true,bundleOutdated:true}:null});clearTimeout(this.draftTimer);

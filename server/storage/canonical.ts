@@ -1,3 +1,4 @@
+import { validateMaskPlan } from '../../src/raster/mask.js';
 import { isPortableCommand } from '../../src/protocol/portable.js';
 import { isHistoryCommand } from '../../src/protocol/history.js';
 import { historyBody } from '../../src/protocol/history-validation.js';
@@ -69,6 +70,8 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
     keys(body,['type','assetId']); if(!isId(body.assetId))bad();
   } else if (body.type === 'ApproveRaster') {
     keys(body,['type','assetId','reviewId','reviewHash']);if(!isId(body.assetId)||!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash))bad();
+  } else if (body.type === 'PrepareMask') {
+    keys(body,['type','plan']);try{validateMaskPlan(body.plan);}catch{bad();}
   } else if (body.type === 'ComposeRaster') {
     keys(body,['type','width','height','layers']);
     try{extent(body.width as number,body.height as number);}catch{bad();}
@@ -76,7 +79,7 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
     for(const layer of body.layers as unknown[]){keys(layer,['assetId','transform','opacity','mask']);
       if(!isId(layer.assetId)||!Array.isArray(layer.transform)||layer.transform.length!==6||typeof layer.opacity!=='number'||!Number.isFinite(layer.opacity)||layer.opacity<0||layer.opacity>1)bad();
       try{inverse(layer.transform as unknown as Affine);}catch{bad();}
-      if(layer.mask!==null){keys(layer.mask,['assetId','mapping','inverted']);if(!isId(layer.mask.assetId)||layer.mask.mapping!=='document-luminance-alpha-v1'||typeof layer.mask.inverted!=='boolean')bad();}
+      if(layer.mask!==null){keys(layer.mask,['assetId','mapping','inverted']);if(!isId(layer.mask.assetId)||!['document-luminance-alpha-v1','document-r16-v1'].includes(String(layer.mask.mapping))||typeof layer.mask.inverted!=='boolean')bad();}
     }
   } else throw new StoreError('UNSUPPORTED_COMMAND');
   return value as unknown as CommandRequest;

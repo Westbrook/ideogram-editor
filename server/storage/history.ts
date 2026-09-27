@@ -125,7 +125,7 @@ export class Histories {
       }
       if(b.type!=='DuplicateLayer'&&b.type!=='DeleteLayer')layer.version=String(BigInt(layer.version)+1n);
     }else if(b.type==='ImportAsset'){
-      const a=this.assets.asset(b.assetId);if(!a?.raster||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.availability!=='available')throw new AssetRejection('INCOMPATIBLE','APPROVED_RASTER_REQUIRED');
+      const a=this.assets.asset(b.assetId);if(!a?.raster||a.raster.role==='mask'||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.availability!=='available')throw new AssetRejection('INCOMPATIBLE','APPROVED_RASTER_REQUIRED');
       if(this.usedLayer(d.id,b.layerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');
       state.layers.push({id:b.layerId,version:'1',kind:'image',name:b.name,assetId:b.assetId,layerToDocument:[1,0,0,1,0,0],opacity:1,visible:true,locked:false,blend:'normal',mask:null});
     }else if(b.type==='MoveLayers'){
@@ -141,8 +141,9 @@ export class Histories {
       for(const l of state.layers)if(dx||dy){const [a,bb,c,dd,e,f]=l.layerToDocument;l.layerToDocument=[a,bb,c,dd,e+dx,f+dy];l.version=String(BigInt(l.version)+1n);}
     }else throw new StoreError('UNSUPPORTED_COMMAND');
     if(state.layers.length>100)throw new AssetRejection('CAPACITY','DOCUMENT_LAYER_LIMIT');
+    if(state.layers.some(l=>l.mask?.mapping==='document-r16-v1'))state.schemaVersion=3;
     try{imageState(state);}catch{throw new AssetRejection('INVALID_INPUT','INVALID_IMAGE_STATE');}
-    for(const l of state.layers)if(l.mask){const a=this.assets.asset(l.mask.assetId);if(!a?.raster||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.raster.width!==state.width||a.raster.height!==state.height)throw new AssetRejection('INCOMPATIBLE','MASK_MAPPING_REVIEW_REQUIRED');}
+    for(const l of state.layers)if(l.mask){const a=this.assets.asset(l.mask.assetId);if(!a?.raster||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.raster.width!==state.width||a.raster.height!==state.height||(l.mask.mapping==='document-r16-v1')!==(a.raster.role==='mask'))throw new AssetRejection('INCOMPATIBLE','MASK_MAPPING_REVIEW_REQUIRED');}
     return state;
   }
   private usedLayer(documentId:string,id:string):boolean {
@@ -246,7 +247,7 @@ export class Histories {
           if('candidate'in b){
             textCandidate=await this.texts.candidate(c,document,this.authority(id),protect,()=>{check();this.assertCommand(c,this.document(c.documentId!));this.authority(id);});const source=await metadata(textCandidate.source);
             const prepared=await this.rasters.prepareDocument({type:'RetainText',source,pixels:textCandidate.source.render.pixels,width:textCandidate.source.render.width,height:textCandidate.source.render.height},randomUUID(),slot,check);proofs.push(...prepared.proofs);textAsset=prepared.asset;facts.push({type:'AssetRegistered',payload:{asset:textAsset}});
-            after=structuredClone(before);after.schemaVersion=2;const old=after.layers.find(l=>l.id===b.layerId);
+            after=structuredClone(before);after.schemaVersion=before.schemaVersion===3?3:2;const old=after.layers.find(l=>l.id===b.layerId);
             if(b.type==='CreateTextLayer'){if(this.usedLayer(document.id,b.layerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');after.layers.push({id:b.layerId,version:'1',kind:'text',source,name:b.name,assetId:textAsset.id,layerToDocument:[1,0,0,1,0,0],opacity:1,visible:true,locked:false,blend:'normal',mask:null});}
             else{if(!old||old.kind!=='text'||old.version!==b.layerVersion)throw new AssetRejection('STALE_REVISION','TEXT_LAYER_CHANGED');if(old.locked)throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');const prior=this.texts.source(old.source);if(b.type==='CommitTextEdit'&&canonical(prior.text.fonts)!==canonical(textCandidate.source.text.fonts))throw new AssetRejection('INCOMPATIBLE','REVIEWED_FONT_REPLACEMENT_REQUIRED');old.assetId=textAsset.id;old.source=source;old.version=String(BigInt(old.version)+1n);}
           }else if(b.type==='RasterizeTextDerivative'){

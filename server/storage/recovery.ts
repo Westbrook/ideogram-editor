@@ -34,7 +34,7 @@ export class RecoveryStore {
   }
   private *snapshotRows(id: string, seq: string, db = this.db): Generator<Buffer> {
     const count = db.prepare('SELECT (SELECT count(*) FROM assets)+(SELECT count(*) FROM documents)+(SELECT count(*) FROM history)+(SELECT count(*) FROM checkpoints) AS n').get()!.n;
-    yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: 4, entityCount: String(count) }) + '\n');
+    yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: 5, entityCount: String(count) }) + '\n');
     for (const entity of this.entities(db)) {
       // Current narrow projections are individually bounded by the event budget.
       // The wire remains part-based so consumers do not depend on that bound.
@@ -180,7 +180,7 @@ export class RecoveryStore {
     let rows = 0n; let entities = 0n; let expected = ''; let key = ''; let previousKey = ''; let part = 0; let parts = 0; let text = ''; let version = '';
     for (const row of this.lines(item.content.blob)) {
       if (rows++ === 0n) {
-        if (row.kind !== 'header' || row.snapshotId !== item.id || row.snapshotSeq !== item.seq || ![2,3,4].includes(row.projectionSchema) || !isSeq(row.entityCount)) throw new StoreError('CORRUPT_STORE');
+        if (row.kind !== 'header' || row.snapshotId !== item.id || row.snapshotSeq !== item.seq || ![2,3,4,5].includes(row.projectionSchema) || !isSeq(row.entityCount)) throw new StoreError('CORRUPT_STORE');
         expected = row.entityCount; continue;
       }
       if (row.kind !== 'projection-part' || !['asset','document','history','checkpoint'].includes(row.entityType) || !isId(row.entityId) || !isSeq(row.entityVersion) ||
@@ -259,7 +259,7 @@ export class RecoveryStore {
     const count=this.db.prepare("SELECT count(*) n FROM portable_rows WHERE namespace=? AND kind IN ('asset','checkpoint','document','history')").get(namespace)!.n;
     const db=this.db;
     const rows=function*(){
-      yield Buffer.from(canonical({kind:'header',namespaceId:namespace,namespaceHash:event.payload.namespaceHash,eventId,workspaceSeq:event.workspaceSeq,projectionSchema:4,entityCount:String(count)})+'\n');
+      yield Buffer.from(canonical({kind:'header',namespaceId:namespace,namespaceHash:event.payload.namespaceHash,eventId,workspaceSeq:event.workspaceSeq,projectionSchema:5,entityCount:String(count)})+'\n');
       // These are the shared domain projection families. Client-owned UI and
       // inert provider provenance retain their separate access/ownership paths.
       for(const row of db.prepare("SELECT kind,id,json FROM portable_rows WHERE namespace=? AND kind IN ('asset','checkpoint','document','history') ORDER BY kind,id").iterate(namespace)){
@@ -298,7 +298,7 @@ export class RecoveryStore {
     const text=String(row.json);let value;
     try{value=JSON.parse(text);validateEntity('document',value);if(value.id!==id||canonical(value)!==text)throw Error();}
     catch{throw new StoreError('CORRUPT_STORE');}
-    const common={protocolVersion:1 as const,entityVersion:value.revision as string,projectionSchema:4,highWater:this.highWater()};
+    const common={protocolVersion:1 as const,entityVersion:value.revision as string,projectionSchema:5,highWater:this.highWater()};
     const inline={...common,projection:{kind:'inline' as const,value}};
     if(Buffer.byteLength(canonical(inline))<=65536)return inline;
     const length=String(Buffer.byteLength(text));

@@ -14,7 +14,9 @@ const priorBytes=readFileSync(new URL('../../../../src/text/retained-profiles/c1
 const prior=JSON.parse(priorBytes.toString());
 const rejectedBytes=readFileSync(new URL('../../../../src/text/retained-profiles/b89503d3.json',import.meta.url));
 const rejected=JSON.parse(rejectedBytes.toString());
-const retainedProfiles=[{id:rejected.id,manifest:{hash:hashBytes(rejectedBytes),byteLength:String(rejectedBytes.length),mediaType:'application/json'}},{id:profile.id,manifest:profileRef},{id:prior.id,manifest:{hash:hashBytes(priorBytes),byteLength:String(priorBytes.length),mediaType:'application/json'}}];
+const maskPriorBytes=readFileSync(new URL('../../../../src/text/retained-profiles/6e8a481e.json',import.meta.url));
+const maskPrior=JSON.parse(maskPriorBytes.toString());
+const retainedProfiles=[{id:maskPrior.id,manifest:{hash:hashBytes(maskPriorBytes),byteLength:String(maskPriorBytes.length),mediaType:'application/json'}},{id:rejected.id,manifest:{hash:hashBytes(rejectedBytes),byteLength:String(rejectedBytes.length),mediaType:'application/json'}},{id:profile.id,manifest:profileRef},{id:prior.id,manifest:{hash:hashBytes(priorBytes),byteLength:String(priorBytes.length),mediaType:'application/json'}}];
 export const retainedProfile=(p:any)=>retainedProfiles.some(known=>p.schemaVersion===1&&p.id===known.id&&canonical(p.manifest)===canonical(known.manifest));
 export function identity(value:object){return hashBytes(canonical(value));}
 export function assertIdentity(value:{id:string}){const {id,...body}=value;ok(id===identity(body),'Immutable text identity mismatch');}

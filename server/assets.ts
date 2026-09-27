@@ -14,6 +14,8 @@ export class AssetRoutes {
   match(path:string):AssetRoute|null {
     if(path==='/api/v1/assets/staging')return {allow:['POST'],kind:'asset-create',query:[]};
     if(path==='/api/v1/assets/staging/recovery')return {allow:['GET'],kind:'asset-inventory',query:['cursor']};
+    const sample=/^\/api\/v1\/assets\/([^/]+)\/sample$/.exec(path);
+    if(sample){if(!isId(sample[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-sample',id:sample[1],query:['x','y']};}
     let raster=/^\/api\/v1\/assets\/raster-reviews\/([^/]+)$/.exec(path);
     if(raster){if(!isId(raster[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-raster-review',id:raster[1],query:[]};}
     raster=/^\/api\/v1\/assets\/([^/]+)\/raster$/.exec(path);
@@ -32,6 +34,7 @@ export class AssetRoutes {
     else if(route.kind==='asset-inventory'){const cursor=params.get('cursor');if(cursor!==null&&!isId(cursor))throw new ProtocolError('MALFORMED_REQUEST');const result=await this.writer.assetInventory(cursor,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-review'){const result=await this.writer.assetReview(id,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-raster-review'){const result=await this.writer.rasterReview(id,auth());authenticate();sendJSON(res,200,result);}
+    else if(route.kind==='asset-sample'){const x=params.get('x'),y=params.get('y');if(x===null||y===null||!isSeq(x)||!isSeq(y))throw new ProtocolError('MALFORMED_REQUEST');const result=await this.writer.rasterSample(id,Number(x),Number(y));authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-raster-manifest'){const result=await this.writer.rasterManifest(id);authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-stage'&&req.method==='GET'){const result=await this.writer.assetGet(id,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-stage'){

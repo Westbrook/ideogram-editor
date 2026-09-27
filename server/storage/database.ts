@@ -18,7 +18,7 @@ import type { AssetFact } from '../../src/protocol/assets.js';
 import { Histories } from './history.js';
 import type { HistoryCommit } from './history.js';
 import { UIStore } from './ui.js';
-import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema, maskSchema } from './schema.js';
 import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
@@ -72,7 +72,7 @@ export class StoreDatabase {
     try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
     finally { reader.close(); }
     // Unknown future roots are inspected with a read-only connection only.
-    if (![0,1,2,3,4,5,6,7,8,9].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+    if (![0,1,2,3,4,5,6,7,8,9,10].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
       kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
     });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
@@ -94,6 +94,7 @@ export class StoreDatabase {
       portableSchema(this.db, root, barrier, options.quotaBytes,version===0);
       portableTransactionSchema(this.db, root, barrier, options.quotaBytes,version===0);
       textSchema(this.db, root, barrier, options.quotaBytes,version===0);
+      maskSchema(this.db, root, barrier, options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.

@@ -8,8 +8,8 @@ import {startLocalServer} from '../../dist/local/server/http.js';
 import {pair,call,cookieFrom,readHeaders,mutationHeaders} from '../session/helpers.mjs';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 export const priorCommit='dcd5f11dbd57cd7ed00c8ddf410857ce4700440e';
-export async function priorWriter(t){
- const directory=await rootFor(t);execFileSync('git',['archive','--output='+join(directory,'source.tar'),priorCommit,'server','src','tests','tooling','tsconfig.server.json']);execFileSync('tar',['-xf',join(directory,'source.tar'),'-C',directory]);await symlink(resolve('node_modules'),join(directory,'node_modules'));await writeFile(join(directory,'package.json'),'{"type":"module"}');execFileSync(resolve('node_modules/.bin/tsc'),['-p',join(directory,'tsconfig.server.json')]);
+export async function priorWriter(t,commit=priorCommit){
+ const directory=await rootFor(t);execFileSync('git',['archive','--output='+join(directory,'source.tar'),commit,'server','src','tests','tooling','tsconfig.server.json']);execFileSync('tar',['-xf',join(directory,'source.tar'),'-C',directory]);await symlink(resolve('node_modules'),join(directory,'node_modules'));await writeFile(join(directory,'package.json'),'{"type":"module"}');execFileSync(resolve('node_modules/.bin/tsc'),['-p',join(directory,'tsconfig.server.json')]);
  const load=path=>import(pathToFileURL(join(directory,path)).href);
  const [portable,raster,store,writer,archiveTools]=await Promise.all([load('tests/portable/helpers.mjs'),load('tests/raster/helpers.mjs'),load('tests/store/helpers.mjs'),load('dist/local/server/storage/writer.js'),load('tests/portable/archive-fixture.mjs')]);return {directory,...portable,...{importRaster:raster.importRaster,childFor:store.childFor,openWriter:writer.openWriter,archive:archiveTools}};
 }

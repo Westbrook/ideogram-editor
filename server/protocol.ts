@@ -127,7 +127,7 @@ export class ProtocolRoutes {
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
       lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
-        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 4, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
+        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 5, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
       if (captured.snapshot && BigInt(after) < BigInt(captured.snapshot.seq)) {
@@ -180,7 +180,7 @@ export class ProtocolRoutes {
     const lease: Lease = { clientId: session.clientId, sessionHash: session.cookieHash,
       expires, absolute: session.expires, start, snapshot: null, released: false,
       context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch,
-        projectionSchema: 4, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
+        projectionSchema: 5, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
     this.leases.set(lease.context.recoveryId, lease);
     try {
       const page = await this.page(start, lease.context.recoveryId, session);
@@ -207,7 +207,7 @@ export class ProtocolRoutes {
         if (previous && previous.command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
         if(isPortableCommand(command.body.type))await this.writer.portableCommand(bytes,this.assets.auth(current));
         else if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));
-        else if(['PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
+        else if(['PrepareMask','PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
         else if(isHistoryCommand(command.body.type)&&(command.body.type!=='SaveCheckpoint'||(await this.writer.document(command.documentId!))?.image))await this.writer.historyCommand(bytes,this.assets.auth(current));
         else await this.writer.submit(bytes,this.writer.epoch);
         authenticate();const result=await this.commandResult(command.commandId,current);sendCommandResult(response,result);

@@ -68,6 +68,7 @@ port.on('message', async message => {
         case 'uiPersist': result=await store.ui.persist(args.bytes,args.auth);break;
         case 'rasterCommand': result=store.rasters.command(args.bytes,args.auth);break;
         case 'rasterReview': result=store.rasters.review(args.id,args.auth);break;
+        case 'rasterSample': result=await store.rasters.sample(args.id,args.x,args.y);break;
         case 'rasterManifest': result=store.rasters.manifest(args.id);break;
         case 'assetPending': result=store.assets.pending(args.id);break;
         case 'assetProjection': result={asset:store.assets.asset(args.id),highWater:store.recovery.highWater()};break;

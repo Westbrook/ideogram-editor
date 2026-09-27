@@ -1,0 +1,94 @@
+import { extent, q16 } from './core.js';
+import type { Coverage } from './core.js';
+
+export type Point = readonly [number, number];
+export type Combine = 'replace' | 'add' | 'subtract' | 'intersect';
+export type Shape = { kind: 'rectangle' | 'ellipse'; x: number; y: number; width: number; height: number }
+  | { kind: 'polygon'; points: Point[] };
+export type MaskOperation = { kind: 'shape'; shape: Shape; mode: Combine }
+  | { kind: 'stroke'; points: Point[]; size: number; hardness: number; mode: 'add' | 'subtract' }
+  | { kind: 'fill' | 'clear' | 'invert' }
+  | { kind: 'import'; assetId: string; x: number; y: number; width: number; height: number; inverted: boolean };
+export type MaskPlan = { width: number; height: number; feather: number; operations: MaskOperation[] };
+const exact = (v: any, fields: string[]) => { if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).length !== fields.length || fields.some(k => !Object.hasOwn(v,k))) throw Error('MASK_FIELDS'); };
+const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) <= 32768;
+function points(v: any) { if (!Array.isArray(v) || !v.length || v.some(p => !Array.isArray(p) || p.length !== 2 || !p.every(finite))) throw Error('MASK_POINTS'); }
+export function validateShape(v: any): asserts v is Shape {
+  if (v?.kind === 'polygon') { exact(v,['kind','points']); points(v.points); if(v.points.length<3)throw Error('MASK_POLYGON'); }
+  else { exact(v,['kind','x','y','width','height']); if(!['rectangle','ellipse'].includes(v.kind)||![v.x,v.y,v.width,v.height].every(finite)||v.width<=0||v.height<=0)throw Error('MASK_SHAPE'); }
+}
+export function validateMaskPlan(v: any): asserts v is MaskPlan {
+  exact(v,['width','height','feather','operations']); extent(v.width,v.height);
+  if(typeof v.feather!=='number'||!Number.isFinite(v.feather)||v.feather<0||v.feather>64||!Array.isArray(v.operations))throw Error('MASK_PLAN');
+  for(const op of v.operations){
+    if(op.kind==='shape'){exact(op,['kind','shape','mode']);validateShape(op.shape);if(!['replace','add','subtract','intersect'].includes(op.mode))throw Error('MASK_MODE');}
+    else if(op.kind==='stroke'){exact(op,['kind','points','size','hardness','mode']);points(op.points);if(!finite(op.size)||op.size<=0||op.size>8192||typeof op.hardness!=='number'||!Number.isFinite(op.hardness)||op.hardness<0||op.hardness>1||!['add','subtract'].includes(op.mode))throw Error('MASK_STROKE');}
+    else if(op.kind==='import'){exact(op,['kind','assetId','x','y','width','height','inverted']);if(typeof op.assetId!=='string'||! /^[A-Za-z0-9_-]{1,128}$/.test(op.assetId)||![op.x,op.y,op.width,op.height].every(Number.isSafeInteger)||op.width<1||op.height<1||op.width>8192||op.height>8192||typeof op.inverted!=='boolean')throw Error('MASK_IMPORT');}
+    else if(['fill','clear','invert'].includes(op.kind))exact(op,['kind']);else throw Error('MASK_OPERATION');
+  }
+  // Same bounded control/manifest envelope as the writer; never truncate a stroke.
+  if(new TextEncoder().encode(JSON.stringify(v)).length>48000)throw Error('MASK_DRAFT_TOO_LARGE');
+}
+export function shapeContains(s: Shape,x: number,y: number): boolean {
+  if(s.kind==='rectangle')return x>=s.x&&y>=s.y&&x<s.x+s.width&&y<s.y+s.height;
+  if(s.kind==='ellipse')return ((x-s.x-s.width/2)/(s.width/2))**2+((y-s.y-s.height/2)/(s.height/2))**2<=1;
+  if(s.kind!=='polygon')return false;
+  let inside=false;
+  for(let i=0,j=s.points.length-1;i<s.points.length;j=i++){
+    const [xi,yi]=s.points[i],[xj,yj]=s.points[j];
+    if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)inside=!inside;
+  }
+  return inside;
+}
+function distance(p: Point,a: Point,b: Point){const dx=b[0]-a[0],dy=b[1]-a[1],n=dx*dx+dy*dy,t=n?Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/n)):0;return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);}
+export function authoredCoverage(plan: MaskPlan, imported: (op: Extract<MaskOperation,{kind:'import'}>,x:number,y:number)=>number = ()=>0): Coverage {
+  return {width:plan.width,height:plan.height,get(x,y){
+    if(x<0||y<0||x>=plan.width||y>=plan.height)return 0;
+    let value=0;
+    for(const op of plan.operations){
+      if(op.kind==='fill'){value=65535;continue;}if(op.kind==='clear'){value=0;continue;}if(op.kind==='invert'){value=65535-value;continue;}
+      if(op.kind==='import'){value=imported(op,x,y);continue;}
+      let amount=0;
+      if(op.kind==='shape')amount=shapeContains(op.shape,x+.5,y+.5)?65535:0;
+      else if(op.kind==='stroke'){
+        let d=Infinity;for(let i=0;i<op.points.length;i++)d=Math.min(d,distance([x+.5,y+.5],op.points[i],op.points[Math.max(0,i-1)]));
+        const r=op.size/2,inner=r*op.hardness;amount=d>=r?0:d<=inner?65535:q16((r-d)/(r-inner)*65535);
+      }
+      if(op.kind==='shape'||op.kind==='stroke')value=op.mode==='replace'?amount:op.mode==='add'?Math.max(value,amount):op.mode==='subtract'?Math.max(0,value-amount):Math.min(value,amount);
+    }
+    return value;
+  }};
+}
+
+// Separable finite triangle, document-zero extension; intermediate rows stay f64.
+// Only the final two-dimensional sum is quantized to R16.
+export function featherRows(source: Coverage,radius:number) {
+  const reach=Math.max(0,Math.ceil(radius)-1),weights=Array.from({length:2*reach+1},(_,i)=>radius<=1?1:Math.max(0,1-Math.abs(i-reach)/radius));
+  const sum=weights.reduce((a,b)=>a+b,0);for(let i=0;i<weights.length;i++)weights[i]/=sum;
+  const rows=new Map<number,Float64Array>();
+  return (y:number)=>{
+    const out=new Uint16Array(source.width);
+    for(const k of rows.keys())if(k<y-reach)rows.delete(k);
+    for(let j=-reach;j<=reach;j++){
+      const iy=y+j;if(iy<0||iy>=source.height)continue;
+      let row=rows.get(iy);if(!row){row=new Float64Array(source.width);for(let x=0;x<source.width;x++)for(let i=-reach;i<=reach;i++)row[x]+=source.get(x+i,iy)*weights[i+reach];rows.set(iy,row);}
+    }
+    for(let x=0;x<source.width;x++){let n=0;for(let j=-reach;j<=reach;j++)n+=(rows.get(y+j)?.[x]??0)*weights[j+reach];out[x]=q16(n);}
+    return out;
+  };
+}
+
+// Caption bytes stay immutable across portable namespaces. Only the typed
+// source-to-local bindings change; every imported source must have one binding.
+export type MaskDraftValue = {schema:'local-mask-1';layerVersion:string;radius:string;plan:MaskPlan};
+export function maskDraftValue(v:any):asserts v is MaskDraftValue {
+  exact(v,['schema','layerVersion','radius','plan']);
+  if(v.schema!=='local-mask-1'||! /^(0|[1-9][0-9]*)$/.test(v.layerVersion)||typeof v.radius!=='string')throw Error('MASK_DRAFT');
+  validateMaskPlan(v.plan);
+}
+export function maskImports(plan:MaskPlan){return [...new Set(plan.operations.flatMap(op=>op.kind==='import'?[op.assetId]:[]))];}
+export function maskBindings(plan:MaskPlan,bindings:Record<string,string>){
+  const ids=maskImports(plan);
+  if(!bindings||typeof bindings!=='object'||Array.isArray(bindings)||Object.keys(bindings).length!==ids.length||ids.some(id=>!Object.hasOwn(bindings,id)||typeof bindings[id]!=='string'||! /^[A-Za-z0-9_-]{1,128}$/.test(bindings[id])))throw Error('MASK_BINDINGS');
+  return ids.map(id=>bindings[id]);
+}

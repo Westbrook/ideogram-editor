@@ -99,6 +99,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     uiPersist:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<UIStore['persist']>>>('uiPersist',{bytes,auth}),
     rasterCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('rasterCommand',{bytes,auth}),
     rasterReview: (id:string,auth:AssetAuth)=>request<ReturnType<Rasters['review']>>('rasterReview',{id,auth}),
+    rasterSample: (id:string,x:number,y:number)=>request<Awaited<ReturnType<Rasters['sample']>>>('rasterSample',{id,x,y}),
     rasterManifest: (id:string)=>request<ReturnType<Rasters['manifest']>>('rasterManifest',{id}),
     assetPending: (id:string)=>request<ReturnType<Assets['pending']>>('assetPending',{id}),
     assetProjection: (id:string)=>request<{asset:ReturnType<Assets['asset']>;highWater:string}>('assetProjection',{id}),

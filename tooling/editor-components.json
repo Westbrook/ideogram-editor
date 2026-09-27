@@ -1,5 +1,5 @@
 {
-  "scope": "P1b.7 browser integration; exact-source independent review required",
+  "scope": "P1c.3 mask and layer authoring, including touched inherited shell; independent review required",
   "registration": "Public definition exports through createElementScope; no private imports. Dialog/drawer definitions load as one bounded group on first explicit panel action.",
   "surfaces": [
     {
@@ -112,6 +112,47 @@
         "EnButton"
       ],
       "owner": "App-owned stable region nodes move between layout and public drawer default slot. Public modal dismissal/focus; transitions defer during composition and restore native focus/selection after settlement."
+    },
+    {
+      "surface": "Selection, brush, feather, PNG-mask alignment and sampling",
+      "components": [
+        "EnSegmentedControl",
+        "EnNumberField",
+        "EnTextarea",
+        "EnColorField",
+        "EnFileUpload",
+        "EnSwitch",
+        "EnToolbar",
+        "EnStack",
+        "EnButton"
+      ],
+      "owner": "Public mode/field/native editing, settled final-veto adapters. App retains canonical document coordinates, hard/effective R16 draft generations, exact sampled RGBA, and explicit reviewed attachment."
+    },
+    {
+      "surface": "Authoring disclosure and Activity disclosure",
+      "components": [
+        "EnAccordion",
+        "EnAccordionItem"
+      ],
+      "owner": "Public disclosure and focus semantics; canvas tool state chooses authoring visibility."
+    },
+    {
+      "surface": "Status, draft labels, pending recovery and download records",
+      "components": [
+        "EnAlert",
+        "EnBadge",
+        "EnCard",
+        "EnStack"
+      ],
+      "owner": "Persistent public patterns preserve distinct accepted/draft/stale/outdated/unconfirmed messages inside stable operation-status section; no custom status or disclosure control."
+    },
+    {
+      "surface": "Skip and progress-report navigation, available brand icon",
+      "components": [
+        "EnLink",
+        "EnIcon"
+      ],
+      "owner": "Public navigation and decorative icon; trusted build-owned report URL and existing focus target logic retained."
     }
   ],
   "nativeOrAppOwnedExceptions": [
@@ -121,14 +162,14 @@
       "contract": "UX canvas/raster ownership and DS app-owned raster exception; no public En Reve raster editor/compositor. Display pixels are separate from exact retained backend export."
     },
     {
-      "surface": "Canvas clipboard/drop/pan",
+      "surface": "Canvas clipboard/drop, selection/brush/move/sample gestures",
       "element": "Native ClipboardEvent, DragEvent, PointerEvent and keyboard handlers",
-      "contract": "App-owned canvas gestures and clipboard capture from UX; EnFileUpload remains the chooser/drop zone for file selection, but has no public canvas renderer/pan/clipboard integration contract. Canvas native editing targets are excluded."
+      "contract": "No public En Reve raster editor or canonical document-coordinate gesture contract. CanvasView inverts the displayed viewport; move release applies one atomic transform, brush release appends one recoverable operation. Public fields/actions supply numeric alternatives; late veto, Escape and revision fences remain app-owned."
     },
     {
-      "surface": "Page regions, layout, status, skip/report links and review image",
-      "element": "Semantic HTML, CSS grid, status text, anchors and img",
-      "contract": "Application document structure, navigation and prepared raster content; controls inside these regions use the public components above. Trusted report URL is build-owned, never query-provided."
+      "surface": "Document landmarks, two-dimensional layout and exact prepared image",
+      "element": "Semantic HTML headings/regions, CSS grid and img",
+      "contract": "Semantic document structure and 2D viewport geometry are app-owned. Exact prepared image load gates use its actual currentSrc; En Reve has no canonical raster display/load contract. Adjacent statuses use Alert/Badge, records use Card/Stack, disclosure uses Accordion and links use EnLink."
     },
     {
       "surface": "External destination",
@@ -149,7 +190,17 @@
       "surface": "Help supplemental information",
       "element": "Persistent plain text with accessible description association; public EnButton and EnDrawer remain",
       "contract": "Coordinator-approved strict-CSP exception in task292d3ac5. Pinned EnTooltip bind inserts an empty and dynamic anchor stylesheet; its public tooltip/position-controller API offers no nonce or disable-anchor setting. Attempts32/33 show application-triggered style-src-elem violations. No bespoke tooltip, private override, vendor patch or CSP relaxation."
+    },
+    {
+      "surface": "Flat layer reorder",
+      "element": "Adjacent public EnButton Move up/Move down",
+      "contract": "Inspected pinned EnTree reorderable/openMove/en-reorder: public move proposals include inside; no public position filter exists. This document has a flat layer list, so no nesting proposal is offered. One button action dispatches MoveLayers."
+    },
+    {
+      "surface": "Missing tool glyphs",
+      "element": "Decorative SVG in public EnButton prefix slot",
+      "contract": "Pinned public icon catalog lacks move/selection/mask/crop/sample/hand/zoom tool symbols. Existing custom glyphs remain aria-hidden; public button label, focus, disabled and pressed semantics own interaction."
     }
   ],
-  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback."
+  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Existing crop/resize rejects attached mask remapping; explicit detach is required. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01."
 }

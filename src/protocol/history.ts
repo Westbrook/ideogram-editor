@@ -10,7 +10,7 @@ export type LayerProperties = {
   blend: 'normal'; mask: RasterLayer['mask'];
 };
 export type ImageLayer = LayerProperties & ({kind:'image'} | {kind:'text';source:BlobRef});
-export type ImageState = { schemaVersion: 1 | 2; width: number; height: number; layers: ImageLayer[] };
+export type ImageState = { schemaVersion: 1 | 2 | 3; width: number; height: number; layers: ImageLayer[] };
 export type ImageVersion = { state: BlobRef; semanticDigest: string; compositeAssetId: string | null };
 export type HistoryBody = TextBody
   | { type: 'ImportAsset'; assetId: string; layerId: string; name: string; draft: DraftFence | null }
@@ -45,7 +45,7 @@ export type ImageHistoryNode = {
 // Patches describe specific semantic changes; state objects are retained versions,
 // never a public arbitrary-state command or a source of executable work.
 export type ImagePatch = {
-  schemaVersion: 1; stateSchema?: 1 | 2; operation: HistoryBody['type'];
+  schemaVersion: 1; stateSchema?: 1 | 2 | 3; operation: HistoryBody['type'];
   dimensions: { width: number; height: number } | null;
   layers: { id: string; value: ImageLayer | null }[]; order: string[] | null;
 };

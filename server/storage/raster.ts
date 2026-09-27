@@ -16,7 +16,7 @@ import { privateDirectory } from './files.js';
 import { asset as validateAsset, rasterManifest as validateManifest } from '../../src/protocol/validate.js';
 import { parseControlJSON } from '../control-json.js';
 
-export const isRasterCommand=(type:string)=>['PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(type);
+export const isRasterCommand=(type:string)=>['PrepareMask','PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(type);
 type Commit=(bytes:Uint8Array,build:()=>AssetFact,failure?:()=>void)=>Receipt;
 export class Rasters {
   private documentBusy = false;
@@ -36,7 +36,7 @@ export class Rasters {
   private owner(id:string,clientId:string){const row=this.db.prepare("SELECT c.canonical FROM events_v2 e JOIN commands c ON e.command_id=c.id WHERE json_extract(e.json,'$.type')='AssetRegistered' AND json_extract(e.json,'$.payload.asset.id')=?").get(id);
     if(!row||JSON.parse(String(row.canonical)).command.clientId!==clientId)throw new StoreError('OWNER_REQUIRED');}
   pending(id:string){if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const r=this.db.prepare('SELECT * FROM raster_preparations WHERE id=?').get(id);if(!r)return null;
-    try{const request=parseCommand(Buffer.from(String(r.original))),c=request.command;if(c.commandId!==id||canonical(request)!==r.canonical||hashBytes(String(r.canonical))!==r.hash||!['PrepareRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(c.body.type)||!isId(r.operation_id)||!['preparing','waiting-for-resources'].includes(String(r.phase)))throw new Error();
+    try{const request=parseCommand(Buffer.from(String(r.original))),c=request.command;if(c.commandId!==id||canonical(request)!==r.canonical||hashBytes(String(r.canonical))!==r.hash||!['PrepareMask','PrepareRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(c.body.type)||!isId(r.operation_id)||!['preparing','waiting-for-resources'].includes(String(r.phase)))throw new Error();
       return {command:c,hash:String(r.hash),operationId:String(r.operation_id),phase:String(r.phase) as 'preparing'|'waiting-for-resources'};
     }catch{throw new StoreError('CORRUPT_STORE');}}
   review(id:string,auth:AssetAuth):RasterReview{this.check();if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT * FROM raster_reviews WHERE id=?').get(id);if(!row)throw new StoreError('NOT_FOUND');const r=JSON.parse(String(row.json)) as RasterReview;
@@ -45,9 +45,15 @@ export class Rasters {
     const asset=this.assets.asset(id);if(!asset?.raster)throw new StoreError('NOT_FOUND');
     let manifest:RasterManifest;try{const bytes=this.objects.verify(asset.raster.manifest,true)!;const value=parseControlJSON(bytes);validateManifest(value);if(canonical(value)!==Buffer.from(bytes).toString('utf8'))throw new Error();manifest=value as RasterManifest;
       if(manifest.width!==asset.raster.width||manifest.height!==asset.raster.height||manifest.pipeline!==asset.raster.pipeline||canonical(manifest.pixels)!==canonical(asset.raster.pixels)||hashBytes(canonical({pipeline:manifest.pipeline,width:manifest.width,height:manifest.height,tiles:manifest.tiles}))!==asset.raster.pixelIdentity)throw new Error();
-      const plan=manifest.plan as Record<string,unknown>;if(asset.raster.role==='native'&&(plan.kind!=='decoded-native'||canonical(plan.conversion)!==canonical(asset.raster.conversion)||canonical(asset.raster.sourceAssetIds)!==canonical([plan.sourceAssetId])))throw new Error();
+      const plan=manifest.plan as Record<string,unknown>;if((asset.raster.role==='mask')!==(plan.kind==='authored-mask-v1'))throw Error('MASK_ROLE');if(asset.raster.role==='native'&&(plan.kind!=='decoded-native'||canonical(plan.conversion)!==canonical(asset.raster.conversion)||canonical(asset.raster.sourceAssetIds)!==canonical([plan.sourceAssetId])))throw new Error();
       for(const ref of [manifest.pixels,...manifest.dependencies]){const registered=this.db.prepare('SELECT byte_length FROM objects WHERE hash=?').get(ref.hash);if(!registered||registered.byte_length!==ref.byteLength||!this.db.prepare('SELECT hash FROM roots WHERE hash=?').get(ref.hash))throw new Error();}
     }catch(e){if(e instanceof StoreError)throw e;throw new StoreError('CORRUPT_STORE');}return manifest;
+  }
+  async sample(id:string,x:number,y:number){
+    const a=this.asset(id,true),info=a.raster!;
+    if(info.role==='mask'||!Number.isSafeInteger(x)||!Number.isSafeInteger(y)||x<0||y<0||x>=info.width||y>=info.height)throw new StoreError('MALFORMED_REQUEST');
+    const token=await this.objects.prove(info.pixels,()=>this.check());
+    try{this.objects.proven(info.pixels,token);const rgba=[...this.objects.readRange(info.pixels,String((y*info.width+x)*4),4)];this.objects.proven(info.pixels,token);return {assetId:id,pixelIdentity:info.pixelIdentity,x,y,rgba,color:'sRGB' as const};}finally{this.objects.releaseProof(token);}
   }
   private approval(body:Extract<RasterBody,{type:'ApproveRaster'}>,auth:AssetAuth):Asset {
     const a=this.asset(body.assetId);this.owner(a.id,auth.clientId);
@@ -81,7 +87,7 @@ export class Rasters {
         const value={protocolVersion:1 as const,reviewId:randomUUID(),assetId:a.id,manifestHash:a.raster.manifest.hash,pixelIdentity:a.raster.pixelIdentity,targetClientId:auth.clientId,expiresAt:new Date(Math.min(auth.expires,auth.now+1800000)).toISOString(),conversion:a.raster.conversion,previewAssetId:a.id};
         const review={...value,reviewHash:hashBytes(canonical(value))};this.db.prepare('INSERT INTO raster_reviews VALUES (?,?,?,?)').run(review.reviewId,canonical(review),auth.sessionHash,this.epoch);return {type:'RasterReviewPrepared',payload:{reviewId:review.reviewId,reviewHash:review.reviewHash}};
     });
-    if(!['PrepareRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(body.type))throw new StoreError('UNSUPPORTED_COMMAND');
+    if(!['PrepareMask','PrepareRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(body.type))throw new StoreError('UNSUPPORTED_COMMAND');
     if(body.type==='PrepareRaster')this.owner(body.assetId,auth.clientId);
     if(Number(this.db.prepare('SELECT (SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM history_preparations)+(SELECT count(*) FROM portable_preparations) AS n').get()!.n)>=64){this.approvalAuth.delete(c.commandId);throw new StoreError('QUEUE_FULL');}
     this.transaction(()=>{if(this.db.prepare('SELECT hash FROM asset_preparations WHERE id=?').get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');this.db.prepare('INSERT INTO raster_preparations VALUES (?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,randomUUID(),'preparing');this.barrier(body.type==='ApproveRaster'?'raster-approval-preparation-before-commit':'raster-preparation-before-commit');});
@@ -137,10 +143,11 @@ export class Rasters {
         const a=this.asset(body.assetId);if(a.qualification!=='pending-decoder'||!['image','mask'].includes(a.purpose))throw new AssetRejection('INCOMPATIBLE','RASTER_ORIGINAL_REQUIRED');
         await protect(a.blob);job={type:'decode',directory,path:this.objects.path(a.blob),mediaType:a.measuredMediaType,original:a.blob,sourceAssetId:a.id};
       }else{
-        const ids=body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'?[body.assetId]:[];
+        const ids=body.type==='PrepareMask'?[...new Set(body.plan.operations.flatMap(op=>op.kind==='import'?[op.assetId]:[]))]:body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'?[body.assetId]:[];
         const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
-        for(const assetId of ids){const a=this.asset(assetId,true);const info=a.raster!;await protect(info.pixels);await protect(info.manifest);inputs.push({id:assetId,info,path:this.objects.path(info.pixels)});dependencies.push(info.manifest);}
-        if(body.type==='ComposeRaster')job={type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies};
+        for(const assetId of ids){const a=this.asset(assetId,true);const info=a.raster!;await protect(info.pixels);await protect(info.manifest);const coverage=info.role==='mask'?(this.manifest(assetId).plan as {effective:BlobRef}).effective:undefined;if(coverage)await protect(coverage);inputs.push({id:assetId,info,path:this.objects.path(info.pixels),...(coverage?{coveragePath:this.objects.path(coverage)}:{})});dependencies.push(info.manifest);}
+        if(body.type==='PrepareMask'){for(const input of inputs)if(input.info.role!=='native'||this.assets.asset(input.info.sourceAssetIds[0])?.measuredMediaType!=='image/png')throw new AssetRejection('INCOMPATIBLE','MASK_IMPORT_PNG_REQUIRED');job={type:'mask',directory,plan:body.plan,inputs,dependencies};}
+        else if(body.type==='ComposeRaster')job={type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies};
         else if(body.type==='ExportRaster')job={type:'export',directory,input:inputs[0],dependencies};else throw new StoreError('UNSUPPORTED_COMMAND');
       }
       //512 bounded proof records cover100 distinct image+mask pairs and outputs.
@@ -189,6 +196,11 @@ export class Rasters {
       worker.on('exit',()=>{clearInterval(timer);this.worker=undefined;if(error)reject(error);else if(result){result.metrics.supervisorPeakRSS=Math.max(peakRSS,process.memoryUsage().rss);result.metrics.admissionBaselineRSS=planBaselineRSS;result.metrics.combinedReservedBytes=planBaselineRSS+result.plan.cpuBytes;resolve(result);}else reject(new StoreError('STORAGE_FAILURE'));});
     });
   }
+  async validateMaskPortable(plan:import('../../src/raster/mask.js').MaskPlan,inputs:InputRaster[],directory:string,slot:string,check:()=>void){
+    if(!this.documentAvailable)throw new StoreError('QUEUE_FULL');this.documentBusy=true;
+    try{return await this.compute({type:'mask',plan,inputs,directory,dependencies:inputs.map(i=>i.info.manifest)},slot,check);}
+    finally{this.documentBusy=false;this.reservedCPU=0;}
+  }
   async validatePortable(path:string,mediaType:string,original:BlobRef,directory:string,slot:string,check:()=>void){
     if(!this.documentAvailable)throw new StoreError('QUEUE_FULL');this.documentBusy=true;
     try{return await this.compute({type:'decode',path,mediaType,original,sourceAssetId:'portable-validation',directory},slot,check);}
@@ -206,7 +218,8 @@ export class Rasters {
       const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
       for(const assetId of ids){const a=preparedInput?.id===assetId?preparedInput:this.asset(assetId,true);const info=a.raster!;
         for(const ref of [info.pixels,info.manifest])if(!proofs.some(p=>p.ref.hash===ref.hash))proofs.push({ref,token:await this.objects.prove(ref,check)});
-        inputs.push({id:assetId,info,path:this.objects.path(info.pixels)});dependencies.push(info.manifest);
+        const coverage=info.role==='mask'?(this.manifest(assetId).plan as {effective:BlobRef}).effective:undefined;if(coverage)proofs.push({ref:coverage,token:await this.objects.prove(coverage,check)});
+        inputs.push({id:assetId,info,path:this.objects.path(info.pixels),...(coverage?{coveragePath:this.objects.path(coverage)}:{})});dependencies.push(info.manifest);
       }
       const directory=join(this.directory,randomUUID());privateDirectory(directory);
       if(body.type==='RetainText')for(const ref of [body.source,body.pixels])proofs.push({ref,token:await this.objects.prove(ref,check)});
