@@ -19,15 +19,16 @@ export function validateCommit(type:HistoryBody['type'],next:CompositionRef,befo
   const l=layers.find(l=>l.id===next.bindings[b.layerId]);if(!l||l.version!==b.lastReviewedLayerVersion||field==='text'&&l.kind!=='text'||canonical(b.lastReviewedValue)!==canonical(field==='text'?l.text:field==='desc'?l.appearance:l.bounds))throw new AssetRejection('STALE_REVISION','LINK_SOURCE_CHANGED');
  }
  const ids=c.elements.map(e=>e.id),oldIds=old?.elements.map(e=>e.id)??[];
+ const target=(b:any,map:Record<string,string>)=>b?.mode==='layer'?map[b.layerId]:null;
  const specialized=['AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding'].includes(type);
  if(specialized){
   if(!old)throw new AssetRejection('INVALID_INPUT','SEMANTIC_BASE_REQUIRED');
   const rest=(v:Composition)=>{const {id,review,elements,...rest}=v;return rest;};
   if(canonical(rest(c))!==canonical(rest(old)))throw new AssetRejection('INVALID_INPUT','SEMANTIC_COMMAND_SCOPE');
-  if(type==='AddSemanticElement'||type==='RemoveSemanticElement')for(const e of c.elements){const prior=old.elements.find(x=>x.id===e.id);if(prior&&canonical(e)!==canonical(prior))throw new AssetRejection('INVALID_INPUT','SEMANTIC_COMMAND_SCOPE');}
+  if(['AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement'].includes(type))for(const e of c.elements){const prior=old.elements.find(x=>x.id===e.id);if(prior&&(canonical(e)!==canonical(prior)||(['text','desc','bounds'] as const).some(field=>target(e[field],next.bindings)!==target(prior[field],before.composition!.bindings))))throw new AssetRejection('INVALID_INPUT','SEMANTIC_COMMAND_SCOPE');}
   if(type==='SetSemanticBinding'||type==='DetachSemanticBinding'){
    if(canonical(ids)!==canonical(oldIds))throw new AssetRejection('INVALID_INPUT','SEMANTIC_COMMAND_SCOPE');let changed=0;
-   for(const [i,e] of c.elements.entries()){const prior=old.elements[i],copy=structuredClone(e);for(const field of ['text','desc','bounds'] as const){const a=prior[field],b=e[field];if(canonical(a)!==canonical(b)){changed++;if(type==='SetSemanticBinding'?b?.mode!=='layer':a?.mode!=='layer'||b?.mode!=='literal'||canonical(a.lastReviewedValue)!==canonical(b.value))throw new AssetRejection('INVALID_INPUT','SEMANTIC_BINDING_MISMATCH');}(copy as any)[field]=a;}if(canonical(copy)!==canonical(prior))throw new AssetRejection('INVALID_INPUT','SEMANTIC_COMMAND_SCOPE');}
+   for(const [i,e] of c.elements.entries()){const prior=old.elements[i],copy=structuredClone(e);for(const field of ['text','desc','bounds'] as const){const a=prior[field],b=e[field];if(canonical(a)!==canonical(b)||target(a,before.composition!.bindings)!==target(b,next.bindings)){changed++;if(type==='SetSemanticBinding'?b?.mode!=='layer':a?.mode!=='layer'||b?.mode!=='literal'||canonical(a.lastReviewedValue)!==canonical(b.value))throw new AssetRejection('INVALID_INPUT','SEMANTIC_BINDING_MISMATCH');}(copy as any)[field]=a;}if(canonical(copy)!==canonical(prior))throw new AssetRejection('INVALID_INPUT','SEMANTIC_COMMAND_SCOPE');}
    if(!changed)throw new AssetRejection('INVALID_INPUT','SEMANTIC_BINDING_MISMATCH');
   }
  }
