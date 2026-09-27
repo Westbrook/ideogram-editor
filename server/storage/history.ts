@@ -1,3 +1,5 @@
+import {maskGrid,retainedMask,r16Mask,translateMask} from '../../src/raster/mapping.js';
+import {maskDraftValue,maskBindings,resolveMaskPlan} from '../../src/raster/mask.js';
 import type { Texts } from './text.js';
 import type { TextCandidate } from '../../src/protocol/text.js';
 import { document as validateDocument, imageEditPreview as validatePreview } from '../../src/protocol/validate.js';
@@ -107,7 +109,21 @@ export class Histories {
     if(c.expectedDocumentRevision!==d.revision)throw new AssetRejection('STALE_REVISION','REVISION_CHANGED',d.revision);
     if('draft' in c.body){let layerId='layerId' in c.body&&c.body.type!=='CreateTextLayer'?c.body.layerId:null;
       if(c.body.type==='ResampleImage'&&c.body.draft){const preview=this.preview(c.body.previewId,this.authority(c.commandId));layerId=JSON.parse(Buffer.from(this.objects.verify(preview.plan,true)!).toString('utf8')).layerId;}
-      this.ui.fence(c.clientId,c.body.draft,d.id,c.expectedDocumentRevision,layerId);
+      const draft=this.ui.fence(c.clientId,c.body.draft,d.id,c.expectedDocumentRevision,layerId);
+      if(draft&&(draft.kind==='mask'||(c.body.type==='SetLayerProperties'&&c.body.properties.mask))){
+        const b=c.body;
+        if(draft.kind!=='mask'||b.type!=='SetLayerProperties'||Object.keys(b.properties).length!==1||!b.properties.mask||b.properties.mask.mapping!=='document-r16-v1'||b.properties.mask.inverted)throw new AssetRejection('INVALID_INPUT','MASK_DRAFT_COMMAND_MISMATCH');
+        const caption=this.assets.asset(draft.assetId),mask=this.assets.asset(b.properties.mask.assetId);
+        if(!caption||caption.qualification!=='opaque-text'||caption.safety!=='safe'||caption.availability!=='available'||!mask||mask.raster?.role!=='mask'||mask.safety!=='safe'||mask.availability!=='available')throw new AssetRejection('MISSING_ASSET','MASK_DRAFT_DEPENDENCY_MISSING');
+        const value=JSON.parse(Buffer.from(this.objects.verify(caption.blob,true)!).toString('utf8'));
+        try{maskDraftValue(value);maskBindings(value.plan,draft.maskBindings!);}catch{throw new AssetRejection('INVALID_INPUT','MASK_DRAFT_INVALID');}
+        const layer=this.state(d.id).layers.find(l=>l.id===b.layerId);
+        if(value.layerVersion!==b.layerVersion||layer?.version!==b.layerVersion)throw new AssetRejection('STALE_REVISION','MASK_DRAFT_LAYER_CHANGED');
+        const plan=resolveMaskPlan(value.plan,draft.maskBindings!);
+        const prepared=this.rasters.manifest(mask.id).plan as {kind:string;authoring:unknown};
+        if(plan.width!==d.width||plan.height!==d.height||!value.radius.trim()||Number(value.radius)!==plan.feather||prepared.kind!==(plan.schemaVersion===2?'authored-mask-v2':'authored-mask-v1')||canonical(prepared.authoring)!==canonical(plan))throw new AssetRejection('INVALID_INPUT','MASK_DRAFT_PLAN_MISMATCH');
+        return draft;
+      }
     }
   }
   private edit(c:Command,d:Document,before:ImageState):ImageState {
@@ -135,15 +151,20 @@ export class Histories {
     }else if(b.type==='CropDocument'||b.type==='ResizeCanvas'){
       const dx=b.type==='CropDocument'?-b.x:b.offsetX,dy=b.type==='CropDocument'?-b.y:b.offsetY;
       if(b.type==='CropDocument'&&(b.x<0||b.y<0||b.x+b.width>d.width||b.y+b.height>d.height))throw new AssetRejection('INVALID_INPUT','CROP_OUTSIDE_DOCUMENT');
-      if(state.layers.some(l=>l.mask))throw new AssetRejection('INCOMPATIBLE','MASK_MAPPING_REVIEW_REQUIRED');
       if((dx||dy)&&state.layers.some(l=>l.locked))throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');
       state.width=b.width;state.height=b.height;
-      for(const l of state.layers)if(dx||dy){const [a,bb,c,dd,e,f]=l.layerToDocument;l.layerToDocument=[a,bb,c,dd,e+dx,f+dy];l.version=String(BigInt(l.version)+1n);}
+      for(const l of state.layers){
+        const changed=!!(dx||dy)||!!l.mask&&!retainedMask(l.mask);
+        if(l.mask)try{l.mask=translateMask(l.mask,before.width,before.height,dx,dy);}catch{throw new AssetRejection('INVALID_INPUT','MASK_ORIGIN_UNSAFE');}
+        if(dx||dy){const [a,bb,c,dd,e,f]=l.layerToDocument;l.layerToDocument=[a,bb,c,dd,e+dx,f+dy];}
+        if(changed)l.version=String(BigInt(l.version)+1n);
+      }
     }else throw new StoreError('UNSUPPORTED_COMMAND');
     if(state.layers.length>100)throw new AssetRejection('CAPACITY','DOCUMENT_LAYER_LIMIT');
-    if(state.layers.some(l=>l.mask?.mapping==='document-r16-v1'))state.schemaVersion=3;
+    if(state.layers.some(l=>l.mask&&retainedMask(l.mask)))state.schemaVersion=4;
+    else if(state.schemaVersion<3&&state.layers.some(l=>l.mask?.mapping==='document-r16-v1'))state.schemaVersion=3;
     try{imageState(state);}catch{throw new AssetRejection('INVALID_INPUT','INVALID_IMAGE_STATE');}
-    for(const l of state.layers)if(l.mask){const a=this.assets.asset(l.mask.assetId);if(!a?.raster||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.raster.width!==state.width||a.raster.height!==state.height||(l.mask.mapping==='document-r16-v1')!==(a.raster.role==='mask'))throw new AssetRejection('INCOMPATIBLE','MASK_MAPPING_REVIEW_REQUIRED');}
+    for(const l of state.layers)if(l.mask){const a=this.assets.asset(l.mask.assetId),g=maskGrid(l.mask,state.width,state.height);if(!a?.raster||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.raster.width!==g.width||a.raster.height!==g.height||r16Mask(l.mask)!==(a.raster.role==='mask'))throw new AssetRejection('INCOMPATIBLE','MASK_MAPPING_REVIEW_REQUIRED');}
     return state;
   }
   private usedLayer(documentId:string,id:string):boolean {
@@ -193,15 +214,17 @@ export class Histories {
     const proofs:Proof[]=[];const check=()=>{this.check();if(this.closing)throw new StoreError('CLOSED');};
     const protect=async(ref:BlobRef)=>{if(!proofs.some(p=>p.ref.hash===ref.hash))proofs.push({ref,token:await this.objects.prove(ref,check)});};
     const metadata=async(value:unknown)=>{const ref=this.objects.putMetadataInSlot(Buffer.from(canonical(value)),slot);await protect(ref);return ref;};
-    const assetIds=new Set<string>();
+    const assetIds=new Set<string>(),assetIdentities=new Map<string,string>();
     const protectAsset=async(id:string):Promise<void>=>{
       if(assetIds.has(id))return;assetIds.add(id);if(assetIds.size>512)throw new StoreError('CAPACITY');
       const a=textAsset?.id===id?textAsset:this.assets.asset(id);if(!a||a.availability!=='available')throw new AssetRejection('MISSING_ASSET','HISTORY_DEPENDENCY_MISSING');
+      if(textAsset?.id!==id)assetIdentities.set(id,canonical(a));
       for(const ref of [a.blob,...a.dependencies])await protect(ref);
       if(a.raster){const m=textAsset?.id===id?JSON.parse(Buffer.from(this.objects.verify(a.raster.manifest,true)!).toString()):this.rasters.manifest(id);for(const ref of m.dependencies)await protect(ref);for(const child of a.raster.sourceAssetIds)await protectAsset(child);}
     };
     try{
-      const d=b.type==='ExportDocument'?JSON.parse(String(this.db.prepare('SELECT frozen FROM history_preparations WHERE id=?').get(id)!.frozen)) as Document|null:this.document(c.documentId!);this.assertCommand(c,d);const document=d!;
+      const d=b.type==='ExportDocument'?JSON.parse(String(this.db.prepare('SELECT frozen FROM history_preparations WHERE id=?').get(id)!.frozen)) as Document|null:this.document(c.documentId!);const maskDraft=this.assertCommand(c,d),maskDraftIdentity=maskDraft?canonical(maskDraft):null;const document=d!;
+      if(maskDraft){await protectAsset(maskDraft.assetId);for(const source of Object.values(maskDraft.maskBindings!))await protectAsset(source);}
       if(b.type==='ImportFont'){const asset=await this.texts.importFont(c,pending.operationId,protect);this.commit(bytes,current=>{this.assertCommand(c,current);this.authority(id);for(const p of proofs){this.objects.proven(p.ref,p.token);this.register('history-command:'+id,p.ref,p.token);}this.db.prepare('DELETE FROM history_preparations WHERE id=?').run(id);return {facts:[{type:'AssetRegistered',payload:{asset}}],documentChanged:false};});return;}
       const before=document.image?this.versionState(document.image):{schemaVersion:1 as const,width:document.width,height:document.height,layers:[]};const beforeVersion:ImageVersion=document.image??{state:await metadata(before),semanticDigest:semanticDigest(before),compositeAssetId:null};
       if(b.type==='PrepareImageResample'||b.type==='PrepareFlattenedCopy'||b.type==='ReviewImageEdit'){
@@ -279,8 +302,8 @@ export class Histories {
       }
       this.barrier('history-after-proofs');await new Promise<void>(resolve=>setImmediate(resolve));check();
       this.commit(bytes,(current,revision)=>{
-        this.assertCommand(c,b.type==='ExportDocument'?document:current);if(textCandidate){this.texts.fence(c,current,this.authority(id),textCandidate);this.texts.limits(after);}if(b.type==='RasterizeTextDerivative')this.authority(id);if(b.type==='ResampleImage'||b.type==='CreateFlattenedCopy')this.approved(c,current);for(const p of proofs)this.objects.proven(p.ref,p.token);
-        this.barrier('history-before-register');for(const p of proofs)this.objects.proven(p.ref,p.token);
+        const currentMaskDraft=this.assertCommand(c,b.type==='ExportDocument'?document:current);if((currentMaskDraft?canonical(currentMaskDraft):null)!==maskDraftIdentity)throw new AssetRejection('STALE_REVISION','MASK_DRAFT_CHANGED');if(textCandidate){this.texts.fence(c,current,this.authority(id),textCandidate);this.texts.limits(after);}if(b.type==='RasterizeTextDerivative')this.authority(id);if(b.type==='ResampleImage'||b.type==='CreateFlattenedCopy')this.approved(c,current);for(const p of proofs)this.objects.proven(p.ref,p.token);
+        this.barrier('history-before-register');for(const p of proofs)this.objects.proven(p.ref,p.token);for(const [id,identity]of assetIdentities)if(canonical(this.assets.asset(id))!==identity)throw new AssetRejection('STALE_REVISION','HISTORY_DEPENDENCY_CHANGED');
         const seen=new Set<string>();for(const p of proofs){if(seen.has(p.ref.hash))continue;seen.add(p.ref.hash);this.register('history-command:'+id,p.ref,p.token);}
         const all:HistoryBuild['facts']=[...facts];
         if(b.type==='SaveCheckpoint'){

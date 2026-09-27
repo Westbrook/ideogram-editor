@@ -106,8 +106,8 @@
   },
   {
     "path": "tooling/text/seal-profile.mjs",
-    "bytes": 4085,
-    "sha256": "6f6f0875e46447835b32aa36d825bb985e543af99a5c291dfbb13901be2ea042"
+    "bytes": 4128,
+    "sha256": "587b45fb82070fac2c51ab1ebf05848b0262ef9c743c21fb994c68735489740b"
   },
   {
     "path": "tooling/text/skia-DEPS.txt",
@@ -191,8 +191,8 @@
   },
   {
     "path": "vendor/text/manifest.json",
-    "bytes": 15572,
-    "sha256": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e"
+    "bytes": 15748,
+    "sha256": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
   },
   {
     "path": "vendor/text/notices/Brotli-LICENSE",

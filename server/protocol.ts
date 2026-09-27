@@ -127,7 +127,7 @@ export class ProtocolRoutes {
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
       lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
-        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 5, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
+        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 6, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
       if (captured.snapshot && BigInt(after) < BigInt(captured.snapshot.seq)) {
@@ -180,7 +180,7 @@ export class ProtocolRoutes {
     const lease: Lease = { clientId: session.clientId, sessionHash: session.cookieHash,
       expires, absolute: session.expires, start, snapshot: null, released: false,
       context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch,
-        projectionSchema: 5, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
+        projectionSchema: 6, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
     this.leases.set(lease.context.recoveryId, lease);
     try {
       const page = await this.page(start, lease.context.recoveryId, session);

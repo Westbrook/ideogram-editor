@@ -1,4 +1,6 @@
 import { extent, q16 } from './core.js';
+import {validateMaskMapping,retainedMask,r16Mask,type MaskMapping} from './mapping.js';
+import type {BlobRef} from '../protocol/store.js';
 import type { Coverage } from './core.js';
 
 export type Point = readonly [number, number];
@@ -8,8 +10,9 @@ export type Shape = { kind: 'rectangle' | 'ellipse'; x: number; y: number; width
 export type MaskOperation = { kind: 'shape'; shape: Shape; mode: Combine }
   | { kind: 'stroke'; points: Point[]; size: number; hardness: number; mode: 'add' | 'subtract' }
   | { kind: 'fill' | 'clear' | 'invert' }
-  | { kind: 'import'; assetId: string; x: number; y: number; width: number; height: number; inverted: boolean };
-export type MaskPlan = { width: number; height: number; feather: number; operations: MaskOperation[] };
+  | { kind: 'import'; assetId: string; x: number; y: number; width: number; height: number; inverted: boolean }
+  | { kind:'retained-hard-v1';mask:MaskMapping;hard:BlobRef|null };
+export type MaskPlan = { schemaVersion?:2; width: number; height: number; feather: number; operations: MaskOperation[] };
 const exact = (v: any, fields: string[]) => { if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).length !== fields.length || fields.some(k => !Object.hasOwn(v,k))) throw Error('MASK_FIELDS'); };
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) <= 32768;
 function points(v: any) { if (!Array.isArray(v) || !v.length || v.some(p => !Array.isArray(p) || p.length !== 2 || !p.every(finite))) throw Error('MASK_POINTS'); }
@@ -18,13 +21,17 @@ export function validateShape(v: any): asserts v is Shape {
   else { exact(v,['kind','x','y','width','height']); if(!['rectangle','ellipse'].includes(v.kind)||![v.x,v.y,v.width,v.height].every(finite)||v.width<=0||v.height<=0)throw Error('MASK_SHAPE'); }
 }
 export function validateMaskPlan(v: any): asserts v is MaskPlan {
-  exact(v,['width','height','feather','operations']); extent(v.width,v.height);
+  exact(v,['width','height','feather','operations',...(v.schemaVersion===2?['schemaVersion']:[])]); extent(v.width,v.height);
   if(typeof v.feather!=='number'||!Number.isFinite(v.feather)||v.feather<0||v.feather>64||!Array.isArray(v.operations))throw Error('MASK_PLAN');
   for(const op of v.operations){
     if(op.kind==='shape'){exact(op,['kind','shape','mode']);validateShape(op.shape);if(!['replace','add','subtract','intersect'].includes(op.mode))throw Error('MASK_MODE');}
     else if(op.kind==='stroke'){exact(op,['kind','points','size','hardness','mode']);points(op.points);if(!finite(op.size)||op.size<=0||op.size>8192||typeof op.hardness!=='number'||!Number.isFinite(op.hardness)||op.hardness<0||op.hardness>1||!['add','subtract'].includes(op.mode))throw Error('MASK_STROKE');}
     else if(op.kind==='import'){exact(op,['kind','assetId','x','y','width','height','inverted']);if(typeof op.assetId!=='string'||! /^[A-Za-z0-9_-]{1,128}$/.test(op.assetId)||![op.x,op.y,op.width,op.height].every(Number.isSafeInteger)||op.width<1||op.height<1||op.width>8192||op.height>8192||typeof op.inverted!=='boolean')throw Error('MASK_IMPORT');}
-    else if(['fill','clear','invert'].includes(op.kind))exact(op,['kind']);else throw Error('MASK_OPERATION');
+    else if(op.kind==='retained-hard-v1'){
+      exact(op,['kind','mask','hard']);validateMaskMapping(op.mask);if(v.schemaVersion!==2||!retainedMask(op.mask))throw Error('MASK_BASELINE_VERSION');
+      if(r16Mask(op.mask)){exact(op.hard,['hash','byteLength','mediaType']);if(!/^sha256:[a-f0-9]{64}$/.test(op.hard.hash)||op.hard.byteLength!==String(op.mask.width*op.mask.height*2)||op.hard.mediaType!=='application/x-ideogram-r16le')throw Error('MASK_HARD_IDENTITY');}
+      else if(op.hard!==null)throw Error('MASK_LEGACY_BASELINE');
+    }else if(['fill','clear','invert'].includes(op.kind))exact(op,['kind']);else throw Error('MASK_OPERATION');
   }
   // Same bounded control/manifest envelope as the writer; never truncate a stroke.
   if(new TextEncoder().encode(JSON.stringify(v)).length>48000)throw Error('MASK_DRAFT_TOO_LARGE');
@@ -41,13 +48,13 @@ export function shapeContains(s: Shape,x: number,y: number): boolean {
   return inside;
 }
 function distance(p: Point,a: Point,b: Point){const dx=b[0]-a[0],dy=b[1]-a[1],n=dx*dx+dy*dy,t=n?Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/n)):0;return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);}
-export function authoredCoverage(plan: MaskPlan, imported: (op: Extract<MaskOperation,{kind:'import'}>,x:number,y:number)=>number = ()=>0): Coverage {
+export function authoredCoverage(plan: MaskPlan, imported: (op: Extract<MaskOperation,{kind:'import'|'retained-hard-v1'}>,x:number,y:number)=>number = ()=>0): Coverage {
   return {width:plan.width,height:plan.height,get(x,y){
     if(x<0||y<0||x>=plan.width||y>=plan.height)return 0;
     let value=0;
     for(const op of plan.operations){
       if(op.kind==='fill'){value=65535;continue;}if(op.kind==='clear'){value=0;continue;}if(op.kind==='invert'){value=65535-value;continue;}
-      if(op.kind==='import'){value=imported(op,x,y);continue;}
+      if(op.kind==='import'||op.kind==='retained-hard-v1'){value=imported(op,x,y);continue;}
       let amount=0;
       if(op.kind==='shape')amount=shapeContains(op.shape,x+.5,y+.5)?65535:0;
       else if(op.kind==='stroke'){
@@ -80,13 +87,28 @@ export function featherRows(source: Coverage,radius:number) {
 
 // Caption bytes stay immutable across portable namespaces. Only the typed
 // source-to-local bindings change; every imported source must have one binding.
-export type MaskDraftValue = {schema:'local-mask-1';layerVersion:string;radius:string;plan:MaskPlan};
+export type MaskDraftValue = {schema:'local-mask-1'|'local-mask-2';layerVersion:string;radius:string;plan:MaskPlan};
 export function maskDraftValue(v:any):asserts v is MaskDraftValue {
   exact(v,['schema','layerVersion','radius','plan']);
-  if(v.schema!=='local-mask-1'||! /^(0|[1-9][0-9]*)$/.test(v.layerVersion)||typeof v.radius!=='string')throw Error('MASK_DRAFT');
+  if(!['local-mask-1','local-mask-2'].includes(v.schema)||! /^(0|[1-9][0-9]*)$/.test(v.layerVersion)||typeof v.radius!=='string')throw Error('MASK_DRAFT');
   validateMaskPlan(v.plan);
+  if((v.schema==='local-mask-2')!==(v.plan.schemaVersion===2))throw Error('MASK_DRAFT_VERSION');
 }
-export function maskImports(plan:MaskPlan){return [...new Set(plan.operations.flatMap(op=>op.kind==='import'?[op.assetId]:[]))];}
+export function maskImports(plan:MaskPlan){return [...new Set(plan.operations.flatMap(op=>op.kind==='import'?[op.assetId]:op.kind==='retained-hard-v1'?[op.mask.assetId]:[]))];}
+export function resolveMaskPlan(plan:MaskPlan,bindings:Record<string,string>):MaskPlan {
+  maskBindings(plan,bindings);const out=structuredClone(plan);for(const op of out.operations){if(op.kind==='import')op.assetId=bindings[op.assetId];else if(op.kind==='retained-hard-v1')op.mask.assetId=bindings[op.mask.assetId];}return out;
+}
+// Both live preparation and portable validation bind the declared retained grid
+// and exact hard object. A display preview is never an R16 baseline.
+export function maskSource(plan:MaskPlan,id:string,info:{width:number;height:number;role:string},hard:BlobRef|undefined){
+  for(const op of plan.operations){
+    if(op.kind==='import'&&op.assetId===id){if(info.role!=='native'||info.width!==op.width||info.height!==op.height)throw Error('MASK_IMPORT_GRID');}
+    if(op.kind==='retained-hard-v1'&&op.mask.assetId===id){
+      const m=op.mask;if(!retainedMask(m)||m.width!==info.width||m.height!==info.height||r16Mask(m)!==(info.role==='mask'))throw Error('MASK_BASELINE_GRID');
+      if(r16Mask(m)&&(!hard||!op.hard||hard.hash!==op.hard.hash||hard.byteLength!==op.hard.byteLength||hard.mediaType!==op.hard.mediaType))throw Error('MASK_HARD_IDENTITY');
+    }
+  }
+}
 export function maskBindings(plan:MaskPlan,bindings:Record<string,string>){
   const ids=maskImports(plan);
   if(!bindings||typeof bindings!=='object'||Array.isArray(bindings)||Object.keys(bindings).length!==ids.length||ids.some(id=>!Object.hasOwn(bindings,id)||typeof bindings[id]!=='string'||! /^[A-Za-z0-9_-]{1,128}$/.test(bindings[id])))throw Error('MASK_BINDINGS');

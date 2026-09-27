@@ -1,3 +1,4 @@
+import {maskGrid,retainedMask,r16Mask} from '../../src/raster/mapping.js';
 import { authoredCoverage, featherRows, validateMaskPlan, type MaskPlan } from '../../src/raster/mask.js';
 import { openSync, closeSync, readSync, writeSync, fsyncSync, fstatSync, constants, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -17,7 +18,7 @@ import { assertComponents, assertPrivate, sameFile } from '../storage/files.js';
 const MiB = 1024 * 1024;
 export const PIPELINE = PIXEL_PIPELINE + '/' + CODEC_ID;
 export const hash = (bytes: Uint8Array | string) => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
-export type InputRaster = { id: string; info: RasterInfo; path: string; coveragePath?:string };
+export type InputRaster = { id: string; info: RasterInfo; path: string; coveragePath?:string;hardPath?:string };
 export type RasterJob = { directory: string } & (
   | { type:'mask'; plan:MaskPlan; inputs:readonly InputRaster[]; dependencies:readonly BlobRef[] }
   | { type:'text'; path:string; width:number;height:number; source:BlobRef;dependencies:readonly BlobRef[] }
@@ -80,12 +81,19 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
   let decodeMs=0,computeMs=0;const extra:{name:string;ref:BlobRef}[]=[];
   if(job.type==='mask'){
     validateMaskPlan(job.plan);({width,height}=job.plan);plan=resourcePlan(width,height);
-    plan.allocations.importedMaskRows=job.inputs.reduce((sum,input)=>sum+input.info.width*Math.min(32,input.info.height)*4,0);
+    plan.allocations.importedMaskRows=job.inputs.reduce((sum,input)=>sum+input.info.width*(Math.min(32,input.info.height)*4+(input.hardPath?Math.min(128,input.info.height)*2:0)),0);
     plan.allocations.maskRows=width*(Math.ceil(job.plan.feather)*2+3)*8+width*16;
     plan.cpuBytes=Object.values(plan.allocations).reduce((a,b)=>a+b,0);plan.diskBytes+=width*height*4;
     await admit(plan);sourceAssetIds=job.inputs.map(i=>i.id);
     const imported=new Map(job.inputs.map(i=>[i.id,new FilePixels(i.info.width,i.info.height,i.path)]));
+    const retained=new Map(job.inputs.filter(i=>i.hardPath).map(i=>[i.id,new FileCoverage(i.info.width,i.info.height,i.hardPath!)]));
     const p=new Float64Array(4),hard=authoredCoverage(job.plan,(op,x,y)=>{
+      if(op.kind==='retained-hard-v1'){
+        const m=op.mask,g=maskGrid(m,0,0),input=imported.get(m.assetId);if(!input||input.width!==g.width||input.height!==g.height)throw Error('MASK_BASELINE_GRID');
+        const sx=x-g.x,sy=y-g.y;if(sx<0||sy<0||sx>=g.width||sy>=g.height)return 0;
+        let value:number;if(r16Mask(m)){const source=retained.get(m.assetId);if(!source)throw Error('MASK_HARD_MISSING');value=source.get(sx,sy);}else{input.get(sx,sy,p);value=maskCoverage(p);}
+        return m.inverted?65535-value:value;
+      }
       const input=imported.get(op.assetId);if(!input)throw Error('MASK_IMPORT_MISSING');
       if(x<op.x||y<op.y||x>=op.x+op.width||y>=op.y+op.height)return 0;
       if(input.width!==op.width||input.height!==op.height)throw Error('MASK_ALIGNMENT_RESAMPLE_REQUIRED');
@@ -100,10 +108,10 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
       for(let x=0;x<width;x++){const h=hard.get(x,y),e=values[x];hrow.writeUInt16LE(h,x*2);erow.writeUInt16LE(e,x*2);row[x*4]=row[x*4+1]=row[x*4+2]=Math.round(e/257);row[x*4+3]=255;if(h)hardPixels++;if(e){effectivePixels++;left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x+1);bottom=Math.max(bottom,y+1);}}
       writeAll(rawFD,row,y*row.length);writeAll(hardFD,hrow,y*hrow.length);writeAll(effectiveFD,erow,y*erow.length);
       if(y%32===0)await new Promise<void>(r=>setImmediate(r));
-    }for(const fd of [rawFD,hardFD,effectiveFD])fsyncSync(fd);}finally{for(const fd of [rawFD,hardFD,effectiveFD])closeSync(fd);for(const f of imported.values())f.close();}
+    }for(const fd of [rawFD,hardFD,effectiveFD])fsyncSync(fd);}finally{for(const fd of [rawFD,hardFD,effectiveFD])closeSync(fd);for(const f of imported.values())f.close();for(const f of retained.values())f.close();}
     const hardRef=fileRef(hardPath,'application/x-ideogram-r16le',check),effectiveRef=fileRef(effectivePath,'application/x-ideogram-r16le',check);
     extra.push({name:'hard.r16',ref:hardRef},{name:'effective.r16',ref:effectiveRef});dependencies=[...job.dependencies,hardRef,effectiveRef];
-    description={kind:'authored-mask-v1',authoring:job.plan,hard:hardRef,effective:effectiveRef,statistics:{hardPixels,effectivePixels,support:effectivePixels?{x:left,y:top,width:right-left,height:bottom-top}:null}};
+    description={kind:job.plan.schemaVersion===2?'authored-mask-v2':'authored-mask-v1',authoring:job.plan,hard:hardRef,effective:effectiveRef,statistics:{hardPixels,effectivePixels,support:effectivePixels?{x:left,y:top,width:right-left,height:bottom-top}:null}};
   }else if(job.type==='text'){
     ({width,height}=job);plan=resourcePlan(width,height);await admit(plan);dependencies=job.dependencies;sourceAssetIds=[];description={kind:'retained-text',source:job.source};
     const source=inputFD(job.path),target=openSync(raw,constants.O_CREAT|constants.O_EXCL|constants.O_RDWR|constants.O_NOFOLLOW,0o600);try{const b=Buffer.alloc(MiB);let at=0,n;while((n=readSync(source,b))){check();for(let i=0;i<n;i+=4)if(b[i+3]===0&&(b[i]||b[i+1]||b[i+2]))throw new Error('TEXT_TRANSPARENT_RGB');writeAll(target,b.subarray(0,n),at);at+=n;}if(at!==width*height*4)throw new Error('TEXT_PIXEL_LENGTH');fsyncSync(target);}finally{closeSync(source);closeSync(target);}
@@ -136,16 +144,18 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
     conversion={encodedWidth:metadata.width,encodedHeight:metadata.height,orientation,profile,profileHash,colorChanged:profile==='p3',orientationChanged:orientation!==1,resized:false};
     sourceAssetIds=[job.sourceAssetId];dependencies=[job.original,...extra.map(f=>f.ref)];description={kind:'decoded-native',sourceAssetId:job.sourceAssetId,conversion,codec:CODEC_ID};
   }else if(job.type==='compose'){
-    ({width,height}=job);plan=resourcePlan(width,height);await admit(plan);dependencies=job.dependencies;sourceAssetIds=job.inputs.map(i=>i.id);
+    ({width,height}=job);plan=resourcePlan(width,height);
+    plan.allocations.retainedInputRows=Math.max(0,...job.layers.map(l=>{const source=job.inputs.find(i=>i.id===l.assetId),mask=job.inputs.find(i=>i.id===l.mask?.assetId);return (source?source.info.width*Math.min(32,source.info.height)*4:0)+(mask?mask.info.width*Math.min(mask.info.role==='mask'?128:32,mask.info.height)*(mask.info.role==='mask'?2:4):0);}));
+    plan.cpuBytes=Object.values(plan.allocations).reduce((a,b)=>a+b,0);await admit(plan);dependencies=job.dependencies;sourceAssetIds=job.inputs.map(i=>i.id);
     if(job.layers.length>100)throw new Error('RASTER_LAYERS');
-    description={kind:'cp1-composition',layers:job.layers,maskMapping:'document-luminance-alpha-v1',precision:'binary64',kernel:'triangle-area-source-axis-row-norm-v1',edge:'transparent-zero-no-renormalization',footprints:job.layers.map(l=>footprint({x:0,y:0,width,height},l.transform))};
+    description={kind:'cp1-composition',layers:job.layers,maskMapping:job.layers.some(l=>l.mask&&retainedMask(l.mask))?'explicit-retained-domain-zero-v1':'document-luminance-alpha-v1',precision:'binary64',kernel:'triangle-area-source-axis-row-norm-v1',edge:'transparent-zero-no-renormalization',footprints:job.layers.map(l=>footprint({x:0,y:0,width,height},l.transform))};
     const fd=openSync(raw,constants.O_CREAT|constants.O_EXCL|constants.O_RDWR|constants.O_NOFOLLOW,0o600);const computeStart=performance.now();
     try{for(let y=0;y<height;y+=128)for(let x=0;x<width;x+=128){check();const rect={x,y,width:Math.min(128,width-x),height:Math.min(128,height-y)},length=rect.width*rect.height*4;let singleton:Uint8Array|undefined;const accumulator=job.layers.length===1?null:new Float64Array(length);
       for(const layer of job.layers){check();const input=job.inputs.find(i=>i.id===layer.assetId);if(!input)throw new Error('RASTER_INPUT');
         if(input.info.role==='mask')throw Error('RASTER_MASK_AS_IMAGE');
         const source=new FilePixels(input.info.width,input.info.height,input.path);let mask:FilePixels|undefined,maskR16:FileCoverage|undefined;
-        try{if(layer.mask){const m=job.inputs.find(i=>i.id===layer.mask!.assetId);if(!m||m.info.width!==width||m.info.height!==height)throw new Error('RASTER_MASK');if(layer.mask.mapping==='document-r16-v1'){if(m.info.role!=='mask'||!m.coveragePath)throw Error('RASTER_MASK_MAPPING');maskR16=new FileCoverage(width,height,m.coveragePath);}else{if(m.info.role==='mask')throw Error('RASTER_MASK_MAPPING');mask=new FilePixels(width,height,m.path);}}
-          const p=new Float64Array(4),coverage=(mask||maskR16!==undefined)?{width,height,get:(mx:number,my:number)=>{let value:number;if(maskR16!==undefined){value=maskR16.get(mx,my);}else{mask!.get(mx,my,p);value=maskCoverage(p);}return layer.mask!.inverted?65535-value:value;}}:undefined;
+        try{if(layer.mask){const m=job.inputs.find(i=>i.id===layer.mask!.assetId),g=maskGrid(layer.mask,width,height);if(!m||m.info.width!==g.width||m.info.height!==g.height)throw new Error('RASTER_MASK');if(r16Mask(layer.mask)){if(m.info.role!=='mask'||!m.coveragePath)throw Error('RASTER_MASK_MAPPING');maskR16=new FileCoverage(g.width,g.height,m.coveragePath);}else{if(m.info.role==='mask')throw Error('RASTER_MASK_MAPPING');mask=new FilePixels(g.width,g.height,m.path);}}
+          const p=new Float64Array(4),coverage=(mask||maskR16!==undefined)?{width,height,get:(mx:number,my:number)=>{const m=layer.mask!,g=maskGrid(m,width,height),x=mx-g.x,y=my-g.y;if(retainedMask(m)&&(x<0||y<0||x>=g.width||y>=g.height))return 0;let value:number;if(maskR16!==undefined){value=maskR16.get(x,y);}else{mask!.get(x,y,p);value=maskCoverage(p);}return m.inverted?65535-value:value;}}:undefined;
           const k=contribution(source,rect,layer.transform,layer.opacity,coverage);if(accumulator)fold(accumulator,k);else singleton=k;
         }finally{source.close();mask?.close();maskR16?.close();}
       }writeTile(fd,width,rect,singleton??finish(accumulator!));await new Promise<void>(r=>setImmediate(r));
@@ -158,11 +168,11 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
   const pipeline=job.type==='export'?job.input.info.pipeline:PIPELINE;
   const pixelIdentity=hash(canonical({pipeline,width,height,tiles:tileList}));
   if(job.type==='export'&&pixelIdentity!==job.input.info.pixelIdentity)throw new Error('RASTER_IDENTITY');
-  const manifest:RasterManifest={schemaVersion:job.type==='mask'||job.type==='compose'&&job.layers.some(l=>l.mask?.mapping==='document-r16-v1')?2:1,pipeline,width,height,format:'straight-srgb-rgba8',layout:'row-major-tile-views-v1',tileSize:512,pixels,tiles:tileList,dependencies,plan:description};
+  const manifest:RasterManifest={schemaVersion:job.type==='mask'&&job.plan.schemaVersion===2||job.type==='compose'&&job.layers.some(l=>l.mask&&retainedMask(l.mask))?3:job.type==='mask'||job.type==='compose'&&job.layers.some(l=>l.mask?.mapping==='document-r16-v1')?2:1,pipeline,width,height,format:'straight-srgb-rgba8',layout:'row-major-tile-views-v1',tileSize:512,pixels,tiles:tileList,dependencies,plan:description};
   const manifestBytes=Buffer.from(canonical(manifest));if(manifestBytes.length>65536)throw new Error('RASTER_RESOURCES');
   const manifestPath=join(job.directory,'manifest.json');writeFileSync(manifestPath,manifestBytes,{flag:'wx',mode:0o600});
   const manifestRef=fileRef(manifestPath,'application/json',check),encodeStart=performance.now();await encodePNG(raw,png,width,height,check);const encodeMs=performance.now()-encodeStart;
   const pngRef=fileRef(png,'image/png',check);
-  const info:RasterInfo={schemaVersion:job.type==='mask'?2:1,pipeline,width,height,manifest:manifestRef,pixels,pixelIdentity,role:job.type==='mask'?'mask':job.type==='decode'?'native':job.type==='compose'||job.type==='text'?'composite':'export',sourceAssetIds,conversion};
+  const info:RasterInfo={schemaVersion:job.type==='mask'?(job.plan.schemaVersion===2?3:2):1,pipeline,width,height,manifest:manifestRef,pixels,pixelIdentity,role:job.type==='mask'?'mask':job.type==='decode'?'native':job.type==='compose'||job.type==='text'?'composite':'export',sourceAssetIds,conversion};
   return {files:[{name:'pixels.rgba',ref:pixels},{name:'manifest.json',ref:manifestRef},{name:'output.png',ref:pngRef},...extra],png:pngRef,info,manifest,plan,metrics:{elapsedMs:performance.now()-started,decodeMs,computeMs,encodeMs,rss:process.memoryUsage().rss,maxRSS:process.resourceUsage().maxRSS*1024}};
 }

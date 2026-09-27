@@ -1,5 +1,5 @@
 {
-  "scope": "P1c.3 mask and layer authoring, including touched inherited shell; independent review required",
+  "scope": "P1c.3 correction: retained mask bounds, exact draft acceptance and public sample status; independent review required",
   "registration": "Public definition exports through createElementScope; no private imports. Dialog/drawer definitions load as one bounded group on first explicit panel action.",
   "surfaces": [
     {
@@ -89,7 +89,7 @@
         "EnDialog",
         "EnButton"
       ],
-      "owner": "App owns immutable prepared previews and review identities; public modal/focus behavior; explicit Apply/Cancel; expiry never refreshed by mutating an old command."
+      "owner": "App owns immutable prepared previews and review identities; public modal/focus behavior; explicit Apply/Cancel; expiry never refreshed by mutating an old command. Reviewed bounds retain mask grid/origin and original hard/effective coverage; new local-mask-2 draft review explicitly chooses feather on the current document."
     },
     {
       "surface": "Help",
@@ -124,9 +124,10 @@
         "EnSwitch",
         "EnToolbar",
         "EnStack",
-        "EnButton"
+        "EnButton",
+        "EnAlert"
       ],
-      "owner": "Public mode/field/native editing, settled final-veto adapters. App retains canonical document coordinates, hard/effective R16 draft generations, exact sampled RGBA, and explicit reviewed attachment."
+      "owner": "Public mode/field/native editing, settled final-veto adapters. App retains canonical document coordinates, hard/effective R16 draft generations, exact sampled RGBA, and explicit reviewed attachment. Sample RGBA feedback uses a persistent public EnAlert with announcement=polite; bounds and new baseline review explanations use EnAlert announcement=none."
     },
     {
       "surface": "Authoring disclosure and Activity disclosure",
@@ -202,5 +203,5 @@
       "contract": "Pinned public icon catalog lacks move/selection/mask/crop/sample/hand/zoom tool symbols. Existing custom glyphs remain aria-hidden; public button label, focus, disabled and pressed semantics own interaction."
     }
   ],
-  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Existing crop/resize rejects attached mask remapping; explicit detach is required. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01."
+  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Attached crop/resize uses versioned retained grids and outside-domain zero coverage, including inversion; no re-feather or clipped-byte replacement on bounds changes. New draft Apply can explicitly re-feather original hard coverage on the current document. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01."
 }

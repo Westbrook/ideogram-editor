@@ -1,3 +1,4 @@
+import {validateMaskMapping} from '../../src/raster/mapping.js';
 import { validateMaskPlan } from '../../src/raster/mask.js';
 import { isPortableCommand } from '../../src/protocol/portable.js';
 import { isHistoryCommand } from '../../src/protocol/history.js';
@@ -79,7 +80,7 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
     for(const layer of body.layers as unknown[]){keys(layer,['assetId','transform','opacity','mask']);
       if(!isId(layer.assetId)||!Array.isArray(layer.transform)||layer.transform.length!==6||typeof layer.opacity!=='number'||!Number.isFinite(layer.opacity)||layer.opacity<0||layer.opacity>1)bad();
       try{inverse(layer.transform as unknown as Affine);}catch{bad();}
-      if(layer.mask!==null){keys(layer.mask,['assetId','mapping','inverted']);if(!isId(layer.mask.assetId)||!['document-luminance-alpha-v1','document-r16-v1'].includes(String(layer.mask.mapping))||typeof layer.mask.inverted!=='boolean')bad();}
+      if(layer.mask!==null){try{validateMaskMapping(layer.mask);}catch{bad();}}
     }
   } else throw new StoreError('UNSUPPORTED_COMMAND');
   return value as unknown as CommandRequest;

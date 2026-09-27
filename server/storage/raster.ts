@@ -1,3 +1,4 @@
+import {maskImports,maskSource} from '../../src/raster/mask.js';
 import { Worker } from 'node:worker_threads';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
@@ -45,7 +46,7 @@ export class Rasters {
     const asset=this.assets.asset(id);if(!asset?.raster)throw new StoreError('NOT_FOUND');
     let manifest:RasterManifest;try{const bytes=this.objects.verify(asset.raster.manifest,true)!;const value=parseControlJSON(bytes);validateManifest(value);if(canonical(value)!==Buffer.from(bytes).toString('utf8'))throw new Error();manifest=value as RasterManifest;
       if(manifest.width!==asset.raster.width||manifest.height!==asset.raster.height||manifest.pipeline!==asset.raster.pipeline||canonical(manifest.pixels)!==canonical(asset.raster.pixels)||hashBytes(canonical({pipeline:manifest.pipeline,width:manifest.width,height:manifest.height,tiles:manifest.tiles}))!==asset.raster.pixelIdentity)throw new Error();
-      const plan=manifest.plan as Record<string,unknown>;if((asset.raster.role==='mask')!==(plan.kind==='authored-mask-v1'))throw Error('MASK_ROLE');if(asset.raster.role==='native'&&(plan.kind!=='decoded-native'||canonical(plan.conversion)!==canonical(asset.raster.conversion)||canonical(asset.raster.sourceAssetIds)!==canonical([plan.sourceAssetId])))throw new Error();
+      const plan=manifest.plan as Record<string,unknown>;if((asset.raster.role==='mask')!==(['authored-mask-v1','authored-mask-v2'].includes(String(plan.kind))))throw Error('MASK_ROLE');if(asset.raster.role==='mask'&&asset.raster.schemaVersion!==manifest.schemaVersion)throw Error('MASK_VERSION');if(asset.raster.role==='native'&&(plan.kind!=='decoded-native'||canonical(plan.conversion)!==canonical(asset.raster.conversion)||canonical(asset.raster.sourceAssetIds)!==canonical([plan.sourceAssetId])))throw new Error();
       for(const ref of [manifest.pixels,...manifest.dependencies]){const registered=this.db.prepare('SELECT byte_length FROM objects WHERE hash=?').get(ref.hash);if(!registered||registered.byte_length!==ref.byteLength||!this.db.prepare('SELECT hash FROM roots WHERE hash=?').get(ref.hash))throw new Error();}
     }catch(e){if(e instanceof StoreError)throw e;throw new StoreError('CORRUPT_STORE');}return manifest;
   }
@@ -143,10 +144,10 @@ export class Rasters {
         const a=this.asset(body.assetId);if(a.qualification!=='pending-decoder'||!['image','mask'].includes(a.purpose))throw new AssetRejection('INCOMPATIBLE','RASTER_ORIGINAL_REQUIRED');
         await protect(a.blob);job={type:'decode',directory,path:this.objects.path(a.blob),mediaType:a.measuredMediaType,original:a.blob,sourceAssetId:a.id};
       }else{
-        const ids=body.type==='PrepareMask'?[...new Set(body.plan.operations.flatMap(op=>op.kind==='import'?[op.assetId]:[]))]:body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'?[body.assetId]:[];
+        const ids=body.type==='PrepareMask'?maskImports(body.plan):body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'?[body.assetId]:[];
         const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
-        for(const assetId of ids){const a=this.asset(assetId,true);const info=a.raster!;await protect(info.pixels);await protect(info.manifest);const coverage=info.role==='mask'?(this.manifest(assetId).plan as {effective:BlobRef}).effective:undefined;if(coverage)await protect(coverage);inputs.push({id:assetId,info,path:this.objects.path(info.pixels),...(coverage?{coveragePath:this.objects.path(coverage)}:{})});dependencies.push(info.manifest);}
-        if(body.type==='PrepareMask'){for(const input of inputs)if(input.info.role!=='native'||this.assets.asset(input.info.sourceAssetIds[0])?.measuredMediaType!=='image/png')throw new AssetRejection('INCOMPATIBLE','MASK_IMPORT_PNG_REQUIRED');job={type:'mask',directory,plan:body.plan,inputs,dependencies};}
+        for(const assetId of ids){const a=this.asset(assetId,true);const info=a.raster!;await protect(info.pixels);await protect(info.manifest);const mask=info.role==='mask'?this.manifest(assetId).plan as {effective:BlobRef;hard:BlobRef}:undefined;for(const ref of [...a.dependencies,...(mask?[mask.hard,mask.effective]:[])])await protect(ref);inputs.push({id:assetId,info,path:this.objects.path(info.pixels),...(mask?{coveragePath:this.objects.path(mask.effective),hardPath:this.objects.path(mask.hard)}:{})});dependencies.push(info.manifest);if(body.type==='PrepareMask'){try{maskSource(body.plan,assetId,info,mask?.hard);}catch{throw new AssetRejection('INCOMPATIBLE','MASK_BASELINE_IDENTITY');}}}
+        if(body.type==='PrepareMask'){for(const input of inputs)if(body.plan.operations.some(op=>op.kind==='import'&&op.assetId===input.id)&&this.assets.asset(input.info.sourceAssetIds[0])?.measuredMediaType!=='image/png')throw new AssetRejection('INCOMPATIBLE','MASK_IMPORT_PNG_REQUIRED');job={type:'mask',directory,plan:body.plan,inputs,dependencies};}
         else if(body.type==='ComposeRaster')job={type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies};
         else if(body.type==='ExportRaster')job={type:'export',directory,input:inputs[0],dependencies};else throw new StoreError('UNSUPPORTED_COMMAND');
       }

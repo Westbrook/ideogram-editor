@@ -1,3 +1,4 @@
+import {validateMaskMapping,retainedMask} from '../raster/mapping.js';
 import { blob } from './validate.js';
 import { isTextCommand, textBody } from './text.js';
 import { keys, id, seq, requireValue as ok } from './validate.js';
@@ -8,18 +9,18 @@ import type { ImageState } from './history.js';
 export function affine(v: any) { ok(Array.isArray(v) && v.length === 6); inverse(v as unknown as Affine); }
 export function layerMask(v: any) {
   if (v === null) return;
-  keys(v, ['assetId','mapping','inverted']);
-  ok(id(v.assetId) && ['document-luminance-alpha-v1','document-r16-v1'].includes(v.mapping) && typeof v.inverted === 'boolean');
+  validateMaskMapping(v);
 }
 export function imageState(v: any): asserts v is ImageState {
   keys(v, ['schemaVersion','width','height','layers']); extent(v.width,v.height);
-  ok([1,2,3].includes(v.schemaVersion) && Array.isArray(v.layers) && v.layers.length <= 100);
+  ok([1,2,3,4].includes(v.schemaVersion) && Array.isArray(v.layers) && v.layers.length <= 100);
   const seen = new Set();
   for (const l of v.layers) {
     keys(l,['id','version','kind','name','assetId','layerToDocument','opacity','visible','locked','blend','mask',...(l.kind==='text'?['source']:[])]);
     if(l.kind==='text'){ok(v.schemaVersion>=2);blob(l.source);ok(l.source.mediaType==='application/json'&&BigInt(l.source.byteLength)<=65536n);}
     ok(id(l.id) && seq(l.version) && ['image','text'].includes(l.kind) && id(l.assetId) && !seen.has(l.id)); seen.add(l.id);
-    if(l.mask?.mapping==='document-r16-v1')ok(v.schemaVersion===3);
+    if(l.mask?.mapping==='document-r16-v1')ok(v.schemaVersion>=3);
+    if(l.mask&&retainedMask(l.mask))ok(v.schemaVersion===4);
     properties({name:l.name,opacity:l.opacity,visible:l.visible,locked:l.locked,mask:l.mask});
     affine(l.layerToDocument); ok(l.blend === 'normal');
   }

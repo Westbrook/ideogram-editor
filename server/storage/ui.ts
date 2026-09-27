@@ -1,4 +1,4 @@
-import {maskDraftValue,maskImports} from '../../src/raster/mask.js';
+import {maskDraftValue,maskImports,maskSource} from '../../src/raster/mask.js';
 import {textDraft,draftRefs} from '../../src/protocol/text.js';
 import type { DatabaseSync } from 'node:sqlite';
 import type { DraftFence, ImageState } from '../../src/protocol/history.js';
@@ -33,6 +33,7 @@ export class UIStore {
     const row=this.db.prepare('SELECT json FROM ui_checkpoints WHERE client_id=? AND session_id=?').get(clientId,fence.sessionId);
     const draft=row?(JSON.parse(String(row.json)) as UICheckpoint).drafts.find(d=>d.id===fence.draftId):undefined;
     if(!draft||draft.generation!==fence.generation||draft.documentId!==documentId||draft.expectedDocumentRevision!==revision||draft.targetLayerId!==layerId||draft.composing||draft.status!=='saved-unapplied')throw new AssetRejection('STALE_REVISION','DRAFT_GENERATION_CHANGED');
+    return draft;
   }
   // Called inside the document transaction; this advances only the UI stream.
   applied(clientId:string,fence:DraftFence|null,now:string) {
@@ -80,7 +81,7 @@ export class UIStore {
         const a=this.assets.asset(b.draft.assetId);
         if(!a||a.qualification!=='opaque-text'||a.safety!=='safe'||a.availability!=='available')throw new StoreError('MISSING_OBJECT');
         ref=a.blob;proof=await this.objects.prove(ref,()=>this.check());
-        if(b.draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(ref,true)!);maskDraftValue(value);bindings={};for(const id of maskImports(value.plan)){const source=this.assets.asset(id);if(!source?.raster||source.raster.role!=='native'||source.qualification!=='canonical-raster'||source.safety!=='safe'||source.availability!=='available')throw new StoreError('MISSING_OBJECT');bindings[id]=id;for(const dep of [source.blob,...source.dependencies])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}}
+        if(b.draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(ref,true)!);maskDraftValue(value);bindings={};for(const id of maskImports(value.plan)){const source=this.assets.asset(id);if(!source?.raster||source.qualification!=='canonical-raster'||source.safety!=='safe'||source.availability!=='available')throw new StoreError('MISSING_OBJECT');try{const manifest=parseControlJSON(this.objects.verify(source.raster.manifest,true)!) as {plan:{hard?:BlobRef}};maskSource(value.plan,id,source.raster,manifest.plan.hard);}catch{throw new StoreError('MISSING_OBJECT');}bindings[id]=id;for(const dep of [source.blob,...source.dependencies])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}}
         if(b.draft.kind==='text'){const v=parseControlJSON(this.objects.verify(ref,true)!);textDraft(v);for(const dep of draftRefs(v)){try{extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(dep===v.textUtf8||!(e instanceof StoreError)||!['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw e;}}}
       }
       this.db.exec('BEGIN IMMEDIATE');
