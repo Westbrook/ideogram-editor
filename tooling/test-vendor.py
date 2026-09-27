@@ -73,6 +73,38 @@ class VendorBoundary(unittest.TestCase):
         self.assertFalse((self.root / 'node_modules').exists())
         vendor.verify(self.root)
 
+    def test_required_consumer_files(self):
+        for name in ['package.json', 'package-lock.json']:
+            with self.subTest(name=name):
+                path = self.root / name
+                raw = path.read_bytes()
+                path.unlink()
+                with self.assertRaisesRegex(SystemExit, 'Missing required consumer file'):
+                    vendor.verify(self.root)
+                path.write_bytes(raw)
+
+    def test_consumer_symlinks_and_hardlinks(self):
+        for name in ['package.json', 'package-lock.json']:
+            for kind in ['symlink', 'hardlink']:
+                with self.subTest(name=name, kind=kind):
+                    path, saved = self.root / name, self.root / ('owned-' + name)
+                    path.rename(saved)
+                    if kind == 'symlink':
+                        path.symlink_to(saved)
+                    else:
+                        path.hardlink_to(saved)
+                    with self.assertRaisesRegex(SystemExit, 'Unsafe consumer (link|file)'):
+                        vendor.verify(self.root)
+                    path.unlink()
+                    saved.rename(path)
+
+    def test_consumer_directory_is_rejected(self):
+        path = self.root / 'package-lock.json'
+        path.unlink()
+        path.mkdir()
+        with self.assertRaisesRegex(SystemExit, 'Unsafe consumer file'):
+            vendor.verify(self.root)
+
     def test_canvas_archive_tamper_is_rejected(self):
         with (self.root / vendor.CANVASKIT_PATH).open('ab') as file:
             file.write(b'tampered')

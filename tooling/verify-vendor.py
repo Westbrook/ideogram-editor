@@ -4,6 +4,7 @@ import base64
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import stat
 import sys
@@ -20,19 +21,34 @@ def fail(message):
 def sha(data):
     return hashlib.sha256(data).hexdigest()
 
-def owned_bytes(root, relative):
+def owned_bytes(root, relative, label='CanvasKit'):
     path = Path(relative)
     if path.is_absolute() or '..' in path.parts or path.as_posix() != relative or '\\' in relative:
-        fail(f'Unsafe CanvasKit path: {relative}')
+        fail(f'Unsafe {label} path: {relative}')
     target = root
     for part in path.parts:
         target = target / part
         if target.is_symlink():
-            fail(f'Unsafe CanvasKit link: {relative}')
-    info = target.stat()
-    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-        fail(f'Unsafe CanvasKit file: {relative}')
-    return target.read_bytes()
+            fail(f'Unsafe {label} link: {relative}')
+    try:
+        info = target.stat()
+    except FileNotFoundError:
+        fail(f'Missing required {label} file: {relative}')
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_uid != os.getuid():
+        fail(f'Unsafe {label} file: {relative}')
+    fd = os.open(target, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        opened = os.fstat(fd)
+        if (opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns) != (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns):
+            fail(f'Changed {label} file: {relative}')
+        with os.fdopen(os.dup(fd), 'rb') as stream:
+            data = stream.read()
+        after = target.lstat()
+        if (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns, after.st_nlink) != (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns, 1) or len(data) != info.st_size:
+            fail(f'Changed {label} file: {relative}')
+        return data
+    finally:
+        os.close(fd)
 
 def verify_canvaskit(root, package, lock):
     """One declared local package, checked from frozen inputs without node_modules."""
@@ -57,16 +73,15 @@ def verify_canvaskit(root, package, lock):
     data = owned_bytes(root, CANVASKIT_PATH)
     if len(data) != engine['tarball']['bytes'] or sha(data) != engine['tarball']['sha256']:
         fail('CanvasKit archive mismatch')
-    if lock is not None:
-        key = 'node_modules/canvaskit-wasm'
-        matches = [k for k in lock['packages'] if k.endswith(key)]
-        if matches != [key]:
-            fail('Duplicated or missing CanvasKit dependency')
-        item = lock['packages'][key]
-        integrity = 'sha512-' + base64.b64encode(hashlib.sha512(data).digest()).decode()
-        if (item.get('link') or item.get('version') != CANVASKIT_VERSION or item.get('resolved') != spec
-                or item.get('integrity') != integrity or lock['packages']['']['dependencies'].get('canvaskit-wasm') != spec):
-            fail('Lockfile CanvasKit identity mismatch')
+    key = 'node_modules/canvaskit-wasm'
+    matches = [k for k in lock['packages'] if k.endswith(key)]
+    if matches != [key]:
+        fail('Duplicated or missing CanvasKit dependency')
+    item = lock['packages'][key]
+    integrity = 'sha512-' + base64.b64encode(hashlib.sha512(data).digest()).decode()
+    if (item.get('link') or item.get('version') != CANVASKIT_VERSION or item.get('resolved') != spec
+            or item.get('integrity') != integrity or lock['packages']['']['dependencies'].get('canvaskit-wasm') != spec):
+        fail('Lockfile CanvasKit identity mismatch')
     with tarfile.open(fileobj=io.BytesIO(data)) as archive:
         members = archive.getmembers()
         expected = {'package/LICENSE', 'package/bin/canvaskit.js', 'package/bin/canvaskit.wasm',
@@ -88,7 +103,8 @@ def verify_canvaskit(root, package, lock):
             fail('Packed CanvasKit license mismatch')
 
 def verify(root=ROOT):
-    package = json.loads((root / 'package.json').read_text())
+    package = json.loads(owned_bytes(root, 'package.json', 'consumer'))
+    lock = json.loads(owned_bytes(root, 'package-lock.json', 'consumer'))
     paths = {}
     for name in NAMES:
         spec = package['dependencies'][f'@en-reve/{name}']
@@ -149,27 +165,24 @@ def verify(root=ROOT):
                     fail(f'Packed graph mismatch: {name} {field}')
             if archive.extractfile('package/LICENSE').read() != license_bytes:
                 fail(f'License missing or changed: {name}')
-    lock_path = root / 'package-lock.json'
-    lock = json.loads(lock_path.read_text()) if lock_path.exists() else None
     verify_canvaskit(root, package, lock)
-    if lock_path.exists():
-        for name in NAMES:
-            key = f'node_modules/@en-reve/{name}'
-            matches = [k for k in lock['packages'] if k.endswith(f'node_modules/@en-reve/{name}')]
-            if matches != [key]:
-                fail(f'Duplicated or missing private dependency: {name}')
-            item = lock['packages'][key]
-            if item.get('link') or item['resolved'] != package['dependencies'][f'@en-reve/{name}'] or item['integrity'] != by_name[f'@en-reve/{name}']['integrity']:
-                fail(f'Lockfile vendor identity mismatch: {name}')
-        for path, item in lock['packages'].items():
-            location = item.get('resolved', '')
-            if '@en-reve/' not in path and path != 'node_modules/canvaskit-wasm' and location and not location.startswith('https://registry.npmjs.org/'):
-                fail(f'Nonregistry third-party dependency: {path} {location}')
-            if item.get('link'):
-                fail(f'Consumer symlink dependency: {path}')
-        for name in ['lit', 'signal-polyfill', 'signal-utils']:
-            if lock['packages'][f'node_modules/{name}']['version'] != package['dependencies'][name]:
-                fail(f'Peer pin mismatch: {name}')
+    for name in NAMES:
+        key = f'node_modules/@en-reve/{name}'
+        matches = [k for k in lock['packages'] if k.endswith(f'node_modules/@en-reve/{name}')]
+        if matches != [key]:
+            fail(f'Duplicated or missing private dependency: {name}')
+        item = lock['packages'][key]
+        if item.get('link') or item['resolved'] != package['dependencies'][f'@en-reve/{name}'] or item['integrity'] != by_name[f'@en-reve/{name}']['integrity']:
+            fail(f'Lockfile vendor identity mismatch: {name}')
+    for path, item in lock['packages'].items():
+        location = item.get('resolved', '')
+        if '@en-reve/' not in path and path != 'node_modules/canvaskit-wasm' and location and not location.startswith('https://registry.npmjs.org/'):
+            fail(f'Nonregistry third-party dependency: {path} {location}')
+        if item.get('link'):
+            fail(f'Consumer symlink dependency: {path}')
+    for name in ['lit', 'signal-polyfill', 'signal-utils']:
+        if lock['packages'][f'node_modules/{name}']['version'] != package['dependencies'][name]:
+            fail(f'Peer pin mismatch: {name}')
     print(f'Verified {len(records)} frozen files and four En Reve archives: {identity}; sealed CanvasKit {CANVASKIT_VERSION}')
     return identity
 
