@@ -44,6 +44,10 @@ export class Rasters {
     if(r.targetClientId!==auth.clientId)throw new StoreError('OWNER_REQUIRED');if(row.session_hash!==auth.sessionHash||row.epoch!==this.epoch||auth.now>=Date.parse(r.expiresAt))throw new StoreError('REVIEW_EXPIRED');return r;}
   manifest(id:string):RasterManifest{
     const asset=this.assets.asset(id);if(!asset?.raster)throw new StoreError('NOT_FOUND');
+    return this.assetManifest(asset);
+  }
+  private assetManifest(asset:Asset):RasterManifest{
+    if(!asset.raster)throw new StoreError('NOT_FOUND');
     let manifest:RasterManifest;try{const bytes=this.objects.verify(asset.raster.manifest,true)!;const value=parseControlJSON(bytes);validateManifest(value);if(canonical(value)!==Buffer.from(bytes).toString('utf8'))throw new Error();manifest=value as RasterManifest;
       if(manifest.width!==asset.raster.width||manifest.height!==asset.raster.height||manifest.pipeline!==asset.raster.pipeline||canonical(manifest.pixels)!==canonical(asset.raster.pixels)||hashBytes(canonical({pipeline:manifest.pipeline,width:manifest.width,height:manifest.height,tiles:manifest.tiles}))!==asset.raster.pixelIdentity)throw new Error();
       const plan=manifest.plan as Record<string,unknown>;if((asset.raster.role==='mask')!==(['authored-mask-v1','authored-mask-v2'].includes(String(plan.kind))))throw Error('MASK_ROLE');if(asset.raster.role==='mask'&&asset.raster.schemaVersion!==manifest.schemaVersion)throw Error('MASK_VERSION');if(asset.raster.role==='native'&&(plan.kind!=='decoded-native'||canonical(plan.conversion)!==canonical(asset.raster.conversion)||canonical(asset.raster.sourceAssetIds)!==canonical([plan.sourceAssetId])))throw new Error();
@@ -105,17 +109,26 @@ export class Rasters {
     const started=performance.now(),pending=this.pending(id);if(!pending)return;const row=this.db.prepare('SELECT original FROM raster_preparations WHERE id=?').get(id)!,bytes=Buffer.from(String(row.original)),body=pending.command.body;
     const proofs:{ref:BlobRef;token:string}[]=[];
     const check=()=>{this.check();if(this.closing)throw new StoreError('CLOSED');};
+    const inputIdentities=new Map<string,string>();
+    const capture=(a:Asset)=>{
+      const identity=canonical(a),previous=inputIdentities.get(a.id);
+      if(previous!==undefined&&previous!==identity)throw new AssetRejection('STALE_REVISION','RASTER_DEPENDENCY_CHANGED');
+      inputIdentities.set(a.id,identity);if(inputIdentities.size>512)throw new StoreError('CAPACITY');return a;
+    };
+    const inputsUnchanged=()=>{
+      for(const [assetId,identity]of inputIdentities)if(canonical(this.assets.asset(assetId))!==identity)throw new AssetRejection('STALE_REVISION','RASTER_DEPENDENCY_CHANGED');
+    };
     try{
       const protect=async(ref:BlobRef)=>{if(proofs.some(p=>canonical(p.ref)===canonical(ref)))return;proofs.push({ref,token:await this.objects.prove(ref,check)});};
       if(body.type==='ApproveRaster'){
         // One shared IO slot, one reusable 1 MiB hash buffer per proof, at most
         // 512 bounded proof records. No raster worker or pixel copies/decodes.
         const reservation=8*1024*1024;if(process.memoryUsage().rss+this.externalCPU()+reservation>512*1024*1024)throw new StoreError('CAPACITY');this.reservedCPU=reservation;
-        const a=this.approval(body,this.approvalAuthority(id));
+        const a=capture(this.approval(body,this.approvalAuthority(id)));
         try{
-          await protect(a.raster!.manifest);const manifest=this.manifest(a.id);
+          await protect(a.raster!.manifest);const manifest=this.assetManifest(a);
           const refs=[a.blob,a.raster!.pixels,...a.dependencies,...manifest.dependencies];
-          for(const sourceId of a.raster!.sourceAssetIds){const source=this.asset(sourceId);refs.push(source.blob,...source.dependencies);}
+          for(const sourceId of a.raster!.sourceAssetIds){const source=capture(this.asset(sourceId));refs.push(source.blob,...source.dependencies);}
           for(const ref of refs){check();if(process.memoryUsage().rss>512*1024*1024)throw new StoreError('CAPACITY');await protect(ref);}
           this.barrier('raster-approval-after-proofs');
           // Let queued session renewal/revocation messages reach the writer
@@ -126,6 +139,7 @@ export class Rasters {
             for(const p of proofs)this.objects.proven(p.ref,p.token);
             this.barrier('raster-approval-before-register');
             for(const p of proofs)this.objects.proven(p.ref,p.token);
+            inputsUnchanged();
             const accepted:Asset={...a,id:pending.operationId,qualification:'canonical-raster'};
             const registered=new Set<string>();for(const p of proofs){if(registered.has(p.ref.hash))continue;registered.add(p.ref.hash);this.register('asset:'+accepted.id,p.ref,p.token);}
             this.db.prepare('DELETE FROM raster_preparations WHERE id=?').run(id);
@@ -141,13 +155,13 @@ export class Rasters {
       }
       const directory=join(this.directory,randomUUID());privateDirectory(directory);let job:RasterJob;
       if(body.type==='PrepareRaster'){
-        const a=this.asset(body.assetId);if(a.qualification!=='pending-decoder'||!['image','mask'].includes(a.purpose))throw new AssetRejection('INCOMPATIBLE','RASTER_ORIGINAL_REQUIRED');
+        const a=capture(this.asset(body.assetId));if(a.qualification!=='pending-decoder'||!['image','mask'].includes(a.purpose))throw new AssetRejection('INCOMPATIBLE','RASTER_ORIGINAL_REQUIRED');
         await protect(a.blob);job={type:'decode',directory,path:this.objects.path(a.blob),mediaType:a.measuredMediaType,original:a.blob,sourceAssetId:a.id};
       }else{
         const ids=body.type==='PrepareMask'?maskImports(body.plan):body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'?[body.assetId]:[];
         const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
-        for(const assetId of ids){const a=this.asset(assetId,true);const info=a.raster!;await protect(info.pixels);await protect(info.manifest);const mask=info.role==='mask'?this.manifest(assetId).plan as {effective:BlobRef;hard:BlobRef}:undefined;for(const ref of [...a.dependencies,...(mask?[mask.hard,mask.effective]:[])])await protect(ref);inputs.push({id:assetId,info,path:this.objects.path(info.pixels),...(mask?{coveragePath:this.objects.path(mask.effective),hardPath:this.objects.path(mask.hard)}:{})});dependencies.push(info.manifest);if(body.type==='PrepareMask'){try{maskSource(body.plan,assetId,info,mask?.hard);}catch{throw new AssetRejection('INCOMPATIBLE','MASK_BASELINE_IDENTITY');}}}
-        if(body.type==='PrepareMask'){for(const input of inputs)if(body.plan.operations.some(op=>op.kind==='import'&&op.assetId===input.id)&&this.assets.asset(input.info.sourceAssetIds[0])?.measuredMediaType!=='image/png')throw new AssetRejection('INCOMPATIBLE','MASK_IMPORT_PNG_REQUIRED');job={type:'mask',directory,plan:body.plan,inputs,dependencies};}
+        for(const assetId of ids){const a=capture(this.asset(assetId,true));const info=a.raster!;await protect(info.pixels);await protect(info.manifest);const mask=info.role==='mask'?this.assetManifest(a).plan as {effective:BlobRef;hard:BlobRef}:undefined;for(const ref of [...a.dependencies,...(mask?[mask.hard,mask.effective]:[])])await protect(ref);inputs.push({id:assetId,info,path:this.objects.path(info.pixels),...(mask?{coveragePath:this.objects.path(mask.effective),hardPath:this.objects.path(mask.hard)}:{})});dependencies.push(info.manifest);if(body.type==='PrepareMask'){try{maskSource(body.plan,assetId,info,mask?.hard);}catch{throw new AssetRejection('INCOMPATIBLE','MASK_BASELINE_IDENTITY');}}}
+        if(body.type==='PrepareMask'){for(const input of inputs)if(body.plan.operations.some(op=>op.kind==='import'&&op.assetId===input.id)){const source=this.assets.asset(input.info.sourceAssetIds[0]);if(!source||capture(source).measuredMediaType!=='image/png')throw new AssetRejection('INCOMPATIBLE','MASK_IMPORT_PNG_REQUIRED');}job={type:'mask',directory,plan:body.plan,inputs,dependencies};}
         else if(body.type==='ComposeRaster')job={type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies};
         else if(body.type==='ExportRaster')job={type:'export',directory,input:inputs[0],dependencies};else throw new StoreError('UNSUPPORTED_COMMAND');
       }
@@ -161,6 +175,9 @@ export class Rasters {
       this.barrier('raster-before-register');
       this.commit(bytes,()=>{
         for(const p of proofs)this.objects.proven(p.ref,p.token);
+        // File proofs bind bytes, not the records that authorized their use.
+        // Recheck the captured records after the late barrier, in this commit.
+        inputsUnchanged();
         const a:Asset={id:pending.operationId,version:'1',purpose:'image',blob:result.png,dependencies:[result.info.manifest,result.info.pixels,...result.files.filter(f=>!['pixels.rgba','manifest.json','output.png'].includes(f.name)).map(f=>f.ref)],safety:'safe',availability:'available',qualification:body.type==='PrepareRaster'?'raster-preview':body.type==='ExportRaster'?'canonical-png':'canonical-raster',measuredMediaType:'image/png',raster:result.info};
         validateAsset(a);const refs=new Set<string>();for(const p of proofs){if(refs.has(p.ref.hash))continue;refs.add(p.ref.hash);this.register('asset:'+a.id,p.ref,p.token);}
         this.db.prepare('DELETE FROM raster_preparations WHERE id=?').run(id);return {type:'AssetRegistered',payload:{asset:a}};
