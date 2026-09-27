@@ -10,7 +10,7 @@ export function keys(v: any, fields: string[]) { requireValue(v && typeof v==='o
 export function blob(v: any) { keys(v,['hash','byteLength','mediaType']); requireValue(/^sha256:[a-f0-9]{64}$/.test(v.hash) && seq(v.byteLength) && typeof v.mediaType==='string'); }
 export function document(v: any): asserts v is Document {
   keys(v,['id','revision','branchId','width','height','color','depth','orderedLayerIds','historyHead','checkpoint','compositionVersion',...(v.image?['image','redo']:[])]);
-  requireValue(id(v.id)&&seq(v.revision)&&id(v.branchId)&&id(v.historyHead)&&(v.checkpoint===null||id(v.checkpoint))&&v.compositionVersion===null&&
+  requireValue(id(v.id)&&seq(v.revision)&&id(v.branchId)&&id(v.historyHead)&&(v.checkpoint===null||id(v.checkpoint))&&(v.compositionVersion===null||id(v.compositionVersion))&&
     Number.isSafeInteger(v.width)&&Number.isSafeInteger(v.height)&&v.width>0&&v.height>0&&v.width<=8192&&v.height<=8192&&v.width*v.height<=25000000&&v.color==='sRGB'&&v.depth===8&&Array.isArray(v.orderedLayerIds)&&v.orderedLayerIds.length<=100&&v.orderedLayerIds.every(id)&&new Set(v.orderedLayerIds).size===v.orderedLayerIds.length);
   if(v.image){imageVersion(v.image);requireValue(v.redo===null||id(v.redo));}else requireValue(v.orderedLayerIds.length===0);
 }
@@ -72,7 +72,7 @@ export function entity(type: string, value: any) {
   }
   if(type==='history'&&value.kind==='image-edit') {
     keys(value,['id','documentId','branchId','parent','revision','kind','operation','before','after','forward','inverse','roots']);
-    requireValue(['id','documentId','branchId','parent'].every(k=>id(value[k]))&&seq(value.revision)&&['ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','ResampleImage','CreateFlattenedCopy','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(value.operation));
+    requireValue(['id','documentId','branchId','parent'].every(k=>id(value[k]))&&seq(value.revision)&&['CommitCompositionVersion','AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding','ApprovePromptProjection','SetLayerAppearance','ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','ResampleImage','CreateFlattenedCopy','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(value.operation));
     imageVersion(value.before);imageVersion(value.after);blob(value.forward);blob(value.inverse);
     requireValue(Array.isArray(value.roots)&&value.roots.length===4&&canonical(value.roots)===canonical([value.before.state,value.after.state,value.forward,value.inverse]));return value.revision;
   }

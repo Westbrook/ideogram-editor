@@ -8,7 +8,7 @@ export function chooseDestination(name:string):Promise<Destination>|null {
   // Attach immediately: the UI yields for pending feedback before awaiting it.
   void chosen?.catch(()=>{});return chosen;
 }
-export async function writeDestination(download:Download,transport:(path:string)=>Promise<Response>,chosen:Promise<Destination>|null){
+export async function writeDestination(download:Pick<Download,'path'|'name'|'hash'|'bytes'>,transport:(path:string)=>Promise<Response>,chosen:Promise<Destination>|null){
   let sink:Sink|undefined;let temporary:FileSystemFileHandle|undefined;
   let temporaryRoot:FileSystemDirectoryHandle|undefined,temporaryName:string|undefined;let handedOff=false;
   try{

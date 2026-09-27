@@ -81,7 +81,7 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
   let rootInvalid = false;
   let closed = false;
   const capabilities: CapabilitiesView = {
-    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 7,
+    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 8,
     credentialConfigured: options.credentialConfigured ?? false,
     storageState: 'unavailable', connectionState: 'unknown', limits: [],
     profiles: [

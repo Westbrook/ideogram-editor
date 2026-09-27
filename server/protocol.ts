@@ -1,3 +1,4 @@
+import {compositionView} from './composition-view.js';
 import { readTextView } from './text-view.js';
 import { PortableRoutes } from './portable.js';
 import { isPortableCommand } from '../src/protocol/portable.js';
@@ -51,6 +52,8 @@ export class ProtocolRoutes {
   private portable: PortableRoutes;
   constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
+    const comp=/^\/api\/v1\/(documents|ui)\/([^/]+)\/composition$/.exec(path);
+    if(comp){if(!isId(comp[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:comp[1]==='documents'?'composition-view':'composition-draft-view',id:comp[2],query:['revision','draftId','generation','raw','offset','download']};}
     const native=/^\/api\/v1\/(documents|ui)\/([^/]+)\/text$/.exec(path);
     if(native){if(!isId(native[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:native[1]==='documents'?'text-view':'text-draft-view',id:native[2],query:native[1]==='documents'?['layerId','revision','content']:['draftId','generation','content']};}
     const text=/^\/api\/v1\/text-admission\/([^/]+)(\/release)?$/.exec(path);if(text){if(!isId(text[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:text[2]?'text-release':'text-admission',id:text[1],query:[]};}
@@ -130,7 +133,7 @@ export class ProtocolRoutes {
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
       lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
-        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 7, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
+        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 8, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
       if (captured.snapshot && BigInt(after) < BigInt(captured.snapshot.seq)) {
@@ -183,7 +186,7 @@ export class ProtocolRoutes {
     const lease: Lease = { clientId: session.clientId, sessionHash: session.cookieHash,
       expires, absolute: session.expires, start, snapshot: null, released: false,
       context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch,
-        projectionSchema: 7, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
+        projectionSchema: 8, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
     this.leases.set(lease.context.recoveryId, lease);
     try {
       const page = await this.page(start, lease.context.recoveryId, session);
@@ -198,7 +201,20 @@ export class ProtocolRoutes {
     if (params.has('recoveryId') && !isId(params.get('recoveryId'))) throw new ProtocolError('MALFORMED_REQUEST');
     try {
       await this.prune();
-      if(route.kind==='text-view'||route.kind==='text-draft-view'){
+      if(route.kind==='composition-view'||route.kind==='composition-draft-view'){
+        const draft=route.kind==='composition-draft-view',revision=params.get('revision')??'',draftId=params.get('draftId'),generation=params.get('generation');
+        if(draft?(!draftId||!isId(draftId)||!generation||!isSeq(generation)):!isSeq(revision))throw new ProtocolError('MALFORMED_REQUEST');
+        const value=await compositionView(this.writer,id,revision,this.assets.auth(session),draft?draftId:null,generation);authenticate();
+        if(!params.has('raw'))sendJSON(response,200,value.data);
+        else{const index=params.get('raw')!,offset=params.get('offset')??'0';if(!isSeq(index)||!isSeq(offset)||Number(index)>=value.raw.length)throw new ProtocolError('MALFORMED_REQUEST');const ref=value.raw[Number(index)];if(BigInt(offset)>BigInt(ref.byteLength))throw new ProtocolError('MALFORMED_REQUEST');const download=params.get('download')==='1';if(params.has('download')&&!download)throw new ProtocolError('MALFORMED_REQUEST');
+          if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
+          let handle:string|undefined;try{handle=await this.writer.openTextContent(ref);authenticate();const remaining=BigInt(ref.byteLength)-BigInt(offset),length=download?remaining:remaining>32768n?32768n:remaining;
+            response.writeHead(200,{'Content-Type':'application/octet-stream','Content-Disposition':'attachment; filename="caption-original.bin"','Content-Length':String(length),ETag:'"'+ref.hash+'"','Cache-Control':'no-store','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff'});
+            for(let at=BigInt(offset);at<BigInt(offset)+length;){await assertRoot();authenticate();if(response.destroyed)return;const n=Number(BigInt(offset)+length-at>32768n?32768n:BigInt(offset)+length-at),bytes=await this.writer.content(handle,String(at),n);await new Promise<void>((resolve,reject)=>response.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}response.end();
+          }finally{this.streams--;if(handle)await this.writer.dropContent(handle);}
+        }
+      }
+      else if(route.kind==='text-view'||route.kind==='text-draft-view'){
         const target=params.get(route.kind==='text-view'?'layerId':'draftId'),revision=route.kind==='text-view'?params.get('revision'):null;
         if(!target||!isId(target)||route.kind==='text-view'&&(revision===null||!isSeq(revision)))throw new ProtocolError('MALFORMED_REQUEST');
         if(params.has('content')&&params.get('content')!=='1')throw new ProtocolError('MALFORMED_REQUEST');

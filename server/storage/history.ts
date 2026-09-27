@@ -1,3 +1,6 @@
+import {CompositionError} from '../../src/composition/core.js';
+import {compositionDraft,compositionDraftRefs} from '../../src/composition/draft.js';
+import {readComposition,validateCommit,compositionRefs,imagePatch} from './composition.js';
 import {maskGrid,retainedMask,r16Mask,translateMask} from '../../src/raster/mapping.js';
 import {maskDraftValue,maskBindings,resolveMaskPlan} from '../../src/raster/mask.js';
 import type { Texts } from './text.js';
@@ -110,6 +113,7 @@ export class Histories {
     if('draft' in c.body){let layerId='layerId' in c.body&&c.body.type!=='CreateTextLayer'?c.body.layerId:null;
       if(c.body.type==='ResampleImage'&&c.body.draft){const preview=this.preview(c.body.previewId,this.authority(c.commandId));layerId=JSON.parse(Buffer.from(this.objects.verify(preview.plan,true)!).toString('utf8')).layerId;}
       const draft=this.ui.fence(c.clientId,c.body.draft,d.id,c.expectedDocumentRevision,layerId);
+      if(draft?.kind==='composition'){if(!('composition'in c.body))throw new AssetRejection('INVALID_INPUT','COMPOSITION_DRAFT_COMMAND_MISMATCH');const asset=this.assets.asset(draft.assetId);if(!asset)throw new AssetRejection('MISSING_ASSET','DRAFT_MISSING');const envelope=JSON.parse(Buffer.from(this.objects.verify(asset.blob,true)!).toString());compositionDraft(envelope);const graph=JSON.parse(Buffer.from(this.objects.verify(envelope.graph,true)!).toString());const value=readComposition(c.body.composition,r=>this.objects.verify(r,true)!);if(canonical(graph.composition)!==canonical(value)||canonical(draft.compositionBindings)!==canonical(c.body.composition.bindings))throw new AssetRejection('STALE_REVISION','COMPOSITION_DRAFT_CHANGED');return draft;}
       if(draft&&(draft.kind==='mask'||(c.body.type==='SetLayerProperties'&&c.body.properties.mask))){
         const b=c.body;
         if(draft.kind!=='mask'||b.type!=='SetLayerProperties'||Object.keys(b.properties).length!==1||!b.properties.mask||b.properties.mask.mapping!=='document-r16-v1'||b.properties.mask.inverted)throw new AssetRejection('INVALID_INPUT','MASK_DRAFT_COMMAND_MISMATCH');
@@ -134,6 +138,7 @@ export class Histories {
       if(layer.locked&&!(b.type==='SetLayerProperties'&&Object.keys(b.properties).length===1&&b.properties.locked===false))throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED',d.revision);
       if(b.type==='ApplyTransform')layer.layerToDocument=b.transform;
       else if(b.type==='SetLayerProperties')Object.assign(layer,b.properties);
+      else if(b.type==='SetLayerAppearance'){layer.appearanceDescription=b.description;state.schemaVersion=5;state.composition??=null;}
       else if(b.type==='DeleteLayer')state.layers=state.layers.filter(l=>l.id!==layer.id);
       else if(b.type==='DuplicateLayer'){
         if(state.layers.some(l=>l.id===b.newLayerId)||this.usedLayer(d.id,b.newLayerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');
@@ -161,11 +166,18 @@ export class Histories {
       }
     }else throw new StoreError('UNSUPPORTED_COMMAND');
     if(state.layers.length>100)throw new AssetRejection('CAPACITY','DOCUMENT_LAYER_LIMIT');
-    if(state.layers.some(l=>l.mask&&retainedMask(l.mask)))state.schemaVersion=4;
+    if(state.schemaVersion<5&&state.layers.some(l=>l.mask&&retainedMask(l.mask)))state.schemaVersion=4;
     else if(state.schemaVersion<3&&state.layers.some(l=>l.mask?.mapping==='document-r16-v1'))state.schemaVersion=3;
     try{imageState(state);}catch{throw new AssetRejection('INVALID_INPUT','INVALID_IMAGE_STATE');}
     for(const l of state.layers)if(l.mask){const a=this.assets.asset(l.mask.assetId),g=maskGrid(l.mask,state.width,state.height);if(!a?.raster||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.raster.width!==g.width||a.raster.height!==g.height||r16Mask(l.mask)!==(a.raster.role==='mask'))throw new AssetRejection('INCOMPATIBLE','MASK_MAPPING_REVIEW_REQUIRED');}
     return state;
+  }
+  private usedComposition(documentId:string,id:string):boolean {
+    // Retained inactive branches and imported histories keep their version IDs.
+    for(const row of this.db.prepare("SELECT json FROM history WHERE json_extract(json,'$.documentId')=? AND json_extract(json,'$.operation') IN ('CommitCompositionVersion','AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding','ApprovePromptProjection')").iterate(documentId)){
+      const h=JSON.parse(String(row.json));if(this.versionState(h.after).composition?.id===id)return true;
+    }
+    return false;
   }
   private usedLayer(documentId:string,id:string):boolean {
     // Layer IDs are never recycled, including identities only on inactive branches.
@@ -173,10 +185,7 @@ export class Histories {
     return !!this.db.prepare("SELECT 1 FROM commands WHERE json_extract(canonical,'$.command.documentId')=? AND json_extract(receipt,'$.status')='accepted' AND (json_extract(canonical,'$.command.body.layerId')=? OR json_extract(canonical,'$.command.body.newLayerId')=?) LIMIT 1").get(documentId,id,id);
   }
   private patch(before:ImageState,after:ImageState,operation:HistoryBody['type']):ImagePatch {
-    const ids=new Set([...before.layers.map(l=>l.id),...after.layers.map(l=>l.id)]);
-    return {schemaVersion:1,operation,...(before.schemaVersion!==after.schemaVersion?{stateSchema:after.schemaVersion}:{}),dimensions:before.width!==after.width||before.height!==after.height?{width:after.width,height:after.height}:null,
-      layers:[...ids].filter(id=>canonical(before.layers.find(l=>l.id===id)??null)!==canonical(after.layers.find(l=>l.id===id)??null)).map(id=>({id,value:after.layers.find(l=>l.id===id)??null})),
-      order:canonical(before.layers.map(l=>l.id))!==canonical(after.layers.map(l=>l.id))?after.layers.map(l=>l.id):null};
+    return imagePatch(before,after,operation);
   }
   private async prepareImagePreview(c:Command,document:Document,before:ImageState,source:ImageVersion,previewId:string,slot:string,check:()=>void,
     metadata:(value:unknown)=>Promise<BlobRef>,proofs:Proof[]):Promise<{preview:ImageEditPreview;facts:AssetFact[]}> {
@@ -224,7 +233,7 @@ export class Histories {
     };
     try{
       const d=b.type==='ExportDocument'?JSON.parse(String(this.db.prepare('SELECT frozen FROM history_preparations WHERE id=?').get(id)!.frozen)) as Document|null:this.document(c.documentId!);const maskDraft=this.assertCommand(c,d),maskDraftIdentity=maskDraft?canonical(maskDraft):null;const document=d!;
-      if(maskDraft){await protectAsset(maskDraft.assetId);for(const source of Object.values(maskDraft.maskBindings!))await protectAsset(source);}
+      if(maskDraft){await protectAsset(maskDraft.assetId);if(maskDraft.kind==='composition'){const a=this.assets.asset(maskDraft.assetId)!;const envelope=JSON.parse(Buffer.from(this.objects.verify(a.blob,true)!).toString());compositionDraft(envelope);for(const ref of compositionDraftRefs(envelope))await protect(ref);}for(const source of Object.values(maskDraft.maskBindings??{}))await protectAsset(source);}
       if(b.type==='ImportFont'){const asset=await this.texts.importFont(c,pending.operationId,protect);this.commit(bytes,current=>{this.assertCommand(c,current);this.authority(id);for(const p of proofs){this.objects.proven(p.ref,p.token);this.register('history-command:'+id,p.ref,p.token);}this.db.prepare('DELETE FROM history_preparations WHERE id=?').run(id);return {facts:[{type:'AssetRegistered',payload:{asset}}],documentChanged:false};});return;}
       const before=document.image?this.versionState(document.image):{schemaVersion:1 as const,width:document.width,height:document.height,layers:[]};const beforeVersion:ImageVersion=document.image??{state:await metadata(before),semanticDigest:semanticDigest(before),compositeAssetId:null};
       if(b.type==='PrepareImageResample'||b.type==='PrepareFlattenedCopy'||b.type==='ReviewImageEdit'){
@@ -267,10 +276,13 @@ export class Histories {
         const approved=b.type==='ResampleImage'||b.type==='CreateFlattenedCopy'?this.approved(c,document):null;
         if(approved){await protect(approved.plan);after=this.versionState(approved.after);version=approved.after;await protectAsset(approved.preparedAssetId);}
         else{
-          if('candidate'in b){
+          if('composition'in b){
+            if(this.usedComposition(document.id,b.composition.id))throw new AssetRejection('INVALID_INPUT','COMPOSITION_VERSION_REUSE');
+            validateCommit(b.type,b.composition,before,r=>this.objects.verify(r,true)!,id=>this.assets.asset(id));after=structuredClone(before);after.schemaVersion=5;after.composition=b.composition;
+          }else if('candidate'in b){
             textCandidate=await this.texts.candidate(c,document,this.authority(id),protect,()=>{check();this.assertCommand(c,this.document(c.documentId!));this.authority(id);});const source=await metadata(textCandidate.source);
             const prepared=await this.rasters.prepareDocument({type:'RetainText',source,pixels:textCandidate.source.render.pixels,width:textCandidate.source.render.width,height:textCandidate.source.render.height},randomUUID(),slot,check);proofs.push(...prepared.proofs);textAsset=prepared.asset;facts.push({type:'AssetRegistered',payload:{asset:textAsset}});
-            after=structuredClone(before);after.schemaVersion=before.schemaVersion===3?3:2;const old=after.layers.find(l=>l.id===b.layerId);
+            after=structuredClone(before);after.schemaVersion=before.schemaVersion>=3?before.schemaVersion:2;const old=after.layers.find(l=>l.id===b.layerId);
             if(b.type==='CreateTextLayer'){if(this.usedLayer(document.id,b.layerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');after.layers.push({id:b.layerId,version:'1',kind:'text',source,name:b.name,assetId:textAsset.id,layerToDocument:[1,0,0,1,b.placement?.x??0,b.placement?.y??0],opacity:1,visible:true,locked:false,blend:'normal',mask:null});}
             else{if(!old||old.kind!=='text'||old.version!==b.layerVersion)throw new AssetRejection('STALE_REVISION','TEXT_LAYER_CHANGED');if(old.locked)throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');const prior=this.texts.source(old.source);if(b.type==='CommitTextEdit'&&canonical(prior.text.fonts)!==canonical(textCandidate.source.text.fonts))throw new AssetRejection('INCOMPATIBLE','REVIEWED_FONT_REPLACEMENT_REQUIRED');old.assetId=textAsset.id;old.source=source;old.version=String(BigInt(old.version)+1n);}
           }else if(b.type==='RasterizeTextDerivative'){
@@ -283,6 +295,7 @@ export class Histories {
         if(!approved&&beforeVersion.compositeAssetId&&canonical(visual(before))===canonical(visual(after)))version.compositeAssetId=beforeVersion.compositeAssetId;
       }
       await protect(beforeVersion.state);await protect(version.state);
+      for(const state of [before,after])if(state.composition){const c=readComposition(state.composition,r=>this.objects.verify(r,true)!);for(const ref of [state.composition.value,...compositionRefs(c)])await protect(ref);}
       for(const l of [...before.layers,...after.layers]){await protectAsset(l.assetId);if(l.mask)await protectAsset(l.mask.assetId);}
       if(beforeVersion.compositeAssetId)await protectAsset(beforeVersion.compositeAssetId);
       if(version.compositeAssetId)await protectAsset(version.compositeAssetId);
@@ -302,14 +315,14 @@ export class Histories {
       }
       this.barrier('history-after-proofs');await new Promise<void>(resolve=>setImmediate(resolve));check();
       this.commit(bytes,(current,revision)=>{
-        const currentMaskDraft=this.assertCommand(c,b.type==='ExportDocument'?document:current);if((currentMaskDraft?canonical(currentMaskDraft):null)!==maskDraftIdentity)throw new AssetRejection('STALE_REVISION','MASK_DRAFT_CHANGED');if(textCandidate){this.texts.fence(c,current,this.authority(id),textCandidate);this.texts.limits(after);}if(b.type==='RasterizeTextDerivative')this.authority(id);if(b.type==='ResampleImage'||b.type==='CreateFlattenedCopy')this.approved(c,current);for(const p of proofs)this.objects.proven(p.ref,p.token);
+        const currentMaskDraft=this.assertCommand(c,b.type==='ExportDocument'?document:current);if((currentMaskDraft?canonical(currentMaskDraft):null)!==maskDraftIdentity)throw new AssetRejection('STALE_REVISION','MASK_DRAFT_CHANGED');if('composition'in b)validateCommit(b.type,b.composition,before,r=>this.objects.verify(r,true)!,id=>this.assets.asset(id));if(textCandidate){this.texts.fence(c,current,this.authority(id),textCandidate);this.texts.limits(after);}if(b.type==='RasterizeTextDerivative')this.authority(id);if(b.type==='ResampleImage'||b.type==='CreateFlattenedCopy')this.approved(c,current);for(const p of proofs)this.objects.proven(p.ref,p.token);
         this.barrier('history-before-register');for(const p of proofs)this.objects.proven(p.ref,p.token);for(const [id,identity]of assetIdentities)if(canonical(this.assets.asset(id))!==identity)throw new AssetRejection('STALE_REVISION','HISTORY_DEPENDENCY_CHANGED');
         const seen=new Set<string>();for(const p of proofs){if(seen.has(p.ref.hash))continue;seen.add(p.ref.hash);this.register('history-command:'+id,p.ref,p.token);}
         const all:HistoryBuild['facts']=[...facts];
         if(b.type==='SaveCheckpoint'){
           all.push({type:'CheckpointSaved',payload:{checkpoint:{id:pending.operationId,name:b.name,documentId:current.id,documentRevision:current.revision,historyHead:current.historyHead,highWater:String(this.db.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value),image:beforeVersion}}});
         }else if(b.type!=='ExportDocument'){
-          const next:Document={...current,revision,width:after.width,height:after.height,orderedLayerIds:after.layers.map(l=>l.id),historyHead:head,branchId,image:version,redo};
+          const next:Document={...current,revision,width:after.width,height:after.height,orderedLayerIds:after.layers.map(l=>l.id),historyHead:head,branchId,image:version,redo,compositionVersion:after.composition?.id??null};
           if(node)all.push({type:'ImageEdited',payload:{document:next,history:node}});
           else all.push({type:'HistoryNavigated',payload:{document:next,previousHead:current.historyHead,action:b.type as 'Undo'|'Redo'|'SwitchBranch'}});
           const now=new Date().toISOString();if('draft' in b)this.ui.applied(c.clientId,b.draft,now);this.ui.reconcile(current.id,after,now);
@@ -320,7 +333,7 @@ export class Histories {
       this.observations.push({commandId:id,operation:b.type,fullPreparationMs:performance.now()-start,externalEffects:0});
     }catch(error){
       const code=(error as {code?:string}).code;
-      const rejection=error instanceof AssetRejection?error:code==='PAYLOAD_TOO_LARGE'?new AssetRejection('CAPACITY','IMAGE_METADATA_LIMIT'):['ENOENT','MISSING_OBJECT','CORRUPT_OBJECT','ROOT_UNSAFE'].includes(code??'')?new AssetRejection('MISSING_ASSET','HISTORY_DEPENDENCY_UNAVAILABLE'):null;
+      const rejection=error instanceof CompositionError?new AssetRejection('INVALID_INPUT',error.issues[0].code):error instanceof AssetRejection?error:code==='PAYLOAD_TOO_LARGE'?new AssetRejection('CAPACITY','IMAGE_METADATA_LIMIT'):['ENOENT','MISSING_OBJECT','CORRUPT_OBJECT','ROOT_UNSAFE'].includes(code??'')?new AssetRejection('MISSING_ASSET','HISTORY_DEPENDENCY_UNAVAILABLE'):null;
       this.observations.push({commandId:id,operation:b.type,fullPreparationMs:performance.now()-start,error:rejection?.reason??code??'UNEXPECTED'});
       if(rejection)this.commit(bytes,()=>{throw rejection;});else this.pause(id);
     }finally{for(const p of proofs)this.objects.releaseProof(p.token);if(this.db.prepare('SELECT id FROM commands WHERE id=?').get(id))this.authorities.delete(id);if(this.observations.length>64)this.observations.shift();}

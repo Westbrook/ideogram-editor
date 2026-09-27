@@ -1,5 +1,5 @@
 {
-  "scope": "P1c.4 native text editing and font recovery; independent review required",
+  "scope": "P1c.5 separate Composition and explicit field links; independent review required",
   "registration": "Public definition exports through createElementScope; no private imports. Dialog/drawer definitions load as one bounded group on first explicit panel action.",
   "surfaces": [
     {
@@ -72,7 +72,7 @@
         "EnTab",
         "EnTabPanel"
       ],
-      "owner": "Public tab interaction; unavailable Composition/results/jobs are explained truthfully."
+      "owner": "Public tabs own navigation; Layers and Composition have independent selection. Results/jobs remain unavailable."
     },
     {
       "surface": "Retained history",
@@ -173,6 +173,27 @@
         "EnSwitch"
       ],
       "owner": "Public surrounding controls, disclosure, validation, status and keyboard actions. EditingController with createDraftModel owns public native-editing bridge; app fences native range direction, scroll, focus intent, composition, source revision, recoverable generation, canonical preview and explicit durable Apply. Initial X/Y belongs to one creation transaction; width/height reflow is distinct from existing affine transform."
+    },
+    {
+      "surface": "Composition authoring, explicit links and raw conversion",
+      "components": [
+        "EnTree",
+        "EnTextarea",
+        "EnTextField",
+        "EnNumberField",
+        "EnSelect",
+        "EnColorField",
+        "EnSwitch",
+        "EnAccordion",
+        "EnCard",
+        "EnBadge",
+        "EnAlert",
+        "EnButton",
+        "EnDialog",
+        "EnValidationSummary",
+        "EnFileUpload"
+      ],
+      "owner": "Separate semantic IDs/order/selection; typed explicit bindings and retained stale/missing snapshots. Public fields, palette conversion, raw byte pages and reviewed Convert copy. Draft generation and expected revision fence Apply. Exact original-byte export uses the existing verified streamed destination path."
     }
   ],
   "nativeOrAppOwnedExceptions": [
@@ -225,7 +246,22 @@
       "surface": "F05 native text source and canonical frame preview",
       "element": "One app-owned textarea and associated native label, stable parent; app canvas pixels/frame geometry",
       "contract": "F05 explicitly requires same connected native textarea/session/parent and arbitrary native range direction/caret/scroll. EnTextarea and RichTextEditor do not expose that contract; public EditingController accepts the app-owned control. CSS presentation only outside reparented drawers; controls and feedback use public components. Exact canonical pixel preview and affine frame anchoring have no public En Reve raster editor equivalent."
+    },
+    {
+      "surface": "Caption color conversion",
+      "element": "Public EnColorField plus EnTextField and exported parseColor/exportSRGB",
+      "contract": "Pinned EnColorPicker always emits dynamic inline preview/gradient styles; no public nonce or disable-style API. Fresh browser13 retains five CSP violations. Public color/text fields avoid a custom picker or CSP relaxation. Original alpha/P3 draft retained; opaque sRGB/clipping preview requires Apply."
+    },
+    {
+      "surface": "Flat semantic reorder",
+      "element": "Public EnButton move actions",
+      "contract": "Pinned EnTree move proposals include nesting without a position filter. Flat semantic order uses Move earlier/later actions, stable IDs and one reviewed commit."
+    },
+    {
+      "surface": "Composition guides",
+      "element": "Existing app-owned canvas decoration and pointer geometry",
+      "contract": "No public En Reve document-to-request affine guide geometry. Pointer samples change preview only and coalesce into one full-precision draft. Apply creates one transaction. Public number fields and arrow-key button give alternatives. Guides never affect raster pixels or masks."
     }
   ],
-  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Attached crop/resize uses versioned retained grids and outside-domain zero coverage, including inversion; no re-feather or clipped-byte replacement on bounds changes. New draft Apply can explicitly re-feather original hard coverage on the current document. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01. Text synthetic composition covers event handling only. Physical IME/AT remain unavailable. Text-draft-2, storage12/PF6/projection7 are explicit placement successors; native/layout/raster identity unchanged. No self-acceptance."
+  "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Attached crop/resize uses versioned retained grids and outside-domain zero coverage, including inversion; no re-feather or clipped-byte replacement on bounds changes. New draft Apply can explicitly re-feather original hard coverage on the current document. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01. Text synthetic composition covers event handling only. Physical IME/AT remain unavailable. Text-draft-2, storage12/PF6/projection7 are explicit placement successors; native/layout/raster identity unchanged. No self-acceptance. Composition uses storage13/PF7/document7/projection8, composition-version-1 and composition-draft-1; text-draft-2 unchanged; profilef5e8 succeeds ff24 only for required HTTP/validator source attribution, with exact ff24 and3045 retained. Native/font/layout/raster bytes and caps unchanged. Local request summary only; provider transport and returned workflows remain P2. No semantic literal textarea exception."
 }

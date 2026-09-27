@@ -1,3 +1,4 @@
+import {validateCompositionRef,validString} from '../composition/core.js';
 import {validateMaskMapping,retainedMask} from '../raster/mapping.js';
 import { blob } from './validate.js';
 import { isTextCommand, textBody } from './text.js';
@@ -12,15 +13,17 @@ export function layerMask(v: any) {
   validateMaskMapping(v);
 }
 export function imageState(v: any): asserts v is ImageState {
-  keys(v, ['schemaVersion','width','height','layers']); extent(v.width,v.height);
-  ok([1,2,3,4].includes(v.schemaVersion) && Array.isArray(v.layers) && v.layers.length <= 100);
+  keys(v, ['schemaVersion','width','height','layers',...(v.schemaVersion===5?['composition']:[])]); extent(v.width,v.height);
+  if(v.schemaVersion===5&&v.composition!==null)validateCompositionRef(v.composition);
+  ok([1,2,3,4,5].includes(v.schemaVersion) && Array.isArray(v.layers) && v.layers.length <= 100);
   const seen = new Set();
   for (const l of v.layers) {
-    keys(l,['id','version','kind','name','assetId','layerToDocument','opacity','visible','locked','blend','mask',...(l.kind==='text'?['source']:[])]);
+    keys(l,['id','version','kind','name','assetId','layerToDocument','opacity','visible','locked','blend','mask',...(l.kind==='text'?['source']:[]),...(l.appearanceDescription!==undefined?['appearanceDescription']:[])]);
+    if(l.appearanceDescription!==undefined)ok(v.schemaVersion===5&&validString(l.appearanceDescription));
     if(l.kind==='text'){ok(v.schemaVersion>=2);blob(l.source);ok(l.source.mediaType==='application/json'&&BigInt(l.source.byteLength)<=65536n);}
     ok(id(l.id) && seq(l.version) && ['image','text'].includes(l.kind) && id(l.assetId) && !seen.has(l.id)); seen.add(l.id);
     if(l.mask?.mapping==='document-r16-v1')ok(v.schemaVersion>=3);
-    if(l.mask&&retainedMask(l.mask))ok(v.schemaVersion===4);
+    if(l.mask&&retainedMask(l.mask))ok(v.schemaVersion>=4);
     properties({name:l.name,opacity:l.opacity,visible:l.visible,locked:l.locked,mask:l.mask});
     affine(l.layerToDocument); ok(l.blend === 'normal');
   }
@@ -38,12 +41,15 @@ function properties(v: any) {
 export function historyBody(b: any) {
   if(isTextCommand(b.type)){textBody(b);return;}
   const fields: Record<string,string[]> = {
+    SetLayerAppearance:['layerId','layerVersion','description','draft'],
     ImportAsset:['assetId','layerId','name','draft'], ApplyTransform:['layerId','layerVersion','transform','draft'],
     SetLayerProperties:['layerId','layerVersion','properties','draft'], DeleteLayer:['layerId','layerVersion','draft'],
     DuplicateLayer:['layerId','layerVersion','newLayerId','name','draft'], MoveLayers:['orderedLayerIds','draft'],
     CropDocument:['x','y','width','height','draft'], ResizeCanvas:['width','height','offsetX','offsetY','draft'],
     PrepareImageResample:['layerId','layerVersion','width','height'],PrepareFlattenedCopy:['layerIds','includeHidden','hideOriginals','newLayerId','name'],ReviewImageEdit:['previewId'],ResampleImage:['previewId','reviewId','reviewHash','draft'],CreateFlattenedCopy:['previewId','reviewId','reviewHash','draft'],SaveCheckpoint:['name'], Undo:['historyHead'], Redo:['historyNode'], SwitchBranch:['branchId','historyNode'], ExportDocument:['historyHead'],
   };
+  for(const type of ['CommitCompositionVersion','AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding','ApprovePromptProjection'])fields[type]=['composition','draft'];
+  if('composition'in b)validateCompositionRef(b.composition);if('description'in b)ok(validString(b.description));
   ok(Object.hasOwn(fields,b.type)); keys(b,['type',...fields[b.type]]);
   for (const k of ['assetId','layerId','newLayerId','historyHead','historyNode','branchId','previewId','reviewId']) if (k in b) ok(id(b[k]));
   if('reviewHash' in b)ok(/^sha256:[a-f0-9]{64}$/.test(b.reviewHash));

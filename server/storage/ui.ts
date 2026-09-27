@@ -1,3 +1,4 @@
+import {compositionDraft,compositionDraftRefs,compositionDraftGraph} from '../../src/composition/draft.js';
 import {maskDraftValue,maskImports,maskSource} from '../../src/raster/mask.js';
 import {textDraft,draftRefs} from '../../src/protocol/text.js';
 import type { DatabaseSync } from 'node:sqlite';
@@ -12,6 +13,7 @@ import { StoreError } from './errors.js';
 import type { Objects, Barrier } from './objects.js';
 import type { BlobRef } from '../../src/protocol/store.js';
 import { parseControlJSON } from '../control-json.js';
+import { parseControlJSON as parseDraftJSON } from '../../src/protocol/json.js';
 
 const initial = (sessionId:string):UICheckpoint => ({sessionId,uiSeq:'0',preferences:{documentId:null,tool:'select',viewport:{x:0,y:0,zoom:1},panels:{left:280,right:280,active:'layers'},selectedLayerIds:[]},drafts:[],reconciledLayerIds:[]});
 function preferences(p:any):asserts p is Preferences {
@@ -67,7 +69,7 @@ export class UIStore {
     if(b?.type==='SetPreferences'){keys(b,['type','preferences']);preferences(b.preferences);}
     else if(b?.type==='SaveDraft'){
       keys(b,['type','draft']);const d=b.draft;keys(d,['id','generation','kind','documentId','targetLayerId','expectedDocumentRevision','assetId','composing']);
-      if(![d.id,d.documentId,d.assetId].every(isId)||!isSeq(d.generation)||!isSeq(d.expectedDocumentRevision)||!(d.targetLayerId===null||isId(d.targetLayerId))||!['prompt','inspector','text','mask'].includes(d.kind)||typeof d.composing!=='boolean')throw new StoreError('MALFORMED_REQUEST');
+      if(![d.id,d.documentId,d.assetId].every(isId)||!isSeq(d.generation)||!isSeq(d.expectedDocumentRevision)||!(d.targetLayerId===null||isId(d.targetLayerId))||!['prompt','inspector','text','mask','composition'].includes(d.kind)||typeof d.composing!=='boolean')throw new StoreError('MALFORMED_REQUEST');
     }else if(b?.type==='ClearDraft'){keys(b,['type','draftId','generation']);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else if(b?.type==='FocusRequested'){keys(b,['type','target','generation']);if(!['canvas','inspector','history'].includes(b.target)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else throw new StoreError('MALFORMED_REQUEST');
@@ -82,6 +84,7 @@ export class UIStore {
         if(!a||a.qualification!=='opaque-text'||a.safety!=='safe'||a.availability!=='available')throw new StoreError('MISSING_OBJECT');
         ref=a.blob;proof=await this.objects.prove(ref,()=>this.check());
         if(b.draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(ref,true)!);maskDraftValue(value);bindings={};for(const id of maskImports(value.plan)){const source=this.assets.asset(id);if(!source?.raster||source.qualification!=='canonical-raster'||source.safety!=='safe'||source.availability!=='available')throw new StoreError('MISSING_OBJECT');try{const manifest=parseControlJSON(this.objects.verify(source.raster.manifest,true)!) as {plan:{hard?:BlobRef}};maskSource(value.plan,id,source.raster,manifest.plan.hard);}catch{throw new StoreError('MISSING_OBJECT');}bindings[id]=id;for(const dep of [source.blob,...source.dependencies])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}}
+        if(b.draft.kind==='composition'){const value=parseControlJSON(this.objects.verify(ref,true)!);compositionDraft(value);compositionDraftGraph(parseDraftJSON(this.objects.verify(value.graph,true)!,8388608),value);bindings=value.bindings;for(const dep of compositionDraftRefs(value))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
         if(b.draft.kind==='text'){const v=parseControlJSON(this.objects.verify(ref,true)!);textDraft(v);if(v.kind==='text-draft-2'&&b.draft.targetLayerId!==null)throw new StoreError('MALFORMED_REQUEST');for(const dep of draftRefs(v)){try{extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(dep===v.textUtf8||!(e instanceof StoreError)||!['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw e;}}}
       }
       this.db.exec('BEGIN IMMEDIATE');
@@ -94,7 +97,7 @@ export class UIStore {
           else if(!prior&&state.drafts.length>=64)reason='DRAFT_CHECKPOINT_CAPACITY';
           else{const seen=new Set<string>();for(const p of extra){if(seen.has(p.ref.hash))continue;seen.add(p.ref.hash);this.objects.proven(p.ref,p.proof);this.register('ui:'+auth.clientId+':'+request.sessionId+':'+b.draft.id+':'+b.draft.generation,p.ref,p.proof);}
           if(ref&&proof){this.objects.proven(ref,proof);this.register('ui:'+auth.clientId+':'+request.sessionId+':'+b.draft.id+':'+b.draft.generation,ref,proof);}
-            state.drafts=state.drafts.filter(d=>d.id!==b.draft.id);state.drafts.push({...b.draft,...(bindings?{maskBindings:bindings}:{}),status:'saved-unapplied'});}
+            state.drafts=state.drafts.filter(d=>d.id!==b.draft.id);state.drafts.push({...b.draft,...(bindings?b.draft.kind==='composition'?{compositionBindings:bindings}:{maskBindings:bindings}:{}),status:'saved-unapplied'});}
         }else if(!reason&&b.type==='ClearDraft'){
           const prior=state.drafts.find(d=>d.id===b.draftId);if(!prior||prior.generation!==b.generation)reason='STALE_DRAFT_GENERATION';else state.drafts=state.drafts.filter(d=>d.id!==b.draftId);
         }else if(!reason&&b.type==='SetPreferences'){

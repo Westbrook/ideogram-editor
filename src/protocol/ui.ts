@@ -6,16 +6,16 @@ export type Preferences = {
   selectedLayerIds: string[];
 };
 export type Draft = {
-  id: string; generation: string; kind: 'prompt' | 'inspector' | 'text' | 'mask'; documentId: string;
+  id: string; generation: string; kind: 'prompt' | 'inspector' | 'text' | 'mask' | 'composition'; documentId: string;
   targetLayerId: string | null; expectedDocumentRevision: string; assetId: string;
-  maskBindings?: Record<string,string>;
+  maskBindings?: Record<string,string>; compositionBindings?:Record<string,string>;
   composing: boolean; status: 'saved-unapplied' | 'applied';
 };
 export type UICheckpoint = { sessionId: string; uiSeq: string; preferences: Preferences; drafts: Draft[]; reconciledLayerIds: string[] };
 export type UIRequest = {
   protocolVersion: 1; requestId: string; sessionId: string; expectedUISeq: string;
   body: { type: 'SetPreferences'; preferences: Preferences }
-    | { type: 'SaveDraft'; draft: Omit<Draft,'status'|'maskBindings'> }
+    | { type: 'SaveDraft'; draft: Omit<Draft,'status'|'maskBindings'|'compositionBindings'> }
     | { type: 'ClearDraft'; draftId: string; generation: string }
     | { type: 'FocusRequested'; target: 'canvas' | 'inspector' | 'history'; generation: string };
 };

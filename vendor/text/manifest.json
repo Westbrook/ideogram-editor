@@ -346,7 +346,7 @@
     {
       "path": "server/http.ts",
       "bytes": 14400,
-      "sha256": "06272c50a711d2b48e3f89ea6f87334f45daa83257cdfba11de4666a22a7419f"
+      "sha256": "e9ee572b0318f23b26731b8d365f4be24861ee32bdf50579413b3b51ab69c25b"
     },
     {
       "path": "server/storage/text.ts",
@@ -370,8 +370,8 @@
     },
     {
       "path": "server/text/validation.ts",
-      "bytes": 9826,
-      "sha256": "24680260860b27b220909c88343782cae93452fa5431e820d533a72abe012759"
+      "bytes": 10169,
+      "sha256": "c2ab854d492842c75f393925fa90e4058ee58c02536e791801f5de30c4c9dc9d"
     },
     {
       "path": "server/text/render-worker.mjs",
@@ -422,7 +422,12 @@
       "path": "src/text/retained-profiles/304528c9.json",
       "bytes": 15748,
       "sha256": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+    },
+    {
+      "path": "src/text/retained-profiles/ff24a513.json",
+      "bytes": 15924,
+      "sha256": "82bbff0efe60f4633875efe51917e9526464a2ddc54ab28c2dc048d44267ef36"
     }
   ],
-  "id": "sha256:ff24a513914de0ce47d51d86e2cdd516d206c6a59eebed1387f4e4476e265e0d"
+  "id": "sha256:f5e8bd34101a93b5a20c40dfbb82afdd01e84da83307c3d24848bc79c0acaaca"
 }
