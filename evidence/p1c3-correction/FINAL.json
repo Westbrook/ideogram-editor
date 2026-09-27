@@ -1,0 +1,60 @@
+{
+  "taskId": "de9a33a4-55cd-4132-a497-3b27095ab0ca",
+  "prContextNoteId": "cbd63320-6def-4beb-b78f-de897caf3cdf",
+  "status": "AUTHOR_CORRECTION_REVIEW_REQUIRED",
+  "acceptedBase": "4b2c82ccc41dd72c3f83480f23481b7b62135d23",
+  "rejectedParent": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+  "checkerCommit": "fdcccac486c8c99de8f1603e5dedb9ddbbd33a41",
+  "productCommit": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+  "testOnlyCommits": [
+    "28a2ab69bb6c1be2bf079e6998ed5141c890fadc",
+    "7ba3a7ccdd440b5b82c376f4523aea8246fd2600"
+  ],
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "finalEvidenceCommit": "The commit containing this file; full SHA reported in task/PR readbacks to avoid self-reference.",
+  "profile": "sha256:304528c98255447a3c8b4607b3b6738261dad46c485c84c203e9c16ae1f69a29",
+  "functionalBrowserEND": "2026-09-27T02:05:46.872149Z",
+  "sourceFiles": 518,
+  "cleanBuildFiles": 71,
+  "runtimeExtraFiles": 218,
+  "runtimeSourceSHA256": "7ad2bb72dcc09793d80d4b066c4adfe4e0415aeca6f5f9554558c46782687e60",
+  "sourceBuildIntegrity": "source-build-integrity.json",
+  "sourceQualifiedReuse": "gates-and-reuse.json",
+  "adoptionInventory": "public-adoption.json",
+  "scopeInventory": "scope-and-reuse.json",
+  "firstFailures": "FIRST_FAILURES.txt",
+  "preview": {
+    "gate": "39e-final-card-roundtrip",
+    "publicationReportRevision": 442,
+    "canonicalDataInputRevision": 443,
+    "itemId": "masks-layers-correction-preview",
+    "version": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "contentRevision": 3,
+    "pass": true,
+    "end": "2026-09-27T02:05:46.872149Z",
+    "wholeReportRevisionStabilityAsserted": false,
+    "cleanup": "complete",
+    "humanReviewed": false,
+    "metadataFrozen": true,
+    "url": "http://127.0.0.1:58259/?progress-report",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc",
+    "pid": 34507,
+    "servedIdentity": "38-preview-identity/identity.json"
+  },
+  "remainingGaps": [
+    "Actual native browser200% page zoom UNVERIFIED after explicit user stop; no bypass/substitute.",
+    "39b cleanup unconfirmed;39c cleanup incomplete/reset0. Fresh39e cleanup complete does not erase earlier failures.",
+    "Independent successor review/acceptance required; no credit/self-acceptance.",
+    "A-R01 remains OPEN; full native memory/resource/OS IME/AT/platform scope unqualified."
+  ],
+  "progress": "P1c8/25; mask4 unearned",
+  "oldServices": "57855/50646/52219 untouched",
+  "gitHub": "No remote PR/CI configured; PR context is the shared note, no GitHub URL/number/base CI run.",
+  "reviewPolicy": "Stop source/evidence/profile/build/test/service changes after final exact readbacks; require new independent assignment, sealed verdict/END and coordinator release.",
+  "rawEvidenceWhitespace": {
+    "exitCode": 2,
+    "receipt": "final-evidence-whitespace.json",
+    "sourceOnlyExitCode": 0
+  },
+  "sealedAt": "2026-09-27T02:06:56.612489+00:00"
+}

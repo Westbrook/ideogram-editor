@@ -1,0 +1,77 @@
+{
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "rejectedBase": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+  "changedSourceFiles": [
+    "server/http.ts",
+    "server/portable/closure.ts",
+    "server/portable/format.ts",
+    "server/protocol.ts",
+    "server/raster/engine.ts",
+    "server/storage/canonical.ts",
+    "server/storage/database.ts",
+    "server/storage/history.ts",
+    "server/storage/portable.ts",
+    "server/storage/raster.ts",
+    "server/storage/recovery.ts",
+    "server/storage/schema.ts",
+    "server/storage/ui.ts",
+    "server/text/validation.ts",
+    "src/protocol/history-validation.ts",
+    "src/protocol/history.ts",
+    "src/protocol/portable.ts",
+    "src/protocol/raster.ts",
+    "src/protocol/validate.ts",
+    "src/raster/mapping.ts",
+    "src/raster/mask.ts",
+    "src/state/recovery-client.ts",
+    "src/text/profile.json",
+    "src/text/retained-profiles/d047f5be.json",
+    "src/ui/authoring.ts",
+    "src/ui/shell.ts",
+    "tests/assets/storage.test.mjs",
+    "tests/editor/authoring.spec.ts",
+    "tests/history/mask-compatibility.test.mjs",
+    "tests/history/mask-schema.test.mjs",
+    "tests/history/mask-text-compatibility.test.mjs",
+    "tests/history/retained-mask-compatibility.test.mjs",
+    "tests/history/retained-mask-schema.test.mjs",
+    "tests/history/retained-mask.test.mjs",
+    "tests/history/review.test.mjs",
+    "tests/history/schema.test.mjs",
+    "tests/portable/schema.test.mjs",
+    "tests/portable/transaction-schema.test.mjs",
+    "tests/portable/transactions.test.mjs",
+    "tests/protocol/recovery.test.mjs",
+    "tests/raster/schema.test.mjs",
+    "tests/raster/storage.test.mjs",
+    "tests/session/http.test.mjs",
+    "tests/text-state/native.test.mjs",
+    "tests/text-state/schema.test.mjs",
+    "tooling/editor-components.json",
+    "tooling/test-vendor.py",
+    "tooling/text/seal-profile.mjs",
+    "tooling/verify-vendor.py",
+    "vendor/text/FILES.json",
+    "vendor/text/manifest.json"
+  ],
+  "oldEvidenceAndLocatorTrackedDiff": [],
+  "retainedProfiles": {
+    "src/text/retained-profiles/6e8a481e.json": {
+      "sha256": "15634d19418bc21841fa8093de2ae7598b752c2f158be90f6e7e06216d79d6da",
+      "unchangedFrom": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88"
+    },
+    "src/text/retained-profiles/c19791ae.json": {
+      "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b",
+      "unchangedFrom": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88"
+    },
+    "src/text/retained-profiles/b89503d3.json": {
+      "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8",
+      "unchangedFrom": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88"
+    },
+    "src/text/retained-profiles/d047f5be.json": {
+      "sha256": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+      "copiedExactlyFrom": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88:src/text/profile.json"
+    }
+  },
+  "oldServices": "Author made no restart, code, file, default URL or store changes to57855/50646/52219. This records work scope, not a new runtime health or whole-external-directory audit."
+}

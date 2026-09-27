@@ -1,0 +1,144 @@
+{
+  "started": "2026-09-27T02:04:37.030Z",
+  "ended": "2026-09-27T02:04:42.959Z",
+  "passed": false,
+  "browser": "153.0.8010.12",
+  "runtime": {
+    "started": "2026-09-27T01:57:00.915Z",
+    "pid": 34507,
+    "origin": "http://127.0.0.1:58259",
+    "reviewURL": "http://127.0.0.1:58259/?progress-report",
+    "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "runtimeSourceSHA256": "7ad2bb72dcc09793d80d4b066c4adfe4e0415aeca6f5f9554558c46782687e60",
+    "buildFiles": 71,
+    "extraRuntimeFiles": 218,
+    "node": "v26.10.0",
+    "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc/",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc/private",
+    "mode": "isolated AUTHOR review; no independent approval; outgoing effects denied"
+  },
+  "review": {
+    "itemId": "masks-layers-correction-preview",
+    "title": "P1c.3 masks and layers 7ba3a7cc — AUTHOR REVIEW",
+    "version": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "contentRevision": 2,
+    "current": true,
+    "reportRevision": 441,
+    "readAt": "2026-09-27T02:01:47.987757+00:00",
+    "humanReviewed": false
+  },
+  "displayedVersion": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 3",
+  "paired": true,
+  "errors": [],
+  "domErrors": [],
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/session/bootstrap",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui/ui_1db6ad89-8cd6-452b-9a40-f8742e64bb6b",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/recovery/882ee08b-9a65-400c-9a45-7a33f22c85bf/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    }
+  ],
+  "primaryError": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 3'\n- '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 2'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 3'\n- '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 2'\n\n    at file:///Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3-correction/39d-preview-roundtrip.mjs:22:174"
+  },
+  "cleanupError": null,
+  "scope": "Author stock controlled-origin Chromium native clicks through exact rendered product card. Report requests GET only; no reviewed/approval/checkpoint action. No independent acceptance or OS/AT/resource qualification."
+}

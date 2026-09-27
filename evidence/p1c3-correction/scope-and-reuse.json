@@ -1,0 +1,167 @@
+{
+  "taskId": "de9a33a4-55cd-4132-a497-3b27095ab0ca",
+  "acceptedBase": "4b2c82ccc41dd72c3f83480f23481b7b62135d23",
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "status": "AUTHOR correction; independent successor review required; actual native 200% page zoom UNVERIFIED",
+  "requirements": [
+    {
+      "requirement": "Rectangle, ellipse and polygon selection; pointer and numeric geometry; replace/add/subtract/intersect",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "src/raster/mask.ts"
+      ],
+      "evidence": [
+        "tests/raster/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Document coordinates; selection is independent of layer selection and provider attachment. Polygon clicks add numeric points and Apply closes the shape."
+    },
+    {
+      "requirement": "Brush/erase, stroke Undo, Fill/Clear/Invert, hard and effective feather",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "src/raster/mask.ts",
+        "server/raster/engine.ts"
+      ],
+      "evidence": [
+        "tests/raster/mask.test.mjs",
+        "tests/history/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Separate protected little-endian R16 hard/effective objects. Finite triangle, zero document extension, one final R16 quantization; radius0..64 and radius<=1 identity. Released stroke is one recoverable draft operation; Apply is one document history edit."
+    },
+    {
+      "requirement": "Reviewed PNG import, alignment, polarity and attachment",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "server/storage/raster.ts"
+      ],
+      "evidence": [
+        "tests/history/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Static PNG, original preserved; linear-sRGB luminance times alpha, native-size whole-pixel placement with explicit document clipping. Hard/effective/original/full-result views and loaded result gate; no implicit provider input or approved request domain."
+    },
+    {
+      "requirement": "Draft Apply/Cancel/stale/late-result, persistence, closure and namespace fidelity",
+      "implementation": [
+        "src/ui/authoring.ts",
+        "server/storage/ui.ts",
+        "server/storage/portable.ts",
+        "server/portable/closure.ts",
+        "server/storage/history.ts",
+        "src/raster/mask.ts"
+      ],
+      "evidence": [
+        "tests/history/mask.test.mjs",
+        "tests/history/mask-schema.test.mjs",
+        "tests/history/mask-compatibility.test.mjs",
+        "tests/editor/authoring.spec.ts",
+        "tests/history/retained-mask.test.mjs",
+        "independent-mask-authority-v3/results.json",
+        "40-authority-final/receipt.json"
+      ],
+      "boundary": "Exact saved kind/raw caption resolved by typed namespace bindings, plan/dimensions/radius/layer version/current document, prepared authored-mask identity and baseline/import dependencies are bound before and inside atomic acceptance. Late caption/hard/baseline-hard/coherent asset-record replacement refuses without revision advancement or marking raw draft applied. New local-mask-2 baseline preserves raw caption and typed IDs across nested copies. Cancel and stale-generation preserve attachment."
+    },
+    {
+      "requirement": "Layer rename/reorder/visibility/lock/duplicate/delete and atomic transforms",
+      "implementation": [
+        "src/ui/shell.ts",
+        "src/ui/authoring.ts",
+        "server/storage/history.ts"
+      ],
+      "evidence": [
+        "tests/history/http.test.mjs",
+        "tests/history/replay.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "reuse": "Existing exact4b2 typed operations and numeric inspector retained; explicit lock/unlock and pointer Move added. Pointer release makes one ApplyTransform; Escape/final veto/stale result fences. Numeric six-coefficient transform remains one transaction."
+    },
+    {
+      "requirement": "Crop, canvas resize, reviewed intrinsic image resampling and flattened copy",
+      "implementation": [
+        "src/ui/shell.ts",
+        "src/state/editor-client.ts",
+        "server/storage/history.ts",
+        "src/raster/mapping.ts",
+        "server/raster/engine.ts"
+      ],
+      "evidence": [
+        "tests/history/review.test.mjs",
+        "tests/history/http.test.mjs",
+        "tests/editor/authoring.spec.ts",
+        "tests/history/retained-mask.test.mjs",
+        "tests/history/mask-text-compatibility.test.mjs",
+        "tests/history/retained-mask-compatibility.test.mjs"
+      ],
+      "reuse": "Intrinsic image resample and flatten-copy arithmetic reused from accepted4b2 with current public surroundings. Crop/ResizeCanvas now explicitly retain source-grid dimensions and integer origins, translating layer and mask by reviewed offsets. Original source/hard/effective bytes unchanged; outside retained domain zero even when inverted, inside polarity once. Expansion reveals clipped retained content. One transaction and Undo/Redo; native text still scales without frame reflow and cannot use image resample."
+    },
+    {
+      "requirement": "Exact color sampling",
+      "implementation": [
+        "server/assets.ts",
+        "server/storage/raster.ts",
+        "src/ui/authoring.ts"
+      ],
+      "evidence": [
+        "tests/history/mask.test.mjs",
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Authenticated exact retained RGBA8 sRGB pixel reads, merged or explicitly included active layer with transform/mask/opacity. Document/layer/scope/generation late-result fence. Exact RGBA feedback now uses persistent public EnAlert announcement=polite; keyboard sampling and strict CSP checked."
+    },
+    {
+      "requirement": "Maximal public En Reve adoption and narrow exceptions",
+      "implementation": [
+        "src/ui/shell.ts",
+        "src/ui/authoring.ts",
+        "src/theme/shell.css",
+        "tooling/editor-components.json"
+      ],
+      "evidence": [
+        "tests/editor/authoring.spec.ts"
+      ],
+      "boundary": "Public fields, segmented modes, color, upload, Toolbar, Stack/Card, Alert/Badge, Accordion, Link/Icon, Tree/Dialog/ValidationSummary retained. Concrete raster/img, flat-order, missing-glyph, pre-JS, modal-only reflow and inherited Tooltip CSP exceptions enumerated; strict CSP unchanged, exact splitter and quiet rail retained. F4 removes custom sample status paragraph; pinned public alert API owns persistent polite status. No added exception."
+    },
+    {
+      "requirement": "Safe exact sealed package and lock verification",
+      "implementation": [
+        "tooling/verify-vendor.py"
+      ],
+      "evidence": [
+        "tooling/test-vendor.py",
+        "17-vendor-helper/receipt.json",
+        "23-vendor/receipt.json"
+      ],
+      "boundary": "Both package.json and package-lock.json are required, safely owned regular non-symlink single-link paths; stable no-follow descriptor reads with before/after identity checks. Missing or linked locks refuse. Exact CanvasKit identity, root/lock integrity and unrelated En Reve/registry restrictions remain enforced."
+    }
+  ],
+  "compatibility": {
+    "storage": "Schema10\u219211 retained-mask-grids-v1-pf5-projection6 migration with verified exact ecbcc-readable backup, capacity and corrupted-backup refusal, five SIGKILL barriers and actual prior reader rollback. Prior schema9\u219210 migration remains supported.",
+    "portable": "PF5/documentSchema5 declares retained mappings and new baseline authoring. Actual ecbcc executable produces genuine PF4 and refuses new PF5 editable import/schema11; restored schema10 accepted. Actual accepted4b2 PF3/native6e8 fixture retained. Legacy formats supported; falsely downgraded new vocabulary refused.",
+    "projections": "Producer projection6 and consumer2..6 consistently cover session/snapshot/namespace/image mask mappings. Historical records remain raw and are not relabelled.",
+    "raster": "Composition Manifest3 declares retained mappings. Authored-mask-v2 and MaskRasterInfo3 declare retained-hard baseline; old authored-mask-v1/MaskRasterInfo2/Manifest1-2 retain unchanged vocabularies and semantics.",
+    "image": "ImageState4/ImagePatch stateSchema4 for retained mappings, preserving previous state1/2/3 and native text operations.",
+    "draft": "MaskPlan schemaVersion2/local-mask-2 with retained-hard-v1 typed baseline; local-mask-1 unchanged for old vocabulary. Mask baseline asset and exact hard/source dimensions/polarity/origin retained; only namespace bindings remap raw IDs. UI/command/event envelope1 unchanged with nested schema/PF/storage/projection fences.",
+    "native": "Additive integration profile304528c98255447a3c8b4607b3b6738261dad46c485c84c203e9c16ae1f69a29 updates source integration only; exact d047 retained, old6e8/c197/b895 unchanged. Engine/fonts/adapterSources/memory/rasterProfile/unicode compare exactly with d047. No native rebuild or broader resource qualification."
+  },
+  "limits": [
+    "Author functional evidence is not independent acceptance or implementation credit.",
+    "A-R01 remains open; no new maximum-resource/native-memory/timing/full-envelope campaign or cap waiver.",
+    "Physical IME, assistive technology, broader platform and power-loss qualification remain outstanding P3 scope.",
+    "Support hatching is a bounding extent, not exact coverage or a provider-safe interior. Exact Hard/Effective previews are separate; request domain and halo are not approved.",
+    "Native mask plan/control envelope is bounded to48000 UTF-8 bytes; an oversized stroke is refused without truncating the previously valid draft.",
+    "No remote/PR/CI is configured for this local branch; PR context is the shared durable note, not a published GitHub PR.",
+    "Actual browser page zoom200% remains UNVERIFIED: owned stock Chromium reached native-zoom-ready; computer-use getApp explicitly stopped by user. No key/action/reset/alternative-app bypass. Gate18 preserves unchanged scale ratio1 !=2 and owned cleanup; canvas zoom/CSS/viewport are not substituted.",
+    "No provider calls, publishing, live sibling edits, old evidence/service changes, report DATA/HTTP ownership or native resource campaign. New isolated frozen successor preview is separately identified; old57855/50646/52219 and versioned cards remain immutable.",
+    "Original rejected vendor68 and diagnostic68a remain immutable historical results. New checker controls16/17 and verify23 are separate AUTHOR gates, not retroactive passes.",
+    "Gate25 first failed78/79 because old test expected masked bounds refusal; exact failure retained. Only tests/history/review.test.mjs expectation changed, gate25a4/4 passes. Source-qualified reuse lists unchanged owning runtime inputs; no whole-history pass invented.",
+    "Fresh clean build20 has71 files including new mapping.js and no unused contracts.js. Old build65 packet71 and independent old clean70 are preserved distinct file sets.",
+    "Gate26 first failed255/257 on two historical schema-final expectations10 versus actual11. Only those final retry expectations changed; gate26a2/2 passes, intermediate old migration-barrier oracles unchanged. No blanket raster257 pass relabel.",
+    "Final-card helper39b ended with no cleanup receipt (unconfirmed);39c strict cleanup refused with zero reset and primary failure masked.39d refused stale expectedcard2 versus actual3 and cleaned up. Fresh39e exact frozen3 passes with confirmed cleanup. All failed helpers remain failed; no backward transfer or whole-report revision stability claim."
+  ],
+  "verificationRecipes": "verify-final.py, run-gate.py and individual immutable receipts; source-qualified reuse inventory and first-failure records. Old helper roots never modified.",
+  "productCommit": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+  "checkerCommit": "fdcccac486c8c99de8f1603e5dedb9ddbbd33a41",
+  "rejectedTarget": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+  "publicAdoptionInventory": "tooling/editor-components.json (complete surfaces and narrow exceptions, same content at correction source)"
+}

@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-09-27T02:00:42.031868+00:00",
+  "viewed": [
+    "browser15/authoring-desktop.png",
+    "browser15/mask-controls-320.png",
+    "browser35/authoring-desktop.png",
+    "38-preview-identity/paired-preview.png",
+    "39-preview-roundtrip/focused-card.png"
+  ],
+  "scope": "Author image inspection: public controls, sample Alert surface and small-width scrolling/RTL layout; no human acknowledgment, actual browser200% zoom or AT claim. Frozen empty shell and exact card inspected. WebKit authoring intentionally does not capture screenshots; its720/320 LTR/RTL assertions run, and no WebKit image inspection is claimed.",
+  "newVisualSourceChanges": false
+}

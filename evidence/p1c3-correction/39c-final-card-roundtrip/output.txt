@@ -1,0 +1,9 @@
+file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/owned-opfs.ts:103
+    if(reasons.length)throw Error('OPFS_RESET_REFUSED');
+                            ^
+
+Error: OPFS_RESET_REFUSED
+    at Object.cleanup (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/editor/owned-opfs.ts:103:29)
+    at async file:///Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3-correction/39c-preview-roundtrip.mjs:32:6
+
+Node.js v26.10.0

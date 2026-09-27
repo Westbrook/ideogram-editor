@@ -1,0 +1,7 @@
+{
+  "profile": "sha256:304528c98255447a3c8b4607b3b6738261dad46c485c84c203e9c16ae1f69a29",
+  "fonts": 17903880,
+  "customLazyEngineRaw": 5052952,
+  "customLazyEngineGzip": 2045737,
+  "qualified": false
+}

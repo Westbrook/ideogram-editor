@@ -1,0 +1,18 @@
+✔ retained-grid-v1 literal crop/resize/expansion, history and copies R16 inverted=false (9914.52175ms)
+ℹ {"oracle":"retained-grid-v1-literal-cells","legacy":false,"inverted":false,"originalMask":"ab19f7bf-b239-46ca-b86b-1401e1aea628","retained":["sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9","sha256:e65face574ddb9ba48affea47cc85574263f83471cda9a73c44b6b484f065140","sha256:ae868a22f828b2073eb50e9e09745affc27950175516637864953cfc365cddeb","sha256:facdae780c8a3ac6a02ea506356babfd4083e8589ab68a38a08f2e508d97f90b"],"copyNamespaces":2}
+✔ retained-grid-v1 literal crop/resize/expansion, history and copies R16 inverted=true (11335.700375ms)
+ℹ {"oracle":"retained-grid-v1-literal-cells","legacy":false,"inverted":true,"originalMask":"801f57af-765b-41dd-b4b9-e27c7ed48138","retained":["sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9","sha256:e65face574ddb9ba48affea47cc85574263f83471cda9a73c44b6b484f065140","sha256:ae868a22f828b2073eb50e9e09745affc27950175516637864953cfc365cddeb","sha256:facdae780c8a3ac6a02ea506356babfd4083e8589ab68a38a08f2e508d97f90b"],"copyNamespaces":2}
+✔ retained-grid-v1 literal crop/resize/expansion, history and copies legacy inverted=false (10794.299083ms)
+ℹ {"oracle":"retained-grid-v1-literal-cells","legacy":true,"inverted":false,"originalMask":"6a98b001-8555-4dcf-9a97-e92bbed85d57","retained":["sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9","sha256:787a371af417cd8f94bad15fc8397459ca64d4381353f03c389f18852e32194b","sha256:af543b6fbdf3ac0e13d42573a77785c0bae336b76a5e511d3d324e0589b6aeb5"],"copyNamespaces":2}
+✔ retained-grid-v1 literal crop/resize/expansion, history and copies legacy inverted=true (11086.24975ms)
+ℹ {"oracle":"retained-grid-v1-literal-cells","legacy":true,"inverted":true,"originalMask":"5b0da183-7b8f-490e-9624-9c249c489d40","retained":["sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9","sha256:787a371af417cd8f94bad15fc8397459ca64d4381353f03c389f18852e32194b","sha256:bcb7c8f45540816be9c1c943f5687b0be415ed47e5ae36f11aa488c48030c195"],"copyNamespaces":2}
+✔ versioned retained-hard baseline uses exact hard bytes and typed bindings after nested draft copies (7599.222375ms)
+✔ mask fence refuses a wrong draft kind without applying the draft (1796.666875ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52616.747167

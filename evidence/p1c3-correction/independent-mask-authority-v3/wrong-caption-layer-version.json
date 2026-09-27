@@ -1,0 +1,236 @@
+{
+  "name": "wrong-caption-layer-version",
+  "start": "2026-09-27T01:54:59.363Z",
+  "expectedStatus": "rejected",
+  "actualStatus": "rejected",
+  "receipt": {
+    "code": "STALE_REVISION",
+    "commandId": "9b61bd12-fa55-40a4-9d86-dcf60263002a",
+    "currentRevision": "2",
+    "details": {
+      "byteLength": "86",
+      "hash": "sha256:1eb8f495717370defdb9992cf04c767a8679b1478738c9ffa55d5ffca9a8cbef",
+      "mediaType": "application/json"
+    },
+    "status": "rejected"
+  },
+  "request": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "9b61bd12-fa55-40a4-9d86-dcf60263002a",
+      "clientId": "e93a18d7-8251-4956-a1ad-ac0a421deb81",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "7bfb48c8-93b4-4766-b3c1-b7177376cdca",
+      "documentId": "document_1",
+      "expectedDocumentRevision": "2",
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "SetLayerProperties",
+        "layerId": "picture",
+        "layerVersion": "1",
+        "properties": {
+          "mask": {
+            "assetId": "87eb0366-ba3d-4984-a96c-f0a6e7fe564f",
+            "mapping": "document-r16-v1",
+            "inverted": false
+          }
+        },
+        "draft": {
+          "sessionId": "mask-session",
+          "draftId": "mask-draft",
+          "generation": "1"
+        }
+      }
+    }
+  },
+  "savedDraft": {
+    "id": "mask-draft",
+    "generation": "1",
+    "kind": "mask",
+    "documentId": "document_1",
+    "targetLayerId": "picture",
+    "expectedDocumentRevision": "2",
+    "assetId": "0bbd2430-ea78-4aea-affa-375a19e24b37",
+    "composing": false
+  },
+  "savedCaption": {
+    "schema": "local-mask-1",
+    "layerVersion": "999",
+    "radius": "0",
+    "plan": {
+      "width": 3,
+      "height": 2,
+      "feather": 0,
+      "operations": [
+        {
+          "kind": "clear"
+        }
+      ]
+    }
+  },
+  "preparedPlan": {
+    "width": 3,
+    "height": 2,
+    "feather": 0,
+    "operations": [
+      {
+        "kind": "clear"
+      }
+    ]
+  },
+  "mask": {
+    "availability": "available",
+    "blob": {
+      "byteLength": "98",
+      "hash": "sha256:d79a50c6e4f61a0775e5ed074e1cda833459c5cacd69d7497267e4f6cef3a501",
+      "mediaType": "image/png"
+    },
+    "dependencies": [
+      {
+        "byteLength": "1301",
+        "hash": "sha256:ef4b49bbbd1e25f4fff1982ccfe3f4466f2067857d7160c99c2567215d3398e1",
+        "mediaType": "application/json"
+      },
+      {
+        "byteLength": "24",
+        "hash": "sha256:c773395b224984566fc1c2a1bc01ed83f5e89ea97e9c035b75d1a1c5ef48ff48",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      {
+        "byteLength": "12",
+        "hash": "sha256:15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+        "mediaType": "application/x-ideogram-r16le"
+      },
+      {
+        "byteLength": "12",
+        "hash": "sha256:15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+        "mediaType": "application/x-ideogram-r16le"
+      }
+    ],
+    "id": "87eb0366-ba3d-4984-a96c-f0a6e7fe564f",
+    "measuredMediaType": "image/png",
+    "purpose": "image",
+    "qualification": "canonical-raster",
+    "raster": {
+      "conversion": null,
+      "height": 2,
+      "manifest": {
+        "byteLength": "1301",
+        "hash": "sha256:ef4b49bbbd1e25f4fff1982ccfe3f4466f2067857d7160c99c2567215d3398e1",
+        "mediaType": "application/json"
+      },
+      "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+      "pixelIdentity": "sha256:dec9426a7f0229a3266392c4abd5848fec404c3fa157b81e29da0fd39210988a",
+      "pixels": {
+        "byteLength": "24",
+        "hash": "sha256:c773395b224984566fc1c2a1bc01ed83f5e89ea97e9c035b75d1a1c5ef48ff48",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "role": "mask",
+      "schemaVersion": 2,
+      "sourceAssetIds": [],
+      "width": 3
+    },
+    "safety": "safe",
+    "version": "1"
+  },
+  "before": {
+    "branchId": "adb84dfc-55bf-45b6-afe6-e1a40287047e",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "4dcaa704-a5a9-4edc-9cd1-3c0d6b0cddd3",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "8cb6833c-a37a-43d0-8e7a-855187437f41",
+      "semanticDigest": "sha256:0ffad436673d770fd19085d478a07b5a087c1411a9df1f0fd6ad8b4ea3244862",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:502359f13833e9f27a925a93f9af05c8b3e85e4c858e1a73ccd33a93e775456c",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "after": {
+    "branchId": "adb84dfc-55bf-45b6-afe6-e1a40287047e",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "4dcaa704-a5a9-4edc-9cd1-3c0d6b0cddd3",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "8cb6833c-a37a-43d0-8e7a-855187437f41",
+      "semanticDigest": "sha256:0ffad436673d770fd19085d478a07b5a087c1411a9df1f0fd6ad8b4ea3244862",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:502359f13833e9f27a925a93f9af05c8b3e85e4c858e1a73ccd33a93e775456c",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "ui": {
+    "drafts": [
+      {
+        "assetId": "0bbd2430-ea78-4aea-affa-375a19e24b37",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "2",
+        "generation": "1",
+        "id": "mask-draft",
+        "kind": "mask",
+        "maskBindings": {},
+        "status": "saved-unapplied",
+        "targetLayerId": "picture"
+      }
+    ],
+    "preferences": {
+      "documentId": null,
+      "panels": {
+        "active": "layers",
+        "left": 280,
+        "right": 280
+      },
+      "selectedLayerIds": [],
+      "tool": "select",
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "zoom": 1
+      }
+    },
+    "reconciledLayerIds": [],
+    "sessionId": "mask-session",
+    "uiSeq": "1"
+  },
+  "original": {
+    "byteLength": "86",
+    "hash": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9",
+    "mediaType": "image/png"
+  },
+  "pass": true,
+  "end": "2026-09-27T01:55:00.059Z"
+}

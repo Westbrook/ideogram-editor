@@ -1,0 +1,216 @@
+{
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "inventory": {
+    "scope": "P1c.3 correction: retained mask bounds, exact draft acceptance and public sample status; independent review required",
+    "registration": "Public definition exports through createElementScope; no private imports. Dialog/drawer definitions load as one bounded group on first explicit panel action.",
+    "surfaces": [
+      {
+        "surface": "Document and canvas toolbars",
+        "components": [
+          "EnToolbar",
+          "EnButton"
+        ],
+        "owner": "App actions and truthful capability state; public button controls and keyboard toolbar behavior; deferred action observes final veto. Canvas tool rail composes decorative SVG in public prefix slot and compact text in label slot; control part and public rest/hover/border/radius tokens restore icon-over-label visuals. Disabled control part remains transparent/muted; public native focus, disabled state and toolbar interaction remain owned by EnButton/EnToolbar."
+      },
+      {
+        "surface": "Connection details",
+        "components": [
+          "EnButton",
+          "EnPopover"
+        ],
+        "owner": "Session client owns authority and credentials in closures; popup contains display state only."
+      },
+      {
+        "surface": "Operation and flatten/bounds choices",
+        "components": [
+          "EnSelect",
+          "EnSelectOption"
+        ],
+        "owner": "App owns selected operation and draft; settled en-change adapter. Public control/focus-frame parts and --en-select-appearance opt out of data-URI caret under unchanged strict CSP."
+      },
+      {
+        "surface": "Prompt",
+        "components": [
+          "EnTextarea"
+        ],
+        "owner": "Native input/IME/undo/selection; app owns independent operation drafts, generation fences and durable UI receipts."
+      },
+      {
+        "surface": "Panel resizing",
+        "components": [
+          "EnSplitter"
+        ],
+        "owner": "Public pointer/keyboard value contract; app grid track 1px, margin-inline calc(-1 * ((var(--_en-split-target) - 1px) / 2)), z-index 1; full target remains interactive."
+      },
+      {
+        "surface": "Image selection and transfer resumption",
+        "components": [
+          "EnFileUpload"
+        ],
+        "owner": "File choice/drop is a settled proposal only; app stages original bytes, verifies exact identity and prepares an explicit Apply/Cancel review."
+      },
+      {
+        "surface": "Layer list",
+        "components": [
+          "EnTree"
+        ],
+        "owner": "Public plain-text label/selection contract fits: name, visible/hidden and locked status. App supplies flat layer order, owns selection and separate inspector controls; no interactive descendants in tree labels."
+      },
+      {
+        "surface": "Image inspector and viewport numbers",
+        "components": [
+          "EnTextField",
+          "EnNumberField",
+          "EnSlider",
+          "EnSwitch",
+          "EnButton"
+        ],
+        "owner": "App stages drafts with base revision; native controls preserve editing; authoritative writes and delayed proposals use generation fencing; only Apply dispatches typed edits."
+      },
+      {
+        "surface": "Structure/activity navigation",
+        "components": [
+          "EnTabs",
+          "EnTab",
+          "EnTabPanel"
+        ],
+        "owner": "Public tab interaction; unavailable Composition/results/jobs are explained truthfully."
+      },
+      {
+        "surface": "Retained history",
+        "components": [
+          "EnActivityFeed",
+          "EnActivityItem",
+          "EnButton"
+        ],
+        "owner": "Public feed renderItem composition and accessible paging; app reads bounded backend pages, dispatches retained branch/checkpoint commands."
+      },
+      {
+        "surface": "Conversion/edit/project review and new/open/copy",
+        "components": [
+          "EnDialog",
+          "EnButton"
+        ],
+        "owner": "App owns immutable prepared previews and review identities; public modal/focus behavior; explicit Apply/Cancel; expiry never refreshed by mutating an old command. Reviewed bounds retain mask grid/origin and original hard/effective coverage; new local-mask-2 draft review explicitly chooses feather on the current document."
+      },
+      {
+        "surface": "Help",
+        "components": [
+          "EnDrawer"
+        ],
+        "owner": "Public drawer with keyboard/focus behavior and app-owned workflow guidance."
+      },
+      {
+        "surface": "Errors",
+        "components": [
+          "EnValidationSummary"
+        ],
+        "owner": "App supplies concrete ValidationIssue items in the active dialog or main view; public focus action reveals the relevant inspector region."
+      },
+      {
+        "surface": "Intermediate side panels (721\u20131100 CSS px)",
+        "components": [
+          "EnDrawer",
+          "EnButton"
+        ],
+        "owner": "App-owned stable region nodes move between layout and public drawer default slot. Public modal dismissal/focus; transitions defer during composition and restore native focus/selection after settlement."
+      },
+      {
+        "surface": "Selection, brush, feather, PNG-mask alignment and sampling",
+        "components": [
+          "EnSegmentedControl",
+          "EnNumberField",
+          "EnTextarea",
+          "EnColorField",
+          "EnFileUpload",
+          "EnSwitch",
+          "EnToolbar",
+          "EnStack",
+          "EnButton",
+          "EnAlert"
+        ],
+        "owner": "Public mode/field/native editing, settled final-veto adapters. App retains canonical document coordinates, hard/effective R16 draft generations, exact sampled RGBA, and explicit reviewed attachment. Sample RGBA feedback uses a persistent public EnAlert with announcement=polite; bounds and new baseline review explanations use EnAlert announcement=none."
+      },
+      {
+        "surface": "Authoring disclosure and Activity disclosure",
+        "components": [
+          "EnAccordion",
+          "EnAccordionItem"
+        ],
+        "owner": "Public disclosure and focus semantics; canvas tool state chooses authoring visibility."
+      },
+      {
+        "surface": "Status, draft labels, pending recovery and download records",
+        "components": [
+          "EnAlert",
+          "EnBadge",
+          "EnCard",
+          "EnStack"
+        ],
+        "owner": "Persistent public patterns preserve distinct accepted/draft/stale/outdated/unconfirmed messages inside stable operation-status section; no custom status or disclosure control."
+      },
+      {
+        "surface": "Skip and progress-report navigation, available brand icon",
+        "components": [
+          "EnLink",
+          "EnIcon"
+        ],
+        "owner": "Public navigation and decorative icon; trusted build-owned report URL and existing focus target logic retained."
+      }
+    ],
+    "nativeOrAppOwnedExceptions": [
+      {
+        "surface": "Raster viewport",
+        "element": "canvas and CanvasView",
+        "contract": "UX canvas/raster ownership and DS app-owned raster exception; no public En Reve raster editor/compositor. Display pixels are separate from exact retained backend export."
+      },
+      {
+        "surface": "Canvas clipboard/drop, selection/brush/move/sample gestures",
+        "element": "Native ClipboardEvent, DragEvent, PointerEvent and keyboard handlers",
+        "contract": "No public En Reve raster editor or canonical document-coordinate gesture contract. CanvasView inverts the displayed viewport; move release applies one atomic transform, brush release appends one recoverable operation. Public fields/actions supply numeric alternatives; late veto, Escape and revision fences remain app-owned."
+      },
+      {
+        "surface": "Document landmarks, two-dimensional layout and exact prepared image",
+        "element": "Semantic HTML headings/regions, CSS grid and img",
+        "contract": "Semantic document structure and 2D viewport geometry are app-owned. Exact prepared image load gates use its actual currentSrc; En Reve has no canonical raster display/load contract. Adjacent statuses use Alert/Badge, records use Card/Stack, disclosure uses Accordion and links use EnLink."
+      },
+      {
+        "surface": "External destination",
+        "element": "File System Access writable or verified disk-backed browser download",
+        "contract": "Browser destination authority is app-owned; EnFileUpload chooses incoming files and does not acknowledge external writes. Writable close confirms only the supported browser destination operation; download initiation stays unconfirmed."
+      },
+      {
+        "surface": "Pre-JavaScript fallback",
+        "element": "Existing native bootstrap/fallback markup",
+        "contract": "Mandated LS-1 and DS pre-upgrade exception; security/bootstrap order and no-script launcher instructions retained."
+      },
+      {
+        "surface": "Extreme reflow (<=720 CSS px, including 320px and 200%-equivalent)",
+        "element": "Named single-column regions with persistent EnButton openers",
+        "contract": "UX single-scrollable-column reflow; coordinator task clarification permits this composition only at extreme reflow. Pinned EnDrawer public API is modal-only with no inline/nonmodal mode. Intermediate narrow widths retain public EnDrawer; fields remain the same native nodes."
+      },
+      {
+        "surface": "Help supplemental information",
+        "element": "Persistent plain text with accessible description association; public EnButton and EnDrawer remain",
+        "contract": "Coordinator-approved strict-CSP exception in task292d3ac5. Pinned EnTooltip bind inserts an empty and dynamic anchor stylesheet; its public tooltip/position-controller API offers no nonce or disable-anchor setting. Attempts32/33 show application-triggered style-src-elem violations. No bespoke tooltip, private override, vendor patch or CSP relaxation."
+      },
+      {
+        "surface": "Flat layer reorder",
+        "element": "Adjacent public EnButton Move up/Move down",
+        "contract": "Inspected pinned EnTree reorderable/openMove/en-reorder: public move proposals include inside; no public position filter exists. This document has a flat layer list, so no nesting proposal is offered. One button action dispatches MoveLayers."
+      },
+      {
+        "surface": "Missing tool glyphs",
+        "element": "Decorative SVG in public EnButton prefix slot",
+        "contract": "Pinned public icon catalog lacks move/selection/mask/crop/sample/hand/zoom tool symbols. Existing custom glyphs remain aria-hidden; public button label, focus, disabled and pressed semantics own interaction."
+      }
+    ],
+    "limitations": "Browser automation and synthetic composition are not native OS IME, AT, native picker, platform or power-loss qualification. Startup bytes and visual/runtime receipts are separate evidence. No component inventory entry self-approves user feedback. Authored mask support hatching shows its bounding extent, not a provider-safe interior. Exact hard/effective previews are separately labelled. Attached crop/resize uses versioned retained grids and outside-domain zero coverage, including inversion; no re-feather or clipped-byte replacement on bounds changes. New draft Apply can explicitly re-feather original hard coverage on the current document. Physical IME/AT/full-envelope resource and platform qualification remain P3/A-R01."
+  },
+  "publicAlertAPI": {
+    "path": "node_modules/@en-reve/elements/dist/alert/element.d.ts",
+    "sha256": "c7821c600ac3b02ca21967f02ecdcf8424c786a88c5652cccab26aa9365755d5"
+  },
+  "currentInventorySHA256": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605",
+  "qualification": "Public pinned API adoption; author inventory only, no human review or independent approval"
+}

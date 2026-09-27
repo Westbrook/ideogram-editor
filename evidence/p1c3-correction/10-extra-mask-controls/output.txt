@@ -1,0 +1,13 @@
+✔ retained-domain zero and single inversion over a larger transformed source false (2368.003167ms)
+✔ retained-domain zero and single inversion over a larger transformed source true (2300.606375ms)
+✔ mask Apply refuses late exact dependency replacement caption (2018.108541ms)
+✔ mask Apply refuses late exact dependency replacement hard (2078.610542ms)
+✔ mask Apply refuses late exact dependency replacement mask-record (1999.734834ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10860.291917

@@ -1,0 +1,11 @@
+{
+  "verifiedAt": "2026-09-27T01:58:28.676908+00:00",
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "gitAndDiskSourceFiles": 518,
+  "sealedAndActualCleanBuildFiles": 71,
+  "sourceInventorySHA256": "6d4b23a132f88803ab6e72fc80efef7bd4c2fdc2b0de27ba14740989d147b680",
+  "buildInventorySHA256": "526817a588cd83efaa526b9f2e9818b685f3290fdc25a0a09a617420c4fd2e01",
+  "result": "AUTHOR_PASS",
+  "nativeRebuild": false,
+  "qualification": "Source/build identity only; independent review pending"
+}

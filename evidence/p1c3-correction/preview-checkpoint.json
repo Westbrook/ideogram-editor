@@ -1,0 +1,48 @@
+{
+  "at": "2026-09-27T02:00:20.749591+00:00",
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "nativeZoom": "UNVERIFIED / explicit stopped native control; gate18 retained",
+  "functionalGateEnd": "2026-09-27T01:56:23.462510Z",
+  "servedIdentity": {
+    "gate": "38-served-identity",
+    "responses": 13,
+    "uniquePaths": 7,
+    "pass": true
+  },
+  "navigation": {
+    "gate": "39-report-roundtrip",
+    "inputReportDataRevision": 440,
+    "itemId": "masks-layers-correction-preview",
+    "version": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "contentRevision": 1,
+    "pass": true,
+    "wholeReportRevisionStabilityAsserted": false
+  },
+  "previewURL": "http://127.0.0.1:58259/?progress-report",
+  "genericCurrentPreviewVerified": true,
+  "effects": {
+    "submit": 0,
+    "upload": 0,
+    "poll": 0,
+    "cancel": 0,
+    "fetch": 0,
+    "socket": 0,
+    "dns": 0,
+    "datagram": 0
+  },
+  "pending": "Evidence seal, task/PR exact readbacks and independent successor assignment only; native page200% remains unverified.",
+  "finalCard": {
+    "gate": "39e-final-card-roundtrip",
+    "publicationReportRevision": 442,
+    "canonicalDataInputRevision": 443,
+    "itemId": "masks-layers-correction-preview",
+    "version": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "contentRevision": 3,
+    "pass": true,
+    "end": "2026-09-27T02:05:46.872149Z",
+    "wholeReportRevisionStabilityAsserted": false,
+    "cleanup": "complete",
+    "humanReviewed": false,
+    "metadataFrozen": true
+  }
+}

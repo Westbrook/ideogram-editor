@@ -1,0 +1,10 @@
+npm notice run ideogram-editor@0.1.0 typecheck
+npm notice run npm run typecheck:consumer && npm run typecheck:app && tsc --noEmit -p tsconfig.server.json
+npm notice run ideogram-editor@0.1.0 typecheck:consumer
+npm notice run tsc --noEmit
+npm notice run ideogram-editor@0.1.0 typecheck:app
+npm notice run tsc --noEmit -p tsconfig.app.json
+server/storage/portable.ts(316,345): error TS2345: Argument of type '{ [k: string]: string | null; }' is not assignable to parameter of type 'Record<string, string>'.
+  'string' index signatures are incompatible.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.

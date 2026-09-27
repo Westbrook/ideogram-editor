@@ -1,0 +1,252 @@
+{
+  "started": "2026-09-27T02:05:32.250Z",
+  "ended": "2026-09-27T02:05:46.842Z",
+  "passed": true,
+  "browser": "153.0.8010.12",
+  "runtime": {
+    "started": "2026-09-27T01:57:00.915Z",
+    "pid": 34507,
+    "origin": "http://127.0.0.1:58259",
+    "reviewURL": "http://127.0.0.1:58259/?progress-report",
+    "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "runtimeSourceSHA256": "7ad2bb72dcc09793d80d4b066c4adfe4e0415aeca6f5f9554558c46782687e60",
+    "buildFiles": 71,
+    "extraRuntimeFiles": 218,
+    "node": "v26.10.0",
+    "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc/",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc/private",
+    "mode": "isolated AUTHOR review; no independent approval; outgoing effects denied"
+  },
+  "review": {
+    "itemId": "masks-layers-correction-preview",
+    "title": "P1c.3 masks and layers 7ba3a7cc — AUTHOR REVIEW",
+    "version": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "contentRevision": 3,
+    "current": true,
+    "reportRevision": 443,
+    "publicationReportRevision": 442,
+    "readAt": "2026-09-27T02:05:28.510943+00:00",
+    "humanReviewed": false,
+    "freezeAcknowledgment": "Directly read report-owner conversation final442/card3 freeze and reaffirmation02:04:29; no further card/deliverable edits for helper results/final evidence."
+  },
+  "displayedVersion": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 3",
+  "paired": true,
+  "errors": [],
+  "domErrors": [],
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/session/bootstrap",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui/ui_84792ed2-2054-4060-9154-3d6f15c7c88e",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/recovery/014a36c4-d188-4568-892b-4877615373f5/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/session",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui/ui_84792ed2-2054-4060-9154-3d6f15c7c88e",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/recovery/0684ce6b-fe1c-4751-a553-a4d51d79ea51/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    }
+  ],
+  "primaryError": null,
+  "cleanupError": null,
+  "scope": "Author stock controlled-origin Chromium native clicks through exact rendered product card. Report requests GET only; no reviewed/approval/checkpoint action. No independent acceptance or OS/AT/resource qualification."
+}

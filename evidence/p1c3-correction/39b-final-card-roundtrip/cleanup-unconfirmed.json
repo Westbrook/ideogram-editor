@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-09-27T02:03:06.848446+00:00",
+  "roundtripReceipt": false,
+  "ownershipReceipt": false,
+  "knownFailure": "Unhandled async inspector response body eviction after navigation",
+  "mainChromiumProcesses": [
+    "72598     1 Fri Sep 25 23:19:40 2026     /Users/westbrook/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+  ],
+  "interpretation": "Only pre-existing Sep25 PID72598 visible; no new failed-run browser visible. This does not prove OPFS/store reset or cleanup. No unknown or global reset, kill or other-app action performed. Failed-run output preserved."
+}

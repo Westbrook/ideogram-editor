@@ -1,0 +1,19 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--check",
+    "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+    "HEAD",
+    "--",
+    "src",
+    "server",
+    "tests",
+    "tooling",
+    "vendor"
+  ],
+  "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "start": "2026-09-27T01:55:41.515837+00:00",
+  "end": "2026-09-27T01:55:41.554723+00:00",
+  "exitCode": 0
+}

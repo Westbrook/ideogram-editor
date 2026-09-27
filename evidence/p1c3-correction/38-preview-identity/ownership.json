@@ -1,0 +1,96 @@
+[
+  {
+    "phase": "fixture",
+    "run": "80042424-1755-4e42-8e64-62f96695bfd2",
+    "profile": "p1c3-correction-frozen-preview-identity",
+    "contract": "controlled-origin-v2"
+  },
+  {
+    "phase": "initial-cookies",
+    "count": 0
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "preflight-start",
+    "origin": "http://127.0.0.1:58259",
+    "profile": "p1c3-correction-frozen-preview-identity"
+  },
+  {
+    "phase": "cookie-audit",
+    "count": 0,
+    "metadata": []
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "preflight",
+    "origin": "http://127.0.0.1:58259",
+    "entries": [],
+    "localStorage": 0,
+    "indexedDB": [],
+    "serviceWorkers": 0,
+    "cookieCount": 0
+  },
+  {
+    "phase": "admitted",
+    "origin": "http://127.0.0.1:58259"
+  },
+  {
+    "phase": "owned-cookie-response",
+    "origin": "http://127.0.0.1:58259",
+    "path": "/api/v1/session/bootstrap",
+    "name": "ie_session",
+    "httpOnly": true,
+    "sameSite": "Strict"
+  },
+  {
+    "phase": "cleanup-start",
+    "admitted": [
+      "http://127.0.0.1:58259"
+    ],
+    "visited": [
+      "http://127.0.0.1:58259"
+    ],
+    "resetCalls": 0
+  },
+  {
+    "phase": "cookie-audit",
+    "count": 1,
+    "metadata": [
+      {
+        "name": "ie_session",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Strict"
+      }
+    ]
+  },
+  {
+    "phase": "public-reset",
+    "resetCalls": 1
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "post-reset",
+    "origin": "http://127.0.0.1:58259",
+    "entries": [],
+    "localStorage": 0,
+    "indexedDB": [],
+    "serviceWorkers": 0
+  },
+  {
+    "phase": "post-reset-cookies",
+    "count": 0
+  },
+  {
+    "phase": "cleanup-complete",
+    "resetCalls": 1
+  }
+]

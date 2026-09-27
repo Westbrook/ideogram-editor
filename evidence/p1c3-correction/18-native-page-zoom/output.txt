@@ -1,0 +1,19 @@
+READY_FOR_NATIVE_BROWSER_200_PERCENT_ZOOM
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Actual browser page zoom must double devicePixelRatio
+
+1 !== 2
+
+    at file:///Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3-correction/independent-browser-v2.mjs:25:31 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 2,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

@@ -1,0 +1,88 @@
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies R16 inverted=false (1381.857208ms)
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies R16 inverted=true (1362.798458ms)
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies legacy inverted=false (1358.634958ms)
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies legacy inverted=true (1348.247584ms)
+✔ versioned retained-hard baseline uses exact hard bytes and typed bindings after nested draft copies (6762.623125ms)
+✔ mask fence refuses a wrong draft kind without applying the draft (1605.780459ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 2
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14176.161542
+
+✖ failing tests:
+
+test at tests/history/retained-mask.test.mjs:20:69
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies R16 inverted=false (1381.857208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '11' !== '12'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/retained-mask.test.mjs:26:164)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '11',
+    expected: '12',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/history/retained-mask.test.mjs:20:69
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies R16 inverted=true (1362.798458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '11' !== '12'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/retained-mask.test.mjs:26:164)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '11',
+    expected: '12',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/history/retained-mask.test.mjs:20:69
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies legacy inverted=false (1358.634958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '14' !== '15'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/retained-mask.test.mjs:26:164)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '14',
+    expected: '15',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/history/retained-mask.test.mjs:20:69
+✖ retained-grid-v1 literal crop/resize/expansion, history and copies legacy inverted=true (1348.247584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '14' !== '15'
+  
+      at TestContext.<anonymous> (file:///Users/westbrook/Documents/repos/ideogram-edit/tests/history/retained-mask.test.mjs:26:164)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '14',
+    expected: '15',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

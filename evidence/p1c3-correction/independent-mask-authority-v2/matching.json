@@ -1,0 +1,233 @@
+{
+  "name": "matching",
+  "start": "2026-09-27T01:33:16.258Z",
+  "expectedStatus": "accepted",
+  "actualStatus": "accepted",
+  "receipt": {
+    "commandId": "f4da45b5-2769-4f8e-909d-a389c438b201",
+    "documentRevision": "3",
+    "fromSeq": "10",
+    "status": "accepted",
+    "toSeq": "11",
+    "transactionId": "27d830ef-7a47-4aac-95a6-1711b4e07c7b"
+  },
+  "request": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "f4da45b5-2769-4f8e-909d-a389c438b201",
+      "clientId": "f831cb8c-f7f8-4ced-8805-7be16ac56bb8",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "27d830ef-7a47-4aac-95a6-1711b4e07c7b",
+      "documentId": "document_1",
+      "expectedDocumentRevision": "2",
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "SetLayerProperties",
+        "layerId": "picture",
+        "layerVersion": "1",
+        "properties": {
+          "mask": {
+            "assetId": "f9478a7d-3a6d-4e8c-9738-50bf574c64bc",
+            "mapping": "document-r16-v1",
+            "inverted": false
+          }
+        },
+        "draft": {
+          "sessionId": "mask-session",
+          "draftId": "mask-draft",
+          "generation": "1"
+        }
+      }
+    }
+  },
+  "savedDraft": {
+    "id": "mask-draft",
+    "generation": "1",
+    "kind": "mask",
+    "documentId": "document_1",
+    "targetLayerId": "picture",
+    "expectedDocumentRevision": "2",
+    "assetId": "17845e16-f18f-4f60-bcdc-7a82fc07c1d0",
+    "composing": false
+  },
+  "savedCaption": {
+    "schema": "local-mask-1",
+    "layerVersion": "1",
+    "radius": "0",
+    "plan": {
+      "width": 3,
+      "height": 2,
+      "feather": 0,
+      "operations": [
+        {
+          "kind": "clear"
+        }
+      ]
+    }
+  },
+  "preparedPlan": {
+    "width": 3,
+    "height": 2,
+    "feather": 0,
+    "operations": [
+      {
+        "kind": "clear"
+      }
+    ]
+  },
+  "mask": {
+    "availability": "available",
+    "blob": {
+      "byteLength": "98",
+      "hash": "sha256:d79a50c6e4f61a0775e5ed074e1cda833459c5cacd69d7497267e4f6cef3a501",
+      "mediaType": "image/png"
+    },
+    "dependencies": [
+      {
+        "byteLength": "1301",
+        "hash": "sha256:ef4b49bbbd1e25f4fff1982ccfe3f4466f2067857d7160c99c2567215d3398e1",
+        "mediaType": "application/json"
+      },
+      {
+        "byteLength": "24",
+        "hash": "sha256:c773395b224984566fc1c2a1bc01ed83f5e89ea97e9c035b75d1a1c5ef48ff48",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      {
+        "byteLength": "12",
+        "hash": "sha256:15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+        "mediaType": "application/x-ideogram-r16le"
+      },
+      {
+        "byteLength": "12",
+        "hash": "sha256:15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+        "mediaType": "application/x-ideogram-r16le"
+      }
+    ],
+    "id": "f9478a7d-3a6d-4e8c-9738-50bf574c64bc",
+    "measuredMediaType": "image/png",
+    "purpose": "image",
+    "qualification": "canonical-raster",
+    "raster": {
+      "conversion": null,
+      "height": 2,
+      "manifest": {
+        "byteLength": "1301",
+        "hash": "sha256:ef4b49bbbd1e25f4fff1982ccfe3f4466f2067857d7160c99c2567215d3398e1",
+        "mediaType": "application/json"
+      },
+      "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+      "pixelIdentity": "sha256:dec9426a7f0229a3266392c4abd5848fec404c3fa157b81e29da0fd39210988a",
+      "pixels": {
+        "byteLength": "24",
+        "hash": "sha256:c773395b224984566fc1c2a1bc01ed83f5e89ea97e9c035b75d1a1c5ef48ff48",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "role": "mask",
+      "schemaVersion": 2,
+      "sourceAssetIds": [],
+      "width": 3
+    },
+    "safety": "safe",
+    "version": "1"
+  },
+  "before": {
+    "branchId": "27b1ef51-5f8f-464c-9373-5c2f094a7500",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "b30274af-b390-457a-859e-8bfd632007d9",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "15379eeb-d999-48bc-8f5c-14ffc856950f",
+      "semanticDigest": "sha256:278aad75f51b720c549af36f5ebe2c64f6c6467ffe3dcdd3c85595421f3aeab5",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:3d53e7e1ec8f6822e57a50593e73a886520320a6e7e151d29b5d698037657b60",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "after": {
+    "branchId": "27b1ef51-5f8f-464c-9373-5c2f094a7500",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "bd29846e-f278-4295-9803-747c9f3f6a6c",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "aa46ae76-a469-47ab-b1f5-d3af24b21258",
+      "semanticDigest": "sha256:b91498f2b7a90dff2cd9818904ff53614a7bff596a139720690cba02d6ea5788",
+      "state": {
+        "byteLength": "358",
+        "hash": "sha256:892d64cde15bd3f30e8d8b4576807cf3a93f115a2b6784694b1ff20b748883d2",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "3",
+    "width": 3
+  },
+  "ui": {
+    "drafts": [
+      {
+        "assetId": "17845e16-f18f-4f60-bcdc-7a82fc07c1d0",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "2",
+        "generation": "1",
+        "id": "mask-draft",
+        "kind": "mask",
+        "maskBindings": {},
+        "status": "applied",
+        "targetLayerId": "picture"
+      }
+    ],
+    "preferences": {
+      "documentId": null,
+      "panels": {
+        "active": "layers",
+        "left": 280,
+        "right": 280
+      },
+      "selectedLayerIds": [],
+      "tool": "select",
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "zoom": 1
+      }
+    },
+    "reconciledLayerIds": [],
+    "sessionId": "mask-session",
+    "uiSeq": "2"
+  },
+  "original": {
+    "byteLength": "86",
+    "hash": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9",
+    "mediaType": "image/png"
+  },
+  "pass": true,
+  "end": "2026-09-27T01:33:17.043Z"
+}

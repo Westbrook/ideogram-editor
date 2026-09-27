@@ -1,0 +1,15 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    "evidence/p1c3-correction"
+  ],
+  "start": "2026-09-27T02:06:56.530025+00:00",
+  "end": "2026-09-27T02:06:56.612208+00:00",
+  "exitCode": 2,
+  "stagedFiles": 300,
+  "scope": "Completed staging observed before this check. All current new evidence, before this diagnostic output and final metadata/FILES. Raw logs/generated build retain exact bytes; whitespace failure is not suppressed."
+}

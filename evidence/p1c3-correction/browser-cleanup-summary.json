@@ -1,0 +1,88 @@
+{
+  "checkedAt": "2026-09-27T01:58:30.010730+00:00",
+  "authoringWorkflows": [
+    {
+      "path": "evidence/p1c3-correction/browser15/ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser15/retained-ownership-chromium.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser15/inherited-ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser35/ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser35/retained-ownership-firefox.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser35/inherited-ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser36/ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser36/inherited-ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/browser36/retained-ownership-webkit.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ],
+  "qualification": "Task-owned context cleanup only; no other browser/app/store or global reset. Raw ledgers record preflight, cookies, worker lifecycle and post-reset entries.",
+  "previewChecks": [
+    {
+      "path": "evidence/p1c3-correction/38-preview-identity/ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/39-preview-roundtrip/ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/39d-preview-roundtrip/ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    },
+    {
+      "path": "evidence/p1c3-correction/39e-preview-roundtrip/ownership.json",
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  ],
+  "privatePairingFilesInEvidence": [],
+  "failedCleanupLimits": [
+    {
+      "gate": "39b-final-card-roundtrip",
+      "status": "UNCONFIRMED",
+      "receiptWritten": false,
+      "processAbsenceDoesNotProveStoreCleanup": true
+    },
+    {
+      "gate": "39c-final-card-roundtrip",
+      "status": "INCOMPLETE",
+      "resetCalls": 0,
+      "reason": "UNPLANNED_REQUEST during closing; guard refused reset"
+    }
+  ]
+}

@@ -1,0 +1,244 @@
+{
+  "name": "missing-effective",
+  "start": "2026-09-27T01:55:01.854Z",
+  "changedDependency": {
+    "ref": {
+      "byteLength": "12",
+      "hash": "sha256:15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+      "mediaType": "application/x-ideogram-r16le"
+    },
+    "mode": "missing-effective"
+  },
+  "expectedStatus": "rejected",
+  "actualStatus": "rejected",
+  "receipt": {
+    "code": "MISSING_ASSET",
+    "commandId": "0211f12a-4d0d-4c17-b268-aa6823293cc1",
+    "currentRevision": "2",
+    "details": {
+      "byteLength": "92",
+      "hash": "sha256:f2fa38800758b94fdcfae4c41ca71c45ea1e3e29ab1945685e061fec72da5d53",
+      "mediaType": "application/json"
+    },
+    "status": "rejected"
+  },
+  "request": {
+    "protocolVersion": 1,
+    "command": {
+      "schemaVersion": 1,
+      "commandId": "0211f12a-4d0d-4c17-b268-aa6823293cc1",
+      "clientId": "3d1cf538-11c5-4f5b-9dc5-35665a94dc74",
+      "sessionId": "session_1",
+      "correlationId": "correlation_1",
+      "causationId": null,
+      "transactionId": "e0553024-9da7-4658-b0fe-b927d226d7d5",
+      "documentId": "document_1",
+      "expectedDocumentRevision": "2",
+      "expectedEntityVersions": {
+        "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+        "byteLength": "33",
+        "mediaType": "application/json"
+      },
+      "issuedAt": "2026-09-26T03:00:00.000Z",
+      "body": {
+        "type": "SetLayerProperties",
+        "layerId": "picture",
+        "layerVersion": "1",
+        "properties": {
+          "mask": {
+            "assetId": "94e765e5-8e57-4346-bf27-6cf1548098ef",
+            "mapping": "document-r16-v1",
+            "inverted": false
+          }
+        },
+        "draft": {
+          "sessionId": "mask-session",
+          "draftId": "mask-draft",
+          "generation": "1"
+        }
+      }
+    }
+  },
+  "savedDraft": {
+    "id": "mask-draft",
+    "generation": "1",
+    "kind": "mask",
+    "documentId": "document_1",
+    "targetLayerId": "picture",
+    "expectedDocumentRevision": "2",
+    "assetId": "76b8b609-e1b2-4407-a587-d30cd03132c5",
+    "composing": false
+  },
+  "savedCaption": {
+    "schema": "local-mask-1",
+    "layerVersion": "1",
+    "radius": "0",
+    "plan": {
+      "width": 3,
+      "height": 2,
+      "feather": 0,
+      "operations": [
+        {
+          "kind": "clear"
+        }
+      ]
+    }
+  },
+  "preparedPlan": {
+    "width": 3,
+    "height": 2,
+    "feather": 0,
+    "operations": [
+      {
+        "kind": "clear"
+      }
+    ]
+  },
+  "mask": {
+    "availability": "available",
+    "blob": {
+      "byteLength": "98",
+      "hash": "sha256:d79a50c6e4f61a0775e5ed074e1cda833459c5cacd69d7497267e4f6cef3a501",
+      "mediaType": "image/png"
+    },
+    "dependencies": [
+      {
+        "byteLength": "1301",
+        "hash": "sha256:ef4b49bbbd1e25f4fff1982ccfe3f4466f2067857d7160c99c2567215d3398e1",
+        "mediaType": "application/json"
+      },
+      {
+        "byteLength": "24",
+        "hash": "sha256:c773395b224984566fc1c2a1bc01ed83f5e89ea97e9c035b75d1a1c5ef48ff48",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      {
+        "byteLength": "12",
+        "hash": "sha256:15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+        "mediaType": "application/x-ideogram-r16le"
+      },
+      {
+        "byteLength": "12",
+        "hash": "sha256:15ec7bf0b50732b49f8228e07d24365338f9e3ab994b00af08e5a3bffe55fd8b",
+        "mediaType": "application/x-ideogram-r16le"
+      }
+    ],
+    "id": "94e765e5-8e57-4346-bf27-6cf1548098ef",
+    "measuredMediaType": "image/png",
+    "purpose": "image",
+    "qualification": "canonical-raster",
+    "raster": {
+      "conversion": null,
+      "height": 2,
+      "manifest": {
+        "byteLength": "1301",
+        "hash": "sha256:ef4b49bbbd1e25f4fff1982ccfe3f4466f2067857d7160c99c2567215d3398e1",
+        "mediaType": "application/json"
+      },
+      "pipeline": "cp1-f64-triangle-area-v1/sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e",
+      "pixelIdentity": "sha256:dec9426a7f0229a3266392c4abd5848fec404c3fa157b81e29da0fd39210988a",
+      "pixels": {
+        "byteLength": "24",
+        "hash": "sha256:c773395b224984566fc1c2a1bc01ed83f5e89ea97e9c035b75d1a1c5ef48ff48",
+        "mediaType": "application/x-ideogram-rgba8"
+      },
+      "role": "mask",
+      "schemaVersion": 2,
+      "sourceAssetIds": [],
+      "width": 3
+    },
+    "safety": "safe",
+    "version": "1"
+  },
+  "before": {
+    "branchId": "bb900cf6-e408-45d1-8948-596ab2d1e5df",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "454b313d-f513-4206-97c3-b612410b9d33",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "986fc5ef-abe0-45f0-bf98-513cb877aaf2",
+      "semanticDigest": "sha256:11e8849a8ceae159e3d526dba412ca3f547a570493659a06debe0248b6a60e16",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:3826dc9f45446a4372419a19702122733e4fd339efd7608849f8aaa103d68745",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "after": {
+    "branchId": "bb900cf6-e408-45d1-8948-596ab2d1e5df",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 2,
+    "historyHead": "454b313d-f513-4206-97c3-b612410b9d33",
+    "id": "document_1",
+    "image": {
+      "compositeAssetId": "986fc5ef-abe0-45f0-bf98-513cb877aaf2",
+      "semanticDigest": "sha256:11e8849a8ceae159e3d526dba412ca3f547a570493659a06debe0248b6a60e16",
+      "state": {
+        "byteLength": "267",
+        "hash": "sha256:3826dc9f45446a4372419a19702122733e4fd339efd7608849f8aaa103d68745",
+        "mediaType": "application/json"
+      }
+    },
+    "orderedLayerIds": [
+      "picture"
+    ],
+    "redo": null,
+    "revision": "2",
+    "width": 3
+  },
+  "ui": {
+    "drafts": [
+      {
+        "assetId": "76b8b609-e1b2-4407-a587-d30cd03132c5",
+        "composing": false,
+        "documentId": "document_1",
+        "expectedDocumentRevision": "2",
+        "generation": "1",
+        "id": "mask-draft",
+        "kind": "mask",
+        "maskBindings": {},
+        "status": "saved-unapplied",
+        "targetLayerId": "picture"
+      }
+    ],
+    "preferences": {
+      "documentId": null,
+      "panels": {
+        "active": "layers",
+        "left": 280,
+        "right": 280
+      },
+      "selectedLayerIds": [],
+      "tool": "select",
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "zoom": 1
+      }
+    },
+    "reconciledLayerIds": [],
+    "sessionId": "mask-session",
+    "uiSeq": "1"
+  },
+  "original": {
+    "byteLength": "86",
+    "hash": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9",
+    "mediaType": "image/png"
+  },
+  "pass": true,
+  "end": "2026-09-27T01:55:02.530Z"
+}

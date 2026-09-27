@@ -1,0 +1,21 @@
+{
+  "at": "2026-09-27T01:56:59.840150+00:00",
+  "pid": 34507,
+  "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc",
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "runtimeSourceSHA256": "7ad2bb72dcc09793d80d4b066c4adfe4e0415aeca6f5f9554558c46782687e60",
+  "buildFiles": 71,
+  "extraRuntimeFiles": 218,
+  "installedPackages": {
+    "canvaskit-wasm": "0.40.0-ideogram.3",
+    "sharp": "0.35.4",
+    "@img/sharp-libvips-darwin-arm64": "1.3.3",
+    "@img/sharp-darwin-arm64": "0.35.4",
+    "semver": "7.8.5",
+    "detect-libc": "2.1.2",
+    "@img/colour": "1.1.0",
+    "fs-ext": "2.1.1",
+    "nan": "2.29.0"
+  },
+  "status": "start requested; readiness/served identity not yet verified"
+}

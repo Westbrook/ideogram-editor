@@ -1,0 +1,144 @@
+{
+  "started": "2026-09-27T02:03:10.174Z",
+  "ended": "2026-09-27T02:03:16.743Z",
+  "passed": false,
+  "browser": "153.0.8010.12",
+  "runtime": {
+    "started": "2026-09-27T01:57:00.915Z",
+    "pid": 34507,
+    "origin": "http://127.0.0.1:58259",
+    "reviewURL": "http://127.0.0.1:58259/?progress-report",
+    "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "runtimeSourceSHA256": "7ad2bb72dcc09793d80d4b066c4adfe4e0415aeca6f5f9554558c46782687e60",
+    "buildFiles": 71,
+    "extraRuntimeFiles": 218,
+    "node": "v26.10.0",
+    "executable": "/Users/westbrook/Documents/repos/ideogram-edit/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc/",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-7ba3a7cc/private",
+    "mode": "isolated AUTHOR review; no independent approval; outgoing effects denied"
+  },
+  "review": {
+    "itemId": "masks-layers-correction-preview",
+    "title": "P1c.3 masks and layers 7ba3a7cc — AUTHOR REVIEW",
+    "version": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+    "contentRevision": 2,
+    "current": true,
+    "reportRevision": 441,
+    "readAt": "2026-09-27T02:01:47.987757+00:00",
+    "humanReviewed": false
+  },
+  "displayedVersion": "",
+  "paired": true,
+  "errors": [],
+  "domErrors": [],
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/session/bootstrap",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui/ui_4a06b509-2365-4cd3-bf30-ec23ec74ddd0",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/recovery/b661c362-965a-43fd-aa18-75c236f25342/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:58259",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    }
+  ],
+  "reportRevisions": [],
+  "scope": "Author stock controlled-origin Chromium native clicks through exact rendered product card. Report requests GET only; no reviewed/approval/checkpoint action. No independent acceptance or OS/AT/resource qualification."
+}

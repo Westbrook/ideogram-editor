@@ -1,0 +1,350 @@
+{
+  "bodies": [
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "7183d1f2-97b8-4fc2-9c67-fc973a1c335b",
+      "expectedSha256": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9"
+    },
+    {
+      "type": "PrepareRaster",
+      "assetId": "9d96c2b0-6a7f-401c-b739-437276e3f9ff"
+    },
+    {
+      "type": "ReviewRaster",
+      "assetId": "26db06dd-327a-4a95-92e3-5891c0f9f98b"
+    },
+    {
+      "type": "ApproveRaster",
+      "assetId": "26db06dd-327a-4a95-92e3-5891c0f9f98b",
+      "reviewId": "66c0d060-2049-4585-a653-8e68dfb9c01a",
+      "reviewHash": "sha256:d09f1e2deb91d6f65b90b97d2d746c3b02bc28026f28a6cd702b1b3a07b2f92a"
+    },
+    {
+      "type": "NewDocument",
+      "width": 3,
+      "height": 2,
+      "color": "sRGB",
+      "depth": 8
+    },
+    {
+      "type": "ImportAsset",
+      "assetId": "395f0803-0e1f-4499-9b3b-90ae56c7e9d5",
+      "layerId": "d85d4746-92bf-471c-aa6c-c8d6761ac30d",
+      "name": "hidden-alpha.png",
+      "draft": null
+    },
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "26526c89-ad5a-40dc-955c-e94b8307de21",
+      "expectedSha256": "sha256:e476f5735a4044f095b6d6ca405a951893677f56be74641f4475cd3e28a86c9b"
+    },
+    {
+      "type": "PrepareMask",
+      "plan": {
+        "width": 3,
+        "height": 2,
+        "feather": 0,
+        "operations": [
+          {
+            "kind": "shape",
+            "shape": {
+              "kind": "rectangle",
+              "x": 1,
+              "y": 0,
+              "width": 1,
+              "height": 2
+            },
+            "mode": "replace"
+          }
+        ]
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "width": 3,
+      "height": 2,
+      "layers": [
+        {
+          "assetId": "395f0803-0e1f-4499-9b3b-90ae56c7e9d5",
+          "transform": [
+            1,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "opacity": 1,
+          "mask": {
+            "assetId": "4807c7a0-ec0f-41bc-8b16-5f393db99f14",
+            "mapping": "document-r16-v1",
+            "inverted": false
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrepareMask",
+      "plan": {
+        "width": 3,
+        "height": 2,
+        "feather": 0,
+        "operations": [
+          {
+            "kind": "shape",
+            "shape": {
+              "kind": "rectangle",
+              "x": 1,
+              "y": 0,
+              "width": 1,
+              "height": 2
+            },
+            "mode": "replace"
+          }
+        ]
+      }
+    },
+    {
+      "type": "SetLayerProperties",
+      "layerId": "d85d4746-92bf-471c-aa6c-c8d6761ac30d",
+      "layerVersion": "1",
+      "properties": {
+        "mask": {
+          "assetId": "4807c7a0-ec0f-41bc-8b16-5f393db99f14",
+          "mapping": "document-r16-v1",
+          "inverted": false
+        }
+      },
+      "draft": {
+        "sessionId": "ui_817abeab-9dab-4e17-b373-62f2c8e12337",
+        "draftId": "dc215bfa-46e2-47d0-808b-36df800c6689",
+        "generation": "1"
+      }
+    },
+    {
+      "type": "CropDocument",
+      "width": 2,
+      "height": 2,
+      "x": 1,
+      "y": 0,
+      "draft": null
+    },
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "2f4622cd-55dd-4343-8294-3ed6d0dc0812",
+      "expectedSha256": "sha256:304de6dfcd42978418c1c177aebae3867ddb0d15ccce4eff9560e51a80accbb5"
+    },
+    {
+      "type": "PrepareMask",
+      "plan": {
+        "schemaVersion": 2,
+        "width": 2,
+        "height": 2,
+        "feather": 0,
+        "operations": [
+          {
+            "kind": "retained-hard-v1",
+            "mask": {
+              "assetId": "4807c7a0-ec0f-41bc-8b16-5f393db99f14",
+              "height": 2,
+              "inverted": false,
+              "mapping": "retained-r16-v1",
+              "offsetX": -1,
+              "offsetY": 0,
+              "outside": "zero",
+              "width": 3
+            },
+            "hard": {
+              "byteLength": "12",
+              "hash": "sha256:facdae780c8a3ac6a02ea506356babfd4083e8589ab68a38a08f2e508d97f90b",
+              "mediaType": "application/x-ideogram-r16le"
+            }
+          },
+          {
+            "kind": "fill"
+          }
+        ]
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "width": 2,
+      "height": 2,
+      "layers": [
+        {
+          "assetId": "395f0803-0e1f-4499-9b3b-90ae56c7e9d5",
+          "transform": [
+            1,
+            0,
+            0,
+            1,
+            -1,
+            0
+          ],
+          "opacity": 1,
+          "mask": {
+            "assetId": "44e901dc-8878-4851-a23c-29de1e786d09",
+            "mapping": "document-r16-v1",
+            "inverted": false
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrepareMask",
+      "plan": {
+        "schemaVersion": 2,
+        "width": 2,
+        "height": 2,
+        "feather": 0,
+        "operations": [
+          {
+            "kind": "retained-hard-v1",
+            "mask": {
+              "assetId": "4807c7a0-ec0f-41bc-8b16-5f393db99f14",
+              "height": 2,
+              "inverted": false,
+              "mapping": "retained-r16-v1",
+              "offsetX": -1,
+              "offsetY": 0,
+              "outside": "zero",
+              "width": 3
+            },
+            "hard": {
+              "byteLength": "12",
+              "hash": "sha256:facdae780c8a3ac6a02ea506356babfd4083e8589ab68a38a08f2e508d97f90b",
+              "mediaType": "application/x-ideogram-r16le"
+            }
+          },
+          {
+            "kind": "fill"
+          }
+        ]
+      }
+    },
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "9afbf124-616b-487b-933c-aacd8b88732a",
+      "expectedSha256": "sha256:304de6dfcd42978418c1c177aebae3867ddb0d15ccce4eff9560e51a80accbb5"
+    },
+    {
+      "type": "PrepareMask",
+      "plan": {
+        "schemaVersion": 2,
+        "width": 2,
+        "height": 2,
+        "feather": 0,
+        "operations": [
+          {
+            "kind": "retained-hard-v1",
+            "mask": {
+              "assetId": "4807c7a0-ec0f-41bc-8b16-5f393db99f14",
+              "height": 2,
+              "inverted": false,
+              "mapping": "retained-r16-v1",
+              "offsetX": -1,
+              "offsetY": 0,
+              "outside": "zero",
+              "width": 3
+            },
+            "hard": {
+              "byteLength": "12",
+              "hash": "sha256:facdae780c8a3ac6a02ea506356babfd4083e8589ab68a38a08f2e508d97f90b",
+              "mediaType": "application/x-ideogram-r16le"
+            }
+          },
+          {
+            "kind": "fill"
+          }
+        ]
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "width": 2,
+      "height": 2,
+      "layers": [
+        {
+          "assetId": "395f0803-0e1f-4499-9b3b-90ae56c7e9d5",
+          "transform": [
+            1,
+            0,
+            0,
+            1,
+            -1,
+            0
+          ],
+          "opacity": 1,
+          "mask": {
+            "assetId": "237a8b10-1826-4434-b9fc-e5b306394f17",
+            "mapping": "document-r16-v1",
+            "inverted": false
+          }
+        }
+      ]
+    },
+    {
+      "type": "PrepareMask",
+      "plan": {
+        "schemaVersion": 2,
+        "width": 2,
+        "height": 2,
+        "feather": 0,
+        "operations": [
+          {
+            "kind": "retained-hard-v1",
+            "mask": {
+              "assetId": "4807c7a0-ec0f-41bc-8b16-5f393db99f14",
+              "height": 2,
+              "inverted": false,
+              "mapping": "retained-r16-v1",
+              "offsetX": -1,
+              "offsetY": 0,
+              "outside": "zero",
+              "width": 3
+            },
+            "hard": {
+              "byteLength": "12",
+              "hash": "sha256:facdae780c8a3ac6a02ea506356babfd4083e8589ab68a38a08f2e508d97f90b",
+              "mediaType": "application/x-ideogram-r16le"
+            }
+          },
+          {
+            "kind": "fill"
+          }
+        ]
+      }
+    },
+    {
+      "type": "SetLayerProperties",
+      "layerId": "d85d4746-92bf-471c-aa6c-c8d6761ac30d",
+      "layerVersion": "3",
+      "properties": {
+        "mask": {
+          "assetId": "237a8b10-1826-4434-b9fc-e5b306394f17",
+          "mapping": "document-r16-v1",
+          "inverted": false
+        }
+      },
+      "draft": {
+        "sessionId": "ui_817abeab-9dab-4e17-b373-62f2c8e12337",
+        "draftId": "75fef06c-0214-4bb0-9429-b3a319836f15",
+        "generation": "1"
+      }
+    },
+    {
+      "type": "Undo",
+      "historyHead": "39b5b315-ef98-4b68-955b-6f45ef53a7ad"
+    },
+    {
+      "type": "ResizeCanvas",
+      "width": 4,
+      "height": 3,
+      "offsetX": 1,
+      "offsetY": 1,
+      "draft": null
+    }
+  ],
+  "consoleErrors": [],
+  "errors": []
+}

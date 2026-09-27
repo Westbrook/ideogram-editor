@@ -1,0 +1,1981 @@
+{
+  "sourceCommit": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+  "productCommit": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+  "attribution": "AUTHOR only; no independent successor verdict or approval",
+  "gates": [
+    {
+      "command": [
+        "python3",
+        "tooling/test-vendor.py"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:30:01.553270+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:30:05.540847+00:00",
+      "exitCode": 0,
+      "gate": "01-vendor",
+      "changedToSuccessor": {
+        "src/raster/mapping.ts": {
+          "atGate": "6c3c0ee6f8eafa01dfae24f4c0caceb81cda01dcc057fc95419bc4b97b148a51",
+          "atSuccessor": "b642fac2ac9a0864bb1d4deaef4a31243c5ad1e21adc26aaeeab158c50f87156"
+        },
+        "server/http.ts": {
+          "atGate": "776385123866b5ecb847124929470980c6f91b61eb1819d5527f5423d5f56973",
+          "atSuccessor": "ae99c41cb2f198f5d1f7852bb1a4e84fda5a2e05f422e4c8b0462d400818c429"
+        },
+        "server/portable/closure.ts": {
+          "atGate": "a1529768b68bcd01d9b3119e74177553990c5a832df5eb045dea4347af77fa1e",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/portable/format.ts": {
+          "atGate": "334940f8835306140ee700259bf70d1c98d7e9a5f708a97f6953c9f12e3aaf62",
+          "atSuccessor": "67fc64fce5c53703bceda7bd9395eda08a9b4cef46ff6b34eec33915b4e8a45f"
+        },
+        "server/protocol.ts": {
+          "atGate": "5b469a14d0dec7dee7891968c7268c09aa1bd4768388333dae83ce8c4622977c",
+          "atSuccessor": "d4d913b1209f4c17b3e1ca8535470591deac84f757c689e68020cf7a5f131acd"
+        },
+        "server/raster/engine.ts": {
+          "atGate": "b1e9f9b20091f1a88a1185870198921cf0385417cbd9ae3faad467f73df15819",
+          "atSuccessor": "906f21a293946797a104b392611d01b2753dd5ff2e8396c877f773d560603be5"
+        },
+        "server/storage/canonical.ts": {
+          "atGate": "5a00ef450dd456c6a76473718250778cd25c3cdf6d6d4b9bedf7a89f8d6393de",
+          "atSuccessor": "bd292f9bf4a744662cb4801136847a85d51d4eb283b6dfa42da413dc4d10cef8"
+        },
+        "server/storage/database.ts": {
+          "atGate": "3e61f3c6692e2f4a2a9044b56c6cc343761bca639b26ed9499c28c4c4bf28c83",
+          "atSuccessor": "adf479e9acbc47906cbb1b88e278635b7d221b08b0ec985fdbe6b019fbc4c354"
+        },
+        "server/storage/history.ts": {
+          "atGate": "1c7bf36e28c79c329d241d67f3c741f92b3354357ac91d23e4d1f9ad7b6bfe43",
+          "atSuccessor": "960667ccbd1c7571615565015f6623a36e203f96d86ba86953ca9f200590ef29"
+        },
+        "server/storage/portable.ts": {
+          "atGate": "f1db4a5297dc0ceb16912c4f2d920c34226ecfa0797809c8e060f8ebcf649a1f",
+          "atSuccessor": "5e571cb376ed73f67b5396994dbe097ef811191b1e918e83f0d14331a593a743"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "d7ca48cbf7d7271b2540faa2122408108e4db02aaae9ec526ab834dc3260e32c",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "server/storage/recovery.ts": {
+          "atGate": "c7ba4c165dc21f384ad499ed593ada1c9fb5e655389269b3437e71b4df906532",
+          "atSuccessor": "ee24937ea1a7f82ed82b32b544d97ee103f2c8c04e0e05bf2d75b1c5037b7cc9"
+        },
+        "server/storage/schema.ts": {
+          "atGate": "4753fe18f526fed4afd8ad39ddeea92846cec11aca4059bf82e4e77173f314ce",
+          "atSuccessor": "0a3775d020acabf49ac96af79e65997b1461fdd408212db7ab11d1d1332c4f94"
+        },
+        "server/storage/ui.ts": {
+          "atGate": "4270dd93f65371a5182b5e16060f506be30aa43e11b1259bb72780da6c2c7c19",
+          "atSuccessor": "3c9d3aed6046f4a9bca087268de607bd40d088a2a9426943021c8f2f3b6d9301"
+        },
+        "server/text/validation.ts": {
+          "atGate": "4b0e234f7d953d093362305ea5e6ca463ac925c0d63881d6a9448762d660b56d",
+          "atSuccessor": "7349c725e0190a2c775a1240a2dd4a17f6abb084e0a31659814f383eade261e4"
+        },
+        "src/protocol/history-validation.ts": {
+          "atGate": "ddd64f82fa4270f83ae0ec888b180e298ebdfd8f0dcc5dbac23fd4efdc23586d",
+          "atSuccessor": "1f05d07d283f4b730042027ae0e85b74c3be518a799df84ff852f543b751eba8"
+        },
+        "src/protocol/history.ts": {
+          "atGate": "117eceb6cb66011f84e7a060b0688b39f6b0fc54ec8b9ea5bacc72a6dd4636c0",
+          "atSuccessor": "ed6362610d229b05de09cf500ac076ccb0fd7a41bddc2356e899624a60f721e0"
+        },
+        "src/protocol/portable.ts": {
+          "atGate": "2db5c58e8f83ba0118856a76b7171bb0e9abf9963dfb941c80fea052b6c9dca3",
+          "atSuccessor": "edc1b876e8513664f02d55db7965d799a58d25f6ebb4f18e7f8250cdadf60fe1"
+        },
+        "src/protocol/raster.ts": {
+          "atGate": "a83b5d2e68f44a8fbc26c3b78b065b4578d390e52bd69b4ba120f8a49fedddc0",
+          "atSuccessor": "317817731b4701bd71e9489cf6430eec66dcc4a2b3e89951fee76490f6885f37"
+        },
+        "src/protocol/validate.ts": {
+          "atGate": "f9d74a5cd2ed37c8e58b7d427a885853f7a89424b7e1acd9ebe3fe079b7cd28a",
+          "atSuccessor": "bc17d4e6a1afba163ff4d6962b295544c95b55e810a4dffaba8c714042a2635d"
+        },
+        "src/raster/mask.ts": {
+          "atGate": "3832561312e11c2321aaac668542d8d46e3af52c985e422403198c973a058312",
+          "atSuccessor": "7b1fa5636a925c7b6845002a2c862cf3a2c30efbc534cec66baba2f7f7d5e47c"
+        },
+        "src/state/recovery-client.ts": {
+          "atGate": "e89ac14383784867699a59b12411620c22c289e1f4ecd4aa754703be71862eae",
+          "atSuccessor": "a107c24feb3b2c3a4212571e3371ae1a087405bea2925a90cf5a85f7ff7f1b0a"
+        },
+        "src/text/profile.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "6ea2fc91661cd43d35f16eb6418176d4bf4f34b25780f45ed961d00a22d0aec9",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "src/ui/shell.ts": {
+          "atGate": "a8c3cbe59756d4714c15669331234eae0682173ebe221edce61b36cb2464852e",
+          "atSuccessor": "63ec552b8ade4dfce4121940ca07139a16fe7736eb6faacc38bcbc5d44ba4d56"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "88c2b2b9c88db03e6b3e85fc10bee0beb23f881e3cbd2a8692684f5d237f88c5",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-schema.test.mjs": {
+          "atGate": "934e4be83067f7040af6bd2b5c96dd7c9248575f74b837f8f87dbeb996a65e11",
+          "atSuccessor": "d58aeb75d5638d38ee33d16ba255cb015fc08728b74e3f40e208edbd51e71899"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/history/schema.test.mjs": {
+          "atGate": "c7a94d93b3db1783babeb3b08a69161484961afcafe87fad83b875c05347ea0c",
+          "atSuccessor": "bff8851c53b30ff33ef3f7db9d71bc04664148d897ed25a3230c4f290d0c4e89"
+        },
+        "tests/portable/schema.test.mjs": {
+          "atGate": "6ba0b5a45fe9230b8bdda915a10ec5516738a2bd7d77c372fe49cf82a4139317",
+          "atSuccessor": "9892b87c24a5e025ebc5767060853dc600df5747c9d28c7286bf858f57e50505"
+        },
+        "tests/portable/transaction-schema.test.mjs": {
+          "atGate": "a9d19b14825d6e07c2714f11f4bda66087a72877ceb1eafb4b90ed22fbc28d1d",
+          "atSuccessor": "8277c4964854afedef3c424b9ea2fd724b81f93f51a9e13d07045c702c25c729"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "bcd893a6d43674836518b537070296f0bc0b7492e5df102ad1e43c3de78338cc",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/protocol/recovery.test.mjs": {
+          "atGate": "90f064dcef021787354f5423e49dbf6d674221695d897c0526170116111f0a14",
+          "atSuccessor": "40d43cc5d3651c9b5cfd6ed1f9ad431d066fdb8901371c71110a455dc0bb7785"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tests/session/http.test.mjs": {
+          "atGate": "847188d4fbdaaadd2d864c5484dbfdbc7c87a0a08661690c2ec04f38c4d8cee9",
+          "atSuccessor": "96ccede2cf1ce9e988ad9bde442c80e62a8bbcdb8ef9979691808b06a46f7dc5"
+        },
+        "tests/text-state/native.test.mjs": {
+          "atGate": "34d5d12e2ae4fb1eb84a25a684af1feebc30987251d557f9b001a3c57ece6c94",
+          "atSuccessor": "30bbeecab35676d5fdf93d86ffc30256bfce81383090cb0386cd84ad541a8551"
+        },
+        "tests/text-state/schema.test.mjs": {
+          "atGate": "b706196faae55ea48f2be6b517c5e411200a65c79d76fb22331a5377f6327afb",
+          "atSuccessor": "a97d177bccb98688b190bf36c38d326c4667c0b98001082c4eef290269bb48c4"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/text/seal-profile.mjs": {
+          "atGate": "6f6f0875e46447835b32aa36d825bb985e543af99a5c291dfbb13901be2ea042",
+          "atSuccessor": "587b45fb82070fac2c51ab1ebf05848b0262ef9c743c21fb994c68735489740b"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        },
+        "vendor/text/FILES.json": {
+          "atGate": "02888e6c3a0f683d874fd374da4d30fc56e997a13fd1937899bbe544d4e2bdf2",
+          "atSuccessor": "adf35bb74f85ec4e1c2c036784d35889e740387d8f09d6fb1435929182845989"
+        },
+        "vendor/text/manifest.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        }
+      },
+      "addedToSuccessor": [
+        "src/text/retained-profiles/d047f5be.json",
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask-schema.test.mjs",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:32:00.488608+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:32:01.954371+00:00",
+      "exitCode": 1,
+      "gate": "02-types",
+      "changedToSuccessor": {
+        "src/raster/mapping.ts": {
+          "atGate": "6c3c0ee6f8eafa01dfae24f4c0caceb81cda01dcc057fc95419bc4b97b148a51",
+          "atSuccessor": "b642fac2ac9a0864bb1d4deaef4a31243c5ad1e21adc26aaeeab158c50f87156"
+        },
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/history.ts": {
+          "atGate": "10e12a118cf61ee1374771ea86c9f2c8b95299102024cbef869ede4994bf4b5d",
+          "atSuccessor": "960667ccbd1c7571615565015f6623a36e203f96d86ba86953ca9f200590ef29"
+        },
+        "server/storage/portable.ts": {
+          "atGate": "d9a2401deefee72838baf43e459b813a193b3c4759f401677a27cfdbf7a2447e",
+          "atSuccessor": "5e571cb376ed73f67b5396994dbe097ef811191b1e918e83f0d14331a593a743"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "server/text/validation.ts": {
+          "atGate": "4b0e234f7d953d093362305ea5e6ca463ac925c0d63881d6a9448762d660b56d",
+          "atSuccessor": "7349c725e0190a2c775a1240a2dd4a17f6abb084e0a31659814f383eade261e4"
+        },
+        "src/text/profile.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "src/ui/shell.ts": {
+          "atGate": "a8c3cbe59756d4714c15669331234eae0682173ebe221edce61b36cb2464852e",
+          "atSuccessor": "63ec552b8ade4dfce4121940ca07139a16fe7736eb6faacc38bcbc5d44ba4d56"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "88c2b2b9c88db03e6b3e85fc10bee0beb23f881e3cbd2a8692684f5d237f88c5",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-schema.test.mjs": {
+          "atGate": "934e4be83067f7040af6bd2b5c96dd7c9248575f74b837f8f87dbeb996a65e11",
+          "atSuccessor": "d58aeb75d5638d38ee33d16ba255cb015fc08728b74e3f40e208edbd51e71899"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/history/schema.test.mjs": {
+          "atGate": "c7a94d93b3db1783babeb3b08a69161484961afcafe87fad83b875c05347ea0c",
+          "atSuccessor": "bff8851c53b30ff33ef3f7db9d71bc04664148d897ed25a3230c4f290d0c4e89"
+        },
+        "tests/portable/schema.test.mjs": {
+          "atGate": "6ba0b5a45fe9230b8bdda915a10ec5516738a2bd7d77c372fe49cf82a4139317",
+          "atSuccessor": "9892b87c24a5e025ebc5767060853dc600df5747c9d28c7286bf858f57e50505"
+        },
+        "tests/portable/transaction-schema.test.mjs": {
+          "atGate": "a9d19b14825d6e07c2714f11f4bda66087a72877ceb1eafb4b90ed22fbc28d1d",
+          "atSuccessor": "8277c4964854afedef3c424b9ea2fd724b81f93f51a9e13d07045c702c25c729"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "bcd893a6d43674836518b537070296f0bc0b7492e5df102ad1e43c3de78338cc",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/protocol/recovery.test.mjs": {
+          "atGate": "90f064dcef021787354f5423e49dbf6d674221695d897c0526170116111f0a14",
+          "atSuccessor": "40d43cc5d3651c9b5cfd6ed1f9ad431d066fdb8901371c71110a455dc0bb7785"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tests/session/http.test.mjs": {
+          "atGate": "847188d4fbdaaadd2d864c5484dbfdbc7c87a0a08661690c2ec04f38c4d8cee9",
+          "atSuccessor": "96ccede2cf1ce9e988ad9bde442c80e62a8bbcdb8ef9979691808b06a46f7dc5"
+        },
+        "tests/text-state/native.test.mjs": {
+          "atGate": "34d5d12e2ae4fb1eb84a25a684af1feebc30987251d557f9b001a3c57ece6c94",
+          "atSuccessor": "30bbeecab35676d5fdf93d86ffc30256bfce81383090cb0386cd84ad541a8551"
+        },
+        "tests/text-state/schema.test.mjs": {
+          "atGate": "b706196faae55ea48f2be6b517c5e411200a65c79d76fb22331a5377f6327afb",
+          "atSuccessor": "a97d177bccb98688b190bf36c38d326c4667c0b98001082c4eef290269bb48c4"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/text/seal-profile.mjs": {
+          "atGate": "6f6f0875e46447835b32aa36d825bb985e543af99a5c291dfbb13901be2ea042",
+          "atSuccessor": "587b45fb82070fac2c51ab1ebf05848b0262ef9c743c21fb994c68735489740b"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        },
+        "vendor/text/FILES.json": {
+          "atGate": "02888e6c3a0f683d874fd374da4d30fc56e997a13fd1937899bbe544d4e2bdf2",
+          "atSuccessor": "adf35bb74f85ec4e1c2c036784d35889e740387d8f09d6fb1435929182845989"
+        },
+        "vendor/text/manifest.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        }
+      },
+      "addedToSuccessor": [
+        "src/text/retained-profiles/d047f5be.json",
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask-schema.test.mjs",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:32:46.655803+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:32:47.734314+00:00",
+      "exitCode": 0,
+      "gate": "03-types",
+      "changedToSuccessor": {
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/text/profile.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "src/ui/shell.ts": {
+          "atGate": "a8c3cbe59756d4714c15669331234eae0682173ebe221edce61b36cb2464852e",
+          "atSuccessor": "63ec552b8ade4dfce4121940ca07139a16fe7736eb6faacc38bcbc5d44ba4d56"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        },
+        "vendor/text/FILES.json": {
+          "atGate": "02888e6c3a0f683d874fd374da4d30fc56e997a13fd1937899bbe544d4e2bdf2",
+          "atSuccessor": "adf35bb74f85ec4e1c2c036784d35889e740387d8f09d6fb1435929182845989"
+        },
+        "vendor/text/manifest.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        }
+      },
+      "addedToSuccessor": [
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "tooling/text/seal-profile.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:33:02.789299+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:33:02.865870+00:00",
+      "exitCode": 0,
+      "gate": "04-seal-profile",
+      "changedToSuccessor": {
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/text/profile.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "src/ui/shell.ts": {
+          "atGate": "a8c3cbe59756d4714c15669331234eae0682173ebe221edce61b36cb2464852e",
+          "atSuccessor": "63ec552b8ade4dfce4121940ca07139a16fe7736eb6faacc38bcbc5d44ba4d56"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        },
+        "vendor/text/FILES.json": {
+          "atGate": "02888e6c3a0f683d874fd374da4d30fc56e997a13fd1937899bbe544d4e2bdf2",
+          "atSuccessor": "adf35bb74f85ec4e1c2c036784d35889e740387d8f09d6fb1435929182845989"
+        },
+        "vendor/text/manifest.json": {
+          "atGate": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+          "atSuccessor": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+        }
+      },
+      "addedToSuccessor": [
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        "python3",
+        "-c",
+        "import shutil,subprocess; shutil.rmtree(\"dist/local\"); raise SystemExit(subprocess.call([\".toolchain/bin/npm\",\"run\",\"build\"]))"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:33:02.968313+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:33:06.248744+00:00",
+      "exitCode": 0,
+      "gate": "05-clean-build",
+      "changedToSuccessor": {
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "src/ui/shell.ts": {
+          "atGate": "a8c3cbe59756d4714c15669331234eae0682173ebe221edce61b36cb2464852e",
+          "atSuccessor": "63ec552b8ade4dfce4121940ca07139a16fe7736eb6faacc38bcbc5d44ba4d56"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        }
+      },
+      "addedToSuccessor": [
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "evidence/p1c3-correction/independent-mask-authority-v2.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:33:15.356481+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:33:22.492673+00:00",
+      "exitCode": 0,
+      "gate": "06-authority",
+      "changedToSuccessor": {
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        }
+      },
+      "addedToSuccessor": [
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        "python3",
+        "evidence/p1c3-correction/independent-vendor-v2.py"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:33:27.428141+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:33:28.097796+00:00",
+      "exitCode": 0,
+      "gate": "07-independent-vendor",
+      "changedToSuccessor": {
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        }
+      },
+      "addedToSuccessor": [
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:34:15.098100+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:34:29.557743+00:00",
+      "exitCode": 1,
+      "gate": "08-retained-masks",
+      "changedToSuccessor": {
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "6de1166af415c3a3b0bcacef198e0f6570407d6c0413fd68b1481850912565ef",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        }
+      },
+      "addedToSuccessor": [
+        "tests/history/retained-mask-compatibility.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:34:43.751423+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:35:36.420627+00:00",
+      "exitCode": 0,
+      "gate": "09-retained-masks",
+      "changedToSuccessor": {
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "542583ca0aecdb364dfd0cef465a42fe7e5d66e23662a48d871fc57440ba16c1",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "tests/assets/storage.test.mjs": {
+          "atGate": "fc7f950c3d4f085cc39cc45a34fb87cf7a0e850f2fd5ac17e482ade51fd4a953",
+          "atSuccessor": "b049f42ba6e9e336c683b64f3072ac3cd626098fa763b7914b60721198a0b14c"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "339dfe9ed88e26abe129dbbc44c386b1466b6c33de3dcfa6a699673c57d30ff8",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tests/raster/storage.test.mjs": {
+          "atGate": "8245c333ae2aa158baf769303eed46e2bd08f31649cfe92c6447f7e05bb21894",
+          "atSuccessor": "9a4372d6745df8206750397524c9dacca94a5233ddbd867977e5f32efa0d8471"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        }
+      },
+      "addedToSuccessor": [
+        "tests/history/retained-mask-compatibility.test.mjs"
+      ],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern",
+        "retained-domain|late exact",
+        "tests/history/retained-mask.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:36:38.188391+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:36:49.100382+00:00",
+      "exitCode": 0,
+      "gate": "10-extra-mask-controls",
+      "changedToSuccessor": {
+        "tests/history/retained-mask-compatibility.test.mjs": {
+          "atGate": "8d2eabc906760a6fd95956f3b863080c085f967df9dafd5cc403325e4cf5ca05",
+          "atSuccessor": "f7b47cc198533b2c803d7265a7ef5172dc4d4dc10cbfc536e811ca616d6f1076"
+        },
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "6f8ee430195bdfa1aecf6bed49c489a45076c2a3a1ff7a7110a1832d18c0ffab",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "67e6f7cccf06e13c32a8114f9664343a1565a362b931785f7ae05921206bc11d",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        },
+        "tooling/verify-vendor.py": {
+          "atGate": "ab39e003701abff926c0b98a9b224dee5600c86473978123f9b8d3bc44811f39",
+          "atSuccessor": "50fbad6aa141829e600b9b8345d23af2119d35a3e7c6366ab3dfcb9d3f1c5c0f"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/history/retained-mask-schema.test.mjs",
+        "tests/history/retained-mask-compatibility.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:37:15.221978+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:37:39.628191+00:00",
+      "exitCode": 0,
+      "gate": "11-retained-schema",
+      "changedToSuccessor": {
+        "tests/history/retained-mask-compatibility.test.mjs": {
+          "atGate": "8d2eabc906760a6fd95956f3b863080c085f967df9dafd5cc403325e4cf5ca05",
+          "atSuccessor": "f7b47cc198533b2c803d7265a7ef5172dc4d4dc10cbfc536e811ca616d6f1076"
+        },
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "6f8ee430195bdfa1aecf6bed49c489a45076c2a3a1ff7a7110a1832d18c0ffab",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "server/portable/closure.ts": {
+          "atGate": "612733143a2107c3737423ad55bfc4089eb8121628fed9db33fca1e594338870",
+          "atSuccessor": "1310f03b150f0bbef57151371832943125f1573246888563a2789ce0eb823be4"
+        },
+        "server/storage/raster.ts": {
+          "atGate": "65aaf8ece36f736f8053de1d33840232d82d2495025f2510d58b00a1a9203657",
+          "atSuccessor": "79c0d8d1d89cdcfd13b27133a7dd60c942a1b70b01227fa7ec45ec87d224ac85"
+        },
+        "src/ui/authoring.ts": {
+          "atGate": "e3ed63bedf6d93109f5201f95f7a02b2a06ec0f491df48a2a46baa1b1a07e3ff",
+          "atSuccessor": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "2d465bbf722d5e76ea239765562010e1a5f7ab0d43c640a9bdc6a91febb51b95",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/mask-compatibility.test.mjs": {
+          "atGate": "7a50b547066d4113d965e782a7239b10d58822cc96836119d82d06e8e11ef8da",
+          "atSuccessor": "5b6db63167f02fdd2c1494451e8f7a4a0dc425280ec9c92c5f4a095287f3325d"
+        },
+        "tests/history/mask-text-compatibility.test.mjs": {
+          "atGate": "16d814ed8e12b4171fd52d6a0e4b3661fb32ab68b5951856810238d4f2330720",
+          "atSuccessor": "0a61bae17ce405df0002809bc71143e769a5769eb4d46396731679993483c7e0"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/portable/transactions.test.mjs": {
+          "atGate": "9000502dfe3856d77a11f671274a0c0b803c80478477604b7264f5f176b01b81",
+          "atSuccessor": "5d42a8f4d568d167ae370bb439e639e67abc2006b24153e38f301cc354616377"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:38:12.464382+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:38:13.947279+00:00",
+      "exitCode": 0,
+      "gate": "12-types",
+      "changedToSuccessor": {
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "8690a6cf9a7ced84bf8fbb85e33377119e1ae61d9d55bca9a2a00c4270b84b45",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "5ce4895ae93594aa1d8682770f8573558ce16296cbaa033a2f759f6efc4e2c54",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        "python3",
+        "-c",
+        "import shutil,subprocess; shutil.rmtree(\"dist/local\"); raise SystemExit(subprocess.call([\".toolchain/bin/npm\",\"run\",\"build\"]))"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:38:14.110947+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:38:17.810462+00:00",
+      "exitCode": 0,
+      "gate": "13-clean-build",
+      "changedToSuccessor": {
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "8690a6cf9a7ced84bf8fbb85e33377119e1ae61d9d55bca9a2a00c4270b84b45",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "5ce4895ae93594aa1d8682770f8573558ce16296cbaa033a2f759f6efc4e2c54",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/editor/authoring.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:38:25.510760+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {
+        "EDITOR_BROWSER": "chromium",
+        "EDITOR_RECEIPT": "evidence/p1c3-correction/browser14"
+      },
+      "end": "2026-09-27T01:39:01.507373+00:00",
+      "exitCode": 1,
+      "gate": "14-chromium",
+      "changedToSuccessor": {
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "8690a6cf9a7ced84bf8fbb85e33377119e1ae61d9d55bca9a2a00c4270b84b45",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "tests/editor/authoring.spec.ts": {
+          "atGate": "5ce4895ae93594aa1d8682770f8573558ce16296cbaa033a2f759f6efc4e2c54",
+          "atSuccessor": "67c08fa3a4fc3f1af4ba63055dfe280fef171bd7a4a8d7928bb5701b33f166a3"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Historical development result only; later exact owning gates supersede."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/editor/authoring.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:39:44.824280+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {
+        "EDITOR_BROWSER": "chromium",
+        "EDITOR_RECEIPT": "evidence/p1c3-correction/browser15"
+      },
+      "end": "2026-09-27T01:40:19.843983+00:00",
+      "exitCode": 0,
+      "gate": "15-chromium",
+      "changedToSuccessor": {
+        "tests/history/retained-mask.test.mjs": {
+          "atGate": "8690a6cf9a7ced84bf8fbb85e33377119e1ae61d9d55bca9a2a00c4270b84b45",
+          "atSuccessor": "aa9023fa6e3402c9644beaf7d258fab49eb239d9c71cfcd42118ae81c2380d50"
+        },
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        },
+        "tooling/editor-components.json": {
+          "atGate": "3cbbc95e59c9a00ffdd853a68e7c783274f2e545b10220e95ac2357392f8f521",
+          "atSuccessor": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "All src/server and executed editor test/helper bytes exactly equal successor. Differences are history/raster test expectations or assertions and adoption inventory. Gate13 compiled this same runtime source; fresh clean20 is separately byte-sealed. No complete gate13-to20 built-byte comparison is claimed. This is a reused AUTHOR Chromium3 result, not a new final-source browser run."
+    },
+    {
+      "command": [
+        "python3",
+        "tooling/test-vendor.py"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:40:49.928200+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:40:53.929666+00:00",
+      "exitCode": 0,
+      "gate": "16-vendor-tests",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        "python3",
+        "evidence/p1c3-correction/independent-vendor-v3.py"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:40:54.057330+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:40:54.790473+00:00",
+      "exitCode": 0,
+      "gate": "17-vendor-helper",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "evidence/p1c3-correction/independent-browser-v2.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+      "start": "2026-09-27T01:41:02.187251+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:41:45.451109+00:00",
+      "exitCode": 1,
+      "gate": "18-native-page-zoom",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "No PASS. Actual200% remains UNVERIFIED; stopped native UI and failed unchanged-scale assertion retained, regardless of unchanged runtime."
+    },
+    {
+      "command": [
+        ".toolchain/bin/npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:42:05.623167+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:42:08.061307+00:00",
+      "exitCode": 0,
+      "gate": "19-types",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        "python3",
+        "-c",
+        "import shutil,subprocess; shutil.rmtree(\"dist/local\"); raise SystemExit(subprocess.call([\".toolchain/bin/npm\",\"run\",\"build\"]))"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:42:08.174875+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:42:11.468601+00:00",
+      "exitCode": 0,
+      "gate": "20-build",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "tooling/text/verify.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:42:11.655123+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:42:11.980381+00:00",
+      "exitCode": 0,
+      "gate": "21-text-seal",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "tooling/raster/verify-inputs.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:42:12.091155+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:42:12.413724+00:00",
+      "exitCode": 0,
+      "gate": "22-raster-seal",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        "python3",
+        "tooling/verify-vendor.py"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:42:12.525638+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:42:12.735835+00:00",
+      "exitCode": 0,
+      "gate": "23-vendor",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "tooling/verify-imports.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:42:12.847405+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:42:13.627220+00:00",
+      "exitCode": 0,
+      "gate": "24-imports",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Owning runtime, tool, profile and vendor bytes exactly equal successor. Only unrelated historical test expectations differ. Build/type input configs also recorded in source-inputs and unchanged since81dc."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/history/failure.test.mjs",
+        "tests/history/http.test.mjs",
+        "tests/history/mask-compatibility.test.mjs",
+        "tests/history/mask-schema.test.mjs",
+        "tests/history/mask-text-compatibility.test.mjs",
+        "tests/history/mask.test.mjs",
+        "tests/history/process.test.mjs",
+        "tests/history/replay.test.mjs",
+        "tests/history/retained-mask-compatibility.test.mjs",
+        "tests/history/retained-mask-schema.test.mjs",
+        "tests/history/retained-mask.test.mjs",
+        "tests/history/review.test.mjs",
+        "tests/history/schema.test.mjs",
+        "tests/history/ui.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:42:13.745927+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:45:34.676081+00:00",
+      "exitCode": 1,
+      "gate": "25-history",
+      "changedToSuccessor": {
+        "tests/history/review.test.mjs": {
+          "atGate": "ebd5ae544d28e05a7f4c27d673edd47e68d055298ed3d2a25b5a71183f87bcaf",
+          "atSuccessor": "5473ccc374ee8c47f2ff255287d70345ac61eaa80c8465b7965df5547c16a510"
+        },
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "FAIL retained. 78 passed at81dc; review.test.mjs changed only the refused-bounds expectation, and full affected file reran25a4PASS. Remaining75 test cases have exact owning runtime and test-file equality; no aggregate79 pass rerun claimed."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/history/review.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+      "start": "2026-09-27T01:45:52.193492+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:45:59.116525+00:00",
+      "exitCode": 0,
+      "gate": "25a-review",
+      "changedToSuccessor": {
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "Affected file4PASS with exact successor test/runtime bytes; only later unrelated raster/schema expectation changes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/raster/approval-integrity.test.mjs",
+        "tests/raster/codec.test.mjs",
+        "tests/raster/core.test.mjs",
+        "tests/raster/http.test.mjs",
+        "tests/raster/mask.test.mjs",
+        "tests/raster/png-validation.test.mjs",
+        "tests/raster/process.test.mjs",
+        "tests/raster/schema.test.mjs",
+        "tests/raster/storage.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "28a2ab69bb6c1be2bf079e6998ed5141c890fadc",
+      "start": "2026-09-27T01:46:07.520513+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:47:40.709299+00:00",
+      "exitCode": 1,
+      "gate": "26-raster",
+      "changedToSuccessor": {
+        "tests/raster/schema.test.mjs": {
+          "atGate": "c14e4327265b7e830b68481fc71d5da6d986e271134f3a0b291461bb2889d17f",
+          "atSuccessor": "e67a9ef992911251042bee1c679cd819e9f7d682c3742d961f6c523e1981e610"
+        }
+      },
+      "addedToSuccessor": [],
+      "reuse": "FAIL retained. 255 passed at28a2 with exact owning runtime/test bytes. Two schema final-version expectations changed and only those cases reran26a2PASS; no aggregate257 pass rerun claimed."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern",
+        "schema5 capacity|backup corruption fails",
+        "tests/raster/schema.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "28a2ab69bb6c1be2bf079e6998ed5141c890fadc",
+      "start": "2026-09-27T01:47:53.565365+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:47:56.284090+00:00",
+      "exitCode": 0,
+      "gate": "26a-schema",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Two corrected final-version controls2PASS; source and exercised test bytes equal successor."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/protocol/http.test.mjs",
+        "tests/protocol/process.test.mjs",
+        "tests/protocol/recovery.test.mjs",
+        "tests/session/http.test.mjs",
+        "tests/session/storage-launch.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:48:00.281033+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:48:30.239740+00:00",
+      "exitCode": 0,
+      "gate": "27-protocol-session",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/assets/http.test.mjs",
+        "tests/assets/process.test.mjs",
+        "tests/assets/storage.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:48:31.624407+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:49:08.496790+00:00",
+      "exitCode": 0,
+      "gate": "28-assets",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/portable/adversarial.test.mjs",
+        "tests/portable/compatibility.test.mjs",
+        "tests/portable/failure.test.mjs",
+        "tests/portable/http.test.mjs",
+        "tests/portable/imported-drafts.test.mjs",
+        "tests/portable/journey.test.mjs",
+        "tests/portable/legacy.test.mjs",
+        "tests/portable/process.test.mjs",
+        "tests/portable/provenance.test.mjs",
+        "tests/portable/restart.test.mjs",
+        "tests/portable/revision-consistency.test.mjs",
+        "tests/portable/schema.test.mjs",
+        "tests/portable/transaction-schema.test.mjs",
+        "tests/portable/transactions.test.mjs",
+        "tests/portable/zip.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:49:08.734398+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:52:33.247447+00:00",
+      "exitCode": 0,
+      "gate": "29-portable",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "node_modules/vite/bin/vite.js",
+        "build",
+        "--config",
+        "tests/text-state/vite.config.ts",
+        "--outDir",
+        "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/p1c3-correction/text-app"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:52:33.436640+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:52:33.997499+00:00",
+      "exitCode": 0,
+      "gate": "30-text-fixture",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/text-state/native.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:52:34.124516+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {
+        "TEXT_STATE_APP": "artifacts/p1c3-correction/text-app",
+        "TEXT_STATE_EVIDENCE": "evidence/p1c3-correction/current-native",
+        "TEXT_STATE_ENGINES": "chromium,firefox,webkit"
+      },
+      "end": "2026-09-27T01:53:34.556116+00:00",
+      "exitCode": 0,
+      "gate": "31-current-native",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/text-state/font.test.mjs",
+        "tests/text-state/schema.test.mjs",
+        "tests/text-state/admission.test.mjs",
+        "tests/text-state/verifier.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:53:34.770530+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {
+        "TEXT_STATE_APP": "artifacts/p1c3-correction/text-app"
+      },
+      "end": "2026-09-27T01:53:57.426103+00:00",
+      "exitCode": 0,
+      "gate": "32-text-state",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/editor/document-projection.test.mjs",
+        "tests/editor/read-adapters.test.mjs",
+        "tests/editor/shutdown-console.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:53:57.616148+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:54:23.572953+00:00",
+      "exitCode": 0,
+      "gate": "33-editor-contracts",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "tests/portable/browser-recovery.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:54:23.697463+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:54:46.095383+00:00",
+      "exitCode": 0,
+      "gate": "34-namespace-browser",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "--import",
+        "./tests/session/no-egress.mjs",
+        "evidence/p1c3-correction/independent-mask-authority-v3.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:54:55.907471+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:55:03.765457+00:00",
+      "exitCode": 0,
+      "gate": "40-authority-final",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/editor/authoring.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:55:03.882786+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {
+        "EDITOR_BROWSER": "firefox",
+        "EDITOR_RECEIPT": "evidence/p1c3-correction/browser35"
+      },
+      "end": "2026-09-27T01:55:49.869519+00:00",
+      "exitCode": 0,
+      "gate": "35-firefox",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/editor/authoring.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:55:49.997454+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {
+        "EDITOR_BROWSER": "webkit",
+        "EDITOR_RECEIPT": "evidence/p1c3-correction/browser36"
+      },
+      "end": "2026-09-27T01:56:23.462510+00:00",
+      "exitCode": 0,
+      "gate": "36-webkit",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        "python3",
+        "evidence/p1c3-correction/37-start-preview.py"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:56:59.429934+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:56:59.845939+00:00",
+      "exitCode": 0,
+      "gate": "37-start-preview",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "evidence/p1c3-correction/38-preview-identity.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:57:25.510863+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:57:28.142650+00:00",
+      "exitCode": 0,
+      "gate": "38-served-identity",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "evidence/p1c3-correction/39-preview-roundtrip.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T01:59:10.997862+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T01:59:23.567195+00:00",
+      "exitCode": 0,
+      "gate": "39-report-roundtrip",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source with recorded final owning source hashes."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "evidence/p1c3-correction/39b-preview-roundtrip.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T02:01:50.275310+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T02:01:57.696768+00:00",
+      "exitCode": 1,
+      "gate": "39b-final-card-roundtrip",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source; helper-only result. Failures stay failed; exact card identity/cleanup qualifications are in raw receipts and FIRST_FAILURES."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "evidence/p1c3-correction/39c-preview-roundtrip.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T02:03:08.545456+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T02:03:16.777107+00:00",
+      "exitCode": 1,
+      "gate": "39c-final-card-roundtrip",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source; helper-only result. Failures stay failed; exact card identity/cleanup qualifications are in raw receipts and FIRST_FAILURES."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "evidence/p1c3-correction/39d-preview-roundtrip.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T02:04:35.407453+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T02:04:42.995687+00:00",
+      "exitCode": 1,
+      "gate": "39d-final-card-roundtrip",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source; helper-only result. Failures stay failed; exact card identity/cleanup qualifications are in raw receipts and FIRST_FAILURES."
+    },
+    {
+      "command": [
+        ".toolchain/bin/node",
+        "evidence/p1c3-correction/39e-preview-roundtrip.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "head": "7ba3a7ccdd440b5b82c376f4523aea8246fd2600",
+      "start": "2026-09-27T02:05:30.646133+00:00",
+      "qualification": "Author functional check only; not performance or independent acceptance",
+      "environment": {},
+      "end": "2026-09-27T02:05:46.872149+00:00",
+      "exitCode": 0,
+      "gate": "39e-final-card-roundtrip",
+      "changedToSuccessor": {},
+      "addedToSuccessor": [],
+      "reuse": "Fresh on exact successor source; helper-only result. Failures stay failed; exact card identity/cleanup qualifications are in raw receipts and FIRST_FAILURES."
+    }
+  ],
+  "functionalBrowserEND": "2026-09-27T02:05:46.872149Z"
+}

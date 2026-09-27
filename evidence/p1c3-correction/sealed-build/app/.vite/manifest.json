@@ -1,0 +1,47 @@
+{
+  "_icon-DIQhQ5Eb.js": {
+    "file": "assets/icon-DIQhQ5Eb.js",
+    "name": "icon"
+  },
+  "_preload-helper-BZ1Pz5am.js": {
+    "file": "assets/preload-helper-BZ1Pz5am.js",
+    "name": "preload-helper"
+  },
+  "index.html": {
+    "file": "assets/index-DH9BKYq3.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_preload-helper-BZ1Pz5am.js"
+    ],
+    "dynamicImports": [
+      "src/ui/shell.ts"
+    ],
+    "css": [
+      "assets/index-WjEVtF_I.css"
+    ]
+  },
+  "src/ui/editor-panels.ts": {
+    "file": "assets/editor-panels-DZY6YZJM.js",
+    "name": "editor-panels",
+    "src": "src/ui/editor-panels.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "_icon-DIQhQ5Eb.js"
+    ]
+  },
+  "src/ui/shell.ts": {
+    "file": "assets/shell-g-vOFR3q.js",
+    "name": "shell",
+    "src": "src/ui/shell.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "_preload-helper-BZ1Pz5am.js",
+      "_icon-DIQhQ5Eb.js"
+    ],
+    "dynamicImports": [
+      "src/ui/editor-panels.ts"
+    ]
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "start": "2026-09-27T01:41:04.745Z",
+  "end": "2026-09-27T01:41:45.235Z",
+  "passed": false,
+  "error": {
+    "message": "Actual browser page zoom must double devicePixelRatio\n\n1 !== 2\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Actual browser page zoom must double devicePixelRatio\n\n1 !== 2\n\n    at file:///Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3-correction/independent-browser-v2.mjs:25:31"
+  },
+  "browser": "153.0.8010.12",
+  "before": {
+    "innerWidth": 1440,
+    "innerHeight": 932,
+    "dpr": 2,
+    "visualScale": 1,
+    "scrollWidth": 1440,
+    "cssZoom": "1"
+  },
+  "after": {
+    "innerWidth": 1440,
+    "innerHeight": 932,
+    "dpr": 2,
+    "visualScale": 1,
+    "scrollWidth": 1440,
+    "cssZoom": "1"
+  },
+  "checks": [
+    "Hidden layer omitted from canonical merged sample",
+    "Explicit hidden active layer includes translation and opacity in canonical sample"
+  ],
+  "commands": [
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "c79f7a55-72c9-40fc-9eac-2e5763b4277e",
+      "expectedSha256": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9"
+    },
+    {
+      "type": "PrepareRaster",
+      "assetId": "c0f2e044-b187-43a6-a24e-b6c35acf06cb"
+    },
+    {
+      "type": "ReviewRaster",
+      "assetId": "ec8c2379-cfd3-4618-aa54-b3f32bb42537"
+    },
+    {
+      "type": "ApproveRaster",
+      "assetId": "ec8c2379-cfd3-4618-aa54-b3f32bb42537",
+      "reviewId": "4773df57-1b8c-445e-8f37-d3ccf57b38e9",
+      "reviewHash": "sha256:88d6cd78298cc09a4a16f0fe1b8874d82aae6b79c4216d5f1ef06a3ea6d11d4e"
+    },
+    {
+      "type": "NewDocument",
+      "width": 3,
+      "height": 2,
+      "color": "sRGB",
+      "depth": 8
+    },
+    {
+      "type": "ImportAsset",
+      "assetId": "e3e19943-efdb-4a77-b74f-554fa4746d75",
+      "layerId": "8f4bb23d-9474-4515-a460-206e9f926c6f",
+      "name": "hidden-alpha.png",
+      "draft": null
+    },
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "6b6f95f0-16d5-4b04-a22e-6e7a470e25ea",
+      "expectedSha256": "sha256:8590ca745676eec9c78b61bde14df4685aeaba70efb72b3ac62724acdc5e001a"
+    },
+    {
+      "type": "SetLayerProperties",
+      "layerId": "8f4bb23d-9474-4515-a460-206e9f926c6f",
+      "layerVersion": "1",
+      "properties": {
+        "name": "hidden-alpha.png",
+        "opacity": 0.5,
+        "visible": true,
+        "locked": false
+      },
+      "draft": {
+        "sessionId": "ui_1cec4da5-d2d1-467a-b0ce-eab97c0319c9",
+        "draftId": "inspector_274cbb89-2a4c-44c0-9ce8-c4b40875b9fd_8f4bb23d-9474-4515-a460-206e9f926c6f",
+        "generation": "2"
+      }
+    },
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "acc6edff-fda3-49e7-8518-6bcd5089b426",
+      "expectedSha256": "sha256:fd99425f2d08177d31e89830dcd5e6c065200529cd2e15cd5ef02341a74a531c"
+    },
+    {
+      "type": "ApplyTransform",
+      "layerId": "8f4bb23d-9474-4515-a460-206e9f926c6f",
+      "layerVersion": "2",
+      "transform": [
+        1,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "draft": {
+        "sessionId": "ui_1cec4da5-d2d1-467a-b0ce-eab97c0319c9",
+        "draftId": "inspector_274cbb89-2a4c-44c0-9ce8-c4b40875b9fd_8f4bb23d-9474-4515-a460-206e9f926c6f",
+        "generation": "4"
+      }
+    },
+    {
+      "type": "FinalizeStaging",
+      "stagingId": "eab01cec-5188-4afa-acc6-b62533447648",
+      "expectedSha256": "sha256:4166f478d6f8fc916a8561012015dd53c6a085db9e85fd75b9916151d0c20051"
+    },
+    {
+      "type": "SetLayerProperties",
+      "layerId": "8f4bb23d-9474-4515-a460-206e9f926c6f",
+      "layerVersion": "3",
+      "properties": {
+        "name": "hidden-alpha.png",
+        "opacity": 0.5,
+        "visible": false,
+        "locked": false
+      },
+      "draft": {
+        "sessionId": "ui_1cec4da5-d2d1-467a-b0ce-eab97c0319c9",
+        "draftId": "inspector_274cbb89-2a4c-44c0-9ce8-c4b40875b9fd_8f4bb23d-9474-4515-a460-206e9f926c6f",
+        "generation": "5"
+      }
+    },
+    {
+      "type": "ComposeRaster",
+      "width": 3,
+      "height": 2,
+      "layers": [
+        {
+          "assetId": "e3e19943-efdb-4a77-b74f-554fa4746d75",
+          "transform": [
+            1,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "opacity": 0.5,
+          "mask": null
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "domErrors": [],
+  "scope": "Fresh stock Chromium controlled origin, native browser zoom via CUA; no physical IME/AT or performance claim"
+}

@@ -1,0 +1,44 @@
+browser fixture ready 80
+browser prior cursor { generation: 'prior', cursor: '0', epoch: null }
+hydration fault missing-descriptor { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:621c75b22f1b446655af8eb47f7ed586603e5ede79028a32d564802d84e9dae5',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault wrong-context { error: 'Error: Recovery context changed' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:621c75b22f1b446655af8eb47f7ed586603e5ede79028a32d564802d84e9dae5',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault missing-content { error: 'TypeError: Failed to fetch' }
+namespace descriptor 200 {
+  byteLength: '342374',
+  hash: 'sha256:621c75b22f1b446655af8eb47f7ed586603e5ede79028a32d564802d84e9dae5',
+  mediaType: 'application/x-ndjson'
+}
+hydration fault truncated-content { error: 'Error: Content integrity check failed' }
+✔ Chromium restart recovery hydrates a multi-chunk imported namespace before the cursor and survives missing or corrupt pages (8573.702125ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","cursor":"80","assets":3,"history":2,"checkpoints":70,"failedHydrationRetainsPrior":true,"externalRequests":[],"qualification":false}
+SSE reached {
+  published: {
+    generation: '1971e66b-ed9f-440f-b146-ecd37e28442a',
+    cursor: '11',
+    epoch: '3'
+  },
+  failure: undefined
+}
+✔ Chromium SSE import uses its pinned context, publishes complete rows once and ignores duplicate delivery (2256.703667ms)
+✔ Chromium snapshot plus tail includes all imported domain projections after server restart (6353.677042ms)
+ℹ {"finding":"I-PF02","browser":"153.0.8010.12","snapshotRecovery":true,"namespaceRowsAgree":true,"externalRequests":[],"qualification":false}
+✔ Chromium validates every retained namespace link despite recomputed descriptor and content, then preserves the cross-tab winner (4941.385125ms)
+ℹ {"finding":"I-PF02","kind":"structural linkage, not hash/authenticity failure","browser":"153.0.8010.12","results":[{"fault":"missing-nonhead-history","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-history-parent","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-checkpoint-head","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"foreign-history-parent","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"foreign-checkpoint-head","result":{"error":"Error: Missing imported history link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"missing-retained-composite","result":{"error":"Error: Missing imported asset link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"dangling-asset-source","result":{"error":"Error: Missing imported asset link"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"history-cycle","result":{"error":"Error: Invalid imported history graph"},"rewroteDescriptorAndContent":true,"priorPreserved":true},{"fault":"asset-cycle","result":{"error":"Error: Invalid imported asset graph"},"rewroteDescriptorAndContent":true,"priorPreserved":true}],"healthyRetainedHistory":4,"healthyCheckpoints":3,"redo":"p_491c6881c0b964fdf8c4004eeda15a863b14df4ee7acfa30fa96bc657dcca5dc","crossTabWinnerPreserved":true,"qualification":false}
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22343.389625

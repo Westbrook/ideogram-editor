@@ -1,0 +1,20 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 3'
+- '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 2'
+
+    at file:///Users/westbrook/Documents/repos/ideogram-edit/evidence/p1c3-correction/39d-preview-roundtrip.mjs:22:174 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 3',
+  expected: '7ba3a7ccdd440b5b82c376f4523aea8246fd2600 · review revision 2',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0

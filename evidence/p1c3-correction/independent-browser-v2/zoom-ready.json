@@ -1,0 +1,12 @@
+{
+  "before": {
+    "innerWidth": 1440,
+    "innerHeight": 932,
+    "dpr": 2,
+    "visualScale": 1,
+    "scrollWidth": 1440,
+    "cssZoom": "1"
+  },
+  "title": "P1c correction zoom verification",
+  "executable": "/Users/westbrook/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+}

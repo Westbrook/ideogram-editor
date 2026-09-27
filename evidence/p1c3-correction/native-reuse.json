@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "81dc82c84566d6fe20fb4f63e06d499e53769771",
+  "previousCommit": "ecbcc79e9fa8e89acf84c2bb02831b780582ed88",
+  "currentProfile": "sha256:304528c98255447a3c8b4607b3b6738261dad46c485c84c203e9c16ae1f69a29",
+  "previousProfile": "sha256:d047f5beee2e3ca7f19d5e0ea7150f884a8063c2296b34fa94fb1ffeff434218",
+  "exactEqualFields": {
+    "engine": true,
+    "fonts": true,
+    "adapterSources": true,
+    "memory": true,
+    "rasterProfile": true,
+    "unicode": true
+  },
+  "retainedD047SHA256": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+  "meaning": "Exact unchanged owning native/font/adapter identities; no new native rebuild, memory, lifetime or platform qualification. Current integration tests recorded separately."
+}
