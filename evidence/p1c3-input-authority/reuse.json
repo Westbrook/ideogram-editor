@@ -1,0 +1,166 @@
+{
+  "at": "2026-09-27T02:52:16.966729+00:00",
+  "source": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+  "prior": "d3f7cc351ca76e9dff6dc52e6cd9ca78ccb7ff50",
+  "changes": [
+    "server/storage/raster.ts",
+    "tests/raster/input-authority.test.mjs"
+  ],
+  "profile": "sha256:304528c98255447a3c8b4607b3b6738261dad46c485c84c203e9c16ae1f69a29",
+  "owningSealsUnchanged": {
+    "server/http.ts": {
+      "sha256": "ae99c41cb2f198f5d1f7852bb1a4e84fda5a2e05f422e4c8b0462d400818c429",
+      "bytes": 14400
+    },
+    "server/raster/identity.ts": {
+      "sha256": "1e06e04fcbf92d8a33ee342c5147c1783eda7aab66785e4f7c29984ce01c12be",
+      "bytes": 27973
+    },
+    "server/static.ts": {
+      "sha256": "17113de5a2cad06f94e1788a7a25bf71656d77d5f48f5371910a8a6159cf5cac",
+      "bytes": 4589
+    },
+    "server/storage/text.ts": {
+      "sha256": "1486a8ae7349daa55a00a9a4c5979b1b4d062f73c4a0b01c4e00da4f473082d2",
+      "bytes": 13296
+    },
+    "server/text/font.ts": {
+      "sha256": "0093e9341c3b39e93065fa4ab4736fb0ae46f39314b5fb4af227d5e22d239ade",
+      "bytes": 4425
+    },
+    "server/text/render-worker.mjs": {
+      "sha256": "90e01ed67bac35e425ee5ca75187fe80d7476ea6cf18b28f7897aae0d4a24ff9",
+      "bytes": 2720
+    },
+    "server/text/supervisor.ts": {
+      "sha256": "ad066c86979d8e4eb6ae66ba3b53c5b629d7b1f01422bc36fee377e266c96bc1",
+      "bytes": 1504
+    },
+    "server/text/validation.ts": {
+      "sha256": "7349c725e0190a2c775a1240a2dd4a17f6abb084e0a31659814f383eade261e4",
+      "bytes": 9495
+    },
+    "server/text/worker.ts": {
+      "sha256": "bff44a473836e51538e93a1c56363f009a17c48fa18bbe487596576d41d8848f",
+      "bytes": 561
+    },
+    "src/protocol/text-budget.ts": {
+      "sha256": "273f6a5be4b183df0249fed558b05dcd33e58d53b0ed20bafcb02ae110df80e0",
+      "bytes": 1118
+    },
+    "src/protocol/text.ts": {
+      "sha256": "f54a1057aae3e28d6def4536ad4c62d4246bb858682694d5b9723d703cb219cb",
+      "bytes": 7722
+    },
+    "src/text/admission.ts": {
+      "sha256": "be0ae31c17e9d0497a27a49d0b15f1be7672c20c5752e8423ad71f0f06fc5e1a",
+      "bytes": 4357
+    },
+    "src/text/bidi-data.json": {
+      "sha256": "df36e677252814e1d84009c9ab735c12ac67deb7460695d64b477beee00b955a",
+      "bytes": 19070
+    },
+    "src/text/bidi.ts": {
+      "sha256": "9fbc954b46188247d44c829ce82bba259de40dbcbb0100380c43aa8e7b961350",
+      "bytes": 632
+    },
+    "src/text/bundled-fonts.ts": {
+      "sha256": "14772cc968adf2512319ee2be18062db6b8ab32a591e1c0bdc3efe0305494c84",
+      "bytes": 1857
+    },
+    "src/text/client.ts": {
+      "sha256": "816e12e15406e993f8271dfa3ae397eba2d1b552470c21c0def339e0fcca53e6",
+      "bytes": 8280
+    },
+    "src/text/contracts.ts": {
+      "sha256": "80173a85fd2eeca2cac63ea0806c23643668dfc2c3249859e9d07426e3730686",
+      "bytes": 3508
+    },
+    "src/text/core.ts": {
+      "sha256": "69cb9bb9d2e97be39ef5faaa76b2f05b98c3ba40d2b3b0c18624b1f08a2bf1ed",
+      "bytes": 16793
+    },
+    "src/text/durable.ts": {
+      "sha256": "a5bce2aa7dad1678b3af6df93f8cdbc7c841dddca507eb176673011b699cd3e5",
+      "bytes": 6365
+    },
+    "src/text/engine.ts": {
+      "sha256": "c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830",
+      "bytes": 1476
+    },
+    "src/text/font.ts": {
+      "sha256": "76a715d1e84212ae66dcbe34c55ae8a879e473bfea299987018a7d7bd9380b01",
+      "bytes": 4272
+    },
+    "src/text/memory.ts": {
+      "sha256": "c219b844ba9621234422df6df1e49f73e6d8b226a5241a4f7405d066e03b27ee",
+      "bytes": 3818
+    },
+    "src/text/profile.json": {
+      "sha256": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033",
+      "bytes": 15748
+    },
+    "src/text/retained-profiles/6e8a481e.json": {
+      "sha256": "15634d19418bc21841fa8093de2ae7598b752c2f158be90f6e7e06216d79d6da",
+      "bytes": 15396
+    },
+    "src/text/retained-profiles/b89503d3.json": {
+      "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8",
+      "bytes": 14238
+    },
+    "src/text/retained-profiles/c19791ae.json": {
+      "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b",
+      "bytes": 12986
+    },
+    "src/text/retained-profiles/d047f5be.json": {
+      "sha256": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+      "bytes": 15572
+    },
+    "src/text/worker.ts": {
+      "sha256": "ab8f349c39579dc41c277438f9f3de60255d6f447e2d0c42ad4c30ed4da5ad1e",
+      "bytes": 1071
+    },
+    "tests/text-state/verifier.vite.config.ts": {
+      "sha256": "e1f41d22e2b89b621c9ac1960bc932ef8fd3a646fb350446f2aba614b6ef38a7",
+      "bytes": 330
+    },
+    "tooling/editor-components.json": {
+      "sha256": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605",
+      "bytes": 11037
+    },
+    "tooling/raster/profiles.json": {
+      "sha256": "2e6e2dc158edd49ded8b8012d50fdc7472e74db443b985d89b49b50f0dfda197",
+      "bytes": 243
+    },
+    "tooling/text/MEMORY.txt": {
+      "sha256": "882bc204eadd21c2b1c58ac7946be2f168c7997df064a5f475f664b74e52f8c1",
+      "bytes": 6499
+    },
+    "tooling/text/canvaskit-source.patch": {
+      "sha256": "aef6f9481e8bf71bb942b24dd58dc5dd6849dec6122d571094e0ab658509c5a6",
+      "bytes": 3975
+    },
+    "tooling/text/configure-source.py": {
+      "sha256": "b1f04570cd6a854312b58017e95f75a59155ffdb1ed6e71792ca5b2653dd768c",
+      "bytes": 3535
+    },
+    "tooling/text/rebuild.py": {
+      "sha256": "18f8afb2cc9341aedc30f2712fa21727250543dd91f7c966bd105171d689b33d",
+      "bytes": 3463
+    },
+    "tooling/text/source-closure.json": {
+      "sha256": "c7cb9b9febbf9464800aaa46d4044243629400e8e3d836771f99c2d01dc4c993",
+      "bytes": 7326
+    },
+    "tooling/text/verifier.vite.config.ts": {
+      "sha256": "01a84de54aac11eddbe4bb9ba1aa2c986060e67774f861e65f03a7bce4aa387c",
+      "bytes": 318
+    },
+    "vendor/text/manifest.json": {
+      "sha256": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033",
+      "bytes": 15748
+    }
+  },
+  "uiSourceEqual": true,
+  "meaning": "Exact unchanged native/font/adapter/profile/codec/public UI owning inputs. Fresh changed writer and integration gates are separate; old rejection, zoom and cleanup limitations are not converted to passes."
+}

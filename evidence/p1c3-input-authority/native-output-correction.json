@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-27T03:01:46.409706+00:00",
+  "failedGate": "16-current-native",
+  "failure": "All3 tests ENOENT writing first layout to absent explicit TEXT_STATE_EVIDENCE directory. The runner did not create the directory required by existing test.",
+  "failedOutputPath": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native",
+  "absentConfirmed": true,
+  "newOutputPath": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native-complete",
+  "newDirectoryCreated": true,
+  "sourceChanged": false,
+  "fixtureAppChanged": false,
+  "scope": "Configuration-only correction. Original failed receipt/output immutable; no first-run complete workflow, worker-close count, reset or cleanup verification inferred. Existing t.after close hooks remained; no global/unknown cleanup issued."
+}

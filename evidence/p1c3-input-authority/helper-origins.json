@@ -1,0 +1,50 @@
+[
+  {
+    "path": "review-fixture-v2.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-review-d3f7cc35-20260927T021722Z/review-fixture-v2.mjs",
+    "sha256": "1c1e7815b5ac2ed036385ce0c5cb5c3857d16a9d790356560f2f99c88b79e032",
+    "usage": "dependency of05 and12"
+  },
+  {
+    "path": "independent-retained-grid-v3.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-review-d3f7cc35-20260927T021722Z/independent-retained-grid-v3.mjs",
+    "sha256": "3dc69dbfb44baa9167ee38026dd6e41dcd41f46774ccb673967b8ea573fececf",
+    "usage": "read/copied reference only; not executed in this correction"
+  },
+  {
+    "path": "independent-authoring-controls-v3.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-review-d3f7cc35-20260927T021722Z/independent-authoring-controls-v3.mjs",
+    "sha256": "747c3b3d02e9e95a69c4413191e9030ac4f43fc8568849808ac37a0c2a8bd451",
+    "usage": "read/copied reference only; not executed in this correction"
+  },
+  {
+    "path": "independent-late-baseline-v1.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-review-d3f7cc35-20260927T021722Z/independent-late-baseline-v1.mjs",
+    "sha256": "759b3170d3524e32e76a7ed9f9fec521aa61ed110b07847717a2eb59582ff6a4",
+    "usage": "05-original-late-helper"
+  },
+  {
+    "path": "independent-mask-math.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-review-d3f7cc35-20260927T021722Z/independent-mask-math.mjs",
+    "sha256": "a77f4b8d586784759bee6687ee66b7a4b2e47ce3edb8373587adba58c2e69e2e",
+    "usage": "read/copied reference only; not executed in this correction"
+  },
+  {
+    "path": "independent-native-bounds-v1.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-review-d3f7cc35-20260927T021722Z/independent-native-bounds-v1.mjs",
+    "sha256": "bf53847a4f5700fd40aa7d88f00c7970ed55a860600230121d5e09b802a711b1",
+    "usage": "read/copied reference only; not executed in this correction"
+  },
+  {
+    "path": "independent-mask-authority-v1.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-review-d3f7cc35-20260927T021722Z/independent-mask-authority-v1.mjs",
+    "sha256": "6c859b7ca653eb8a0257dadd087725963be1584202e03418c46bf26b44261601",
+    "usage": "13-saved-mask-authority"
+  },
+  {
+    "path": "author-retained-grid-combined-v1.mjs",
+    "source": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/independent-retained-grid-v3.mjs",
+    "sha256": "cdb401e20245f33f0ea088cd3ba2dbcd856d29403dd82f0f7fbae0cc4b9eb342",
+    "usage": "NEW adapted combined legacy+R16 matrix, gate12 actual PASS; not a rerun claim for old v2/v3 invocation"
+  }
+]

@@ -1,0 +1,71 @@
+{
+  "sourceCommit": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+  "priorTarget": "d3f7cc351ca76e9dff6dc52e6cd9ca78ccb7ff50",
+  "changedInteractionPatterns": [],
+  "newExceptions": [],
+  "exactUnchangedUI": {
+    "src/state/browser-journal.ts": {
+      "sha256": "c58d8f4f9a86cf39e5ae00c3c7c637029469228a7ca1ca36d75a89d19001afe9",
+      "bytes": 1587
+    },
+    "src/state/destination.ts": {
+      "sha256": "11398385fdac7d80fde7abd9c2b96ca7d47862501a0b13265d1d75823145aeaa",
+      "bytes": 3415
+    },
+    "src/state/draft-persistence.ts": {
+      "sha256": "aedd3d6ee02423cae827c65a963d8079729199c91b9a3bdc7dc8cd53af644d75",
+      "bytes": 6424
+    },
+    "src/state/editor-client.ts": {
+      "sha256": "ac0745cbfbd3d6d0f922d76e73dbbe06acffc5c9adf21b765ddd32b90925c758",
+      "bytes": 36361
+    },
+    "src/state/projection.ts": {
+      "sha256": "9cf86f8a121bcef8b07879405d5989189df615684b46aa64185da9e0cb0b63f5",
+      "bytes": 2058
+    },
+    "src/state/recovery-cache.ts": {
+      "sha256": "3dc217e4ee399f492667fb70e99b1dc7f41aaee7ed37162c06d86db400d1dcac",
+      "bytes": 7271
+    },
+    "src/state/recovery-client.ts": {
+      "sha256": "a107c24feb3b2c3a4212571e3371ae1a087405bea2925a90cf5a85f7ff7f1b0a",
+      "bytes": 22116
+    },
+    "src/state/session-client.ts": {
+      "sha256": "eed37b101c2f2c5ce9cf948058b918e5dc1995bcee310f0d3384c24884b80f9b",
+      "bytes": 4953
+    },
+    "src/ui/adapters.ts": {
+      "sha256": "8a3a2476552dba3e8bd33b6d1bbc35e7b6663472e92cbe7999e5409f105b7514",
+      "bytes": 1338
+    },
+    "src/ui/authoring.ts": {
+      "sha256": "08d39e602d34db6909b858c2988942cec0dbb0c0da6e559a71f3ff468b808e6d",
+      "bytes": 31961
+    },
+    "src/ui/canvas-view.ts": {
+      "sha256": "515034d5a45fd388eecea098f6083075777b509acdf32342b8794b608a99e7a8",
+      "bytes": 2817
+    },
+    "src/ui/editor-panels.ts": {
+      "sha256": "317eb7d341385707685a0051b0a0f845106b90216415d784ba37147775633b29",
+      "bytes": 222
+    },
+    "src/ui/icons.ts": {
+      "sha256": "71ce0b0bf30ad2ead51133eb6cfd6d2866f05c6af3ba656fdae8f0ab91eff6f9",
+      "bytes": 1127
+    },
+    "src/ui/shell.ts": {
+      "sha256": "63ec552b8ade4dfce4121940ca07139a16fe7736eb6faacc38bcbc5d44ba4d56",
+      "bytes": 61359
+    },
+    "tooling/editor-components.json": {
+      "sha256": "d7f36bcbc3cd3770af09d0b0eb614d863900c9c28d9bfd9bb151e171a9578605",
+      "bytes": 11037
+    }
+  },
+  "inventory": "tooling/editor-components.json",
+  "priorFullInventory": "evidence/p1c3-correction/public-adoption.json",
+  "scope": "Only backend raster input-authority acceptance and its focused regression file changed. Public persistent EnAlert sample/bounds status, fields, dialogs, toolbar, selection/mask controls, flat reorder buttons and quiet rail/splitter remain exact. Current source authoring workflows run separately; historical native page200% proof does not exist."
+}

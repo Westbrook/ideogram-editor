@@ -1,0 +1,16 @@
+{
+  "oldEvidence": "",
+  "sourceStatus": "",
+  "mainStatus": "",
+  "githubRemotes": "",
+  "at": "2026-09-27T02:57:46.431485+00:00",
+  "prior": "d3f7cc351ca76e9dff6dc52e6cd9ca78ccb7ff50",
+  "current": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+  "branch": "ideogram-editor-p1",
+  "unchangedOldServiceDirectories": [
+    "ideogram-edit-p1c3-preview-7ba3a7cc",
+    "ideogram-edit-p1c3-preview-e070baff",
+    "ideogram-edit-p1a-preview-service"
+  ],
+  "scope": "No old service start/stop/root/evidence/profile/card mutation was issued. Services remain separate; live availability is not independently requalified here."
+}

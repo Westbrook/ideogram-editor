@@ -1,0 +1,6 @@
+{"name":"matching","expected":"accepted","actual":"accepted","pass":true,"revision":["2","3"],"draftStatus":"applied"}
+{"name":"opposite-mask","expected":"rejected","actual":"rejected","pass":true,"revision":["2","2"],"draftStatus":"saved-unapplied"}
+{"name":"wrong-caption-layer-version","expected":"rejected","actual":"rejected","pass":true,"revision":["2","2"],"draftStatus":"saved-unapplied"}
+{"name":"stale-generation","expected":"rejected","actual":"rejected","pass":true,"revision":["2","2"],"draftStatus":"saved-unapplied"}
+{"name":"missing-effective","expected":"rejected","actual":"rejected","pass":true,"revision":["2","2"],"draftStatus":"saved-unapplied"}
+{"name":"corrupt-hard","expected":"rejected","actual":"rejected","pass":true,"revision":["2","2"],"draftStatus":"saved-unapplied"}

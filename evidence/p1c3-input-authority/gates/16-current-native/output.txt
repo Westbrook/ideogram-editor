@@ -1,0 +1,25 @@
+✖ native chromium durable text/history/copy/restart exact identities (1513.454584ms)
+✖ native firefox durable text/history/copy/restart exact identities (3485.803ms)
+✖ native webkit durable text/history/copy/restart exact identities (3927.307625ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9086.863667
+
+✖ failing tests:
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native chromium durable text/history/copy/restart exact identities (1513.454584ms)
+  [Error: ENOENT: no such file or directory, open '/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native/layout-2c1087f6b63511f214730e068f09f073758cfaf6a9f0f96ffe37e6084ffbc174.json'] { errno: -2, code: 'ENOENT', syscall: 'open', path: '/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native/layout-2c1087f6b63511f214730e068f09f073758cfaf6a9f0f96ffe37e6084ffbc174.json' }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native firefox durable text/history/copy/restart exact identities (3485.803ms)
+  [Error: ENOENT: no such file or directory, open '/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native/layout-2c1087f6b63511f214730e068f09f073758cfaf6a9f0f96ffe37e6084ffbc174.json'] { errno: -2, code: 'ENOENT', syscall: 'open', path: '/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native/layout-2c1087f6b63511f214730e068f09f073758cfaf6a9f0f96ffe37e6084ffbc174.json' }
+
+test at tests/text-state/native.test.mjs:22:77
+✖ native webkit durable text/history/copy/restart exact identities (3927.307625ms)
+  [Error: ENOENT: no such file or directory, open '/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native/layout-2c1087f6b63511f214730e068f09f073758cfaf6a9f0f96ffe37e6084ffbc174.json'] { errno: -2, code: 'ENOENT', syscall: 'open', path: '/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native/layout-2c1087f6b63511f214730e068f09f073758cfaf6a9f0f96ffe37e6084ffbc174.json' }

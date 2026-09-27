@@ -1,0 +1,359 @@
+{
+  "sourceCommit": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+  "gates": [
+    {
+      "gate": "01-bootstrap",
+      "start": "2026-09-27T02:50:21.255350+00:00",
+      "end": "2026-09-27T02:50:26.257300+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/01-bootstrap/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "02-install",
+      "start": "2026-09-27T02:50:26.311162+00:00",
+      "end": "2026-09-27T02:50:29.985931+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/02-install/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "03-types",
+      "start": "2026-09-27T02:50:30.036933+00:00",
+      "end": "2026-09-27T02:50:33.946515+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/03-types/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "04-build",
+      "start": "2026-09-27T02:50:33.992997+00:00",
+      "end": "2026-09-27T02:50:38.150351+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/04-build/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "05-original-late-helper",
+      "start": "2026-09-27T02:50:38.200371+00:00",
+      "end": "2026-09-27T02:50:54.913592+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "cases": 3,
+        "terminalRejections": 2,
+        "nonacceptedPendingPaused": 1
+      },
+      "receipt": "gates/05-original-late-helper/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "06-focused-authority",
+      "start": "2026-09-27T02:50:54.959194+00:00",
+      "end": "2026-09-27T02:51:16.533783+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 10
+      },
+      "receipt": "gates/06-focused-authority/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "07-text-seal",
+      "start": "2026-09-27T02:51:34.574450+00:00",
+      "end": "2026-09-27T02:51:34.721854+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/07-text-seal/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "08-raster-seal",
+      "start": "2026-09-27T02:51:34.759950+00:00",
+      "end": "2026-09-27T02:51:34.876853+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/08-raster-seal/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "09-vendor",
+      "start": "2026-09-27T02:51:34.917176+00:00",
+      "end": "2026-09-27T02:51:35.158696+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/09-vendor/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "10-history",
+      "start": "2026-09-27T02:51:35.201216+00:00",
+      "end": "2026-09-27T02:54:45.335614+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 79
+      },
+      "receipt": "gates/10-history/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "11-raster",
+      "start": "2026-09-27T02:54:45.387303+00:00",
+      "end": "2026-09-27T02:56:42.608957+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 267,
+        "includesFocused10": true
+      },
+      "receipt": "gates/11-raster/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "12-retained-grid",
+      "start": "2026-09-27T02:56:42.661891+00:00",
+      "end": "2026-09-27T02:57:07.948314+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "cases": 4
+      },
+      "receipt": "gates/12-retained-grid/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "13-saved-mask-authority",
+      "start": "2026-09-27T02:57:07.998673+00:00",
+      "end": "2026-09-27T02:57:15.208439+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "cases": 6
+      },
+      "receipt": "gates/13-saved-mask-authority/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "14-portable",
+      "start": "2026-09-27T02:57:15.255195+00:00",
+      "end": "2026-09-27T03:00:29.760444+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 125
+      },
+      "receipt": "gates/14-portable/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "15-text-fixture",
+      "start": "2026-09-27T03:00:35.184773+00:00",
+      "end": "2026-09-27T03:00:35.474508+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/15-text-fixture/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "16-current-native",
+      "start": "2026-09-27T03:00:35.521598+00:00",
+      "end": "2026-09-27T03:00:44.684191+00:00",
+      "exit": 1,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 3,
+        "failed": 3
+      },
+      "receipt": "gates/16-current-native/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Original failed setup retained; output dir missing, no full workflow/cleanup claim"
+    },
+    {
+      "gate": "16a-current-native",
+      "start": "2026-09-27T03:01:46.456174+00:00",
+      "end": "2026-09-27T03:02:39.484346+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 3,
+        "perEngineWorkers": 8,
+        "perEngineActualCloseSignals": 8
+      },
+      "receipt": "gates/16a-current-native/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "17-text-state",
+      "start": "2026-09-27T03:02:39.538604+00:00",
+      "end": "2026-09-27T03:03:00.733490+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 17
+      },
+      "receipt": "gates/17-text-state/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "18-editor",
+      "start": "2026-09-27T03:03:00.784962+00:00",
+      "end": "2026-09-27T03:03:25.667456+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 8
+      },
+      "receipt": "gates/18-editor/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "19-namespace",
+      "start": "2026-09-27T03:03:25.711914+00:00",
+      "end": "2026-09-27T03:03:46.581723+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 4
+      },
+      "receipt": "gates/19-namespace/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "20-authoring-chromium",
+      "start": "2026-09-27T03:03:46.622566+00:00",
+      "end": "2026-09-27T03:04:13.622738+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 3
+      },
+      "receipt": "gates/20-authoring-chromium/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "21-authoring-firefox",
+      "start": "2026-09-27T03:04:13.665670+00:00",
+      "end": "2026-09-27T03:04:54.764027+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 3
+      },
+      "receipt": "gates/21-authoring-firefox/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "22-authoring-webkit",
+      "start": "2026-09-27T03:04:54.830955+00:00",
+      "end": "2026-09-27T03:05:25.564642+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "tests": 3
+      },
+      "receipt": "gates/22-authoring-webkit/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "23-start-preview",
+      "start": "2026-09-27T03:06:09.156761+00:00",
+      "end": "2026-09-27T03:06:09.574958+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": null,
+      "receipt": "gates/23-start-preview/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "Fresh exact-source invocation"
+    },
+    {
+      "gate": "24-preview-roundtrip",
+      "start": "2026-09-27T03:09:28.078347+00:00",
+      "end": "2026-09-27T03:09:47.654654+00:00",
+      "exit": 0,
+      "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "sourceStatus": "",
+      "counts": {
+        "servedResponseObservations": 25,
+        "uniqueServedPaths": 7
+      },
+      "receipt": "gates/24-preview-roundtrip/receipt.json",
+      "attribution": "AUTHOR",
+      "meaning": "One frozen report463/card1 served-byte and GET-only actual-click roundtrip; no human review or later tuple transfer"
+    }
+  ],
+  "sourceQualifiedReuse": {
+    "profile": "304528c98255447a3c8b4607b3b6738261dad46c485c84c203e9c16ae1f69a29",
+    "nativeArtifacts": "native-inputs.json",
+    "owningSealsAndUI": "reuse.json/public-adoption.json",
+    "unchangedBetween16And16a": "Entire source, built app/server, native binaries and fresh text fixture; only explicit evidence output directory was created and its path changed",
+    "notRerun": [
+      "standalone protocol/session suite",
+      "standalone asset suite",
+      "native foundation42 campaign",
+      "resource/platform/lifetime/native-toolchain campaigns"
+    ],
+    "boundary": "Exact owning byte reuse is not a blanket previous-pass transfer to the changed writer. Full affected raster/history/portable and current native/browser integrations were newly run; broad unaffected groups have no fresh pass claimed."
+  },
+  "unmet": "Actual native browser page200% remains required UNVERIFIED under explicit native-control STOP, no waiver/substitute/retry.",
+  "pastFailures": "Rejected d3f7 reviewer26 false accepted preparation, rejected ecbcc and author25/26/39b/39c/39d remain unchanged."
+}

@@ -1,0 +1,11 @@
+Administrative read limitations during this correction
+
+Initial combined workspace reads of large task/PR/Spec and agent records exceeded the tool display limit and produced tool-output sidecars. Subsequent targeted reads displayed both FULL latest Coordinator closing audit/bounded correction releases, full current Spec and sealed VERDICT/REVERIFY/helper sources. Existing task scope/adoption inventory and current report453/454 handoff/A-R01 were read. Excessive report-history output was narrowed to current fields; no truncated historical dump is claimed as a fresh full-history review.
+
+One read command tried evidence/p1c3-correction/38-preview-identity/receipt.json, which does not exist; the existing gate is separately named38-served-identity. The command exited1 for that mistaken read path. No test, build or product failure was inferred; no files were changed. Relevant preview sources and exact old receipts were read under their existing paths.
+
+Old d3f7 reviewer26 remains a false accepted preparation failure; old ecbcc verdict/END, author25/26 first failures,39b cleanup UNCONFIRMED,39c INCOMPLETE/reset0,39d failed card identity, gate18 actual page200% UNVERIFIED and all previously recorded helper/author failures remain historical. New author gates are distinct, source-bound executions.
+
+Final report-preservation whole-object assertion failed before summaries were written: baseline card objects lacked openFeedback; current HTTP response adds only openFeedback:[] to each of the two selected old cards. All recorded baseline fields and complete checkpoint data compare exactly. report-preservation-first-failure.json retains observed differences/structures; report-preservation-after.json records the precisely narrowed comparison, with no entire-object equality or product failure claim. A subsequent rg for local .progress-report data filenames returned no match/exit1; no report files modified.
+
+Initial final-preservation command output: Traceback (most recent call last): File "<stdin>", line 9, in <module>; AssertionError. Exit1. This is the retained original whole-object comparison failure; the exact observed field differences are in report-preservation-first-failure.json.

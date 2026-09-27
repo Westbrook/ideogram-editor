@@ -1,0 +1,838 @@
+{
+  "at": "2026-09-27T03:10:23.293371+00:00",
+  "scope": "AUTHOR administrative preservation assertion failed before metadata summaries were written; no browser-gate failure. Selected old cards plus complete checkpoint structure were compared, without accounting for new-card current pointer or metadata additions. Exact differences below; no inference of unchanged fields.",
+  "beforeRevision": 456,
+  "afterRevision": 463,
+  "cardDifferences": [
+    {
+      "itemId": "masks-layers-author-preview",
+      "field": "openFeedback",
+      "before": null,
+      "after": []
+    },
+    {
+      "itemId": "masks-layers-correction-preview",
+      "field": "openFeedback",
+      "before": null,
+      "after": []
+    }
+  ],
+  "checkpointsBefore": {
+    "local-user": {
+      "projectId": "ideogram-editor-implementation",
+      "viewerId": "local-user",
+      "items": [
+        {
+          "itemId": "implementation-report",
+          "version": "report-v3.1e0535268af2",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-14",
+            "event-21",
+            "event-26"
+          ],
+          "reviewedAt": "2026-09-26T13:16:52.734752+00:00"
+        },
+        {
+          "itemId": "en-reve-package-foundation",
+          "version": "2bfee8b53bf5dc691d08f367c3dc79020be1fffe",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-17",
+            "event-20",
+            "event-27"
+          ],
+          "reviewedAt": "2026-09-26T13:16:54.391742+00:00"
+        },
+        {
+          "itemId": "foundation-independent-approval",
+          "version": "2bfee8b53bf5dc691d08f367c3dc79020be1fffe+report-v3.1e0535268af2",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-23"
+          ],
+          "reviewedAt": "2026-09-26T13:17:21.056388+00:00"
+        },
+        {
+          "itemId": "localhost-session-boundary",
+          "version": "657b07c0b010d7e85737482b45edead29273d9f1",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-38",
+            "event-39",
+            "event-42"
+          ],
+          "reviewedAt": "2026-09-26T13:17:25.787854+00:00"
+        },
+        {
+          "itemId": "session-independent-approval",
+          "version": "657b07c0b010d7e85737482b45edead29273d9f1",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-43"
+          ],
+          "reviewedAt": "2026-09-26T13:17:30.049087+00:00"
+        },
+        {
+          "itemId": "integrated-p1a-independent-approval",
+          "version": "85df04ff1c64ea347ba767759419b7759b3798ec",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-72"
+          ],
+          "reviewedAt": "2026-09-26T13:18:01.015618+00:00"
+        },
+        {
+          "itemId": "durable-writer-foundation",
+          "version": "e1a0092eeb0022c445bb348d0602fa0a727c3aee",
+          "contentRevision": 2,
+          "eventIds": [
+            "event-119",
+            "event-123"
+          ],
+          "reviewedAt": "2026-09-26T13:18:04.284707+00:00"
+        },
+        {
+          "itemId": "writer-independent-approval",
+          "version": "e1a0092eeb0022c445bb348d0602fa0a727c3aee",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-125"
+          ],
+          "reviewedAt": "2026-09-26T13:18:07.018033+00:00"
+        },
+        {
+          "itemId": "commands-atomic-recovery",
+          "version": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-163",
+            "event-166",
+            "event-172"
+          ],
+          "reviewedAt": "2026-09-26T13:18:16.535827+00:00"
+        },
+        {
+          "itemId": "protocol-independent-approval",
+          "version": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-176"
+          ],
+          "reviewedAt": "2026-09-26T13:18:21.745334+00:00"
+        },
+        {
+          "itemId": "asset-staging-safe-content",
+          "version": "e8b9f1a379becd97365242cc0a3b1c9d703bcfcb",
+          "contentRevision": 6,
+          "eventIds": [
+            "event-203",
+            "event-207",
+            "event-208",
+            "event-210",
+            "event-217",
+            "event-213"
+          ],
+          "reviewedAt": "2026-09-26T13:18:29.095969+00:00"
+        },
+        {
+          "itemId": "canonical-raster-pipeline",
+          "version": "92e5247ed3279f25292f8e312661bf3b12deffe7",
+          "contentRevision": 5,
+          "eventIds": [
+            "event-289",
+            "event-291",
+            "event-292",
+            "event-294",
+            "event-296"
+          ],
+          "reviewedAt": "2026-09-26T13:18:42.615124+00:00"
+        },
+        {
+          "itemId": "durable-image-history",
+          "version": "d84c1de55709bbd957222cac854905c41583a4e4",
+          "contentRevision": 6,
+          "eventIds": [
+            "event-309",
+            "event-311",
+            "event-312",
+            "event-313",
+            "event-314",
+            "event-315"
+          ],
+          "reviewedAt": "2026-09-26T13:18:46.698503+00:00"
+        },
+        {
+          "itemId": "portable-sqlite-full-recovery",
+          "version": "author-observation-20260926T095253Z",
+          "contentRevision": 19,
+          "eventIds": [
+            "event-330",
+            "event-331",
+            "event-332",
+            "event-333",
+            "event-334",
+            "event-335",
+            "event-336",
+            "event-337",
+            "event-338",
+            "event-339",
+            "event-341",
+            "event-342",
+            "event-345",
+            "event-351",
+            "event-353",
+            "event-355",
+            "event-356",
+            "event-379",
+            "event-417"
+          ],
+          "reviewedAt": "2026-09-26T13:18:49.742280+00:00"
+        },
+        {
+          "itemId": "full-history-portable-copies",
+          "version": "d55769bf3d16b67e2034e363bc3d82e622480cc4",
+          "contentRevision": 5,
+          "eventIds": [
+            "event-372",
+            "event-375",
+            "event-376",
+            "event-380",
+            "event-417"
+          ],
+          "reviewedAt": "2026-09-26T13:18:53.069156+00:00"
+        },
+        {
+          "itemId": "browser-author-preview",
+          "version": "e1fa068e405cf40d6c1e72256a0765967111d7fa",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-420",
+            "event-421",
+            "event-422"
+          ],
+          "reviewedAt": "2026-09-26T13:20:05.649150+00:00"
+        },
+        {
+          "itemId": "browser-oversized-document-projection",
+          "version": "author-observation-20260926T124430Z",
+          "contentRevision": 13,
+          "eventIds": [
+            "event-401",
+            "event-402",
+            "event-405",
+            "event-406",
+            "event-407",
+            "event-408",
+            "event-409",
+            "event-410",
+            "event-411",
+            "event-412",
+            "event-413",
+            "event-431",
+            "event-433"
+          ],
+          "reviewedAt": "2026-09-26T18:54:47.659238+00:00"
+        },
+        {
+          "itemId": "browser-completed-history-latency",
+          "version": "eb4a3e64ed288db6cf16e1118690e8b6f3ac3876",
+          "contentRevision": 33,
+          "eventIds": [
+            "event-429",
+            "event-430",
+            "event-432",
+            "event-433",
+            "event-434",
+            "event-435",
+            "event-436",
+            "event-437",
+            "event-438",
+            "event-439",
+            "event-440",
+            "event-441",
+            "event-442",
+            "event-443",
+            "event-444",
+            "event-445",
+            "event-446",
+            "event-447",
+            "event-448",
+            "event-449",
+            "event-450",
+            "event-451",
+            "event-452",
+            "event-453",
+            "event-454",
+            "event-455",
+            "event-456",
+            "event-457",
+            "event-458",
+            "event-459",
+            "event-460",
+            "event-461",
+            "event-472"
+          ],
+          "reviewedAt": "2026-09-26T18:55:24.539976+00:00"
+        },
+        {
+          "itemId": "browser-author-preview",
+          "version": "b3173ff73707eb2e9595be6c941c2afc3df1093c",
+          "contentRevision": 7,
+          "eventIds": [
+            "event-532",
+            "event-533",
+            "event-534",
+            "event-535",
+            "event-536",
+            "event-537",
+            "event-538"
+          ],
+          "reviewedAt": "2026-09-26T20:05:11.469778+00:00"
+        },
+        {
+          "itemId": "browser-author-preview",
+          "version": "b3173ff73707eb2e9595be6c941c2afc3df1093c",
+          "contentRevision": 8,
+          "eventIds": [
+            "event-532",
+            "event-533",
+            "event-534",
+            "event-535",
+            "event-536",
+            "event-537",
+            "event-538",
+            "event-539"
+          ],
+          "reviewedAt": "2026-09-26T22:26:00.716895+00:00"
+        }
+      ],
+      "eventIds": [
+        "event-14",
+        "event-21",
+        "event-26",
+        "event-17",
+        "event-20",
+        "event-27",
+        "event-23",
+        "event-38",
+        "event-39",
+        "event-42",
+        "event-43",
+        "event-72",
+        "event-119",
+        "event-123",
+        "event-125",
+        "event-163",
+        "event-166",
+        "event-172",
+        "event-176",
+        "event-203",
+        "event-207",
+        "event-208",
+        "event-210",
+        "event-217",
+        "event-213",
+        "event-289",
+        "event-291",
+        "event-292",
+        "event-294",
+        "event-296",
+        "event-309",
+        "event-311",
+        "event-312",
+        "event-313",
+        "event-314",
+        "event-315",
+        "event-330",
+        "event-331",
+        "event-332",
+        "event-333",
+        "event-334",
+        "event-335",
+        "event-336",
+        "event-337",
+        "event-338",
+        "event-339",
+        "event-341",
+        "event-342",
+        "event-345",
+        "event-351",
+        "event-353",
+        "event-355",
+        "event-356",
+        "event-379",
+        "event-417",
+        "event-372",
+        "event-375",
+        "event-376",
+        "event-380",
+        "event-420",
+        "event-421",
+        "event-422",
+        "event-401",
+        "event-402",
+        "event-405",
+        "event-406",
+        "event-407",
+        "event-408",
+        "event-409",
+        "event-410",
+        "event-411",
+        "event-412",
+        "event-413",
+        "event-431",
+        "event-433",
+        "event-429",
+        "event-430",
+        "event-432",
+        "event-434",
+        "event-435",
+        "event-436",
+        "event-437",
+        "event-438",
+        "event-439",
+        "event-440",
+        "event-441",
+        "event-442",
+        "event-443",
+        "event-444",
+        "event-445",
+        "event-446",
+        "event-447",
+        "event-448",
+        "event-449",
+        "event-450",
+        "event-451",
+        "event-452",
+        "event-453",
+        "event-454",
+        "event-455",
+        "event-456",
+        "event-457",
+        "event-458",
+        "event-459",
+        "event-460",
+        "event-461",
+        "event-472",
+        "event-532",
+        "event-533",
+        "event-534",
+        "event-535",
+        "event-536",
+        "event-537",
+        "event-538",
+        "event-539"
+      ]
+    }
+  },
+  "checkpointsAfter": {
+    "local-user": {
+      "projectId": "ideogram-editor-implementation",
+      "viewerId": "local-user",
+      "items": [
+        {
+          "itemId": "implementation-report",
+          "version": "report-v3.1e0535268af2",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-14",
+            "event-21",
+            "event-26"
+          ],
+          "reviewedAt": "2026-09-26T13:16:52.734752+00:00"
+        },
+        {
+          "itemId": "en-reve-package-foundation",
+          "version": "2bfee8b53bf5dc691d08f367c3dc79020be1fffe",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-17",
+            "event-20",
+            "event-27"
+          ],
+          "reviewedAt": "2026-09-26T13:16:54.391742+00:00"
+        },
+        {
+          "itemId": "foundation-independent-approval",
+          "version": "2bfee8b53bf5dc691d08f367c3dc79020be1fffe+report-v3.1e0535268af2",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-23"
+          ],
+          "reviewedAt": "2026-09-26T13:17:21.056388+00:00"
+        },
+        {
+          "itemId": "localhost-session-boundary",
+          "version": "657b07c0b010d7e85737482b45edead29273d9f1",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-38",
+            "event-39",
+            "event-42"
+          ],
+          "reviewedAt": "2026-09-26T13:17:25.787854+00:00"
+        },
+        {
+          "itemId": "session-independent-approval",
+          "version": "657b07c0b010d7e85737482b45edead29273d9f1",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-43"
+          ],
+          "reviewedAt": "2026-09-26T13:17:30.049087+00:00"
+        },
+        {
+          "itemId": "integrated-p1a-independent-approval",
+          "version": "85df04ff1c64ea347ba767759419b7759b3798ec",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-72"
+          ],
+          "reviewedAt": "2026-09-26T13:18:01.015618+00:00"
+        },
+        {
+          "itemId": "durable-writer-foundation",
+          "version": "e1a0092eeb0022c445bb348d0602fa0a727c3aee",
+          "contentRevision": 2,
+          "eventIds": [
+            "event-119",
+            "event-123"
+          ],
+          "reviewedAt": "2026-09-26T13:18:04.284707+00:00"
+        },
+        {
+          "itemId": "writer-independent-approval",
+          "version": "e1a0092eeb0022c445bb348d0602fa0a727c3aee",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-125"
+          ],
+          "reviewedAt": "2026-09-26T13:18:07.018033+00:00"
+        },
+        {
+          "itemId": "commands-atomic-recovery",
+          "version": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-163",
+            "event-166",
+            "event-172"
+          ],
+          "reviewedAt": "2026-09-26T13:18:16.535827+00:00"
+        },
+        {
+          "itemId": "protocol-independent-approval",
+          "version": "7ef07dda92279cc632d82e18d008c74ff99ee851",
+          "contentRevision": 1,
+          "eventIds": [
+            "event-176"
+          ],
+          "reviewedAt": "2026-09-26T13:18:21.745334+00:00"
+        },
+        {
+          "itemId": "asset-staging-safe-content",
+          "version": "e8b9f1a379becd97365242cc0a3b1c9d703bcfcb",
+          "contentRevision": 6,
+          "eventIds": [
+            "event-203",
+            "event-207",
+            "event-208",
+            "event-210",
+            "event-217",
+            "event-213"
+          ],
+          "reviewedAt": "2026-09-26T13:18:29.095969+00:00"
+        },
+        {
+          "itemId": "canonical-raster-pipeline",
+          "version": "92e5247ed3279f25292f8e312661bf3b12deffe7",
+          "contentRevision": 5,
+          "eventIds": [
+            "event-289",
+            "event-291",
+            "event-292",
+            "event-294",
+            "event-296"
+          ],
+          "reviewedAt": "2026-09-26T13:18:42.615124+00:00"
+        },
+        {
+          "itemId": "durable-image-history",
+          "version": "d84c1de55709bbd957222cac854905c41583a4e4",
+          "contentRevision": 6,
+          "eventIds": [
+            "event-309",
+            "event-311",
+            "event-312",
+            "event-313",
+            "event-314",
+            "event-315"
+          ],
+          "reviewedAt": "2026-09-26T13:18:46.698503+00:00"
+        },
+        {
+          "itemId": "portable-sqlite-full-recovery",
+          "version": "author-observation-20260926T095253Z",
+          "contentRevision": 19,
+          "eventIds": [
+            "event-330",
+            "event-331",
+            "event-332",
+            "event-333",
+            "event-334",
+            "event-335",
+            "event-336",
+            "event-337",
+            "event-338",
+            "event-339",
+            "event-341",
+            "event-342",
+            "event-345",
+            "event-351",
+            "event-353",
+            "event-355",
+            "event-356",
+            "event-379",
+            "event-417"
+          ],
+          "reviewedAt": "2026-09-26T13:18:49.742280+00:00"
+        },
+        {
+          "itemId": "full-history-portable-copies",
+          "version": "d55769bf3d16b67e2034e363bc3d82e622480cc4",
+          "contentRevision": 5,
+          "eventIds": [
+            "event-372",
+            "event-375",
+            "event-376",
+            "event-380",
+            "event-417"
+          ],
+          "reviewedAt": "2026-09-26T13:18:53.069156+00:00"
+        },
+        {
+          "itemId": "browser-author-preview",
+          "version": "e1fa068e405cf40d6c1e72256a0765967111d7fa",
+          "contentRevision": 3,
+          "eventIds": [
+            "event-420",
+            "event-421",
+            "event-422"
+          ],
+          "reviewedAt": "2026-09-26T13:20:05.649150+00:00"
+        },
+        {
+          "itemId": "browser-oversized-document-projection",
+          "version": "author-observation-20260926T124430Z",
+          "contentRevision": 13,
+          "eventIds": [
+            "event-401",
+            "event-402",
+            "event-405",
+            "event-406",
+            "event-407",
+            "event-408",
+            "event-409",
+            "event-410",
+            "event-411",
+            "event-412",
+            "event-413",
+            "event-431",
+            "event-433"
+          ],
+          "reviewedAt": "2026-09-26T18:54:47.659238+00:00"
+        },
+        {
+          "itemId": "browser-completed-history-latency",
+          "version": "eb4a3e64ed288db6cf16e1118690e8b6f3ac3876",
+          "contentRevision": 33,
+          "eventIds": [
+            "event-429",
+            "event-430",
+            "event-432",
+            "event-433",
+            "event-434",
+            "event-435",
+            "event-436",
+            "event-437",
+            "event-438",
+            "event-439",
+            "event-440",
+            "event-441",
+            "event-442",
+            "event-443",
+            "event-444",
+            "event-445",
+            "event-446",
+            "event-447",
+            "event-448",
+            "event-449",
+            "event-450",
+            "event-451",
+            "event-452",
+            "event-453",
+            "event-454",
+            "event-455",
+            "event-456",
+            "event-457",
+            "event-458",
+            "event-459",
+            "event-460",
+            "event-461",
+            "event-472"
+          ],
+          "reviewedAt": "2026-09-26T18:55:24.539976+00:00"
+        },
+        {
+          "itemId": "browser-author-preview",
+          "version": "b3173ff73707eb2e9595be6c941c2afc3df1093c",
+          "contentRevision": 7,
+          "eventIds": [
+            "event-532",
+            "event-533",
+            "event-534",
+            "event-535",
+            "event-536",
+            "event-537",
+            "event-538"
+          ],
+          "reviewedAt": "2026-09-26T20:05:11.469778+00:00"
+        },
+        {
+          "itemId": "browser-author-preview",
+          "version": "b3173ff73707eb2e9595be6c941c2afc3df1093c",
+          "contentRevision": 8,
+          "eventIds": [
+            "event-532",
+            "event-533",
+            "event-534",
+            "event-535",
+            "event-536",
+            "event-537",
+            "event-538",
+            "event-539"
+          ],
+          "reviewedAt": "2026-09-26T22:26:00.716895+00:00"
+        }
+      ],
+      "eventIds": [
+        "event-14",
+        "event-21",
+        "event-26",
+        "event-17",
+        "event-20",
+        "event-27",
+        "event-23",
+        "event-38",
+        "event-39",
+        "event-42",
+        "event-43",
+        "event-72",
+        "event-119",
+        "event-123",
+        "event-125",
+        "event-163",
+        "event-166",
+        "event-172",
+        "event-176",
+        "event-203",
+        "event-207",
+        "event-208",
+        "event-210",
+        "event-217",
+        "event-213",
+        "event-289",
+        "event-291",
+        "event-292",
+        "event-294",
+        "event-296",
+        "event-309",
+        "event-311",
+        "event-312",
+        "event-313",
+        "event-314",
+        "event-315",
+        "event-330",
+        "event-331",
+        "event-332",
+        "event-333",
+        "event-334",
+        "event-335",
+        "event-336",
+        "event-337",
+        "event-338",
+        "event-339",
+        "event-341",
+        "event-342",
+        "event-345",
+        "event-351",
+        "event-353",
+        "event-355",
+        "event-356",
+        "event-379",
+        "event-417",
+        "event-372",
+        "event-375",
+        "event-376",
+        "event-380",
+        "event-420",
+        "event-421",
+        "event-422",
+        "event-401",
+        "event-402",
+        "event-405",
+        "event-406",
+        "event-407",
+        "event-408",
+        "event-409",
+        "event-410",
+        "event-411",
+        "event-412",
+        "event-413",
+        "event-431",
+        "event-433",
+        "event-429",
+        "event-430",
+        "event-432",
+        "event-434",
+        "event-435",
+        "event-436",
+        "event-437",
+        "event-438",
+        "event-439",
+        "event-440",
+        "event-441",
+        "event-442",
+        "event-443",
+        "event-444",
+        "event-445",
+        "event-446",
+        "event-447",
+        "event-448",
+        "event-449",
+        "event-450",
+        "event-451",
+        "event-452",
+        "event-453",
+        "event-454",
+        "event-455",
+        "event-456",
+        "event-457",
+        "event-458",
+        "event-459",
+        "event-460",
+        "event-461",
+        "event-472",
+        "event-532",
+        "event-533",
+        "event-534",
+        "event-535",
+        "event-536",
+        "event-537",
+        "event-538",
+        "event-539"
+      ]
+    }
+  }
+}

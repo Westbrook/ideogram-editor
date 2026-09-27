@@ -1,0 +1,21 @@
+{
+  "name": "03-types",
+  "argv": [
+    ".toolchain/bin/npm",
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source",
+  "start": "2026-09-27T02:50:30.036933+00:00",
+  "head": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+  "status": "",
+  "env": {
+    "PATH": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source/.toolchain/bin:/Users/westbrook/.npm/_npx/e5042b4359cce62b/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/westbrook/Library/Application Support/revedev-52ae4245/bin:/Users/westbrook/.nvm/versions/node/v24.17.0/bin:/opt/homebrew/opt/postgresql@17/bin:/Users/westbrook/go/bin:/Users/westbrook/.local/bin:/usr/local/bin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/Users/westbrook/google-cloud-sdk/bin:/opt/homebrew/opt/postgresql@16/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Users/westbrook/.codex/tmp/arg0/codex-arg0vVOPiO:/Users/westbrook/.npm/_npx/e5042b4359cce62b/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/westbrook/.npm/_npx/e5042b4359cce62b/node_modules/.bin:/Users/westbrook/Library/Application Support/intentd/agent-configs/intentd-npx-cf69aed7-e350-4b9f-8de0-d906488cf538/node_modules/.bin:/Users/westbrook/Library/Application Support/intentd/agent-configs/node_modules/.bin:/Users/westbrook/Library/Application Support/intentd/node_modules/.bin:/Users/westbrook/Library/Application Support/node_modules/.bin:/Users/westbrook/Library/node_modules/.bin:/Users/westbrook/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/westbrook/.nvm/versions/node/v24.17.0/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/Users/westbrook/.augment/bin:/usr/local/opt/node/bin:/Users/westbrook/.npm-global/bin:/Users/westbrook/.npm-packages/bin:/Users/westbrook/.volta/bin:/Users/westbrook/.asdf/shims:/Users/westbrook/.nvm/versions/node/v24.16.0/bin:/Users/westbrook/.nvm/versions/node/v24.15.0/bin:/Users/westbrook/.nvm/versions/node/v24.14.1/bin:/Users/westbrook/.nvm/versions/node/v24.14.0/bin:/Users/westbrook/.nvm/versions/node/v24.11.1/bin:/Users/westbrook/.nvm/versions/node/v22.22.1/bin:/Users/westbrook/.nvm/versions/node/v22.21.1/bin:/Users/westbrook/.nvm/versions/node/v22.21.0/bin:/Users/westbrook/.nvm/versions/node/v22.20.0/bin:/Users/westbrook/.nvm/versions/node/v22.19.0/bin:/Users/westbrook/.nvm/versions/node/v22.18.0/bin:/Users/westbrook/.nvm/versions/node/v22.17.1/bin:/Users/westbrook/.nvm/versions/node/v22.17.0/bin:/Users/westbrook/.nvm/versions/node/v22.2.0/bin:/Users/westbrook/.nvm/versions/node/v20.19.4/bin:/Users/westbrook/.nvm/versions/node/v20.18.3/bin:/Users/westbrook/.nvm/versions/node/v20.18.2/bin:/Users/westbrook/.nvm/versions/node/v20.18.1/bin:/Users/westbrook/.nvm/versions/node/v20.18.0/bin:/Users/westbrook/.nvm/versions/node/v20.17.0/bin:/Users/westbrook/.nvm/versions/node/v20.16.0/bin:/Users/westbrook/.nvm/versions/node/v20.14.0/bin:/Users/westbrook/.nvm/versions/node/v20.13.1/bin:/Users/westbrook/.nvm/versions/node/v20.9.0/bin:/Users/westbrook/.nvm/versions/node/v18.20.3/bin:/Users/westbrook/Library/pnpm:/opt/homebrew/opt/postgresql@18/bin:/Users/westbrook/.cargo/bin:/Users/westbrook/github.com/reve-ai/web-projects/s:/Users/westbrook/Library/Python/3.14/bin",
+    "npm_config_cache": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/npm-cache"
+  },
+  "inputs": {
+    "server/storage/raster.ts": "0d6d46085209067ff6d769f3b36b4f371074d5ac07b560afdb82dbf32a31074c",
+    "tests/raster/input-authority.test.mjs": "ebe2592ab586fed80b10c97a696620d1221028a31021fa74da563eb4fc627629",
+    "src/text/profile.json": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+  }
+}

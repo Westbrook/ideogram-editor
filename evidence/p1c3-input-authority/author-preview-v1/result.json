@@ -1,0 +1,566 @@
+{
+  "start": "2026-09-27T03:09:32.766Z",
+  "end": "2026-09-27T03:09:47.609Z",
+  "passed": true,
+  "error": null,
+  "cleanupError": null,
+  "responseErrors": [],
+  "browser": "153.0.8010.12",
+  "checks": {
+    "build": 71,
+    "extraRuntimeFiles": 218,
+    "runtimeSource": 96
+  },
+  "runtime": {
+    "started": "2026-09-27T03:06:10.512Z",
+    "pid": 32640,
+    "origin": "http://127.0.0.1:62133",
+    "reviewURL": "http://127.0.0.1:62133/?progress-report",
+    "sourceCommit": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+    "runtimeSourceSHA256": "ff66a3478aa71db6074d524b65dea116e24dfce476451c7db895a9be8a5cf90c",
+    "buildFiles": 71,
+    "extraRuntimeFiles": 218,
+    "node": "v26.10.0",
+    "executable": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+    "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-1888c6a0/",
+    "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-1888c6a0/private",
+    "mode": "isolated AUTHOR review; no independent approval; outgoing effects denied"
+  },
+  "identity": {
+    "itemId": "masks-layers-input-authority-preview",
+    "title": "P1c.3 input authority 1888c6a0 — AUTHOR REVIEW",
+    "version": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+    "contentRevision": 1,
+    "reviewed": false,
+    "reportRevision": 463,
+    "displayedVersion": "1888c6a04d43b1991b539ddd60511b7619036cf6 · review revision 1",
+    "endReportRevision": 463
+  },
+  "served": [
+    {
+      "path": "/",
+      "sha256": "e660987cdef6800f461dcd740ddac1af2b9fab2f3661f0148dd02192527c70ac",
+      "bytes": 2182,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-WjEVtF_I.css",
+      "sha256": "c1c85e84c7a19e0feccc2b2b625675688ce6e4d152bd289dcb48a2af914c6a79",
+      "bytes": 97801,
+      "status": 200
+    },
+    {
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "bytes": 1218,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-DH9BKYq3.js",
+      "sha256": "32badec9a90d8d99c977fbc0e19def377e1fa560de4d2f2bb1c8ce8fcff5a6df",
+      "bytes": 1429,
+      "status": 200
+    },
+    {
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "sha256": "990376e3d868a9a462b4fa2c2f6abeb022612ebfb9c3db231d821c7005988907",
+      "bytes": 137665,
+      "status": 200
+    },
+    {
+      "path": "/assets/shell-g-vOFR3q.js",
+      "sha256": "3db508ba7f855c2aa328147a4539a25f6a814804836d63511e2864c8da543add",
+      "bytes": 414995,
+      "status": 200
+    },
+    {
+      "path": "/assets/editor-panels-DZY6YZJM.js",
+      "sha256": "6f1d4e4b93c943f0b6c12310d15a8c61ed239ee9bcc0879abe3c0cf13c973035",
+      "bytes": 9407,
+      "status": 200
+    },
+    {
+      "path": "/",
+      "sha256": "e660987cdef6800f461dcd740ddac1af2b9fab2f3661f0148dd02192527c70ac",
+      "bytes": 2182,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-WjEVtF_I.css",
+      "sha256": "c1c85e84c7a19e0feccc2b2b625675688ce6e4d152bd289dcb48a2af914c6a79",
+      "bytes": 97801,
+      "status": 200
+    },
+    {
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "bytes": 1218,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-DH9BKYq3.js",
+      "sha256": "32badec9a90d8d99c977fbc0e19def377e1fa560de4d2f2bb1c8ce8fcff5a6df",
+      "bytes": 1429,
+      "status": 200
+    },
+    {
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "sha256": "990376e3d868a9a462b4fa2c2f6abeb022612ebfb9c3db231d821c7005988907",
+      "bytes": 137665,
+      "status": 200
+    },
+    {
+      "path": "/assets/shell-g-vOFR3q.js",
+      "sha256": "3db508ba7f855c2aa328147a4539a25f6a814804836d63511e2864c8da543add",
+      "bytes": 414995,
+      "status": 200
+    },
+    {
+      "path": "/",
+      "sha256": "e660987cdef6800f461dcd740ddac1af2b9fab2f3661f0148dd02192527c70ac",
+      "bytes": 2182,
+      "status": 200
+    },
+    {
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "bytes": 1218,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-WjEVtF_I.css",
+      "sha256": "c1c85e84c7a19e0feccc2b2b625675688ce6e4d152bd289dcb48a2af914c6a79",
+      "bytes": 97801,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-DH9BKYq3.js",
+      "sha256": "32badec9a90d8d99c977fbc0e19def377e1fa560de4d2f2bb1c8ce8fcff5a6df",
+      "bytes": 1429,
+      "status": 200
+    },
+    {
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "sha256": "990376e3d868a9a462b4fa2c2f6abeb022612ebfb9c3db231d821c7005988907",
+      "bytes": 137665,
+      "status": 200
+    },
+    {
+      "path": "/assets/shell-g-vOFR3q.js",
+      "sha256": "3db508ba7f855c2aa328147a4539a25f6a814804836d63511e2864c8da543add",
+      "bytes": 414995,
+      "status": 200
+    },
+    {
+      "path": "/",
+      "sha256": "e660987cdef6800f461dcd740ddac1af2b9fab2f3661f0148dd02192527c70ac",
+      "bytes": 2182,
+      "status": 200
+    },
+    {
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "bytes": 1218,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-WjEVtF_I.css",
+      "sha256": "c1c85e84c7a19e0feccc2b2b625675688ce6e4d152bd289dcb48a2af914c6a79",
+      "bytes": 97801,
+      "status": 200
+    },
+    {
+      "path": "/assets/index-DH9BKYq3.js",
+      "sha256": "32badec9a90d8d99c977fbc0e19def377e1fa560de4d2f2bb1c8ce8fcff5a6df",
+      "bytes": 1429,
+      "status": 200
+    },
+    {
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "sha256": "990376e3d868a9a462b4fa2c2f6abeb022612ebfb9c3db231d821c7005988907",
+      "bytes": 137665,
+      "status": 200
+    },
+    {
+      "path": "/assets/shell-g-vOFR3q.js",
+      "sha256": "3db508ba7f855c2aa328147a4539a25f6a814804836d63511e2864c8da543add",
+      "bytes": 414995,
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "domErrors": [],
+  "requests": [
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/session/bootstrap",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui/ui_835d4bfc-9b09-43f4-a4b3-935dbfbfb40b",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/recovery/2d066bf9-9bfa-4b16-b80f-a6c68bb7f4fe/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/editor-panels-DZY6YZJM.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/session",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui/ui_835d4bfc-9b09-43f4-a4b3-935dbfbfb40b",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/recovery/c70cb0e0-c9a4-43f2-b617-29d073dd3657/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/session",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui/ui_835d4bfc-9b09-43f4-a4b3-935dbfbfb40b",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/recovery/6a35fda8-b3af-413a-b1e7-6b844deb76b9/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/preload-helper-BZ1Pz5am.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-WjEVtF_I.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/index-DH9BKYq3.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/shell-g-vOFR3q.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/assets/icon-DIQhQ5Eb.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/session",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/capabilities",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui/ui_835d4bfc-9b09-43f4-a4b3-935dbfbfb40b",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/recovery/c81fb4f8-967f-4700-a619-eaf1503c0495/release",
+      "method": "POST"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/ui",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/assets/staging/recovery",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/commands/pending",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:62133",
+      "path": "/api/v1/events/stream",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/style.css",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/app.js",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    },
+    {
+      "origin": "http://127.0.0.1:4381",
+      "path": "/api/state",
+      "method": "GET"
+    }
+  ],
+  "scope": "AUTHOR stock Chromium native-click exact frozen current-card navigation; report GET only. No human review or later-version transfer."
+}

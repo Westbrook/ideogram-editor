@@ -1,0 +1,4 @@
+{"name":"r16-false","pass":true}
+{"name":"r16-true","pass":true}
+{"name":"legacy-false","pass":true}
+{"name":"legacy-true","pass":true}

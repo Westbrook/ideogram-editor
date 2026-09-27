@@ -1,0 +1,96 @@
+[
+  {
+    "phase": "fixture",
+    "run": "aac18ef2-e0ed-4039-89c5-c3afe1c0ce26",
+    "profile": "p1c3-inherited-firefox",
+    "contract": "controlled-origin-v2"
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "initial-cookies",
+    "count": 0
+  },
+  {
+    "phase": "preflight-start",
+    "origin": "http://127.0.0.1:61451",
+    "profile": "p1c3-inherited-firefox"
+  },
+  {
+    "phase": "cookie-audit",
+    "count": 0,
+    "metadata": []
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "preflight",
+    "origin": "http://127.0.0.1:61451",
+    "entries": [],
+    "localStorage": 0,
+    "indexedDB": [],
+    "serviceWorkers": 0,
+    "cookieCount": 0
+  },
+  {
+    "phase": "admitted",
+    "origin": "http://127.0.0.1:61451"
+  },
+  {
+    "phase": "owned-cookie-response",
+    "origin": "http://127.0.0.1:61451",
+    "path": "/api/v1/session/bootstrap",
+    "name": "ie_session",
+    "httpOnly": true,
+    "sameSite": "Strict"
+  },
+  {
+    "phase": "cleanup-start",
+    "admitted": [
+      "http://127.0.0.1:61451"
+    ],
+    "visited": [
+      "http://127.0.0.1:61451"
+    ],
+    "resetCalls": 0
+  },
+  {
+    "phase": "cookie-audit",
+    "count": 1,
+    "metadata": [
+      {
+        "name": "ie_session",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Strict"
+      }
+    ]
+  },
+  {
+    "phase": "public-reset",
+    "resetCalls": 1
+  },
+  {
+    "phase": "page-registered"
+  },
+  {
+    "phase": "post-reset",
+    "origin": "http://127.0.0.1:61451",
+    "entries": [],
+    "localStorage": 0,
+    "indexedDB": [],
+    "serviceWorkers": 0
+  },
+  {
+    "phase": "post-reset-cookies",
+    "count": 0
+  },
+  {
+    "phase": "cleanup-complete",
+    "resetCalls": 1
+  }
+]

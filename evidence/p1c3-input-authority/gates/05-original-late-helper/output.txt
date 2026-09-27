@@ -1,0 +1,3 @@
+{"mode":"history-baseline-record","pass":true,"status":"rejected"}
+{"mode":"raster-baseline-record","pass":true,"status":"rejected"}
+{"mode":"raster-baseline-hard-replacement","pass":true}

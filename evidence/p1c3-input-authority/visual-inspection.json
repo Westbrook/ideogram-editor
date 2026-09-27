@@ -1,0 +1,17 @@
+{
+  "at": "2026-09-27T03:05:01.473828+00:00",
+  "inspected": [
+    "authoring-chromium/authoring-desktop.png",
+    "authoring-chromium/mask-controls-320.png"
+  ],
+  "observation": "Desktop public control/panel/rail/splitter composition remains consistent with unchanged source. Scrolled320px RTL mask import/actions/hard-vs-effective explanation/sample controls remain inside their column with readable wrapped content. No new UI change in this correction.",
+  "limit": "Desktop Zoom percentage200 is canvas magnification only; actual native page200% remains UNVERIFIED. Screenshots do not qualify native input, AT, IME, resource use or full platform coverage. Browser interaction/CSP/error assertions are in their separate gate receipts.",
+  "previewInspection": {
+    "at": "2026-09-27T03:10:54.356614+00:00",
+    "files": [
+      "author-preview-v1/current-card.png",
+      "author-preview-v1/returned-preview.png"
+    ],
+    "observation": "Exact full1888/card1 disclosure, visible unverified pagezoom/earlier-failure limits, link and unpressed Mark reviewed control are readable. Returned editor shows connected recovery, public control composition and flag-gated Progress Report return link. No native page zoom qualification."
+  }
+}

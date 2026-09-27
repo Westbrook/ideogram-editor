@@ -1,0 +1,28 @@
+✔ final raster acceptance binds consulted input records: baseline-matching (2540.203375ms)
+ℹ {"mode":"baseline-matching","phase":"raster-before-register","commandId":"63df07fb-8fa9-4645-97d6-1351a5e81f1e","operationId":"8eb16466-f60e-4668-b7c7-41d5ba87a473","status":"accepted","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: baseline-record (2274.369834ms)
+ℹ {"mode":"baseline-record","phase":"raster-before-register","commandId":"8a891853-e299-4b8d-a510-5f43b6b59859","operationId":"c0a1d8a8-1fb2-4d22-8e19-2879f912e11e","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: decode-original (2027.545375ms)
+ℹ {"mode":"decode-original","phase":"raster-before-register","commandId":"a7e9bf0b-e558-4929-bb07-e47489f5aa2d","operationId":"01dca5a7-0b26-4302-82a8-0026ac994828","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: import-image (2111.134458ms)
+ℹ {"mode":"import-image","phase":"raster-before-register","commandId":"ee8adaa4-683c-481f-b7a4-8c11a7e488c1","operationId":"28ec6681-34d2-4442-9070-fb031cc44503","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: import-original (2080.44975ms)
+ℹ {"mode":"import-original","phase":"raster-before-register","commandId":"ffa08ed2-d181-4307-a6b0-4966cb194304","operationId":"c7e588ea-6a04-4f1c-a1e6-3e3e9d5bb042","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: compose-image (2004.023459ms)
+ℹ {"mode":"compose-image","phase":"raster-before-register","commandId":"20449bab-3d04-4309-b77c-06af1734af6d","operationId":"36f20474-74fe-4274-bf93-d7f03e3c82a6","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: compose-mask (2054.452917ms)
+ℹ {"mode":"compose-mask","phase":"raster-before-register","commandId":"7f2c99ec-3426-4be6-b473-ba7033b7d77a","operationId":"2ef2a624-4a1d-4266-8b0d-caa72166e41f","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: export-input (2020.154458ms)
+ℹ {"mode":"export-input","phase":"raster-before-register","commandId":"2f086e80-a668-489d-9401-f32f5ba06bc0","operationId":"6442ef68-50fb-45a0-903b-d4df2132489d","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: approval-preview (1903.50225ms)
+ℹ {"mode":"approval-preview","phase":"raster-approval-after-proofs","commandId":"9b6816bc-dc63-44f6-a9e2-f583aa139d95","operationId":"548e8aa4-e6ea-4d01-a3c1-8b77b83c136f","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+✔ final raster acceptance binds consulted input records: approval-original (1921.535917ms)
+ℹ {"mode":"approval-original","phase":"raster-approval-after-proofs","commandId":"91716a1e-5a12-466e-83d3-b462fcdb9cc6","operationId":"4f9032b7-61db-42f6-9aa6-7127e433ef0a","status":"rejected","subsequent":"accepted","documentUnchanged":true,"draftUnchanged":true}
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21256.1425

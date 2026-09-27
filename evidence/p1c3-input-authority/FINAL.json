@@ -1,0 +1,125 @@
+{
+  "recordedAt": "2026-09-27T03:11:31.660944+00:00",
+  "attribution": "AUTHOR only; not independent approval or acceptance",
+  "taskNoteId": "de9a33a4-55cd-4132-a497-3b27095ab0ca",
+  "prContextNoteId": "cbd63320-6def-4beb-b78f-de897caf3cdf",
+  "github": {
+    "remote": null,
+    "prNumber": null,
+    "prURL": null,
+    "baseCIRunURL": null,
+    "reason": "No GitHub remote is configured; durable PR Context note is the supplied handoff."
+  },
+  "acceptedBase": "4b2c82ccc41dd72c3f83480f23481b7b62135d23",
+  "rejectedParent": "d3f7cc351ca76e9dff6dc52e6cd9ca78ccb7ff50",
+  "sourceCommit": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+  "finalEvidenceCommit": "Bound in exact task/PR readback after this packet is committed; no self-referential SHA claimed.",
+  "branch": "ideogram-editor-p1",
+  "scope": "Bounded final raster input-authority correction only",
+  "filesChanged": [
+    "server/storage/raster.ts",
+    "tests/raster/input-authority.test.mjs"
+  ],
+  "behavior": {
+    "capture": "Canonical exact identities of consulted Asset records captured before asynchronous work, including decode original, retained baseline source/hard identity, PNG import metadata authority, compose/export and approval inputs. Manifest read is against captured Asset.",
+    "acceptance": "Synchronous exact revalidation inside actual final acceptance after late barrier and existing object proofs, before candidate registration or publication. Approval inputs revalidated after approval-after-proofs.",
+    "preserved": "Matching success, exact command/client/operation ownership, atomic nonpublication and unchanged document/raw draft on refusal, idempotent terminal receipt, subsequent valid work, all existing caps/object proofs and hard-file pending/paused semantics. No schema/format/renderer/native/font/profile/public UI change."
+  },
+  "sourceInventory": {
+    "file": "source-inputs.json",
+    "gitDiskFiles": 519,
+    "buildFile": "build-files.json",
+    "cleanBuildFiles": 71,
+    "verification": "source-build-integrity.json"
+  },
+  "profileSHA256": "304528c98255447a3c8b4607b3b6738261dad46c485c84c203e9c16ae1f69a29",
+  "unchangedCheckerCommit": "fdcccac486c8c99de8f1603e5dedb9ddbbd33a41",
+  "reuse": {
+    "owningInputs": "reuse.json",
+    "installedNativeInputs": "native-inputs.json",
+    "publicAdoption": "public-adoption.json",
+    "limits": "Exact owning byte reuse only; no blanket earlier pass transferred to changed writer. Standalone protocol/session/assets, foundation42 and resource/native campaigns not freshly rerun; new affected integration results are in gates-and-reuse.json."
+  },
+  "gates": "gates-and-reuse.json",
+  "reverify": "REPRODUCE.txt; each gates/*/receipt.json contains exact argv/cwd/environment/source/start/end/exit",
+  "functionalGateEND": "2026-09-27T03:05:25.564642Z",
+  "previewGate": {
+    "receipt": "gates/24-preview-roundtrip/receipt.json",
+    "end": "2026-09-27T03:09:47.654654Z",
+    "browser": "153.0.8010.12",
+    "card": {
+      "itemId": "masks-layers-input-authority-preview",
+      "title": "P1c.3 input authority 1888c6a0 \u2014 AUTHOR REVIEW",
+      "version": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "contentRevision": 1,
+      "reviewed": false,
+      "publicationReportRevision": 463,
+      "observedReportRevision": 463,
+      "observedAt": "2026-09-27T03:09:23.095906+00:00",
+      "url": "http://127.0.0.1:62133/?progress-report",
+      "scope": "Frozen report-owner publication463; AUTHOR actual HTTP read, not navigation or human review."
+    },
+    "observedIdentity": {
+      "itemId": "masks-layers-input-authority-preview",
+      "title": "P1c.3 input authority 1888c6a0 \u2014 AUTHOR REVIEW",
+      "version": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "contentRevision": 1,
+      "reviewed": false,
+      "reportRevision": 463,
+      "displayedVersion": "1888c6a04d43b1991b539ddd60511b7619036cf6 \u00b7 review revision 1",
+      "endReportRevision": 463
+    },
+    "service": {
+      "started": "2026-09-27T03:06:10.512Z",
+      "pid": 32640,
+      "origin": "http://127.0.0.1:62133",
+      "reviewURL": "http://127.0.0.1:62133/?progress-report",
+      "sourceCommit": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+      "runtimeSourceSHA256": "ff66a3478aa71db6074d524b65dea116e24dfce476451c7db895a9be8a5cf90c",
+      "buildFiles": 71,
+      "extraRuntimeFiles": 218,
+      "node": "v26.10.0",
+      "executable": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source/.toolchain/node-v26.10.0-darwin-arm64/bin/node",
+      "service": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-1888c6a0/",
+      "root": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-preview-1888c6a0/private",
+      "mode": "isolated AUTHOR review; no independent approval; outgoing effects denied"
+    },
+    "hashes": {
+      "build": 71,
+      "extraRuntimeFiles": 218,
+      "runtimeSource": 96
+    },
+    "servedResponseObservations": 25,
+    "uniqueServedPaths": 7,
+    "errors": {
+      "primary": null,
+      "cleanup": null,
+      "response": [],
+      "pageConsole": [],
+      "DOM": []
+    },
+    "cleanup": "author-preview-v1/ownership.json ends cleanup-complete/reset1",
+    "effects": "preview-service/effects.json all counters0",
+    "scope": "Stock controlled-origin browser actual link clicks, GET-only report, no Mark reviewed click. Exact report463/card1/full1888 only; no human acknowledgment or later-version transfer."
+  },
+  "firstFailures": "FIRST_FAILURES.txt; gate16 original all3 ENOENT preserved, separate16a output-setup correction. Administrative whole-object report comparison preserved with exact additional empty HTTP fields. All earlier rejected evidence remains unchanged.",
+  "remainingLimits": [
+    "Required actual native browser page200% UNVERIFIED; native computer controls STOPPED, no retry/reset/alternate tool or CSS/canvas/viewport substitute.",
+    "Old39b cleanup UNCONFIRMED;39c INCOMPLETE/reset0;39d card mismatch, author25/26 failures and both rejected review histories unchanged.",
+    "New failed16 cleanup/worker-close counts were not verified and receive no later-run transfer.",
+    "Same-byte hard-file replacement remains nonaccepted pending/paused, not terminal rejection.",
+    "A-R01 broader memory/full-envelope/resource/lifetime/physical IME/AT/power-loss/platform qualification remains OPEN."
+  ],
+  "preservation": {
+    "repository": "preservation.json",
+    "report": "report-preservation-before.json; report-preservation-first-failure.json; report-preservation-after.json",
+    "services": "Old58259,57855,50646,52219 and their private stores/builds were not modified; no new live-availability qualification claimed."
+  },
+  "status": "AUTHOR delivery for review_required; final source/evidence audit and exact note readback followed by explicit author END are recorded in task/PR. No self-acceptance, credit or downstream release.",
+  "progress": {
+    "P1cVerified": 8,
+    "P1cTotal": 25,
+    "maskCreditEarned": 0,
+    "A-R01": "OPEN"
+  }
+}

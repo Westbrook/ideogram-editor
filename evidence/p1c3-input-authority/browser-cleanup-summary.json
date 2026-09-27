@@ -1,0 +1,76 @@
+{
+  "sourceCommit": "1888c6a04d43b1991b539ddd60511b7619036cf6",
+  "authoringLedgers": [
+    {
+      "path": "authoring-chromium/ownership.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-chromium/inherited-ownership.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-chromium/retained-ownership-chromium.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-firefox/ownership.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-firefox/inherited-ownership.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-firefox/retained-ownership-firefox.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-webkit/ownership.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-webkit/inherited-ownership.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    },
+    {
+      "path": "authoring-webkit/retained-ownership-webkit.json",
+      "end": {
+        "phase": "cleanup-complete",
+        "resetCalls": 1
+      }
+    }
+  ],
+  "scope": "Nine separately owned stock authoring fixtures, each cleanup-complete/reset1. Native16a worker counts are in its output; original16 failure cleanup not retroactively qualified; old39b/39c remain unchanged.",
+  "preview": {
+    "path": "author-preview-v1/ownership.json",
+    "end": {
+      "phase": "cleanup-complete",
+      "resetCalls": 1
+    }
+  }
+}

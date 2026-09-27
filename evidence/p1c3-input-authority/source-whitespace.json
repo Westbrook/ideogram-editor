@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-27T02:56:42.514865+00:00",
+  "argv": [
+    "git",
+    "diff",
+    "--check",
+    "d3f7cc351ca76e9dff6dc52e6cd9ca78ccb7ff50",
+    "1888c6a04d43b1991b539ddd60511b7619036cf6"
+  ],
+  "exit": 0,
+  "scope": "source commit only; distinct from raw evidence whitespace"
+}

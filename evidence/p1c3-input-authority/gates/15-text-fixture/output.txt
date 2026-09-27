@@ -1,0 +1,20 @@
+vite v8.3.1 building client environment for production...
+transforming...
+[plugin rolldown:vite-resolve] Module "fs" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "path" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "fs" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "path" has been externalized for browser compatibility, imported by "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/source/node_modules/canvaskit-wasm/bin/canvaskit.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+✓ 31 modules transformed.
+rendering chunks...
+computing gzip size...
+../text-app/index.html                                         0.19 kB │ gzip:     0.16 kB
+../text-app/assets/heap-worker-HdXrQulv.js                    90.04 kB
+../text-app/assets/worker-BhM43zOK.js                        120.74 kB
+../text-app/assets/NotoSansArabic-Regular-CEibNoL-.ttf       240.45 kB
+../text-app/assets/NotoSans-Regular-Dpf_lrdO.ttf             569.20 kB
+../text-app/assets/NotoSansSymbols2-Regular-Dcz4cXYm.ttf     656.85 kB
+../text-app/assets/canvaskit-B2Vb3rWN.wasm                 4,979.35 kB │ gzip: 2,059.12 kB
+../text-app/assets/NotoSansCJKsc-Regular-DxgKpThH.otf     16,437.36 kB
+../text-app/assets/index-C8zl3c0j.js                         100.37 kB │ gzip:    36.78 kB
+
+✓ built in 105ms

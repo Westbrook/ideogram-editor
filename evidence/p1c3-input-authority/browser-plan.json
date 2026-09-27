@@ -1,0 +1,118 @@
+[
+  [
+    "15-text-fixture",
+    [
+      ".toolchain/bin/node",
+      "node_modules/vite/bin/vite.js",
+      "build",
+      "--config",
+      "tests/text-state/vite.config.ts",
+      "--outDir",
+      "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/text-app"
+    ],
+    {}
+  ],
+  [
+    "16-current-native",
+    [
+      ".toolchain/bin/node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/text-state/native.test.mjs"
+    ],
+    {
+      "TEXT_STATE_APP": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/text-app",
+      "TEXT_STATE_EVIDENCE": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/current-native",
+      "TEXT_STATE_ENGINES": "chromium,firefox,webkit"
+    }
+  ],
+  [
+    "17-text-state",
+    [
+      ".toolchain/bin/node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/text-state/font.test.mjs",
+      "tests/text-state/schema.test.mjs",
+      "tests/text-state/admission.test.mjs",
+      "tests/text-state/verifier.test.mjs"
+    ],
+    {
+      "TEXT_STATE_APP": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/text-app"
+    }
+  ],
+  [
+    "18-editor",
+    [
+      ".toolchain/bin/node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/editor/document-projection.test.mjs",
+      "tests/editor/read-adapters.test.mjs",
+      "tests/editor/shutdown-console.test.mjs"
+    ],
+    {}
+  ],
+  [
+    "19-namespace",
+    [
+      ".toolchain/bin/node",
+      "--import",
+      "./tests/session/no-egress.mjs",
+      "--test",
+      "--test-concurrency=1",
+      "tests/portable/browser-recovery.test.mjs"
+    ],
+    {
+      "IE_RECOVERY_OUTPUT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/namespace-browser"
+    }
+  ],
+  [
+    "20-authoring-chromium",
+    [
+      ".toolchain/bin/node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/editor/authoring.config.ts"
+    ],
+    {
+      "EDITOR_BROWSER": "chromium",
+      "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/authoring-chromium"
+    }
+  ],
+  [
+    "21-authoring-firefox",
+    [
+      ".toolchain/bin/node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/editor/authoring.config.ts"
+    ],
+    {
+      "EDITOR_BROWSER": "firefox",
+      "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/authoring-firefox"
+    }
+  ],
+  [
+    "22-authoring-webkit",
+    [
+      ".toolchain/bin/node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "tests/editor/authoring.config.ts"
+    ],
+    {
+      "EDITOR_BROWSER": "webkit",
+      "EDITOR_RECEIPT": "/Users/westbrook/Documents/repos/ideogram-edit-p1c3-authority-20260927T025006Z/authoring-webkit"
+    }
+  ]
+]

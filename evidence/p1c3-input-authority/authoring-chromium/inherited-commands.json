@@ -1,0 +1,211 @@
+[
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "17449fc5-cfc9-413c-a754-8eef2fce6373",
+    "expectedSha256": "sha256:a3cae590bdfbefccf2a213b088a3e46b88d5d05606a74eed120d546dcc2c80d9"
+  },
+  {
+    "type": "PrepareRaster",
+    "assetId": "2ce4272c-9b5e-47f7-a9ca-a57e27a44a72"
+  },
+  {
+    "type": "ReviewRaster",
+    "assetId": "4da99ba1-9bf2-4289-ac24-1530cea7a7ca"
+  },
+  {
+    "type": "ApproveRaster",
+    "assetId": "4da99ba1-9bf2-4289-ac24-1530cea7a7ca",
+    "reviewId": "89305caa-a325-4442-beaa-77766b66a8f0",
+    "reviewHash": "sha256:7cdaa208f5788dfbf8006f9f1f947ecc551902869542636e573e734134b97cd2"
+  },
+  {
+    "type": "NewDocument",
+    "width": 3,
+    "height": 2,
+    "color": "sRGB",
+    "depth": 8
+  },
+  {
+    "type": "ImportAsset",
+    "assetId": "aa955c1b-95f8-4f6c-908f-ddc967083a16",
+    "layerId": "60142243-5ea4-46e8-8924-c41296d5ca68",
+    "name": "hidden-alpha.png",
+    "draft": null
+  },
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "07362719-5148-4ba7-9728-eb774b94945e",
+    "expectedSha256": "sha256:b01ee8110957f14762fb8c601b4fcd0c88cc7eed846645b83b09423fb9434035"
+  },
+  {
+    "type": "SetLayerProperties",
+    "layerId": "60142243-5ea4-46e8-8924-c41296d5ca68",
+    "layerVersion": "1",
+    "properties": {
+      "name": "Renamed original",
+      "opacity": 0.75,
+      "visible": true,
+      "locked": false
+    },
+    "draft": {
+      "sessionId": "ui_3ea20170-5eb0-4c89-8c9e-b2f4f7ef2e2f",
+      "draftId": "inspector_770d98c3-e7b4-4c68-b8c6-7ffd070f8905_60142243-5ea4-46e8-8924-c41296d5ca68",
+      "generation": "4"
+    }
+  },
+  {
+    "type": "DuplicateLayer",
+    "layerId": "60142243-5ea4-46e8-8924-c41296d5ca68",
+    "layerVersion": "2",
+    "newLayerId": "4dc39fba-d80d-4970-9261-433e52288a75",
+    "name": "Renamed original copy",
+    "draft": null
+  },
+  {
+    "type": "MoveLayers",
+    "orderedLayerIds": [
+      "4dc39fba-d80d-4970-9261-433e52288a75",
+      "60142243-5ea4-46e8-8924-c41296d5ca68"
+    ],
+    "draft": null
+  },
+  {
+    "type": "MoveLayers",
+    "orderedLayerIds": [
+      "60142243-5ea4-46e8-8924-c41296d5ca68",
+      "4dc39fba-d80d-4970-9261-433e52288a75"
+    ],
+    "draft": null
+  },
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "832ea464-87e9-42d9-a320-24a7ca0619c2",
+    "expectedSha256": "sha256:3c13da5857d4f8e3ee5acdbbabc23115be5a6985b027a2a11fb764180dcb3e75"
+  },
+  {
+    "type": "SetLayerProperties",
+    "layerId": "4dc39fba-d80d-4970-9261-433e52288a75",
+    "layerVersion": "1",
+    "properties": {
+      "name": "Renamed original copy",
+      "opacity": 0.75,
+      "visible": false,
+      "locked": false
+    },
+    "draft": {
+      "sessionId": "ui_3ea20170-5eb0-4c89-8c9e-b2f4f7ef2e2f",
+      "draftId": "inspector_770d98c3-e7b4-4c68-b8c6-7ffd070f8905_4dc39fba-d80d-4970-9261-433e52288a75",
+      "generation": "1"
+    }
+  },
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "945ba7b3-bd2c-4042-bf84-06df038c0ef6",
+    "expectedSha256": "sha256:2d5ac3759040008a259e18fa3fd66d37d363e3f7ad020e44838ff318db0326fc"
+  },
+  {
+    "type": "SetLayerProperties",
+    "layerId": "4dc39fba-d80d-4970-9261-433e52288a75",
+    "layerVersion": "2",
+    "properties": {
+      "name": "Renamed original copy",
+      "opacity": 0.75,
+      "visible": true,
+      "locked": false
+    },
+    "draft": {
+      "sessionId": "ui_3ea20170-5eb0-4c89-8c9e-b2f4f7ef2e2f",
+      "draftId": "inspector_770d98c3-e7b4-4c68-b8c6-7ffd070f8905_4dc39fba-d80d-4970-9261-433e52288a75",
+      "generation": "2"
+    }
+  },
+  {
+    "type": "FinalizeStaging",
+    "stagingId": "d8df8f60-5e42-4240-9c0d-fd967873e223",
+    "expectedSha256": "sha256:c081566fd4d2750102fa43f6ef54725d5e016fc851bce61b6d079cc5900a3b39"
+  },
+  {
+    "type": "ApplyTransform",
+    "layerId": "4dc39fba-d80d-4970-9261-433e52288a75",
+    "layerVersion": "3",
+    "transform": [
+      0.5,
+      0,
+      0,
+      0.5,
+      1,
+      1
+    ],
+    "draft": {
+      "sessionId": "ui_3ea20170-5eb0-4c89-8c9e-b2f4f7ef2e2f",
+      "draftId": "inspector_770d98c3-e7b4-4c68-b8c6-7ffd070f8905_4dc39fba-d80d-4970-9261-433e52288a75",
+      "generation": "10"
+    }
+  },
+  {
+    "type": "DeleteLayer",
+    "layerId": "4dc39fba-d80d-4970-9261-433e52288a75",
+    "layerVersion": "4",
+    "draft": null
+  },
+  {
+    "type": "Undo",
+    "historyHead": "1fe07311-8396-4021-b174-fa936430ec69"
+  },
+  {
+    "type": "PrepareImageResample",
+    "layerId": "4dc39fba-d80d-4970-9261-433e52288a75",
+    "layerVersion": "4",
+    "width": 6,
+    "height": 4
+  },
+  {
+    "type": "ReviewImageEdit",
+    "previewId": "7b212f06-c5a6-498c-9a6d-40393f56296d"
+  },
+  {
+    "type": "ResampleImage",
+    "previewId": "7b212f06-c5a6-498c-9a6d-40393f56296d",
+    "reviewId": "3f679563-6b68-4b70-a13c-9a64df86c395",
+    "reviewHash": "sha256:3167c74f916b5221828ef9b6e81e0f183004f3b09cd58aca5f30e6775d72ed5d",
+    "draft": null
+  },
+  {
+    "type": "ResizeCanvas",
+    "width": 4,
+    "height": 3,
+    "offsetX": 0,
+    "offsetY": 0,
+    "draft": null
+  },
+  {
+    "type": "CropDocument",
+    "width": 2,
+    "height": 2,
+    "x": 0,
+    "y": 0,
+    "draft": null
+  },
+  {
+    "type": "PrepareFlattenedCopy",
+    "layerIds": [
+      "60142243-5ea4-46e8-8924-c41296d5ca68",
+      "4dc39fba-d80d-4970-9261-433e52288a75"
+    ],
+    "includeHidden": false,
+    "hideOriginals": false,
+    "newLayerId": "b1490ec4-0ee3-4e8c-902a-93fe4bb65639",
+    "name": "Flattened copy"
+  },
+  {
+    "type": "ReviewImageEdit",
+    "previewId": "8cfa62b3-7866-4a9d-866f-8bf9be0921e9"
+  },
+  {
+    "type": "CreateFlattenedCopy",
+    "previewId": "8cfa62b3-7866-4a9d-866f-8bf9be0921e9",
+    "reviewId": "2e4114d2-bc7a-4967-9eb8-638d9d767cb7",
+    "reviewHash": "sha256:84a89e3cbf6904d8d2e5a96d26b2d99d1a34a463daa4d3cf6ae0ec27d40063ae",
+    "draft": null
+  }
+]
