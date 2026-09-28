@@ -1,5 +1,5 @@
 {
-  "scope": "P1c.5 separate Composition and explicit field links; independent review required",
+  "scope": "P1c.6 integrated native authoring, full closure and recovery; independent review required",
   "registration": "Public definition exports through createElementScope; no private imports. Dialog/drawer definitions load as one bounded group on first explicit panel action.",
   "surfaces": [
     {
@@ -194,6 +194,17 @@
         "EnFileUpload"
       ],
       "owner": "Separate semantic IDs/order/selection; typed explicit bindings and retained stale/missing snapshots. Public fields, palette conversion, raw byte pages and reviewed Convert copy. Draft generation and expected revision fence Apply. Exact original-byte export uses the existing verified streamed destination path."
+    },
+    {
+      "surface": "Reviewed text raster derivative and complete-copy recovery",
+      "components": [
+        "EnButton",
+        "EnDialog",
+        "EnCard",
+        "EnAlert",
+        "EnValidationSummary"
+      ],
+      "owner": "Explicit review freezes the accepted text render, layer version, document and session; existing RasterizeTextDerivative creates an exact-slot image copy and hides the editable original in one Undo unit. Missing historical fonts remain complete-copy blockers after substitution; destination is unconfirmed until an actual supported acknowledgment. No new custom control or native exception."
     }
   ],
   "nativeOrAppOwnedExceptions": [

@@ -167,15 +167,16 @@ export class Objects {
     const s=assertPrivate(path,false);return JSON.stringify([s.dev,s.ino,s.size,s.mtimeMs,s.ctimeMs]);
   }
   async prove(ref:BlobRef,check:()=>void):Promise<string> {
-    this.check();if(this.proofs.size>=512)throw new StoreError('CAPACITY');const stamp=this.stamp(ref);const path=this.path(ref);
-    const fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);
-    try {
+    let fd:number|undefined;
+    try{this.check();if(this.proofs.size>=512)throw new StoreError('CAPACITY');const stamp=this.stamp(ref);const path=this.path(ref);
+    fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);
       if(!sameFile(fstatSync(fd),assertPrivate(path,false)))throw new StoreError('ROOT_UNSAFE');
       const hash=createHash('sha256');const buffer=Buffer.alloc(IO_CHUNK);let length=0n;
       for(;;){this.check();check();const n=readSync(fd,buffer);if(!n)break;length+=BigInt(n);if(length>BigInt(ref.byteLength))throw new StoreError('CORRUPT_OBJECT');hash.update(buffer.subarray(0,n));await new Promise<void>(r=>setImmediate(r));}
       if(length!==BigInt(ref.byteLength)||'sha256:'+hash.digest('hex')!==ref.hash||this.stamp(ref)!==stamp)throw new StoreError('CORRUPT_OBJECT');
       const token=randomUUID();this.proofs.set(token,{ref,stamp});return token;
-    } finally{closeSync(fd);}
+    }catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')throw new StoreError('MISSING_OBJECT');throw error;}
+    finally{if(fd!==undefined)closeSync(fd);}
   }
   proven(ref:BlobRef,token:string){this.check();const proof=this.proofs.get(token);if(!proof||proof.ref.hash!==ref.hash||proof.ref.byteLength!==ref.byteLength||proof.ref.mediaType!==ref.mediaType||this.stamp(ref)!==proof.stamp)throw new StoreError('CORRUPT_OBJECT');}
   releaseProof(token:string){this.proofs.delete(token);}

@@ -153,7 +153,9 @@ export class Authoring {
     }catch(error){this.editor.fail(this.readable(error));}this.changed();this.draw();},0);return true;
   }
   undoStroke(){if(!this.draft?.plan.operations.length)return false;this.draft.plan.operations=this.draft.plan.operations.slice(0,-1);this.save();return true;}
-  cancelGesture(){this.gestureEpoch++;this.gesture=null;void this.display(null).catch(error=>this.editor.fail(error));this.draw();}
+  cancelGesture(){this.gestureEpoch++;const gesture=this.gesture;this.gesture=null;
+    // With no gesture, the shell already owns the current document paint.
+    if(gesture)void this.display(null).catch(error=>this.editor.fail(error));this.draw();}
   overlay(ctx:CanvasRenderingContext2D){
     ctx.save();ctx.strokeStyle=this.color;ctx.fillStyle=this.color;ctx.lineWidth=1;ctx.setLineDash([4,3]);
     const draw=(shape:Shape)=>{ctx.beginPath();if(shape.kind==='polygon'){shape.points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();}else if(shape.kind==='ellipse')ctx.ellipse(shape.x+shape.width/2,shape.y+shape.height/2,shape.width/2,shape.height/2,0,0,Math.PI*2);else ctx.rect(shape.x,shape.y,shape.width,shape.height);ctx.stroke();};

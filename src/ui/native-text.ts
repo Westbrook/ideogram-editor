@@ -72,8 +72,12 @@ export class NativeTextEditing {
     else if(event.key==='Enter'&&(event.metaKey||event.ctrlKey)){event.preventDefault();void this.run('Apply text',()=>this.apply());}
   }
   private async run(label:string,work:()=>Promise<void>){
-    if(this.work||this.editor.view.busy)return;this.work++;this.changed();
-    await this.editor.run(label,async()=>{try{await work();}catch(error){this.error=error instanceof TextFailure&&error.code==='TEXT_MISSING_GLYPHS'?'Missing glyphs in selected fonts: '+((error.details as {codepoints?:number[]})?.codepoints??[]).map(n=>'U+'+n.toString(16).toUpperCase()).join(', ')+'. Full text and accepted appearance are retained.':error instanceof TextFailure?error.code+' '+JSON.stringify(error.details):error instanceof Error?error.message:String(error);throw error;}finally{this.work--;this.changed();}});
+    const independentCancel=label==='Cancel text edit'&&this.editor.view.busy;
+    if(this.work||(this.editor.view.busy&&!independentCancel))return;this.work++;this.changed();
+    const perform=async()=>{try{await work();}catch(error){this.error=error instanceof TextFailure&&error.code==='TEXT_MISSING_GLYPHS'?'Missing glyphs in selected fonts: '+((error.details as {codepoints?:number[]})?.codepoints??[]).map(n=>'U+'+n.toString(16).toUpperCase()).join(', ')+'. Full text and accepted appearance are retained.':error instanceof TextFailure?error.code+' '+JSON.stringify(error.details):error instanceof Error?error.message:String(error);throw error;}finally{this.work--;this.changed();}};
+    // Cancelling this draft must not clear another action's busy state.
+    if(independentCancel){try{await perform();}catch(error){this.editor.fail(error);}}
+    else await this.editor.run(label,perform);
   }
   private action(e:Event,label:string,work:()=>Promise<void>){this.adapter.action(e,()=>{
     if(this.composing&&(label==='Apply text'||label==='Cancel text edit')){this.pendingAction=label==='Apply text'?'apply':'cancel';if(this.pendingAction==='cancel')this.pendingSwitch=undefined;this.message=label+' after composition';this.changed();return;}
@@ -196,7 +200,7 @@ export class NativeTextEditing {
   overlay(ctx:CanvasRenderingContext2D){const s=this.session;if(!s)return;const layer=this.editor.view.image?.layers.find(l=>l.id===s.layerId);ctx.save();if(layer)ctx.transform(...layer.layerToDocument);else if(s.placement)ctx.translate(s.placement.x,s.placement.y);ctx.strokeStyle='#9866cc';ctx.setLineDash([4,3]);ctx.lineWidth=1;ctx.strokeRect(0,0,s.frame.width,s.frame.height);ctx.restore();}
   dispose(){this.clearPreview();this.epoch++;clearTimeout(this.timer);this.abort.abort();this.adapter.invalidate();this.renderer?.dispose();this.preparation?.dispose();this.library.clear();}
   render(){
-    const s=this.session,disabled=!!this.work||!this.editor.view.ready||this.stale||!!s?.locked;
+    const s=this.session,disabled=!!this.work||this.editor.view.busy||!this.editor.view.ready||this.stale||!!s?.locked;
     this.control.readOnly=!!s?.locked;this.control.dir=s?.style.direction==='auto'?'auto':s?.style.direction??'auto';
     const layer=this.editor.view.image?.layers.find(l=>l.id===s?.layerId),point=this.screenPoint([layer?.layerToDocument[4]??s?.placement?.x??0,layer?.layerToDocument[5]??s?.placement?.y??0]);
     void this.host.updateComplete.then(()=>{const region=this.host.querySelector<HTMLElement>('#native-text-editor');region?.style.setProperty('--text-left',Math.max(12,Math.min(innerWidth-460,point[0]))+'px');region?.style.setProperty('--text-top',Math.max(155,Math.min(innerHeight-300,point[1]))+'px');});

@@ -1,0 +1,47 @@
+{
+  "scope": "Exact test helper adoption after revised composite prerequisite218. Original214 remains FAILED. No product/native/profile edits.",
+  "sourceCandidate": "a6f20fc3d6d71a251a49b1deb238ca0ee45f0fae165d8b9d18bab049077baa62",
+  "compositeResultSHA256": "3d85c3e51a447dfc86988519fa69122dd87968c48bc7027f698d039bf0a06fc4",
+  "files": [
+    {
+      "name": "completion-observer.mjs",
+      "sha256": "1e57a6f2b59da161187936f1874091c465eb292497ee0f38515e0eb5eb59014d"
+    },
+    {
+      "name": "completion-group.mjs",
+      "sha256": "48ed20d8f0c66996d07018d999528e4b2d2b493bbace03409bb81fb53a61ca90"
+    },
+    {
+      "name": "app-buffer-core.mjs",
+      "sha256": "f5f3330bd507e1c0720aae75fce24e662fdea4d726b964dfa4d540251bd51b75"
+    },
+    {
+      "name": "app-buffer-recorder.mjs",
+      "sha256": "acf9bca6b0feb5cdb3d5c1115c659fd761f0fba400e5908f0d6d4ff263a13b50"
+    },
+    {
+      "name": "terminal-collector-core.mjs",
+      "sha256": "7b9bc1265cc4143ade6b09d9891048f16fdf774417f0b5391b16fdb0b5d1e15c"
+    },
+    {
+      "name": "page-only-collector-core.mjs",
+      "sha256": "abda77326a8747e192754cd1a191c1a8b4f0d7c801cecc781951a48740a13298"
+    },
+    {
+      "name": "grouped-collector-core.mjs",
+      "sha256": "4e47bb994e27eb32fbda9e3c1030b5821e0f59a1cafd634bb2ea2fc5a54ae5c6"
+    },
+    {
+      "name": "inspector-capability-core.mjs",
+      "sha256": "19aceec6297b580775ae60fc1ae80c9a5a08840fd44a1d4d64d946065ca1f078"
+    },
+    {
+      "name": "completion-native.mjs",
+      "sha256": "8fc57f1f36797c4269225e4aecd0223fc50687da5a6c3d7a4939f71dd233f46a"
+    },
+    {
+      "name": "completion-public.mjs",
+      "sha256": "38cff12ae01f9543f5730d052e9b79891df01d060cd0e30a976eb782d972984a"
+    }
+  ]
+}

@@ -1,0 +1,5810 @@
+{
+  "nodeOnlyMetadataAssets": [
+    "/assets/"
+  ],
+  "computedAssetPrefixes": [
+    {
+      "path": "tests/editor/original-font-reader.ts",
+      "prefix": "/assets/",
+      "source": "sealedBrowserFonts exact profile hash and unique emitted font basename"
+    }
+  ],
+  "documentEdges": [
+    "/assets/index-BHhnX3lS.js",
+    "/assets/preload-helper-BZ1Pz5am.js",
+    "/assets/index-CKeqbJD0.css"
+  ],
+  "cssEdges": [],
+  "kind": "PINNED-APPLICATION-ISSUERS-280",
+  "pins": [
+    {
+      "path": "dist/app/.vite/manifest.json",
+      "bytes": 1967,
+      "sha256": "1bbf93416ef4c8fd6c38b4599033b2691ef27ea4613f2142599fff065ccd3802",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/NotoSans-Regular-Dpf_lrdO.ttf",
+      "bytes": 569208,
+      "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/NotoSansArabic-Regular-CEibNoL-.ttf",
+      "bytes": 240456,
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/NotoSansCJKsc-Regular-DxgKpThH.otf",
+      "bytes": 16437364,
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/NotoSansSymbols2-Regular-Dcz4cXYm.ttf",
+      "bytes": 656852,
+      "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/canvaskit-B2Vb3rWN.wasm",
+      "bytes": 4979358,
+      "sha256": "26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/editor-panels-DZY6YZJM.js",
+      "bytes": 9407,
+      "sha256": "6f1d4e4b93c943f0b6c12310d15a8c61ed239ee9bcc0879abe3c0cf13c973035",
+      "role": "dynamic"
+    },
+    {
+      "path": "dist/app/assets/icon-DIQhQ5Eb.js",
+      "bytes": 137665,
+      "sha256": "990376e3d868a9a462b4fa2c2f6abeb022612ebfb9c3db231d821c7005988907",
+      "role": "vendor"
+    },
+    {
+      "path": "dist/app/assets/index-BHhnX3lS.js",
+      "bytes": 1429,
+      "sha256": "2181ef8b67860523874357eecee52fe23db211019d1c8342a2cac52fb652c925",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/index-CKeqbJD0.css",
+      "bytes": 99717,
+      "sha256": "47d603295d51e06c9ca45471ce2bd2ea22eb0267d4f1f874333c98fedccfaba5",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "bytes": 1218,
+      "sha256": "8820987e6a8afb54d776f21e305917e1ecf83cef678b4db38c2e5a405d04a8bf",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/shell-CVDaayc2.js",
+      "bytes": 555116,
+      "sha256": "b9aa91ef1bc756251ab548db9db7ab1bf6128b290c40b1db5e3bc4e5ebf62e07",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "bytes": 121009,
+      "sha256": "db58d2434a57261b88aea5e9c010c334ec24535bf8a1aa5a6f80b3323071bf43",
+      "role": "worker"
+    },
+    {
+      "path": "dist/app/build-evidence.json",
+      "bytes": 17815,
+      "sha256": "6ef3b7e07b089c4b7730500b063b3920c879a880de118e8b7e6a4d2681e408e9",
+      "role": "emitted"
+    },
+    {
+      "path": "dist/app/index.html",
+      "bytes": 961,
+      "sha256": "5bd493915cbb48c68e218f18ea26030d2073a67731bcc9b15b8fbdb3f8178ebf",
+      "role": "emitted"
+    },
+    {
+      "path": "node_modules/@en-reve/elements/package.json",
+      "bytes": 1174,
+      "sha256": "90bdf39411df3e527e2ccbf26dabad33289a9da929237a3db11a390afe087507",
+      "role": "source"
+    },
+    {
+      "path": "node_modules/@en-reve/primitives/package.json",
+      "bytes": 1103,
+      "sha256": "28534fd92e36e4e027afcafb806dbb6cc4bb9e285ef86b5213b09bb5a1254662",
+      "role": "source"
+    },
+    {
+      "path": "node_modules/lit/package.json",
+      "bytes": 10758,
+      "sha256": "b96d657d4a2e94394569b6a0f25881a4e4908a2682094d20d3b251ef7e1198a6",
+      "role": "source"
+    },
+    {
+      "path": "node_modules/playwright/package.json",
+      "bytes": 1359,
+      "sha256": "8bc2ddebe8d9b051b9ecb87d62c6c63877e59d08617f32c3215681ca8bb70998",
+      "role": "source"
+    },
+    {
+      "path": "node_modules/rolldown/package.json",
+      "bytes": 6219,
+      "sha256": "4ac9bd4b57a1470fa4515e479cea7ca78875802b661b87dfc896e216d4cf6869",
+      "role": "source"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 71114,
+      "sha256": "7fc1eb8fec4acde78aecdc340ebcdf93300f4764a06e33a6e6fa3c5987b57360",
+      "role": "source"
+    },
+    {
+      "path": "src/composition/core.ts",
+      "bytes": 22006,
+      "sha256": "16aabd5460511a9d0394f290eaf950a246baab88a57974851d6c118f60578a46",
+      "role": "source"
+    },
+    {
+      "path": "src/composition/draft.ts",
+      "bytes": 4951,
+      "sha256": "b544c10527e482822676ed4c5c1a06b226b5ca688835932fed454868c4b2318e",
+      "role": "source"
+    },
+    {
+      "path": "src/main.ts",
+      "bytes": 813,
+      "sha256": "fc0c904b0fcabb8c87dbebe3f2f573e2a63efdca9ed0cc1c38bd3be929cbb4a6",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/assets.ts",
+      "bytes": 2506,
+      "sha256": "6fa568298861bf2d138a77c62a5290562b2cb342e7e36d34d720baaced22e341",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/history-validation.ts",
+      "bytes": 5264,
+      "sha256": "95972a5b8b533ba1648bb28b9e2b615661ee2ce5eb9fa75fdcf606ab95195009",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/history.ts",
+      "bytes": 5323,
+      "sha256": "f3e4ed042316ef349f420a0c57587e9726170998182fa933243b478b92828ad1",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/json.ts",
+      "bytes": 4337,
+      "sha256": "2c7c9fd87dd2312bd144418a8ef6239e496c556c435c11eb326de5aa42f5b7c4",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/portable.ts",
+      "bytes": 1867,
+      "sha256": "4b6e0794f6c7bc1d520bca43c4961a4bd441413e620c2c87a2ac43611d1e629f",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/raster.ts",
+      "bytes": 1774,
+      "sha256": "317817731b4701bd71e9489cf6430eec66dcc4a2b3e89951fee76490f6885f37",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/recovery.ts",
+      "bytes": 2937,
+      "sha256": "0d0aac8e7b5c41121ac5316b7c8008c937be4abaea6579a1ac36d1fa777a9caf",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/session.ts",
+      "bytes": 1646,
+      "sha256": "2e3f10e47615fdfee3edaca39f8f7ccfa86635094de4a9f787d45c28f26e1ad4",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/sha256.ts",
+      "bytes": 2672,
+      "sha256": "6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/store.ts",
+      "bytes": 3151,
+      "sha256": "ea72c9994db03f5d56e77d2f2123083cbbc5d608e65c29231a43bd3f925c5962",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/text-budget.ts",
+      "bytes": 1118,
+      "sha256": "273f6a5be4b183df0249fed558b05dcd33e58d53b0ed20bafcb02ae110df80e0",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/text.ts",
+      "bytes": 8239,
+      "sha256": "b36dfcb1cfb2e9e96142f808c4d19326e2a9796ba55f6270de3a8c4fab5945b5",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/ui.ts",
+      "bytes": 1790,
+      "sha256": "7224cc4db8f891c3bfe3992562f21045a5539fc71b0ec9852be8dd399b763958",
+      "role": "source"
+    },
+    {
+      "path": "src/protocol/validate.ts",
+      "bytes": 17812,
+      "sha256": "3dbaaac265892f21ecffa179d913e0377647b12d353b8053050712e5be8d309c",
+      "role": "source"
+    },
+    {
+      "path": "src/raster/core.ts",
+      "bytes": 8804,
+      "sha256": "d8de114ca50149e77c02c5cb5fa5b17b38f2d56cc6933db85a19242c6cd168b3",
+      "role": "source"
+    },
+    {
+      "path": "src/raster/mapping.ts",
+      "bytes": 1899,
+      "sha256": "b642fac2ac9a0864bb1d4deaef4a31243c5ad1e21adc26aaeeab158c50f87156",
+      "role": "source"
+    },
+    {
+      "path": "src/raster/mask.ts",
+      "bytes": 9339,
+      "sha256": "7b1fa5636a925c7b6845002a2c862cf3a2c30efbc534cec66baba2f7f7d5e47c",
+      "role": "source"
+    },
+    {
+      "path": "src/state/browser-journal.ts",
+      "bytes": 1587,
+      "sha256": "c58d8f4f9a86cf39e5ae00c3c7c637029469228a7ca1ca36d75a89d19001afe9",
+      "role": "source"
+    },
+    {
+      "path": "src/state/destination.ts",
+      "bytes": 3450,
+      "sha256": "63d273077d4c7e718c05bdadcbf3f3e9254da00bf0b9e1a5071062e5ee716abc",
+      "role": "source"
+    },
+    {
+      "path": "src/state/draft-persistence.ts",
+      "bytes": 6424,
+      "sha256": "aedd3d6ee02423cae827c65a963d8079729199c91b9a3bdc7dc8cd53af644d75",
+      "role": "source"
+    },
+    {
+      "path": "src/state/editor-client.ts",
+      "bytes": 38285,
+      "sha256": "c064cd90196cef46e1653370a3aeaf5db4f44cde41f1c47beb805c2c5f3ed8f5",
+      "role": "source"
+    },
+    {
+      "path": "src/state/projection.ts",
+      "bytes": 2058,
+      "sha256": "9cf86f8a121bcef8b07879405d5989189df615684b46aa64185da9e0cb0b63f5",
+      "role": "source"
+    },
+    {
+      "path": "src/state/recovery-cache.ts",
+      "bytes": 8052,
+      "sha256": "423c12f954c48caa40248b4ab564082cec31b7ab4c577265f27cb873a39beba3",
+      "role": "source"
+    },
+    {
+      "path": "src/state/recovery-client.ts",
+      "bytes": 22124,
+      "sha256": "6aad855f2d51645759637e1cbb64e1ffacae16e3b86df48d5848077b435d5fd7",
+      "role": "source"
+    },
+    {
+      "path": "src/state/session-client.ts",
+      "bytes": 4953,
+      "sha256": "eed37b101c2f2c5ce9cf948058b918e5dc1995bcee310f0d3384c24884b80f9b",
+      "role": "source"
+    },
+    {
+      "path": "src/text/admission.ts",
+      "bytes": 4357,
+      "sha256": "be0ae31c17e9d0497a27a49d0b15f1be7672c20c5752e8423ad71f0f06fc5e1a",
+      "role": "source"
+    },
+    {
+      "path": "src/text/bidi-data.json",
+      "bytes": 19070,
+      "sha256": "df36e677252814e1d84009c9ab735c12ac67deb7460695d64b477beee00b955a",
+      "role": "source"
+    },
+    {
+      "path": "src/text/bidi.ts",
+      "bytes": 632,
+      "sha256": "9fbc954b46188247d44c829ce82bba259de40dbcbb0100380c43aa8e7b961350",
+      "role": "source"
+    },
+    {
+      "path": "src/text/bundled-fonts.ts",
+      "bytes": 1857,
+      "sha256": "14772cc968adf2512319ee2be18062db6b8ab32a591e1c0bdc3efe0305494c84",
+      "role": "source"
+    },
+    {
+      "path": "src/text/client.ts",
+      "bytes": 8280,
+      "sha256": "816e12e15406e993f8271dfa3ae397eba2d1b552470c21c0def339e0fcca53e6",
+      "role": "source"
+    },
+    {
+      "path": "src/text/contracts.ts",
+      "bytes": 3508,
+      "sha256": "80173a85fd2eeca2cac63ea0806c23643668dfc2c3249859e9d07426e3730686",
+      "role": "source"
+    },
+    {
+      "path": "src/text/core.ts",
+      "bytes": 16793,
+      "sha256": "69cb9bb9d2e97be39ef5faaa76b2f05b98c3ba40d2b3b0c18624b1f08a2bf1ed",
+      "role": "source"
+    },
+    {
+      "path": "src/text/durable.ts",
+      "bytes": 6365,
+      "sha256": "a5bce2aa7dad1678b3af6df93f8cdbc7c841dddca507eb176673011b699cd3e5",
+      "role": "source"
+    },
+    {
+      "path": "src/text/engine.ts",
+      "bytes": 1476,
+      "sha256": "c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830",
+      "role": "source"
+    },
+    {
+      "path": "src/text/font.ts",
+      "bytes": 4272,
+      "sha256": "76a715d1e84212ae66dcbe34c55ae8a879e473bfea299987018a7d7bd9380b01",
+      "role": "source"
+    },
+    {
+      "path": "src/text/memory.ts",
+      "bytes": 3818,
+      "sha256": "c219b844ba9621234422df6df1e49f73e6d8b226a5241a4f7405d066e03b27ee",
+      "role": "source"
+    },
+    {
+      "path": "src/text/profile.json",
+      "bytes": 16101,
+      "sha256": "2b874883288b0e197153220b4e44ff1dcb751d34c164a3f558668b40733e7d3b",
+      "role": "source"
+    },
+    {
+      "path": "src/text/retained-profiles/304528c9.json",
+      "bytes": 15748,
+      "sha256": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033",
+      "role": "source"
+    },
+    {
+      "path": "src/text/retained-profiles/6e8a481e.json",
+      "bytes": 15396,
+      "sha256": "15634d19418bc21841fa8093de2ae7598b752c2f158be90f6e7e06216d79d6da",
+      "role": "source"
+    },
+    {
+      "path": "src/text/retained-profiles/b89503d3.json",
+      "bytes": 14238,
+      "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8",
+      "role": "source"
+    },
+    {
+      "path": "src/text/retained-profiles/c19791ae.json",
+      "bytes": 12986,
+      "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b",
+      "role": "source"
+    },
+    {
+      "path": "src/text/retained-profiles/d047f5be.json",
+      "bytes": 15572,
+      "sha256": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e",
+      "role": "source"
+    },
+    {
+      "path": "src/text/retained-profiles/ff24a513.json",
+      "bytes": 15924,
+      "sha256": "82bbff0efe60f4633875efe51917e9526464a2ddc54ab28c2dc048d44267ef36",
+      "role": "source"
+    },
+    {
+      "path": "src/text/worker.ts",
+      "bytes": 1071,
+      "sha256": "ab8f349c39579dc41c277438f9f3de60255d6f447e2d0c42ad4c30ed4da5ad1e",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/adapters.ts",
+      "bytes": 1338,
+      "sha256": "8a3a2476552dba3e8bd33b6d1bbc35e7b6663472e92cbe7999e5409f105b7514",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/authoring.ts",
+      "bytes": 32079,
+      "sha256": "f6235ddac9094028ae121bb4f02cf61625375b909d5307e92a126ea96cb2d5cf",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/canvas-view.ts",
+      "bytes": 3061,
+      "sha256": "4c8f95d2ffa9502349abe0b41803be649efc2d1e870260de778a5e54b5cd6c56",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/composition.ts",
+      "bytes": 45360,
+      "sha256": "c4b95217323e8191b0ea69260edc77bb24a59c4c2dde7f220837f3ac55c67ac6",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/editor-panels.ts",
+      "bytes": 222,
+      "sha256": "317eb7d341385707685a0051b0a0f845106b90216415d784ba37147775633b29",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/icons.ts",
+      "bytes": 1127,
+      "sha256": "71ce0b0bf30ad2ead51133eb6cfd6d2866f05c6af3ba656fdae8f0ab91eff6f9",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/native-text.ts",
+      "bytes": 31776,
+      "sha256": "015c64a3a8b79346ae9a935374a5426f37a95b6c0eaf749f67ea1a5805e9ca2a",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/shell.ts",
+      "bytes": 67521,
+      "sha256": "9609fbab5bffce59977fac02e238d4fbe769a5f1cede5fb755f74ccfa488f037",
+      "role": "source"
+    },
+    {
+      "path": "src/ui/text-library.ts",
+      "bytes": 3351,
+      "sha256": "f12f59fdc24da2a57ceed3d4fc92bfddc800c830033246f0f14c0d7afe1d804b",
+      "role": "source"
+    },
+    {
+      "path": "tests/editor/completion/ancillary-favicon.mjs",
+      "bytes": 14092,
+      "sha256": "c3a7dfb5660cee18ce0f612214f406d2dc33da9216bcbf7606d3d4f0d0b23481",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/app-buffer-core.mjs",
+      "bytes": 18537,
+      "sha256": "f5f3330bd507e1c0720aae75fce24e662fdea4d726b964dfa4d540251bd51b75",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/app-buffer-recorder.mjs",
+      "bytes": 4962,
+      "sha256": "acf9bca6b0feb5cdb3d5c1115c659fd761f0fba400e5908f0d6d4ff263a13b50",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/boundary.mjs",
+      "bytes": 3138,
+      "sha256": "9bf6e6c5e8a9bb7ed7fbd587f977ac0f9b3785240813d00a3239271c46bc4807",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/busy-state.mjs",
+      "bytes": 3446,
+      "sha256": "7a9491cdf94a104344dd57eeeb4c66967c4752957891564c1b1e89e4b63a49ae",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/completion-group.mjs",
+      "bytes": 12531,
+      "sha256": "48ed20d8f0c66996d07018d999528e4b2d2b493bbace03409bb81fb53a61ca90",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/completion-observer.mjs",
+      "bytes": 3153,
+      "sha256": "1e57a6f2b59da161187936f1874091c465eb292497ee0f38515e0eb5eb59014d",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/completion-public.mjs",
+      "bytes": 6818,
+      "sha256": "38cff12ae01f9543f5730d052e9b79891df01d060cd0e30a976eb782d972984a",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/empty-native.mjs",
+      "bytes": 4114,
+      "sha256": "792b65394cc2c642e67a41a10a63c87162da93847b745a423facde856ea5bff5",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/grouped-collector-core.mjs",
+      "bytes": 10832,
+      "sha256": "4e47bb994e27eb32fbda9e3c1030b5821e0f59a1cafd634bb2ea2fc5a54ae5c6",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-core.mjs",
+      "bytes": 9124,
+      "sha256": "a92af6f6e936432c7bd8dc169ada02c7e452d3ed945e6df1c40d65af9672526a",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-headers.mjs",
+      "bytes": 3623,
+      "sha256": "abe14d7eb90d7e094ba52b6902158780830beeaad5f9de377db819481035729d",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-ipc.mjs",
+      "bytes": 2782,
+      "sha256": "f91341901bf13ce00941424968e8db9d98ee5906532e85109d80f249a48e7d10",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-issuers.mjs",
+      "bytes": 4848,
+      "sha256": "4008866d4814dc492e80d39d88ecaed611a8b313956c21a17127ada1d34bc84c",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-monitor.mjs",
+      "bytes": 4575,
+      "sha256": "cada9c9c59a4cbe7e91537cba8c1f601af0589bafc5191bc8e0649ba38bf0a2f",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-page.mjs",
+      "bytes": 6065,
+      "sha256": "ce160ba5a01e4ddc84607508e46a47becbf4c48966046d590bcf4d23413ab90c",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-protocol.mjs",
+      "bytes": 4670,
+      "sha256": "b901296fc66e47cb8c816640e27b20b423b9d9a54e95dd4a28c5a6c6e73e2fee",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-receiver.mjs",
+      "bytes": 8446,
+      "sha256": "e1e3faf3a5e65a046eb4ec2ddf0f2570c1b6b790151d64eb08aaadccd573c945",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-final-traffic.mjs",
+      "bytes": 5862,
+      "sha256": "eebe6640f7255edf6dcf1ee797f5419ed4461cbbbd286c59d95221eb81edd32a",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/host-handler-artifact.mjs",
+      "bytes": 19472,
+      "sha256": "b7ed60a5b7c0256b79e351a46125fafe621d4f4439cbb8c1616fff17a2a57cf4",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/inspector-capability-core.mjs",
+      "bytes": 6776,
+      "sha256": "19aceec6297b580775ae60fc1ae80c9a5a08840fd44a1d4d64d946065ca1f078",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/monitor.mjs",
+      "bytes": 24112,
+      "sha256": "459e12cc185fb829c7b7f3461838ea5351ead2ee96be9a59eec17c5231067d71",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/operation.mjs",
+      "bytes": 5128,
+      "sha256": "e9ed288f4f66516dd26039592a69eac704cbc87f6d85c9a0ed1001928cfe7136",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/owned-process.mjs",
+      "bytes": 5668,
+      "sha256": "463d6d2a1d6e22fd6e4babc6a8ccca909030e0b2fc51fbb161682a7acf71e8a9",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/page-only-collector-core.mjs",
+      "bytes": 18285,
+      "sha256": "abda77326a8747e192754cd1a191c1a8b4f0d7c801cecc781951a48740a13298",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/page-sink.mjs",
+      "bytes": 3440,
+      "sha256": "d6424d7f0fc2b4a1ec4c5c7bb5507c18f51bb46f6eac2a35c16a23eaeb5d701f",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/protocol-membership.mjs",
+      "bytes": 811,
+      "sha256": "c9e76d014db28a99a6aa65b0c1cf0f6c6a0d5ecffea74164140fdb0c6ca2ad21",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/recorder-health.mjs",
+      "bytes": 2861,
+      "sha256": "85e65d942358509758d4094b22f6409bd76b884c9eb84e4f06645c7a53fd6ca5",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/restored-native.mjs",
+      "bytes": 9220,
+      "sha256": "bfa6ec3ad819600d07d4a5513b3679acbba5f278553847e03c1838e80acc1112",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/restored-route-flow.mjs",
+      "bytes": 3072,
+      "sha256": "f009804313add62252081149921846c932cbbbb8d18b67e33dde11f903206ff3",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/restored-route.mjs",
+      "bytes": 10696,
+      "sha256": "b76174edf2dd7eec72ca6c1e333309019e118ddcb96379fd3e08f0a2191b756c",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/setup-owned.mjs",
+      "bytes": 662,
+      "sha256": "2e8142bec326661c118e6168dd463ae60e9fdc73b035c2147e5684ecb725786a",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/sse-frames.mjs",
+      "bytes": 2191,
+      "sha256": "6da5bdb2493b881bb627260453beeea20ace2c6656bc4b73afe454bad26e374d",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/sse-publication.mjs",
+      "bytes": 8497,
+      "sha256": "945c94590b09ebf6f2176ff3516beabbd53a81e41fc9d389bec0a04234ec0b1d",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/terminal-collector-core.mjs",
+      "bytes": 13584,
+      "sha256": "7b9bc1265cc4143ade6b09d9891048f16fdf774417f0b5391b16fdb0b5d1e15c",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/wire.mjs",
+      "bytes": 3940,
+      "sha256": "850b9c706b79e25cfb46dd4e1727d13bd36e988421ec83082f03a16cdc609929",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/composition-network.mjs",
+      "bytes": 1514,
+      "sha256": "9949d9364134c562465654fb5ade4399599edcbb4e9808ea0fcba6f76e8297d2",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/composition-save-witness.mjs",
+      "bytes": 12373,
+      "sha256": "24e145a582d17f637ec123cadb55e4d93c659a07aac9c553b6130071a87e8709",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/composition-save.config.ts",
+      "bytes": 496,
+      "sha256": "f985847c298dee6affabcda3f05e60711d542ca97c91228dfd21cc77d72032fc",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/composition-save.spec.ts",
+      "bytes": 12366,
+      "sha256": "6c381f00df41ab2ba948d0361be424a7922614676032d27b1e9567484d342230",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/composition.config.ts",
+      "bytes": 590,
+      "sha256": "fbf92fb4d8187c910189e7549e07fa9b2950a2322a1a4fe7fbe0cc0cedafb77d",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/composition.spec.ts",
+      "bytes": 29038,
+      "sha256": "7392bcf7195224be230244ad66ce3221bdd586abc577d23f718aa6b530498e30",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/error-monitor.ts",
+      "bytes": 812,
+      "sha256": "ed1629f31faca3f0bea2b7205a83178c487e1f2c1b9c68b6927a6613e55579cc",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/integration-fixture.ts",
+      "bytes": 18072,
+      "sha256": "0cfbab94fdcf7797c2a82632918ed0d8ff0bf6dbfd32fe4fee2d9480acd31887",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/integration-network.mjs",
+      "bytes": 8178,
+      "sha256": "ca7251c12eb12c732220304cea079ee827504bb5be238d09338a36302280a9e5",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/integration-reads.spec.ts",
+      "bytes": 4398,
+      "sha256": "74ad8ba9d984f8c00a178dfd6057c651b5f096f238499b883e5147984c97f05f",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/integration-regression.config.ts",
+      "bytes": 554,
+      "sha256": "2f913d52ad2cf921f92ec7a4d812d4e2141f58f6cc32a2e60dd0965d902b6c60",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/integration.config.ts",
+      "bytes": 579,
+      "sha256": "a0630b5752595e0cbc33b80846ede2bcafbf7265cad57340e75634b1e205bd33",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/integration.spec.ts",
+      "bytes": 25781,
+      "sha256": "e9fc0cb7cacccc712b86d0ac6485e48271d013651b19dd45d4e60fa71cdb6f64",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/original-font-reader.ts",
+      "bytes": 10632,
+      "sha256": "7bbfcf4652a807cdf77eac33adfe9b2a5d5bb4f6cae88ccbdfe6b517631619d3",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/original-recovery-reader.ts",
+      "bytes": 21042,
+      "sha256": "cdfbba071fe4d4cdceb96c7ba255ceb8ed7065b91219aa9c88de8aac377342da",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/owned-opfs.ts",
+      "bytes": 8252,
+      "sha256": "c064e8a8d96074c625b646487978c9ea3c1cb0a1f479eaf6e3b6b463cfad3c8c",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/process-completion-fixture.mjs",
+      "bytes": 2186,
+      "sha256": "cc7a69017547222e88721199c536c97dcfd7312ad1933ec4ae2b1f0bc1aeecbe",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/process.ts",
+      "bytes": 777,
+      "sha256": "0c092c17977098303bd2c6e484e1aca99aa86ebc3e486d284a42d2e20b38b9ef",
+      "role": "injection"
+    },
+    {
+      "path": "tests/editor/text-zoom-cancellations.mjs",
+      "bytes": 1262,
+      "sha256": "b8846cfb25bb286b05aa06af329df5f8fa96a90a522a0ad5eb138b0e1886a426",
+      "role": "injection"
+    },
+    {
+      "path": "tests/portable/archive-fixture.mjs",
+      "bytes": 3557,
+      "sha256": "27509e73ed710ab106f9e30f48cc2dc6f2111ae08726d832879e26e49e9b22f5",
+      "role": "injection"
+    }
+  ],
+  "modules": [
+    {
+      "path": "dist/app/assets/editor-panels-DZY6YZJM.js",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./icon-DIQhQ5Eb.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 2742,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.options.open",
+            "source": "this.options.open()"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "dist/app/assets/icon-DIQhQ5Eb.js",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "dist/app/assets/index-BHhnX3lS.js",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./preload-helper-BZ1Pz5am.js"
+          },
+          {
+            "kind": "dynamic",
+            "value": "./shell-CVDaayc2.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 865,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(e.href,n)"
+          }
+        ],
+        "assets": [
+          "assets/shell-CVDaayc2.js",
+          "assets/preload-helper-BZ1Pz5am.js",
+          "assets/icon-DIQhQ5Eb.js"
+        ],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "dist/app/assets/preload-helper-BZ1Pz5am.js",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "dist/app/assets/shell-CVDaayc2.js",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./preload-helper-BZ1Pz5am.js"
+          },
+          {
+            "kind": "static",
+            "value": "./icon-DIQhQ5Eb.js"
+          },
+          {
+            "kind": "dynamic",
+            "value": "./editor-panels-DZY6YZJM.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 35308,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/documents/`+e.id+`/composition?revision=`+e.revision)"
+          },
+          {
+            "at": 36370,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/ui/`+this.editor.sessionId+`/composition?draftId=`+r.id+`&generation=`+r.generation)"
+          },
+          {
+            "at": 38623,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/documents/`+e.id+`/composition?revision=`+e.revision)"
+          },
+          {
+            "at": 45344,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(i+`&raw=`+a+`&offset=`+o)"
+          },
+          {
+            "at": 45719,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(i+`&raw=`+a+`&download=1`)"
+          },
+          {
+            "at": 46323,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(this.rawPath()+`&raw=`+this.rawIndex+`&download=1`)"
+          },
+          {
+            "at": 75299,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(e,{credentials:`same-origin`,redirect:`error`,signal:n})"
+          },
+          {
+            "at": 93825,
+            "kind": "NewExpression",
+            "name": "Worker",
+            "callee": "Worker",
+            "source": "new Worker(new URL(`/assets/worker-G9WPEZGy.js`,``+import.meta.url),{type:`module`,name:`ideogram-text-`+t})"
+          },
+          {
+            "at": 142232,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(`/api/v1/assets/`+e.id+`/content`)"
+          },
+          {
+            "at": 144562,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/text-admission/`+e+(t?`/release`:``),{method:`POST`,headers:{\"Content-Type\":`application/json`},body:`{\"protocolVersion\":1}`})"
+          },
+          {
+            "at": 147828,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(e+`&content=1`)"
+          },
+          {
+            "at": 148598,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(e)"
+          },
+          {
+            "at": 150475,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(r)"
+          },
+          {
+            "at": 150757,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/documents/`+o.id+`/text?layerId=`+s.id+`&revision=`+o.revision)"
+          },
+          {
+            "at": 151683,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(`/api/v1/assets/`+t.id+`/content`,{method:`HEAD`})"
+          },
+          {
+            "at": 172712,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/assets/`+i.assetId+`/raster`)"
+          },
+          {
+            "at": 175537,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/assets/`+a.payload.asset.id+`/raster`)"
+          },
+          {
+            "at": 175610,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(`/api/v1/assets/`+s.payload.asset.id+`/content`)"
+          },
+          {
+            "at": 176282,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(`/api/v1/assets/`+n+`/content`)"
+          },
+          {
+            "at": 180345,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json(`/api/v1/assets/`+o+`/sample?x=`+e+`&y=`+t)"
+          },
+          {
+            "at": 369581,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(this.movingKeys(t))"
+          },
+          {
+            "at": 382094,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.moves.open",
+            "source": "this.moves.open(e)"
+          },
+          {
+            "at": 447317,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(`/api/v1/${n}`,{method:r?`POST`:`GET`,headers:i,...r?{body:JSON.stringify(r)}:{},credentials:`same-origin`,cache:`no-store`,redirect:`error`,signal:t?AbortSignal.any([t.signal,AbortSignal.timeout(1e4)]):AbortSignal.timeout(1e4)})"
+          },
+          {
+            "at": 447582,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "a.json",
+            "source": "a.json()"
+          },
+          {
+            "at": 447661,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "a.json",
+            "source": "a.json()"
+          },
+          {
+            "at": 449268,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(t,{...n,headers:r,credentials:`same-origin`,cache:`no-store`,redirect:`error`})"
+          },
+          {
+            "at": 451239,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "indexedDB.open",
+            "source": "indexedDB.open(t,1)"
+          },
+          {
+            "at": 455922,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(e,{...t,credentials:`same-origin`,headers:{\"X-App-Client\":`LP-1`,...t?.headers}})"
+          },
+          {
+            "at": 456557,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(e.url)"
+          },
+          {
+            "at": 458566,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/namespace-events/`+t.eventId+`?recoveryId=`+n.recoveryId)"
+          },
+          {
+            "at": 462807,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(t.metadataUrl)"
+          },
+          {
+            "at": 464897,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/events?after=`+r)"
+          },
+          {
+            "at": 465218,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/events?after=`+r+`&recoveryId=`+n.recoveryId)"
+          },
+          {
+            "at": 465455,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/events?after=`+r+`&recoveryId=`+n.recoveryId)"
+          },
+          {
+            "at": 465561,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/events?after=`+r+`&recoveryId=`+n.recoveryId)"
+          },
+          {
+            "at": 465889,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/recovery/`+n.recoveryId+`/release`,{method:`POST`,headers:{\"Content-Type\":`application/json`,\"X-App-Csrf\":this.csrf()},body:`{\"protocolVersion\":1}`})"
+          },
+          {
+            "at": 466233,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/events/stream?after=`+t.cursor,{signal:e})"
+          },
+          {
+            "at": 467309,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/events?after=`+c+`&recoveryId=`+e.recovery.recoveryId)"
+          },
+          {
+            "at": 469137,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "indexedDB.open",
+            "source": "indexedDB.open(`ie-delivery-`+t,1)"
+          },
+          {
+            "at": 470126,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/ui/`+this.sessionId)"
+          },
+          {
+            "at": 470236,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "t.json",
+            "source": "t.json()"
+          },
+          {
+            "at": 472395,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/ui/`+this.sessionId,{method:`POST`,headers:{\"Content-Type\":`application/json`,\"X-App-Csrf\":this.csrf()},body:JSON.stringify(n.request)})"
+          },
+          {
+            "at": 472618,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "r.json",
+            "source": "r.json()"
+          },
+          {
+            "at": 474612,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(e,t)"
+          },
+          {
+            "at": 474677,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "n.json",
+            "source": "n.json()"
+          },
+          {
+            "at": 474771,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(e,{method:`POST`,headers:{\"Content-Type\":`application/json`},body:JSON.stringify(t)})"
+          },
+          {
+            "at": 475312,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "Fs.open",
+            "source": "Fs.open(`ie-projection-`+e)"
+          },
+          {
+            "at": 475406,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "Hs.open",
+            "source": "Hs.open(e)"
+          },
+          {
+            "at": 475931,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(a,!1)"
+          },
+          {
+            "at": 475985,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(this.view.documents[0].id,!1)"
+          },
+          {
+            "at": 478339,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/documents/`+e.id+`/image`)"
+          },
+          {
+            "at": 478385,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/documents/`+e.id+`/history`)"
+          },
+          {
+            "at": 478433,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/documents/`+e.id+`/checkpoints`)"
+          },
+          {
+            "at": 478485,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/documents/`+e.id+`/save-status?sessionId=`+this.sessionId)"
+          },
+          {
+            "at": 478745,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(`/api/v1/documents/`+e.id,{method:`HEAD`})"
+          },
+          {
+            "at": 479964,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/documents/`+t.id+`/history`+(n?`?after=`+n:``))"
+          },
+          {
+            "at": 480474,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/documents/`+n.id+`/`+e+(t?`?after=`+t:``))"
+          },
+          {
+            "at": 480544,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(`/api/v1/documents/`+n.id,{method:`HEAD`})"
+          },
+          {
+            "at": 481070,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/ui`+(e?`?cursor=`+e:``))"
+          },
+          {
+            "at": 481799,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(this.ui.preferences.documentId,!1)"
+          },
+          {
+            "at": 484677,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "(await this.session.transport(`/api/v1/commands/`+n)).json",
+            "source": "(await this.session.transport(`/api/v1/commands/`+n)).json()"
+          },
+          {
+            "at": 484684,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(`/api/v1/commands/`+n)"
+          },
+          {
+            "at": 484824,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/commands`,{method:`POST`,headers:{\"Content-Type\":`application/json`},body:e.wire})"
+          },
+          {
+            "at": 484936,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/commands`,{method:`POST`,headers:{\"Content-Type\":`application/json`},body:e.wire})"
+          },
+          {
+            "at": 485278,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/commands/`+n)"
+          },
+          {
+            "at": 485925,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/commands/`+e.commandId+`/result`)"
+          },
+          {
+            "at": 486451,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(e.url)"
+          },
+          {
+            "at": 487350,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/events?after=`+e.toSeq+`&recoveryId=`+t.recovery.recoveryId)"
+          },
+          {
+            "at": 487578,
+            "kind": "CallExpression",
+            "name": "post",
+            "callee": "this.post",
+            "source": "this.post(`/api/v1/recovery/`+t.recovery.recoveryId+`/release`,{protocolVersion:1})"
+          },
+          {
+            "at": 487727,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/commands/pending`+(e?`?cursor=`+e:``))"
+          },
+          {
+            "at": 487993,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(`/api/v1/commands/`+e.commandId+`/original`)"
+          },
+          {
+            "at": 488369,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/commands/`+e.commandId)"
+          },
+          {
+            "at": 488818,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/assets/staging/recovery`+(e?`?cursor=`+e:``))"
+          },
+          {
+            "at": 488970,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/assets/staging/`+t)"
+          },
+          {
+            "at": 489755,
+            "kind": "CallExpression",
+            "name": "post",
+            "callee": "this.post",
+            "source": "this.post(`/api/v1/assets/staging`,c)"
+          },
+          {
+            "at": 489805,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/assets/staging/`+c.stagingId)"
+          },
+          {
+            "at": 489985,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/assets/staging/`+c.stagingId,{method:`PUT`,headers:{\"Content-Type\":`application/octet-stream`,\"Upload-Offset\":l.committedOffset},body:n})"
+          },
+          {
+            "at": 491364,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/assets/raster-reviews/`+o.payload.reviewId)"
+          },
+          {
+            "at": 491711,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(n)"
+          },
+          {
+            "at": 492759,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(e.review.documentId)"
+          },
+          {
+            "at": 493422,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/image-edit-reviews/`+r.payload.reviewId)"
+          },
+          {
+            "at": 493900,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json(`/api/v1/bundle-reviews/`+r.payload.reviewId)"
+          },
+          {
+            "at": 497700,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(`/api/v1/assets/`+e+`/content`)"
+          },
+          {
+            "at": 499075,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(`/api/v1/assets/`+e+`/content`)"
+          },
+          {
+            "at": 510389,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "Q.transport",
+            "source": "Q.transport(`/api/v1/assets/`+e+`/content`)"
+          },
+          {
+            "at": 511888,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "$.json",
+            "source": "$.json(`/api/v1/documents/`+e.id+`/text?layerId=`+t.id+`&revision=`+e.revision)"
+          },
+          {
+            "at": 545682,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "$.open",
+            "source": "$.open(e.id)"
+          }
+        ],
+        "assets": [
+          "assets/editor-panels-DZY6YZJM.js",
+          "assets/icon-DIQhQ5Eb.js",
+          "/assets/worker-G9WPEZGy.js",
+          "/assets/NotoSans-Regular-Dpf_lrdO.ttf",
+          "/assets/NotoSansArabic-Regular-CEibNoL-.ttf",
+          "/assets/NotoSansCJKsc-Regular-DxgKpThH.otf",
+          "/assets/NotoSansSymbols2-Regular-Dcz4cXYm.ttf"
+        ],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "syntax": {
+        "edges": [],
+        "calls": [
+          {
+            "at": 40364,
+            "kind": "NewExpression",
+            "name": "XMLHttpRequest",
+            "callee": "XMLHttpRequest",
+            "source": "new XMLHttpRequest"
+          },
+          {
+            "at": 40390,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "t.open",
+            "source": "t.open(`GET`,e,!1)"
+          },
+          {
+            "at": 40409,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "t.send",
+            "source": "t.send(null)"
+          },
+          {
+            "at": 40454,
+            "kind": "NewExpression",
+            "name": "XMLHttpRequest",
+            "callee": "XMLHttpRequest",
+            "source": "new XMLHttpRequest"
+          },
+          {
+            "at": 40480,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "t.open",
+            "source": "t.open(`GET`,e,!1)"
+          },
+          {
+            "at": 40528,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "t.send",
+            "source": "t.send(null)"
+          },
+          {
+            "at": 40588,
+            "kind": "NewExpression",
+            "name": "XMLHttpRequest",
+            "callee": "XMLHttpRequest",
+            "source": "new XMLHttpRequest"
+          },
+          {
+            "at": 40607,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "r.open",
+            "source": "r.open(`GET`,e,!0)"
+          },
+          {
+            "at": 40739,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "r.send",
+            "source": "r.send(null)"
+          },
+          {
+            "at": 41939,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(e,{credentials:`same-origin`})"
+          },
+          {
+            "at": 42498,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(n,{credentials:`same-origin`})"
+          },
+          {
+            "at": 86077,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(e,{credentials:`same-origin`,redirect:`error`,signal:n})"
+          }
+        ],
+        "assets": [
+          "/assets/canvaskit-B2Vb3rWN.wasm"
+        ],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/composition/core.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/core.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/composition/draft.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../protocol/json.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/validate.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/main.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "dynamic",
+            "value": "./ui/shell.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/assets.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./store.js"
+          },
+          {
+            "kind": "static",
+            "value": "./raster.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/history-validation.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../composition/core.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/mapping.js"
+          },
+          {
+            "kind": "static",
+            "value": "./validate.js"
+          },
+          {
+            "kind": "static",
+            "value": "./text.js"
+          },
+          {
+            "kind": "static",
+            "value": "./validate.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/core.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/core.js"
+          },
+          {
+            "kind": "static",
+            "value": "./history.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/history.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../composition/core.js"
+          },
+          {
+            "kind": "static",
+            "value": "./text.js"
+          },
+          {
+            "kind": "static",
+            "value": "./store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/core.js"
+          },
+          {
+            "kind": "static",
+            "value": "./raster.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/json.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/portable.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./store.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/raster.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../raster/mapping.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/mask.js"
+          },
+          {
+            "kind": "static",
+            "value": "./store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/core.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/recovery.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./store.js"
+          },
+          {
+            "kind": "static",
+            "value": "./session.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/session.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./recovery.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/sha256.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/store.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./portable.js"
+          },
+          {
+            "kind": "static",
+            "value": "./assets.js"
+          },
+          {
+            "kind": "static",
+            "value": "./history.js"
+          },
+          {
+            "kind": "static",
+            "value": "./raster.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/text-budget.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/text.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./store.js"
+          },
+          {
+            "kind": "static",
+            "value": "./history.js"
+          },
+          {
+            "kind": "static",
+            "value": "./validate.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/ui.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./history.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/protocol/validate.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../raster/mapping.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/mask.js"
+          },
+          {
+            "kind": "static",
+            "value": "./text.js"
+          },
+          {
+            "kind": "static",
+            "value": "./store.js"
+          },
+          {
+            "kind": "static",
+            "value": "./json.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/raster/core.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/raster/mapping.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./core.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/raster/mask.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./core.js"
+          },
+          {
+            "kind": "static",
+            "value": "./mapping.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "./core.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/browser-journal.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [
+          {
+            "at": 301,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "indexedDB.open",
+            "source": "indexedDB.open('ie-delivery-' + owner, 1)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/destination.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../protocol/sha256.js"
+          },
+          {
+            "kind": "static",
+            "value": "./editor-client.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 1711,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "transport",
+            "source": "transport(download.path)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/draft-persistence.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../protocol/ui.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 1065,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/ui/'+this.sessionId)"
+          },
+          {
+            "at": 1195,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "r.json",
+            "source": "r.json()"
+          },
+          {
+            "at": 4801,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/ui/'+this.sessionId,{method:'POST',headers:{'Content-Type':'application/json','X-App-Csrf':this.csrf()},body:JSON.stringify(pending.request)})"
+          },
+          {
+            "at": 5056,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "response.json",
+            "source": "response.json()"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/editor-client.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@en-reve/primitives/state/value.js"
+          },
+          {
+            "kind": "static",
+            "value": "./session-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "./recovery-cache.js"
+          },
+          {
+            "kind": "static",
+            "value": "./recovery-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "./browser-journal.js"
+          },
+          {
+            "kind": "static",
+            "value": "./draft-persistence.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/recovery.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/assets.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/history.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/portable.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/raster.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/ui.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/sha256.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/json.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/validate.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 4091,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(path, init)"
+          },
+          {
+            "at": 4203,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "response.json",
+            "source": "response.json()"
+          },
+          {
+            "at": 4386,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<T>(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})"
+          },
+          {
+            "at": 5207,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "RecoveryCache.open",
+            "source": "RecoveryCache.open('ie-projection-' + owner)"
+          },
+          {
+            "at": 5341,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "BrowserJournal.open",
+            "source": "BrowserJournal.open(owner)"
+          },
+          {
+            "at": 6078,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(preferred, false)"
+          },
+          {
+            "at": 6156,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(this.view.documents[0].id,false)"
+          },
+          {
+            "at": 9813,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<ImageState>('/api/v1/documents/'+document.id+'/image')"
+          },
+          {
+            "at": 9885,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<{items:ImageHistoryNode[];next:string|null}>('/api/v1/documents/'+document.id+'/history')"
+          },
+          {
+            "at": 9992,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<{items:Checkpoint[];next:string|null}>('/api/v1/documents/'+document.id+'/checkpoints')"
+          },
+          {
+            "at": 10097,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<EditorView['save']>('/api/v1/documents/'+document.id+'/save-status?sessionId='+this.sessionId)"
+          },
+          {
+            "at": 10788,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport('/api/v1/documents/'+document.id,{method:'HEAD'})"
+          },
+          {
+            "at": 12463,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json('/api/v1/documents/'+document.id+'/history'+(after?'?after='+after:''))"
+          },
+          {
+            "at": 13172,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<{items:ImageHistoryNode[]|Checkpoint[];next:string|null}>('/api/v1/documents/'+document.id+'/'+kind+(after?'?after='+after:''))"
+          },
+          {
+            "at": 13333,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport('/api/v1/documents/'+document.id,{method:'HEAD'})"
+          },
+          {
+            "at": 14062,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<UIInventory>('/api/v1/ui'+(next?'?cursor='+next:''))"
+          },
+          {
+            "at": 14958,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(this.ui.preferences.documentId,false)"
+          },
+          {
+            "at": 18755,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport('/api/v1/commands/'+id)"
+          },
+          {
+            "at": 18814,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "response.json",
+            "source": "response.json()"
+          },
+          {
+            "at": 18931,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire})"
+          },
+          {
+            "at": 19063,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json('/api/v1/commands',{method:'POST',headers:{'Content-Type':'application/json'},body:delivery.wire})"
+          },
+          {
+            "at": 19802,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<CommandResult>('/api/v1/commands/'+id)"
+          },
+          {
+            "at": 20934,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<EventPage>('/api/v1/commands/'+receipt.commandId+'/result')"
+          },
+          {
+            "at": 21746,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport(ref.url)"
+          },
+          {
+            "at": 23078,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<EventPage>('/api/v1/events?after='+receipt.toSeq+'&recoveryId='+page.recovery.recoveryId)"
+          },
+          {
+            "at": 23368,
+            "kind": "CallExpression",
+            "name": "post",
+            "callee": "this.post",
+            "source": "this.post('/api/v1/recovery/'+page.recovery.recoveryId+'/release',{protocolVersion:1})"
+          },
+          {
+            "at": 23593,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<PendingInventory>('/api/v1/commands/pending'+(cursor?'?cursor='+cursor:''))"
+          },
+          {
+            "at": 23946,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport('/api/v1/commands/'+item.commandId+'/original')"
+          },
+          {
+            "at": 24588,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<CommandResult>('/api/v1/commands/'+item.commandId)"
+          },
+          {
+            "at": 25231,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<StagingRecoveryPage>('/api/v1/assets/staging/recovery'+(cursor?'?cursor='+cursor:''))"
+          },
+          {
+            "at": 25459,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<StagingRecord>('/api/v1/assets/staging/'+id)"
+          },
+          {
+            "at": 26570,
+            "kind": "CallExpression",
+            "name": "post",
+            "callee": "this.post",
+            "source": "this.post('/api/v1/assets/staging',request)"
+          },
+          {
+            "at": 26635,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<StagingRecord>('/api/v1/assets/staging/'+request.stagingId)"
+          },
+          {
+            "at": 26894,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<StagingRecord>('/api/v1/assets/staging/'+request.stagingId,{method:'PUT',headers:{'Content-Type':'application/octet-stream','Upload-Offset':stage.committedOffset},body:bytes})"
+          },
+          {
+            "at": 28956,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<RasterReview>('/api/v1/assets/raster-reviews/'+event.payload.reviewId)"
+          },
+          {
+            "at": 29359,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(id)"
+          },
+          {
+            "at": 30674,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "this.open",
+            "source": "this.open(selected.review.documentId)"
+          },
+          {
+            "at": 31585,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<ImageEditReview>('/api/v1/image-edit-reviews/'+fact.payload.reviewId)"
+          },
+          {
+            "at": 32201,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.json",
+            "source": "this.json<BundleReview>('/api/v1/bundle-reviews/'+event.payload.reviewId)"
+          },
+          {
+            "at": 36989,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.session.transport",
+            "source": "this.session.transport('/api/v1/assets/'+assetId+'/content')"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/projection.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/recovery-cache.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "./projection.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/validate.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 924,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "indexedDB.open",
+            "source": "indexedDB.open(name,1)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/recovery-client.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/recovery.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/json.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/sha256.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/validate.js"
+          },
+          {
+            "kind": "static",
+            "value": "./recovery-cache.js"
+          },
+          {
+            "kind": "static",
+            "value": "./recovery-cache.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 2047,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(path,{...init,credentials:'same-origin',headers:{'X-App-Client':'LP-1',...init?.headers}})"
+          },
+          {
+            "at": 3083,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(ref.url)"
+          },
+          {
+            "at": 6307,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/namespace-events/'+event.eventId+'?recoveryId='+recovery.recoveryId)"
+          },
+          {
+            "at": 12847,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport(descriptor.metadataUrl)"
+          },
+          {
+            "at": 16080,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/events?after='+cursor)"
+          },
+          {
+            "at": 16600,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/events?after='+cursor+'&recoveryId='+pinned.recoveryId)"
+          },
+          {
+            "at": 16970,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/events?after='+cursor+'&recoveryId='+pinned!.recoveryId)"
+          },
+          {
+            "at": 17194,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/events?after='+cursor+'&recoveryId='+pinned!.recoveryId)"
+          },
+          {
+            "at": 17637,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/recovery/'+pinned.recoveryId+'/release',{method:'POST',headers:{'Content-Type':'application/json','X-App-Csrf':this.csrf()},body:'{\"protocolVersion\":1}'})"
+          },
+          {
+            "at": 18219,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/events/stream?after='+old.cursor,{signal})"
+          },
+          {
+            "at": 19736,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/events?after='+to+'&recoveryId='+r.recovery.recoveryId)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/state/session-client.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@en-reve/primitives/state/value.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/session.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 1293,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(`/api/v1/${path}`, {\n      method: body ? 'POST' : 'GET', headers, ...(body ? { body: JSON.stringify(body) } : {}),\n      credentials: 'same-origin', cache: 'no-store', redirect: 'error', signal: active ? AbortSignal.any([active.signal, AbortSignal.timeout(10_000)]) : AbortSignal.timeout(10_000),\n    })"
+          },
+          {
+            "at": 1655,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "response.json",
+            "source": "response.json()"
+          },
+          {
+            "at": 1824,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "response.json",
+            "source": "response.json()"
+          },
+          {
+            "at": 4600,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(path, { ...init, headers, credentials: 'same-origin', cache: 'no-store', redirect: 'error' })"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/admission.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/bidi.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./bidi-data.json"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/bundled-fonts.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./profile.json"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./memory"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/client.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./memory"
+          },
+          {
+            "kind": "static",
+            "value": "./memory"
+          },
+          {
+            "kind": "static",
+            "value": "./memory"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          }
+        ],
+        "calls": [
+          {
+            "at": 4974,
+            "kind": "NewExpression",
+            "name": "Worker",
+            "callee": "Worker",
+            "source": "new Worker(new URL('./worker.ts', import.meta.url), { type: 'module', name: 'ideogram-text-' + serial })"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/contracts.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [
+          {
+            "at": 2568,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(url, { credentials: 'same-origin', redirect: 'error', signal })"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/core.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "canvaskit-wasm"
+          },
+          {
+            "kind": "static",
+            "value": "./profile.json"
+          },
+          {
+            "kind": "static",
+            "value": "./admission"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./font"
+          },
+          {
+            "kind": "static",
+            "value": "./bidi"
+          },
+          {
+            "kind": "static",
+            "value": "./memory"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/durable.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./client"
+          },
+          {
+            "kind": "static",
+            "value": "./memory"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/text"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/json"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./profile.json"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/text-budget"
+          },
+          {
+            "kind": "static",
+            "value": "./profile.json?raw"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/engine.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "canvaskit-wasm"
+          },
+          {
+            "kind": "static",
+            "value": "canvaskit-wasm/bin/canvaskit.wasm?url"
+          },
+          {
+            "kind": "static",
+            "value": "./profile.json"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./core"
+          },
+          {
+            "kind": "static",
+            "value": "./core"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/font.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./contracts"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/memory.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./admission"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./profile.json"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/text/worker.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./engine"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          },
+          {
+            "kind": "static",
+            "value": "./contracts"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/adapters.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/authoring.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../raster/mapping.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "lit"
+          },
+          {
+            "kind": "static",
+            "value": "../state/editor-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/assets.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/history.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/mask.js"
+          },
+          {
+            "kind": "static",
+            "value": "../raster/mask.js"
+          },
+          {
+            "kind": "static",
+            "value": "./adapters.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 7920,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<{plan:{authoring?:MaskPlan;hard?:BlobRef}}>('/api/v1/assets/'+mask.assetId+'/raster')"
+          },
+          {
+            "at": 11419,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<{plan:{statistics:{support:{x:number;y:number;width:number;height:number}|null;hardPixels:number;effectivePixels:number}}}>('/api/v1/assets/'+mask.payload.asset.id+'/raster')"
+          },
+          {
+            "at": 11637,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport('/api/v1/assets/'+after.payload.asset.id+'/content')"
+          },
+          {
+            "at": 12455,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport('/api/v1/assets/'+id+'/content')"
+          },
+          {
+            "at": 17361,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<{rgba:number[]}>('/api/v1/assets/'+assetId+'/sample?x='+x+'&y='+y)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/canvas-view.ts",
+      "syntax": {
+        "edges": [],
+        "calls": [
+          {
+            "at": 656,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.transport",
+            "source": "this.transport('/api/v1/assets/'+asset+'/content')"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/composition.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "lit"
+          },
+          {
+            "kind": "static",
+            "value": "lit"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/color-picker.js"
+          },
+          {
+            "kind": "static",
+            "value": "../state/destination.js"
+          },
+          {
+            "kind": "static",
+            "value": "../state/editor-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/history.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/json.js"
+          },
+          {
+            "kind": "static",
+            "value": "./adapters.js"
+          },
+          {
+            "kind": "static",
+            "value": "../composition/core.js"
+          },
+          {
+            "kind": "static",
+            "value": "../composition/core.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 14232,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<View>('/api/v1/documents/'+d.id+'/composition?revision='+d.revision)"
+          },
+          {
+            "at": 15447,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<any>('/api/v1/ui/'+this.editor.sessionId+'/composition?draftId='+saved.id+'&generation='+saved.generation)"
+          },
+          {
+            "at": 18003,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<View>('/api/v1/documents/'+d.id+'/composition?revision='+d.revision)"
+          },
+          {
+            "at": 25696,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(path+'&raw='+index+'&offset='+offset)"
+          },
+          {
+            "at": 26138,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(path+'&raw='+index+'&download=1')"
+          },
+          {
+            "at": 26840,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(this.rawPath()+'&raw='+this.rawIndex+'&download=1')"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/editor-panels.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/dialog.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/drawer.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/icons.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "lit"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/native-text.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "lit"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/primitives/interactions/editing-controller.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/primitives/state/draft.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/primitives/interactions/events.js"
+          },
+          {
+            "kind": "static",
+            "value": "../state/editor-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/history.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/text.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/ui.js"
+          },
+          {
+            "kind": "static",
+            "value": "../text/client.js"
+          },
+          {
+            "kind": "static",
+            "value": "../text/durable.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/text.js"
+          },
+          {
+            "kind": "static",
+            "value": "../text/contracts.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/json.js"
+          },
+          {
+            "kind": "static",
+            "value": "./adapters.js"
+          },
+          {
+            "kind": "static",
+            "value": "./text-library.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 4212,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json('/api/v1/text-admission/'+id+(release?'/release':''),{method:'POST',headers:{'Content-Type':'application/json'},body:'{\"protocolVersion\":1}'})"
+          },
+          {
+            "at": 8628,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport(path+'&content=1')"
+          },
+          {
+            "at": 9618,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<{source:TextSource;layerVersion:string}>(path)"
+          },
+          {
+            "at": 11972,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<{draft:Draft;value:TextDraft}>(path)"
+          },
+          {
+            "at": 12388,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "this.editor.json",
+            "source": "this.editor.json<{source:TextSource}>('/api/v1/documents/'+d.id+'/text?layerId='+layer.id+'&revision='+d.revision)"
+          },
+          {
+            "at": 13538,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport('/api/v1/assets/'+asset.id+'/content',{method:'HEAD'})"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/shell.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./composition.js"
+          },
+          {
+            "kind": "static",
+            "value": "./native-text.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/text.js"
+          },
+          {
+            "kind": "static",
+            "value": "./authoring.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/icon.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/link.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/color-field.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/segmented-control.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/accordion-item.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/accordion.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/alert.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/badge.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/card.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/stack.js"
+          },
+          {
+            "kind": "static",
+            "value": "lit"
+          },
+          {
+            "kind": "static",
+            "value": "lit/directives/repeat.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/element-scope.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/button.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/textarea.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/text-field.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/number-field.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/select.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/select-option.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/splitter.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/toolbar.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/tabs.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/tab.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/tab-panel.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/file-upload.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/tree.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/activity-feed.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/switch.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/slider.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/validation-summary.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/definitions/popover.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/primitives/interactions/signal-controller.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/textarea.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/file-upload.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/tree.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/select.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/number-field.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/switch.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/slider.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/splitter.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/dialog.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/events.js"
+          },
+          {
+            "kind": "static",
+            "value": "@en-reve/elements/activity-feed.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/history.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/store.js"
+          },
+          {
+            "kind": "static",
+            "value": "../state/session-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "../state/editor-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "../state/destination.js"
+          },
+          {
+            "kind": "static",
+            "value": "./adapters.js"
+          },
+          {
+            "kind": "static",
+            "value": "./canvas-view.js"
+          },
+          {
+            "kind": "static",
+            "value": "./icons.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/sha256.js"
+          },
+          {
+            "kind": "dynamic",
+            "value": "./editor-panels.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 16393,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "connection.transport",
+            "source": "connection.transport('/api/v1/assets/'+asset+'/content')"
+          },
+          {
+            "at": 18481,
+            "kind": "CallExpression",
+            "name": "json",
+            "callee": "editor.json",
+            "source": "editor.json<{source:TextSource}>('/api/v1/documents/'+document.id+'/text?layerId='+layer.id+'&revision='+document.revision)"
+          },
+          {
+            "at": 57478,
+            "kind": "CallExpression",
+            "name": "open",
+            "callee": "editor.open",
+            "source": "editor.open(doc.id)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "src/ui/text-library.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "../state/editor-client.js"
+          },
+          {
+            "kind": "static",
+            "value": "../protocol/text.js"
+          },
+          {
+            "kind": "static",
+            "value": "../text/contracts.js"
+          },
+          {
+            "kind": "static",
+            "value": "../text/contracts.js"
+          },
+          {
+            "kind": "static",
+            "value": "../text/memory.js"
+          },
+          {
+            "kind": "static",
+            "value": "../text/profile.json"
+          }
+        ],
+        "calls": [
+          {
+            "at": 2672,
+            "kind": "CallExpression",
+            "name": "transport",
+            "callee": "this.editor.session.transport",
+            "source": "this.editor.session.transport('/api/v1/assets/'+asset.id+'/content')"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/ancillary-favicon.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-headers.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/app-buffer-core.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "./terminal-collector-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./page-only-collector-core.mjs"
+          }
+        ],
+        "calls": [
+          {
+            "at": 15929,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "this.send",
+            "source": "this.send('Network.configureDurableMessages',{maxTotalBufferSize:POLICY.maxTotalBufferSize},this.row.owner.sessionId)"
+          },
+          {
+            "at": 16837,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "this.send",
+            "source": "this.send('Network.getResponseBody',{requestId:binding.requestId},this.row.owner.sessionId)"
+          },
+          {
+            "at": 18341,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "this.send",
+            "source": "this.send('Network.configureDurableMessages',{},this.row.owner.sessionId)"
+          }
+        ],
+        "assets": [
+          "/assets/worker-G9WPEZGy.js",
+          "/assets/canvaskit-B2Vb3rWN.wasm"
+        ],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/app-buffer-recorder.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:http"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/boundary.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./app-buffer-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./operation.mjs"
+          }
+        ],
+        "calls": [
+          {
+            "at": 698,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({kind:'row',row})"
+          },
+          {
+            "at": 853,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({kind:'row',row})"
+          },
+          {
+            "at": 928,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({kind:'pagehide',observation:observer.snapshot()})"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/busy-state.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:sqlite"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/src/protocol/validate.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/src/protocol/history-validation.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/server/storage/canonical.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/server/storage/objects.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/completion-group.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:util"
+          },
+          {
+            "kind": "static",
+            "value": "./app-buffer-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/completion-observer.mjs",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/completion-public.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:sqlite"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/empty-native.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./app-buffer-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/grouped-collector-core.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./inspector-capability-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./terminal-collector-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./terminal-collector-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-core.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "./boundary.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-headers.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-ipc.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-receiver.mjs"
+          }
+        ],
+        "calls": [
+          {
+            "at": 1141,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({type:m.reply,value})"
+          },
+          {
+            "at": 1181,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({type:m.reply,error:{message:String(e),stack:e.stack}})"
+          },
+          {
+            "at": 1322,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send(m.reply?{type:m.reply,value}:value)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-issuers.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "rolldown/parseAst"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [
+          "/assets/"
+        ],
+        "keepalive": [
+          {
+            "at": 1851,
+            "value": null,
+            "expression": "keepalive"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-monitor.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-page.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-page.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./host-handler-artifact.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-handler-artifact.mjs"
+          }
+        ],
+        "calls": [
+          {
+            "at": 1772,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send(row)"
+          },
+          {
+            "at": 1912,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send(row)"
+          },
+          {
+            "at": 4548,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Runtime.evaluate',{expression:'window',contextId:r.context.id,objectGroup:group,returnByValue:false},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 4828,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('DOMDebugger.getEventListeners',{objectId:remote.result.objectId},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 5272,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Runtime.callFunctionOn',{objectId:own[0].handler.objectId,functionDeclaration:'function(){return Function.prototype.toString.call(this)}',returnByValue:true},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 5867,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Runtime.releaseObjectGroup',{objectGroup:group},'owned-page-CDPSession-1')"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-protocol.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-headers.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-receiver.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:http"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-page.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-final-traffic.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-headers.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-protocol.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/host-handler-artifact.mjs",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/inspector-capability-core.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          }
+        ],
+        "calls": [
+          {
+            "at": 5616,
+            "kind": "CallExpression",
+            "name": "fetch",
+            "callee": "fetch",
+            "source": "fetch(c.url,controller?{signal:controller.signal}:{})"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/monitor.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "node:sqlite"
+          },
+          {
+            "kind": "static",
+            "value": "./app-buffer-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion-group.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion-observer.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion-public.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./operation.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./wire.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./boundary.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./page-sink.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./empty-native.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-monitor.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-traffic.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./recorder-health.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./host-final-issuers.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./protocol-membership.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./restored-native.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./restored-route.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./ancillary-favicon.mjs"
+          }
+        ],
+        "calls": [
+          {
+            "at": 3975,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "(session?pageCDP:rootCDP).send",
+            "source": "(session?pageCDP:rootCDP).send(method,params)"
+          },
+          {
+            "at": 7782,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Network.enable',{},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 7840,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Target.setDiscoverTargets',{discover:true})"
+          },
+          {
+            "at": 8090,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Target.getTargetInfo',{},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 8172,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Page.getFrameTree',{},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 23435,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Target.setDiscoverTargets',{discover:false})"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/operation.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./app-buffer-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/owned-process.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          }
+        ],
+        "calls": [
+          {
+            "at": 1688,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "child.send",
+            "source": "child.send(message,error=>{if(error){const w=waiters.get(kind);waiters.delete(kind);w?.reject(error);}})"
+          },
+          {
+            "at": 2397,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({type:'host',method,args,reply},reply)"
+          },
+          {
+            "at": 3192,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({type:'completion-close',reply,cleanupOnly:cleanup,mode:cleanup?'close':mode},reply)"
+          },
+          {
+            "at": 4029,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "child.send",
+            "source": "child.send('close')"
+          },
+          {
+            "at": 5396,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('pair','pair')"
+          },
+          {
+            "at": 5451,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('recorder','recorder')"
+          },
+          {
+            "at": 5517,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('resources','resources')"
+          },
+          {
+            "at": 5583,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('effects','effects')"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/page-only-collector-core.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./inspector-capability-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./terminal-collector-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./grouped-collector-core.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./terminal-collector-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/page-sink.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          }
+        ],
+        "calls": [
+          {
+            "at": 2399,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Runtime.enable',{},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 2457,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Runtime.addBinding',{name},'owned-page-CDPSession-1')"
+          },
+          {
+            "at": 3368,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send('Runtime.removeBinding',{name},'owned-page-CDPSession-1')"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/protocol-membership.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./app-buffer-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/recorder-health.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/restored-native.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./app-buffer-core.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/restored-route-flow.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/restored-route.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./restored-native.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/setup-owned.mjs",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/sse-frames.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/src/protocol/json.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/sse-publication.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/src/protocol/json.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/src/protocol/validate.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/terminal-collector-core.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "./inspector-capability-core.mjs"
+          }
+        ],
+        "calls": [
+          {
+            "at": 9095,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "this.send",
+            "source": "this.send('Network.configureDurableMessages',{maxTotalBufferSize:POLICY.maxTotalBufferSize},this.row.owner.sessionId)"
+          },
+          {
+            "at": 10528,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "this.send",
+            "source": "this.send('Network.getResponseBody',{requestId:binding.requestId},this.row.owner.sessionId)"
+          },
+          {
+            "at": 12314,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "this.send",
+            "source": "this.send('Network.configureDurableMessages',{},this.row.owner.sessionId)"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/wire.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/composition-network.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./text-zoom-cancellations.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/composition-save-witness.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:sqlite"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/server/storage/objects.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/server/storage/canonical.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/src/composition/draft.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/composition-save.config.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/composition-save.spec.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./integration-fixture.js"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:os"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "./process.js"
+          },
+          {
+            "kind": "static",
+            "value": "./owned-opfs.js"
+          },
+          {
+            "kind": "static",
+            "value": "./error-monitor.js"
+          },
+          {
+            "kind": "static",
+            "value": "./composition-network.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./composition-save-witness.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/boundary.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/setup-owned.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/composition.config.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/composition.spec.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:os"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "./composition-network.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./process.js"
+          },
+          {
+            "kind": "static",
+            "value": "./owned-opfs.js"
+          },
+          {
+            "kind": "static",
+            "value": "./error-monitor.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/error-monitor.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/integration-fixture.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:os"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "node:sqlite"
+          },
+          {
+            "kind": "static",
+            "value": "node:child_process"
+          },
+          {
+            "kind": "static",
+            "value": "./process.js"
+          },
+          {
+            "kind": "static",
+            "value": "./owned-opfs.js"
+          },
+          {
+            "kind": "static",
+            "value": "./error-monitor.js"
+          },
+          {
+            "kind": "static",
+            "value": "./integration-network.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./original-font-reader.js"
+          },
+          {
+            "kind": "static",
+            "value": "./original-recovery-reader.js"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/monitor.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/boundary.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/setup-owned.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/integration-network.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./completion/sse-publication.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "./composition-network.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/integration-reads.spec.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/restored-route-flow.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./integration-fixture.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/integration-regression.config.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/integration.config.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/integration.spec.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "./completion/busy-state.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./composition-save-witness.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "sharp"
+          },
+          {
+            "kind": "static",
+            "value": "./integration-fixture.js"
+          },
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "../portable/archive-fixture.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/original-font-reader.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          }
+        ],
+        "calls": [
+          {
+            "at": 4298,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...base,kind:'start'})"
+          },
+          {
+            "at": 4579,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'response'})"
+          },
+          {
+            "at": 4655,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'missing-body'})"
+          },
+          {
+            "at": 4872,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'clone'})"
+          },
+          {
+            "at": 4986,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'tee'})"
+          },
+          {
+            "at": 5340,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'reader',at:now(),readerNumber})"
+          },
+          {
+            "at": 5966,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...snapshot,base64:btoa(binary)})"
+          },
+          {
+            "at": 6407,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'chunk',at:now(),count})"
+          },
+          {
+            "at": 6585,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'read-error',at:now(),name:error?.name,message:error?.message})"
+          },
+          {
+            "at": 6808,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'cancel',at:now(),afterEOF:eof})"
+          },
+          {
+            "at": 6991,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'release',at:now(),afterEOF:eof})"
+          },
+          {
+            "at": 7167,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...base,kind:'fetch-error',name:error?.name,message:error?.message})"
+          }
+        ],
+        "assets": [
+          "/assets/"
+        ],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/original-recovery-reader.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/src/protocol/json.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/src/protocol/validate.js"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/sse-frames.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/sse-publication.mjs"
+          }
+        ],
+        "calls": [
+          {
+            "at": 4285,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({kind:'publication-writes',db,transaction:id,at:now(),records})"
+          },
+          {
+            "at": 4396,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({kind:'publication-aborted',db,transaction:id,at:now(),records})"
+          },
+          {
+            "at": 5361,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...base,kind:'start',hasSignal:!!signal})"
+          },
+          {
+            "at": 5442,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...base,kind:'signal-abort',at:now(),aborted:signal.aborted,reasonName:signal.reason?.name})"
+          },
+          {
+            "at": 5969,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'response'})"
+          },
+          {
+            "at": 6110,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'json',end:now(),value:structuredClone(value)})"
+          },
+          {
+            "at": 6184,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'json-error',at:now(),error:String(e)})"
+          },
+          {
+            "at": 6403,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'tee'})"
+          },
+          {
+            "at": 6496,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'clone'})"
+          },
+          {
+            "at": 6797,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'reader',readerNumber})"
+          },
+          {
+            "at": 7051,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'eof',end:now(),count,reads,readers,readerNumber,overflow})"
+          },
+          {
+            "at": 7203,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'observation-limit',count})"
+          },
+          {
+            "at": 7379,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'chunk',at:now(),count,reads,readerNumber,chunk:btoa(binary)})"
+          },
+          {
+            "at": 7471,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'read-error',at:now(),error:String(e)})"
+          },
+          {
+            "at": 7590,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...identity,kind:'cancel',at:now(),afterEOF:eof})"
+          },
+          {
+            "at": 7742,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "send",
+            "source": "send({...base,kind:'fetch-error',hasSignal:!!signal,at:now(),name:e?.name,error:String(e)})"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/owned-opfs.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "@playwright/test"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/process-completion-fixture.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:fs"
+          },
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "node:http"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/recorder-health.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/app-buffer-recorder.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/host-final-receiver.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/host-final-ipc.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/server/http.js"
+          }
+        ],
+        "calls": [
+          {
+            "at": 1366,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "process.send",
+            "source": "process.send(m)"
+          },
+          {
+            "at": 1746,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "process.send",
+            "source": "process.send({type:'ready',origin:server.origin,instance})"
+          },
+          {
+            "at": 1847,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "process.send",
+            "source": "process.send({type:'pair',url:server.issuePairingURL()})"
+          },
+          {
+            "at": 1925,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "process.send",
+            "source": "process.send({type:'resources',value:process.memoryUsage()})"
+          },
+          {
+            "at": 2005,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "process.send",
+            "source": "process.send({type:'effects',value:globalThis.__storeNetworkCounters.read()})"
+          },
+          {
+            "at": 2103,
+            "kind": "CallExpression",
+            "name": "send",
+            "callee": "process.send",
+            "source": "process.send({type:'recorder',value:health.snapshot()})"
+          }
+        ],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/process.ts",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:child_process"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "./completion/owned-process.mjs"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/text-zoom-cancellations.mjs",
+      "syntax": {
+        "edges": [],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/portable/archive-fixture.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:fs/promises"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/server/portable/zip.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../dist/local/server/storage/canonical.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    }
+  ],
+  "assetFiles": [
+    "NotoSans-Regular-Dpf_lrdO.ttf",
+    "NotoSansArabic-Regular-CEibNoL-.ttf",
+    "NotoSansCJKsc-Regular-DxgKpThH.otf",
+    "NotoSansSymbols2-Regular-Dcz4cXYm.ttf",
+    "canvaskit-B2Vb3rWN.wasm",
+    "editor-panels-DZY6YZJM.js",
+    "icon-DIQhQ5Eb.js",
+    "index-BHhnX3lS.js",
+    "index-CKeqbJD0.css",
+    "preload-helper-BZ1Pz5am.js",
+    "shell-CVDaayc2.js",
+    "worker-G9WPEZGy.js"
+  ],
+  "directBrowserNetworking": [
+    {
+      "path": "dist/app/assets/index-BHhnX3lS.js",
+      "at": 865,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(e.href,n)"
+    },
+    {
+      "path": "dist/app/assets/shell-CVDaayc2.js",
+      "at": 75299,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(e,{credentials:`same-origin`,redirect:`error`,signal:n})"
+    },
+    {
+      "path": "dist/app/assets/shell-CVDaayc2.js",
+      "at": 447317,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(`/api/v1/${n}`,{method:r?`POST`:`GET`,headers:i,...r?{body:JSON.stringify(r)}:{},credentials:`same-origin`,cache:`no-store`,redirect:`error`,signal:t?AbortSignal.any([t.signal,AbortSignal.timeout(1e4)]):AbortSignal.timeout(1e4)})"
+    },
+    {
+      "path": "dist/app/assets/shell-CVDaayc2.js",
+      "at": 449268,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(t,{...n,headers:r,credentials:`same-origin`,cache:`no-store`,redirect:`error`})"
+    },
+    {
+      "path": "dist/app/assets/shell-CVDaayc2.js",
+      "at": 455922,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(e,{...t,credentials:`same-origin`,headers:{\"X-App-Client\":`LP-1`,...t?.headers}})"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 40364,
+      "kind": "NewExpression",
+      "name": "XMLHttpRequest",
+      "callee": "XMLHttpRequest",
+      "source": "new XMLHttpRequest"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 40454,
+      "kind": "NewExpression",
+      "name": "XMLHttpRequest",
+      "callee": "XMLHttpRequest",
+      "source": "new XMLHttpRequest"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 40588,
+      "kind": "NewExpression",
+      "name": "XMLHttpRequest",
+      "callee": "XMLHttpRequest",
+      "source": "new XMLHttpRequest"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 41939,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(e,{credentials:`same-origin`})"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 42498,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(n,{credentials:`same-origin`})"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 86077,
+      "kind": "CallExpression",
+      "name": "fetch",
+      "callee": "fetch",
+      "source": "fetch(e,{credentials:`same-origin`,redirect:`error`,signal:n})"
+    }
+  ],
+  "browserBodyIssuers": [
+    {
+      "kind": "session-json",
+      "source": "src/state/session-client.ts:request",
+      "emitted": "dist/app/assets/shell-CVDaayc2.js:447317",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "body": "JSON.stringify(body) only for protocol session/bootstrap/renew/revoke; private request closure",
+      "keepalive": false,
+      "telemetryCharge": false,
+      "options": "same-origin/no-store/error; original abort/timeout signal"
+    },
+    {
+      "kind": "application-transport",
+      "source": "src/state/session-client.ts:transport; all src/state/editor-client.ts json/post/command/staging and src/state/draft-persistence.ts callers pinned",
+      "emitted": "dist/app/assets/shell-CVDaayc2.js:449268",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST",
+        "PUT"
+      ],
+      "body": "Original commands, UI checkpoints/drafts, native admission, staging setup and binary staging PUT. All caller init objects pinned; no keepalive option or Request input.",
+      "keepalive": false,
+      "telemetryCharge": false,
+      "options": "spread original init then headers/same-origin/no-store/error; no added signal"
+    },
+    {
+      "kind": "recovery-release",
+      "source": "src/state/recovery-client.ts:recover finally/default transport and supplied session transport",
+      "emitted": "dist/app/assets/shell-CVDaayc2.js:455922",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "body": "POST literal protocolVersion JSON for recovery release; ordinary GET stream/content/revalidation retain own init",
+      "keepalive": false,
+      "telemetryCharge": false,
+      "options": "Default transport spread init then same-origin and X-App-Client; stream signal is not propagated to other calls"
+    },
+    {
+      "kind": "private-native-beacon",
+      "source": "tests/editor/completion/host-final-page.mjs:genuineIntegrationHostFinal",
+      "methods": [
+        "POST"
+      ],
+      "body": "Complete privately registered UTF-8 native snapshot metadata, <=32768 bytes before original native sendBeacon",
+      "keepalive": true,
+      "telemetryCharge": true,
+      "maximum": 32768,
+      "options": "Original native same-origin sendBeacon, single invocation, no reissue"
+    }
+  ],
+  "workerFallbacks": [
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 40409,
+      "source": "t.send(null)",
+      "method": "GET",
+      "body": null,
+      "keepalive": false,
+      "scope": "CanvasKit generic loader remains emitted and may execute on fallback; fetch credentials same-origin; XHR send(null); not globally unreachable"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 40528,
+      "source": "t.send(null)",
+      "method": "GET",
+      "body": null,
+      "keepalive": false,
+      "scope": "CanvasKit generic loader remains emitted and may execute on fallback; fetch credentials same-origin; XHR send(null); not globally unreachable"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 40739,
+      "source": "r.send(null)",
+      "method": "GET",
+      "body": null,
+      "keepalive": false,
+      "scope": "CanvasKit generic loader remains emitted and may execute on fallback; fetch credentials same-origin; XHR send(null); not globally unreachable"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 41939,
+      "source": "fetch(e,{credentials:`same-origin`})",
+      "method": "GET",
+      "body": null,
+      "keepalive": false,
+      "scope": "CanvasKit generic loader remains emitted and may execute on fallback; fetch credentials same-origin; XHR send(null); not globally unreachable"
+    },
+    {
+      "path": "dist/app/assets/worker-G9WPEZGy.js",
+      "at": 42498,
+      "source": "fetch(n,{credentials:`same-origin`})",
+      "method": "GET",
+      "body": null,
+      "keepalive": false,
+      "scope": "CanvasKit generic loader remains emitted and may execute on fallback; fetch credentials same-origin; XHR send(null); not globally unreachable"
+    }
+  ],
+  "bodylessIssuers": [
+    {
+      "source": "dist/app/assets/index-BHhnX3lS.js:865",
+      "scope": "Vite modulepreload polyfill",
+      "options": "GET/no body/default keepalive false; credentials derived only from fixed link crossOrigin, integrity/referrer fields"
+    },
+    {
+      "source": "preload-helper-BZ1Pz5am.js + HTML/CSS/static and dynamic edges",
+      "scope": "Pinned modulepreload/style/worker/font/image imports and links",
+      "options": "Browser asset GETs; no form/body method override in selected workflow"
+    },
+    {
+      "source": "src/text/contracts.ts readSealedAsset; dist/app/assets/shell-CVDaayc2.js:75299; dist/app/assets/worker-G9WPEZGy.js:86077",
+      "scope": "WASM/font read",
+      "options": "GET/no body/same-origin/redirect:error/original signal"
+    },
+    {
+      "source": "src/text/engine.ts createTextEngine",
+      "scope": "Pinned same-origin WASM bytes/hash/compile and explicit instantiateWasm callback",
+      "options": "Generic CanvasKit fallbacks are retained in worker inventory, all bodyless; no universal reachability claim"
+    }
+  ],
+  "injectionMap": [
+    {
+      "source": "tests/editor/original-font-reader.ts",
+      "effect": "GET font observer forwards every original nativeFetch this/args unchanged; no new request/body/keepalive"
+    },
+    {
+      "source": "tests/editor/original-recovery-reader.ts",
+      "effect": "GET reader/IDB observation forwards nativeFetch this/args unchanged; no new request/body/keepalive"
+    },
+    {
+      "source": "tests/editor/completion/completion-observer.mjs",
+      "effect": "Original Worker constructor/messages/terminate forwarding only; no added worker messages or payload reads"
+    },
+    {
+      "source": "tests/editor/completion/host-final-page.mjs",
+      "effect": "One declared metadata beacon; genuine handler+journal consistency; receiver has no native operation"
+    },
+    {
+      "source": "tests/editor/integration-fixture.ts + owned-opfs.ts + error-monitor.ts",
+      "effect": "SaveFilePicker disabled; CSP/DOM metadata callbacks; owned bodyless storage probe documents; no additional bodyful issuer"
+    },
+    {
+      "source": "tests/editor/integration.spec.ts + integration-reads.spec.ts",
+      "effect": "Pinned public UI/file operations and held original routes; continue preserves original arguments; no network option substitution"
+    },
+    {
+      "source": "tests/editor/composition.spec.ts",
+      "effect": "Existing public trusted mode actions and read-only public mode diagnostics; no added fetch/body/keepalive"
+    }
+  ],
+  "closure": {
+    "html": "dist/app/index.html",
+    "css": "dist/app/assets/index-CKeqbJD0.css",
+    "vendor": "en-reve/Lit materialized in pinned shell/icon/panels bundles; package-lock and installed package identities retained",
+    "worker": "Explicit Worker URL asset is an entry even though its IIFE has no ES module imports; WASM/font literal asset edges are separately closed",
+    "server": "Ordinary server source/compiled inputs separate; Node body reader only on exact private POST; ordinary requests passed unchanged"
+  },
+  "unknownIssuers": [],
+  "limits": [
+    "Source-derived pinned map plus exact call/import inventory; no browser/CSP/host capability proof",
+    "Actual telemetry charges and future reservation headroom must be recorded by the parent-owned runtime ledger; no saved267 byte transfer",
+    "Unknown changed source/issuer or incomplete closure refuses readiness"
+  ]
+}

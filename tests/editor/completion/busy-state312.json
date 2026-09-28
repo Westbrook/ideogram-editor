@@ -1,0 +1,71 @@
+{
+  "scope": "Saved312 original creation shape only; no retrospective missing before/after qualification",
+  "sourceSHA256": "e6252075d4bb9a4e03dda02b207dd075e7292b9a74dbd4c57f757f3504694137",
+  "origin": "http://127.0.0.1:65346",
+  "document": {
+    "branchId": "83db41c3-b9ff-4f08-b51f-ba2fe6301f8d",
+    "checkpoint": null,
+    "color": "sRGB",
+    "compositionVersion": null,
+    "depth": 8,
+    "height": 200,
+    "historyHead": "f864bb59-1798-41ab-9fd3-b1b6ba15e8ea",
+    "id": "410342cd-5a0d-431f-93b2-9f45ec123b7d",
+    "orderedLayerIds": [],
+    "revision": "1",
+    "width": 360
+  },
+  "created": {
+    "schemaVersion": 1,
+    "commandId": "f77c17bf-d3c1-453f-a314-7d47725905fc",
+    "clientId": "75783c1c-0fdd-4ac3-b700-99242e44a343",
+    "sessionId": "ui_46c4ab59-b15a-4fc2-a6fb-1c1a286c968e",
+    "correlationId": "0e34572e-01c7-4bff-a5d2-c682a17e1638",
+    "causationId": null,
+    "transactionId": "6dbd9e75-73df-488d-8abc-5da3016f2c28",
+    "documentId": "410342cd-5a0d-431f-93b2-9f45ec123b7d",
+    "expectedDocumentRevision": null,
+    "expectedEntityVersions": {
+      "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+      "byteLength": "33",
+      "mediaType": "application/json"
+    },
+    "issuedAt": "2026-09-28T14:07:33.603Z",
+    "body": {
+      "type": "NewDocument",
+      "width": 360,
+      "height": 200,
+      "color": "sRGB",
+      "depth": 8
+    }
+  },
+  "held": {
+    "schemaVersion": 1,
+    "commandId": "288fe46c-d590-44fb-b8e0-9e6a79ddaadc",
+    "clientId": "75783c1c-0fdd-4ac3-b700-99242e44a343",
+    "sessionId": "ui_46c4ab59-b15a-4fc2-a6fb-1c1a286c968e",
+    "correlationId": "ca91913d-486e-40f4-9c2e-119765868f17",
+    "causationId": null,
+    "transactionId": "924c975b-76c2-40a1-9026-f2a630549e27",
+    "documentId": "410342cd-5a0d-431f-93b2-9f45ec123b7d",
+    "expectedDocumentRevision": "1",
+    "expectedEntityVersions": {
+      "hash": "sha256:10584db4c85cf1d5cbd2eda3429934a693b7c26268e63be96dbdb23d6dd42069",
+      "byteLength": "33",
+      "mediaType": "application/json"
+    },
+    "issuedAt": "2026-09-28T14:07:34.521Z",
+    "body": {
+      "type": "SaveCheckpoint",
+      "name": "While editing"
+    }
+  },
+  "receipt": {
+    "commandId": "f77c17bf-d3c1-453f-a314-7d47725905fc",
+    "documentRevision": "1",
+    "fromSeq": "1",
+    "status": "accepted",
+    "toSeq": "1",
+    "transactionId": "6dbd9e75-73df-488d-8abc-5da3016f2c28"
+  }
+}

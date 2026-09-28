@@ -17,7 +17,7 @@ export async function rootFor(t) {
 export async function childFor(t, root, options = {}) {
   const child = fork(fileURLToPath(new URL('./process-fixture.mjs', import.meta.url)), [root, JSON.stringify(options)], {
     execArgv: ['--import', fileURLToPath(new URL('./no-network.mjs', import.meta.url))], serialization: 'advanced',
-    env: { PATH: process.env.PATH }, stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+    env: { PATH: process.env.PATH, TMPDIR: process.env.TMPDIR }, stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
   });
   let stderr = ''; child.stderr.on('data', bytes => { stderr += bytes; });
   let nextId = 0; const pending = new Map(); const messages = []; const listeners = [];

@@ -11,10 +11,10 @@ test('public rail restores icon-over-label surfaces and native disabled, selecte
  try{
  await expect(page.getByRole('toolbar',{name:'Canvas tools'})).toBeVisible();
  const rail=page.locator('.tool-rail'),pan=rail.getByRole('button',{name:'Pan',exact:true}),zoom=rail.getByRole('button',{name:'Zoom',exact:true});
- await expect(rail.getByRole('button')).toHaveCount(7);await expect(pan).toHaveAttribute('aria-pressed','true');
- const initial=await geometry(page);expect(initial.map(x=>x.name)).toEqual(['Move','Text','Select','Mask','Crop','Pan','Zoom']);
+ await expect(rail.getByRole('button')).toHaveCount(8);await expect(pan).toHaveAttribute('aria-pressed','true');
+ const initial=await geometry(page);expect(initial.map(x=>x.name)).toEqual(['Move','Text','Select','Mask','Crop','Sample','Pan','Zoom']);
  for(const g of initial){expect(g.width).toBeGreaterThanOrEqual(44);expect(g.height).toBeGreaterThanOrEqual(48);expect(g.width).toBeLessThanOrEqual(48);expect(g.iconBottom).toBeLessThan(g.labelTop);expect(g.centerDifference).toBeLessThan(1);expect(g.fontSize).toBe(9);expect(g.weight).toBe('500');}
- for(const name of ['Move','Text','Select','Mask','Crop']){const disabled=rail.getByRole('button',{name,exact:true});await expect(disabled).toBeDisabled();const b=(await disabled.boundingBox())!;await page.mouse.click(b.x+b.width/2,b.y+b.height/2);await expect(pan).toHaveAttribute('aria-pressed','true');const g=initial.find(x=>x.name===name)!;expect(g.background).toBe('rgba(0, 0, 0, 0)');expect(g.border).toBe('rgba(0, 0, 0, 0)');}
+ for(const name of ['Move','Text','Select','Mask','Crop','Sample']){const disabled=rail.getByRole('button',{name,exact:true});await expect(disabled).toBeDisabled();const b=(await disabled.boundingBox())!;await page.mouse.click(b.x+b.width/2,b.y+b.height/2);await expect(pan).toHaveAttribute('aria-pressed','true');const g=initial.find(x=>x.name===name)!;expect(g.background).toBe('rgba(0, 0, 0, 0)');expect(g.border).toBe('rgba(0, 0, 0, 0)');}
  expect(initial.find(x=>x.name==='Zoom')!.border).toBe('rgba(0, 0, 0, 0)');expect(initial.find(x=>x.name==='Pan')!.background).not.toBe('rgba(0, 0, 0, 0)');expect(initial.find(x=>x.name==='Pan')!.radius).toBeGreaterThan(0);
  await mkdir(receipt,{recursive:true});await page.locator('.tool-rail').screenshot({path:join(receipt,'rail-desktop.png')});
  await pan.focus();await page.keyboard.press('ArrowDown');await expect(zoom).toBeFocused();await page.keyboard.press('Enter');await expect(zoom).toHaveAttribute('aria-pressed','true');await expect(pan).toHaveAttribute('aria-pressed','false');

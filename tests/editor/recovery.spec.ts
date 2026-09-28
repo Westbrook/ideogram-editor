@@ -85,7 +85,7 @@ test('autosave receipt completion keeps the native Apply target stable during a 
  const node=await apply.elementHandle(),before=await apply.boundingBox();expect(before).toBeTruthy();await page.mouse.move(before!.x+before!.width/2,before!.y+before!.height/2);await page.mouse.down();pressed=true;
  release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true})).toBeVisible();
  const after=await apply.boundingBox();await page.mouse.up();pressed=false;
- expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
+ expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Image · Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
  }finally{release();if(pressed)await page.mouse.up();await page.unrouteAll({behavior:'wait'});await f.server.close();}
 });
 
@@ -153,9 +153,9 @@ test('actual SQLite FULL pauses a browser command and exact original delivery su
   if(document.activeElement!==region)throw Error('Guard precondition: region must own focus');
   const cases=[{ctrlKey:true},{metaKey:true},{altKey:true},{shiftKey:true},{isComposing:true},{key:'ArrowLeft'},{key:'Tab'},{key:'Enter'}];const before=region.scrollTop;
   const results=cases.map(flags=>{const e=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true,...flags});region.dispatchEvent(e);return {prevented:e.defaultPrevented,unchanged:region.scrollTop===before};});
-  const vetoed=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true});vetoed.preventDefault();region.dispatchEvent(vetoed);
+  const vetoed=new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true});vetoed.preventDefault();region.dispatchEvent(vetoed);const vetoPreserved=vetoed.defaultPrevented&&region.scrollTop===before;
   let propagated=false;const observe=(e:Event)=>{if(e===accepted)propagated=true;};const accepted=new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true});document.addEventListener('keydown',observe);region.dispatchEvent(accepted);document.removeEventListener('keydown',observe);
-  return {results,vetoPreserved:vetoed.defaultPrevented&&region.scrollTop===before,accepted:accepted.defaultPrevented,propagated};
+  return {results,vetoPreserved,accepted:accepted.defaultPrevented,propagated};
  });expect(guards).toEqual({results:Array.from({length:8},()=>({prevented:false,unchanged:true})),vetoPreserved:true,accepted:true,propagated:true});
  await page.keyboard.press('Shift+Tab');expect(await status.evaluate(n=>n.contains(document.activeElement))).toBe(false);
  await status.focus();await page.keyboard.press('End');for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});
@@ -213,9 +213,9 @@ test('new inspector drafts preserve valid128-character IDs and distinctly bound 
  for(const size of [127,128,129]){
  const layerId=('boundary_'+size+'_').padEnd(size-'inspector_'.length-documentId.length-1,'x');const d=(await f.read('/api/v1/documents/'+documentId)).json.projection.value;
  const c=command(f.last.command.expectedEntityVersions,{clientId,documentId,expectedDocumentRevision:d.revision,body:{type:'ImportAsset',assetId:asset.id,layerId,name:'Boundary '+size,draft:null}});let r=await call(f.server.origin,'/api/v1/commands',{method:'POST',body:c,headers:f.headers()});for(let n=0;r.status===202&&n<1000;n++){await new Promise(r=>setTimeout(r,5));r=await f.read('/api/v1/commands/'+c.command.commandId);}expect(r.json.receipt.status).toBe('accepted');
- await page.getByRole('treeitem',{name:'Boundary '+size+' · visible',exact:true}).click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Edited boundary '+size);await click(page,'Apply properties');await expect(page.getByRole('treeitem',{name:'Edited boundary '+size+' · visible',exact:true})).toBeVisible();
+ await page.getByRole('treeitem',{name:'Image · Boundary '+size+' · visible',exact:true}).click();await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Edited boundary '+size);await click(page,'Apply properties');await expect(page.getByRole('treeitem',{name:'Image · Edited boundary '+size+' · visible',exact:true})).toBeVisible();
  const draft=observed.find(d=>d.targetLayerId===layerId);expect(draft).toBeTruthy();expect(draft.documentId).toBe(documentId);expect(draft.id.length).toBeLessThanOrEqual(128);if(size<=128)expect(draft.id).toBe('inspector_'+documentId+'_'+layerId);else expect(draft.id).toMatch(/^inspector_[0-9a-f]{64}$/);
  }
- expect(new Set(observed.map(d=>d.id)).size).toBe(3);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();for(const size of [127,128,129])await expect(page.getByRole('treeitem',{name:'Edited boundary '+size+' · visible',exact:true})).toBeVisible();
+ expect(new Set(observed.map(d=>d.id)).size).toBe(3);await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();for(const size of [127,128,129])await expect(page.getByRole('treeitem',{name:'Image · Edited boundary '+size+' · visible',exact:true})).toBeVisible();
  }finally{await f.server.close();}
 });

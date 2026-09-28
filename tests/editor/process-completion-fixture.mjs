@@ -1,0 +1,24 @@
+import {appendFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {Server} from 'node:http';
+import {recorderHealth} from './completion/recorder-health.mjs';
+import {installServerRecorder} from './completion/app-buffer-recorder.mjs';
+import {installPrivateDispatch} from './completion/host-final-receiver.mjs';
+import {ownedHostIPC} from './completion/host-final-ipc.mjs';
+import {startLocalServer} from '../../dist/local/server/http.js';
+assert(process.argv[5],'Explicit owned completion ledger required');
+let ipc;const dispatch=installPrivateDispatch({receiver:{handles:url=>ipc?.handles(url)??false,handle:(...args)=>ipc.handleRequest(...args)}});
+const dispatchEmit=Server.prototype.emit;
+const recorder=installServerRecorder({sink:row=>appendFileSync(process.argv[5],JSON.stringify(row)+'\n')});
+const recorderEmit=Server.prototype.emit;
+const instance=randomUUID(),health=recorderHealth({recorder,instance,ownsRecorder:()=>Server.prototype.emit===recorderEmit,ownsDispatch:()=>dispatch.state.installed});
+const server=await startLocalServer({root:process.argv[2],staticDirectory:process.argv[3],credentialConfigured:false},{writer:{maxPageCount:process.argv[4]?Number(process.argv[4]):undefined,effectCounters:globalThis.__storeNetworkCounters.shared}});
+ipc=ownedHostIPC({server,instance,send:m=>process.send(m),disconnect:()=>process.disconnect(),health,abruptStop:()=>process.kill(process.pid,'SIGKILL'),uninstall:()=>{const errors=[];try{recorder.uninstall();}catch(e){errors.push(e);}try{assert.equal(Server.prototype.emit,dispatchEmit);dispatch.uninstall();}catch(e){errors.push(e);}if(errors.length)throw new AggregateError(errors,'Recorder and dispatcher cleanup');}});process.send({type:'ready',origin:server.origin,instance});
+process.on('message',m=>{
+ if(m==='pair')process.send({type:'pair',url:server.issuePairingURL()});
+ if(m==='resources')process.send({type:'resources',value:process.memoryUsage()});
+ if(m==='effects')process.send({type:'effects',value:globalThis.__storeNetworkCounters.read()});
+ if(m==='recorder')process.send({type:'recorder',value:health.snapshot()});
+ void ipc.message(m);
+});

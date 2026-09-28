@@ -1,0 +1,17 @@
+import {spawnSync} from 'node:child_process';
+import {writeFileSync,existsSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {source,entry} from '../composition/identity.mjs';
+const [prefix,command,...args]=process.argv.slice(2);
+assert(prefix&&command&&process.env.TMPDIR,'Explicit output, command and TMPDIR required');
+assert.equal(process.version,'v26.10.0');
+assert(!existsSync(prefix+'.json')&&!existsSync(prefix+'.log'),'Preserve existing run outputs');
+const snapshot=()=>({...source(),base:'a9c3c667f88a5d84df2e16747794bce70a0cb154'});
+const before=snapshot(),started=new Date().toISOString(),tools=[process.execPath,'package-lock.json','node_modules/playwright/package.json','node_modules/playwright-core/browsers.json','src/text/profile.json','src/text/retained-profiles/ff24a513.json','src/text/retained-profiles/304528c9.json','vendor/text/FILES.json'].map(entry);
+const header={started,cwd:process.cwd(),source:before,tools,environment:{PATH:process.env.PATH,TMPDIR:process.env.TMPDIR,EDITOR_BROWSER:process.env.EDITOR_BROWSER,EDITOR_BROWSER_EXECUTABLE:process.env.EDITOR_BROWSER_EXECUTABLE,EDITOR_RECEIPT:process.env.EDITOR_RECEIPT,TEXT_STATE_EVIDENCE:process.env.TEXT_STATE_EVIDENCE,TEXT_STATE_APP:process.env.TEXT_STATE_APP,TEXT_STATE_ENGINES:process.env.TEXT_STATE_ENGINES,IE_RECOVERY_OUTPUT:process.env.IE_RECOVERY_OUTPUT,IE_HISTORY_OUTPUT:process.env.IE_HISTORY_OUTPUT,TEXT_ZOOM_RECEIPT:process.env.TEXT_ZOOM_RECEIPT,TEXT_ZOOM_SOURCE:process.env.TEXT_ZOOM_SOURCE,DEBUG:process.env.DEBUG,NODE_OPTIONS:process.env.NODE_OPTIONS},command,args};
+writeFileSync(prefix+'.json',JSON.stringify({...header,state:'running'},null,2));
+const r=spawnSync(command,args,{encoding:'utf8',maxBuffer:32*1024*1024,env:process.env});
+writeFileSync(prefix+'.log',(r.stdout??'')+(r.stderr??''));
+const after=snapshot(),unchanged=before.identity===after.identity;
+writeFileSync(prefix+'.json',JSON.stringify({...header,ended:new Date().toISOString(),exit:r.status,error:r.error?.message,unchanged,sourceAfter:after.identity},null,2));
+console.log(JSON.stringify({prefix,exit:r.status,unchanged,error:r.error?.message}));process.exitCode=r.status===0&&unchanged?0:1;

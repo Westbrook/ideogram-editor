@@ -1,0 +1,2519 @@
+{
+  "scope": "Saved168 raw ancillary metadata only;168 remains FAILED, no body/hash/native/cleanup qualification",
+  "cases": [
+    {
+      "case": "combined",
+      "originalRefs": [
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/combined/wasm-completion.json",
+          "bytes": 25025497,
+          "sha256": "5d3d5a98799b80e5553d84bc1a1c1fe8c55d272cd86a7ab4657a1f8c02186aa9"
+        },
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/combined/observations.json",
+          "bytes": 1251423,
+          "sha256": "f0f331b62812c3e0fb1209744d0a384a5b3965ed006bd00bd5f6919e2b25b2b5"
+        },
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/combined/completion-server-1.jsonl",
+          "bytes": 24039354,
+          "sha256": "05fbe7ba480d9b803a5ebb166b6f3cd13947af3abad7ab732ec5ceaa2a5b1f5b"
+        }
+      ],
+      "origin": "http://127.0.0.1:50330",
+      "epoch": "902853ad-8ba3-4635-bcb5-5d44c16fce22",
+      "owner": {
+        "kind": "page",
+        "sessionId": "owned-page-CDPSession-1",
+        "targetId": "70F555A757BD2C38F3658F674D76A4D6",
+        "contextId": "50F2AA47529166D9130F3B8E517AD447",
+        "frameId": "70F555A757BD2C38F3658F674D76A4D6",
+        "origin": "http://127.0.0.1:50330",
+        "live": true
+      },
+      "frame": {
+        "id": "70F555A757BD2C38F3658F674D76A4D6",
+        "loaderId": "2CF33BAFBC2FD64EAD32C84DFFF17762",
+        "url": "http://127.0.0.1:50330/"
+      },
+      "defaultContext": {
+        "id": 3,
+        "uniqueId": "5218054094287688271.3596323949349912570",
+        "frameId": "70F555A757BD2C38F3658F674D76A4D6",
+        "origin": "http://127.0.0.1:50330",
+        "epoch": "902853ad-8ba3-4635-bcb5-5d44c16fce22"
+      },
+      "serverOwner": {
+        "pid": 31725,
+        "instance": "472965dd-de9c-4453-a6a5-7cab972bb74c",
+        "origin": "http://127.0.0.1:50330"
+      },
+      "recorder": {
+        "attempted": true,
+        "installed": true,
+        "active": true,
+        "requests": 1385,
+        "servers": 1,
+        "failures": [],
+        "installedAt": 1790620439955,
+        "pid": 31725,
+        "phase": "live",
+        "instance": "472965dd-de9c-4453-a6a5-7cab972bb74c",
+        "originalInstallation": true,
+        "dispatchOwned": true,
+        "uninstalled": false,
+        "rowCount": 29120,
+        "lastSequence": 29120
+      },
+      "sourceAdmission": {
+        "noStaticIcon": true,
+        "origins": [
+          "http://127.0.0.1:50330"
+        ]
+      },
+      "server": [
+        {
+          "sequence": 128,
+          "kind": "request",
+          "at": 1790620440821,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "headers": {
+            "host": "127.0.0.1:50330",
+            "connection": "keep-alive",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+            "accept-language": "en-US",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-mode": "no-cors",
+            "sec-fetch-dest": "image",
+            "accept-encoding": "gzip, deflate, br, zstd"
+          },
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:50330",
+            "Connection",
+            "keep-alive",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+            "Accept-Language",
+            "en-US",
+            "sec-ch-ua-mobile",
+            "?0",
+            "Accept",
+            "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "Sec-Fetch-Site",
+            "same-origin",
+            "Sec-Fetch-Mode",
+            "no-cors",
+            "Sec-Fetch-Dest",
+            "image",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          "httpVersion": "1.1",
+          "localAddress": "127.0.0.1",
+          "localPort": 50330,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 50331
+        },
+        {
+          "sequence": 129,
+          "kind": "header-call",
+          "at": 1790620440821,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 130,
+          "kind": "header-return",
+          "at": 1790620440821,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 131,
+          "kind": "header-call",
+          "at": 1790620440821,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Cache-Control",
+            "no-store"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 132,
+          "kind": "header-return",
+          "at": 1790620440821,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 133,
+          "kind": "header-call",
+          "at": 1790620440821,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 134,
+          "kind": "header-return",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 135,
+          "kind": "header-call",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "X-Content-Type-Options",
+            "nosniff"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 136,
+          "kind": "header-return",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 137,
+          "kind": "header-call",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Cross-Origin-Resource-Policy",
+            "same-origin"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 138,
+          "kind": "header-return",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 139,
+          "kind": "header-call",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "X-Frame-Options",
+            "DENY"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 140,
+          "kind": "header-return",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 141,
+          "kind": "header-call",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Connection",
+            "close"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 142,
+          "kind": "header-return",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 143,
+          "kind": "header-call",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "writeHead",
+          "sameResponseObject": true,
+          "args": [
+            404,
+            {
+              "Content-Type": "application/json; charset=utf-8"
+            }
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 144,
+          "kind": "header-call",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Content-Type",
+            "application/json; charset=utf-8"
+          ],
+          "statusBefore": 404
+        },
+        {
+          "sequence": 145,
+          "kind": "header-return",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 146,
+          "kind": "header-return",
+          "at": 1790620440822,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "writeHead",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headersSent": true
+        },
+        {
+          "sequence": 147,
+          "kind": "response",
+          "at": 1790620440823,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headerNames": [
+            "content-security-policy",
+            "cache-control",
+            "referrer-policy",
+            "x-content-type-options",
+            "cross-origin-resource-policy",
+            "x-frame-options",
+            "connection",
+            "content-type"
+          ],
+          "writableFinished": true,
+          "headersSent": true,
+          "cookies": [],
+          "originalObjects": true
+        },
+        {
+          "sequence": 148,
+          "kind": "response-close",
+          "at": 1790620440823,
+          "pid": 31725,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "writableFinished": true,
+          "destroyed": true,
+          "originalObjects": true
+        }
+      ],
+      "network": [
+        {
+          "sequence": 43,
+          "at": "2026-09-28T18:34:00.821Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "31716.7",
+            "loaderId": "2CF33BAFBC2FD64EAD32C84DFFF17762",
+            "documentURL": "http://127.0.0.1:50330/",
+            "request": {
+              "url": "http://127.0.0.1:50330/favicon.ico",
+              "method": "GET",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+                "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+                "Accept-Language": "en-US",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "no-referrer",
+              "isSameSite": true
+            },
+            "timestamp": 3973517.34866,
+            "wallTime": 1790620440.819067,
+            "initiator": {
+              "type": "other"
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Other",
+            "frameId": "70F555A757BD2C38F3658F674D76A4D6",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "sequence": 44,
+          "at": "2026-09-28T18:34:00.821Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "31716.7",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US",
+              "Connection": "keep-alive",
+              "Host": "127.0.0.1:50330",
+              "Sec-Fetch-Dest": "image",
+              "Sec-Fetch-Mode": "no-cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 3973517.348923
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "sequence": 50,
+          "at": "2026-09-28T18:34:00.828Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "31716.7",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "close",
+              "Content-Security-Policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+              "Content-Type": "application/json; charset=utf-8",
+              "Cross-Origin-Resource-Policy": "same-origin",
+              "Date": "Mon, 28 Sep 2026 18:34:00 GMT",
+              "Referrer-Policy": "no-referrer",
+              "Transfer-Encoding": "chunked",
+              "X-Content-Type-Options": "nosniff",
+              "X-Frame-Options": "DENY"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 404,
+            "headersText": "HTTP/1.1 404 Not Found\r\nContent-Security-Policy: default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\r\nCache-Control: no-store\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\nCross-Origin-Resource-Policy: same-origin\r\nX-Frame-Options: DENY\r\nConnection: close\r\nContent-Type: application/json; charset=utf-8\r\nDate: Mon, 28 Sep 2026 18:34:00 GMT\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "sequence": 51,
+          "at": "2026-09-28T18:34:00.828Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.responseReceived",
+          "params": {
+            "requestId": "31716.7",
+            "loaderId": "2CF33BAFBC2FD64EAD32C84DFFF17762",
+            "timestamp": 3973517.352798,
+            "type": "Other",
+            "response": {
+              "url": "http://127.0.0.1:50330/favicon.ico",
+              "status": 404,
+              "statusText": "Not Found",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Content-Security-Policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50330; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+                "Cache-Control": "no-store",
+                "Cross-Origin-Resource-Policy": "same-origin",
+                "Connection": "close",
+                "Referrer-Policy": "no-referrer",
+                "X-Content-Type-Options": "nosniff",
+                "Date": "Mon, 28 Sep 2026 18:34:00 GMT",
+                "Content-Type": "application/json; charset=utf-8",
+                "X-Frame-Options": "DENY"
+              },
+              "mimeType": "application/json",
+              "charset": "utf-8",
+              "connectionReused": true,
+              "connectionId": 151,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 50330,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 761,
+              "timing": {
+                "requestTime": 3973517.348923,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.07,
+                "sendEnd": 0.087,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 3.69,
+                "receiveHeadersEnd": 3.714
+              },
+              "responseTime": 1790620440823,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "secure"
+            },
+            "hasExtraInfo": true,
+            "frameId": "70F555A757BD2C38F3658F674D76A4D6"
+          }
+        },
+        {
+          "sequence": 52,
+          "at": "2026-09-28T18:34:00.828Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.dataReceived",
+          "params": {
+            "requestId": "31716.7",
+            "timestamp": 3973517.352994,
+            "dataLength": 163,
+            "encodedDataLength": 0
+          }
+        },
+        {
+          "sequence": 53,
+          "at": "2026-09-28T18:34:00.828Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.dataReceived",
+          "params": {
+            "requestId": "31716.7",
+            "timestamp": 3973517.353032,
+            "dataLength": 0,
+            "encodedDataLength": 174
+          }
+        },
+        {
+          "sequence": 54,
+          "at": "2026-09-28T18:34:00.828Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.loadingFinished",
+          "params": {
+            "requestId": "31716.7",
+            "timestamp": 3973517.35274,
+            "encodedDataLength": 935
+          }
+        }
+      ],
+      "publicIconRequests": [],
+      "publicIconResponses": [],
+      "publicIconTerminals": []
+    },
+    {
+      "case": "font-recovery",
+      "originalRefs": [
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/font-recovery/wasm-completion.json",
+          "bytes": 8730156,
+          "sha256": "bfcf9f2b0588908b6146fbff472a3fd34f56836e884d45065e30f4cf7291d2ff"
+        },
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/font-recovery/observations.json",
+          "bytes": 263755,
+          "sha256": "a499f7295752ed2a04f767109b7e0dada60c33bcf48690cfc736353e2d85c40a"
+        },
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/font-recovery/completion-server-1.jsonl",
+          "bytes": 4969085,
+          "sha256": "0ec52f676c93f81ffddfb0898360b5327f7c9b5150869e2d9135627f25acc6b3"
+        }
+      ],
+      "origin": "http://127.0.0.1:50541",
+      "epoch": "531dfb6e-78a8-4d15-9bb5-74f4d1364b1d",
+      "owner": {
+        "kind": "page",
+        "sessionId": "owned-page-CDPSession-1",
+        "targetId": "C1B96D9476CF729FDC00BCFA4932D566",
+        "contextId": "7A4C67EE25387798AD4793DD79AA941F",
+        "frameId": "C1B96D9476CF729FDC00BCFA4932D566",
+        "origin": "http://127.0.0.1:50541",
+        "live": true
+      },
+      "frame": {
+        "id": "C1B96D9476CF729FDC00BCFA4932D566",
+        "loaderId": "73F8644CFB9D06FA1EAF6778B3EE7E71",
+        "url": "http://127.0.0.1:50541/"
+      },
+      "defaultContext": {
+        "id": 3,
+        "uniqueId": "2927842436191637064.-2079533950560565037",
+        "frameId": "C1B96D9476CF729FDC00BCFA4932D566",
+        "origin": "http://127.0.0.1:50541",
+        "epoch": "531dfb6e-78a8-4d15-9bb5-74f4d1364b1d"
+      },
+      "serverOwner": {
+        "pid": 38861,
+        "instance": "cb246350-fa11-4ba0-bbe3-7ec127db9a88",
+        "origin": "http://127.0.0.1:50541"
+      },
+      "recorder": {
+        "attempted": true,
+        "installed": true,
+        "active": true,
+        "requests": 290,
+        "servers": 1,
+        "failures": [],
+        "installedAt": 1790620466239,
+        "pid": 38861,
+        "phase": "live",
+        "instance": "cb246350-fa11-4ba0-bbe3-7ec127db9a88",
+        "originalInstallation": true,
+        "dispatchOwned": true,
+        "uninstalled": false,
+        "rowCount": 6064,
+        "lastSequence": 6064
+      },
+      "sourceAdmission": {
+        "noStaticIcon": true,
+        "origins": [
+          "http://127.0.0.1:50541"
+        ]
+      },
+      "server": [
+        {
+          "sequence": 128,
+          "kind": "request",
+          "at": 1790620467261,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "headers": {
+            "host": "127.0.0.1:50541",
+            "connection": "keep-alive",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+            "accept-language": "en-US",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-mode": "no-cors",
+            "sec-fetch-dest": "image",
+            "accept-encoding": "gzip, deflate, br, zstd"
+          },
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:50541",
+            "Connection",
+            "keep-alive",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+            "Accept-Language",
+            "en-US",
+            "sec-ch-ua-mobile",
+            "?0",
+            "Accept",
+            "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "Sec-Fetch-Site",
+            "same-origin",
+            "Sec-Fetch-Mode",
+            "no-cors",
+            "Sec-Fetch-Dest",
+            "image",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          "httpVersion": "1.1",
+          "localAddress": "127.0.0.1",
+          "localPort": 50541,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 50547
+        },
+        {
+          "sequence": 129,
+          "kind": "header-call",
+          "at": 1790620467261,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 130,
+          "kind": "header-return",
+          "at": 1790620467262,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 131,
+          "kind": "header-call",
+          "at": 1790620467262,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Cache-Control",
+            "no-store"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 132,
+          "kind": "header-return",
+          "at": 1790620467262,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 133,
+          "kind": "header-call",
+          "at": 1790620467262,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 134,
+          "kind": "header-return",
+          "at": 1790620467262,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 135,
+          "kind": "header-call",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "X-Content-Type-Options",
+            "nosniff"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 136,
+          "kind": "header-return",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 137,
+          "kind": "header-call",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Cross-Origin-Resource-Policy",
+            "same-origin"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 138,
+          "kind": "header-return",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 139,
+          "kind": "header-call",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "X-Frame-Options",
+            "DENY"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 140,
+          "kind": "header-return",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 141,
+          "kind": "header-call",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Connection",
+            "close"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 142,
+          "kind": "header-return",
+          "at": 1790620467263,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 143,
+          "kind": "header-call",
+          "at": 1790620467264,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "writeHead",
+          "sameResponseObject": true,
+          "args": [
+            404,
+            {
+              "Content-Type": "application/json; charset=utf-8"
+            }
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 144,
+          "kind": "header-call",
+          "at": 1790620467264,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Content-Type",
+            "application/json; charset=utf-8"
+          ],
+          "statusBefore": 404
+        },
+        {
+          "sequence": 145,
+          "kind": "header-return",
+          "at": 1790620467264,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 146,
+          "kind": "header-return",
+          "at": 1790620467264,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "writeHead",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headersSent": true
+        },
+        {
+          "sequence": 147,
+          "kind": "response",
+          "at": 1790620467264,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headerNames": [
+            "content-security-policy",
+            "cache-control",
+            "referrer-policy",
+            "x-content-type-options",
+            "cross-origin-resource-policy",
+            "x-frame-options",
+            "connection",
+            "content-type"
+          ],
+          "writableFinished": true,
+          "headersSent": true,
+          "cookies": [],
+          "originalObjects": true
+        },
+        {
+          "sequence": 148,
+          "kind": "response-close",
+          "at": 1790620467265,
+          "pid": 38861,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "writableFinished": true,
+          "destroyed": true,
+          "originalObjects": true
+        }
+      ],
+      "network": [
+        {
+          "sequence": 44,
+          "at": "2026-09-28T18:34:27.261Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "38820.7",
+            "loaderId": "73F8644CFB9D06FA1EAF6778B3EE7E71",
+            "documentURL": "http://127.0.0.1:50541/",
+            "request": {
+              "url": "http://127.0.0.1:50541/favicon.ico",
+              "method": "GET",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+                "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+                "Accept-Language": "en-US",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "no-referrer",
+              "isSameSite": true
+            },
+            "timestamp": 3973543.790727,
+            "wallTime": 1790620467.261376,
+            "initiator": {
+              "type": "other"
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Other",
+            "frameId": "C1B96D9476CF729FDC00BCFA4932D566",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "sequence": 45,
+          "at": "2026-09-28T18:34:27.263Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "38820.7",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US",
+              "Connection": "keep-alive",
+              "Host": "127.0.0.1:50541",
+              "Sec-Fetch-Dest": "image",
+              "Sec-Fetch-Mode": "no-cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 3973543.790898
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "sequence": 50,
+          "at": "2026-09-28T18:34:27.266Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "38820.7",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "close",
+              "Content-Security-Policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+              "Content-Type": "application/json; charset=utf-8",
+              "Cross-Origin-Resource-Policy": "same-origin",
+              "Date": "Mon, 28 Sep 2026 18:34:27 GMT",
+              "Referrer-Policy": "no-referrer",
+              "Transfer-Encoding": "chunked",
+              "X-Content-Type-Options": "nosniff",
+              "X-Frame-Options": "DENY"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 404,
+            "headersText": "HTTP/1.1 404 Not Found\r\nContent-Security-Policy: default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\r\nCache-Control: no-store\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\nCross-Origin-Resource-Policy: same-origin\r\nX-Frame-Options: DENY\r\nConnection: close\r\nContent-Type: application/json; charset=utf-8\r\nDate: Mon, 28 Sep 2026 18:34:27 GMT\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "sequence": 51,
+          "at": "2026-09-28T18:34:27.269Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.responseReceived",
+          "params": {
+            "requestId": "38820.7",
+            "loaderId": "73F8644CFB9D06FA1EAF6778B3EE7E71",
+            "timestamp": 3973543.796272,
+            "type": "Other",
+            "response": {
+              "url": "http://127.0.0.1:50541/favicon.ico",
+              "status": 404,
+              "statusText": "Not Found",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Content-Security-Policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50541; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+                "Cache-Control": "no-store",
+                "Cross-Origin-Resource-Policy": "same-origin",
+                "Connection": "close",
+                "Referrer-Policy": "no-referrer",
+                "X-Content-Type-Options": "nosniff",
+                "Date": "Mon, 28 Sep 2026 18:34:27 GMT",
+                "Content-Type": "application/json; charset=utf-8",
+                "X-Frame-Options": "DENY"
+              },
+              "mimeType": "application/json",
+              "charset": "utf-8",
+              "connectionReused": true,
+              "connectionId": 147,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 50541,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 761,
+              "timing": {
+                "requestTime": 3973543.790898,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.071,
+                "sendEnd": 0.092,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 2.932,
+                "receiveHeadersEnd": 2.963
+              },
+              "responseTime": 1790620467264.456,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "secure"
+            },
+            "hasExtraInfo": true,
+            "frameId": "C1B96D9476CF729FDC00BCFA4932D566"
+          }
+        },
+        {
+          "sequence": 52,
+          "at": "2026-09-28T18:34:27.269Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.dataReceived",
+          "params": {
+            "requestId": "38820.7",
+            "timestamp": 3973543.79631,
+            "dataLength": 163,
+            "encodedDataLength": 0
+          }
+        },
+        {
+          "sequence": 53,
+          "at": "2026-09-28T18:34:27.269Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.dataReceived",
+          "params": {
+            "requestId": "38820.7",
+            "timestamp": 3973543.796359,
+            "dataLength": 0,
+            "encodedDataLength": 174
+          }
+        },
+        {
+          "sequence": 54,
+          "at": "2026-09-28T18:34:27.269Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.loadingFinished",
+          "params": {
+            "requestId": "38820.7",
+            "timestamp": 3973543.793976,
+            "encodedDataLength": 935
+          }
+        }
+      ],
+      "publicIconRequests": [],
+      "publicIconResponses": [],
+      "publicIconTerminals": []
+    },
+    {
+      "case": "busy-actions",
+      "originalRefs": [
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/busy-actions/wasm-completion.json",
+          "bytes": 5133362,
+          "sha256": "03d0fffa7c2b55840ad95391f43aae69a330c803ba54718efc850872a50e9f6f"
+        },
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/busy-actions/observations.json",
+          "bytes": 140109,
+          "sha256": "34474586b603de12eb23144886e62bba4a547271be34f0a54e52e39653e7c189"
+        },
+        {
+          "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/168-integration-full-chromium/busy-actions/completion-server-1.jsonl",
+          "bytes": 2590783,
+          "sha256": "b44d377b47b85605a0c0b53045d4d39a8ed66e311ca5bdfc80365e1c9957be5b"
+        }
+      ],
+      "origin": "http://127.0.0.1:50609",
+      "epoch": "410e47c6-493e-4891-b7fd-476840c4f07c",
+      "owner": {
+        "kind": "page",
+        "sessionId": "owned-page-CDPSession-1",
+        "targetId": "004379B0E70038123DB4D33071CC3006",
+        "contextId": "E1C3AE3CC4F434A458D6A952616E19F8",
+        "frameId": "004379B0E70038123DB4D33071CC3006",
+        "origin": "http://127.0.0.1:50609",
+        "live": true
+      },
+      "frame": {
+        "id": "004379B0E70038123DB4D33071CC3006",
+        "loaderId": "03904776FC0712C4E53CF477041FE5E3",
+        "url": "http://127.0.0.1:50609/"
+      },
+      "defaultContext": {
+        "id": 3,
+        "uniqueId": "-8339257223378814718.-4584424458146836825",
+        "frameId": "004379B0E70038123DB4D33071CC3006",
+        "origin": "http://127.0.0.1:50609",
+        "epoch": "410e47c6-493e-4891-b7fd-476840c4f07c"
+      },
+      "serverOwner": {
+        "pid": 39463,
+        "instance": "60ae726b-d289-403a-b4f0-d3def06ea5ab",
+        "origin": "http://127.0.0.1:50609"
+      },
+      "recorder": {
+        "attempted": true,
+        "installed": true,
+        "active": true,
+        "requests": 154,
+        "servers": 1,
+        "failures": [],
+        "installedAt": 1790620473480,
+        "pid": 39463,
+        "phase": "live",
+        "instance": "60ae726b-d289-403a-b4f0-d3def06ea5ab",
+        "originalInstallation": true,
+        "dispatchOwned": true,
+        "uninstalled": false,
+        "rowCount": 3158,
+        "lastSequence": 3158
+      },
+      "sourceAdmission": {
+        "noStaticIcon": true,
+        "origins": [
+          "http://127.0.0.1:50609"
+        ]
+      },
+      "server": [
+        {
+          "sequence": 128,
+          "kind": "request",
+          "at": 1790620474332,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "headers": {
+            "host": "127.0.0.1:50609",
+            "connection": "keep-alive",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+            "accept-language": "en-US",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-mode": "no-cors",
+            "sec-fetch-dest": "image",
+            "accept-encoding": "gzip, deflate, br, zstd"
+          },
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:50609",
+            "Connection",
+            "keep-alive",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+            "Accept-Language",
+            "en-US",
+            "sec-ch-ua-mobile",
+            "?0",
+            "Accept",
+            "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "Sec-Fetch-Site",
+            "same-origin",
+            "Sec-Fetch-Mode",
+            "no-cors",
+            "Sec-Fetch-Dest",
+            "image",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd"
+          ],
+          "httpVersion": "1.1",
+          "localAddress": "127.0.0.1",
+          "localPort": 50609,
+          "remoteAddress": "127.0.0.1",
+          "remotePort": 50611
+        },
+        {
+          "sequence": 129,
+          "kind": "header-call",
+          "at": 1790620474332,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 130,
+          "kind": "header-return",
+          "at": 1790620474332,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 131,
+          "kind": "header-call",
+          "at": 1790620474332,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Cache-Control",
+            "no-store"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 132,
+          "kind": "header-return",
+          "at": 1790620474332,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 133,
+          "kind": "header-call",
+          "at": 1790620474332,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 134,
+          "kind": "header-return",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 135,
+          "kind": "header-call",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "X-Content-Type-Options",
+            "nosniff"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 136,
+          "kind": "header-return",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 137,
+          "kind": "header-call",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Cross-Origin-Resource-Policy",
+            "same-origin"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 138,
+          "kind": "header-return",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 139,
+          "kind": "header-call",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "X-Frame-Options",
+            "DENY"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 140,
+          "kind": "header-return",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 141,
+          "kind": "header-call",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Connection",
+            "close"
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 142,
+          "kind": "header-return",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 200,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 143,
+          "kind": "header-call",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "writeHead",
+          "sameResponseObject": true,
+          "args": [
+            404,
+            {
+              "Content-Type": "application/json; charset=utf-8"
+            }
+          ],
+          "statusBefore": 200
+        },
+        {
+          "sequence": 144,
+          "kind": "header-call",
+          "at": 1790620474333,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "args": [
+            "Content-Type",
+            "application/json; charset=utf-8"
+          ],
+          "statusBefore": 404
+        },
+        {
+          "sequence": 145,
+          "kind": "header-return",
+          "at": 1790620474334,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "setHeader",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headersSent": false
+        },
+        {
+          "sequence": 146,
+          "kind": "header-return",
+          "at": 1790620474334,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "name": "writeHead",
+          "sameResponseObject": true,
+          "returnIsResponse": true,
+          "returnType": "object",
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headersSent": true
+        },
+        {
+          "sequence": 147,
+          "kind": "response",
+          "at": 1790620474334,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "headerNames": [
+            "content-security-policy",
+            "cache-control",
+            "referrer-policy",
+            "x-content-type-options",
+            "cross-origin-resource-policy",
+            "x-frame-options",
+            "connection",
+            "content-type"
+          ],
+          "writableFinished": true,
+          "headersSent": true,
+          "cookies": [],
+          "originalObjects": true
+        },
+        {
+          "sequence": 148,
+          "kind": "response-close",
+          "at": 1790620474335,
+          "pid": 39463,
+          "id": 7,
+          "serverId": 1,
+          "method": "GET",
+          "url": "/favicon.ico",
+          "path": "/favicon.ico",
+          "requestObject": true,
+          "responseObject": true,
+          "responseRequestSame": true,
+          "status": 404,
+          "headers": {
+            "content-security-policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "cross-origin-resource-policy": "same-origin",
+            "x-frame-options": "DENY",
+            "connection": "close",
+            "content-type": "application/json; charset=utf-8"
+          },
+          "writableFinished": true,
+          "destroyed": true,
+          "originalObjects": true
+        }
+      ],
+      "network": [
+        {
+          "sequence": 48,
+          "at": "2026-09-28T18:34:34.334Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "39456.7",
+            "loaderId": "03904776FC0712C4E53CF477041FE5E3",
+            "documentURL": "http://127.0.0.1:50609/",
+            "request": {
+              "url": "http://127.0.0.1:50609/favicon.ico",
+              "method": "GET",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+                "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+                "Accept-Language": "en-US",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "no-referrer",
+              "isSameSite": true
+            },
+            "timestamp": 3973550.86142,
+            "wallTime": 1790620474.332125,
+            "initiator": {
+              "type": "other"
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Other",
+            "frameId": "004379B0E70038123DB4D33071CC3006",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "sequence": 54,
+          "at": "2026-09-28T18:34:34.335Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "39456.7",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US",
+              "Connection": "keep-alive",
+              "Host": "127.0.0.1:50609",
+              "Sec-Fetch-Dest": "image",
+              "Sec-Fetch-Mode": "no-cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 3973550.861549
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "sequence": 55,
+          "at": "2026-09-28T18:34:34.336Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "39456.7",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "close",
+              "Content-Security-Policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+              "Content-Type": "application/json; charset=utf-8",
+              "Cross-Origin-Resource-Policy": "same-origin",
+              "Date": "Mon, 28 Sep 2026 18:34:34 GMT",
+              "Referrer-Policy": "no-referrer",
+              "Transfer-Encoding": "chunked",
+              "X-Content-Type-Options": "nosniff",
+              "X-Frame-Options": "DENY"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 404,
+            "headersText": "HTTP/1.1 404 Not Found\r\nContent-Security-Policy: default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\r\nCache-Control: no-store\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\nCross-Origin-Resource-Policy: same-origin\r\nX-Frame-Options: DENY\r\nConnection: close\r\nContent-Type: application/json; charset=utf-8\r\nDate: Mon, 28 Sep 2026 18:34:34 GMT\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "sequence": 58,
+          "at": "2026-09-28T18:34:34.384Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.responseReceived",
+          "params": {
+            "requestId": "39456.7",
+            "loaderId": "03904776FC0712C4E53CF477041FE5E3",
+            "timestamp": 3973550.909528,
+            "type": "Other",
+            "response": {
+              "url": "http://127.0.0.1:50609/favicon.ico",
+              "status": 404,
+              "statusText": "Not Found",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Content-Security-Policy": "default-src 'self'; script-src 'self' 'sha256-+ZumNdaLnZiw7XNJKZMSv2ghl7Hyrym0usqU8l2Hnlc='; style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-qa3dhrtRMZ7cfMl6+AXpoir01vTv2n6joHTueAHzeww=' 'sha256-k109juR2u4oKW+RV1muvta9kqm95iEMXYAbfAoBvmJ8='; connect-src http://127.0.0.1:50609; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+                "Cache-Control": "no-store",
+                "Cross-Origin-Resource-Policy": "same-origin",
+                "Connection": "close",
+                "Referrer-Policy": "no-referrer",
+                "X-Content-Type-Options": "nosniff",
+                "Date": "Mon, 28 Sep 2026 18:34:34 GMT",
+                "Content-Type": "application/json; charset=utf-8",
+                "X-Frame-Options": "DENY"
+              },
+              "mimeType": "application/json",
+              "charset": "utf-8",
+              "connectionReused": true,
+              "connectionId": 153,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 50609,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 761,
+              "timing": {
+                "requestTime": 3973550.861549,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.082,
+                "sendEnd": 0.11,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 2.395,
+                "receiveHeadersEnd": 2.427
+              },
+              "responseTime": 1790620474334.633,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "secure"
+            },
+            "hasExtraInfo": true,
+            "frameId": "004379B0E70038123DB4D33071CC3006"
+          }
+        },
+        {
+          "sequence": 59,
+          "at": "2026-09-28T18:34:34.384Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.dataReceived",
+          "params": {
+            "requestId": "39456.7",
+            "timestamp": 3973550.909568,
+            "dataLength": 163,
+            "encodedDataLength": 0
+          }
+        },
+        {
+          "sequence": 60,
+          "at": "2026-09-28T18:34:34.384Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.dataReceived",
+          "params": {
+            "requestId": "39456.7",
+            "timestamp": 3973550.909616,
+            "dataLength": 0,
+            "encodedDataLength": 174
+          }
+        },
+        {
+          "sequence": 61,
+          "at": "2026-09-28T18:34:34.384Z",
+          "controllerSessionLabel": "owned-page-CDPSession-1",
+          "name": "Network.loadingFinished",
+          "params": {
+            "requestId": "39456.7",
+            "timestamp": 3973550.864135,
+            "encodedDataLength": 935
+          }
+        }
+      ],
+      "publicIconRequests": [],
+      "publicIconResponses": [],
+      "publicIconTerminals": []
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile,unlink,symlink} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
 import {join} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {isolated} from './helpers.mjs';
@@ -22,4 +23,20 @@ test('text realms share the writer budget; retries renew one owner and explicit 
  for(let i=0;i<4;i++)assert.equal((await f.post('/api/v1/text-admission/realm_one',{protocolVersion:1})).status,200);
  const count=()=>{const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});try{return db.prepare('SELECT count(*) n FROM text_admissions').get().n;}finally{db.close();}};assert.equal(count(),1);
  assert.equal((await f.post('/api/v1/text-admission/realm_one/release',{protocolVersion:1})).status,200);assert.equal(count(),0);assert.equal((await f.post('/api/v1/text-admission/realm_two',{protocolVersion:1})).status,200);assert.equal(count(),1);
+});
+
+test('missing and corrupt exact fonts retain text drafts with stable receipts and allow the next valid generation',async t=>{
+ const f=await isolated(t);await terminal(f,f.command({}, {width:120,height:70}));
+ async function stage(bytes,purpose='caption'){const s=await upload(f,bytes,purpose,purpose==='caption'?'text/plain':'application/octet-stream');return (await workspace(f,{type:'FinalizeStaging',stagingId:s.stagingId,expectedSha256:s.sha256})).event.payload.asset;}
+ const pinned=profile.fonts.find(x=>x.id==='NotoSans'),fontBytes=await readFile('vendor/text/'+pinned.file),source=(await stage(fontBytes,'font')).blob,license=(await stage(await readFile('vendor/text/'+pinned.licenseFile))).blob;
+ const imported=await terminal(f,f.command({expectedDocumentRevision:'1',body:{type:'ImportFont',source,license,origin:'bundled',embeddingReviewed:true}}));assert.equal(imported.json.receipt.status,'accepted');
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});let font;try{font=db.prepare('SELECT json FROM assets').all().map(r=>JSON.parse(r.json)).find(a=>a.font)?.font;}finally{db.close();}assert(font);
+ const textUtf8=(await stage(Buffer.from('Missing font keeps this literal draft'))).blob,body={schemaVersion:1,kind:'text-draft-1',textUtf8,style:{primaryFont:font.bytes.hash,explicitFallbacks:[],sizePx:32,lineHeightMultiplier:1.2,fill:[40,90,190,255],align:'start',direction:'auto'},frame:{width:120,height:70},fonts:[font]},asset=await stage(Buffer.from(JSON.stringify(body))),before=await doc(f),path=join(f.root,'objects','sha256',font.bytes.hash.slice(7,9),font.bytes.hash.slice(7));
+ let seq='0';for(const fault of ['missing','corrupt','valid']){if(fault==='missing')await unlink(path);else await writeFile(path,fault==='corrupt'?Buffer.from('bad font'):fontBytes,{mode:0o600});
+  const request={protocolVersion:1,requestId:randomUUID(),sessionId:'font-recovery',expectedUISeq:seq,body:{type:'SaveDraft',draft:{id:'recoverable-font',generation:String(Number(seq)+1),kind:'text',documentId:before.id,targetLayerId:null,expectedDocumentRevision:before.revision,assetId:asset.id,composing:false}}};
+  const r=await f.post('/api/v1/ui/font-recovery',request);assert.equal(r.status,200,r.text);assert.equal(r.json.status,'accepted');assert.deepEqual((await f.post('/api/v1/ui/font-recovery',request)).json,r.json);seq=r.json.uiSeq;assert.deepEqual(await doc(f),before);
+ }
+ await unlink(path);await symlink(join(f.root,'metadata.sqlite'),path);const request={protocolVersion:1,requestId:randomUUID(),sessionId:'font-recovery',expectedUISeq:seq,body:{type:'SaveDraft',draft:{id:'unsafe-font',generation:'1',kind:'text',documentId:before.id,targetLayerId:null,expectedDocumentRevision:before.revision,assetId:asset.id,composing:false}}};
+ const refused=await f.post('/api/v1/ui/font-recovery',request);assert.notEqual(refused.status,200);assert.equal((await f.read('/api/v1/ui/font-recovery')).json.uiSeq,seq);assert.deepEqual(await doc(f),before);await unlink(path);await writeFile(path,fontBytes,{mode:0o600});
+ assert.equal((await f.post('/api/v1/ui/font-recovery',request)).json.status,'accepted');await f.server.close();
 });
