@@ -9,6 +9,8 @@
   },
   "packageManager": "npm@12.1.0",
   "scripts": {
+    "test:node": "node tooling/test-node.mjs",
+    "audit:reviews": "python3 tooling/review-workspaces.py",
     "verify:vendor": "python3 tooling/verify-vendor.py",
     "verify:imports": "node tooling/verify-imports.mjs",
     "test:vendor": "python3 tooling/test-vendor.py",
