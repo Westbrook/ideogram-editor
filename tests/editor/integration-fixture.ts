@@ -1,3 +1,5 @@
+// @ts-ignore Test-only coherent public/native draft boundary.
+import {adoptNativeInput,readNativeState,nativeDescriptor,selectNativeFont,cancelAndReopenNativeFont,readDraftOccurrences} from './completion/font-state.mjs';
 import {test as base,expect,type Page,type BrowserContext} from '@playwright/test';
 import {mkdtemp,realpath,mkdir,writeFile,readFile,readdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -51,7 +53,7 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
  const ancillaryOrigins=new Set<string>(),noStaticIcon=!(await readdir('dist/app')).includes('favicon.ico');
  const origins=new Set<string>(),events:any[]=[],commands:any[]=[],downloads:any[]=[],effects:any[]=[],pending:Promise<unknown>[]=[],responses=new WeakMap<any,any>(),ids=new WeakMap<any,number>(),workers=new Set<any>();
  const activeRequests=new Set<any>();
- const importedHeads:any[]=[],wasmReads:any[]=[];const faultResponses=new Set<number>(),faults:{url:string;status:number;reason:string}[]=[],exportRequests:any[]=[];
+ const importedHeads:any[]=[],wasmReads:any[]=[],fontTransitions:any[]=[];const faultResponses=new Set<number>(),faults:{url:string;status:number;reason:string}[]=[],exportRequests:any[]=[];
  const id=(r:any)=>{if(!ids.has(r))ids.set(r,++sequence);return ids.get(r)!;};
  const fontObserver=await originalFontReader(context,out,fonts,id);
  const recoveryObserver=await originalRecoveryReader(context,out,id);
@@ -81,7 +83,9 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
  }
  return {root,out,events,commands,downloads,admit,get server(){return server;},fault(url:string,status:number,reason:string){faults.push({url,status,reason});},
   restoredRoute(pattern:string,path:string){return completion?.restoredRoute(pattern,path);}, heldRoute(route:any){return completion?.heldRoute(route);},
-  async native(kind:'Preview'|'Apply',work:()=>Promise<unknown>){if(completion)await completion.operation(kind,work);else await work();},
+  selectFont:(intent:any,document:any,acceptedText:string)=>selectNativeFont({page,expect,read:(id:string)=>readNativeState(root,id),intent,document,acceptedText,priorOwner:undefined,commands:()=>commands,record:(row:any)=>fontTransitions.push(row)}),
+  reopenFont:(previous:any,intent:any,document:any,acceptedText:string)=>cancelAndReopenNativeFont({page,expect,read:(id:string)=>readNativeState(root,id),occurrences:(id:string)=>readDraftOccurrences(root,id),previous,intent,document,acceptedText,commands:()=>commands,record:(row:any)=>fontTransitions.push(row)}),
+  async native(kind:'Preview'|'Apply',work:()=>Promise<unknown>,intent?:any){if(completion)await completion.operation(kind,work,intent);else if(intent){const node=await page.locator('#native-text-content').elementHandle();if(!node)throw Error('Native textarea missing');try{await adoptNativeInput({expect,observe:()=>node.evaluate(nativeDescriptor),read:(id:string)=>readNativeState(root,id),intent});await work();}finally{await node.dispose();}}else await work();},
   async copy(label:string){await click(page,'Save copy');await expect(page.locator('#editor-dialog')).toContainText('substituting a current font does not repair older history');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();return saveDownload(label);},
   async png(label:string){await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');return saveDownload(label);},
   async restart(){await quiesce('restart');await zeroEffects('before-restart');const old={pid:server.pid,origin:server.origin};await server.kill();serverIndex++;server=await serverProcess(root,undefined,engine==='chromium'?completionLedger():undefined);expect(server.pid).not.toBe(old.pid);expect(server.origin).not.toBe(old.origin);events.push({channel:'process-restart',old,current:{pid:server.pid,origin:server.origin}});await admit();},
@@ -103,7 +107,7 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
     if(completion?.privateEvent(e))return false;
     return !(engine==='chromium'&&completion?.qualifies(e))&&![...origins].some(o=>integrationCancellation(e,o,engine,downloads,faults,fontProofs,importedHeads,recoveryProofs));
    });
-   await writeFile(join(out,'observations.json'),JSON.stringify({engine,root,ancillaryIconProof:{noStaticIcon,origins:[...ancillaryOrigins]},phase,events,commands,downloads,effects,dom,faults,fontProofs,importedHeads,recoveryProofs,wasmReads,unmatched,cleanupError,primaryError:primaryError instanceof Error?{message:primaryError.message,stack:primaryError.stack}:primaryError},null,2));await writeFile(join(out,'ownership.json'),JSON.stringify({run:guard.run,ledger:guard.ledger,workers:workers.size,...cleanup},null,2));
+   await writeFile(join(out,'observations.json'),JSON.stringify({engine,root,ancillaryIconProof:{noStaticIcon,origins:[...ancillaryOrigins]},phase,events,commands,downloads,effects,dom,faults,fontProofs,importedHeads,recoveryProofs,wasmReads,fontTransitions,unmatched,cleanupError,primaryError:primaryError instanceof Error?{message:primaryError.message,stack:primaryError.stack}:primaryError},null,2));await writeFile(join(out,'ownership.json'),JSON.stringify({run:guard.run,ledger:guard.ledger,workers:workers.size,...cleanup},null,2));
    const problems=[primaryError,cleanupError,recoveryProofs.errors.length?Error('Recovery observation errors: '+JSON.stringify(recoveryProofs.errors)):null,wasmReads.some(r=>!r.matchesSealed)?Error('Incomplete same-response WASM proof: '+JSON.stringify(wasmReads)):null,dom.length?Error('DOM errors: '+JSON.stringify(dom)):null,unmatched.length?Error('Unmatched observations: '+JSON.stringify(unmatched)):null].filter(Boolean);if(problems.length)throw new AggregateError(problems,'Integrated workflow and shutdown failures (all preserved)');
   }
  };

@@ -607,8 +607,8 @@
     },
     {
       "path": "tests/editor/completion/monitor.mjs",
-      "bytes": 24112,
-      "sha256": "459e12cc185fb829c7b7f3461838ea5351ead2ee96be9a59eec17c5231067d71",
+      "bytes": 23721,
+      "sha256": "84ef5163306e1018527fb9ea6182bfbdcdcc407595f681040737faaf3758a720",
       "role": "injection"
     },
     {
@@ -739,8 +739,8 @@
     },
     {
       "path": "tests/editor/integration-fixture.ts",
-      "bytes": 18072,
-      "sha256": "0cfbab94fdcf7797c2a82632918ed0d8ff0bf6dbfd32fe4fee2d9480acd31887",
+      "bytes": 19233,
+      "sha256": "64e31e8c8b64ae37f7b097fb33dad9726b61b3ab1844173f8b07731c9b7c8cf2",
       "role": "injection"
     },
     {
@@ -769,8 +769,8 @@
     },
     {
       "path": "tests/editor/integration.spec.ts",
-      "bytes": 25781,
-      "sha256": "e9fc0cb7cacccc712b86d0ac6485e48271d013651b19dd45d4e60fa71cdb6f64",
+      "bytes": 25815,
+      "sha256": "1ba46903472dbf14768f4a91937e5d0f95f1620a01373bf782357da9cdb65de5",
       "role": "injection"
     },
     {
@@ -814,6 +814,12 @@
       "bytes": 3557,
       "sha256": "27509e73ed710ab106f9e30f48cc2dc6f2111ae08726d832879e26e49e9b22f5",
       "role": "injection"
+    },
+    {
+      "path": "tests/editor/completion/font-state.mjs",
+      "role": "test-only-public-font-state",
+      "bytes": 12374,
+      "sha256": "262595a506ddbe59dfdb52e98b59db4f90a367e5f3858b8a9a92c72c19b7e1f6"
     }
   ],
   "modules": [
@@ -4222,6 +4228,10 @@
         "edges": [
           {
             "kind": "static",
+            "value": "./font-state.mjs"
+          },
+          {
+            "kind": "static",
             "value": "node:assert/strict"
           },
           {
@@ -4311,42 +4321,42 @@
         ],
         "calls": [
           {
-            "at": 3975,
+            "at": 4064,
             "kind": "CallExpression",
             "name": "send",
             "callee": "(session?pageCDP:rootCDP).send",
             "source": "(session?pageCDP:rootCDP).send(method,params)"
           },
           {
-            "at": 7782,
+            "at": 7871,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send('Network.enable',{},'owned-page-CDPSession-1')"
           },
           {
-            "at": 7840,
+            "at": 7929,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send('Target.setDiscoverTargets',{discover:true})"
           },
           {
-            "at": 8090,
+            "at": 8179,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send('Target.getTargetInfo',{},'owned-page-CDPSession-1')"
           },
           {
-            "at": 8172,
+            "at": 8261,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send('Page.getFrameTree',{},'owned-page-CDPSession-1')"
           },
           {
-            "at": 23435,
+            "at": 23044,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
@@ -4905,6 +4915,10 @@
         "edges": [
           {
             "kind": "static",
+            "value": "./completion/font-state.mjs"
+          },
+          {
+            "kind": "static",
             "value": "@playwright/test"
           },
           {
@@ -5061,6 +5075,10 @@
       "path": "tests/editor/integration.spec.ts",
       "syntax": {
         "edges": [
+          {
+            "kind": "static",
+            "value": "./completion/font-state.mjs"
+          },
           {
             "kind": "static",
             "value": "./completion/busy-state.mjs"
@@ -5528,6 +5546,52 @@
           {
             "kind": "static",
             "value": "../../dist/local/server/storage/canonical.js"
+          }
+        ],
+        "calls": [],
+        "assets": [],
+        "keepalive": []
+      }
+    },
+    {
+      "path": "tests/editor/completion/font-state.mjs",
+      "syntax": {
+        "edges": [
+          {
+            "kind": "static",
+            "value": "node:assert/strict"
+          },
+          {
+            "kind": "static",
+            "value": "node:fs"
+          },
+          {
+            "kind": "static",
+            "value": "node:path"
+          },
+          {
+            "kind": "static",
+            "value": "node:crypto"
+          },
+          {
+            "kind": "static",
+            "value": "node:sqlite"
+          },
+          {
+            "kind": "static",
+            "value": "node:util"
+          },
+          {
+            "kind": "static",
+            "value": "./completion-public.mjs"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/server/storage/canonical.js"
+          },
+          {
+            "kind": "static",
+            "value": "../../../dist/local/server/text/font.js"
           }
         ],
         "calls": [],
