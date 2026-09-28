@@ -1,0 +1,177 @@
+Review evidence archives
+
+Use one data-only packet description and the same commands for each review.
+This tool copies evidence; it has no removal, pruning, upload, repair, workload
+execution or dependency-installation operation. Keep all originals. Preserve
+historical failures and correction verdicts as separate records.
+
+Requirements: Python 3.12+, macOS /usr/bin/tar (bsdtar), lsof and git. The first
+backend preserves modes, nanosecond mtime, UID/GID, file flags, extended attributes
+and ACLs. Unsupported platforms or metadata capabilities fail explicitly. The
+current readers support regular single-link files and directories; symlinks,
+hardlinks and special files are rejected. Legacy link-bearing packets need a
+separately tested policy. There is no fallback that strips metadata.
+
+Commands (replace absolute paths and the creation checksum with your own):
+
+  python3 tooling/archive-reviews.py --help
+  python3 tooling/archive-reviews.py inspect --descriptor /absolute/packet.json
+  python3 tooling/archive-reviews.py create --descriptor /absolute/packet.json --destination /absolute/new-run
+  python3 tooling/archive-reviews.py verify --run /absolute/new-run --restore-to /absolute/new-restore --expected-run-sha256 CREATION_RUN_SHA256
+
+inspect is read-only and prints JSON with exact entries, seals, unsealed sidecars,
+dependencies, tools, observed activity, byte totals and holds. Exit 0 means its
+checks passed and no activity hold was found. Exit 1 means a failed check or hold;
+2 is an argument error. All paths must be canonical absolute paths without
+symlink components. Descriptor paths within the JSON are relative to sourceRoot.
+
+create repeats inspection, checks space and activity, then writes to a NEW private
+directory whose parent already exists. Source, descriptor and destination must
+not overlap. Existing destinations are refused, including incomplete prior runs.
+It saves descriptor.json, inventory.json, payload.tar.gz, create.json and
+RUN-SHA256SUMS. A fixed NUL-delimited path list prevents implicit selection of
+new files or interpretation of filenames as command options. Original selected
+entries and source-root identity must still match after copying.
+
+Save the printed runSHA256 separately, for example in the owning workspace note.
+It is the SHA-256 of RUN-SHA256SUMS, which covers the other four run files. Pass
+that exact value to verify. Never replace the saved trust anchor with a newly
+computed value just to make a changed run pass. These hashes detect changes;
+they are not a digital signature or proof of authorship. Keep run directories
+private and do not concurrently modify them while verifying.
+
+verify uses the saved descriptor/inventory and pinned checksums. It validates
+member names, types, exact membership, content and supported metadata headers
+before extracting into NEW-RESTORE/payload. It then compares content and metadata
+and revalidates the original seal rules. Original source availability is not
+required for restore verification; unchanged-original evidence belongs to the
+creation receipt. A successful verification writes comparison.json, catalog.json
+and VERIFICATION-SHA256SUMS in NEW-RESTORE and prints verificationSHA256. Retain
+that checksum separately too. The verification manifest covers catalog.json and
+comparison.json; the catalog links the creation trust anchor and original hashes.
+Neither manifest hashes itself. Restored payload bytes/metadata are covered by
+the pinned inventory and comparison, not by the receipt manifest alone.
+
+Copied, restore-verified, human-reviewed, product-accepted and approved-for-removal
+are separate states. Only a successful restore publishes a verified catalog.
+Never infer a completed run from payload.tar.gz alone. On interruption, missing
+completion manifests or failure receipts mean incomplete output. Handled failures
+retain a failure-*.json; a forced process kill may leave only partial files. Retry
+with a fresh directory. Nothing is overwritten or automatically cleaned up.
+
+Input format: schemaVersion 1
+
+Required top-level fields (unknown fields are rejected):
+
+  schemaVersion: 1
+  packetId: lowercase letters/digits/hyphens, starting with a letter/digit
+  sourceRoot: canonical absolute original review root
+  include: nonempty array of exact relative files/subtrees; no overlaps/globs
+  review: {kind, target, verdict}
+  seals: nonempty array of seal rules
+  closingRecords: array of {path, sha256?}
+  lineage: array of {relationship, reference}
+  dependencies: array of dependency records
+
+review.kind is author or independent-review. target is the full 40-character
+commit. verdict is the historical verdict, including its original limits; archive
+verification must not promote it. lineage records correction/accepted-base/prior
+review references. Empty closingRecords, lineage or dependencies arrays are valid.
+Do not omit known dependencies merely because they cannot be included.
+
+A JSON seal rule:
+
+  {
+    "reader": "files-json-v1",
+    "root": "sealed-evidence",
+    "manifest": "FILES.json",
+    "manifestSHA256": "EXPECTED_64_HEX_DIGEST",
+    "seal": "SEAL.json",
+    "sealSHA256": "EXPECTED_64_HEX_DIGEST",
+    "exclude": ["administrative-readbacks"],
+    "immutable": "files",
+    "target": "EXPECTED_40_HEX_COMMIT"
+  }
+
+Use actual identities from the existing owning evidence, not these placeholders.
+Each seal root must be included in full, directly or through a selected ancestor.
+Manifest/seal/exclude paths are relative to THAT seal root. Only its exact control
+paths are excluded from payload membership; nested reference FILES.json files
+remain payload. Excluded subtrees stay in the archive and must be covered by their
+own seal or classified explicitly as sidecars/dependencies. Target is optional for
+administrative seals that did not record one; if supplied, it must match the review
+and the original JSON seal. files-json-v1 checks manifest identity/bytes, exact
+payload membership, every file hash/size, aggregate count/bytes and required flags.
+
+For SHA256SUMS use reader sha256sums-v1, manifest SHA256SUMS and its existing
+manifestSHA256; omit seal, sealSHA256 and target. Lines use lowercase SHA-256,
+two spaces, then an exact relative path. Duplicate paths and malformed entries
+fail. Both readers reject unsafe/noncanonical paths and unexpected object types.
+
+immutable is files or all. files requires the immutable flag on payload files
+and manifest/seal files. all additionally requires it on the seal root and its
+nonexcluded directories. Preserve the original policy; do not weaken it to pass.
+Source names beginning ._ are rejected because they collide with macOS archive
+metadata names. AppleDouble archive entries are validated against known targets;
+metadata records over 16 MiB are unsupported. This is an explicit limit, not a
+reason to omit original metadata.
+
+closingRecords identifies individual unsealed verdict/handoff/reverify/closure
+files. Optional sha256 pins an existing identity. All file entries are transport
+hashed regardless; that does not retroactively place sidecars under an old seal.
+Every selected file outside the seal/control sets must be classified explicitly.
+
+Dependencies have kind (git-bundle, source-snapshot, reference or runtime), location
+(included or external), description, and optional path/sha256/target. Included
+dependencies require a selected relative path; directory references cover their
+subtree. External references retain their description/path, with availability
+reported as not-verified. They are never followed or copied implicitly.
+
+An included git-bundle requires path, sha256 and the exact target. The tool checks
+the bundle header, advertised target, prerequisite list and git bundle verify
+against the existing repository containing this tool, without fetching/cloning.
+Missing prerequisites block verification; declare the dependency and retain the
+original until it can be checked. A bundle with prerequisites is labeled
+prerequisite-dependent, never complete. Header verification and transport hashes
+do not claim a workload rerun or full product qualification.
+
+Applying existing formats
+
+P1c4 original: two files-json-v1 seals, for sealed-evidence and the sibling
+administrative-readbacks. P1c4 correction: the primary seal excludes its nested
+administrative-readbacks; a second rule covers that included subtree. Closing
+records remain explicit. Existing pilot archives/catalog are historical outputs;
+reference their identities rather than migrating or rewriting them.
+
+P1c5 correction: two sha256sums-v1 seals, for sealed-evidence and administration,
+using immutable all. Include the separately named source.bundle and enumerate
+closing/identity records individually. Keep copied helper/reference evidence
+under its existing seal; never execute its sealing scripts. Record prior review
+and runtime dependencies even when a complete-history bundle is present.
+
+Future known-format reviews need another description, not another script or
+custom archive plan. A named description and destination must be authorized
+before a historical packet run. New formats/policies are explicit tooling work.
+Whole-parent scans, deduplication, retention schedules and removal are outside
+this tool. Retirement needs a separate exact path list and user instruction.
+
+Operational limits
+
+lsof is a point-in-time view of activity visible to the current user, not a global
+lock. In-use roots and unknown checks block creation; do not kill processes to
+pass. Inspect/create read selected files twice and detect identity/metadata/content
+drift, but are not a filesystem snapshot against a hostile concurrent writer.
+Keep sources and run outputs quiescent for the operation. Directory age is not
+an inactivity test. Space estimates reserve archive/restore headroom; actual
+compression savings can be negligible. Same-volume copies do not protect against
+disk loss. No network transfer, dependency installation or cloud backup is implied.
+
+Verification
+
+  python3 tooling/test-archive-reviews.py
+
+This runs real macOS fixture round trips for both seal readers, ACL/xattr/flag/
+timestamp checks, input/member/corruption failures, bundle classification,
+interruption/collision/activity checks and every CLI command above. Tests own and
+clean only their temporary fixtures. Historical packet compatibility uses inspect
+only. The existing review-directory audit remains unchanged.
