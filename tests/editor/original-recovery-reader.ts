@@ -8,7 +8,7 @@ import {entity,event as validateEvent} from '../../dist/local/src/protocol/valid
 // @ts-ignore Test-only original SSE framing and publication assessment.
 import {OriginalSSEFrames} from './completion/sse-frames.mjs';
 // @ts-ignore Kept distinct from ordinary HTTP recovery completion.
-import {sseDescriptor,ssePublication} from './completion/sse-publication.mjs';
+import {sseDescriptor,ssePublication,sseRootStarts} from './completion/sse-publication.mjs';
 const sha=(b:Buffer)=>createHash('sha256').update(b).digest('hex');
 const eligible=(url:string)=>/^\/api\/v1\/(events(?:\/stream)?|snapshots\/[^/]+|namespace-events\/[^/]+|protocol-content\/[^/]+|commands\/[^/]+\/result)$/.test(new URL(url).pathname);
 
@@ -98,7 +98,16 @@ export async function originalRecoveryReader(context:BrowserContext,out:string,r
       if(parts.length||String(count)!==header.entityCount)throw Error('Incomplete entities');
      }
      const committed=events.filter(x=>x.kind==='publication-writes'&&x.frameId===e.frameId&&x.document===e.document),publications=committed.flatMap(x=>x.records.filter((r:any)=>r.store==='meta'&&r.key==='published').map((r:any)=>({...r,db:x.db,completedAt:x.at})));
-     if(isSSE){for(const control of controls.filter(c=>c.frameId===e.frameId&&c.document===e.document&&new URL(c.url).pathname==='/api/v1/events'&&new URL(c.url).searchParams.get('recoveryId')===d.recovery.recoveryId))control.originalProof=await association(control);Object.assign(p,ssePublication({e,d,values,controls,committed,aborted:events.filter(x=>x.kind==='publication-aborted'),events,cachePrefix}),{documents:documents.map(v=>({id:v.id,revision:v.revision})),namespaces});proofs.push(p);continue;}
+     if(isSSE){
+      for(const control of controls.filter(c=>c.frameId===e.frameId&&c.document===e.document&&new URL(c.url).pathname==='/api/v1/events'&&new URL(c.url).searchParams.get('recoveryId')===d.recovery.recoveryId))control.originalProof=await association(control);
+      const rootStarts=[];
+      for(const start of sseRootStarts(e,d.control,events)){
+       const response=events.filter(x=>key(x)===key(start)&&x.kind==='response'&&x.url===start.url&&x.start===start.start);
+       const originalProof=response.length===1?await association({...response[0],end:response[0].responseAt,at:response[0].responseAt}):null;
+       rootStarts.push({...start,originalProof});
+      }
+      Object.assign(p,ssePublication({e,d,values,controls,committed,aborted:events.filter(x=>x.kind==='publication-aborted'),events,cachePrefix,rootStarts}),{documents:documents.map(v=>({id:v.id,revision:v.revision})),namespaces});proofs.push(p);continue;
+     }
      const ownerMatches=(r:any)=>e.owners?.some((o:any)=>r.db===cachePrefix+o.clientId&&d.control.owners?.some((x:any)=>x.clientId===o.clientId&&x.sessionId===o.sessionId));
      const nextRoot=events.filter(x=>x.kind==='start'&&x.frameId===e.frameId&&x.document===e.document&&x.start>e.end&&new URL(x.url).pathname==='/api/v1/events'&&!new URL(x.url).searchParams.has('recoveryId')).reduce((n,x)=>Math.min(n,x.start),Infinity);
      const finals=controls.filter(c=>c.frameId===e.frameId&&c.document===e.document&&c.end>=e.end&&new URL(c.url).pathname==='/api/v1/events'&&new URL(c.url).searchParams.get('recoveryId')===d.recovery.recoveryId&&c.value.kind==='batches'&&c.value.recovery?.writerEpoch===d.recovery.writerEpoch&&c.value.recovery?.highWater===d.recovery.highWater&&c.value.more===false&&c.value.batches?.length===0&&BigInt(c.value.nextCursor)>=BigInt(targetCursor));

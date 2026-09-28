@@ -679,8 +679,8 @@
     },
     {
       "path": "tests/editor/completion/sse-publication.mjs",
-      "bytes": 8497,
-      "sha256": "945c94590b09ebf6f2176ff3516beabbd53a81e41fc9d389bec0a04234ec0b1d",
+      "bytes": 11250,
+      "sha256": "4d9521e5d32ffbef41e57a11e5c281cb08d8ef834d9918e5cbd4c14d03b33413",
       "role": "injection"
     },
     {
@@ -781,8 +781,8 @@
     },
     {
       "path": "tests/editor/original-recovery-reader.ts",
-      "bytes": 21042,
-      "sha256": "cdfbba071fe4d4cdceb96c7ba255ceb8ed7065b91219aa9c88de8aac377342da",
+      "bytes": 21499,
+      "sha256": "89c62077cca669b4e1182526e61218f681499a3bd9010581475c277580a70a84",
       "role": "injection"
     },
     {
@@ -5269,112 +5269,112 @@
         ],
         "calls": [
           {
-            "at": 4285,
+            "at": 4299,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({kind:'publication-writes',db,transaction:id,at:now(),records})"
           },
           {
-            "at": 4396,
+            "at": 4410,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({kind:'publication-aborted',db,transaction:id,at:now(),records})"
           },
           {
-            "at": 5361,
+            "at": 5375,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...base,kind:'start',hasSignal:!!signal})"
           },
           {
-            "at": 5442,
+            "at": 5456,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...base,kind:'signal-abort',at:now(),aborted:signal.aborted,reasonName:signal.reason?.name})"
           },
           {
-            "at": 5969,
+            "at": 5983,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'response'})"
           },
           {
-            "at": 6110,
+            "at": 6124,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'json',end:now(),value:structuredClone(value)})"
           },
           {
-            "at": 6184,
+            "at": 6198,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'json-error',at:now(),error:String(e)})"
           },
           {
-            "at": 6403,
+            "at": 6417,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'tee'})"
           },
           {
-            "at": 6496,
+            "at": 6510,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'clone'})"
           },
           {
-            "at": 6797,
+            "at": 6811,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'reader',readerNumber})"
           },
           {
-            "at": 7051,
+            "at": 7065,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'eof',end:now(),count,reads,readers,readerNumber,overflow})"
           },
           {
-            "at": 7203,
+            "at": 7217,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'observation-limit',count})"
           },
           {
-            "at": 7379,
+            "at": 7393,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'chunk',at:now(),count,reads,readerNumber,chunk:btoa(binary)})"
           },
           {
-            "at": 7471,
+            "at": 7485,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'read-error',at:now(),error:String(e)})"
           },
           {
-            "at": 7590,
+            "at": 7604,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
             "source": "send({...identity,kind:'cancel',at:now(),afterEOF:eof})"
           },
           {
-            "at": 7742,
+            "at": 7756,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",
