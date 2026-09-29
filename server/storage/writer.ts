@@ -95,6 +95,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     historyClosure:(id:string,after:string)=>request<ReturnType<Histories['closure']>>('historyClosure',{id,after}),
     historyPage:(id:string,after:string,kind:'history'|'checkpoints')=>request<ReturnType<Histories['page']>>('historyPage',{id,after,kind}),
     saveStatus:(id:string,sessionId:string,auth:AssetAuth)=>request<ReturnType<Histories['status']>>('saveStatus',{id,sessionId,auth}),
+    requestReviews:(id:string,auth:AssetAuth)=>request<ReturnType<UIStore['requestReviews']>>('requestReviews',{id,auth}),
     uiRead:(id:string,auth:AssetAuth)=>request<ReturnType<UIStore['read']>>('uiRead',{id,auth}),
     uiPersist:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<UIStore['persist']>>>('uiPersist',{bytes,auth}),
     rasterCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('rasterCommand',{bytes,auth}),

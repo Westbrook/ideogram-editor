@@ -1,3 +1,4 @@
+import {RequestEditing} from './request.js';
 import { CompositionEditing } from './composition.js';
 import { NativeTextEditing } from './native-text.js';
 import type {TextSource} from '../protocol/text.js';
@@ -72,6 +73,7 @@ class EditorShell extends LitElement {
   private sessionBusy=true;
   private composition=false;
   private operation=operations[0];
+  private requestFlow=new RequestEditing(this,editor);
   private prompts:Record<string,string>={};
   private promptIds:Record<string,string>={};
   private tool='Pan';
@@ -113,7 +115,7 @@ class EditorShell extends LitElement {
     for(const query of ['(max-width:1100px)','(max-width:720px)'])matchMedia(query).addEventListener('change',()=>void this.updateLayout(),{signal});
     if(this.narrow&&!this.extreme)void this.updateLayout();
   }
-  disconnectedCallback(){super.disconnectedCallback();this.adapter.invalidate();this.lifecycle?.abort();this.resize?.disconnect();this.canvas?.dispose();this.authoring.dispose();this.semantic.dispose();this.textEditing.dispose();if(this.previewURL)URL.revokeObjectURL(this.previewURL);editor.dispose();connection.dispose();}
+  disconnectedCallback(){super.disconnectedCallback();this.adapter.invalidate();this.lifecycle?.abort();this.resize?.disconnect();this.canvas?.dispose();this.authoring.dispose();this.semantic.dispose();this.requestFlow.dispose();this.textEditing.dispose();if(this.previewURL)URL.revokeObjectURL(this.previewURL);editor.dispose();connection.dispose();}
   protected firstUpdated(){
     const canvas=this.querySelector<HTMLCanvasElement>('canvas')!;this.canvas=new CanvasView(canvas,connection.transport);
     this.resize=new ResizeObserver(()=>this.draw());this.resize.observe(canvas);
@@ -123,6 +125,7 @@ class EditorShell extends LitElement {
     void this.textEditing.sync().catch(e=>editor.fail(e));
     void this.authoring.sync().catch(e=>editor.fail(e));
     void this.semantic.sync().catch(e=>editor.fail(e));
+    void this.requestFlow.sync().catch(e=>editor.fail(e));
     performance.clearMarks('ie.editor.updated');performance.mark('ie.editor.updated',{detail:{busy:view.busy,ready:view.ready,documentId:view.document?.id??null,revision:view.document?.revision??null,selected:view.selected}});
     if(!session.busy&&(this.sessionBusy||this.connectedOwner!==connection.identity())){
       this.connectedOwner=connection.identity();if(session.connection==='paired')void editor.connect().catch(e=>editor.fail(e));else editor.disconnect();
@@ -155,7 +158,7 @@ class EditorShell extends LitElement {
       this.prompts[editor.view.document!.id+':'+operation]=value;this.promptIds[editor.view.document!.id+':'+operation]=draft.id;
     }
     if(key!==this.restoredUI||generation!==this.promptGeneration)return;
-    const host=this.querySelector<EnTextarea>('#prompt');if(host)this.adapter.write(host,'value',this.prompts[editor.view.document?.id+':'+this.operation]??'');
+    // Typed request restoration owns the public prompt control.
     const panX=this.querySelector<EnNumberField>('#pan-x'),panY=this.querySelector<EnNumberField>('#pan-y');if(panX)this.adapter.write(panX,'value',String(this.pan.x));if(panY)this.adapter.write(panY,'value',String(this.pan.y));
     this.requestUpdate();
   }
@@ -269,8 +272,8 @@ class EditorShell extends LitElement {
   private renderPanes(){
     const view=editor.view,d=view.document,f=this.fields,locked=!view.ready||view.busy;
     for(const [node,id,label,classes,open] of [[this.requestNode,'request','Request','request-panel panel',this.requestOpen],[this.inspectorNode,'inspector','Layers and properties','inspector panel',this.inspectorOpen]] as const){node.id=id;node.className=classes;node.tabIndex=-1;node.setAttribute('aria-label',label);node.hidden=this.narrow&&!this.drawerMode&&!open;}
-    renderInto(html`<div class="panel-heading"><h1>Request</h1><en-badge>Draft</en-badge></div><div class="request-fields"><en-select label="Operation" .value=${this.semantic.view==='composition'?(this.semantic.operation??this.operation):this.operation} @en-change=${(e:Event)=>{const host=e.currentTarget as EnSelect;this.adapter.settled(e,()=>host.value,value=>{this.promptGeneration++;this.operation=value;this.semantic.operationChanged(value);this.adapter.write(this.querySelector<EnTextarea>('#prompt')!,'value',this.prompts[editor.view.document?.id+':'+value]??'');this.requestUpdate();});}}>${operations.map(name=>html`<en-select-option value=${name}>${name}</en-select-option>`)}</en-select>
-    ${this.semantic.request()}<div ?hidden=${this.semantic.view!=='plain'}><en-textarea id="prompt" label="Prompt" description=${d?'Draft autosaves locally; generation remains unavailable.':'Open a document to save this draft locally.'} placeholder="Describe the image you have in mind…" .rows=${5} @en-input=${this.promptInput} @focusout=${()=>void editor.flushDrafts().catch(e=>editor.fail(e))}></en-textarea></div><p class="muted">${view.drafts||(this.semantic.view==='plain'?'Plain prompt draft has not been applied.':'')}</p><h2>Explicit inputs</h2><p>Selecting a layer does not attach it to a request. Provider source, mask, adapters and generation remain unavailable; local layer masks are separate.</p><en-button disabled>Generate</en-button><p>Local selection, masks and layer edits are available in the inspector. Text uses explicit local Preview and Apply. Composition uses independent semantic elements and explicit reviewed field links.</p></div>`,this.requestNode,{host:this,creationScope:scope.creationScope});
+    renderInto(html`<div class="panel-heading"><h1>Request</h1><en-badge>Draft</en-badge></div><div class="request-fields"><en-select label="Operation" .value=${this.requestFlow.operation} @en-change=${this.requestFlow.operationChoice(value=>{this.promptGeneration++;this.operation=value;this.semantic.operationChanged(value);this.requestUpdate();})}>${operations.map(name=>html`<en-select-option value=${name}>${name}</en-select-option>`)}</en-select>
+    ${this.semantic.request()}${this.requestFlow.render()}</div>`,this.requestNode,{host:this,creationScope:scope.creationScope});
     renderInto(html`<en-tabs label="Document structure" .value=${this.structure} @en-change=${(e:Event)=>{const h=e.currentTarget as HTMLElement&{value:string};this.adapter.settled(e,()=>h.value,v=>{this.semantic.cancelReview();this.structure=v;this.requestUpdate();});}}><en-tab slot="tab" value="layers">Layers</en-tab><en-tab slot="tab" value="composition">Composition</en-tab><en-tab-panel slot="panel" value="layers">
     <en-tree id="layer-tree" label="Image layers" .multiple=${true} .items=${[...(view.image?.layers??[])].reverse().map(l=>({key:l.id,label:(l.kind==='text'?'Text · ':'Image · ')+l.name+(l.visible?' · visible':' · hidden')+(l.locked?' · locked':'' )}))} @en-change=${(e:Event)=>{const h=e.currentTarget as EnTree;this.adapter.settled(e,()=>[...h.selectedKeys],ids=>{performance.clearMarks('ie.intent.Select layers');performance.mark('ie.intent.Select layers',{startTime:e.timeStamp});editor.select(ids);});}}></en-tree>
     ${!d?html`<p class="empty">No layers yet. Import an image to begin.</p>`:nothing}

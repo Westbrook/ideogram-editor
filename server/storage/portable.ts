@@ -1,3 +1,4 @@
+import {draftShape as requestDraft,refs as requestRefs} from '../../src/request/core.js';
 import {readComposition,compositionRefs,verifyReview} from './composition.js';
 import {compositionDraft,compositionDraftRefs} from '../../src/composition/draft.js';
 import {parseControlJSON} from '../../src/protocol/json.js';
@@ -84,7 +85,8 @@ export class Portables {
     const all=JSON.parse(String(row.json)),drafts=all.drafts.filter((x:any)=>x.documentId===d.id);if(all.preferences.documentId!==d.id&&!drafts.length)continue;
     const sessionId='ui_'+hashBytes(canonical([row.client_id,row.session_id])).slice(7),v={sessionId,uiSeq:all.uiSeq,preferences:all.preferences.documentId===d.id?all.preferences:null,drafts,reconciledLayerIds:all.preferences.documentId===d.id?all.reconciledLayerIds:[]};validateUI(v,d.id);addEntity('draft',sessionId,v);uiHash.update(canonical(v));for(const draft of drafts){
      const owner='ui:'+row.client_id+':'+row.session_id+':'+draft.id+':'+draft.generation,roots=this.db.prepare('SELECT hash,media_type FROM roots WHERE owner=?').all(owner),asset=this.assets.asset(draft.assetId);
-     if(!asset||!roots.some(root=>root.hash===asset.blob.hash&&root.media_type===asset.blob.mediaType))throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:draft.id,state:'required-current-draft-ownership-unavailable'});queue(draft.assetId);if(draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(asset.blob,true)!);maskDraftValue(value);for(const id of maskBindings(value.plan,draft.maskBindings))queue(id);}if(draft.kind==='composition'){const value=json(this.objects.verify(asset.blob,true)!);compositionDraft(value);for(const ref of compositionDraftRefs(value))addRef(out,ref);}
+     if(!asset||!roots.some(root=>root.hash===asset.blob.hash&&root.media_type===asset.blob.mediaType))throw new StoreError('MISSING_OBJECT',{kind:'resource-state',resourceId:draft.id,state:'required-current-draft-ownership-unavailable'});queue(draft.assetId);if(draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(asset.blob,true)!);maskDraftValue(value);for(const id of maskBindings(value.plan,draft.maskBindings))queue(id);}if(draft.kind==='request'){const value=parseControlJSON(this.objects.verify(asset.blob,true)!);requestDraft(value);for(const ref of requestRefs(value))addRef(out,ref);}
+     if(draft.kind==='composition'){const value=json(this.objects.verify(asset.blob,true)!);compositionDraft(value);for(const ref of compositionDraftRefs(value))addRef(out,ref);}
      if(draft.kind==='text'){const text=json(this.objects.verify(asset.blob,true)!);textDraft(text);for(const ref of draftRefs(text))addRef(out,ref);text.fonts.forEach(font);}
     }
    }

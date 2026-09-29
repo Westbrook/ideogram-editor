@@ -54,6 +54,8 @@ export class ProtocolRoutes {
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
     const comp=/^\/api\/v1\/(documents|ui)\/([^/]+)\/composition$/.exec(path);
     if(comp){if(!isId(comp[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:comp[1]==='documents'?'composition-view':'composition-draft-view',id:comp[2],query:['revision','draftId','generation','raw','offset','download']};}
+    const reviews=/^\/api\/v1\/ui\/([^/]+)\/request-reviews$/.exec(path);if(reviews){if(!isId(reviews[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'request-reviews',id:reviews[1],query:[]};}
+    const requestDraft=/^\/api\/v1\/ui\/([^/]+)\/request$/.exec(path);if(requestDraft){if(!isId(requestDraft[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'request-draft-view',id:requestDraft[1],query:['draftId','generation','content']};}
     const native=/^\/api\/v1\/(documents|ui)\/([^/]+)\/text$/.exec(path);
     if(native){if(!isId(native[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:native[1]==='documents'?'text-view':'text-draft-view',id:native[2],query:native[1]==='documents'?['layerId','revision','content']:['draftId','generation','content']};}
     const text=/^\/api\/v1\/text-admission\/([^/]+)(\/release)?$/.exec(path);if(text){if(!isId(text[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:text[2]?'text-release':'text-admission',id:text[1],query:[]};}
@@ -214,15 +216,16 @@ export class ProtocolRoutes {
           }finally{this.streams--;if(handle)await this.writer.dropContent(handle);}
         }
       }
-      else if(route.kind==='text-view'||route.kind==='text-draft-view'){
+      else if(route.kind==='text-view'||route.kind==='text-draft-view'||route.kind==='request-draft-view'){
         const target=params.get(route.kind==='text-view'?'layerId':'draftId'),revision=route.kind==='text-view'?params.get('revision'):null;
         if(!target||!isId(target)||route.kind==='text-view'&&(revision===null||!isSeq(revision)))throw new ProtocolError('MALFORMED_REQUEST');
         if(params.has('content')&&params.get('content')!=='1')throw new ProtocolError('MALFORMED_REQUEST');
-        const value=await readTextView(this.writer,id,target,revision,this.assets.auth(session));authenticate();
+        const value=await readTextView(this.writer,id,target,revision,this.assets.auth(session),route.kind==='request-draft-view'?'request':'text');authenticate();
+        if(route.kind==='request-draft-view'&&params.get('generation')!==value.draft?.generation)throw new ProtocolError('READ_CONTEXT_EXPIRED');
         if(!params.has('content'))sendJSON(response,200,value);
         else{
           if(value.draft&&params.get('generation')!==value.draft.generation)throw new ProtocolError('READ_CONTEXT_EXPIRED');
-          const ref=value.source?value.source.text.textUtf8:value.value!.textUtf8;
+          const ref=value.source?value.source.text.textUtf8:value.textUtf8!;
           if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
           let handle:string|undefined;
           try{handle=await this.writer.openTextContent(ref);authenticate();
@@ -250,6 +253,7 @@ export class ProtocolRoutes {
       } else if(['bundle','bundle-review','bundle-mapping','bundle-content','portable-inventory'].includes(route.kind)){await this.portable.handle(request,response,route,params,authenticate,assertRoot);
       } else if(route.kind==='image-previews'||route.kind==='image-edit-reviews'){
         const result=route.kind==='image-previews'?await this.writer.imagePreview(id,this.assets.auth(session)):await this.writer.imageEditReview(id,this.assets.auth(session));authenticate();sendJSON(response,200,result);
+      } else if(route.kind==='request-reviews'){const result=await this.writer.requestReviews(id,this.assets.auth(session));authenticate();sendJSON(response,200,{items:result});
       } else if(route.kind==='ui'){
         let result;
         if(request.method==='POST'){const bytes=await readControlBytes(request);const value=parseControlJSON(bytes) as any;if(value?.sessionId!==id)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();result=await this.writer.uiPersist(bytes,this.assets.auth(authenticate()));}

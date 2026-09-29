@@ -272,3 +272,10 @@ en-select::part(control)::picker-icon {content:none;mask:none;background:none;}
 .composition-editor en-stack, .composition-editor en-card, .composition-editor en-textarea, .composition-editor en-color-picker { min-inline-size:0; max-inline-size:100%; }
 .composition-numbers { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 @media(max-width:450px) { .composition-numbers {grid-template-columns:minmax(0,1fr);} }
+
+.typed-request {display:grid;gap:12px;min-width:0;}
+.typed-request en-card,.typed-request en-accordion-item {min-width:0;max-width:100%;}
+.typed-request pre,.typed-request p {overflow-wrap:anywhere;white-space:pre-wrap;max-width:100%;}
+.typed-request pre {font-size:11px;max-height:320px;overflow:auto;}
+
+.request-resize-preview{display:block;width:100%;height:auto;max-height:240px;}

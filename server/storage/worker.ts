@@ -64,6 +64,7 @@ port.on('message', async message => {
         case 'historyClosure': result=store.histories.closure(args.id,args.after);break;
         case 'historyPage': result=store.histories.page(args.id,args.after,args.kind);break;
         case 'saveStatus': result=store.histories.status(args.id,args.auth,args.sessionId);(result as any).pendingCommandCount+=store.portables.pendingCount(args.id,args.auth.clientId);const bundle=store.portables.latest(args.id);(result as any).bundleOutdated=!bundle||bundle.documentRevision!==store.document(args.id)?.revision||bundle.uiDigest!==store.portables.currentUIDigest(args.id);(result as any).copyStatus=bundle?'copy-ready':'none';(result as any).destinationStatus='unconfirmed';break;
+        case 'requestReviews': result=store.ui.requestReviews(args.id,args.auth);break;
         case 'uiRead': result=store.ui.read(args.id,args.auth);break;
         case 'uiPersist': result=await store.ui.persist(args.bytes,args.auth);break;
         case 'rasterCommand': result=store.rasters.command(args.bytes,args.auth);break;

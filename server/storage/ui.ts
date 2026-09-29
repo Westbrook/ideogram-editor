@@ -1,3 +1,6 @@
+import {RequestReviews} from './request-review.js';
+import {draftShape as requestDraft,refs as requestRefs,RequestError} from '../../src/request/core.js';
+import type {RequestReview} from '../../src/request/review.js';
 import {compositionDraft,compositionDraftRefs,compositionDraftGraph} from '../../src/composition/draft.js';
 import {maskDraftValue,maskImports,maskSource} from '../../src/raster/mask.js';
 import {textDraft,draftRefs} from '../../src/protocol/text.js';
@@ -29,6 +32,11 @@ export class UIStore {
     this.check();if(!isId(sessionId))throw new StoreError('MALFORMED_REQUEST');
     const row=this.db.prepare('SELECT json FROM ui_checkpoints WHERE client_id=? AND session_id=?').get(auth.clientId,sessionId);
     return row?JSON.parse(String(row.json)):initial(sessionId);
+  }
+  requestReviews(sessionId:string,auth:AssetAuth){
+    this.check();if(!isId(sessionId))throw new StoreError('MALFORMED_REQUEST');
+    const rows=this.db.prepare("SELECT json FROM ui_receipts WHERE client_id=? AND json_extract(json,'$.status')='accepted' AND json_extract(json,'$.review.draft.sessionId')=? ORDER BY rowid DESC LIMIT 8").all(auth.clientId,sessionId);
+    return rows.map(row=>{const r=JSON.parse(String(row.json)) as UIReceipt;return {review:{id:r.review!.id,token:r.review!.token,endpoint:r.review!.endpoint,documentId:r.review!.documentId},accepted:!!r.acceptedReview};});
   }
   fence(clientId:string,fence:DraftFence|null,documentId:string,revision:string|null,layerId:string|null) {
     if(!fence)return;
@@ -69,14 +77,17 @@ export class UIStore {
     if(b?.type==='SetPreferences'){keys(b,['type','preferences']);preferences(b.preferences);}
     else if(b?.type==='SaveDraft'){
       keys(b,['type','draft']);const d=b.draft;keys(d,['id','generation','kind','documentId','targetLayerId','expectedDocumentRevision','assetId','composing']);
-      if(![d.id,d.documentId,d.assetId].every(isId)||!isSeq(d.generation)||!isSeq(d.expectedDocumentRevision)||!(d.targetLayerId===null||isId(d.targetLayerId))||!['prompt','inspector','text','mask','composition'].includes(d.kind)||typeof d.composing!=='boolean')throw new StoreError('MALFORMED_REQUEST');
-    }else if(b?.type==='ClearDraft'){keys(b,['type','draftId','generation']);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
+      if(![d.id,d.documentId,d.assetId].every(isId)||!isSeq(d.generation)||!isSeq(d.expectedDocumentRevision)||!(d.targetLayerId===null||isId(d.targetLayerId))||!['prompt','inspector','text','mask','composition','request'].includes(d.kind)||typeof d.composing!=='boolean')throw new StoreError('MALFORMED_REQUEST');
+    }else if(b?.type==='PrepareRequestReview'){keys(b,['type','draftId','generation']);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
+    else if(b?.type==='AcceptRequestReview'){keys(b,['type','reviewId','token']);if(!isId(b.reviewId)||!/^sha256:[a-f0-9]{64}$/.test(b.token))throw new StoreError('MALFORMED_REQUEST');}
+    else if(b?.type==='ClearDraft'){keys(b,['type','draftId','generation']);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else if(b?.type==='FocusRequested'){keys(b,['type','target','generation']);if(!['canvas','inspector','history'].includes(b.target)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else throw new StoreError('MALFORMED_REQUEST');
     const request=v as UIRequest,hash=hashBytes(canonical(request));
     const previous=()=>this.db.prepare('SELECT hash,json FROM ui_receipts WHERE client_id=? AND id=?').get(auth.clientId,request.requestId);
     let old=previous();if(old){if(old.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(old.json));}
     let bindings:Record<string,string>|undefined;let proof:string|undefined,ref:BlobRef|undefined;const extra:{ref:BlobRef;proof:string}[]=[];
+    let review:RequestReview|undefined,acceptedReview:string|undefined,prepareError:RequestError|undefined;const reviews=new RequestReviews(this.db,this.objects,this.assets,this.readState);
     const slot='ui:'+auth.clientId+':'+request.requestId;this.objects.acquire(slot);
     try{
       if(b.type==='SaveDraft'){
@@ -85,7 +96,12 @@ export class UIStore {
         ref=a.blob;proof=await this.objects.prove(ref,()=>this.check());
         if(b.draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(ref,true)!);maskDraftValue(value);bindings={};for(const id of maskImports(value.plan)){const source=this.assets.asset(id);if(!source?.raster||source.qualification!=='canonical-raster'||source.safety!=='safe'||source.availability!=='available')throw new StoreError('MISSING_OBJECT');try{const manifest=parseControlJSON(this.objects.verify(source.raster.manifest,true)!) as {plan:{hard?:BlobRef}};maskSource(value.plan,id,source.raster,manifest.plan.hard);}catch{throw new StoreError('MISSING_OBJECT');}bindings[id]=id;for(const dep of [source.blob,...source.dependencies])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}}
         if(b.draft.kind==='composition'){const value=parseControlJSON(this.objects.verify(ref,true)!);compositionDraft(value);compositionDraftGraph(parseDraftJSON(this.objects.verify(value.graph,true)!,8388608),value);bindings=value.bindings;for(const dep of compositionDraftRefs(value))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
+        if(b.draft.kind==='request'){const d=parseControlJSON(this.objects.verify(ref,true)!);try{requestDraft(d);}catch{throw new StoreError('MALFORMED_REQUEST');}for(const dep of requestRefs(d))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
         if(b.draft.kind==='text'){const v=parseControlJSON(this.objects.verify(ref,true)!);textDraft(v);if(v.kind==='text-draft-2'&&b.draft.targetLayerId!==null)throw new StoreError('MALFORMED_REQUEST');for(const dep of draftRefs(v)){try{extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(dep===v.textUtf8||!(e instanceof StoreError)||!['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw e;}}}
+      }
+      if(b.type==='PrepareRequestReview'){
+        const saved=this.read(request.sessionId,auth).drafts.find(d=>d.id===b.draftId&&d.generation===b.generation);
+        if(saved){try{review=reviews.prepare(saved,request.sessionId,request.requestId,auth);for(const dep of [review.template,...requestRefs(reviews.draft(saved))])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(!(e instanceof RequestError))throw e;prepareError=e;}}
       }
       this.db.exec('BEGIN IMMEDIATE');
       try{
@@ -105,8 +121,19 @@ export class UIStore {
           let valid=new Set<string>();if(b.preferences.documentId){try{valid=new Set(this.readState(b.preferences.documentId).layers.map(l=>l.id));}catch{reason='DOCUMENT_UNAVAILABLE';}}
           if(!reason){state.preferences=b.preferences;state.reconciledLayerIds=selected.filter((id:string)=>!valid.has(id));state.preferences.selectedLayerIds=selected.filter((id:string)=>valid.has(id));}
         }
+        if(!reason&&(b.type==='PrepareRequestReview'||b.type==='AcceptRequestReview')){
+          try{
+            if(b.type==='AcceptRequestReview'){const row=this.db.prepare('SELECT json FROM ui_receipts WHERE client_id=? AND id=?').get(auth.clientId,b.reviewId);const prior=row?JSON.parse(String(row.json)):null;review=prior?.status==='accepted'?prior.review:undefined;if(!review||review.token!==b.token||review.draft.sessionId!==request.sessionId)throw new RequestError([{field:'review',code:'STALE_REVIEW',message:'The exact review token is unavailable.'}]);}
+            const saved=state.drafts.find(d=>d.id===(b.type==='PrepareRequestReview'?b.draftId:review?.draft.draftId));
+            if(!saved)throw new RequestError([{field:'draft',code:'DRAFT_CHANGED',message:'The saved draft changed.'}]);
+            if(!review){if(prepareError)throw prepareError;throw new RequestError([{field:'review',code:'DRAFT_CHANGED',message:'Prepare a fresh review.'}]);}
+            reviews.assert(review,saved,auth);
+            if(b.type==='PrepareRequestReview'){const seen=new Set<string>();for(const p of extra){if(seen.has(p.ref.hash))continue;seen.add(p.ref.hash);this.objects.proven(p.ref,p.proof);this.register('request-review:'+auth.clientId+':'+review.id,p.ref,p.proof);}}
+            else acceptedReview=review.id;
+          }catch(e){if(!(e instanceof RequestError))throw e;reason=e.message;review=undefined;}
+        }
         if(!reason)this.save(auth.clientId,state,b,new Date(auth.now).toISOString());
-        const receipt:UIReceipt={protocolVersion:1,requestId:request.requestId,status:reason?'rejected':'accepted',uiSeq:state.uiSeq,reason};
+        const receipt:UIReceipt={protocolVersion:1,requestId:request.requestId,status:reason?'rejected':'accepted',uiSeq:state.uiSeq,reason,...review?{review}:{},...acceptedReview?{acceptedReview}:{}};
         this.db.prepare('INSERT INTO ui_receipts VALUES (?,?,?,?)').run(auth.clientId,request.requestId,hash,canonical(receipt));
         this.barrier('ui-before-commit');this.db.exec('COMMIT');this.barrier('ui-after-commit');return receipt;
       }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
