@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
 import { lstat } from 'node:fs/promises';
 import { startLocalServer } from '../server/http.js';
+import { assertProductionEnvironment } from '../server/provider/index.js';
 
 export async function defaultStorageRoot(home = homedir(), platform = process.platform, dataHome = process.env.XDG_DATA_HOME): Promise<string> {
   const legacy = join(home, '.ideogram-editor');
@@ -34,6 +35,7 @@ export async function launch(options: {
   openBrowser?: (url: string) => Promise<void>;
   log?: (message: string) => void;
 }) {
+  assertProductionEnvironment(process.env);
   const server = await startLocalServer({
     root: options.root ?? await defaultStorageRoot(),
     staticDirectory: options.staticDirectory,

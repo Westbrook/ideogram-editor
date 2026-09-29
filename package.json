@@ -36,7 +36,9 @@
     "verify:raster": "node tooling/raster/verify-inputs.mjs",
     "test:history": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/history/*.test.mjs",
     "verify:text": "node tooling/text/verify.mjs",
-    "test:text": "npm run build:server && vite build --config tests/text/vite.config.ts && playwright test --config tests/text/playwright.config.ts"
+    "test:text": "npm run build:server && vite build --config tests/text/vite.config.ts && playwright test --config tests/text/playwright.config.ts",
+    "test:provider:unit": "node --import ./tests/provider/no-egress.mjs --test --test-concurrency=1 tests/provider/policy.test.mjs tests/provider/provenance.test.mjs",
+    "test:provider:boundary": "node --import ./tests/provider/no-egress.mjs --test --test-concurrency=1 tests/provider/boundary.test.mjs"
   },
   "dependencies": {
     "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",
