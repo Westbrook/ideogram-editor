@@ -1,3 +1,4 @@
+import {candidateRecord,resultRecord} from '../portable/candidates.js';
 import {draftShape as requestDraft,refs as requestRefs} from '../../src/request/core.js';
 import {readComposition,compositionRefs,verifyReview} from './composition.js';
 import {compositionDraft,compositionDraftRefs} from '../../src/composition/draft.js';
@@ -74,7 +75,7 @@ export class Portables {
  pendingCount(documentId:string,clientId:string){return Number(this.db.prepare("SELECT count(*) n FROM portable_preparations WHERE json_extract(canonical,'$.command.documentId')=? AND json_extract(canonical,'$.command.clientId')=?").get(documentId,clientId)!.n);}
  private capture(operationId:string,d:Document){
   const dir=join(this.directory,operationId);privateDirectory(dir);const out=spool(join(dir,'capture.sqlite'));defineIndex(out);out.exec('BEGIN IMMEDIATE');
-  const addEntity=(kind:string,id:string,value:any)=>{if(kind==='portable-provider')providerRecord(value);else if(kind!=='draft')entity(kind,value);out.prepare('INSERT INTO entities VALUES (?,?,?,NULL)').run(kind,id,canonical(value));references(value,r=>addRef(out,r));};
+  const addEntity=(kind:string,id:string,value:any)=>{if(kind==='candidate-result')candidateRecord(value);else if(kind==='job-result')resultRecord(value);else if(kind==='portable-provider')providerRecord(value);else if(kind!=='draft')entity(kind,value);out.prepare('INSERT INTO entities VALUES (?,?,?,NULL)').run(kind,id,canonical(value));references(value,r=>addRef(out,r));};
   const queue=(id:string)=>out.prepare('INSERT OR IGNORE INTO assets_queue(id) VALUES (?)').run(id);
   const font=(f:any)=>{const row=this.db.prepare("SELECT id,json FROM assets WHERE json_extract(json,'$.font.id')=? ORDER BY id LIMIT 1").get(f.id);if(!row||canonical(JSON.parse(String(row.json)).font)!==canonical(f))throw new StoreError('MISSING_OBJECT');queue(String(row.id));};
   const addState=(v:any)=>{if(!v)return;const s=json(this.objects.verify(v.state,true)!);imageState(s);if(semanticDigest(s)!==v.semanticDigest)throw new StoreError('CORRUPT_OBJECT');if(s.composition){addRef(out,s.composition.value);const c=readComposition(s.composition,r=>this.objects.verify(r,true)!);verifyReview(c,r=>this.objects.verify(r,true)!);for(const r of compositionRefs(c))addRef(out,r);}for(const l of s.layers){if(l.kind==='text'){addRef(out,l.source);const source=validateSource(json(this.objects.verify(l.source,true)!));for(const ref of dependencies(source))addRef(out,ref);source.text.fonts.forEach(font);}queue(l.assetId);if(l.mask)queue(l.mask.assetId);}if(v.compositeAssetId)queue(v.compositeAssetId);};
@@ -106,6 +107,23 @@ export class Portables {
     const v=JSON.parse(String(r.json));addEntity('portable-provider',String(r.id),v);
     for(const hash of v.assetHashes){const rows=this.db.prepare("SELECT id FROM portable_rows WHERE namespace=? AND kind='asset' AND json_extract(json,'$.blob.hash')=?").all(r.namespace,hash);if(!rows.length)throw new StoreError('MISSING_OBJECT');for(const a of rows)queue(String(a.id));}
    }
+   // Only typed observations enter the portable graph. Outbox/evidence/URLs never do.
+   for(const row of this.db.prepare("SELECT json FROM candidate_jobs WHERE json_extract(json,'$.documentId')=?").iterate(d.id)){
+    const r=JSON.parse(String(row.json)),p=r.provenance;if(p&&(p.quarantined||!p.complete))throw new StoreError('CONTENT_WITHHELD');
+    addEntity('job-result',r.attemptId,{id:r.attemptId,jobId:r.jobId,documentId:r.documentId,requestedCount:r.requestedCount,actualCount:r.actualCount,phase:r.observation.phase,provenance:p,inert:true,request:this.portableRequest(r.jobId)});
+    const hashes:string[]=[];
+    for(const entry of this.db.prepare("SELECT json FROM candidates WHERE job_id=? AND json_extract(json,'$.attemptId')=?").iterate(r.jobId,r.attemptId)){
+     const c=JSON.parse(String(entry.json));if(!c.encodedAssetId||c.safety!=='safe')throw new StoreError('CONTENT_WITHHELD');
+     addEntity('candidate-result',c.id,c);queue(c.encodedAssetId);if(c.preparedAssetId)queue(c.preparedAssetId);hashes.push(this.assets.asset(c.encodedAssetId)!.blob.hash);
+    }
+    if(p)addEntity('portable-provider',r.attemptId,{class:'portable-provider',attemptId:r.attemptId,endpoint:this.queueEndpoint(r.jobId),requestId:this.queueRequest(r.jobId,r.attemptId),status:r.observation.phase,assetHashes:hashes,requestedPromptRef:p.requestedPrompt,submittedPromptRef:p.submittedPrompt,returnedPromptRef:p.returnedPrompt,seedText:p.returnedSeed,safeTimingsRef:null,privacyPolicyRef:p.privacyPolicy,derivation:{profile:'TP-1',sourceBodyHash:p.sourceBodyHash,complete:p.complete}});
+   }
+   for(const row of this.db.prepare("SELECT json FROM queue_jobs WHERE json_extract(json,'$.documentId')=?").iterate(d.id)){
+    const job=JSON.parse(String(row.json));for(const a of job.attempts)if(!out.prepare("SELECT 1 FROM entities WHERE kind='job-result' AND id=?").get(a.id))addEntity('job-result',a.id,{id:a.id,jobId:job.id,documentId:d.id,requestedCount:job.review.request.settings.count,actualCount:null,phase:a.terminal==='failed'?'failed':'queued',provenance:null,inert:true,request:this.portableRequest(job.id)});
+   }
+   for(const row of this.db.prepare("SELECT r.kind,r.id,r.json FROM portable_rows r JOIN portable_namespaces n ON n.id=r.namespace WHERE n.document_id=? AND r.kind IN ('job-result','candidate-result')").iterate(d.id)){
+    const value=JSON.parse(String(row.json));addEntity(String(row.kind),String(row.id),value);if(row.kind==='candidate-result'){queue(value.encodedAssetId);if(value.preparedAssetId)queue(value.preparedAssetId);}
+   }
    for(;;){const q=out.prepare('SELECT id FROM assets_queue WHERE done=0 ORDER BY id LIMIT 1').get();if(!q)break;const a=this.assets.asset(String(q.id));if(!a||a.availability!=='available')throw new StoreError('MISSING_OBJECT');addEntity('asset',a.id,a);
     if(a.raster){const m=this.rasters.manifest(a.id);references(m,r=>addRef(out,r));if((m.plan as any).kind==='retained-text'){const source=validateSource(json(this.objects.verify((m.plan as any).source,true)!));for(const ref of dependencies(source))addRef(out,ref);source.text.fonts.forEach(font);}for(const source of a.raster.sourceAssetIds)queue(source);}
     out.prepare('UPDATE assets_queue SET done=1 WHERE id=?').run(q.id);
@@ -118,6 +136,9 @@ export class Portables {
    const highWater=String(this.db.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value);return {captureVersion:2,document:d,highWater,uiDigest:'sha256:'+uiHash.digest('hex'),capture:operationId,captureHash};
   }finally{if(out.isTransaction)out.exec('ROLLBACK');out.close();syncDirectory(dir);}
  }
+ private portableRequest(jobId:string){const r=JSON.parse(String(this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(jobId)!.json)).review;return {endpoint:r.endpoint,prompt:r.prompt,seed:r.request.settings.seed.kind==='integer'?r.request.settings.seed.decimal:null};}
+ private queueEndpoint(jobId:string){return JSON.parse(String(this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(jobId)!.json)).review.endpoint;}
+ private queueRequest(jobId:string,attemptId:string){return JSON.parse(String(this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(jobId)!.json)).attempts.find((a:any)=>a.id===attemptId).requestId;}
  private auth(id:string){const a=this.authorities.get(id);if(!a)throw new AssetRejection('INVALID_INPUT','BUNDLE_REVIEW_EXPIRED');const auth={...a.auth,now:a.auth.now+Math.floor(performance.now()-a.start)},binding=this.db.prepare('SELECT client_id,expires FROM client_bindings WHERE cookie_hash=?').get(auth.sessionHash);if(!binding||binding.client_id!==auth.clientId||auth.now>=auth.expires||auth.now>=Number(binding.expires))throw new AssetRejection('INVALID_INPUT','BUNDLE_REVIEW_EXPIRED');return auth;}
  review(id:string,auth:AssetAuth):BundleReview{if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT * FROM portable_reviews WHERE id=?').get(id);if(!row)throw new StoreError('NOT_FOUND');if(row.client_id!==auth.clientId)throw new StoreError('OWNER_REQUIRED');const r=JSON.parse(String(row.json));if(row.session_hash!==auth.sessionHash||row.epoch!==this.epoch||auth.now>=Date.parse(r.expiresAt))throw new StoreError('REVIEW_EXPIRED');return r;}
  bundle(id:string,auth:AssetAuth):Bundle{if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT * FROM portable_bundles WHERE id=?').get(id);if(!row)throw new StoreError('NOT_FOUND');if(row.client_id!==auth.clientId)throw new StoreError('OWNER_REQUIRED');return JSON.parse(String(row.json));}
@@ -225,6 +246,7 @@ export class Portables {
    const a=JSON.parse(String(row.json)),path=join(directory,a.blob.hash.slice(7));check();
    if(a.qualification==='font'){bundledFont(a.font);const inspected=await this.texts.inspect(a.blob,path);if(inspected.format!==a.font.format||inspected.parserProfile!==a.font.parserProfile||inspected.fsType!==a.font.fsType)invalid();await text(a.font.licenseRecord);}
    else if(a.qualification==='opaque-text')await text(a.blob);
+   else if(a.qualification==='pending-decoder'&&db.prepare("SELECT 1 FROM entities WHERE kind='candidate-result' AND json_extract(json,'$.encodedAssetId')=? AND json_extract(json,'$.preparedAssetId') IS NULL").get(a.id)){/* Failed preparation is retained byte-for-byte; it does not become renderable on import. */}
    else{const work=join(directory,'verify-'+randomUUID());privateDirectory(work);const result=await this.rasters.validatePortable(path,a.measuredMediaType,a.blob,work,slot,check);
     db.prepare('INSERT INTO decoded_pixels VALUES (?,?)').run(a.id,canonical(result.info));if(a.raster&&(result.info.pixels.hash!==a.raster.pixels.hash||result.info.width!==a.raster.width||result.info.height!==a.raster.height))invalid();
    }
@@ -261,13 +283,14 @@ export class Portables {
   const add=(kind:string,id:string|null)=>{if(id!==null)db.prepare('INSERT OR IGNORE INTO review_mapping VALUES (?,?,?)').run(kind,id,this.localId(namespace,kind,id));};
   for(const r of db.prepare('SELECT * FROM entities ORDER BY kind,id').iterate()){
    const v=JSON.parse(String(r.json));add(r.kind==='draft'?'ui':r.kind==='portable-provider'?'attempt':String(r.kind),String(r.id));
+   if(r.kind==='job-result'){add('job',v.jobId);add('attempt',v.id);}if(r.kind==='candidate-result'){add('job',v.jobId);add('attempt',v.attemptId);}
    if(v.branchId)add('branch',v.branchId);for(const id of v.orderedLayerIds??[])add('layer',id);
    for(const version of [v.image,v.before,v.after])if(version?.state){const state=json(await read(version.state));for(const l of state.layers)add('layer',l.id);}check();await tick();
    if(r.kind==='draft'){for(const d of v.drafts){add('draft',d.id);add('layer',d.targetLayerId);}for(const id of v.preferences?.selectedLayerIds??[])add('layer',id);for(const id of v.reconciledLayerIds)add('layer',id);}
   }
  }
  mapping(id:string,auth:AssetAuth,kind:string,after:string){
-  this.review(id,auth);if(!['document','history','checkpoint','asset','ui','attempt','branch','draft','layer'].includes(kind)||after!==''&&!isId(after))throw new StoreError('MALFORMED_REQUEST');
+  this.review(id,auth);if(!['document','history','checkpoint','asset','ui','attempt','branch','draft','layer','job','job-result','candidate-result'].includes(kind)||after!==''&&!isId(after))throw new StoreError('MALFORMED_REQUEST');
   const items=this.db.prepare('SELECT source_id sourceId,local_id localId FROM portable_review_maps WHERE review_id=? AND kind=? AND source_id>? ORDER BY source_id LIMIT 100').all(id,kind,after);
   return {protocolVersion:1,kind,items,next:items.length===100?String(items.at(-1)!.sourceId):null};
  }
@@ -330,9 +353,11 @@ export class Portables {
     if(v.kind==='image-edit'){out.before=await version(v.before);out.after=await version(v.after);for(const key of ['forward','inverse']){const p=await read(v[key]);if(p.schemaVersion===2)p.composition=semantic(p.composition);p.layers=p.layers.map((x:any)=>({id:map('layer',x.id),value:x.value?layer(x.value):null}));if(p.order)p.order=p.order.map((id:string)=>map('layer',id));out[key]=metadata(p);}out.roots=[out.before.state,out.after.state,out.forward,out.inverse];}
     else{out.forward={before:null,after:await document(v.forward.after)};out.inverse={before:out.forward.after,after:null};}
    }else if(row.kind==='checkpoint')out={...v,id:map('checkpoint',v.id),documentId:map('document',v.documentId),historyHead:map('history',v.historyHead),...(v.image?{image:await version(v.image)}:{})};
+   else if(row.kind==='job-result')out={...v,id:map('attempt',v.id),jobId:map('job',v.jobId),documentId:map('document',v.documentId)};
+   else if(row.kind==='candidate-result')out={...v,id:map('candidate-result',v.id),jobId:map('job',v.jobId),attemptId:map('attempt',v.attemptId),documentId:map('document',v.documentId),encodedAssetId:map('asset',v.encodedAssetId),preparedAssetId:map('asset',v.preparedAssetId)};
    else if(row.kind==='portable-provider')out={...v,attemptId:map('attempt',v.attemptId)};
    else{out={...v,sessionId:map('ui',v.sessionId),preferences:v.preferences?{...v.preferences,documentId:map('document',v.preferences.documentId),selectedLayerIds:v.preferences.selectedLayerIds.map((id:string)=>map('layer',id))}:null,drafts:v.drafts.map((d:any)=>({...d,id:map('draft',d.id),documentId:map('document',d.documentId),targetLayerId:map('layer',d.targetLayerId),assetId:map('asset',d.assetId),...(d.kind==='composition'?{compositionBindings:Object.fromEntries(Object.entries(d.compositionBindings).map(([key,id])=>[key,map('layer',id as string)]))}:{}),...(d.kind==='mask'?{maskBindings:Object.fromEntries(Object.entries(d.maskBindings).map(([key,id])=>[key,map('asset',id as string)]))}:{})})),reconciledLayerIds:v.reconciledLayerIds.map((id:string)=>map('layer',id))};}
-   if(row.kind==='portable-provider')providerRecord(out);else if(row.kind!=='draft')entity(String(row.kind),out);db.prepare('INSERT INTO mapped VALUES (?,?,?)').run(row.kind,out.id??out.sessionId??out.attemptId,canonical(out));check();await tick();
+   if(row.kind==='candidate-result')candidateRecord(out);else if(row.kind==='job-result')resultRecord(out);else if(row.kind==='portable-provider')providerRecord(out);else if(row.kind!=='draft')entity(String(row.kind),out);db.prepare('INSERT INTO mapped VALUES (?,?,?)').run(row.kind,out.id??out.sessionId??out.attemptId,canonical(out));check();await tick();
   }
  }
  async verifyBundle(id:string,auth:AssetAuth){if(this.reads.size>=128)throw new StoreError('QUEUE_FULL');const b=this.bundle(id,auth),handle=randomUUID(),slot='bundle-read:'+handle;this.objects.acquire(slot);try{const proof=await this.objects.prove(b.blob,()=>this.check());this.reads.set(handle,{ref:b.blob,proof,client:auth.clientId,session:auth.sessionHash,expires:auth.expires,slot});return {bundle:b,handle};}catch(e){this.objects.release(slot);throw e;}}

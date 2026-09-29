@@ -17,7 +17,7 @@ import { PrivateRootError } from '../private-root.js';
 export type WriterOptions = { root: string; quotaBytes?: string };
 // Internal process/filesystem tests only. Not an HTTP/CLI/environment setting.
 export type WriterTestOptions = { phase?: string; gate?: SharedArrayBuffer; onBarrier?: (phase: string) => void;
-  onFailure?: (failure: { code?: string; sqliteCode?: number }) => void; maxPageCount?: number; effectCounters?: SharedArrayBuffer };
+  onFailure?: (failure: { code?: string; sqliteCode?: number }) => void; maxPageCount?: number; effectCounters?: SharedArrayBuffer; setupModule?:string };
 export async function openWriter(options: WriterOptions, testing?: WriterTestOptions) {
   if (process.versions.node !== '26.10.0') throw new StoreError('UNSUPPORTED_STORAGE');
   if (options.quotaBytes !== undefined && !/^[1-9][0-9]*$/.test(options.quotaBytes)) throw new StoreError('MALFORMED_REQUEST');
@@ -27,7 +27,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   let worker: Worker;
   try {
     worker = new Worker(new URL('./worker.js', import.meta.url), { workerData: { root: owner.path, identity: owner.identity, quotaBytes: options.quotaBytes,
-      testing: testing ? { phase: testing.phase, gate: testing.gate, maxPageCount: testing.maxPageCount, effectCounters: testing.effectCounters } : undefined },
+      testing: testing ? { phase: testing.phase, gate: testing.gate, maxPageCount: testing.maxPageCount, effectCounters: testing.effectCounters, setupModule:testing.setupModule } : undefined },
       ...(process.execArgv.some(arg => arg.startsWith('--input-type')) ?
         { execArgv: process.execArgv.filter(arg => !arg.startsWith('--input-type')) } : {}),
       env: {}, resourceLimits: { maxOldGenerationSizeMb: 128, maxYoungGenerationSizeMb: 16 } });
@@ -66,6 +66,9 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   return {
     root: owner.path, epoch,
     queueCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<QueueStore['command']>>>('queueCommand',{bytes,auth}),
+    candidateHistory:(documentId:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateHistory>('candidateHistory',{documentId,after}),
+    candidateView:(jobId:string,attemptId?:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateView>('candidateView',{jobId,attemptId,after}),
+    candidatePrompt:(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned',offset:string)=>request<{bytes:Uint8Array;byteLength:string;offset:string;nextOffset:string|null}>('candidatePrompt',{jobId,attemptId,kind,offset}),
     queueView:(after='')=>request<ReturnType<QueueStore['view']>>('queueView',{after}),
     queueReserve:(jobId:string)=>request<ReturnType<QueueStore['reserve']>>('queueReserve',{jobId}),
     queueDispatch:(...params:Parameters<QueueStore['dispatch']>)=>request<ReturnType<QueueStore['dispatch']>>('queueDispatch',{params}),

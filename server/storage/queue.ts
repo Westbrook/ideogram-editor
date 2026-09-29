@@ -21,6 +21,7 @@ import type {AppliedPrivacyPolicy} from '../provider/contracts.js';
 type Outbox={state:'safe-unstarted'|'dispatching'|'acknowledged'|'uncertain'|'cancelled'|'terminal';epoch:string|null;endpoint:string;mapping:Record<string,string>;bodyRecord:string|null;payloadHash:string|null;requestId:string|null;urls:{status:string;result:string;cancel:string}|null;responseRecord:string|null};
 export class QueueStore {
  readonly evidence:TransportEvidenceStore;
+ candidateAction:((body:import('../../src/protocol/candidates.js').CandidateBody)=>QueueFact)|undefined;
  private preparing=new Map<string,{hash:string;promise:Promise<Receipt>}>();
  constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private ui:UIStore,private rasters:Rasters,
   private state:(id:string)=>ImageState,private check:()=>void,private epoch:string,private barrier:Barrier,root:string,
@@ -113,6 +114,7 @@ export class QueueStore {
      for(const job of this.all())if(job.local==='paused-spend-cap'){job.local='accepted-local-queue';job.version=String(BigInt(job.version)+1n);this.record('job',job,event);}
      return this.fact(next,event);
     }
+    if(b.type==='HideCandidate'||b.type==='RetryCandidateImport'){if(!this.candidateAction)throw new StoreError('UNSUPPORTED_COMMAND');return this.candidateAction(b);}
     const job=this.job(b.jobId);if(job.version!==b.expectedVersion)throw new AssetRejection('STALE_REVISION','JOB_CHANGED');
     if(b.type==='CancelUnstartedJob'){
      const a=job.attempts.at(-1)!;if(a.state!=='not-started')throw new AssetRejection('INCOMPATIBLE','DISPATCH_MAY_HAVE_STARTED');a.state='locally-cancelled';a.hold=false;a.count=a.count==='reserved'?'released':a.count;a.version=String(BigInt(a.version)+1n);job.local='locally-cancelled';job.disposition='set-aside';const out=this.outbox(a.id);out.state='cancelled';this.writeOutbox(a.id,job.id,out);
@@ -165,5 +167,16 @@ export class QueueStore {
   });
  }
  recovery(jobId:string,attemptId:string){this.check();const job=this.job(jobId),attempt=job.attempts.find(a=>a.id===attemptId);if(!attempt)throw new StoreError('NOT_FOUND');return {jobId,attempt,endpoint:job.review.endpoint,outbox:this.outbox(attemptId),epoch:this.epoch};}
+ resultFence(jobId:string,attemptId:string){
+  this.check();const job=this.job(jobId),attempt=job.attempts.find(a=>a.id===attemptId);
+  if(!attempt?.requestId||!['acknowledged','provider-terminal'].includes(attempt.state)||!this.db.prepare('SELECT 1 FROM documents WHERE id=?').get(job.documentId)||this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(job.documentId))throw new StoreError('STALE_EPOCH');
+  return {jobId,attemptId,requestId:attempt.requestId,epoch:this.epoch,jobVersion:job.version};
+ }
+ assertResult(f:import('../../src/protocol/candidates.js').ResultFence){const current=this.resultFence(f.jobId,f.attemptId);if(canonical(current)!==canonical(f))throw new StoreError('STALE_EPOCH');return this.job(f.jobId);}
+ resultTransaction<T>(f:import('../../src/protocol/candidates.js').ResultFence,build:(job:QueueJob)=>T){return this.transaction(()=>build(this.assertResult(f)));}
+ resultTerminal(job:QueueJob,attemptId:string,status:'completed'|'failed'){
+  const a=job.attempts.find(a=>a.id===attemptId)!;a.state='provider-terminal';a.terminal=status;a.hold=false;a.version=String(BigInt(a.version)+1n);job.version=String(BigInt(job.version)+1n);
+  const out=this.outbox(a.id);out.state='terminal';this.writeOutbox(a.id,job.id,out);this.record('job',job,'ProviderTerminal');
+ }
  async close(){await Promise.allSettled([...this.preparing.values()].map(p=>p.promise));}
 }

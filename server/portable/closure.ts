@@ -1,3 +1,4 @@
+import {candidateRecord,resultRecord} from './candidates.js';
 import {draftShape as requestDraft,refs as requestRefs} from '../../src/request/core.js';
 import {validateComposition,bindingMap,compositionRefs,serialize} from '../../src/composition/core.js';
 import {imagePatch,validateCommit} from '../storage/composition.js';
@@ -34,6 +35,8 @@ export async function validateClosure(db:DatabaseSync,read:(ref:BlobRef)=>Promis
  if(!db.prepare("SELECT 1 FROM entities WHERE kind='history' AND id=?").get(d.historyHead)||d.checkpoint&&!db.prepare("SELECT 1 FROM entities WHERE kind='checkpoint' AND id=?").get(d.checkpoint))invalid();
  for(const row of db.prepare('SELECT * FROM entities ORDER BY kind,id').iterate()){
   check();const v=JSON.parse(String(row.json));if(row.kind==='portable-provider'){providerRecord(v);if(v.attemptId!==row.id||!v.derivation.complete||db.prepare('SELECT 1 FROM refs WHERE hash=?').get(v.derivation.sourceBodyHash))invalid();for(const hash of v.assetHashes){const r=db.prepare('SELECT * FROM refs WHERE hash=?').get(hash);if(!r)invalid();needed({hash,byteLength:String(r!.bytes),mediaType:String(r!.media)});const matches=db.prepare("SELECT id FROM entities WHERE kind='asset' AND json_extract(json,'$.blob.hash')=?").all(hash);if(!matches.length)invalid();for(const a of matches)asset(String(a.id));}privacyPolicy(json(await read(v.privacyPolicyRef)));if(v.safeTimingsRef)safeTimings(json(await read(v.safeTimingsRef)));}
+  else if(row.kind==='job-result'){resultRecord(v);if(v.documentId!==d.id||v.id!==row.id||v.provenance?.quarantined)invalid();if(v.provenance)privacyPolicy(json(await read(v.provenance.privacyPolicy)));}
+  else if(row.kind==='candidate-result'){candidateRecord(v);if(v.documentId!==d.id||v.id!==row.id)invalid();const owner=db.prepare("SELECT json FROM entities WHERE kind='job-result' AND id=?").get(v.attemptId);if(!owner||JSON.parse(String(owner.json)).jobId!==v.jobId)invalid();if(!v.encodedAssetId||v.safety!=='safe')invalid();asset(v.encodedAssetId);if(v.preparedAssetId)asset(v.preparedAssetId);}
   else if(row.kind!=='draft'){entity(String(row.kind),v);if(v.id!==row.id)invalid();}else{validateUI(v,d.id);if(v.sessionId!==row.id)invalid();}
   if(!maskSemantics&&(row.kind==='asset'&&v.raster?.schemaVersion>=2||row.kind==='draft'&&v.drafts.some((d:any)=>d.kind==='mask')))invalid();
   if(row.kind!=='asset')references(v,needed);

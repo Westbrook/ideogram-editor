@@ -55,6 +55,8 @@ export class ProtocolRoutes {
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
     const comp=/^\/api\/v1\/(documents|ui)\/([^/]+)\/composition$/.exec(path);
     if(comp){if(!isId(comp[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:comp[1]==='documents'?'composition-view':'composition-draft-view',id:comp[2],query:['revision','draftId','generation','raw','offset','download']};}
+    const candidateHistory=/^documents\/([A-Za-z0-9_-]{1,128})\/candidates$/.exec(path.slice(PREFIX.length));if(candidateHistory)return {allow:['GET'],kind:'candidate-history',id:candidateHistory[1],query:['after']};
+    const candidate=/^jobs\/([A-Za-z0-9_-]{1,128})\/candidates$/.exec(path.slice(PREFIX.length));if(candidate)return {allow:['GET'],kind:'candidates',id:candidate[1],query:['attempt','prompt','offset','after']};
     if(path===PREFIX+'queue')return {allow:['GET'],kind:'queue',query:['after']};
     const reviews=/^\/api\/v1\/ui\/([^/]+)\/request-reviews$/.exec(path);if(reviews){if(!isId(reviews[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'request-reviews',id:reviews[1],query:[]};}
     const requestDraft=/^\/api\/v1\/ui\/([^/]+)\/request$/.exec(path);if(requestDraft){if(!isId(requestDraft[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'request-draft-view',id:requestDraft[1],query:['draftId','generation','content']};}
@@ -205,7 +207,13 @@ export class ProtocolRoutes {
     if (params.has('recoveryId') && !isId(params.get('recoveryId'))) throw new ProtocolError('MALFORMED_REQUEST');
     try {
       await this.prune();
-      if(route.kind==='queue'){const view=await this.writer.queueView(params.get('after')??'');authenticate();sendJSON(response,200,view);}
+      if(route.kind==='candidate-history'){const view=await this.writer.candidateHistory(route.id!,new URL(request.url!,'http://local').searchParams.get('after')??'');authenticate();sendJSON(response,200,view);return;}
+      if(route.kind==='candidates'){
+        const attempt=params.get('attempt')??undefined,prompt=params.get('prompt');
+        if(prompt){if(!attempt||!['requested','submitted','returned'].includes(prompt))throw new StoreError('MALFORMED_REQUEST');const page=await this.writer.candidatePrompt(route.id!,attempt,prompt as 'requested'|'submitted'|'returned',params.get('offset')??'0');authenticate();sendJSON(response,200,{...page,bytes:Buffer.from(page.bytes).toString('base64')});}
+        else{const view=await this.writer.candidateView(route.id!,attempt,params.get('after')??'');authenticate();sendJSON(response,200,view);}
+      }
+      else if(route.kind==='queue'){const view=await this.writer.queueView(params.get('after')??'');authenticate();sendJSON(response,200,view);}
       else if(route.kind==='composition-view'||route.kind==='composition-draft-view'){
         const draft=route.kind==='composition-draft-view',revision=params.get('revision')??'',draftId=params.get('draftId'),generation=params.get('generation');
         if(draft?(!draftId||!isId(draftId)||!generation||!isSeq(generation)):!isSeq(revision))throw new ProtocolError('MALFORMED_REQUEST');

@@ -16,13 +16,21 @@ export type DerivedProvenance = Readonly<{
 }>;
 
 /** Bounded envelope scanner. Large prompt strings are decoded in 32KiB pages, never JSON.parse'd. */
-function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=>void) {
+export function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=>void) {
   function* characters(){const decoder=new TextDecoder('utf-8',{fatal:true});for(const chunk of chunks){if(chunk.byteLength>IO_CHUNK)refuse('PROVENANCE');yield* decoder.decode(chunk,{stream:true});}yield* decoder.decode();}
   const iterator=characters();let c=iterator.next().value as string|undefined;
   const next=()=>{c=iterator.next().value as string|undefined;};
   const whitespace=()=>{while(c!==undefined&&' \r\n\t'.includes(c))next();};
   let tokens=0,foundPrompt=false,seed:string|null=null;const timings:Record<string,number>={};
   const urls:string[]=[];
+  const images:Record<string,unknown>[]=[]; const safety:unknown[]=[];
+  let imagesArray=false,safetyArray=false,timingsObject=false,timingsValid=true;
+  const capture=(path:string[],v:unknown)=>{
+    if(path.length===3&&path[0]==='images'&&['url','content_type','file_size','width','height'].includes(path[2]!)){
+      const i=Number(path[1]);if(i>=1000)refuse('PROVENANCE');(images[i]??={})[path[2]!]=v;
+    }
+    if(path.length===2&&path[0]==='has_nsfw_concepts'){if(Number(path[1])>=1000)refuse('PROVENANCE');safety[Number(path[1])]=v;}
+  };
   function string(emit?:(s:string)=>void):void{
     if(c!=='"')refuse('PROVENANCE');next();let page='';
     const push=(s:string)=>{page+=s;if(page.length>=8192){emit?.(page);page='';}};
@@ -50,14 +58,22 @@ function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=>void) 
   function smallString(limit:number):string {let out='';string(s=>{if(out.length+s.length>limit)refuse('PROVENANCE');out+=s;});return out;}
   function value(path:string[],depth:number):void{
     if(depth>16||++tokens>50000)refuse('PROVENANCE');whitespace();
+    if(path.length===2&&path[0]==='images'){if(Number(path[1])>=1000)refuse('PROVENANCE');images[Number(path[1])]??={};}
+    if(path.length===2&&path[0]==='has_nsfw_concepts'){if(Number(path[1])>=1000)refuse('PROVENANCE');safety[Number(path[1])]=null;}
+    if(path.length===2&&path[0]==='timings'&&(c==='"'||c==='{'||c==='['))timingsValid=false;
+    if(path.length===3&&path[0]==='images'&&['url','content_type','file_size','width','height'].includes(path[2]!)&&(c==='{'||c==='['))capture(path,'invalid');
     if(c==='"'){
       if(path.length===1&&path[0]==='prompt'){foundPrompt=true;string(s=>prompt(Buffer.from(s,'utf8')));}
-      else if(path.length===3&&path[0]==='images'&&path[2]==='url'){const u=smallString(16384);urls.push(u);}
-      else string();
+      else if(path.length===3&&path[0]==='images'&&['url','content_type'].includes(path[2]!)){const u=smallString(16384);if(path[2]==='url')urls.push(u);capture(path,u);}
+      else if(path.length===3&&path[0]==='images'&&['file_size','width','height'].includes(path[2]!)){string();capture(path,'invalid');}else string();
     }else if(c==='{'){
+      if(path.length===1&&path[0]==='timings')timingsObject=true;
+      if(path.length===2&&path[0]==='images'){if(Number(path[1])>=1000)refuse('PROVENANCE');images[Number(path[1])]={};}
       next();whitespace();const keys=new Set<string>();if(String(c)==='}'){next();return;}
       for(;;){whitespace();const key=smallString(256);if(keys.has(key))refuse('PROVENANCE');keys.add(key);whitespace();if(String(c)!==':')refuse('PROVENANCE');next();value([...path,key],depth+1);whitespace();if(String(c)==='}'){next();break;}if(String(c)!==',')refuse('PROVENANCE');next();}
     }else if(c==='['){
+      if(path.length===1&&path[0]==='images')imagesArray=true;
+      if(path.length===1&&path[0]==='has_nsfw_concepts')safetyArray=true;
       next();whitespace();if(String(c)===']'){next();return;}let i=0;
       for(;;){value([...path,String(i++)],depth+1);whitespace();if(String(c)===']'){next();break;}if(String(c)!==',')refuse('PROVENANCE');next();}
     }else{
@@ -65,12 +81,14 @@ function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=>void) 
       if(!['true','false','null'].includes(raw)&&!/-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/.test(raw))refuse('PROVENANCE');
       // Anchor separately: a malformed suffix cannot pass by containing a valid number.
       if(!['true','false','null'].includes(raw)&&! /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/.test(raw))refuse('PROVENANCE');
+      capture(path,['true','false','null'].includes(raw)?JSON.parse(raw):Number(raw));
+      if(path.length===2&&path[0]==='timings'&&(!Number.isFinite(Number(raw))||Number(raw)<0||['true','false','null'].includes(raw)))timingsValid=false;
       if(path.length===1&&path[0]==='seed'&&/^-?(0|[1-9][0-9]*)$/.test(raw))seed=raw;
-      if(path.length===2&&path[0]==='timings'&&/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(path[1]!)&&Number.isFinite(Number(raw))&&Number(raw)>=0)timings[path[1]!]=Number(raw);
+      if(path.length===2&&path[0]==='timings'&&/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(path[1]!)&&Number.isFinite(Number(raw))&&Number(raw)>=0){if(Object.keys(timings).length>=64)refuse('PROVENANCE');timings[path[1]!]=Number(raw);}
     }
   }
   whitespace();if(c!=='{')refuse('PROVENANCE');value([],0);whitespace();if(c!==undefined)refuse('PROVENANCE');
-  return {foundPrompt,seed,timings,urls};
+  return {foundPrompt,seed,timings,urls,images,safety,imagesArray,safetyArray,timingsObject,timingsValid};
 }
 function containsSecret(chunks:Iterable<Uint8Array>,secrets:readonly string[]):boolean{
   const needles=secrets.filter(Boolean).map(s=>Buffer.from(s));

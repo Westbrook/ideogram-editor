@@ -14,10 +14,13 @@ const barrier = (phase: string) => {
   }
 };
 let store: StoreDatabase;
+let closeFixture:(()=>Promise<void>)|undefined;
 try {
   const identity = assertPrivate(workerData.root, true);
   if (identity.dev !== workerData.identity.dev || identity.ino !== workerData.identity.ino) throw new StoreError('ROOT_UNSAFE');
   store = new StoreDatabase(workerData.root, barrier, { quotaBytes: workerData.quotaBytes, maxPageCount: workerData.testing?.maxPageCount });
+  // Internal test-process injection only; no CLI, environment, HTTP or imported archive can set this.
+  if(workerData.testing?.setupModule){const fixture=await import(workerData.testing.setupModule);closeFixture=await fixture.setup(store);}
   port.postMessage({ type: 'ready', epoch: store.epoch });
   store.assets.schedule(true);
   store.rasters.schedule(true);
@@ -36,10 +39,13 @@ port.on('message', async message => {
     if ((method==='submit'||method==='assetCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand'||method==='queueCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
     else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
     if(method==='textAdmission'){result=args.release?store.texts.releaseAdmission(args.id,args.auth):store.texts.admission(args.id,args.auth);}
-    else if (method === 'close') { await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
+    else if (method === 'close') { await closeFixture?.(); await store.candidates.close(); await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
     else {
       store.fence(args.epoch);
       switch (method) {
+        case 'candidateHistory':result=store.candidates.history(args.documentId,args.after);break;
+        case 'candidateView':result=store.candidates.view(args.jobId,args.attemptId,args.after);break;
+        case 'candidatePrompt':result=store.candidates.prompt(args.jobId,args.attemptId,args.kind,args.offset);break;
         case 'queueCommand':result=await store.queue.command(args.bytes,args.auth);break;
         case 'queueView':result=store.queue.view(args.after);break;
         case 'queueReserve':result=store.queue.reserve(args.jobId);break;

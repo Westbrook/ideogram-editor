@@ -1,0 +1,8 @@
+import {startLocalServer} from '../../dist/local/server/http.js';import {readFile}from'node:fs/promises';import{join}from'node:path';
+const root=process.argv[2],server=await startLocalServer({root,staticDirectory:process.argv[3],credentialConfigured:false},{writer:{setupModule:new URL('./observer-fixture.mjs',import.meta.url).href}});
+process.send({type:'ready',origin:server.origin});
+process.on('message',m=>{
+ if(m==='pair')process.send({type:'pair',url:server.issuePairingURL()});
+ if(m==='effects')void readFile(join(root,'candidate-fixture.json'),'utf8').then(s=>process.send({type:'effects',value:JSON.parse(s)}));
+ if(m==='close')void server.close().then(()=>process.disconnect());
+});

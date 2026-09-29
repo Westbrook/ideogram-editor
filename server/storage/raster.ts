@@ -227,7 +227,7 @@ export class Rasters {
   // Internal document owner uses the SAME worker/admission/pixel pipeline. It
   // publishes the result only in its atomic image/history acceptance transaction.
   get documentAvailable(){return !this.running&&!this.documentBusy&&!this.closing;}
-  async prepareDocument(body: Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>|{type:'RequestMaskResize';assetId:string;width:number;height:number}|{type:'RetainText';source:BlobRef;pixels:BlobRef;width:number;height:number}, id:string, slot:string, check:()=>void, preparedInput?:Asset) {
+  async prepareDocument(body: Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>|{type:'RequestMaskResize';assetId:string;width:number;height:number}|{type:'RetainText';source:BlobRef;pixels:BlobRef;width:number;height:number}|{type:'PrepareCandidate';assetId:string}, id:string, slot:string, check:()=>void, preparedInput?:Asset) {
     if(this.running||this.documentBusy||this.closing)throw new StoreError('QUEUE_FULL');
     this.documentBusy=true;
     const proofs:{ref:BlobRef;token:string}[]=[];
@@ -241,7 +241,9 @@ export class Rasters {
       }
       const directory=join(this.directory,randomUUID());privateDirectory(directory);
       if(body.type==='RetainText')for(const ref of [body.source,body.pixels])proofs.push({ref,token:await this.objects.prove(ref,check)});
-      const job:RasterJob=body.type==='RequestMaskResize'?{type:'request-mask',directory,input:inputs[0],width:body.width,height:body.height,dependencies}:body.type==='RetainText'?{type:'text',directory,path:this.objects.path(body.pixels),source:body.source,width:body.width,height:body.height,dependencies:[body.source]}:body.type==='ComposeRaster'?{type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies}:{type:'export',directory,input:inputs[0],dependencies};
+      const original=body.type==='PrepareCandidate'?this.assets.asset(body.assetId):null;
+      if(body.type==='PrepareCandidate'){if(!original||original.qualification!=='pending-decoder')throw new StoreError('MALFORMED_REQUEST');proofs.push({ref:original.blob,token:await this.objects.prove(original.blob,check)});}
+      const job:RasterJob=body.type==='PrepareCandidate'?{type:'decode',directory,path:this.objects.path(original!.blob),mediaType:original!.measuredMediaType,original:original!.blob,sourceAssetId:original!.id}:body.type==='RequestMaskResize'?{type:'request-mask',directory,input:inputs[0],width:body.width,height:body.height,dependencies}:body.type==='RetainText'?{type:'text',directory,path:this.objects.path(body.pixels),source:body.source,width:body.width,height:body.height,dependencies:[body.source]}:body.type==='ComposeRaster'?{type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies}:{type:'export',directory,input:inputs[0],dependencies};
       const result=await this.compute(job,slot,check);validateManifest(result.manifest);
       if(hashBytes(canonical(result.manifest))!==result.info.manifest.hash)throw new StoreError('CORRUPT_OBJECT');
       for(const p of proofs)this.objects.proven(p.ref,p.token);
