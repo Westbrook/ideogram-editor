@@ -481,8 +481,8 @@
     },
     {
       "path": "tests/editor/completion/ancillary-favicon.mjs",
-      "bytes": 14092,
-      "sha256": "c3a7dfb5660cee18ce0f612214f406d2dc33da9216bcbf7606d3d4f0d0b23481",
+      "bytes": 19842,
+      "sha256": "e5684cba35ae100b0d144c2cf73ac42694e10cd390823a260533beaededad2c5",
       "role": "injection"
     },
     {
@@ -607,8 +607,8 @@
     },
     {
       "path": "tests/editor/completion/monitor.mjs",
-      "bytes": 23721,
-      "sha256": "84ef5163306e1018527fb9ea6182bfbdcdcc407595f681040737faaf3758a720",
+      "bytes": 23857,
+      "sha256": "fc77e24dc4d34d215da966570cffcb5282b06adb51c3125fb318ee51c2198935",
       "role": "injection"
     },
     {
@@ -661,8 +661,8 @@
     },
     {
       "path": "tests/editor/completion/restored-route.mjs",
-      "bytes": 10696,
-      "sha256": "b76174edf2dd7eec72ca6c1e333309019e118ddcb96379fd3e08f0a2191b756c",
+      "bytes": 14551,
+      "sha256": "22d17f866194007a016a2bffb6161788759f92db1fbead095ef1d69c8c089889",
       "role": "injection"
     },
     {
@@ -4356,7 +4356,7 @@
             "source": "send('Page.getFrameTree',{},'owned-page-CDPSession-1')"
           },
           {
-            "at": 23044,
+            "at": 23180,
             "kind": "CallExpression",
             "name": "send",
             "callee": "send",

@@ -9,6 +9,7 @@ import {RESTORED_MODE,restoredNative,refuseRestoredNative,restoredNodeNativeHead
 import {restoredRouteFlow} from './restored-route-flow.mjs';
 import {restoredRoutes} from './restored-route.mjs';
 const path='/api/v1/assets/image/content',pattern='**'+path;
+test('restored ancillary admission keeps explicit original-channel ordering and no collector',async()=>{const h=await monitorHarness({mode:RESTORED_MODE,fixture:'restored-reads'});h.monitor.save();const e=h.record().epochs[0];assert.equal(e.ancillaryAdmission.owner.origin,h.server.origin);assert.equal(e.ancillaryFrame.loaderId,'document-loader-1');assert.equal(e.collector,undefined);const s=readFileSync('tests/editor/completion/monitor.mjs','utf8');assert(s.indexOf('restoredOriginalChannels({origin:e.origin')<s.indexOf('const ancillary=accountFavicon('));});
 const close=async h=>{await h.monitor.closeEpoch();await h.monitor.beforeNavigate();await h.monitor.depart('restart');await h.monitor.beforeServerStop();};
 async function setup({preactivation=false}={}){const h=await monitorHarness({mode:RESTORED_MODE,fixture:'restored-reads'});h.originalRequest('/');const registration=h.monitor.restoredRoute(pattern,path);registration.registered();await close(h);await h.nextEpoch({activate:!preactivation});return {h,registration};}
 async function forward(h,registration,{reject=false}={}){const q=h.originalRequest(path),calls=[];const route={request:()=>q,continue:async(...args)=>{calls.push(args);if(reject)throw Error('original forward rejected');}};const receipt=registration.hold(route);return {q,route,receipt,calls};}
@@ -195,6 +196,30 @@ for(const defect of ['none','late-ordinary','foreign-private-frame'])test('actua
 });
 for(const defect of ['reordered','missing-cut','missing-request','held-object'])test('actual membership refuses original receipt '+defect,async()=>{
  const h=routeHarness(),receipt=h.registration.hold(h.route);receipt.release();await receipt.continue();h.registration.removing();h.registration.removed();h.registration.confirmedRestoration();
- if(defect==='reordered')h.events.reverse();if(defect==='missing-cut')h.events.pop();if(defect==='missing-request')h.events.splice(1,1);if(defect==='held-object')h.objects.set(h.q.id,{...h.q});
+ if(defect==='reordered')h.events.reverse();if(defect==='missing-cut')h.events.pop();if(defect==='missing-request')h.events.splice(h.events.findIndex(e=>e.kind==='restoration-request'),1);if(defect==='held-object')h.objects.set(h.q.id,{...h.q});
  const reasons={reordered:/Ordered original restoration receipts/,'missing-cut':/Original immutable boundary receipts/,'missing-request':/events.includes/,'held-object':/Original admitted object retained/};assert.throws(()=>h.api.assess(h.current(),{requests:[],responses:[],terminals:[]}),reasons[defect]);
 });
+
+async function observedRouteWindow(){const h=routeHarness(),r=h.registration.hold(h.route);r.release();await r.continue();h.registration.removing();h.registration.removed();return h;}
+test('actual route window retains original callbacks and immutable caller order',async()=>{const h=await observedRouteWindow(),w=h.api.ancillaryWindow(h.current());assert.equal(w.mode,RESTORED_MODE);assert.equal(w.epochIndex,2);assert(w.registration.sequence<w.begin.sequence&&w.begin.sequence<w.removing.sequence&&w.removing.sequence<w.removed.sequence);for(const event of h.events)assert(Object.isFrozen(event));assert.deepEqual(h.api.ancillaryWindow(h.current()),w);});
+for(const [name,change,reason]of [
+ ['missing registration',h=>h.events.splice(h.events.findIndex(e=>e.kind==='route-registration-completed'),1),/immutable original route receipt/],
+ ['cloned registration',h=>{const i=h.events.findIndex(e=>e.kind==='route-registration-completed');h.events[i]={...h.events[i]};},/immutable original route receipt/],
+ ['duplicate registration',h=>h.events.push(h.events.find(e=>e.kind==='route-registration-completed')),/immutable original route receipt/],
+ ['missing removal',h=>h.events.splice(h.events.findIndex(e=>e.kind==='route-removal-start'),1),/immutable original route receipt/],
+ ['foreign page',h=>h.frame.page=()=>({}),/original frame page/],
+ ['foreign context',h=>h.page.context=()=>({}),/Original window context/],
+ ['foreign frame',h=>h.page.mainFrame=()=>({}),/Original window frame/],
+ ['replaced registration',h=>h.api.registrations[0]={...h.api.registrations[0]},/original route objects/],
+ ['changed pattern',h=>h.api.registrations[0].pattern='**/*',/strictly equal/],
+ ['failed registration',h=>h.registration.registrationFailed(Error('failed')),/successful original route window/],
+ ['failed removal',h=>h.registration.removalFailed(Error('failed')),/successful original route window/],
+ ['cleanup removal',h=>h.registration.cleanupRemoving(),/successful original route window/],
+ ['owner change',h=>h.current().owner.contextId='foreign',/original owner/],
+ ['epoch change',h=>h.current().epoch='foreign',/original epoch binding/],
+ ['server change',h=>h.current().server.instance='foreign',/strictly equal/],
+ ['second route',h=>h.api.registrations.push(h.api.registrations[0]),/one original route/],
+])test('actual canceled route observation refuses '+name,async()=>{const h=await observedRouteWindow();change(h);assert.throws(()=>h.api.ancillaryWindow(h.current()),reason);});
+test('actual canceled window refuses absent completed removal',()=>{const h=routeHarness();assert.throws(()=>h.api.ancillaryWindow(h.current()),/successful original route window/);});
+
+for(const key of ['registrationStarted','registered','removalStarted','removed'])test('actual canceled route refuses changed original tick '+key,async()=>{const h=await observedRouteWindow();h.api.registrations[0][key]++;assert.throws(()=>h.api.ancillaryWindow(h.current()),/immutable .* metadata/);});
