@@ -7,6 +7,7 @@ import type {Objects} from './objects.js';
 import type {Assets} from './assets.js';
 import type {Rasters} from './raster.js';
 import type {QueueStore} from './queue.js';
+import type {QueueJob} from '../../src/protocol/queue.js';
 import type {ProtectedBody,AppliedPrivacyPolicy} from '../provider/contracts.js';
 import type {ProviderBoundary} from '../provider/client.js';
 import {scanEnvelope,deriveProvenance} from '../provider/provenance.js';
@@ -191,6 +192,12 @@ export class Candidates {
   this.check();if(after!==''&&!isId(after)||attemptId!==undefined&&!isId(attemptId))throw new StoreError('MALFORMED_REQUEST');if(!isId(jobId))throw new StoreError('MALFORMED_REQUEST');
   const rows=this.db.prepare("SELECT json FROM candidate_jobs WHERE json_extract(json,'$.jobId')=? ORDER BY rowid DESC").all(jobId),r:Retained|undefined=rows.map(x=>JSON.parse(String(x.json))).find(x=>!attemptId||x.attemptId===attemptId);
   if(!r){
+   const current=this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(jobId);
+   if(current){
+    const job=JSON.parse(String(current.json)) as QueueJob,attempt=attemptId?job.attempts.find(a=>a.id===attemptId):job.attempts.at(-1);
+    if(!attempt||job.disposition==='deleted')throw new StoreError('NOT_FOUND');this.documentOwner(job.documentId);
+    return {protocolVersion:1,jobId,documentId:job.documentId,request:this.request(jobId),requestedCount:job.review.request.settings.count,actualCount:null,observation:null,provenance:null,inert:false,items:[],repair:{},nextCursor:null};
+   }
    const row=this.db.prepare("SELECT json FROM portable_rows WHERE kind='job-result' AND json_extract(json,'$.jobId')=? AND (? IS NULL OR id=?) LIMIT 1").get(jobId,attemptId??null,attemptId??null);if(!row)throw new StoreError('NOT_FOUND');const imported=JSON.parse(String(row.json));this.documentOwner(imported.documentId);
    return {protocolVersion:1,jobId,documentId:imported.documentId,request:imported.request,requestedCount:imported.requestedCount,actualCount:imported.actualCount,observation:null,provenance:imported.provenance,inert:true,...this.page(imported.id,after,true)};
   }
