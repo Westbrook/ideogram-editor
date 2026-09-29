@@ -17,11 +17,11 @@ export class RequestEditing{
  private candidateHistory:CandidateHistory|null=null;
  private candidateImage:{id:string;url:string}|null=null;
  private candidateViews=new Map<string,CandidateView>();private promptPage:{text:string;jobId:string;attemptId:string;kind:'requested'|'submitted'|'returned';next:string|null}|null=null;
- private queue:QueueView|null=null;private acceptanceId='';private cap='';private capPending=false;private capDraft:{value:string;isComposing:boolean}|null=null;private capChangeEvent:Event|null=null;private capDraftAdapter=new ControlAdapter();private sessionReview=false;private riskReview:{jobId:string;attemptId:string;expectedVersion:string;kind:'override'|'retry'}|null=null;private queueBusy=false;
+ private queue:QueueView|null=null;private acceptanceId='';private cap='';private capPending=false;private capDraft:{value:string;isComposing:boolean}|null=null;private capChangeEvent:Event|null=null;private capDraftAdapter=new ControlAdapter();private sessionReview=false;private riskReview:{jobId:string;attemptId:string;expectedVersion:string;kind:'override'|'retry'}|null=null;private queueBusy=false;private queueAction:object|null=null;
  private adapter=new ControlAdapter();private entries=new Map<string,Entry>();private mode:Draft['prompt']['mode']='plain';private op:Operation='generate';private owner:unknown;private documentId='';private epoch=0;private loaded=false;private loading=false;private composing=false;private intent=0;
  private historical:{review:Pick<RequestReview,'id'|'token'|'endpoint'|'documentId'>;accepted:boolean}[]=[];private review:RequestReview|null=null;private accepted=false;private message='';private issues:Issue[]=[];private busy=false;private previewKey='';private previewURL='';private adapterVersion='';private adapterHash='';private adapterScale='1';
  constructor(private host:LitElement,private editor:EditorClient){}
- dispose(){if(this.pollTimer)clearTimeout(this.pollTimer);this.pollTimer=null;this.queue=null;if(this.candidateImage)URL.revokeObjectURL(this.candidateImage.url);this.candidateImage=null;if(this.previewURL)URL.revokeObjectURL(this.previewURL);this.previewURL='';this.previewKey='';this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();}
+ dispose(){this.queueAction=null;this.queueBusy=false;if(this.pollTimer)clearTimeout(this.pollTimer);this.pollTimer=null;this.queue=null;if(this.candidateImage)URL.revokeObjectURL(this.candidateImage.url);this.candidateImage=null;if(this.previewURL)URL.revokeObjectURL(this.previewURL);this.previewURL='';this.previewKey='';this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();}
  private pollTimer:ReturnType<typeof setTimeout>|null=null;
  private polling=false;
  private poll(){if(this.pollTimer||this.polling||!this.queue)return;this.pollTimer=setTimeout(()=>{this.pollTimer=null;const owns=this.owns(false);this.polling=true;void this.refreshQueue().then(async()=>{if(!owns())return;for(const job of this.queue?.jobs??[])if(job.documentId===this.editor.view.document?.id&&job.disposition!=='deleted')for(const a of job.attempts)if(a.requestId&&!a.recoveryRequired)await this.inspectCandidates(job.id,a.id);}).catch(()=>{}).finally(()=>{this.polling=false;if(owns())this.poll();});},150);}
@@ -35,7 +35,7 @@ export class RequestEditing{
  private modeChanged(mode:Draft['prompt']['mode']){if(mode===this.mode)return;const old=this.entry()!;this.mode=mode;if(!this.entries.has(this.key())){const next=structuredClone(old);next.id=crypto.randomUUID();next.generation=0;next.draft.prompt={mode,text:promptRef(next.text),projection:null,composition:null};this.entries.set(this.key(),next);}this.touch();}
  async sync(){const doc=this.editor.view.document,owner=this.editor.draftOwner;if(!doc||!owner||!this.editor.view.ready)return;
   if(this.owner===owner&&this.documentId===doc.id&&(this.loaded||this.loading)){if(this.loaded)void this.preview();return;}
-  this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();const epoch=this.epoch;this.owner=owner;this.documentId=doc.id;this.loading=true;this.loaded=false;this.composing=false;this.busy=false;this.entries.clear();this.queue=null;this.candidateViews.clear();this.candidateHistory=null;this.promptPage=null;if(this.candidateImage)URL.revokeObjectURL(this.candidateImage.url);this.candidateImage=null;this.cap='';this.capPending=false;this.capDraft=null;this.capChangeEvent=null;this.riskReview=null;this.sessionReview=false;this.queueBusy=false;this.acceptanceId='';this.review=null;this.accepted=false;
+  this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();const epoch=this.epoch;this.owner=owner;this.documentId=doc.id;this.loading=true;this.loaded=false;this.composing=false;this.busy=false;this.entries.clear();this.queue=null;this.candidateViews.clear();this.candidateHistory=null;this.promptPage=null;if(this.candidateImage)URL.revokeObjectURL(this.candidateImage.url);this.candidateImage=null;this.cap='';this.capPending=false;this.capDraft=null;this.capChangeEvent=null;this.riskReview=null;this.sessionReview=false;this.queueAction=null;this.queueBusy=false;this.acceptanceId='';this.review=null;this.accepted=false;
   const session=this.editor.session,identity=session.identity(),sessionId=this.editor.sessionId;const owns=()=>session===this.editor.session&&identity===session.identity()&&sessionId===this.editor.sessionId&&epoch===this.epoch&&owner===this.editor.draftOwner&&doc.id===this.editor.view.document?.id;
   try{for(const saved of this.editor.ui?.drafts??[]){if(saved.kind!=='request'||saved.documentId!==doc.id)continue;
     const path='/api/v1/ui/'+this.editor.sessionId+'/request?draftId='+saved.id+'&generation='+saved.generation;
@@ -77,7 +77,30 @@ export class RequestEditing{
  }
  private async accept(){const review=this.review,owns=this.owns(),intent=this.intent;if(!review)throw Error('Prepare a review first.');this.busy=true;this.changed();const receipt=await this.editor.requestReview({type:'AcceptRequestReview',reviewId:review.id,token:review.token});if(!owns()||intent!==this.intent)return;this.accepted=receipt.acceptedReview===review.id;this.acceptanceId=this.accepted?receipt.requestId:'';this.busy=false;this.message='Request review accepted locally. No job was queued and no provider call was made.';this.changed();}
  private async refreshQueue(after=''){const owns=this.owns(false),view=await this.editor.json<QueueView>('/api/v1/queue'+(after?'?after='+encodeURIComponent(after):''));if(owns()){this.queue=view;this.changed();this.poll();}}
- private async queueCommand(body:QueueBody){if(this.queueBusy)return;const owns=this.owns();this.queueBusy=true;this.message=body.type==='CancelJob'?'Saving cancellation request…':body.type==='QueueInference'?'Saving request…':body.type==='RecoverJob'?'Checking the existing request…':'Saving queue choice…';this.changed();try{await this.editor.command(body,null);if(owns()){this.issues=[];await this.refreshQueue();this.message='Queue change saved locally. Production dispatch is unavailable; actual charge is unavailable.';}}finally{if(owns()){this.queueBusy=false;this.changed();}}}
+ private async queueCommand(body:QueueBody){
+  if(this.queueBusy)return;
+  const owns=this.owns(),token={},epoch=this.epoch,owner=this.editor.draftOwner,session=this.editor.session,identity=session.identity(),sessionId=this.editor.sessionId,documentId=this.editor.view.document?.id;
+  // Draft edits may invalidate publication, but cannot keep a settled command busy.
+  // An old command never clears a replacement command's lifetime or owner state.
+  const continuing=()=>this.queueAction===token&&this.epoch===epoch&&this.editor.draftOwner===owner&&this.editor.session===session&&session.identity()===identity&&this.editor.sessionId===sessionId&&this.editor.view.document?.id===documentId;
+  this.queueAction=token;this.queueBusy=true;
+  const pending=body.type==='CancelJob'?'Saving cancellation request…':body.type==='QueueInference'?'Saving request…':body.type==='RecoverJob'?'Checking the existing request…':'Saving queue choice…';
+  this.message=pending;this.changed();
+  try{
+   await this.editor.command(body,null);
+   if(continuing()&&owns()){
+    await this.refreshQueue();
+    if(continuing()&&owns()){this.issues=[];this.message='Queue change saved locally. Production dispatch is unavailable; actual charge is unavailable.';}
+   }
+  }catch(error){if(continuing()&&owns()){this.message='Queue change could not be confirmed. Check the durable queue before trying again.';throw error;}}
+  finally{
+   if(continuing()){
+    this.queueAction=null;this.queueBusy=false;
+    if(!owns()&&this.message===pending)this.message='Queue action settled. Refresh the durable queue to inspect its outcome.';
+    this.changed();
+   }
+  }
+ }
  private enqueue(review:RequestReview,acceptanceId:string){if(this.review!==review||!this.accepted||this.acceptanceId!==acceptanceId||!acceptanceId)throw Error('Accept the current exact review first.');return this.queueCommand({type:'QueueInference',reviewId:review.id,token:review.token,acceptanceId});}
  // Draft notifications must not supersede an accepted change on the same public host.
  private capInput(event:Event,owns:()=>boolean){if(!owns())return;this.capPending=true;const host=event.currentTarget as HTMLElement&{value:string},draft=(event as CustomEvent<{value:string;isComposing:boolean}>).detail;this.capDraft=draft;this.capDraftAdapter.settled(event,()=>host.value,value=>{if(owns()&&this.capDraft===draft&&!this.capChangeEvent?.defaultPrevented&&!draft.isComposing&&draft.value===value&&this.cap===value)this.capPending=false;});}

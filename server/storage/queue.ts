@@ -159,7 +159,7 @@ export class QueueStore {
  controlWork(){return this.all().flatMap(job=>job.attempts.filter(a=>a.requestId&&!a.recoveryRequired&&(a.cancel==='requested'||(this.deleted(job.documentId)&&a.recoveryRequested))).map(a=>({jobId:job.id,attemptId:a.id,cancel:a.cancel==='requested',deleted:this.deleted(job.documentId)}))).slice(0,20);}
  detachedObserved(f:import('../../src/protocol/candidates.js').ResultFence,recordId:string,status:string|null){return this.transaction(()=>{
   const current=this.controlFence(f.jobId,f.attemptId,'status');if(canonical(current)!==canonical(f))throw new StoreError('STALE_EPOCH');
-  const job=this.job(f.jobId),a=job.attempts.find(a=>a.id===f.attemptId)!;a.recoveryRequested=false;a.controlWarning='Document deleted; no result bytes will be retrieved.';
+  const job=this.job(f.jobId),a=job.attempts.find(a=>a.id===f.attemptId)!;a.recoveryRequested=false;a.controlWarning=status?'Document deleted; no result bytes will be retrieved.':'Existing request status could not be confirmed. '+(a.hold?'The local hold remains. ':'This check did not establish that remote work stopped. ')+'Document deleted; no result bytes will be retrieved.';
   if(status&&['COMPLETED','FAILED','CANCELLED'].includes(status)){if(a.terminal&&a.terminal!==status.toLowerCase())a.controlWarning='Conflicting terminal observations require reconciliation.';else{a.state='provider-terminal';a.terminal=status.toLowerCase();a.hold=false;if(status==='CANCELLED')a.cancel='confirmed';}}
   a.cancelEvidence=recordId;a.version=String(BigInt(a.version)+1n);job.version=String(BigInt(job.version)+1n);this.record('job',job,'DetachedReconciliation');return job;
  });}

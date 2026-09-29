@@ -139,12 +139,22 @@ export class Deletions {
    const ref={hash:String(row.hash),byteLength:String(row.byte_length),mediaType:String(row.media_type)};
    if(this.busy())break;
    if(this.protected(ref.hash).length){this.transaction(()=>this.db.prepare("UPDATE deletion_objects SET state='rescued' WHERE document_id=? AND hash=?").run(documentId,ref.hash));continue;}
-   if(row.state!=='unlinking'){this.objects.verify(ref);this.transaction(()=>{if(this.protected(ref.hash).length||this.busy())throw new StoreError('STALE_EPOCH');this.db.prepare("UPDATE deletion_objects SET state='unlinking' WHERE document_id=? AND hash=?").run(documentId,ref.hash);});}
+   // All document work rows refer to one physical hash. Reuse an outstanding
+   // unlink intent after a crash; never treat an unrelated missing file as proof.
+   const prior=this.db.prepare("SELECT document_id,byte_length FROM deletion_objects WHERE hash=? AND state='unlinking' ORDER BY document_id LIMIT 1").get(ref.hash);
+   const reclaimOwner=prior?String(prior.document_id):documentId;
+   if(prior&&String(prior.byte_length)!==ref.byteLength)throw new StoreError('CORRUPT_OBJECT');
+   if(!prior){this.objects.verify(ref);this.transaction(()=>{if(this.protected(ref.hash).length||this.busy())throw new StoreError('STALE_EPOCH');this.db.prepare("UPDATE deletion_objects SET state='unlinking' WHERE document_id=? AND hash=?").run(reclaimOwner,ref.hash);});}
    this.barrier('deletion-unlink-intent-committed');
    this.transaction(()=>{
-    if(this.protected(ref.hash).length||this.busy()){this.db.prepare("UPDATE deletion_objects SET state='rescued' WHERE document_id=? AND hash=?").run(documentId,ref.hash);return;}
+    if(this.protected(ref.hash).length||this.busy()){this.db.prepare("UPDATE deletion_objects SET state='rescued' WHERE hash=? AND state!='freed'").run(ref.hash);return;}
     try{this.objects.verify(ref);unlinkSync(this.objects.path(ref));syncDirectory(dirname(this.objects.path(ref)));}catch(e){if(!(e instanceof StoreError&&e.code==='MISSING_OBJECT')&&(e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
-    this.barrier('deletion-after-unlink');this.db.prepare("UPDATE deletion_objects SET state='freed' WHERE document_id=? AND hash=?").run(documentId,ref.hash);
+    this.barrier('deletion-after-unlink');
+    this.db.prepare("UPDATE deletion_objects SET state='freed' WHERE document_id=? AND hash=?").run(reclaimOwner,ref.hash);
+    // The single freed row owns the actual byte credit. Atomically discharge the
+    // redundant work, including old rescued rows whose independent roots ended.
+    // Historical freed rows remain: a later newly owned incarnation may be freed again.
+    this.db.prepare("DELETE FROM deletion_objects WHERE hash=? AND document_id!=? AND state!='freed'").run(ref.hash,reclaimOwner);
    });
   }
   this.collectWork(documentId);

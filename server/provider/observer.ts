@@ -17,7 +17,7 @@ export class ResultObserver {
     if(this.closed)break;
     const latest=this.candidates.queue.recovery(work.jobId,work.attemptId);if(latest.attempt.recoveryRequired)continue;
     if(work.cancel&&latest.attempt.cancel==='requested'){const f=this.candidates.queue.controlFence(work.jobId,work.attemptId,'cancel');const r=await this.dispatcher.readKnown(work.jobId,work.attemptId,'cancel'),current=this.control(f,'cancel');if(current)this.candidates.queue.cancelObserved(current,r.evidence.recordId,r.outcome==='complete'&&r.status!==null&&r.status>=200&&r.status<300);}
-    if(work.deleted){const f=this.candidates.queue.controlFence(work.jobId,work.attemptId,'status'),r=await this.dispatcher.readKnown(work.jobId,work.attemptId,'status'),current=this.control(f,'status');if(!current)continue;let status=null;try{const v=this.dispatcher.readControl(r.evidence.recordId);if(v.request_id===f.requestId)status=v.status;}catch{}this.candidates.queue.detachedObserved(current,r.evidence.recordId,status);}
+    if(work.deleted){const f=this.candidates.queue.controlFence(work.jobId,work.attemptId,'status'),r=await this.dispatcher.readKnown(work.jobId,work.attemptId,'status'),current=this.control(f,'status');if(!current)continue;let status=null;try{if(r.outcome==='complete'&&r.status===200){const v=this.dispatcher.readControl(r.evidence.recordId);if(v.request_id===f.requestId&&typeof v.status==='string')status=v.status;}}catch{}this.candidates.queue.detachedObserved(current,r.evidence.recordId,status);}
    }
    for(const initial of this.candidates.due(now)){
    if(this.closed)break;
@@ -38,7 +38,10 @@ export class ResultObserver {
    for(const candidate of this.candidates.outputs(f.attemptId)){if(this.closed)break;const next=this.current(ready);if(!next)break;await this.candidates.transfer(next,String(candidate.id),this.provider,policy);}
   }
    for(const c of this.candidates.retries()){
-    if(this.closed)break;const f=this.candidates.queue.resultFence(c.jobId,c.attemptId),endpoint=this.candidates.queue.recovery(c.jobId,c.attemptId).endpoint;
+    if(this.closed)break;const work=this.candidates.queue.recovery(c.jobId,c.attemptId);
+    // A durable retry intent is not fresh recovery authority after reopening.
+    if(work.attempt.recoveryRequired||this.candidates.queue.deleted(work.documentId))continue;
+    const f=this.candidates.queue.resultFence(c.jobId,c.attemptId),endpoint=work.endpoint;
     const policy=this.provider.policy({attemptId:c.attemptId,identity:{endpoint,requestId:c.requestId},profileId:this.profileId}).applied;
     this.candidates.clearRetry(c.id);await this.candidates.transfer(f,c.id,this.provider,policy);
    }
