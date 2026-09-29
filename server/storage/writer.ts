@@ -1,3 +1,4 @@
+import type {QueueStore} from './queue.js';
 import type { Portables } from './portable.js';
 import { Worker } from 'node:worker_threads';
 import type { BlobRef, Document, DomainEvent, Receipt } from '../../src/protocol/store.js';
@@ -64,6 +65,12 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   let closePromise: Promise<void> | undefined;
   return {
     root: owner.path, epoch,
+    queueCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<QueueStore['command']>>>('queueCommand',{bytes,auth}),
+    queueView:(after='')=>request<ReturnType<QueueStore['view']>>('queueView',{after}),
+    queueReserve:(jobId:string)=>request<ReturnType<QueueStore['reserve']>>('queueReserve',{jobId}),
+    queueDispatch:(...params:Parameters<QueueStore['dispatch']>)=>request<ReturnType<QueueStore['dispatch']>>('queueDispatch',{params}),
+    queueOutcome:(...params:Parameters<QueueStore['outcome']>)=>request<ReturnType<QueueStore['outcome']>>('queueOutcome',{params}),
+    queueRecovery:(...params:Parameters<QueueStore['recovery']>)=>request<ReturnType<QueueStore['recovery']>>('queueRecovery',{params}),
     textAdmission:(id:string,auth:AssetAuth,release=false)=>request<{id:string;bytes:number}>('textAdmission',{id,auth,release}),
     get available() { return !ended && !closing; },
     async submit(bytes: Uint8Array, writerEpoch: string): Promise<Receipt> {

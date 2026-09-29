@@ -1,3 +1,6 @@
+import {QueueStore} from './queue.js';
+import {queueEvents} from '../../src/protocol/queue.js';
+import type {QueueFact} from '../../src/protocol/queue.js';
 import { Texts } from './text.js';
 import { Portables, projectNamespace, type PortableCommit } from './portable.js';
 import { closeSync, lstatSync, statfsSync } from 'node:fs';
@@ -18,7 +21,7 @@ import type { AssetFact } from '../../src/protocol/assets.js';
 import { Histories } from './history.js';
 import type { HistoryCommit } from './history.js';
 import { UIStore } from './ui.js';
-import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema, maskSchema, retainedMaskSchema, textPlacementSchema, compositionSchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema, maskSchema, retainedMaskSchema, textPlacementSchema, compositionSchema, queueSchema } from './schema.js';
 import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
@@ -53,6 +56,7 @@ export class StoreDatabase {
   readonly ui: UIStore;
   readonly texts: Texts;
   readonly portables: Portables;
+  readonly queue: QueueStore;
   private databaseIdentity;
   private rootIdentity;
   private missing: { hash: string; code: string }[] = [];
@@ -72,7 +76,7 @@ export class StoreDatabase {
     try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
     finally { reader.close(); }
     // Unknown future roots are inspected with a read-only connection only.
-    if (![0,1,2,3,4,5,6,7,8,9,10,11,12,13].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+    if (![0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
       kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
     });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
@@ -98,6 +102,7 @@ export class StoreDatabase {
       retainedMaskSchema(this.db, root, barrier, options.quotaBytes,version===0);
       textPlacementSchema(this.db, root, barrier, options.quotaBytes,version===0);
       compositionSchema(this.db, root, barrier, options.quotaBytes,version===0);
+      queueSchema(this.db,root,barrier,options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
@@ -119,6 +124,7 @@ export class StoreDatabase {
       this.ui=new UIStore(this.db,this.objects,this.assets,()=>this.fence(this.epoch),barrier,id=>this.histories.state(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,this.texts,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitHistory(bytes,build),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.portables=new Portables(this.db,this.objects,this.assets,this.rasters,this.texts,root,this.epoch,()=>this.fence(this.epoch),barrier,(bytes,build,slot)=>this.commitPortable(bytes,build,slot),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.queue=new QueueStore(this.db,this.objects,this.assets,this.ui,this.rasters,id=>this.histories.state(id),()=>this.fence(this.epoch),this.epoch,barrier,root,(bytes,build)=>this.commitAsset(bytes,build),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();this.histories.schedule();this.portables.schedule();});
       if (options.maxPageCount !== undefined) {
         if (!Number.isSafeInteger(options.maxPageCount) || options.maxPageCount < 1) throw new Error('Invalid test page limit');
@@ -205,6 +211,7 @@ export class StoreDatabase {
     return row ? JSON.parse(String(row.json)) : null;
   }
   private project(event: DomainEvent): void {
+    if(queueEvents.includes(event.type))return;
     if(event.type==='BundleImported'){projectNamespace(this.db,event.payload.namespaceId,event.payload.namespaceHash);return;}
     if(['BundlePrepared','BundleImportReviewed','PortableCancelled'].includes(event.type))return;
     if(event.type==='AssetRegistered') {
@@ -392,7 +399,7 @@ export class StoreDatabase {
     for(const table of ['asset_preparations','raster_preparations','history_preparations','portable_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
       if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');}
   }
-  private commitAsset(bytes: Uint8Array, build:()=>AssetFact, failure?:()=>void):Receipt {
+  private commitAsset(bytes: Uint8Array, build:()=>AssetFact|QueueFact, failure?:()=>void):Receipt {
     this.fence(this.epoch);const request=parseCommand(bytes);const c=request.command;const serialized=canonical(request);const hash=hashBytes(serialized);
     this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try {

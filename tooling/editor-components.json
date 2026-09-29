@@ -205,6 +205,17 @@
         "EnValidationSummary"
       ],
       "owner": "Explicit review freezes the accepted text render, layer version, document and session; existing RasterizeTextDerivative creates an exact-slot image copy and hides the editable original in one Undo unit. Missing historical fonts remain complete-copy blockers after substitution; destination is unconfirmed until an actual supported acknowledgment. No new custom control or native exception."
+    },
+    {
+      "surface": "P2.3 explicit enqueue, durable queue and optional request cap",
+      "components": [
+        "EnButton",
+        "EnNumberField",
+        "EnCard",
+        "EnAlert",
+        "EnValidationSummary"
+      ],
+      "owner": "RequestEditing uses public definitions already registered by the app. EnButton click actions run through ControlAdapter final-veto and captured owner/generation checks. EnNumberField supplies native number input and an accepted string value through settled en-change, including increment/decrement. Draft en-input and vetoed changes block cap submission until acceptance; invalid caps retain input and focus the public validation summary. EnCard groups immutable review/session disclosures and queue rows; EnAlert communicates counts and uncertainty without color. No new native-control exception. Existing F05 and canvas exceptions unchanged. Source inspected in pinned elements dist button/number-field/card/alert/validation-summary declarations; browser integration remains subject to P2.3 evidence."
     }
   ],
   "nativeOrAppOwnedExceptions": [

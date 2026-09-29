@@ -33,13 +33,19 @@ port.on('message', async message => {
     if(method!=='close')store.fence(args.epoch);
     // Reads/close may wait for a pending snapshot. Receipts normally do not;
     // only an exhausted tail waits for recovery before applying backpressure.
-    if ((method==='submit'||method==='assetCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
+    if ((method==='submit'||method==='assetCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand'||method==='queueCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
     else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
     if(method==='textAdmission'){result=args.release?store.texts.releaseAdmission(args.id,args.auth):store.texts.admission(args.id,args.auth);}
-    else if (method === 'close') { await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
+    else if (method === 'close') { await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
     else {
       store.fence(args.epoch);
       switch (method) {
+        case 'queueCommand':result=await store.queue.command(args.bytes,args.auth);break;
+        case 'queueView':result=store.queue.view(args.after);break;
+        case 'queueReserve':result=store.queue.reserve(args.jobId);break;
+        case 'queueDispatch':result=store.queue.dispatch(...args.params as Parameters<typeof store.queue.dispatch>);break;
+        case 'queueOutcome':result=store.queue.outcome(...args.params as Parameters<typeof store.queue.outcome>);break;
+        case 'queueRecovery':result=store.queue.recovery(...args.params as Parameters<typeof store.queue.recovery>);break;
         case 'portableCommand':result=store.portables.command(args.bytes,args.auth);break;
         case 'bundle':result=store.portables.bundle(args.id,args.auth);break;
         case 'bundleMapping':result=store.portables.mapping(args.id,args.auth,args.kind,args.after);break;
