@@ -130,7 +130,7 @@ export class StoreDatabase {
       this.ui=new UIStore(this.db,this.objects,this.assets,()=>this.fence(this.epoch),barrier,id=>this.histories.state(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,this.texts,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitHistory(bytes,build),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.portables=new Portables(this.db,this.objects,this.assets,this.rasters,this.texts,root,this.epoch,()=>this.fence(this.epoch),barrier,(bytes,build,slot)=>this.commitPortable(bytes,build,slot),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
-      this.queue=new QueueStore(this.db,this.objects,this.assets,this.ui,this.rasters,id=>this.histories.state(id),()=>this.fence(this.epoch),this.epoch,barrier,root,(bytes,build)=>this.commitAsset(bytes,build),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.queue=new QueueStore(this.db,this.objects,this.assets,this.ui,this.rasters,id=>this.histories.state(id),()=>this.fence(this.epoch),this.epoch,barrier,root,(bytes,build,slot)=>this.commitAsset(bytes,build,undefined,slot),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.candidates=new Candidates(this.db,this.objects,this.assets,this.rasters,this.queue,()=>this.fence(this.epoch),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.queue.onDocumentDeleted=id=>this.candidates.abortDocument(id);
       this.deletions=new Deletions(this.db,this.objects,this.queue,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitAsset(bytes,build),(owner,ref)=>this.register(owner,ref),()=>this.recovery.hasReaders(),root);
@@ -416,7 +416,7 @@ export class StoreDatabase {
     for(const table of ['asset_preparations','raster_preparations','history_preparations','portable_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
       if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');}
   }
-  private commitAsset(bytes: Uint8Array, build:()=>AssetFact|QueueFact, failure?:()=>void):Receipt {
+  private commitAsset(bytes: Uint8Array, build:()=>AssetFact|QueueFact, failure?:()=>void, slot?:string):Receipt {
     this.fence(this.epoch);const request=parseCommand(bytes);const c=request.command;const serialized=canonical(request);const hash=hashBytes(serialized);
     this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -445,7 +445,7 @@ export class StoreDatabase {
       }catch(error){
         this.db.exec('ROLLBACK TO asset_effect; RELEASE asset_effect');
         if(!(error instanceof AssetRejection))throw error;
-        failure?.();const details=this.objects.putMetadata(Buffer.from(canonical({kind:'fields',issues:[{path:'command.body',code:error.reason}]})));this.register('receipt:'+c.commandId,details);
+        failure?.();const detailBytes=Buffer.from(canonical({kind:'fields',issues:[{path:'command.body',code:error.reason}]})),details=slot?this.objects.putMetadataInSlot(detailBytes,slot):this.objects.putMetadata(detailBytes);this.register('receipt:'+c.commandId,details);
         receipt={status:'rejected',commandId:c.commandId,code:error.code,currentRevision:error.currentRevision,details};
         // A rejected original identity is terminal; no preparation can overwrite it.
         this.db.prepare('DELETE FROM asset_preparations WHERE id=?').run(c.commandId);

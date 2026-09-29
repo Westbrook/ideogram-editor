@@ -23,11 +23,11 @@ export class QueueStore {
  readonly evidence:TransportEvidenceStore;
  onDocumentDeleted:((documentId:string)=>void)|undefined;
  deletionCommand:((bytes:Uint8Array,auth:AssetAuth)=>Receipt)|undefined;
- candidateAction:((body:import('../../src/protocol/candidates.js').CandidateBody)=>QueueFact)|undefined;
+ candidateAction:((body:import('../../src/protocol/candidates.js').CandidateBody,slot:string)=>QueueFact)|undefined;
  private preparing=new Map<string,{hash:string;promise:Promise<Receipt>}>();
  constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private ui:UIStore,private rasters:Rasters,
   private state:(id:string)=>ImageState,private check:()=>void,private epoch:string,private barrier:Barrier,root:string,
-  private commit:(bytes:Uint8Array,build:()=>QueueFact)=>Receipt,private register:(owner:string,ref:BlobRef,proof?:string)=>void){
+  private commit:(bytes:Uint8Array,build:()=>QueueFact,slot:string)=>Receipt,private register:(owner:string,ref:BlobRef,proof?:string)=>void){
   this.evidence=new TransportEvidenceStore(root);
   // Replay the durable queue journal only. This cannot execute transport or create attempts.
   this.db.exec('BEGIN IMMEDIATE');try{
@@ -61,7 +61,7 @@ export class QueueStore {
  private outbox(id:string):Outbox{const row=this.db.prepare('SELECT json FROM queue_outbox WHERE attempt_id=?').get(id);if(!row)throw new StoreError('CORRUPT_STORE');return JSON.parse(String(row.json));}
  private writeOutbox(id:string,jobId:string,out:Outbox){this.db.prepare('INSERT INTO queue_outbox VALUES (?,?,?) ON CONFLICT(attempt_id) DO UPDATE SET json=excluded.json').run(id,jobId,canonical(out));}
  private initialOutbox(attempt:Attempt,job:QueueJob){this.writeOutbox(attempt.id,job.id,{state:'safe-unstarted',epoch:null,endpoint:job.review.endpoint,mapping:{},bodyRecord:null,payloadHash:null,requestId:null,urls:null,responseRecord:null});}
- private fact(value:QueueJob|SpendSession,type:QueueFact['type']):QueueFact{const state=this.objects.putMetadata(Buffer.from(canonical(value)));this.register('queue:'+value.id+':'+value.version,state);return {type,payload:{id:value.id,version:value.version,state}};}
+ private fact(value:QueueJob|SpendSession,type:QueueFact['type'],slot:string):QueueFact{const state=this.objects.putMetadataInSlot(Buffer.from(canonical(value)),slot);this.register('queue:'+value.id+':'+value.version,state);return {type,payload:{id:value.id,version:value.version,state}};}
  private review(body:Extract<QueueBody,{type:'QueueInference'}>,auth:AssetAuth){
   const binding=this.db.prepare('SELECT client_id,expires FROM client_bindings WHERE cookie_hash=?').get(auth.sessionHash);if(auth.now>=auth.expires||!binding||binding.client_id!==auth.clientId||auth.now>=Number(binding.expires))throw new AssetRejection('STALE_REVISION','REVIEW_SESSION_EXPIRED');
   const row=this.db.prepare('SELECT json FROM ui_receipts WHERE client_id=? AND id=?').get(auth.clientId,body.acceptanceId),receipt=row?JSON.parse(String(row.json)):null;
@@ -108,7 +108,7 @@ export class QueueStore {
      this.assertCapacity();
      const registered=new Set<string>();for(const p of proofs){this.objects.proven(p.ref,p.token);if(!registered.has(p.ref.hash)){this.register('queue-input:'+c.commandId,p.ref,p.token);registered.add(p.ref.hash);}}
      const review=fresh.review,job:QueueJob={id:randomUUID(),version:'1',documentId:review.documentId,review,stagePlan,local:'accepted-local-queue',resultImport:'none',disposition:'eligible',attempts:[this.attempt(review)]};
-     this.initialOutbox(job.attempts[0],job);this.record('job',job,'JobQueued');this.barrier('queue-accept-before-fact');return this.fact(job,'JobQueued');
+     this.initialOutbox(job.attempts[0],job);this.record('job',job,'JobQueued');this.barrier('queue-accept-before-fact');return this.fact(job,'JobQueued',slot);
     }
     if(b.type==='SetSpendGuard'||b.type==='StartSpendSession'){
      const current=this.session();let next:SpendSession;
@@ -117,9 +117,9 @@ export class QueueStore {
      const event=b.type==='SetSpendGuard'?'SpendGuardChanged':'SpendSessionStarted';this.record('session',next,event);
      // A config change makes local work eligible; it never clears old counters or remote holds.
      for(const job of this.all())if(job.local==='paused-spend-cap'){job.local='accepted-local-queue';job.version=String(BigInt(job.version)+1n);this.record('job',job,event);}
-     return this.fact(next,event);
+     return this.fact(next,event,slot);
     }
-    if(b.type==='HideCandidate'||b.type==='RetryCandidateImport'||b.type==='RecoverCandidateOriginal'){if(!this.candidateAction)throw new StoreError('UNSUPPORTED_COMMAND');return this.candidateAction(b);}
+    if(b.type==='HideCandidate'||b.type==='RetryCandidateImport'||b.type==='RecoverCandidateOriginal'){if(!this.candidateAction)throw new StoreError('UNSUPPORTED_COMMAND');return this.candidateAction(b,slot);}
     if('documentId' in b)throw new StoreError('UNSUPPORTED_COMMAND');
     const job=this.job(b.jobId);if(job.version!==b.expectedVersion)throw new AssetRejection('STALE_REVISION','JOB_CHANGED');
     if(b.type==='CancelJob'||b.type==='UndoPendingJob'||b.type==='RedoPendingJob'||b.type==='RecoverJob'){
@@ -140,8 +140,8 @@ export class QueueStore {
      if(b.type==='OverrideUncertainHold'){a.hold=false;a.override=true;a.version=String(BigInt(a.version)+1n);}
      else{if(a.hold||job.attempts.at(-1)!.state==='not-started')throw new AssetRejection('INCOMPATIBLE','REVIEW_OVERLAPPING_WORK_FIRST');this.assertCapacity();const next=this.attempt(job.review,a.id);job.attempts.push(next);job.local='accepted-local-queue';this.initialOutbox(next,job);}
     }
-    job.version=String(BigInt(job.version)+1n);this.record('job',job,b.type);return this.fact(job,'QueueStateChanged');
-   });
+    job.version=String(BigInt(job.version)+1n);this.record('job',job,b.type);return this.fact(job,'QueueStateChanged',slot);
+   },slot);
   }finally{for(const p of proofs)this.objects.releaseProof(p.token);this.objects.unreserve(slot);this.objects.release(slot);}
  }
  deleted(documentId:string){return !!this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(documentId);}

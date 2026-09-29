@@ -15,14 +15,18 @@ export class QueueDispatcher {
   const attempt:ProviderAttempt={attemptId:latest.id,identity:{endpoint:job.review.endpoint},profileId:this.config.profileId};
   // The policy gate runs before staging, credentials, reservation or outbound bytes.
   const policy=this.provider.policy(attempt).applied,reservation=this.queue.reserve(jobId);if(!reservation)return null;
+  const stillReserved=()=>{const current=this.queue.recovery(jobId,attempt.attemptId);return !this.queue.deleted(job.documentId)&&current.attempt.state==='not-started'&&current.attempt.count==='reserved'&&current.attempt.hold;};
   const mapping:Record<string,string>={};
   for(const item of job.stagePlan){
+   if(!stillReserved())return null;
    if(!this.config.uploadURL||!this.config.mediaOrigin)throw new ProviderError('POLICY');
    const response=this.queue.sink(attempt.attemptId,'response',policy),request=this.queue.sink(attempt.attemptId,'request',policy);
    const receipt=await this.provider.upload(this.config.uploadURL,attempt,{bytes:this.queue.input(item.transport),evidence:request},response);
+   if(!stillReserved())return null;
    if(receipt.outcome!=='complete'||receipt.status!==200)throw new ProviderError('INTERRUPTED');
    const value=this.readControl(receipt.evidence.recordId),url=exactURL(value.url);if(url.origin!==this.config.mediaOrigin)throw new ProviderError('POLICY');mapping[item.role]=url.href;
   }
+  if(!stillReserved())return null;
   const dispatch=this.queue.dispatch(jobId,attempt.attemptId,mapping,policy);if(!dispatch)return null;
   try{
    const response=this.queue.sink(attempt.attemptId,'response',policy),request=this.queue.sink(attempt.attemptId,'request',policy);

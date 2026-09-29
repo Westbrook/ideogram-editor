@@ -26,7 +26,7 @@ export class Candidates {
  constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private rasters:Rasters,readonly queue:QueueStore,
   private check:()=>void,private register:(owner:string,ref:BlobRef,proof?:string)=>void){
   db.exec('BEGIN IMMEDIATE');try{
-  queue.candidateAction=body=>this.command(body);
+  queue.candidateAction=(body,slot)=>this.command(body,slot);
   for(const row of db.prepare('SELECT family,id,json FROM candidate_journal ORDER BY seq').iterate()){
    if(row.family==='asset')db.prepare('INSERT INTO assets VALUES (?,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json').run(row.id,row.json);
    else if(row.family==='job')db.prepare('INSERT INTO candidate_jobs VALUES (?,?) ON CONFLICT(job_id) DO UPDATE SET json=excluded.json').run(row.id,row.json);
@@ -118,8 +118,17 @@ export class Candidates {
  private candidate(id:string):Candidate{if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT json FROM candidates WHERE id=?').get(id);if(!row)throw new StoreError('NOT_FOUND');return JSON.parse(String(row.json));}
  private update(f:ResultFence,id:string,patch:Partial<Candidate>){return this.queue.resultTransaction(f,()=>{const c=this.candidate(id);if(c.attemptId!==f.attemptId)throw new StoreError('STALE_EPOCH');Object.assign(c,patch,{version:String(BigInt(c.version)+1n)});this.save('candidate',id,c);return c;});}
  async transfer(f:ResultFence,id:string,provider:ProviderBoundary,policy:AppliedPrivacyPolicy){
-  const initial=this.candidate(id),controller=new AbortController();this.transfers.set(id,{documentId:initial.documentId,controller});
-  try{return await this.transferOwned(f,id,provider,policy,controller.signal);}catch(error){if(!this.queue.deleted(initial.documentId))throw error;}finally{this.transfers.delete(id);}
+  this.queue.assertResult(f);const initial=this.candidate(id),controller=new AbortController();this.transfers.set(id,{documentId:initial.documentId,controller});
+  try{return await this.transferOwned(f,id,provider,policy,controller.signal);}catch(error){
+   if(this.queue.deleted(initial.documentId))return;
+   if(!(error instanceof StoreError)||error.code!=='STALE_EPOCH')throw error;
+   const current=this.queue.resultFence(f.jobId,f.attemptId),candidate=this.candidate(id);
+   if(current.epoch!==f.epoch||current.requestId!==f.requestId||current.jobVersion===f.jobVersion)throw error;
+   // A control action can invalidate in-flight publication without losing the output's retry path.
+   // The old fence remains invalid; only an explicit retry may retrieve or prepare this same output.
+   if(!['received','downloaded'].includes(candidate.state))throw error;
+   this.update(current,id,{state:candidate.encodedAssetId?'preparation-failed':'transfer-failed',warning:'Request controls changed during import. Retry keeps this output and never submits a replacement request.'});
+  }finally{this.transfers.delete(id);}
  }
  abortDocument(documentId:string){for(const work of this.transfers.values())if(work.documentId===documentId)work.controller.abort();}
  private async transferOwned(f:ResultFence,id:string,provider:ProviderBoundary,policy:AppliedPrivacyPolicy,signal:AbortSignal){
@@ -149,7 +158,7 @@ export class Candidates {
   }catch(e){this.queue.assertResult(f);this.update(f,id,{state:'preparation-failed',warning:'Preparation failed; encoded original retained. Retry prepares the same candidate.'});}
   finally{for(const proof of prepared?.proofs??[])this.objects.releaseProof(proof.token);this.objects.unreserve(slot);this.objects.release(slot);}
  }
- private command(body:import('../../src/protocol/candidates.js').CandidateBody):import('../../src/protocol/queue.js').QueueFact{
+ private command(body:import('../../src/protocol/candidates.js').CandidateBody,slot:string):import('../../src/protocol/queue.js').QueueFact{
   const c=this.candidate(body.candidateId),f=this.queue.resultFence(c.jobId,c.attemptId);this.queue.assertResult(f);
   if(c.version!==body.expectedVersion)throw new AssetRejection('STALE_REVISION','CANDIDATE_CHANGED');
   if(body.type==='HideCandidate')c.hidden=true;
@@ -165,7 +174,7 @@ export class Candidates {
    const row=this.db.prepare('SELECT json FROM candidate_private WHERE id=?').get(c.id)!;const p:PrivateSlot=JSON.parse(String(row.json));p.retryRequested=true;this.db.prepare('UPDATE candidate_private SET json=? WHERE id=?').run(canonical(p),c.id);
   }
   c.version=String(BigInt(c.version)+1n);this.save('candidate',c.id,c);
-  const state=this.objects.putMetadata(Buffer.from(canonical(c)));this.register('candidate-state:'+c.id+':'+c.version,state);
+  const state=this.objects.putMetadataInSlot(Buffer.from(canonical(c)),slot);this.register('candidate-state:'+c.id+':'+c.version,state);
   return {type:'CandidateStateChanged',payload:{id:c.id,version:c.version,state}};
  }
  retries(){this.check();return this.db.prepare("SELECT c.json FROM candidates c JOIN candidate_private p ON c.id=p.id WHERE json_extract(p.json,'$.retryRequested')=1 ORDER BY c.id LIMIT 20").all().map(r=>JSON.parse(String(r.json)) as Candidate);}
