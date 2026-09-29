@@ -1,10 +1,11 @@
 import {test as base,expect,type Page} from '@playwright/test';
-import {mkdtemp,realpath,mkdir,writeFile,readFile,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';
+import {mkdtemp,realpath,mkdir,writeFile,readFile} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';
 import {serverProcess} from '../editor/process.js';import {ownedOPFS} from '../editor/owned-opfs.js';import {recordDOMErrors} from '../editor/error-monitor.js';
+import {runs,step,throwFailures,finishFixture,type RunState} from '../editor/harness-lifecycle.js';
 const test=base.extend({context:async({playwright,browserName,contextOptions,viewport},use,testInfo)=>{
  const profile=browserName==='webkit'?await mkdtemp(join(await realpath(tmpdir()),'ie-p2-request-webkit-')):undefined;
  const browser=profile?undefined:await playwright[browserName].launch();const context=profile?await playwright.webkit.launchPersistentContext(profile,{...contextOptions,viewport}):await browser!.newContext({...contextOptions,viewport});await Promise.all(context.pages().map(p=>p.close()));
- try{await use(context);}finally{await context.close();await browser?.close();if(profile)await rm(profile,{recursive:true,force:true});await mkdir(receipt,{recursive:true});await writeFile(join(receipt,testInfo.title.split(' ')[2]+'-fixture.json'),JSON.stringify({browserName,contextClosed:true,browserClosed:true,profileRemoved:profile??null}));}
+ try{await use(context);}finally{await finishFixture(context,browser,profile,receipt,testInfo.title.split(' ')[2]+'-',testInfo);}
 }});
 const receipt=process.env.EDITOR_RECEIPT??'artifacts/p2-request';const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
 async function number(page:Page,name:string,value:string){const f=page.getByRole('spinbutton',{name,exact:true});await f.fill(value);await f.press('Tab');}
@@ -14,6 +15,9 @@ for(const scenario of ['review','recovery','source'] as const)test('public reque
  await context.exposeBinding('requestCSP',(_source,value)=>csp.push(value));await context.addInitScript(()=>addEventListener('securitypolicyviolation',e=>(window as any).requestCSP({directive:e.effectiveDirective,blocked:e.blockedURI})));
  page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});page.on('request',r=>{if(r.method()==='POST'&&r.url().includes('/api/v1/ui/'))requests.push(JSON.parse(r.postData()!));});
  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-p2-request-')),server=await serverProcess(join(dir,'private'));let effects:unknown,runtime:unknown;const responseWork:Promise<void>[]=[];
+ const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:scenario+'-'};runs.set(context,state);
+ state.observe=()=>({runtime,errors,csp,external,consoleErrors,publicEvents,requests,responses,requestLifecycle:guard.requests,effects,cleanup:{opfs:guard.ledger,serverClosed:state.writerClosed,privateRootRemoved:state.retention.some((r:any)=>r.root===dir&&r.removed)?dir:null}});
+ state.finalCheck=async()=>{guard.verify();expect(guard.ledger.filter(e=>e.phase==='refused')).toEqual([]);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);};
  await page.route('**/*',route=>{const u=new URL(route.request().url());if(['http:','https:'].includes(u.protocol)&&u.origin!==server.origin){external.push(u.origin);return route.abort();}return route.continue();});
  page.on('response',r=>{if(r.request().method()==='POST'&&r.url().includes('/api/v1/ui/'))responseWork.push(r.json().then(body=>{responses.push(body);}));});await mkdir(receipt,{recursive:true});
  try{await guard.admit(page,server.origin);await page.goto(await server.pair());runtime={version:context.browser()?.version(),pin:JSON.parse(await readFile('node_modules/playwright-core/browsers.json','utf8')).browsers.find((b:any)=>b.name===browserName)};
@@ -43,5 +47,11 @@ for(const scenario of ['review','recovery','source'] as const)test('public reque
   // Pinned WebKit screenshot synchronization injects inline styles; keep its CSP oracle strict.
   if(browserName!=='webkit')await page.screenshot({path:join(receipt,scenario+'-viewport.png'),caret:'initial'});
   effects=await server.effects();expect(Object.values(effects as object).every(n=>n===0)).toBe(true);expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);
- }finally{try{for(const p of context.pages())await p.goto('about:blank');await guard.cleanup();guard.verify();}finally{effects=await server.effects();await Promise.all(responseWork);await server.close();await rm(dir,{recursive:true,force:true});await writeFile(join(receipt,scenario+'-observations.json'),JSON.stringify({runtime,errors,csp,external,consoleErrors,publicEvents,requests,responses,effects,cleanup:{opfs:guard.ledger,serverClosed:true,privateRootRemoved:dir}},null,2));}}
+ }catch(error){state.failures.push({phase:'body',error});}finally{
+  await step(state,'response-observations',()=>Promise.all(responseWork));
+  if(!state.failures.length)await step(state,'logical-cleanup',async()=>{for(const p of context.pages())await p.goto('about:blank');await guard.cleanup();guard.verify();});
+  await step(state,'final-effects',async()=>{effects=await server.effects();expect(Object.values(effects as object).every(n=>n===0)).toBe(true);});
+  state.writerClosed=await step(state,'writer-close',()=>server.close());
+  throwFailures(state.failures);
+ }
 });

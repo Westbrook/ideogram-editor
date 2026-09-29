@@ -11,6 +11,18 @@ export async function ownedOPFS(context:BrowserContext,profile:string){
  const cookieValues=new Set<string>(),cookieWork=new Set<Promise<void>>();
  const reasons:string[]=[],ledger:any[]=[{phase:'fixture',run,profile,contract:'controlled-origin-v2'}];
  let phase='active',completed=false,closed=false,resetCalls=0;
+ const requests:any[]=[],requestIds=new WeakMap<object,number>(),pageIds=new WeakMap<object,number>(),frameIds=new WeakMap<object,number>();
+ let eventSequence=0,nextRequest=0,nextPage=0,nextFrame=0;
+ const identity=(map:WeakMap<object,number>,value:object,next:()=>number)=>{let id=map.get(value);if(id===undefined){id=next();map.set(value,id);}return id;};
+ const requestEvent=(event:string,request:any)=>{
+  const requestId=identity(requestIds,request,()=>++nextRequest);let pageId:number|null=null,frameId:number|null=null,frameIdentity='available';
+  try{const frame=request.frame();frameId=identity(frameIds,frame,()=>++nextFrame);pageId=identity(pageIds,frame.page(),()=>++nextPage);}catch{frameIdentity='unavailable';}
+  let location:unknown;try{const url=new URL(request.url());location=url.hostname==='127.0.0.1'?{origin:url.origin,path:url.pathname}:{protocol:url.protocol,origin:url.origin};}catch{location={invalid:true};}
+  requests.push({sequence:++eventSequence,at:new Date().toISOString(),monotonicMs:performance.now(),event,requestId,method:request.method(),location,resourceType:request.resourceType(),pageId,frameId,frameIdentity,guardPhase:phase});
+ };
+ context.on('request',request=>requestEvent('request',request));
+ context.on('requestfinished',request=>requestEvent('finished',request));
+ context.on('requestfailed',request=>requestEvent('failed',request));
  const refuse=(reason:string)=>{if(!reasons.includes(reason)){reasons.push(reason);ledger.push({phase:'refused',reason});}};
  const stop=(page:Page|undefined)=>{if(page&&!page.isClosed())void page.close().catch(()=>{ledger.push({phase:'page-stop-incomplete'});refuse('PAGE_STOP_FAILED');});};
  const originOf=(url:string)=>{try{const u=new URL(url);return ['http:','https:'].includes(u.protocol)?u.origin:null;}catch{return null;}};
@@ -81,7 +93,7 @@ export async function ownedOPFS(context:BrowserContext,profile:string){
  function assertEmpty(state:Awaited<ReturnType<typeof nativeState>>){
   if(state.entries.length||state.localStorage||state.indexedDB.length||state.serviceWorkers)throw Error('OPFS_DIRTY_ORIGIN');
  }
- return {run,ledger,
+ return {run,ledger,requests,
   async admit(_page:Page,origin:string){
    ledger.push({phase:'preflight-start',origin,profile});
    try{
