@@ -1,6 +1,11 @@
 import {canonical} from '../protocol/json.js';
 import {SHA256} from '../protocol/sha256.js';
 import {blob,keys,id,seq,requireValue as ok} from '../protocol/validate.js';
+import {maskGrid,validateMaskMapping} from '../raster/mapping.js';
+import type {MaskMapping} from '../raster/mapping.js';
+import type {Affine} from '../raster/core.js';
+import type {ImageLayer} from '../protocol/history.js';
+import type {Document} from '../protocol/store.js';
 import type {BlobRef} from '../protocol/store.js';
 import type {ProjectionReview,CompositionRef} from '../composition/core.js';
 export const operations=['generate','instant','fast','transform','inpaint','generate-adapters','transform-adapters','inpaint-adapters'] as const;
@@ -11,7 +16,9 @@ export type Size={kind:'custom';width:number;height:number}|{kind:'preset';value
 export type EditSize=Size|{kind:'auto'};
 export type Seed={kind:'provider-random'}|{kind:'integer';decimal:string};
 export type Source={assetId:string;version:string;blob:BlobRef;pixels:BlobRef;width:number;height:number;scope:'visible-document'|'asset';documentRevision:string};
-export type Mask={assetId:string;version:string;blob:BlobRef;pixels:BlobRef;width:number;height:number;sourceHash:string;polarity:'white-edit';fullAcknowledged:boolean;empty:boolean;full:boolean;plan:BlobRef};
+export type MaskAlignment={kind:'identity-source-grid-1';sourceHash:string;frameHash:string;sourceToDocument:Affine;maskToDocument:Affine};
+export type MaskFrame={kind:'document-mask-frame-1';document:{id:string;revision:string;width:number;height:number};layer:{id:string;version:string;assetId:string;transform:Affine;mask:MaskMapping};alignment:MaskAlignment|null};
+export type Mask={frame?:MaskFrame;assetId:string;version:string;blob:BlobRef;pixels:BlobRef;width:number;height:number;sourceHash:string;polarity:'white-edit';fullAcknowledged:boolean;empty:boolean;full:boolean;plan:BlobRef};
 export type Adapter={version:string;hash:string;scale:string};
 export type Prompt={mode:'plain'|'raw'|'composition';text:BlobRef;projection:ProjectionReview|null;composition:CompositionRef|null};
 export type Conversion={from:{width:number;height:number};to:{width:number;height:number};mapping:'stretch';approved:boolean};
@@ -43,12 +50,29 @@ export function draftShape(d:any):asserts d is Draft{
  if(d.prompt.projection!==null){const p=d.prompt.projection;keys(p,['serializer','sourceId','frame','request','dependencies','boxes','prompt']);ok(p.serializer==='caption-json-1');blob(p.prompt);}
  if(d.prompt.composition!==null){keys(d.prompt.composition,['id','value','bindings']);blob(d.prompt.composition.value);ok(id(d.prompt.composition.id));}
  if(d.source!==null){keys(d.source,['assetId','version','blob','pixels','width','height','scope','documentRevision']);ok(id(d.source.assetId)&&seq(d.source.version)&&seq(d.source.documentRevision)&&['visible-document','asset'].includes(d.source.scope));blob(d.source.blob);blob(d.source.pixels);ok([d.source.width,d.source.height].every(n=>Number.isSafeInteger(n)&&n>0));}
- if(d.mask!==null){keys(d.mask,['assetId','version','blob','pixels','width','height','sourceHash','polarity','fullAcknowledged','empty','full','plan']);ok(id(d.mask.assetId)&&seq(d.mask.version)&&d.mask.polarity==='white-edit'&&['fullAcknowledged','empty','full'].every(k=>typeof d.mask[k]==='boolean'));[d.mask.blob,d.mask.pixels,d.mask.plan].forEach(blob);ok([d.mask.width,d.mask.height].every(n=>Number.isSafeInteger(n)&&n>0));ok(/^sha256:[a-f0-9]{64}$/.test(d.mask.sourceHash));}
+ if(d.mask!==null){keys(d.mask,['assetId','version','blob','pixels','width','height','sourceHash','polarity','fullAcknowledged','empty','full','plan',...(Object.hasOwn(d.mask,'frame')?['frame']:[])]);if(d.mask.frame!==undefined)frameShape(d.mask.frame);ok(id(d.mask.assetId)&&seq(d.mask.version)&&d.mask.polarity==='white-edit'&&['fullAcknowledged','empty','full'].every(k=>typeof d.mask[k]==='boolean'));[d.mask.blob,d.mask.pixels,d.mask.plan].forEach(blob);ok([d.mask.width,d.mask.height].every(n=>Number.isSafeInteger(n)&&n>0));ok(/^sha256:[a-f0-9]{64}$/.test(d.mask.sourceHash));}
  ok(Array.isArray(d.adapters)&&d.adapters.length<=16);for(const a of d.adapters){keys(a,['version','hash','scale']);ok(id(a.version)&&/^sha256:[a-f0-9]{64}$/.test(a.hash)&&typeof a.scale==='string');}
  ok(d.inactive&&typeof d.inactive==='object'&&!Array.isArray(d.inactive)&&Object.entries(d.inactive).every(([k,v])=>['source','mask','adapters','speed','acceleration','strength'].includes(k)&&typeof v==='string'));
  if(d.conversion!==null){keys(d.conversion,['from','to','mapping','approved']);for(const v of [d.conversion.from,d.conversion.to]){keys(v,['width','height']);ok([v.width,v.height].every(Number.isSafeInteger));}ok(d.conversion.mapping==='stretch'&&typeof d.conversion.approved==='boolean');}
  ok(typeof d.guidanceAcknowledged==='boolean'&&typeof d.rewriteAcknowledged==='boolean'&&d.destination==='retained-candidates'&&d.privacy==='minimum-retention-unqualified'&&d.textTreatment==='preserve-native');
 }
+function frameShape(f:any):asserts f is MaskFrame{
+ keys(f,['kind','document','layer','alignment']);ok(f.kind==='document-mask-frame-1');keys(f.document,['id','revision','width','height']);ok(id(f.document.id)&&seq(f.document.revision)&&[f.document.width,f.document.height].every(n=>Number.isSafeInteger(n)&&n>0&&n<=8192)&&f.document.width*f.document.height<=25000000);
+ keys(f.layer,['id','version','assetId','transform','mask']);ok(id(f.layer.id)&&seq(f.layer.version)&&id(f.layer.assetId));const affine=(v:any)=>ok(Array.isArray(v)&&v.length===6&&v.every(Number.isFinite)&&v[0]*v[3]-v[1]*v[2]!==0);affine(f.layer.transform);validateMaskMapping(f.layer.mask);
+ if(f.alignment!==null){keys(f.alignment,['kind','sourceHash','frameHash','sourceToDocument','maskToDocument']);ok(f.alignment.kind==='identity-source-grid-1'&&[f.alignment.sourceHash,f.alignment.frameHash].every(v=>/^sha256:[a-f0-9]{64}$/.test(v)));affine(f.alignment.sourceToDocument);affine(f.alignment.maskToDocument);}
+}
+export function captureMaskFrame(document:Pick<Document,'id'|'revision'|'width'|'height'>,layer:ImageLayer):MaskFrame{
+ if(!layer.mask)throw new RequestError([{field:'mask',code:'MASK_FRAME_REQUIRED',message:'Attach a current layer mask with its document frame.'}]);
+ return {kind:'document-mask-frame-1',document:{id:document.id,revision:document.revision,width:document.width,height:document.height},layer:{id:layer.id,version:layer.version,assetId:layer.assetId,transform:structuredClone(layer.layerToDocument),mask:structuredClone(layer.mask)},alignment:null};
+}
+export function maskAlignment(source:Source,mask:Mask):MaskAlignment{
+ const f=mask.frame,fail=(code:string,message:string):never=>{throw new RequestError([{field:'mask',code,message}]);};
+ if(!f)fail('MASK_FRAME_REQUIRED','This saved mask has no verified frame. Reattach it explicitly; the draft is retained.');frameShape(f);
+ const grid=maskGrid(f.layer.mask,f.document.width,f.document.height),sourceToDocument:Affine=source.scope==='visible-document'?[1,0,0,1,0,0]:f.layer.transform,maskToDocument:Affine=[1,0,0,1,grid.x,grid.y];
+ if(mask.sourceHash!==source.pixels.hash||f.layer.mask.inverted||!['document-r16-v1','retained-r16-v1'].includes(f.layer.mask.mapping)||f.layer.mask.assetId!==mask.assetId||source.documentRevision!==f.document.revision||source.scope==='asset'&&source.assetId!==f.layer.assetId||source.scope==='visible-document'&&(source.width!==f.document.width||source.height!==f.document.height)||grid.width!==mask.width||grid.height!==mask.height||source.width!==mask.width||source.height!==mask.height||canonical(sourceToDocument)!==canonical(maskToDocument))fail('MASK_FRAME_MISMATCH','Source and mask use different coordinates. Explicitly attach the visible document snapshot and reattach its mask, or align the layer and mask before recapturing. No mask pixels were converted.');
+ const {alignment,...frame}=f;return {kind:'identity-source-grid-1',sourceHash:hash(canonical(source)),frameHash:hash(canonical(frame)),sourceToDocument:structuredClone(sourceToDocument),maskToDocument};
+}
+export function requireMaskAlignment(source:Source,mask:Mask){const expected=maskAlignment(source,mask);if(canonical(mask.frame!.alignment)!==canonical(expected))throw new RequestError([{field:'mask',code:'MASK_FRAME_REVIEW_REQUIRED',message:'Review and confirm this exact source and mask alignment.'}]);return expected;}
 export function refs(d:Draft):BlobRef[]{return [d.prompt.text,...(d.prompt.composition?[d.prompt.composition.value]:[]),...(d.prompt.projection?[d.prompt.projection.prompt]:[]),...(d.source?[d.source.blob,d.source.pixels]:[]),...(d.mask?[d.mask.blob,d.mask.pixels,d.mask.plan]:[])];}
 export function inactiveValue(d:Draft,k:keyof Draft['inactive']):unknown{return k in d.fields?d.fields[k as keyof Fields]:d[k as 'source'|'mask'|'adapters'];}
 export function resolveInactive(d:Draft,k:keyof Draft['inactive']){d.inactive[k]=hash(canonical({operation:d.operation,value:inactiveValue(d,k)}));}
@@ -79,6 +103,7 @@ export function resolve(d:Draft,prompt:string,eligible:Eligibility={adapters:new
   if(!f.strength.trim()||!Number.isFinite(Number(f.strength))||Number(f.strength)<0||Number(f.strength)>1)bad('strength','STRENGTH','Strength must be between 0 and 1.');
   if(d.source&&size.kind==='custom'&&(size.width!==d.source.width||size.height!==d.source.height)){const c=d.conversion;if(!c?.approved||canonical(c.from)!==canonical({width:d.source.width,height:d.source.height})||canonical(c.to)!==canonical({width:size.width,height:size.height}))bad('size','CONVERSION_REQUIRED','Preview and confirm the exact request resize and mapping.');}
  }
+ if(masked&&d.source&&d.mask){try{requireMaskAlignment(d.source,d.mask);}catch(e){if(e instanceof RequestError)errors.push(...e.issues);else throw e;}}
  if(masked){if(!d.mask)bad('mask','MASK_REQUIRED','Attach a source-bound edit mask.');else {if(!d.source||d.mask.sourceHash!==d.source.pixels.hash||d.mask.width!==d.source.width||d.mask.height!==d.source.height)bad('mask','MASK_ALIGNMENT','The mask must match this exact source and frame.');if(d.mask.empty)bad('mask','EMPTY_MASK','Nothing is selected to edit.');if(d.mask.full&&!d.mask.fullAcknowledged)bad('mask','FULL_MASK','Confirm that the entire source can change.');}}
  if(lora){if(d.adapters.length<1||d.adapters.length>3)bad('adapters','ADAPTER_COUNT','Attach 1–3 eligible versions.');const seen=new Set<string>();for(const a of d.adapters){const e=eligible.adapters.get(a.version);if(seen.has(a.version))bad('adapters','DUPLICATE_ADAPTER','Duplicate adapter versions are not allowed.');seen.add(a.version);if(!e?.available||e.hash!==a.hash||e.profile!=='v4-safe-1')bad('adapters','ADAPTER_UNAVAILABLE','This adapter version has no approved local eligibility.');if(!a.scale.trim()||!Number.isFinite(Number(a.scale))||Number(a.scale)<0||Number(a.scale)>4)bad('adapters','SCALE','Each scale must be between 0 and 4.');}}
  if(errors.length)throw new RequestError(errors);

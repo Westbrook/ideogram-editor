@@ -6,7 +6,7 @@ import type {DatabaseSync} from 'node:sqlite';
 import type {Draft as SavedDraft} from '../../src/protocol/ui.js';
 import type {BlobRef,Document} from '../../src/protocol/store.js';
 import type {ImageState} from '../../src/protocol/history.js';
-import {draftShape,resolve,bodyTemplate,estimate,routes,hash,refs,RequestError,labels,operations} from '../../src/request/core.js';
+import {draftShape,requireMaskAlignment,captureMaskFrame,resolve,bodyTemplate,estimate,routes,hash,refs,RequestError,labels,operations} from '../../src/request/core.js';
 import type {Draft} from '../../src/request/core.js';
 import type {RequestReview} from '../../src/request/review.js';
 import {parseControlJSON} from '../../src/protocol/json.js';
@@ -21,6 +21,7 @@ export class RequestReviews{
   const document=this.document(saved),state=this.state(document.id),source=d.operation.startsWith('transform')||d.operation.startsWith('inpaint')?d.source:null,mask=d.operation.startsWith('inpaint')?d.mask:null;for(const s of [source,mask])if(s){const a=this.assets.asset(s.assetId);if(!a?.raster||a.qualification!=='canonical-raster'||a.safety!=='safe'||a.availability!=='available'||a.version!==s.version||canonical(a.blob)!==canonical(s.blob)||canonical(a.raster.pixels)!==canonical(s.pixels)||a.raster.width!==s.width||a.raster.height!==s.height||s===d.source&&a.raster.role==='mask')throw new RequestError([{field:s===d.source?'source':'mask',code:'DEPENDENCY_CHANGED',message:'The exact attached asset is unavailable or changed.'}]);}
   if(source?.scope==='visible-document'&&(document.image?.compositeAssetId!==source.assetId||document.revision!==source.documentRevision))throw new RequestError([{field:'source',code:'SOURCE_CHANGED',message:'Capture the current document explicitly.'}]);
   if(mask){const manifest=parseControlJSON(this.objects.verify(mask.plan,true)!) as any;const stats=manifest.plan?.statistics;if(!stats||mask.empty!==(stats.effectivePixels===0)||mask.full!==(stats.effectivePixels===mask.width*mask.height))throw new RequestError([{field:'mask',code:'MASK_COVERAGE',message:'Mask coverage must match retained measured statistics.'}]);const a=this.assets.asset(mask.assetId)!;if(a.raster?.role!=='mask'||canonical(a.raster.manifest)!==canonical(mask.plan))throw new RequestError([{field:'mask',code:'MASK_PLAN',message:'A retained local mask plan is required.'}]);}
+  if(mask&&source){const f=mask.frame,layer=state.layers.find(l=>l.id===f?.layer.id);if(!f||!layer||canonical({...f,alignment:null})!==canonical(captureMaskFrame(document,layer)))throw new RequestError([{field:'mask',code:'MASK_FRAME_CHANGED',message:'The exact mask frame, layer version or document dependencies changed. Reattach and review explicitly.'}]);requireMaskAlignment(source,mask);}
   if(d.prompt.mode==='composition'){
    if(!state.composition||canonical(state.composition)!==canonical(d.prompt.composition))throw new RequestError([{field:'prompt',code:'COMPOSITION_CHANGED',message:'Approve the current Composition projection.'}]);
    const c=parseControlJSON(readRequestBytes(this.objects,state.composition.value,1048576),1048576);validateComposition(c);
