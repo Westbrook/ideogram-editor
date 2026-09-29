@@ -7,7 +7,14 @@ export class ResultObserver {
  constructor(private candidates:Candidates,private provider:ProviderBoundary,private dispatcher:QueueDispatcher,private profileId:string,private secrets:readonly string[]=[]){}
  async tick(now=Date.now(),background=false){
   if(this.active||this.closed)return;this.active=true;
-  try{for(const initial of this.candidates.due(now)){
+  try{
+   for(const work of this.candidates.queue.recoveryWork())this.dispatcher.recoverRetained(work.jobId,work.attemptId);
+   for(const work of this.candidates.queue.controlWork()){
+    if(this.closed)break;
+    if(work.cancel){const f=this.candidates.queue.controlFence(work.jobId,work.attemptId,'cancel');const r=await this.dispatcher.readKnown(work.jobId,work.attemptId,'cancel');this.candidates.queue.cancelObserved(f,r.evidence.recordId,r.outcome==='complete'&&r.status!==null&&r.status>=200&&r.status<300);}
+    if(work.deleted){const f=this.candidates.queue.controlFence(work.jobId,work.attemptId,'status'),r=await this.dispatcher.readKnown(work.jobId,work.attemptId,'status');let status=null;try{const v=this.dispatcher.readControl(r.evidence.recordId);if(v.request_id===f.requestId)status=v.status;}catch{}this.candidates.queue.detachedObserved(f,r.evidence.recordId,status);}
+   }
+   for(const initial of this.candidates.due(now)){
    if(this.closed)break;
    const receipt=await this.dispatcher.readKnown(initial.jobId,initial.attemptId,'status');
    if(this.closed)break;

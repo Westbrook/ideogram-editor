@@ -22,7 +22,7 @@ type Retained={jobId:string;attemptId:string;documentId:string;observation:Obser
 type PrivateSlot={url:string|null;expectedBytes:number|null;mime:string|null;width:number|null;height:number|null;mediaRecord:string|null;retryRequested:boolean};
 /** All mutations execute in the sole writer. Public views contain no transport address. */
 export class Candidates {
- private closing=false;
+ private closing=false;private transfers=new Map<string,{documentId:string;controller:AbortController}>();
  constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private rasters:Rasters,readonly queue:QueueStore,
   private check:()=>void,private register:(owner:string,ref:BlobRef,proof?:string)=>void){
   db.exec('BEGIN IMMEDIATE');try{
@@ -57,15 +57,15 @@ export class Candidates {
   const meta=this.source(f,source);let value:any=null;try{if(meta.completeness==='complete'&&BigInt(meta.retainedBytes)<=65536n)value=parseControlJSON(Buffer.concat([...this.queue.evidence.read(meta.recordId)]));}catch{/* Protected original remains available for reconciliation. */}
   return this.queue.resultTransaction(f,job=>{
    const r=this.retained(f),o=r.observation;
-   const phase=value?.request_id===f.requestId?value.status==='IN_QUEUE'?'queued':value.status==='IN_PROGRESS'?'running':value.status==='COMPLETED'?(value.error||value.error_type?'failed':'completed'):null:null;
+   const phase=value?.request_id===f.requestId?value.status==='CANCELLED'?'cancelled':value.status==='IN_QUEUE'?'queued':value.status==='IN_PROGRESS'?'running':value.status==='COMPLETED'?(value.error||value.error_type?'failed':'completed'):null:null;
    const digest=hashBytes(canonical({requestId:value?.request_id??null,phase}));
-   if(!phase||o.phase==='quarantined'||(['completed','failed'].includes(o.phase)&&['completed','failed'].includes(phase)&&phase!==o.phase)){
+   if(!phase||o.phase==='quarantined'||(['completed','failed','cancelled'].includes(o.phase)&&['completed','failed','cancelled'].includes(phase)&&phase!==o.phase)){
     o.warning='Provider observations conflict or are malformed; reconciliation is required.';o.phase='quarantined';o.nextPollAt=0;this.quarantine(f.attemptId);
-   }else if(!(['completed','failed'].includes(o.phase)&&!['completed','failed'].includes(phase))&&!(o.phase==='running'&&phase==='queued')){
-    if(o.phase!==phase&&['completed','failed'].includes(phase))this.queue.resultTerminal(job,f.attemptId,phase as 'completed'|'failed');
-    o.phase=phase;o.digest=digest;o.failures=0;o.mode='healthy';o.nextPollAt=['completed','failed'].includes(phase)?0:now+(background?15000:2000);
+   }else if(!(['completed','failed','cancelled'].includes(o.phase)&&!['completed','failed','cancelled'].includes(phase))&&!(o.phase==='running'&&phase==='queued')){
+    if(o.phase!==phase&&['completed','failed','cancelled'].includes(phase))this.queue.resultTerminal(job,f.attemptId,phase as 'completed'|'failed'|'cancelled');
+    o.phase=phase;o.digest=digest;o.failures=0;o.mode='healthy';o.nextPollAt=['completed','failed','cancelled'].includes(phase)?0:now+(background?15000:2000);
    }
-   if(!['completed','failed','quarantined'].includes(o.phase)){o.nextPollAt=now+(background?15000:2000);o.failures=0;o.mode='healthy';}
+   if(!['completed','failed','cancelled','quarantined'].includes(o.phase)){o.nextPollAt=now+(background?15000:2000);o.failures=0;o.mode='healthy';}
    this.save('job',f.attemptId,r);return {view:this.view(job.id,f.attemptId),fence:this.queue.resultFence(job.id,f.attemptId)};
   });
  }
@@ -74,9 +74,9 @@ export class Candidates {
  });}
  due(now:number){
   this.check();const result:ResultFence[]=[];let cursor='';
-  do{const page=this.queue.view(cursor);for(const j of page.jobs)for(const a of j.attempts)if(a.requestId&&['acknowledged','provider-terminal'].includes(a.state)){
+  do{const page=this.queue.view(cursor);for(const j of page.jobs)for(const a of j.attempts)if(!a.recoveryRequired&&a.requestId&&['acknowledged','provider-terminal'].includes(a.state)){
    let f:ResultFence;try{f=this.queue.resultFence(j.id,a.id);}catch(e){if(e instanceof StoreError&&e.code==='STALE_EPOCH')continue;throw e;}const r=this.retained(f);
-   if(!['quarantined','failed'].includes(r.observation.phase)&&!r.observation.resultDigest&&r.observation.nextPollAt<=now)result.push(f);
+   if(!['quarantined','failed','cancelled'].includes(r.observation.phase)&&!r.observation.resultDigest&&r.observation.nextPollAt<=now)result.push(f);
    if(result.length===20)return result;
   }cursor=page.nextCursor??'';}while(cursor);return result;
  }
@@ -118,11 +118,16 @@ export class Candidates {
  private candidate(id:string):Candidate{if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT json FROM candidates WHERE id=?').get(id);if(!row)throw new StoreError('NOT_FOUND');return JSON.parse(String(row.json));}
  private update(f:ResultFence,id:string,patch:Partial<Candidate>){return this.queue.resultTransaction(f,()=>{const c=this.candidate(id);if(c.attemptId!==f.attemptId)throw new StoreError('STALE_EPOCH');Object.assign(c,patch,{version:String(BigInt(c.version)+1n)});this.save('candidate',id,c);return c;});}
  async transfer(f:ResultFence,id:string,provider:ProviderBoundary,policy:AppliedPrivacyPolicy){
+  const initial=this.candidate(id),controller=new AbortController();this.transfers.set(id,{documentId:initial.documentId,controller});
+  try{return await this.transferOwned(f,id,provider,policy,controller.signal);}catch(error){if(!this.queue.deleted(initial.documentId))throw error;}finally{this.transfers.delete(id);}
+ }
+ abortDocument(documentId:string){for(const work of this.transfers.values())if(work.documentId===documentId)work.controller.abort();}
+ private async transferOwned(f:ResultFence,id:string,provider:ProviderBoundary,policy:AppliedPrivacyPolicy,signal:AbortSignal){
   const c=this.candidate(id);this.queue.assertResult(f);if(c.attemptId!==f.attemptId||c.state==='prepared'||c.state==='missing')return;
   const raw=this.db.prepare('SELECT json FROM candidate_private WHERE id=?').get(id);if(!raw)throw new StoreError('NOT_FOUND');const p:PrivateSlot=JSON.parse(String(raw.json));if(!p.url)return;
   if(!c.encodedAssetId){
    const sink=this.queue.evidence.begin(f.attemptId,'response',r31Reservation(this.objects,'candidate-fetch:'+id,'provider-media',()=>this.queue.assertResult(f)),policy);
-   const receipt=await provider.media(p.url,sink,p.expectedBytes!==null&&p.expectedBytes>=0?{expectedBytes:BigInt(p.expectedBytes)}:{});
+   const receipt=await provider.media(p.url,sink,{signal,...(p.expectedBytes!==null&&p.expectedBytes>=0?{expectedBytes:BigInt(p.expectedBytes)}:{})});
    this.queue.assertResult(f);p.mediaRecord=receipt.evidence.recordId;this.db.prepare('UPDATE candidate_private SET json=? WHERE id=?').run(canonical(p),id);
    if(receipt.outcome!=='complete'||receipt.status!==200){this.update(f,id,{state:'transfer-failed',warning:'Image transfer failed. Retry retrieves the same output without generating a replacement.'});return;}
    const headers=this.queue.evidence.inspect(receipt.evidence.recordId).headers,mime=headers['content-type'];
@@ -136,7 +141,7 @@ export class Candidates {
   const slot='candidate-prepare:'+id;this.objects.acquire(slot);
   let prepared:Awaited<ReturnType<Rasters['prepareDocument']>>|undefined;
   try{
-   prepared=await this.rasters.prepareDocument({type:'PrepareCandidate',assetId:c.encodedAssetId!},randomUUID(),slot,()=>{this.queue.assertResult(f);if(this.closing)throw new StoreError('CLOSED');});
+   prepared=await this.rasters.prepareDocument({type:'PrepareCandidate',assetId:c.encodedAssetId!},randomUUID(),slot,()=>{this.queue.assertResult(f);if(this.closing)throw new StoreError('CLOSED');},undefined,c.documentId);
    const info=prepared.asset.raster!,conversion=info.conversion!;
    if(p.width!==null&&p.width!==conversion.encodedWidth||p.height!==null&&p.height!==conversion.encodedHeight)throw new StoreError('MEDIA_TYPE');
    this.queue.resultTransaction(f,()=>{const rooted=new Set<string>();for(const proof of prepared!.proofs){this.objects.proven(proof.ref,proof.token);if(!rooted.has(proof.ref.hash)){this.register('candidate-prepared:'+prepared!.asset.id,proof.ref,proof.token);rooted.add(proof.ref.hash);}}this.save('asset',prepared!.asset.id,prepared!.asset);});
@@ -148,7 +153,14 @@ export class Candidates {
   const c=this.candidate(body.candidateId),f=this.queue.resultFence(c.jobId,c.attemptId);this.queue.assertResult(f);
   if(c.version!==body.expectedVersion)throw new AssetRejection('STALE_REVISION','CANDIDATE_CHANGED');
   if(body.type==='HideCandidate')c.hidden=true;
-  else{
+  else if(body.type==='RecoverCandidateOriginal'){
+   const original=c.encodedAssetId?this.assets.asset(c.encodedAssetId):null,replacement=this.assets.asset(body.assetId);
+   if(c.safety!=='safe'||!original||!replacement||canonical(original.blob)!==canonical(replacement.blob))throw new AssetRejection('INCOMPATIBLE','EXACT_ORIGINAL_REQUIRED');
+   this.objects.verify(original.blob);if(!this.db.prepare('SELECT 1 FROM roots WHERE owner=? AND hash=?').get('candidate:'+c.id,original.blob.hash))this.register('candidate:'+c.id,original.blob);
+   let ready=false;if(c.preparedAssetId){const prepared=this.assets.asset(c.preparedAssetId);try{if(prepared){for(const ref of [prepared.blob,...prepared.dependencies])this.objects.verify(ref);ready=true;}}catch{}}
+   if(!ready){c.state='preparation-failed';c.preparedAssetId=null;const row=this.db.prepare('SELECT json FROM candidate_private WHERE id=?').get(c.id);if(!row)throw new StoreError('NOT_FOUND');const p:PrivateSlot=JSON.parse(String(row.json));p.retryRequested=true;this.db.prepare('UPDATE candidate_private SET json=? WHERE id=?').run(canonical(p),c.id);}
+   c.warning=ready?'Matching original bytes restored; retained candidate identity is unchanged.':'Matching original bytes restored; local preparation is pending. No generation was requested.';
+  }else{
    if(!['transfer-failed','preparation-failed'].includes(c.state)||c.safety!=='safe')throw new AssetRejection('INCOMPATIBLE','CANDIDATE_NOT_RETRYABLE');
    const row=this.db.prepare('SELECT json FROM candidate_private WHERE id=?').get(c.id)!;const p:PrivateSlot=JSON.parse(String(row.json));p.retryRequested=true;this.db.prepare('UPDATE candidate_private SET json=? WHERE id=?').run(canonical(p),c.id);
   }
@@ -179,7 +191,7 @@ export class Candidates {
  private documentOwner(id:string){if(!this.db.prepare('SELECT 1 FROM documents WHERE id=?').get(id)||this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(id))throw new StoreError('NOT_FOUND');}
  private page(attemptId:string,after:string,inert:boolean){
   const rows=inert?this.db.prepare("SELECT id,json FROM portable_rows WHERE kind='candidate-result' AND json_extract(json,'$.attemptId')=? AND id>? ORDER BY id LIMIT 33").all(attemptId,after):this.db.prepare("SELECT id,json FROM candidates WHERE json_extract(json,'$.attemptId')=? AND id>? ORDER BY id LIMIT 33").all(attemptId,after);
-  const items=rows.slice(0,32).map(r=>JSON.parse(String(r.json)) as Candidate);return {items,nextCursor:rows.length>32?items.at(-1)!.id:null};
+  const items=rows.slice(0,32).map(r=>JSON.parse(String(r.json)) as Candidate),repair:Record<string,BlobRef>={};if(!inert)for(const c of items)if(c.safety==='safe'&&c.encodedAssetId){const asset=this.assets.asset(c.encodedAssetId);if(asset)repair[c.id]=asset.blob;}return {items,repair,nextCursor:rows.length>32?items.at(-1)!.id:null};
  }
  outputs(attemptId:string){return this.db.prepare("SELECT id FROM candidates WHERE json_extract(json,'$.attemptId')=? ORDER BY id").iterate(attemptId);}
  history(documentId:string,after=''):import('../../src/protocol/candidates.js').CandidateHistory{

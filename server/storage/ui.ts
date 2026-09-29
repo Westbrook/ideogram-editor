@@ -109,7 +109,8 @@ export class UIStore {
         const state=this.read(request.sessionId,auth);let reason:string|null=state.uiSeq!==request.expectedUISeq?'STALE_UI_SEQUENCE':null;
         if(!reason&&b.type==='SaveDraft'){
           const prior=state.drafts.find(d=>d.id===b.draft.id);
-          if(prior&&BigInt(b.draft.generation)<=BigInt(prior.generation))reason='STALE_DRAFT_GENERATION';
+          if(this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(b.draft.documentId))reason='DOCUMENT_DELETED';
+          else if(prior&&BigInt(b.draft.generation)<=BigInt(prior.generation))reason='STALE_DRAFT_GENERATION';
           else if(!prior&&state.drafts.length>=64)reason='DRAFT_CHECKPOINT_CAPACITY';
           else{const seen=new Set<string>();for(const p of extra){if(seen.has(p.ref.hash))continue;seen.add(p.ref.hash);this.objects.proven(p.ref,p.proof);this.register('ui:'+auth.clientId+':'+request.sessionId+':'+b.draft.id+':'+b.draft.generation,p.ref,p.proof);}
           if(ref&&proof){this.objects.proven(ref,proof);this.register('ui:'+auth.clientId+':'+request.sessionId+':'+b.draft.id+':'+b.draft.generation,ref,proof);}

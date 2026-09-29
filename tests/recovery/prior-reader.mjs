@@ -1,0 +1,8 @@
+import {pathToFileURL} from 'node:url';import {join} from 'node:path';import {readFile} from 'node:fs/promises';import {createHash} from 'node:crypto';
+const [checkout,root,mode]=process.argv.slice(2),load=path=>import(pathToFileURL(join(checkout,path)).href);
+const {openWriter}=await load('dist/local/server/storage/writer.js'),{command,encode,EMPTY_EXPECTED_VERSIONS,prepare,enqueue,auth,config}=await load('tests/queue/helpers.mjs');
+const w=await openWriter({root},mode==='create'?{setupModule:pathToFileURL(join(checkout,'tests/candidates/observer-fixture.mjs')).href}:undefined);try{
+ if(mode==='create'){await w.protocolDefaults();await w.rememberClient(auth().sessionHash,'client_1',Date.now()+3600000);await w.submit(encode(command(EMPTY_EXPECTED_VERSIONS,{}, {width:1024,height:1024})),w.epoch);await config(w,1);const p=await prepare(w),q=await enqueue(w,p.body);let ready=false;for(let i=0;i<600;i++){try{ready=(await w.candidateView(q.job.id)).items[0]?.state==='prepared';}catch{}if(ready)break;await new Promise(r=>setTimeout(r,10));}if(!ready)throw Error('Retained candidate did not prepare');await enqueue(w,p.body);}
+ const queue=await w.queueView(),candidates=[];for(const j of queue.jobs)if(j.attempts[0].state==='provider-terminal'){const v=await w.candidateView(j.id),a=(await w.assetProjection(v.items[0].encodedAssetId)).asset,bytes=await readFile(join(root,'objects/sha256',a.blob.hash.slice(7,9),a.blob.hash.slice(7)));candidates.push({view:v,hash:createHash('sha256').update(bytes).digest('hex')});}
+ console.log(JSON.stringify({document:await w.document('document_1'),queue,candidates}));
+}finally{await w.close();}

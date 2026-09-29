@@ -133,6 +133,7 @@ export class EditorClient {
       const current=documents.find(d=>d.id===this.view.document?.id)??null;
       this.patch({documents,cursor:published.cursor});
       if(current)await this.loadDocument(current);
+      else if(this.view.document)this.patch({document:null,image:null,history:[],checkpoints:[],selected:[],save:null});
     })().finally(()=>{this.refreshTask=undefined;if(this.refreshAgain){this.refreshAgain=false;void this.refresh().catch(e=>this.fail(e));}});return this.refreshTask;
   }
   private async loadDocument(document:Document) {

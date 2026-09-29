@@ -69,6 +69,8 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     candidateHistory:(documentId:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateHistory>('candidateHistory',{documentId,after}),
     candidateView:(jobId:string,attemptId?:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateView>('candidateView',{jobId,attemptId,after}),
     candidatePrompt:(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned',offset:string)=>request<{bytes:Uint8Array;byteLength:string;offset:string;nextOffset:string|null}>('candidatePrompt',{jobId,attemptId,kind,offset}),
+    deletionList:(after:string)=>request<ReturnType<import('./deletion.js').Deletions['list']>>('deletionList',{after}),
+    deletionView:(documentId:string,auth:AssetAuth,after='')=>request<ReturnType<import('./deletion.js').Deletions['view']>>('deletionView',{documentId,auth,after}),
     queueView:(after='')=>request<ReturnType<QueueStore['view']>>('queueView',{after}),
     queueReserve:(jobId:string)=>request<ReturnType<QueueStore['reserve']>>('queueReserve',{jobId}),
     queueDispatch:(...params:Parameters<QueueStore['dispatch']>)=>request<ReturnType<QueueStore['dispatch']>>('queueDispatch',{params}),

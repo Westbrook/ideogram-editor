@@ -74,7 +74,7 @@ export class Portables {
  }
  pendingCount(documentId:string,clientId:string){return Number(this.db.prepare("SELECT count(*) n FROM portable_preparations WHERE json_extract(canonical,'$.command.documentId')=? AND json_extract(canonical,'$.command.clientId')=?").get(documentId,clientId)!.n);}
  private capture(operationId:string,d:Document){
-  const dir=join(this.directory,operationId);privateDirectory(dir);const out=spool(join(dir,'capture.sqlite'));defineIndex(out);out.exec('BEGIN IMMEDIATE');
+  const dir=join(this.directory,operationId);privateDirectory(dir);this.db.prepare('INSERT INTO deletion_work VALUES (?,?)').run(dir,d.id);const out=spool(join(dir,'capture.sqlite'));defineIndex(out);out.exec('BEGIN IMMEDIATE');
   const addEntity=(kind:string,id:string,value:any)=>{if(kind==='candidate-result')candidateRecord(value);else if(kind==='job-result')resultRecord(value);else if(kind==='portable-provider')providerRecord(value);else if(kind!=='draft')entity(kind,value);out.prepare('INSERT INTO entities VALUES (?,?,?,NULL)').run(kind,id,canonical(value));references(value,r=>addRef(out,r));};
   const queue=(id:string)=>out.prepare('INSERT OR IGNORE INTO assets_queue(id) VALUES (?)').run(id);
   const font=(f:any)=>{const row=this.db.prepare("SELECT id,json FROM assets WHERE json_extract(json,'$.font.id')=? ORDER BY id LIMIT 1").get(f.id);if(!row||canonical(JSON.parse(String(row.json)).font)!==canonical(f))throw new StoreError('MISSING_OBJECT');queue(String(row.id));};
@@ -158,7 +158,7 @@ export class Portables {
  }
  private async exportCopy(bytes:Uint8Array,c:Command,operationId:string,frozen:any,slot:string,check:()=>void){
   const sourceDir=join(this.directory,frozen.capture),attempt=join(sourceDir,randomUUID());privateDirectory(attempt);
-  const capturedPath=join(sourceDir,'capture.sqlite'),capturedStamp=stamp(capturedPath),outerCheck=check;check=()=>{outerCheck();if(stamp(capturedPath)!==capturedStamp)throw new StoreError('CORRUPT_OBJECT');};const capturedSource=await fileSource('capture',capturedPath,check);if('sha256:'+capturedSource.sha256!==frozen.captureHash)throw new StoreError('CORRUPT_OBJECT');
+  const capturedPath=join(sourceDir,'capture.sqlite'),capturedStamp=stamp(capturedPath),outerCheck=check;check=()=>{outerCheck();if(this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(frozen.document.id))throw new AssetRejection('STALE_REVISION','DOCUMENT_DELETED');if(stamp(capturedPath)!==capturedStamp)throw new StoreError('CORRUPT_OBJECT');};const capturedSource=await fileSource('capture',capturedPath,check);if('sha256:'+capturedSource.sha256!==frozen.captureHash)throw new StoreError('CORRUPT_OBJECT');
   const db=spool(join(attempt,'export.sqlite')),capture=new DatabaseSync(join(sourceDir,'capture.sqlite'),{readOnly:true});
   try{db.exec('BEGIN IMMEDIATE');defineIndex(db);for(const table of ['entities','events','refs'])for(const r of capture.prepare(`SELECT * FROM ${table}`).iterate()){const fields=Object.keys(r);db.prepare(`INSERT INTO ${table} VALUES (${fields.map(()=>'?').join(',')})`).run(...Object.values(r));await tick();}
    if(frozen.captureVersion===2){for(const r of capture.prepare('SELECT json FROM transactions').iterate())addTransaction(db,JSON.parse(String(r.json)));}
@@ -177,7 +177,7 @@ export class Portables {
    const archive=await fileSource('archive',join(attempt,'archive.partial'),check),ref={hash:'sha256:'+archive.sha256,byteLength:String(archive.bytes),mediaType:'application/x-ideogram-project'};
    const proof=await this.objects.adoptFile(join(attempt,'archive.partial'),ref,check);try{
     this.barrier('portable-export-before-commit');check();this.commit(bytes,()=>{check();this.objects.proven(ref,proof);const bundle:Bundle={protocolVersion:1,bundleId:operationId,documentId:frozen.document.id,documentRevision:frozen.document.revision,capturedHighWater:frozen.highWater,uiDigest:frozen.uiDigest,blob:ref,complete:true,status:'copy-ready',destinationStatus:'unconfirmed'};
-     this.register('bundle:'+operationId,ref,proof);this.db.prepare('INSERT INTO portable_bundles VALUES (?,?,?,?)').run(operationId,c.clientId,frozen.document.id,canonical(bundle));return {fact:{type:'BundlePrepared',payload:{bundle}},documentRevision:frozen.document.revision};},slot);
+     this.db.prepare('DELETE FROM deletion_work WHERE path=?').run(sourceDir);this.register('bundle:'+operationId,ref,proof);this.db.prepare('INSERT INTO portable_bundles VALUES (?,?,?,?)').run(operationId,c.clientId,frozen.document.id,canonical(bundle));return {fact:{type:'BundlePrepared',payload:{bundle}},documentRevision:frozen.document.revision};},slot);
    }finally{this.objects.releaseProof(proof);}
   }finally{if(db.isTransaction)db.exec('COMMIT');capture.close();db.close();}
  }

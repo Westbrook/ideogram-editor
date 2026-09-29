@@ -1,3 +1,4 @@
+import {Deletions} from './deletion.js';
 import {Candidates} from './candidates.js';
 import {QueueStore} from './queue.js';
 import {queueEvents} from '../../src/protocol/queue.js';
@@ -22,7 +23,7 @@ import type { AssetFact } from '../../src/protocol/assets.js';
 import { Histories } from './history.js';
 import type { HistoryCommit } from './history.js';
 import { UIStore } from './ui.js';
-import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema, maskSchema, retainedMaskSchema, textPlacementSchema, compositionSchema, queueSchema, candidateSchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema, maskSchema, retainedMaskSchema, textPlacementSchema, compositionSchema, queueSchema, candidateSchema, deletionSchema } from './schema.js';
 import { Rasters } from './raster.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
@@ -59,6 +60,7 @@ export class StoreDatabase {
   readonly portables: Portables;
   readonly queue: QueueStore;
   readonly candidates: Candidates;
+  readonly deletions: Deletions;
   private databaseIdentity;
   private rootIdentity;
   private missing: { hash: string; code: string }[] = [];
@@ -78,7 +80,7 @@ export class StoreDatabase {
     try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
     finally { reader.close(); }
     // Unknown future roots are inspected with a read-only connection only.
-    if (![0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+    if (![0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
       kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
     });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
@@ -106,6 +108,7 @@ export class StoreDatabase {
       compositionSchema(this.db, root, barrier, options.quotaBytes,version===0);
       queueSchema(this.db,root,barrier,options.quotaBytes,version===0);
       candidateSchema(this.db,root,barrier,options.quotaBytes,version===0);
+      deletionSchema(this.db,root,barrier,options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
@@ -129,6 +132,10 @@ export class StoreDatabase {
       this.portables=new Portables(this.db,this.objects,this.assets,this.rasters,this.texts,root,this.epoch,()=>this.fence(this.epoch),barrier,(bytes,build,slot)=>this.commitPortable(bytes,build,slot),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.queue=new QueueStore(this.db,this.objects,this.assets,this.ui,this.rasters,id=>this.histories.state(id),()=>this.fence(this.epoch),this.epoch,barrier,root,(bytes,build)=>this.commitAsset(bytes,build),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.candidates=new Candidates(this.db,this.objects,this.assets,this.rasters,this.queue,()=>this.fence(this.epoch),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.queue.onDocumentDeleted=id=>this.candidates.abortDocument(id);
+      this.deletions=new Deletions(this.db,this.objects,this.queue,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitAsset(bytes,build),(owner,ref)=>this.register(owner,ref),()=>this.recovery.hasReaders(),root);
+      for(const r of this.db.prepare('SELECT document_id FROM candidate_document_tombstones').all())this.deletions.removeProjection(String(r.document_id));
+      this.deletions.resume();
       this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();this.histories.schedule();this.portables.schedule();});
       if (options.maxPageCount !== undefined) {
         if (!Number.isSafeInteger(options.maxPageCount) || options.maxPageCount < 1) throw new Error('Invalid test page limit');
@@ -216,6 +223,8 @@ export class StoreDatabase {
   }
   private project(event: DomainEvent): void {
     if(queueEvents.includes(event.type))return;
+    if(event.documentId&&this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(event.documentId))return;
+    if(event.type==='BundleImported'&&this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=(SELECT document_id FROM portable_namespaces WHERE id=?)').get(event.payload.namespaceId))return;
     if(event.type==='BundleImported'){projectNamespace(this.db,event.payload.namespaceId,event.payload.namespaceHash);return;}
     if(['BundlePrepared','BundleImportReviewed','PortableCancelled'].includes(event.type))return;
     if(event.type==='AssetRegistered') {
@@ -257,6 +266,7 @@ export class StoreDatabase {
         this.project(event);
         if (highWater === transactionEnd) activeTransaction = null;
       }
+      for(const r of this.db.prepare('SELECT document_id FROM candidate_document_tombstones').all()){this.db.prepare('DELETE FROM checkpoints WHERE document_id=?').run(r.document_id);this.db.prepare('DELETE FROM history WHERE document_id=?').run(r.document_id);this.db.prepare('DELETE FROM documents WHERE id=?').run(r.document_id);}
       if (activeTransaction !== null || this.meta('highWater') !== String(highWater)) throw new StoreError('CORRUPT_STORE');
       // Preview ownership is a private preparation index, not browser authority.
       // Rebuild it from retained immutable facts even when the domain tail used a
@@ -266,6 +276,7 @@ export class StoreDatabase {
         const event=JSON.parse(String(row.json));validateEvent(event);
         if(event.type!=='ImageEditPreviewPrepared')throw new StoreError('CORRUPT_STORE');
         const owner=this.lookup(event.commandId);if(!owner)throw new StoreError('CORRUPT_STORE');const preview=event.payload.preview;
+        if(this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(preview.documentId))continue;
         this.db.prepare('INSERT INTO image_previews VALUES (?,?,?,?)').run(preview.previewId,preview.documentId,owner.command.clientId,canonical(preview));
       }
       this.db.exec('COMMIT');
@@ -277,9 +288,11 @@ export class StoreDatabase {
     this.db.prepare('INSERT OR IGNORE INTO objects VALUES (?,?)').run(ref.hash, ref.byteLength);
     if (this.db.prepare('SELECT byte_length FROM objects WHERE hash=?').get(ref.hash)!.byte_length !== ref.byteLength) throw new StoreError('CORRUPT_OBJECT');
     this.db.prepare('INSERT INTO roots VALUES (?,?,?)').run(owner, ref.hash, ref.mediaType);
+    this.db.prepare("UPDATE deletion_objects SET state='rescued' WHERE hash=? AND state IN ('eligible','quarantined','unlinking')").run(ref.hash);
   }
   private rejection(c: Command, current: Document | null): Rejection | null {
     const reject = (code: RejectionCode, path: string, reason: string): Rejection => ({ code, path, reason, currentRevision: current?.revision ?? null });
+    if(c.documentId&&this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(c.documentId))return reject('STALE_REVISION','command.documentId','DOCUMENT_DELETED');
     if (!c.documentId) return reject('INVALID_INPUT', 'command.documentId', 'REQUIRED');
     if (c.expectedDocumentRevision !== (current?.revision ?? null)) return reject('STALE_REVISION', 'command.expectedDocumentRevision', 'REVISION_CHANGED');
     let bytes: Uint8Array;

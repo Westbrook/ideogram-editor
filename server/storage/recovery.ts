@@ -23,6 +23,7 @@ export class RecoveryStore {
   snapshotActivationMs = 0;
   snapshotFailure = false;
   constructor(private db: DatabaseSync, private objects: Objects, private path: string, private barrier: Barrier, private check: () => void) {}
+  hasReaders(){return this.handles.size>0||!!this.maintenance;}
   highWater() { return String(this.db.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value); }
   private *entities(db = this.db) {
     for (const [type, table] of [['asset','assets'], ['checkpoint','checkpoints'], ['document','documents'], ['history','history']]) {

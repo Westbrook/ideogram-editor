@@ -1,3 +1,4 @@
+import {DocumentDeletion} from './deletion.js';
 import {RequestEditing} from './request.js';
 import { CompositionEditing } from './composition.js';
 import { NativeTextEditing } from './native-text.js';
@@ -73,6 +74,7 @@ class EditorShell extends LitElement {
   private sessionBusy=true;
   private composition=false;
   private operation=operations[0];
+  private deletionFlow=new DocumentDeletion(this,editor,()=>this.composition);
   private requestFlow=new RequestEditing(this,editor);
   private prompts:Record<string,string>={};
   private promptIds:Record<string,string>={};
@@ -115,7 +117,7 @@ class EditorShell extends LitElement {
     for(const query of ['(max-width:1100px)','(max-width:720px)'])matchMedia(query).addEventListener('change',()=>void this.updateLayout(),{signal});
     if(this.narrow&&!this.extreme)void this.updateLayout();
   }
-  disconnectedCallback(){super.disconnectedCallback();this.adapter.invalidate();this.lifecycle?.abort();this.resize?.disconnect();this.canvas?.dispose();this.authoring.dispose();this.semantic.dispose();this.requestFlow.dispose();this.textEditing.dispose();if(this.previewURL)URL.revokeObjectURL(this.previewURL);editor.dispose();connection.dispose();}
+  disconnectedCallback(){super.disconnectedCallback();this.adapter.invalidate();this.lifecycle?.abort();this.resize?.disconnect();this.canvas?.dispose();this.authoring.dispose();this.semantic.dispose();this.requestFlow.dispose();this.deletionFlow.dispose();this.textEditing.dispose();if(this.previewURL)URL.revokeObjectURL(this.previewURL);editor.dispose();connection.dispose();}
   protected firstUpdated(){
     const canvas=this.querySelector<HTMLCanvasElement>('canvas')!;this.canvas=new CanvasView(canvas,connection.transport);
     this.resize=new ResizeObserver(()=>this.draw());this.resize.observe(canvas);
@@ -325,7 +327,7 @@ class EditorShell extends LitElement {
     ${!d?html`<div class="canvas-empty"><h2>A little room to create.</h2><p>Choose or drop an image, then review before Apply.</p><en-file-upload label="Import an image" choose-label="Choose image" accept="image/png,image/jpeg,image/webp" ?disabled=${locked} @en-change=${(e:Event)=>this.file(e,'image')}></en-file-upload><p>PNG, JPEG or static WebP. Original bytes are retained.</p></div>`:nothing}</div><div class="canvas-caption"><span>${d?`${d.width} × ${d.height} pixels · ${view.selected.length} selected`:'No image accepted'}</span><span>Paste an image here to review</span></div><en-toolbar class="pan-fields" label="Numeric view controls" keyboard-navigation="tab">${this.number('pan-x','View X (px)',String(this.pan.x))}${this.number('pan-y','View Y (px)',String(this.pan.y))}<en-button variant="secondary" @click=${(e:Event)=>this.adapter.action(e,()=>{this.pan={x:this.numeric('pan-x'),y:this.numeric('pan-y')};this.draw();void editor.preferences({viewport:{...this.pan,zoom:this.zoom}}).catch(e=>editor.fail(e));})}>Apply view</en-button></en-toolbar></section>
     <en-splitter id="right-divider" label="Canvas and inspector width" orientation="vertical" .value=${73} .min=${45} .max=${80} @en-change=${this.split} @pointerup=${this.persistSplit} @keyup=${this.persistSplit}></en-splitter>
     ${this.drawerMode?nothing:this.inspectorNode}</div></div></main>
-    ${this.textEditing.render()}
+    ${this.textEditing.render()}${this.deletionFlow.render()}
     <section id="results" class="results-tray" tabindex="-1" aria-label="Activity"><en-accordion-item label="Activity" .open=${true}><en-tabs label="Activity views" value="history"><en-tab slot="tab" value="results">Results</en-tab><en-tab slot="tab" value="jobs">Jobs</en-tab><en-tab slot="tab" value="history">History</en-tab><en-tab-panel slot="panel" value="results"><p class="empty">Generation results are not available in this version.</p></en-tab-panel><en-tab-panel slot="panel" value="jobs"><p class="empty">No jobs submitted. This workflow makes no provider calls.</p></en-tab-panel><en-tab-panel slot="panel" value="history"><en-activity-feed label="Retained document history" mode="paginated" .pageSize=${20} .items=${view.history.map(n=>({key:n.id,author:n.kind==='image-edit'?n.operation:'Document created',text:(n.kind==='image-edit'?n.operation:'Creation')+' · '+n.id+(n.id===d?.historyHead?' · current':''),label:'History '+n.id}))} .renderItem=${this.historyItem}></en-activity-feed>
     ${d?html`<en-button variant="ghost" @click=${(e:Event)=>this.action(e,'Read first history page',()=>editor.historyPage('history'))}>First history page</en-button>`:nothing}${view.historyNext?html`<en-button variant="secondary" @click=${(e:Event)=>this.action(e,'Read next history page',()=>editor.historyPage('history',view.historyNext))}>Next history page</en-button>`:nothing}
     <en-stack class="actions" direction="horizontal" wrap gap="small"><en-text-field id="checkpoint-name" label="Checkpoint name" value="My checkpoint"></en-text-field><en-button ?disabled=${locked||!d} @click=${(e:Event)=>this.action(e,'Save checkpoint',()=>this.leaf({type:'SaveCheckpoint',name:(this.querySelector('#checkpoint-name') as EnNumberField).value}))}>Save checkpoint</en-button></en-stack><p>Checkpoints retain their full history.</p>${view.checkpoints.map(checkpoint=>html`<en-button variant="secondary" ?disabled=${locked||!checkpoint.image} @click=${(e:Event)=>this.action(e,'Open checkpoint',()=>editor.openCheckpoint(checkpoint))}>Open checkpoint: ${checkpoint.name}</en-button>`)}${view.checkpointNext?html`<en-button variant="secondary" @click=${(e:Event)=>this.action(e,'Read next checkpoints',()=>editor.historyPage('checkpoints',view.checkpointNext))}>Next checkpoint page</en-button>`:nothing}</en-tab-panel></en-tabs></en-accordion-item></section>

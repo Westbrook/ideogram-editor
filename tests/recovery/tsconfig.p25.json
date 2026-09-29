@@ -1,0 +1,1 @@
+{"extends":"../../tsconfig.app.json","include":["../../src/**/*.ts","./e4.spec.ts","./e4-process.ts","./lifecycle.ts","./p25.config.ts"]}

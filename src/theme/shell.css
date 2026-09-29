@@ -282,3 +282,6 @@ en-select::part(control)::picker-icon {content:none;mask:none;background:none;}
 
 .candidate-results { min-inline-size: 0; overflow-wrap: anywhere; }
 .candidate-image { display: block; max-inline-size: 100%; max-block-size: 24rem; object-fit: contain; }
+
+.document-deletion { min-width: 0; overflow-wrap: anywhere; }
+.document-deletion en-card { display: block; min-width: 0; margin-block: .5rem; }

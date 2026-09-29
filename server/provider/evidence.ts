@@ -1,4 +1,4 @@
-import { constants, openSync, closeSync, writeSync, readSync, fstatSync, fsyncSync, renameSync, readFileSync } from 'node:fs';
+import { constants, openSync, closeSync, writeSync, readSync, fstatSync, fsyncSync, renameSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { assertComponents, assertPrivate, privateDirectory, sameFile, syncDirectory } from '../storage/files.js';
@@ -54,6 +54,12 @@ export class TransportEvidenceStore {
     const value=JSON.parse(readFileSync(file,'utf8')) as Metadata;
     if(value.recordId!==recordId || value.class!=='backend-transport') refuse('PROVENANCE');
     return value;
+  }
+  records(attemptId:string):string[] {
+    if(!uuid.test(attemptId))refuse('IDENTITY');
+    const files=readdirSync(this.directory).filter(name=>name.endsWith('.json'));
+    if(files.length>10000)refuse('CAPACITY');
+    return files.map(name=>name.slice(0,-5)).filter(id=>{const m=this.inspect(id);return m.attemptId===attemptId&&m.direction==='response'&&m.completeness==='complete'&&BigInt(m.retainedBytes)<=65536n;});
   }
   *read(recordId: string): Generator<Buffer> {
     const meta=this.inspect(recordId), path=join(this.directory,recordId+'.body');

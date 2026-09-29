@@ -1,0 +1,8 @@
+import {execFile} from 'node:child_process';import {promisify} from 'node:util';import {mkdir,writeFile} from 'node:fs/promises';import {join} from 'node:path';import type {BrowserContext} from '@playwright/test';
+import {runs,step,throwFailures,retainOrRemove,errorRecord} from '../editor/harness-lifecycle.js';
+export async function finish(context:BrowserContext,browser:{close():Promise<void>}|undefined,profile:string|undefined,receipt:string,outcome:{status?:string;errors:unknown[]}){
+ const state=runs.get(context)??{failures:[],roots:[],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:'e4-',observe:undefined,finalCheck:undefined};if(outcome.status!=='passed'&&!state.failures.length)state.failures.push({phase:'test-outcome',error:Error('Required workflow did not pass')});const previous=state.failures.length;if(profile)state.roots.push(profile);
+ state.contextClosed=await step(state,'context-close',()=>context.close());state.browserClosed=await step(state,'browser-close',async()=>{await browser?.close();});if(state.finalCheck)await step(state,'final-observations',state.finalCheck);await mkdir(receipt,{recursive:true});
+ await retainOrRemove(state,async(root,destination)=>JSON.parse((await promisify(execFile)('/usr/bin/python3',['tests/recovery/archive.py',root,destination])).stdout));
+ await writeFile(join(receipt,'e4-observations.json'),JSON.stringify({...state.observe?.() as object,failures:state.failures.map(f=>({phase:f.phase,error:errorRecord(f.error)})),retention:state.retention,physicalClosure:{writerClosed:state.writerClosed,contextClosed:state.contextClosed,browserClosed:state.browserClosed}},null,2));throwFailures(state.failures.slice(previous));
+}
