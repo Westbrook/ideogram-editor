@@ -208,7 +208,7 @@ export class QueueStore {
    a.version=String(BigInt(a.version)+1n);job.version=String(BigInt(job.version)+1n);this.writeOutbox(a.id,job.id,out);this.record('job',job,outcome.kind==='ack'?'AttemptAcknowledged':outcome.kind==='terminal'?'ProviderTerminal':'SubmissionUncertain');this.barrier('queue-outcome-before-commit');return job;
   });
  }
- recovery(jobId:string,attemptId:string){this.check();const job=this.job(jobId),attempt=job.attempts.find(a=>a.id===attemptId);if(!attempt)throw new StoreError('NOT_FOUND');return {jobId,attempt,endpoint:job.review.endpoint,outbox:this.outbox(attemptId),epoch:this.epoch};}
+ recovery(jobId:string,attemptId:string){this.check();const job=this.job(jobId),attempt=job.attempts.find(a=>a.id===attemptId);if(!attempt)throw new StoreError('NOT_FOUND');return {jobId,documentId:job.documentId,attempt,endpoint:job.review.endpoint,outbox:this.outbox(attemptId),epoch:this.epoch};}
  resultFence(jobId:string,attemptId:string){
   this.check();const job=this.job(jobId),attempt=job.attempts.find(a=>a.id===attemptId);
   if(!attempt?.requestId||!['acknowledged','provider-terminal'].includes(attempt.state)||!this.db.prepare('SELECT 1 FROM documents WHERE id=?').get(job.documentId)||this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(job.documentId))throw new StoreError('STALE_EPOCH');
