@@ -18,6 +18,8 @@ export class Objects {
   private external = new Map<string,bigint>();
   private slots = new Set<string>();
   private available:()=>void=()=>{};
+  hasLeases(){return this.stages.size>0||this.slots.size>0||this.proofs.size>0;}
+  leaseIdentity(){return {stages:[...this.stages.keys()].sort(),slots:[...this.slots].sort(),proofs:[...this.proofs.keys()].sort()};}
   onAvailable(callback:()=>void){this.available=callback;}
   private proofs = new Map<string,{ref:BlobRef;stamp:string}>();
   readonly staging: string;

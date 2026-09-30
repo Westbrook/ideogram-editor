@@ -1,0 +1,659 @@
+{
+  "authorEnd": "2026-09-30T01:51:09.636176+00:00",
+  "taskNoteId": "c26fde5b-d5e3-47f9-95d2-33d77496a7a1",
+  "currentPRContextNoteId": "7e584e08-c67e-491b-b27f-a0e8188da699",
+  "acceptedBase": "086c9a677512f1faae98f9e947084ffb93c09431",
+  "correctionBase": "07fcf77454afb582404f952a3924b41decc55cbc",
+  "head": "93fa3121ee080c47913fef0b1be9147ca5973180",
+  "branch": "p25-f1-f4-repair",
+  "registeredRoot": "4f366d0b-9a61-403f-b41d-1dd94bf09ed4",
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929",
+  "prURL": null,
+  "prNumber": null,
+  "baseSHACI": null,
+  "status": "Author campaign complete; review_required for independent whole-slice outcome review; no acceptance or credit.",
+  "executionAuthority": {
+    "status": "confirmed",
+    "coordinatorAgentId": "agent-a10f9e91-3e7a-4d66-9c32-2fd04fac9324",
+    "head": "93fa3121ee080c47913fef0b1be9147ca5973180",
+    "executionSealSha256": "4099faaa06ed924212989dcb94055b42e1d961a8c852301117912de4ecd1d7c4",
+    "engines": [
+      "firefox",
+      "chromium",
+      "webkit"
+    ],
+    "releaseNoteIds": [
+      "c26fde5b-d5e3-47f9-95d2-33d77496a7a1",
+      "7e584e08-c67e-491b-b27f-a0e8188da699",
+      "spec"
+    ],
+    "releaseHeading": "Coordinator exact current-build E4 execution confirmation",
+    "confirmedAt": "2026-09-30T01:25:23Z"
+  },
+  "exactFrozenExecutionSeal": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/execution-seal.json",
+    "bytes": 411,
+    "sha256": "4099faaa06ed924212989dcb94055b42e1d961a8c852301117912de4ecd1d7c4"
+  },
+  "results": [
+    {
+      "engine": "firefox",
+      "startedAt": "2026-09-30T01:40:19.501446+00:00",
+      "endedAt": "2026-09-30T01:40:47.864853+00:00",
+      "wrapperExit": 0,
+      "runner": {
+        "startTime": "2026-09-30T01:40:20.084Z",
+        "duration": 21233.118000000002,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "authorAssessment": "passed",
+      "assessment": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox-assessment.json",
+        "bytes": 3665,
+        "sha256": "1ad07be776a3d2e533f7d822a372276ee58f16a0e51cabb196e472f932347e53"
+      },
+      "outcomeAudit": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/firefox-outcome-audit.json",
+        "bytes": 5368,
+        "sha256": "6822c2f23dce32bb592f76eb4409cb4ee94b3276389ecb38c4840721a2a2b3a6"
+      },
+      "publicationsMs": {
+        "P1": 132,
+        "P2": 39,
+        "P3": 146,
+        "P4": 139
+      },
+      "retrievalStartMs": 186,
+      "semanticTraceUnionMs": 5801,
+      "networkAbortCounts": {
+        "NS_BINDING_ABORTED": 33
+      },
+      "httpErrors": [
+        {
+          "event": "response",
+          "at": 1790732433471,
+          "id": 328,
+          "status": 404,
+          "url": "http://127.0.0.1:50991/api/v1/jobs/5d3a9534-1aa4-4cea-949d-5815f96b6a46/candidates",
+          "resourceType": "fetch"
+        }
+      ],
+      "archives": [
+        {
+          "root": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/tmp/p25-e4-kRpIVu",
+          "archive": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/e4-state-backup-0.tar.gz",
+          "sha256": "7ea59c505dad967f9a1fb23d042d05ac9828328fd53862decf80135db7060aed",
+          "entries": 65,
+          "fileBytes": 922037,
+          "actualTarContentsMatched": true
+        }
+      ],
+      "visual": "Viewed actual 320x900 dark deletion-narrow.png: receipt inspected and cleanup complete, remote work/charges unconfirmed; 8209 freed, zero pending, 3114 retained bytes; no local slot held; narrow labels wrap readably within panel. Original keyboard confirm/focus and geometry assertions passed. No hardware presentation claim."
+    },
+    {
+      "engine": "chromium",
+      "startedAt": "2026-09-30T01:45:39.941556+00:00",
+      "endedAt": "2026-09-30T01:46:10.555241+00:00",
+      "wrapperExit": 0,
+      "runner": {
+        "startTime": "2026-09-30T01:45:40.571Z",
+        "duration": 20529.207,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "authorAssessment": "passed",
+      "assessment": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium-assessment.json",
+        "bytes": 3674,
+        "sha256": "99e7ece34235ab91a3698e188d510efb1e894db91debd6965dd738f323d18a3b"
+      },
+      "outcomeAudit": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/chromium-outcome-audit.json",
+        "bytes": 3410,
+        "sha256": "78a65b4d1af420fad074795453d2861bd4b716e8ab6ae7930c43eabfd383412a"
+      },
+      "publicationsMs": {
+        "P1": 103,
+        "P2": 26,
+        "P3": 156,
+        "P4": 16
+      },
+      "retrievalStartMs": 201,
+      "semanticTraceUnionMs": 5259,
+      "networkAbortCounts": {
+        "net::ERR_ABORTED": 108
+      },
+      "httpErrors": [],
+      "archives": [
+        {
+          "root": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/tmp/p25-e4-fq9wcM",
+          "archive": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/e4-state-backup-0.tar.gz",
+          "sha256": "b608c48164242aea39c7425d4ba3a2f4d868f1c2570f8325500ae4811477f7da",
+          "entries": 59,
+          "fileBytes": 912212,
+          "actualTarContentsMatched": true
+        }
+      ],
+      "visual": "Viewed actual 320x900 dark deletion-narrow.png: settled receipt-inspected and cleanup-complete messages, remote work/charges unconfirmed; 8209 freed, zero pending and 3114 retained bytes; no local slot held. Wrapped labels remain readable inside narrow panel; keyboard confirm/focus and no-overflow geometry assertions passed. Renderer Paint and six marks are uncorrelated diagnostics, not presented-pixel timing."
+    },
+    {
+      "engine": "webkit",
+      "startedAt": "2026-09-30T01:47:45.869784+00:00",
+      "endedAt": "2026-09-30T01:48:11.704724+00:00",
+      "wrapperExit": 0,
+      "runner": {
+        "startTime": "2026-09-30T01:47:46.422Z",
+        "duration": 20894.741,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "authorAssessment": "passed",
+      "assessment": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit-assessment.json",
+        "bytes": 3813,
+        "sha256": "042b856c2504a2f402c2aa7cef7bbff94eb812708966b77fa223bea1df727ef3"
+      },
+      "outcomeAudit": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/webkit-outcome-audit.json",
+        "bytes": 4043,
+        "sha256": "5c53997c645d9942afa8f37ceede045685970f6f0c495902552d34ef1feef781"
+      },
+      "publicationsMs": {
+        "P1": 153,
+        "P2": 29,
+        "P3": 165,
+        "P4": 28
+      },
+      "retrievalStartMs": 202,
+      "semanticTraceUnionMs": 6205,
+      "networkAbortCounts": {
+        "cancelled": 29
+      },
+      "httpErrors": [],
+      "archives": [
+        {
+          "root": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/tmp/p25-webkit-DqSV3D",
+          "archive": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-state-backup-0.tar.gz",
+          "sha256": "d752a058847d09172c21d5330ac930699536d967e6394d6e995c3da53fc08e19",
+          "entries": 22,
+          "fileBytes": 584696,
+          "actualTarContentsMatched": true
+        },
+        {
+          "root": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/tmp/p25-e4-XDdTKO",
+          "archive": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-state-backup-1.tar.gz",
+          "sha256": "606a27cd3de60bec070655292bc82debc3f2355278d8fdcd3386a16a58659814",
+          "entries": 59,
+          "fileBytes": 917155,
+          "actualTarContentsMatched": true
+        }
+      ],
+      "visual": "Reviewed retained six public-state texts and the exact completed E4 assertions for keyboard confirmation, settled cleanup/overlap/receipt status, aria-busy false, focus and 320px no-overflow geometry. WebKit intentionally has no bitmap or renderer Paint trace; no screenshot review or pixel-level visual claim is made. Existing assertion coverage passed, with that explicit limitation."
+    }
+  ],
+  "finalAudit": {
+    "at": "2026-09-30T01:50:03.582972+00:00",
+    "audit": {
+      "at": "2026-09-30T01:50:03.506426+00:00",
+      "head": "93fa3121ee080c47913fef0b1be9147ca5973180",
+      "executionSealSha256": "4099faaa06ed924212989dcb94055b42e1d961a8c852301117912de4ecd1d7c4",
+      "originalInputsSha256": "820b50ab03f25b038fd086a2177ee187fe264298886ada73f58f2d08d410b5d4",
+      "counts": {
+        "source": 4986,
+        "dependencies": 5758,
+        "runtime": 23604,
+        "helpers": 3,
+        "build": 118
+      },
+      "unchanged": true
+    },
+    "originalSealsMatch": true,
+    "ownedToolChildren": [],
+    "engineStarts": {
+      "firefox": "2026-09-30T01:40:19.501446+00:00",
+      "chromium": "2026-09-30T01:45:39.941556+00:00",
+      "webkit": "2026-09-30T01:47:45.869784+00:00"
+    },
+    "ends": {
+      "firefox": "2026-09-30T01:40:47.864853+00:00",
+      "chromium": "2026-09-30T01:46:10.555241+00:00",
+      "webkit": "2026-09-30T01:48:11.704724+00:00"
+    },
+    "allStartsConsumed": true,
+    "confirmationSHA": "ee32a7c23d01ea14b1a0da364f1f7f50a0790a52d276a6a4c8e4fa181f63eb39"
+  },
+  "wholeSliceSource": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/whole-p25-source-index.json",
+    "bytes": 13528,
+    "sha256": "bb10126aedcfc8d1e16d5a6c692649f13a2ca2a8fdcdbd97749c496c1b438a9a"
+  },
+  "wholeSliceDiff": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/whole-p25.diff",
+    "bytes": 413843,
+    "sha256": "e990a10a14a89bd0191edd49590f0bd409f0fc1f143131cbdbf6d2e574e5bda3"
+  },
+  "nonliveQualification": {
+    "correctionPackage": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/evidence/correction-package.json",
+      "bytes": 2246,
+      "sha256": "19ec76218da9b500a07c7368833d0251d706c7fa62d40c0c25a2ae7442eb7458"
+    },
+    "impactMap": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/evidence/impact-and-results.json",
+      "bytes": 351012,
+      "sha256": "06787dad2181e1619ceeb9e8d7bc285b88a371bb3331a8b9c18550ea4ceb6350"
+    },
+    "supplementPackage": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/evidence/supplemental-retention/package.json",
+      "bytes": 4135,
+      "sha256": "877410178ab46d1229cf82fa00e6ce7c7444d985e4b17c94e3ead47873f056c7"
+    },
+    "disposition": "F1\u2013F4 closed by independent09bc. Original r2-affected remains FAIL220/222 with CAPACITY mechanism and unknown allocation cause. Coordinator explicitly accepts the declared isolated large-prompt/retention arrangement; no aggregate222 PASS, blanket965 reuse, combined-load reliability, proven pre-existing failure, memory fix, peak-memory or copied-prompt reread claim."
+  },
+  "sourceChangesThisExecution": [],
+  "filesTouchedThisExecution": "Only new confirmation, consumed starts, wrapper outputs, engine-private/profile/receipt outputs, assessments and external final-handoff artifacts. No product/assertion/build/helper/environment/threshold changes or retries.",
+  "workflowAssessed": "Each current-build E4 retains known and uncertain writer restart/recovery, one explicit cancellation before acknowledgement, six same-job/attempt semantic states and four authority/delivery identities, late candidate, undo/redo without extra inference, preview-confirmed document deletion, vetoed first confirmation, keyboard confirmation, cleanup/reopen, uncertain overlap acknowledgement, truthful settled status and narrow focus/geometry checks. Both emulator POST paths occur once and one cancel effect remains; production provider authority stays absent.",
+  "retentionAndClosure": "All four retained backend/profile archives were checked against actual tar file contents plus before/after/extracted/current root inventories. All admitted origins were empty after one public reset per engine, cookies empty, native guard passed, writer/context/browser closure positive, object/raster/text resources zero and no pending functional or owned tool processes. Six planned restart SIGKILL exits are distinct from successful final writer closes and wrapper termination arrays remain empty.",
+  "firefox404Qualification": "One Firefox candidate GET404 overlapped accepted known-document deletion; retained DocumentDeleted recorded .465Z lies between request .461Z and response .471Z. Source strict deleted/tombstoned-document guard supports this interpretation; no response body or direct console linkage was captured. It is retained separately, not erased, not a zero-HTTP-error claim, and not evidence about the original pre-observer404 cause. Current Firefox independent DOM/console/CSP/external arrays are empty.",
+  "historicalLimits": [
+    "Original combined222 failure and isolated process disposition remain as above; no base-SHA CI run or pre-existing-failure proof.",
+    "Prior original Chromium2090ms publication failure and unexplained pre-ingress gap remain; this uninstrumented campaign does not establish their cause.",
+    "Earlier failed native cleanup, Saving-status/owner/busy-control findings,404 case, original wrappers and stopped roots remain preserved with their exact scopes.",
+    "Earlier HTTP and schema roots were lost; old ancillary default output was overwritten; original available runner receipts remain.",
+    "Historical v2 gate17 missing exit/input/edit chronology and excluded overlapping gates remain; original killed/hanging wrappers are not retroactively passes.",
+    "A-R01 remains open; lower allocation values are not peak-memory or causal proof; copy.complete is not a copied-prompt reread/hash.",
+    "Firefox and Chromium bitmap reviews are explicit; WebKit has no bitmap/renderer trace, only original public-state/focus/geometry assertions.",
+    "Aborted network requests remain separate from independent error arrays. Final receipt cannot serialize its own later completion; external wrapper/runner proves completion without invented internal rows.",
+    "Public browser/context closure and controlled-origin absence are not OS-wide process absence; no physical IME, assistive-device, H4/I6H/P3, power-loss or CI-Docker qualification.",
+    "No provider/key/paid use, theme integration, report-data changes, acceptance or credit."
+  ],
+  "artifacts": [
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium-assessment.json",
+      "bytes": 3674,
+      "sha256": "99e7ece34235ab91a3698e188d510efb1e894db91debd6965dd738f323d18a3b"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium.post-audit.json",
+      "bytes": 430,
+      "sha256": "6ed4e00a6478e8ce972f41da94ce18f2a99f88be3b55b177121c6b514fa76b4e"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium.pre-audit.json",
+      "bytes": 430,
+      "sha256": "a455ba8e66c87e4964c0cfcc3210d4ad3849f947319bbdddc70743331e2a68ad"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium.result.json",
+      "bytes": 821,
+      "sha256": "6bc87d4d532175c91a56fb7c6c2284ee614f76ca3cad95d4ba9329c5717a3e80"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium.start.json",
+      "bytes": 4920,
+      "sha256": "7228951dec387dbf9452a0407684f3ce4666d3b71787cb5996e1564d36061456"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/chromium.stdout",
+      "bytes": 192,
+      "sha256": "bd115375bf407e03bbc312477a19c70470ef35e01f1f242df969af4945a7f29c"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/coordinator-confirmation.json",
+      "bytes": 556,
+      "sha256": "ee32a7c23d01ea14b1a0da364f1f7f50a0790a52d276a6a4c8e4fa181f63eb39"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/execution-seal.json",
+      "bytes": 411,
+      "sha256": "4099faaa06ed924212989dcb94055b42e1d961a8c852301117912de4ecd1d7c4"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox-assessment.json",
+      "bytes": 3665,
+      "sha256": "1ad07be776a3d2e533f7d822a372276ee58f16a0e51cabb196e472f932347e53"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox.post-audit.json",
+      "bytes": 430,
+      "sha256": "876429302c8864a3ef9d85289a7d55abdc3893023c8acafa8c8981afed5cdade"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox.pre-audit.json",
+      "bytes": 430,
+      "sha256": "d58d41482ec2b8d791062b8973ac77df88373276eea33b5ea0d588a0edf08b2c"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox.result.json",
+      "bytes": 820,
+      "sha256": "c8d3f99a8cddd1dd4cf6c1d1dee28fc3f6b0c0ab2d3cc387d0147f44a8b44d85"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox.start.json",
+      "bytes": 2360,
+      "sha256": "aa863ea089026065f833f2a6401bbd5bd55d384e0705424d07a5e51f7d6ecd5d"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/firefox.stdout",
+      "bytes": 192,
+      "sha256": "f3d51dd1a938bf3d64e8bf86be30ea870d4e063a5ad5c43d518d101ace764d79"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/manifest.json",
+      "bytes": 17205,
+      "sha256": "a57c6d07e73d999411e9f31d481ec235396e78cdfc77d4c135b6b377952b4cc4"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/run.py",
+      "bytes": 18245,
+      "sha256": "2cf32d98a1c4eddc0bce802b8f0cd937c70ba6c60693255f83184d0d082f7411"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit-assessment.json",
+      "bytes": 3813,
+      "sha256": "042b856c2504a2f402c2aa7cef7bbff94eb812708966b77fa223bea1df727ef3"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit.post-audit.json",
+      "bytes": 430,
+      "sha256": "cf5c812c65892a6f4733948486cadfe71d05f0164e214afbeea1f87cb07dcc4d"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit.pre-audit.json",
+      "bytes": 430,
+      "sha256": "04decbfa9a5809f37a059172b940426399cd4c1ba3713d214385f2671a1064a1"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit.result.json",
+      "bytes": 819,
+      "sha256": "3394c715a6ce80f3faba431e5cf2ece9021f04eba8fa6666f0bf7fb276ab156d"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit.start.json",
+      "bytes": 7475,
+      "sha256": "499c16ca6835a07bd7d6acb2f3e1ec67d26740eba8573532da8a3148ac4454ea"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/webkit.stdout",
+      "bytes": 192,
+      "sha256": "d2948ee9df77bc368eea6e54c26dfd26aef17e5d8acee2bd8f39aad09d420ec0"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution/wrapper.test.py",
+      "bytes": 7996,
+      "sha256": "d78dd4bafa8700a9d51c6223a243c44856e12b2ea120acbed6dee54523083024"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/authorized-preflight.json",
+      "bytes": 1351,
+      "sha256": "62d76f765b50a19fe1245dc5f07e816a3ebec4df9947540671444076225f3f10"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/campaign-final-input-audit.json",
+      "bytes": 1036,
+      "sha256": "d66c04cd7e90575ddfacaf77b85f646efcf2c499a2db9b0918484d0ac6c43839"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/campaign-outcome-audit.json",
+      "bytes": 8053,
+      "sha256": "df0bc7b5190a734af139ed66508b936395ea45dccf3d49a98e331efff3f06801"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/campaign-retained-inventory.json",
+      "bytes": 133185,
+      "sha256": "efd15fdc86ed819438265163d4a87efa1b8e7459aed1dc8ce4e93e18e2f38b99"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/checks.json",
+      "bytes": 412,
+      "sha256": "a2e24edaf92f1d0dce4bdb926939bd80447d3e0a32db39cdd8082e27fbfee3bb"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/chromium-outcome-audit.json",
+      "bytes": 3410,
+      "sha256": "78a65b4d1af420fad074795453d2861bd4b716e8ab6ae7930c43eabfd383412a"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/closure.json",
+      "bytes": 195,
+      "sha256": "4baa964dd021210053e6d2aeaf557684bbede1d1489c377cf955b754dcc41e30"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/collection.json",
+      "bytes": 225,
+      "sha256": "f822d585ca134c0f242f4bdcc5361692b6799e12edb4081e2b618d432d360ff0"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/collection.start.json",
+      "bytes": 1073,
+      "sha256": "8355af1c5c7d1afc64ead494e4e33dcd30cb1d2c17e85b0f7bd41001862ae208"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/collection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/collection.stdout",
+      "bytes": 149,
+      "sha256": "f387c693eaf78f1f5d9595d85a4a905ca321725aa3ed3c01fef2cbe02d21fa99"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/controls.json",
+      "bytes": 225,
+      "sha256": "7d00b41d4f998fbd851c09a2f92237ecaa00f06c32b37c1cbf707e5926eaad04"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/controls.start.json",
+      "bytes": 377,
+      "sha256": "358f42646a2a7e9309021046b7abee52a5dae156200395e5fdde6c7b983ac8eb"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/controls.stderr",
+      "bytes": 763,
+      "sha256": "d42143cb84abe848c2bc97367a17148c72d05d90e3ec1edd1cd844ab5a24fee9"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/controls.stdout",
+      "bytes": 163,
+      "sha256": "d96e23d9aa632e407a1e1af2d370f236e77e50b328dc137eefeba086b9f412d2"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/final-input-audit.json",
+      "bytes": 430,
+      "sha256": "f2b4fe2ebbb41eef6dc500eca912710486037ea4e7856320af8b86ae2576a869"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/firefox-admission-audit.json",
+      "bytes": 2573,
+      "sha256": "bd0b44abb7b46068f0cd9a4b8d3dd5a799cd436fe815fab0fa5b00e38c6bb742"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/firefox-outcome-audit.json",
+      "bytes": 5368,
+      "sha256": "6822c2f23dce32bb592f76eb4409cb4ee94b3276389ecb38c4840721a2a2b3a6"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/literal-plan.json",
+      "bytes": 4854,
+      "sha256": "c03d53ca07ae5b9176c52f2048f9314fcf8a70baee61a04ed3fe2ca7f71e1487"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/original-seal-comparison.json",
+      "bytes": 1399,
+      "sha256": "a42475e76cce1600406eaf34e58a1869473ebdd93deae7fcf681f711ba75e9bb"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/reuse-map.json",
+      "bytes": 11971,
+      "sha256": "fde12a371114e567f85a7f32d9f65930e89d51b81a2a9bd34a56ac90ed37b9f2"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/syntax.json",
+      "bytes": 573,
+      "sha256": "54c0d9cb691f14ebb4b544bc6a3f5e383dcff7592dc3dc22f392da79a5d9b5b1"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/webkit-admission-audit.json",
+      "bytes": 5227,
+      "sha256": "0a08009c8eb8c50762aeb1a342fde9418cc3f3f2a9d103cb270bb72a921f20ba"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/webkit-outcome-audit.json",
+      "bytes": 4043,
+      "sha256": "5c53997c645d9942afa8f37ceede045685970f6f0c495902552d34ef1feef781"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/whole-p25-source-index.json",
+      "bytes": 13528,
+      "sha256": "bb10126aedcfc8d1e16d5a6c692649f13a2ca2a8fdcdbd97749c496c1b438a9a"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/whole-p25.diff",
+      "bytes": 413843,
+      "sha256": "e990a10a14a89bd0191edd49590f0bd409f0fc1f143131cbdbf6d2e574e5bda3"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/wrapper-package.json",
+      "bytes": 9728,
+      "sha256": "3f72d478e74b2921ac4877bedf2f53b8a7fa473dec8398f3cf1ffd09ba1a5c7c"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/wrapper.diff",
+      "bytes": 53297,
+      "sha256": "bb3bb1e5a78469f2414e7c292e8c02d83395bac863ac02be0652c0446ffe55d2"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/browser/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/browser.json",
+      "bytes": 3330,
+      "sha256": "fc70bc23aee1b5b0e040a212ea35e45ed8f434dfe12d95f2badbe741619cad50"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/deletion-narrow.png",
+      "bytes": 87437,
+      "sha256": "d7e7997563393b17b5e9e86e3b64f104593e006ba95f23e69c70edd59ee5021f"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/e4-before-cleanup.json",
+      "bytes": 2868635,
+      "sha256": "812f1f39568849ffbd1ea6ea58a2c9df1be5a52567adf0498bd18fac9510f1cb"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/e4-observations.json",
+      "bytes": 2979879,
+      "sha256": "c9cd23897a7daa208ef42ea679dd23646266a535faefccdb0c6ff2fbbb986dca"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/e4-state-backup-0.tar.gz",
+      "bytes": 79313,
+      "sha256": "7ea59c505dad967f9a1fb23d042d05ac9828328fd53862decf80135db7060aed"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/firefox/receipt/e4-state-backup-0.tar.gz.inventory.json",
+      "bytes": 40443,
+      "sha256": "7dab4a9f99baa482b9841c1f3524385c3a600afc6eb7eeaa74d64777f5582832"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/browser/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/browser.json",
+      "bytes": 3323,
+      "sha256": "fa206dbc1ca89fbca3daad97ea92257e64104515f6dc5fe69eecb764b4ea217f"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/deletion-narrow.png",
+      "bytes": 78101,
+      "sha256": "948777695960a4fb187a38a69b60cb7e8281229f0e41743951b230f5fad53f6b"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/e4-before-cleanup.json",
+      "bytes": 2875117,
+      "sha256": "ebf0eb990238d4664ae3715de56e1bc0f3f50c246cc28186eebfb8bcf382fad2"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/e4-observations.json",
+      "bytes": 3089711,
+      "sha256": "fa176feadcb720463dc047e13acc8555d39baaedd89ee590cc8a8f717c2de890"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/e4-state-backup-0.tar.gz",
+      "bytes": 75439,
+      "sha256": "b608c48164242aea39c7425d4ba3a2f4d868f1c2570f8325500ae4811477f7da"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/chromium/receipt/e4-state-backup-0.tar.gz.inventory.json",
+      "bytes": 35994,
+      "sha256": "ed5e4d6478f8134e3e029ffb51d730df75b5a4b3aeaaa19d0b0aebc8c14b25a3"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/browser/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/browser.json",
+      "bytes": 3319,
+      "sha256": "828efbfb82957fd7cc2085f5f27ce0c738751176ad2171f6e21c3ad8859a55d0"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-before-cleanup.json",
+      "bytes": 2789757,
+      "sha256": "db8e0b65f140d5bf813aacb8038f9841bfef63976d7d1a18e33ca641c47fcc1e"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-observations.json",
+      "bytes": 2906880,
+      "sha256": "53509797cb7ed62c9eb94fb0137f3d2da5198d264e549e8d1eb4bf42763881ef"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-state-backup-0.tar.gz",
+      "bytes": 11406,
+      "sha256": "d752a058847d09172c21d5330ac930699536d967e6394d6e995c3da53fc08e19"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-state-backup-0.tar.gz.inventory.json",
+      "bytes": 12087,
+      "sha256": "eca903a5f19952497f52493cc6b29d62498921fee6be1144d2c98fed03e4a6fa"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-state-backup-1.tar.gz",
+      "bytes": 73715,
+      "sha256": "606a27cd3de60bec070655292bc82debc3f2355278d8fdcd3386a16a58659814"
+    },
+    {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-runs/webkit/receipt/e4-state-backup-1.tar.gz.inventory.json",
+      "bytes": 35996,
+      "sha256": "52f29f25257e72db798f4d13fa897fd90ac3b2762edcbcdcf501c79e5d17c92e"
+    }
+  ]
+}

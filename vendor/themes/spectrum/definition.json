@@ -1,0 +1,1724 @@
+{
+  "id": "spectrum-inspired",
+  "inputs": {
+    "light": "inspired/spectrum.light.json",
+    "dark": "inspired/spectrum.dark.json"
+  },
+  "density": "compact",
+  "title": "Spectrum 2-inspired \u00b7 Light and dark",
+  "rationale": "Spectrum 2 interpretation of @adobe/spectrum-tokens 15.4.1 and React Spectrum S2 1.7.1. Independent source light/dark palettes, default desktop M typography, heavy heading hierarchy, pill actions, precise option geometry, three-layer elevation, distinct status toast fills and immediate family focus. Adobe Clean uses local font availability with disclosed system fallbacks; protected targets, accessible functional boundaries and stable anchored-popup geometry are intentional adaptations. See the September 20 refresh research for exact source mapping and limits. September 22 Gen2 WC comparison adds neutral filled Reset actions, compact neutral badges and a 6px progress track through public companion/token APIs; latest design-data palette and accessibility adaptations remain authoritative.",
+  "reference": {
+    "url": "https://opensource.adobe.com/spectrum-design-data/s2-tokens-viewer/",
+    "flavor": "Spectrum 2 light and dark; @adobe/spectrum-tokens 15.4.1",
+    "sourceCommit": "05c64ff95a62826179e8e0921d3934f636346f27",
+    "reactSourceCommit": "4dd44e0f400636a87a9ad4390903e78c5ae6113c",
+    "originalMapping": "artifacts/theme-candidates/spectrum2-latest/spectrum-mapping.md",
+    "reactVersion": "1.7.1",
+    "verifiedAt": "2026-09-20",
+    "buttonGuide": "https://github.com/adobe/spectrum-design-data/blob/05c64ff95a62826179e8e0921d3934f636346f27/docs/s2-docs/components/actions/button.md",
+    "pairedMapping": "tooling/theme-candidates/inspired/mapping.md",
+    "pairedProvenance": "tooling/theme-candidates/inspired/provenance.json",
+    "toastAudit": "plans/toast-theme-review.md",
+    "refreshDateUTC": "2026-09-20",
+    "refreshReport": "plans/theme-refresh-report.md",
+    "tokenPackageVersion": "15.4.1",
+    "webComponentComparison": {
+      "package": "@adobe/spectrum-wc",
+      "version": "2.0.0-beta.3",
+      "verifiedAt": "2026-09-22",
+      "report": "plans/spectrum-wc-gen2-migration.md",
+      "measurements": "artifacts/spectrum-wc-migration/gen2-measured.json"
+    }
+  },
+  "baseOptions": {
+    "light": {
+      "pins": {
+        "font.ui.family": [
+          "adobe-clean-spectrum-vf",
+          "adobe-clean-variable",
+          "adobe-clean",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        "font.code.family": [
+          "source-code-pro",
+          "Source Code Pro",
+          "Monaco",
+          "monospace"
+        ],
+        "font.ui.line-height": 1.2857142857142858,
+        "font.metadata.line-height": 1.2857142857142858,
+        "font.heading-small.size": {
+          "value": 1.25,
+          "unit": "rem"
+        },
+        "font.heading-small.line-height": 1.2,
+        "font.heading-small.weight": 800,
+        "font.heading-medium.size": {
+          "value": 1.375,
+          "unit": "rem"
+        },
+        "font.heading-medium.line-height": 1.1818181818181819,
+        "font.heading-medium.weight": 800,
+        "font.heading-large.size": {
+          "value": 1.75,
+          "unit": "rem"
+        },
+        "font.heading-large.line-height": 1.1428571428571428,
+        "font.heading-large.weight": 800,
+        "shadow.overlay": [
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0,
+                0,
+                0
+              ],
+              "alpha": 0.08
+            },
+            "offsetX": {
+              "value": 0,
+              "unit": "px"
+            },
+            "offsetY": {
+              "value": 4,
+              "unit": "px"
+            },
+            "blur": {
+              "value": 12,
+              "unit": "px"
+            },
+            "spread": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0,
+                0,
+                0
+              ],
+              "alpha": 0.04
+            },
+            "offsetX": {
+              "value": 0,
+              "unit": "px"
+            },
+            "offsetY": {
+              "value": 2,
+              "unit": "px"
+            },
+            "blur": {
+              "value": 6,
+              "unit": "px"
+            },
+            "spread": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0,
+                0,
+                0
+              ],
+              "alpha": 0.12
+            },
+            "offsetX": {
+              "value": 0,
+              "unit": "px"
+            },
+            "offsetY": {
+              "value": 0,
+              "unit": "px"
+            },
+            "blur": {
+              "value": 2,
+              "unit": "px"
+            },
+            "spread": {
+              "value": 0,
+              "unit": "px"
+            }
+          }
+        ],
+        "shadow.dialog": {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0,
+              0,
+              0
+            ],
+            "alpha": 0
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 0,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 0,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        "duration.fast": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "duration.regular": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "component.editor-token.border-color": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0
+        },
+        "font.body.family": "{font.ui.family}",
+        "font.data.family": "{font.ui.family}",
+        "font.metadata.family": "{font.ui.family}",
+        "font.heading-small.family": "{font.ui.family}",
+        "font.heading-medium.family": "{font.ui.family}",
+        "font.heading-large.family": "{font.ui.family}",
+        "component.input.radius": "{radius.control}",
+        "component.input.border-width": "{border.width}",
+        "component.input.invalid-border-width": "{border.invalid-width}",
+        "component.input.border-color": "{color.boundary}",
+        "component.input.hover-border-color": "{color.action-text}",
+        "component.input.invalid-border-color": "{color.danger-text}",
+        "component.surface.shadow": "{shadow.none}",
+        "component.card.shadow": "{shadow.none}",
+        "component.button.shadow": "{shadow.none}",
+        "component.button.pressed-shadow": "{shadow.none}",
+        "component.button.pressed-scale": 0.94,
+        "component.button.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.navigation.hover-background": "{color.surface-subtle}",
+        "component.navigation.hover-color": "{color.text}",
+        "component.navigation.current-background": "{color.selected}",
+        "component.navigation.current-color": "{color.text}",
+        "component.navigation.pressed-background": "{color.accent-subtle}",
+        "component.navigation.current-indicator-width": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.navigation.current-indicator-color": "{color.action}",
+        "component.tab.hover-background": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0
+        },
+        "component.tab.hover-color": "{color.text}",
+        "component.tab.selected-background": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0
+        },
+        "component.tab.selected-color": "{color.text}",
+        "component.tab.pressed-background": "{color.accent-subtle}",
+        "component.tab.indicator-color": "{color.text}",
+        "font.ui.style": "normal",
+        "font.ui.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.body.style": "normal",
+        "font.body.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.input.style": "normal",
+        "font.input.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.data.style": "normal",
+        "font.data.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.metadata.style": "normal",
+        "font.metadata.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.label-strong.style": "normal",
+        "font.label-strong.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.heading-small.style": "normal",
+        "font.heading-small.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.heading-medium.style": "normal",
+        "font.heading-medium.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.heading-large.style": "normal",
+        "font.heading-large.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.popup.enter-duration": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "component.popup.enter-ease": "{ease.enter}",
+        "component.popup.exit-duration": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "component.popup.exit-ease": "{ease.exit}",
+        "component.dialog.enter-duration": {
+          "value": 250,
+          "unit": "ms"
+        },
+        "component.dialog.enter-ease": "{ease.enter}",
+        "component.dialog.exit-duration": {
+          "value": 130,
+          "unit": "ms"
+        },
+        "component.dialog.exit-ease": "{ease.exit}",
+        "component.toast.enter-duration": {
+          "value": 400,
+          "unit": "ms"
+        },
+        "component.toast.enter-ease": "{ease.enter}",
+        "component.toast.exit-duration": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "component.toast.exit-ease": "{ease.exit}",
+        "component.button.press-duration": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "component.button.release-duration": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "component.choice.size": {
+          "value": 20,
+          "unit": "px"
+        },
+        "component.segmented.pressed-background": "{component.option.pressed-background}",
+        "component.segmented.pressed-color": "{component.option.pressed-color}",
+        "component.accordion.pressed-background": "{component.option.pressed-background}",
+        "component.accordion.pressed-color": "{component.option.pressed-color}",
+        "component.tab.pressed-color": "{component.option.pressed-color}",
+        "component.rating.pressed-background": "{component.option.pressed-background}",
+        "component.rating.pressed-color": "{component.option.pressed-color}",
+        "component.combobox-trigger.pressed-background": "{component.option.pressed-background}",
+        "component.combobox-trigger.pressed-color": "{component.option.pressed-color}",
+        "component.navigation.pressed-color": "{component.option.pressed-color}",
+        "component.editor-token.pressed-background": "{component.option.pressed-background}",
+        "component.editor-token.pressed-color": "{component.option.pressed-color}",
+        "component.select.pressed-background": "{component.option.pressed-background}",
+        "component.select.pressed-color": "{component.option.pressed-color}",
+        "component.number-step.pressed-background": "{component.option.pressed-background}",
+        "component.segmented.pressed-scale": 1,
+        "component.segmented.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.segmented.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.segmented.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.accordion.pressed-scale": 1,
+        "component.accordion.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.accordion.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.accordion.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.tab.pressed-scale": 1,
+        "component.tab.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.tab.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.tab.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.rating.pressed-scale": 1,
+        "component.rating.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.rating.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.rating.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.combobox-trigger.pressed-scale": 1,
+        "component.combobox-trigger.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.combobox-trigger.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.combobox-trigger.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.navigation.pressed-scale": 1,
+        "component.navigation.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.navigation.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.navigation.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.editor-token.pressed-scale": 1,
+        "component.editor-token.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.editor-token.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.editor-token.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.option.pressed-scale": 1,
+        "component.option.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.option.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.option.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.calendar.pressed-scale": 1,
+        "component.calendar.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.calendar.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.calendar.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.checkbox.pressed-scale": 1,
+        "component.checkbox.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.checkbox.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.checkbox.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.radio.pressed-scale": 1,
+        "component.radio.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.radio.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.radio.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.switch.pressed-scale": 1,
+        "component.switch.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.switch.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.switch.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.select.pressed-scale": 1,
+        "component.select.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.select.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.select.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.number-step.pressed-scale": 1,
+        "component.number-step.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.number-step.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.number-step.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.slider-thumb.pressed-scale": 1,
+        "component.slider-thumb.press-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.slider-thumb.release-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.color-plane-thumb.pressed-scale": 1,
+        "component.color-plane-thumb.press-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.color-plane-thumb.release-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.badge.radius": {
+          "value": 0.4375,
+          "unit": "rem"
+        },
+        "component.progress.size": {
+          "value": 0.375,
+          "unit": "rem"
+        },
+        "space.badge-block": {
+          "value": 0.1875,
+          "unit": "rem"
+        },
+        "space.badge-inline": {
+          "value": 0.5625,
+          "unit": "rem"
+        }
+      },
+      "source": {
+        "theme": {
+          "button": {
+            "primary": {
+              "rest-background": {
+                "$type": "color",
+                "$value": "{color.action}"
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.on-action}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": "{color.action-hover}"
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.on-action}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": "{color.action-pressed}"
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.on-action}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              }
+            },
+            "secondary": {
+              "rest-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0.9137254901960784,
+                    0.9137254901960784,
+                    0.9137254901960784
+                  ],
+                  "alpha": 1
+                }
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.text}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0.8823529411764706,
+                    0.8823529411764706,
+                    0.8823529411764706
+                  ],
+                  "alpha": 1
+                }
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.text}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0.8509803921568627,
+                    0.8509803921568627,
+                    0.8509803921568627
+                  ],
+                  "alpha": 1
+                }
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.text}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              }
+            },
+            "ghost": {
+              "rest-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.action-text}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": "{color.surface-subtle}"
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.action-text}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": "{color.selected}"
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.action-text}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              }
+            },
+            "danger": {
+              "rest-background": {
+                "$type": "color",
+                "$value": "{color.surface}"
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": "{color.surface-subtle}"
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.surface}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              }
+            }
+          },
+          "badge": {
+            "size": {
+              "$type": "dimension",
+              "$value": {
+                "value": 0.75,
+                "unit": "rem"
+              }
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": 1.3333333333333333
+            },
+            "weight": {
+              "$type": "fontWeight",
+              "$value": 500
+            },
+            "neutral-background": {
+              "$type": "color",
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.3137254901960784,
+                  0.3137254901960784,
+                  0.3137254901960784
+                ],
+                "alpha": 1
+              }
+            },
+            "neutral-color": {
+              "$type": "color",
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "alpha": 1
+              }
+            }
+          }
+        },
+        "component": {
+          "badge": {
+            "radius": {
+              "$type": "dimension",
+              "$value": {
+                "value": 0.4375,
+                "unit": "rem"
+              }
+            },
+            "background": {
+              "$type": "color",
+              "$value": "{color.surface-subtle}"
+            },
+            "color": {
+              "$type": "color",
+              "$value": "{color.text}"
+            }
+          },
+          "progress": {
+            "size": {
+              "$type": "dimension",
+              "$value": {
+                "value": 0.375,
+                "unit": "rem"
+              }
+            },
+            "track-color": {
+              "$type": "color",
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.8549019607843137,
+                  0.8549019607843137,
+                  0.8549019607843137
+                ],
+                "alpha": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "dark": {
+      "pins": {
+        "font.ui.family": [
+          "adobe-clean-spectrum-vf",
+          "adobe-clean-variable",
+          "adobe-clean",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        "font.code.family": [
+          "source-code-pro",
+          "Source Code Pro",
+          "Monaco",
+          "monospace"
+        ],
+        "font.ui.line-height": 1.2857142857142858,
+        "font.metadata.line-height": 1.2857142857142858,
+        "font.heading-small.size": {
+          "value": 1.25,
+          "unit": "rem"
+        },
+        "font.heading-small.line-height": 1.2,
+        "font.heading-small.weight": 800,
+        "font.heading-medium.size": {
+          "value": 1.375,
+          "unit": "rem"
+        },
+        "font.heading-medium.line-height": 1.1818181818181819,
+        "font.heading-medium.weight": 800,
+        "font.heading-large.size": {
+          "value": 1.75,
+          "unit": "rem"
+        },
+        "font.heading-large.line-height": 1.1428571428571428,
+        "font.heading-large.weight": 800,
+        "shadow.overlay": [
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0,
+                0,
+                0
+              ],
+              "alpha": 0.24
+            },
+            "offsetX": {
+              "value": 0,
+              "unit": "px"
+            },
+            "offsetY": {
+              "value": 4,
+              "unit": "px"
+            },
+            "blur": {
+              "value": 12,
+              "unit": "px"
+            },
+            "spread": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0,
+                0,
+                0
+              ],
+              "alpha": 0.12
+            },
+            "offsetX": {
+              "value": 0,
+              "unit": "px"
+            },
+            "offsetY": {
+              "value": 2,
+              "unit": "px"
+            },
+            "blur": {
+              "value": 6,
+              "unit": "px"
+            },
+            "spread": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0,
+                0,
+                0
+              ],
+              "alpha": 0.36
+            },
+            "offsetX": {
+              "value": 0,
+              "unit": "px"
+            },
+            "offsetY": {
+              "value": 0,
+              "unit": "px"
+            },
+            "blur": {
+              "value": 2,
+              "unit": "px"
+            },
+            "spread": {
+              "value": 0,
+              "unit": "px"
+            }
+          }
+        ],
+        "shadow.dialog": {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0,
+              0,
+              0
+            ],
+            "alpha": 0
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 0,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 0,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        "duration.fast": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "duration.regular": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "component.editor-token.border-color": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0
+        },
+        "font.body.family": "{font.ui.family}",
+        "font.data.family": "{font.ui.family}",
+        "font.metadata.family": "{font.ui.family}",
+        "font.heading-small.family": "{font.ui.family}",
+        "font.heading-medium.family": "{font.ui.family}",
+        "font.heading-large.family": "{font.ui.family}",
+        "component.input.radius": "{radius.control}",
+        "component.input.border-width": "{border.width}",
+        "component.input.invalid-border-width": "{border.invalid-width}",
+        "component.input.border-color": "{color.boundary}",
+        "component.input.hover-border-color": "{color.action-text}",
+        "component.input.invalid-border-color": "{color.danger-text}",
+        "component.surface.shadow": "{shadow.none}",
+        "component.card.shadow": "{shadow.none}",
+        "component.button.shadow": "{shadow.none}",
+        "component.button.pressed-shadow": "{shadow.none}",
+        "component.button.pressed-scale": 0.94,
+        "component.button.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.navigation.hover-background": "{color.surface-subtle}",
+        "component.navigation.hover-color": "{color.text}",
+        "component.navigation.current-background": "{color.selected}",
+        "component.navigation.current-color": "{color.text}",
+        "component.navigation.pressed-background": "{color.accent-subtle}",
+        "component.navigation.current-indicator-width": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.navigation.current-indicator-color": "{color.action}",
+        "component.tab.hover-background": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0
+        },
+        "component.tab.hover-color": "{color.text}",
+        "component.tab.selected-background": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0
+        },
+        "component.tab.selected-color": "{color.text}",
+        "component.tab.pressed-background": "{color.accent-subtle}",
+        "component.tab.indicator-color": "{color.text}",
+        "font.ui.style": "normal",
+        "font.ui.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.body.style": "normal",
+        "font.body.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.input.style": "normal",
+        "font.input.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.data.style": "normal",
+        "font.data.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.metadata.style": "normal",
+        "font.metadata.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.label-strong.style": "normal",
+        "font.label-strong.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.heading-small.style": "normal",
+        "font.heading-small.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.heading-medium.style": "normal",
+        "font.heading-medium.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "font.heading-large.style": "normal",
+        "font.heading-large.tracking": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.popup.enter-duration": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "component.popup.enter-ease": "{ease.enter}",
+        "component.popup.exit-duration": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "component.popup.exit-ease": "{ease.exit}",
+        "component.dialog.enter-duration": {
+          "value": 250,
+          "unit": "ms"
+        },
+        "component.dialog.enter-ease": "{ease.enter}",
+        "component.dialog.exit-duration": {
+          "value": 130,
+          "unit": "ms"
+        },
+        "component.dialog.exit-ease": "{ease.exit}",
+        "component.toast.enter-duration": {
+          "value": 400,
+          "unit": "ms"
+        },
+        "component.toast.enter-ease": "{ease.enter}",
+        "component.toast.exit-duration": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "component.toast.exit-ease": "{ease.exit}",
+        "component.button.press-duration": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "component.button.release-duration": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "component.choice.size": {
+          "value": 20,
+          "unit": "px"
+        },
+        "component.segmented.pressed-background": "{component.option.pressed-background}",
+        "component.segmented.pressed-color": "{component.option.pressed-color}",
+        "component.accordion.pressed-background": "{component.option.pressed-background}",
+        "component.accordion.pressed-color": "{component.option.pressed-color}",
+        "component.tab.pressed-color": "{component.option.pressed-color}",
+        "component.rating.pressed-background": "{component.option.pressed-background}",
+        "component.rating.pressed-color": "{component.option.pressed-color}",
+        "component.combobox-trigger.pressed-background": "{component.option.pressed-background}",
+        "component.combobox-trigger.pressed-color": "{component.option.pressed-color}",
+        "component.navigation.pressed-color": "{component.option.pressed-color}",
+        "component.editor-token.pressed-background": "{component.option.pressed-background}",
+        "component.editor-token.pressed-color": "{component.option.pressed-color}",
+        "component.select.pressed-background": "{component.option.pressed-background}",
+        "component.select.pressed-color": "{component.option.pressed-color}",
+        "component.number-step.pressed-background": "{component.option.pressed-background}",
+        "component.segmented.pressed-scale": 1,
+        "component.segmented.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.segmented.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.segmented.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.accordion.pressed-scale": 1,
+        "component.accordion.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.accordion.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.accordion.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.tab.pressed-scale": 1,
+        "component.tab.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.tab.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.tab.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.rating.pressed-scale": 1,
+        "component.rating.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.rating.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.rating.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.combobox-trigger.pressed-scale": 1,
+        "component.combobox-trigger.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.combobox-trigger.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.combobox-trigger.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.navigation.pressed-scale": 1,
+        "component.navigation.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.navigation.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.navigation.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.editor-token.pressed-scale": 1,
+        "component.editor-token.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.editor-token.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.editor-token.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.option.pressed-scale": 1,
+        "component.option.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.option.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.option.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.calendar.pressed-scale": 1,
+        "component.calendar.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.calendar.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.calendar.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.checkbox.pressed-scale": 1,
+        "component.checkbox.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.checkbox.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.checkbox.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.radio.pressed-scale": 1,
+        "component.radio.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.radio.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.radio.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.switch.pressed-scale": 1,
+        "component.switch.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.switch.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.switch.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.select.pressed-scale": 1,
+        "component.select.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.select.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.select.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.number-step.pressed-scale": 1,
+        "component.number-step.pressed-offset": {
+          "value": 0,
+          "unit": "px"
+        },
+        "component.number-step.press-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.number-step.release-duration": {
+          "value": 80,
+          "unit": "ms"
+        },
+        "component.slider-thumb.pressed-scale": 1,
+        "component.slider-thumb.press-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.slider-thumb.release-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.color-plane-thumb.pressed-scale": 1,
+        "component.color-plane-thumb.press-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.color-plane-thumb.release-duration": {
+          "value": 100,
+          "unit": "ms"
+        },
+        "component.badge.radius": {
+          "value": 0.4375,
+          "unit": "rem"
+        },
+        "component.progress.size": {
+          "value": 0.375,
+          "unit": "rem"
+        },
+        "space.badge-block": {
+          "value": 0.1875,
+          "unit": "rem"
+        },
+        "space.badge-inline": {
+          "value": 0.5625,
+          "unit": "rem"
+        }
+      },
+      "source": {
+        "theme": {
+          "button": {
+            "primary": {
+              "rest-background": {
+                "$type": "color",
+                "$value": "{color.action}"
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.on-action}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": "{color.action-hover}"
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.on-action}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": "{color.action-pressed}"
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.on-action}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              }
+            },
+            "secondary": {
+              "rest-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0.19607843137254902,
+                    0.19607843137254902,
+                    0.19607843137254902
+                  ],
+                  "alpha": 1
+                }
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.text}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0.2235294117647059,
+                    0.2235294117647059,
+                    0.2235294117647059
+                  ],
+                  "alpha": 1
+                }
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.text}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0.26666666666666666,
+                    0.26666666666666666,
+                    0.26666666666666666
+                  ],
+                  "alpha": 1
+                }
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.text}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              }
+            },
+            "ghost": {
+              "rest-background": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.action-text}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": "{color.surface-subtle}"
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.action-text}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": "{color.selected}"
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.action-text}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": {
+                  "colorSpace": "srgb",
+                  "components": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "alpha": 0
+                }
+              }
+            },
+            "danger": {
+              "rest-background": {
+                "$type": "color",
+                "$value": "{color.surface}"
+              },
+              "rest-color": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              },
+              "hover-background": {
+                "$type": "color",
+                "$value": "{color.surface-subtle}"
+              },
+              "hover-color": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              },
+              "pressed-background": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              },
+              "pressed-color": {
+                "$type": "color",
+                "$value": "{color.surface}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{color.danger-text}"
+              }
+            }
+          },
+          "badge": {
+            "size": {
+              "$type": "dimension",
+              "$value": {
+                "value": 0.75,
+                "unit": "rem"
+              }
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": 1.3333333333333333
+            },
+            "weight": {
+              "$type": "fontWeight",
+              "$value": 500
+            },
+            "neutral-background": {
+              "$type": "color",
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.42745098039215684,
+                  0.42745098039215684,
+                  0.42745098039215684
+                ],
+                "alpha": 1
+              }
+            },
+            "neutral-color": {
+              "$type": "color",
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "alpha": 1
+              }
+            }
+          }
+        },
+        "component": {
+          "badge": {
+            "radius": {
+              "$type": "dimension",
+              "$value": {
+                "value": 0.4375,
+                "unit": "rem"
+              }
+            },
+            "background": {
+              "$type": "color",
+              "$value": "{color.surface-subtle}"
+            },
+            "color": {
+              "$type": "color",
+              "$value": "{color.text}"
+            }
+          },
+          "progress": {
+            "size": {
+              "$type": "dimension",
+              "$value": {
+                "value": 0.375,
+                "unit": "rem"
+              }
+            },
+            "track-color": {
+              "$type": "color",
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.2235294117647059,
+                  0.2235294117647059,
+                  0.2235294117647059
+                ],
+                "alpha": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "label": "Spectrum 2-inspired",
+  "companion": {
+    "schemaVersion": 1,
+    "id": "spectrum-inspired-variants",
+    "rules": [
+      {
+        "target": "button",
+        "variant": "primary",
+        "tokens": {
+          "--en-button-rest-background": "theme.button.primary.rest-background",
+          "--en-button-rest-color": "theme.button.primary.rest-color",
+          "--en-button-hover-background": "theme.button.primary.hover-background",
+          "--en-button-hover-color": "theme.button.primary.hover-color",
+          "--en-button-pressed-background": "theme.button.primary.pressed-background",
+          "--en-button-pressed-color": "theme.button.primary.pressed-color",
+          "--en-button-border-color": "theme.button.primary.border-color"
+        }
+      },
+      {
+        "target": "button",
+        "variant": "secondary",
+        "tokens": {
+          "--en-button-rest-background": "theme.button.secondary.rest-background",
+          "--en-button-rest-color": "theme.button.secondary.rest-color",
+          "--en-button-hover-background": "theme.button.secondary.hover-background",
+          "--en-button-hover-color": "theme.button.secondary.hover-color",
+          "--en-button-pressed-background": "theme.button.secondary.pressed-background",
+          "--en-button-pressed-color": "theme.button.secondary.pressed-color",
+          "--en-button-border-color": "theme.button.secondary.border-color"
+        }
+      },
+      {
+        "target": "button",
+        "variant": "ghost",
+        "tokens": {
+          "--en-button-rest-background": "theme.button.ghost.rest-background",
+          "--en-button-rest-color": "theme.button.ghost.rest-color",
+          "--en-button-hover-background": "theme.button.ghost.hover-background",
+          "--en-button-hover-color": "theme.button.ghost.hover-color",
+          "--en-button-pressed-background": "theme.button.ghost.pressed-background",
+          "--en-button-pressed-color": "theme.button.ghost.pressed-color",
+          "--en-button-border-color": "theme.button.ghost.border-color"
+        }
+      },
+      {
+        "target": "button",
+        "variant": "danger",
+        "tokens": {
+          "--en-button-rest-background": "theme.button.danger.rest-background",
+          "--en-button-rest-color": "theme.button.danger.rest-color",
+          "--en-button-hover-background": "theme.button.danger.hover-background",
+          "--en-button-hover-color": "theme.button.danger.hover-color",
+          "--en-button-pressed-background": "theme.button.danger.pressed-background",
+          "--en-button-pressed-color": "theme.button.danger.pressed-color",
+          "--en-button-border-color": "theme.button.danger.border-color"
+        }
+      },
+      {
+        "target": "reset-action",
+        "tokens": {
+          "--en-button-rest-background": "theme.button.secondary.rest-background",
+          "--en-button-rest-color": "theme.button.secondary.rest-color",
+          "--en-button-hover-background": "theme.button.secondary.hover-background",
+          "--en-button-hover-color": "theme.button.secondary.hover-color",
+          "--en-button-pressed-background": "theme.button.secondary.pressed-background",
+          "--en-button-pressed-color": "theme.button.secondary.pressed-color",
+          "--en-button-border-color": "theme.button.secondary.border-color",
+          "--en-font-metadata-size": "font.ui.size"
+        }
+      },
+      {
+        "target": "badge",
+        "tokens": {
+          "--en-font-ui-weight": "theme.badge.weight",
+          "--en-font-metadata-size": "theme.badge.size",
+          "--en-font-metadata-size-small": "theme.badge.size",
+          "--en-font-metadata-size-medium": "theme.badge.size",
+          "--en-font-metadata-size-large": "theme.badge.size",
+          "--en-font-metadata-line-height": "theme.badge.line-height"
+        }
+      },
+      {
+        "target": "badge",
+        "variant": "neutral",
+        "tokens": {
+          "--en-badge-background": "theme.badge.neutral-background",
+          "--en-badge-color": "theme.badge.neutral-color"
+        }
+      }
+    ]
+  }
+}

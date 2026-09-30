@@ -1,0 +1,14 @@
+{
+  "revision": 1032,
+  "directory": "/Users/westbrook/Documents/repos/ideogram-edit-progress-report/exports/harness-handoff-20260930",
+  "archive": "/Users/westbrook/Documents/repos/ideogram-edit-progress-report/exports/harness-handoff-20260930.tar.gz",
+  "archiveBytes": 30342070,
+  "archiveSha256": "0182ff02c11929a249b850252a91e9b78716148f8965edb23e9779ebdd5e0d0d",
+  "manifestSha256": "36df27018e750b2a991d7ec8acc0802b1ca2e9e2839ea1705d8d2f4ca68ed7f3",
+  "canonicalSha256": "394253df08b9b8d19e0b057c285a05a0d4680174c009e84bae086d652372db62",
+  "files": 75,
+  "archiveMembers": 77,
+  "allArchiveBytesVerified": true,
+  "workspaceAPIsRequired": false,
+  "mainIdentityPending": true
+}

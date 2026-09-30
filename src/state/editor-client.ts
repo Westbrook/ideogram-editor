@@ -133,6 +133,7 @@ export class EditorClient {
       const current=documents.find(d=>d.id===this.view.document?.id)??null;
       this.patch({documents,cursor:published.cursor});
       if(current)await this.loadDocument(current);
+      else if(this.view.document)this.patch({document:null,image:null,history:[],checkpoints:[],selected:[],save:null});
     })().finally(()=>{this.refreshTask=undefined;if(this.refreshAgain){this.refreshAgain=false;void this.refresh().catch(e=>this.fail(e));}});return this.refreshTask;
   }
   private async loadDocument(document:Document) {
@@ -394,7 +395,7 @@ export class EditorClient {
     const events=await this.command({type:'ExportDocument',historyHead:this.view.document!.historyHead});const asset=this.asset(events);
     this.patch({download:{path:'/api/v1/assets/'+asset.id+'/content',name:'image.png',hash:asset.blob.hash,bytes:asset.blob.byteLength,kind:'image',documentId:document.id,revision:document.revision,status:'ready'},message:'Exact PNG ready. External destination is unconfirmed.'});
   }
-  changeDraft(id:string,kind:'prompt'|'inspector'|'mask'|'text'|'composition',text:string,targetLayerId:string|null,composing:boolean,expectedRevision?:string) {
+  changeDraft(id:string,kind:'prompt'|'inspector'|'mask'|'text'|'composition'|'request',text:string,targetLayerId:string|null,composing:boolean,expectedRevision?:string) {
     const document=this.view.document;if(!document||!this.draftOwner)return;
     const prior=this.draftOwner.drafts.get(id);if(prior&&prior.text===text&&prior.composing===composing&&prior.expectedDocumentRevision===(expectedRevision??document.revision))return;
     this.draftOwner.change({id,kind,text,documentId:document.id,targetLayerId,expectedDocumentRevision:expectedRevision??document.revision,composing});
@@ -419,7 +420,7 @@ export class EditorClient {
     clearTimeout(this.draftTimer);const owner=this.draftOwner;if(!owner)return;
     for(const [id,draft] of owner.drafts){if(draft.savedGeneration===draft.generation||draft.pending||draft.composing&&draft.kind!=='text')continue;
       this.patch({drafts:'Draft saving…'});await this.uiTail;
-      this.uiTail=owner.save(id,async text=>{if(draft.kind==='composition'){const value=JSON.parse(text),graph=await this.stageTextBlob(new Blob([canonical(value)]),'application/json');return this.caption(canonical({schemaVersion:1,kind:'composition-draft-1',graph,raw:[...value.composition.raw,...(value.composition.review?[value.composition.review.prompt]:[])],bindings:value.bindings}));}if(draft.kind!=='text')return this.caption(text);const value=JSON.parse(text);if(new TextDecoder('utf-8',{ignoreBOM:true}).decode(new TextEncoder().encode(value.text))!==value.text)throw Error('Invalid Unicode draft retained in the editor. Replace the invalid character before saving.');const textUtf8=await this.stageTextBlob(new Blob([value.text]),'text/plain');return this.caption(canonical({...(value.placement?{schemaVersion:2,kind:'text-draft-2',placement:value.placement}:{schemaVersion:1,kind:'text-draft-1'}),textUtf8,style:value.style,frame:value.frame,fonts:value.fonts}));});const receipt=await this.uiTail as UIReceipt|undefined;this.ui=owner.checkpoint!;
+      this.uiTail=owner.save(id,async text=>{if(draft.kind==='request'){const {draft:value,text:prompt}=JSON.parse(text);const bytes=new TextEncoder().encode(prompt);if(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes)!==prompt)throw Error('Invalid Unicode prompt retained.');value.prompt.text=await this.stageTextBlob(new Blob([bytes]),'text/plain');return this.caption(canonical(value));}if(draft.kind==='composition'){const value=JSON.parse(text),graph=await this.stageTextBlob(new Blob([canonical(value)]),'application/json');return this.caption(canonical({schemaVersion:1,kind:'composition-draft-1',graph,raw:[...value.composition.raw,...(value.composition.review?[value.composition.review.prompt]:[])],bindings:value.bindings}));}if(draft.kind!=='text')return this.caption(text);const value=JSON.parse(text);if(new TextDecoder('utf-8',{ignoreBOM:true}).decode(new TextEncoder().encode(value.text))!==value.text)throw Error('Invalid Unicode draft retained in the editor. Replace the invalid character before saving.');const textUtf8=await this.stageTextBlob(new Blob([value.text]),'text/plain');return this.caption(canonical({...(value.placement?{schemaVersion:2,kind:'text-draft-2',placement:value.placement}:{schemaVersion:1,kind:'text-draft-1'}),textUtf8,style:value.style,frame:value.frame,fonts:value.fonts}));});const receipt=await this.uiTail as UIReceipt|undefined;this.ui=owner.checkpoint!;
       if(receipt?.status==='rejected')throw Error(receipt.reason??'DRAFT_CHANGED');
     }
     if(this.view.document)await this.loadDocument(this.view.document);
@@ -435,6 +436,14 @@ export class EditorClient {
     const receipt=await this.draftOwner!.retry(id);await this.draftOwner!.restore();this.ui=this.draftOwner!.checkpoint!;
     this.patch({uiPending:this.draftOwner!.pendingRequests(),drafts:receipt.status==='accepted'?'Draft saved locally; not applied to the document':'Draft conflict retained'});
     if(receipt.status==='rejected')throw Error(receipt.reason??'DRAFT_CHANGED');
+  }
+  async requestReview(body:Extract<UIRequest['body'],{type:'PrepareRequestReview'|'AcceptRequestReview'}>){
+    const owner=this.draftOwner,session=this.sessionId;if(!owner||!this.view.ready)throw Error('Connect before reviewing.');
+    await this.flushDrafts();await this.uiTail;if(owner!==this.draftOwner||session!==this.sessionId)throw Error('Draft owner changed.');
+    const request:UIRequest={protocolVersion:1,requestId:crypto.randomUUID(),sessionId:session,expectedUISeq:owner.checkpoint!.uiSeq,body};
+    this.uiTail=owner.dispatch(request);const receipt=await this.uiTail as UIReceipt;
+    if(owner!==this.draftOwner||session!==this.sessionId)throw Error('Draft owner changed; the original receipt remains durable.');
+    this.ui=owner.checkpoint!;if(receipt.status!=='accepted')throw Error(receipt.reason??'Request review rejected.');return receipt;
   }
   async clearDraft(id:string) {
     const owner=this.draftOwner!,draft=owner.drafts.get(id);if(!draft)return;

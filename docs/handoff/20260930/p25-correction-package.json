@@ -1,0 +1,61 @@
+{
+  "authorEnd": "2026-09-29T22:20:21.474607+00:00",
+  "taskNoteId": "c26fde5b-d5e3-47f9-95d2-33d77496a7a1",
+  "currentNoteId": "7e584e08-c67e-491b-b27f-a0e8188da699",
+  "prContextNoteId": "cbd63320-6def-4beb-b78f-de897caf3cdf",
+  "registeredRoot": "4f366d0b-9a61-403f-b41d-1dd94bf09ed4",
+  "base": "07fcf77454afb582404f952a3924b41decc55cbc",
+  "head": "93fa3121ee080c47913fef0b1be9147ca5973180",
+  "branch": "p25-f1-f4-repair",
+  "root": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929",
+  "clean": true,
+  "ownedNodeChildren": [],
+  "disposition": "Focused F1\u2013F4 controls pass; broader qualification failed with retained CAPACITY evidence. Coordinator decision required; no retry or browser authority.",
+  "artifacts": [
+    {
+      "path": "final-inputs.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 8631696,
+      "sha256": "820b50ab03f25b038fd086a2177ee187fe264298886ada73f58f2d08d410b5d4"
+    },
+    {
+      "path": "impact-and-results.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 351012,
+      "sha256": "06787dad2181e1619ceeb9e8d7bc285b88a371bb3331a8b9c18550ea4ceb6350"
+    },
+    {
+      "path": "outcome.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 10951,
+      "sha256": "7121e76479aed3c64fe35de23505412b65da59a6453c1253a537ed5ef2c48e45"
+    },
+    {
+      "path": "retained-inventory.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 1627129,
+      "sha256": "ead8c928b3b3124174d9977e77028064b402143465be85a8f66022c926de6f10"
+    },
+    {
+      "path": "repair.diff",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 38700,
+      "sha256": "f9e04eec5d845517d20d530377e1b7a9e9c12de6e23d056c265edc0f579a81f9"
+    },
+    {
+      "path": "unchanged-regression-inputs.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 784,
+      "sha256": "a51c2fc9b3adceef67b5f87e9a239075055f20aa13963f75b4ee407af082561e"
+    }
+  ],
+  "knownPreexistingFailures": "No base-SHA CI was run and no CI link exists. The two present failures are not proven pre-existing; only the retained diagnostics and sequence are established. Inherited failures/root-loss and native limits remain in the referenced immutable history.",
+  "pr": null,
+  "ci": null
+}

@@ -1,0 +1,251 @@
+{
+  "at": "2026-09-29T20:02:25.897860+00:00",
+  "task": "820212f0-72fd-419c-bc34-dc44dceadf10",
+  "prContext": "7e584e08-c67e-491b-b27f-a0e8188da699",
+  "base": "2ba6ed79a846e674dcdeb7dd7d438c3115565cf1",
+  "branch": "spectrum-theme-controls",
+  "files": [
+    "index.html",
+    "src/main.ts",
+    "src/theme/appearance.ts",
+    "src/theme/shell.css",
+    "src/theme/spectrum.companion.css",
+    "src/theme/spectrum.css",
+    "src/ui/shell.ts",
+    "tests/browser/spectrum-alignment.spec.ts",
+    "tests/browser/spectrum-alignment.ts",
+    "tests/browser/spectrum-appearance.test.mjs",
+    "tests/browser/spectrum-controls.spec.ts",
+    "tests/browser/spectrum-fixture.ts",
+    "tests/browser/spectrum-frame.test.mjs",
+    "tests/browser/spectrum-frame.ts",
+    "tests/browser/spectrum-observation.test.mjs",
+    "tests/browser/spectrum-observation.ts",
+    "tests/browser/spectrum.config.ts",
+    "tests/browser/spectrum.spec.ts",
+    "tooling/theme/spectrum.mjs",
+    "vendor/themes/spectrum/compiled.json",
+    "vendor/themes/spectrum/definition.json",
+    "vendor/themes/spectrum/provenance.json",
+    "vendor/themes/spectrum/spectrum.dark.json",
+    "vendor/themes/spectrum/spectrum.light.json"
+  ],
+  "fileHashes": {
+    "index.html": "712e4ddfc32eee66bed724abb182dcb6915c56e093a3d95313307a3829d9011e",
+    "src/main.ts": "8665b8b1b923e4e4ccd5df0b400247910fd0d8ad42d384ef46ac15458edb29ee",
+    "src/theme/appearance.ts": "c35f3badddd70240e30ee8198e7353f0dbb4c9020afcda9380b6e23f7996d787",
+    "src/theme/shell.css": "fc39de8d2adc93b703ef5d90c587a7c74e2533d6c3e28bd6ee573d3da6257bf3",
+    "src/theme/spectrum.companion.css": "58c83bba8e5560b838a1b822ada08adab200be353ce7ba45be6756fcd88e45be",
+    "src/theme/spectrum.css": "ca1216ca1efc6dd6c99be79b94a366f95939f593bb13eeec73fd5b0b84e6444b",
+    "src/ui/shell.ts": "a267fadab5d27fc15d376c0d481b6d7d8e4185e7fe15ec75ac6f1a298f080781",
+    "tests/browser/spectrum-alignment.spec.ts": "59ebd27431aeda0fc33680ef346267c4d941bf08361e4c52f90ea78c79707bbd",
+    "tests/browser/spectrum-alignment.ts": "cff4f20bddc3bc5211908d83ad795bf830af3e997f5588dfffa4437ad8bb69d2",
+    "tests/browser/spectrum-appearance.test.mjs": "f2c45be57d7505d115c6333877162b209d86b9145a734d63378c053064e6fe2e",
+    "tests/browser/spectrum-controls.spec.ts": "ee5cbab893dab5774dcaccb03ebded5dd858050b4a2a60984f1fe6bf694bcf1b",
+    "tests/browser/spectrum-fixture.ts": "56414bb071e0c97d9262d118ec0842dfaa6de2a3b09a71f0ca0f6d1fb76d279a",
+    "tests/browser/spectrum-frame.test.mjs": "41730487ff2657d976822454e1629b372bd79de1918ef555258f93964877aa4f",
+    "tests/browser/spectrum-frame.ts": "ebc511cc61ad77658a2dc68486c1c2baefbe5c6539287b518e00e75c2aa6bb4b",
+    "tests/browser/spectrum-observation.test.mjs": "0caa2a7869c4b2efee3fa471a4f8e5593967e3512f6739d1b50a97fe2220e416",
+    "tests/browser/spectrum-observation.ts": "b5cee4efe25fa88da4a7663dfa4028e74e5cd230e3bd47f3e4ac9e9299769a56",
+    "tests/browser/spectrum.config.ts": "3a49dce66d1225e2bb489c583114eea9f714e7fabfd195ad34a6961eec74bc38",
+    "tests/browser/spectrum.spec.ts": "829fa9e9116228632e79db34b7af8f0c7d09c9c8c6be9499fd688294830c38e9",
+    "tooling/theme/spectrum.mjs": "c8d6a8bf2a90ec0475e746d2fd690afe4051d28a2906d286207b8191b0c56b86",
+    "vendor/themes/spectrum/compiled.json": "76b2a9d7a1a968cf55ad3968e9533168c2827f5e9b8094058919b6c7a3b412fc",
+    "vendor/themes/spectrum/definition.json": "9521ff892253b03d830561ff8bb4d10409369e9cf4e4e872a4e97b3a9a739fab",
+    "vendor/themes/spectrum/provenance.json": "51e49f05e0e225a5448b59a30d8187df463129f15bbb68da8cc1815a14087c27",
+    "vendor/themes/spectrum/spectrum.dark.json": "083de7ff9d80a53dee11b965a4494d1559b122094d33287fc96df3927caff98c",
+    "vendor/themes/spectrum/spectrum.light.json": "8dee265c2e36dd77be4318b67cf3f8d914b8dbb3ec34d26c25f167289d02d9b9"
+  },
+  "preliveSHA": "a754c79c50617e5a3af5771563d3bd86b7742bcfbd6c7d851ba90a960051b72c",
+  "unchangedInputs": 5091,
+  "unchangedRuntime": 7010,
+  "runs": [
+    {
+      "label": "08-chromium-controls",
+      "audit": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/evidence/08-chromium-controls-audit.json",
+      "sha256": "84193cc01841f9204639c8c213239c42edf69760b312ed13d72e0c1a0c9fc647",
+      "receipt": {
+        "argv": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "tests/browser/spectrum.config.ts"
+        ],
+        "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+        "start": "2026-09-29T19:57:50.777212+00:00",
+        "end": "2026-09-29T19:57:55.793282+00:00",
+        "exit": 0
+      }
+    },
+    {
+      "label": "09-firefox-controls",
+      "audit": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/evidence/09-firefox-controls-audit.json",
+      "sha256": "f3447a4fc3d5df3d51e12060701cf7f3f59977248fc41648c7dbc09b73d50ac6",
+      "receipt": {
+        "argv": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "tests/browser/spectrum.config.ts"
+        ],
+        "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+        "start": "2026-09-29T19:59:05.129043+00:00",
+        "end": "2026-09-29T19:59:10.399259+00:00",
+        "exit": 0
+      }
+    },
+    {
+      "label": "10-webkit-controls",
+      "audit": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/evidence/10-webkit-controls-audit.json",
+      "sha256": "dc4916faa22ed4fa06ffdee900a867e74e76f08852edca7176a17c0473cb6152",
+      "receipt": {
+        "argv": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "tests/browser/spectrum.config.ts"
+        ],
+        "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+        "start": "2026-09-29T19:59:40.536231+00:00",
+        "end": "2026-09-29T19:59:45.491110+00:00",
+        "exit": 0
+      }
+    },
+    {
+      "label": "11-webkit-full",
+      "audit": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/evidence/11-webkit-full-audit.json",
+      "sha256": "fd42179c68236b6c18174b3377096aeee29e90de2da7b35a27eff539c5201892",
+      "receipt": {
+        "argv": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "tests/browser/spectrum.config.ts"
+        ],
+        "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+        "start": "2026-09-29T20:00:24.519038+00:00",
+        "end": "2026-09-29T20:00:45.486772+00:00",
+        "exit": 0
+      }
+    }
+  ],
+  "reviewedFreshFrames": 42,
+  "product": "Authentic immutable Spectrum pair/companions via pinned public exporter; System/Light/Dark local preference; requested pan-button alignment; native Select public-part appearance/caret correction. No package/server/document/storage protocol changes.",
+  "limits": [
+    "Author evidence pending independent review and eventual accepted-base integration; current base unaccepted.",
+    "Original failures remain failed, including missing first-run reset/closure proof and missing early launch closure proof. No retrospective cause assigned where evidence lacks correlation.",
+    "Earlier full Chromium/Firefox smoke reused only for unaffected behavior; fresh focused controls cover final CSS in all three engines, final full WebKit covers corrected source.",
+    "Viewport WebKit JPEG is not fullpage or pixel-exact color; exact colors are independently computed-style assertions, narrow pan supplementary frames retained.",
+    "Chromium native display-link and Firefox Juggler/favicon stderr retained; Firefox ghost-button edge rendering differs as previously recorded.",
+    "No paid/provider requests, P2.5 integration, independent acceptance or progress credit. A-R01 remains open.",
+    "No remote PR or CI run exists; local gates and receipts only."
+  ],
+  "priorEvidenceRoots": [
+    "ideogram-edit-spectrum-20260929",
+    "ideogram-edit-spectrum-diagnostic-20260929",
+    "ideogram-edit-spectrum-smoke-20260929",
+    "ideogram-edit-spectrum-launch-20260929",
+    "ideogram-edit-spectrum-final-20260929",
+    "ideogram-edit-spectrum-slotted-20260929",
+    "ideogram-edit-spectrum-admission-20260929",
+    "ideogram-edit-spectrum-alignment-20260929",
+    "ideogram-edit-spectrum-screencast-20260929",
+    "ideogram-edit-spectrum-select-20260929"
+  ],
+  "gates": [
+    {
+      "argv": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.app.json"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+      "start": "2026-09-29T19:52:22.847676+00:00",
+      "end": "2026-09-29T19:52:24.471804+00:00",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "node",
+        "node_modules/vite/bin/vite.js",
+        "build",
+        "--config",
+        "vite.app.config.ts"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+      "start": "2026-09-29T19:52:24.546732+00:00",
+      "end": "2026-09-29T19:52:26.321786+00:00",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.app.json"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+      "start": "2026-09-29T19:54:09.627249+00:00",
+      "end": "2026-09-29T19:54:10.591143+00:00",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "node",
+        "tooling/verify-imports.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+      "start": "2026-09-29T19:54:10.646450+00:00",
+      "end": "2026-09-29T19:54:11.215296+00:00",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "node",
+        "--test",
+        "tests/browser/spectrum-frame.test.mjs",
+        "tests/browser/spectrum-observation.test.mjs",
+        "tests/browser/spectrum-appearance.test.mjs"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+      "start": "2026-09-29T19:54:11.272162+00:00",
+      "end": "2026-09-29T19:54:12.317127+00:00",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/browser/spectrum.config.ts",
+        "--list"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+      "start": "2026-09-29T19:54:18.957473+00:00",
+      "end": "2026-09-29T19:54:19.279544+00:00",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "tests/browser/spectrum.config.ts",
+        "--list"
+      ],
+      "cwd": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/checkout/../checkout",
+      "start": "2026-09-29T19:54:19.335175+00:00",
+      "end": "2026-09-29T19:54:19.616507+00:00",
+      "exit": 0
+    }
+  ]
+}

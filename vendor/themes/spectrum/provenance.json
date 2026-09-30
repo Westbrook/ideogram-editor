@@ -1,0 +1,18 @@
+{
+  "sourceRepository": "design-system",
+  "sourceHead": "6d09b31cf43523ac8c75352208ab9697b62e2673",
+  "sourceState": "Working-tree source snapshot; HEAD alone does not identify modified definitions. Exact hashes below are authoritative.",
+  "inputs": {
+    "tooling/theme-candidates/definitions.json": "546a7232f2dc96db9d4f24c721e62c9592745e7e7aae1786d9104cc205e0a00a",
+    "tooling/theme-candidates/inspired/spectrum.light.json": "8dee265c2e36dd77be4318b67cf3f8d914b8dbb3ec34d26c25f167289d02d9b9",
+    "tooling/theme-candidates/inspired/spectrum.dark.json": "083de7ff9d80a53dee11b965a4494d1559b122094d33287fc96df3927caff98c"
+  },
+  "snapshotFiles": {
+    "spectrum.light.json": "8dee265c2e36dd77be4318b67cf3f8d914b8dbb3ec34d26c25f167289d02d9b9",
+    "spectrum.dark.json": "083de7ff9d80a53dee11b965a4494d1559b122094d33287fc96df3927caff98c",
+    "definition.json": "9521ff892253b03d830561ff8bb4d10409369e9cf4e4e872a4e97b3a9a739fab"
+  },
+  "compilerPackage": "@en-reve/tokens@0.1.0",
+  "compilerArchive": "vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",
+  "fonts": "Authentic source font stacks use local availability and system fallbacks. No font downloads or new font assets."
+}

@@ -65,9 +65,31 @@ function nodeResponse(rows,request){
  return declared;
 }
 
+// A distinct negative observation, never a transport or consumption proof.
+function canceledFavicon(x,a,w,starts,related){
+ const {origin,epoch,owner,frame,serverOwner,source}=a,url=origin+'/favicon.ico';
+ assert(w&&w.kind==='ORIGINAL-RESTORED-ROUTE-WINDOW','Canceled ancillary original route window required');
+ assert.equal(w.mode,'RESTORED-NON-NATIVE','Canceled ancillary restored mode only');assert.equal(w.fixture,'restored-reads');assert.equal(w.epochIndex,2,'Canceled ancillary second epoch only');assert.equal(w.epoch,epoch);assert.deepEqual(w.owner,owner,'Canceled ancillary route owner');assert.deepEqual(w.serverOwner,serverOwner,'Canceled ancillary route server');
+ assert(/^\/api\/v1\/assets\/[^/]+\/content$/.test(w.path));assert.equal(w.pattern,'**'+w.path);
+ const receipts=[w.registration,w.begin,w.removing,w.removed],kinds=['route-registration-completed','restoration-window-start','route-removal-start','route-removal-completed'];
+ for(let i=0;i<receipts.length;i++){const r=receipts[i];assert(r&&r.kind===kinds[i],'Canceled ancillary route receipt kind');assert(Number.isSafeInteger(r.sequence)&&r.sequence>0&&(!i||r.sequence>receipts[i-1].sequence),'Canceled ancillary route receipt order');assert.equal(r.epochIndex,i===0?1:2);if(i!==1){assert.equal(r.registration,0);assert.equal(r.pattern,w.pattern);assert.equal(r.path,w.path);}else for(const k of ['origin','pid','instance'])assert.equal(r[k],serverOwner[k]);}
+ assert.equal(related.length,0,'Canceled ancillary no retained server witness');assert(!x.server.some(r=>{try{return new URL(r.url??r.path??'/',origin).pathname==='/favicon.ico'||r.path==='/favicon.ico';}catch{return false;}}),'Canceled ancillary no foreign server witness');
+ assert(![...x.requests,...x.responses,...x.terminals].some(q=>{try{return new URL(q.url).pathname==='/favicon.ico';}catch{return false;}}),'Canceled ancillary no original PW witness');
+ const start=one(starts,'canceled unique protocol start'),id=start.params.requestId;assert(typeof id==='string'&&id,'Canceled ancillary original protocol ID');const rows=x.network.filter(n=>n.params.requestId===id);
+ assert.equal(rows.length,2,'Canceled ancillary exactly original start and terminal');assert(!x.network.some(n=>!rows.includes(n)&&[n.params.request?.url,n.params.response?.url].some(value=>{try{return new URL(value).pathname==='/favicon.ico';}catch{return false;}})),'Canceled ancillary no other favicon protocol witness');assert.equal(rows[0],start,'Canceled ancillary original start order');const terminal=rows[1];assert.equal(terminal.name,'Network.loadingFailed','Canceled ancillary original failed terminal');
+ for(const n of rows){assert.equal(n.controllerSessionLabel,owner.sessionId,'Canceled ancillary controller');assert(Number.isSafeInteger(n.sequence)&&n.sequence>w.begin.sequence&&n.sequence>w.registration.sequence&&n.sequence<w.removing.sequence,'Canceled ancillary strictly inside observed route window');}
+ assert(start.sequence<terminal.sequence,'Canceled ancillary original terminal order');
+ const p=start.params,q=p.request,t=terminal.params;
+ assert.equal(q.url,url,'Canceled ancillary exact URL');assert.equal(q.method,'GET','Canceled ancillary GET');assert.equal(p.type,'Other','Canceled ancillary type');assert.equal(t.type,'Other','Canceled ancillary terminal type');assert.deepEqual(p.initiator,{type:'other'},'Canceled ancillary initiator');assert.equal(p.frameId,frame.id,'Canceled ancillary frame');assert.equal(p.loaderId,frame.loaderId,'Canceled ancillary loader');assert.equal(p.documentURL,frame.url,'Canceled ancillary document');
+ assert.equal(p.redirectResponse,undefined,'Canceled ancillary no redirect');assert.equal(p.redirectHasExtraInfo,false);for(const k of ['hasPostData','postData','postDataEntries'])assert.equal(q[k],undefined,'Canceled ancillary no request body');assert.equal(q.referrerPolicy,'no-referrer','Canceled ancillary referrer policy');
+ const h=normalizedHeaders(q.headers);assert(h.referer===undefined||h.referer==='','Canceled ancillary no referrer');assert.equal(h['content-length'],undefined,'Canceled ancillary no content length');assert.equal(h['transfer-encoding'],undefined,'Canceled ancillary no framing');assert(!Object.entries(h).some(([k,v])=>k==='sec-fetch-dest'&&v==='worker'||k==='content-type'&&v.split(';')[0]==='application/wasm'),'Canceled ancillary native headers forbidden');
+ assert.equal(t.errorText,'net::ERR_ABORTED','Canceled ancillary abort text');assert.equal(t.canceled,true,'Canceled ancillary canceled flag');assert.equal(t.blockedReason,undefined,'Canceled ancillary no other blocked reason');assert.equal(t.corsErrorStatus,undefined,'Canceled ancillary no CORS error');
+ return {record:structuredClone({kind:'OBSERVED-CANCELED-FAVICON-NO-SERVER-WITNESS',outcome:'observed ancillary cancellation; no server witness in retained owned recorder',epoch,owner,frame,defaultContext:a.defaultContext,serverOwner,source,protocolId:id,url,routeWindow:structuredClone(w),cancellationCause:'unobserved',preNetworkDispatch:'unproved',serverWitness:false,pwExposure:false,responseObserved:false,bodyObserved:false,bodyHash:null,protocolRows:rows,observedEOF:false,transportSuccessClaim:false,...flags()}),rows};
+}
+
 // This accounts only for metadata which public Playwright deliberately omits.
 // Original arrays and every positive proof core are left untouched.
-export function accountFavicon(x,admission,{previous}={}){
+export function accountFavicon(x,admission,{previous,cancellation}={}){
  const {origin,epoch,owner,frame,serverOwner,source,noPublicIconLink,defaultContext}=admission;
  assert.equal(x.page.origin,origin);assert.deepEqual(x.page,owner,'Ancillary owner');assert.equal(epoch,x.epoch);assert.equal(x.currentEpoch,epoch);assert(epoch&&frame&&defaultContext,'Ancillary admitted identity');
  assert.equal(frame.id,owner.frameId);assert.equal(frame.url,origin+'/');assert(typeof frame.loaderId==='string'&&frame.loaderId,'Ancillary original document loader');
@@ -76,7 +98,11 @@ export function accountFavicon(x,admission,{previous}={}){
  assert.equal(x.recorder.pid,serverOwner.pid);assert.equal(x.recorder.instance,serverOwner.instance);assert(serverOwner.instance);assert.equal(serverOwner.origin,origin);assert.equal(x.recorder.originalInstallation,true);assert.deepEqual(x.recorder.failures,[],'Ancillary recorder errors');assert.equal(x.recorder.servers,1);
  const url=origin+'/favicon.ico',node=x.server.filter(r=>r.kind==='request'&&(r.path==='/favicon.ico'||r.url===url)),starts=x.network.filter(n=>n.name==='Network.requestWillBeSent'&&n.params.request.url===url),regular=x.network.filter(n=>n.name==='Network.responseReceived'&&n.params.response.url===url);
  const related=x.server.filter(r=>r.path==='/favicon.ico'||r.url==='/favicon.ico'||r.url===url),records=[],removedServer=new Set(),removedNetwork=new Set();
- if(related.length||node.length||starts.length||regular.length){
+ const canceledStarts=x.network.filter(n=>n.name==='Network.requestWillBeSent'&&(()=>{try{return new URL(n.params.request.url).pathname==='/favicon.ico';}catch{return false;}})());
+ const failedCandidate=canceledStarts.some(n=>x.network.some(t=>t.params.requestId===n.params.requestId&&t.name==='Network.loadingFailed'));
+ if(failedCandidate&&!node.length){
+  const result=canceledFavicon(x,admission,cancellation,canceledStarts,related);records.push(result.record);for(const row of result.rows)removedNetwork.add(row);
+ }else if(related.length||node.length||starts.length||regular.length){
   assert(![...x.requests,...x.responses,...x.terminals].some(q=>q.url===url),'Ancillary unexpected public PW exposure');
   const request=one(node,'unique server request'),start=one(starts,'unique protocol start'),response=one(regular,'unique protocol response');
   assert.equal(request.url,'/favicon.ico','Ancillary exact path');assert.equal(request.path,'/favicon.ico');assert.equal(request.method,'GET');assert.equal(request.pid,serverOwner.pid);assert.equal(request.serverId,1);assert(Number.isSafeInteger(request.id)&&request.id>0);assert.equal(request.localPort,Number(new URL(origin).port));assert(['127.0.0.1','::ffff:127.0.0.1'].includes(request.localAddress));

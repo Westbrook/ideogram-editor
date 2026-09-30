@@ -6,6 +6,8 @@ import {emptyNative} from './empty-native.mjs';
 import {OriginalSSEFrames} from './sse-frames.mjs';
 import {sseDescriptor,ssePublication,sseQualification} from './sse-publication.mjs';
 import {recoveryFixture} from './recovery-fixture.mjs';
+import {recoveryReaderHarness} from './recovery-reader-harness.mjs';
+import {originalRecoveryCompletion} from '../integration-network.mjs';
 const clone=structuredClone,origin='http://127.0.0.1:34567';
 async function sinkHarness(){const session=new EventEmitter(),receipts=[],errors=[],commands=[];const sink=pageReceiptSink({session,name:'receipt',receipts,fail:e=>errors.push(String(e)),send:async(method,params)=>commands.push({method,params})});await sink.install();const created=(id=1,uniqueId='u1',more={})=>session.emit('Runtime.executionContextCreated',{context:{id,uniqueId,origin,auxData:{isDefault:true,frameId:'frame'},...more}});created();sink.bind({origin,frameId:'frame'},'epoch');const emit=(value,id=1)=>session.emit('Runtime.bindingCalled',{name:'receipt',executionContextId:id,payload:JSON.stringify({origin,epoch:'epoch',deliverySequence:1,kind:'pagehide',observation:{epoch:'epoch',rows:[],errors:[]},...value})});return {sink,session,receipts,errors,commands,created,emit};}
 test('actual page sink retains delayed old default-context receipt after destruction without current-epoch lookup',async()=>{const h=await sinkHarness();h.session.emit('Runtime.executionContextDestroyed',{executionContextId:1,executionContextUniqueId:'u1'});h.created(2,'u2');h.sink.bind({origin,frameId:'frame'},'next');h.emit({});assert(h.sink.final('epoch'));assert(!h.sink.final('next'));assert.equal(h.receipts[0].executionContextUniqueId,'u1');await h.sink.remove();assert.equal(h.errors.length,0);});
@@ -47,3 +49,73 @@ test('SSE reference keeps an earlier frame publication before its own content re
 test('immutable event writer epochs may precede the current recovery writer epoch',()=>{const f=publicationFixture();for(const v of f.values)v.writerEpoch='0';assert.equal(ssePublication(f).publication.value.epoch,'1');});
 
 test('SSE imported events require corresponding committed namespace writes before their markers',()=>{const f=publicationFixture(),v=f.values[0];v.type='BundleImported';v.payload={namespaceId:'namespace',namespaceHash:'sha256:'+'a'.repeat(64),source:{hash:'sha256:'+'b'.repeat(64),byteLength:'4',mediaType:'application/x-ideogram-project'},document:v.payload.document};const ns={...clone(f.committed[0]),at:24,transaction:4,records:[{store:'rows',key:['generation','namespace','namespace'],value:{eventId:v.eventId,namespaceHash:v.payload.namespaceHash}}]};f.committed.unshift(ns);assert.equal(ssePublication(f).eventWrites.length,2);ns.records[0].value.namespaceHash='sha256:'+'c'.repeat(64);assert.throws(()=>ssePublication(f));ns.records[0].value.namespaceHash=v.payload.namespaceHash;ns.at=29;assert.throws(()=>ssePublication(f));});
+
+function boundedPublicationFixture(){
+ const f=publicationFixture();f.e.operation=2;
+ const root={kind:'start',frameId:1,document:'document',operation:4,start:50,method:'GET',url:origin+'/api/v1/events?after=2',owners:clone(f.e.owners)};
+ const proof={...clone(root),kind:'response',responseURL:root.url,browserResponseURL:root.url,responseAt:51,requestStart:50.5,requestId:4,requestFrame:1,association:'unique-frame-time-window',eligibleRequests:[4],concurrentOperations:[],redirectedFrom:null,redirected:false,fromServiceWorker:false};
+ f.events.push(root);f.rootStarts=[{...clone(root),originalProof:proof}];
+ const later=clone(f.committed.at(-1));later.at=60;later.transaction=4;later.records[0].value.generation='later';f.committed.push(later);return f;
+}
+test('actual SSE assessor bounds the first publication by the uniquely owned original next root without changing retained rows',()=>{
+ const f=boundedPublicationFixture(),before=clone(f),p=ssePublication(f);assert.equal(p.publication.completedAt,40);assert.equal(p.nextRecoveryStart,50);assert.equal(p.referenceWindow.starts[0].originalProof.requestId,4);assert.deepEqual(f,before);
+});
+test('actual SSE assessor supports a later original stream start and excludes foreign frame/document/origin roots',()=>{
+ for(const path of ['/api/v1/events?after=2','/api/v1/events/stream?after=2']){const f=boundedPublicationFixture();for(const x of [f.events[0],f.rootStarts[0],f.rootStarts[0].originalProof])x.url=origin+path;f.rootStarts[0].originalProof.responseURL=f.rootStarts[0].originalProof.browserResponseURL=origin+path;for(const delta of [{frameId:2},{document:'foreign'},{url:'http://foreign/api/v1/events?after=0'}])f.events.push({...clone(f.events[0]),start:21,...delta});assert.equal(ssePublication(f).nextRecoveryStart,50);}
+});
+for(const [label,mutate,reason]of [
+ ['duplicate inside window',f=>f.committed.push({...clone(f.committed[2]),at:41,transaction:5}),'One committed publication'],
+ ['later only',f=>f.committed.splice(2,1),'One committed publication'],
+ ['competing before commit',f=>{for(const x of [f.events[0],f.rootStarts[0],f.rootStarts[0].originalProof])x.start=35;f.rootStarts[0].originalProof.responseAt=36;f.rootStarts[0].originalProof.requestStart=35.5;},'One committed publication'],
+ ['absent boundary',f=>{f.events=[];f.rootStarts=[];},'One committed publication'],
+ ['missing original association',f=>f.rootStarts=[],'One committed publication'],
+ ['foreign earliest owner',f=>f.events[0].owners[0].clientId='other','One committed publication'],
+ ['foreign earliest session',f=>f.events[0].owners[0].sessionId='other','One committed publication'],
+ ['ambiguous earliest time',f=>f.events.push({...clone(f.events[0]),operation:5}),'One committed publication'],
+ ['duplicate root association',f=>f.rootStarts.push(clone(f.rootStarts[0])),'One committed publication'],
+ ['foreign earliest then convenient later',f=>{f.events[0].owners[0].sessionId='foreign';f.events.push({...clone(f.rootStarts[0]),start:55,operation:6});f.rootStarts.push({...clone(f.rootStarts[0]),start:55,operation:6});},'One committed publication'],
+ ['tied publication and start',f=>f.committed[2].at=50,'One committed publication'],
+ ['tied descriptor and start',f=>f.events[0].start=f.d.control.end,'Root start order'],
+ ['missing start time',f=>f.events[0].start=NaN,'Finite original root start'],
+ ['forged original request id',f=>f.rootStarts[0].originalProof.requestId=99,'One committed publication'],
+ ['multiple original requests',f=>f.rootStarts[0].originalProof.eligibleRequests.push(9),'One committed publication'],
+ ['overlapping original operation',f=>f.rootStarts[0].originalProof.concurrentOperations=[5],'One committed publication'],
+ ['forged original frame',f=>f.rootStarts[0].originalProof.requestFrame=2,'One committed publication'],
+ ['forged document',f=>f.rootStarts[0].originalProof.document='other','One committed publication'],
+ ['forged operation',f=>f.rootStarts[0].originalProof.operation=5,'One committed publication'],
+ ['forged original browser response',f=>f.rootStarts[0].originalProof.browserResponseURL+='x','One committed publication'],
+ ['forged observed response URL',f=>f.rootStarts[0].originalProof.responseURL+='x','One committed publication'],
+ ['forged original URL',f=>f.rootStarts[0].originalProof.url+='x','One committed publication'],
+ ['forged owner on original response',f=>f.rootStarts[0].originalProof.owners[0].sessionId='foreign','One committed publication'],
+ ['response before original start',f=>f.rootStarts[0].originalProof.responseAt=49,'One committed publication'],
+ ['request outside original window',f=>f.rootStarts[0].originalProof.requestStart=60,'One committed publication'],
+ ['redirected root',f=>f.rootStarts[0].originalProof.redirectedFrom='http://foreign','One committed publication'],
+ ['service worker root',f=>f.rootStarts[0].originalProof.fromServiceWorker=true,'One committed publication'],
+ ['lost generation',f=>f.committed[2].records[0].value.generation='foreign','One committed original event marker'],
+ ['lost original event',f=>f.committed[0].records.shift(),'One committed original event marker'],
+ ['lost original document',f=>f.committed[0].records.pop(),'Corresponding committed document write'],
+ ['aborted generation',f=>f.aborted.push({...clone(f.committed[0]),kind:'publication-aborted'}),'Aborted generation'],
+ ['conflicting earlier pointer',f=>{const p=clone(f.committed[2]);p.at=22;p.records[0].value.cursor='0';f.committed.push(p);},'No conflicting publication']
+])test('bounded actual SSE assessor refuses '+label,()=>{const f=boundedPublicationFixture();mutate(f);assert.throws(()=>ssePublication(f),new RegExp(reason));});
+test('unproved later root retains a valid isolated publication without inventing a bound',()=>{const f=boundedPublicationFixture();f.committed.pop();f.rootStarts=[];const p=ssePublication(f);assert.equal(p.publication.completedAt,40);assert.equal(p.nextRecoveryStart,null);});
+
+async function boundedReader(mutate=()=>{}){
+ const h=await recoveryReaderHarness();const r=await h.scenario({mutate:(events,send)=>{
+  const base=clone(events.find(e=>e.kind==='start'&&e.operation===3));Object.assign(base,{operation:4,start:50,responseAt:51,url:origin+'/api/v1/events?after=2',responseURL:origin+'/api/v1/events?after=2'});
+  const q={testId:44,url:()=>base.url,method:()=> 'GET',frame:()=>h.frame,timing:()=>({startTime:50.5}),redirectedFrom:()=>null,failure:()=>null};
+  const response={request:()=>q,status:()=>200,url:()=>base.url,headers:()=>({'content-type':'application/json','cache-control':'no-store'}),finished:async()=>null,fromServiceWorker:()=>false};h.context.emit('request',q);h.context.emit('response',response);send({...base,kind:'start'});send({...base,kind:'response'});
+  const later=clone(events.find(e=>e.kind==='publication-writes'&&e.transaction===3));later.transaction=4;later.at=60;later.records[0].value.generation='later';send(later);mutate(events,h,q,base);
+ }});return r;
+}
+const failedRecovery=p=>({channel:'requestfailed',resourceType:'fetch',failure:{errorText:'net::ERR_ABORTED'},method:'GET',requestId:p.requestId,url:p.url,response:{requestId:p.requestId,url:p.url,method:'GET',status:200,contentType:'application/x-ndjson',contentLength:String(p.bytes),etag:'"sha256:'+p.sha256+'"'}});
+test('actual original reader assembles next-root identity and unchanged final classifier rechecks the bounded claim',async()=>{
+ const r=await boundedReader();assert.deepEqual(r.errors,[]);const p=r.proofs[0];assert.equal(p.validated,true,p.validationError);assert.equal(p.nextRecoveryStart,50);assert.equal(p.referenceWindow.starts[0].originalProof.requestId,44);assert.equal(originalRecoveryCompletion(failedRecovery(p),[p]),true);
+ for(const mutate of [p=>p.nextRecoveryStart=60,p=>p.nextRecoveryStart=null,p=>p.referenceWindow.starts[0].originalProof.requestId=99,p=>p.referenceWindow.starts[0].owners[0].sessionId='other',p=>p.referenceWindow.starts[0].originalProof.document='foreign',p=>p.referenceWindow.starts[0].originalProof.operation=9,p=>p.referenceWindow.starts.push(clone(p.referenceWindow.starts[0])),p=>p.publication.completedAt=50,p=>p.descriptor.at=50,p=>delete p.referenceWindow,p=>p.eventWrites=[],p=>p.publication.value.generation='',p=>p.publication.value.generation='foreign',p=>p.publication.value.epoch='other']){const x=clone(p);mutate(x);assert.equal(originalRecoveryCompletion(failedRecovery(p),[x]),false,mutate.toString());}
+});
+for(const [label,mutate]of Object.entries({
+ 'missing original response observation':es=>es.splice(es.findIndex(e=>e.kind==='response'&&e.operation===4),1),
+ 'foreign response owner':es=>es.find(e=>e.kind==='response'&&e.operation===4).owners[0].sessionId='foreign',
+ 'duplicate original Request':(es,h,q)=>h.context.emit('request',{...q,testId:45}),
+ 'earlier unproved root':es=>es.push({...clone(es.find(e=>e.kind==='start'&&e.operation===4)),operation:5,start:45}),
+ 'duplicate own publication':es=>es.push({...clone(es.find(e=>e.kind==='publication-writes'&&e.transaction===3)),transaction:5,at:41})
+}))test('actual original reader keeps '+label+' unqualified',async()=>{const r=await boundedReader(mutate),p=r.proofs[0];assert.equal(p.validated,false);assert.equal(originalRecoveryCompletion(failedRecovery(p),[p]),false);});

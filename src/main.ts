@@ -1,3 +1,4 @@
+import { restoreAppearance } from './theme/appearance.js';
 declare global {
   interface Window { __IE_PAIRING__?: string }
   const __PROGRESS_REPORT_URL__: string;
@@ -5,6 +6,7 @@ declare global {
 // First app operation: take the launch secret out of the public window object.
 let pairingToken = window.__IE_PAIRING__;
 delete window.__IE_PAIRING__;
+restoreAppearance();
 try {
   const { mount } = await import('./ui/shell.js');
   const pending = mount(pairingToken);

@@ -6,16 +6,18 @@ import {readFile,writeFile,symlink,cp,readdir} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {openWriter} from '../../dist/local/server/storage/writer.js';
-import {rootFor} from '../store/helpers.mjs';
+import {rootFor as allocateRoot} from '../store/helpers.mjs';
+async function rootFor(t){const root=await allocateRoot({after(){}});t.diagnostic(JSON.stringify({retainedPrivateFixture:root,reason:'Keep original migration evidence, including failed state'}));return root;}
 import {digest} from './helpers.mjs';
 const dfa='dfa383d56d21bc9c7bb40248db8a503fe33e6e46', correction='7388d1e625a6ac2c563bc64cca6318d264649acc';
 const noEgress=resolve('tests/session/no-egress.mjs');
 const executables=new Map();
 const pause=()=>new Promise(r=>setTimeout(r,5));
 const release=gate=>{Atomics.store(new Int32Array(gate),0,1);Atomics.notify(new Int32Array(gate),0);};
+function tableRows(db,name){const order=db.prepare('PRAGMA table_info('+name+')').all().map((_,i)=>i+1).join(',');return db.prepare('SELECT * FROM '+name+' ORDER BY '+order).all().map(row=>({...row}));}
 function inspect(root){const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});try{
  const tables=db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all().map(x=>x.name);
- return {version:db.prepare('PRAGMA user_version').get().user_version,tables:Object.fromEntries(tables.map(name=>[name,db.prepare('SELECT * FROM '+name+' ORDER BY 1,2').all().map(row=>({...row}))]))};
+ return {version:db.prepare('PRAGMA user_version').get().user_version,tables:Object.fromEntries(tables.map(name=>[name,tableRows(db,name)]))};
 }finally{db.close();}}
 async function bytes(root){const result={};async function visit(dir){for(const f of await readdir(join(root,dir),{withFileTypes:true})){const path=join(dir,f.name);if(f.isDirectory())await visit(path);else result[path]=digest(await readFile(join(root,path)));}}await visit('objects');return result;}
 async function preserved(root,before){for(const [path,hash] of Object.entries(before))assert.equal(digest(await readFile(join(root,path))),hash,path);}
@@ -57,7 +59,7 @@ for(const approval of [false,true])test('schema5 preserves '+(approval?'7388d1e 
  let migration;try{const after=inspect(f.root);assert.equal(after.version,5);sameTables(after,before,['schema_migrations']);assert.deepEqual(after.tables.schema_migrations.slice(0,-1),before.tables.schema_migrations);
  migration=JSON.parse(after.tables.schema_migrations.at(-1).receipt);assert.equal(migration.capability,'raster-pending-approval-v1');assert.equal(migration.rollback.compatibleExecutable,approval?correction:dfa);assert.equal(migration.rollback.pendingApprovals,approval?1:0);
  const manifest=JSON.parse(await readFile(join(f.root,migration.manifestFile)));assert.equal(manifest.backupHash,digest(await readFile(join(f.root,migration.backup))));assert.equal(manifest.compatibleExecutable,migration.rollback.compatibleExecutable);
- const backup=new DatabaseSync(join(f.root,migration.backup),{readOnly:true});try{assert.equal(backup.prepare('PRAGMA integrity_check').get().integrity_check,'ok');for(const [name,rows]of Object.entries(before.tables))assert.deepEqual(backup.prepare('SELECT * FROM '+name+' ORDER BY 1,2').all().map(x=>({...x})),rows,name);}finally{backup.close();}
+ const backup=new DatabaseSync(join(f.root,migration.backup),{readOnly:true});try{assert.equal(backup.prepare('PRAGMA integrity_check').get().integrity_check,'ok');for(const [name,rows]of Object.entries(before.tables))assert.deepEqual(tableRows(backup,name),rows,name);}finally{backup.close();}
  await preserved(f.root,originals);
  }finally{release(gate);}
  const w=await opening;try{const result=await settled(w,f.command.command.commandId);assert.equal(result.receipt.status,approval?'rejected':'accepted');assert.deepEqual(result.command,f.command.command);assert.equal(result.hash,f.pending.hash);if(approval){const b=await w.readMetadata(result.receipt.details);assert.equal(JSON.parse(Buffer.from(b)).issues[0].code,'RASTER_REVIEW_EXPIRED');}assert.deepEqual((await w.lookup(f.doc.command.commandId)).receipt,f.receipt);}finally{await w.close();}
@@ -72,12 +74,12 @@ test('unknown future storage is inspected without mutation and returns explicit 
 });
 test('schema5 capacity failure retains schema4 and every request, then retries safely',async t=>{
  const f=await seed(t,true),before=inspect(f.root);await assert.rejects(openWriter({root:f.root,quotaBytes:'1'}),{code:'CAPACITY'});assert.deepEqual(inspect(f.root),before);
- const w=await openWriter({root:f.root});assert.equal((await settled(w,f.command.command.commandId)).receipt.status,'rejected');await w.close();assert.equal(inspect(f.root).version,13);
+ const w=await openWriter({root:f.root});assert.equal((await settled(w,f.command.command.commandId)).receipt.status,'rejected');await w.close();assert.equal(inspect(f.root).version,16);
 });
 test('backup corruption fails verification before activation, retains evidence, and retries without changing requests',async t=>{
  const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'approval-schema-backup-written',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;
  const name=(await readdir(f.root)).find(x=>/^schema4-backup-.*\.sqlite$/.test(x));const db=new DatabaseSync(join(f.root,name));db.prepare("UPDATE meta SET value='999' WHERE key='writerEpoch'").run();db.close();release(gate);await rejected;assert.deepEqual(inspect(f.root),before);
- const failedHash=digest(await readFile(join(f.root,name))),w=await openWriter({root:f.root});await settled(w,f.command.command.commandId);await w.close();assert.equal(digest(await readFile(join(f.root,name))),failedHash);assert.equal(inspect(f.root).version,13);
+ const failedHash=digest(await readFile(join(f.root,name))),w=await openWriter({root:f.root});await settled(w,f.command.command.commandId);await w.close();assert.equal(digest(await readFile(join(f.root,name))),failedHash);assert.equal(inspect(f.root).version,16);
 });
 for(const target of ['database','manifest'])test('activation rechecks the verified '+target+' backup before publishing schema5',async t=>{
  const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'approval-schema-before-activation',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;

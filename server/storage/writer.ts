@@ -1,3 +1,4 @@
+import type {QueueStore} from './queue.js';
 import type { Portables } from './portable.js';
 import { Worker } from 'node:worker_threads';
 import type { BlobRef, Document, DomainEvent, Receipt } from '../../src/protocol/store.js';
@@ -16,7 +17,7 @@ import { PrivateRootError } from '../private-root.js';
 export type WriterOptions = { root: string; quotaBytes?: string };
 // Internal process/filesystem tests only. Not an HTTP/CLI/environment setting.
 export type WriterTestOptions = { phase?: string; gate?: SharedArrayBuffer; onBarrier?: (phase: string) => void;
-  onFailure?: (failure: { code?: string; sqliteCode?: number }) => void; maxPageCount?: number; effectCounters?: SharedArrayBuffer };
+  onFailure?: (failure: { code?: string; sqliteCode?: number }) => void; maxPageCount?: number; effectCounters?: SharedArrayBuffer; setupModule?:string };
 export async function openWriter(options: WriterOptions, testing?: WriterTestOptions) {
   if (process.versions.node !== '26.10.0') throw new StoreError('UNSUPPORTED_STORAGE');
   if (options.quotaBytes !== undefined && !/^[1-9][0-9]*$/.test(options.quotaBytes)) throw new StoreError('MALFORMED_REQUEST');
@@ -26,7 +27,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   let worker: Worker;
   try {
     worker = new Worker(new URL('./worker.js', import.meta.url), { workerData: { root: owner.path, identity: owner.identity, quotaBytes: options.quotaBytes,
-      testing: testing ? { phase: testing.phase, gate: testing.gate, maxPageCount: testing.maxPageCount, effectCounters: testing.effectCounters } : undefined },
+      testing: testing ? { phase: testing.phase, gate: testing.gate, maxPageCount: testing.maxPageCount, effectCounters: testing.effectCounters, setupModule:testing.setupModule } : undefined },
       ...(process.execArgv.some(arg => arg.startsWith('--input-type')) ?
         { execArgv: process.execArgv.filter(arg => !arg.startsWith('--input-type')) } : {}),
       env: {}, resourceLimits: { maxOldGenerationSizeMb: 128, maxYoungGenerationSizeMb: 16 } });
@@ -64,6 +65,17 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   let closePromise: Promise<void> | undefined;
   return {
     root: owner.path, epoch,
+    queueCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<QueueStore['command']>>>('queueCommand',{bytes,auth}),
+    candidateHistory:(documentId:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateHistory>('candidateHistory',{documentId,after}),
+    candidateView:(jobId:string,attemptId?:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateView>('candidateView',{jobId,attemptId,after}),
+    candidatePrompt:(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned',offset:string)=>request<{bytes:Uint8Array;byteLength:string;offset:string;nextOffset:string|null}>('candidatePrompt',{jobId,attemptId,kind,offset}),
+    deletionList:(after:string)=>request<ReturnType<import('./deletion.js').Deletions['list']>>('deletionList',{after}),
+    deletionView:(documentId:string,auth:AssetAuth,after='')=>request<ReturnType<import('./deletion.js').Deletions['view']>>('deletionView',{documentId,auth,after}),
+    queueView:(after='')=>request<ReturnType<QueueStore['view']>>('queueView',{after}),
+    queueReserve:(jobId:string)=>request<ReturnType<QueueStore['reserve']>>('queueReserve',{jobId}),
+    queueDispatch:(...params:Parameters<QueueStore['dispatch']>)=>request<ReturnType<QueueStore['dispatch']>>('queueDispatch',{params}),
+    queueOutcome:(...params:Parameters<QueueStore['outcome']>)=>request<ReturnType<QueueStore['outcome']>>('queueOutcome',{params}),
+    queueRecovery:(...params:Parameters<QueueStore['recovery']>)=>request<ReturnType<QueueStore['recovery']>>('queueRecovery',{params}),
     textAdmission:(id:string,auth:AssetAuth,release=false)=>request<{id:string;bytes:number}>('textAdmission',{id,auth,release}),
     get available() { return !ended && !closing; },
     async submit(bytes: Uint8Array, writerEpoch: string): Promise<Receipt> {
@@ -95,6 +107,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     historyClosure:(id:string,after:string)=>request<ReturnType<Histories['closure']>>('historyClosure',{id,after}),
     historyPage:(id:string,after:string,kind:'history'|'checkpoints')=>request<ReturnType<Histories['page']>>('historyPage',{id,after,kind}),
     saveStatus:(id:string,sessionId:string,auth:AssetAuth)=>request<ReturnType<Histories['status']>>('saveStatus',{id,sessionId,auth}),
+    requestReviews:(id:string,auth:AssetAuth)=>request<ReturnType<UIStore['requestReviews']>>('requestReviews',{id,auth}),
     uiRead:(id:string,auth:AssetAuth)=>request<ReturnType<UIStore['read']>>('uiRead',{id,auth}),
     uiPersist:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<UIStore['persist']>>>('uiPersist',{bytes,auth}),
     rasterCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('rasterCommand',{bytes,auth}),

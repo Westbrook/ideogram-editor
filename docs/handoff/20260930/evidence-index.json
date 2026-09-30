@@ -1,0 +1,29 @@
+{
+  "scope": "Portable package indexes only; raw diagnostics, screenshots, traces, archives and private roots remain at original paths. Copy those roots separately for a different machine. No cleanup or new qualification.",
+  "packages": [
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/e4-execution-evidence/campaign-package.json",
+      "portablePath": "docs/handoff/20260930/p25-campaign-package.json",
+      "sha256": "346e5b294534986ec3e3609dce2fd3e8d377885bdc170b5ec58f6a4fb8f8aaf6",
+      "bytes": 33599
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/evidence/correction-package.json",
+      "portablePath": "docs/handoff/20260930/p25-correction-package.json",
+      "sha256": "19ec76218da9b500a07c7368833d0251d706c7fa62d40c0c25a2ae7442eb7458",
+      "bytes": 2246
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-p25-f1-f4-20260929/evidence/supplemental-retention/package.json",
+      "portablePath": "docs/handoff/20260930/p25-retention-package.json",
+      "sha256": "877410178ab46d1229cf82fa00e6ce7c7444d985e4b17c94e3ead47873f056c7",
+      "bytes": 4135
+    },
+    {
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-spectrum-controls-20260929/evidence/final-package.json",
+      "portablePath": "docs/handoff/20260930/spectrum-final-package.json",
+      "sha256": "4fa3bfd362b4c5d1a9ed11cf541238c844ef14d9e3fb83bc497e1146b5f79b4e",
+      "bytes": 11396
+    }
+  ]
+}

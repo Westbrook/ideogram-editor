@@ -1,3 +1,4 @@
+import {isQueueCommand} from '../../src/protocol/queue.js';
 import {validateMaskMapping} from '../../src/raster/mapping.js';
 import { validateMaskPlan } from '../../src/raster/mask.js';
 import { isPortableCommand } from '../../src/protocol/portable.js';
@@ -46,7 +47,20 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
   validateBlob(c.expectedEntityVersions);
   const body = c.body as Record<string, unknown>;
   if (!body || typeof body !== 'object' || Array.isArray(body)) bad();
-  if (isPortableCommand(String(body.type))) {
+  if (isQueueCommand(String(body.type))) {
+    const cap=(v:unknown)=>v===null||typeof v==='number'&&Number.isSafeInteger(v)&&v>0;
+    if(body.type==='QueueInference'){keys(body,['type','reviewId','token','acceptanceId']);if(!isId(body.reviewId)||!isId(body.acceptanceId)||typeof body.token!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.token))bad();}
+    else if(body.type==='SetSpendGuard'){keys(body,['type','spendSessionId','cap','expectedConfigVersion']);if(!isId(body.spendSessionId)||!isSeq(body.expectedConfigVersion)||!cap(body.cap))bad();}
+    else if(body.type==='StartSpendSession'){keys(body,['type','previousSessionId','cap','acknowledgeUnresolvedAttempts']);if(!(body.previousSessionId===null||isId(body.previousSessionId))||!cap(body.cap)||typeof body.acknowledgeUnresolvedAttempts!=='boolean')bad();}
+    else if(body.type==='RecoverCandidateOriginal'){keys(body,['type','candidateId','expectedVersion','assetId']);if(!isId(body.candidateId)||!isSeq(body.expectedVersion)||!isId(body.assetId))bad();}
+    else if(body.type==='HideCandidate'||body.type==='RetryCandidateImport'){keys(body,['type','candidateId','expectedVersion']);if(!isId(body.candidateId)||!isSeq(body.expectedVersion))bad();}
+    else if(body.type==='PreviewDocumentDeletion'){keys(body,['type','documentId','expectedRevision']);if(!isId(body.documentId)||!isSeq(body.expectedRevision))bad();}
+    else if(body.type==='DeleteDocument'){keys(body,['type','documentId','planId','planHash','expectedRevision','rootGeneration','acknowledgeRunningAndUncertain']);if(!isId(body.documentId)||!isId(body.planId)||!isSeq(body.expectedRevision)||![body.planHash,body.rootGeneration].every(v=>typeof v==='string'&&/^sha256:[a-f0-9]{64}$/.test(v))||typeof body.acknowledgeRunningAndUncertain!=='boolean')bad();}
+    else if(body.type==='CollectDocumentGarbage'){keys(body,['type','documentId']);if(!isId(body.documentId))bad();}
+    else if(['CancelJob','RecoverJob','UndoPendingJob','RedoPendingJob'].includes(String(body.type))){keys(body,['type','jobId','attemptId','expectedVersion']);if(!isId(body.jobId)||!isId(body.attemptId)||!isSeq(body.expectedVersion))bad();}
+    else if(body.type==='CancelUnstartedJob'){keys(body,['type','jobId','expectedVersion']);if(!isId(body.jobId)||!isSeq(body.expectedVersion))bad();}
+    else {const risk=body.type==='OverrideUncertainHold'?'acknowledgeOverlapAndChargeRisk':'acknowledgeDuplicateWorkAndChargeRisk';keys(body,['type','jobId','attemptId','expectedVersion',risk]);if(!isId(body.jobId)||!isId(body.attemptId)||!isSeq(body.expectedVersion)||body[risk]!==true)bad();}
+  } else if (isPortableCommand(String(body.type))) {
     if(body.type==='SaveCopy')keys(body,['type']);
     else if(body.type==='PreviewBundleImport'){keys(body,['type','stagingId','expectedSha256']);if(!isId(body.stagingId)||typeof body.expectedSha256!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.expectedSha256))bad();}
     else if(body.type==='ImportBundle'){keys(body,['type','reviewId','reviewHash']);if(!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash))bad();}

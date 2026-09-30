@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-09-30T02:10:50.595468+00:00",
+  "purpose": "Bounded local-main source consolidation only; not acceptance or runtime qualification",
+  "node": "26.10.0",
+  "npm": "12.1.0",
+  "install": "Existing main worktree node_modules reused; no clean install qualification",
+  "gates": [
+    {
+      "command": "npm run typecheck",
+      "result": "PASS",
+      "log": "typecheck.log"
+    },
+    {
+      "command": "npm run verify:vendor",
+      "result": "PASS",
+      "log": "vendor.log"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "log": "build.log"
+    },
+    {
+      "command": "node tooling/theme/spectrum.mjs",
+      "result": "PASS",
+      "log": "theme.log"
+    }
+  ],
+  "sourceAudit": {
+    "result": "PASS",
+    "details": "176 integrated file identities match their selected exact source; all 24 theme files unchanged; all 10 preexisting main-only files preserved; package scripts combined; lock unchanged",
+    "record": "source-map.json"
+  },
+  "diffCheck": {
+    "command": "git diff --cached --check",
+    "exitCode": 2,
+    "result": "Known nonblocking reviewed Spectrum fixture EOF blank line; verbatim Vite build log also retains one trailing-space line.",
+    "log": "diff-check.log",
+    "finalStagedOutput": "docs/handoff/20260930/build.log:268: trailing whitespace.\n+[plugin builtin:vite-reporter] \ntests/browser/spectrum-fixture.ts:93: new blank line at EOF.\n"
+  },
+  "warnings": [
+    "Vite app chunk size advisory retained; no build failure."
+  ],
+  "notRun": [
+    "unit suites",
+    "browser/native/GPU campaign",
+    "provider or paid calls",
+    "CI",
+    "Docker",
+    "clean dependency installation",
+    "product acceptance"
+  ],
+  "baseShaCI": null,
+  "remotePush": false,
+  "documentationAudit": {
+    "result": "PASS",
+    "checks": [
+      "Relative Markdown links exist",
+      "Copied package hashes match originals",
+      "Current report revision 1032 retains one open feedback record: A-R01",
+      "No product or browser runtime qualification performed"
+    ]
+  }
+}

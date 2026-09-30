@@ -1,3 +1,4 @@
+import {queueEvents} from './queue.js';
 import {validateMaskMapping,retainedMask} from '../raster/mapping.js';
 import { validateMaskPlan } from '../raster/mask.js';
 import { fontVersion } from './text.js';
@@ -60,7 +61,8 @@ export function rasterManifest(v:any):void{
       if(l.mask!==null){validateMaskMapping(l.mask);}
     }for(const f of p.footprints){keys(f,['x','y','width','height']);requireValue([f.x,f.y,f.width,f.height].every(Number.isSafeInteger)&&f.width>=0&&f.height>=0);}
   }else if(['authored-mask-v1','authored-mask-v2'].includes(p.kind)){keys(p,['kind','authoring','hard','effective','statistics']);validateMaskPlan(p.authoring);requireValue((p.kind==='authored-mask-v2')===(p.authoring.schemaVersion===2));requireValue(p.authoring.width===v.width&&p.authoring.height===v.height);for(const r of [p.hard,p.effective]){blob(r);requireValue(r.mediaType==='application/x-ideogram-r16le'&&r.byteLength===String(v.width*v.height*2)&&v.dependencies.some((d:any)=>canonical(d)===canonical(r)));}keys(p.statistics,['hardPixels','effectivePixels','support']);requireValue([p.statistics.hardPixels,p.statistics.effectivePixels].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=v.width*v.height));if(p.statistics.support!==null){keys(p.statistics.support,['x','y','width','height']);requireValue(Object.values(p.statistics.support).every(Number.isSafeInteger));}
-  }else if(p.kind==='retained-text'){keys(p,['kind','source']);blob(p.source);requireValue(p.source.mediaType==='application/json');}
+  }else if(p.kind==='request-mask-resize'){keys(p,['kind','source','from','mapping','kernel']);blob(p.source);keys(p.from,['width','height']);requireValue([p.from.width,p.from.height].every(n=>Number.isSafeInteger(n)&&n>0&&n<=8192)&&p.mapping==='stretch'&&p.kernel==='triangle-area-r16-linear-v1');}
+  else if(p.kind==='retained-text'){keys(p,['kind','source']);blob(p.source);requireValue(p.source.mediaType==='application/json');}
   else throw new Error('Unsupported raster plan');
 }
 export function entity(type: string, value: any) {
@@ -90,6 +92,7 @@ export function event(v: any): asserts v is DomainEvent {
   requireValue(v.schemaVersion===1&&v.payloadVersion===1&&['eventId','streamId','commandId','correlationId','transactionId'].every(k=>id(v[k]))&&
     ['workspaceSeq','streamSeq','writerEpoch'].every(k=>seq(v[k]))&&(v.causationId===null||id(v.causationId))&&typeof v.recordedAt==='string'&&Number.isFinite(Date.parse(v.recordedAt))&&
     new TextEncoder().encode(canonical(v)).length<=16384);
+  if(queueEvents.includes(v.type)){requireValue(v.documentId===null&&v.resultingDocumentRevision===null&&v.streamId==='assets'&&v.streamSeq===v.workspaceSeq);keys(v.payload,['id','version','state']);requireValue(id(v.payload.id)&&seq(v.payload.version));blob(v.payload.state);return;}
   if(['BundlePrepared','BundleImportReviewed','PortableCancelled'].includes(v.type)){
     requireValue(v.documentId===null&&v.resultingDocumentRevision===null&&v.streamId==='portable'&&v.streamSeq===v.workspaceSeq);
     if(v.type==='BundlePrepared'){keys(v.payload,['bundle']);const b=v.payload.bundle;keys(b,['protocolVersion','bundleId','documentId','documentRevision','capturedHighWater','uiDigest','blob','complete','status','destinationStatus']);blob(b.blob);requireValue(b.protocolVersion===1&&id(b.bundleId)&&id(b.documentId)&&seq(b.documentRevision)&&seq(b.capturedHighWater)&&/^sha256:[a-f0-9]{64}$/.test(b.uiDigest)&&b.blob.mediaType==='application/x-ideogram-project'&&b.complete===true&&b.status==='copy-ready'&&b.destinationStatus==='unconfirmed');}

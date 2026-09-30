@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,chmod} from 'node:fs/promises';
+import {mkdtemp,readFile,chmod,copyFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import sharp from 'sharp';
@@ -10,7 +10,7 @@ import {rootFor} from '../store/helpers.mjs';
 const base=new URL('./fixtures/',import.meta.url);
 const fixture=JSON.parse(await readFile(new URL('manifest.json',base)));
 const mime=n=>n.endsWith('.jpg')?'image/jpeg':n.endsWith('.webp')?'image/webp':'image/png';
-async function decode(t,name){const root=await rootFor(t),directory=await mkdtemp(join(root,'job-')),path=new URL(name,base).pathname;await chmod(path,0o600);const bytes=await readFile(path);return {root,directory,result:await runRaster({type:'decode',directory,path,mediaType:mime(name),sourceAssetId:'fixture',original:{hash:hash(bytes),byteLength:String(bytes.length),mediaType:mime(name)}},async()=>{},()=>{})};}
+async function decode(t,name){const root=await rootFor(t),directory=await mkdtemp(join(root,'job-')),path=join(directory,name);await copyFile(new URL(name,base),path);await chmod(path,0o600);const bytes=await readFile(path);return {root,directory,result:await runRaster({type:'decode',directory,path,mediaType:mime(name),sourceAssetId:'fixture',original:{hash:hash(bytes),byteLength:String(bytes.length),mediaType:mime(name)}},async()=>{},()=>{})};}
 test('actual frozen PNG/JPEG/static WebP codec inputs; independently specified uniform and literal pixels',async t=>{
  verifyCodecs();for(const name of ['hidden-alpha.png','white.jpg','white-lossy.webp','alpha-lossless.webp','alpha-lossy.webp','srgb.png']){
   const {directory,result}=await decode(t,name);const rgba=await readFile(join(directory,'pixels.rgba')),expected=fixture.fixtures.find(f=>f.name===name).expected;
@@ -44,7 +44,7 @@ test('lossy and lossless alpha WebP match independent public decoder diagnostic 
 
 test('WebP extent and native allocation plan are admitted before invoking its native metadata parser',async t=>{
  for(const name of ['max-webp-lossy.webp','max-webp-lossless.webp']){
-  const root=await rootFor(t),directory=await mkdtemp(join(root,'job-')),path=new URL(name,base).pathname;await chmod(path,0o600);const bytes=await readFile(path);let plan;
+  const root=await rootFor(t),directory=await mkdtemp(join(root,'job-')),path=join(directory,name);await copyFile(new URL(name,base),path);await chmod(path,0o600);const bytes=await readFile(path);let plan;
   const before=process.memoryUsage().rss;
   await assert.rejects(runRaster({type:'decode',directory,path,mediaType:'image/webp',sourceAssetId:'fixture',original:{hash:hash(bytes),byteLength:String(bytes.length),mediaType:'image/webp'}},async p=>{plan=p;throw Error('DENIED_BEFORE_NATIVE');},()=>{}),/DENIED_BEFORE_NATIVE/);
   assert.equal(plan.width,5000);assert.equal(plan.height,5000);assert.ok(plan.cpuBytes>512*1024*1024);assert.ok(process.memoryUsage().rss-before<128*1024*1024);

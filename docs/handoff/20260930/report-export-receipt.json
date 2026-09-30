@@ -1,0 +1,20 @@
+{
+  "revision": 1032,
+  "exportEdition": 2,
+  "directory": "/Users/westbrook/Documents/repos/ideogram-edit-progress-report/exports/harness-handoff-20260930-chart-corrected",
+  "archive": "/Users/westbrook/Documents/repos/ideogram-edit-progress-report/exports/harness-handoff-20260930-chart-corrected.tar.gz",
+  "archiveBytes": 30342963,
+  "archiveSha256": "060acbfd140fe3e63fcd522bcd34237b605a6c840d8f3e21be230eb967b888b4",
+  "manifestSha256": "dd21a39cf7c0b2481e303b097ed04c4a1d68ad576b6f70489d806426acc5157e",
+  "canonicalSha256": "394253df08b9b8d19e0b057c285a05a0d4680174c009e84bae086d652372db62",
+  "indexSha256": "41765824e20d302438bed31608820ac4ff0421d7eed8f6d7b6f404661d8320e8",
+  "files": 76,
+  "archiveMembers": 78,
+  "originalArchiveUnchanged": true,
+  "canonicalUnchanged": true,
+  "allArchiveBytesVerified": true,
+  "remainingCoordinates": {
+    "100": 20,
+    "44": 98.4
+  }
+}

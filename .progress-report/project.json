@@ -6,10 +6,15 @@
   "reportUrl": "http://127.0.0.1:4381/",
   "apps": {
     "local": {
-      "url": "http://127.0.0.1:52219/?progress-report",
-      "availability": "live approved 85df04f preview; OS-selected origin, changes on restart",
+      "url": "http://127.0.0.1:50427/?progress-report",
+      "availability": "Historical frozen preview; not the consolidated main build. Availability not requalified during handoff.",
       "urlTemplate": "{actualLaunchOrigin}/?progress-report",
       "integration": "Trusted Developer UI return link. Pair only through the local launcher; shared URLs contain no pairing token."
+    },
+    "consolidatedMain": {
+      "url": null,
+      "availability": "Built locally for handoff; not launched or browser-qualified.",
+      "urlTemplate": "{actualLaunchOrigin}/?progress-report"
     }
   },
   "continuationOf": {
@@ -19,5 +24,11 @@
     "frozenCheckpointMeaning": "historical snapshot, not live state",
     "approvedTechnicalCommit": "409e4afb1a7168f706e9015e5e62122a74d40453",
     "approvedArchiveCommit": "082a3fab650c55712e8a390802e409f1c11f1d75"
+  },
+  "originalReportWorkspace": "/Users/westbrook/Documents/repos/ideogram-edit-progress-report",
+  "portableHandoff": "docs/HANDOFF.md",
+  "portableReport": {
+    "record": "docs/handoff/20260930/report-export.json",
+    "meaning": "Frozen migration snapshot; restore the independent report as a sibling, never under product runtime."
   }
 }

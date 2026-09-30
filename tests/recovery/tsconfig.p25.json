@@ -1,0 +1,1 @@
+{"extends": "../../tsconfig.app.json", "include": ["../../src/**/*.ts", "./e4.spec.ts", "./e4-process.ts", "./lifecycle.ts", "./p25.config.ts", "./owner-runner.spec.ts", "./owner-runner.config.ts", "./persistent-runner.spec.ts", "./persistent-runner.config.ts"]}

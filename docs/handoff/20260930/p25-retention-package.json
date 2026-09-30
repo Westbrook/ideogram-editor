@@ -1,0 +1,117 @@
+{
+  "authorEnd": "2026-09-30T00:52:37.770954+00:00",
+  "head": "93fa3121ee080c47913fef0b1be9147ca5973180",
+  "originalCorrectionPackage": {
+    "path": "evidence/correction-package.json",
+    "mode": 420,
+    "kind": "file",
+    "bytes": 2246,
+    "sha256": "19ec76218da9b500a07c7368833d0251d706c7fa62d40c0c25a2ae7442eb7458"
+  },
+  "supplementalResult": {
+    "invocations": 1,
+    "selected": 25,
+    "passed": 25,
+    "failed": 0,
+    "selectorExcluded": 1,
+    "nodeReportedSkipped": 0,
+    "excludedName": "larger than 16MiB exact Unicode prompt streams into bounded pages and a complete copy",
+    "membershipMatches": true,
+    "fullPrePostInputsEqual": true,
+    "verifiedArchives": 25
+  },
+  "files": [
+    {
+      "path": "evidence/supplemental-retention/plan.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 3981,
+      "sha256": "43036f48eb43f21b4027d9c4d784550b064c3eeea408b58a47c96fb56b461294"
+    },
+    {
+      "path": "evidence/supplemental-retention/seal.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 1710,
+      "sha256": "06912ea012e662a21650b17491c3646eb1421ccf5512402ea345cfdaabcf46ab"
+    },
+    {
+      "path": "evidence/supplemental-retention/consumed-start.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 669,
+      "sha256": "2a992672e82db4e67ddb89f7cf6e44c4305661d9b7bc927e98f6c216e584bee1"
+    },
+    {
+      "path": "evidence/supplemental-retention/pre-inputs.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 8631696,
+      "sha256": "820b50ab03f25b038fd086a2177ee187fe264298886ada73f58f2d08d410b5d4"
+    },
+    {
+      "path": "evidence/supplemental-retention/post-inputs.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 8631696,
+      "sha256": "820b50ab03f25b038fd086a2177ee187fe264298886ada73f58f2d08d410b5d4"
+    },
+    {
+      "path": "evidence/supplemental-retention/outcome.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 412895,
+      "sha256": "9dbca765dcc98d616c3debc71d987a315c8d1abb0b6c7fa9362079cbf1dfe2a0"
+    },
+    {
+      "path": "evidence/supplemental-retention/closure.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 26838,
+      "sha256": "f08c560ee333d643d84664d0b35fde3b07e18f7c4a179a8f4407d5d095665a96"
+    },
+    {
+      "path": "supplemental-retention.py",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 2869,
+      "sha256": "d92a9ef575c468feee6ad7f708e5de2e02b965b311895d1c6b78d6ce4f55c073"
+    },
+    {
+      "path": "evidence/r3-single-retention/start.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 665773,
+      "sha256": "446c62c23e0c67d6be4661375985fb78011a4fc5630ccdea3bd97c470ae8803d"
+    },
+    {
+      "path": "evidence/r3-single-retention/result.json",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 252,
+      "sha256": "f5eb1b9812ff28c449bb177381a3e91f2ff1b49efeb312641f208efcba569752"
+    },
+    {
+      "path": "evidence/r3-single-retention/stdout",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 2627,
+      "sha256": "8e1ac5cae116c776f1ae059304c27c5be90ce0b4a7721b108b50a5f9bff19bcb"
+    },
+    {
+      "path": "evidence/r3-single-retention/stderr",
+      "mode": 420,
+      "kind": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "remainingQualification": {
+    "nonlive": "The isolated retention selection now passes on exact93fa; earlier41 focused controls and other scoped affected passes retain their recorded results, but the combined222 invocation is still FAIL. No aggregate blanket-pass or resolved combined-load cause is claimed.",
+    "independentReview": "Exact-head F1\u2013F4 source/evidence review remains the Coordinator/reviewer decision; this supplement is supporting evidence.",
+    "browser": "Changed UI/backend still need separately reviewed/released final E4 coverage; no browser or next execution is authorized by this supplement.",
+    "history": "All inherited failed cleanup, root-loss, timing, prompt-reread, memory and A-R01 limits remain."
+  },
+  "noSourceOrBudgetChange": true,
+  "noAcceptanceOrCredit": true
+}

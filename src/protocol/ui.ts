@@ -6,7 +6,7 @@ export type Preferences = {
   selectedLayerIds: string[];
 };
 export type Draft = {
-  id: string; generation: string; kind: 'prompt' | 'inspector' | 'text' | 'mask' | 'composition'; documentId: string;
+  id: string; generation: string; kind: 'prompt' | 'inspector' | 'text' | 'mask' | 'composition' | 'request'; documentId: string;
   targetLayerId: string | null; expectedDocumentRevision: string; assetId: string;
   maskBindings?: Record<string,string>; compositionBindings?:Record<string,string>;
   composing: boolean; status: 'saved-unapplied' | 'applied';
@@ -17,9 +17,11 @@ export type UIRequest = {
   body: { type: 'SetPreferences'; preferences: Preferences }
     | { type: 'SaveDraft'; draft: Omit<Draft,'status'|'maskBindings'|'compositionBindings'> }
     | { type: 'ClearDraft'; draftId: string; generation: string }
+    | { type: 'PrepareRequestReview'; draftId:string; generation:string }
+    | { type: 'AcceptRequestReview'; reviewId:string; token:string }
     | { type: 'FocusRequested'; target: 'canvas' | 'inspector' | 'history'; generation: string };
 };
-export type UIReceipt = { protocolVersion: 1; requestId: string; status: 'accepted' | 'rejected'; uiSeq: string; reason: string | null };
+export type UIReceipt = { protocolVersion: 1; requestId: string; status: 'accepted' | 'rejected'; uiSeq: string; reason: string | null; review?:import('../request/review.js').RequestReview; acceptedReview?:string };
 export type DocumentSaveStatus = { pendingCommandCount: number; draftDirty: boolean; documentChangedSinceCheckpoint: boolean; bundleOutdated: boolean };
 export type { DraftFence };
 

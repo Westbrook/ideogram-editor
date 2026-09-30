@@ -1,0 +1,13 @@
+{
+  "archiveSha256": "060acbfd140fe3e63fcd522bcd34237b605a6c840d8f3e21be230eb967b888b4",
+  "exportEdition": 2,
+  "freshRestorePath": "/var/folders/7p/smv_b8qx5f3c_x31g78958nw0000gn/T/ideogram-portable-report-edition2-t8m4mp3z/harness-handoff-20260930-chart-corrected",
+  "command": "python3 verify-export.py",
+  "exitCode": 0,
+  "output": {
+    "files": 76,
+    "mismatches": [],
+    "revision": 1032
+  },
+  "scope": "Fresh archive restore and file integrity only; no report server/browser or product execution."
+}

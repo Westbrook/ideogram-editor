@@ -86,7 +86,8 @@ export class RecoveryCache {
         values.set(type,read.result);if(--remaining)return;
         try{
           requireValue(!values.get('event'),'Duplicate event identity');
-          if(event.type==='AssetRegistered'){requireValue(!values.get('asset'),'Duplicate asset');put('asset',event.payload.asset.id,event.payload.asset);}
+          if(event.type==='DocumentDeleted'){store.delete([generation,'document',event.payload.id]);}
+          else if(event.type==='AssetRegistered'){requireValue(!values.get('asset'),'Duplicate asset');put('asset',event.payload.asset.id,event.payload.asset);}
           else if(event.type==='BundleImported'||event.type==='DocumentCreated'||event.type==='CheckpointSaved'||event.type==='ImageEdited'||event.type==='HistoryNavigated'){
             if(event.type==='BundleImported'){
               const hydrated=values.get('namespace');requireValue(hydrated?.eventId===event.eventId&&hydrated?.namespaceHash===event.payload.namespaceHash,'Imported namespace has not been hydrated');

@@ -1,0 +1,18 @@
+{
+  "snapshotRevision": 1032,
+  "archive": "docs/handoff/20260930/progress-report.tar.gz",
+  "sha256": "060acbfd140fe3e63fcd522bcd34237b605a6c840d8f3e21be230eb967b888b4",
+  "bytes": 30342963,
+  "canonicalSha256": "394253df08b9b8d19e0b057c285a05a0d4680174c009e84bae086d652372db62",
+  "originalExportDirectory": "/Users/westbrook/Documents/repos/ideogram-edit-progress-report/exports/harness-handoff-20260930-chart-corrected",
+  "liveReportUrl": "http://127.0.0.1:4381/",
+  "mainIdentity": "Run git log -1 --format=%H%n%P main; the frozen snapshot predates this integration commit.",
+  "scope": "Independent portable report, canonical history, versioned feedback and note snapshots; no runtime/product dependency or credentials.",
+  "restore": "Extract outside the product checkout; read RESTART.md and run python3 verify-export.py. Offline index.html requires no service. For an isolated copied report use python3 report.py start --port 4382. Do not replace the live 4381 service.",
+  "rawEvidenceBoundary": "Large external product/dependency/private/browser evidence archives remain at paths in evidence-index.json and copied package indexes; they are not bundled.",
+  "verification": "report-restore-verification.json",
+  "exportEdition": 2,
+  "receipt": "report-export-receipt.json",
+  "supersedes": "report-original-receipt.json",
+  "correction": "Offline burndown coordinates corrected to remaining effort; canonical history and progress unchanged. Original archive preserved at its original external location."
+}

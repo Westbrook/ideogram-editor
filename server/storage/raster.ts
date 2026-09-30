@@ -227,21 +227,26 @@ export class Rasters {
   // Internal document owner uses the SAME worker/admission/pixel pipeline. It
   // publishes the result only in its atomic image/history acceptance transaction.
   get documentAvailable(){return !this.running&&!this.documentBusy&&!this.closing;}
-  async prepareDocument(body: Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>|{type:'RetainText';source:BlobRef;pixels:BlobRef;width:number;height:number}, id:string, slot:string, check:()=>void, preparedInput?:Asset) {
+  async prepareDocument(body: Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>|{type:'RequestMaskResize';assetId:string;width:number;height:number}|{type:'RetainText';source:BlobRef;pixels:BlobRef;width:number;height:number}|{type:'PrepareCandidate';assetId:string}, id:string, slot:string, check:()=>void, preparedInput?:Asset,workDocumentId?:string) {
     if(this.running||this.documentBusy||this.closing)throw new StoreError('QUEUE_FULL');
     this.documentBusy=true;
     const proofs:{ref:BlobRef;token:string}[]=[];
     try {
-      const ids=body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'?[body.assetId]:[];
+      const ids=body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='ExportRaster'||body.type==='RequestMaskResize'?[body.assetId]:[];
       const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
       for(const assetId of ids){const a=preparedInput?.id===assetId?preparedInput:this.asset(assetId,true);const info=a.raster!;
         for(const ref of [info.pixels,info.manifest])if(!proofs.some(p=>p.ref.hash===ref.hash))proofs.push({ref,token:await this.objects.prove(ref,check)});
         const coverage=info.role==='mask'?(this.manifest(assetId).plan as {effective:BlobRef}).effective:undefined;if(coverage)proofs.push({ref:coverage,token:await this.objects.prove(coverage,check)});
         inputs.push({id:assetId,info,path:this.objects.path(info.pixels),...(coverage?{coveragePath:this.objects.path(coverage)}:{})});dependencies.push(info.manifest);
       }
+      check();const ownedDocument=workDocumentId??(slot.startsWith('history:')?String(this.db.prepare("SELECT json_extract(canonical,'$.command.documentId') AS document_id FROM history_preparations WHERE id=?").get(slot.slice(8))?.document_id??''):null);
+      if(ownedDocument&&this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(ownedDocument))throw new StoreError('STALE_EPOCH');
       const directory=join(this.directory,randomUUID());privateDirectory(directory);
+      if(ownedDocument)this.db.prepare('INSERT INTO deletion_work VALUES (?,?)').run(directory,ownedDocument);
       if(body.type==='RetainText')for(const ref of [body.source,body.pixels])proofs.push({ref,token:await this.objects.prove(ref,check)});
-      const job:RasterJob=body.type==='RetainText'?{type:'text',directory,path:this.objects.path(body.pixels),source:body.source,width:body.width,height:body.height,dependencies:[body.source]}:body.type==='ComposeRaster'?{type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies}:{type:'export',directory,input:inputs[0],dependencies};
+      const original=body.type==='PrepareCandidate'?this.assets.asset(body.assetId):null;
+      if(body.type==='PrepareCandidate'){if(!original||original.qualification!=='pending-decoder')throw new StoreError('MALFORMED_REQUEST');proofs.push({ref:original.blob,token:await this.objects.prove(original.blob,check)});}
+      const job:RasterJob=body.type==='PrepareCandidate'?{type:'decode',directory,path:this.objects.path(original!.blob),mediaType:original!.measuredMediaType,original:original!.blob,sourceAssetId:original!.id}:body.type==='RequestMaskResize'?{type:'request-mask',directory,input:inputs[0],width:body.width,height:body.height,dependencies}:body.type==='RetainText'?{type:'text',directory,path:this.objects.path(body.pixels),source:body.source,width:body.width,height:body.height,dependencies:[body.source]}:body.type==='ComposeRaster'?{type:'compose',directory,width:body.width,height:body.height,layers:body.layers,inputs,dependencies}:{type:'export',directory,input:inputs[0],dependencies};
       const result=await this.compute(job,slot,check);validateManifest(result.manifest);
       if(hashBytes(canonical(result.manifest))!==result.info.manifest.hash)throw new StoreError('CORRUPT_OBJECT');
       for(const p of proofs)this.objects.proven(p.ref,p.token);

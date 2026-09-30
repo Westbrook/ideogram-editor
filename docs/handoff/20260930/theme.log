@@ -1,0 +1,8 @@
+{
+  "pairSourceHash": "sha256:132623081a9f03e60f52f45a6391681c944de07409d817807858f0b9c6c086c9",
+  "outputs": {
+    "src/theme/spectrum.css": "ca1216ca1efc6dd6c99be79b94a366f95939f593bb13eeec73fd5b0b84e6444b",
+    "src/theme/spectrum.companion.css": "58c83bba8e5560b838a1b822ada08adab200be353ce7ba45be6756fcd88e45be",
+    "vendor/themes/spectrum/compiled.json": "76b2a9d7a1a968cf55ad3968e9533168c2827f5e9b8094058919b6c7a3b412fc"
+  }
+}

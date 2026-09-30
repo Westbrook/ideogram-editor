@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { closeSync, fsyncSync, statfsSync, openSync, readSync, writeFileSync, constants, fstatSync } from 'node:fs';
+import { closeSync, fsyncSync, statfsSync, openSync, readSync, writeFileSync, constants, fstatSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { canonical, hashBytes, isId, parseCommand } from './canonical.js';
@@ -881,5 +881,270 @@ export function compositionSchema(db: DatabaseSync, root: string, barrier: Barri
     }
     db.exec('COMMIT'); syncDirectory(root);
     barrier('composition-schema-after-activation');
+  } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
+}
+
+export function queueSchema(db: DatabaseSync, root: string, barrier: Barrier, quotaBytes?: string, fresh = false) {
+  const capability = 'queue-outbox-sg1-v1';
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) >= 14) {
+    const row = db.prepare('SELECT receipt FROM schema_migrations WHERE version=14').get();
+    if (!row || JSON.parse(String(row.receipt)).capability !== capability) throw new StoreError('CORRUPT_STORE');
+    return;
+  }
+  const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all().map(r=>String(r.name));
+  const compatibleExecutable = '92688fb71a75870f0f9ad2d48c7b95e55c2581fc';
+  const backup = fresh ? null : `schema13-backup-${randomUUID()}.sqlite`;
+  const manifest: Record<string, unknown> = {};
+  let backupHash: string | null = null;
+  let manifestFile: string | null = null;
+  const fileProof = (path: string) => {
+    const identity = assertPrivate(path, false), input = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    const hash = createHash('sha256'), block = Buffer.alloc(1048576);
+    try {
+      if (!sameFile(identity, fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
+      for (;;) { const n = readSync(input, block); if (!n) break; hash.update(block.subarray(0,n)); }
+      const after = assertPrivate(path, false);
+      if (!sameFile(identity, after) || identity.size !== after.size || identity.mtimeMs !== after.mtimeMs || identity.ctimeMs !== after.ctimeMs) throw new StoreError('ROOT_UNSAFE');
+    } finally { closeSync(input); }
+    return { path, identity, hash: `sha256:${hash.digest('hex')}` };
+  };
+  const proofs: ReturnType<typeof fileProof>[] = [];
+  if (backup) {
+    const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
+    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1073741824n + 67108864n;
+    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*10n >= fs.blocks*9n ||
+        (quotaBytes && inspectTree(root)+required > BigInt(quotaBytes))) throw new StoreError('CAPACITY');
+    barrier('queue-schema-before-backup');
+    const path = join(root, backup);
+    closeSync(privateFile(path));
+    db.prepare('VACUUM INTO ?').run(path); assertPrivate(path, false);
+    barrier('queue-schema-backup-written');
+    const saved = new DatabaseSync(path, { readOnly: true, allowExtension: false });
+    try {
+      if (saved.prepare('PRAGMA integrity_check').get()!.integrity_check !== 'ok' ||
+          saved.prepare('PRAGMA user_version').get()!.user_version !== 13) throw new StoreError('CORRUPT_STORE');
+      for (const table of tables) {
+        const before = digest(db, table);
+        if (canonical(before) !== canonical(digest(saved, table))) throw new StoreError('CORRUPT_STORE');
+        manifest[table] = before;
+      }
+      const sql = (database: DatabaseSync) => database.prepare('SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name').all();
+      if (canonical(sql(db)) !== canonical(sql(saved))) throw new StoreError('CORRUPT_STORE');
+      manifest.sqlite_schema = hashBytes(canonical(sql(saved)));
+    } finally { saved.close(); }
+    const fd = privateFile(path); try { fsyncSync(fd); } finally { closeSync(fd); }
+    const proof = fileProof(path); proofs.push(proof); backupHash = proof.hash;
+    manifestFile = `${backup}.manifest.json`;
+    const out = privateFile(join(root, manifestFile));
+    try {
+      writeFileSync(out, canonical({ schemaVersion: 1, backup, backupHash, storageVersion: 13,
+        compatibleExecutable, manifest,
+        retainedDirectories: ['objects','staging','uploads','portable'],
+        recovery: 'Copy the backup database and retained directories into a separate owner-only root. Use only the named compatible executable. Keep this root and all prior backups unchanged.' }));
+      fsyncSync(out);
+    } finally { closeSync(out); }
+    proofs.push(fileProof(join(root, manifestFile)));
+    syncDirectory(root);
+    barrier('queue-schema-backup-verified');
+  }
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    // No pending request, event, projection, receipt or root is transformed.
+    for (const table of tables) if (backup && canonical(manifest[table]) !== canonical(digest(db, table))) throw new StoreError('CORRUPT_STORE');
+    db.prepare('INSERT INTO schema_migrations VALUES (14,?)').run(canonical({ from:13, to:14, capability,
+      strategy:'semantic-version-verified-backup-transactional-activation', backup, backupHash, manifestFile, manifest,
+      rollback: backup ? { compatibleExecutable,  } : null }));
+    db.exec(`CREATE TABLE queue_jobs (id TEXT PRIMARY KEY, json TEXT NOT NULL) STRICT;
+      CREATE TABLE spend_sessions (id TEXT PRIMARY KEY, json TEXT NOT NULL) STRICT;
+      CREATE TABLE queue_outbox (attempt_id TEXT PRIMARY KEY, job_id TEXT NOT NULL, json TEXT NOT NULL) STRICT;
+      CREATE TABLE queue_journal (seq INTEGER PRIMARY KEY, json TEXT NOT NULL) STRICT;
+      CREATE TRIGGER queue_journal_update BEFORE UPDATE ON queue_journal BEGIN SELECT RAISE(ABORT,'immutable'); END;
+      CREATE TRIGGER queue_journal_delete BEFORE DELETE ON queue_journal BEGIN SELECT RAISE(ABORT,'immutable'); END;
+      PRAGMA user_version=14;`);
+    barrier('queue-schema-before-activation');
+    for (const proof of proofs) {
+      const current = fileProof(proof.path);
+      if (!sameFile(current.identity, proof.identity) || current.hash !== proof.hash) throw new StoreError('CORRUPT_STORE');
+    }
+    db.exec('COMMIT'); syncDirectory(root);
+    barrier('queue-schema-after-activation');
+  } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
+}
+
+export function candidateSchema(db: DatabaseSync, root: string, barrier: Barrier, quotaBytes?: string, fresh = false) {
+  const capability = 'retained-candidates-v1';
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) >= 15) {
+    const row = db.prepare('SELECT receipt FROM schema_migrations WHERE version=15').get();
+    if (!row || JSON.parse(String(row.receipt)).capability !== capability) throw new StoreError('CORRUPT_STORE');
+    return;
+  }
+  const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all().map(r=>String(r.name));
+  const compatibleExecutable = '9764b03ae889ae2fe2cf5d38e9e8e66bd6cf2eb4';
+  const backup = fresh ? null : `schema14-backup-${randomUUID()}.sqlite`;
+  const manifest: Record<string, unknown> = {};
+  let backupHash: string | null = null;
+  let manifestFile: string | null = null;
+  const fileProof = (path: string) => {
+    const identity = assertPrivate(path, false), input = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    const hash = createHash('sha256'), block = Buffer.alloc(1048576);
+    try {
+      if (!sameFile(identity, fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
+      for (;;) { const n = readSync(input, block); if (!n) break; hash.update(block.subarray(0,n)); }
+      const after = assertPrivate(path, false);
+      if (!sameFile(identity, after) || identity.size !== after.size || identity.mtimeMs !== after.mtimeMs || identity.ctimeMs !== after.ctimeMs) throw new StoreError('ROOT_UNSAFE');
+    } finally { closeSync(input); }
+    return { path, identity, hash: `sha256:${hash.digest('hex')}` };
+  };
+  const proofs: ReturnType<typeof fileProof>[] = [];
+  if (backup) {
+    const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
+    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1073741824n + 67108864n;
+    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*10n >= fs.blocks*9n ||
+        (quotaBytes && inspectTree(root)+required > BigInt(quotaBytes))) throw new StoreError('CAPACITY');
+    barrier('candidate-schema-before-backup');
+    const path = join(root, backup);
+    closeSync(privateFile(path));
+    db.prepare('VACUUM INTO ?').run(path); assertPrivate(path, false);
+    barrier('candidate-schema-backup-written');
+    const saved = new DatabaseSync(path, { readOnly: true, allowExtension: false });
+    try {
+      if (saved.prepare('PRAGMA integrity_check').get()!.integrity_check !== 'ok' ||
+          saved.prepare('PRAGMA user_version').get()!.user_version !== 14) throw new StoreError('CORRUPT_STORE');
+      for (const table of tables) {
+        const before = digest(db, table);
+        if (canonical(before) !== canonical(digest(saved, table))) throw new StoreError('CORRUPT_STORE');
+        manifest[table] = before;
+      }
+      const sql = (database: DatabaseSync) => database.prepare('SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name').all();
+      if (canonical(sql(db)) !== canonical(sql(saved))) throw new StoreError('CORRUPT_STORE');
+      manifest.sqlite_schema = hashBytes(canonical(sql(saved)));
+    } finally { saved.close(); }
+    const fd = privateFile(path); try { fsyncSync(fd); } finally { closeSync(fd); }
+    const proof = fileProof(path); proofs.push(proof); backupHash = proof.hash;
+    manifestFile = `${backup}.manifest.json`;
+    const out = privateFile(join(root, manifestFile));
+    try {
+      writeFileSync(out, canonical({ schemaVersion: 1, backup, backupHash, storageVersion: 14,
+        compatibleExecutable, manifest,
+        retainedDirectories: ['objects','staging','uploads','portable','backend-transport'],
+        recovery: 'Copy the backup database and retained directories into a separate owner-only root. Use only the named compatible executable. Keep this root and all prior backups unchanged.' }));
+      fsyncSync(out);
+    } finally { closeSync(out); }
+    proofs.push(fileProof(join(root, manifestFile)));
+    syncDirectory(root);
+    barrier('candidate-schema-backup-verified');
+  }
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    // No pending request, event, projection, receipt or root is transformed.
+    for (const table of tables) if (backup && canonical(manifest[table]) !== canonical(digest(db, table))) throw new StoreError('CORRUPT_STORE');
+    db.prepare('INSERT INTO schema_migrations VALUES (15,?)').run(canonical({ from:14, to:15, capability,
+      strategy:'semantic-version-verified-backup-transactional-activation', backup, backupHash, manifestFile, manifest,
+      rollback: backup ? { compatibleExecutable,  } : null }));
+    db.exec(`CREATE TABLE candidate_document_tombstones (document_id TEXT PRIMARY KEY, generation TEXT NOT NULL) STRICT;
+      CREATE TABLE candidate_jobs (job_id TEXT PRIMARY KEY, json TEXT NOT NULL) STRICT;
+      CREATE TABLE candidates (id TEXT PRIMARY KEY, document_id TEXT NOT NULL, job_id TEXT NOT NULL, json TEXT NOT NULL) STRICT;
+      CREATE TABLE candidate_private (id TEXT PRIMARY KEY, json TEXT NOT NULL) STRICT;
+      CREATE TABLE candidate_journal (seq INTEGER PRIMARY KEY, family TEXT NOT NULL, id TEXT NOT NULL, json TEXT NOT NULL) STRICT;
+      CREATE TRIGGER candidate_journal_update BEFORE UPDATE ON candidate_journal BEGIN SELECT RAISE(ABORT,'immutable'); END;
+      CREATE TRIGGER candidate_journal_delete BEFORE DELETE ON candidate_journal BEGIN SELECT RAISE(ABORT,'immutable'); END;
+      PRAGMA user_version=15;`);
+    barrier('candidate-schema-before-activation');
+    for (const proof of proofs) {
+      const current = fileProof(proof.path);
+      if (!sameFile(current.identity, proof.identity) || current.hash !== proof.hash) throw new StoreError('CORRUPT_STORE');
+    }
+    db.exec('COMMIT'); syncDirectory(root);
+    barrier('candidate-schema-after-activation');
+  } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
+}
+
+export function deletionSchema(db: DatabaseSync, root: string, barrier: Barrier, quotaBytes?: string, fresh = false) {
+  const capability = 'recovery-deletion-v1';
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) >= 16) {
+    const row = db.prepare('SELECT receipt FROM schema_migrations WHERE version=16').get();
+    if (!row || JSON.parse(String(row.receipt)).capability !== capability) throw new StoreError('CORRUPT_STORE');
+    return;
+  }
+  const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all().map(r=>String(r.name));
+  const compatibleExecutable = '086c9a677512f1faae98f9e947084ffb93c09431';
+  const backup = fresh ? null : `schema15-backup-${randomUUID()}.sqlite`;
+  const manifest: Record<string, unknown> = {};
+  let backupHash: string | null = null;
+  let manifestFile: string | null = null;
+  const fileProof = (path: string) => {
+    const identity = assertPrivate(path, false), input = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    const hash = createHash('sha256'), block = Buffer.alloc(1048576);
+    try {
+      if (!sameFile(identity, fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
+      for (;;) { const n = readSync(input, block); if (!n) break; hash.update(block.subarray(0,n)); }
+      const after = assertPrivate(path, false);
+      if (!sameFile(identity, after) || identity.size !== after.size || identity.mtimeMs !== after.mtimeMs || identity.ctimeMs !== after.ctimeMs) throw new StoreError('ROOT_UNSAFE');
+    } finally { closeSync(input); }
+    return { path, identity, hash: `sha256:${hash.digest('hex')}` };
+  };
+  const proofs: ReturnType<typeof fileProof>[] = [];
+  if (backup) {
+    const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
+    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1073741824n + 67108864n;
+    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*10n >= fs.blocks*9n ||
+        (quotaBytes && inspectTree(root)+required > BigInt(quotaBytes))) throw new StoreError('CAPACITY');
+    barrier('deletion-schema-before-backup');
+    const path = join(root, backup);
+    closeSync(privateFile(path));
+    db.prepare('VACUUM INTO ?').run(path); assertPrivate(path, false);
+    barrier('deletion-schema-backup-written');
+    const saved = new DatabaseSync(path, { readOnly: true, allowExtension: false });
+    try {
+      if (saved.prepare('PRAGMA integrity_check').get()!.integrity_check !== 'ok' ||
+          saved.prepare('PRAGMA user_version').get()!.user_version !== 15) throw new StoreError('CORRUPT_STORE');
+      for (const table of tables) {
+        const before = digest(db, table);
+        if (canonical(before) !== canonical(digest(saved, table))) throw new StoreError('CORRUPT_STORE');
+        manifest[table] = before;
+      }
+      const sql = (database: DatabaseSync) => database.prepare('SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name').all();
+      if (canonical(sql(db)) !== canonical(sql(saved))) throw new StoreError('CORRUPT_STORE');
+      manifest.sqlite_schema = hashBytes(canonical(sql(saved)));
+    } finally { saved.close(); }
+    const fd = privateFile(path); try { fsyncSync(fd); } finally { closeSync(fd); }
+    const proof = fileProof(path); proofs.push(proof); backupHash = proof.hash;
+    manifestFile = `${backup}.manifest.json`;
+    const out = privateFile(join(root, manifestFile));
+    try {
+      writeFileSync(out, canonical({ schemaVersion: 1, backup, backupHash, storageVersion: 15,
+        compatibleExecutable, manifest,
+        retainedDirectories: ['objects','staging','uploads','portable','backend-transport'],
+        recovery: 'Copy the backup database and retained directories into a separate owner-only root. Use only the named compatible executable. Keep this root and all prior backups unchanged.' }));
+      fsyncSync(out);
+    } finally { closeSync(out); }
+    proofs.push(fileProof(join(root, manifestFile)));
+    syncDirectory(root);
+    barrier('deletion-schema-backup-verified');
+  }
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    // No pending request, event, projection, receipt or root is transformed.
+    for (const table of tables) if (backup && canonical(manifest[table]) !== canonical(digest(db, table))) throw new StoreError('CORRUPT_STORE');
+    db.prepare('INSERT INTO schema_migrations VALUES (16,?)').run(canonical({ from:15, to:16, capability,
+      strategy:'semantic-version-verified-backup-transactional-activation', backup, backupHash, manifestFile, manifest,
+      rollback: backup ? { compatibleExecutable,  } : null }));
+    db.exec(`CREATE TABLE deletion_plans (id TEXT PRIMARY KEY, document_id TEXT NOT NULL, client_id TEXT NOT NULL, json TEXT NOT NULL, owners TEXT NOT NULL) STRICT;
+      CREATE TABLE deletion_receipts (document_id TEXT PRIMARY KEY, json TEXT NOT NULL) STRICT;
+      CREATE TABLE deletion_objects (document_id TEXT NOT NULL, hash TEXT NOT NULL, byte_length TEXT NOT NULL, media_type TEXT NOT NULL, state TEXT NOT NULL, generation TEXT NOT NULL, PRIMARY KEY(document_id,hash)) STRICT;
+      CREATE TABLE deletion_backup_files (path TEXT PRIMARY KEY) STRICT;
+      CREATE TABLE deletion_work (path TEXT PRIMARY KEY, document_id TEXT NOT NULL) STRICT;
+      CREATE TABLE deletion_files (document_id TEXT NOT NULL,path TEXT NOT NULL,bytes TEXT NOT NULL,hash TEXT NOT NULL,state TEXT NOT NULL,PRIMARY KEY(document_id,path)) STRICT;
+      CREATE TABLE deletion_backup_pins (hash TEXT PRIMARY KEY) STRICT;
+      INSERT INTO deletion_backup_pins SELECT DISTINCT hash FROM roots WHERE 0;
+      PRAGMA user_version=16;`);
+    if(backup){db.exec('INSERT OR IGNORE INTO deletion_backup_pins SELECT DISTINCT hash FROM roots');try{for(const name of readdirSync(join(root,'backend-transport')))db.prepare('INSERT INTO deletion_backup_files VALUES (?)').run(join(root,'backend-transport',name));}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
+    barrier('deletion-schema-before-activation');
+    for (const proof of proofs) {
+      const current = fileProof(proof.path);
+      if (!sameFile(current.identity, proof.identity) || current.hash !== proof.hash) throw new StoreError('CORRUPT_STORE');
+    }
+    db.exec('COMMIT'); syncDirectory(root);
+    barrier('deletion-schema-after-activation');
   } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
 }
