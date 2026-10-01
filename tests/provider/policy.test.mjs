@@ -47,11 +47,11 @@ test('fallback acknowledgement is bound to frozen attempt, profile evidence and 
  assert.equal(resolvePrivacy(p,'ideogram/v4','attempt',a).applied.fallbackAcknowledgementId,'ack1');
  for(const override of [{attemptId:'different'},{profileVersion:2},{evidenceDigest:'c'.repeat(64)},{disclosureDigest:'c'.repeat(64)},{id:''}])assertCode(()=>resolvePrivacy(p,'ideogram/v4','attempt',{...a,...override}),'POLICY');
 });
-test('production refuses emulator overrides and remains closed until Q09 sealed',()=>{
+test('production refuses emulator overrides and requires explicit documented fallback acknowledgement',()=>{
  let keys=0;const credentials={queueKey(){keys++;throw Error('credential access prohibited');}};
  for(const config of [{emulator:true},{profile:fixtureProfile()},{origin:'http://127.0.0.1:1'},{tls:{rejectUnauthorized:false}},{unexpected:true}])assertCode(()=>createProductionProvider(credentials,config),'POLICY');
  const production=createProductionProvider(credentials);assertCode(()=>production.policy({identity:{endpoint:'ideogram/v4'},attemptId:'a',profileId:'local-fixture-v1'}),'POLICY');
- assertCode(()=>production.media('https://example.com/file',{}),'POLICY');assert.equal(keys,0);assert.deepEqual(PRODUCTION_MEDIA_HOSTS,[]);assert.deepEqual(PRODUCTION_UPLOAD_ORIGINS,[]);
+ assertCode(()=>production.media('https://example.com/file',{finish(){}}),'POLICY');assert.equal(keys,0);assert.deepEqual(PRODUCTION_MEDIA_HOSTS,['v3b.fal.media']);assert.deepEqual(PRODUCTION_UPLOAD_ORIGINS,[]);
  assert.equal(readFileSync('server/provider/index.ts','utf8').includes('tests/provider'),false);
  assert.equal(readFileSync('tsconfig.server.json','utf8').includes('tests/provider'),false);
  assert.deepEqual(egressAttempts(),[]);
@@ -80,4 +80,22 @@ test('production launcher refuses emulator before private root creation or brows
  const source="import assert from 'node:assert/strict';import {launch} from './dist/local/tooling/launcher.js';await assert.rejects(launch({root:'/must-not-be-created-p21',openBrowser:async()=>{throw Error('browser must not open')}}),e=>e.code==='POLICY')";
  const result=spawnSync(process.execPath,['--import','./tests/provider/no-egress.mjs','--input-type=module','-e',source],{encoding:'utf8',env:{PATH:process.env.PATH,IDEOGRAM_PROVIDER_EMULATOR:'true'}});
  assert.equal(result.status,0,result.stderr);assert.equal(result.stdout,'');
+});
+
+
+test('production fallback always requires exact attempt disclosure and serializes documented ACL object',async()=>{
+ const {PRODUCTION_PROFILE,PRODUCTION_PRIVACY}=await import('../../dist/local/server/provider/production-profile.js');
+ assertCode(()=>resolvePrivacy(PRODUCTION_PROFILE,'ideogram/v4','attempt'),'POLICY');
+ const acknowledgement={id:'review1',attemptId:'attempt',profileId:PRODUCTION_PROFILE.id,profileVersion:PRODUCTION_PROFILE.version,evidenceDigest:PRODUCTION_PROFILE.evidenceDigest,fallbackId:PRODUCTION_PROFILE.fallback.id,disclosureDigest:PRODUCTION_PRIVACY.disclosureDigest};
+ const resolved=resolvePrivacy(PRODUCTION_PROFILE,'ideogram/v4','attempt',acknowledgement);
+ assert.deepEqual(JSON.parse(resolved.headers['X-Fal-Object-Lifecycle-Preference']),{expiration_duration_seconds:3600,initial_acl:{default:'allow',rules:[]}});
+ assert.equal(resolved.headers['X-Fal-Store-IO'],'0');assert.equal(resolved.applied.fallbackAcknowledgementId,'review1');
+ for(const patch of [{attemptId:'other'},{disclosureDigest:'0'.repeat(64)},{profileVersion:2}])assertCode(()=>resolvePrivacy(PRODUCTION_PROFILE,'ideogram/v4','attempt',{...acknowledgement,...patch}),'POLICY');
+});
+test('production result path permits only its two documented identity-bound variants',()=>{
+ const identity={endpoint:'ideogram/v4',requestId:'request_123'},base='https://queue.fal.run/ideogram/v4/requests/request_123';
+ validateQueueURL(base,identity,'result','https://queue.fal.run',true);validateQueueURL(base+'/response',identity,'result','https://queue.fal.run',true);
+ assertCode(()=>validateQueueURL(base+'/response',identity,'result'),'IDENTITY');
+ for(const suffix of ['/response/','/other','/response?key=secret','/response/status'])assertCode(()=>validateQueueURL(base+suffix,identity,'result','https://queue.fal.run',true),'IDENTITY');
+ assertCode(()=>validateQueueURL(base+'/response',identity,'status','https://queue.fal.run',true),'IDENTITY');
 });

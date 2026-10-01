@@ -6,8 +6,9 @@ export const ENDPOINTS = Object.freeze(['ideogram/v4', 'ideogram/v4/instant', 'i
   'ideogram/v4/image-to-image', 'ideogram/v4/inpaint', 'ideogram/v4/lora',
   'ideogram/v4/image-to-image/lora', 'ideogram/v4/inpaint/lora']);
 export const QUEUE_ORIGIN = 'https://queue.fal.run';
-// Q09 has not qualified any production media or authenticated upload endpoint.
-export const PRODUCTION_MEDIA_HOSTS: readonly string[] = Object.freeze([]);
+// The disclosed public-ACL fallback permits only this documented CDN v3 host.
+// Private ACLs, uploads, alternate hosts and general minimum retention remain unqualified.
+export const PRODUCTION_MEDIA_HOSTS: readonly string[] = Object.freeze(['v3b.fal.media']);
 export const PRODUCTION_UPLOAD_ORIGINS: readonly string[] = Object.freeze([]);
 export type PrivacyProfile = Readonly<{
   id: string; version: number; evidenceDigest: string; endpoint: string;
@@ -50,7 +51,7 @@ export function resolvePrivacy(profile: PrivacyProfile, endpoint: string, attemp
     evidenceDigest: profile.evidenceDigest, requestedStoreIO: '0', requestedAccess: 'most-private-compatible',
     appliedLifecycleSeconds: seconds, appliedACL: access, enforcement: profile.enforcement, fallbackAcknowledgementId: ack });
   return { applied, headers: Object.freeze({ 'X-Fal-Store-IO': '0',
-    'X-Fal-Object-Lifecycle-Preference': JSON.stringify({ expiration_duration_seconds: seconds, initial_acl: access }) }) };
+    'X-Fal-Object-Lifecycle-Preference': JSON.stringify({ expiration_duration_seconds: seconds, initial_acl: profile.mode==='production'?{default:access==='public'?'allow':'forbid',rules:[]}:access }) }) };
 }
 export function queuePath(identity: QueueIdentity, action: QueueAction): string {
   if (!ENDPOINTS.includes(identity.endpoint)) refuse('IDENTITY');
@@ -64,9 +65,10 @@ export function exactURL(raw: string): URL {
   if (u.username || u.password || u.hash || !['https:','http:'].includes(u.protocol) || u.href !== raw) refuse('IDENTITY');
   return u;
 }
-export function validateQueueURL(raw: string, identity: QueueIdentity, action: QueueAction, origin = QUEUE_ORIGIN): URL {
+export function validateQueueURL(raw: string, identity: QueueIdentity, action: QueueAction, origin = QUEUE_ORIGIN, allowResultResponseSuffix = false): URL {
   const u = exactURL(raw);
-  if (u.origin !== origin || u.pathname !== queuePath(identity, action) || u.search) refuse('IDENTITY');
+  const path=queuePath(identity,action),matches=u.pathname===path||(allowResultResponseSuffix&&action==='result'&&u.pathname===path+'/response');
+  if (u.origin !== origin || !matches || u.search) refuse('IDENTITY');
   return u;
 }
 export function validateProductionMedia(raw: string): URL {

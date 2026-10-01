@@ -1,0 +1,78 @@
+{
+  "name": "ideogram-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "26.10.0",
+    "npm": "12.1.0"
+  },
+  "packageManager": "npm@12.1.0",
+  "scripts": {
+    "qualify": "node tooling/qualification/run.mjs",
+    "test:qualification": "node tooling/qualification/test.mjs",
+    "perf:runtime": "node --import ./tests/store/no-network.mjs tooling/qualification/runtime.mjs",
+    "perf:dev": "node tooling/qualification/dev.mjs",
+    "test:adapters": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/adapters/*.test.mjs",
+    "test:adapters:browser": "playwright test --config tests/adapters/browser.config.ts",
+    "test:provider": "npm run build:server && node --import ./tests/provider/no-egress.mjs --test --test-concurrency=1 tests/provider/*.test.mjs",
+    "test:node": "node tooling/test-node.mjs",
+    "audit:reviews": "python3 tooling/review-workspaces.py",
+    "verify:vendor": "python3 tooling/verify-vendor.py",
+    "verify:imports": "node tooling/verify-imports.mjs",
+    "test:vendor": "python3 tooling/test-vendor.py",
+    "typecheck": "npm run typecheck:consumer && npm run typecheck:app && tsc --noEmit -p tsconfig.server.json",
+    "typecheck:consumer": "tsc --noEmit",
+    "build": "npm run build:consumer && npm run build:app && npm run build:server",
+    "build:consumer": "npm run verify:imports && vite build",
+    "build:server": "tsc -p tsconfig.server.json && vite build --config tooling/text/verifier.vite.config.ts",
+    "start": "node dist/local/tooling/launch.js",
+    "dev": "npm run build:app && npm run build:server && npm start",
+    "test:session": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/session/*.test.mjs",
+    "test:consumer": "node tooling/test-consumer.mjs",
+    "test:browser": "playwright test --config tests/consumer/playwright.config.ts",
+    "typecheck:app": "tsc --noEmit -p tsconfig.app.json",
+    "build:app": "npm run verify:imports && node tooling/theme/density.mjs && vite build --config vite.app.config.ts",
+    "test:shell": "npm run build:app && npm run build:server && playwright test --config tests/browser/playwright.config.ts",
+    "test:store": "npm run build:server && node --import ./tests/store/no-network.mjs --test --test-concurrency=1 tests/store/*.test.mjs",
+    "test:store:volume": "npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs",
+    "test:protocol": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/protocol/*.test.mjs",
+    "test:recovery": "npm run build:server && vite build --config tests/recovery/vite.config.ts && playwright test --config tests/recovery/playwright.config.ts",
+    "test:assets": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/assets/*.test.mjs",
+    "test:assets:volume": "npm run build:server && node --import ./tests/session/no-egress.mjs --test tests/assets/volume-fault.mjs",
+    "test:raster": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/raster/*.test.mjs",
+    "test:raster:browser": "npm run build:server && vite build --config tests/raster/vite.config.ts && playwright test --config tests/raster/playwright.config.ts",
+    "verify:raster": "node tooling/raster/verify-inputs.mjs",
+    "test:history": "npm run build:server && node --import ./tests/session/no-egress.mjs --test --test-concurrency=1 tests/history/*.test.mjs",
+    "verify:text": "node tooling/text/verify.mjs",
+    "test:text": "npm run build:server && vite build --config tests/text/vite.config.ts && playwright test --config tests/text/playwright.config.ts",
+    "test:provider:unit": "node --import ./tests/provider/no-egress.mjs --test --test-concurrency=1 tests/provider/policy.test.mjs tests/provider/provenance.test.mjs",
+    "test:provider:boundary": "node --import ./tests/provider/no-egress.mjs --test --test-concurrency=1 tests/provider/boundary.test.mjs"
+  },
+  "dependencies": {
+    "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",
+    "@en-reve/styles": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-styles-0.1.0.tgz",
+    "@en-reve/primitives": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-primitives-0.1.0.tgz",
+    "@en-reve/elements": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-elements-0.1.0.tgz",
+    "lit": "3.3.3",
+    "signal-polyfill": "0.2.2",
+    "signal-utils": "0.21.1",
+    "fs-ext": "2.1.1",
+    "sharp": "0.35.4",
+    "canvaskit-wasm": "file:vendor/text/canvaskit-wasm-0.40.0-ideogram.3.tgz"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.13.6",
+    "axe-core": "4.13.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "web-vitals": "6.2.2"
+  },
+  "overrides": {
+    "nan": "2.29.0"
+  },
+  "allowScripts": {
+    "fs-ext@2.1.1": true
+  }
+}

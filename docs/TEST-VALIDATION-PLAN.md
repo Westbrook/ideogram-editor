@@ -1,6 +1,6 @@
 # Test and validation efficiency plan
 
-Status: proposed implementation plan, prepared 2026-09-30. This review changes documentation and the independent Progress Report only. It does not change active gate policy, remove tests, relax product confirmations, or claim new product qualification.
+Original audit and implementation plan, prepared 2026-09-30. The proposal below is preserved as the planning baseline; implementation, validation receipts and current adoption status are recorded in [the active runbook](testing/VALIDATION.md). The audit itself did not execute tests or claim product qualification.
 
 ## Recommendation
 
@@ -181,4 +181,4 @@ Update `tooling/README.txt`, relevant area runbooks, package-script descriptions
 
 Implementation is recorded in [the active validation runbook](testing/VALIDATION.md) and its verification manifest. The dependency-aware development runner, prerequisite repairs and workflow rules are applied; experimental concurrency/batching remain opt-in. Full product, performance and rollout acceptance remains gated by the outstanding checks listed there. This original audit remains a planning snapshot.
 
-The completion pass added verified legacy compilation reuse, shared host exclusion, Linux CI execution, cache/failure/representative-invalidation controls and bounded repeated measurements. See [completion verification](testing/completion-verification.json) and [ownership decisions](testing/coverage-and-ownership.md). Full rollout acceptance is still blocked by three product/browser failures recorded in the active runbook; no required case, limit or outcome was relaxed to close the plan. The implementation is ready for a scoped commit, but the full plan is not represented as accepted or fully qualified.
+The completion pass added verified legacy compilation reuse, shared host exclusion, Linux CI execution, cache/failure/representative-invalidation controls and bounded repeated measurements. See [historical completion verification](testing/completion-verification.json) and [ownership decisions](testing/coverage-and-ownership.md). The initial browser blockers were repaired and passed focused Chromium checks. Continuing integration has also corrected stale fixtures and added a measured fast controller lane. Paired engine/batch adoption, real-edit measurements and the final coherent commit/publication remain active in the runbook; no full-plan completion or product qualification is claimed yet.

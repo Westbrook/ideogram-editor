@@ -22,8 +22,16 @@ const placementPriorBytes=readFileSync(new URL('../../../../src/text/retained-pr
 const placementPrior=JSON.parse(placementPriorBytes.toString());
 const compositionPriorBytes=readFileSync(new URL('../../../../src/text/retained-profiles/ff24a513.json',import.meta.url));
 const compositionPrior=JSON.parse(compositionPriorBytes.toString());
-const retainedProfiles=[{id:compositionPrior.id,manifest:{hash:hashBytes(compositionPriorBytes),byteLength:String(compositionPriorBytes.length),mediaType:'application/json'}},{id:placementPrior.id,manifest:{hash:hashBytes(placementPriorBytes),byteLength:String(placementPriorBytes.length),mediaType:'application/json'}},{id:gridPrior.id,manifest:{hash:hashBytes(gridPriorBytes),byteLength:String(gridPriorBytes.length),mediaType:'application/json'}},{id:maskPrior.id,manifest:{hash:hashBytes(maskPriorBytes),byteLength:String(maskPriorBytes.length),mediaType:'application/json'}},{id:rejected.id,manifest:{hash:hashBytes(rejectedBytes),byteLength:String(rejectedBytes.length),mediaType:'application/json'}},{id:profile.id,manifest:profileRef},{id:prior.id,manifest:{hash:hashBytes(priorBytes),byteLength:String(priorBytes.length),mediaType:'application/json'}}];
+const streamedPriorBytes=readFileSync(new URL('../../../../src/text/retained-profiles/f5e8bd34.json',import.meta.url));
+const streamedPrior=JSON.parse(streamedPriorBytes.toString());
+const frameOrderPriorBytes=readFileSync(new URL('../../../../src/text/retained-profiles/7a4dbc6c.json',import.meta.url));
+const frameOrderPrior=JSON.parse(frameOrderPriorBytes.toString());
+const ownershipPriorBytes=readFileSync(new URL('../../../../src/text/retained-profiles/4fd6f6a1.json',import.meta.url));
+const ownershipPrior=JSON.parse(ownershipPriorBytes.toString());
+const retainedProfiles=[{id:frameOrderPrior.id,manifest:{hash:hashBytes(frameOrderPriorBytes),byteLength:String(frameOrderPriorBytes.length),mediaType:'application/json'}},{id:streamedPrior.id,manifest:{hash:hashBytes(streamedPriorBytes),byteLength:String(streamedPriorBytes.length),mediaType:'application/json'}},{id:compositionPrior.id,manifest:{hash:hashBytes(compositionPriorBytes),byteLength:String(compositionPriorBytes.length),mediaType:'application/json'}},{id:placementPrior.id,manifest:{hash:hashBytes(placementPriorBytes),byteLength:String(placementPriorBytes.length),mediaType:'application/json'}},{id:gridPrior.id,manifest:{hash:hashBytes(gridPriorBytes),byteLength:String(gridPriorBytes.length),mediaType:'application/json'}},{id:maskPrior.id,manifest:{hash:hashBytes(maskPriorBytes),byteLength:String(maskPriorBytes.length),mediaType:'application/json'}},{id:rejected.id,manifest:{hash:hashBytes(rejectedBytes),byteLength:String(rejectedBytes.length),mediaType:'application/json'}},{id:profile.id,manifest:profileRef},{id:prior.id,manifest:{hash:hashBytes(priorBytes),byteLength:String(priorBytes.length),mediaType:'application/json'}}];
+retainedProfiles.unshift({id:ownershipPrior.id,manifest:{hash:hashBytes(ownershipPriorBytes),byteLength:String(ownershipPriorBytes.length),mediaType:'application/json'}});
 export const retainedProfile=(p:any)=>retainedProfiles.some(known=>p.schemaVersion===1&&p.id===known.id&&canonical(p.manifest)===canonical(known.manifest));
+export const usesStreamingLayout=(id:string)=>id===profile.id||id===frameOrderPrior.id||id===ownershipPrior.id;
 export function identity(value:object){return hashBytes(canonical(value));}
 export function assertIdentity(value:{id:string}){const {id,...body}=value;ok(id===identity(body),'Immutable text identity mismatch');}
 export function validateSource(value:unknown):TextSource{
@@ -31,29 +39,58 @@ export function validateSource(value:unknown):TextSource{
  return s;
 }
 export function dependencies(s:TextSource){return textRefs(s);}
-export function validateLayout(s:TextSource,bytes:Uint8Array,textBytes:Uint8Array){
- const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(textBytes);ok(!text.includes('\r')&&text.split('\n').length<=256&&new TextEncoder().encode(text).length<=16384);
+// Bound the strict token pass and the eventual native JSON graph before either
+// is allocated. This scans bytes only; JSON validity still belongs to the shared
+// duplicate-key/UTF-8/number validator. Container/slot/string allowances include
+// both passes without relying on collection of temporary token strings.
+export function layoutValidationBytes(bytes:Uint8Array){
+ ok(bytes.length<=8388608);let allocation=3*bytes.length+16777216,depth=0;
+ const containers=new Uint8Array(65);
+ const delimiter=(value:number)=>value===9||value===10||value===13||value===32||value===44||value===93||value===125;
+ for(let at=0;at<bytes.length;at++){
+  const token=bytes[at];
+  if(token===34){const start=at;for(at++;at<bytes.length&&bytes[at]!==34;at++)if(bytes[at]===92)at++;allocation+=96+4*(at-start+1);}
+  else if(token===123||token===91){ok(++depth<=64);containers[depth]=token;allocation+=64+(token===91?16:0);}
+  else if(token===125||token===93){ok(depth>0);depth--;}
+  else if(token===58)allocation+=64;
+  else if(token===44&&containers[depth]===91)allocation+=16;
+  else if(token===45||token>=48&&token<=57||token===116||token===102||token===110){
+   allocation+=16;while(at+1<bytes.length&&!delimiter(bytes[at+1]))at++;
+  }
+ }
+ return allocation;
+}
+export function validateLayout(s:TextSource,bytes:Uint8Array,textBytes:Uint8Array,options:{portable?:boolean}={}){
+ ok(textBytes.length<=16384);const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(textBytes);ok(!text.includes('\r'));
+ ok(layoutValidationBytes(bytes)<=134217728);
  const layout:any=parseControlJSON(bytes,8388608);
+ if(options.portable&&(layout.version!=='layout-1'||layout.policy!=='text-layout-1'))throw new UnsupportedText('UNSUPPORTED_TEXT_LAYOUT');
  keys(layout,['version','policy','frame','indexConvention','utf16ToUtf8','utf8ToUtf16','lineHeightPolicy','fontMetrics','intrinsicHeight','requestedLineHeight','logicalLines','paragraphs','height','overflow']);
- ok(layout.version==='layout-1'&&layout.policy==='text-layout-1'&&canonical(layout.frame)===canonical(s.text.frame)&&layout.overflow===s.render.overflow&&layout.logicalLines===text.split('\n').length);
- const u16=Array(text.length+1).fill(-1),u8=Array(textBytes.length+1).fill(-1);let off=0;
- for(let i=0;i<text.length;){const cp=text.codePointAt(i)!;ok(cp<0xd800||cp>0xdfff);u16[i]=off;u8[off]=i;off+=cp<128?1:cp<2048?2:cp<65536?3:4;i+=cp>65535?2:1;}
- u16[text.length]=off;u8[off]=text.length;ok(canonical(u16)===canonical(layout.utf16ToUtf8)&&canonical(u8)===canonical(layout.utf8ToUtf16));
- let scalars=0;for(const _ of text)scalars++;const max=Math.max(64,8*scalars);let runs=0,glyphs=0,lines=0,rects=0,start=0;
+ keys(layout.frame,['width','height']);ok(layout.version==='layout-1'&&layout.policy==='text-layout-1'&&layout.frame.width===s.text.frame.width&&layout.frame.height===s.text.frame.height&&layout.overflow===s.render.overflow);
+ ok(layout.indexConvention==='half-open; UTF-16 native; UTF-8 shaped offsets; -1 scalar interiors; downstream at start/upstream at end'&&layout.lineHeightPolicy==='max-supplied-font-metrics-times-multiplier; symmetric-leading; native-rounded-baselines');
+ const u16=new Int32Array(text.length+1).fill(-1),u8=new Int32Array(textBytes.length+1).fill(-1);let off=0,scalars=0,logicalLines=1;
+ for(let i=0;i<text.length;){const cp=text.codePointAt(i)!;ok(cp<0xd800||cp>0xdfff);u16[i]=off;u8[off]=i;off+=cp<128?1:cp<2048?2:cp<65536?3:4;i+=cp>65535?2:1;scalars++;if(cp===10)logicalLines++;}
+ u16[text.length]=off;u8[off]=text.length;ok(logicalLines<=256&&layout.logicalLines===logicalLines);
+ const sameIndices=(expected:Int32Array,actual:any)=>Array.isArray(actual)&&actual.length===expected.length&&expected.every((value,index)=>actual[index]===value);
+ ok(sameIndices(u16,layout.utf16ToUtf8)&&sameIndices(u8,layout.utf8ToUtf16));
+ const max=Math.max(64,8*scalars);let runs=0,glyphs=0,lines=0,rects=0,clusters=0,start=0;
+ // Maximal end for each scalar-boundary start preserves union coverage even
+ // when native clusters overlap, repeat, or arrive in visual (RTL) order.
+ // UTF-8 input is<=16KiB, so every UTF-16 end fits in this<=32KiB table.
+ const coverageEnds=new Uint16Array(text.length+1);
  ok(Array.isArray(layout.paragraphs)&&layout.paragraphs.length===layout.logicalLines&&Array.isArray(layout.fontMetrics)&&layout.fontMetrics.length===s.text.fonts.length);
  const nums=(v:any)=>Array.isArray(v)&&v.every(Number.isFinite),rect=(v:any)=>nums(v)&&v.length===4&&v[2]>=v[0]&&v[3]>=v[1];
  ok([layout.intrinsicHeight,layout.requestedLineHeight,layout.height].every(Number.isFinite)&&layout.height>=0);
  for(let i=0;i<layout.fontMetrics.length;i++){const f=layout.fontMetrics[i];keys(f,['hash','ascent','descent','leading']);ok(f.hash===s.text.fonts[i].bytes.hash&&[f.ascent,f.descent,f.leading].every(Number.isFinite));}
- const finite=(v:any):void=>{if(typeof v==='number')ok(Number.isFinite(v));else if(v&&typeof v==='object')Object.values(v).forEach(finite);};finite(layout);
  for(const p of layout.paragraphs){
   keys(p,['startUtf16','endUtf16','startUtf8','endUtf8','top','height','direction','lines','runs','clusters']);
-  const end=text.indexOf('\n',start)<0?text.length:text.indexOf('\n',start);ok(p.startUtf16===start&&p.endUtf16===end&&p.startUtf8===u16[start]&&p.endUtf8===u16[end]&&['ltr','rtl'].includes(p.direction)&&Array.isArray(p.lines)&&Array.isArray(p.runs)&&Array.isArray(p.clusters));ok(end===start||p.lines.length>0&&p.runs.length>0);lines+=p.lines.length;ok([p.top,p.height].every(Number.isFinite)&&p.height>=0);
-  for(const l of p.lines){keys(l,['baseline','ascent','descent','height','width','left','lineNumber','isHardBreak','startUtf8','endUtf8','startUtf16','endUtf16','endExcludingWhitespacesUtf16','endIncludingNewlineUtf16','endExcludingWhitespacesUtf8','endIncludingNewlineUtf8']);ok([l.baseline,l.ascent,l.descent,l.height,l.width,l.left].every(Number.isFinite)&&Number.isSafeInteger(l.lineNumber)&&l.lineNumber>=0&&typeof l.isHardBreak==='boolean');for(const key of ['start','end','endExcludingWhitespaces','endIncludingNewline'])ok(Number.isInteger(l[key+'Utf16'])&&l[key+'Utf16']>=start&&l[key+'Utf16']<=end&&u16[l[key+'Utf16']]===l[key+'Utf8']);}
+  const newline=text.indexOf('\n',start),end=newline<0?text.length:newline;ok(p.startUtf16===start&&p.endUtf16===end&&p.startUtf8===u16[start]&&p.endUtf8===u16[end]&&['ltr','rtl'].includes(p.direction)&&Array.isArray(p.lines)&&Array.isArray(p.runs)&&Array.isArray(p.clusters));ok(end===start||p.lines.length>0&&p.runs.length>0);lines+=p.lines.length;runs+=p.runs.length;clusters+=p.clusters.length;ok(lines<=Math.max(logicalLines,max)&&runs<=max&&clusters<=scalars&&[p.top,p.height].every(Number.isFinite)&&p.height>=0);
+  for(const l of p.lines){keys(l,['baseline','ascent','descent','height','width','left','lineNumber','isHardBreak','startUtf8','endUtf8','startUtf16','endUtf16','endExcludingWhitespacesUtf16','endIncludingNewlineUtf16','endExcludingWhitespacesUtf8','endIncludingNewlineUtf8']);ok([l.baseline,l.ascent,l.descent,l.height,l.width,l.left].every(Number.isFinite)&&Number.isSafeInteger(l.lineNumber)&&l.lineNumber>=0&&typeof l.isHardBreak==='boolean');for(const key of ['start','end','endExcludingWhitespaces','endIncludingNewline'])ok(Number.isInteger(l[key+'Utf16'])&&l[key+'Utf16']>=start&&l[key+'Utf16']<=end&&u16[l[key+'Utf16']]>=0&&u16[l[key+'Utf16']]===l[key+'Utf8']);}
   for(const l of p.lines)ok(l.startUtf16<=l.endExcludingWhitespacesUtf16&&l.endExcludingWhitespacesUtf16<=l.endUtf16&&l.endUtf16<=l.endIncludingNewlineUtf16);
-  for(const r of p.runs){keys(r,['fontHash','size','flags','glyphs','offsetsUtf8','offsetsUtf16','positions','inkBounds','top','bottom','baseline']);runs++;ok(s.text.fonts.some(f=>f.bytes.hash===r.fontHash)&&Array.isArray(r.glyphs)&&r.glyphs.every((g:number)=>Number.isInteger(g)&&g>0)&&r.offsetsUtf8.length===r.glyphs.length+1&&r.offsetsUtf16.length===r.glyphs.length+1&&r.positions.length===2*(r.glyphs.length+1)&&r.inkBounds.length===r.glyphs.length);ok(nums(r.positions)&&Array.isArray(r.inkBounds)&&r.inkBounds.every(rect)&&[r.top,r.bottom,r.baseline,r.size,r.flags].every(Number.isFinite)&&r.size===s.text.style.sizePx);glyphs+=r.glyphs.length;for(let i=0;i<=r.glyphs.length;i++)ok(r.offsetsUtf16[i]>=start&&r.offsetsUtf16[i]<=end&&u16[r.offsetsUtf16[i]]===r.offsetsUtf8[i]);}
-  for(const c of p.clusters){keys(c,['startUtf16','endUtf16','startUtf8','endUtf8','direction','rect','ranges']);ok(rect(c.rect)&&['ltr','rtl'].includes(c.direction));for(const range of c.ranges){keys(range,['rect','direction']);ok(rect(range.rect)&&['ltr','rtl'].includes(range.direction));}ok(Number.isInteger(c.startUtf16)&&Number.isInteger(c.endUtf16)&&c.startUtf16>=start&&c.endUtf16<=end&&c.endUtf16>c.startUtf16&&u16[c.startUtf16]===c.startUtf8&&u16[c.endUtf16]===c.endUtf8&&Array.isArray(c.ranges));rects+=c.ranges.length;}
+  for(const r of p.runs){keys(r,['fontHash','size','flags','glyphs','offsetsUtf8','offsetsUtf16','positions','inkBounds','top','bottom','baseline']);ok(s.text.fonts.some(f=>f.bytes.hash===r.fontHash)&&Array.isArray(r.glyphs)&&Array.isArray(r.offsetsUtf8)&&Array.isArray(r.offsetsUtf16)&&Array.isArray(r.positions)&&Array.isArray(r.inkBounds));glyphs+=r.glyphs.length;ok(glyphs<=max&&r.glyphs.every((g:number)=>Number.isInteger(g)&&g>0)&&r.offsetsUtf8.length===r.glyphs.length+1&&r.offsetsUtf16.length===r.glyphs.length+1&&r.positions.length===2*(r.glyphs.length+1)&&r.inkBounds.length===r.glyphs.length);ok(nums(r.positions)&&r.inkBounds.every(rect)&&[r.top,r.bottom,r.baseline,r.size,r.flags].every(Number.isFinite)&&r.size===s.text.style.sizePx);for(let i=0;i<=r.glyphs.length;i++)ok(Number.isInteger(r.offsetsUtf16[i])&&r.offsetsUtf16[i]>=start&&r.offsetsUtf16[i]<=end&&u16[r.offsetsUtf16[i]]>=0&&u16[r.offsetsUtf16[i]]===r.offsetsUtf8[i]);}
+  for(const c of p.clusters){keys(c,['startUtf16','endUtf16','startUtf8','endUtf8','direction','rect','ranges']);ok(rect(c.rect)&&['ltr','rtl'].includes(c.direction)&&Array.isArray(c.ranges));rects+=c.ranges.length;ok(rects<=max*2);for(const range of c.ranges){keys(range,['rect','direction']);ok(rect(range.rect)&&['ltr','rtl'].includes(range.direction));}ok(Number.isInteger(c.startUtf16)&&Number.isInteger(c.endUtf16)&&c.startUtf16>=start&&c.endUtf16<=end&&c.endUtf16>c.startUtf16&&u16[c.startUtf16]>=0&&u16[c.endUtf16]>=0&&u16[c.startUtf16]===c.startUtf8&&u16[c.endUtf16]===c.endUtf8);coverageEnds[c.startUtf16]=Math.max(coverageEnds[c.startUtf16],c.endUtf16);}
   // Every retained scalar is covered by accepted native grapheme geometry.
-  for(let i=start;i<end;){ok(p.clusters.some((c:any)=>c.startUtf16<=i&&c.endUtf16>i));i+=text.codePointAt(i)!>65535?2:1;}
+  let coveredUntil=start;for(let i=start;i<end;){coveredUntil=Math.max(coveredUntil,coverageEnds[i]);ok(coveredUntil>i);i+=text.codePointAt(i)!>65535?2:1;}
   start=end+1;
  }
  ok(runs<=max&&glyphs<=max&&lines<=Math.max(layout.logicalLines,max)&&rects<=max*2);

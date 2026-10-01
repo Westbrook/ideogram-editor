@@ -2,6 +2,7 @@ import { frozen, LIMITS, TextFailure } from './contracts';
 import type { PreparedText, TextRequest } from './contracts';
 import { engineReservationBytes, engineResidentBytes, planText, retainPrepared, textMemory, unownedFontBytes } from './memory';
 import type { Reservation, TextPlan } from './memory';
+import { retainWorkerPhases } from '../observability/browser-worker-observations.js';
 export { releasePrepared, textMemory } from './memory';
 export type { PreparedText, TextRequest, TextToken, TextStyle, FontInput } from './contracts';
 
@@ -22,14 +23,20 @@ export class TextRenderer {
   #scheduled = false;
   #active?: { serial: number; reject: (error: unknown) => void; timer: ReturnType<typeof setTimeout>; lease: Reservation };
   #terminations = 0;
-  #uncertainBytes = 0;
+  #terminationFailed = false;
+  #uncertainLeases = new Set<Reservation>();
   #terminate(): boolean {
     const worker = this.#worker; if (!worker) return true;
     worker.onmessage = null; worker.onerror = null;
-    this.#worker = undefined; this.#ready = false;
-    const engineLease = this.#engineLease; this.#engineLease = undefined;
-    try { worker.terminate(); this.#terminations++; engineLease?.release(); return true; }
-    catch { this.#uncertainBytes += engineLease?.bytes ?? 0; return false; }
+    this.#ready = false;
+    // A thrown termination retains the actual retry handle and every private
+    // reservation. Repeated attempts neither mint capacity nor count it twice.
+    try { worker.terminate(); }
+    catch { this.#terminationFailed = true; return false; }
+    this.#worker = undefined; this.#terminations++; this.#terminationFailed = false;
+    this.#engineLease?.release(); this.#engineLease = undefined;
+    for (const lease of this.#uncertainLeases) lease.release(); this.#uncertainLeases.clear();
+    return true;
   }
   #dropPending(code: string) {
     const pending = this.#pending; if (!pending) return;
@@ -39,17 +46,19 @@ export class TextRenderer {
     const active = this.#active; if (!active) return;
     this.#active = undefined; clearTimeout(active.timer);
     if (this.#terminate()) active.lease.release();
-    else { this.#uncertainBytes += active.lease.bytes; code = 'TEXT_TERMINATION_FAILED'; }
+    else { this.#uncertainLeases.add(active.lease); code = 'TEXT_TERMINATION_FAILED'; }
     active.reject(new TextFailure(code));
   }
-  cancel() { this.#serial++; this.#dropPending('TEXT_CANCELLED'); this.#stop('TEXT_CANCELLED'); }
-  dispose() { this.#disposed = true; this.cancel(); this.#terminate(); }
+  cancel() { this.#serial++; this.#dropPending('TEXT_CANCELLED'); if(this.#active)this.#stop('TEXT_CANCELLED');else if(this.#terminationFailed)this.#terminate(); }
+  dispose() { this.#disposed = true; this.cancel(); if(!this.#terminationFailed)this.#terminate();if(this.#terminationFailed)throw new TextFailure('TEXT_TERMINATION_FAILED'); }
   get lifecycle() { return Object.freeze({ activeWorkers: this.#active ? 1 : 0, idleWorkers: this.#worker && !this.#active ? 1 : 0,
-    queuedRequests: this.#pending ? 1 : 0, terminations: this.#terminations, disposed: this.#disposed, uncertainBytes: this.#uncertainBytes }); }
+    queuedRequests: this.#pending ? 1 : 0, terminations: this.#terminations, disposed: this.#disposed, uncertainBytes: (this.#terminationFailed ? this.#engineLease?.bytes??0 : 0)+[...this.#uncertainLeases].reduce((bytes,lease)=>bytes+lease.bytes,0) }); }
   async prepare(input: TextRequest): Promise<PreparedText> {
     if (this.#disposed) throw new TextFailure('TEXT_DISPOSED');
     const plan = planText(input); // scan only; no index arrays or native work
+    if(this.#terminationFailed&&!this.#terminate())throw new TextFailure('TEXT_TERMINATION_FAILED');
     this.#dropPending('TEXT_STALE'); this.#stop('TEXT_STALE');
+    if(this.#terminationFailed)throw new TextFailure('TEXT_TERMINATION_FAILED');
     const serial = ++this.#serial;
     textMemory.check(plan.bytes + (this.#worker ? 0 : engineResidentBytes));
     const lease = textMemory.reserve(plan.startup);
@@ -106,8 +115,9 @@ export class TextRenderer {
       }
       this.#active = undefined; clearTimeout(timer);
       worker.onmessage = null; worker.onerror = null;
+      if(message.phases)retainWorkerPhases(message.phases);
       if (!message.ok && !pending.recycled && ['FONT_CACHE_CAPACITY','TEXT_NATIVE_CAPACITY'].includes(message.code)) {
-        if (!this.#terminate()) { this.#uncertainBytes += lease.bytes; reject(new TextFailure('TEXT_TERMINATION_FAILED')); return; }
+        if (!this.#terminate()) { this.#uncertainLeases.add(lease); reject(new TextFailure('TEXT_TERMINATION_FAILED')); return; }
         lease.release();
         try {
           textMemory.check(plan.bytes + engineResidentBytes);
@@ -116,7 +126,7 @@ export class TextRenderer {
         return;
       }
       if (!message.fatal || this.#terminate()) lease.release();
-      else this.#uncertainBytes += lease.bytes;
+      else { this.#uncertainLeases.add(lease); reject(new TextFailure('TEXT_TERMINATION_FAILED')); return; }
       if (!message.ok) { reject(new TextFailure(message.code, message.details)); return; }
       const result = message.value as PreparedText;
       try {

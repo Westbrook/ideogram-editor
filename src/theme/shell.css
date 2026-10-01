@@ -1,6 +1,8 @@
-@import '@en-reve/tokens/properties.css';
+@import '@en-reve/tokens/default.css';
 @import './spectrum.css';
 @import './spectrum.companion.css';
+@import './spectrum.density.css';
+@import './spectrum.density.companion.css';
 
 :root { font-family: var(--en-font-body-family); color: var(--en-color-text); background: var(--en-color-canvas); font-size: 14px; }
 * { box-sizing: border-box; }
@@ -45,7 +47,8 @@ ie-shell { display: flex; flex-direction: column; height: 100dvh; min-height: 65
 .help-panel p { margin-top: 8px; max-width: 900px; }
 .mobile-openers { display: none; }
 .workspace { display: flex; flex: 1; min-height: 0; }
-.tool-rail { flex: 0 0 64px; display: flex; align-items: center; flex-direction: column; justify-content: space-between; border-inline-end: 1px solid var(--en-color-line); background: var(--en-color-surface); padding: 18px 6px 16px; }
+.tool-rail { flex: 0 0 64px; display: flex; align-items: center; flex-direction: column; justify-content: space-between; overflow: auto; border-inline-end: 1px solid var(--en-color-line); background: var(--en-color-surface); padding: 18px 6px 16px; }
+.tool-rail > en-toolbar { flex-shrink: 0; }
 en-toolbar { display: block; }
 en-toolbar::part(base) { gap: 5px; }
 /* App-owned rail composition uses the public Button slots, parts and tokens. */

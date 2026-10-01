@@ -111,7 +111,7 @@ test('B03 keyboard panels, roving tool focus, resize and collapsed content', asy
   await page.locator('#canvas').focus(); await page.keyboard.press('h'); await expect(page.getByRole('button', { name: 'Pan' })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('tab', { name: 'Results' }).focus(); await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('tab', { name: 'Jobs' })).toBeFocused();
-  await expect(page.getByText('No jobs submitted. This workflow makes no provider calls.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Inspect durable jobs', exact: true })).toBeVisible();
   const activity = page.getByRole('region', { name: 'Activity', exact: true });
   const activityToggle = activity.getByRole('button', { name: 'Activity', exact: true });
   await expect(activityToggle).toHaveAttribute('aria-expanded', 'true');

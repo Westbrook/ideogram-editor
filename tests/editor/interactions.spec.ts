@@ -1,3 +1,4 @@
+import {prepareNativePNG} from './export-workflow.js';
 import {test,expect,type Page} from '@playwright/test';
 import {mkdtemp,realpath,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -64,7 +65,7 @@ test('canvas drop, selected flatten, typed transform/crop and retained branch/ch
 });
 
 test('browser writable close acknowledges saved bytes; canceled destination remains failed and local file retained',async({page})=>{
- const server=await setup(page);try{await imported(page);await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');
+ const server=await setup(page);try{await imported(page);await prepareNativePNG(page);
  const probe=await page.evaluate(async()=>{let stage='directory';try{const root=await navigator.storage.getDirectory();stage='file';const file=await root.getFileHandle('probe.tmp',{create:true});stage='createWritable';const sink=await file.createWritable();stage='write';await sink.write(new Uint8Array([1]).buffer);stage='close';await sink.close();return {ok:true};}catch(e:any){return {ok:false,stage,name:e.name,message:e.message};}});console.log('standalone OPFS probe',probe);
  // Public destination adapter with a real browser-owned writable file. This
  // tests close acknowledgment, not a native OS picker or external filesystem.

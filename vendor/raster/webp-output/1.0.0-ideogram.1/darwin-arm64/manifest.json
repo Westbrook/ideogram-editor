@@ -1,0 +1,378 @@
+{
+  "schemaVersion": 1,
+  "name": "ideogram-webp-output",
+  "version": "1.0.0-ideogram.1",
+  "platform": "darwin",
+  "arch": "arm64",
+  "abiVersion": 1,
+  "source": {
+    "path": "tooling/raster/webp-output/webp-output.c",
+    "bytes": 9485,
+    "hash": "sha256:41a3775c37114788356c332c522030314a1adc00f7f50233f2c3188192f8e520",
+    "role": "New repository-owned transport only; incorporates no third-party decoder/converter implementation. Existing native inputs retain their immutable licenses/notices. No new license grant is asserted.",
+    "notice": {
+      "bytes": 459,
+      "hash": "sha256:877c9c0c680b440e3da1d17b7ef62851c566d69a43072f9f1c1d3bd409e1d3c5"
+    }
+  },
+  "nativeInputs": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "converterKind": 1,
+    "decoder": {
+      "abiVersion": 1,
+      "version": "1.6.0-ideogram.1",
+      "platform": "darwin",
+      "arch": "arm64",
+      "path": "vendor/raster/bounded-webp/1.6.0-ideogram.1/darwin-arm64/libideogram-webp.1.dylib",
+      "bytes": 249880,
+      "hash": "sha256:4aa72a0fe8eb08d65a75cfbfca069bda5b796c3c44b8bf672f587ef8a079d5ff",
+      "sourceHash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+      "manifestHash": "sha256:35313df37b2e04891212bf8c89de85068383372ce68830cfa9e4ff3a70628453",
+      "producerHash": "sha256:35878592c0ada377c9ff6dbcb738aab52f2106fad798d9a49abe465d6b8b3424"
+    },
+    "converter": {
+      "abiVersion": 1,
+      "version": "1.6.0-ideogram.1",
+      "platform": "darwin",
+      "arch": "arm64",
+      "path": "vendor/raster/bounded-webp/1.6.0-ideogram.1/darwin-arm64/libideogram-webp.1.dylib",
+      "bytes": 249880,
+      "hash": "sha256:4aa72a0fe8eb08d65a75cfbfca069bda5b796c3c44b8bf672f587ef8a079d5ff",
+      "sourceHash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+      "manifestHash": "sha256:35313df37b2e04891212bf8c89de85068383372ce68830cfa9e4ff3a70628453",
+      "producerHash": "sha256:35878592c0ada377c9ff6dbcb738aab52f2106fad798d9a49abe465d6b8b3424"
+    }
+  },
+  "producerInputs": [
+    {
+      "path": "webp-output.c",
+      "bytes": 9485,
+      "hash": "sha256:41a3775c37114788356c332c522030314a1adc00f7f50233f2c3188192f8e520"
+    },
+    {
+      "path": "webp-output.h",
+      "bytes": 2276,
+      "hash": "sha256:0fb6ae3eb112fc2696ef01092e8514af2afc8314ff9708aabd90aef625b5559e"
+    },
+    {
+      "path": "bridge-test.c",
+      "bytes": 9339,
+      "hash": "sha256:f6e52468ee03d6ed337e1f2ff1dba03e5ffa00c55bdc5aacc50670614fb6b2e6"
+    },
+    {
+      "path": "exports.txt",
+      "bytes": 67,
+      "hash": "sha256:677e91d806356bece7489aaad956a3ee6cf0f940e09610422571baeb69a8f099"
+    },
+    {
+      "path": "exports.map",
+      "bytes": 106,
+      "hash": "sha256:bada6e87bafa0cc2b3af2baeb8b282748d24fc5426df9812f19d35b6fcb22232"
+    },
+    {
+      "path": "dependencies.json",
+      "bytes": 4230,
+      "hash": "sha256:5161618269f30c914b13051d551438c81f55ba3de57d14a20591c2727010d9d6"
+    },
+    {
+      "path": "build.mjs",
+      "bytes": 10001,
+      "hash": "sha256:a02ce19f521e93dd3474a9bb236c148cc7ed704698f1e98caf9fb920a35eb2ee"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 4710,
+      "hash": "sha256:c464472819f3a7f9dde650e9a20231c730153f97b2e144eae08d7bc385609a65"
+    },
+    {
+      "path": "verify-seal.mjs",
+      "bytes": 2988,
+      "hash": "sha256:f687c98cde2ee38cfa73b2aa44a083c8d054d758ce7f8ec22dba12750ce67675"
+    },
+    {
+      "path": "README.txt",
+      "bytes": 3926,
+      "hash": "sha256:305e4426bcf51fac296f170c30cc2b2fbf9b1141d2e72cb7409d8250e3934d7b"
+    },
+    {
+      "path": "NOTICE.txt",
+      "bytes": 459,
+      "hash": "sha256:877c9c0c680b440e3da1d17b7ef62851c566d69a43072f9f1c1d3bd409e1d3c5"
+    }
+  ],
+  "build": {
+    "sdkVersion": "27.0",
+    "minimumMacOS": "14.0",
+    "compiler": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+      "bytes": 124676976,
+      "hash": "sha256:1590ac950a3d627817d09ade5cb60b2115f17a72182a3141e010b4bcc482a0c9",
+      "version": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    "environment": {
+      "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "SOURCE_DATE_EPOCH": "0",
+      "ZERO_AR_DATE": "1",
+      "TMPDIR": "<BUILD_DIRECTORY>"
+    },
+    "compileFlags": [
+      "-O2",
+      "-DNDEBUG",
+      "-std=c11",
+      "-D_FILE_OFFSET_BITS=64",
+      "-fPIC",
+      "-fvisibility=hidden",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-arch",
+      "arm64",
+      "-mmacosx-version-min=14.0",
+      "-isysroot",
+      "<SDK>"
+    ],
+    "linkFlags": [
+      "-dynamiclib",
+      "-arch",
+      "arm64",
+      "-mmacosx-version-min=14.0",
+      "-isysroot",
+      "<SDK>",
+      "-Wl,-exported_symbols_list,producer/exports.txt",
+      "-Wl,-install_name,@rpath/libideogram-webp-output.1.dylib",
+      "-Wl,-current_version,1.0.0",
+      "-Wl,-compatibility_version,1.0.0"
+    ],
+    "commands": [
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-D_FILE_OFFSET_BITS=64",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-c",
+        "producer/webp-output.c",
+        "-o",
+        "webp-output.o"
+      ],
+      [
+        "-dynamiclib",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-Wl,-exported_symbols_list,producer/exports.txt",
+        "-Wl,-install_name,@rpath/libideogram-webp-output.1.dylib",
+        "-Wl,-current_version,1.0.0",
+        "-Wl,-compatibility_version,1.0.0",
+        "webp-output.o",
+        "-o",
+        "libideogram-webp-output.1.dylib"
+      ]
+    ]
+  },
+  "artifact": {
+    "path": "libideogram-webp-output.1.dylib",
+    "bytes": 34048,
+    "hash": "sha256:fd63aeba1f1931476430f6c11fea2b5b501cfb9fa5533d3f572f953459ce9f5c"
+  },
+  "exports": [
+    "IEWebPConvertFileRGBA",
+    "IEWebPDecodeToFile",
+    "IEWebPOutputABIVersion"
+  ],
+  "imports": [
+    "___error",
+    "_fcntl",
+    "_fstat",
+    "_geteuid",
+    "_mmap",
+    "_munmap",
+    "_pread",
+    "_pwrite",
+    "_sysconf"
+  ],
+  "dependencies": [
+    "@rpath/libideogram-webp-output.1.dylib (compatibility version 1.0.0, current version 1.0.0)",
+    "/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)"
+  ],
+  "mappingPolicy": "One anonymous private page-rounded RGBA mapping per synchronous call; at most100000000 payload bytes. No pixel pointer escapes. All file I/O uses checked pread/pwrite requests <=65536 bytes. Output mapping is unmapped before return; failed munmap leaves the process-library lease closed. Caller separately reserves native decoder/color and runtime memory and fsyncs or removes its private output file.",
+  "invariants": {
+    "status": "passed",
+    "command": [
+      "-O2",
+      "-DNDEBUG",
+      "-std=c11",
+      "-D_FILE_OFFSET_BITS=64",
+      "-fPIC",
+      "-fvisibility=hidden",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-arch",
+      "arm64",
+      "-mmacosx-version-min=14.0",
+      "-isysroot",
+      "<SDK>",
+      "producer/bridge-test.c",
+      "-o",
+      "bridge-test"
+    ]
+  },
+  "nativeVerification": {
+    "fixtures": [
+      {
+        "dimensions": [
+          16,
+          16
+        ],
+        "file": "white-lossy.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 16384,
+        "outputRemaining": 0,
+        "rgbaSHA256": "5f4ecdb7b71c3e403983fe405cddcdc2f2576b655fdb3e80d94a6f7c32e58bc2",
+        "status": 0
+      },
+      {
+        "dimensions": [
+          3,
+          2
+        ],
+        "file": "alpha-lossless.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 16384,
+        "outputRemaining": 0,
+        "rgbaSHA256": "05b5b0934b9a9a3e863f730f1fb864babc78fb9cbf365722f1deab8459102ddd",
+        "status": 0
+      },
+      {
+        "dimensions": [
+          3,
+          2
+        ],
+        "file": "alpha-lossy.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 16384,
+        "outputRemaining": 0,
+        "rgbaSHA256": "b0ed8f93891770e4789016a27bd8f88351b45ae9accc024a91edd94ff5e9801b",
+        "status": 0
+      },
+      {
+        "dimensions": [
+          2048,
+          2048
+        ],
+        "file": "normal-webp-lossless.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 16777216,
+        "outputRemaining": 0,
+        "rgbaSHA256": "dffab0dd410657cb30c7b2fd7f2586a4792e8472e58882b3532581f8111a646d",
+        "status": 0
+      },
+      {
+        "dimensions": [
+          2048,
+          2048
+        ],
+        "file": "normal-webp-lossy.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 16777216,
+        "outputRemaining": 0,
+        "rgbaSHA256": "dffab0dd410657cb30c7b2fd7f2586a4792e8472e58882b3532581f8111a646d",
+        "status": 0
+      },
+      {
+        "dimensions": [
+          5000,
+          5000
+        ],
+        "file": "max-webp-lossless.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 100007936,
+        "outputRemaining": 0,
+        "rgbaSHA256": "7425db12b556e02629664437aac54d8f255772acacfec768fd6f62d39df2ed18",
+        "status": 0
+      },
+      {
+        "dimensions": [
+          5000,
+          5000
+        ],
+        "file": "max-webp-lossy.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 100007936,
+        "outputRemaining": 0,
+        "rgbaSHA256": "7425db12b556e02629664437aac54d8f255772acacfec768fd6f62d39df2ed18",
+        "status": 0
+      }
+    ],
+    "refusal": {
+      "dimensions": [
+        3,
+        2
+      ],
+      "file": "alpha-lossless.webp",
+      "nativeRemaining": 0,
+      "outputMapped": 16384,
+      "outputRemaining": 0,
+      "rgbaSHA256": null,
+      "status": 3
+    },
+    "repeated": [
+      {
+        "dimensions": [
+          5000,
+          5000
+        ],
+        "file": "max-webp-lossless.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 100007936,
+        "outputRemaining": 0,
+        "rgbaSHA256": "7425db12b556e02629664437aac54d8f255772acacfec768fd6f62d39df2ed18",
+        "status": 0
+      },
+      {
+        "dimensions": [
+          5000,
+          5000
+        ],
+        "file": "max-webp-lossless.webp",
+        "nativeRemaining": 0,
+        "outputMapped": 100007936,
+        "outputRemaining": 0,
+        "rgbaSHA256": "7425db12b556e02629664437aac54d8f255772acacfec768fd6f62d39df2ed18",
+        "status": 0
+      }
+    ],
+    "retry": {
+      "dimensions": [
+        3,
+        2
+      ],
+      "file": "alpha-lossless.webp",
+      "nativeRemaining": 0,
+      "outputMapped": 16384,
+      "outputRemaining": 0,
+      "rgbaSHA256": "05b5b0934b9a9a3e863f730f1fb864babc78fb9cbf365722f1deab8459102ddd",
+      "status": 0
+    },
+    "status": "passed"
+  },
+  "reproduction": {
+    "method": "Two fresh compile directories; compare complete native bytes including Mach-O UUID/signature or ELF build ID. No normalization.",
+    "byteIdentical": true
+  }
+}

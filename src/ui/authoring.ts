@@ -1,3 +1,5 @@
+import {displayImage} from './display-image.js';
+import {createDisplayPreviewURL,readDisplaySource,sourceFromAsset,validateDisplayImage,revokeDisplayPreviewURL} from '../observability/display-preview.js';
 import {retainedMask,r16Mask} from '../raster/mapping.js';
 import type {BlobRef} from '../protocol/store.js';
 import {html,nothing} from 'lit';
@@ -8,21 +10,26 @@ import type {ImageLayer} from '../protocol/history.js';
 import type {MaskPlan,MaskOperation,Shape,Point,Combine} from '../raster/mask.js';
 import {validateMaskPlan,validateShape,maskDraftValue,maskBindings,resolveMaskPlan} from '../raster/mask.js';
 import {ControlAdapter} from './adapters.js';
+import {SHA256} from '../protocol/sha256.js';
+import {allocationLedger,type AllocationLease} from '../observability/allocations.js';
 
 type ValueControl=HTMLElement & {value:string};
 type MaskDraft={document:Document;layer:ImageLayer;id:string;plan:MaskPlan};
 type MaskPreview={generation:number;mask:Asset;after:Asset;url:string;views:Record<string,string>;loaded:boolean;support:string;supportRect:{x:number;y:number;width:number;height:number}|null;hard:number;effective:number};
+type OverlayPattern={canvas:HTMLCanvasElement|null;pattern:CanvasPattern|null;context:CanvasRenderingContext2D;color:string;lease:AllocationLease;usable:boolean};
 export class Authoring {
   tool='Pan';shape:'rectangle'|'ellipse'|'polygon'='rectangle';combine:Combine='replace';brush:'add'|'subtract'='add';
   size='20';hardness='1';radius='0';color='#c778ee';selection:MaskOperation[]=[];
   polygon='';x='0';y='0';width='100';height='100';sampleX='0';sampleY='0';sampleScope='merged';sampleText='No color sampled.';
   private attachedKey='';private attachedPlan:MaskPlan|null=null;private attachedReady=false;
-  private previewMode='result';
+  private previewMode='result';private previewRead:AbortController|null=null;
   private adapter=new ControlAdapter();private generation=0;private restoring='';private session='';
   private draft:MaskDraft|null=null;private preview:MaskPreview|null=null;private importAsset:Asset|null=null;
   private importName='';private importX='0';private importY='0';private invertImport=false;
-  private gestureEpoch=0;private gesture:{id:number;points:Point[];tool:string;document:Document;layer?:ImageLayer;transform?:number[];layers:ImageLayer[]}|null=null;
+  private gestureEpoch=0;private gesture:{id:number;points:Point[];tool:string;document:Document;layer?:ImageLayer;transform?:number[];layers:ImageLayer[];inputDownMs:number;trustedDown:boolean}|null=null;
   private movePending=false;
+  private overlayPattern:OverlayPattern|null=null;
+  private previewCleanup=new Set<string>();
   constructor(private editor:EditorClient,private changed:()=>void,private draw:()=>void,private display:(asset:string|null)=>Promise<void>){}
   get drawing(){return !!this.gesture;}
   private readable(error:unknown){const messages:Record<string,string>={MASK_SHAPE:'Selection width and height must be positive, finite document coordinates.',MASK_POLYGON:'Enter at least three polygon points.',MASK_POINTS:'Enter finite x,y pairs for each point.',MASK_IMPORT:'Mask alignment must use whole document pixels at the imported native size.',MASK_STROKE:'Use a brush diameter above 0 and at most 8192 pixels, and hardness between 0 and 1.',MASK_DRAFT_TOO_LARGE:'This stroke exceeds the local command size. Your previous draft is retained; use shorter strokes.'};return error instanceof Error&&messages[error.message]?Error(messages[error.message]):error;}
@@ -36,7 +43,14 @@ export class Authoring {
   choose(tool:string){this.cancelGesture();this.tool=tool;this.changed();this.draw();}
   private current(){const document=this.editor.view.document,layer=this.editor.view.image?.layers.find(l=>l.id===this.editor.view.selected[0]);if(!document||!layer)throw Error('Select a layer for the local mask.');if(layer.locked)throw Error('Unlock the layer before changing its mask.');return {document,layer};}
   private stale(){return !!this.draft&&(this.editor.view.document?.id!==this.draft.document.id||this.editor.view.document?.revision!==this.draft.document.revision);}
-  private invalidate(){this.generation++;if(this.preview)for(const url of Object.values(this.preview.views))URL.revokeObjectURL(url);this.preview=null;}
+  private invalidate(){
+    this.generation++;if(this.preview)for(const url of Object.values(this.preview.views))this.previewCleanup.add(url);this.preview=null;
+    const errors:unknown[]=[];
+    try{this.previewRead?.abort();this.previewRead=null;}catch(error){errors.push(error);}
+    try{this.clearOverlayPattern();}catch(error){errors.push(error);}
+    for(const url of this.previewCleanup)try{revokeDisplayPreviewURL(url);this.previewCleanup.delete(url);}catch(error){errors.push(error);}
+    if(errors.length)throw new AggregateError(errors,'AUTHORING_PREVIEW_CLEANUP');
+  }
   private save(){const d=this.draft;if(!d)return;validateMaskPlan(d.plan);this.invalidate();this.editor.changeDraft(d.id,'mask',JSON.stringify({schema:d.plan.schemaVersion===2?'local-mask-2':'local-mask-1',layerVersion:d.layer.version,radius:this.radius,plan:d.plan}),d.layer.id,false);this.changed();this.draw();}
 
   private begin(fresh=false){const {document,layer}=this.current();const radius=this.number(this.radius,'feather radius');if(radius<0||radius>64)throw Error('Feather radius must be between 0 and 64 document pixels.');if(!fresh&&layer.mask&&!this.attachedReady)throw Error('The attached mask is still loading. Try again when its geometry is available.');this.invalidate();this.draft={document,layer,id:this.draft?.document.id===document.id&&this.draft.layer.id===layer.id?this.draft.id:crypto.randomUUID(),plan:{...(!fresh&&this.attachedPlan?.schemaVersion===2?{schemaVersion:2 as const}:{}),width:document.width,height:document.height,feather:radius,operations:!fresh&&this.attachedPlan?structuredClone(this.attachedPlan.operations):[]}};if(!fresh&&this.attachedPlan){this.draft.plan.feather=this.attachedPlan.feather;this.radius=String(this.attachedPlan.feather);}}
@@ -73,12 +87,15 @@ export class Authoring {
     const layers=this.editor.view.image!.layers.filter(l=>l.visible).map(l=>({assetId:l.assetId,transform:l.layerToDocument,opacity:l.opacity,mask:l.id===d.layer.id?{assetId:mask.payload.asset.id,mapping:'document-r16-v1' as const,inverted:false}:l.mask}));
     const events=await this.editor.command({type:'ComposeRaster',width:plan.width,height:plan.height,layers},null),after=events.find(e=>e.type==='AssetRegistered');if(!after||after.type!=='AssetRegistered')throw Error('Mask result preview is unavailable.');
     const manifest=await this.editor.json<{plan:{statistics:{support:{x:number;y:number;width:number;height:number}|null;hardPixels:number;effectivePixels:number}}}>('/api/v1/assets/'+mask.payload.asset.id+'/raster');
-    const response=await this.editor.session.transport('/api/v1/assets/'+after.payload.asset.id+'/content');if(!response.ok)throw Error('Mask result pixels are unavailable.');const blob=await response.blob();
-    if(this.draft!==d||generation!==this.generation||this.stale())throw Error('Mask preview became stale; the draft is retained.');
+    this.previewRead?.abort();const abort=new AbortController();this.previewRead=abort;
+    const owns=()=>!abort.signal.aborted&&this.draft===d&&generation===this.generation&&!this.stale(),urls:Record<string,string>={};
+    try{
+    if(!owns())throw Error('Mask preview became stale; the draft is retained.');
+    const transport=this.editor.session.transport.bind(this.editor.session);urls.result=await createDisplayPreviewURL(transport,sourceFromAsset(after.payload.asset),{owner:'authoring-result-preview',edge:1024,signal:abort.signal,owns});
     const hardEvents=await this.editor.command({type:'PrepareMask',plan:{...plan,feather:0}},null),hard=hardEvents.find(e=>e.type==='AssetRegistered');if(hard?.type!=='AssetRegistered')throw Error('Hard mask preview is unavailable.');
-    const urls:Record<string,string>={result:URL.createObjectURL(blob)};
-    try{for(const [key,id] of [['hard',hard.payload.asset.id],['effective',mask.payload.asset.id],['original',d.document.image?.compositeAssetId]] as const){if(!id)continue;const response=await this.editor.session.transport('/api/v1/assets/'+id+'/content');if(!response.ok)throw Error('Mask preview is unavailable.');urls[key]=URL.createObjectURL(await response.blob());}
-    if(this.draft!==d||generation!==this.generation||this.stale())throw Error('Mask preview became stale; the draft is retained.');}catch(error){for(const url of Object.values(urls))URL.revokeObjectURL(url);throw error;}
+    for(const [key,id] of [['hard',hard.payload.asset.id],['effective',mask.payload.asset.id],['original',d.document.image?.compositeAssetId]] as const){if(!id)continue;const source=key==='hard'?sourceFromAsset(hard.payload.asset):key==='effective'?sourceFromAsset(mask.payload.asset):await readDisplaySource(transport,id,{owner:'authoring-mask-descriptor',signal:abort.signal,owns});urls[key]=await createDisplayPreviewURL(transport,source,{owner:'authoring-mask-preview',edge:1024,signal:abort.signal,owns});}
+    if(!owns())throw Error('Mask preview became stale; the draft is retained.');}catch(error){for(const url of Object.values(urls))revokeDisplayPreviewURL(url);throw error;}finally{if(this.previewRead===abort)this.previewRead=null;}
+    if(this.preview)for(const url of Object.values(this.preview.views))revokeDisplayPreviewURL(url);
     this.previewMode='result';const stats=manifest.plan.statistics,s=stats.support;
     this.preview={mask:mask.payload.asset,after:after.payload.asset,generation,url:urls.result,views:urls,loaded:false,support:s?`X ${s.x}, Y ${s.y}, width ${s.width}, height ${s.height}`:'empty',supportRect:s,hard:stats.hardPixels,effective:stats.effectivePixels};this.changed();this.draw();
   }
@@ -131,7 +148,7 @@ export class Authoring {
     const layer=this.editor.view.image?.layers.find(l=>l.id===this.editor.view.selected[0]);
     if(this.tool==='Move'&&(!layer||layer.locked))return true;
     if(this.tool==='Select'&&this.shape==='polygon'){this.polygon+=(this.polygon?'\n':'')+p.map(n=>Math.round(n*100)/100).join(', ');this.changed();return true;}
-    this.gestureEpoch++;this.gesture={id:e.pointerId,points:[p],tool:this.tool,document:this.editor.view.document,layer,transform:layer?[...layer.layerToDocument]:undefined,layers:structuredClone(this.editor.view.image?.layers??[])};(e.target as HTMLElement).setPointerCapture(e.pointerId);return true;
+    this.gestureEpoch++;this.gesture={id:e.pointerId,points:[p],tool:this.tool,document:this.editor.view.document,layer,transform:layer?[...layer.layerToDocument]:undefined,layers:structuredClone(this.editor.view.image?.layers??[]),inputDownMs:e.timeStamp,trustedDown:e.isTrusted};(e.target as HTMLElement).setPointerCapture(e.pointerId);return true;
   }
   pointerMove(e:PointerEvent,p:Point){const g=this.gesture;if(!g||g.id!==e.pointerId)return false;if(g.tool==='Mask')g.points.push(p);else g.points=[g.points[0],p];this.draw();if(g.tool==='Move')setTimeout(()=>{if(!e.defaultPrevented&&this.gesture===g)void this.previewMove(g).catch(error=>this.editor.fail(error));},0);return true;}
   private async previewMove(g:NonNullable<Authoring['gesture']>){
@@ -148,7 +165,14 @@ export class Authoring {
     try{
       const start=g.points[0];
       if(g.tool==='Select')this.selectShape({kind:this.shape==='ellipse'?'ellipse':'rectangle',x:Math.min(start[0],p[0]),y:Math.min(start[1],p[1]),width:Math.abs(p[0]-start[0]),height:Math.abs(p[1]-start[1])});
-      else if(g.tool==='Mask')this.push({kind:'stroke',points:[...g.points,p],size:this.number(this.size,'brush size'),hardness:this.number(this.hardness,'brush hardness'),mode:this.brush});
+      else if(g.tool==='Mask'){
+        const points:Point[]=[...g.points,p];this.push({kind:'stroke',points,size:this.number(this.size,'brush size'),hardness:this.number(this.hardness,'brush hardness'),mode:this.brush});
+        // One replaceable, read-only witness after the actual draft append.
+        // Hash incrementally: telemetry retains no authored coordinates/content.
+        try{const d=this.draft;if(d){const hash=new SHA256(),encode=new TextEncoder();hash.update(encode.encode('['));for(let i=0;i<points.length;i++)hash.update(encode.encode((i?',':'')+JSON.stringify(points[i])));hash.update(encode.encode(']'));
+          performance.clearMarks('ie.mask.stroke.recorded');performance.mark('ie.mask.stroke.recorded',{detail:{schemaVersion:1,gestureOrdinal:epoch,pointerId:g.id,inputDownMs:g.inputDownMs,inputUpMs:e.timeStamp,trusted:g.trustedDown&&e.isTrusted,documentId:d.document.id,revision:d.document.revision,draftId:d.id,targetLayerId:d.layer.id,targetLayerVersion:d.layer.version,selectedLayerId:this.editor.view.selected[0]??null,sampleCount:points.length,operationCount:d.plan.operations.length,geometrySha256:hash.digest(),brushDiameter:Number(this.size)}});
+        }}catch{/* Missing observation never changes a successfully retained draft. */}
+      }
       else if(g.tool==='Move'&&g.layer&&g.transform){const t=g.transform as [number,number,number,number,number,number];t[4]+=p[0]-start[0];t[5]+=p[1]-start[1];if(t[4]!==g.layer.layerToDocument[4]||t[5]!==g.layer.layerToDocument[5])this.run('Move layer',async()=>{await this.editor.command({type:'ApplyTransform',layerId:g.layer!.id,layerVersion:g.layer!.version,transform:t,draft:null},g.document);});}
     }catch(error){this.editor.fail(this.readable(error));}this.changed();this.draw();},0);return true;
   }
@@ -156,13 +180,36 @@ export class Authoring {
   cancelGesture(){this.gestureEpoch++;const gesture=this.gesture;this.gesture=null;
     // With no gesture, the shell already owns the current document paint.
     if(gesture)void this.display(null).catch(error=>this.editor.fail(error));this.draw();}
+  private clearOverlayPattern(){
+    const owned=this.overlayPattern;if(!owned)return;owned.usable=false;
+    try{if(owned.canvas){owned.canvas.width=0;owned.canvas.height=0;}}
+    catch(error){owned.lease.markUnused();throw error;}
+    owned.pattern=null;owned.canvas=null;this.overlayPattern=null;owned.lease.release();
+  }
+  private pattern(ctx:CanvasRenderingContext2D):CanvasPattern{
+    const current=this.overlayPattern;
+    if(current?.usable&&current.context===ctx&&current.color===this.color)return current.pattern!;
+    this.clearOverlayPattern();
+    // Admit the default canvas extent before construction. The settled allowance
+    // covers both the 8×8 source and a possible native pattern copy; these are
+    // conservative owned bookings, not physical Canvas2D memory measurements.
+    const lease=allocationLedger.reserve({owner:'authoring-overlay',kind:'canvas',cpuBytes:300*150*4,gpuBytes:300*150*4,handles:2});
+    const owned:OverlayPattern={canvas:null,pattern:null,context:ctx,color:this.color,lease,usable:false};this.overlayPattern=owned;
+    try{
+      const canvas=document.createElement('canvas');owned.canvas=canvas;canvas.width=8;canvas.height=8;
+      const tile=canvas.getContext('2d');if(!tile)throw Error('AUTHORING_PATTERN_CONTEXT');
+      tile.strokeStyle=this.color;tile.beginPath();tile.moveTo(0,8);tile.lineTo(8,0);tile.stroke();
+      const pattern=ctx.createPattern(canvas,'repeat');if(!pattern)throw Error('AUTHORING_PATTERN_CONTEXT');owned.pattern=pattern;
+      lease.resize({cpuBytes:2*8*8*4,gpuBytes:2*8*8*4});owned.usable=true;return pattern;
+    }catch(error){try{this.clearOverlayPattern();}catch(cleanup){throw new AggregateError([error,cleanup],'AUTHORING_PATTERN_CLEANUP');}throw error;}
+  }
   overlay(ctx:CanvasRenderingContext2D){
-    ctx.save();ctx.strokeStyle=this.color;ctx.fillStyle=this.color;ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.save();try{ctx.strokeStyle=this.color;ctx.fillStyle=this.color;ctx.lineWidth=1;ctx.setLineDash([4,3]);
     const draw=(shape:Shape)=>{ctx.beginPath();if(shape.kind==='polygon'){shape.points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();}else if(shape.kind==='ellipse')ctx.ellipse(shape.x+shape.width/2,shape.y+shape.height/2,shape.width/2,shape.height/2,0,0,Math.PI*2);else ctx.rect(shape.x,shape.y,shape.width,shape.height);ctx.stroke();};
     for(const op of this.selection)if(op.kind==='shape')draw(op.shape);
-    const bounds=this.preview?.supportRect;if(bounds){ctx.save();ctx.setLineDash([1,3]);ctx.strokeStyle='#fff';ctx.strokeRect(bounds.x,bounds.y,bounds.width,bounds.height);const pattern=document.createElement('canvas');pattern.width=8;pattern.height=8;const tile=pattern.getContext('2d')!;tile.strokeStyle=this.color;tile.beginPath();tile.moveTo(0,8);tile.lineTo(8,0);tile.stroke();ctx.fillStyle=ctx.createPattern(pattern,'repeat')!;ctx.globalAlpha=.25;ctx.fillRect(bounds.x,bounds.y,bounds.width,bounds.height);ctx.restore();}
+    const bounds=this.preview?.supportRect;if(bounds){ctx.save();try{ctx.setLineDash([1,3]);ctx.strokeStyle='#fff';ctx.strokeRect(bounds.x,bounds.y,bounds.width,bounds.height);ctx.fillStyle=this.pattern(ctx);ctx.globalAlpha=.25;ctx.fillRect(bounds.x,bounds.y,bounds.width,bounds.height);}finally{ctx.restore();}}
     const g=this.gesture;if(g){if(g.tool==='Mask'){ctx.setLineDash([]);ctx.globalAlpha=.45;ctx.lineWidth=Number(this.size)||1;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();g.points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();}else if(g.points.length>1){const a=g.points[0],b=g.points.at(-1)!;draw({kind:this.shape==='ellipse'&&g.tool==='Select'?'ellipse':'rectangle',x:Math.min(a[0],b[0]),y:Math.min(a[1],b[1]),width:Math.abs(a[0]-b[0]),height:Math.abs(a[1]-b[1])});}}
-    ctx.restore();
+    }finally{ctx.restore();}
   }
   render(){if(!this.editor.view.document)return nothing;const view=this.editor.view,d=this.draft,p=this.preview,disabled=view.busy||!view.ready||!view.document;
     return html`<en-accordion multiple .value=${['Select','Mask','Sample','Move'].includes(this.tool)?['authoring']:[]}><en-accordion-item value="authoring" label="Selection, masks and color"><en-stack gap="small">
@@ -183,9 +230,14 @@ export class Authoring {
       ${this.pendingImport?html`<en-card><p>${this.importName} · ${this.pendingImport.asset.raster!.width} × ${this.pendingImport.asset.raster!.height}. Linear sRGB luminance × alpha; transparent pixels are zero before inversion. Place at native size; alignment outside document is explicitly clipped by the document boundary.</p>${this.field('Imported mask X',this.importX,v=>this.importX=v)}${this.field('Imported mask Y',this.importY,v=>this.importY=v)}<en-switch label="Invert imported coverage" .checked=${this.invertImport} @en-change=${(e:Event)=>{const h=e.currentTarget as HTMLElement&{checked:boolean};this.adapter.settled(e,()=>h.checked,v=>{this.invertImport=v;});}}></en-switch><en-button ?disabled=${disabled} @click=${(e:Event)=>this.button(e,'Review aligned mask',()=>this.useImport())}>Review aligned mask</en-button><en-button variant="ghost" @click=${(e:Event)=>this.mutate(e,()=>{this.pendingImport=null;})}>Cancel mask import</en-button></en-card>`:nothing}
       <en-toolbar label="Mask review actions" keyboard-navigation="tab"><en-button ?disabled=${disabled||!d||this.stale()} @click=${(e:Event)=>this.button(e,'Prepare local mask preview',()=>this.prepare())}>Preview mask</en-button><en-button variant="ghost" ?disabled=${!d||disabled} @click=${(e:Event)=>this.button(e,'Cancel mask draft',()=>this.cancel())}>Cancel mask draft</en-button><en-button variant="secondary" ?disabled=${disabled} @click=${(e:Event)=>this.button(e,'Detach layer mask',async()=>{const {document,layer}=this.current();await this.editor.command({type:'SetLayerProperties',layerId:layer.id,layerVersion:layer.version,properties:{mask:null},draft:null},document);})}>Detach layer mask</en-button></en-toolbar>
       ${d?html`<p>Bound to ${d.layer.name}, revision ${d.document.revision}. ${d.plan.operations.length} draft operations. ${p?'Current local preview':'Preview pending; draft is not an attached mask.'}</p>`:nothing}
-      ${p?html`<en-card><p>Hard support: ${p.hard} pixels. Effective support: ${p.effective} pixels · ${p.support}.</p><en-alert variant="warning" announcement="none">${p.effective===d!.plan.width*d!.plan.height?'Coverage reaches the whole document. ':p.effective===0?'Coverage is empty; an edit request would be blocked. ':''}No request crop or reconstruction halo has been approved. Request-domain review is required before any future provider use.</en-alert>${this.select('Mask preview view',this.previewMode,Object.keys(p.views),v=>{this.previewMode=v;})}<img class="review-image" src=${p.views[this.previewMode]} alt=${this.previewMode==='result'?'Prepared full document with layer mask':this.previewMode+' mask view'} @load=${(e:Event)=>{if(this.preview===p&&this.previewMode==='result'&&(e.currentTarget as HTMLImageElement).currentSrc===p.views.result){p.loaded=true;this.changed();}}}><en-button ?disabled=${disabled||!p.loaded||this.stale()} @click=${(e:Event)=>this.button(e,'Apply layer mask',()=>this.apply())}>Apply layer mask</en-button></en-card>`:nothing}
+      ${p?html`<en-card><p>Hard support: ${p.hard} pixels. Effective support: ${p.effective} pixels · ${p.support}.</p><en-alert variant="warning" announcement="none">${p.effective===d!.plan.width*d!.plan.height?'Coverage reaches the whole document. ':p.effective===0?'Coverage is empty; an edit request would be blocked. ':''}No request crop or reconstruction halo has been approved. Request-domain review is required before any future provider use.</en-alert>${this.select('Mask preview view',this.previewMode,Object.keys(p.views),v=>{this.previewMode=v;})}<p>Scaled preview · original ${p.after.raster!.width} × ${p.after.raster!.height}.</p><img class="review-image" src=${displayImage(p.views[this.previewMode])} alt=${this.previewMode==='result'?'Prepared full document with layer mask':this.previewMode+' mask view'} @load=${(e:Event)=>{if(this.preview===p&&this.previewMode==='result'&&(e.currentTarget as HTMLImageElement).currentSrc===p.views.result){try{validateDisplayImage(e.currentTarget as HTMLImageElement,p.views.result);p.loaded=true;this.changed();}catch(error){p.loaded=false;this.editor.fail(error);}}}}><en-button ?disabled=${disabled||!p.loaded||this.stale()} @click=${(e:Event)=>this.button(e,'Apply layer mask',()=>this.apply())}>Apply layer mask</en-button></en-card>`:nothing}
       <h2>Color sample</h2>${this.select('Sample source',this.sampleScope,['merged','active'],v=>{this.sampleScope=v;this.sampleGeneration++;})}<p>Active includes the selected layer even when hidden; its transform, mask and opacity are included.</p>${this.field('Sample X',this.sampleX,v=>this.sampleX=v)}${this.field('Sample Y',this.sampleY,v=>this.sampleY=v)}<en-button ?disabled=${disabled} @click=${(e:Event)=>this.button(e,'Sample canonical color',()=>this.sample(this.number(this.sampleX,'sample X'),this.number(this.sampleY,'sample Y')))}>Sample color</en-button><en-alert announcement="polite">${this.sampleText}</en-alert><en-color-field label="Selection display color (sRGB)" .value=${this.color} @en-change=${(e:Event)=>this.value(e,v=>{this.color=v;this.draw();})}></en-color-field>
     </en-stack></en-accordion-item></en-accordion>`;
   }
-  dispose(){this.gestureEpoch++;this.invalidate();this.adapter.invalidate();}
+  releaseDocument(){
+    this.gestureEpoch++;this.gesture=null;this.draft=null;this.selection=[];this.attachedPlan=null;this.attachedKey='';this.attachedReady=false;this.importAsset=null;this.pendingImport=null;this.importName='';this.session='';this.restoring='';this.polygon='';this.sampleText='No color sampled.';
+    const errors:unknown[]=[];try{this.invalidate();}catch(error){errors.push(error);}try{this.adapter.invalidate();}catch(error){errors.push(error);}if(errors.length)throw new AggregateError(errors,'AUTHORING_DOCUMENT_CLEANUP');
+  }
+  get lifecycle(){return {drafts:this.draft?1:0,objectURLs:(this.preview?Object.keys(this.preview.views).length:0)+this.previewCleanup.size,selectionOperations:this.selection.length,gestures:this.gesture?1:0,overlayCanvases:this.overlayPattern?.canvas?1:0,overlayPatterns:this.overlayPattern?.pattern?1:0};}
+  dispose(){this.releaseDocument();}
 }

@@ -60,7 +60,7 @@ export class Assets {
     if(existing){const stage=this.fromRow(existing);this.owner(stage,auth.clientId);const r=stage.record;
       if(canonical(request)!==canonical({protocolVersion:r.protocolVersion,stagingId:r.stagingId,purpose:r.purpose,expectedBytes:r.expectedBytes,sha256:r.sha256,mediaType:r.mediaType}))throw new StoreError('STAGING_ID_REUSE');
       return {created:false,record:r};}
-    const allowed=request.purpose==='image'?['image/png','image/jpeg','image/webp']:request.purpose==='mask'?['image/png']:request.purpose==='caption'?['text/plain','application/json']:['font','text'].includes(request.purpose)?['application/octet-stream']:request.purpose==='bundle'?['application/x-ideogram-project']:[];
+    const allowed=request.purpose==='image'?['image/png','image/jpeg','image/webp']:request.purpose==='mask'?['image/png']:request.purpose==='caption'?['text/plain','application/json']:['font','text','adapter'].includes(request.purpose)?['application/octet-stream']:request.purpose==='bundle'?['application/x-ideogram-project']:[];
     if(!allowed.includes(request.mediaType))throw new StoreError('MEDIA_TYPE');
     // Deferred parsers never gain eligibility from a declared type or signature.
     const reservation='upload:'+request.stagingId;this.objects.reserve(reservation,BigInt(request.expectedBytes));
@@ -185,7 +185,7 @@ export class Assets {
       this.objects.reserve('upload:'+r.stagingId,0n);const ref:BlobRef={hash:r.sha256,byteLength:r.expectedBytes,mediaType:r.mediaType};
       let fd:number;let source=this.path(stage);let renamed=false;
       try{fd=this.open(stage);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;source=this.objects.path(ref);assertComponents(dirname(source));const identity=assertPrivate(source,false);fd=openSync(source,constants.O_RDONLY|constants.O_NOFOLLOW);if(!sameFile(identity,fstatSync(fd))){closeSync(fd);throw new StoreError('ROOT_UNSAFE');}renamed=true;}
-      let measured:Asset['measuredMediaType']=['font','text'].includes(r.purpose)?'application/octet-stream':'text/plain';
+      let measured:Asset['measuredMediaType']=['font','text','adapter'].includes(r.purpose)?'application/octet-stream':'text/plain';
       try{
         const buffer=Buffer.alloc(IO_CHUNK);const hash=createHash('sha256');let at=0n;let checkedAt=Date.now();const decoder=r.purpose==='caption'?new TextDecoder('utf-8',{fatal:true}):null;
         for(;;){this.check();if(this.closing)throw new StoreError('CLOSED');if(Date.now()-checkedAt>=30000){this.objects.capacity(0n);checkedAt=Date.now();}
@@ -195,7 +195,7 @@ export class Assets {
         }
         if(decoder)try{decoder.decode();}catch{throw new AssetRejection('INVALID_INPUT','INVALID_UTF8');}
         if(at!==BigInt(r.expectedBytes)||'sha256:'+hash.digest('hex')!==r.sha256)throw new AssetRejection('INVALID_INPUT','LENGTH_OR_HASH_MISMATCH');
-        if(!['caption','text'].includes(r.purpose)&&at===0n)throw new AssetRejection('INVALID_INPUT','IMAGE_SIGNATURE_REQUIRED');
+        if(!['caption','text','adapter'].includes(r.purpose)&&at===0n)throw new AssetRejection('INVALID_INPUT','IMAGE_SIGNATURE_REQUIRED');
         this.barrier('finalize-before-flush');fsyncSync(fd);this.barrier('finalize-after-flush');
       }finally{closeSync(fd);}
       if(!renamed){const target=this.objects.path(ref);privateDirectory(dirname(target));this.barrier('finalize-before-rename');
@@ -206,7 +206,7 @@ export class Assets {
       const proof=await this.objects.prove(ref,()=>{this.check();if(this.closing)throw new StoreError('CLOSED');});this.barrier('finalize-before-register');
       try{this.commit(bytes,()=>{
         const current=this.stage(r.stagingId);if(current.record.ownerClientId!==c.clientId||current.record.version!==r.version)throw new AssetRejection('STALE_REVISION','STAGING_CHANGED',current.record.version);
-        const asset:Asset={id:String(row.operation_id),version:'1',purpose:r.purpose,blob:ref,dependencies:[],safety:r.purpose==='caption'?'safe':'unknown',availability:'available',qualification:r.purpose==='caption'?'opaque-text':['font','text'].includes(r.purpose)?'pending-text':'pending-decoder',measuredMediaType:measured};
+        const asset:Asset={id:String(row.operation_id),version:'1',purpose:r.purpose,blob:ref,dependencies:[],safety:r.purpose==='caption'?'safe':'unknown',availability:'available',qualification:r.purpose==='caption'?'opaque-text':r.purpose==='adapter'?'pending-adapter':['font','text'].includes(r.purpose)?'pending-text':'pending-decoder',measuredMediaType:measured};
         this.register('asset:'+asset.id,ref,proof);r.state='finalized';r.version=String(BigInt(r.version)+1n);r.assetRef=ref;this.save(stage);
         this.db.prepare('DELETE FROM asset_preparations WHERE id=?').run(id);
         return {type:'AssetRegistered',payload:{asset}};
@@ -220,7 +220,7 @@ export class Assets {
     }
   }
   private signature(bytes:Uint8Array,r:StagingRecord):Asset['measuredMediaType'] {
-    const b=Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength);if(r.purpose==='caption')return 'text/plain';if(['font','text'].includes(r.purpose))return 'application/octet-stream';
+    const b=Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength);if(r.purpose==='caption')return 'text/plain';if(['font','text','adapter'].includes(r.purpose))return 'application/octet-stream';
     let mime:Asset['measuredMediaType']|null=null;
     if(b.length>=24&&b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))&&b.toString('ascii',12,16)==='IHDR')mime='image/png';
     else if(b.length>=3&&b[0]===255&&b[1]===216&&b[2]===255)mime='image/jpeg';
@@ -229,7 +229,8 @@ export class Assets {
     return mime; // All image formats remain unknown, including possible animation.
   }
   asset(id:string):Asset|null{this.check();if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT json FROM assets WHERE id=?').get(id);return row?JSON.parse(String(row.json)):null;}
-  safeAsset(id:string){const a=this.asset(id);if(!a)throw new StoreError('NOT_FOUND');if(a.safety!=='safe'||!['opaque-text','raster-preview','canonical-raster','canonical-png','font'].includes(a.qualification))throw new StoreError('CONTENT_WITHHELD');if(a.availability!=='available')throw new StoreError('NOT_FOUND');return a;}
+  adapterDeleted(id:string):boolean{this.check();if(!isId(id))throw new StoreError('MALFORMED_REQUEST');return !!this.db.prepare("SELECT 1 FROM assets WHERE json_extract(json,'$.qualification')='adapter-deletion' AND json_extract(json,'$.adapterDeletion.kind')='deleted' AND json_extract(json,'$.adapterDeletion.versionId')=? LIMIT 1").get(id);}
+  safeAsset(id:string){const a=this.asset(id);if(!a)throw new StoreError('NOT_FOUND');if(a.safety!=='safe'||!['opaque-text','raster-preview','canonical-raster','canonical-png','canonical-jpeg','font'].includes(a.qualification))throw new StoreError('CONTENT_WITHHELD');if(a.availability!=='available')throw new StoreError('NOT_FOUND');return a;}
   private readers=new Map<string,string>();
   async verify(id:string){const a=this.safeAsset(id);const slot=randomUUID();this.objects.acquire(slot);try{const handle=await this.objects.prove(a.blob,()=>{this.safeAsset(id);if(this.closing)throw new StoreError('CLOSED');});this.readers.set(handle,slot);return {asset:a,handle};}catch(e){this.objects.release(slot);if((e as NodeJS.ErrnoException).code==='ENOENT'||(e instanceof StoreError&&['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code)))throw new StoreError('NOT_FOUND');throw e;}}
   content(id:string,handle:string,offset:string,length:number){const a=this.safeAsset(id);this.objects.proven(a.blob,handle);const bytes=this.objects.readRange(a.blob,offset,length);this.objects.proven(a.blob,handle);return bytes;}

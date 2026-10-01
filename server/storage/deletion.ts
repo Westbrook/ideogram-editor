@@ -18,7 +18,7 @@ const deletionTypes=['PreviewDocumentDeletion','DeleteDocument','CollectDocument
 /** Tombstones and intents are workspace records, deliberately outside the deleted namespace. */
 export class Deletions {
  constructor(private db:DatabaseSync,private objects:Objects,private queue:QueueStore,private check:()=>void,private barrier:Barrier,
-  private commit:(bytes:Uint8Array,build:()=>QueueFact)=>Receipt,private register:(owner:string,ref:BlobRef)=>void,private readers:()=>boolean,private root:string){
+  private commit:(bytes:Uint8Array,build:()=>QueueFact,beforeCommit?:()=>void)=>Receipt,private register:(owner:string,ref:BlobRef)=>void,private readers:()=>boolean,private root:string){
   queue.deletionCommand=(bytes,auth)=>this.command(bytes,auth);
  }
  private transaction<T>(work:()=>T){this.check();this.db.exec('BEGIN IMMEDIATE');try{const value=work();this.check();this.db.exec('COMMIT');return value;}catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}}
@@ -26,6 +26,7 @@ export class Deletions {
   WHERE r.owner NOT LIKE 'deletion:%' AND NOT EXISTS(SELECT 1 FROM commands c WHERE r.owner IN ('command:'||c.id,'receipt:'||c.id) AND json_extract(c.canonical,'$.command.body.type') IN ('PreviewDocumentDeletion','DeleteDocument','CollectDocumentGarbage')) ORDER BY r.owner,r.hash`).all() as Root[];}
  private ownership(documentId:string){
   const owners=new Set<string>(),prefixes=new Set<string>();
+  prefixes.add('request-mask:'+documentId+':');
   const add=(s:string)=>owners.add(s);
   for(const r of this.db.prepare("SELECT id,canonical FROM commands WHERE json_extract(canonical,'$.command.documentId')=?").all(documentId)){
    const c=JSON.parse(String(r.canonical)).command;for(const prefix of ['command:','receipt:','history-command:'])add(prefix+String(r.id));
@@ -61,30 +62,59 @@ export class Deletions {
   const count=(table:string)=>Number(this.db.prepare(`SELECT count(*) AS n FROM ${table} WHERE document_id=?`).get(documentId)!.n);
   return {owners:[...owners].sort(),refs:[...refs.values()],value:{documentId,documentRevision:expectedRevision,rootGeneration,exclusiveBytes:String(exclusive),retainedBytes:String(retained),pendingBytes:this.busy()?String(exclusive):'0',histories:count('history'),checkpoints:count('checkpoints'),drafts,jobs:jobs.length,unresolvedAttempts:jobs.flatMap(j=>j.attempts.filter((a:any)=>a.hold||['dispatching','submission-uncertain','acknowledged'].includes(a.state)).map((a:any)=>a.id)),retainedRoots:[...retainedRoots].sort(),externalCopies:'not-erased' as const,irreversible:true as const}};
  }
+ private backupFile(path:string){return !!this.db.prepare('SELECT 1 FROM deletion_backup_files WHERE path=?').get(path);}
+ private evidenceProtected(meta:{attemptId:string;direction:string;retainedBytes:string},documentId:string){
+  const jobs=this.db.prepare("SELECT json FROM queue_jobs q WHERE EXISTS(SELECT 1 FROM json_each(q.json,'$.attempts') a WHERE json_extract(a.value,'$.id')=?)").all(meta.attemptId).map(row=>JSON.parse(String(row.json)));
+  for(const job of jobs){
+   if(meta.direction==='response'&&BigInt(meta.retainedBytes)<=65536n&&job.attempts.some((a:any)=>a.id===meta.attemptId&&a.hold))return true;
+   if(job.documentId!==documentId&&!this.queue.deleted(job.documentId)&&this.db.prepare('SELECT 1 FROM documents WHERE id=?').get(job.documentId))return true;
+  }
+  // Only this locally created relation grants raw evidence ownership. Portable
+  // lineage may contain matching scalar IDs, but never creates this relation.
+  return !!this.db.prepare(`SELECT 1 FROM candidate_adoption_evidence e JOIN documents d ON d.id=e.document_id
+   LEFT JOIN candidate_document_tombstones t ON t.document_id=e.document_id
+   WHERE e.attempt_id=? AND e.document_id!=? AND t.document_id IS NULL LIMIT 1`).get(meta.attemptId,documentId);
+ }
+ private fileProtected(path:string,documentId:string){
+  if(this.backupFile(path))return true;
+  const prefix=this.queue.evidence.directory+'/';if(!path.startsWith(prefix))return false;
+  const match=/^([0-9a-f-]{36})\.(?:body|json)$/.exec(path.slice(prefix.length));if(!match)throw new StoreError('CORRUPT_STORE');
+  try{return this.backupFile(join(this.queue.evidence.directory,match[1]+'.json'))||this.evidenceProtected(this.queue.evidence.inspect(match[1]),documentId);}
+  catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;try{assertPrivate(path,false);}catch(missing){if((missing as NodeJS.ErrnoException).code==='ENOENT')return false;throw missing;}throw new StoreError('CORRUPT_OBJECT');}
+ }
  private work(documentId:string){
-  const files:{path:string;bytes:string;stamp:string}[]=[],directories:string[]=[];let retainedBytes=0n;
-  const visit=(path:string)=>{assertComponents(dirname(path));const st=lstatSync(path);if(st.isDirectory()){assertPrivate(path,true);directories.push(path);for(const name of readdirSync(path))visit(join(path,name));}else{assertPrivate(path,false);files.push({path,bytes:String(st.size),stamp:canonical([st.dev,st.ino,st.size,st.mtimeMs,st.ctimeMs])});}};
+  const files:{path:string;bytes:string;stamp:string}[]=[],directories:string[]=[],retainedFiles=new Map<string,bigint>();
+  const retainFile=(path:string)=>{assertComponents(dirname(path));retainedFiles.set(path,BigInt(assertPrivate(path,false).size));};
+  const visit=(path:string)=>{assertComponents(dirname(path));const st=lstatSync(path);if(st.isDirectory()){assertPrivate(path,true);directories.push(path);for(const name of readdirSync(path))visit(join(path,name));}else{assertPrivate(path,false);if(this.backupFile(path))retainedFiles.set(path,BigInt(st.size));else files.push({path,bytes:String(st.size),stamp:canonical([st.dev,st.ino,st.size,st.mtimeMs,st.ctimeMs])});}};
   for(const row of this.db.prepare('SELECT path FROM deletion_work WHERE document_id=? ORDER BY path').all(documentId)){
    const path=String(row.path);if(![join(this.root,'raster-work')+'/',join(this.root,'portable')+'/'].some(prefix=>path.startsWith(prefix)))throw new StoreError('ROOT_UNSAFE');
    try{visit(path);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   }
-  const jobs=this.db.prepare("SELECT json FROM queue_jobs WHERE json_extract(json,'$.documentId')=?").all(documentId).map(r=>JSON.parse(String(r.json))),attempts=new Map<string,any>();for(const j of jobs)for(const a of j.attempts)attempts.set(a.id,a);
-  for(const name of readdirSync(this.queue.evidence.directory).filter(n=>n.endsWith('.json'))){const meta=this.queue.evidence.inspect(name.slice(0,-5)),a=attempts.get(meta.attemptId);if(!a)continue;
-   // An unresolved acknowledgement is the only retained body needed to recover identity.
-   if((a.hold&&meta.direction==='response'&&BigInt(meta.retainedBytes)<=65536n)||this.db.prepare('SELECT 1 FROM deletion_backup_files WHERE path=?').get(join(this.queue.evidence.directory,name))){for(const suffix of ['.body','.json'])try{retainedBytes+=BigInt(assertPrivate(join(this.queue.evidence.directory,meta.recordId+suffix),false).size);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}continue;}
+  const jobs=this.db.prepare("SELECT json FROM queue_jobs WHERE json_extract(json,'$.documentId')=?").all(documentId).map(r=>JSON.parse(String(r.json))),attempts=new Set<string>();for(const j of jobs)for(const a of j.attempts)attempts.add(a.id);
+  for(const row of this.db.prepare('SELECT attempt_id FROM candidate_adoption_evidence WHERE document_id=?').all(documentId))attempts.add(String(row.attempt_id));
+  for(const name of readdirSync(this.queue.evidence.directory).filter(n=>n.endsWith('.json'))){const meta=this.queue.evidence.inspect(name.slice(0,-5));if(!attempts.has(meta.attemptId))continue;
+   if(this.evidenceProtected(meta,documentId)||this.backupFile(join(this.queue.evidence.directory,name))){for(const suffix of ['.body','.json'])try{retainFile(join(this.queue.evidence.directory,meta.recordId+suffix));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}continue;}
    for(const suffix of ['.body','.json']){const path=join(this.queue.evidence.directory,meta.recordId+suffix);try{visit(path);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
   }
-  return {retainedBytes:String(retainedBytes),files:files.sort((a,b)=>a.path.localeCompare(b.path)),directories:directories.sort((a,b)=>b.length-a.length)};
+  return {retainedBytes:String([...retainedFiles.values()].reduce((sum,bytes)=>sum+bytes,0n)),retainedPaths:[...retainedFiles.keys()].sort(),files:files.sort((a,b)=>a.path.localeCompare(b.path)),directories:directories.sort((a,b)=>b.length-a.length)};
  }
  private fileHash(path:string){assertComponents(dirname(path));assertPrivate(path,false);const fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW),hash=createHash('sha256');try{const b=Buffer.alloc(1048576);for(;;){const n=readSync(fd,b);if(!n)break;hash.update(b.subarray(0,n));}return hash.digest('hex');}finally{closeSync(fd);}}
  private collectWork(documentId:string){
   const work=this.work(documentId);
   this.transaction(()=>{for(const file of work.files)this.db.prepare("INSERT OR IGNORE INTO deletion_files VALUES (?,?,?,?,'quarantined')").run(documentId,file.path,file.bytes,this.fileHash(file.path));});
-  for(const row of this.db.prepare("SELECT * FROM deletion_files WHERE document_id=? AND state!='freed' ORDER BY path").all(documentId)){
+  for(const row of this.db.prepare("SELECT * FROM deletion_files WHERE document_id=? AND state IN ('quarantined','unlinking','rescued') ORDER BY path").all(documentId)){
    if(this.busy())return;const path=String(row.path);
-   if(row.state!=='unlinking'){if(this.fileHash(path)!==row.hash)throw new StoreError('CORRUPT_OBJECT');this.transaction(()=>this.db.prepare("UPDATE deletion_files SET state='unlinking' WHERE document_id=? AND path=?").run(documentId,path));}
+   // Backups and other live documents may acquire ownership after an intent.
+   if(this.fileProtected(path,documentId)){this.transaction(()=>this.db.prepare("UPDATE deletion_files SET state='rescued' WHERE document_id=? AND path=?").run(documentId,path));continue;}
+   const prior=this.db.prepare("SELECT document_id,bytes,hash FROM deletion_files WHERE path=? AND state='unlinking' ORDER BY document_id LIMIT 1").get(path),reclaimOwner=prior?String(prior.document_id):documentId;
+   if(prior&&(String(prior.bytes)!==String(row.bytes)||prior.hash!==row.hash))throw new StoreError('CORRUPT_OBJECT');
+   if(!prior){if(this.fileHash(path)!==row.hash)throw new StoreError('CORRUPT_OBJECT');this.transaction(()=>{if(this.fileProtected(path,documentId)||this.busy())throw new StoreError('STALE_EPOCH');this.db.prepare("UPDATE deletion_files SET state='unlinking' WHERE document_id=? AND path=?").run(reclaimOwner,path);});}
    this.barrier('deletion-work-unlink-intent');
-   this.transaction(()=>{if(this.busy())throw new StoreError('STALE_EPOCH');try{if(this.fileHash(path)!==row.hash)throw new StoreError('CORRUPT_OBJECT');unlinkSync(path);syncDirectory(dirname(path));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}this.barrier('deletion-work-after-unlink');this.db.prepare("UPDATE deletion_files SET state='freed' WHERE document_id=? AND path=?").run(documentId,path);});
+   this.transaction(()=>{if(this.busy())throw new StoreError('STALE_EPOCH');if(this.fileProtected(path,documentId)){this.db.prepare("UPDATE deletion_files SET state='rescued' WHERE path=? AND state!='freed'").run(path);return;}try{if(this.fileHash(path)!==row.hash)throw new StoreError('CORRUPT_OBJECT');unlinkSync(path);syncDirectory(dirname(path));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}this.barrier('deletion-work-after-unlink');this.db.prepare("UPDATE deletion_files SET state='freed' WHERE document_id=? AND path=?").run(reclaimOwner,path);
+    // One intent owns the physical unlink credit, even when an adopted attempt
+    // made the same raw evidence eligible for more than one deleted document.
+    this.db.prepare("DELETE FROM deletion_files WHERE path=? AND document_id!=? AND state!='freed'").run(path,reclaimOwner);
+   });
   }
   for(const directory of work.directories){try{rmdirSync(directory);syncDirectory(dirname(directory));}catch(e){if(!['ENOENT','ENOTEMPTY'].includes((e as NodeJS.ErrnoException).code??''))throw e;}}
  }
@@ -95,7 +125,6 @@ export class Deletions {
   if(!deletionTypes.includes(b.type))throw new StoreError('UNSUPPORTED_COMMAND');
   const binding=this.db.prepare('SELECT client_id,expires FROM client_bindings WHERE cookie_hash=?').get(auth.sessionHash);
   if(auth.clientId!==c.clientId||!binding||binding.client_id!==auth.clientId||auth.now>=auth.expires||auth.now>=Number(binding.expires))throw new StoreError('OWNER_REQUIRED');
-  if(b.type==='CollectDocumentGarbage')this.collect(b.documentId);
   return this.commit(bytes,()=>{
    if(b.type==='PreviewDocumentDeletion'){
     const d=this.describe(b.documentId,b.expectedRevision),id=randomUUID(),unsigned={id,...d.value},plan={...unsigned,planHash:hashBytes(canonical(unsigned))};
@@ -115,7 +144,7 @@ export class Deletions {
    this.removeProjection(b.documentId);
    const receipt:DeletionReceipt={documentId:b.documentId,planId:plan.id,accepted:true,status:'cleanup-pending',estimatedEligibleBytes:plan.exclusiveBytes,retainedBytes:plan.retainedBytes,actualFreedBytes:'0',pendingBytes:plan.exclusiveBytes,generation:plan.rootGeneration};
    this.db.prepare('INSERT INTO deletion_receipts VALUES (?,?)').run(b.documentId,canonical(receipt));this.barrier('deletion-before-commit');return this.fact(b.documentId,'DocumentDeleted',receipt);
-  });
+  },b.type==='CollectDocumentGarbage'?()=>this.collect(b.documentId):undefined);
  }
  removeProjection(documentId:string){
   this.db.prepare('DELETE FROM checkpoints WHERE document_id=?').run(documentId);this.db.prepare('DELETE FROM history WHERE document_id=?').run(documentId);this.db.prepare('DELETE FROM documents WHERE id=?').run(documentId);
@@ -158,6 +187,16 @@ export class Deletions {
    });
   }
   this.collectWork(documentId);
-  this.transaction(()=>{const receipt=this.receipt(documentId)!;let freed=0n,pending=0n,retained=BigInt(this.work(documentId).retainedBytes);for(const r of this.db.prepare('SELECT byte_length,state FROM deletion_objects WHERE document_id=? UNION ALL SELECT bytes AS byte_length,state FROM deletion_files WHERE document_id=?').all(documentId,documentId)){if(r.state==='freed')freed+=BigInt(String(r.byte_length));else if(r.state==='rescued')retained+=BigInt(String(r.byte_length));else pending+=BigInt(String(r.byte_length));}receipt.actualFreedBytes=String(freed);receipt.pendingBytes=String(pending);receipt.retainedBytes=String(retained);receipt.status=pending===0n?'cleanup-complete':'cleanup-pending';this.db.prepare('UPDATE deletion_receipts SET json=? WHERE document_id=?').run(canonical(receipt),documentId);});
+  this.transaction(()=>{
+   const receipt=this.receipt(documentId)!,work=this.work(documentId),retainedPaths=new Set(work.retainedPaths);
+   let freed=0n,pending=0n,retained=BigInt(work.retainedBytes);
+   for(const r of this.db.prepare('SELECT byte_length,state,NULL AS path FROM deletion_objects WHERE document_id=? UNION ALL SELECT bytes AS byte_length,state,path FROM deletion_files WHERE document_id=?').all(documentId,documentId)){
+    if(r.state==='freed')freed+=BigInt(String(r.byte_length));
+    // Scanning work already counted retained files still discoverable on disk.
+    else if(r.state==='rescued'){if(r.path===null||!retainedPaths.has(String(r.path)))retained+=BigInt(String(r.byte_length));}
+    else pending+=BigInt(String(r.byte_length));
+   }
+   receipt.actualFreedBytes=String(freed);receipt.pendingBytes=String(pending);receipt.retainedBytes=String(retained);receipt.status=pending===0n?'cleanup-complete':'cleanup-pending';this.db.prepare('UPDATE deletion_receipts SET json=? WHERE document_id=?').run(canonical(receipt),documentId);
+  });
  }
 }

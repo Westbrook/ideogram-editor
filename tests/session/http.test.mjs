@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ABSOLUTE_MS, IDLE_MS, PAIRING_MS } from '../../dist/local/server/sessions.js';
 import { fixture, call, pair, tokenFrom, cookieFrom, readHeaders, mutationHeaders, exchange } from './helpers.mjs';
@@ -40,8 +40,12 @@ test('SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed s
   assert.equal(session.status, 200);
   assert.equal(session.json.clientId, paired.json.clientId);
   const capabilities = await call(server.origin, '/api/v1/capabilities', { headers: readHeaders(cookie) });
+  // Fresh storage can still report real host disk pressure. Assert the public
+  // 80% threshold against the filesystem rather than assuming an empty host.
+  const space=await statfs(server.root,{bigint:true});
+  const expectedStorage=(space.blocks-space.bavail)*100n>=space.blocks*80n?'pressure':'ready';
   assert.deepEqual(capabilities.json, { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 8, credentialConfigured: false,
-    storageState: 'ready', connectionState: 'unknown', limits: [], profiles: [
+    storageState: expectedStorage, connectionState: 'unknown', limits: [], profiles: [
       { id: 'LP-1', version: '1', state: 'unqualified' }, { id: 'LS-1', version: '1', state: 'unqualified' },
       { id: 'EF-1', version: '1', state: 'unavailable' }, { id: 'PF-1', version: '3', state: 'unqualified' }, { id: 'TEXT-DURABLE', version: '1', state: 'unqualified' }] });
 });

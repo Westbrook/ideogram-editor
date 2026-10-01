@@ -1,0 +1,578 @@
+name: Ideogram qualification
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Physical paired qualification or isolated container functionality
+        required: true
+        default: qualification
+        type: choice
+        options: [qualification, container]
+      purpose:
+        description: Paired comparison or first candidate-only full Q3 baseline
+        required: true
+        default: comparison
+        type: choice
+        options: [comparison, initial-baseline]
+      candidate_sha:
+        description: Full immutable maintainer-reviewed candidate SHA; blank selects dispatched default-branch commit
+        required: false
+        type: string
+      base_sha:
+        description: Full immutable base SHA (required for comparison; forbidden for initial baseline)
+        required: false
+        type: string
+      base_image:
+        description: 'Container only: ubuntu:24.04@sha256:<64 lowercase hex characters>'
+        required: false
+        type: string
+      browser:
+        description: Selected browser engines; feature scope also requires Chromium
+        required: true
+        default: all
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+          - all
+      scope:
+        description: Base functional checks or feature integration checks
+        required: true
+        default: features
+        type: choice
+        options:
+          - base
+          - features
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  # One physical C/H pair across trusted dispatches; host locks reject overlap.
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'qualification' && 'ideogram-qualification-physical-pair' || format('ideogram-functional-{0}', github.run_id) }}
+  cancel-in-progress: false
+
+jobs:
+  functional:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'container'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      BASE_IMAGE: ${{ inputs.base_image }}
+      QUALIFICATION_BROWSER: ${{ inputs.browser }}
+      QUALIFICATION_SCOPE: ${{ inputs.scope }}
+      CONTAINER_NAME: ideogram-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Validate input and retain source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BASE_IMAGE" =~ ^ubuntu:24\.04@sha256:[a-f0-9]{64}$ ]]
+          [[ "$QUALIFICATION_BROWSER" =~ ^(chromium|firefox|webkit|all)$ ]]
+          [[ "$QUALIFICATION_SCOPE" =~ ^(base|features)$ ]]
+          mkdir -p artifacts/qualification-ci
+          git rev-parse HEAD > artifacts/qualification-ci/source-revision.txt
+          git status --porcelain=v1 > artifacts/qualification-ci/source-status.txt
+          docker version > artifacts/qualification-ci/docker-version.txt
+      - name: Prepare sealed public and historical fixture closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tooling/bootstrap-toolchain.py
+          mkdir -p artifacts/ci-public-inputs
+          ADAPTER_URL="$(.toolchain/bin/node --input-type=module -e "import {adapterSourceURL} from './tooling/qualification/container/inputs.mjs'; process.stdout.write(adapterSourceURL)")"
+          curl --fail --location --proto '=https' --tlsv1.2 --max-time 600 \
+            --output artifacts/ci-public-inputs/provider-example.safetensors "$ADAPTER_URL"
+          .toolchain/bin/node tooling/qualification/container/inputs.mjs prepare \
+            --adapter-fixture "$PWD/artifacts/ci-public-inputs/provider-example.safetensors"
+      - name: Build isolated dependency and browser image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --progress=plain \
+            --build-arg "BASE_IMAGE=$BASE_IMAGE" \
+            --build-arg "SOURCE_REVISION=$GITHUB_SHA" \
+            --iidfile artifacts/qualification-ci/image-id.txt \
+            --file tooling/qualification/container/Dockerfile . \
+            2>&1 | tee artifacts/qualification-ci/build.log
+          docker image inspect "$(cat artifacts/qualification-ci/image-id.txt)" > artifacts/qualification-ci/image.json
+      - name: Run gates without external networking
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --name "$CONTAINER_NAME" --network none \
+            --cap-drop ALL --security-opt no-new-privileges --shm-size=1g \
+            "$(cat artifacts/qualification-ci/image-id.txt)" "$QUALIFICATION_BROWSER" "$QUALIFICATION_SCOPE" \
+            2>&1 | tee artifacts/qualification-ci/run.log
+      - name: Retain successful and failed observations
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/qualification-ci
+          if docker container inspect "$CONTAINER_NAME" > artifacts/qualification-ci/container.json 2>/dev/null; then
+            docker cp "$CONTAINER_NAME:/workspace/artifacts/." artifacts/qualification-ci/container-artifacts
+          fi
+      - name: Upload functional gate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: container-functional-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/qualification-ci
+            !artifacts/qualification-ci/**/qualification-container-inputs/**
+            !artifacts/qualification-ci/**/p27-evidence/fal-public-lora-example/provider-example.safetensors
+          if-no-files-found: error
+          retention-days: 90
+          include-hidden-files: false
+
+  physical-qualification-required:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Disclose physical qualification boundary
+        run: |
+          echo 'PR validation does not execute code on physical C/H runners.'
+          echo 'A maintainer must review the revision and dispatch qualification from the protected default branch.'
+          echo 'Physical runners require an external selected-workflow/ref allowlist; a PR-controlled YAML guard is insufficient.'
+  plan:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'qualification' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: [self-hosted, ideogram-perf-C]
+    timeout-minutes: 30
+    outputs:
+      candidate: ${{ steps.plan.outputs.candidate }}
+      control: ${{ steps.plan.outputs.control }}
+      layer00: ${{ steps.plan.outputs.layer00 }}
+      layer01: ${{ steps.plan.outputs.layer01 }}
+      layer02: ${{ steps.plan.outputs.layer02 }}
+      layer03: ${{ steps.plan.outputs.layer03 }}
+      layer04: ${{ steps.plan.outputs.layer04 }}
+      layer05: ${{ steps.plan.outputs.layer05 }}
+      layer06: ${{ steps.plan.outputs.layer06 }}
+      layer07: ${{ steps.plan.outputs.layer07 }}
+      layer08: ${{ steps.plan.outputs.layer08 }}
+      layer09: ${{ steps.plan.outputs.layer09 }}
+      layer10: ${{ steps.plan.outputs.layer10 }}
+      layer11: ${{ steps.plan.outputs.layer11 }}
+      layer12: ${{ steps.plan.outputs.layer12 }}
+      layer13: ${{ steps.plan.outputs.layer13 }}
+      layer14: ${{ steps.plan.outputs.layer14 }}
+      layer15: ${{ steps.plan.outputs.layer15 }}
+      layer16: ${{ steps.plan.outputs.layer16 }}
+      layer17: ${{ steps.plan.outputs.layer17 }}
+      layer18: ${{ steps.plan.outputs.layer18 }}
+      layer19: ${{ steps.plan.outputs.layer19 }}
+      layer20: ${{ steps.plan.outputs.layer20 }}
+      layer21: ${{ steps.plan.outputs.layer21 }}
+      layer22: ${{ steps.plan.outputs.layer22 }}
+      layer23: ${{ steps.plan.outputs.layer23 }}
+    env:
+      BASE_SHA: ${{ inputs.base_sha }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || github.sha }}
+      QUALIFICATION_PURPOSE: ${{ inputs.purpose }}
+      APPROVED_MAIN_PATH: ${{ vars.QUALIFICATION_APPROVED_MAIN_PATH }}
+      APPROVED_MAIN_SHA256: ${{ vars.QUALIFICATION_APPROVED_MAIN_SHA256 }}
+      APPROVED_MAIN_REVISION: ${{ vars.QUALIFICATION_APPROVED_MAIN_REVISION }}
+      QUALIFICATION_INPUTS: ${{ vars.QUALIFICATION_INPUTS_PATH }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Provision protected control and seal reviewed source plan
+        id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$QUALIFICATION_PURPOSE" =~ ^(comparison|initial-baseline)$ ]]
+          test -n "$QUALIFICATION_INPUTS"
+          git fetch --no-tags origin "$CANDIDATE_SHA"
+          python3 tooling/bootstrap-toolchain.py
+          mkdir -p artifacts/qualification-plan
+          PLAN_ARGS=(plan --purpose "$QUALIFICATION_PURPOSE" --control "$GITHUB_SHA"
+            --candidate "$CANDIDATE_SHA" --features adapters --cache normal
+            --inputs "$QUALIFICATION_INPUTS" --output-root "artifacts/ci-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT")
+          if [[ "$QUALIFICATION_PURPOSE" == comparison ]]; then
+            [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+            git fetch --no-tags origin "$BASE_SHA"
+            PLAN_ARGS+=(--base "$BASE_SHA")
+            if [[ -n "$APPROVED_MAIN_PATH$APPROVED_MAIN_SHA256$APPROVED_MAIN_REVISION" ]]; then
+              [[ "$APPROVED_MAIN_SHA256" =~ ^[a-f0-9]{64}$ ]]
+              [[ "$APPROVED_MAIN_REVISION" =~ ^[a-f0-9]{40}$ ]]
+              test -n "$APPROVED_MAIN_PATH"
+              git fetch --no-tags origin "$APPROVED_MAIN_REVISION"
+              PLAN_ARGS+=(--approved-main "$APPROVED_MAIN_PATH" --approved-main-sha256 "$APPROVED_MAIN_SHA256"
+                --approved-main-revision "$APPROVED_MAIN_REVISION")
+            fi
+          else
+            test -z "$BASE_SHA"
+          fi
+          .toolchain/bin/node tooling/qualification/ci/run.mjs "${PLAN_ARGS[@]}" > artifacts/qualification-plan/plan.json
+          .toolchain/bin/node tooling/qualification/ci/execute.mjs outputs --plan artifacts/qualification-plan/plan.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qualification-plan
+          path: artifacts/qualification-plan
+          if-no-files-found: error
+          retention-days: 90
+
+  layer00:
+    needs: [plan]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && fromJSON(needs.plan.outputs.layer00).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer00) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer01:
+    needs: [plan, layer00]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer00.result == 'success' && fromJSON(needs.plan.outputs.layer01).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer01) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer02:
+    needs: [plan, layer01]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer01.result == 'success' && fromJSON(needs.plan.outputs.layer02).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer02) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer03:
+    needs: [plan, layer02]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer02.result == 'success' && fromJSON(needs.plan.outputs.layer03).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer03) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer04:
+    needs: [plan, layer03]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer03.result == 'success' && fromJSON(needs.plan.outputs.layer04).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer04) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer05:
+    needs: [plan, layer04]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer04.result == 'success' && fromJSON(needs.plan.outputs.layer05).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer05) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer06:
+    needs: [plan, layer05]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer05.result == 'success' && fromJSON(needs.plan.outputs.layer06).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer06) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer07:
+    needs: [plan, layer06]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer06.result == 'success' && fromJSON(needs.plan.outputs.layer07).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer07) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer08:
+    needs: [plan, layer07]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer07.result == 'success' && fromJSON(needs.plan.outputs.layer08).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer08) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer09:
+    needs: [plan, layer08]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer08.result == 'success' && fromJSON(needs.plan.outputs.layer09).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer09) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer10:
+    needs: [plan, layer09]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer09.result == 'success' && fromJSON(needs.plan.outputs.layer10).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer10) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer11:
+    needs: [plan, layer10]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer10.result == 'success' && fromJSON(needs.plan.outputs.layer11).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer11) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer12:
+    needs: [plan, layer11]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer11.result == 'success' && fromJSON(needs.plan.outputs.layer12).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer12) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer13:
+    needs: [plan, layer12]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer12.result == 'success' && fromJSON(needs.plan.outputs.layer13).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer13) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer14:
+    needs: [plan, layer13]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer13.result == 'success' && fromJSON(needs.plan.outputs.layer14).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer14) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer15:
+    needs: [plan, layer14]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer14.result == 'success' && fromJSON(needs.plan.outputs.layer15).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer15) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer16:
+    needs: [plan, layer15]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer15.result == 'success' && fromJSON(needs.plan.outputs.layer16).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer16) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer17:
+    needs: [plan, layer16]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer16.result == 'success' && fromJSON(needs.plan.outputs.layer17).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer17) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer18:
+    needs: [plan, layer17]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer17.result == 'success' && fromJSON(needs.plan.outputs.layer18).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer18) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer19:
+    needs: [plan, layer18]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer18.result == 'success' && fromJSON(needs.plan.outputs.layer19).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer19) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer20:
+    needs: [plan, layer19]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer19.result == 'success' && fromJSON(needs.plan.outputs.layer20).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer20) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer21:
+    needs: [plan, layer20]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer20.result == 'success' && fromJSON(needs.plan.outputs.layer21).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer21) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer22:
+    needs: [plan, layer21]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer21.result == 'success' && fromJSON(needs.plan.outputs.layer22).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer22) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+  layer23:
+    needs: [plan, layer22]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.layer22.result == 'success' && fromJSON(needs.plan.outputs.layer23).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.layer23) }}
+    uses: ./.github/workflows/qualification-stage.yml
+    with:
+      stage: ${{ matrix.stage }}
+      runner_labels: ${{ toJSON(matrix.runnerLabels) }}
+      control_sha: ${{ needs.plan.outputs.control }}
+      run_key: ${{ github.run_id }}-${{ github.run_attempt }}
+
+
+  disposition:
+    if: always() && needs.plan.result == 'success'
+    needs: [plan, layer00, layer01, layer02, layer03, layer04, layer05, layer06, layer07, layer08, layer09, layer10, layer11, layer12, layer13, layer14, layer15, layer16, layer17, layer18, layer19, layer20, layer21, layer22, layer23]
+    runs-on: [self-hosted, ideogram-perf-C]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ needs.plan.outputs.control }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: qualification-plan
+          path: artifacts/qualification-plan
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: stage-*
+          path: artifacts/qualification-received
+      - name: Reproduce all required outcomes and pipeline boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tooling/bootstrap-toolchain.py
+          .toolchain/bin/node tooling/qualification/ci/execute.mjs fetch-inputs --plan artifacts/qualification-plan/plan.json
+          .toolchain/bin/node tooling/qualification/ci/execute.mjs verify \
+            --plan artifacts/qualification-plan/plan.json \
+            --received artifacts/qualification-received \
+            --output artifacts/qualification-disposition/result.json
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qualification-disposition
+          path: artifacts/qualification-disposition
+          if-no-files-found: error
+          retention-days: 90

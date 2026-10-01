@@ -40,3 +40,15 @@ The executable file inventory is `npm run test:preflight`; aliases select the sa
 | Rechecking unrelated successful Node gates after a failure | Explicit resume only, with exact input key and retained successful log/counts; failed and pending gates execute. Source drift never publishes reusable evidence. |
 
 No malformed-input matrix, negative control, engine distinction, cold-start assertion, restart boundary or physical sample has been removed. The decision for overlapping product assertions is **keep**: there is no demonstrated equivalent retained oracle justifying removal. Case-level consolidation beyond these setup/navigation changes requires its own defect-detection evidence.
+
+## Repeated-title audit
+
+A source-wide scan of test definitions identified five repeated title expressions. These are candidates for review, not runtime duplicate IDs:
+
+| Repeated expression | Inspected implementations | Decision |
+| --- | --- | --- |
+| Unknown future storage; backup corruption; SIGKILL phase | `tests/raster/schema.test.mjs`, `tests/history/schema.test.mjs`, `tests/portable/schema.test.mjs` | Keep all three. They seed different historical executables/schema versions, stop at different migration barriers and verify different backup/activation receipts. Reuse archived compilation only. |
+| Action respects boundary | `tests/provider/ui.test.mjs`, `tests/export/ui.test.mjs` | Keep both. Provider authorization and export confirmation have different side effects and admission predicates; the loops also expand different action names. |
+| Actual controller saves rendered Scene during raw inspection | `tests/editor/composition-controller.test.mjs`, `tests/editor/composition-controller-history.mjs` | Current regression is compulsory; historical diagnostic explicitly imports the current harness and additionally runs actual archived controllers. It is not a second compulsory development suite. Keep its explicit diagnostic selection. |
+
+The accompanying static `case-review-index.json` links source definitions to these family decisions. It preserves dynamic title expressions rather than pretending to expand runtime parameters. Reporter identities remain authoritative for executions. Retention is conservative where a shared defect oracle has not been demonstrated; the scan does not justify deleting similarly named assertions.

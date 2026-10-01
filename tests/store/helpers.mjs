@@ -1,3 +1,4 @@
+import {ownTestRoot} from '../../tooling/qualification/owned-test-roots.mjs';
 import { fork } from 'node:child_process';
 import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -12,7 +13,7 @@ export const expectedBytes = Buffer.from('{"entities":[],"schemaVersion":1}');
 export const refFor = bytes => ({ hash: `sha256:${createHash('sha256').update(bytes).digest('hex')}`, byteLength: String(bytes.length), mediaType: 'application/json' });
 export async function rootFor(t) {
   const root = await mkdtemp(join(await realpath(tmpdir()), 'ideogram-store-'));
-  t.after(() => rm(root, { recursive: true, force: true })); return root;
+  return ownTestRoot(root);
 }
 export async function childFor(t, root, options = {}) {
   const child = fork(fileURLToPath(new URL('./process-fixture.mjs', import.meta.url)), [root, JSON.stringify(options)], {

@@ -268,18 +268,18 @@
     },
     {
       "path": "src/text/client.ts",
-      "bytes": 8280,
-      "sha256": "816e12e15406e993f8271dfa3ae397eba2d1b552470c21c0def339e0fcca53e6"
+      "bytes": 9238,
+      "sha256": "97ae66eedbd2b043ce602248648fb7d562ea2daf8a3ca8c819911bff6761b411"
     },
     {
       "path": "src/text/contracts.ts",
-      "bytes": 3508,
-      "sha256": "80173a85fd2eeca2cac63ea0806c23643668dfc2c3249859e9d07426e3730686"
+      "bytes": 8854,
+      "sha256": "96aa65d78cf834c14def464df88d3b94982193cfeabc8f70b1eaba3d86fae6ec"
     },
     {
       "path": "src/text/core.ts",
-      "bytes": 16793,
-      "sha256": "69cb9bb9d2e97be39ef5faaa76b2f05b98c3ba40d2b3b0c18624b1f08a2bf1ed"
+      "bytes": 19124,
+      "sha256": "a204994fc0fa5e6779fbc337d6eed8988abfe1b9ab4c656729734aa2e7b060a8"
     },
     {
       "path": "src/text/durable.ts",
@@ -297,14 +297,19 @@
       "sha256": "76a715d1e84212ae66dcbe34c55ae8a879e473bfea299987018a7d7bd9380b01"
     },
     {
+      "path": "src/text/layout-writer.ts",
+      "bytes": 5701,
+      "sha256": "2edb8376e51f8988af0dbb3fdce5789b0c22a2d236835e5e651ca918255477ea"
+    },
+    {
       "path": "src/text/memory.ts",
-      "bytes": 3818,
-      "sha256": "c219b844ba9621234422df6df1e49f73e6d8b226a5241a4f7405d066e03b27ee"
+      "bytes": 4104,
+      "sha256": "b0ea9bf7abdbcb9a972a74689a0a20bc6e5738ac1f8447f4dea5511c40d91cb3"
     },
     {
       "path": "src/text/worker.ts",
-      "bytes": 1071,
-      "sha256": "ab8f349c39579dc41c277438f9f3de60255d6f447e2d0c42ad4c30ed4da5ad1e"
+      "bytes": 1271,
+      "sha256": "812b6d473756b50d4a279c92af38afe2dcc35008119f99bd48ade41b05765e39"
     }
   ],
   "typeCompatibility": {
@@ -313,6 +318,11 @@
     "change": "Only upstream triple-slash WebGPU reference replaced by comment; TypeScript7 lib.dom already supplies WebGPU declarations. Common upstream declarations unchanged; custom APIs are explicitly typed in the adapter."
   },
   "sourceRecipe": [
+    {
+      "path": "src/text/retained-profiles/4fd6f6a1.json",
+      "bytes": 16958,
+      "sha256": "3b5159888dd22ea25a4a660bc36f788e13eb526db558bb72e6bab44aedee7dcd"
+    },
     {
       "path": "tooling/text/source-closure.json",
       "bytes": 7326,
@@ -335,23 +345,23 @@
     },
     {
       "path": "tooling/text/MEMORY.txt",
-      "bytes": 6499,
-      "sha256": "882bc204eadd21c2b1c58ac7946be2f168c7997df064a5f475f664b74e52f8c1"
+      "bytes": 8845,
+      "sha256": "c1eec2d5fa800125b469afd1cd191bf7cf6976fac9fc18e19b79a50e8ca72fbb"
     },
     {
       "path": "server/static.ts",
-      "bytes": 4589,
-      "sha256": "17113de5a2cad06f94e1788a7a25bf71656d77d5f48f5371910a8a6159cf5cac"
+      "bytes": 5187,
+      "sha256": "8faac262524f413c0488ff9055d5ffef0c8e5100d2a1d9ac67f38af8085ea6ad"
     },
     {
       "path": "server/http.ts",
-      "bytes": 14400,
-      "sha256": "e9ee572b0318f23b26731b8d365f4be24861ee32bdf50579413b3b51ab69c25b"
+      "bytes": 19633,
+      "sha256": "4eb6eea32c1fe35dad703115de5a075c8e383d8817288fba0a0b1a1ff1d6276b"
     },
     {
       "path": "server/storage/text.ts",
-      "bytes": 13615,
-      "sha256": "fb6ff78eacfcec15211e59a090993763228041228535ecbeb70790f7722386b5"
+      "bytes": 14195,
+      "sha256": "ac9ef774e7deebcae40677df43f4b058328c28e6594b5c394968225a96d82882"
     },
     {
       "path": "server/text/font.ts",
@@ -370,13 +380,13 @@
     },
     {
       "path": "server/text/validation.ts",
-      "bytes": 10169,
-      "sha256": "c2ab854d492842c75f393925fa90e4058ee58c02536e791801f5de30c4c9dc9d"
+      "bytes": 13832,
+      "sha256": "cbfa64142f9705a7bf460c10602b800ead87e452699a69e55d7f6425be55885a"
     },
     {
       "path": "server/text/render-worker.mjs",
-      "bytes": 2720,
-      "sha256": "90e01ed67bac35e425ee5ca75187fe80d7476ea6cf18b28f7897aae0d4a24ff9"
+      "bytes": 6555,
+      "sha256": "c2d6e8769f41d985a8be4fc8c2a1d9784458fd5a9bcb7c99d561191b72b16a68"
     },
     {
       "path": "tests/text-state/verifier.vite.config.ts",
@@ -390,8 +400,18 @@
     },
     {
       "path": "src/protocol/text-budget.ts",
-      "bytes": 1118,
-      "sha256": "273f6a5be4b183df0249fed558b05dcd33e58d53b0ed20bafcb02ae110df80e0"
+      "bytes": 5124,
+      "sha256": "2c5ee01e9fd0f297c12e84846b87d6ddd0839e9a5c17bf62ee40301d7625fe10"
+    },
+    {
+      "path": "src/observability/phases.ts",
+      "bytes": 7705,
+      "sha256": "5c533da0e24151cd355e56c0d0a0ca96881790afc2871fd63874304144f4731b"
+    },
+    {
+      "path": "src/observability/browser-worker-observations.ts",
+      "bytes": 2396,
+      "sha256": "ab76df584e357f7af1d0902ee73dbc5435fdb3a16b5950dfd653fc9ae9ce1a33"
     },
     {
       "path": "src/text/retained-profiles/b89503d3.json",
@@ -427,7 +447,17 @@
       "path": "src/text/retained-profiles/ff24a513.json",
       "bytes": 15924,
       "sha256": "82bbff0efe60f4633875efe51917e9526464a2ddc54ab28c2dc048d44267ef36"
+    },
+    {
+      "path": "src/text/retained-profiles/f5e8bd34.json",
+      "bytes": 16101,
+      "sha256": "2b874883288b0e197153220b4e44ff1dcb751d34c164a3f558668b40733e7d3b"
+    },
+    {
+      "path": "src/text/retained-profiles/7a4dbc6c.json",
+      "bytes": 16782,
+      "sha256": "808650b42cc817012dd5d68df0124171ac78679ce497acd6a6c031409886052d"
     }
   ],
-  "id": "sha256:f5e8bd34101a93b5a20c40dfbb82afdd01e84da83307c3d24848bc79c0acaaca"
+  "id": "sha256:68efa85fa5ac291a20c8ccd1d5bcd0681edef91a7cbef89d050b77df49435b43"
 }

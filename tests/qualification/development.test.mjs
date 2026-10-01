@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {nodeGroups} from '../../tooling/qualification/suite-prerequisites.mjs';
+import {nodeGroups,fastNodeFiles,buildFreeFastNodeFiles} from '../../tooling/qualification/suite-prerequisites.mjs';
 import {executeDevelopment,argumentsFor} from '../../tooling/qualification/development.mjs';
 import {gateInputKey,treeIdentity,outputIdentity,reusable} from '../../tooling/qualification/development-cache.mjs';
 import {sha256,digestJSON} from '../../tooling/qualification/core.mjs';
@@ -110,4 +110,68 @@ test('UI, server, storage and sweeping edits invalidate build inputs; test-only 
   assert.notEqual(gateInputKey(gate,base,{...environment,dependencies:'new-vendor-or-install'}),key);
   const tests=structuredClone(base);tests.files.at(-1).sha256='new-case';assert.equal(gateInputKey(gate,tests,environment),key);
  }
+});
+
+test('explicit browser case filter stays in development selection and subprocess argv',t=>{
+ const f=fixture(t),plan=developmentPlan(f.cwd,{groups:'preflight',browsers:'chromium',browserGroups:'editor-composition',browserGrep:'Composition links',output:'/tmp/focused'});
+ assert.equal(plan.browserGrep,'Composition links');assert.deepEqual(plan.browserPlan.steps.find(s=>s.config).args.slice(-2),['--grep','Composition links']);
+ assert.throws(()=>developmentPlan(f.cwd,{groups:'preflight',browserGrep:'case'}),/browser selection/);
+});
+
+test('vendor/import prerequisite keys ignore unrelated edits but include their complete reviewed closure',()=>{
+ const paths=['src/ui.ts','server/domain.ts','tests/editor/case.spec.ts','vendor/text/manifest.json','src/text/profile.json','tooling/verify-vendor.py','tooling/verify-imports.mjs','tsconfig.app.json','package-lock.json','tooling/qualification/development.mjs'];
+ const source={files:paths.map(path=>({path,sha256:'old'}))},env={dependencies:'installed'};
+ for(const id of ['vendor','imports']){
+  const gate={id},key=gateInputKey(gate,source,env);
+  const required=id==='vendor'?['vendor/text/manifest.json','src/text/profile.json','tooling/verify-vendor.py','package-lock.json','tooling/qualification/development.mjs']:['src/ui.ts','src/text/profile.json','tooling/verify-imports.mjs','tsconfig.app.json','package-lock.json','tooling/qualification/development.mjs'];
+  for(const path of paths){const changed=structuredClone(source);changed.files.find(f=>f.path===path).sha256='new';assert.equal(gateInputKey(gate,changed,env)!==key,required.includes(path),id+':'+path);}
+  assert.notEqual(gateInputKey(gate,source,{dependencies:'changed'}),key);
+ }
+});
+
+test('focused editor batching preserves exactly the selected files and engines',()=>{
+ const options={groups:'preflight',browsers:'all',output:'/tmp/validation-plan',browserGroups:'editor-composition,editor-native-text,editor-tool-rail'};
+ const serial=developmentPlan(process.cwd(),options),batch=developmentPlan(process.cwd(),{...options,batchEditor:true});
+ const membership=p=>p.browserPlan.steps.filter(s=>s.config).flatMap(s=>s.files.map(f=>s.browser+':'+f)).sort();
+ assert.deepEqual(membership(batch),membership(serial));assert.equal(batch.browserPlan.steps.filter(s=>s.config).length,3);
+ assert.throws(()=>developmentPlan(process.cwd(),{...options,browserGroups:'editor-typo',batchEditor:true}),/Unknown/);
+});
+
+test('focused Node files preserve guards, all cases in each file and late browser ownership',()=>{
+ const options={groups:'store,history',nodeFiles:'tests/store/proof-budget.test.mjs,tests/history/mask-text-compatibility.test.mjs',output:'/tmp/validation-plan'};
+ const plan=developmentPlan(process.cwd(),options),store=plan.gates.find(g=>g.id==='node:store'),late=plan.gates.find(g=>g.id==='node:history:browser');
+ assert.deepEqual(store.files,['tests/store/proof-budget.test.mjs']);assert(store.command.includes('./tests/store/no-network.mjs'));assert(store.command.includes('--test-concurrency=1'));
+ assert.deepEqual(late.files,['tests/history/mask-text-compatibility.test.mjs']);assert(late.browserPrerequisites);assert(!plan.gates.some(g=>g.id==='node:history'));
+ for(const nodeFiles of ['', 'tests/session/http.test.mjs','tests/store/proof-budget.test.mjs,tests/store/proof-budget.test.mjs'])assert.throws(()=>developmentPlan(process.cwd(),{...options,nodeFiles}),/Node file selection/);
+});
+
+
+test('reviewed fast controllers execute once before app build and real integrations',()=>{
+ const plan=developmentPlan(process.cwd(),{groups:'all',output:'/tmp/validation-plan'}),ids=plan.gates.map(g=>g.id),fast=plan.gates.find(g=>g.id==='node:request:fast');
+ assert.deepEqual(fast.files,[...fastNodeFiles].sort());
+ assert(ids.indexOf('build-server')<ids.indexOf(fast.id));
+ assert(ids.indexOf(fast.id)<ids.indexOf('build-app'));
+ for(const id of ['node:store','node:provider','node:request'])assert(ids.indexOf(fast.id)<ids.indexOf(id));
+ for(const file of fastNodeFiles)assert.equal(plan.selectedFiles.filter(f=>f===file).length,1);
+ assert(fast.command.includes('./tests/session/no-egress.mjs'));assert(fast.command.includes('--test-concurrency=1'));assert(!fast.browserPrerequisites);
+ const focused=developmentPlan(process.cwd(),{groups:'request',nodeFiles:fastNodeFiles[0],output:'/tmp/validation-plan'});
+ assert.deepEqual(focused.selectedFiles,[fastNodeFiles[0]]);assert(!focused.gates.some(g=>g.id==='node:request'||g.id==='build-app'));
+});
+test('a fast controller failure prevents app build and integration dispatch',async t=>{
+ const f=fixture(t);for(const file of fastNodeFiles)writeFileSync(join(f.cwd,file),'// reviewed fixture');
+ const calls=[],receipt=await executeDevelopment({...f,options:{groups:'all',browsers:'none',workers:1,fresh:true},gateExecutor:executor(calls,'node:request:fast')});
+ assert.equal(receipt.outcome,'FAIL');assert(calls.includes('build-server'));assert(!calls.includes('build-app'));assert(!calls.includes('node:store'));assert(receipt.pending.includes('node:request'));
+});
+
+
+test('build-free export controllers run before all builds with exact guarded membership',async t=>{
+ const plan=developmentPlan(process.cwd(),{groups:'all',output:'/tmp/validation-plan'}),ids=plan.gates.map(g=>g.id),fast=plan.gates.find(g=>g.id==='node:export:fast');
+ assert.deepEqual(fast.files,[...buildFreeFastNodeFiles].sort());assert.deepEqual(fast.dependencies,['preflight']);
+ for(const id of ['vendor','build-server','build-app','node:store'])assert(ids.indexOf(fast.id)<ids.indexOf(id));
+ assert(!ids.includes('node:export'));for(const file of buildFreeFastNodeFiles)assert.equal(plan.selectedFiles.filter(f=>f===file).length,1);
+ assert(fast.command.includes('./tests/session/no-egress.mjs'));assert(fast.command.includes('--test-concurrency=1'));assert(!fast.browserPrerequisites);
+ const focused=developmentPlan(process.cwd(),{groups:'export',output:'/tmp/validation-plan'});assert.deepEqual(focused.gates.map(g=>g.id),['typecheck','preflight','node:export:fast']);
+ const f=fixture(t);for(const file of buildFreeFastNodeFiles)writeFileSync(join(f.cwd,file),'// reviewed fixture');
+ const calls=[],receipt=await executeDevelopment({...f,options:{groups:'all',browsers:'none',workers:1,fresh:true},gateExecutor:executor(calls,'node:export:fast')});
+ assert.equal(receipt.outcome,'FAIL');assert(!calls.includes('build-server'));assert(!calls.includes('vendor'));assert(receipt.pending.includes('node:store'));
 });

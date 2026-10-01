@@ -1,0 +1,1593 @@
+{
+  "schemaVersion": 1,
+  "name": "ideogram-bounded-webp",
+  "version": "1.6.0-ideogram.1",
+  "platform": "darwin",
+  "arch": "arm64",
+  "abiVersion": 1,
+  "source": {
+    "url": "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz",
+    "file": "libwebp-1.6.0.tar.gz",
+    "bytes": 4296070,
+    "hash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+    "upstreamVersion": "1.6.0",
+    "modifiedSourceFiles": [],
+    "license": "BSD-3-Clause",
+    "additionalPatentGrant": "PATENTS"
+  },
+  "build": {
+    "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "sdkVersion": "27.0",
+    "minimumMacOS": "14.0",
+    "compilerBinary": {
+      "bytes": 124676976,
+      "hash": "sha256:1590ac950a3d627817d09ade5cb60b2115f17a72182a3141e010b4bcc482a0c9"
+    },
+    "environment": {
+      "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+      "LC_ALL": "C",
+      "ZERO_AR_DATE": "1",
+      "TMPDIR": "<BUILD_DIRECTORY>"
+    },
+    "compileFlags": [
+      "-O2",
+      "-DNDEBUG",
+      "-std=c11",
+      "-arch",
+      "arm64",
+      "-mmacosx-version-min=14.0",
+      "-isysroot",
+      "<SDK>",
+      "-fPIC",
+      "-fvisibility=hidden",
+      "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+      "-UWEBP_USE_THREAD",
+      "-UHAVE_CONFIG_H",
+      "-Isource",
+      "-Iproducer"
+    ],
+    "linkFlags": [
+      "-dynamiclib",
+      "-arch",
+      "arm64",
+      "-mmacosx-version-min=14.0",
+      "-isysroot",
+      "<SDK>",
+      "-Wl,-exported_symbols_list,producer/exports.txt",
+      "-Wl,-install_name,@rpath/libideogram-webp.1.dylib",
+      "-Wl,-current_version,1.0.0",
+      "-Wl,-compatibility_version,1.0.0"
+    ],
+    "commands": [
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/alpha_dec.c",
+        "-o",
+        "objects/0.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/buffer_dec.c",
+        "-o",
+        "objects/1.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/frame_dec.c",
+        "-o",
+        "objects/2.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/idec_dec.c",
+        "-o",
+        "objects/3.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/io_dec.c",
+        "-o",
+        "objects/4.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/quant_dec.c",
+        "-o",
+        "objects/5.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/tree_dec.c",
+        "-o",
+        "objects/6.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/vp8_dec.c",
+        "-o",
+        "objects/7.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/vp8l_dec.c",
+        "-o",
+        "objects/8.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dec/webp_dec.c",
+        "-o",
+        "objects/9.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/alpha_processing.c",
+        "-o",
+        "objects/10.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/alpha_processing_neon.c",
+        "-o",
+        "objects/11.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/cpu.c",
+        "-o",
+        "objects/12.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/dec.c",
+        "-o",
+        "objects/13.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/dec_clip_tables.c",
+        "-o",
+        "objects/14.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/dec_neon.c",
+        "-o",
+        "objects/15.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/filters.c",
+        "-o",
+        "objects/16.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/filters_neon.c",
+        "-o",
+        "objects/17.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/lossless.c",
+        "-o",
+        "objects/18.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/lossless_neon.c",
+        "-o",
+        "objects/19.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/rescaler.c",
+        "-o",
+        "objects/20.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/rescaler_neon.c",
+        "-o",
+        "objects/21.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/upsampling.c",
+        "-o",
+        "objects/22.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/upsampling_neon.c",
+        "-o",
+        "objects/23.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/yuv.c",
+        "-o",
+        "objects/24.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/dsp/yuv_neon.c",
+        "-o",
+        "objects/25.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/bit_reader_utils.c",
+        "-o",
+        "objects/26.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/color_cache_utils.c",
+        "-o",
+        "objects/27.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/filters_utils.c",
+        "-o",
+        "objects/28.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/huffman_utils.c",
+        "-o",
+        "objects/29.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/palette.c",
+        "-o",
+        "objects/30.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/quant_levels_dec_utils.c",
+        "-o",
+        "objects/31.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/random_utils.c",
+        "-o",
+        "objects/32.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/rescaler_utils.c",
+        "-o",
+        "objects/33.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/thread_utils.c",
+        "-o",
+        "objects/34.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-include",
+        "producer/allocator-redirect.h",
+        "-c",
+        "source/src/utils/utils.c",
+        "-o",
+        "objects/35.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-c",
+        "producer/bounded-webp.c",
+        "-o",
+        "objects/36.o"
+      ],
+      [
+        "-O2",
+        "-DNDEBUG",
+        "-std=c11",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+        "-UWEBP_USE_THREAD",
+        "-UHAVE_CONFIG_H",
+        "-Isource",
+        "-Iproducer",
+        "-c",
+        "producer/color.c",
+        "-o",
+        "objects/37.o"
+      ],
+      [
+        "-dynamiclib",
+        "-arch",
+        "arm64",
+        "-mmacosx-version-min=14.0",
+        "-isysroot",
+        "<SDK>",
+        "-Wl,-exported_symbols_list,producer/exports.txt",
+        "-Wl,-install_name,@rpath/libideogram-webp.1.dylib",
+        "-Wl,-current_version,1.0.0",
+        "-Wl,-compatibility_version,1.0.0",
+        "objects/0.o",
+        "objects/1.o",
+        "objects/2.o",
+        "objects/3.o",
+        "objects/4.o",
+        "objects/5.o",
+        "objects/6.o",
+        "objects/7.o",
+        "objects/8.o",
+        "objects/9.o",
+        "objects/10.o",
+        "objects/11.o",
+        "objects/12.o",
+        "objects/13.o",
+        "objects/14.o",
+        "objects/15.o",
+        "objects/16.o",
+        "objects/17.o",
+        "objects/18.o",
+        "objects/19.o",
+        "objects/20.o",
+        "objects/21.o",
+        "objects/22.o",
+        "objects/23.o",
+        "objects/24.o",
+        "objects/25.o",
+        "objects/26.o",
+        "objects/27.o",
+        "objects/28.o",
+        "objects/29.o",
+        "objects/30.o",
+        "objects/31.o",
+        "objects/32.o",
+        "objects/33.o",
+        "objects/34.o",
+        "objects/35.o",
+        "objects/36.o",
+        "objects/37.o",
+        "-o",
+        "libideogram-webp.1.dylib"
+      ]
+    ],
+    "threading": "disabled",
+    "simd": "arm64 NEON",
+    "allocationPolicy": "All upstream C translation units substitute malloc/calloc/realloc/free after libc declarations. Each live block charges its exact anonymous mmap length rounded to 16 KiB including its aligned header, plus 64 bytes per block, before mapping. mmap/munmap avoid unbounded malloc-cache reuse. Runtime OS pages must divide 16 KiB. Realloc charges both old and new until copy/free. Calls are serialized; the cap belongs to one decoder lifetime. External input/output, the 64 KiB stack input chunk, kernel mapping metadata and process/runtime memory require separate accounting. Color conversion has a separate 96 KiB stack scratch buffer and fixed-profile CMM allocation reserve."
+  },
+  "notices": [
+    {
+      "path": "COPYING",
+      "bytes": 1496,
+      "hash": "sha256:5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+    },
+    {
+      "path": "PATENTS",
+      "bytes": 1436,
+      "hash": "sha256:cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c"
+    },
+    {
+      "path": "AUTHORS",
+      "bytes": 3279,
+      "hash": "sha256:f251be89fd442bd9d701360730aea163cc8e2076ff03528f59267dc2c4f8b60a"
+    }
+  ],
+  "producerInputs": [
+    {
+      "path": "allocator-redirect.h",
+      "bytes": 674,
+      "hash": "sha256:36e3539bd9c58a356829df360b899415ab2af4fe4fd52f54f84fb32cb7b7de2a"
+    },
+    {
+      "path": "bounded-webp.c",
+      "bytes": 10256,
+      "hash": "sha256:58758eba94aa704fce08b56629a71714c293b303c80024ceebfb5e1b0ae9cb61"
+    },
+    {
+      "path": "bounded-webp.h",
+      "bytes": 2265,
+      "hash": "sha256:3c0b29f32d39f8d4f406e5126553c1c7e0d662273dd8877d117099289b74776b"
+    },
+    {
+      "path": "exports.txt",
+      "bytes": 149,
+      "hash": "sha256:95901ee0a5158ad0b9f09eb6e99a6b3073e5a108808e4c9eaa99d144c5449576"
+    },
+    {
+      "path": "allocator-test.c",
+      "bytes": 3624,
+      "hash": "sha256:28978930efb136d49e9f47c7f72a145e9841a681013de439e5f74871c905d53f"
+    },
+    {
+      "path": "build.mjs",
+      "bytes": 11911,
+      "hash": "sha256:90b3192271581004de583aaff7b699c3751ce238f5f603f848d28ada7d33b212"
+    },
+    {
+      "path": "color.c",
+      "bytes": 3502,
+      "hash": "sha256:6bd766415940aa1b51b23b425ef29d56a275bd3b1c341f6bc9f7fd6527eb8147"
+    },
+    {
+      "path": "color.h",
+      "bytes": 1409,
+      "hash": "sha256:38e4fba80a5169bc915fe704eeb5236d823d656601ae537366f6737d8f89c3dd"
+    },
+    {
+      "path": "color-test.c",
+      "bytes": 5856,
+      "hash": "sha256:2d82731b1dc757157fcb31f9feca4d0218afcd0de2b354d83e886579a9ead295"
+    },
+    {
+      "path": "README.txt",
+      "bytes": 5686,
+      "hash": "sha256:b8687adf8f015933a9fa760ec710885cad4293a96b91b43bfc708c735b991dce"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 5888,
+      "hash": "sha256:990e7e0daac245c6c35b78b557cc30dd4a1865f650df36abcf602fc1aedf749e"
+    },
+    {
+      "path": "verify-seal.mjs",
+      "bytes": 2735,
+      "hash": "sha256:ca65c617aeeeeda39467302d1c7d29d0100c04f3f9180873970e7edbbcf2a445"
+    }
+  ],
+  "compiledUpstreamMembers": [
+    {
+      "path": "src/dec/alpha_dec.c",
+      "bytes": 8294,
+      "hash": "sha256:fdc26ce284c26ad819a7ce7c35f7bb4b146b844cafcabf9c6c421a8178c4101e"
+    },
+    {
+      "path": "src/dec/buffer_dec.c",
+      "bytes": 10765,
+      "hash": "sha256:448981ff77aae496fae9ec1c9292011f5239f58704cf3a89899ab153d1072963"
+    },
+    {
+      "path": "src/dec/frame_dec.c",
+      "bytes": 28290,
+      "hash": "sha256:0cf084285d0fb94e9f27ba7a4c5381afcff13d3fb0bfa2123a73ce31a6f2be72"
+    },
+    {
+      "path": "src/dec/idec_dec.c",
+      "bytes": 31958,
+      "hash": "sha256:3665583e435c97f94baf8589e67286bdb390358e0702183f056b3ce6aafd84e1"
+    },
+    {
+      "path": "src/dec/io_dec.c",
+      "bytes": 24192,
+      "hash": "sha256:5f5c1c75d6440bcf44f7d39a8fc9012f8781c0ac621b918d27b29b3c86723328"
+    },
+    {
+      "path": "src/dec/quant_dec.c",
+      "bytes": 4172,
+      "hash": "sha256:08b20b9b4b8352f4cd46c672730a2687c6e8c9873599460670950de0a81d9ee4"
+    },
+    {
+      "path": "src/dec/tree_dec.c",
+      "bytes": 23658,
+      "hash": "sha256:d49bcf9ea2e7b2bdee239be9848aaae90f3be83f392500fa9b2f163132f59320"
+    },
+    {
+      "path": "src/dec/vp8_dec.c",
+      "bytes": 22777,
+      "hash": "sha256:548c31dc8a3eae05b1ec285e2da750aba159079d4fadee4b5f0f73b34fba7856"
+    },
+    {
+      "path": "src/dec/vp8l_dec.c",
+      "bytes": 62514,
+      "hash": "sha256:49e4aec24d95d70df3c53e9ae53d5f3bc5646012d9f1d0968a5f88936f310653"
+    },
+    {
+      "path": "src/dec/webp_dec.c",
+      "bytes": 33243,
+      "hash": "sha256:76c61ca30205025c758cc215af96296ecc5cde882c1d668ded9e89d7d2bae80c"
+    },
+    {
+      "path": "src/dsp/alpha_processing.c",
+      "bytes": 19532,
+      "hash": "sha256:dd3ffe4d16382e4175ab9c9b96ababc4e0363a01d9d98737b20869c51df62444"
+    },
+    {
+      "path": "src/dsp/alpha_processing_neon.c",
+      "bytes": 7261,
+      "hash": "sha256:0fd418b9d3394639fc5780ebb2ac04868fd838d6e2d8ec1b30616620e10329ae"
+    },
+    {
+      "path": "src/dsp/cpu.c",
+      "bytes": 7653,
+      "hash": "sha256:cd231d22bb17d9ec9a6f17daa3429be2a3e03adb5eb1472807857e43622c684c"
+    },
+    {
+      "path": "src/dsp/dec.c",
+      "bytes": 28153,
+      "hash": "sha256:ceea12ceb6266d129e97448da20394769b003b1b29a1a0b20f09c9e837b425d3"
+    },
+    {
+      "path": "src/dsp/dec_clip_tables.c",
+      "bytes": 24009,
+      "hash": "sha256:4581e8fe4a4a71a1b247adfad0cb84831378d2fe405a2c057c41b0ae0fe17c0e"
+    },
+    {
+      "path": "src/dsp/dec_neon.c",
+      "bytes": 69683,
+      "hash": "sha256:12a9552e9ab7aa3f0619f04cae9bce9009e23e82b3df86aab08e811d2af949ff"
+    },
+    {
+      "path": "src/dsp/filters.c",
+      "bytes": 8938,
+      "hash": "sha256:57ae0d3cac9588febbf8e232232d8e417336dad5bf5e84560a4eaa4cf02b540c"
+    },
+    {
+      "path": "src/dsp/filters_neon.c",
+      "bytes": 11048,
+      "hash": "sha256:559b2730b913162d404c76f33b12469f30dcac83e026ee4f9e6df605b72186b4"
+    },
+    {
+      "path": "src/dsp/lossless.c",
+      "bytes": 26406,
+      "hash": "sha256:bd5a856ad112eb33b3e470b483d48f86c8250728b36dfe1d137f5b36a2c70b76"
+    },
+    {
+      "path": "src/dsp/lossless_neon.c",
+      "bytes": 26687,
+      "hash": "sha256:28a42dcdc5012c4394cf1c3fcbb1e91bab60347558644bb1f3c49c6eeed76f0a"
+    },
+    {
+      "path": "src/dsp/rescaler.c",
+      "bytes": 8304,
+      "hash": "sha256:47e45d83fbb3eec2ede6b02e107f1df83de693282d5441d4a8d41b13c52f236e"
+    },
+    {
+      "path": "src/dsp/rescaler_neon.c",
+      "bytes": 7453,
+      "hash": "sha256:7e62a1fd66a3d72368af9282f63fe958937401cf4365b07ff1a2093a625474b3"
+    },
+    {
+      "path": "src/dsp/upsampling.c",
+      "bytes": 15863,
+      "hash": "sha256:21b05126aff3fbe902655a7081e3a538f8d1ca6cc9e0907c607e1c4c50ba0a9f"
+    },
+    {
+      "path": "src/dsp/upsampling_neon.c",
+      "bytes": 16440,
+      "hash": "sha256:f1fa58068f5382b74bc4c6db81c87a8a9c79a7c3e7689cf83fbf2d1775b79e8e"
+    },
+    {
+      "path": "src/dsp/yuv.c",
+      "bytes": 9728,
+      "hash": "sha256:1d334957aee6eb67862e7c06f60ffd19b7661f3fce831385de1ba408dc426311"
+    },
+    {
+      "path": "src/dsp/yuv_neon.c",
+      "bytes": 7396,
+      "hash": "sha256:2441f4e932e3cbd008c7c545aa06433d5613268c9705fdb88efe9586b12caf23"
+    },
+    {
+      "path": "src/utils/bit_reader_utils.c",
+      "bytes": 9097,
+      "hash": "sha256:f639602d395ff4a02ea351b04d3b92ae170751889a9d313e1b196ddb883521f3"
+    },
+    {
+      "path": "src/utils/color_cache_utils.c",
+      "bytes": 1701,
+      "hash": "sha256:c7dd35a6d3cee5ff7f928d900a5bdc02b20cc7018f3a9f7a2f87ae8e87457e8f"
+    },
+    {
+      "path": "src/utils/filters_utils.c",
+      "bytes": 2588,
+      "hash": "sha256:dfbd55abe3c7e4684e2b8fe5efe0093b19d55cd3b7b982685cdbf31370eba1ff"
+    },
+    {
+      "path": "src/utils/huffman_utils.c",
+      "bytes": 10624,
+      "hash": "sha256:15c1d89d7567c2121bae05ce8dea6deba160945dd398bc6d6b9a88b40ba523eb"
+    },
+    {
+      "path": "src/utils/palette.c",
+      "bytes": 14146,
+      "hash": "sha256:26e90df0dc0b2bc7a251d2dc021f923af7f1529f8dddeeb80ea50b7dd6c31c9a"
+    },
+    {
+      "path": "src/utils/quant_levels_dec_utils.c",
+      "bytes": 9072,
+      "hash": "sha256:d453e3595e19123e9af2696201bf55e404477d6ca3628d9324f5830ea3e73417"
+    },
+    {
+      "path": "src/utils/random_utils.c",
+      "bytes": 1863,
+      "hash": "sha256:b41422c972d1b76ee1f99fbf419d5e026ec2baa0a4fe08bb7939c31d083c7b28"
+    },
+    {
+      "path": "src/utils/rescaler_utils.c",
+      "bytes": 5945,
+      "hash": "sha256:8a3afac6a5a917a0508c1d8f2c1daf595f0d77bc66b3ed9136c5af9e432c8431"
+    },
+    {
+      "path": "src/utils/thread_utils.c",
+      "bytes": 11145,
+      "hash": "sha256:474b6d6cc3f8c3197af2d31cb1cdc7d6e88db964db260f2e7d5e9916b2e65594"
+    },
+    {
+      "path": "src/utils/utils.c",
+      "bytes": 8892,
+      "hash": "sha256:c8d90b4ccd536136ac710321c2632912a1f6ee2492a423e14ab9deb159490a56"
+    }
+  ],
+  "artifact": {
+    "path": "darwin-arm64/libideogram-webp.1.dylib",
+    "bytes": 249880,
+    "hash": "sha256:4aa72a0fe8eb08d65a75cfbfca069bda5b796c3c44b8bf672f587ef8a079d5ff"
+  },
+  "exports": [
+    "_IEWebPABIVersion",
+    "_IEWebPAppend",
+    "_IEWebPConvertP3RGBA",
+    "_IEWebPDecodeRGBA",
+    "_IEWebPDecoderVersion",
+    "_IEWebPDelete",
+    "_IEWebPGetRGB",
+    "_IEWebPNewRGBA",
+    "_IEWebPStats"
+  ],
+  "imports": [
+    "___chkstk_darwin",
+    "___error",
+    "___memcpy_chk",
+    "___stack_chk_fail",
+    "___stack_chk_guard",
+    "_abort",
+    "_bzero",
+    "_memcpy",
+    "_memmove",
+    "_memset",
+    "_mmap",
+    "_munmap",
+    "_pread",
+    "_qsort",
+    "_sysconf"
+  ],
+  "dependencies": [
+    "@rpath/libideogram-webp.1.dylib (compatibility version 1.0.0, current version 1.0.0)",
+    "/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)"
+  ],
+  "allocatorImports": [
+    {
+      "source": "src/dec/alpha_dec.c",
+      "imports": [
+        "_WebPSafeCalloc",
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/dec/buffer_dec.c",
+      "imports": [
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/dec/frame_dec.c",
+      "imports": [
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/dec/idec_dec.c",
+      "imports": [
+        "_WebPSafeCalloc",
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/dec/io_dec.c",
+      "imports": [
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/dec/quant_dec.c",
+      "imports": []
+    },
+    {
+      "source": "src/dec/tree_dec.c",
+      "imports": []
+    },
+    {
+      "source": "src/dec/vp8_dec.c",
+      "imports": [
+        "_WebPDeallocateAlphaMemory",
+        "_WebPSafeCalloc"
+      ]
+    },
+    {
+      "source": "src/dec/vp8l_dec.c",
+      "imports": [
+        "_VP8LHuffmanTablesDeallocate",
+        "_WebPSafeCalloc",
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/dec/webp_dec.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/alpha_processing.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/alpha_processing_neon.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/cpu.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/dec.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/dec_clip_tables.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/dec_neon.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/filters.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/filters_neon.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/lossless.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/lossless_neon.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/rescaler.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/rescaler_neon.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/upsampling.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/upsampling_neon.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/yuv.c",
+      "imports": []
+    },
+    {
+      "source": "src/dsp/yuv_neon.c",
+      "imports": []
+    },
+    {
+      "source": "src/utils/bit_reader_utils.c",
+      "imports": []
+    },
+    {
+      "source": "src/utils/color_cache_utils.c",
+      "imports": [
+        "_WebPSafeCalloc"
+      ]
+    },
+    {
+      "source": "src/utils/filters_utils.c",
+      "imports": []
+    },
+    {
+      "source": "src/utils/huffman_utils.c",
+      "imports": [
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/utils/palette.c",
+      "imports": [
+        "_WebPSafeCalloc",
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/utils/quant_levels_dec_utils.c",
+      "imports": [
+        "_WebPSafeMalloc"
+      ]
+    },
+    {
+      "source": "src/utils/random_utils.c",
+      "imports": []
+    },
+    {
+      "source": "src/utils/rescaler_utils.c",
+      "imports": []
+    },
+    {
+      "source": "src/utils/thread_utils.c",
+      "imports": []
+    },
+    {
+      "source": "src/utils/utils.c",
+      "imports": [
+        "_IEWebPBoundedCalloc",
+        "_IEWebPBoundedFree",
+        "_IEWebPBoundedMalloc"
+      ]
+    },
+    {
+      "source": "producer/bounded-webp.c",
+      "imports": [
+        "_mmap"
+      ]
+    },
+    {
+      "source": "producer/color.c",
+      "imports": []
+    }
+  ],
+  "allocationSourceCalls": [
+    {
+      "source": "src/utils/utils.c",
+      "line": 89,
+      "text": "free(b);"
+    },
+    {
+      "source": "src/utils/utils.c",
+      "line": 124,
+      "text": "MemBlock* const b = (MemBlock*)malloc(sizeof(*b));"
+    },
+    {
+      "source": "src/utils/utils.c",
+      "line": 161,
+      "text": "free(block);"
+    },
+    {
+      "source": "src/utils/utils.c",
+      "line": 201,
+      "text": "ptr = malloc((size_t)(nmemb * size));"
+    },
+    {
+      "source": "src/utils/utils.c",
+      "line": 211,
+      "text": "ptr = calloc((size_t)nmemb, size);"
+    },
+    {
+      "source": "src/utils/utils.c",
+      "line": 221,
+      "text": "free(ptr);"
+    }
+  ],
+  "allocatorSelfTest": {
+    "status": "passed",
+    "command": [
+      "-O2",
+      "-DNDEBUG",
+      "-std=c11",
+      "-arch",
+      "arm64",
+      "-mmacosx-version-min=14.0",
+      "-isysroot",
+      "<SDK>",
+      "-fPIC",
+      "-fvisibility=hidden",
+      "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+      "-UWEBP_USE_THREAD",
+      "-UHAVE_CONFIG_H",
+      "-Isource",
+      "-Iproducer",
+      "producer/allocator-test.c",
+      "objects/0.o",
+      "objects/1.o",
+      "objects/2.o",
+      "objects/3.o",
+      "objects/4.o",
+      "objects/5.o",
+      "objects/6.o",
+      "objects/7.o",
+      "objects/8.o",
+      "objects/9.o",
+      "objects/10.o",
+      "objects/11.o",
+      "objects/12.o",
+      "objects/13.o",
+      "objects/14.o",
+      "objects/15.o",
+      "objects/16.o",
+      "objects/17.o",
+      "objects/18.o",
+      "objects/19.o",
+      "objects/20.o",
+      "objects/21.o",
+      "objects/22.o",
+      "objects/23.o",
+      "objects/24.o",
+      "objects/25.o",
+      "objects/26.o",
+      "objects/27.o",
+      "objects/28.o",
+      "objects/29.o",
+      "objects/30.o",
+      "objects/31.o",
+      "objects/32.o",
+      "objects/33.o",
+      "objects/34.o",
+      "objects/35.o",
+      "-o",
+      "allocator-test"
+    ]
+  },
+  "colorSelfTest": {
+    "status": "passed",
+    "command": [
+      "-O2",
+      "-DNDEBUG",
+      "-std=c11",
+      "-arch",
+      "arm64",
+      "-mmacosx-version-min=14.0",
+      "-isysroot",
+      "<SDK>",
+      "-fPIC",
+      "-fvisibility=hidden",
+      "-DWEBP_EXTERN=extern __attribute__((visibility(\"hidden\")))",
+      "-UWEBP_USE_THREAD",
+      "-UHAVE_CONFIG_H",
+      "-Isource",
+      "-Iproducer",
+      "producer/color-test.c",
+      "-o",
+      "color-test"
+    ]
+  },
+  "reproduction": {
+    "method": "Two fresh extraction and compile directories; exact byte comparison including Mach-O code signature. No normalization.",
+    "byteIdentical": true
+  }
+}

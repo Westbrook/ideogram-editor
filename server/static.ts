@@ -13,6 +13,13 @@ export const BOOTSTRAP_PRELUDE = `(()=>{
     Object.defineProperty(window,'__IE_PAIRING__',{value:/^#pairing=[A-Za-z0-9_-]{43}$/.test(h)?h.slice(9):undefined,configurable:true});
   };
   take();
+  // Restore complete appearance/density themes before any stylesheet or module
+  // can paint. Preference failures never block pairing or resource activation.
+  let appearance,density;
+  try{appearance=localStorage.getItem('ideogram.appearance');}catch{}
+  try{density=localStorage.getItem('ideogram.density');}catch{}
+  document.documentElement.dataset.enAppearance=['auto','light','dark'].includes(appearance)?appearance:'auto';
+  document.documentElement.dataset.enTheme=density==='compact'?'spectrum-inspired':density==='spacious'?'spectrum-inspired-spacious':'spectrum-inspired-comfortable';
   addEventListener('hashchange',()=>{
     if(location.hash.startsWith('#pairing')){take();dispatchEvent(new Event('ie-pairing'));}
   });

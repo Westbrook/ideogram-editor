@@ -1,6 +1,7 @@
 import type { DomainEvent } from '../protocol/store.js';
 import { reduceDocument } from './projection.js';
 import { requireValue } from '../protocol/validate.js';
+import { allocationLedger } from '../observability/allocations.js';
 export type Published = { generation: string; cursor: string; epoch: string | null };
 export class RecoveryPublicationConflict extends Error {
   constructor(){super('Projection changed in another tab');this.name='RecoveryPublicationConflict';}
@@ -29,15 +30,22 @@ export class RecoveryCache {
     };
     await completed;return value;
   }
-  async collect<T>(type:string,include:(value:T)=>boolean):Promise<T[]> {
+  async collect<T>(type:string,include:(value:T)=>boolean,limit:number):Promise<T[]> {
+    if(!Number.isSafeInteger(limit)||limit<0||limit>16)throw Error('CACHE_SELECTION_LIMIT');
+    if(!limit)return [];
     // Pin publication and the cursor in one transaction; autosave can publish
     // and discard old generations while a font library lookup is in progress.
-    const tx=this.db.transaction(['meta','rows']),completed=done(tx),values:T[]=[];
+    // The caller owns a <=16-record retained selection. Reserve the one current
+    // cursor clone before reading; unrelated historical metadata is discarded.
+    const copy=allocationLedger.reserve({owner:'cache-selection-cursor',kind:'control',cpuBytes:1024*1024,handles:1});
+    try{
+    const tx=this.db.transaction(['meta','rows']),completed=done(tx),values:T[]=[];let failure:unknown;
     const pointer=tx.objectStore('meta').get('published');
     pointer.onsuccess=()=>{const view:Published=pointer.result??{generation:'empty',cursor:'0',epoch:null};
       const cursor=tx.objectStore('rows').openCursor(IDBKeyRange.bound([view.generation,type],[view.generation,type,[]],true,true));
-      cursor.onsuccess=()=>{const row=cursor.result;if(row){if(include(row.value))values.push(row.value);row.continue();}};
-    };await completed;return values;
+      cursor.onsuccess=()=>{const row=cursor.result;if(row)try{if(include(row.value))values.push(row.value);if(values.length<limit)row.continue();}catch(error){failure=error;tx.abort();}};
+    };try{await completed;}catch(error){throw failure??error;}return values;
+    }finally{copy.release();}
   }
   async put(generation: string,type: string,id: string,value: unknown) {
     const tx=this.db.transaction('rows','readwrite');tx.objectStore('rows').put(value,[generation,type,id]);await done(tx);

@@ -215,14 +215,103 @@ is included in the plan and whole-process RSS checks, not equated with JS heap.
 Pre-worker parser/native-load reservation128MiB. Bounded container parsing obtains
 encoded dimensions and metadata cost BEFORE any native metadata/decode call; then
 admission uses measured current
-backend RSS plus the entire job allocation plan against512MiB. Decode plan reserves
+backend RSS plus the entire job allocation plan against512MiB. The Sharp decode plan reserves
 2*RGBA bytes+32MiB native/color working for PNG/JPEG,5*RGBA+32MiB for WebP, one RGBA output,2MiB rows/tiles,4*metadata+4MiB
 metadata/copies,4MiB PNG/hash IO,80MiB worker/runtime and16MiB concurrent backend IO/
-control headroom. Composition/export reserve8MiB rows/tiles (including two<=1MiB
+control headroom. The optional conservative Sharp WebP path additionally reserves
+4*encoded-file-bytes+1MiB: metadata and pixel loaders can each fall back from mmap
+to a power-of-two GByteArray, and a released metadata allocation need not promptly
+return RSS. The bounded path does not use that loader. Composition/export reserve8MiB rows/tiles (including two<=1MiB
 row caches, K/output, Float64 accumulator, mask scalars and1MiB tile hashing),4MiB
 metadata,4MiB PNG/hash IO,80MiB runtime and16MiB concurrent backend headroom. This
 conservative plan is correlated with actual RSS; native internal allocators are not
 individually instrumented. Parent snapshots/receipts retain their existing bounds.
+
+Static WebP uses separately produced, sealed libwebp1.6.0 decoders: the retained
+1.6.0-ideogram.1 Darwin arm64 artifact and the new1.6.0-ideogram.2-linux arm64/x64
+artifacts. Existing codec binaries/profiles remain unchanged. Platform selectors
+bind each producer to its exact installed CODECS profile; unsupported hosts fail
+qualification before native execution. Node26.10.0's optional FFI loads only the
+exact verified native artifact.
+Its cumulative128MiB budget includes every decoder allocation, allocation headers,
+page rounding, simultaneous old/new reallocations and64bytes per-block accounting
+allowance. Allocation uses anonymous page-rounded mmap after reserving the full
+charge; munmap releases the exact mapping before subtracting it. There is no
+malloc-zone rounding or freed native arena retention. A source audit checks that
+all upstream allocations enter these wrappers; threading is disabled and all
+upstream codec symbols are hidden. The native API reports peak, remaining and
+allocation-denied counts; success requires remaining=0 and peak<=admitted budget.
+The app separately charges the exact RGBA output,256KiB native stack/IO,
+metadata/copies, rows/tiles, PNG/hash,80MiB runtime and16MiB concurrent-backend
+allowances. Its metadata reader copies only flagged ICCP/EXIF chunks after
+admission, with the existing combined4MiB ancillary payload ceiling. ALPH is
+encoded pixel data, charged through the native decoder instead of metadata.
+The RIFF walk allows at most1024 chunks, checks cancellation and yields every64;
+zero-length unknown chunks cannot grow unbounded bookkeeping. No Sharp metadata
+accumulator, full-file mapping or encoded-input copy occurs on the bounded path.
+The small EXIF reader reproduces the frozen IFD0 orientation interpretation;
+other EXIF graphs are retained as original bytes and never expanded. Static
+demux flags/order and ignored-alpha behavior retain the frozen decoder semantics.
+Where its demuxer ignores ALPH, an exact VP8/VP8L chunk is streamed to a private,
+disk-reserved temporary RIFF and removed after decoding. This changes framing
+only, never encoded image samples. Original source identity/timestamps are fenced
+across metadata, optional frame copy, native decode and normalization.
+
+The entire decoder lifetime occurs in one native call. The separately sealed
+output bridge owns one anonymous RGBA mapping, passes it to the unchanged decoder,
+and writes an owned raw file through bounded IO. Every return path releases
+decoder allocations and the output mapping before JavaScript resumes, including
+invalid streams, capacity failure and short reads. Worker termination waits for native cleanup; document/request ownership
+checks still run afterward. Input descriptor size/identity/timestamps and actual
+output dimensions are checked before pixels can be returned. Budget exhaustion
+is an explicit resource failure; original bytes and durable operation identity
+remain available through the existing preparation/recovery path. No partial pixels,
+resize, alternate filter, codec or quality fallback is published.
+
+Lossy, lossless and alpha use the same bounded decoder. P3 conversion then calls
+the SAME existing sealed LittleCMS2.19.1 library with the exact qualified P3/sRGB
+profiles, RGB8/perceptual/NOCACHE settings and96KiB strips, preserving alpha and
+hidden RGB. Darwin uses its public LCMS symbols. The Linux build hides those
+symbols, so a separately sealed fixed-strip bridge uses the public libvips ICC
+API in the same installed library. It checks cache0/concurrency1, borrows only
+one48KiB RGB strip, evaluates at most48KiB output, and releases all image/output
+handles inside one synchronous call. It never borrows a whole-image native view.
+The native wrappers own cleanup in one call. Fixed
+profile conversion happens after all decoder allocations have been released;
+the native working reservation covers the larger of128MiB decode and32MiB fixed
+color-conversion phases, not simultaneous full-image copies. ICC/EXIF originals
+and explicit normalization review are retained. Unsupported optional FFI/loader
+availability selects the original Sharp path and its conservative admission
+before pixel work; it never changes decoder after a smaller plan is admitted.
+
+New canonical rasters use an aggregate codec identity that binds the unchanged
+base codec profile, separately sealed bounded WebP profile and new output bridge.
+Linux also binds its separate fixed-strip color bridge. Earlier buffered Darwin
+and Linux aggregate identities remain registered byte-for-byte unchanged. A pure registry enumerates only actually issued exact
+profiles, not arbitrary combinations of known native hashes. Historical
+pipelines remain valid, and frozen exports retain historical pixel identity.
+Decoded WebP manifests additionally name the file transport and exact decoder
+and output-bridge hashes. PNG output still records its existing encoder identity.
+
+Producer and source/license inputs: tooling/raster/bounded-webp/README.txt,
+tooling/raster/bounded-webp-linux/README.txt, tooling/raster/linux-codecs/README.txt
+tooling/raster/linux-color/README.txt, tooling/raster/webp-output/README.txt
+and tooling/raster/webp-output-linux/README.txt (the separately sealed Linux
+output recipe supersedes the preserved common recipe's Linux audit).
+Ordinary npm run verify:raster
+checks every adopted platform's source/archive/producer/license/manifest/binary
+seals, plus the actual current platform's installed dependency bytes/versions.
+Pinned node tooling/raster/bounded-webp/build.mjs --verify reproduces the native
+artifact twice and compares bytes/manifest; python3 tooling/raster/bounded-webp/verify.py
+runs native pixel, allocation-denial and lifetime checks. Linux producers use
+pinned Docker toolchains with explicit2CPU/1GiB limits; x64 production on this
+arm64 host is explicitly emulated. Each architecture reproduces exact binaries
+and complete manifests in fresh containers. These are native-input
+checks, not a substitute for total-process RSS, repeated-writer, full workload,
+platform or PERF qualification. A valid complex lossless stream can exceed the
+native cap and must fail explicitly; the accepted dimensions are not a claim
+that all possible byte streams fit every resource envelope.
+
 Approval proof preparation reserves8MiB above current process RSS within the same
 512MiB admission limit, uses one shared IO slot and no raster worker, and checks
 RSS while traversing the bounded closure. This is reservation accounting, not
@@ -235,10 +324,60 @@ can be slow; there is no quality fallback. No100 simultaneous full decoded surfa
 Disk admission reserves3*raw bytes+metadata+2MiB, existing25% margin,1GiB free-space
 margin and64MiB emergency margin against the shared disk ledger.
 
-The final25MP progressive-JPEG input also remains resource-pending when its
-combined plan plus backend baseline exceeds512MiB. Maximum25MP WebP requires more than512MiB under the measured conservative native
-plan and is rejected before native metadata/decode, retaining its original and
-pending identity. This is an explicit resource limitation, not format qualification
+JPEG EXPORT MEMORY RECIPE
+
+New JPEG exports record encoderTransport=jpeg-file-baseline-v1. Their already
+resampled, explicitly matted RGBA bytes are streamed through the canonical PNG
+encoder into a private intermediate. Sharp reads that file and writes directly
+to an exclusively opened read/write descriptor through /dev/fd. Source/sink
+descriptors stay open through native completion; output identity is rechecked and
+flushed, and the private intermediate is removed on success or failure.
+
+The pinned settings are reviewed quality rounded to 1..100, 4:4:4 sampling,
+baseline sequential coding, quantization table0, with trellis quantization,
+overshoot deringing, scan optimization and Huffman-table optimization disabled.
+Disabling Huffman optimization changes lossless entropy representation and file
+size, not the quantized coefficients. Tests compare actual quantization tables,
+decoded pixels, ICC and sampling with the earlier optimized recipe. The transport
+marker prevents reinterpretation of its different encoded bytes.
+
+The earlier marker-free JPEG recipe remains available only for retained portable
+recomputation. Its raw input stream accumulated and concatenated full buffers;
+optimized encoding also allocates two complete coefficient arrays in the sealed
+mozjpeg binary. Its corrected reservation accounts for those arrays and the
+growing encoded buffer, with explicit resource refusal when needed.
+
+New file encoding initially reserves two RGBA surfaces plus32MiB above the
+existing nondecode plan. This is a conservative estimate, not an enforced native
+allocator cap; full-process RSS measurement remains required. Its disk plan adds
+the temporary PNG and a stuffed-entropy upper bound of512 bytes per8x8 component
+block for all three components plus2MiB of tables/ICC/markers. It never assumes
+encoded JPEG is smaller than the raw source. No quality or dimension downgrade
+is used to fit memory. tests/raster/jpeg-memory.test.mjs covers pixel/quantization
+parity, exclusive output, cancellation and failure cleanup; those functional
+checks do not constitute25MP or complete lifecycle resource qualification.
+
+After the pinned typecheck/build/raster gates, serial diagnostic commands are:
+
+  node --import ./tests/store/no-network.mjs tooling/raster/measure-correction.mjs tests/raster/fixtures/max-webp-lossy.webp artifacts/a-r01-diagnostic/max-lossy-product.json
+  node --import ./tests/store/no-network.mjs tooling/raster/measure-correction.mjs tests/raster/fixtures/max-webp-lossless.webp artifacts/a-r01-diagnostic/max-lossless-product.json
+  node --import ./tests/store/no-network.mjs tooling/raster/measure-repeated-webp.mjs artifacts/a-r01-diagnostic/repeated-product.json
+  node --import ./tests/store/no-network.mjs tooling/raster/measure-jpeg-export.mjs tests/raster/fixtures/max-webp-lossless.webp artifacts/a-r01-diagnostic/jpeg-product.json
+
+Create the ignored output directory first. These keep private source/work roots
+and failure receipts, never replace historical evidence, and assert no release
+qualification. The repeated drivers capture exact source hashes before/after,
+native cleanup or export observations, whole-process peak RSS and finite settled
+samples without forced GC. Use distinct output names for each attempt. Large
+WebP/JPEG probes run serially with competing build/campaign work paused.
+
+The historical final25MP progressive-JPEG input also remained resource-pending when its
+combined plan plus backend baseline exceeded512MiB. Historical maximum25MP WebP required more than512MiB under the conservative Sharp native
+plan and was rejected before native metadata/decode, retaining its original and
+pending identity. That historical failed evidence remains unchanged. New bounded
+WebP behavior requires its own exact product/RSS evidence; neither native parity
+nor reservations alone qualify the full envelope. This is an explicit resource
+limitation, not format qualification
 for the complete25MP envelope. Native allocator retention can cause a following operation to remain resource-
 pending even after a large decode completes. Reopening the backend releases that
 process memory and resumes the SAME journaled command. Measurements report this
@@ -267,3 +406,57 @@ provider/network, JPEG matte/export or cross-platform qualification is claimed.
 No paid/provider calls, publishing, deployment, document edits, report/locator edits,
 en-reve archive/live sibling changes or approved-preview changes were made.
 Independent exact-commit review remains the gate for P1b.5.
+
+EXPLICIT WEBP OUTPUT LIFETIME (2026-09-30 CONTINUATION)
+
+The initial bounded decoder eliminated excessive codec allocations but still
+returned a full RGBA Node Buffer. Its first whole-writer25MP white tests passed
+(318046208B lossy,301203456B lossless), while a same-writer repetition refused
+the second import: resident baseline293257216B plus reservation345628928B
+exceeded536870912B. Preserve artifacts/a-r01-diagnostic/*-product-01/02 receipts;
+this failure is not erased by the single-import passes. A supplementary compiled
+source audit records the unchanged server09 closure after that failed run.
+
+The new webp-file-v1 transport uses a separately produced/sealed webp-output
+bridge. It maps one page-rounded anonymous RGBA region within a synchronous C
+call, invokes the existing sealed decoder, writes the owned0600 raw file through
+bounded64KiB pwrite operations, and unmaps before returning. Color conversion
+similarly reads that file into one temporary anonymous map, calls the unchanged
+sealed P3 converter, writes it back, and unmaps. No pointer crosses a JavaScript
+continuation. Anonymous mappings avoid sparse file-backed mmap SIGBUS on disk
+exhaustion; read/write failures remain explicit errors. Output mappings are
+reported separately from the decoder's cumulative native allocation cap.
+
+The existing full raw-output reservation is retained, with page rounding covered
+by the native stack/IO allowance. EXIF transforms use two128-square file tiles,
+alpha normalization uses64KiB, and tile hashing reuses a single<=1MiB scratch
+buffer. These changes bound allocation lifetime; they do not lower reservations,
+force collection, resize pixels, change quality, or omit original assets.
+
+New manifests bind both decoderBuild and outputBuild to an exact aggregate
+profile. All earlier marker-free, opaque-incremental and buffered bounded
+profiles remain registered with their original hashes for portable replay.
+Producer reproduction, functional parity/failure gates, repeated whole-writer
+measurements, adversarial inputs and actual platform campaigns remain separate
+checks. The new source design alone does not close A-R01 or qualify the full
+25MP envelope; receipts must identify the final compiled/native profile measured.
+
+An injected OS munmap failure is explicitly a failed release: native outputRemaining
+stays nonzero, the loaded bridge instance retains its lease, and the application
+records that retained allocation with the original resource-refused operation.
+That lease is local to the loaded library instance; unloading/reloading it does
+not establish a process-wide poison flag. Such an OS cleanup fault is outside
+the ordinary zero-retained-allocation guarantee. Existing measured whole-process
+RSS is still included before every new admission; no failed release is counted
+as free memory. Untouched virtual mappings are not claimed to be bounded by an
+RSS check. The native injected-fault receipt and bounded failure diagnostics must
+retain this limitation rather than describe successful cleanup.
+
+A Linux producer test exposed coarse filesystem timestamp behavior: an immediate
+same-size write can leave the observed stat stamp unchanged. The failed attempt
+is retained. The Linux-specific follow-up fixture explicitly advances mtime and
+therefore tests rejection of an observed stamp change, not detection of every
+possible same-size byte mutation. Descriptor/extent/stamp fences do not claim an
+atomic filesystem snapshot. The existing private immutable object ownership
+contract is unchanged; this transport does not introduce a hostile same-UID
+filesystem security guarantee.

@@ -1,7 +1,9 @@
+import {beginCommandAcceptance,commandAcceptances} from '../observability/phases.js';
 import { parentPort, workerData } from 'node:worker_threads';
 import { StoreDatabase } from './database.js';
 import { StoreError, safeError } from './errors.js';
 import { assertPrivate } from './files.js';
+import { ProviderRuntime } from '../provider/runtime.js';
 
 if (!parentPort) throw new Error('Writer requires a dedicated worker');
 const port = parentPort;
@@ -14,11 +16,15 @@ const barrier = (phase: string) => {
   }
 };
 let store: StoreDatabase;
+let provider:ProviderRuntime|undefined;
 let closeFixture:(()=>Promise<void>)|undefined;
 try {
   const identity = assertPrivate(workerData.root, true);
   if (identity.dev !== workerData.identity.dev || identity.ino !== workerData.identity.ino) throw new StoreError('ROOT_UNSAFE');
   store = new StoreDatabase(workerData.root, barrier, { quotaBytes: workerData.quotaBytes, maxPageCount: workerData.testing?.maxPageCount });
+  // The only provider configuration channel is explicit backend worker data.
+  // The worker environment stays empty and never selects a provider fixture.
+  provider=new ProviderRuntime(store,workerData.provider);
   // Internal test-process injection only; no CLI, environment, HTTP or imported archive can set this.
   if(workerData.testing?.setupModule){const fixture=await import(workerData.testing.setupModule);closeFixture=await fixture.setup(store);}
   port.postMessage({ type: 'ready', epoch: store.epoch });
@@ -27,22 +33,29 @@ try {
   store.histories.schedule(true);
   store.portables.schedule();
 } catch (error) {
+  await provider?.close().catch(()=>{});
   port.postMessage({ type: 'startup-error', code: safeError(error).code, detail:safeError(error).detail }); port.close();
 }
 port.on('message', async message => {
+  const acceptance=beginCommandAcceptance(message?.method,message?.args?.bytes);
   try {
     let result: unknown;
     const { method, args } = message;
     if(method!=='close')store.fence(args.epoch);
     // Reads/close may wait for a pending snapshot. Receipts normally do not;
     // only an exhausted tail waits for recovery before applying backpressure.
-    if ((method==='submit'||method==='assetCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand'||method==='queueCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
+    if ((method==='submit'||method==='assetCommand'||method==='adapterCommand'||method==='rasterCommand'||method==='historyCommand'||method==='portableCommand'||method==='queueCommand')&&store.recovery.needsSnapshot()) await store.recovery.settle(true);
     else if (['close','capture','diagnostics'].includes(method)) await store.recovery.settle();
     if(method==='textAdmission'){result=args.release?store.texts.releaseAdmission(args.id,args.auth):store.texts.admission(args.id,args.auth);}
-    else if (method === 'close') { await closeFixture?.(); await store.candidates.close(); await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
+    else if (method === 'close') { await provider?.close(); await closeFixture?.(); await store.displays.close(); await store.candidates.close(); await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); result = null; }
     else {
       store.fence(args.epoch);
       switch (method) {
+        case 'providerView':result=provider!.view();break;
+        case 'adapterCommand':result=await store.adapters.command(args.bytes,args.auth);break;
+        case 'adapterList':result=store.adapters.list(...args.params as Parameters<typeof store.adapters.list>);break;
+        case 'adapterView':result=store.adapters.view(args.id);break;
+        case 'adapterDeletionReview':result=store.adapters.deletionReview(args.id,args.auth);break;
         case 'candidateHistory':result=store.candidates.history(args.documentId,args.after);break;
         case 'candidateView':result=store.candidates.view(args.jobId,args.attemptId,args.after);break;
         case 'candidatePrompt':result=store.candidates.prompt(args.jobId,args.attemptId,args.kind,args.offset);break;
@@ -74,6 +87,7 @@ port.on('message', async message => {
         case 'imagePreview':result=store.histories.preview(args.id,args.auth);break;
         case 'imageEditReview':result=store.histories.review(args.id,args.auth);break;
         case 'historyCommand': result=store.histories.command(args.bytes,args.auth);break;
+        case 'cancelExport': result=await store.histories.cancelExport(args.id,args.auth);break;
         case 'imageState': result=store.histories.state(args.id);break;
         case 'historyClosure': result=store.histories.closure(args.id,args.after);break;
         case 'historyPage': result=store.histories.page(args.id,args.after,args.kind);break;
@@ -83,8 +97,13 @@ port.on('message', async message => {
         case 'uiPersist': result=await store.ui.persist(args.bytes,args.auth);break;
         case 'rasterCommand': result=store.rasters.command(args.bytes,args.auth);break;
         case 'rasterReview': result=store.rasters.review(args.id,args.auth);break;
+        case 'rasterWorkerState': result=store.rasters.rasterWorkerState();break;
+        case 'restartRasterWorker': result=await store.rasters.restartIdleWorker(args.expectedGeneration);break;
         case 'rasterSample': result=await store.rasters.sample(args.id,args.x,args.y);break;
         case 'rasterManifest': result=store.rasters.manifest(args.id);break;
+        case 'displayBegin': result=await store.displays.begin(args.id,args.assetId,args.display);break;
+        case 'displayRead': result=store.displays.read(args.id,args.offset,args.length);break;
+        case 'displayRelease': result=await store.displays.release(args.id);break;
         case 'assetPending': result=store.assets.pending(args.id);break;
         case 'assetProjection': result={asset:store.assets.asset(args.id),highWater:store.recovery.highWater()};break;
         case 'assetVerify': result=await store.assets.verify(args.id);break;
@@ -134,10 +153,12 @@ port.on('message', async message => {
         default: throw new StoreError('MALFORMED_REQUEST');
       }
     }
+    commandAcceptances.complete(acceptance,result);
     port.postMessage({ type: 'result', id: message.id, result });
     if(method==='textAdmission'){result=args.release?store.texts.releaseAdmission(args.id,args.auth):store.texts.admission(args.id,args.auth);}
     else if (method === 'close') port.close();
   } catch (error) {
+    commandAcceptances.fail(acceptance);
     if (workerData.testing && error && typeof error === 'object') {
       const native = error as { code?: unknown; errcode?: unknown };
       port.postMessage({ type: 'failure', failure: {

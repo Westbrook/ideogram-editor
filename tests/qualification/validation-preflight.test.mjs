@@ -3,7 +3,7 @@ import test from 'node:test';
 import {mkdtemp, mkdir, writeFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {assertSameInventory, validationPreflight} from '../../tooling/qualification/preflight.mjs';
+import {assertSameInventory, validationPreflight, checkTestSyntax} from '../../tooling/qualification/preflight.mjs';
 import {requiredSuiteEnvironment} from '../../tooling/qualification/suite-prerequisites.mjs';
 import {consumerInputs} from '../../tooling/consumer-inputs.mjs';
 import {createBrowserPlan} from '../../tooling/qualification/container/browser-plan.mjs';
@@ -37,4 +37,11 @@ test('separate browser attempts share fixture paths but never case reports',()=>
     assert.notEqual(a.caseReportFile,b.caseReportFile);
   }
   assert.ok(first.steps.slice(0,4).every(s=>!s.config));
+});
+
+test('syntax preflight parses TypeScript without running top-level setup',()=>{
+ assert.doesNotThrow(()=>checkTestSyntax('fixture.ts','throw new Error("must not execute"); const value:number=1;'));
+ assert.doesNotThrow(()=>checkTestSyntax('enum.spec.ts','enum Mode { A, B }; class C { constructor(public mode:Mode) {} }; throw Error("must not execute");'));
+ assert.throws(()=>checkTestSyntax('broken.test.mjs','const missing = ;'),/Test syntax broken.test.mjs/);
+ assert.throws(()=>checkTestSyntax('broken.spec.ts','if (true) const value=1;'),/Test syntax broken.spec.ts/);
 });

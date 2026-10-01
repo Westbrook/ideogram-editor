@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "fal-v4-public-output-fallback-20260930",
+  "reviewedOn": "2026-09-30",
+  "evidenceKind": "official-documentation-review",
+  "scope": {
+    "endpoint": "ideogram/v4",
+    "operation": "Generate image",
+    "inputUploads": false,
+    "liveRequestsPerformed": false,
+    "rawSourceSnapshotsRetained": false
+  },
+  "sources": [
+    {
+      "id": "v4-openapi",
+      "url": "https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4",
+      "facts": [
+        "The declared server is https://queue.fal.run and the submission path is /ideogram/v4.",
+        "The request requires prompt. num_images is an integer from 1 through 4. image_size accepts explicit dimensions; endpoint metadata specifies sides from 512 through 3840, each a multiple of 16.",
+        "None is a supported expansion_model and disables prompt expansion and its fee. BALANCED rendering, none acceleration, PNG output, enabled safety checking and sync_mode false are declared inputs.",
+        "Output requires images, timings, seed, has_nsfw_concepts and prompt. Image entries require url; other image metadata is optional or nullable. Array cardinality correspondence is not enforced by the schema.",
+        "Schema management routes use /ideogram/v4/requests/{request_id}, followed by /status or /cancel as appropriate. Result GET has no /response suffix. Cancel schema shows HTTP 200 with a success boolean."
+      ]
+    },
+    {
+      "id": "queue-guide",
+      "url": "https://fal.ai/docs/documentation/model-apis/inference/queue",
+      "facts": [
+        "Submission returns request_id, status_url, response_url and cancel_url for subsequent request management.",
+        "The response_url example ends in /response, while the result cURL example has no such suffix. The documentation therefore presents both variants.",
+        "Cancellation uses PUT. The guide documents 202 CANCELLATION_REQUESTED, 400 ALREADY_COMPLETED and 404 NOT_FOUND, differing from the endpoint schema.",
+        "An accepted cancellation does not prove running work stopped; the request can still complete."
+      ]
+    },
+    {
+      "id": "official-js-queue",
+      "url": "https://raw.githubusercontent.com/fal-ai/fal-js/main/libs/client/src/queue.ts",
+      "facts": [
+        "The official JavaScript client submits the complete endpoint ID but reconstructs status, result and cancel paths using owner/alias without an operation subpath.",
+        "For ideogram/v4 the reconstructed result route is /ideogram/v4/requests/{request_id}, without /response."
+      ]
+    },
+    {
+      "id": "platform-headers",
+      "url": "https://fal.ai/docs/documentation/model-apis/common-parameters",
+      "facts": [
+        "X-Fal-Store-IO: 0 requests no JSON input/output history storage and does not remove generated CDN files.",
+        "X-Fal-No-Retry: 1 requests disabled automatic platform retries.",
+        "x-app-fal-disable-fallback: true requests disabled automatic model fallback.",
+        "X-Fal-Request-Timeout governs time until processing starts, not total inference duration.",
+        "X-Fal-Object-Lifecycle-Preference accepts expiration_duration_seconds and an initial_acl object."
+      ]
+    },
+    {
+      "id": "media-expiration",
+      "url": "https://fal.ai/docs/documentation/model-apis/media-expiration",
+      "facts": [
+        "Finite CDN lifetime is requested with expiration_duration_seconds; the documentation demonstrates 3600 seconds. null means no expiration.",
+        "Expired media cannot be recovered; files needed locally must be downloaded before expiry.",
+        "JSON payload history and CDN files have separate retention controls."
+      ],
+      "unknowns": [
+        "The reviewed documentation does not establish a V4-specific minimum compatible finite lifetime or an offline/restart recovery guarantee.",
+        "No live enforcement, renewal behavior or deletion timing was observed."
+      ]
+    },
+    {
+      "id": "file-acls",
+      "url": "https://fal.ai/docs/documentation/model-apis/file-access-controls",
+      "facts": [
+        "initial_acl is an object with default allow, forbid or hide and a rules array. It is not a string enum.",
+        "An anonymous reader falls through to the default ACL decision. An explicit allow default with no rules makes files readable by anyone holding the URL.",
+        "The documented ACL scope is CDN v3 objects at https://v3b.fal.media/.",
+        "Restricted file reads need a CDN token or separately created signed URL; the ordinary API key cannot directly read a restricted file."
+      ],
+      "unknowns": [
+        "The reviewed documentation does not promise that ordinary inference returns signed URLs usable for private credential-free downloads."
+      ]
+    },
+    {
+      "id": "fal-cdn",
+      "url": "https://fal.ai/docs/documentation/model-apis/fal-cdn",
+      "facts": [
+        "The documented CDN v3 URL format is https://v3b.fal.media/files/b/{prefix}/{filename}.",
+        "Other documented SDK upload endpoints and fallback hosts are outside this output-only profile."
+      ]
+    },
+    {
+      "id": "webhook-result-retention",
+      "url": "https://fal.ai/docs/documentation/model-apis/inference/webhooks",
+      "facts": [
+        "Stored result expiry is approximately one hour after completion, or approximately six minutes for results of at least 10 KB.",
+        "Results for requests with payload storage disabled are only retrievable until stored result expiry. This result-JSON window is distinct from CDN media lifetime."
+      ]
+    },
+    {
+      "id": "safety-arguments",
+      "url": "https://fal.ai/docs/documentation/model-apis/model-arguments",
+      "facts": [
+        "Common safety documentation describes per-image classification, has_nsfw_concepts correspondence and black-image replacement of flagged output. This is documentation, not an observed V4 guarantee."
+      ]
+    },
+    {
+      "id": "key-setup",
+      "url": "https://fal.ai/docs/documentation/setting-up/authentication",
+      "facts": [
+        "API scope permits model inference. FAL_KEY is the documented runtime environment variable; credentials should remain server-side."
+      ]
+    }
+  ],
+  "profileDecision": {
+    "kind": "explicit-public-one-hour-fallback",
+    "minimumPrivateCompatibleQualified": false,
+    "deferredFetch": "unknown",
+    "renewalQualified": false,
+    "observedProviderEnforcement": false,
+    "requireAttemptBoundFallbackAcknowledgement": true,
+    "requireServerAuthorizationManifest": true,
+    "requirePerReviewConfirmation": true,
+    "queueOrigin": "https://queue.fal.run",
+    "mediaOrigins": ["https://v3b.fal.media"],
+    "uploadOrigins": [],
+    "mediaCredentials": false,
+    "redirectHops": 0,
+    "requestedHeaders": {
+      "X-Fal-Store-IO": "0",
+      "X-Fal-No-Retry": "1",
+      "x-app-fal-disable-fallback": "true"
+    },
+    "requestedLifecyclePreference": {
+      "expiration_duration_seconds": 3600,
+      "initial_acl": {"default": "allow", "rules": []}
+    },
+    "queueURLDisposition": {
+      "submit": {"method": "POST", "path": "/ideogram/v4"},
+      "status": {"method": "GET", "returnedPaths": ["/ideogram/v4/requests/{request_id}/status"]},
+      "result": {
+        "method": "GET",
+        "returnedPaths": ["/ideogram/v4/requests/{request_id}", "/ideogram/v4/requests/{request_id}/response"]
+      },
+      "cancel": {"method": "PUT", "returnedPaths": ["/ideogram/v4/requests/{request_id}/cancel"]},
+      "validation": "Pin the exact queue origin, selected endpoint and request identity. Permit only the enumerated returned paths, with no query, fragment, userinfo or redirect. Preserve the returned result variant; do not rewrite it or widen the allowlist to arbitrary SDK backup domains."
+    },
+    "pilotInput": {
+      "image_size": {"width": 512, "height": 512},
+      "num_images": 1,
+      "expansion_model": "None",
+      "rendering_speed": "BALANCED",
+      "acceleration": "none",
+      "output_format": "png",
+      "enable_safety_checker": true,
+      "sync_mode": false
+    },
+    "disclosure": "This fallback requests no JSON history storage and public CDN output with a 3600-second lifetime. Anyone holding the output URL can read it. Minimum retention, private access, actual provider enforcement and successful deferred recovery are not qualified. Result JSON can expire sooner than media, approximately six minutes for responses of at least 10 KB; keep the server online and retrieve promptly. Local deletion does not erase provider copies. Retry and fallback headers are requested policies, not independently verified guarantees. Cancel acceptance does not prove execution stopped or charges were avoided.",
+    "safetyDisposition": "Retain exact backend evidence. Quarantine malformed or missing/mismatched safety arrays; withhold true flags from ordinary display, adoption and export. Validate downloaded bytes and actual dimensions independently of provider metadata."
+  }
+}

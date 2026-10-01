@@ -8,13 +8,41 @@ import type { AppliedPrivacyPolicy, ProtectedBody, TransferReservation, Transfer
 
 export function r31Reservation(objects: Objects, id: string, purpose: TransferReservation['purpose'], check: () => void): TransferReservation {
   let committed = 0n, reservedThrough = 0n, released = false;
+  let checkedAt: number | undefined, timer: ReturnType<typeof setTimeout> | undefined;
+  let failed = false, failure: unknown;
+  // Leave scheduling headroom below R31's 30-second ceiling. A held transfer
+  // can be waiting on network backpressure without calling ensure again.
+  const interval = 15_000;
+  const latch = (error: unknown) => {
+    if (!failed) { failed = true; failure = (error as {code?: string})?.code === 'CAPACITY' ? new ProviderError('CAPACITY') : error; }
+    clearTimeout(timer); timer = undefined;
+    return failure;
+  };
+  const guard = () => { if (released) refuse('CAPACITY'); if (failed) throw failure; check(); };
+  const arm = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = undefined;
+      try {
+        guard();
+        // The external ledger already contains this transfer's remaining
+        // bytes plus overhead; adding its original size would count it twice.
+        objects.capacity(0n); checkedAt = performance.now(); arm();
+      } catch (error) { latch(error); }
+    }, interval);
+    timer.unref();
+  };
   objects.acquire(id);
+  arm();
   return { purpose,
-    ensure(total) { check(); if (released || total < committed) refuse('CAPACITY');
-      if (total > reservedThrough) { try{objects.reserve(id,total-committed);}catch(e){if((e as {code?:string}).code==='CAPACITY')throw new ProviderError('CAPACITY');throw e;} reservedThrough=total; } },
-    committed(total) { check(); if (released || total < committed || total > reservedThrough) refuse('CAPACITY');
+    ensure(total) { guard(); if (total < committed) refuse('CAPACITY');
+      try {
+        if (total > reservedThrough) { objects.reserve(id,total-committed); reservedThrough=total; checkedAt=performance.now(); arm(); }
+        else if (checkedAt === undefined || performance.now()-checkedAt >= interval) { objects.capacity(0n); checkedAt=performance.now(); arm(); }
+      } catch (error) { throw latch(error); } },
+    committed(total) { guard(); if (total < committed || total > reservedThrough) refuse('CAPACITY');
       committed=total; objects.reserve(id,reservedThrough-committed,false); },
-    release() { if (!released) { released=true; objects.unreserve(id); objects.release(id); } }
+    release() { if (!released) { released=true; clearTimeout(timer); timer=undefined; objects.unreserve(id); objects.release(id); } }
   };
 }
 export function sanitizedHeaders(headers: Record<string, unknown>): Readonly<Record<string,string>> {
@@ -25,6 +53,7 @@ export function sanitizedHeaders(headers: Record<string, unknown>): Readonly<Rec
     if (k==='content-length' && /^(0|[1-9][0-9]{0,19})$/.test(value)) out[k]=value;
     if (k==='content-type' && ['application/json','image/png','image/jpeg','image/webp','application/octet-stream'].includes(value)) out[k]=value;
     if (k==='retry-after' && /^[0-9]{1,8}$/.test(value)) out[k]=value;
+    if (k==='x-fal-store-io'&&value==='0'||k==='x-fal-no-retry'&&value==='1'||k==='x-app-fal-disable-fallback'&&value==='true') out[k]=value;
   }
   return Object.freeze(out);
 }
@@ -76,7 +105,7 @@ export class TransportEvidenceStore {
     assertComponents(this.directory);assertPrivate(this.directory,true);
     const path=join(this.directory,recordId+'.body');
     const fd=openSync(path,constants.O_RDWR|constants.O_NOFOLLOW|(resume?0:constants.O_CREAT|constants.O_EXCL),0o600);
-    let bytes=0n, closed=false, identity:TransferIdentity|null=resume?this.inspect(recordId).identity:null;const hash=createHash('sha256');
+    let bytes=0n, closed=false, completed=false, identity:TransferIdentity|null=resume?this.inspect(recordId).identity:null;const hash=createHash('sha256');
     if(resume) { try {for(const chunk of this.read(recordId)){hash.update(chunk);bytes+=BigInt(chunk.byteLength);}}catch(e){closeSync(fd);reservation.release();throw e;} }
     const initial=bytes, directory=this.directory;
     const persist=(complete:boolean,observed=bytes): ProtectedBody => {
@@ -107,7 +136,11 @@ export class TransportEvidenceStore {
         finally {reservation.committed(bytes-initial);persist(false);}
       },
       digest(){return hash.copy().digest('hex');},
-      finish(complete,observed){try{return persist(complete,observed);}finally{if(!closed){closeSync(fd);closed=true;reservation.release();}}}
+      finish(complete,observed){
+        if(closed&&complete&&!completed)refuse('PROVENANCE');
+        try{if(complete&&!closed)reservation.ensure(bytes-initial);const result=persist(complete,observed);completed=complete;return result;}
+        finally{if(!closed){closeSync(fd);closed=true;reservation.release();}}
+      }
     };
   }
 }

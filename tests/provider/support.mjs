@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, chmodSync, existsSync, statSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, chmodSync, existsSync, statSync, readFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -8,7 +8,7 @@ import { ProviderError } from '../../dist/local/server/provider/contracts.js';
 import { resolvePrivacy } from '../../dist/local/server/provider/policy.js';
 import { fixtureProfile } from './emulator.mjs';
 export function storage(t,limit=1n<<40n){
-  const root=mkdtempSync(join(tmpdir(),'p21-'));chmodSync(root,0o700);
+  const root=realpathSync(mkdtempSync(join(tmpdir(),'p21-')));chmodSync(root,0o700);
   const store=new TransportEvidenceStore(root),reservations=[],attemptId=randomUUID();
   const policy=resolvePrivacy(fixtureProfile(),'ideogram/v4',randomUUID()).applied;
   function reservation(purpose='provider-response',max=limit){let reserved=0n,committed=0n,released=false;const calls=[];

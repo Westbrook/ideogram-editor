@@ -1,0 +1,848 @@
+// Generated from the separately sealed Linux arm64 clean npm-ci profile.
+export const CODECS = {
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "name": "sharp",
+      "version": "0.35.4",
+      "resolved": "https://registry.npmjs.org/sharp/-/sharp-0.35.4.tgz",
+      "integrity": "sha512-n++8XWcj+jCOr2IOl7h8LbKnGBDY4aPbmprMONBNFdn0ImXqpGVv5zliDs0V9HbmbCQLpbuo2ej9rAoOQTvMDA==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "@img/colour": "^1.1.0",
+        "detect-libc": "^2.1.2",
+        "semver": "^7.8.5"
+      },
+      "engines": {
+        "node": ">=20.9.0"
+      },
+      "funding": {
+        "url": "https://opencollective.com/libvips"
+      },
+      "optionalDependencies": {
+        "@img/sharp-darwin-arm64": "0.35.4",
+        "@img/sharp-darwin-x64": "0.35.4",
+        "@img/sharp-freebsd-wasm32": "0.35.4",
+        "@img/sharp-libvips-darwin-arm64": "1.3.3",
+        "@img/sharp-libvips-darwin-x64": "1.3.3",
+        "@img/sharp-libvips-linux-arm": "1.3.3",
+        "@img/sharp-libvips-linux-arm64": "1.3.3",
+        "@img/sharp-libvips-linux-ppc64": "1.3.3",
+        "@img/sharp-libvips-linux-riscv64": "1.3.3",
+        "@img/sharp-libvips-linux-s390x": "1.3.3",
+        "@img/sharp-libvips-linux-x64": "1.3.3",
+        "@img/sharp-libvips-linuxmusl-arm64": "1.3.3",
+        "@img/sharp-libvips-linuxmusl-x64": "1.3.3",
+        "@img/sharp-linux-arm": "0.35.4",
+        "@img/sharp-linux-arm64": "0.35.4",
+        "@img/sharp-linux-ppc64": "0.35.4",
+        "@img/sharp-linux-riscv64": "0.35.4",
+        "@img/sharp-linux-s390x": "0.35.4",
+        "@img/sharp-linux-x64": "0.35.4",
+        "@img/sharp-linuxmusl-arm64": "0.35.4",
+        "@img/sharp-linuxmusl-x64": "0.35.4",
+        "@img/sharp-webcontainers-wasm32": "0.35.4",
+        "@img/sharp-win32-arm64": "0.35.4",
+        "@img/sharp-win32-ia32": "0.35.4",
+        "@img/sharp-win32-x64": "0.35.4"
+      },
+      "peerDependenciesMeta": {
+        "@types/node": {
+          "optional": true
+        }
+      }
+    },
+    {
+      "name": "@img/sharp-linux-arm64",
+      "version": "0.35.4",
+      "resolved": "https://registry.npmjs.org/@img/sharp-linux-arm64/-/sharp-linux-arm64-0.35.4.tgz",
+      "integrity": "sha512-De4jpEnAU8Hd5oT0j1G3uL4ZvTuipVMn7YC6vPaJhy6/7EwEae0SVAoBrUMYQbkLGDm85taVWwuPc1a44LTzCQ==",
+      "cpu": [
+        "arm64"
+      ],
+      "libc": [
+        "glibc"
+      ],
+      "license": "Apache-2.0",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "engines": {
+        "node": ">=20.9.0"
+      },
+      "funding": {
+        "url": "https://opencollective.com/libvips"
+      },
+      "optionalDependencies": {
+        "@img/sharp-libvips-linux-arm64": "1.3.3"
+      }
+    },
+    {
+      "name": "@img/sharp-libvips-linux-arm64",
+      "version": "1.3.3",
+      "resolved": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm64/-/sharp-libvips-linux-arm64-1.3.3.tgz",
+      "integrity": "sha512-0DaL0A6Xu6sQSQFwe4iVCrKWU2cCTItnRsYsCdxAMm9NF6twAA9BKnoqy4hqz4+azQ0JHuA26qiUKsf1XJ/v5A==",
+      "cpu": [
+        "arm64"
+      ],
+      "libc": [
+        "glibc"
+      ],
+      "license": "LGPL-3.0-or-later",
+      "optional": true,
+      "os": [
+        "linux"
+      ],
+      "funding": {
+        "url": "https://opencollective.com/libvips"
+      }
+    },
+    {
+      "name": "@img/colour",
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/@img/colour/-/colour-1.1.0.tgz",
+      "integrity": "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    {
+      "name": "detect-libc",
+      "version": "2.1.2",
+      "resolved": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
+      "integrity": "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=8"
+      }
+    },
+    {
+      "name": "semver",
+      "version": "7.8.5",
+      "resolved": "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz",
+      "integrity": "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==",
+      "license": "ISC",
+      "bin": {
+        "semver": "bin/semver.js"
+      },
+      "engines": {
+        "node": ">=10"
+      }
+    }
+  ],
+  "platform": "linux",
+  "arch": "arm64",
+  "node": "26.10.0",
+  "zlib": "1.3.2.1-motley-285e94b",
+  "versions": {
+    "aom": "3.15.0",
+    "archive": "3.8.9",
+    "cairo": "1.18.4",
+    "cgif": "0.5.3",
+    "exif": "0.6.26",
+    "expat": "2.8.3",
+    "ffi": "3.8.0",
+    "fontconfig": "2.18.3",
+    "freetype": "2.14.3",
+    "fribidi": "1.0.16",
+    "glib": "2.89.4",
+    "harfbuzz": "14.3.1",
+    "heif": "1.23.2",
+    "highway": "1.4.0",
+    "imagequant": "2.4.1",
+    "lcms": "2.19.1",
+    "mozjpeg": "0826579",
+    "pango": "1.58.2",
+    "pixman": "0.46.4",
+    "png": "1.6.58",
+    "proxy-libintl": "0.5",
+    "rsvg": "2.62.91",
+    "tiff": "4.7.2",
+    "uhdr": "2.0.2",
+    "vips": "8.18.6",
+    "webp": "1.6.0",
+    "xml2": "2.15.3",
+    "zlib-ng": "2.3.3",
+    "sharp": "0.35.4"
+  },
+  "files": [
+    {
+      "path": "node_modules/@img/colour/LICENSE.md",
+      "bytes": 4433,
+      "hash": "sha256:e2eaa4603c14cb26f301e88648c12a853fa3f0f5da6d4b0972958c666e7f2ab8"
+    },
+    {
+      "path": "node_modules/@img/colour/README.md",
+      "bytes": 562,
+      "hash": "sha256:be7edf3bc6467f761168cef3bb2b9b3def2532c98a86249848376ea00338ad1d"
+    },
+    {
+      "path": "node_modules/@img/colour/color.cjs",
+      "bytes": 45136,
+      "hash": "sha256:f7c3efcf482624007f2019fffee3e1dec56b8cb893faa9a420b2832805888dce"
+    },
+    {
+      "path": "node_modules/@img/colour/index.cjs",
+      "bytes": 49,
+      "hash": "sha256:e6e93e7fb209420a20fdf2ec676e9c67413be8d5ace99eec64f9468480f0368d"
+    },
+    {
+      "path": "node_modules/@img/colour/index.d.ts",
+      "bytes": 21569,
+      "hash": "sha256:2467b00d963828f540f4acd7910f4c04cfe4b489550e6bb682212f65583bca5b"
+    },
+    {
+      "path": "node_modules/@img/colour/package.json",
+      "bytes": 1515,
+      "hash": "sha256:bc38c5097693ed53b91c32f35fb0a52569736c7854ba2eb6d080f3252071f75c"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm64/README.md",
+      "bytes": 4340,
+      "hash": "sha256:b05efaa208519f349746a54ee195c433ab8e5c250847a257c984c7a9dc68df20"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm64/lib/glib-2.0/include/glibconfig.h",
+      "bytes": 5894,
+      "hash": "sha256:c5862443f3f5441996238f7aaae21516999eb0b4a1aae06f633593abb78abc7e"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm64/lib/index.js",
+      "bytes": 28,
+      "hash": "sha256:516a08c06660cddb50d5f30ccac29a0514b05724956a11e8a7e6b799f2e1ab72"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.6",
+      "bytes": 18259144,
+      "hash": "sha256:264d3092d69de80f5acdb71c930efec8db5bd9627f41659ed3416566b9ae34b4"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm64/package.json",
+      "bytes": 948,
+      "hash": "sha256:7db60e48a9e1b701178f77cbeeac6f43b1a99d634d04d12843103ee00b3c155d"
+    },
+    {
+      "path": "node_modules/@img/sharp-libvips-linux-arm64/versions.json",
+      "bytes": 597,
+      "hash": "sha256:adddf5e76ac1cc03b503a17c488b8591dd9eb5ec3faf689a3852d02d1b5fbb10"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-arm64/LICENSE",
+      "bytes": 10273,
+      "hash": "sha256:73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-arm64/README.md",
+      "bytes": 706,
+      "hash": "sha256:ccc883ec303dac4dbe86e7e255d86c62263323aec600978761e57353c55cd63e"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-arm64/index.cjs",
+      "bytes": 139,
+      "hash": "sha256:8caf72986896ed7bbff4cd3fa5c5dedcb952eb67d29369170c5b78de0d2b399b"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-arm64/lib/sharp-linux-arm64-0.35.4.node",
+      "bytes": 530120,
+      "hash": "sha256:4f53dd2f4ce3ca21ec01f908f7c475d9ca0c9d0d6555180abcbd6e8e4f09722d"
+    },
+    {
+      "path": "node_modules/@img/sharp-linux-arm64/package.json",
+      "bytes": 936,
+      "hash": "sha256:55891f809d270721d677f1f8aecc7e5319832e69174e745beaabaf1d0de49b29"
+    },
+    {
+      "path": "node_modules/detect-libc/LICENSE",
+      "bytes": 11357,
+      "hash": "sha256:b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    },
+    {
+      "path": "node_modules/detect-libc/README.md",
+      "bytes": 3215,
+      "hash": "sha256:51a97449c443889155bc872522e6de5a91a5fa73edeffa03d749e186bf0eebca"
+    },
+    {
+      "path": "node_modules/detect-libc/index.d.ts",
+      "bytes": 436,
+      "hash": "sha256:9500090533aafe039c41d8d368a44959f04482bb75636d96bc843c06f3d6a348"
+    },
+    {
+      "path": "node_modules/detect-libc/lib/detect-libc.js",
+      "bytes": 7503,
+      "hash": "sha256:5de6a1c1abec8bba5ea1261cf819d83a73c92ebe72b879ae48c59ca12320a462"
+    },
+    {
+      "path": "node_modules/detect-libc/lib/elf.js",
+      "bytes": 982,
+      "hash": "sha256:0e8820f00ee11d179d94894d4f97a6e87c34ab59e5dd4d3a571dfabcecf043af"
+    },
+    {
+      "path": "node_modules/detect-libc/lib/filesystem.js",
+      "bytes": 1097,
+      "hash": "sha256:5c98fb66b559d0b4fa82c7a3e39d9ab6840f022c4c73e6b1a73ac6d16ec13fd7"
+    },
+    {
+      "path": "node_modules/detect-libc/lib/process.js",
+      "bytes": 569,
+      "hash": "sha256:f37dd0ead9f70b50c6f5529c600e1cdf076e3c3bc8e6b4a0a9820a8d65244628"
+    },
+    {
+      "path": "node_modules/detect-libc/package.json",
+      "bytes": 1278,
+      "hash": "sha256:ee88e5b954fdf3a8480b1d01ef767d68d8ca2c6da269f58c5cf1c5550e9aa2a7"
+    },
+    {
+      "path": "node_modules/semver/LICENSE",
+      "bytes": 765,
+      "hash": "sha256:4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b"
+    },
+    {
+      "path": "node_modules/semver/README.md",
+      "bytes": 25669,
+      "hash": "sha256:f1a789dcec285150be24db2ea04dd3175031554fa9834ec92fab83fb5e025a57"
+    },
+    {
+      "path": "node_modules/semver/bin/semver.js",
+      "bytes": 4957,
+      "hash": "sha256:bd6c871026985937dc945011fc54b74b47f5998154216d7b8d40d5ed782e4402"
+    },
+    {
+      "path": "node_modules/semver/classes/comparator.js",
+      "bytes": 3631,
+      "hash": "sha256:054202956430d63d5ff4599fae09760ce465b489e4f0b5ef5ce7cc7ac21157ac"
+    },
+    {
+      "path": "node_modules/semver/classes/index.js",
+      "bytes": 143,
+      "hash": "sha256:3bb69280c2a788d0eb16f915bb9df4dbe812075182024c753dca2283bcea1b17"
+    },
+    {
+      "path": "node_modules/semver/classes/range.js",
+      "bytes": 15647,
+      "hash": "sha256:a6544485aa8575aa9854c67e2caa67726815de18a482d0ceb8a1003244de3bc1"
+    },
+    {
+      "path": "node_modules/semver/classes/semver.js",
+      "bytes": 9891,
+      "hash": "sha256:813b2c185512d30c9b931c2fed8140889d9d7490ceeeedc370da30337dc8ca57"
+    },
+    {
+      "path": "node_modules/semver/functions/clean.js",
+      "bytes": 205,
+      "hash": "sha256:4eadb0892844cf3ae295121a86163a66c73f89acd1b7f0b114ec115b4539512f"
+    },
+    {
+      "path": "node_modules/semver/functions/cmp.js",
+      "bytes": 961,
+      "hash": "sha256:a63d74e87b73788e78e9ce0a4892b5333d6b809c0de88b31e4ed76cbf17f94b3"
+    },
+    {
+      "path": "node_modules/semver/functions/coerce.js",
+      "bytes": 2004,
+      "hash": "sha256:28a251c5ab210ddf9e97551b9f37a53329fcce91f0c3943dcbc02de1a1de915a"
+    },
+    {
+      "path": "node_modules/semver/functions/compare-build.js",
+      "bytes": 281,
+      "hash": "sha256:5ab651d5b40af289bd85c645a92b6d8cfe1a986dc413c797cfcc8d623d7c844c"
+    },
+    {
+      "path": "node_modules/semver/functions/compare-loose.js",
+      "bytes": 132,
+      "hash": "sha256:07b6a3a1db0a5210ceb784c1708bd4679f3a94fc73a9c9eb349349e7070a6f78"
+    },
+    {
+      "path": "node_modules/semver/functions/compare.js",
+      "bytes": 170,
+      "hash": "sha256:d404b5aa48aaddc8a654c5da8fb7d4443404b7948589b21ac4b045d1cee4e34c"
+    },
+    {
+      "path": "node_modules/semver/functions/diff.js",
+      "bytes": 1423,
+      "hash": "sha256:7a11fd39b987cdf06c65e928cb1aca49bec583feb86fb5c8fe47a6fd61d7de31"
+    },
+    {
+      "path": "node_modules/semver/functions/eq.js",
+      "bytes": 126,
+      "hash": "sha256:b6e30a7168e52723216fc163d300e2bbabf92ec0251f9ac5438bb6ccf57c8936"
+    },
+    {
+      "path": "node_modules/semver/functions/gt.js",
+      "bytes": 124,
+      "hash": "sha256:135523704aa48cd98834dd170ee9f74f0e68043b379f32d021db11e6304c5c93"
+    },
+    {
+      "path": "node_modules/semver/functions/gte.js",
+      "bytes": 127,
+      "hash": "sha256:991c5bbe48ecb210a562646872f05862ad9fc0d42186d85aa60bdc6fa323eb9d"
+    },
+    {
+      "path": "node_modules/semver/functions/inc.js",
+      "bytes": 478,
+      "hash": "sha256:952069fc8690b7d3af0fe9d55f7c54fe2ac067b48c5e74f6a54f9ce19a334493"
+    },
+    {
+      "path": "node_modules/semver/functions/lt.js",
+      "bytes": 124,
+      "hash": "sha256:1c897a9bc849320e2e9dc0f6c09555c01ee3ddf30734515d717b88ad7740ea25"
+    },
+    {
+      "path": "node_modules/semver/functions/lte.js",
+      "bytes": 127,
+      "hash": "sha256:3a8d0b1d00423f60cc7cb810b36ab77b61330831ad237dbe73eb5cecfa412800"
+    },
+    {
+      "path": "node_modules/semver/functions/major.js",
+      "bytes": 136,
+      "hash": "sha256:5c678480d882f511200fed2c16ec3847dfedb08a1d70328dc2f031d35d825276"
+    },
+    {
+      "path": "node_modules/semver/functions/minor.js",
+      "bytes": 136,
+      "hash": "sha256:1b051794f1713adec2a236517196691687c35f82e0b596ff3316a78b3cc10ae6"
+    },
+    {
+      "path": "node_modules/semver/functions/neq.js",
+      "bytes": 128,
+      "hash": "sha256:a662883751918822c162183b46b9e20d09489132f82686c92ab78bee67f3a127"
+    },
+    {
+      "path": "node_modules/semver/functions/parse.js",
+      "bytes": 331,
+      "hash": "sha256:29a69e15b6d02fe381d573f861881a89590e9d0f0f0ca740c5f85eaf0234c4ad"
+    },
+    {
+      "path": "node_modules/semver/functions/patch.js",
+      "bytes": 136,
+      "hash": "sha256:f02d3c1b059fe3d96ce124886f7eef321d381a95638fd3c4a8d5ccd8e76ffadd"
+    },
+    {
+      "path": "node_modules/semver/functions/prerelease.js",
+      "bytes": 234,
+      "hash": "sha256:baedbf503d5610ad041bfb56071efa48feb331ca278295c399537d35d3ffb593"
+    },
+    {
+      "path": "node_modules/semver/functions/rcompare.js",
+      "bytes": 132,
+      "hash": "sha256:84fa5e88adf08d15c993cac8cdec6d1a65045b7e95a9c55184230a7f807f4dc0"
+    },
+    {
+      "path": "node_modules/semver/functions/rsort.js",
+      "bytes": 163,
+      "hash": "sha256:6ec659ce3b6c2b173c719286caab04409adba046c0917874ec3b5e36ddfbc7e3"
+    },
+    {
+      "path": "node_modules/semver/functions/satisfies.js",
+      "bytes": 247,
+      "hash": "sha256:8cf5e122b757251671ed6c9d9680904b71cd375845853f05312e608cf2cc2946"
+    },
+    {
+      "path": "node_modules/semver/functions/sort.js",
+      "bytes": 161,
+      "hash": "sha256:c2fe2d3ed0be8a4e9de8f02abdfd5d9c0d3bcc510d88e87af84185592882c4b8"
+    },
+    {
+      "path": "node_modules/semver/functions/truncate.js",
+      "bytes": 1021,
+      "hash": "sha256:e145833a250311927c92f424f56498c52f1b7bb1271ce6afbf006db87773ff43"
+    },
+    {
+      "path": "node_modules/semver/functions/valid.js",
+      "bytes": 176,
+      "hash": "sha256:0de7ea736cb7807179d46dfac09c830a9338e02b6a07db12d7040cde2def6025"
+    },
+    {
+      "path": "node_modules/semver/index.js",
+      "bytes": 2691,
+      "hash": "sha256:4b3e57d3d40e29e0706002eba113d09f35aea593578376bbeec83b777b9912ab"
+    },
+    {
+      "path": "node_modules/semver/internal/constants.js",
+      "bytes": 873,
+      "hash": "sha256:38a112baf27ceca0260082ff26ac2fd7a9861cab1af12dd65e720277f68e6ce9"
+    },
+    {
+      "path": "node_modules/semver/internal/debug.js",
+      "bytes": 240,
+      "hash": "sha256:8a9f420572260f3cf944463b5090d62a60f0730589dc23a7ec4ca25e2ee41bb3"
+    },
+    {
+      "path": "node_modules/semver/internal/identifiers.js",
+      "bytes": 525,
+      "hash": "sha256:b4916b09dc7869ae0eb05e71c855c942a3a7365f7e6e89185d59a9e45a2451d7"
+    },
+    {
+      "path": "node_modules/semver/internal/lrucache.js",
+      "bytes": 802,
+      "hash": "sha256:14d087c87da87b6f5c36fc4cdd7d2d14077874b14a68e20fce5b6138fa2ca34f"
+    },
+    {
+      "path": "node_modules/semver/internal/parse-options.js",
+      "bytes": 338,
+      "hash": "sha256:fdf51d0de8d5442c35a997ef58cd530d239ce206f961d14c5121354451b01d01"
+    },
+    {
+      "path": "node_modules/semver/internal/re.js",
+      "bytes": 8139,
+      "hash": "sha256:5833262888e2b5d843a69193f83c05e374818dbe55379b497819b5bf58e48cd8"
+    },
+    {
+      "path": "node_modules/semver/package.json",
+      "bytes": 1661,
+      "hash": "sha256:7c94cb7f2a53c27b20d76386ec144c062894dbcc909cfabd0f728c37874b1776"
+    },
+    {
+      "path": "node_modules/semver/preload.js",
+      "bytes": 83,
+      "hash": "sha256:edb6808911bebcb324b2df57e5c9935149e56984ff083b74c6cfe215f5b710ba"
+    },
+    {
+      "path": "node_modules/semver/range.bnf",
+      "bytes": 702,
+      "hash": "sha256:15d0baf9b7b98e6d862c0cb9e822d2533d2bc23e136bb75314d802ca1fcb0392"
+    },
+    {
+      "path": "node_modules/semver/ranges/gtr.js",
+      "bytes": 231,
+      "hash": "sha256:8fadad28e36d28e93d498ac7ac20badba2a407312845eabc18e82e90a0732b19"
+    },
+    {
+      "path": "node_modules/semver/ranges/intersects.js",
+      "bytes": 224,
+      "hash": "sha256:fe87ac5d3020010ad3ec00636dadbf0c669ff07d0f57e0a8165a8264f79a676f"
+    },
+    {
+      "path": "node_modules/semver/ranges/ltr.js",
+      "bytes": 227,
+      "hash": "sha256:e5186fcc03018acf9be6d968755d4c49727aeb0d981d179eb568ae5fbe983038"
+    },
+    {
+      "path": "node_modules/semver/ranges/max-satisfying.js",
+      "bytes": 593,
+      "hash": "sha256:e1a2c0d6144cc772cd20bbc8ecb9e8a3a4074e9172a3d8e794838b591cdeb416"
+    },
+    {
+      "path": "node_modules/semver/ranges/min-satisfying.js",
+      "bytes": 591,
+      "hash": "sha256:2681abf54098aa670f12826b76a6ec77a2441186ae4243afde3be8ae4908f7ca"
+    },
+    {
+      "path": "node_modules/semver/ranges/min-version.js",
+      "bytes": 1514,
+      "hash": "sha256:fefba0a88c2bf74d5cede504b5ae50a8dc3edfd69cf0174a491e2cf3e442614b"
+    },
+    {
+      "path": "node_modules/semver/ranges/outside.js",
+      "bytes": 2204,
+      "hash": "sha256:3a2b0b23593d2f49419c06af2af75450cab103b0c25d665d48fe5bca495a21ca"
+    },
+    {
+      "path": "node_modules/semver/ranges/simplify.js",
+      "bytes": 1355,
+      "hash": "sha256:7b78581c13322bc68ece2088685386b2a9b51c15b94d0a2063bdf2546bd41934"
+    },
+    {
+      "path": "node_modules/semver/ranges/subset.js",
+      "bytes": 7478,
+      "hash": "sha256:ceb9eb6ed5bfc6c7ac7af7f47e5c3535444a4e66a0e2b58cdad4bd02a35d454d"
+    },
+    {
+      "path": "node_modules/semver/ranges/to-comparators.js",
+      "bytes": 282,
+      "hash": "sha256:6c5e966210cff270fa2850668aaf8460fac7759f8d99f282521ef7a78f4564e9"
+    },
+    {
+      "path": "node_modules/semver/ranges/valid.js",
+      "bytes": 326,
+      "hash": "sha256:5ef6f995af801868925940cf8df5735d565ebabb090b068695cae65218bcd3ac"
+    },
+    {
+      "path": "node_modules/sharp/LICENSE",
+      "bytes": 10273,
+      "hash": "sha256:73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68"
+    },
+    {
+      "path": "node_modules/sharp/README.md",
+      "bytes": 3162,
+      "hash": "sha256:89772961fcf195b976573874555f2902bfe04a3e57be61af261ac65ce9348735"
+    },
+    {
+      "path": "node_modules/sharp/dist/channel.cjs",
+      "bytes": 5383,
+      "hash": "sha256:7445567e8001f4be3126374e4c17e282777ed14c718acca875c91bec69a2d7a1"
+    },
+    {
+      "path": "node_modules/sharp/dist/channel.mjs",
+      "bytes": 5376,
+      "hash": "sha256:6067b0ba5ebcc9682a01d0b450a12b54849a95c8ed017f8485bddb5fd0b9db91"
+    },
+    {
+      "path": "node_modules/sharp/dist/colour.cjs",
+      "bytes": 5622,
+      "hash": "sha256:da760186e75d4fd8b6da0a617ecf122deec2fa6d95fdcc194bbee0cb1c5e4605"
+    },
+    {
+      "path": "node_modules/sharp/dist/colour.mjs",
+      "bytes": 5610,
+      "hash": "sha256:760e7fa8161432a9cc97f0a3d9f3e0b757e66089c967e6b36f3131c9fdafa1b5"
+    },
+    {
+      "path": "node_modules/sharp/dist/composite.cjs",
+      "bytes": 9332,
+      "hash": "sha256:6e0837309d25c2b642d42b557f3e1292c2b057af09746647a3a6d54de772a157"
+    },
+    {
+      "path": "node_modules/sharp/dist/composite.mjs",
+      "bytes": 9325,
+      "hash": "sha256:16eadc26ba57417e90e4bb73aff1116b56ad26766088793ab0b7c4bbdd2bc9fc"
+    },
+    {
+      "path": "node_modules/sharp/dist/constructor.cjs",
+      "bytes": 20364,
+      "hash": "sha256:6b8978e0f1614d83a219cbbd455e3eed7922bc4212a5b3b99c5d37c3af3b3226"
+    },
+    {
+      "path": "node_modules/sharp/dist/constructor.mjs",
+      "bytes": 20340,
+      "hash": "sha256:8be8da679d2a028d0f53b02ce52f07f295134a297caf3068944cd8d0b57ab3d1"
+    },
+    {
+      "path": "node_modules/sharp/dist/index.cjs",
+      "bytes": 620,
+      "hash": "sha256:d69f275bc49fcd2a6188b26b35c986d4db32a1b008653fef88adb4598688232a"
+    },
+    {
+      "path": "node_modules/sharp/dist/index.d.cts",
+      "bytes": 92867,
+      "hash": "sha256:2876b0808194e7e14eb78d59f28aa835d9146bbafd4b7ae150b3fbf1da54b8e6"
+    },
+    {
+      "path": "node_modules/sharp/dist/index.d.mts",
+      "bytes": 87968,
+      "hash": "sha256:a68f36dc8c71757c01f7b0a32333997f510dd61a2de0a3ae1ac23072c368ec37"
+    },
+    {
+      "path": "node_modules/sharp/dist/index.mjs",
+      "bytes": 573,
+      "hash": "sha256:0e8f955c68a1b0bccf0ba5343c924dbfa6a46a76a0d491ec27fe6b328311363e"
+    },
+    {
+      "path": "node_modules/sharp/dist/input.cjs",
+      "bytes": 33741,
+      "hash": "sha256:e5eb5c891c0893098dbe8bc0358a2f2c7e800581018923a7956732fe1a5ddf8f"
+    },
+    {
+      "path": "node_modules/sharp/dist/input.mjs",
+      "bytes": 33729,
+      "hash": "sha256:4b0a51e678f9022cec06a1ffb34e17ea3498cfb707492b54de87541ccac54125"
+    },
+    {
+      "path": "node_modules/sharp/dist/is.cjs",
+      "bytes": 2932,
+      "hash": "sha256:3fd05ca6f6cd762c0c2279545e6114623d708f49851b3d23b8396c621455ccc8"
+    },
+    {
+      "path": "node_modules/sharp/dist/is.mjs",
+      "bytes": 2930,
+      "hash": "sha256:d87220e2c4ce04202290fdfd78105a65d32adce3fead64aaaaca15cfe324f95d"
+    },
+    {
+      "path": "node_modules/sharp/dist/libvips.cjs",
+      "bytes": 5833,
+      "hash": "sha256:3419f6cb4303feaf4a76abe122ce1caf5dc755f9f17fa013afd5561827b61062"
+    },
+    {
+      "path": "node_modules/sharp/dist/libvips.mjs",
+      "bytes": 5828,
+      "hash": "sha256:d9984601b0aafe44c393b29ce4b0712b1c40890c3d740d4fda49842a4ea5873d"
+    },
+    {
+      "path": "node_modules/sharp/dist/operation.cjs",
+      "bytes": 32882,
+      "hash": "sha256:3d1ba66d41f48afb47f1b17d93cd395d1a007159a0e79abe7291e3e0fb42b6f7"
+    },
+    {
+      "path": "node_modules/sharp/dist/operation.mjs",
+      "bytes": 32875,
+      "hash": "sha256:257872181be8d6b66f3f310fff5f17f3c297ff258ab3005d09a954844b3eeb6b"
+    },
+    {
+      "path": "node_modules/sharp/dist/output.cjs",
+      "bytes": 65416,
+      "hash": "sha256:2ef21e22c65653900ee5cf6ef9e40d7fd8a432c3b0a29bed970ed50326638f88"
+    },
+    {
+      "path": "node_modules/sharp/dist/output.mjs",
+      "bytes": 65399,
+      "hash": "sha256:a5ae31763bec9e0a5d41da3d5cbcea3fcfc7d366218c199f9cece530ce48846a"
+    },
+    {
+      "path": "node_modules/sharp/dist/resize.cjs",
+      "bytes": 22784,
+      "hash": "sha256:c37228db16357fe52e48b2cd29deba87c49a480eb488aa859961eb378e407cf8"
+    },
+    {
+      "path": "node_modules/sharp/dist/resize.mjs",
+      "bytes": 22777,
+      "hash": "sha256:641e7493bd89855605d052a9a6a2a867fbb7291d97242252ecd57aeb9ed62ae0"
+    },
+    {
+      "path": "node_modules/sharp/dist/sharp.cjs",
+      "bytes": 6199,
+      "hash": "sha256:4fc05edeae66ea8207332f7c03045856e43f371a848401a01491ff15e77d839f"
+    },
+    {
+      "path": "node_modules/sharp/dist/sharp.mjs",
+      "bytes": 6294,
+      "hash": "sha256:994230859dcfa1235dee5bf612069d14844153b997cf7309deb2ea0012ec5419"
+    },
+    {
+      "path": "node_modules/sharp/dist/utility.cjs",
+      "bytes": 9786,
+      "hash": "sha256:0f7a14858dfa8ebd01b2c6c2272297f7a34c4af3d84f0c0b926146c49a2655b1"
+    },
+    {
+      "path": "node_modules/sharp/dist/utility.mjs",
+      "bytes": 9862,
+      "hash": "sha256:761566e165bc1fc90bc6dd67a3b560c1a63e6cfe98009b726d35288606d629b9"
+    },
+    {
+      "path": "node_modules/sharp/install/build.js",
+      "bytes": 860,
+      "hash": "sha256:fea92e0d55cce8692413c479021173aa1512304e1b849039949cbee9d6ceb1de"
+    },
+    {
+      "path": "node_modules/sharp/lib/index.d.ts",
+      "bytes": 92867,
+      "hash": "sha256:2876b0808194e7e14eb78d59f28aa835d9146bbafd4b7ae150b3fbf1da54b8e6"
+    },
+    {
+      "path": "node_modules/sharp/package.json",
+      "bytes": 8115,
+      "hash": "sha256:27b5a6c6e1e1f27c527b09a963c932979403837d0f5f013ab5bdfb4a0ef2269a"
+    },
+    {
+      "path": "node_modules/sharp/src/binding.gyp",
+      "bytes": 10805,
+      "hash": "sha256:9d0a43b5db5db4e6a4a662ff059d8bf30e57ea403d2e207fc408a8c6aa0ab8c8"
+    },
+    {
+      "path": "node_modules/sharp/src/common.cc",
+      "bytes": 41423,
+      "hash": "sha256:da681305ad288d1e1947b8ad5f6b1ddbe221236d77f801c67de7bfb637cfc981"
+    },
+    {
+      "path": "node_modules/sharp/src/common.h",
+      "bytes": 10988,
+      "hash": "sha256:fcca4777bbb2363bb9c2ff082eb8e0264096151a975a332a9450dbb97d636fae"
+    },
+    {
+      "path": "node_modules/sharp/src/metadata.cc",
+      "bytes": 15320,
+      "hash": "sha256:a127c134c9e537db9c63962ff1aa1d0762a8d517d746a844e6b43b299e11a581"
+    },
+    {
+      "path": "node_modules/sharp/src/metadata.h",
+      "bytes": 1878,
+      "hash": "sha256:5e02c25ec821a525b0caf31161b1e8675ff32cfd098c17cda0b888440362b057"
+    },
+    {
+      "path": "node_modules/sharp/src/operations.cc",
+      "bytes": 17412,
+      "hash": "sha256:a61e6545cde7d2f2ae508b4eceeeec9db9ef711211d5cba1ed470f9325f914fb"
+    },
+    {
+      "path": "node_modules/sharp/src/operations.h",
+      "bytes": 3625,
+      "hash": "sha256:6f41d329634471dff8e093d12e38ff356293079e2aeecc5b922fc23ba99799e6"
+    },
+    {
+      "path": "node_modules/sharp/src/pipeline.cc",
+      "bytes": 90883,
+      "hash": "sha256:76010d19804f37f2231f3d705afdd0937ac593663797780a36c06c3952cd6571"
+    },
+    {
+      "path": "node_modules/sharp/src/pipeline.h",
+      "bytes": 10131,
+      "hash": "sha256:e09c3dbd873071a373e6d95679b470a6fe1be5fc2ef781b00fd87958b5ab5e98"
+    },
+    {
+      "path": "node_modules/sharp/src/sharp.cc",
+      "bytes": 1529,
+      "hash": "sha256:9f407b50bb2d02e5eb711b769f05d3e6659028430e055c4271e5ab1593f5a257"
+    },
+    {
+      "path": "node_modules/sharp/src/stats.cc",
+      "bytes": 6756,
+      "hash": "sha256:72f8f2ad0e4315951c88b115511eb96741fd0479385ed094141f7bd254739791"
+    },
+    {
+      "path": "node_modules/sharp/src/stats.h",
+      "bytes": 1267,
+      "hash": "sha256:db854f0c3c4a0db1751021ed676413c6d5ca00becc08bdc13258b29047450b8c"
+    },
+    {
+      "path": "node_modules/sharp/src/utilities.cc",
+      "bytes": 9532,
+      "hash": "sha256:694195a5f2aa7e4ef50aa7a97c0381d8a858a6b3a437997e17b972aff093a493"
+    },
+    {
+      "path": "node_modules/sharp/src/utilities.h",
+      "bytes": 741,
+      "hash": "sha256:0b126ab63cf1aedf8e71e6cb8179899d3ef02c46419100e847b2ca4284b8901b"
+    }
+  ],
+  "profiles": {
+    "srgb": {
+      "hash": "sha256:c56e1685d888f5edb92fe07f2750f387f8fe8e91b32ff8fb0b56bfbbb9458353",
+      "bytes": 480
+    },
+    "p3": {
+      "hash": "sha256:231752984cd4a5278e1b8d2390fe496767d4511fc81f54e1a5c69ae9ab4c42b5",
+      "bytes": 480
+    }
+  },
+  "interfaces": [
+    "https://sharp.pixelplumbing.com/api-constructor/",
+    "https://sharp.pixelplumbing.com/api-input/",
+    "https://sharp.pixelplumbing.com/api-output/",
+    "https://sharp.pixelplumbing.com/api-utility/",
+    "https://sharp.pixelplumbing.com/install/"
+  ],
+  "producer": {
+    "name": "ideogram-linux-codecs",
+    "version": "1.0.0",
+    "libc": "glibc",
+    "expectedPackages": "sha256:b5add82c23087b8585b17c9d38bbc92d9fa767f7fa71bd8988b6cc146e9300ed",
+    "originalMacCodecIdentity": "sha256:41788495dc59578314b09974051b717b9a28f47d118b16d1bd204dca147be81e"
+  },
+  "resolutions": [
+    {
+      "specifier": "sharp",
+      "path": "node_modules/sharp/dist/index.cjs"
+    },
+    {
+      "specifier": "@img/sharp-linux-arm64/sharp.node",
+      "path": "node_modules/@img/sharp-linux-arm64/index.cjs"
+    },
+    {
+      "specifier": "@img/sharp-libvips-linux-arm64/binary",
+      "path": "node_modules/@img/sharp-libvips-linux-arm64/lib/libvips-cpp.so.8.18.6"
+    },
+    {
+      "specifier": "@img/colour",
+      "path": "node_modules/@img/colour/index.cjs"
+    },
+    {
+      "specifier": "detect-libc",
+      "path": "node_modules/detect-libc/lib/detect-libc.js"
+    },
+    {
+      "specifier": "semver",
+      "path": "node_modules/semver/index.js"
+    }
+  ]
+} as const;
+export const CODEC_ID = "sha256:9b2bc66139b4b40545375e31d7bd526d7c1c7f1b4a8e9f33f9c03c926fd94c27";

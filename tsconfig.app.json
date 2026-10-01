@@ -4,5 +4,5 @@
     "resolveJsonModule": true,
     "paths": { "canvaskit-wasm": ["./vendor/text/canvaskit.d.ts"] }
   },
-  "include": ["src/**/*.ts", "vite.app.config.ts", "tests/browser/**/*.ts", "tests/text/**/*.ts"]
+  "include": ["src/**/*.ts", "vite.app.config.ts", "tests/browser/**/*.ts", "tests/text/**/*.ts", "tests/adapters/**/*.ts", "tests/request-edits/**/*.ts", "tests/qualification/**/*.ts"]
 }

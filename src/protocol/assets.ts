@@ -13,8 +13,9 @@ export type AssetBody =
 // This is an owned original, never a RasterRef. Raster qualification creates a
 // separate immutable version with its exact canonical dependencies in P1b.4.
 export type Asset = { id: string; version: Seq; purpose: StagingPurpose; blob: BlobRef; dependencies: readonly BlobRef[];
+  retainedMetadata?: BlobRef;
   safety: 'safe' | 'unknown' | 'withheld' | 'quarantined'; availability: 'available' | 'missing' | 'corrupt';
-  qualification: 'opaque-text' | 'pending-decoder' | 'raster-preview' | 'canonical-raster' | 'canonical-png' | 'pending-text' | 'font'; measuredMediaType: 'text/plain' | 'image/png' | 'image/jpeg' | 'image/webp' | 'application/octet-stream'; font?: import('./text.js').FontVersion; raster?: RasterInfo };
+  qualification: 'opaque-text' | 'pending-decoder' | 'raster-preview' | 'canonical-raster' | 'canonical-png' | 'canonical-jpeg' | 'pending-text' | 'font' | 'pending-adapter' | 'adapter-version' | 'adapter-deletion'; measuredMediaType: 'text/plain' | 'image/png' | 'image/jpeg' | 'image/webp' | 'application/octet-stream'; font?: import('./text.js').FontVersion; adapter?: import('./adapters.js').AdapterVersion; adapterDeletion?: import('./adapters.js').AdapterDeletionRecord; raster?: RasterInfo };
 export type AssetFact =
   | { type: 'AssetRegistered'; payload: { asset: Asset } }
   | { type: 'RasterReviewPrepared'; payload: { reviewId: string; reviewHash: string } }

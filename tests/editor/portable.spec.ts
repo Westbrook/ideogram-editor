@@ -1,4 +1,5 @@
 import {specReceipt} from './receipt-path.js';
+import {prepareNativePNG} from './export-workflow.js';
 import {test as base,expect,type Page} from '@playwright/test';
 import {mkdtemp,realpath,readFile,writeFile,rm,mkdir,copyFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -60,7 +61,7 @@ test('E1 browser copy, actual process restart/new port, reviewed reopen and exac
  await click(page,'Open');await page.getByRole('button',{name:/^Restore ui_/}).click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
  await click(page,'Open');await page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath);
  await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
- await click(page,'Export image');await expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG');const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+ await prepareNativePNG(page);const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
  disrupting=true;retiredOrigins.add(server.origin);await server.kill();server=await serverProcess(root);await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore p_/});await expect(mapped).not.toHaveCount(0);
  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');

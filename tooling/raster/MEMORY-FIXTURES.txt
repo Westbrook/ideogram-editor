@@ -1,0 +1,121 @@
+ADVERSARIAL WEBP FIXTURE PREPARATION
+
+generate-memory-fixtures.mjs produces original CC0 synthetic inputs for a later,
+separate bounded-decoder/whole-writer diagnostic. It does not run the product or
+qualify its resource envelope. Generation can consume substantial encoder memory;
+run it only in the coordinated heavy-work window, never beside an RSS campaign.
+
+Default production (five 5000x5000 files, three retained canonical PNG sources):
+
+  .toolchain/bin/node tooling/raster/generate-memory-fixtures.mjs \
+    --out artifacts/a-r01-adversarial-fixtures-01
+
+Cheap smoke preparation, when the coordinator permits native execution:
+
+  .toolchain/bin/node tooling/raster/generate-memory-fixtures.mjs \
+    --out artifacts/a-r01-adversarial-smoke-01 --width 31 --height 29 --effort 0
+
+The output must be a new direct child of this repository's ignored artifacts/
+directory. Existing directories, including failed attempts, are refused. No
+existing fixture, seal or evidence is refreshed. The receipt is updated atomically
+inside the newly owned directory; failures and partial outputs remain available.
+An attempt can be narrowed with --fixtures opaque-entropy-lossless (comma-separated
+choices: opaque-entropy-lossless, opaque-entropy-lossy, alpha-entropy-lossless,
+alpha-entropy-lossy, alpha-noise-lossy). --seed takes a nonzero unsigned32 value;
+--effort accepts0..6.
+
+Each source uses specified xorshift32 RGB in row-major order. Opaque images have
+alpha255. alpha-entropy images use compressible16x16 tiles of0,1,32,127,254,255;
+alpha-noise uses the high8bits of each RNG word for alpha. Both set RGB to zero
+where alpha is zero, avoiding any dependence on preservation of hidden RGB. The
+noisy25MP ALPH plane exposes the historical classifier's4MiB metadata rejection:
+ALPH contains encoded image data and must not silently narrow accepted alpha
+image scope. Receipts report ALPH bytes separately and whether the legacy sum
+would exceed4MiB; they do not hide that fixture or increase the metadata cap.
+RIFF structure, static image dimensions and actual metadata bytes are inspected
+without decoding. A header check alone is not a successful product import.
+
+The script constructs one RGBA row at a time, hashes source RGBA and alpha bytes
+independently of any decoder, and writes a deterministic filter0 RGBA8/sRGB PNG
+with fixed65536-byte IDAT framing independent of stream scheduling. Sealed installed
+Sharp/libvips inputs are hash-verified before loading the native encoder and again
+after generation. All exact encoder options, source/PNG/WebP byte hashes, codec identity,
+Node/zlib versions, source-script hash and algorithm are recorded in receipt.json.
+Identical pinned platform/runtime/options should reproduce encoded bytes; the
+receipt records actual bytes rather than presuming cross-platform equivalence.
+
+For lossless WebP, source RGBA SHA256 is an independent exact decoded pixel oracle.
+For lossy WebP, source RGBA is provenance only: alphaQuality100 supplies an exact
+alpha oracle, while expectedDecodedRgbaHash is explicitly null. A separate decoded
+RGB reference must be obtained before making full pixel-equality claims. These
+fixtures do not supply P3, formal PERF, repeated-writer or lifecycle qualification.
+A bounded native resource refusal is a separate result to capture with original
+retention and zero residual native allocation checks, not evidence of corruption
+or permission to increase the128MiB native budget or512MiB whole-writer RSS cap.
+
+SINGLE ORIGINAL-COMMAND WRITER DIAGNOSTIC
+
+After the coordinated pinned build/functional gate and with all other heavy work
+idle, measure one generated fixture in a new writer process:
+
+  .toolchain/bin/node --import ./tests/store/no-network.mjs \
+    tooling/raster/measure-adversarial-webp.mjs \
+    artifacts/a-r01-adversarial-fixtures-01/receipt.json \
+    opaque-entropy-lossless artifacts/a-r01-adversarial-lossless-01.json
+
+The output receipt must not already exist. Source staging is streamed in1MiB
+chunks. Exactly one PrepareRaster is submitted; resource-pending commands are
+retained without retry, fallback or invented canonical output. The diagnostic
+records the original command and assetProjection and directly hashes the owned
+original object, since pending-decoder content is intentionally withheld from
+assetVerify. Accepted raw objects are hashed in aligned1MiB chunks, with at most
+256KiB alpha scratch, then checked against the fixture's independent oracles.
+
+status=completed means the diagnostic finished. outcome=accepted records a decoded
+preview; outcome=resource-refused records a matching writer CAPACITY observation
+and an unchanged, retained original command. The latter is not a supported decode
+or pixel-equality pass. The waiting-for-resources phase alone is insufficient:
+unexpected paused failures fail the diagnostic. Native allocation metrics must
+exist and show zero residual allocations for accepted bounded decodes. Resource
+refusals expose no native-success cleanup metric, and the receipt says so.
+
+Every outcome must remain within512MiB whole-process OS maxRSS through writer
+close. Source/fixture/script seals are compared before and after, all failed
+attempts and writer roots are retained, and no forced GC is used. A120-second work
+deadline bounds staging and command polling; final read-only preservation checks
+and orderly close follow even on failure. This one-command run is not complete
+R19, P3, platform qualification or a lifecycle/repeated-writer campaign.
+
+SEPARATE LOSSY RGBA REFERENCE
+
+Generate a full decoded RGB/alpha reference before starting the writer diagnostic:
+
+  .toolchain/bin/node --import ./tests/store/no-network.mjs \
+    tooling/raster/seal-memory-oracle.mjs \
+    artifacts/a-r01-adversarial-fixtures-01/receipt.json \
+    opaque-entropy-lossy artifacts/a-r01-lossy-oracle-01.json
+
+The producer verifies the unchanged generated receipt, selected fixture and
+installed sealed Sharp inputs, then starts one short-lived network-guarded child.
+That child decodes with ignoreIcc, sRGB, ensureAlpha and raw uchar, hashes all RGBA
+and alpha bytes, rechecks inputs and exits. The complete decoded buffer and Sharp
+allocations live only in this oracle process. Its RSS is explicitly generation
+evidence, not a product512MiB result. Wait for the command to exit, then pass only
+its small sealed receipt into a fresh product diagnostic:
+
+  .toolchain/bin/node --import ./tests/store/no-network.mjs \
+    tooling/raster/measure-adversarial-webp.mjs \
+    artifacts/a-r01-adversarial-fixtures-01/receipt.json \
+    opaque-entropy-lossy artifacts/a-r01-adversarial-lossy-01.json \
+    --oracle artifacts/a-r01-lossy-oracle-01.json
+
+The consumer binds both receipt payload seals, exact source/guard hashes, fixture
+and generation-receipt hashes, active codec identity/platform/runtime, recipe,
+successful exited child and full RGBA/alpha hashes. It rejects an oracle completed
+after this writer diagnostic started. Before/after checks retain source identities;
+prior generated receipts, oracle attempts and failure logs are never overwritten.
+All accepted decoded RGBA bytes must match the optional reference, including
+lossy RGB. The alternate Sharp path is independent of the product bounded wrapper
+and output bridge but shares libwebp lineage/version; it is not an independent
+native codec implementation, P3/PERF qualification or a reason to combine the
+oracle encoder/decoder process with product RSS measurements.

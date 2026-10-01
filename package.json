@@ -9,6 +9,13 @@
   },
   "packageManager": "npm@12.1.0",
   "scripts": {
+    "qualify": "node tooling/qualification/run.mjs",
+    "test:qualification": "node tooling/qualification/test.mjs",
+    "perf:runtime": "node --import ./tests/store/no-network.mjs tooling/qualification/runtime.mjs",
+    "perf:dev": "node tooling/qualification/dev.mjs",
+    "test:adapters": "node tooling/qualification/development.mjs run --groups adapters",
+    "test:adapters:browser": "node tooling/qualification/development.mjs run --groups preflight --browsers chromium --browser-groups adapters",
+    "test:provider": "node tooling/qualification/development.mjs run --groups provider",
     "test:node": "node tooling/test-node.mjs",
     "audit:reviews": "python3 tooling/review-workspaces.py",
     "verify:vendor": "python3 tooling/verify-vendor.py",
@@ -25,7 +32,7 @@
     "test:consumer": "node tooling/test-consumer.mjs",
     "test:browser": "node tooling/qualification/development.mjs run --groups preflight --browsers chromium --browser-groups consumer",
     "typecheck:app": "tsc --noEmit -p tsconfig.app.json",
-    "build:app": "npm run verify:imports && vite build --config vite.app.config.ts",
+    "build:app": "npm run verify:imports && node tooling/theme/density.mjs && vite build --config vite.app.config.ts",
     "test:shell": "node tooling/qualification/development.mjs run --groups preflight --browsers chromium --browser-groups shell",
     "test:store": "node tooling/qualification/development.mjs run --groups store",
     "test:store:volume": "npm run build:server && node --import ./tests/store/no-network.mjs --test tests/store/volume-fault.mjs",
@@ -41,12 +48,10 @@
     "test:text": "node tooling/qualification/development.mjs run --groups preflight --browsers all --browser-groups text",
     "test:provider:unit": "node --import ./tests/provider/no-egress.mjs --test --test-concurrency=1 tests/provider/policy.test.mjs tests/provider/provenance.test.mjs",
     "test:provider:boundary": "node --import ./tests/provider/no-egress.mjs --test --test-concurrency=1 tests/provider/boundary.test.mjs",
-    "test:adapters": "node tooling/qualification/development.mjs run --groups adapters",
-    "test:adapters:browser": "node tooling/qualification/development.mjs run --groups preflight --browsers chromium --browser-groups adapters",
-    "test:provider": "node tooling/qualification/development.mjs run --groups provider",
     "validate": "node tooling/qualification/development.mjs",
     "test:preflight": "node tooling/qualification/preflight.mjs",
-    "test:tooling": "node tooling/qualification/development.mjs run --groups tooling"
+    "test:tooling": "node tooling/qualification/development.mjs run --groups tooling",
+    "verify:raster:producer": "node --import ./tooling/qualification/retain-producer-workspaces.mjs tooling/raster/bounded-webp/build.mjs --verify"
   },
   "dependencies": {
     "@en-reve/tokens": "file:vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",
@@ -63,8 +68,10 @@
   "devDependencies": {
     "@playwright/test": "1.63.0",
     "@types/node": "24.13.6",
+    "axe-core": "4.13.0",
     "typescript": "7.0.2",
-    "vite": "8.3.1"
+    "vite": "8.3.1",
+    "web-vitals": "6.2.2"
   },
   "overrides": {
     "nan": "2.29.0"

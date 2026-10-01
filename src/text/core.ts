@@ -1,11 +1,15 @@
 import type { CanvasKit, Typeface } from 'canvaskit-wasm';
 import profile from './profile.json';
+import retainedStream from './retained-profiles/7a4dbc6c.json';
+import retainedStableStream from './retained-profiles/4fd6f6a1.json';
 import { admitRequest, textIndices } from './admission';
 import { fail, hashBytes, LIMITS } from './contracts';
 import type { PreparedText, TextRequest } from './contracts';
 import { inspectFont } from './font';
 import { paragraphDirection } from './bidi';
 import { planText } from './memory';
+import { LayoutWriter } from './layout-writer';
+import type { PhaseRecorder } from '../observability/phases.js';
 
 export type Kit = CanvasKit & { HEAPU8: Uint8Array; purgeOwnedTextCaches(): void; _free(pointer: number): void };
 type FontCache = { provider: ReturnType<CanvasKit['TypefaceFontProvider']['Make']>; faces: {hash: string; face: Typeface}[] };
@@ -28,16 +32,14 @@ function suppliedFaces(ck: Kit, order: string[], buffers: Map<string, ArrayBuffe
   // Only this request's ordered supplied faces may occur in accepted runs.
   return { provider: cache.provider, faces: order.map(hash => cache!.faces.find(face => face.hash === hash)!) };
 }
-function finite(value: unknown): void {
-  if (typeof value === 'number' && !Number.isFinite(value)) fail('TEXT_NONFINITE_LAYOUT');
-  if (value && typeof value === 'object') Object.values(value).forEach(finite);
-}
-export async function prepareText(request: TextRequest, ck: Kit, rendererProfile = profile.id): Promise<PreparedText> {
+export async function prepareText(request: TextRequest, ck: Kit, rendererProfile = profile.id, phases?: PhaseRecorder): Promise<PreparedText> {
   const { order, total } = admitRequest(request);
-  const indices = textIndices(request.text), plan = planText(request);
+  const indices = textIndices(request.text), plan = planText(request, { legacy: rendererProfile !== profile.id && rendererProfile !== retainedStream.id && rendererProfile !== retainedStableStream.id });
   const fontBuffers = new Map<string, ArrayBuffer>();
   let glyphBudget = plan.glyphs, runBudget = plan.runs, lineBudget = plan.lines, rectBudget = plan.rectangles;
   const dependencies: PreparedText['dependencies'][number][] = [];
+  const fontReady=phases?.start('font.ready',{documentId:request.token.documentId,revision:request.token.documentRevision,layerId:request.token.layerId,sessionId:request.token.sessionId,generation:request.token.generation,count:order.length,bytes:total});
+  try {
   // Font bytes are verified and parsed in this worker before FreeType sees them.
   for (const hash of order) {
     const font = request.fonts.find(f => f.hash === hash)!;
@@ -55,11 +57,11 @@ export async function prepareText(request: TextRequest, ck: Kit, rendererProfile
       lineHeightMultiplier:s.lineHeightMultiplier, fill:s.fill, align:s.align, direction:s.direction },
     frame: {width:request.frame.width,height:request.frame.height}, fonts: dependencies.map(({bytes: _bytes, ...d}) => d) })));
   const {provider, faces} = suppliedFaces(ck, order, fontBuffers);
+  fontReady?.end('ok',{boundary:'observed'});
   const collection = ck.FontCollection.Make();
   const width = Math.ceil(request.frame.width), height = Math.ceil(request.frame.height);
   let surface: ReturnType<CanvasKit['MakeSurface']> = null;
   let rasterMemory: ReturnType<CanvasKit['Malloc']> | undefined;
-  const paragraphs: unknown[] = [];
   let top = 0, start16 = 0, overflow = false;
   try {
     collection.setDefaultFontManager(provider);
@@ -87,6 +89,19 @@ export async function prepareText(request: TextRequest, ck: Kit, rendererProfile
     if (!Number.isFinite(lineHeight) || lineHeight <= 0 || lineHeight > LIMITS.side) fail('TEXT_LINE_HEIGHT_LIMIT');
     const align = { left: ck.TextAlign.Left, center: ck.TextAlign.Center, right: ck.TextAlign.Right,
       start: ck.TextAlign.Start, end: ck.TextAlign.End }[style.align];
+    const layoutWriter = new LayoutWriter(plan.layout);
+    // The current layout contract fixes field order independently of the caller's
+    // parsed/canonical object order. Only the retained streamed profile replays
+    // its former insertion-sensitive frame bytes (restored by the verifier).
+    const layoutFrame = rendererProfile === retainedStream.id ? request.frame : { width: request.frame.width, height: request.frame.height };
+    layoutWriter.raw('{"version":"layout-1","policy":"text-layout-1","frame":').value(layoutFrame)
+      .raw(',"indexConvention":').value('half-open; UTF-16 native; UTF-8 shaped offsets; -1 scalar interiors; downstream at start/upstream at end')
+      .raw(',"utf16ToUtf8":').array(indices.utf16ToUtf8).raw(',"utf8ToUtf16":').array(indices.utf8ToUtf16)
+      .raw(',"lineHeightPolicy":').value('max-supplied-font-metrics-times-multiplier; symmetric-leading; native-rounded-baselines')
+      .raw(',"fontMetrics":').array(fontMetrics, m => layoutWriter.value({hash:m.hash,ascent:m.ascent,descent:m.descent,leading:m.leading}))
+      .raw(',"intrinsicHeight":').value(intrinsicHeight).raw(',"requestedLineHeight":').value(lineHeight)
+      .raw(',"logicalLines":').value(indices.lines).raw(',"paragraphs":[');
+    let firstParagraph = true;
     for (const text of request.text.split('\n')) {
       const local = textIndices(text), start8 = indices.utf16ToUtf8[start16];
       const direction = style.direction === 'auto' ? paragraphDirection(text) : style.direction;
@@ -115,18 +130,26 @@ export async function prepareText(request: TextRequest, ck: Kit, rendererProfile
         };
         // SkParagraph TextLine::getMetrics exposes UTF-16 here; visitor run
         // offsets below are UTF-8. These are different native API conventions.
-        const lines = paragraph.getLineMetrics().map(m => ({ baseline: m.baseline + top,
-          ascent: m.ascent, descent: m.descent, height: m.height, width: m.width, left: m.left,
-          lineNumber: m.lineNumber, isHardBreak: m.isHardBreak,
-          startUtf8: utf8(m.startIndex), endUtf8: utf8(m.endIndex),
-          startUtf16: start16 + m.startIndex, endUtf16: start16 + m.endIndex,
-          endExcludingWhitespacesUtf16: start16 + m.endExcludingWhitespaces,
-          endIncludingNewlineUtf16: start16 + m.endIncludingNewline,
-          endExcludingWhitespacesUtf8: utf8(m.endExcludingWhitespaces),
-          endIncludingNewlineUtf8: utf8(m.endIncludingNewline) }));
+        const paragraphHeight = paragraph.getHeight();
+        if (!firstParagraph) layoutWriter.raw(','); firstParagraph = false;
+        layoutWriter.raw('{"startUtf16":').value(start16).raw(',"endUtf16":').value(start16 + text.length)
+          .raw(',"startUtf8":').value(start8).raw(',"endUtf8":').value(start8 + local.bytes)
+          .raw(',"top":').value(top).raw(',"height":').value(paragraphHeight).raw(',"direction":').value(direction)
+          .raw(',"lines":').array(paragraph.getLineMetrics(), m => {
+            overflow ||= m.left < 0 || m.left + m.width > request.frame.width;
+            layoutWriter.value({ baseline: m.baseline + top,
+              ascent: m.ascent, descent: m.descent, height: m.height, width: m.width, left: m.left,
+              lineNumber: m.lineNumber, isHardBreak: m.isHardBreak,
+              startUtf8: utf8(m.startIndex), endUtf8: utf8(m.endIndex),
+              startUtf16: start16 + m.startIndex, endUtf16: start16 + m.endIndex,
+              endExcludingWhitespacesUtf16: start16 + m.endExcludingWhitespaces,
+              endIncludingNewlineUtf16: start16 + m.endIncludingNewline,
+              endExcludingWhitespacesUtf8: utf8(m.endExcludingWhitespaces),
+              endIncludingNewlineUtf8: utf8(m.endIncludingNewline) });
+          }).raw(',"runs":[');
         const shaped = bounded.getShapedLinesBounded(glyphBudget, runBudget, lineCount);
         if (!shaped) fail('TEXT_LAYOUT_BUDGET');
-        const runs: unknown[] = [];
+        let firstRun = true;
         try {
           // The native unresolved list excludes some controls. If such a
           // character still produces glyph zero, retain the existing refusal
@@ -161,23 +184,29 @@ export async function prepareText(request: TextRequest, ck: Kit, rendererProfile
             const fontHash = faces.find(f => run.typeface?.isAliasOf(f.face))?.hash;
             if (!fontHash) fail('TEXT_UNRESOLVED_RUN_FONT');
             if (run.fakeBold || run.fakeItalic) fail('TEXT_SYNTHETIC_FACE');
-            const offsets = Array.from(run.offsets);
             const font = new ck.Font(run.typeface, run.size);
-            let inkBounds: number[][];
+            let bounds: Float32Array;
             try {
               font.setHinting(ck.FontHinting.None); font.setSubpixel(true);
-              const bounds = font.getGlyphBounds(run.glyphs);
-              inkBounds = Array.from(run.glyphs, (_,i) => [bounds[i*4]+run.positions[i*2], bounds[i*4+1]+run.positions[i*2+1]+top,
-                bounds[i*4+2]+run.positions[i*2], bounds[i*4+3]+run.positions[i*2+1]+top]);
+              bounds = font.getGlyphBounds(run.glyphs);
             } finally { font.delete(); }
-            overflow ||= inkBounds.some(([l,t,r,b]) => r > l && b > t && (l < 0 || t < 0 || r > request.frame.width || b > request.frame.height));
-            runs.push({ fontHash, size: run.size, flags: run.flags,
-              glyphs: Array.from(run.glyphs), offsetsUtf8: offsets.map(x => x + start8),
-              offsetsUtf16: offsets.map(utf16), positions: Array.from(run.positions, (v,i) => v + (i % 2 ? top : 0)),
-              inkBounds, top: line.top + top, bottom: line.bottom + top, baseline: line.baseline + top });
+            if (!firstRun) layoutWriter.raw(','); firstRun = false;
+            layoutWriter.raw('{"fontHash":').value(fontHash).raw(',"size":').value(run.size).raw(',"flags":').value(run.flags)
+              .raw(',"glyphs":').array(run.glyphs).raw(',"offsetsUtf8":').array(run.offsets, value => layoutWriter.value(value + start8))
+              .raw(',"offsetsUtf16":').array(run.offsets, value => layoutWriter.value(utf16(value)))
+              .raw(',"positions":').array(run.positions, (value, i) => layoutWriter.value(value + (i % 2 ? top : 0)))
+              .raw(',"inkBounds":').array(run.glyphs, (_, i) => {
+                const l = bounds[i*4] + run.positions[i*2], t = bounds[i*4+1] + run.positions[i*2+1] + top;
+                const r = bounds[i*4+2] + run.positions[i*2], b = bounds[i*4+3] + run.positions[i*2+1] + top;
+                overflow ||= r > l && b > t && (l < 0 || t < 0 || r > request.frame.width || b > request.frame.height);
+                layoutWriter.raw('[').value(l).raw(',').value(t).raw(',').value(r).raw(',').value(b).raw(']');
+              }).raw(',"top":').value(line.top + top).raw(',"bottom":').value(line.bottom + top)
+              .raw(',"baseline":').value(line.baseline + top).raw('}');
           }
         } finally { for (const line of shaped) for (const run of line.runs) run.typeface?.delete(); }
-        const clusters: unknown[] = [], seen = new Set<string>();
+        layoutWriter.raw('],"clusters":[');
+        const seen = new Set<string>();
+        let firstCluster = true;
         for (const scalar of local.scalars) {
           const glyph = paragraph.getGlyphInfoAt(scalar.utf16);
           if (!glyph || glyph.isEllipsis) fail('TEXT_CLUSTER_UNAVAILABLE', { utf16: start16 + scalar.utf16 });
@@ -188,23 +217,29 @@ export async function prepareText(request: TextRequest, ck: Kit, rendererProfile
           const rects = bounded.getRectsForRangeBounded(start, end, ck.RectHeightStyle.Tight, ck.RectWidthStyle.Tight, rectBudget);
           if (!rects) fail('TEXT_LAYOUT_BUDGET');
           rectBudget -= rects.length / 5;
-          const ranges = [];
-          try { for (let i = 0; i < rects.length; i += 5) ranges.push({rect: [rects[i], rects[i+1]+top, rects[i+2], rects[i+3]+top], direction: rects[i+4] === 1 ? 'ltr' : 'rtl'}); }
-          finally { if (rects.length) ck._free(rects.byteOffset); }
-          clusters.push({ startUtf16: start16 + start, endUtf16: start16 + end,
-            startUtf8: start8 + local.utf16ToUtf8[start], endUtf8: start8 + local.utf16ToUtf8[end],
-            direction: glyph.dir.value === ck.TextDirection.RTL.value ? 'rtl' : 'ltr',
-            rect: Array.from(glyph.graphemeLayoutBounds, (v,i) => v + (i % 2 ? top : 0)),
-            ranges });
+          try {
+            if (!firstCluster) layoutWriter.raw(','); firstCluster = false;
+            layoutWriter.raw('{"startUtf16":').value(start16 + start).raw(',"endUtf16":').value(start16 + end)
+              .raw(',"startUtf8":').value(start8 + local.utf16ToUtf8[start]).raw(',"endUtf8":').value(start8 + local.utf16ToUtf8[end])
+              .raw(',"direction":').value(glyph.dir.value === ck.TextDirection.RTL.value ? 'rtl' : 'ltr')
+              .raw(',"rect":').array(glyph.graphemeLayoutBounds, (value, i) => layoutWriter.value(value + (i % 2 ? top : 0)))
+              .raw(',"ranges":[');
+            for (let i = 0; i < rects.length; i += 5) {
+              if (i) layoutWriter.raw(',');
+              layoutWriter.raw('{"rect":[').value(rects[i]).raw(',').value(rects[i+1] + top)
+                .raw(',').value(rects[i+2]).raw(',').value(rects[i+3] + top)
+                .raw('],"direction":').value(rects[i+4] === 1 ? 'ltr' : 'rtl').raw('}');
+            }
+            layoutWriter.raw(']}');
+          } finally { if (rects.length) ck._free(rects.byteOffset); }
         }
-        const paragraphHeight = paragraph.getHeight();
-        paragraphs.push({ startUtf16: start16, endUtf16: start16 + text.length, startUtf8: start8,
-          endUtf8: start8 + local.bytes, top, height: paragraphHeight, direction, lines, runs, clusters });
-        overflow ||= top + paragraphHeight > request.frame.height || lines.some(l => l.left < 0 || l.left + l.width > request.frame.width);
+        layoutWriter.raw(']}');
+        overflow ||= top + paragraphHeight > request.frame.height;
         canvas.drawParagraph(paragraph, 0, top);
         top += paragraphHeight; start16 += text.length + 1;
       } finally { paragraph?.delete(); builder.delete(); }
     }
+    layoutWriter.raw('],"height":').value(top).raw(',"overflow":').value(overflow).raw('}');
     surface.flush();
     // Read the CPU surface's explicit unpremultiplied sRGB storage. No second
     // native full-frame allocation or implicit HTML canvas conversion occurs.
@@ -212,15 +247,7 @@ export async function prepareText(request: TextRequest, ck: Kit, rendererProfile
     if (pixels.byteLength !== width * height * 4) fail('TEXT_READBACK');
     // Transparent RGB is canonical zero, independent of Skia's hidden color.
     for (let i = 0; i < pixels.length; i += 4) if (!pixels[i + 3]) pixels[i] = pixels[i + 1] = pixels[i + 2] = 0;
-    const layoutValue = { version: 'layout-1', policy: 'text-layout-1', frame: request.frame,
-      indexConvention: 'half-open; UTF-16 native; UTF-8 shaped offsets; -1 scalar interiors; downstream at start/upstream at end',
-      utf16ToUtf8: indices.utf16ToUtf8, utf8ToUtf16: indices.utf8ToUtf16,
-      lineHeightPolicy: 'max-supplied-font-metrics-times-multiplier; symmetric-leading; native-rounded-baselines',
-      fontMetrics: fontMetrics.map(m => ({hash:m.hash,ascent:m.ascent,descent:m.descent,leading:m.leading})),
-      intrinsicHeight, requestedLineHeight: lineHeight, logicalLines: indices.lines, paragraphs, height: top, overflow };
-    finite(layoutValue);
-    const layout = new Blob([JSON.stringify(layoutValue)], { type: 'application/json' });
-    if (layout.size > LIMITS.layoutBytes) fail('TEXT_LAYOUT_SIZE');
+    const layout = layoutWriter.finishBlob();
     const rgba = new Blob([pixels], { type: 'application/octet-stream' });
     if (ck.HEAPU8.byteLength > LIMITS.wasmBytes) fail('TEXT_HEAP_LIMIT');
     return { kind: 'prepared-text-1', token: request.token, rendererProfile, dependencyHash,
@@ -232,4 +259,5 @@ export async function prepareText(request: TextRequest, ck: Kit, rendererProfile
     collection.delete();
     ck.purgeOwnedTextCaches();
   }
+  } catch(error) { fontReady?.end('error');throw error; }
 }

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "codecIdentity": "sha256:00b8f5950da7b52f6f04c972f85b30e0bd95d14ae7554b2e6780414537e3fa68",
+  "producerInputs": [
+    {
+      "path": "tooling/raster/linux-codecs/capture.mjs",
+      "bytes": 8301,
+      "hash": "sha256:1c9b7ebd3729ffa297f325ec41f16169e1fc66d447bcc711c2f401d545929d35"
+    },
+    {
+      "path": "tooling/raster/linux-codecs/install.mjs",
+      "bytes": 3105,
+      "hash": "sha256:747f59a83057c411b0f788026fecaffa6427bacede04963fcd334c30266b0c1b"
+    },
+    {
+      "path": "tooling/raster/linux-codecs/verify.mjs",
+      "bytes": 2350,
+      "hash": "sha256:753af8ea942e373c1000248e95cedf6bba6c004fca44de2d7f40c5efb2642da3"
+    },
+    {
+      "path": "tooling/raster/linux-codecs/expected-packages.json",
+      "bytes": 4340,
+      "hash": "sha256:39ef8c61ab5af5473213ec8b004dd94c5e1a8036c78975100a3f5ac831002fa9"
+    },
+    {
+      "path": "tooling/raster/linux-codecs/expected-packages-x64.json",
+      "bytes": 4320,
+      "hash": "sha256:a14a59cfda8fc8fbfa848a95560fc90ba3e5f1035f17f3c5af5bf062b4485ac6"
+    },
+    {
+      "path": "tooling/raster/linux-codecs/Dockerfile",
+      "bytes": 1042,
+      "hash": "sha256:2542c05f2fd94d20ea0cc079d7ef1c6fcf2be90d225f16a319be487375332edf"
+    },
+    {
+      "path": "tooling/raster/linux-codecs/Dockerfile.dockerignore",
+      "bytes": 658,
+      "hash": "sha256:e0d0a8fcc27646103b48b982aecc96322054166e90839ff8109b39c60282acde"
+    },
+    {
+      "path": "tooling/raster/linux-codecs/README.txt",
+      "bytes": 3947,
+      "hash": "sha256:75483c1893170db6d8fcde085facb753c4f13a46a8edf7c5c239f2865be3d116"
+    }
+  ],
+  "installation": {
+    "command": [
+      "npm",
+      "ci",
+      "--no-audit",
+      "--no-fund"
+    ],
+    "started": "2026-09-30T16:28:40.613Z",
+    "finished": "2026-09-30T16:29:06.637Z",
+    "emptyNodeModules": true,
+    "emptyCache": true,
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "platform": "linux",
+    "arch": "x64",
+    "libc": "2.39",
+    "image": "sha256:7ac63b1d11d09aa62a4606d4072b05e5f9de450c7a5583c0b171045ed8a9655b",
+    "baseImage": "ubuntu:24.04@sha256:008173c23f95b170204355c12626cb5a965d779a7e1283b09e9cffbb1bf33ca3",
+    "execution": "emulated",
+    "packageLockHash": "sha256:b4700ee8777c6f5f7f8f44298475b347c1c097c310259cc51617666fbf3c7333",
+    "packageHash": "sha256:be7516b084964c71992d821272634570a27c10cbf91c3a15e2b2cf634c74a629",
+    "npmCiLog": "sha256:90e62efcadd2c820740a84b41fa6c7ffb1629ca7fe654b27fcfbf3355d9d4bff",
+    "npmLs": "sha256:c87f1486c13b1d3a67a744081666b72c4b4310b692bb6cfc44de31a040893316"
+  },
+  "sourceInputs": [
+    {
+      "path": "package.json",
+      "bytes": 5200,
+      "hash": "sha256:be7516b084964c71992d821272634570a27c10cbf91c3a15e2b2cf634c74a629"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 71848,
+      "hash": "sha256:b4700ee8777c6f5f7f8f44298475b347c1c097c310259cc51617666fbf3c7333"
+    },
+    {
+      "path": "tooling/toolchain.json",
+      "bytes": 859,
+      "hash": "sha256:6981d962ed9ef347511440f81afe2eec252fd75600276468d797bdadb1f24d1a"
+    },
+    {
+      "path": "tooling/bootstrap-toolchain.py",
+      "bytes": 2798,
+      "hash": "sha256:a59c27221eef7fab70ce9cf1778c7fd8df51f45bf6b673b076c471c638864fb5"
+    },
+    {
+      "path": "tooling/raster/codecs.json",
+      "bytes": 27758,
+      "hash": "sha256:f3686e8b74e8dbea8369d302d2c6015b89c581418f0653aac27262a6e2af3f1e"
+    },
+    {
+      "path": "server/raster/identity.ts",
+      "bytes": 27973,
+      "hash": "sha256:1e06e04fcbf92d8a33ee342c5147c1783eda7aab66785e4f7c29984ce01c12be"
+    },
+    {
+      "path": "tooling/raster/profiles.json",
+      "bytes": 243,
+      "hash": "sha256:2e6e2dc158edd49ded8b8012d50fdc7472e74db443b985d89b49b50f0dfda197"
+    },
+    {
+      "path": "tooling/raster/p3.icc",
+      "bytes": 480,
+      "hash": "sha256:231752984cd4a5278e1b8d2390fe496767d4511fc81f54e1a5c69ae9ab4c42b5"
+    },
+    {
+      "path": "tooling/raster/srgb.icc",
+      "bytes": 480,
+      "hash": "sha256:c56e1685d888f5edb92fe07f2750f387f8fe8e91b32ff8fb0b56bfbbb9458353"
+    }
+  ]
+}

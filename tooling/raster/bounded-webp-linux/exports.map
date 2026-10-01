@@ -1,0 +1,13 @@
+{
+  global:
+    IEWebPABIVersion;
+    IEWebPDecoderVersion;
+    IEWebPNewRGBA;
+    IEWebPAppend;
+    IEWebPGetRGB;
+    IEWebPStats;
+    IEWebPDelete;
+    IEWebPDecodeRGBA;
+    IEWebPConvertP3RGBA;
+  local: *;
+};

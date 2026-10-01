@@ -1,5 +1,7 @@
 import {RequestReviews} from './request-review.js';
+import {adapterReferences} from './adapters.js';
 import {draftShape as requestDraft,refs as requestRefs,RequestError} from '../../src/request/core.js';
+import type {Adapter} from '../../src/request/core.js';
 import type {RequestReview} from '../../src/request/review.js';
 import {compositionDraft,compositionDraftRefs,compositionDraftGraph} from '../../src/composition/draft.js';
 import {maskDraftValue,maskImports,maskSource} from '../../src/raster/mask.js';
@@ -87,6 +89,7 @@ export class UIStore {
     const previous=()=>this.db.prepare('SELECT hash,json FROM ui_receipts WHERE client_id=? AND id=?').get(auth.clientId,request.requestId);
     let old=previous();if(old){if(old.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(old.json));}
     let bindings:Record<string,string>|undefined;let proof:string|undefined,ref:BlobRef|undefined;const extra:{ref:BlobRef;proof:string}[]=[];
+    let requestAdapters:Adapter[]|undefined;let requestAdapterRefs:BlobRef[]=[];
     let review:RequestReview|undefined,acceptedReview:string|undefined,prepareError:RequestError|undefined;const reviews=new RequestReviews(this.db,this.objects,this.assets,this.readState);
     const slot='ui:'+auth.clientId+':'+request.requestId;this.objects.acquire(slot);
     try{
@@ -96,17 +99,30 @@ export class UIStore {
         ref=a.blob;proof=await this.objects.prove(ref,()=>this.check());
         if(b.draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(ref,true)!);maskDraftValue(value);bindings={};for(const id of maskImports(value.plan)){const source=this.assets.asset(id);if(!source?.raster||source.qualification!=='canonical-raster'||source.safety!=='safe'||source.availability!=='available')throw new StoreError('MISSING_OBJECT');try{const manifest=parseControlJSON(this.objects.verify(source.raster.manifest,true)!) as {plan:{hard?:BlobRef}};maskSource(value.plan,id,source.raster,manifest.plan.hard);}catch{throw new StoreError('MISSING_OBJECT');}bindings[id]=id;for(const dep of [source.blob,...source.dependencies])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}}
         if(b.draft.kind==='composition'){const value=parseControlJSON(this.objects.verify(ref,true)!);compositionDraft(value);compositionDraftGraph(parseDraftJSON(this.objects.verify(value.graph,true)!,8388608),value);bindings=value.bindings;for(const dep of compositionDraftRefs(value))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
-        if(b.draft.kind==='request'){const d=parseControlJSON(this.objects.verify(ref,true)!);try{requestDraft(d);}catch{throw new StoreError('MALFORMED_REQUEST');}for(const dep of requestRefs(d))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
+        if(b.draft.kind==='request'){const d=parseControlJSON(this.objects.verify(ref,true)!);try{requestDraft(d);}catch{throw new StoreError('MALFORMED_REQUEST');}requestAdapters=structuredClone(d.adapters);requestAdapterRefs=adapterReferences(this.assets,requestAdapters);for(const dep of [...requestRefs(d),...requestAdapterRefs])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
         if(b.draft.kind==='text'){const v=parseControlJSON(this.objects.verify(ref,true)!);textDraft(v);if(v.kind==='text-draft-2'&&b.draft.targetLayerId!==null)throw new StoreError('MALFORMED_REQUEST');for(const dep of draftRefs(v)){try{extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(dep===v.textUtf8||!(e instanceof StoreError)||!['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw e;}}}
       }
       if(b.type==='PrepareRequestReview'){
         const saved=this.read(request.sessionId,auth).drafts.find(d=>d.id===b.draftId&&d.generation===b.generation);
-        if(saved){try{review=reviews.prepare(saved,request.sessionId,request.requestId,auth);for(const dep of [review.template,...requestRefs(reviews.draft(saved))])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(!(e instanceof RequestError))throw e;prepareError=e;}}
+        if(saved){try{review=reviews.prepare(saved,request.sessionId,request.requestId,auth);const draft=reviews.draft(saved);for(const dep of [review.template,...requestRefs(draft),...adapterReferences(this.assets,draft.adapters)])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(!(e instanceof RequestError))throw e;prepareError=e;}}
+      }
+      if(b.type==='AcceptRequestReview'){
+        const row=this.db.prepare('SELECT json FROM ui_receipts WHERE client_id=? AND id=?').get(auth.clientId,b.reviewId),prior=row?JSON.parse(String(row.json)):null;
+        const candidate:RequestReview|undefined=prior?.status==='accepted'?prior.review:undefined;
+        const saved=candidate&&candidate.token===b.token&&candidate.draft.sessionId===request.sessionId?this.read(request.sessionId,auth).drafts.find(d=>d.id===candidate.draft.draftId&&d.generation===candidate.draft.generation):undefined;
+        if(saved)for(const dep of adapterReferences(this.assets,reviews.draft(saved).adapters))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});
       }
       this.db.exec('BEGIN IMMEDIATE');
       try{
         this.check();old=previous();if(old){if(old.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return JSON.parse(String(old.json));}
         const state=this.read(request.sessionId,auth);let reason:string|null=state.uiSeq!==request.expectedUISeq?'STALE_UI_SEQUENCE':null;
+        // Cooperative hashing can yield to deletion from another tab. Byte
+        // proofs do not preserve library selection authority: recheck exact
+        // versions and their complete refs inside the publishing transaction.
+        if(!reason&&b.type==='SaveDraft'&&requestAdapters){
+          try{if(canonical(adapterReferences(this.assets,requestAdapters))!==canonical(requestAdapterRefs))reason='ADAPTER_DEPENDENCY_CHANGED';}
+          catch(error){if(error instanceof StoreError&&error.code==='MISSING_OBJECT')reason='ADAPTER_DEPENDENCY_CHANGED';else throw error;}
+        }
         if(!reason&&b.type==='SaveDraft'){
           const prior=state.drafts.find(d=>d.id===b.draft.id);
           if(this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(b.draft.documentId))reason='DOCUMENT_DELETED';
@@ -128,6 +144,7 @@ export class UIStore {
             const saved=state.drafts.find(d=>d.id===(b.type==='PrepareRequestReview'?b.draftId:review?.draft.draftId));
             if(!saved)throw new RequestError([{field:'draft',code:'DRAFT_CHANGED',message:'The saved draft changed.'}]);
             if(!review){if(prepareError)throw prepareError;throw new RequestError([{field:'review',code:'DRAFT_CHANGED',message:'Prepare a fresh review.'}]);}
+            for(const p of extra)this.objects.proven(p.ref,p.proof);
             reviews.assert(review,saved,auth);
             if(b.type==='PrepareRequestReview'){const seen=new Set<string>();for(const p of extra){if(seen.has(p.ref.hash))continue;seen.add(p.ref.hash);this.objects.proven(p.ref,p.proof);this.register('request-review:'+auth.clientId+':'+review.id,p.ref,p.proof);}}
             else acceptedReview=review.id;

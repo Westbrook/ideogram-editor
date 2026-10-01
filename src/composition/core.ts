@@ -3,7 +3,6 @@ import type { Affine } from '../raster/core.js';
 
 export const PROFILE = 'ideogram-guide-990fe1c-app1' as const;
 export const LIMITS = Object.freeze({bytes:262144,stringBytes:16384,elements:256,depth:16,tokens:50000});
-const utf8 = new TextEncoder();
 export type Issue = {path:string;code:string;message:string};
 export type Box = [number,number,number,number];
 export type Geometry = {rect:Box;transform:Affine};
@@ -22,8 +21,45 @@ export class CompositionError extends Error {constructor(readonly issues:Issue[]
 const fail=(path:string,code:string,message=code):never=>{throw new CompositionError([{path,code,message}]);};
 const object=(v:unknown):v is Record<string,any>=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
-export const bytes=(s:string)=>utf8.encode(s).length;
-export function validString(v:unknown){return typeof v==='string'&&bytes(v)<=LIMITS.stringBytes&&Array.from(v).every(c=>{const n=c.codePointAt(0)!;return n<0xd800||n>0xdfff;});}
+// Count UTF-8 bytes without allocating an encoded copy. TextEncoder replaces
+// each unpaired surrogate with U+FFFD (three bytes); authored text rejects it.
+function utf8ByteLength(s:string,rejectUnpaired=false):number {
+ let total=0;
+ for(let i=0;i<s.length;i++){
+  const code=s.charCodeAt(i);
+  if(code<0x80){total++;continue;}
+  if(code<0x800){total+=2;continue;}
+  if(code>=0xd800&&code<=0xdfff){
+   const next=s.charCodeAt(i+1);
+   if(code<=0xdbff&&next>=0xdc00&&next<=0xdfff){total+=4;i++;continue;}
+   if(rejectUnpaired)return -1;
+  }
+  total+=3;
+ }
+ return total;
+}
+export const bytes=(s:string)=>utf8ByteLength(s);
+export function validString(v:unknown){if(typeof v!=='string')return false;const length=utf8ByteLength(v,true);return length>=0&&length<=LIMITS.stringBytes;}
+
+// Exact UTF-8 length of JSON.stringify(s), including quotes, short control
+// escapes, and well-formed JSON's six-byte escapes for unpaired surrogates.
+function quotedStringBytes(s:string):number {
+ let total=2;
+ for(let i=0;i<s.length;i++){
+  const code=s.charCodeAt(i);
+  if(code===0x22||code===0x5c){total+=2;continue;}
+  if(code<0x20){total+=code===8||code===9||code===10||code===12||code===13?2:6;continue;}
+  if(code<0x80){total++;continue;}
+  if(code<0x800){total+=2;continue;}
+  if(code>=0xd800&&code<=0xdfff){
+   const next=s.charCodeAt(i+1);
+   if(code<=0xdbff&&next>=0xdc00&&next<=0xdfff){total+=4;i++;continue;}
+   total+=6;continue;
+  }
+  total+=3;
+ }
+ return total;
+}
 
 // Pair-preserving, bounded scanner. Never recursively decode a JSON string and
 // never materialize over-limit input as a tree. Original bytes live elsewhere.
@@ -94,7 +130,7 @@ export function serialize(c:Composition,layers:LayerValue[],map:Record<string,st
  if(c.style){const s=c.style;caption.style_description=s.kind==='photo'?{aesthetics:s.aesthetics,lighting:s.lighting,photo:s.photo,medium:s.medium}:{aesthetics:s.aesthetics,lighting:s.lighting,medium:s.medium,art_style:s.artStyle};if(s.palette!==null)caption.style_description.color_palette=s.palette;}
  caption.compositional_deconstruction={background:c.background,elements};issues.push(...validateCaption(caption));
  const prompt=JSON.stringify(caption);if(bytes(prompt)>LIMITS.bytes)issues.push({path:'$',code:'BYTE_LIMIT',message:'The authored caption exceeds 256 KiB; the draft is retained.'});if(issues.length)throw new CompositionError(issues);
- return {caption,prompt,dependencies,boxes,wirePromptBytes:bytes(JSON.stringify(prompt))};
+ return {caption,prompt,dependencies,boxes,wirePromptBytes:quotedStringBytes(prompt)};
 }
 
 const identifier=(v:unknown)=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(v);

@@ -1,0 +1,200 @@
+PERF §8 phase observations
+=========================
+
+Implementation contract
+-----------------------
+src/observability/phases.ts defines the fixed phase vocabulary and bounded
+receipt format. Every record has one lane, local monotonic start/stop/duration,
+an outcome, and a strict scalar context. Browser and worker clocks are separate.
+clockOriginUnixMs is only a wall-clock reference; clockUncertaintyMs is null.
+Consumers must not subtract timestamps from different lanes as an exact clock.
+Clock reversal/nonfinite samples are clamped and counted in `invalid`.
+
+Only captured command, transaction, document/revision, job/attempt/request,
+candidate/preview, asset/hash, snapshot, layer and adapter/dataset identities,
+bounded sizes and enumerated observations enter the context. Unknown fields,
+accessors, nested payloads, free-form messages, paths, URLs and text are omitted.
+These observations neither authorize work nor enter domain events. They do not
+produce requests during replay, create new semantic IDs, or affect recovery.
+
+The default ring retains 2,048 records per lane. The writer retains at most 128
+pending command/local-queue spans; the browser at most 64 adoption records.
+Pending-span eviction closes unfinished spans as incomplete; bounded record and
+worker/adoption buffer loss has separate counters.
+End is idempotent. Captured correlation IDs cannot be relabeled at span end.
+Consumers must retain dropped/invalid counters and treat lost required evidence
+as inconclusive. Instrumentation is charged to the actual operation; its
+overhead is not subtracted from measurements.
+
+Reading receipts
+----------------
+The bundled application and development server expose a read-only
+window.__IDEOGRAM_PHASES__.snapshot() function. Its trace contains browser-local
+records; adoption rows contain the exact intent, durable-ack and decoded/draw
+endpoints; workerObservations contains separately clocked text worker traces.
+There is no credential, URL, raw text, command payload or mutation method.
+
+The writer's existing diagnostics() returns observations.phases and pending
+command counts. Raster diagnostics additionally retain distinct worker traces.
+These are diagnostics for a controlled runner, not a new public HTTP endpoint.
+Record the snapshot in the run's ordinary protected receipt directory alongside
+source/fixture/environment identity. Existing runtime runner finalDiagnostics
+already captures writer observations. Browser runners collect the read-only
+snapshot through Playwright and correlate it with their browser trace.
+
+Do not classify a phase by name alone. `boundary` and `outcome` are mandatory
+parts of its meaning. An incomplete child observation is never a passing whole
+PERF budget. `ok` establishes only the recorded boundary, not an overall product
+qualification. Failed, cancelled, uncertain and incomplete records are retained.
+
+Boundary mapping
+----------------
+ui.intent: captured input timestamp to admitted handler observation. This is an
+input marker, not feedback completion. ui.feedback ends incomplete when the
+meaningful pending DOM update is submitted; a trace must establish presentation.
+
+component.proposal: browser command-envelope preparation. It does not claim
+semantic compatibility validation. command.validate in the writer begins at
+authority receive and ends only once all relevant builder, revision, domain and
+event-size checks have resolved. Async preparation stays in that parent. A
+cached receipt is explicitly tagged replay. This full parent is not a stand-
+alone R24 app-overhead statistic.
+
+command.accept: browser delivery-to-observed durable receipt and, separately,
+writer receive-to-durable receipt. A pending preparation never ends either as
+accepted. event.append begins at the first event INSERT and ends after COMMIT.
+Rejected savepoints/errors retain their outcomes. Cross-lane endpoints are
+correlated by existing command/transaction identities, never subtracted.
+
+asset.stage: local Blob availability through the acknowledged final staged
+chunk; the following FinalizeStaging command is a separate durable identity.
+upload: exact provider stream call through a validated provider-readable result.
+Bytes/hash/version metadata are recorded; transport URLs and evidence payloads
+are excluded.
+
+job.local_queue: accepted JobQueued/retry COMMIT to a successful reservation
+COMMIT. Restarted jobs with no same-process start do not fabricate a wait time.
+Cancellation and interrupted observation remain cancelled/incomplete. This is
+observed elapsed time, not a scheduler waiting-duration guarantee.
+job.submit: immutable durable dispatch through persisted provider acknowledgement.
+Failed acknowledgement is uncertain, never an automatic new attempt.
+job.provider_queue / job.provider_run: zero-duration local-poll state markers
+with observationSource=local-poll and timingConfidence=observation-only. They do
+not assert provider processing durations or infer undocumented metric units.
+job.observe: transport observation and a separate durable status projection.
+reconnect: scheduled browser reconnect attempt through recovered projection;
+the presentation endpoint remains external. job.cancel_requested distinguishes
+durable cancel intent from the later transport observation. reconcile measures
+the actual retained-evidence reconciliation path. Transport success does not
+assert processing cessation or a refund.
+
+result.fetch / result.store: original transfer and local owned storage. Encoded
+storage alone is not candidate readiness. result.verify spans actual decoding,
+format/dimension interpretation and owned object-proof validation through rooted
+prepared-asset durability; metadata disagreement remains explicit review state.
+It overlaps preparation and must not be added as an independent elapsed cost.
+result.candidate_available occurs
+only after the actual decoder succeeds, the prepared asset is rooted, and the
+candidate's prepared state is durable. Corrupt plausible Content-Type bytes do
+not emit that milestone.
+
+result.prepare / result.preserve: backend normalized/proof-ready and browser
+command-delivery observations are incomplete children, explicitly marked
+observed or prepared-durable. They exclude neither post-click work nor hidden
+latency from an adoption parent. Separate raster-worker decode, composite,
+resample and encode spans keep their own clock and captured asset identities;
+their durations are not manufactured from writer-clock estimates. Composite and
+resample spans are wall-time children including row reads/writes, fsync and
+yields; they are not R10 active-compute totals or an active-time union. PNG/JPEG
+encode, verification and durable asset registration remain distinguishable.
+
+R10 active-kernel evidence is the separate raster-worker sidecar at
+diagnostics.rasters.workerPhases[].activeCompute (also returned by runRaster as
+activeCompute), with kind=raster-active-compute-1 and schemaVersion=1. It uses
+the worker's monotonic performance clock, its own clockOriginUnixMs and the
+same sanitized command/document/revision/asset correlation context. Its boundary
+is synchronous-kernel-elapsed-excluding-io, not CPU time: GC and OS descheduling
+remain included. Accumulator initialization, contribution generation, folding,
+finish conversion, preservation, provider-source resampling, export matting and
+request-source coverage scanning are measured around actual synchronous calls.
+Lazy decoded source/mask readSync calls suspend accounting; direct source-row
+reads, output/contribution writes, fsync, awaits/yields, decoding, encoding,
+hashing and manifest construction stay outside. Preservation's request-coverage
+preflight also stays outside; validation and gathering performed inside the
+actual preserve-row helper remain included. No pixel algorithm is changed.
+
+The worker executes these intervals sequentially. Nested measured calls are
+counted once, so unionMs=totalMs is the compensated streaming sum of every
+nonoverlapping active interval. startedMs/endedMs are only the outer envelope;
+their difference is not active time. intervals retains at most the first 128
+samples, intervalCount counts every interval, and omittedIntervals explicitly
+counts unretained samples. Omitted diagnostic samples do not truncate the scalar
+union or make it incomplete. The fixed operations counters identify the actual
+kernel calls. This sidecar does not consume the general phase ring's 64 slots.
+The worker allocation plan reserves 64 KiB for bounded timing bookkeeping and
+snapshots; the parent retains at most 16 worker snapshots with its existing
+droppedWorkerPhases counter. No per-pixel, per-read or per-write log is retained.
+
+Only outcome=completed, complete=true and invalid=0 permits use of the active
+aggregate. Caught failures retain their partial totals explicitly; a terminated
+worker can have no final sidecar and must remain missing evidence.
+The consumer must require the expected kernel counts and matching operation
+identity, retain the independent wall parent, and join each operation's scalar
+aggregate before computing percentiles. An unrelated zero-kernel decode is not
+R10 evidence. Do not reconstruct a contiguous phase from unionMs, sum overlapping
+wall children, subtract independent percentiles, or subtract across clock lanes.
+This instrumentation supports qualification; it does not itself qualify a cell.
+
+result.viewport_decode: actual CanvasView show/decode plus drawing submission
+for an exact document ID, revision and composite asset. Canvas drawing, img.load,
+DOM update and requestAnimationFrame do not prove physical presentation.
+frame.app_work records the attributable synchronous canvas/overlay draw child.
+It is incomplete for the per-frame R07 budget until the trace provides the
+union of all attributable main-thread work in the active frame slot. Worker
+lanes remain separate. The current raster path uses workers; there is no
+invented main-thread raster.fallback_slice observation for an unexecuted path.
+
+result.adopt: starts at the admitted explicit Accept input timestamp. It joins
+the matching durable receipt with the exact target document/revision/asset draw.
+The row remains awaiting-presentation and the span remains incomplete until
+the qualification receipt supplies a real matching presentation trace. A wrong
+revision, wrong document, different asset, reset or stale reply cannot complete
+the join. Post-click preparation remains inside this parent. A/B readiness is
+determined using the actual live CanvasView bitmap, not the last drawn marker.
+`preparedDurable=false` identifies preparation needed after Accept; it does not
+by itself qualify the strict encoded-only PERF C fixture. Formal C qualification
+must also prove the specified retained representation and cache reset.
+
+text.layout: actual Apply intent before draft flush/font load/shape/render/stage
+through durable acceptance; its presentation-dependent parent remains
+incomplete. text.edit records trusted/synthetic event source and composition
+state, ending incomplete at tentative update submission. No preedit contents,
+caret contents or per-preedit domain events are retained. A trusted event alone
+does not establish a native OS IME campaign. font.ready records actual exact-
+face registration in the text worker (existing document/layer/session/generation
+identities correlate the frozen request), exported only as bounded diagnostic
+sidecars; no trace data enters PreparedText or durable candidates.
+
+composition.parse / project / serialize: actual bounded local parser,
+projection and serialization work. Local serialization does not substitute for
+the final escaped request-wire bytes. Browser source.capture / mask.plan /
+project.copy / project.import / document.export command aliases are explicitly
+incomplete delivery children when earlier user-action work lies outside them.
+The export workflow also measures its full preparation action to the verified
+durable artifact; a later review confirmation never masquerades as a fast encode.
+reopen starts at navigation/open entry and observes editable model recovery;
+matching visible presentation is independently required. document.snapshot
+observes actual durable snapshot creation and verification. document.replay is
+tagged replay and never creates provider activity.
+
+dataset.prepare / training.register are reserved vocabulary for the separately
+deferred training feature. Their absence is not reported as a successful run.
+
+Qualification
+-------------
+This implementation supplies bounded observations, not a performance baseline.
+R15 requires actual outside-mask equality, correct target revalidation, durable
+acknowledgement AND presentation. R04/R07 require actual presentation/frame
+attribution. P/Q3 counts, cold/warm resets, qualified host identities, exact
+fixture representations and source receipts remain mandatory. Unit tests of
+the recorder or joins do not qualify those product or hardware requirements.

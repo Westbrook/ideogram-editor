@@ -24,12 +24,19 @@ export function treeIdentity(root) {
   }
   walk(root);return {digest:digestJSON(files),files};
 }
+// Reviewed source closures for checks that do not depend on product behavior.
+// Unknown gates and build inputs stay conservative. Dependency bytes and the
+// actual command/environment remain part of every key.
 export function gateInputKey(gate,source,environmentIdentity) {
-  // Builds never depend on test outcomes. Pure tests/fixtures remain in the key
-  // of execution gates; unknown imports conservatively retain the whole graph.
-  const build=gate.id.startsWith('build-');
-  const files=source.files.filter(file=>!build||!file.path.startsWith('tests/')||file.path.startsWith('tests/consumer/'));
-  return digestJSON({kind:2,gate,files,environmentIdentity});
+  const common=path=>/^package(?:-lock)?\.json$/.test(path)||path.startsWith('tooling/qualification/');
+  const include=path=>{
+    if(common(path))return true;
+    if(gate.id==='vendor')return path.startsWith('vendor/')||path==='src/text/profile.json'||path==='tooling/toolchain.json'||/^tooling\/(?:verify-vendor|freeze-en-reve)\.py$/.test(path);
+    if(gate.id==='imports')return path.startsWith('src/')||path.startsWith('tests/consumer/')||/^tsconfig.*\.json$/.test(path)||path==='tooling/verify-imports.mjs';
+    if(gate.id.startsWith('build-'))return !path.startsWith('tests/')||path.startsWith('tests/consumer/');
+    return true;
+  };
+  return digestJSON({kind:3,gate,files:source.files.filter(file=>include(file.path)),environmentIdentity});
 }
 export const buildOutputs=Object.freeze({'build-app':['dist/app'],'build-server':['dist/local']});
 export function outputIdentity(root,gate){

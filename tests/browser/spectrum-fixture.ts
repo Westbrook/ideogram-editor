@@ -9,7 +9,10 @@ import {ownedOPFS} from '../editor/owned-opfs.js';
 
 const engine=process.env.SPECTRUM_BROWSER??'chromium';
 if(!['chromium','firefox','webkit'].includes(engine))throw Error('Unsupported engine');
-export const out=resolve('artifacts/spectrum-controls',process.env.SPECTRUM_CONTROLS==='1'?'focused':'full',engine);
+// Explicit qualification specimen; ordinary Spectrum runs retain their
+// desktop pointer. Playwright owns the real context input capability.
+const coarsePointer=process.env.QUALIFICATION_COARSE_POINTER==='1';
+export const out=resolve(process.env.SPECTRUM_OUTPUT??'artifacts/spectrum-controls',process.env.SPECTRUM_CONTROLS==='1'?'focused':'full',engine);
 const safeJSON=(value:unknown)=>JSON.stringify(value,(_key,item)=>typeof item==='string'?item.replace(/#pairing=[^\s"'<>]+/g,'#pairing=<redacted>'):item);
 const errorRecord=(error:unknown)=>error instanceof Error?{name:error.name,message:error.message,stack:error.stack}:{message:String(error)};
 type Smoke={page:Page;step:<T>(name:string,work:()=>Promise<T>,ms?:number)=>Promise<T>;record:(value:unknown)=>Promise<void>};
@@ -30,14 +33,14 @@ export const test=base.extend<{smoke:Smoke}>({
     let browserClosed=false,contextClosed=false,serverClosed=false,setupCompleted=false;
     let setupError:unknown;
     let profile:string|undefined;
-    const root=await mkdtemp(join(tmpdir(),'spectrum-controls-private-'));
+    const root=await mkdtemp(join(await realpath(tmpdir()),'spectrum-controls-private-'));
     await record({phase:'setup',root,bodyTimeout:90_000,teardownIsSeparateFixture:true});
     try{
       await record({step:'browser-launch',phase:'before',timeoutMs:15000,deadlineOwner:'Public launch API'});
       if(engine==='webkit'){
         profile=await mkdtemp(join(await realpath(tmpdir()),'spectrum-controls-profile-'));
         await record({phase:'owned-profile',profile});
-        context=await playwright.webkit.launchPersistentContext(profile,{timeout:15000,viewport:{width:1440,height:1000},colorScheme:'light',reducedMotion:'reduce'});
+        context=await playwright.webkit.launchPersistentContext(profile,{timeout:15000,viewport:{width:1440,height:1000},colorScheme:'light',reducedMotion:'reduce',hasTouch:coarsePointer});
         browser=context.browser()??undefined;
         if(!browser)throw Error('Persistent context browser handle unavailable');
         await record({step:'browser-launch',phase:'after'});
@@ -45,7 +48,7 @@ export const test=base.extend<{smoke:Smoke}>({
       }else{
         browser=await playwright[engine as 'chromium'|'firefox'].launch({timeout:15000});
         await record({step:'browser-launch',phase:'after'});
-        context=await step('fresh-context',()=>browser!.newContext({viewport:{width:1440,height:1000},colorScheme:'light',reducedMotion:'reduce'}));
+        context=await step('fresh-context',()=>browser!.newContext({viewport:{width:1440,height:1000},colorScheme:'light',reducedMotion:'reduce',hasTouch:coarsePointer}));
       }
       context.setDefaultTimeout(5_000);context.setDefaultNavigationTimeout(5_000);
       page=await step('page',()=>context!.newPage());
@@ -60,7 +63,7 @@ export const test=base.extend<{smoke:Smoke}>({
       page.on('pageerror',e=>events.push({kind:'pageerror',at:new Date().toISOString(),step:currentStep,name:sanitizedText(e.name),message:sanitizedText(e.message),stack:sanitizedText(e.stack??'')}));
       page.on('console',m=>{if(m.type()==='error')events.push({kind:'console',at:new Date().toISOString(),step:currentStep,message:sanitizedText(m.text()),location:{...m.location(),url:sanitizedText(m.location().url)}});});
       server=await step('local-server',()=>serverProcess(root),20_000);
-      await record({phase:'identities',browserVersion:browser.version(),browserExecutable:playwright[engine as 'chromium'|'firefox'|'webkit'].executablePath(),serverPid:server.pid});
+      await record({phase:'identities',browserVersion:browser.version(),browserExecutable:playwright[engine as 'chromium'|'firefox'|'webkit'].executablePath(),serverPid:server.pid,coarsePointer});
       await step('admit-origin',()=>guard!.admit(page!,server!.origin));
       const pairing=await step('issue-pairing',()=>server!.pair());
       if(typeof pairing!=='string')throw Error('Pairing URL unavailable');
@@ -90,4 +93,3 @@ export const test=base.extend<{smoke:Smoke}>({
     }
   },{timeout:90_000}],
 });
-

@@ -16,7 +16,7 @@ import {emptyNative} from './empty-native.mjs';
 import {integrationHostFinal} from './host-final-monitor.mjs';
 import {partitionHostTraffic} from './host-final-traffic.mjs';
 import {validateRecorder,retainedRecorder} from './recorder-health.mjs';
-import {auditHostIssuers} from './host-final-issuers.mjs';
+import {auditHostIssuers,loadHostIssuers} from './host-final-issuers.mjs';
 import {networkForEpoch,assertProtocolOwnership} from './protocol-membership.mjs';
 import {RESTORED_MODE,refuseRestoredNative,restoredNative,restoredOriginalChannels} from './restored-native.mjs';
 import {restoredRoutes} from './restored-route.mjs';
@@ -26,7 +26,7 @@ const readJSON=p=>JSON.parse(readFileSync(p));
 const once=(a,label)=>{assert.equal(a.length,1,label);return a[0];};
 export async function completionMonitor({page,context,root,out,id,expect,storageProbePath,readState=readNativeState,fixture,hostFactory=integrationHostFinal,mode='NATIVE-COMPLETION'}){
  assert(mode==='NATIVE-COMPLETION'||mode==='EMPTY-NATIVE'&&fixture==='busy-actions'||mode===RESTORED_MODE&&fixture==='restored-reads','Explicit fixture-selected native mode');
- const issuerEvidence=auditHostIssuers(readJSON('tests/editor/completion/host-final-issuers.json'));
+ const issuerEvidence=auditHostIssuers(loadHostIssuers());
  const key='__integrationNativeCompletion',epochs=[],requests=[],responses=[],terminals=[],network=[],discovery=[],commands=[],errors=[],pending=[],objects=new Map(),pages=new Map(),boundaries=[],targetOwners=new Map();let current,sequence=0;
  const record={scope:'Pinned Chromium test fixture: raw transport plus browser bytes plus source-derived native consumption',epochs,requests,responses,terminals,network,discovery,commands,errors,boundaries,observedEOF:false};
  record.issuerEvidence=issuerEvidence;

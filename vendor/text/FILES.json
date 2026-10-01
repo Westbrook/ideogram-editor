@@ -31,8 +31,8 @@
   },
   {
     "path": "tooling/text/MEMORY.txt",
-    "bytes": 6499,
-    "sha256": "882bc204eadd21c2b1c58ac7946be2f168c7997df064a5f475f664b74e52f8c1"
+    "bytes": 8845,
+    "sha256": "c1eec2d5fa800125b469afd1cd191bf7cf6976fac9fc18e19b79a50e8ca72fbb"
   },
   {
     "path": "tooling/text/modules-canvaskit-compile.sh",
@@ -106,8 +106,8 @@
   },
   {
     "path": "tooling/text/seal-profile.mjs",
-    "bytes": 4214,
-    "sha256": "892d8ec144a22e77b3e7fced1bd80d17fda4c9b7f5c1d790148790aacdbcd9b0"
+    "bytes": 4703,
+    "sha256": "b66a14c2ff7202fa384caa140841e05159ec4baa95fcaee25260b095f57cec71"
   },
   {
     "path": "tooling/text/skia-DEPS.txt",
@@ -191,8 +191,8 @@
   },
   {
     "path": "vendor/text/manifest.json",
-    "bytes": 16101,
-    "sha256": "2b874883288b0e197153220b4e44ff1dcb751d34c164a3f558668b40733e7d3b"
+    "bytes": 17134,
+    "sha256": "ea257991e81f2a1ebe4f2c3172c6071628b1a30b4230a5ec7c9b92d35db6c99e"
   },
   {
     "path": "vendor/text/notices/Brotli-LICENSE",

@@ -6,6 +6,7 @@ import { keys, id, seq, requireValue as ok } from './validate.js';
 import { inverse, extent } from '../raster/core.js';
 import type { Affine } from '../raster/core.js';
 import type { ImageState } from './history.js';
+import { exportOptions } from './export.js';
 
 export function affine(v: any) { ok(Array.isArray(v) && v.length === 6); inverse(v as unknown as Affine); }
 export function layerMask(v: any) {
@@ -46,14 +47,19 @@ export function historyBody(b: any) {
     SetLayerProperties:['layerId','layerVersion','properties','draft'], DeleteLayer:['layerId','layerVersion','draft'],
     DuplicateLayer:['layerId','layerVersion','newLayerId','name','draft'], MoveLayers:['orderedLayerIds','draft'],
     CropDocument:['x','y','width','height','draft'], ResizeCanvas:['width','height','offsetX','offsetY','draft'],
+    PrepareRequestSource:['scope','layerIds'],ReviewCandidatePlacement:['candidateId','mode','placement','newDocumentId','actualOutput','newLayerId','name'],AdoptReviewedCandidate:['reviewId','reviewHash','draft'],PrepareCandidateAdoption:['candidateId','mode','placement','newDocumentId','actualOutput','newLayerId','name'],AdoptCandidate:['previewId','reviewId','reviewHash','draft'],
     PrepareImageResample:['layerId','layerVersion','width','height'],PrepareFlattenedCopy:['layerIds','includeHidden','hideOriginals','newLayerId','name'],ReviewImageEdit:['previewId'],ResampleImage:['previewId','reviewId','reviewHash','draft'],CreateFlattenedCopy:['previewId','reviewId','reviewHash','draft'],SaveCheckpoint:['name'], Undo:['historyHead'], Redo:['historyNode'], SwitchBranch:['branchId','historyNode'], ExportDocument:['historyHead'],
   };
   for(const type of ['CommitCompositionVersion','AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding','ApprovePromptProjection'])fields[type]=['composition','draft'];
   if('composition'in b)validateCompositionRef(b.composition);if('description'in b)ok(validString(b.description));
-  ok(Object.hasOwn(fields,b.type)); keys(b,['type',...fields[b.type]]);
-  for (const k of ['assetId','layerId','newLayerId','historyHead','historyNode','branchId','previewId','reviewId']) if (k in b) ok(id(b[k]));
+  ok(Object.hasOwn(fields,b.type)); keys(b,['type',...fields[b.type],...(b.type==='ExportDocument'&&Object.hasOwn(b,'options')?['options']:[]),...(['PrepareCandidateAdoption','ReviewCandidatePlacement'].includes(b.type)&&Object.hasOwn(b,'replacement')?['replacement']:[])]);
+  if(b.type==='ExportDocument'&&Object.hasOwn(b,'options'))exportOptions(b.options,true);
+  for (const k of ['candidateId','assetId','layerId','newLayerId','historyHead','historyNode','branchId','previewId','reviewId']) if (k in b) ok(id(b[k]));
   if('reviewHash' in b)ok(/^sha256:[a-f0-9]{64}$/.test(b.reviewHash));
-  if('layerIds' in b)ok(Array.isArray(b.layerIds)&&b.layerIds.length>0&&b.layerIds.length<=100&&b.layerIds.every(id)&&new Set(b.layerIds).size===b.layerIds.length&&typeof b.includeHidden==='boolean'&&typeof b.hideOriginals==='boolean');
+  if('layerIds' in b)ok(Array.isArray(b.layerIds)&&(b.layerIds.length>0||b.type==='PrepareRequestSource'&&b.scope==='visible-document')&&b.layerIds.length<=100&&b.layerIds.every(id)&&new Set(b.layerIds).size===b.layerIds.length&&(b.type==='PrepareRequestSource'||typeof b.includeHidden==='boolean'&&typeof b.hideOriginals==='boolean'));
+  if(b.type==='PrepareRequestSource')ok(['single-layer','visible-document','selected-layers'].includes(b.scope)&&(b.scope==='visible-document'?b.layerIds.length===0:b.scope==='single-layer'?b.layerIds.length===1:b.layerIds.length>0));
+  if(b.type==='PrepareCandidateAdoption'||b.type==='ReviewCandidatePlacement'){ok(['safe-region','full-candidate'].includes(b.mode)&&['current-document','new-document'].includes(b.placement)&&(b.placement==='new-document'?id(b.newDocumentId):b.newDocumentId===null));if(b.actualOutput!==null){keys(b.actualOutput,['width','height','clipMask']);extent(b.actualOutput.width,b.actualOutput.height);ok(typeof b.actualOutput.clipMask==='boolean');}if(Object.hasOwn(b,'replacement')){keys(b.replacement,['layerId','layerVersion']);ok(b.mode==='full-candidate'&&b.placement==='current-document'&&id(b.replacement.layerId)&&seq(b.replacement.layerVersion)&&b.newLayerId===b.replacement.layerId);}}
+  if(b.type==='AdoptReviewedCandidate')ok(b.draft===null);
   if ('layerVersion' in b) ok(seq(b.layerVersion));
   if ('name' in b) {if(b.type==='SaveCheckpoint')ok(typeof b.name==='string');else properties({name:b.name});}
   if ('transform' in b) affine(b.transform);

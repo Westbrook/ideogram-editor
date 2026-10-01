@@ -1,16 +1,17 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { closeSync, fsyncSync, statfsSync, openSync, readSync, writeFileSync, constants, fstatSync, readdirSync } from 'node:fs';
+import { closeSync, fsyncSync, statfsSync, openSync, readSync, writeSync, writeFileSync, constants, fstatSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { canonical, hashBytes, isId, parseCommand } from './canonical.js';
-import { privateFile, syncDirectory, assertPrivate, inspectTree, sameFile } from './files.js';
+import { privateFile, privateDirectory, syncDirectory, assertPrivate, inspectTree, sameFile } from './files.js';
 import { StoreError } from './errors.js';
 import type { Barrier } from './objects.js';
 
 const tables = ['meta', 'objects', 'commands', 'events', 'documents', 'history', 'checkpoints', 'roots'];
 function digest(db: DatabaseSync, table: string): { hash: string; count: string } {
   const h = createHash('sha256'); let n = 0n;
-  for (const row of db.prepare(`SELECT * FROM ${table} ORDER BY 1,2`).iterate()) { h.update(canonical(row) + '\n'); n++; }
+  const order = db.prepare(`PRAGMA table_info(${table})`).all().length === 1 ? '1' : '1,2';
+  for (const row of db.prepare(`SELECT * FROM ${table} ORDER BY ${order}`).iterate()) { h.update(canonical(row) + '\n'); n++; }
   return { hash: h.digest('hex'), count: String(n) };
 }
 // Additive migration: the v1 events table and its immutable triggers remain as
@@ -737,7 +738,7 @@ export function textPlacementSchema(db: DatabaseSync, root: string, barrier: Bar
   let manifestFile: string | null = null;
   const fileProof = (path: string) => {
     const identity = assertPrivate(path, false), input = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
-    const hash = createHash('sha256'), block = Buffer.alloc(1148576);
+    const hash = createHash('sha256'), block = Buffer.alloc(1048576);
     try {
       if (!sameFile(identity, fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
       for (;;) { const n = readSync(input, block); if (!n) break; hash.update(block.subarray(0,n)); }
@@ -749,8 +750,8 @@ export function textPlacementSchema(db: DatabaseSync, root: string, barrier: Bar
   const proofs: ReturnType<typeof fileProof>[] = [];
   if (backup) {
     const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
-    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1173741824n + 67118864n;
-    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*11n >= fs.blocks*9n ||
+    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1073741824n + 67108864n;
+    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*10n >= fs.blocks*9n ||
         (quotaBytes && inspectTree(root)+required > BigInt(quotaBytes))) throw new StoreError('CAPACITY');
     barrier('text-placement-schema-before-backup');
     const path = join(root, backup);
@@ -818,7 +819,7 @@ export function compositionSchema(db: DatabaseSync, root: string, barrier: Barri
   let manifestFile: string | null = null;
   const fileProof = (path: string) => {
     const identity = assertPrivate(path, false), input = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
-    const hash = createHash('sha256'), block = Buffer.alloc(1148576);
+    const hash = createHash('sha256'), block = Buffer.alloc(1048576);
     try {
       if (!sameFile(identity, fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
       for (;;) { const n = readSync(input, block); if (!n) break; hash.update(block.subarray(0,n)); }
@@ -830,8 +831,8 @@ export function compositionSchema(db: DatabaseSync, root: string, barrier: Barri
   const proofs: ReturnType<typeof fileProof>[] = [];
   if (backup) {
     const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
-    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1173741824n + 67118864n;
-    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*11n >= fs.blocks*9n ||
+    const fs = statfsSync(root, { bigint: true }), required = size + (size+3n)/4n + 1073741824n + 67108864n;
+    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*10n >= fs.blocks*9n ||
         (quotaBytes && inspectTree(root)+required > BigInt(quotaBytes))) throw new StoreError('CAPACITY');
     barrier('composition-schema-before-backup');
     const path = join(root, backup);
@@ -1146,5 +1147,232 @@ export function deletionSchema(db: DatabaseSync, root: string, barrier: Barrier,
     }
     db.exec('COMMIT'); syncDirectory(root);
     barrier('deletion-schema-after-activation');
+  } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
+}
+
+// Development builds wrote some P2 records before their storage-version fence.
+// Inspect them on the constructor's read-only connection; a backup of those
+// records cannot truthfully promise readability by the accepted schema16 binary.
+export function assertP2LegacyCompatibility(db: DatabaseSync, root: string): void {
+  const refuse = (): never => { throw new StoreError('UNSUPPORTED_STORAGE', {kind:'fields',issues:[
+    {path:'storage.schemaVersion',code:'P2_DEVELOPMENT_SCHEMA_REQUIRES_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP'},
+  ]}); };
+  const newCommands = new Set(['PrepareRequestSource','PrepareRequestMask','PrepareCandidateAdoption','AdoptCandidate','ReviewCandidatePlacement','AdoptReviewedCandidate','RegisterAdapterVersion','PreviewAdapterDeletion','DeleteAdapterVersion']);
+  for (const table of ['commands','asset_preparations','raster_preparations','history_preparations','portable_preparations']) {
+    for (const row of db.prepare(`SELECT canonical FROM ${table}`).iterate()) {
+      if (newCommands.has(JSON.parse(String(row.canonical)).command?.body?.type)) refuse();
+    }
+  }
+  for (const row of db.prepare('SELECT json FROM staged_assets').iterate()) if (JSON.parse(String(row.json)).purpose==='adapter') refuse();
+  const metadata = (ref: any): any => {
+    if (!ref || !/^sha256:[a-f0-9]{64}$/.test(ref.hash) || !/^(0|[1-9][0-9]*)$/.test(ref.byteLength) || BigInt(ref.byteLength)>65536n) return null;
+    const path = join(root,'objects','sha256',ref.hash.slice(7,9),ref.hash.slice(7));
+    let before: ReturnType<typeof assertPrivate>;
+    try { before = assertPrivate(path,false); } catch (error) { if ((error as NodeJS.ErrnoException).code==='ENOENT') return null; throw error; }
+    if (before.size!==Number(ref.byteLength)) throw new StoreError('CORRUPT_OBJECT');
+    const input = openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW), bytes = Buffer.alloc(Number(ref.byteLength));
+    try {
+      if (!sameFile(before,fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
+      let offset = 0;
+      while (offset<bytes.length) { const n=readSync(input,bytes,offset,bytes.length-offset,null); if (!n) throw new StoreError('CORRUPT_OBJECT'); offset+=n; }
+    } finally { closeSync(input); }
+    const after = assertPrivate(path,false);
+    if (!sameFile(before,after) || before.mtimeMs!==after.mtimeMs || before.ctimeMs!==after.ctimeMs || hashBytes(bytes)!==ref.hash) throw new StoreError('CORRUPT_OBJECT');
+    try { return JSON.parse(bytes.toString('utf8')); } catch { return null; }
+  };
+  const newPlans = new Set(['request-source-capture-v1','authored-request-mask-v1','request-mask-binary-v1','request-source-transport-v1','request-preservation-v1','retained-candidate-v1','frozen-image-export-v1']);
+  const shape = (value: any): void => {
+    if (!value || typeof value!=='object') return;
+    if (['AdoptCandidate','AdoptReviewedCandidate'].includes(value.operation) || value.kind==='candidate-adoption' || value.kind==='adopted-candidate-lineage-1' || value.kind==='candidate-placement-review-1' || value.kind==='retained-raster-metadata-1' || value.retainedMetadata!==undefined ||
+        ['pending-adapter','adapter-version','adapter-deletion','canonical-jpeg'].includes(value.qualification) || ['ExportDocument','ExportRaster'].includes(value.type)&&value.options!==undefined) refuse();
+    if (value.kind==='request-draft-1' && (value.requestMaskDraft!==undefined || value.source?.capture!==undefined || value.mask?.requestPlan!==undefined || value.mask?.binding!==undefined || value.mask?.cropAcknowledged!==undefined)) refuse();
+    if (value.raster?.manifest) {
+      const manifest = metadata(value.raster.manifest);
+      if (newPlans.has(manifest?.plan?.kind) || manifest?.plan?.decodeTransport!==undefined) refuse();
+    }
+    // An arbitrary caption can contain JSON that resembles a future draft. Only
+    // an authoritative saved-draft attachment gives those bytes draft semantics.
+    if (value.kind==='request' && isId(value.assetId)) {
+      const row = db.prepare("SELECT json FROM assets WHERE id=? UNION ALL SELECT json FROM portable_rows WHERE kind='asset' AND id=? LIMIT 1").get(value.assetId,value.assetId);
+      if (row) { const draft=metadata(JSON.parse(String(row.json)).blob); if (draft?.kind==='request-draft-1') shape(draft); }
+    }
+    // Covers direct events/projections, imported namespace entities, and frozen
+    // queued request records without treating arbitrary text strings as code.
+    for (const child of Object.values(value)) if (child && typeof child==='object') shape(child);
+  };
+  for (const table of ['events_v2','assets','history','image_previews','portable_rows','ui_checkpoints','ui_events','queue_jobs','queue_journal']) {
+    for (const row of db.prepare(`SELECT json FROM ${table}`).iterate()) shape(JSON.parse(String(row.json)));
+  }
+}
+
+// P2 extends persisted raster plans, adoption history and adapter assets, and
+// adds backend-only ownership of locally adopted raw evidence. Older writers
+// must refuse the root before replay or epoch changes: interpreting these
+// records as corrupt is not a version fence.
+function candidatePreservationIndex(db:DatabaseSync){
+  db.exec('CREATE INDEX IF NOT EXISTS roots_hash ON roots(hash)');
+  db.exec(`CREATE INDEX IF NOT EXISTS assets_preservation_inputs ON assets (
+    json_extract(json,'$.raster.pipeline'),json_extract(json,'$.raster.sourceAssetIds'),id
+  ) WHERE json_extract(json,'$.qualification')='canonical-raster'
+    AND json_extract(json,'$.safety')='safe' AND json_extract(json,'$.availability')='available'
+    AND json_extract(json,'$.raster.role')='composite'`);
+}
+export function p2SemanticSchema(db: DatabaseSync, root: string, barrier: Barrier, quotaBytes?: string, fresh = false) {
+  const capability = 'p2-request-adoption-adapters-v1';
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) >= 17) {
+    const row = db.prepare('SELECT receipt FROM schema_migrations WHERE version=17').get();
+    if (!row || JSON.parse(String(row.receipt)).capability !== capability) throw new StoreError('CORRUPT_STORE');
+    candidatePreservationIndex(db);
+    return;
+  }
+  if (Number(db.prepare('PRAGMA user_version').get()!.user_version) !== 16) throw new StoreError('CORRUPT_STORE');
+  const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name").all().map(r=>String(r.name));
+  const compatibleExecutable = '5650326b623d4aa2080772307708aa9f1854aa52';
+  const backup = fresh ? null : `schema16-backup-${randomUUID()}.sqlite`;
+  const retainedDirectories = ['objects','staging','uploads','portable','backend-transport','raster-work'];
+  const retainedDirectoryCopies: Record<string, string> = {};
+  const retainedFiles: {path: string; bytes: string; hash: string}[] = [];
+  const manifest: Record<string, unknown> = {};
+  let backupHash: string | null = null;
+  let manifestFile: string | null = null;
+  const fileProof = (path: string) => {
+    const identity = assertPrivate(path, false), input = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    const hash = createHash('sha256'), block = Buffer.alloc(1048576);
+    try {
+      if (!sameFile(identity, fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
+      for (;;) { const n = readSync(input, block); if (!n) break; hash.update(block.subarray(0,n)); }
+      const after = assertPrivate(path, false);
+      if (!sameFile(identity, after) || identity.size !== after.size || identity.mtimeMs !== after.mtimeMs || identity.ctimeMs !== after.ctimeMs) throw new StoreError('ROOT_UNSAFE');
+    } finally { closeSync(input); }
+    return { path, identity, hash: `sha256:${hash.digest('hex')}` };
+  };
+  const proofs: ReturnType<typeof fileProof>[] = [];
+  if (backup) {
+    const sourceDirectories: string[] = [], sourceFiles: {relative: string; identity: ReturnType<typeof assertPrivate>}[] = [];
+    let mutableBytes = 0n;
+    const inventory = (relative: string) => {
+      const path = join(root, relative); assertPrivate(path, true); sourceDirectories.push(relative);
+      for (const entry of readdirSync(path, {withFileTypes:true})) {
+        const child = join(relative, entry.name);
+        if (entry.isDirectory()) inventory(child);
+        else { const identity = assertPrivate(join(root, child), false); mutableBytes += BigInt(identity.size); sourceFiles.push({relative:child,identity}); }
+      }
+    };
+    for (const directory of retainedDirectories.slice(1)) {
+      try { assertPrivate(join(root,directory), true); }
+      catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue; throw error; }
+      inventory(directory); retainedDirectoryCopies[directory] = `${backup}.files/${directory}`;
+    }
+    const size = BigInt(Number(db.prepare('PRAGMA page_count').get()!.page_count) * Number(db.prepare('PRAGMA page_size').get()!.page_size));
+    const total = size + mutableBytes;
+    const fs = statfsSync(root, { bigint: true }), required = total + (total+3n)/4n + 1073741824n + 67108864n;
+    if (fs.bavail*fs.bsize < required || (fs.blocks-fs.bavail)*10n >= fs.blocks*9n ||
+        (quotaBytes && inspectTree(root)+required > BigInt(quotaBytes))) throw new StoreError('CAPACITY');
+    barrier('p2-semantic-schema-before-backup');
+    const path = join(root, backup);
+    closeSync(privateFile(path));
+    db.prepare('VACUUM INTO ?').run(path); assertPrivate(path, false);
+    barrier('p2-semantic-schema-backup-written');
+    const saved = new DatabaseSync(path, { readOnly: true, allowExtension: false });
+    try {
+      if (saved.prepare('PRAGMA integrity_check').get()!.integrity_check !== 'ok' ||
+          saved.prepare('PRAGMA user_version').get()!.user_version !== 16) throw new StoreError('CORRUPT_STORE');
+      for (const table of tables) {
+        const before = digest(db, table);
+        if (canonical(before) !== canonical(digest(saved, table))) throw new StoreError('CORRUPT_STORE');
+        manifest[table] = before;
+      }
+      const sql = (database: DatabaseSync) => database.prepare('SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name').all();
+      if (canonical(sql(db)) !== canonical(sql(saved))) throw new StoreError('CORRUPT_STORE');
+      manifest.sqlite_schema = hashBytes(canonical(sql(saved)));
+    } finally { saved.close(); }
+    const fd = privateFile(path); try { fsyncSync(fd); } finally { closeSync(fd); }
+    const proof = fileProof(path); proofs.push(proof); backupHash = proof.hash;
+    // Mutable upload/preparation/evidence paths may be renamed or extended by
+    // normal work. Preserve independent bytes instead of trusting pathname pins.
+    const filesRoot = join(root, `${backup}.files`); privateDirectory(filesRoot);
+    for (const relative of sourceDirectories) privateDirectory(join(filesRoot, relative));
+    const block = Buffer.alloc(1048576);
+    for (const source of sourceFiles) {
+      const sourcePath = join(root,source.relative), targetPath = join(filesRoot,source.relative);
+      const input = openSync(sourcePath, constants.O_RDONLY | constants.O_NOFOLLOW); let output: number | undefined;
+      const hash = createHash('sha256'); let copied = 0;
+      try {
+        if (!sameFile(source.identity,fstatSync(input))) throw new StoreError('ROOT_UNSAFE');
+        output = privateFile(targetPath);
+        for (;;) {
+          const n = readSync(input,block); if (!n) break; hash.update(block.subarray(0,n)); copied += n;
+          let written = 0; while (written<n) { const next = writeSync(output,block,written,n-written,null); if (!next) throw new StoreError('STORAGE_FAILURE'); written += next; }
+        }
+        fsyncSync(output);
+        const after = assertPrivate(sourcePath,false);
+        if (!sameFile(source.identity,after) || source.identity.size!==copied || source.identity.size!==after.size || source.identity.mtimeMs!==after.mtimeMs || source.identity.ctimeMs!==after.ctimeMs) throw new StoreError('ROOT_UNSAFE');
+      } finally { closeSync(input); if (output!==undefined) closeSync(output); }
+      const saved = fileProof(targetPath), expectedHash = `sha256:${hash.digest('hex')}`;
+      if (saved.hash!==expectedHash || saved.identity.size!==copied) throw new StoreError('CORRUPT_STORE');
+      proofs.push(saved); retainedFiles.push({path:join(`${backup}.files`,source.relative),bytes:String(copied),hash:expectedHash});
+    }
+    for (const relative of [...sourceDirectories].reverse()) syncDirectory(join(filesRoot,relative));
+    syncDirectory(filesRoot);
+    manifestFile = `${backup}.manifest.json`;
+    const out = privateFile(join(root, manifestFile));
+    try {
+      writeFileSync(out, canonical({ schemaVersion: 1, backup, backupHash, storageVersion: 16,
+        compatibleExecutable, manifest, retainedDirectories, retainedDirectoryCopies, retainedFiles, originalRoot:root,
+        recovery: 'Stop the writer and preserve the upgraded root by moving it aside. Restore into a new owner-only directory at originalRoot, retaining that exact canonical path because schema16 stores absolute cleanup paths. Copy the backup database unchanged, copy the shared objects directory from the preserved root, and restore each mutable directory from retainedDirectoryCopies. Verify backupHash and every retainedFiles hash before opening only the named compatible executable. Keep the preserved upgraded root and backup evidence unchanged.' }));
+      fsyncSync(out);
+    } finally { closeSync(out); }
+    proofs.push(fileProof(join(root, manifestFile)));
+    syncDirectory(root);
+    barrier('p2-semantic-schema-backup-verified');
+  }
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    // All original rows, pending command identities and bytes remain unchanged.
+    for (const table of tables) if (backup && canonical(manifest[table]) !== canonical(digest(db, table))) throw new StoreError('CORRUPT_STORE');
+    db.prepare('INSERT INTO schema_migrations VALUES (17,?)').run(canonical({ from:16, to:17, capability,
+      strategy:'semantic-version-verified-backup-transactional-activation', backup, backupHash, manifestFile, manifest,
+      rollback: backup ? { compatibleExecutable, originalRoot:root } : null }));
+    db.exec('CREATE TABLE candidate_adoption_evidence (document_id TEXT NOT NULL, attempt_id TEXT NOT NULL, PRIMARY KEY(document_id,attempt_id)) STRICT');
+    db.exec('CREATE TABLE candidate_asset_evidence (asset_id TEXT NOT NULL, manifest_hash TEXT NOT NULL, attempt_id TEXT NOT NULL, PRIMARY KEY(asset_id,attempt_id)) STRICT');
+    candidatePreservationIndex(db);
+    if (backup) {
+      // Include objects already queued for deletion, as well as live roots. The
+      // independent backup still owns their exact pre-upgrade state.
+      const pinObject = db.prepare('INSERT OR IGNORE INTO deletion_backup_pins VALUES (?)');
+      for (const row of db.prepare('SELECT hash FROM objects').iterate()) {
+        const hash = String(row.hash); if (!/^sha256:[a-f0-9]{64}$/.test(hash)) throw new StoreError('CORRUPT_STORE');
+        try { assertPrivate(join(root,'objects','sha256',hash.slice(7,9),hash.slice(7)),false); }
+        catch (error) {
+          if ((error as NodeJS.ErrnoException).code!=='ENOENT') throw error;
+          if (db.prepare("SELECT 1 FROM deletion_objects WHERE hash=? AND state IN ('unlinking','freed') LIMIT 1").get(hash)) continue;
+          throw new StoreError('MISSING_OBJECT');
+        }
+        pinObject.run(hash);
+      }
+      const pinFile = db.prepare('INSERT OR IGNORE INTO deletion_backup_files VALUES (?)');
+      const pinDirectory = (path: string) => {
+        assertPrivate(path, true);
+        for (const entry of readdirSync(path, { withFileTypes: true })) {
+          const child = join(path, entry.name);
+          if (entry.isDirectory()) pinDirectory(child);
+          else { assertPrivate(child, false); pinFile.run(child); }
+        }
+      };
+      for (const directory of retainedDirectories.slice(1)) {
+        const path = join(root, directory);
+        try { assertPrivate(path, true); }
+        catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue; throw error; }
+        pinDirectory(path);
+      }
+    }
+    db.exec('PRAGMA user_version=17');
+    barrier('p2-semantic-schema-before-activation');
+    for (const proof of proofs) {
+      const current = fileProof(proof.path);
+      if (!sameFile(current.identity, proof.identity) || current.hash !== proof.hash) throw new StoreError('CORRUPT_STORE');
+    }
+    db.exec('COMMIT'); syncDirectory(root);
+    barrier('p2-semantic-schema-after-activation');
   } catch (error) { if (db.isTransaction) db.exec('ROLLBACK'); throw error; }
 }

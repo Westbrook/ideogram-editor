@@ -7,14 +7,19 @@ import { StoreError, safeError } from './errors.js';
 import type { StoreErrorCode } from './errors.js';
 import type { RecoveryStore, StoredContent } from './recovery.js';
 import type { Assets, AssetAuth } from './assets.js';
+import type { Adapters } from './adapters.js';
 import type { Histories } from './history.js';
 import type { UIStore } from './ui.js';
 import type { Rasters } from './raster.js';
+import type { Displays } from './display.js';
+import type { DisplayRequest, DisplayInfo } from '../../src/protocol/display.js';
 import type { StoreDatabase } from './database.js';
 import { IO_CHUNK } from './objects.js';
 import { PrivateRootError } from '../private-root.js';
+import type { ProviderRuntimeConfig } from '../provider/config.js';
+import type { ProviderView } from '../../src/protocol/provider.js';
 
-export type WriterOptions = { root: string; quotaBytes?: string };
+export type WriterOptions = { root: string; quotaBytes?: string; provider?: ProviderRuntimeConfig };
 // Internal process/filesystem tests only. Not an HTTP/CLI/environment setting.
 export type WriterTestOptions = { phase?: string; gate?: SharedArrayBuffer; onBarrier?: (phase: string) => void;
   onFailure?: (failure: { code?: string; sqliteCode?: number }) => void; maxPageCount?: number; effectCounters?: SharedArrayBuffer; setupModule?:string };
@@ -26,7 +31,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   });
   let worker: Worker;
   try {
-    worker = new Worker(new URL('./worker.js', import.meta.url), { workerData: { root: owner.path, identity: owner.identity, quotaBytes: options.quotaBytes,
+    worker = new Worker(new URL('./worker.js', import.meta.url), { workerData: { root: owner.path, identity: owner.identity, quotaBytes: options.quotaBytes, provider: options.provider,
       testing: testing ? { phase: testing.phase, gate: testing.gate, maxPageCount: testing.maxPageCount, effectCounters: testing.effectCounters, setupModule:testing.setupModule } : undefined },
       ...(process.execArgv.some(arg => arg.startsWith('--input-type')) ?
         { execArgv: process.execArgv.filter(arg => !arg.startsWith('--input-type')) } : {}),
@@ -54,7 +59,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   try { epoch = await ready; owner.check(); } catch (error) { await worker.terminate(); await exited; throw error; }
   function request<T>(method: string, args: Record<string, unknown> = {}): Promise<T> {
     if (ended || (closing && method !== 'close')) return Promise.reject(new StoreError('CLOSED'));
-    if (pending.size >= 64 && method !== 'close') return Promise.reject(new StoreError('QUEUE_FULL'));
+    if (pending.size >= 64 && method !== 'close' && method !== 'displayRelease') return Promise.reject(new StoreError('QUEUE_FULL'));
     try { if (method !== 'close') owner.check(); } catch (error) { return Promise.reject(safeError(error)); }
     return new Promise<T>((resolve, reject) => {
       const id = ++sequence; pending.set(id, { resolve, reject });
@@ -65,6 +70,11 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
   let closePromise: Promise<void> | undefined;
   return {
     root: owner.path, epoch,
+    providerView:()=>request<ProviderView>('providerView'),
+    adapterCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<Adapters['command']>>>('adapterCommand',{bytes,auth}),
+    adapterList:(...params:Parameters<Adapters['list']>)=>request<ReturnType<Adapters['list']>>('adapterList',{params}),
+    adapterView:(id:string)=>request<ReturnType<Adapters['view']>>('adapterView',{id}),
+    adapterDeletionReview:(id:string,auth:AssetAuth)=>request<ReturnType<Adapters['deletionReview']>>('adapterDeletionReview',{id,auth}),
     queueCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<QueueStore['command']>>>('queueCommand',{bytes,auth}),
     candidateHistory:(documentId:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateHistory>('candidateHistory',{documentId,after}),
     candidateView:(jobId:string,attemptId?:string,after='')=>request<import('../../src/protocol/candidates.js').CandidateView>('candidateView',{jobId,attemptId,after}),
@@ -103,6 +113,7 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     imagePreview:(id:string,auth:AssetAuth)=>request<ReturnType<Histories['preview']>>('imagePreview',{id,auth}),
     imageEditReview:(id:string,auth:AssetAuth)=>request<ReturnType<Histories['review']>>('imageEditReview',{id,auth}),
     historyCommand:(bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('historyCommand',{bytes,auth}),
+    cancelExport:(id:string,auth:AssetAuth)=>request<Awaited<ReturnType<Histories['cancelExport']>>>('cancelExport',{id,auth}),
     imageState:(id:string)=>request<ReturnType<Histories['state']>>('imageState',{id}),
     historyClosure:(id:string,after:string)=>request<ReturnType<Histories['closure']>>('historyClosure',{id,after}),
     historyPage:(id:string,after:string,kind:'history'|'checkpoints')=>request<ReturnType<Histories['page']>>('historyPage',{id,after,kind}),
@@ -112,8 +123,13 @@ export async function openWriter(options: WriterOptions, testing?: WriterTestOpt
     uiPersist:(bytes:Uint8Array,auth:AssetAuth)=>request<Awaited<ReturnType<UIStore['persist']>>>('uiPersist',{bytes,auth}),
     rasterCommand: (bytes:Uint8Array,auth:AssetAuth)=>request<Receipt|null>('rasterCommand',{bytes,auth}),
     rasterReview: (id:string,auth:AssetAuth)=>request<ReturnType<Rasters['review']>>('rasterReview',{id,auth}),
+    rasterWorkerState:()=>request<ReturnType<Rasters['rasterWorkerState']>>('rasterWorkerState'),
+    restartRasterWorker:(expectedGeneration:number)=>request<Awaited<ReturnType<Rasters['restartIdleWorker']>>>('restartRasterWorker',{expectedGeneration}),
     rasterSample: (id:string,x:number,y:number)=>request<Awaited<ReturnType<Rasters['sample']>>>('rasterSample',{id,x,y}),
     rasterManifest: (id:string)=>request<ReturnType<Rasters['manifest']>>('rasterManifest',{id}),
+    displayBegin: (id:string,assetId:string,display:DisplayRequest)=>request<DisplayInfo>('displayBegin',{id,assetId,display}),
+    displayRead: (id:string,offset:string,length:number)=>request<ReturnType<Displays['read']>>('displayRead',{id,offset,length}),
+    displayRelease: (id:string)=>request<void>('displayRelease',{id}),
     assetPending: (id:string)=>request<ReturnType<Assets['pending']>>('assetPending',{id}),
     assetProjection: (id:string)=>request<{asset:ReturnType<Assets['asset']>;highWater:string}>('assetProjection',{id}),
     assetVerify: (id:string)=>request<Awaited<ReturnType<Assets['verify']>>>('assetVerify',{id}),

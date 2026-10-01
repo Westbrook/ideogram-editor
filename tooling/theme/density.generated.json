@@ -1,0 +1,52 @@
+{
+  "schema": "ideogram-spectrum-density-1",
+  "sourceFiles": {
+    "spectrum.light.json": "8dee265c2e36dd77be4318b67cf3f8d914b8dbb3ec34d26c25f167289d02d9b9",
+    "spectrum.dark.json": "083de7ff9d80a53dee11b965a4494d1559b122094d33287fc96df3927caff98c",
+    "definition.json": "9521ff892253b03d830561ff8bb4d10409369e9cf4e4e872a4e97b3a9a739fab"
+  },
+  "compilerArchive": "vendor/en-reve/37341d7a644cdfb37e6ba06d5c051e560306417d61a80705558bd78bd0c02cc4/en-reve-tokens-0.1.0.tgz",
+  "compact": {
+    "name": "spectrum-inspired",
+    "density": "compact",
+    "generatedBy": "tooling/theme/spectrum.mjs"
+  },
+  "variants": {
+    "comfortable": {
+      "name": "spectrum-inspired-comfortable",
+      "density": "comfortable",
+      "pairSourceHash": "sha256:16039ea92e3542eb0ccf73a5b67f063db6a4f0ef31c7a579cd9e024cd0aa487a",
+      "compilerVersion": "0.1.0",
+      "branches": {
+        "light": {
+          "sourceHash": "sha256:419c92c77dee3be5e062eb558859981af1b377668c68c848717a92f8e71680fb",
+          "tokenCount": 649
+        },
+        "dark": {
+          "sourceHash": "sha256:d99e2809869ea5d3b8ff907ccae0909c7cf50d43b5ce3ed6ce0742217df331f3",
+          "tokenCount": 649
+        }
+      }
+    },
+    "spacious": {
+      "name": "spectrum-inspired-spacious",
+      "density": "spacious",
+      "pairSourceHash": "sha256:6fc1882d55225054e8959146f95f28c40668475a3c8087af085068b16be53a00",
+      "compilerVersion": "0.1.0",
+      "branches": {
+        "light": {
+          "sourceHash": "sha256:090ef1275f81259156472c4a81c2ec2ebd21b5de6805027efdc7f94ac0e2cb14",
+          "tokenCount": 649
+        },
+        "dark": {
+          "sourceHash": "sha256:7840914ef90683cde3ca2d29c16548724aaca43554631b9b158e43e448b68bd5",
+          "tokenCount": 649
+        }
+      }
+    }
+  },
+  "outputs": {
+    "src/theme/spectrum.density.css": "0f9d2b4d8a0cc498e73b29dcda5c3990b973d028f4cab58055dc4c953a76284c",
+    "src/theme/spectrum.density.companion.css": "83d713adb38f1114fa4f18c38e3882c81240df56ddb42142f95e914c51e3565b"
+  }
+}

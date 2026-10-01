@@ -20,7 +20,11 @@ test('public rail restores icon-over-label surfaces and native disabled, selecte
  await mkdir(receipt,{recursive:true});await page.locator('.tool-rail').screenshot({path:join(receipt,'rail-desktop.png')});
  await pan.focus();await page.keyboard.press('ArrowDown');await expect(zoom).toBeFocused();await page.keyboard.press('Enter');await expect(zoom).toHaveAttribute('aria-pressed','true');await expect(pan).toHaveAttribute('aria-pressed','false');
  await page.keyboard.press('ArrowUp');await expect(pan).toBeFocused();await page.keyboard.press('Space');await expect(pan).toHaveAttribute('aria-pressed','true');
- const b=(await zoom.boundingBox())!;await page.mouse.click(b.x+2,b.y+2);await expect(zoom).toHaveAttribute('aria-pressed','true');await pan.click();await page.keyboard.press('Tab');await expect(rail.locator(':focus')).toHaveCount(0);
+ // Native focus may scroll Pan into view; reveal Zoom before pointer input.
+ await zoom.scrollIntoViewIfNeeded();const b=(await zoom.boundingBox())!;
+ const point={x:b.x+2,y:b.y+b.height/2};
+ expect(await zoom.evaluate((el,p)=>(el.getRootNode() as ShadowRoot).host===document.elementFromPoint(p.x,p.y),point)).toBe(true);
+ await page.mouse.click(point.x,point.y);await expect(zoom).toHaveAttribute('aria-pressed','true');await pan.click();await page.keyboard.press('Tab');await expect(rail.locator(':focus')).toHaveCount(0);
  expect(commands).toEqual([]);expect(Object.values(await server.effects()).every(v=>v===0)).toBe(true);
  }finally{await server.close();}
 });

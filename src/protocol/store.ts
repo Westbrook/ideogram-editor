@@ -1,3 +1,4 @@
+import type {AdapterBody} from './adapters.js';
 import type {QueueBody,QueueFact} from './queue.js';
 import type { PortableBody, PortableFact } from './portable.js';
 // Foundation commands only. The HTTP/session adapter owns authentication; these
@@ -14,7 +15,7 @@ export type Command = {
   schemaVersion: 1; commandId: string; clientId: string; sessionId: string;
   correlationId: string; causationId: string | null; transactionId: string;
   documentId: string | null; expectedDocumentRevision: Seq | null;
-  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody | RasterBody | HistoryBody | PortableBody | QueueBody;
+  expectedEntityVersions: BlobRef; issuedAt: string; body: FoundationBody | AssetBody | RasterBody | HistoryBody | PortableBody | QueueBody | AdapterBody;
 };
 export type CommandRequest = { protocolVersion: 1; command: Command };
 export type RejectionCode = 'STALE_REVISION' | 'INVALID_INPUT' | 'MISSING_ASSET' | 'CAPACITY' | 'INCOMPATIBLE';

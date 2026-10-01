@@ -17,16 +17,29 @@ export type ConnectionPolicy = Readonly<{
   fixtureCA?: string;
   connectMs?: number; readMs?: number;
 }>;
+/** One invocation, one pass, with a fixed size reserved before any body bytes leave. */
+export type StreamingBody = Readonly<{
+  byteLength: bigint;
+  chunks: () => Iterable<Uint8Array> | AsyncIterable<Uint8Array>;
+}>;
 export type WireRequest = Readonly<{
   url: URL; method: 'GET' | 'POST' | 'PUT';
   headers: () => Readonly<Record<string,string>>;
-  body?: Uint8Array; sink: TransferSink;
+  body?: Uint8Array | StreamingBody; sink: TransferSink; requestEvidence?: TransferSink;
   expectedHash?: string; expectedBytes?: bigint;
   resume?: Readonly<{ offset: bigint; etag: string; total: bigint }>;
   signal?: AbortSignal;
 }>;
 function safeCode(error: unknown): FailureCode {
   return error instanceof ProviderError ? error.code : 'INTERRUPTED';
+}
+function whileActive<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  if(signal.aborted){void promise.catch(()=>{});return Promise.reject(new ProviderError('ABORTED'));}
+  return new Promise<T>((resolve,reject)=>{
+    const abort=()=>{signal.removeEventListener('abort',abort);reject(new ProviderError('ABORTED'));};
+    signal.addEventListener('abort',abort,{once:true});
+    promise.then(value=>{signal.removeEventListener('abort',abort);resolve(value);},error=>{signal.removeEventListener('abort',abort);reject(error);});
+  });
 }
 export async function connectBound(url: URL, policy: ConnectionPolicy, signal: AbortSignal): Promise<net.Socket> {
   if (signal.aborted) refuse('ABORTED');
@@ -76,6 +89,7 @@ export function createWireTransport(policy: ConnectionPolicy) {
     let failure: FailureCode | null = null, status: number | null = null, declared: bigint | null = null;
     let etag: string | null = null, received = 0n, socket: net.Socket | undefined;
     let agent: http.Agent | undefined, req: http.ClientRequest | undefined, requestError: unknown;
+    let sent=0n,requestComplete=false;
     const initial = input.sink.bytes, hash = createHash('sha256');
     const abort = () => { failure ??= 'ABORTED'; controller.abort(); req?.destroy(new ProviderError(failure)); };
     input.signal?.addEventListener('abort',abort,{once:true});
@@ -85,6 +99,12 @@ export function createWireTransport(policy: ConnectionPolicy) {
       clearTimeout(timer); timer = setTimeout(() => { failure = code; controller.abort(); req?.destroy(new ProviderError(code)); },ms);
     };
     try {
+      const streaming=input.body!==undefined&&!(input.body instanceof Uint8Array)?input.body:undefined;
+      if(streaming){
+        if(typeof streaming.byteLength!=='bigint'||streaming.byteLength<0n||typeof streaming.chunks!=='function')refuse('LENGTH');
+        if(input.requestEvidence?.bytes!==undefined&&input.requestEvidence.bytes!==0n)refuse('IDENTITY');
+        input.requestEvidence?.prepare(streaming.byteLength);
+      }
       if (input.expectedHash && !/^[a-f0-9]{64}$/.test(input.expectedHash)) refuse('HASH');
       if (input.resume && (input.method !== 'GET' || input.resume.offset <= 0n || input.resume.offset !== initial ||
           input.resume.total <= initial || !/^"[^"\r\n]+"$/.test(input.resume.etag))) refuse('IDENTITY');
@@ -107,13 +127,52 @@ export function createWireTransport(policy: ConnectionPolicy) {
       if (input.body) headers['Content-Length'] = String(input.body.byteLength);
       if (input.resume) { headers.Range = `bytes=${input.resume.offset}-`; headers['If-Range'] = input.resume.etag; }
       arm(readMs,'READ_TIMEOUT');
-      const response = await new Promise<http.IncomingMessage>((resolve,reject) => {
+      const responseReady = new Promise<http.IncomingMessage>((resolve,reject) => {
         req = (secure ? https : http).request({ protocol:input.url.protocol, hostname:input.url.hostname,
           port:input.url.port || (secure ? 443 : 80), path:input.url.pathname+input.url.search,
           method:input.method, headers, agent, setHost:true },resolve);
-        req.once('error',error=>{requestError=error;reject(error);});
-        req.end(input.body);
+        req.once('error',error=>{requestError=error;failure??=safeCode(error);controller.abort();reject(error);});
       });
+      const send=async()=>{
+        if(streaming){
+          const source=streaming.chunks(),iterator=Symbol.asyncIterator in source?source[Symbol.asyncIterator]():source[Symbol.iterator]();
+          let exhausted=false;
+          try {
+            for(;;){
+              if(controller.signal.aborted)refuse(failure??'ABORTED');
+              const next=await whileActive(Promise.resolve(iterator.next()),controller.signal);
+              if(controller.signal.aborted)refuse(failure??'ABORTED');
+              if(next.done){exhausted=true;break;}
+              if(!(next.value instanceof Uint8Array)||next.value.byteLength===0||next.value.byteLength>IO_CHUNK)refuse('LENGTH');
+              if(sent+BigInt(next.value.byteLength)>streaming.byteLength)refuse('LENGTH');
+              // The snapshot is at most IO_CHUNK; the generator may reuse its own
+              // backing buffer only after this write has drained. Evidence records
+              // the exact local write, never claiming remote receipt on failure.
+              const bytes=Buffer.from(next.value);
+              input.requestEvidence?.append(bytes);
+              await whileActive(new Promise<void>((resolve,reject)=>{
+                req!.write(bytes,error=>error?reject(error):resolve());sent+=BigInt(bytes.byteLength);
+              }),controller.signal);
+              arm(readMs,'READ_TIMEOUT');
+            }
+            if(sent!==streaming.byteLength)refuse('LENGTH');
+          } finally {
+            if(!exhausted&&iterator.return){
+              const closed=Promise.resolve(iterator.return());
+              if(controller.signal.aborted)void closed.catch(()=>{});else await whileActive(closed,controller.signal);
+            }
+          }
+          await whileActive(new Promise<void>(resolve=>req!.end(resolve)),controller.signal);
+        }else{
+          await whileActive(new Promise<void>(resolve=>req!.end(input.body,resolve)),controller.signal);
+          sent=BigInt(input.body?.byteLength??0);
+        }
+        if(controller.signal.aborted)refuse(failure??'ABORTED');
+        input.requestEvidence?.finish(true,sent);requestComplete=true;
+      };
+      // The single writer awaits every write callback: at most one bounded chunk
+      // is queued and no source read races ahead of socket backpressure.
+      const [response]=await Promise.all([responseReady,send()]);
       status = response.statusCode ?? null;
       input.sink.recordHeaders(response.headers);
       if (status !== null && status >= 300 && status < 400) refuse('REDIRECT');
@@ -153,7 +212,10 @@ export function createWireTransport(policy: ConnectionPolicy) {
         etag,declaredBytes:declared === null ? null : String(declared),sha256:evidence.sha256,evidence,providerCancelled:false});
     } catch(error) {
       failure ??= safeCode(error);
-      const evidence = input.sink.finish(false, initial+received);
+      controller.abort();req?.destroy();
+      let evidence:TransferReceipt['evidence'];
+      try{if(!requestComplete)input.requestEvidence?.finish(false,sent);}
+      finally{evidence=input.sink.finish(false,initial+received);}
       return Object.freeze({outcome:'interrupted',failure,status,receivedBytes:String(received),storedBytes:String(input.sink.bytes-initial),
         etag,declaredBytes:declared === null ? null : String(declared),sha256:evidence.sha256,evidence,providerCancelled:false});
     } finally {

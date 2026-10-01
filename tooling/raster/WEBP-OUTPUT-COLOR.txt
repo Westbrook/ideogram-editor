@@ -1,0 +1,83 @@
+File-output P3 qualification
+===========================
+
+qualify-webp-output-color.mjs is an external, unsealed runtime qualification
+harness. It does not alter any native producer input, identity or artifact. Its
+receipt records the harness hash, built runtime hashes, exact native/color/ICC
+identities, platform, caller-declared execution mode and every completed check.
+An existing receipt path is refused; preserve failed attempts and use a new path.
+
+The three output artifacts have passed their producer's two fresh exact builds,
+native failure/cleanup tests and real unchanged-decoder pixel parity. Those
+producer checks do not establish real file-P3 conversion. This harness was
+prepared as source only; runtime qualification requires separate passed receipts
+for the actual platform and both library orders. Do not infer a pass from this
+document. Root's execution-window coordination applies to builds and runs.
+
+The harness checks the actual public file decoder/converter helpers against the
+retained Buffer converter, an independent four-color LCMS oracle and the exact
+frozen Sharp color output. It covers counts 1, 4, 16383, 16384, 16385 and 32769;
+alpha zero with hidden RGB, partial alpha and opaque samples; odd 257x129 P3 lossy
+and lossless WebP; profile refusal/retry; and normal close/reopen. Every successful
+file call must report zero remaining output mappings and a peak between the raw
+extent and raw extent plus 64 KiB. Decoder cleanup is checked separately.
+
+This is functional evidence. It does not measure process RSS or latency, qualify
+Worker termination, or strengthen the filesystem threat model. Failed munmap
+lease refusal remains scoped to a loaded library instance. The explicit Linux
+stamp-change producer test does not detect all same-size writes preserving all
+observable stamps. x64 execution on an arm64 Docker host must be labeled emulated.
+
+Local invocation after the current server build (use the pinned toolchain):
+
+  export PATH="$PWD/.toolchain/bin:$PATH"
+  npm run build:server
+  node --import ./tests/session/no-egress.mjs tooling/raster/qualify-webp-output-color.mjs --execution native --load-order transport-first --output artifacts/webp-output-color/darwin-arm64-transport-first-01.json
+  node --import ./tests/session/no-egress.mjs tooling/raster/qualify-webp-output-color.mjs --execution native --load-order vips-first --output artifacts/webp-output-color/darwin-arm64-vips-first-01.json
+
+Each order must run in a fresh Node process. The harness verifies every selected
+CODECS file before loading the supplied native paths, compares built generated
+identities with source, resolves only verified public LCMS/libvips symbols, and
+checks Sharp component versions. Darwin validates public CMM version 2190;
+Linux validates the sealed libvips version and uses the already qualified fixed
+strip converter with cache disabled and concurrency one. A stale build, missing
+dependency, wrong native file or unsupported profile is a failed run.
+
+Offline Linux preparation
+-------------------------
+
+Use the retained clean-install images recorded by the immutable Linux color
+manifests; these contain the matching qualified Linux native dependencies:
+
+  arm64: sha256:55469b803e53219884d8f3582692debac5e53c065d61cc6f6b45d4f472c08760
+  x64:   sha256:c169370256c54d53731a8528f663e26c95c743a5e2349648a83792d695e79706
+
+The smaller WebP-only compiler images are not a substitute: they do not establish
+that Sharp/libvips and the full runtime build dependencies are installed. Do not
+copy host node_modules, dist or test outputs into a Linux workspace. Use one
+container at a time, network none, at most two CPUs, 1536 MiB, all capabilities
+dropped, no-new-privileges, and an unprivileged user owning its workspace.
+
+Create a source packet with only these current checkout paths (no install or
+build outputs): package.json, package-lock.json, tsconfig.server.json, server/,
+src/, tooling/, tests/, vendor/. Record the packet hash outside the packet.
+Extract it over the retained image's /workspace with --no-same-owner as that
+workspace owner. The image's platform-specific node_modules and .toolchain stay
+in place. Build the current server inside that container; if the retained image
+lacks required dependencies or write access, retain the failure and stop instead
+of changing dependencies or silently using host outputs.
+
+Example container command body, after extracting the current source packet:
+
+  export PATH=/workspace/.toolchain/bin:$PATH
+  cd /workspace
+  npm run build:server
+  node --import ./tests/session/no-egress.mjs tooling/raster/qualify-webp-output-color.mjs --execution native --load-order transport-first --image-id sha256:55469b803e53219884d8f3582692debac5e53c065d61cc6f6b45d4f472c08760 --output artifacts/webp-output-color/linux-arm64-transport-first-01.json
+  node --import ./tests/session/no-egress.mjs tooling/raster/qualify-webp-output-color.mjs --execution native --load-order vips-first --image-id sha256:55469b803e53219884d8f3582692debac5e53c065d61cc6f6b45d4f472c08760 --output artifacts/webp-output-color/linux-arm64-vips-first-01.json
+
+Stop on a failed build or first failed order. For x64 use Docker platform
+linux/amd64, the exact x64 image above, receipt names linux-x64-*, and execution
+emulated on this Apple Silicon host. Native x64 hosts may declare native.
+Copy the JSON receipts and command/stdout/stderr logs back to ignored artifacts,
+retain container identity/configuration, and keep all failed attempts. Successful
+native builds and pixel comparisons do not constitute resource qualification.

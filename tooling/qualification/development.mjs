@@ -20,7 +20,7 @@ export function argumentsFor(args){
   const options={command:args.shift()??'plan',groups:'base',browsers:'none',workers:1,fresh:false};
   if(!['plan','run'].includes(options.command))throw Error('Choose validation plan or run');
   while(args.length){const flag=args.shift();if(flag==='--batch-browser'){options.batchEditor=true;continue;}if(flag==='--serial-browser'){options.batchEditor=false;continue;}if(flag==='--fresh'){options.fresh=true;continue;}
-    const field={'--groups':'groups','--browsers':'browsers','--browser-groups':'browserGroups','--workers':'workers','--resume':'resume'}[flag];
+    const field={'--groups':'groups','--node-files':'nodeFiles','--browsers':'browsers','--browser-groups':'browserGroups','--browser-grep':'browserGrep','--workers':'workers','--resume':'resume'}[flag];
     if(!field||!args.length||args[0].startsWith('--'))throw Error(`Unknown or incomplete option: ${flag}`);
     options[field]=args.shift();
   }
@@ -73,7 +73,8 @@ export async function executeDevelopment({cwd=root,options,gateExecutor=executeG
         console.log(`Starting ${gate.id}`);observation=await gateExecutor(gate,directory,env,cwd,controller.signal);
         console.log(`${gate.id}: ${observation.outcome} (${Math.round(observation.elapsedMs)}ms)`);
       }
-      const current={key,mode,observation,logPath:join(directory,observation.log.path),elapsedMs:performance.now()-gateStart,...(entry?{reusedFrom:entry.logPath}:{})};
+      const reuseReason=entry?'Verified matching inputs and retained evidence':options.fresh?'Fresh execution requested':!cached?'No prior prerequisite receipt':cached.key!==key?'Prerequisite inputs or environment changed':'Retained evidence or output did not verify';
+      const current={key,mode,reuseReason,observation,logPath:join(directory,observation.log.path),elapsedMs:performance.now()-gateStart,...(entry?{reusedFrom:entry.logPath}:{})};
       receipt.gates.push(current);save();
       if(observation.outcome!=='PASS')throw Error(`${gate.id} ${observation.outcome}; later gates were not started`);
       if(gate.id==='preflight'&&plan.requiredBrowsers.length){const playwright=await import('@playwright/test');for(const browser of plan.requiredBrowsers)if(!existsSync(playwright[browser].executablePath()))throw Error(`Install pinned ${browser} before browser validation`);}
@@ -102,6 +103,7 @@ export async function executeDevelopment({cwd=root,options,gateExecutor=executeG
       receipt.dependenciesUnchanged=dependenciesBefore?.digest===dependenciesAfter?.digest;
       if(before&&(before.digest!==receipt.after.digest||!receipt.dependenciesUnchanged)){receipt.outcome='INCONCLUSIVE';receipt.error='Source changed during validation; successful results are not reusable';}
       receipt.pending=plan.gates.slice(receipt.gates.length).map(gate=>gate.id);
+      receipt.pendingBrowsers=(plan.browserPlan?.steps??[]).slice(receipt.browsers.length).map(step=>step.id);
       if(before?.digest===receipt.after.digest&&receipt.dependenciesUnchanged){for(const [id,entry]of pending)cache.entries[id]=entry;saveAtomic(cachePath,cache);}
       save();console.log(`${receipt.outcome}: ${join(directory,'receipt.json')}`);
     }finally{try{await hostLease?.release();}finally{process.off('SIGINT',interrupt);process.off('SIGTERM',terminate);closeSync(lock);const current=lstatSync(lockPath,{throwIfNoEntry:false});if(current?.ino===lockIdentity.ino&&current.dev===lockIdentity.dev)unlinkSync(lockPath);}}

@@ -36,17 +36,51 @@ minus only caller Blob bytes already booked by the owned loader. Native copies
 are inside the booked heap. Buffers verified by the parser are reused for native
 registration, rather than allocating another ArrayBuffer per font.
 
-G=max(64,8*scalarCount); runs<=G; soft lines<=max(logicalLines,G); rectangles<=2G.
-L=16384+1024*(G+scalarCount+lineBound), must be <=8MiB. Each term includes bounded
-numbers/indices/geometry and serialized text. Index/temporary scalar allowance
-I=128*(UTF16length+UTF8bytes+scalarCount+3). Raster R=ceil(width)*ceil(height)*4.
-Request peak=fontReservation +4R+6L+I+65536. The raster count includes JS readback,
-Blob and hashing/cross-context copies; native RGBA is already in the heap. Layout
-includes objects, copied exported arrays, UTF16 serialization, UTF8 Blob and
-hash/cross-context copies. The native count pass checks G/runs/lines before JS
-shaped arrays exist; native rectangle vector size is checked before export.
-No GSUB expansion assumption alone authorizes allocation. Oversized geometry,
-font/native work or full request peak refuses; no text/font truncation.
+Current streamed-layout profile:
+G=max(64,8*scalarCount) remains an expansion ceiling. The native export quotas
+are runs<=min(G,max(64,ceil(scalars/8))) and
+lines<=max(logicalLines,min(G,max(64,ceil(scalars/4)))); rectangles<=2G.
+Actual unusually fragmented geometry can refuse at these independent workspace
+quotas. No text/font/glyph truncation or reduced fixture is used to fit a quota.
+The native count pass checks glyph/run/line quotas before JS shaped arrays exist;
+native rectangle vector size is checked before export.
+
+Native exported arrays cost14G+12runs bytes; the current run's copied glyph
+bounds cost at most16G. W=30G+1024runs+512lines+256KiB books those stores,
+per-run ArrayBuffer/typed-array/typeface wrappers, line/metric records, bounded
+writer fragments and fixed adapter objects. In-heap native arrays still belong
+to the separately booked32MiB heap. Index/scalar/duplicate-cluster/missing-range
+bookkeeping I=128*(UTF16length+UTF8bytes+scalarCount+3). Raster
+R=ceil(width)*ceil(height)*4, with4R for JS readback, Blob and hashing/clone phases.
+
+The adapter serializes each native line/run/cluster into UTF-8 chunks <=64KiB.
+It retains no complete layout object graph or complete JSON.stringify string.
+The current frame object is emitted explicitly as width then height, independent
+of request object insertion order. Other field order and number spelling remain
+byte-identical. The retained7a4dbc6c streamed profile keeps its preceding frame
+order: verification reads only its bounded known header to reproduce one of the
+two recorded orders, requires identical dimensions, and still compares exact
+complete layout hashes. It retains streamed quotas; it never enters the older
+480-scalar canonical comparison path. L is an enforced serialized-output capacity, not a claim that every
+allowed glyph/run/line already produced1024 bytes. Its ceiling is the minimum
+of8MiB, the preceding small-input estimate, and the remaining128MiB lane after
+resident engine +4F+4R+I+W+64KiB request+2MiB verifier scratch+64KiB loan metadata,
+divided by3. F counts every current supplied font backing, including a backing
+already booked by a loader. Before each append the writer checks L. It clears
+chunk ownership after Blob creation and before hashing; the overlapping phases
+are at most chunks+Blob or Blob+ArrayBuffer+digest snapshot, bounded by3L.
+Request peak=fontReservation+4R+3L+I+W+64KiB. The backend uses3F while the caller
+retains F. Its current-profile comparison streams the staged file hash using a
+64KiB buffer and compares exact generated layout hash, without duplicate JSON
+graphs or canonical strings. It books2MiB scratch and checks both startup and
+resident peaks including caller F+64KiB loan metadata against the same128MiB.
+Unrelated live caches still consume the actual shared pool and may refuse.
+
+Retained older renderer profiles keep the original G/runs/line quotas and old
+6L request+2L comparison scratch model. Their serialized capacity estimate must
+already fit8MiB; actual retained layout bytes can increase comparison booking.
+This deliberately preserves their previous small-layout semantic comparison
+without extending that allocation path to newly admitted maximum-size input.
 
 Each worker caches up to16 exact faces already loaded, inside its32MiB heap.
 Cache uses no native eviction refund to admit new faces. An accepted run must

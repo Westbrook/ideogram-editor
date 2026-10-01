@@ -51,6 +51,7 @@ test('HTTP queue and upload receive sentinel credentials; media receives none or
   const media=await p.media(f.origin+'/ok?sig=fixture-signed-query',s.sink(),{expectedHash:digest,expectedBytes:BigInt(payload.length)});assert.equal(media.outcome,'complete');
  }finally{for(const [name,value]of Object.entries(old)){if(value===undefined)delete process.env[name];else process.env[name]=value;}}
  assert.equal(f.requests.length,3);
+ assert.equal(f.requests[0].headers['x-fal-no-retry'],'1');assert.equal(f.requests[0].headers['x-app-fal-disable-fallback'],'true');
  for(const r of f.requests.slice(0,2)){assert.equal(r.headers.authorization,'Key '+SENTINEL_KEY);assert.equal(r.headers['x-fal-store-io'],'0');assert.equal(r.headers['x-fal-object-lifecycle-preference'],'{"expiration_duration_seconds":60,"initial_acl":"fixture-private"}');}
  const media=f.requests[2];for(const header of ['authorization','cookie','proxy-authorization','x-fal-store-io'])assert.equal(media.headers[header],undefined);
  assert.equal(media.headers['accept-encoding'],'identity');assert.deepEqual(egressAttempts(),[]);

@@ -163,7 +163,7 @@ test('SEC03/05: trusted static build and synchronous fragment-removal contract b
   const url = new URL(server.issuePairingURL()); url.search = '?progress-report';
   const window = {};
   let cleaned = false;
-  const context = { window, addEventListener() {}, location: url, history: { state: { retained: true }, replaceState(state, _title, next) {
+  const context = { window, document: {documentElement: {dataset: {}}}, addEventListener() {}, location: url, history: { state: { retained: true }, replaceState(state, _title, next) {
     assert.deepEqual(state, { retained: true }); assert.equal(next, '/?progress-report');
     assert.equal(window.__IE_PAIRING__, undefined); cleaned = true;
   } } };

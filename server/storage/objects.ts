@@ -7,21 +7,52 @@ import { isSeq, validateBlob } from './canonical.js';
 import { StoreError } from './errors.js';
 
 export const IO_CHUNK = 1024 * 1024;
+// Proof entries are small immutable identities, not retained byte buffers.
+// Charge a conservative fixed allowance for their bounded strings, map entry
+// and pending continuation. CP-1's 100-layer closure can exceed 512 identities.
+export const PROOF_METADATA_BYTES = 2048;
+export const PROOF_METADATA_BUDGET = 4 * 1024 * 1024;
+export const PROOF_LIMIT = PROOF_METADATA_BUDGET / PROOF_METADATA_BYTES;
+export const PROOF_HASH_READERS = 2;
 const MARGIN = 1024n ** 3n;
 const EMERGENCY = 64n * 1024n ** 2n;
 export type Barrier = (phase: string) => void;
 type Stage = { fd: number; path: string; length: bigint; received: bigint; hash: ReturnType<typeof createHash>;
   expectedHash?: string; mediaType: string; reserved: bigint; checkedAt: number };
+type ProofWaiter = { resolve:(admitted:boolean)=>void; reject:(error:unknown)=>void; check:()=>void };
 export class Objects {
   private stages = new Map<string, Stage>();
   private reserved = 0n;
   private external = new Map<string,bigint>();
   private slots = new Set<string>();
   private available:()=>void=()=>{};
-  hasLeases(){return this.stages.size>0||this.slots.size>0||this.proofs.size>0;}
-  leaseIdentity(){return {stages:[...this.stages.keys()].sort(),slots:[...this.slots].sort(),proofs:[...this.proofs.keys()].sort()};}
+  hasLeases(){return this.stages.size>0||this.slots.size>0||this.proofReservations.size>0;}
+  leaseIdentity(){return {stages:[...this.stages.keys()].sort(),slots:[...this.slots].sort(),proofs:[...this.proofReservations].sort()};}
   onAvailable(callback:()=>void){this.available=callback;}
-  private proofs = new Map<string,{ref:BlobRef;stamp:string}>();
+  private proofs = new Map<string,{ref:Readonly<BlobRef>;stamp:string}>();
+  private proofReservations = new Set<string>();
+  private proofReaders = 0;
+  private proofWaiters = new Set<ProofWaiter>();
+  private proofWaitTimer:ReturnType<typeof setTimeout>|undefined;
+  private proofClosed = false;
+  proofInventory(){return {pending:this.proofReservations.size-this.proofs.size,retained:this.proofs.size,activeReaders:this.proofReaders,metadataBytes:this.proofReservations.size*PROOF_METADATA_BYTES};}
+  private checkProofWaiters(){
+    this.proofWaitTimer=undefined;
+    for(const waiter of this.proofWaiters){try{waiter.check();}catch(error){this.proofWaiters.delete(waiter);waiter.reject(error);}}
+    this.scheduleProofWaitCheck();
+  }
+  private scheduleProofWaitCheck(){
+    // One bounded admission queue owns one timer. A cancelled owner can release
+    // its pending lease without waiting for unrelated large hashes to finish.
+    if(this.proofWaiters.size&&!this.proofClosed&&!this.proofWaitTimer){this.proofWaitTimer=setTimeout(()=>this.checkProofWaiters(),25);this.proofWaitTimer.unref();}
+    else if(!this.proofWaiters.size&&this.proofWaitTimer){clearTimeout(this.proofWaitTimer);this.proofWaitTimer=undefined;}
+  }
+  private proofReader(check:()=>void):Promise<boolean>{
+    if(this.proofClosed)return Promise.resolve(false);
+    if(this.proofReaders<PROOF_HASH_READERS){this.proofReaders++;return Promise.resolve(true);}
+    return new Promise((resolve,reject)=>{this.proofWaiters.add({resolve,reject,check});this.scheduleProofWaitCheck();});
+  }
+  private releaseProofReader(){const next=this.proofWaiters.values().next().value;if(next)this.proofWaiters.delete(next);this.scheduleProofWaitCheck();if(next&&!this.proofClosed)next.resolve(true);else{this.proofReaders--;next?.resolve(false);}}
   readonly staging: string;
   readonly objects: string;
   constructor(private root: string, private check: () => void, private barrier: Barrier, private quota?: string) {
@@ -169,19 +200,25 @@ export class Objects {
     const s=assertPrivate(path,false);return JSON.stringify([s.dev,s.ino,s.size,s.mtimeMs,s.ctimeMs]);
   }
   async prove(ref:BlobRef,check:()=>void):Promise<string> {
-    let fd:number|undefined;
-    try{this.check();if(this.proofs.size>=512)throw new StoreError('CAPACITY');const stamp=this.stamp(ref);const path=this.path(ref);
-    fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);
+    this.check();validateBlob(ref);if(this.proofClosed)throw new StoreError('CLOSED');
+    if(ref.byteLength.length>20||this.proofReservations.size>=PROOF_LIMIT)throw new StoreError('CAPACITY');
+    // Reserve before the first await, and snapshot caller-owned metadata before
+    // hashing. Concurrent calls cannot oversubscribe or mutate the later proof.
+    const value=Object.freeze({...ref}),token=randomUUID();this.proofReservations.add(token);
+    let fd:number|undefined,reader=false,retained=false;
+    const guard=()=>{this.check();if(this.proofClosed)throw new StoreError('CLOSED');check();};
+    try{guard();reader=await this.proofReader(guard);if(!reader)throw new StoreError('CLOSED');guard();const stamp=this.stamp(value),path=this.path(value);
+      fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW);
       if(!sameFile(fstatSync(fd),assertPrivate(path,false)))throw new StoreError('ROOT_UNSAFE');
-      const hash=createHash('sha256');const buffer=Buffer.alloc(IO_CHUNK);let length=0n;
-      for(;;){this.check();check();const n=readSync(fd,buffer);if(!n)break;length+=BigInt(n);if(length>BigInt(ref.byteLength))throw new StoreError('CORRUPT_OBJECT');hash.update(buffer.subarray(0,n));await new Promise<void>(r=>setImmediate(r));}
-      if(length!==BigInt(ref.byteLength)||'sha256:'+hash.digest('hex')!==ref.hash||this.stamp(ref)!==stamp)throw new StoreError('CORRUPT_OBJECT');
-      const token=randomUUID();this.proofs.set(token,{ref,stamp});return token;
+      const expected=BigInt(value.byteLength),hash=createHash('sha256');const buffer=Buffer.alloc(Number(expected<BigInt(IO_CHUNK)?expected+1n:BigInt(IO_CHUNK)));let length=0n;
+      for(;;){guard();const n=readSync(fd,buffer);if(!n)break;length+=BigInt(n);if(length>BigInt(value.byteLength))throw new StoreError('CORRUPT_OBJECT');hash.update(buffer.subarray(0,n));await new Promise<void>(r=>setImmediate(r));}
+      if(length!==BigInt(value.byteLength)||'sha256:'+hash.digest('hex')!==value.hash||this.stamp(value)!==stamp)throw new StoreError('CORRUPT_OBJECT');
+      this.proofs.set(token,{ref:value,stamp});retained=true;return token;
     }catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')throw new StoreError('MISSING_OBJECT');throw error;}
-    finally{if(fd!==undefined)closeSync(fd);}
+    finally{try{if(fd!==undefined)closeSync(fd);}finally{if(reader)this.releaseProofReader();if(!retained){this.proofReservations.delete(token);this.available();}}}
   }
   proven(ref:BlobRef,token:string){this.check();const proof=this.proofs.get(token);if(!proof||proof.ref.hash!==ref.hash||proof.ref.byteLength!==ref.byteLength||proof.ref.mediaType!==ref.mediaType||this.stamp(ref)!==proof.stamp)throw new StoreError('CORRUPT_OBJECT');}
-  releaseProof(token:string){this.proofs.delete(token);}
+  releaseProof(token:string){if(this.proofs.delete(token)){this.proofReservations.delete(token);this.available();}}
   // Internal raster output only. The sole writer checks private same-filesystem
   // bytes, flushes and renames, then cooperatively proves the immutable target.
   async adoptFile(path:string,ref:BlobRef,check:()=>void):Promise<string>{
@@ -204,5 +241,5 @@ export class Objects {
     }
     return { orphanCount: String(orphans.length), stagingCount: String(readdirSync(this.staging).length) };
   }
-  close() { for (const id of this.stages.keys()) this.abort(id); }
+  close() {this.proofClosed=true;for(const waiting of this.proofWaiters)waiting.resolve(false);this.proofWaiters.clear();this.scheduleProofWaitCheck();for(const token of this.proofs.keys())this.proofReservations.delete(token);this.proofs.clear();for (const id of this.stages.keys()) this.abort(id);}
 }

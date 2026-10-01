@@ -7,6 +7,7 @@ import {alignment} from './spectrum-alignment.js';
 const tokens=JSON.parse(await readFile('vendor/themes/spectrum/compiled.json','utf8'));
 const color=(mode:string,id:string)=>tokens.branches[mode].tokens[id].value.replace(/rgb\((\d+) (\d+) (\d+) \/ 1\)/,'rgb($1, $2, $3)');
 test('Spectrum Select labels, native values, focus and responsive appearance',async({smoke:{page,step,record}})=>{
+ await step('original-compact-density',()=>page.getByRole('combobox',{name:'Density',exact:true}).selectOption('compact'));
  const appearance=page.getByRole('combobox',{name:'Appearance',exact:true});
  const root=page.locator('html');
  await step('default-system',()=>expect(appearance).toHaveValue('auto'));

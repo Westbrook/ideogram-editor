@@ -1,0 +1,85 @@
+{
+  "kind": "provider-published-lora-structural-evidence-v1",
+  "sourceURL": "https://fal.ai/models/ideogram/v4/lora/examples",
+  "sourceHTMLSHA256": "f5fa0e20601ef501d4cc51839cd96d5597b3bdda5d7ff9e46ec7523aed22d6aa",
+  "sourceHTMLBytes": 460113,
+  "fetchedAt": "2026-09-30T15:20:13.154084+00:00",
+  "headerOnly": false,
+  "weightsDownloaded": true,
+  "providerCalled": false,
+  "observations": {
+    "providerExampleStatus": 200,
+    "providerExampleEndpoint": "ideogram/v4/lora/stream",
+    "headerBytes": 69640,
+    "fullObjectBytes": 85299896,
+    "tensorCount": 510,
+    "baseModel": "ideogram-ai/ideogram-4-fp8",
+    "baseRevision": "1dddfd39cc9bb0ec0d76a3f781927ba08fc0a432",
+    "format": "ideogram4-lora-v1",
+    "keyPrefix": "conditional_transformer",
+    "rank": 16,
+    "tensorProfileMatchesTarot": true,
+    "fullObjectSHA256": "bd0b96a2fcc3141400ebeffd8585b2d3c4c0d475b10e1468ba5c40acad748bc5",
+    "providerPublishedTerminalOutput": null,
+    "upstreamArchitectureSource": {
+      "commit": "990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2",
+      "url": "https://github.com/ideogram-oss/ideogram4/blob/990fe1c4e950bb9e9dc90e01c0ad98ba434f83c2/src/ideogram4/modeling_ideogram4.py",
+      "sha256": "b3cbc642bc74e0e6935d6b8decfd5e8b21bbd5fb3597a7bece14d4e1eae57a1f",
+      "scope": "34 layer architecture and target matrix dimensions match; source does not contain LoRA loader"
+    }
+  },
+  "limitations": [
+    "Public provider example has HTTP200 and ended_at but json_output is null; no terminal output or generated media are provided in the retained example object. It is a provider-published request, not independent current runtime verification.",
+    "Exact full object SHA256 is verified locally; CDN supplies no ETag or cryptographic content hash.",
+    "No public training config was linked by this example. Embedded header metadata states rank, alpha, base revision, format, target modules and steps.",
+    "Full weights are retained only in ignored local evidence; no right to redistribute them as product assets is asserted.",
+    "Provider publication and exact object establish observed structural format applicability, not third-party artifact license or eligibility."
+  ],
+  "files": [
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/full-object-receipt.json",
+      "bytes": 1071,
+      "sha256": "e9ed4092296053757c7ddcf26dcae34a3ec4ae17ae4cc95734b636306f3c3cf8"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/full-object-validation.json",
+      "bytes": 465,
+      "sha256": "6419a1c5a331eb1a62075731134edd5eddcec88a66e9e3f433f085aba6305958"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/header-length-receipt.json",
+      "bytes": 728,
+      "sha256": "59b0c51bab49944ac72345d7587fe652064a848e55c0dfd67ea394031bae93eb"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/header-range-receipt.json",
+      "bytes": 1555,
+      "sha256": "4a6ab1a7d8e2bb92a0ae99fb44c8a1c729c110b1617d5f26d4d06e71ac3b10e6"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/provider-example.json",
+      "bytes": 873,
+      "sha256": "f0da54998a0271c7b3b9bd7c190426d2f6c46627ba02be2ae2ada23406b78605"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/provider-example.safetensors",
+      "bytes": 85299896,
+      "sha256": "bd0b96a2fcc3141400ebeffd8585b2d3c4c0d475b10e1468ba5c40acad748bc5"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/provider-examples-page.html",
+      "bytes": 460113,
+      "sha256": "f5fa0e20601ef501d4cc51839cd96d5597b3bdda5d7ff9e46ec7523aed22d6aa"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/provider-public-record.json",
+      "bytes": 1522,
+      "sha256": "3681ea3d8ec9108ec00949d9ca4463c1e083636be52e32fd416a6ecb7f2957d5"
+    },
+    {
+      "path": "artifacts/p27-evidence/fal-public-lora-example/safetensors-header.json",
+      "bytes": 69640,
+      "sha256": "891fac6bb33a682f6a2530133899d9695894a9e525a6e06c68816033bb2592fe"
+    }
+  ]
+}

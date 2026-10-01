@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {nativeOperation,qualifiedWasmAbort} from './operation.mjs';
 import {completionMonitor} from './monitor.mjs';
-import {sha} from './app-buffer-core.mjs';
+import {sha,EXPECTED} from './app-buffer-core.mjs';
 import {wireEpoch} from './wire.mjs';
 import {monitorHarness} from './monitor-harness.mjs';
 import {independentSteps,nativeTargetsDisposed,installBoundary} from './boundary.mjs';
@@ -19,7 +19,13 @@ function fixture(kind='Preview'){
  const source={render:{pixels:{hash}}},acceptedBefore={document:{id:'document',revision:'2'}};
  return {action,observation:{rows,epoch:'epoch',errors:[]},acceptedBefore,after:kind==='Preview'?{sameTextarea:true,connected:true,editable:true,ready:true,value:action.text,draftId:action.draftId,revision:action.revision}:{hidden:true},acceptedAfter:kind==='Preview'?clone(acceptedBefore):{document:{id:'document',revision:'3'},layer:{id:'layer'},source,text:action.text,pixelSHA256:hash,pixelBytes:400,commandSucceeded:true},...(kind==='Apply'?{priorPreview:{qualified:true,actionId:'Preview-fresh',draftId:action.draftId,revision:action.revision,rasterHash:hash,token},candidate:{token,source},command:{body:{type:'CommitTextEdit',layerId:'layer',draft:{sessionId:action.sessionId,draftId:action.draftId,generation:'3'}}}}:{})};
 }
-test('adopted positive helpers exactly match the validated original inputs',()=>{const a=JSON.parse(readFileSync(new URL('./adoption.json',import.meta.url)));for(const f of a.files)assert.equal(sha(readFileSync(new URL(f.name,import.meta.url))),f.sha256);});
+test('adopted helpers preserve original evidence and explicitly pin reviewed derivatives',()=>{
+ const originalBytes=readFileSync(new URL('./adoption.json',import.meta.url)),a=JSON.parse(originalBytes),derivatives=JSON.parse(readFileSync(new URL('./adoption-derivatives.json',import.meta.url)));
+ assert.equal(derivatives.schema,1);assert.equal(derivatives.originalAdoptionSHA256,sha(originalBytes));assert.equal(derivatives.priorCampaignQualificationInherited,false);
+ assert.deepEqual(derivatives.files.map(file=>file.name).sort(),['app-buffer-core.mjs','completion-public.mjs']);
+ for(const file of derivatives.files){const original=a.files.find(input=>input.name===file.name);assert(original);assert.equal(file.originalSHA256,original.sha256);assert.equal(sha(readFileSync(new URL(file.originalPath,import.meta.url))),original.sha256);assert(file.reason.length>0&&file.regressions.length>0);for(const regression of file.regressions)assert(readFileSync(new URL(regression,import.meta.url)).length>0);}
+ for(const file of a.files){const derivative=derivatives.files.find(input=>input.name===file.name);assert.equal(sha(readFileSync(new URL(file.name,import.meta.url))),derivative?.sha256??file.sha256,'Adopted helper '+file.name);}
+});
 for(const kind of ['Preview','Apply']){
  test(kind+' requires its own fresh native result',()=>assert(nativeOperation(fixture(kind)).qualified));
  const changes={
@@ -129,7 +135,7 @@ for(const phase of ['during close','before navigation','after navigation'])for(c
 test('actual monitor requires original pagehide and lossless owned metadata',async()=>{for(const mode of ['missing hide','duplicate hide','lost row','wrong epoch']){const h=await mockedMonitor();await h.preview();await h.monitor.closeEpoch();await h.monitor.beforeNavigate();if(mode==='missing hide')await assert.rejects(()=>h.monitor.detach());else if(mode==='duplicate hide'){await h.pagehide();await assert.rejects(()=>h.pagehide(),/One original departure/);}else{if(mode==='lost row')h.realm.__integrationNativeCompletion.snapshot().rows.pop();else h.realm.__integrationNativeCompletion.snapshot().rows[0].epoch='other';await assert.rejects(()=>h.pagehide(),/snapshot unchanged/);}await assert.rejects(()=>h.monitor.finish(true));assert.notEqual(h.record().complete,true);}});
 test('actual independent teardown detaches before storage closes the page and retains both failures',async()=>{const seen=[],failures=[];await independentSteps([['detach',async()=>{seen.push('detach');throw Error('own detach');}],['storage',async()=>{seen.push('storage');throw Error('own storage');}],['context',async()=>seen.push('context')]],failures);assert.deepEqual(seen,['detach','storage','context']);assert.deepEqual(failures.map(x=>x.phase),['detach','storage']);});
 test('native target disposal ignores page closure while rejecting wrong missing duplicate and recycled worker targets',()=>{
- const owner={targetId:'page',frameId:'page',contextId:'context',origin:'http://127.0.0.1:34567'},info={type:'worker',targetId:'worker',parentId:'page',parentFrameId:'page',browserContextId:'context',url:owner.origin+'/assets/worker-G9WPEZGy.js'},workers=[{originalObject:true,closed:true,closeSameObject:true}],discovery=[{name:'Target.targetCreated',params:{targetInfo:info}},{name:'Target.targetDestroyed',params:{targetId:'probe-page'}},{name:'Target.targetDestroyed',params:{targetId:'worker'}}];const x={owner,workers,discovery};assert(nativeTargetsDisposed(x));const missing=clone(x);missing.discovery.pop();assert.equal(nativeTargetsDisposed(missing),false);
+ const owner={targetId:'page',frameId:'page',contextId:'context',origin:'http://127.0.0.1:34567'},info={type:'worker',targetId:'worker',parentId:'page',parentFrameId:'page',browserContextId:'context',url:owner.origin+EXPECTED.workerPath},workers=[{originalObject:true,closed:true,closeSameObject:true}],discovery=[{name:'Target.targetCreated',params:{targetInfo:info}},{name:'Target.targetDestroyed',params:{targetId:'probe-page'}},{name:'Target.targetDestroyed',params:{targetId:'worker'}}];const x={owner,workers,discovery};assert(nativeTargetsDisposed(x));const missing=clone(x);missing.discovery.pop();assert.equal(nativeTargetsDisposed(missing),false);
  for(const mutate of [v=>v.discovery[0].params.targetInfo.parentId='other',v=>v.discovery[0].params.targetInfo.parentFrameId='other',v=>v.discovery[0].params.targetInfo.browserContextId='other',v=>v.discovery[0].params.targetInfo.url+='?other',v=>v.discovery.push(clone(v.discovery[2])),v=>v.discovery.push(clone(v.discovery[0]))]){const v=clone(x);mutate(v);assert.throws(()=>nativeTargetsDisposed(v));}
 });
 test('exact owned storage probe partition cannot hide a WASM error or application request',()=>{

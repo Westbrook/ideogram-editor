@@ -13,7 +13,7 @@ import {recordDOMErrors} from './error-monitor.js';
 // replacement or OS-picker claim. E1 separately covers real blob downloads.
 test('destination failure cleanup preserves original errors, collisions and selected destinations',async({playwright,browserName})=>{
  const bytes=Buffer.from([0,255,10,13,127,128]),hash='sha256:'+createHash('sha256').update(bytes).digest('hex');
- const modules=new Map(await Promise.all(['state/destination','protocol/sha256'].map(async name=>['/src/'+name+'.js',stripTypeScriptTypes(await readFile('src/'+name+'.ts','utf8'))] as const)));
+ const modules=new Map(await Promise.all(['state/destination','protocol/sha256','observability/allocations'].map(async name=>['/src/'+name+'.js',stripTypeScriptTypes(await readFile('src/'+name+'.ts','utf8'))] as const)));
  const server=createServer((request,response)=>{
   const path=request.url??'/';
   if(modules.has(path)){response.setHeader('Content-Type','text/javascript');response.end(modules.get(path));}

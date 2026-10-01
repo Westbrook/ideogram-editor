@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {loadApplicationIdentity,validateApplicationIdentity} from './application-identity.mjs';
 import {headers,pageIdentity,rpcError,unavailable,PublicWorkerLedger,disableCollection} from './terminal-collector-core.mjs';
 import {assertNoWorkerCommands} from './page-only-collector-core.mjs';
 export {headers,pageIdentity,rpcError,unavailable,PublicWorkerLedger,disableCollection,assertNoWorkerCommands};
 export const POLICY=Object.freeze({maxTotalBufferSize:33554432,decoded:4979358,base64:6639144,retrievalAttempts:3,retrievalMs:2000,retryDelayMs:200});
-export const EXPECTED=Object.freeze({workerPath:'/assets/worker-G9WPEZGy.js',workerSHA256:'db58d2434a57261b88aea5e9c010c334ec24535bf8a1aa5a6f80b3323071bf43',workerBytes:121009,wasmPath:'/assets/canvaskit-B2Vb3rWN.wasm',wasmSHA256:'26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19',wasmBytes:4979358});
+export const APPLICATION_IDENTITY=loadApplicationIdentity();
+export const EXPECTED=validateApplicationIdentity(APPLICATION_IDENTITY);
 export const sha=v=>createHash('sha256').update(v).digest('hex');
 export const INPUTS=['app-buffer-core.mjs','app-buffer-recorder.mjs','app-buffer-server.mjs','app-buffer-server-client.mjs','app-buffer-controls.mjs','app-buffer-preview.mjs','app-buffer-public.mjs','application-storage.mjs','application-command-records.mjs','terminal-collector-core.mjs','page-only-collector-core.mjs','grouped-collector-core.mjs','inspector-capability-core.mjs','completion-contrast-flow.mjs','completion-contrast-flow-controls.mjs','completion-contrast-core.mjs','exclusive-controller-flow.mjs'];
 const one=(rows,label)=>{assert.equal(rows.length,1,'Exactly one '+label);return rows[0];};

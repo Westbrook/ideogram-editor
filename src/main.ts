@@ -1,4 +1,5 @@
 import { restoreAppearance } from './theme/appearance.js';
+import { restoreDensity } from './theme/density.js';
 declare global {
   interface Window { __IE_PAIRING__?: string }
   const __PROGRESS_REPORT_URL__: string;
@@ -7,6 +8,7 @@ declare global {
 let pairingToken = window.__IE_PAIRING__;
 delete window.__IE_PAIRING__;
 restoreAppearance();
+restoreDensity();
 try {
   const { mount } = await import('./ui/shell.js');
   const pending = mount(pairingToken);

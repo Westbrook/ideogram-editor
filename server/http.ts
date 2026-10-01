@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { IncomingMessage, ServerResponse, Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import type { Duplex } from 'node:stream';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import type { CapabilitiesView } from '../src/protocol/session.js';
 import { ProtocolError } from './errors.js';
@@ -11,16 +13,29 @@ import { BOOTSTRAP_CSP, SHELL_STYLE_CSP, loadStatic } from './static.js';
 import { ProtocolRoutes, storeError } from './protocol.js';
 import type { WriterTestOptions } from './storage/writer.js';
 import { openWriter } from './storage/writer.js';
+import type { ProviderRuntimeConfig } from './provider/config.js';
 
-export type ServerOptions = { root: string; staticDirectory?: string; now?: () => number; credentialConfigured?: boolean };
+export const DEVELOPMENT_HMR_PATH = '/__ideogram_hmr';
+/** Explicit in-process development composition only. The production launcher
+ * never supplies this factory; no request, environment flag or persisted state
+ * can enable it. API/session routing always precedes this source middleware. */
+export type DevelopmentApplication = {
+  websocketToken: string;
+  handle(request: IncomingMessage, response: ServerResponse): Promise<void>;
+  close(): Promise<void>;
+};
+export type DevelopmentFactory = (context: { server: Server; origin: string; nonce: string; hmrPath: string }) => Promise<DevelopmentApplication>;
+export type ServerOptions = { root: string; staticDirectory?: string; now?: () => number; credentialConfigured?: boolean; provider?: ProviderRuntimeConfig; development?: DevelopmentFactory };
 const methods: Record<string, readonly string[]> = {
   '/api/v1/session/bootstrap': ['POST'], '/api/v1/session': ['GET'],
   '/api/v1/session/renew': ['POST'], '/api/v1/session/revoke': ['POST'], '/api/v1/capabilities': ['GET'],
 };
 const unavailable = /^\/api\/v1\/(?:commands|events|documents|jobs|assets|bundles|snapshots|protocol-content|recovery|ui|image-previews|image-edit-reviews)(?:\/|$)/;
 
-function securityHeaders(response: ServerResponse, origin: string, wasmWorker = false): void {
-  response.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' ${BOOTSTRAP_CSP}${wasmWorker ? " 'wasm-unsafe-eval'" : ''}; style-src 'self'; style-src-attr 'unsafe-hashes' ${SHELL_STYLE_CSP}; connect-src ${origin}; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
+function securityHeaders(response: ServerResponse, origin: string, wasmWorker = false, developmentNonce?: string): void {
+  const nonce = developmentNonce ? ` 'nonce-${developmentNonce}'` : '';
+  const websocket = developmentNonce ? ` ${origin.replace(/^http:/, 'ws:')}` : '';
+  response.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' ${BOOTSTRAP_CSP}${nonce}${wasmWorker ? " 'wasm-unsafe-eval'" : ''}; style-src 'self'${nonce}; style-src-attr 'unsafe-hashes' ${SHELL_STYLE_CSP}; connect-src ${origin}${websocket}; img-src 'self' blob:; font-src 'self'; worker-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`);
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Referrer-Policy', 'no-referrer');
   response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -64,12 +79,13 @@ function checkAPIContext(request: IncomingMessage): void {
 
 // Internal process barriers only; never sourced from HTTP/CLI/environment.
 export async function startLocalServer(options: ServerOptions, testing?: { writer?: WriterTestOptions }) {
+  if (options.development && (typeof options.development !== 'function' || options.staticDirectory || options.provider?.mode === 'fal' || options.credentialConfigured)) throw new Error('Development application requires an explicit factory, disabled provider and separate source serving.');
   const root = await preparePrivateRoot(options.root);
   if (options.staticDirectory) {
     await assertSeparateDirectories(root.path, options.staticDirectory);
   }
   const files = await loadStatic(options.staticDirectory);
-  const writer = await openWriter({ root: root.path },testing?.writer);
+  const writer = await openWriter({ root: root.path, provider: options.provider },testing?.writer);
   // Failure to provision the fixed default must not prevent metadata recovery.
   await writer.protocolDefaults().catch(() => {});
   const wall = Date.now();
@@ -80,9 +96,12 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
   let origin = '';
   let rootInvalid = false;
   let closed = false;
+  let development: DevelopmentApplication | undefined;
+  const developmentNonce = options.development ? randomBytes(24).toString('base64') : undefined;
+  const upgraded = new Set<Duplex>();
   const capabilities: CapabilitiesView = {
     protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 8,
-    credentialConfigured: options.credentialConfigured ?? false,
+    credentialConfigured: options.provider ? options.provider.mode==='fal'&&Boolean(options.provider.key) : options.credentialConfigured ?? false,
     storageState: 'unavailable', connectionState: 'unknown', limits: [],
     profiles: [
       { id: 'LP-1', version: '1', state: 'unqualified' },
@@ -92,12 +111,34 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
       { id: 'TEXT-DURABLE', version: '1', state: 'unqualified' },
     ],
   };
-  const server = createServer({ maxHeaderSize: 16 * 1024, requestTimeout: 0, headersTimeout: 10_000 }, (request, response) => {
+  const server = createServer({ maxHeaderSize: 16 * 1024, requestTimeout: 0, headersTimeout: 10_000,
+    ...(options.development ? { shouldUpgradeCallback: (request: IncomingMessage) => {
+      try {
+        if (!development || closed || rootInvalid || !writer.available) return false;
+        checkBoundary(request, origin);
+        if (request.method !== 'GET' || request.headers.origin !== origin || request.headers.upgrade?.toLowerCase() !== 'websocket') return false;
+        for (const name of ['upgrade', 'connection', 'sec-websocket-protocol', 'sec-websocket-key', 'sec-websocket-version']) if (request.headersDistinct[name]?.length !== 1) return false;
+        if (!['vite-hmr', 'vite-ping'].includes(String(request.headers['sec-websocket-protocol'])) || request.headers['sec-websocket-version'] !== '13') return false;
+        if (request.headers['sec-fetch-mode'] !== undefined && request.headers['sec-fetch-mode'] !== 'websocket') return false;
+        if (request.headers['sec-fetch-dest'] !== undefined && request.headers['sec-fetch-dest'] !== 'empty') return false;
+        if (request.headers['transfer-encoding'] !== undefined || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0')) return false;
+        const target = new URL(request.url!, origin), entries = [...target.searchParams];
+        if (target.pathname !== DEVELOPMENT_HMR_PATH || entries.length !== 1 || entries[0][0] !== 'token') return false;
+        const received = Buffer.from(entries[0][1]), expected = Buffer.from(development.websocketToken);
+        return received.length === expected.length && timingSafeEqual(received, expected);
+      } catch { return false; }
+    } } : {}),
+  }, (request, response) => {
     void handle(request, response);
   });
   server.setTimeout(15_000, socket => socket.destroy());
-  // There is no websocket/proxy tunnel or development security exemption.
-  server.on('upgrade', (_request, socket) => socket.destroy());
+  // Production has no WebSocket tunnel. In the explicit development process,
+  // Node's pre-dispatch callback rejects hostile requests before Vite's own
+  // listener can see a socket. CONNECT remains forbidden in every mode.
+  server.on('upgrade', (_request, socket) => {
+    if (!options.development) { socket.destroy(); return; }
+    upgraded.add(socket); socket.once('close', () => upgraded.delete(socket));
+  });
   server.on('connect', (_request, socket) => socket.destroy());
   server.on('clientError', (_error, socket) => { if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); });
 
@@ -114,8 +155,11 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
       const question = target.indexOf('?');
       const path = question < 0 ? target : target.slice(0, question);
       const query = question < 0 ? undefined : target.slice(question + 1);
+      // A denied development upgrade falls back to the HTTP request handler.
+      // It must never become a source middleware request or API request.
+      if (options.development && request.headers.upgrade !== undefined) throw new ProtocolError('ORIGIN_DENIED');
       // This display flag is never a return URL or an authentication input.
-      if (query !== undefined && !path.startsWith('/api/')) {
+      if (query !== undefined && !path.startsWith('/api/') && !options.development) {
         const entries = [...new URLSearchParams(query)];
         if (path !== '/' || entries.length !== 1 || entries[0][0] !== 'progress-report') throw new ProtocolError('MALFORMED_REQUEST');
       }
@@ -181,6 +225,15 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
           json(response, 200, path === '/api/v1/session' ? view : capabilities);
         }
       } else {
+        if (options.development) {
+          if (!development) throw new ProtocolError('SERVER_UNAVAILABLE');
+          if (request.method !== 'GET' && request.method !== 'HEAD') { response.setHeader('Allow', 'GET, HEAD'); throw new ProtocolError('METHOD_NOT_ALLOWED'); }
+          if (request.headers['transfer-encoding'] !== undefined || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0')) throw new ProtocolError('MALFORMED_REQUEST');
+          await assertRoot();
+          securityHeaders(response, origin, request.headers['sec-fetch-dest'] === 'worker', developmentNonce);
+          await development.handle(request, response);
+          return;
+        }
         const file = files.get(path);
         if (!file) throw new ProtocolError('NOT_FOUND');
         if (request.method !== 'GET') { response.setHeader('Allow', 'GET'); throw new ProtocolError('METHOD_NOT_ALLOWED'); }
@@ -209,13 +262,22 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
   async function close(): Promise<void> {
     if (closed) return;
     closed = true; sessions.invalidate();
+    for (const socket of upgraded) socket.destroy();
     const closing = new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     server.closeAllConnections();
-    try { await closing; } finally { await writer.close(); }
+    try { await development?.close(); await closing; } finally { await writer.close(); }
   }
-  try { await root.recordLaunch(origin); } catch (error) { await close(); throw error; }
+  try {
+    if (options.development) {
+      development = await options.development({ server, origin, nonce: developmentNonce!, hmrPath: DEVELOPMENT_HMR_PATH });
+      if (!development || typeof development.handle !== 'function' || typeof development.close !== 'function' || !/^[A-Za-z0-9_-]{12,128}$/.test(development.websocketToken)) throw new Error('Invalid development application.');
+    }
+    await root.recordLaunch(origin);
+  } catch (error) { await close(); throw error; }
   return {
     origin, root: root.path, close,
+    // Owning local process maintenance. Never registered as an HTTP route.
+    rasterMaintenance:{state:()=>writer.rasterWorkerState(),restartIdle:(generation:number)=>writer.restartRasterWorker(generation)},
     issuePairingURL(): string {
       if (closed || rootInvalid) throw new ProtocolError('SERVER_UNAVAILABLE');
       return `${origin}/#pairing=${sessions.issuePairing()}`;

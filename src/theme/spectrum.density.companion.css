@@ -1,0 +1,535 @@
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(39 77 234 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(39 77 234 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(59 99 251 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(39 77 234 / 1);
+  --en-button-pressed-background: rgb(229 240 254 / 1);
+  --en-button-pressed-color: rgb(39 77 234 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(39 77 234 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(183 40 24 / 1);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(183 40 24 / 1);
+  --en-button-pressed-background: rgb(183 40 24 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(255 255 255 / 1);
+  --en-button-rest-color: rgb(183 40 24 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"]) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-badge-background: rgb(80 80 80 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(52 91 248 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(52 91 248 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(64 105 253 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(105 149 254 / 1);
+  --en-button-pressed-background: rgb(12 33 117 / 1);
+  --en-button-pressed-color: rgb(105 149 254 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(105 149 254 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(255 103 86 / 1);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(255 103 86 / 1);
+  --en-button-pressed-background: rgb(255 103 86 / 1);
+  --en-button-pressed-color: rgb(17 17 17 / 1);
+  --en-button-rest-background: rgb(17 17 17 / 1);
+  --en-button-rest-color: rgb(255 103 86 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"]) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-badge-background: rgb(109 109 109 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+@media (prefers-color-scheme: light) {
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(39 77 234 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(39 77 234 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(59 99 251 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(39 77 234 / 1);
+  --en-button-pressed-background: rgb(229 240 254 / 1);
+  --en-button-pressed-color: rgb(39 77 234 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(39 77 234 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(183 40 24 / 1);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(183 40 24 / 1);
+  --en-button-pressed-background: rgb(183 40 24 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(255 255 255 / 1);
+  --en-button-rest-color: rgb(183 40 24 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-badge-background: rgb(80 80 80 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+
+}
+@media (prefers-color-scheme: dark) {
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(52 91 248 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(52 91 248 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(64 105 253 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(105 149 254 / 1);
+  --en-button-pressed-background: rgb(12 33 117 / 1);
+  --en-button-pressed-color: rgb(105 149 254 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(105 149 254 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(255 103 86 / 1);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(255 103 86 / 1);
+  --en-button-pressed-background: rgb(255 103 86 / 1);
+  --en-button-pressed-color: rgb(17 17 17 / 1);
+  --en-button-rest-background: rgb(17 17 17 / 1);
+  --en-button-rest-color: rgb(255 103 86 / 1);
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-comfortable"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-badge-background: rgb(109 109 109 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+
+}
+
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(39 77 234 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(39 77 234 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(59 99 251 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(39 77 234 / 1);
+  --en-button-pressed-background: rgb(229 240 254 / 1);
+  --en-button-pressed-color: rgb(39 77 234 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(39 77 234 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(183 40 24 / 1);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(183 40 24 / 1);
+  --en-button-pressed-background: rgb(183 40 24 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(255 255 255 / 1);
+  --en-button-rest-color: rgb(183 40 24 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"]) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="light"] [data-en-theme] *)) {
+  --en-badge-background: rgb(80 80 80 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(52 91 248 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(52 91 248 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(64 105 253 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(105 149 254 / 1);
+  --en-button-pressed-background: rgb(12 33 117 / 1);
+  --en-button-pressed-color: rgb(105 149 254 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(105 149 254 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(255 103 86 / 1);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(255 103 86 / 1);
+  --en-button-pressed-background: rgb(255 103 86 / 1);
+  --en-button-pressed-color: rgb(17 17 17 / 1);
+  --en-button-rest-background: rgb(17 17 17 / 1);
+  --en-button-rest-color: rgb(255 103 86 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"]) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme], [data-en-theme="spectrum-inspired-spacious"][data-en-appearance="dark"] [data-en-theme] *)) {
+  --en-badge-background: rgb(109 109 109 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+@media (prefers-color-scheme: light) {
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(39 77 234 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(39 77 234 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(59 99 251 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(39 77 234 / 1);
+  --en-button-pressed-background: rgb(229 240 254 / 1);
+  --en-button-pressed-color: rgb(39 77 234 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(39 77 234 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(183 40 24 / 1);
+  --en-button-hover-background: rgb(233 233 233 / 1);
+  --en-button-hover-color: rgb(183 40 24 / 1);
+  --en-button-pressed-background: rgb(183 40 24 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(255 255 255 / 1);
+  --en-button-rest-color: rgb(183 40 24 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(225 225 225 / 1);
+  --en-button-hover-color: rgb(41 41 41 / 1);
+  --en-button-pressed-background: rgb(217 217 217 / 1);
+  --en-button-pressed-color: rgb(41 41 41 / 1);
+  --en-button-rest-background: rgb(233 233 233 / 1);
+  --en-button-rest-color: rgb(41 41 41 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-badge-background: rgb(80 80 80 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+
+}
+@media (prefers-color-scheme: dark) {
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="primary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(52 91 248 / 1);
+  --en-button-hover-color: rgb(255 255 255 / 1);
+  --en-button-pressed-background: rgb(52 91 248 / 1);
+  --en-button-pressed-color: rgb(255 255 255 / 1);
+  --en-button-rest-background: rgb(64 105 253 / 1);
+  --en-button-rest-color: rgb(255 255 255 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="secondary"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="ghost"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(105 149 254 / 1);
+  --en-button-pressed-background: rgb(12 33 117 / 1);
+  --en-button-pressed-color: rgb(105 149 254 / 1);
+  --en-button-rest-background: rgb(0 0 0 / 0);
+  --en-button-rest-color: rgb(105 149 254 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-variant="danger"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(255 103 86 / 1);
+  --en-button-hover-background: rgb(44 44 44 / 1);
+  --en-button-hover-color: rgb(255 103 86 / 1);
+  --en-button-pressed-background: rgb(255 103 86 / 1);
+  --en-button-pressed-color: rgb(17 17 17 / 1);
+  --en-button-rest-background: rgb(17 17 17 / 1);
+  --en-button-rest-color: rgb(255 103 86 / 1);
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-button[data-en-action="reset"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-button-border-color: rgb(0 0 0 / 0);
+  --en-button-hover-background: rgb(57 57 57 / 1);
+  --en-button-hover-color: rgb(219 219 219 / 1);
+  --en-button-pressed-background: rgb(68 68 68 / 1);
+  --en-button-pressed-color: rgb(219 219 219 / 1);
+  --en-button-rest-background: rgb(50 50 50 / 1);
+  --en-button-rest-color: rgb(219 219 219 / 1);
+  --en-font-metadata-size: 0.875rem;
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-font-metadata-line-height: 1.3333333333333333;
+  --en-font-metadata-size: 0.75rem;
+  --en-font-metadata-size-large: 0.75rem;
+  --en-font-metadata-size-medium: 0.75rem;
+  --en-font-metadata-size-small: 0.75rem;
+  --en-font-ui-weight: 500;
+}
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(en-badge[variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)),
+:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"])) :where(.en-badge[data-variant="neutral"]):not(:where([data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme], [data-en-theme="spectrum-inspired-spacious"]:not([data-en-appearance="light"], [data-en-appearance="dark"]) [data-en-theme] *)) {
+  --en-badge-background: rgb(109 109 109 / 1);
+  --en-badge-color: rgb(255 255 255 / 1);
+}
+
+}

@@ -6,6 +6,7 @@ import {alignment} from './spectrum-alignment.js';
 const tokens=JSON.parse(await readFile('vendor/themes/spectrum/compiled.json','utf8'));
 const color=(mode:string)=>tokens.branches[mode].tokens['color.canvas'].value.replace(/rgb\((\d+) (\d+) (\d+) \/ 1\)/,'rgb($1, $2, $3)');
 test('Spectrum responsive pan-button alignment and appearance',async({smoke:{page,step,record}})=>{
+ await step('original-compact-density',()=>page.getByRole('combobox',{name:'Density',exact:true}).selectOption('compact'));
  for(const width of [1440,390]){
   await step('viewport-'+width,()=>page.setViewportSize({width,height:1000}));
   for(const mode of ['light','dark']){

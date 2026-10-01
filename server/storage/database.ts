@@ -1,3 +1,5 @@
+import {serverPhases,commandAcceptances,commandContext,localQueuePhases} from '../observability/phases.js';
+import type {PhaseSpan} from '../../src/observability/phases.js';
 import {Deletions} from './deletion.js';
 import {Candidates} from './candidates.js';
 import {QueueStore} from './queue.js';
@@ -19,12 +21,14 @@ import { Objects } from './objects.js';
 import type { Barrier } from './objects.js';
 import { event as validateEvent } from '../../src/protocol/validate.js';
 import { Assets, AssetRejection } from './assets.js';
+import { Adapters } from './adapters.js';
 import type { AssetFact } from '../../src/protocol/assets.js';
-import { Histories } from './history.js';
+import { Histories, EXPORT_CANCELLATION_JSON, EXPORT_CANCELLATION_REF } from './history.js';
 import type { HistoryCommit } from './history.js';
 import { UIStore } from './ui.js';
-import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema, maskSchema, retainedMaskSchema, textPlacementSchema, compositionSchema, queueSchema, candidateSchema, deletionSchema } from './schema.js';
+import { extendSchema, assetSchema, rasterSchema, approvalSchema, historySchema, portableSchema, portableTransactionSchema, textSchema, maskSchema, retainedMaskSchema, textPlacementSchema, compositionSchema, queueSchema, candidateSchema, deletionSchema, assertP2LegacyCompatibility, p2SemanticSchema } from './schema.js';
 import { Rasters } from './raster.js';
+import { Displays } from './display.js';
 import { RecoveryStore } from './recovery.js';
 import { reduceDocument } from './reducer.js';
 
@@ -53,7 +57,9 @@ export class StoreDatabase {
   readonly epoch: string;
   readonly recovery: RecoveryStore;
   readonly assets: Assets;
+  readonly adapters: Adapters;
   readonly rasters: Rasters;
+  readonly displays: Displays;
   readonly histories: Histories;
   readonly ui: UIStore;
   readonly texts: Texts;
@@ -77,10 +83,10 @@ export class StoreDatabase {
     this.databaseIdentity = assertPrivate(this.path, false);
     const reader = new DatabaseSync(this.path, { readOnly: true, allowExtension: false });
     let version: number;
-    try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); }
+    try { version = Number(reader.prepare('PRAGMA user_version').get()!.user_version); if(version===16)assertP2LegacyCompatibility(reader,root); }
     finally { reader.close(); }
     // Unknown future roots are inspected with a read-only connection only.
-    if (![0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
+    if (![0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].includes(version)) throw new StoreError('UNSUPPORTED_STORAGE', {
       kind: 'fields', issues: [{ path: 'storage.schemaVersion', code: 'USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP' }],
     });
     this.db = new DatabaseSync(this.path, { timeout: 250, enableForeignKeyConstraints: true, allowExtension: false });
@@ -109,6 +115,7 @@ export class StoreDatabase {
       queueSchema(this.db,root,barrier,options.quotaBytes,version===0);
       candidateSchema(this.db,root,barrier,options.quotaBytes,version===0);
       deletionSchema(this.db,root,barrier,options.quotaBytes,version===0);
+      p2SemanticSchema(this.db,root,barrier,options.quotaBytes,version===0);
       this.objects = new Objects(root, () => this.check(), barrier, options.quotaBytes);
       // Projections are rebuildable indexes. Events/receipts and immutable bytes
       // remain authoritative; replay has no scheduler or transport attached.
@@ -122,18 +129,21 @@ export class StoreDatabase {
       syncDirectory(root); this.check();
       this.assets=new Assets(this.db,this.objects,root,this.epoch,()=>this.fence(this.epoch),barrier,
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.adapters=new Adapters(this.db,this.objects,this.assets,()=>this.fence(this.epoch),
+        (bytes,build,slot)=>this.commitAsset(bytes,build,undefined,slot),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.rasters=new Rasters(this.db,this.objects,this.assets,root,this.epoch,()=>this.fence(this.epoch),barrier,
         (bytes,build,failure)=>this.commitAsset(bytes,build,failure),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.texts=new Texts(this.db,this.objects,this.assets,this.epoch);
       this.rasters.externalCPU=()=>this.texts.externalBytes()+this.texts.reservedCPU;
       this.texts.backendCPU=()=>this.rasters.reservedBytes;
+      this.displays=new Displays(this.objects,this.assets,this.rasters,root,()=>this.fence(this.epoch));
       this.ui=new UIStore(this.db,this.objects,this.assets,()=>this.fence(this.epoch),barrier,id=>this.histories.state(id),(owner,ref,proof)=>this.register(owner,ref,proof));
-      this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,this.texts,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitHistory(bytes,build),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.portables=new Portables(this.db,this.objects,this.assets,this.rasters,this.texts,root,this.epoch,()=>this.fence(this.epoch),barrier,(bytes,build,slot)=>this.commitPortable(bytes,build,slot),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.queue=new QueueStore(this.db,this.objects,this.assets,this.ui,this.rasters,id=>this.histories.state(id),()=>this.fence(this.epoch),this.epoch,barrier,root,(bytes,build,slot)=>this.commitAsset(bytes,build,undefined,slot),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.candidates=new Candidates(this.db,this.objects,this.assets,this.rasters,this.queue,()=>this.fence(this.epoch),(owner,ref,proof)=>this.register(owner,ref,proof));
+      this.histories=new Histories(this.db,this.objects,this.assets,this.rasters,this.ui,this.texts,this.candidates,()=>this.fence(this.epoch),barrier,(bytes,build,creating)=>this.commitHistory(bytes,build,creating),id=>this.document(id),(owner,ref,proof)=>this.register(owner,ref,proof));
       this.queue.onDocumentDeleted=id=>this.candidates.abortDocument(id);
-      this.deletions=new Deletions(this.db,this.objects,this.queue,()=>this.fence(this.epoch),barrier,(bytes,build)=>this.commitAsset(bytes,build),(owner,ref)=>this.register(owner,ref),()=>this.recovery.hasReaders(),root);
+      this.deletions=new Deletions(this.db,this.objects,this.queue,()=>this.fence(this.epoch),barrier,(bytes,build,beforeCommit)=>this.commitAsset(bytes,build,undefined,undefined,beforeCommit),(owner,ref)=>this.register(owner,ref),()=>this.recovery.hasReaders(),root);
       for(const r of this.db.prepare('SELECT document_id FROM candidate_document_tombstones').all())this.deletions.removeProjection(String(r.document_id));
       this.deletions.resume();
       this.objects.onAvailable(()=>{this.assets.schedule();this.rasters.schedule();this.histories.schedule();this.portables.schedule();});
@@ -232,14 +242,14 @@ export class StoreDatabase {
       for(const ref of [event.payload.asset.blob,...event.payload.asset.dependencies])this.db.prepare('INSERT OR IGNORE INTO asset_dependencies VALUES (?,?)').run(event.payload.asset.id,ref.hash);
       return;
     }
-    if(event.type==='ImageEditPreviewPrepared'||event.type==='ImageEditReviewPrepared'||event.type==='StagingTransferReviewPrepared'||event.type==='RasterReviewPrepared'||event.type==='StagingOwnershipTransferred')return;
+    if(event.type==='ImageEditPreviewPrepared'||event.type==='ImageEditReviewPrepared'||event.type==='CandidatePlacementReviewPrepared'||event.type==='StagingTransferReviewPrepared'||event.type==='RasterReviewPrepared'||event.type==='StagingOwnershipTransferred')return;
     const next = reduceDocument(this.document(event.documentId!), event);
     this.db.prepare('INSERT INTO documents VALUES (?,?) ON CONFLICT(id) DO UPDATE SET json=excluded.json').run(next.id, canonical(next));
     if (event.type === 'DocumentCreated'||event.type==='ImageEdited') this.db.prepare('INSERT INTO history VALUES (?,?,?)').run(event.payload.history.id, next.id, canonical(event.payload.history));
     else if(event.type==='CheckpointSaved') this.db.prepare('INSERT INTO checkpoints VALUES (?,?,?)').run(event.payload.checkpoint.id, next.id, canonical(event.payload.checkpoint));
   }
   private rebuild(): void {
-    const start = performance.now();
+    const start = performance.now(),phase=serverPhases.start('document.replay',{replay:true,boundary:'replay'});
     this.db.exec('BEGIN IMMEDIATE');
     try {
       this.db.exec('DELETE FROM asset_dependencies; DELETE FROM assets; DELETE FROM checkpoints; DELETE FROM history; DELETE FROM documents;');
@@ -280,8 +290,8 @@ export class StoreDatabase {
         this.db.prepare('INSERT INTO image_previews VALUES (?,?,?,?)').run(preview.previewId,preview.documentId,owner.command.clientId,canonical(preview));
       }
       this.db.exec('COMMIT');
-    } catch (error) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw error; }
-    this.replayMs = performance.now() - start;
+    } catch (error) { phase.end('error'); if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw error; }
+    phase.end();this.replayMs = performance.now() - start;
   }
   private register(owner: string, ref: BlobRef, proof?:string) {
     if(proof)this.objects.proven(ref,proof);else this.objects.verify(ref);
@@ -344,7 +354,7 @@ export class StoreDatabase {
     this.recovery.maintain();
     const captured = { eventId: randomUUID(), historyId: randomUUID(), branchId: randomUUID(), checkpointId: randomUUID(), recordedAt: new Date().toISOString() };
     this.db.exec('BEGIN IMMEDIATE');
-    let committed = false;
+    let committed = false;let append:PhaseSpan|undefined;
     try {
       this.fence(epoch);
       const previous = this.lookup(c.commandId);
@@ -383,18 +393,21 @@ export class StoreDatabase {
       } else {
         this.register(`command:${c.commandId}`, c.expectedEntityVersions);
         this.barrier('before-event-insert');
+        append=serverPhases.start('event.append',commandContext(c));
         this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq, c.transactionId, c.commandId, canonical(event));
         this.project(event!); this.setMeta('highWater', seq);
         receipt = { status: 'accepted', commandId: c.commandId, fromSeq: seq, toSeq: seq, documentRevision: revision, transactionId: c.transactionId };
       }
-      this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId, hash, Buffer.from(bytes).toString('utf8'), serialized, canonical(receipt));
+      commandAcceptances.validated(c.commandId,hash,receipt);this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId, hash, Buffer.from(bytes).toString('utf8'), serialized, canonical(receipt));
       this.barrier('before-commit'); this.fence(epoch);
       this.db.exec('COMMIT'); committed = true;
+      append?.end('ok',{boundary:'authority-durable'});commandAcceptances.durable(c.commandId,hash,receipt);
       this.barrier('after-commit');
       this.recovery.maintain();
       this.appendMs.push(performance.now() - start); if (this.appendMs.length > 100) this.appendMs.shift();
       return receipt;
     } catch (error) {
+      append?.end('error');
       if (!committed && this.db.isTransaction) this.db.exec('ROLLBACK');
       throw error;
     }
@@ -416,8 +429,30 @@ export class StoreDatabase {
     for(const table of ['asset_preparations','raster_preparations','history_preparations','portable_preparations']){const pending=this.db.prepare(`SELECT hash FROM ${table} WHERE id=?`).get(id);
       if(pending&&pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');}
   }
-  private commitAsset(bytes: Uint8Array, build:()=>AssetFact|QueueFact, failure?:()=>void, slot?:string):Receipt {
+  private assetEnvelope(c:Command):void {
+    if(c.documentId!==null||c.expectedDocumentRevision!==null)throw new AssetRejection('INVALID_INPUT','WORKSPACE_COMMAND_REQUIRED');
+    let expected:Uint8Array;
+    try{expected=this.objects.verify(c.expectedEntityVersions,true)!;}catch(e){if(e instanceof StoreError&&['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw new AssetRejection('MISSING_ASSET','UNAVAILABLE_PRECONDITIONS');if(e instanceof StoreError&&e.code==='PAYLOAD_TOO_LARGE')throw new AssetRejection('CAPACITY','VERSION_MANIFEST_LIMIT');throw e;}
+    let versions;try{versions=parseExpected(expected);}catch(e){if(e instanceof StoreError&&['MALFORMED_REQUEST','PAYLOAD_TOO_LARGE'].includes(e.code))throw new AssetRejection('INVALID_INPUT','INVALID_VERSION_MAP');throw e;}
+    if(c.expectedEntityVersions.mediaType!=='application/json'||canonical(versions)!==Buffer.from(expected).toString('utf8')||versions.entities.length)throw new AssetRejection('INVALID_INPUT','EMPTY_WORKSPACE_PRECONDITIONS_REQUIRED');
+    if(this.db.prepare('SELECT seq FROM events_v2 WHERE transaction_id=?').get(c.transactionId))throw new AssetRejection('INVALID_INPUT','TRANSACTION_ID_REUSE');
+    if(BigInt(this.meta('highWater'))-BigInt(this.recovery.latest(true)?.seq??'0')>=500n)throw new AssetRejection('CAPACITY','SNAPSHOT_REQUIRED');
+  }
+  private commitAsset(bytes: Uint8Array, build:()=>AssetFact|QueueFact, failure?:()=>void, slot?:string, beforeCommit?:()=>void):Receipt {
+    let append:PhaseSpan|undefined,queuedJobId:string|undefined;
     this.fence(this.epoch);const request=parseCommand(bytes);const c=request.command;const serialized=canonical(request);const hash=hashBytes(serialized);
+    if(beforeCommit){
+      // Filesystem collection owns short transactions. Validate the same command
+      // envelope first, before allowing any irreversible physical side effect.
+      // The callback is synchronous in the sole writer; no IPC turn can race
+      // between this preflight and the normal acceptance revalidation below.
+      this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
+      try{
+        const previous=this.lookup(c.commandId);if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return previous.receipt;}
+        this.assertPendingIdentity(c.commandId,hash);if(this.missingCount)this.scanMissing();this.assetEnvelope(c);this.db.exec('ROLLBACK');
+      }catch(error){if(this.db.isTransaction)this.db.exec('ROLLBACK');if(error instanceof AssetRejection)return this.commitAsset(bytes,()=>{throw error;},failure,slot);throw error;}
+      try{beforeCommit();}catch(error){if(error instanceof AssetRejection)return this.commitAsset(bytes,()=>{throw error;},failure,slot);throw error;}
+    }
     this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try {
       const previous=this.lookup(c.commandId);if(previous){if(previous.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return previous.receipt;}
@@ -427,22 +462,17 @@ export class StoreDatabase {
       // A savepoint prevents a rejected builder from publishing partial indexes.
       this.db.exec('SAVEPOINT asset_effect');
       try {
-        if(c.documentId!==null||c.expectedDocumentRevision!==null)throw new AssetRejection('INVALID_INPUT','WORKSPACE_COMMAND_REQUIRED');
-        let expected:Uint8Array;
-        try{expected=this.objects.verify(c.expectedEntityVersions,true)!;}catch(e){if(e instanceof StoreError&&['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw new AssetRejection('MISSING_ASSET','UNAVAILABLE_PRECONDITIONS');if(e instanceof StoreError&&e.code==='PAYLOAD_TOO_LARGE')throw new AssetRejection('CAPACITY','VERSION_MANIFEST_LIMIT');throw e;}
-        let versions;try{versions=parseExpected(expected);}catch(e){if(e instanceof StoreError&&['MALFORMED_REQUEST','PAYLOAD_TOO_LARGE'].includes(e.code))throw new AssetRejection('INVALID_INPUT','INVALID_VERSION_MAP');throw e;}
-        if(c.expectedEntityVersions.mediaType!=='application/json'||canonical(versions)!==Buffer.from(expected).toString('utf8')||versions.entities.length)throw new AssetRejection('INVALID_INPUT','EMPTY_WORKSPACE_PRECONDITIONS_REQUIRED');
-        if(this.db.prepare('SELECT seq FROM events_v2 WHERE transaction_id=?').get(c.transactionId))throw new AssetRejection('INVALID_INPUT','TRANSACTION_ID_REUSE');
-        if(BigInt(this.meta('highWater'))-BigInt(this.recovery.latest(true)?.seq??'0')>=500n)throw new AssetRejection('CAPACITY','SNAPSHOT_REQUIRED');
-        const fact=build();const seq=String(BigInt(this.meta('highWater'))+1n);
+        this.assetEnvelope(c);
+        const fact=build();if(fact.type==='JobQueued'||fact.type==='QueueStateChanged'&&c.body.type==='RetryUncertainJob')queuedJobId=fact.payload.id;const seq=String(BigInt(this.meta('highWater'))+1n);
         const event:DomainEvent={schemaVersion:1,payloadVersion:1,eventId:randomUUID(),workspaceSeq:seq,streamId:'assets',streamSeq:seq,documentId:null,resultingDocumentRevision:null,
           commandId:c.commandId,correlationId:c.correlationId,causationId:c.causationId,transactionId:c.transactionId,writerEpoch:this.epoch,recordedAt:new Date().toISOString(),...fact};
         validateEvent(event);if(Buffer.byteLength(canonical(event))>16384)throw new AssetRejection('CAPACITY','EVENT_SIZE_LIMIT');
         this.register('command:'+c.commandId,c.expectedEntityVersions);
-        this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq,c.transactionId,c.commandId,canonical(event));this.project(event);this.setMeta('highWater',seq);
+        append??=serverPhases.start('event.append',commandContext(c));this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq,c.transactionId,c.commandId,canonical(event));this.project(event);this.setMeta('highWater',seq);
         receipt={status:'accepted',commandId:c.commandId,fromSeq:seq,toSeq:seq,documentRevision:null,transactionId:c.transactionId};
         this.db.exec('RELEASE asset_effect');
       }catch(error){
+        append?.end(error instanceof AssetRejection?'rejected':'error');append=undefined;
         this.db.exec('ROLLBACK TO asset_effect; RELEASE asset_effect');
         if(!(error instanceof AssetRejection))throw error;
         failure?.();const detailBytes=Buffer.from(canonical({kind:'fields',issues:[{path:'command.body',code:error.reason}]})),details=slot?this.objects.putMetadataInSlot(detailBytes,slot):this.objects.putMetadata(detailBytes);this.register('receipt:'+c.commandId,details);
@@ -451,11 +481,14 @@ export class StoreDatabase {
         this.db.prepare('DELETE FROM asset_preparations WHERE id=?').run(c.commandId);
         this.db.prepare('DELETE FROM raster_preparations WHERE id=?').run(c.commandId);
       }
-      this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,canonical(receipt));
-      this.barrier('asset-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('asset-after-commit');this.recovery.maintain();return receipt;
-    }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+      commandAcceptances.validated(c.commandId,hash,receipt);this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,canonical(receipt));
+      this.barrier('asset-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');append?.end('ok',{boundary:'authority-durable'});commandAcceptances.durable(c.commandId,hash,receipt);
+      if(receipt.status==='accepted'){if(queuedJobId)localQueuePhases.begin(queuedJobId,commandContext(c));if(c.body.type==='CancelJob'||c.body.type==='CancelUnstartedJob'||c.body.type==='UndoPendingJob'){localQueuePhases.cancel(c.body.jobId);serverPhases.instant('job.cancel_requested',{...commandContext(c),jobId:c.body.jobId,...('attemptId' in c.body?{attemptId:c.body.attemptId}:{}),boundary:'cancel-intent'});}}
+      this.barrier('asset-after-commit');this.recovery.maintain();return receipt;
+    }catch(e){append?.end('error');if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
   }
-  private commitHistory(bytes:Uint8Array,build:Parameters<HistoryCommit>[1]):Receipt {
+  private commitHistory(bytes:Uint8Array,build:Parameters<HistoryCommit>[1],creating?:Document):Receipt {
+    let append:PhaseSpan|undefined;
     this.fence(this.epoch);const request=parseCommand(bytes),c=request.command,serialized=canonical(request),hash=hashBytes(serialized);
     const start=performance.now();this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -466,34 +499,38 @@ export class StoreDatabase {
       try {
         const frozen=c.body.type==='ExportDocument'?JSON.parse(String(this.db.prepare('SELECT frozen FROM history_preparations WHERE id=?').get(c.commandId)?.frozen??'null')) as Document|null:current;
         const rejected=this.rejection(c,frozen);if(rejected)throw new AssetRejection(rejected.code,rejected.reason,rejected.currentRevision);
-        if(!current)throw new AssetRejection('INVALID_INPUT','DOCUMENT_REQUIRED');
-        const revision=String(BigInt(current.revision)+1n),result=build(current,revision);
+        if(creating&&(!['AdoptCandidate','AdoptReviewedCandidate'].includes(c.body.type)||current!==null||creating.id!==c.documentId||creating.revision!=='0'||c.expectedDocumentRevision!==null))throw new AssetRejection('INVALID_INPUT','INVALID_DOCUMENT_CREATION');
+        if(!current&&!creating)throw new AssetRejection('INVALID_INPUT','DOCUMENT_REQUIRED');
+        const target=current??creating!,revision=String(BigInt(current?.revision??'0')+1n),result=build(target,revision);
         if(result.facts.length<1)throw new StoreError('CORRUPT_STORE');
         if(BigInt(this.meta('highWater'))-BigInt(this.recovery.latest(true)?.seq??'0')+BigInt(result.facts.length)>500n)throw new AssetRejection('CAPACITY','SNAPSHOT_REQUIRED');
         const first=String(BigInt(this.meta('highWater'))+1n);let seq=BigInt(first);
         for(const fact of result.facts){
-          const domain=fact.type==='ImageEdited'||fact.type==='HistoryNavigated'||fact.type==='CheckpointSaved';
-          const event:DomainEvent={schemaVersion:1,payloadVersion:1,eventId:randomUUID(),workspaceSeq:String(seq),streamId:domain?current.id:'assets',streamSeq:domain?revision:String(seq),documentId:domain?current.id:null,resultingDocumentRevision:domain?revision:null,
+          const domain=fact.type==='DocumentCreated'||fact.type==='ImageEdited'||fact.type==='HistoryNavigated'||fact.type==='CheckpointSaved';
+          const eventDocument=fact.type==='DocumentCreated'?fact.payload.document:target,eventRevision=fact.type==='DocumentCreated'?eventDocument.revision:revision;
+          const event:DomainEvent={schemaVersion:1,payloadVersion:1,eventId:randomUUID(),workspaceSeq:String(seq),streamId:domain?eventDocument.id:'assets',streamSeq:domain?eventRevision:String(seq),documentId:domain?eventDocument.id:null,resultingDocumentRevision:domain?eventRevision:null,
             commandId:c.commandId,correlationId:c.correlationId,causationId:c.causationId,transactionId:c.transactionId,writerEpoch:this.epoch,recordedAt:new Date().toISOString(),...fact};
           if(Buffer.byteLength(canonical(event))>16384)throw new AssetRejection('CAPACITY','EVENT_SIZE_LIMIT');validateEvent(event);
-          this.barrier('history-before-event');this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(String(seq),c.transactionId,c.commandId,canonical(event));this.project(event);seq++;
+          this.barrier('history-before-event');append??=serverPhases.start('event.append',commandContext(c));this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(String(seq),c.transactionId,c.commandId,canonical(event));this.project(event);seq++;
         }
         this.setMeta('highWater',String(seq-1n));this.register('command:'+c.commandId,c.expectedEntityVersions);
-        receipt={status:'accepted',commandId:c.commandId,fromSeq:first,toSeq:String(seq-1n),documentRevision:result.documentChanged?revision:result.exportRevision??current.revision,transactionId:c.transactionId};
+        receipt={status:'accepted',commandId:c.commandId,fromSeq:first,toSeq:String(seq-1n),documentRevision:result.documentChanged?revision:result.exportRevision??current?.revision??revision,transactionId:c.transactionId};
         this.db.exec('RELEASE history_effect');
       }catch(error){
+        append?.end(error instanceof AssetRejection?'rejected':'error');append=undefined;
         this.db.exec('ROLLBACK TO history_effect; RELEASE history_effect');if(!(error instanceof AssetRejection))throw error;
-        const details=this.objects.putMetadata(Buffer.from(canonical({kind:'fields',issues:[{path:'command.body',code:error.reason}]})));this.register('receipt:'+c.commandId,details);
+        const details=c.body.type==='ExportDocument'&&error.reason==='EXPORT_CANCELED'?EXPORT_CANCELLATION_REF:this.objects.putMetadata(Buffer.from(canonical({kind:'fields',issues:[{path:'command.body',code:error.reason}]})));this.register('receipt:'+c.commandId,details);
         receipt={status:'rejected',commandId:c.commandId,code:error.code,currentRevision:current?.revision??null,details};
         this.db.prepare('DELETE FROM history_preparations WHERE id=?').run(c.commandId);
       }
-      this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,canonical(receipt));
+      commandAcceptances.validated(c.commandId,hash,receipt);this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,canonical(receipt));
       if(c.body.type==='ResampleImage'||c.body.type==='CreateFlattenedCopy')this.barrier('image-edit-before-commit');
-      this.barrier('history-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('history-after-commit');if(c.body.type==='ResampleImage'||c.body.type==='CreateFlattenedCopy')this.barrier('image-edit-after-commit');this.recovery.maintain();
+      this.barrier('history-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');append?.end('ok',{boundary:'authority-durable'});commandAcceptances.durable(c.commandId,hash,receipt);this.barrier('history-after-commit');if(c.body.type==='ResampleImage'||c.body.type==='CreateFlattenedCopy')this.barrier('image-edit-after-commit');this.recovery.maintain();
       this.appendMs.push(performance.now()-start);if(this.appendMs.length>100)this.appendMs.shift();return receipt;
-    }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+    }catch(e){append?.end('error');if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
   }
   private commitPortable(bytes:Uint8Array,build:Parameters<PortableCommit>[1],slot?:string):Receipt {
+    let append:PhaseSpan|undefined;
     this.fence(this.epoch);const request=parseCommand(bytes),c=request.command,serialized=canonical(request),hash=hashBytes(serialized);
     this.recovery.maintain();this.db.exec('BEGIN IMMEDIATE');
     try{const prior=this.lookup(c.commandId);if(prior){if(prior.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');this.db.exec('ROLLBACK');return prior.receipt;}
@@ -507,21 +544,23 @@ export class StoreDatabase {
         if(BigInt(this.meta('highWater'))-BigInt(this.recovery.latest(true)?.seq??'0')>=500n)throw new AssetRejection('CAPACITY','SNAPSHOT_REQUIRED');
         const result=build(),seq=String(BigInt(this.meta('highWater'))+1n),imported=result.fact.type==='BundleImported'?result.fact.payload.document:null;
         const e:DomainEvent={schemaVersion:1,payloadVersion:1,eventId:randomUUID(),workspaceSeq:seq,streamId:imported?imported.id:'portable',streamSeq:imported?imported.revision:seq,documentId:imported?imported.id:null,resultingDocumentRevision:imported?imported.revision:null,commandId:c.commandId,correlationId:c.correlationId,causationId:c.causationId,transactionId:c.transactionId,writerEpoch:this.epoch,recordedAt:new Date().toISOString(),...result.fact};
-        validateEvent(e);if(Buffer.byteLength(canonical(e))>16384)throw new AssetRejection('CAPACITY','EVENT_SIZE_LIMIT');this.register('command:'+c.commandId,c.expectedEntityVersions);this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq,c.transactionId,c.commandId,canonical(e));this.project(e);this.setMeta('highWater',seq);
+        validateEvent(e);if(Buffer.byteLength(canonical(e))>16384)throw new AssetRejection('CAPACITY','EVENT_SIZE_LIMIT');this.register('command:'+c.commandId,c.expectedEntityVersions);append??=serverPhases.start('event.append',commandContext(c));this.db.prepare('INSERT INTO events_v2 VALUES (?,?,?,?)').run(seq,c.transactionId,c.commandId,canonical(e));this.project(e);this.setMeta('highWater',seq);
         receipt={status:'accepted',commandId:c.commandId,fromSeq:seq,toSeq:seq,documentRevision:result.documentRevision,transactionId:c.transactionId};this.db.exec('RELEASE portable_effect');
-      }catch(e){if(!(e instanceof AssetRejection))throw e;this.db.exec('ROLLBACK TO portable_effect; RELEASE portable_effect');const detailBytes=Buffer.from(canonical({kind:'fields',issues:[{path:e.field,code:e.reason}]})),details=slot?this.objects.putMetadataInSlot(detailBytes,slot):this.objects.putMetadata(detailBytes);this.register('receipt:'+c.commandId,details);receipt={status:'rejected',commandId:c.commandId,code:e.code,currentRevision:null,details};}
-      this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString(),serialized,canonical(receipt));this.db.prepare('DELETE FROM portable_preparations WHERE id=?').run(c.commandId);this.barrier('portable-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');this.barrier('portable-after-commit');if(c.body.type==='ImportBundle')this.barrier('portable-import-after-commit');this.recovery.maintain();return receipt;
-    }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+      }catch(e){append?.end(e instanceof AssetRejection?'rejected':'error');append=undefined;if(!(e instanceof AssetRejection))throw e;this.db.exec('ROLLBACK TO portable_effect; RELEASE portable_effect');const detailBytes=Buffer.from(canonical({kind:'fields',issues:[{path:e.field,code:e.reason}]})),details=slot?this.objects.putMetadataInSlot(detailBytes,slot):this.objects.putMetadata(detailBytes);this.register('receipt:'+c.commandId,details);receipt={status:'rejected',commandId:c.commandId,code:e.code,currentRevision:null,details};}
+      commandAcceptances.validated(c.commandId,hash,receipt);this.db.prepare('INSERT INTO commands VALUES (?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString(),serialized,canonical(receipt));this.db.prepare('DELETE FROM portable_preparations WHERE id=?').run(c.commandId);this.barrier('portable-before-commit');this.fence(this.epoch);this.db.exec('COMMIT');append?.end('ok',{boundary:'authority-durable'});commandAcceptances.durable(c.commandId,hash,receipt);this.barrier('portable-after-commit');if(c.body.type==='ImportBundle')this.barrier('portable-import-after-commit');this.recovery.maintain();return receipt;
+    }catch(e){append?.end('error');if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
   }
   protocolDefaults(): void {
     // A fixed safe precondition value makes the existing narrow commands usable
     // on a new root. This is not arbitrary blob upload or repair of missing roots.
-    if (this.missingCount || this.db.prepare('SELECT hash FROM objects WHERE hash=?').get(EMPTY_EXPECTED_VERSIONS.hash)) return;
-    const ref = this.objects.putMetadata(Buffer.from(canonical({entities:[],schemaVersion:1})));
-    if (canonical(ref) !== canonical(EMPTY_EXPECTED_VERSIONS)) throw new StoreError('CORRUPT_STORE');
-    this.db.exec('BEGIN IMMEDIATE');
-    try { this.register('protocol-default:empty-versions',ref); this.db.exec('COMMIT'); }
-    catch (e) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw e; }
+    if(this.missingCount)return;
+    for(const value of [{owner:'empty-versions',json:canonical({entities:[],schemaVersion:1}),ref:EMPTY_EXPECTED_VERSIONS},{owner:'export-cancellation',json:EXPORT_CANCELLATION_JSON,ref:EXPORT_CANCELLATION_REF}]){
+      const owner='protocol-default:'+value.owner;if(this.db.prepare('SELECT 1 FROM roots WHERE owner=? AND hash=? AND media_type=?').get(owner,value.ref.hash,value.ref.mediaType))continue;
+      const ref=this.db.prepare('SELECT 1 FROM objects WHERE hash=?').get(value.ref.hash)?value.ref:this.objects.putMetadata(Buffer.from(value.json));if(canonical(ref)!==canonical(value.ref))throw new StoreError('CORRUPT_STORE');
+      this.db.exec('BEGIN IMMEDIATE');
+      try{this.register(owner,ref);this.db.exec('COMMIT');}
+      catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
+    }
   }
   recoverClient(cookieHash: string, now: number): string | null {
     if (!/^[a-f0-9]{64}$/.test(cookieHash) || !Number.isSafeInteger(now)) throw new StoreError('MALFORMED_REQUEST');
@@ -559,15 +598,16 @@ export class StoreDatabase {
       resources: { ioChunkBytes: 1048576, maxTransfers: 2, admissionOverheadPercent: 25, freeMarginBytes: '1073741824', metadataHeadroomBytes: '67108864', metadataHeadroomPhysicallyPreallocated: false, snapshotTailCeiling: 500 },
       assets: this.assets.diagnostics(),
       rasters: this.rasters.diagnostics(),
+      display: this.displays.diagnostics(),
       text: {observations:this.texts.observations,reservedCPU:this.texts.reservedCPU,externalBytes:this.texts.externalBytes()},
       history: {observations:this.histories.observations},
       portable: {observations:this.portables.observations},
-      observations: { appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,
+      observations: { phases:serverPhases.snapshot(),pendingAcceptanceSpans:commandAcceptances.pending,pendingLocalQueueSpans:localQueuePhases.pending, appendMs: this.appendMs, replayMs: this.replayMs, snapshot: { target: 250, pressure: this.recovery.snapshotFailure, latest: this.recovery.latest()?.seq ?? null,
         buildMs: this.recovery.snapshotBuildMs, sliceMaxMs: this.recovery.snapshotSliceMaxMs, activationMs: this.recovery.snapshotActivationMs }, qualification: false },
       processMemory: process.memoryUsage(), sqliteIntegrity: this.db.prepare('PRAGMA quick_check').get() };
   }
   close() {
     if (this.closed) return;
-    this.objects.close(); this.db.close(); this.closed = true;
+    commandAcceptances.close();localQueuePhases.close();this.objects.close(); this.db.close(); this.closed = true;
   }
 }

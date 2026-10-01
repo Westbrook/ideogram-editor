@@ -51,7 +51,7 @@ test('schema2 migration opens a real e1a0092 fixture with verified backup, uncha
   await writeFile(join(source,'seed.mjs'),script,{mode:0o600});execFileSync(process.execPath,[join(source,'seed.mjs'),root,join(source,'fixture.json')],{env:{PATH:process.env.PATH}});
   const fixture=JSON.parse(await readFile(join(source,'fixture.json'),'utf8'));const writer=await openWriter({root});t.after(()=>writer.close());
   assert.deepEqual(await writer.document('document_1'),fixture.document);assert.deepEqual(await writer.history(fixture.document.historyHead),fixture.history);assert.deepEqual(await writer.submit(encode(fixture.command),writer.epoch),fixture.receipt);await writer.close();
-  const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('PRAGMA user_version').get().user_version,16);
+  const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('PRAGMA user_version').get().user_version,17);
   const migration=JSON.parse(db.prepare('SELECT receipt FROM schema_migrations WHERE version=2').get().receipt);assert.equal(migration.from,1);assert.equal(migration.manifest.events.count,'1');
   assert.deepEqual(db.prepare('SELECT * FROM events').all(),db.prepare('SELECT * FROM events_v2').all());const backup=new DatabaseSync(join(root,migration.backup),{readOnly:true});assert.equal(backup.prepare('PRAGMA integrity_check').get().integrity_check,'ok');assert.equal(backup.prepare('PRAGMA user_version').get().user_version,1);assert.deepEqual(backup.prepare('SELECT * FROM commands').all(),db.prepare('SELECT * FROM commands').all());backup.close();db.close();
 });

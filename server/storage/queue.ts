@@ -1,3 +1,4 @@
+import {localQueuePhases} from '../observability/phases.js';
 import {randomUUID} from 'node:crypto';
 import {performance} from 'node:perf_hooks';
 import type {DatabaseSync} from 'node:sqlite';
@@ -5,7 +6,7 @@ import type {BlobRef,Receipt} from '../../src/protocol/store.js';
 import type {QueueBody,QueueFact,QueueJob,SpendSession,Attempt,QueueView,StageItem} from '../../src/protocol/queue.js';
 import {isQueueCommand} from '../../src/protocol/queue.js';
 import type {RequestReview} from '../../src/request/review.js';
-import {refs,RequestError} from '../../src/request/core.js';
+import {refs,RequestError,requireRequestMaskPlan} from '../../src/request/core.js';
 import type {Assets,AssetAuth} from './assets.js';
 import {AssetRejection} from './assets.js';
 import type {Objects,Barrier} from './objects.js';
@@ -17,6 +18,10 @@ import {StoreError} from './errors.js';
 import {RequestReviews,readRequestBytes} from './request-review.js';
 import {TransportEvidenceStore,r31Reservation} from '../provider/evidence.js';
 import type {AppliedPrivacyPolicy} from '../provider/contracts.js';
+import type {ProviderAuthorization,ProviderAuthorizationBody} from '../../src/protocol/provider.js';
+import {adapterReferences} from './adapters.js';
+import {materializeTransportTemplate} from './queue-transport.js';
+import {requestRasterGrid} from '../../src/request/raster-plan.js';
 
 type Outbox={state:'safe-unstarted'|'dispatching'|'acknowledged'|'uncertain'|'cancelled'|'terminal';epoch:string|null;endpoint:string;mapping:Record<string,string>;bodyRecord:string|null;payloadHash:string|null;requestId:string|null;urls:{status:string;result:string;cancel:string}|null;responseRecord:string|null};
 export class QueueStore {
@@ -24,6 +29,7 @@ export class QueueStore {
  onDocumentDeleted:((documentId:string)=>void)|undefined;
  deletionCommand:((bytes:Uint8Array,auth:AssetAuth)=>Receipt)|undefined;
  candidateAction:((body:import('../../src/protocol/candidates.js').CandidateBody,slot:string)=>QueueFact)|undefined;
+ authorizeProvider:((job:QueueJob,attempt:Attempt,body:ProviderAuthorizationBody)=>ProviderAuthorization)|undefined;
  private preparing=new Map<string,{hash:string;promise:Promise<Receipt>}>();
  constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private ui:UIStore,private rasters:Rasters,
   private state:(id:string)=>ImageState,private check:()=>void,private epoch:string,private barrier:Barrier,root:string,
@@ -53,9 +59,9 @@ export class QueueStore {
  private assertCapacity(){if(this.all().filter(j=>j.local!=='locally-cancelled'&&j.attempts.some(a=>a.state==='not-started')).length>=1000)throw new AssetRejection('CAPACITY','LOCAL_QUEUE_CEILING');}
  private attempts(){return this.all().flatMap(j=>j.attempts);}
  view(after=''):QueueView{
-  this.check();if(after&&!isId(after))throw new StoreError('MALFORMED_REQUEST');const session=this.session(),attempts=this.attempts(),current=attempts.filter(a=>a.spendSessionId===session.id),reserved=current.filter(a=>a.count==='reserved').length,dispatched=current.filter(a=>a.count==='dispatched').length;
-  const jobs=this.all().filter(j=>j.id>after),items=jobs.slice(0,20);
-  return {protocolVersion:1,session,jobs:items,nextCursor:jobs.length>20?items.at(-1)!.id:null,counts:{reserved,dispatched,remaining:session.cap===null?null:Math.max(0,session.cap-reserved-dispatched),active:attempts.filter(a=>a.hold).length},limits:{active:1,target:100,maximum:1000},production:'denied'};
+  this.check();if(after&&!isId(after))throw new StoreError('MALFORMED_REQUEST');const session=this.session(),all=this.all(),attempts=all.flatMap(j=>j.attempts),current=attempts.filter(a=>a.spendSessionId===session.id),reserved=current.filter(a=>a.count==='reserved').length,dispatched=current.filter(a=>a.count==='dispatched').length;
+  const jobs=all.filter(j=>j.id>after),items=jobs.slice(0,20);
+  return {protocolVersion:1,session,totalJobs:all.length,jobs:items,nextCursor:jobs.length>20?items.at(-1)!.id:null,counts:{reserved,dispatched,remaining:session.cap===null?null:Math.max(0,session.cap-reserved-dispatched),active:attempts.filter(a=>a.hold).length},limits:{active:1,target:100,maximum:1000},production:'denied'};
  }
  private attempt(review:RequestReview,previousAttemptId:string|null=null):Attempt{return {id:randomUUID(),previousAttemptId,version:'1',state:'not-started',hold:false,override:false,spendSessionId:null,count:'none',writerEpoch:null,payloadHash:null,requestId:null,terminal:null,uncertainReason:null,actualCharge:null,estimate:review.estimate};}
  private outbox(id:string):Outbox{const row=this.db.prepare('SELECT json FROM queue_outbox WHERE attempt_id=?').get(id);if(!row)throw new StoreError('CORRUPT_STORE');return JSON.parse(String(row.json));}
@@ -89,16 +95,20 @@ export class QueueStore {
   try{
    if(b.type==='QueueInference')try{
     prepared=this.review(b,auth);
-    for(const ref of [prepared.review.template,...refs(prepared.draft)])proofs.push({ref,token:await this.objects.prove(ref,this.check)});
-    const r=prepared.review.request;
+    for(const ref of [prepared.review.template,...refs(prepared.draft),...adapterReferences(this.assets,prepared.draft.adapters)])proofs.push({ref,token:await this.objects.prove(ref,this.check)});
+    const r=prepared.review.request,requestPlan='mask' in r?structuredClone(requireRequestMaskPlan(r.source,r.mask)):undefined;
     for(const role of ['source','mask'] as const){if(!(role in r))continue;const source=(r as any)[role] as {assetId:string;blob:BlobRef;width:number;height:number};
-     const size=r.size.kind==='custom'?r.size:{width:source.width,height:source.height};
+     const size=requestPlan?requestRasterGrid(requestPlan):r.size.kind==='custom'?r.size:{width:source.width,height:source.height};
      let transport=source.blob;
-     if(size.width!==source.width||size.height!==source.height){
-      const result=await this.rasters.prepareDocument(role==='mask'?{type:'RequestMaskResize',assetId:source.assetId,width:size.width,height:size.height}:{type:'ComposeRaster',width:size.width,height:size.height,layers:[{assetId:source.assetId,transform:[size.width/source.width,0,0,size.height/source.height,0,0],opacity:1,mask:null}]},randomUUID(),slot,this.check,undefined,prepared.review.documentId);
+     if(requestPlan||size.width!==source.width||size.height!==source.height){
+      const result=await this.rasters.prepareDocument(requestPlan?{type:role==='mask'?'RequestMaskTransport':'RequestSourceTransport',assetId:source.assetId,plan:requestPlan}:{type:'ComposeRaster',width:size.width,height:size.height,layers:[{assetId:source.assetId,transform:[size.width/source.width,0,0,size.height/source.height,0,0],opacity:1,mask:null}]},randomUUID(),slot,this.check,undefined,prepared.review.documentId);
       proofs.push(...result.proofs);transport=result.asset.blob;
      }
      stagePlan.push({role,original:source.blob,transport,width:size.width,height:size.height,conversion:prepared.review.conversion});
+    }
+    if('adapters' in r)for(const [index,use]of r.adapters.entries()){
+     const asset=this.assets.asset(use.version);if(!asset?.adapter||asset.blob.hash!==use.hash)throw new StoreError('MISSING_OBJECT');
+     stagePlan.push({role:`adapter:${index}`,versionId:use.version,original:asset.blob,transport:asset.blob});
     }
    }catch(e){if(e instanceof AssetRejection)failure=e;else if(e instanceof StoreError&&['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))failure=new AssetRejection('MISSING_ASSET',e.code);else throw e;}
    return this.commit(bytes,()=>{
@@ -122,7 +132,17 @@ export class QueueStore {
     if(b.type==='HideCandidate'||b.type==='RetryCandidateImport'||b.type==='RecoverCandidateOriginal'){if(!this.candidateAction)throw new StoreError('UNSUPPORTED_COMMAND');return this.candidateAction(b,slot);}
     if('documentId' in b)throw new StoreError('UNSUPPORTED_COMMAND');
     const job=this.job(b.jobId);if(job.version!==b.expectedVersion)throw new AssetRejection('STALE_REVISION','JOB_CHANGED');
-    if(b.type==='CancelJob'||b.type==='UndoPendingJob'||b.type==='RedoPendingJob'||b.type==='RecoverJob'){
+    if(b.type==='AuthorizeProviderJob'){
+     const a=job.attempts.at(-1);
+     if(this.deleted(job.documentId)||!this.db.prepare('SELECT 1 FROM documents WHERE id=?').get(job.documentId))throw new AssetRejection('STALE_REVISION','DOCUMENT_DELETED');
+     if(!a||a.id!==b.attemptId||a.state!=='not-started')throw new AssetRejection('STALE_REVISION','ATTEMPT_CHANGED');
+     if(job.disposition!=='eligible'||job.local==='locally-cancelled')throw new AssetRejection('INCOMPATIBLE','JOB_NOT_ELIGIBLE');
+     if(b.reviewToken!==job.review.token)throw new AssetRejection('STALE_REVISION','REVIEW_CHANGED');
+     if(a.providerAuthorization)throw new AssetRejection('INCOMPATIBLE','PROVIDER_AUTHORIZATION_ALREADY_RECORDED');
+     if(!this.authorizeProvider)throw new AssetRejection('INCOMPATIBLE','PROVIDER_UNAVAILABLE');
+     a.providerAuthorization=structuredClone(this.authorizeProvider(structuredClone(job),structuredClone(a),structuredClone(b)));
+     a.version=String(BigInt(a.version)+1n);
+    }else if(b.type==='CancelJob'||b.type==='UndoPendingJob'||b.type==='RedoPendingJob'||b.type==='RecoverJob'){
      const a=job.attempts.find(a=>a.id===b.attemptId);if(!a)throw new AssetRejection('STALE_REVISION','ATTEMPT_CHANGED');
      if(b.type==='RecoverJob'){a.recoveryRequired=false;a.recoveryRequested=true;a.controlWarning=a.requestId?'Checking the same provider request.':'No durable provider identifier; no remote lookup or new request is possible.';}
      else {if(this.deleted(job.documentId))throw new AssetRejection('STALE_REVISION','DOCUMENT_DELETED');
@@ -154,9 +174,9 @@ export class QueueStore {
   const current=this.controlFence(f.jobId,f.attemptId,'cancel');if(canonical(current)!==canonical(f))throw new StoreError('STALE_EPOCH');
   const job=this.job(f.jobId),a=job.attempts.find(a=>a.id===f.attemptId)!;a.cancel=accepted?'acknowledged':'unconfirmed';a.cancelEvidence=recordId;a.controlWarning=accepted?'Cancellation requested; work may still finish.':'Cancellation could not be confirmed. Check the existing request.';a.version=String(BigInt(a.version)+1n);job.version=String(BigInt(job.version)+1n);this.record('job',job,'CancellationObserved');return job;
  });}
- recoveryWork(){return this.all().flatMap(job=>job.attempts.filter(a=>!a.requestId&&a.recoveryRequested&&!a.recoveryRequired).map(a=>({jobId:job.id,attemptId:a.id}))).slice(0,20);}
+ recoveryWork(eligible:(jobId:string,attemptId:string)=>boolean=()=>true){return this.all().flatMap(job=>job.attempts.filter(a=>!a.requestId&&a.recoveryRequested&&!a.recoveryRequired&&eligible(job.id,a.id)).map(a=>({jobId:job.id,attemptId:a.id}))).slice(0,20);}
  recoveryInspected(jobId:string,attemptId:string,message:string){return this.transaction(()=>{const job=this.job(jobId),a=job.attempts.find(a=>a.id===attemptId);if(!a||!a.recoveryRequested)throw new StoreError('STALE_EPOCH');a.recoveryRequested=false;a.controlWarning=message;a.version=String(BigInt(a.version)+1n);job.version=String(BigInt(job.version)+1n);this.record('job',job,'RecoveryInspected');});}
- controlWork(){return this.all().flatMap(job=>job.attempts.filter(a=>a.requestId&&!a.recoveryRequired&&(a.cancel==='requested'||(this.deleted(job.documentId)&&a.recoveryRequested))).map(a=>({jobId:job.id,attemptId:a.id,cancel:a.cancel==='requested',deleted:this.deleted(job.documentId)}))).slice(0,20);}
+ controlWork(eligible:(jobId:string,attemptId:string)=>boolean=()=>true){return this.all().flatMap(job=>job.attempts.filter(a=>a.requestId&&!a.recoveryRequired&&(a.cancel==='requested'||(this.deleted(job.documentId)&&a.recoveryRequested))&&eligible(job.id,a.id)).map(a=>({jobId:job.id,attemptId:a.id,cancel:a.cancel==='requested',deleted:this.deleted(job.documentId)}))).slice(0,20);}
  detachedObserved(f:import('../../src/protocol/candidates.js').ResultFence,recordId:string,status:string|null){return this.transaction(()=>{
   const current=this.controlFence(f.jobId,f.attemptId,'status');if(canonical(current)!==canonical(f))throw new StoreError('STALE_EPOCH');
   const job=this.job(f.jobId),a=job.attempts.find(a=>a.id===f.attemptId)!;a.recoveryRequested=false;a.controlWarning=status?'Document deleted; no result bytes will be retrieved.':'Existing request status could not be confirmed. '+(a.hold?'The local hold remains. ':'This check did not establish that remote work stopped. ')+'Document deleted; no result bytes will be retrieved.';
@@ -171,22 +191,32 @@ export class QueueStore {
  }
  // Internal scheduler capability, never a browser route. All transitions use the sole writer.
  input(ref:BlobRef){return readRequestBytes(this.objects,ref,104857600);}
+ inputStream(ref:BlobRef):{byteLength:bigint;chunks:()=>AsyncIterable<Uint8Array>}{
+  const objects=this.objects,check=this.check,total=BigInt(ref.byteLength);
+  return {byteLength:total,chunks:async function*(){
+   // The caller owns the bounded request/response transfer reservations for
+   // the entire iteration. A third permit would deadlock the two-slot IO pool.
+   let proof:string|undefined;
+   try{proof=await objects.prove(ref,check);for(let offset=0n;offset<total;){check();objects.proven(ref,proof);const length=Number(total-offset>1048576n?1048576n:total-offset);yield objects.readRange(ref,String(offset),length);offset+=BigInt(length);}}
+   finally{if(proof)objects.releaseProof(proof);}
+  }};
+ }
  sink(attemptId:string,direction:'request'|'response',policy:AppliedPrivacyPolicy){return this.evidence.begin(attemptId,direction,r31Reservation(this.objects,'queue-wire:'+randomUUID(),direction==='request'?'provider-request':'provider-response',this.check),policy);}
  private transaction<T>(fn:()=>T):T{this.check();this.db.exec('BEGIN IMMEDIATE');try{const result=fn();this.check();this.db.exec('COMMIT');return result;}catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}}
- reserve(jobId:string){return this.transaction(()=>{
+ reserve(jobId:string){const result=this.transaction(()=>{
   const job=this.job(jobId),a=job.attempts.at(-1)!;if(this.deleted(job.documentId))return null;if(a.state!=='not-started'||job.local==='locally-cancelled')return null;
   if(a.count==='reserved')return {job,attempt:a};
   const session=this.session(),attempts=this.attempts();if(attempts.some(a=>a.hold))return null;
   const used=attempts.filter(a=>a.spendSessionId===session.id&&['reserved','dispatched'].includes(a.count)).length;
   if(session.cap!==null&&used>=session.cap){job.local='paused-spend-cap';job.version=String(BigInt(job.version)+1n);this.record('job',job,'PausedSpendCap');return null;}
   a.count='reserved';a.spendSessionId=session.id;a.hold=true;a.writerEpoch=this.epoch;a.version=String(BigInt(a.version)+1n);job.local='ready-to-dispatch';job.version=String(BigInt(job.version)+1n);this.record('job',job,'AttemptReserved');return {job,attempt:a};
- });}
+ });if(result)localQueuePhases.eligible(jobId,result.job.documentId,result.attempt.id);return result;}
  dispatch(jobId:string,attemptId:string,mapping:Record<string,string>,policy:AppliedPrivacyPolicy){
   // Materialize exact body once before the fence, preserving exact integer seed tokens.
   this.check();const job=this.job(jobId),a=job.attempts.find(a=>a.id===attemptId);if(this.deleted(job.documentId)||!a||a.state!=='not-started'||a.count!=='reserved'||!a.hold)throw new StoreError('STALE_EPOCH');
-  let text=new TextDecoder('utf-8',{fatal:true}).decode(readRequestBytes(this.objects,job.review.template));
-  if(Object.keys(mapping).length!==job.stagePlan.length)throw new StoreError('MALFORMED_REQUEST');
-  for(const item of job.stagePlan){this.objects.verify(item.transport);const url=mapping[item.role];if(typeof url!=='string'||url.length>8192)throw new StoreError('MALFORMED_REQUEST');const key=item.role==='source'?'image_url':'mask_url',token=JSON.stringify(key)+':'+JSON.stringify('asset:'+item.original.hash);if(text.split(token).length!==2)throw new StoreError('CORRUPT_OBJECT');text=text.replace(token,JSON.stringify(key)+':'+JSON.stringify(url));}
+  const template=new TextDecoder('utf-8',{fatal:true}).decode(readRequestBytes(this.objects,job.review.template));
+  for(const item of job.stagePlan)this.objects.verify(item.transport);
+  const text=materializeTransportTemplate(template,job.review.request,job.stagePlan,mapping);
   const bytes=Buffer.from(text),payloadHash=hashBytes(bytes),sink=this.evidence.begin(a.id,'request',r31Reservation(this.objects,'queue-body:'+a.id,'provider-request',this.check),policy);
   let body;try{for(let i=0;i<bytes.length;i+=1048576)sink.append(bytes.subarray(i,i+1048576));body=sink.finish(true);}catch(e){sink.finish(false);throw e;}
   this.barrier('queue-before-dispatch-fence');

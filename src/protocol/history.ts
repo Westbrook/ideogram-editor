@@ -16,6 +16,7 @@ export type ImageState = { schemaVersion: 1 | 2 | 3 | 4 | 5; composition?:Compos
 export type ImageVersion = { state: BlobRef; semanticDigest: string; compositeAssetId: string | null };
 export type CompositionCommand = 'CommitCompositionVersion'|'AddSemanticElement'|'RemoveSemanticElement'|'ReorderSemanticElement'|'SetSemanticBinding'|'DetachSemanticBinding'|'ApprovePromptProjection';
 export const compositionCommands = ['CommitCompositionVersion','AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding','ApprovePromptProjection'] as const;
+export type CandidatePlacement = { candidateId:string; mode:'safe-region'|'full-candidate'; placement:'current-document'|'new-document'; newDocumentId:string|null; actualOutput:{width:number;height:number;clipMask:boolean}|null; newLayerId:string; name:string; replacement?:{layerId:string;layerVersion:string} };
 export type HistoryBody = TextBody
   | {type:CompositionCommand;composition:CompositionRef;draft:DraftFence|null}
   | {type:'SetLayerAppearance';layerId:string;layerVersion:string;description:string;draft:DraftFence|null}
@@ -31,22 +32,28 @@ export type HistoryBody = TextBody
   | { type: 'Redo'; historyNode: string }
   | { type: 'SwitchBranch'; branchId: string; historyNode: string }
   | { type: 'SaveCheckpoint'; name: string }
+  | { type: 'PrepareRequestSource'; scope: 'single-layer' | 'visible-document' | 'selected-layers'; layerIds: string[] }
+  | ({type:'PrepareCandidateAdoption'} & CandidatePlacement)
+  | ({type:'ReviewCandidatePlacement'} & CandidatePlacement)
+  | {type:'AdoptReviewedCandidate';reviewId:string;reviewHash:string;draft:null}
   | { type: 'PrepareImageResample'; layerId: string; layerVersion: string; width: number; height: number }
   | { type: 'PrepareFlattenedCopy'; layerIds: string[]; includeHidden: boolean; hideOriginals: boolean; newLayerId: string; name: string }
   | { type: 'ReviewImageEdit'; previewId: string }
-  | { type: 'ResampleImage' | 'CreateFlattenedCopy'; previewId: string; reviewId: string; reviewHash: string; draft: DraftFence | null }
-  | { type: 'ExportDocument'; historyHead: string };
+  | { type: 'ResampleImage' | 'CreateFlattenedCopy' | 'AdoptCandidate'; previewId: string; reviewId: string; reviewHash: string; draft: DraftFence | null }
+  | { type: 'ExportDocument'; historyHead: string; options?: import('./export.js').DocumentExportOptions };
 export type ImageEditPreview = {
   previewId: string; documentId: string; documentRevision: string;
-  kind: 'resample-image' | 'flattened-copy'; plan: BlobRef; source: ImageVersion;
+  kind: 'resample-image' | 'flattened-copy' | 'candidate-adoption'; plan: BlobRef; source: ImageVersion;
   preparedAssetId: string; after: ImageVersion;
+  candidate?: {candidateId:string;mode:'safe-region'|'full-candidate';placement:'current-document'|'new-document';newDocumentId:string|null;replacement?:{layerId:string;layerVersion:string};coverage:{originalEffectivePixels:number;effectivePixels:number;lostPixels:number}|null;outputMapping:import('../request/raster-plan.js').RequestOutputMapping|null};
 };
 export type ImageEditReview = { protocolVersion: 1; reviewId: string; preview: ImageEditPreview; targetClientId: string; expiresAt: string; reviewHash: string };
+export type CandidatePlacementReview = {protocolVersion:1;kind:'candidate-placement-review-1';reviewId:string;reviewHash:string;targetClientId:string;expiresAt:string;documentId:string;documentRevision:string;source:ImageVersion;placement:CandidatePlacement;inputs:import('./candidates.js').CandidateAdoptionInputs;preparation:'deferred'|'prepared-reuse';width:number;height:number};
 export type ImageHistoryNode = {
   id: string; documentId: string; branchId: string; parent: string; revision: string;
   kind: 'image-edit'; operation: HistoryBody['type'];
   before: ImageVersion; after: ImageVersion;
-  forward: BlobRef; inverse: BlobRef; roots: BlobRef[];
+  forward: BlobRef; inverse: BlobRef; roots: BlobRef[]; adoptedLineage?: BlobRef;
 };
 // Patches describe specific semantic changes; state objects are retained versions,
 // never a public arbitrary-state command or a source of executable work.
@@ -59,6 +66,7 @@ export type HistoryFact =
   | { type: 'ImageEdited'; payload: { document: Document; history: ImageHistoryNode } }
   | { type: 'ImageEditPreviewPrepared'; payload: { preview: ImageEditPreview } }
   | { type: 'ImageEditReviewPrepared'; payload: { reviewId: string; reviewHash: string } }
+  | {type:'CandidatePlacementReviewPrepared';payload:{reviewId:string;reviewHash:string}}
   | { type: 'HistoryNavigated'; payload: { document: Document; previousHead: string; action: 'Undo' | 'Redo' | 'SwitchBranch' } };
-export const historyCommands = [...compositionCommands,'SetLayerAppearance','ImportFont','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative','ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','Undo','Redo','SwitchBranch','ExportDocument','SaveCheckpoint','PrepareImageResample','PrepareFlattenedCopy','ReviewImageEdit','ResampleImage','CreateFlattenedCopy'] as const;
+export const historyCommands = [...compositionCommands,'SetLayerAppearance','ImportFont','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative','ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','Undo','Redo','SwitchBranch','ExportDocument','SaveCheckpoint','PrepareRequestSource','PrepareCandidateAdoption','AdoptCandidate','ReviewCandidatePlacement','AdoptReviewedCandidate','PrepareImageResample','PrepareFlattenedCopy','ReviewImageEdit','ResampleImage','CreateFlattenedCopy'] as const;
 export const isHistoryCommand = (type: string): boolean => (historyCommands as readonly string[]).includes(type);

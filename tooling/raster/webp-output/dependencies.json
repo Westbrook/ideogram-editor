@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "platform": "darwin",
+      "arch": "arm64",
+      "converterKind": 1,
+      "decoder": {
+        "abiVersion": 1,
+        "version": "1.6.0-ideogram.1",
+        "platform": "darwin",
+        "arch": "arm64",
+        "path": "vendor/raster/bounded-webp/1.6.0-ideogram.1/darwin-arm64/libideogram-webp.1.dylib",
+        "bytes": 249880,
+        "hash": "sha256:4aa72a0fe8eb08d65a75cfbfca069bda5b796c3c44b8bf672f587ef8a079d5ff",
+        "sourceHash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+        "manifestHash": "sha256:35313df37b2e04891212bf8c89de85068383372ce68830cfa9e4ff3a70628453",
+        "producerHash": "sha256:35878592c0ada377c9ff6dbcb738aab52f2106fad798d9a49abe465d6b8b3424"
+      },
+      "converter": {
+        "abiVersion": 1,
+        "version": "1.6.0-ideogram.1",
+        "platform": "darwin",
+        "arch": "arm64",
+        "path": "vendor/raster/bounded-webp/1.6.0-ideogram.1/darwin-arm64/libideogram-webp.1.dylib",
+        "bytes": 249880,
+        "hash": "sha256:4aa72a0fe8eb08d65a75cfbfca069bda5b796c3c44b8bf672f587ef8a079d5ff",
+        "sourceHash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+        "manifestHash": "sha256:35313df37b2e04891212bf8c89de85068383372ce68830cfa9e4ff3a70628453",
+        "producerHash": "sha256:35878592c0ada377c9ff6dbcb738aab52f2106fad798d9a49abe465d6b8b3424"
+      }
+    },
+    {
+      "platform": "linux",
+      "arch": "arm64",
+      "converterKind": 2,
+      "decoder": {
+        "abiVersion": 1,
+        "version": "1.6.0-ideogram.2-linux",
+        "platform": "linux",
+        "arch": "arm64",
+        "path": "vendor/raster/bounded-webp/1.6.0-ideogram.2-linux/linux-arm64/libideogram-webp.so.1",
+        "bytes": 226640,
+        "hash": "sha256:3aaf264ff9531fe462aca312451c98213abe74ca74139173076b732544e2a5de",
+        "sourceHash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+        "manifestHash": "sha256:ec6472b29408d707fe0bbd47ab3e6eb2aa2b95ebb620ba04b8745b264bf5c18c",
+        "producerHash": "sha256:ccee663cdf4305d9a142610eef787660142486bb3bf87ff0bb664f4047abaa75"
+      },
+      "converter": {
+        "abiVersion": 1,
+        "version": "1.0.0",
+        "platform": "linux",
+        "arch": "arm64",
+        "path": "vendor/raster/linux-color/1.0.0/linux-arm64/libideogram-linux-color.so.1",
+        "bytes": 70096,
+        "hash": "sha256:b4f30b0c12611ef34d695252768a73ad940e02cf665246c7139adc64aca1d199",
+        "manifestHash": "sha256:dd276992851958db23dc63286bedc64887f63f4ff46ae3d9a4303019dc8b8e4f",
+        "producerHash": "sha256:856cb12d1d877a6ed54a984ed76f5ec6a2de3a4d88ab0692dd7c2e8e3c4f9fab",
+        "codecIdentity": "sha256:9b2bc66139b4b40545375e31d7bd526d7c1c7f1b4a8e9f33f9c03c926fd94c27"
+      }
+    },
+    {
+      "platform": "linux",
+      "arch": "x64",
+      "converterKind": 2,
+      "decoder": {
+        "abiVersion": 1,
+        "version": "1.6.0-ideogram.2-linux",
+        "platform": "linux",
+        "arch": "x64",
+        "path": "vendor/raster/bounded-webp/1.6.0-ideogram.2-linux/linux-x64/libideogram-webp.so.1",
+        "bytes": 242512,
+        "hash": "sha256:54386ed5f94d31b609cd8fa886399c4a086c0c50e37485e5b66f2c4eeed2193d",
+        "sourceHash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+        "manifestHash": "sha256:9e582cadd9bec63c3f2b236bba48595fc4b75089a0be99566f86093f3ae5a728",
+        "producerHash": "sha256:ccee663cdf4305d9a142610eef787660142486bb3bf87ff0bb664f4047abaa75"
+      },
+      "converter": {
+        "abiVersion": 1,
+        "version": "1.0.0",
+        "platform": "linux",
+        "arch": "x64",
+        "path": "vendor/raster/linux-color/1.0.0/linux-x64/libideogram-linux-color.so.1",
+        "bytes": 15568,
+        "hash": "sha256:99aed3e9e5ada9e400ceb2847956410cb5da26a8ce893228cf31581b0b8cd366",
+        "manifestHash": "sha256:638bd16298810f2e0b08403920d30dfac576e3460854fcc197b80ea5237ac960",
+        "producerHash": "sha256:856cb12d1d877a6ed54a984ed76f5ec6a2de3a4d88ab0692dd7c2e8e3c4f9fab",
+        "codecIdentity": "sha256:00b8f5950da7b52f6f04c972f85b30e0bd95d14ae7554b2e6780414537e3fa68"
+      }
+    }
+  ]
+}

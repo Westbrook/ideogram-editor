@@ -8,6 +8,8 @@ const tokens=JSON.parse(await readFile('vendor/themes/spectrum/compiled.json','u
 const color=(mode:string,id:string)=>tokens.branches[mode].tokens[id].value.replace(/rgb\((\d+) (\d+) (\d+) \/ 1\)/,'rgb($1, $2, $3)');
 const paint=(locator:Locator)=>locator.evaluate(node=>{const s=getComputedStyle(node);return {background:s.backgroundColor,color:s.color,radius:s.borderRadius,font:s.fontFamily,outline:s.outlineColor,outlineWidth:s.outlineWidth};});
 test('Spectrum full appearance and public control smoke',async({smoke:{page,step,record}})=>{
+  // Retained Spectrum captures compare the approved original compact theme.
+  await step('original-compact-density',()=>page.getByRole('combobox',{name:'Density',exact:true}).selectOption('compact'));
   const appearance=page.getByRole('combobox',{name:'Appearance',exact:true});
   const root=page.locator('html');
   const capture=(name:string)=>step('capture-'+name,async()=>{if(process.env.SPECTRUM_BROWSER==='webkit')await captureFrame(page,join(out,name+'.jpg'),record);else await page.screenshot({path:join(out,name+'.png'),fullPage:true,animations:'allow',caret:'initial'});});

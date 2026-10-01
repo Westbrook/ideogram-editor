@@ -47,7 +47,7 @@ test('WebP extent and native allocation plan are admitted before invoking its na
   const root=await rootFor(t),directory=await mkdtemp(join(root,'job-')),path=join(directory,name);await copyFile(new URL(name,base),path);await chmod(path,0o600);const bytes=await readFile(path);let plan;
   const before=process.memoryUsage().rss;
   await assert.rejects(runRaster({type:'decode',directory,path,mediaType:'image/webp',sourceAssetId:'fixture',original:{hash:hash(bytes),byteLength:String(bytes.length),mediaType:'image/webp'}},async p=>{plan=p;throw Error('DENIED_BEFORE_NATIVE');},()=>{}),/DENIED_BEFORE_NATIVE/);
-  assert.equal(plan.width,5000);assert.equal(plan.height,5000);assert.ok(plan.cpuBytes>512*1024*1024);assert.ok(process.memoryUsage().rss-before<128*1024*1024);
+  assert.equal(plan.width,5000);assert.equal(plan.height,5000);assert.ok(plan.cpuBytes<384*1024*1024);assert.equal(plan.allocations.rawOutput,100000000);assert.equal(plan.allocations.nativeDecoderAndColor,128*1024*1024);assert.ok(process.memoryUsage().rss-before<128*1024*1024);
  }
 });
 

@@ -1,9 +1,11 @@
+import {adapterRegistration} from '../../src/protocol/adapters.js';
 import {isQueueCommand} from '../../src/protocol/queue.js';
 import {validateMaskMapping} from '../../src/raster/mapping.js';
 import { validateMaskPlan } from '../../src/raster/mask.js';
 import { isPortableCommand } from '../../src/protocol/portable.js';
 import { isHistoryCommand } from '../../src/protocol/history.js';
 import { historyBody } from '../../src/protocol/history-validation.js';
+import { exportOptions } from '../../src/protocol/export.js';
 import { createHash } from 'node:crypto';
 import type { BlobRef, CommandRequest, ExpectedVersions } from '../../src/protocol/store.js';
 import { parseControlJSON } from '../control-json.js';
@@ -47,9 +49,11 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
   validateBlob(c.expectedEntityVersions);
   const body = c.body as Record<string, unknown>;
   if (!body || typeof body !== 'object' || Array.isArray(body)) bad();
-  if (isQueueCommand(String(body.type))) {
+  if(['RegisterAdapterVersion','PreviewAdapterDeletion','DeleteAdapterVersion'].includes(String(body.type))){try{adapterRegistration(body);}catch{bad();}}
+  else if (isQueueCommand(String(body.type))) {
     const cap=(v:unknown)=>v===null||typeof v==='number'&&Number.isSafeInteger(v)&&v>0;
     if(body.type==='QueueInference'){keys(body,['type','reviewId','token','acceptanceId']);if(!isId(body.reviewId)||!isId(body.acceptanceId)||typeof body.token!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.token))bad();}
+    else if(body.type==='AuthorizeProviderJob'){keys(body,['type','jobId','attemptId','expectedVersion','reviewToken','configurationId','configurationHash','epoch','profileId','profileVersion','disclosureDigest','acknowledgeChargeAndPrivacy']);if(!['jobId','attemptId','configurationId','epoch','profileId'].every(k=>isId(body[k]))||!isSeq(body.expectedVersion)||typeof body.reviewToken!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewToken)||typeof body.configurationHash!=='string'||!/^[a-f0-9]{64}$/.test(body.configurationHash)||!Number.isSafeInteger(body.profileVersion)||(body.profileVersion as number)<=0||typeof body.disclosureDigest!=='string'||!/^[a-f0-9]{64}$/.test(body.disclosureDigest)||body.acknowledgeChargeAndPrivacy!==true)bad();}
     else if(body.type==='SetSpendGuard'){keys(body,['type','spendSessionId','cap','expectedConfigVersion']);if(!isId(body.spendSessionId)||!isSeq(body.expectedConfigVersion)||!cap(body.cap))bad();}
     else if(body.type==='StartSpendSession'){keys(body,['type','previousSessionId','cap','acknowledgeUnresolvedAttempts']);if(!(body.previousSessionId===null||isId(body.previousSessionId))||!cap(body.cap)||typeof body.acknowledgeUnresolvedAttempts!=='boolean')bad();}
     else if(body.type==='RecoverCandidateOriginal'){keys(body,['type','candidateId','expectedVersion','assetId']);if(!isId(body.candidateId)||!isSeq(body.expectedVersion)||!isId(body.assetId))bad();}
@@ -82,9 +86,11 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
   } else if (body.type === 'FinalizeStaging') {
     keys(body, ['type','stagingId','expectedSha256']); if (!isId(body.stagingId)||typeof body.expectedSha256!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.expectedSha256)) bad();
   } else if (body.type === 'PrepareRaster' || body.type === 'ReviewRaster' || body.type === 'ExportRaster') {
-    keys(body,['type','assetId']); if(!isId(body.assetId))bad();
+    keys(body,['type','assetId',...(body.type==='ExportRaster'&&Object.hasOwn(body,'options')?['options']:[])]); if(!isId(body.assetId))bad();
+    if(body.type==='ExportRaster'&&Object.hasOwn(body,'options'))try{exportOptions(body.options,false);}catch{bad();}
   } else if (body.type === 'ApproveRaster') {
     keys(body,['type','assetId','reviewId','reviewHash']);if(!isId(body.assetId)||!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash))bad();
+  } else if(body.type==='PrepareRequestMask'){keys(body,['type','sourceAssetId','plan','clip']);if(!isId(body.sourceAssetId))bad();try{validateMaskPlan(body.plan);}catch{bad();}if(body.clip!==null){keys(body.clip,['x','y','width','height']);const r=body.clip;const p=body.plan as {width:number;height:number};if(!Object.values(r).every(Number.isSafeInteger)||(r.x as number)<0||(r.y as number)<0||(r.width as number)<=0||(r.height as number)<=0||(r.x as number)+(r.width as number)>p.width||(r.y as number)+(r.height as number)>p.height)bad();}
   } else if (body.type === 'PrepareMask') {
     keys(body,['type','plan']);try{validateMaskPlan(body.plan);}catch{bad();}
   } else if (body.type === 'ComposeRaster') {

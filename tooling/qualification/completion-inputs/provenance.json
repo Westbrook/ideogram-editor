@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Reproducible non-browser inputs for the original-object protocol ownership equivalence and pinned host callback source tests. These are historical source inputs, not current execution evidence.",
+  "files": {
+    "protocolOldMonitor": {
+      "path": "protocol-old-monitor.mjs",
+      "bytes": 21312,
+      "sha256": "048e61f51f7dd38d0317fdf8009f38157111afb91512509745ce85fc3999423a",
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-20260927T201600Z/evidence/400-pre-edit/tests/editor/completion/monitor.mjs",
+      "retainedCopy": "/Users/westbrook/Documents/repos/ideogram-edit-p1c-review-7775-20260929T005000Z/fixtures/PROTOCOL_OLD_MONITOR",
+      "sealedObject": "objects/04/048e61f51f7dd38d0317fdf8009f38157111afb91512509745ce85fc3999423a.gz",
+      "provenanceSource": "/Users/westbrook/Documents/repos/ideogram-edit-p1c-review-7775-20260929T005000Z/context/fixture-provenance.json"
+    },
+    "captureProducer": {
+      "path": "capture-producer.mjs",
+      "bytes": 8101,
+      "sha256": "fbef9515dacaa1a7f1d5d2cc50e5d6d89a27d8ee5173b6be508e911790dd9ec4",
+      "originalPath": "/Users/westbrook/Documents/repos/ideogram-edit-p1c-review-7775-20260929T005000Z/helpers/handler-source-path.mjs",
+      "mode": "--verify",
+      "scope": "Two independent pinned Playwright ESM evaluation/UtilityScript VM callback captures; no browser launch, native method, or trusted-event proof."
+    }
+  },
+  "referenceCapture": {
+    "path": "/Users/westbrook/Documents/repos/ideogram-edit-p1c6-restored-favicon-20260928T233100Z/evidence/619-complete-controls/handler-capture/first/result.json",
+    "sha256": "b1ae403c32af72d63c4ba45374c4793640766f095b8b0ec6977a8ea8566756e7",
+    "inputSHA256": "ce160ba5a01e4ddc84607508e46a47becbf4c48966046d590bcf4d23413ab90c",
+    "handlerSHA256": "b1cda98bb2e1a48779db40148355a870aced6476f70a57366dc98fe2f241d5c8",
+    "installerSHA256": "23c4059d0cf5fb6da64f154a2294e7c7eed6509110da34fb7d74b97e29c99f4a",
+    "expressionSHA256": "02c85c39bded16bfd059f8059acdd7df02047f1f95a95477c2cecd2349df28cf",
+    "injectionSHA256": "87b160688b0c4eff2dc4fda2c60a8aed300e9f48c21c30f8e64837a3160877fa"
+  },
+  "runtime": {
+    "node": "26.10.0",
+    "playwright": "1.63.0",
+    "commonSHA256": "f4a6b14f5ba21a118b58a6a25eb0b281a3acc4157023b014e0197145056124a4",
+    "bundleSHA256": "549070af3acabb3efcc4f55bfe6210f9f7c2fcf633cf7eaa59bfe60719969171"
+  },
+  "capturePolicy": "Capture fresh against the current checkout and immutable host-handler-artifact. Never use the historical result as a substitute for new preparation, and never invoke --generate during qualification. Keep the historical producer and monitor bytes unchanged.",
+  "immutableHandlerArtifact": {
+    "path": "tests/editor/completion/host-handler-artifact.mjs",
+    "bytes": 19472,
+    "sha256": "b7ed60a5b7c0256b79e351a46125fafe621d4f4439cbb8c1616fff17a2a57cf4"
+  }
+}

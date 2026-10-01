@@ -5,6 +5,7 @@ import { PortableRoutes } from './portable.js';
 import { isPortableCommand } from '../src/protocol/portable.js';
 import { isHistoryCommand } from '../src/protocol/history.js';
 import { AssetRoutes } from './assets.js';
+import { AdapterRoutes } from './adapters.js';
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -50,8 +51,9 @@ export class ProtocolRoutes {
   private streams = 0;
   private inventories = new Map<string,{kind:string;clientId:string;sessionHash:string;epoch:string;expires:number;after:string;high:string;parent:string|null}>();
   private assets: AssetRoutes;
+  private adapters: AdapterRoutes;
   private portable: PortableRoutes;
-  constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
+  constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.adapters=new AdapterRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
     const comp=/^\/api\/v1\/(documents|ui)\/([^/]+)\/composition$/.exec(path);
     if(comp){if(!isId(comp[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:comp[1]==='documents'?'composition-view':'composition-draft-view',id:comp[2],query:['revision','draftId','generation','raw','offset','download']};}
@@ -60,16 +62,20 @@ export class ProtocolRoutes {
     const deletion=/^documents\/([A-Za-z0-9_-]{1,128})\/deletion$/.exec(path.slice(PREFIX.length));if(deletion)return {allow:['GET'],kind:'deletion',id:deletion[1],query:['after']};
     if(path===PREFIX+'deletions')return {allow:['GET'],kind:'deletions',query:['after']};
     if(path===PREFIX+'queue')return {allow:['GET'],kind:'queue',query:['after']};
+    if(path===PREFIX+'provider')return {allow:['GET'],kind:'provider',query:[]};
     const reviews=/^\/api\/v1\/ui\/([^/]+)\/request-reviews$/.exec(path);if(reviews){if(!isId(reviews[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'request-reviews',id:reviews[1],query:[]};}
     const requestDraft=/^\/api\/v1\/ui\/([^/]+)\/request$/.exec(path);if(requestDraft){if(!isId(requestDraft[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'request-draft-view',id:requestDraft[1],query:['draftId','generation','content']};}
     const native=/^\/api\/v1\/(documents|ui)\/([^/]+)\/text$/.exec(path);
     if(native){if(!isId(native[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:native[1]==='documents'?'text-view':'text-draft-view',id:native[2],query:native[1]==='documents'?['layerId','revision','content']:['draftId','generation','content']};}
     const text=/^\/api\/v1\/text-admission\/([^/]+)(\/release)?$/.exec(path);if(text){if(!isId(text[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:text[2]?'text-release':'text-admission',id:text[1],query:[]};}
     const portable=this.portable.match(path);if(portable)return portable;
+    const adapter=this.adapters.match(path);if(adapter)return adapter;
     const asset=this.assets.match(path);if(asset)return asset;
     if (path === PREFIX + 'commands') return { allow: ['POST'], kind: 'submit', query: [] };
     if(path===PREFIX+'ui')return {allow:['GET'],kind:'ui-inventory',query:['cursor']};
     if(path===PREFIX+'commands/pending')return {allow:['GET'],kind:'command-inventory',query:['cursor']};
+    const cancelExport=/^\/api\/v1\/commands\/([^/]+)\/cancel-export$/.exec(path);
+    if(cancelExport){if(!isId(cancelExport[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:'cancel-export',id:cancelExport[1],query:[]};}
     const original=/^\/api\/v1\/commands\/([^/]+)\/original$/.exec(path);
     if(original){if(!isId(original[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'command-original',id:original[1],query:[]};}
     const commandEvents = /^\/api\/v1\/commands\/([^/]+)\/result$/.exec(path);
@@ -218,6 +224,7 @@ export class ProtocolRoutes {
       else if(route.kind==='deletions'){const view=await this.writer.deletionList(params.get('after')??'');authenticate();sendJSON(response,200,view);}
       else if(route.kind==='deletion'){const view=await this.writer.deletionView(route.id!,this.assets.auth(session),params.get('after')??'');authenticate();sendJSON(response,200,view);}
       else if(route.kind==='queue'){const view=await this.writer.queueView(params.get('after')??'');authenticate();sendJSON(response,200,view);}
+      else if(route.kind==='provider'){const view=await this.writer.providerView();authenticate();sendJSON(response,200,view);}
       else if(route.kind==='composition-view'||route.kind==='composition-draft-view'){
         const draft=route.kind==='composition-draft-view',revision=params.get('revision')??'',draftId=params.get('draftId'),generation=params.get('generation');
         if(draft?(!draftId||!isId(draftId)||!generation||!isSeq(generation)):!isSeq(revision))throw new ProtocolError('MALFORMED_REQUEST');
@@ -250,6 +257,10 @@ export class ProtocolRoutes {
         }
       }
       else if(route.kind==='text-admission'||route.kind==='text-release'){const value=parseControlJSON(await readControlBytes(request)) as any;if(value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const current=authenticate();sendJSON(response,200,await this.writer.textAdmission(id,this.assets.auth(current),route.kind==='text-release')??{released:true});}
+      else if(route.kind==='cancel-export'){
+        const value=parseControlJSON(await readControlBytes(request)) as any;if(!value||value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');
+        await assertRoot();const result=await this.writer.cancelExport(id,this.assets.auth(authenticate()));authenticate();sendJSON(response,200,result);
+      }
       else if (route.kind === 'submit'||route.kind==='asset-finalize') {
         const bytes = await readControlBytes(request); await assertRoot(); const current = authenticate();
         const command = parseCommand(bytes).command;
@@ -259,13 +270,15 @@ export class ProtocolRoutes {
         if(route.kind==='asset-finalize'&&(command.body.type!=='FinalizeStaging'||command.body.stagingId!==id))throw new ProtocolError('MALFORMED_REQUEST');
         const state = await this.writer.commandState(command.commandId);const previous=state.record??state.pending;
         if (previous && previous.command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
-        if(isQueueCommand(command.body.type))await this.writer.queueCommand(bytes,this.assets.auth(current));
+        if(['RegisterAdapterVersion','PreviewAdapterDeletion','DeleteAdapterVersion'].includes(command.body.type))await this.writer.adapterCommand(bytes,this.assets.auth(current));
+        else if(isQueueCommand(command.body.type))await this.writer.queueCommand(bytes,this.assets.auth(current));
         else if(isPortableCommand(command.body.type))await this.writer.portableCommand(bytes,this.assets.auth(current));
         else if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));
-        else if(['PrepareMask','PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
+        else if(['PrepareMask','PrepareRequestMask','PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
         else if(isHistoryCommand(command.body.type)&&(command.body.type!=='SaveCheckpoint'||(await this.writer.document(command.documentId!))?.image))await this.writer.historyCommand(bytes,this.assets.auth(current));
         else await this.writer.submit(bytes,this.writer.epoch);
         authenticate();const result=await this.commandResult(command.commandId,current);sendCommandResult(response,result);
+      } else if(route.kind.startsWith('adapter-')){await this.adapters.handle(request,response,route,params,authenticate,assertRoot);
       } else if(['bundle','bundle-review','bundle-mapping','bundle-content','portable-inventory'].includes(route.kind)){await this.portable.handle(request,response,route,params,authenticate,assertRoot);
       } else if(route.kind==='image-previews'||route.kind==='image-edit-reviews'){
         const result=route.kind==='image-previews'?await this.writer.imagePreview(id,this.assets.auth(session)):await this.writer.imageEditReview(id,this.assets.auth(session));authenticate();sendJSON(response,200,result);

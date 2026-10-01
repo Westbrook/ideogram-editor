@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "originalAdoptionSHA256": "78444e15b827e087729a2a0529251512c6dabeaeb8ed680f778ba87874398a42",
+  "originalSourceCommit": "231c753",
+  "priorCampaignQualificationInherited": false,
+  "scope": "Reviewed implementation derivatives with explicit ancestry. Original adoption and original helper bytes remain retained; new campaign evidence is required for current product qualification.",
+  "files": [
+    {
+      "name": "app-buffer-core.mjs",
+      "originalPath": "./adopted-originals/app-buffer-core.mjs",
+      "originalSHA256": "f5f3330bd507e1c0720aae75fce24e662fdea4d726b964dfa4d540251bd51b75",
+      "sha256": "b5222810b6a2e267b5f4caddedbbf2b186f6eef2ef4a2d6a924b254ec0243b7f",
+      "reason": "Replace a historical hardcoded application worker identity with an explicitly selected run identity or adopted source/build receipt; retain the fixed sealed CanvasKit WASM identity and exact completion assertions. Explicit run input failures never fall back to other identities.",
+      "regressions": [
+        "application-identity.test.mjs",
+        "operation.test.mjs"
+      ]
+    },
+    {
+      "name": "completion-public.mjs",
+      "originalPath": "./adopted-originals/completion-public.mjs",
+      "originalSHA256": "38cff12ae01f9543f5730d052e9b79891df01d060cd0e30a976eb782d972984a",
+      "sha256": "fde2b7bb70ad6e0f260f13a7575427a5b39cf74c5eb63db2f71f55e5e0436dd5",
+      "reason": "Resolve a unique saved draft to its own document when copied/imported documents coexist; retain singleton fallback only when no draft remains, and refuse ambiguous ownership.",
+      "regressions": [
+        "saved-state.test.mjs",
+        "operation.test.mjs"
+      ]
+    }
+  ]
+}

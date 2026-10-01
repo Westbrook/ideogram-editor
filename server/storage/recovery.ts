@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
+import {serverPhases} from '../observability/phases.js';
+import type {PhaseSpan,PhaseContext} from '../../src/observability/phases.js';
 import { DatabaseSync } from 'node:sqlite';
 import type { BlobRef, DomainEvent } from '../../src/protocol/store.js';
 import { canonical, isSeq, isId } from './canonical.js';
@@ -72,6 +74,7 @@ export class RecoveryStore {
   }
   maintain(): void {
     if (this.maintenance || BigInt(this.highWater())-BigInt(this.latest(true)?.seq??'0')<250n) return;
+    const phase=serverPhases.start('document.snapshot');
     let read: DatabaseSync | undefined;
     try {
       this.check();assertPrivate(this.path,false);
@@ -80,7 +83,7 @@ export class RecoveryStore {
       read=new DatabaseSync(this.path,{readOnly:true,allowExtension:false,timeout:250});
       read.exec('PRAGMA trusted_schema=OFF; BEGIN');
       const seq=String(read.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value);
-      const steps=this.buildSnapshot(read,seq);
+      const steps=this.buildSnapshot(read,seq,phase);
       const started=performance.now();this.snapshotSliceMaxMs=0;
       this.maintenance=new Promise<void>(resolve=>{
         const run=()=>{
@@ -91,17 +94,17 @@ export class RecoveryStore {
             do {if(steps.next().done){this.snapshotBuildMs=performance.now()-started;this.snapshotFailure=false;this.maintenance=undefined;resolve();return;}}
             while(++count<32&&performance.now()-start<2);
             setImmediate(run);
-          } catch {try {steps.return(undefined);} catch {} try {read?.close();} catch {} this.snapshotFailure=true;this.maintenance=undefined;resolve();}
+          } catch {phase.end('error');try {steps.return(undefined);} catch {} try {read?.close();} catch {} this.snapshotFailure=true;this.maintenance=undefined;resolve();}
           finally {this.snapshotSliceMaxMs=Math.max(this.snapshotSliceMaxMs,performance.now()-start);}
         };
         setImmediate(run);
       });
-    } catch {try {read?.close();} catch {} this.snapshotFailure=true;}
+    } catch {phase.end('error');try {read?.close();} catch {} this.snapshotFailure=true;}
   }
   async settle(start = false) {if(start)this.maintain();await this.maintenance;}
   needsSnapshot() {return BigInt(this.highWater())-BigInt(this.latest(true)?.seq??'0')>=500n;}
-  private *buildSnapshot(read: DatabaseSync, seq: string): Generator<void> {
-    const id=randomUUID();let stage: string|undefined;
+  private *buildSnapshot(read: DatabaseSync, seq: string,phase:PhaseSpan): Generator<void> {
+    const id=randomUUID();let stage: string|undefined,completed:PhaseContext|undefined;
     try {
       let length=0n;let count=0n;
       for(const row of this.snapshotRows(id,seq,read)){length+=BigInt(row.length);count++;yield;}
@@ -131,7 +134,8 @@ export class RecoveryStore {
         this.snapshotActivationMs=performance.now()-activationStart;
       } catch (e) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw e; }
       this.remember(snapshot);
-    } finally {if(stage)this.objects.abort(stage);read.close();}
+      completed={snapshotId:id,workspaceSeq:seq,assetHash:content.blob.hash,bytes:Number(content.blob.byteLength),boundary:'authority-durable'};
+    } finally {if(stage)this.objects.abort(stage);read.close();if(completed)phase.end('ok',completed);}
   }
   private stamp(item: StoredSnapshot | null): string {
     if (!item) return '';

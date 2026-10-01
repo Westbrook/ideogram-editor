@@ -53,10 +53,11 @@ export function browserReportOutcome(report, selection) {
 
 // App/server builds are same-invocation prerequisites supplied by the shared
 // functional runner. Fixture builds below execute before their consumers.
-export function createBrowserPlan({ selection = 'chromium', scope = 'features', output, fixtureRoot = output, batchEditor = false } = {}) {
+export function createBrowserPlan({ selection = 'chromium', scope = 'features', output, fixtureRoot = output, batchEditor = false, editorSelection = editorFiles } = {}) {
   if (![...engines, 'all'].includes(selection)) throw Error('Select chromium, firefox, webkit, or all');
   if (!['base', 'features'].includes(scope)) throw Error('Select base or features scope');
   if (typeof output !== 'string' || !output.trim() || output.includes('\0')) throw Error('A browser output root is required');
+  if(!Array.isArray(editorSelection)||!editorSelection.length||new Set(editorSelection).size!==editorSelection.length||editorSelection.some(file=>!editorFiles.includes(file)))throw Error('Invalid editor batch selection');
   const fixtures = resolve(fixtureRoot);
   const root = resolve(output), selectedBrowsers = selection === 'all' ? [...engines] : [selection];
   const requiredBrowsers = engines.filter(engine => selectedBrowsers.includes(engine) || engine === 'chromium');
@@ -97,7 +98,7 @@ export function createBrowserPlan({ selection = 'chromium', scope = 'features', 
     playwright({ family: 'text', browser, config: 'tests/text/playwright.config.ts', files: [...textFiles], env: { TEXT_RECEIPT: text, TEXT_APP: textApp }, destination: text, report: 'results.json', project: browser, prerequisites: ['build-text-consumer'], reason: 'Native shaping/rendering, actual 16 KiB/256-line and 14 KiB single-paragraph budget boundaries, worker admission, retained fonts and lifecycle.' });
     if (batchEditor) {
       const out=join(root, `editor-batch-${browser}`);
-      playwright({family:'editor-batch',browser,config:'tests/editor/integration-regression.config.ts',files:[...editorFiles],
+      playwright({family:'editor-batch',browser,config:'tests/editor/integration-regression.config.ts',files:[...editorSelection],
         env:{EDITOR_RECEIPT:out,EDITOR_BROWSER:browser,IE_VALIDATION_BATCH:'1'},destination:out,
         args:browser!=='webkit'?['--grep-invert',webkitBoundary+'$']:[],
         reason:'Development batch: serial files with per-spec evidence namespaces; persistent-profile and restart boundaries remain intact.'});

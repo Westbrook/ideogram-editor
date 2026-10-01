@@ -1,0 +1,150 @@
+{
+  "kind": "qualification-font-input-lock",
+  "version": "perf-noto-static-1",
+  "faces": [
+    {
+      "id": "NotoSans",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "byteLength": "569208",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansArabic",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b",
+      "byteLength": "240456",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansDevanagari",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:385e78e6359a9d88a0f243d53b1209d7548361ba2194e2b9ec779bcaa7e8949d",
+      "byteLength": "219212",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansSymbols2",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansSymbols2/NotoSansSymbols2-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "byteLength": "656852",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansBengali",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansBengali/NotoSansBengali-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:6300c5370cd688b0641343de4c786de6d412bb6c578d129dae75e93a0322dcab",
+      "byteLength": "200048",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansGujarati",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansGujarati/NotoSansGujarati-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:8d5c22d7b729ef2839e6d1fe2cde77b2d083907be3659bca63676baa76e01fd6",
+      "byteLength": "208452",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansGurmukhi",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansGurmukhi/NotoSansGurmukhi-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:bbde4d85fdfb998eff6921cb2c7a9a7924a1c95560a6aa9a06172530e4f596da",
+      "byteLength": "53000",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansHebrew",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansHebrew/NotoSansHebrew-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:a7fa16fffb27bedb060a0866267c29e9859aeb9c21cc33f5b3aaf6eb062eca85",
+      "byteLength": "26900",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansKannada",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansKannada/NotoSansKannada-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:5c804033c57f2c2844b1cd425f45b9a78d81d2f71bf358351b24258ebe168aea",
+      "byteLength": "151940",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansKhmer",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansKhmer/NotoSansKhmer-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:5c1ec068352f1e1fe8e7a3218230360d054e104d377ef40c0423b17c34c3c259",
+      "byteLength": "114096",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansMalayalam",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansMalayalam/NotoSansMalayalam-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:42eb462ff13e820ebbeaaec4e7b426bd1de145d02cef8b634f5a3efd376b513c",
+      "byteLength": "111724",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansMyanmar",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansMyanmar/NotoSansMyanmar-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:9dd2bc76a822a974efce803a4b07302d14d01d5c1fa9e33a258d15a9cb513a7d",
+      "byteLength": "195408",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansOriya",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansOriya/NotoSansOriya-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:b8d8bd784b9d09c0668233437359913c93a3a83bf37d92ecde859e2bc728a0e0",
+      "byteLength": "95776",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansTamil",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansTamil/NotoSansTamil-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:6532db33b8b264abe3a098a40619feb489b5ddf5ab1d2b46e72b51eeb548001b",
+      "byteLength": "74248",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansTelugu",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansTelugu/NotoSansTelugu-Regular.ttf",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:2c05072e8018a9be1cb0582953d9edf9a0cf129cdfb74e611de763b09c411f7f",
+      "byteLength": "197228",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "id": "NotoSansSC",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-cjk/f8d157532fbfaeda587e826d4cd5b21a49186f7c/Sans/SubsetOTF/SC/NotoSansSC-Regular.otf",
+      "revision": "f8d157532fbfaeda587e826d4cd5b21a49186f7c",
+      "sha256": "sha256:faa6c9df652116dde789d351359f3d7e5d2285a2b2a1f04a2d7244df706d5ea9",
+      "byteLength": "8331336",
+      "licenseHash": "sha256:6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    }
+  ],
+  "licenses": [
+    {
+      "id": "Noto-OFL.txt",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/LICENSE",
+      "revision": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+      "sha256": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "byteLength": "4377"
+    },
+    {
+      "id": "Noto-CJK-OFL.txt",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-cjk/f8d157532fbfaeda587e826d4cd5b21a49186f7c/Sans/LICENSE",
+      "revision": "f8d157532fbfaeda587e826d4cd5b21a49186f7c",
+      "sha256": "sha256:6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+      "byteLength": "4301"
+    }
+  ]
+}

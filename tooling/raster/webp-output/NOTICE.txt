@@ -1,0 +1,7 @@
+This bridge is new repository-owned transport source. It incorporates no
+third-party decoder or color converter implementation. No new license grant or
+relicensing of the repository owner's code is asserted by this producer.
+
+The bridge invokes separately verified existing native artifacts through their
+public function pointers. Those artifacts retain their original immutable
+licenses, patent grants, notices and provenance at their existing vendor paths.

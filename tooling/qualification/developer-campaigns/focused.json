@@ -1,0 +1,945 @@
+{
+  "kind": "developer-focused-selection-1",
+  "revision": "WD-1",
+  "rationale": "Existing named risk tests selected for focused feedback; full commands retain the complete declared inventories. Counts are sizing fixtures, not coverage quotas. No production test was created or removed to meet a count.",
+  "unit": [
+    {
+      "id": "U-d38637de29a9069df325cf70",
+      "file": "tests/request/core.test.mjs",
+      "name": "explicit exclusions bind values and operation while preserving original attachments",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-8971dabc6f21ab3473d7ebca",
+      "file": "tests/request/core.test.mjs",
+      "name": "conversion approval binds exact source and target; originals stay intact",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-bb5b51d294787ce45434155c",
+      "file": "tests/request/core.test.mjs",
+      "name": "full mask has explicit acknowledgement",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-05499a0e2f7843fbcc464c1f",
+      "file": "tests/request/core.test.mjs",
+      "name": "production adapter registry denies otherwise valid adapter",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-76336b1a0e96c7857a79ab68",
+      "file": "tests/request/core.test.mjs",
+      "name": "locally eligible adapter requires a retained runtime acknowledgement when provider verification is absent",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-38e1a4304316526a7f6952d3",
+      "file": "tests/request/core.test.mjs",
+      "name": "plain None, raw and rewritten structured prompts need explicit disclosure acknowledgements",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-249280283e31e64d2bdbdecb",
+      "file": "tests/request/core.test.mjs",
+      "name": "exact raw whitespace and escaping are preserved through one outer decode",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-4f520f2f4d727454d9b023f6",
+      "file": "tests/request/core.test.mjs",
+      "name": "equal-size translated source and document mask are not aligned",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-34f86a8b878a5e88250cb698",
+      "file": "tests/request/core.test.mjs",
+      "name": "explicit retained grid translation matches original source coordinates without converting pixels",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-9e081dde2e7a1c1bb33885d0",
+      "file": "tests/request/core.test.mjs",
+      "name": "explicit document source resolution ignores native layer translation but binds document grid",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-dcf676e2d026db9859eea144",
+      "file": "tests/request/core.test.mjs",
+      "name": "legacy aligned mask remains recoverable but cannot inherit a fresh request plan",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-829577626bc42f5e2482fab1",
+      "file": "tests/request/core.test.mjs",
+      "name": "exact custom source dimensions retain the approved identity request plan",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-a63d37d21c62f2a5bff80b67",
+      "file": "tests/request/core.test.mjs",
+      "name": "independent mask binding requires a rendered capture and excludes a layer-mask frame",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-6d8d9fd00291276740946aab",
+      "file": "tests/request/core.test.mjs",
+      "name": "independent binding cannot inherit a request-plan approval after explicit source rebinding",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-b27869ae2612f62d06efbd61",
+      "file": "tests/request/core.test.mjs",
+      "name": "raw request-mask authoring drafts retain unfinished numeric strings without changing the resolved request",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-e3174f64417eee3f712772ee",
+      "file": "tests/request/controller.test.mjs",
+      "name": "settled final cancellation and public value govern request field",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-0df8df941222599bb3d71d49",
+      "file": "tests/request/controller.test.mjs",
+      "name": "pending action honors final native veto and detached hosts",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-328612906027f6d9745a843a",
+      "file": "tests/request/controller.test.mjs",
+      "name": "prepare binds saved current draft and accepted field value",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-10733ec82ed048476069e638",
+      "file": "tests/request/controller.test.mjs",
+      "name": "operation switch preserves each complete incompatible draft",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-60b53e4cb5e4246d2f0967ba",
+      "file": "tests/request/controller.test.mjs",
+      "name": "plain and raw prompt modes retain separate exact drafts",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-db837cabaf1710651c03acaf",
+      "file": "tests/request/controller.test.mjs",
+      "name": "prepare drains an earlier in-flight save before requiring the current generation receipt",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-9a01b02725efd4d39f46ff4b",
+      "file": "tests/request/controller.test.mjs",
+      "name": "native composition start and end in one dispatch turn release review and save the settled draft",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-57703794b44df0dc8249fd97",
+      "file": "tests/request/controller.test.mjs",
+      "name": "same-turn public fields retain both settled values for the same owner",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-6a85071e107fd2126054b1dc",
+      "file": "tests/request/controller.test.mjs",
+      "name": "public mask attachment captures exact frame and requires explicit compatible alignment",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-b3b8f649522307fa80b3f7d8",
+      "file": "tests/request/controller.test.mjs",
+      "name": "pending mask read cannot attach to a replacement owner",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-1b5a741e652815c2fa4f42b9",
+      "file": "tests/request/controller.test.mjs",
+      "name": "disposing during a public queue refresh prevents later polling and publication",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-5672c70fa6e8fbb9621397b0",
+      "file": "tests/request/controller.test.mjs",
+      "name": "cap draft notification cannot submit an older accepted value; typed acceptance sends exact payload",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-606e4483207b1407d4b7bfc6",
+      "file": "tests/request/controller.test.mjs",
+      "name": "cap public stepper acceptance works without draft-input notification",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-e633484cd97bcf4519e923cb",
+      "file": "tests/request/controller.test.mjs",
+      "name": "cap late-veto rollback blocks submission until a later accepted change",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-7959d348aca939292d71e277",
+      "file": "tests/request/controller.test.mjs",
+      "name": "cap uses final accepted host value and latest rapid acceptance, never tentative details",
+      "contracts": [
+        "U-route"
+      ]
+    },
+    {
+      "id": "U-a50c9d787a4ecf09322cffcf",
+      "file": "tests/composition/core.test.mjs",
+      "name": "exact Unicode, newline, key order, photo/art and one serialization",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-3d2f275e7ca796482d07a329",
+      "file": "tests/composition/core.test.mjs",
+      "name": "missing scene is distinct from explicit empty; every nested field rejects aliases and wrong types",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-8db4a534d9f22a3126ee6351",
+      "file": "tests/composition/core.test.mjs",
+      "name": "raw parser preserves duplicate-decoded-key, encoding, type and bounded-resource distinctions",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-65777fa6666b2bf173b75bc5",
+      "file": "tests/composition/core.test.mjs",
+      "name": "all corners, row-first normalization, explicit clipping, collapse and unresolved auto",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-9254c180a48518e61d40d915",
+      "file": "tests/composition/core.test.mjs",
+      "name": "typed explicit links, last-reviewed detach, missing source and literal independence",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-3142c2a63e072235dbbe23ee",
+      "file": "tests/composition/core.test.mjs",
+      "name": "reviewed conversion creates independent identities without rewriting the raw source",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-21293f007920d61f26802650",
+      "file": "tests/composition/core.test.mjs",
+      "name": "inverse request transform preserves imported caption boxes; expansion conflicts remain explicit",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-2bc4475e1b9d2f2abeee7381",
+      "file": "tests/composition/core.test.mjs",
+      "name": "independent exact resource boundaries and palette limits preserve originals",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-fdc2edcddc98e94619520544",
+      "file": "tests/composition/core.test.mjs",
+      "name": "draft closure validates structure while preserving invalid editable fields without authority",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-dfdd2872d5776639744130c9",
+      "file": "tests/composition/schema.test.mjs",
+      "name": "schema13 fences the actual accepted d3b8 PF6 writer and verifies schema12 rollback including pending portable captures",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-772d26e0487ba75d8fc74753",
+      "file": "tests/composition/schema.test.mjs",
+      "name": "schema13 capacity refusal leaves schema12 and exact pending requests intact",
+      "contracts": [
+        "U-composition"
+      ]
+    },
+    {
+      "id": "U-97da5d5cffe0aa990d6db459",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "bounded header inspection produces immutable metadata and deterministic tensor identity without reading tensors",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-2ed39bcc908826be798c4f59",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "prefix parser checks unsigned little endian length before allocating the header",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-710d0f522641238d748cd41f",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "file size is independent of WA256MiB/1GiB fixtures and weights stay outside parser memory",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-e9e1f9750cee5389ae114475",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "scalar and zero-dimensional tensors preserve safetensors meanings",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-efc7e8fd2a3319276ca146ca",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "sub-byte types require exact byte alignment and their declared bit length",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-4c9ba521c0fe68f0265b1501",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "space padding is allowed; invalid UTF8 and a BOM are refused",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-8c0895f9be7609c9be08c35f",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "prototype-shaped keys are inert metadata/tensor labels",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-acbb3f5729219e0858b4b4f8",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "unsupported dtype, excessive rank/header and empty weights have explicit dispositions",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-0e214eab1d4a6cd04d0c36e5",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "generic readable weights and declared V4 family cannot create local eligibility",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-f31311effd2d9cd96b692e25",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "known other families/formats are blocked without conversion or false runtime evidence",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-893fce9f1cef1aa88b973406",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "training weights alone remain partial even when their declaration says V4",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-a0e2ac36aa2dcd8913ec4c2e",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "exact evidence comparison binds all immutable identities but cannot install a production profile",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-8f626e43cd339ebadc9b4b61",
+      "file": "tests/adapters/parser.test.mjs",
+      "name": "the exact provider-published artifact has a sealed local profile with absent config and no runtime claim",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-cb984fd10b9acd89911ec75b",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "attachment requires an available supported profile, deduplicates exact versions and caps at three",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-5b8c980621077bb2a41919de",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "scale retains zero and rejects empty, nonfinite and out-of-range edits",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-da1cc5389008e4c180f7fa2f",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "import provenance retains exact local names and rejects combined overflow without truncation",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-c4465fd2dc412f0c3e2cccb9",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "library status distinguishes local structural evidence, runtime evidence and missing artifacts",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-71db69437509a8a5d3be675c",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "rendered import stages original handles then requires explicit hash review before registration",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-0bdf82b8f650edaecf220e60",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "wrong extension refuses transfer while preserving the file selection for replacement",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-9bd735a57eab8761480fc0b0",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "settled file choice and delayed action honor native cancellation",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-2947a0e4b116c7f98372289d",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "exact restored versions are fetched for eligibility and unknown profiles stay absent",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-0b3d66bd7438c302d5198442",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "unknown named compatibility profiles cannot be relabeled as the supported request profile",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-c4d77c3a5556a6b0b0e96820",
+      "file": "tests/adapters/ui.test.mjs",
+      "name": "async eligibility refuses a changed owner before publishing any usable entry",
+      "contracts": [
+        "U-adapter"
+      ]
+    },
+    {
+      "id": "U-f67a0bd6fb205c6e43f9d398",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "all DNS answers and family must pass, including mixed A/AAAA",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-ed392e417750da6697af91b7",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "queue selected endpoint, exact request and action identities",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-c36f9a09ae256ce97cf8cf9d",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "URL normalization cannot bypass exact authority",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-c91197bcd764278525e5e0b5",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "RP-1 uses exact fixture minimum and ACL with Store-IO zero",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-22c0b63e8c28618a5e14cabe",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "RP-1 permits qualified renewable lease without guessing unknown queue lifetime",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-bc024c733597ed19bb81e044",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "fallback acknowledgement is bound to frozen attempt, profile evidence and disclosure",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-5a68460213ce4d1a7b75d503",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "production refuses emulator overrides and requires explicit documented fallback acknowledgement",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-6427533a3c19a6a783dfd101",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "header ingestion has a narrow value allowlist and never stores credential fields",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-62a1136dfbbded017cf586f0",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "egress guard permits only literal loopback lookup and traps external attempts before effects",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-deb894eb3f0a6b63b16afebb",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "production rejects emulator environment flags without reading provider keys",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-458d31bc7dbde44e2ce28a4e",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "production launcher refuses emulator before private root creation or browser opening",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-6f93939d4a49a2b6d6c623a0",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "production fallback always requires exact attempt disclosure and serializes documented ACL object",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-9d0fb32012d24bace8a4c960",
+      "file": "tests/provider/policy.test.mjs",
+      "name": "production result path permits only its two documented identity-bound variants",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-d820786d66b790af3c2185ce",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "exact protected bodies stay distinct from allowlisted portable records",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-3ed7f20ce6f880ce56426651",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "escaped prompt and multibyte Unicode crossing IO pages retain exact decoded UTF-8",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-240f7ca6606630680dc1bf5e",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "known credential and signed URL fragments quarantine prompt without altering original",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-261d8f6ede2e7a0f994f0823",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "returned prompt larger than 16MiB is complete streamed opaque provenance",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-8163fad0a713bc8edec0c962",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "capacity failure preserves partial body, exact retained count and backend-only inventory",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-46fb01ac24d470c7a512d2db",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "symlink roots and caller paths cannot enter protected evidence store",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-47ec4780d38372f9f7873e71",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "R31 adapter uses real storage reservations, releases slots, and refuses low capacity",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-c54fbc5fd6729ec5dd7dd4dc",
+      "file": "tests/provider/provenance.test.mjs",
+      "name": "saved resume identity survives reopening and cannot be changed by another URL or ETag",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-6ded0be4be59a44c2bf3daa7",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "sync, refresh, review and keeping a job local never grant dispatch authority",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-27c42e50004fc600fd50cfff",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "only the deliberately confirmed frozen review emits the exact authorization body once",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-d85c442c5df7ea6fe80b8a88",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "composition ending in the dispatch turn cannot resurrect a canceled review",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-c2d7b9d76f870b8872ca7420",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "an abandoned composition cannot keep a replacement document controller permanently disabled",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-5bcb38643a03e3108008552c",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "refresh removes an old review and its already rendered authorization callback",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-8bed8fc49b2fc511f8e29af7",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "review details are captured independently of later input object mutations",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-651c3ae2f64e5d05cda51497",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "disabled provider never renders a review or confirmation and sync performs reads only",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-a1d0988e80579ac49da31e23",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "authorization failure keeps the exact attempt uncertain without retrying or recreating confirmation",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-a0110550f992cfa3632d9ed2",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "stale command completion cannot refresh or publish into a replacement owner",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-88931cd59ab3e1b86c95eb59",
+      "file": "tests/provider/ui.test.mjs",
+      "name": "stale command rejection cannot clear a replacement owner review",
+      "contracts": [
+        "U-provider"
+      ]
+    },
+    {
+      "id": "U-b956ed7cd9dc671afeb39a04",
+      "file": "tests/editor/read-adapters.test.mjs",
+      "name": "exact accepted result remains readable after snapshot advancement, restart and renewal; read leases never extend authority",
+      "contracts": [
+        "U-controls"
+      ]
+    },
+    {
+      "id": "U-af1d48ac08105b77ee5c2cc7",
+      "file": "tests/editor/read-adapters.test.mjs",
+      "name": "known referenced multi-event command is bounded, byte exact and session leased",
+      "contracts": [
+        "U-controls"
+      ]
+    },
+    {
+      "id": "U-d9afae6f2d6be322977caf6d",
+      "file": "tests/editor/read-adapters.test.mjs",
+      "name": "UI metadata pages are owner scoped and never mutate checkpoint state; concurrent changes are visible by identity and sequence",
+      "contracts": [
+        "U-controls"
+      ]
+    },
+    {
+      "id": "U-5965c84221d1e050c3252543",
+      "file": "tests/editor/read-adapters.test.mjs",
+      "name": "pending owner pages preserve exact original bytes and operation identity across terminal races",
+      "contracts": [
+        "U-controls"
+      ]
+    },
+    {
+      "id": "U-b4f7ebda504fea0fd150fda1",
+      "file": "tests/editor/read-adapters.test.mjs",
+      "name": "document HEAD exposes canonical revision without projection/content allocation and retains GET authorization",
+      "contracts": [
+        "U-controls"
+      ]
+    }
+  ],
+  "integration": [
+    {
+      "id": "L-d821f30576d2fa33f73f478e",
+      "file": "tests/store/core.test.mjs",
+      "name": "OS ownership: competing processes and case aliases refuse; death releases ownership and fences old callbacks",
+      "contracts": [
+        "L-store"
+      ]
+    },
+    {
+      "id": "L-2a4955c301dd357ea05c2a4b",
+      "file": "tests/store/core.test.mjs",
+      "name": "NewDocument and named checkpoint persist exact facts, history and receipt; replay has no effects",
+      "contracts": [
+        "L-store"
+      ]
+    },
+    {
+      "id": "L-e0a5395211286b041dd2f8e3",
+      "file": "tests/store/core.test.mjs",
+      "name": "canonical delivery: whitespace/key order retry once; changed provenance or Unicode conflicts without replacement",
+      "contracts": [
+        "L-store"
+      ]
+    },
+    {
+      "id": "L-ae0dfeab1d89d7407c615170",
+      "file": "tests/request/writer.test.mjs",
+      "name": "real writer freezes exact template and accepts review without a document or provider effect",
+      "contracts": [
+        "L-route"
+      ]
+    },
+    {
+      "id": "L-5bc0f41c2e8525e544f34fe0",
+      "file": "tests/request/writer.test.mjs",
+      "name": "altered token and changed draft are rejected and exact saved input remains",
+      "contracts": [
+        "L-route"
+      ]
+    },
+    {
+      "id": "L-a7e7dd7eb2c36e4f710bcfba",
+      "file": "tests/queue/writer.test.mjs",
+      "name": "atomic queue receipt outbox and immutable references survive duplicate delivery and restart",
+      "contracts": [
+        "L-job"
+      ]
+    },
+    {
+      "id": "L-67a4c3c54b84c6cc19d14084",
+      "file": "tests/queue/writer.test.mjs",
+      "name": "stale accepted review and missing bytes refuse enqueue and preserve drafts",
+      "contracts": [
+        "L-job"
+      ]
+    },
+    {
+      "id": "L-867917503cf93ee68b7c99ea",
+      "file": "tests/raster/storage.test.mjs",
+      "name": "shared two IO slots, combined64 preparations, exact pending identity and conflicting writer command",
+      "contracts": [
+        "L-raster"
+      ]
+    },
+    {
+      "id": "L-b2ebf34a9f1defcc94718c06",
+      "file": "tests/history/replay.test.mjs",
+      "name": "independent semantic patches and complete retained graph match all branches/checkpoints, pure restart/undo/redo cannot launch raster or network effects",
+      "contracts": [
+        "L-state"
+      ]
+    },
+    {
+      "id": "L-73cecf5b64890f8c86a21928",
+      "file": "tests/portable/zip.test.mjs",
+      "name": "ZIP64 STORE roundtrip uses real content, exact CRC/hash and 64-bit fields",
+      "contracts": [
+        "L-copy"
+      ]
+    }
+  ],
+  "browser": [
+    {
+      "id": "B-3f7d6d524c026d406b8dcdca",
+      "file": "tests/editor/integration.spec.ts",
+      "name": "integrated public authoring preserves exact pixels, inactive history and drafts through real restart and two portable namespaces",
+      "config": "tests/editor/integration.config.ts",
+      "contracts": [
+        "B-copy",
+        "E1"
+      ]
+    },
+    {
+      "id": "B-8b57edd2191e621a52c9deb1",
+      "file": "tests/candidates/public.spec.ts",
+      "name": "E2 Base and explicit Fast conflict resolution retain independent candidates",
+      "config": "tests/candidates/playwright.config.ts",
+      "contracts": [
+        "B-job",
+        "E2"
+      ]
+    },
+    {
+      "id": "B-cbaff1c92f64f8853cdb47d5",
+      "file": "tests/request-edits/public.spec.ts",
+      "name": "E3 keyboard mask and native overlay survive safe adoption history and stale-target recovery",
+      "config": "tests/request-edits/playwright.config.ts",
+      "contracts": [
+        "B-raster",
+        "E3"
+      ]
+    },
+    {
+      "id": "B-a965e40ef8a89858e4f8b2ff",
+      "file": "tests/recovery/e4.spec.ts",
+      "name": "E4 and DR-1 preserve known and uncertain attempts, late candidates and durable deletion",
+      "config": "tests/recovery/p25.config.ts",
+      "contracts": [
+        "B-recovery",
+        "E4"
+      ]
+    },
+    {
+      "id": "B-5abf9a5825e4e4979116d480",
+      "file": "tests/qualification/a11y.spec.ts",
+      "name": "focused shell keyboard, reflow, reduced-motion and forced-colors evidence",
+      "config": "tests/qualification/a11y.config.ts",
+      "contracts": [
+        "B-a11y",
+        "AX01",
+        "AX02",
+        "AX05",
+        "AX06",
+        "AX07"
+      ]
+    }
+  ]
+}

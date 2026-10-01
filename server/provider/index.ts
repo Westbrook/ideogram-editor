@@ -1,6 +1,7 @@
 import { refuse } from './contracts.js';
 import type { CredentialProvider } from './contracts.js';
-import { QUEUE_ORIGIN } from './policy.js';
+import { QUEUE_ORIGIN,PRODUCTION_MEDIA_HOSTS } from './policy.js';
+import {PRODUCTION_PROFILE} from './production-profile.js';
 import { providerBoundary } from './client.js';
 
 /** Production has no emulator selection, alternate origin, TLS override or caller-supplied Q09 profiles. */
@@ -14,6 +15,6 @@ export function createProductionProvider(credential:CredentialProvider, config:R
   assertProductionEnvironment(process.env);
   assertProductionConfiguration(config);
   if(Object.keys(config).length)refuse('POLICY');
-  return providerBoundary({mode:'production',queueOrigin:QUEUE_ORIGIN,mediaOrigins:[],profiles:[],credential,
+  return providerBoundary({mode:'production',queueOrigin:QUEUE_ORIGIN,mediaOrigins:PRODUCTION_MEDIA_HOSTS.map(host=>'https://'+host),profiles:[PRODUCTION_PROFILE],credential,allowResultResponseSuffix:true,
     connection:{mode:'production'}});
 }

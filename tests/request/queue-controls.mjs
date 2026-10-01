@@ -1,3 +1,5 @@
+import {displayPreviewURL} from '../display-module.mjs';
+import {allocationsURL,ownedPreviewURL,promptMemoryURL} from '../owned-preview-module.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
@@ -6,9 +8,10 @@ import {transformWithOxc} from 'vite';
 import {nothing} from 'lit';
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 const adapter=data((await transformWithOxc(await readFile('src/ui/adapters.ts','utf8'),'adapters.ts')).code);
-let code=(await transformWithOxc(await readFile('src/ui/request.ts','utf8'),'request.ts')).code;
-for(const [name,url]of Object.entries({'lit':import.meta.resolve('lit'),'./adapters.js':adapter,...Object.fromEntries(['request/core','protocol/json','composition/core'].map(n=>['../'+n+'.js',pathToFileURL(resolve('dist/local/src/'+n+'.js')).href]))}))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));
-const {RequestEditing}=await import(data(code));
+const imports={'./display-image.js':data('export const displayImage=value=>value;'),'../observability/display-preview.js':displayPreviewURL,'../observability/prompt-memory.js':promptMemoryURL,'../observability/owned-preview.js':ownedPreviewURL,'../observability/allocations.js':allocationsURL,'lit':import.meta.resolve('lit'),'lit/directives/repeat.js':data('export const repeat=(items,key,render)=>Array.from(items,render);'),'./adapters.js':adapter,...Object.fromEntries(['request/core','request/raster-plan','protocol/json','composition/core','raster/mask','raster/mapping','adapters/profile'].map(n=>['../'+n+'.js',pathToFileURL(resolve('dist/local/src/'+n+'.js')).href]))};
+async function controllerModule(name,dependencies={}){let code=(await transformWithOxc(await readFile('src/ui/'+name+'.ts','utf8'),name+'.ts')).code;code=code.replace(/import\s+["']\.\/(?:request-edits|candidate-comparison)\.css["'];?/g,'');for(const [specifier,url]of Object.entries({...imports,...dependencies}))code=code.replaceAll(JSON.stringify(specifier),JSON.stringify(url)).replaceAll("'"+specifier+"'",JSON.stringify(url));return data(code);}
+const adapterLibrary=await controllerModule('adapter-library'),candidateComparison=await controllerModule('candidate-comparison'),requestEdits=await controllerModule('request-edits',{'./candidate-comparison.js':candidateComparison});
+const {RequestEditing}=await import(await controllerModule('request',{'./adapter-library.js':adapterLibrary,'./request-edits.js':requestEdits}));
 export function rendered(flow){
  const slots=[];const html=v=>{if(v===nothing||v===null||v===undefined)return '';if(Array.isArray(v))return v.map(html).join('');if(v?.strings)return v.strings.reduce((s,t,i)=>s+t+(i<v.values.length?html(v.values[i]):''),'');return '__slot'+(slots.push(v)-1)+'__';};
  const markup=html(flow.render()),resolve=s=>s.replace(/__slot(\d+)__/g,(_,i)=>String(slots[Number(i)]));

@@ -1,0 +1,12 @@
+{
+  "abiVersion": 1,
+  "version": "1.6.0-ideogram.2-linux",
+  "platform": "linux",
+  "arch": "x64",
+  "path": "vendor/raster/bounded-webp/1.6.0-ideogram.2-linux/linux-x64/libideogram-webp.so.1",
+  "bytes": 242512,
+  "hash": "sha256:54386ed5f94d31b609cd8fa886399c4a086c0c50e37485e5b66f2c4eeed2193d",
+  "sourceHash": "sha256:e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+  "manifestHash": "sha256:9e582cadd9bec63c3f2b236bba48595fc4b75089a0be99566f86093f3ae5a728",
+  "producerHash": "sha256:ccee663cdf4305d9a142610eef787660142486bb3bf87ff0bb664f4047abaa75"
+}

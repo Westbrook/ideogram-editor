@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {transformWithOxc} from 'vite';
+const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
+async function module(path,replacements={}){let code=(await transformWithOxc(await readFile(path,'utf8'),path)).code;for(const [name,url]of Object.entries(replacements))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));return data(code);}
+const budgetURL=await module('src/protocol/text-budget.ts'),contractsURL=await module('src/text/contracts.ts');
+const admissionURL=await module('src/text/admission.ts',{'./contracts':contractsURL});
+const profile=JSON.parse(await readFile('src/text/profile.json','utf8'));
+const memoryURL=await module('src/text/memory.ts',{'./admission':admissionURL,'./contracts':contractsURL,'./profile.json':data('export default '+JSON.stringify(profile)),'../protocol/text-budget':budgetURL});
+const {verificationBudget,textWorkspaceBudget}=await import(budgetURL),{planText,textMemory,registerFontBacking,engineResidentBytes}=await import(memoryURL);
+const CAP=128*1024**2,WASM=4979358,FONTS=11445884;
+const maxLines=Array.from({length:256},(_,i)=>'A'.repeat(i===255?64:63)).join('\n');
+function request(text,bytes){const hash='sha256:'+'a'.repeat(64);return {text,frame:{width:360,height:180},token:{documentId:'document',documentRevision:'1',layerId:'layer',layerVersion:'1',sessionId:'session',generation:1},style:{primaryFont:hash,explicitFallbacks:[],sizePx:32,lineHeightMultiplier:1.2,fill:[40,90,190,255],align:'start',direction:'auto'},fonts:[{hash,bytes,faceIndex:0,origin:'local-file',license:{hash:'sha256:'+'b'.repeat(64),embedding:'permitted'}}]};}
+test('16KiB with 256 logical lines gets a bounded workspace, not a 272MiB presumed layout',()=>{assert.equal(Buffer.byteLength(maxLines),16384);const budget=verificationBudget(maxLines,360,180,569208,WASM);assert(budget.layout<=8*1024**2);assert(budget.workspace>0);assert(budget.bytes+569208+65536<=CAP);assert.throws(()=>verificationBudget(maxLines,360,180,569208,WASM,{legacy:true}),/TEXT_VERIFICATION_CAPACITY/);});
+for(const length of [13981,13982,16384])test('all 16 corpus font backings remain charged for '+length+' ASCII bytes',()=>{const text='A'.repeat(length),budget=verificationBudget(text,360,180,FONTS,WASM);assert(budget.bytes+FONTS+65536<=CAP);assert(budget.layout>6*1024**2&&budget.layout<=8*1024**2);assert.equal(budget.scratch,2*1024**2);});
+test('browser and verifier share the exact output/workspace quotas and loader ownership does not mint capacity',()=>{const bytes=new Blob([new Uint8Array(FONTS)]),q=request(maxLines,bytes),plain=planText(q),budget=verificationBudget(q.text,360,180,FONTS,WASM);assert.equal(plain.layout,budget.layout);assert.equal(plain.workspace,budget.workspace);assert(plain.bytes+engineResidentBytes<=CAP);registerFontBacking(bytes);const input=textMemory.reserve(FONTS);try{const owned=planText(q);assert.equal(owned.layout,plain.layout);assert.equal(owned.bytes+FONTS,plain.bytes);const running=textMemory.reserve(owned.bytes+engineResidentBytes);running.release();}finally{input.release();}assert.equal(textMemory.snapshot.textBytes,0);});
+test('expansion and native export quotas fit the separately reserved workspace',()=>{const s=16384,plan=textWorkspaceBudget(s,{scalars:s,bytes:s,lines:256},360,180,FONTS,WASM);assert.equal(plan.glyphs,8*s);assert(plan.runs>=1024&&plan.lines>=1024);assert.equal(plan.workspace,30*plan.glyphs+1024*plan.runs+512*plan.lines+262144);assert(plan.layout<8*1024**2,'Font-heavy max input lowers output capacity instead of overbooking');});
+test('small CJK keeps existing font headroom',()=>{const budget=verificationBudget('中文',120,70,16437364,WASM);assert(budget.bytes+16472991<=CAP);});
+for(const [label,args]of [
+ ['text byte cap',['A'.repeat(16385),360,180,569208,WASM]],['line cap',['\n'.repeat(256),360,180,569208,WASM]],
+ ['unpaired surrogate',['\ud800',360,180,569208,WASM]],['negative font bytes',['A',360,180,-1,WASM]],
+ ['oversized raster',['A'.repeat(16384),8192,8192,67108864,WASM]],['nonfinite dimensions',['A',NaN,180,569208,WASM]],
+])test('refuses '+label+' before allocation',()=>assert.throws(()=>verificationBudget(...args),/TEXT_VERIFICATION_CAPACITY/));
+test('legacy comparison books actual retained bytes before its canonical fallback',()=>{const small=verificationBudget('A',360,180,569208,WASM,{legacy:true}),large=verificationBudget('A',360,180,569208,WASM,{legacy:true,layoutBytes:4*1024**2});assert(large.bytes>small.bytes);assert.equal(large.layout,4*1024**2);assert.throws(()=>verificationBudget('A',360,180,569208,WASM,{legacy:true,layoutBytes:8*1024**2+1}),/TEXT_VERIFICATION_CAPACITY/);});
+test('retained renderer profiles retain their original native fragmentation quotas',()=>{const q=request('A'.repeat(480),new Blob([new Uint8Array(569208)])),current=planText(q),legacy=planText(q,{legacy:true});assert.equal(legacy.glyphs,3840);assert.equal(legacy.runs,legacy.glyphs);assert.equal(legacy.lines,legacy.glyphs);assert.equal(legacy.workspace,0);assert(current.runs<legacy.runs);assert(legacy.layout<=8*1024**2);});

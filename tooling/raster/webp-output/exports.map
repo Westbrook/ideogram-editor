@@ -1,0 +1,7 @@
+{
+  global:
+    IEWebPOutputABIVersion;
+    IEWebPDecodeToFile;
+    IEWebPConvertFileRGBA;
+  local: *;
+};

@@ -1,3 +1,4 @@
+import {prepareNativePNG} from './export-workflow.js';
 import {test,expect} from '@playwright/test';
 import {mkdtemp,realpath,writeFile,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';import {join} from 'node:path';
@@ -32,7 +33,7 @@ test('serial integrated parent actions through renderer Paint, with full prepara
  await step('full-copy-ready',async()=>{await click('Save copy');await click('Prepare complete copy');},()=>expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Full-history copy'));
  const bundle=join(dir,'measured.ideogram-project');await step('full-copy-download',async()=>{const downloaded=page.waitForEvent('download');await click('Download prepared file');await(await downloaded).saveAs(bundle);},()=>expect(page.getByText('Download initiated. External destination remains unconfirmed.',{exact:true})).toBeVisible());
  await step('portable-open-review-and-apply',async()=>{await click('Open');await page.locator('en-file-upload[label="Open portable project"] input[type=file]').setInputFiles(bundle);await click('Apply reviewed result');},()=>expect(page.getByText('ImportBundle accepted and saved locally.',{exact:true})).toBeVisible());
- await step('exact-export-ready',()=>click('Export image'),()=>expect(page.getByRole('region',{name:'Prepared file'})).toContainText('Exact PNG'));
+ await step('exact-export-ready',()=>prepareNativePNG(page),()=>expect(page.getByRole('region',{name:'Prepared file'})).toContainText('PNG'));
  const png=join(dir,'measured.png');await step('exact-export-download',async()=>{const downloaded=page.waitForEvent('download');await click('Download prepared file');await(await downloaded).saveAs(png);},()=>expect(page.getByText('Download initiated. External destination remains unconfirmed.',{exact:true})).toBeVisible());
  const old=await page.locator('canvas').getAttribute('data-asset');await mark('start.warm-reopen');await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.locator('canvas')).toHaveAttribute('data-asset',old!);await mark('warm.ready');await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('.9');await click('Apply properties');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await mark('warm.test-edit');
  await page.screenshot({path:join(output,'timing-final.png')});expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);

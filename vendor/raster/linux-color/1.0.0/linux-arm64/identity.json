@@ -1,0 +1,12 @@
+{
+  "abiVersion": 1,
+  "version": "1.0.0",
+  "platform": "linux",
+  "arch": "arm64",
+  "path": "vendor/raster/linux-color/1.0.0/linux-arm64/libideogram-linux-color.so.1",
+  "bytes": 70096,
+  "hash": "sha256:b4f30b0c12611ef34d695252768a73ad940e02cf665246c7139adc64aca1d199",
+  "manifestHash": "sha256:dd276992851958db23dc63286bedc64887f63f4ff46ae3d9a4303019dc8b8e4f",
+  "producerHash": "sha256:856cb12d1d877a6ed54a984ed76f5ec6a2de3a4d88ab0692dd7c2e8e3c4f9fab",
+  "codecIdentity": "sha256:9b2bc66139b4b40545375e31d7bd526d7c1c7f1b4a8e9f33f9c03c926fd94c27"
+}

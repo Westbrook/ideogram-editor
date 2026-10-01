@@ -7,7 +7,7 @@ export type PortableBody =
 export const isPortableCommand=(type:string)=>['SaveCopy','PreviewBundleImport','ImportBundle','CancelPortable'].includes(type);
 export type PortableSegment={path:string;sha256:string;bytes:string;kind:'index'|'events'|'records';recordCount:string};
 export type PortableRoot={kind:string;logicalId:string;recordHash:string};
-export type PortableManifest={formatVersion:7|8;documentSchema:7|8;sourceNamespace:string;capturedHighWater:string;complete:boolean;rootRefs:PortableRoot[];segments:PortableSegment[]};
+export type PortableManifest={formatVersion:7|8|9;documentSchema:7|8|9;sourceNamespace:string;capturedHighWater:string;complete:boolean;rootRefs:PortableRoot[];segments:PortableSegment[]};
 export type Bundle={protocolVersion:1;bundleId:string;documentId:string;documentRevision:string;capturedHighWater:string;uiDigest:string;blob:BlobRef;complete:true;status:'copy-ready';destinationStatus:'unconfirmed'};
 export type BundleReview={protocolVersion:1;reviewId:string;reviewHash:string;targetClientId:string;expiresAt:string;source:BlobRef;sourceNamespace:string;capturedHighWater:string;namespaceId:string;documentId:string;closureHash:string;formatVersion:number;documentSchema:number;editable:boolean;reason:string|null;objectCount:string;entityCount:string;eventCount:string;uiSessionIds:string[];uiSessionCount:string;scope:'selected-document-current-drafts-and-retained-domain-history';localRetentionExcluded:'obsolete-unattributed-ui-only'};
 export type PortableFact=

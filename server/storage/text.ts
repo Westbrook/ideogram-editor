@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {runVerification} from '../text/supervisor.js';
 import {verificationBudget} from '../../src/protocol/text-budget.js';
-import {retainedProfile} from '../text/validation.js';
+import {retainedProfile,usesStreamingLayout} from '../text/validation.js';
 import {textDraft} from '../../src/protocol/text.js';
 import {parseControlJSON} from '../../src/protocol/json.js';
 import { Worker } from 'node:worker_threads';
@@ -15,7 +15,7 @@ import type { Asset } from '../../src/protocol/assets.js';
 import type { ImageState } from '../../src/protocol/history.js';
 import type { FontVersion, TextCandidate, TextSource } from '../../src/protocol/text.js';
 import { canonical, hashBytes, isId } from './canonical.js';
-import { profile, profileRef, identity, validateSource, validateLayout, dependencyIdentity, dependencies, bundledFont } from '../text/validation.js';
+import { profile, profileRef, identity, validateSource, validateLayout, layoutValidationBytes, dependencyIdentity, dependencies, bundledFont } from '../text/validation.js';
 import { keys, requireValue as ok } from '../../src/protocol/validate.js';
 
 export class Texts {
@@ -79,8 +79,14 @@ export class Texts {
   for(const ref of dependencies(s))await protect(ref);
   if(dependencyIdentity(s)!==s.render.dependencyHash)throw new AssetRejection('INVALID_INPUT','TEXT_DEPENDENCY_HASH');
   for(const f of s.text.fonts){const rows=this.db.prepare("SELECT json FROM assets WHERE json_extract(json,'$.font.id')=?").all(f.id);if(!rows.some(row=>canonical(JSON.parse(String(row.json)).font)===canonical(f)))throw new AssetRejection('INCOMPATIBLE','FONT_IMPORT_REQUIRED');}
-  const bytes=Number(s.render.layout.byteLength);if(process.memoryUsage().rss+this.externalBytes()+this.reservedCPU+this.backendCPU()+bytes*6+16777216>536870912||bytes*6+16777216>134217728)throw new AssetRejection('CAPACITY','TEXT_VALIDATION_MEMORY');
-  try{const layout=this.read(s.render.layout,8388608),text=this.objects.verify(s.text.textUtf8,true)!;validateLayout(s,layout,text);if(b.type==='CreateTextLayer'&&text.length===0)throw new Error();}catch{throw new AssetRejection('INVALID_INPUT','TEXT_LAYOUT_INVALID');}
+  {
+   const layoutBytes=Number(s.render.layout.byteLength);
+   if(!Number.isSafeInteger(layoutBytes)||layoutBytes>8388608||process.memoryUsage().rss+this.externalBytes()+this.reservedCPU+this.backendCPU()+layoutBytes+1048576>536870912)throw new AssetRejection('CAPACITY','TEXT_VALIDATION_MEMORY');
+   let layout:Uint8Array,validationBytes:number;
+   try{layout=this.read(s.render.layout,8388608);validationBytes=layoutValidationBytes(layout);}catch{throw new AssetRejection('INVALID_INPUT','TEXT_LAYOUT_INVALID');}
+   if(process.memoryUsage().rss+this.externalBytes()+this.reservedCPU+this.backendCPU()+validationBytes>536870912||validationBytes>134217728)throw new AssetRejection('CAPACITY','TEXT_VALIDATION_MEMORY');
+   try{const text=this.objects.verify(s.text.textUtf8,true)!;validateLayout(s,layout,text);if(b.type==='CreateTextLayer'&&text.length===0)throw new Error();}catch{throw new AssetRejection('INVALID_INPUT','TEXT_LAYOUT_INVALID');}
+  }
   await this.verify(s,ref=>this.objects.path(ref),check,b.admissionId);
   return value;
  }
@@ -88,7 +94,7 @@ export class Texts {
   check();if(this.verifying)throw new StoreError('QUEUE_FULL');if(!retainedProfile(s.render.rendererProfile))throw new AssetRejection('INCOMPATIBLE','TEXT_PROFILE_UNSUPPORTED');
   const textBytes=readFileSync(path(s.text.textUtf8));if(hashBytes(textBytes)!==s.text.textUtf8.hash)throw new StoreError('CORRUPT_OBJECT');
   const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(textBytes);
-  let budget;try{budget=verificationBudget(text,s.text.frame.width,s.text.frame.height,s.text.fonts.reduce((n,f)=>n+Number(f.bytes.byteLength),0),profile.engine.wasm.bytes);}catch{throw new AssetRejection('CAPACITY','TEXT_VERIFICATION_CAPACITY');}
+  let budget;try{budget=verificationBudget(text,s.text.frame.width,s.text.frame.height,s.text.fonts.reduce((n,f)=>n+Number(f.bytes.byteLength),0),profile.engine.wasm.bytes,{legacy:!usesStreamingLayout(s.render.rendererProfile.id),layoutBytes:Number(s.render.layout.byteLength)});}catch{throw new AssetRejection('CAPACITY','TEXT_VERIFICATION_CAPACITY');}
   const row=this.db.prepare('SELECT id FROM text_admissions').get();const borrowed=!!admissionId&&row?.id===admissionId;
   if(borrowed){if(Number(admissionId!.split('_')[2])!==budget.bytes)throw new AssetRejection('INVALID_INPUT','TEXT_VERIFICATION_ADMISSION');this.readyLoans.add(admissionId!);}
   else if(row)throw new AssetRejection('CAPACITY','TEXT_REALM_OWNS_CAPACITY');

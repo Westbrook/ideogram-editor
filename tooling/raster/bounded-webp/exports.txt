@@ -1,0 +1,9 @@
+_IEWebPABIVersion
+_IEWebPDecoderVersion
+_IEWebPNewRGBA
+_IEWebPAppend
+_IEWebPGetRGB
+_IEWebPStats
+_IEWebPDelete
+_IEWebPDecodeRGBA
+_IEWebPConvertP3RGBA

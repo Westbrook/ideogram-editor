@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { crc32, createInflate, inflateSync } from 'node:zlib';
 import { finished } from 'node:stream/promises';
-import { CODECS } from './identity.js';
+import { CODECS } from './codec-platform.js';
 import { PNG_SIGNATURE } from './png.js';
 import { extent } from '../../src/raster/core.js';
 

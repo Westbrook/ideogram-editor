@@ -18,7 +18,7 @@ try{for(const item of cases){context=await browser.newContext();const page=await
  const budget=verificationBudget(item.text,observed.request.frame.width,observed.request.frame.height,observed.total,profile.engine.wasm.bytes);
  const requestBytes=budget.request;
  const peak=observed.remaining+budget.bytes;
- const admission={remainingBrowser:observed.remaining,backendStartup:observed.startup,backendResident:observed.resident,requestBytes,comparisonScratch:2*observed.plan.layout+2*1024**2,peak,limit:128*1024**2};
+ const admission={remainingBrowser:observed.remaining,backendStartup:observed.startup,backendResident:observed.resident,requestBytes,comparisonScratch:budget.scratch,peak,limit:128*1024**2};
  const guard=(browserBytes)=>{const combined=peak-observed.remaining+browserBytes;if(combined>admission.limit||process.memoryUsage().rss+combined>512*1024**2)throw Error('TEXT_VERIFICATION_CAPACITY');};
  const beforeWorkers=summary.backendWorkers;assert.throws(()=>guard(admission.limit),/TEXT_VERIFICATION_CAPACITY/);assert.equal(summary.backendWorkers,beforeWorkers);admission.excessOwnershipRefusedBeforeWorker=true;guard(observed.remaining);
  const fonts=(item.fonts??['NotoSans']).map(id=>{const f=profile.fonts.find(f=>f.id===id);return {path:resolve('vendor/text',f.file),hash:'sha256:'+f.sha256,length:f.bytes,licenseHash:f.licenseHash,origin:'bundled'};});

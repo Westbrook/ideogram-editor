@@ -2,6 +2,7 @@ import { admitRequest } from './admission';
 import { fail, LIMITS } from './contracts';
 import type { TextRequest } from './contracts';
 import profile from './profile.json';
+import { textWorkspaceBudget } from '../protocol/text-budget';
 
 const MiB = 1024 ** 2;
 export type Reservation = Readonly<{ bytes: number; release(): void }>;
@@ -36,23 +37,27 @@ export function unownedFontBytes(request: TextRequest) {
   return request.fonts.reduce((n, f) => n + (ownedFonts.has(f.bytes) ? 0 : f.bytes.size), 0);
 }
 
-export function planText(request: TextRequest) {
+export function planText(request: TextRequest, options: { legacy?: boolean } = {}) {
   const { indices, total } = admitRequest(request);
-  const glyphs = Math.max(64, indices.scalars * 8), runs = glyphs;
-  const lines = Math.max(indices.lines, glyphs), rectangles = glyphs * 2;
-  // Bound strings/objects/typed exports as well as their serialized copies.
-  // Numeric JSON values use at most 32 characters; one glyph gets 1024 bytes,
-  // one scalar/cluster 1024, and a native line 1024. No truncation on overflow.
-  const layout = 16384 + (glyphs + indices.scalars + lines) * 1024;
-  if (layout > LIMITS.layoutBytes) fail('TEXT_LAYOUT_BUDGET');
-  const raster = Math.ceil(request.frame.width) * Math.ceil(request.frame.height) * 4;
-  const indexes = (request.text.length + indices.bytes + indices.scalars + 3) * 128;
+  let plan;
+  try {
+    if (options.legacy) {
+      const glyphs = Math.max(64, indices.scalars * 8), lines = Math.max(indices.lines, glyphs);
+      const layout = 16384 + (glyphs + indices.scalars + lines) * 1024;
+      if (layout > LIMITS.layoutBytes) fail('TEXT_LAYOUT_BUDGET');
+      plan = { glyphs, runs: glyphs, lines, rectangles: glyphs * 2, layout,
+        raster: Math.ceil(request.frame.width) * Math.ceil(request.frame.height) * 4,
+        indexes: (request.text.length + indices.bytes + indices.scalars + 3) * 128, workspace: 0 };
+    } else plan = textWorkspaceBudget(request.text.length, indices, request.frame.width, request.frame.height, total, profile.engine.wasm.bytes);
+  }
+  catch { fail('TEXT_MEMORY_BUDGET'); }
+  const { glyphs, runs, lines, rectangles, layout, raster, indexes, workspace } = plan;
   // Caller Blob, clone backing, parser buffer and digest snapshot. Loader-owned
   // input leases are additional conservative reservations, never assumed aliases.
   const fonts = 4 * total - request.fonts.reduce((n, f) => n + (ownedFonts.has(f.bytes) ? f.bytes.size : 0), 0);
-  const bytes = fonts + 4 * raster + 6 * layout + indexes + 65536;
+  const bytes = fonts + 4 * raster + (options.legacy ? 6 : 3) * layout + indexes + workspace + 65536;
   const startup = fonts - 2 * total + request.text.length * 4 + 65536;
-  return Object.freeze({ bytes, startup, glyphs, runs, lines, rectangles, layout, raster, fonts, indexes });
+  return Object.freeze({ bytes, startup, glyphs, runs, lines, rectangles, layout, raster, fonts, indexes, workspace });
 }
 export type TextPlan = ReturnType<typeof planText>;
 

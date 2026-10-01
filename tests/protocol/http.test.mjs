@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { setup, pair, call, cookieFrom, readHeaders, mutationHeaders } from './helpers.mjs';
@@ -38,7 +38,8 @@ test('PROTO01 strict commands, five-code receipts, lost delivery, renewal owners
   const lost=f.command({documentId:'lost'});const wire=exchange(f.server.origin,'/api/v1/commands',{method:'POST',body:lost,headers:mutationHeaders(f.server,f.paired)});
   wire.request.on('response',incoming=>incoming.destroy());await wire.response.catch(()=>{});
   const receipt=await f.read('/api/v1/commands/'+lost.command.commandId);assert.equal(receipt.json.receipt.status,'accepted');assert.deepEqual((await f.post('/api/v1/commands',lost)).json,receipt.json);
-  assert.equal((await f.read('/api/v1/capabilities')).json.storageState,'ready');
+  const space=await statfs(f.root,{bigint:true});
+  assert.equal((await f.read('/api/v1/capabilities')).json.storageState,(space.blocks-space.bavail)*100n>=space.blocks*80n?'pressure':'ready');
 });
 
 test('PROTO02 restart requires fresh pairing; prior cookie restores original ownership without authenticating itself',async t=>{

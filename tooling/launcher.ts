@@ -4,6 +4,7 @@ import { isAbsolute, join } from 'node:path';
 import { lstat } from 'node:fs/promises';
 import { startLocalServer } from '../server/http.js';
 import { assertProductionEnvironment } from '../server/provider/index.js';
+import {loadProviderConfiguration} from '../server/provider/config.js';
 
 export async function defaultStorageRoot(home = homedir(), platform = process.platform, dataHome = process.env.XDG_DATA_HOME): Promise<string> {
   const legacy = join(home, '.ideogram-editor');
@@ -36,10 +37,11 @@ export async function launch(options: {
   log?: (message: string) => void;
 }) {
   assertProductionEnvironment(process.env);
+  const provider=loadProviderConfiguration(process.env);
   const server = await startLocalServer({
     root: options.root ?? await defaultStorageRoot(),
     staticDirectory: options.staticDirectory,
-    credentialConfigured: Boolean(process.env.FAL_KEY),
+    provider,
   });
   const log = options.log ?? console.log;
   const opener = options.openBrowser ?? openBrowser;
@@ -49,7 +51,7 @@ export async function launch(options: {
   };
   log(`Ideogram Editor local server: ${server.origin}`);
   log(`Private storage root: ${server.root}`);
-  log('Durable writer started. Browser editing and provider dispatch remain unavailable.');
+  log(provider.mode==='fal'?'Fal Generate configured. Each exact queued request still requires in-app charge and privacy authorization.':'Durable editor started. Fal is disabled; local review and enqueue make no provider call.');
   try { if (options.open !== false) await pair(); }
   catch { await server.close(); throw new Error('Browser launch failed. Start again from a local desktop session.'); }
   return { ...server, pair };
