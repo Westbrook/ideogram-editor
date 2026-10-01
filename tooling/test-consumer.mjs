@@ -4,10 +4,13 @@ import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir, platform, arch, release } from 'node:os';
 
+import {consumerInputs} from './consumer-inputs.mjs';
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const config = JSON.parse(await readFile(join(root, 'tooling/toolchain.json')));
 if (process.versions.node !== config.node) throw new Error(`Use Node ${config.node}`);
 const npmCli = join(root, '.toolchain', `npm-${config.npm}`, 'package/bin/npm-cli.js');
+const inputClosure = await consumerInputs(root);
 const fixture = await mkdtemp(join(tmpdir(), 'ideogram-consumer-'));
 await mkdir(join(root, 'artifacts'), { recursive: true });
 const receiptDirectory = await mkdtemp(join(root, 'artifacts/consumer-'));
@@ -34,7 +37,7 @@ function run(executable, args) {
 }
 const npm = (...args) => run(process.execPath, [npmCli, ...args]);
 try {
-  for (const file of ['package.json', 'package-lock.json', '.npmrc', 'tsconfig.json', 'vite.config.ts', 'tooling', 'tests/consumer', 'vendor/en-reve']) {
+  for (const file of inputClosure.paths) {
     await cp(join(root, file), join(fixture, file), { recursive: true });
   }
   await mkdir(env.HOME);
@@ -68,7 +71,7 @@ try {
   receipt.buildElapsedMs = performance.now() - buildStart;
   receipt.buildEvidence = JSON.parse(await readFile(join(fixture, 'dist/consumer/build-evidence.json')));
   run(process.execPath, ['node_modules/@playwright/test/cli.js', 'install', 'chromium']);
-  npm('run', 'test:browser');
+  run(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', '--config', 'tests/consumer/playwright.config.ts']);
   receipt.browser = JSON.parse(run(process.execPath, ['--input-type=module', '-e', `
     import { chromium } from '@playwright/test';
     import { readFile } from 'node:fs/promises';

@@ -1,3 +1,4 @@
+import {compileLegacy} from '../../tooling/qualification/legacy-compiler.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -42,7 +43,7 @@ try{
 }finally{await w.close();}
 `;
 let prior;
-test.before(async t=>{prior=await rootFor(t);await writeFile(join(prior,'source.tar'),execFileSync('git',['archive',base,'server','src','tooling','tsconfig.server.json']));execFileSync('tar',['-xf',join(prior,'source.tar'),'-C',prior]);await symlink(resolve('node_modules'),join(prior,'node_modules'));await writeFile(join(prior,'package.json'),'{"type":"module"}');execFileSync(resolve('node_modules/.bin/tsc'),['-p',join(prior,'tsconfig.server.json')]);await writeFile(join(prior,'seed.mjs'),seed);});
+test.before(async t=>{prior=await rootFor(t);compileLegacy(prior,base);await writeFile(join(prior,'seed.mjs'),seed);});
 const auth=()=>({clientId:'legacy_client',sessionHash:'e'.repeat(64),now:Date.now(),expires:Date.now()+1800000});
 async function fixture(t){const root=await rootFor(t);return {root,...JSON.parse(execFileSync(process.execPath,['--import',resolve('tests/session/no-egress.mjs'),join(prior,'seed.mjs'),root,resolve('tests/raster/fixtures/hidden-alpha.png')],{encoding:'utf8'}))};}
 async function done(w,c,a){let r=await w.portableCommand(encode(c),a);for(let i=0;!r&&i<2000;i++){r=(await w.commandState(c.command.commandId)).record?.receipt;await new Promise(r=>setTimeout(r,5));}assert(r);return r;}

@@ -1,3 +1,4 @@
+import {specReceipt} from './receipt-path.js';
 import {test as base,expect,type Page} from '@playwright/test';
 import {mkdtemp,realpath,readFile,writeFile,rm,mkdir,copyFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -32,7 +33,7 @@ const test=base.extend<{e1Errors:{domErrors:unknown[];finish:()=>Promise<void>};
 }});
 const accepted=(page:Page,type:string)=>expect(page.getByText(type+' accepted and saved locally.',{exact:true})).toBeVisible();
 const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
-const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+const receipt=specReceipt(import.meta.url,'artifacts/p1b7/current');
 async function download(page:Page,path:string){const received=page.waitForEvent('download');await click(page,'Download prepared file');await (await received).saveAs(path);await expect(page.getByText(/External destination remains unconfirmed/)).toBeVisible();await mkdir(receipt,{recursive:true});await copyFile(path,join(receipt,basename(path)));}
 test('E1 browser copy, actual process restart/new port, reviewed reopen and exact downloaded PNG',async({page,context,browserName,e1Errors,e1Storage})=>{
  const directory=await mkdtemp(join(await realpath(tmpdir()),'ie-browser-e1-')),root=join(directory,'private');let server=await serverProcess(root);const errors:string[]=[],requests:string[]=[],expectedFailures:string[]=[];let disrupting=false,succeeded=false;const retiredOrigins=new Set<string>();const consoleObservations:{text:string;url:string;disrupting:boolean;retiredOrigin:boolean;expected:boolean}[]=[];
@@ -45,7 +46,7 @@ test('E1 browser copy, actual process restart/new port, reviewed reopen and exac
  await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportAsset');
  await page.getByRole('treeitem').first().click();await page.getByRole('spinbutton',{name:'Opacity (0–1)',exact:true}).fill('0.5');await click(page,'Apply properties');await accepted(page,'SetLayerProperties');await click(page,'Undo');await accepted(page,'Undo');
- await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document').first()).toBeVisible();
+ await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('日本語 🌿 retained unapplied prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByRole('contentinfo').filter({hasText:'Draft saved locally; not applied to the document'})).toBeVisible();
  await page.getByRole('textbox',{name:'Checkpoint name',exact:true}).fill('Before copy');await click(page,'Save checkpoint');await accepted(page,'SaveCheckpoint');
  await click(page,'Save copy');await click(page,'Prepare complete copy');await expect(page.getByRole('region',{name:'Prepared file'})).toBeVisible();
  const bundlePath=join(directory,'project.ideogram-project');await download(page,bundlePath);const entries=await unpack(directory,await readFile(bundlePath)),all=records(entries).values;

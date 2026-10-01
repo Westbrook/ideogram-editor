@@ -1,4 +1,6 @@
-import {test as base,expect,type Page} from '@playwright/test';
+import {isolatedBrowserTest as test} from './isolated-browser.js';
+import {specReceipt} from './receipt-path.js';
+import {expect,type Page} from '@playwright/test';
 import {mkdtemp,realpath,mkdir,writeFile,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -7,12 +9,7 @@ import {expectedCompositionCancellation} from './composition-network.mjs';
 import {serverProcess} from './process.js';
 import {ownedOPFS} from './owned-opfs.js';
 import {recordDOMErrors} from './error-monitor.js';
-const test=base.extend({context:async({playwright,browserName,contextOptions,viewport},use)=>{
- const profile=browserName==='webkit'?await mkdtemp(join(await realpath(tmpdir()),'ie-p1c5-webkit-')):undefined;
- const browser=profile?undefined:await playwright[browserName].launch();const context=profile?await playwright.webkit.launchPersistentContext(profile,{...contextOptions,viewport}):await browser!.newContext({...contextOptions,viewport});await Promise.all(context.pages().map(p=>p.close()));
- try{await use(context);}finally{await context.close();await browser?.close();if(profile)await rm(profile,{recursive:true,force:true});}
-}});
-const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1c5/browser';
+const receipt=specReceipt(import.meta.url,'artifacts/p1c5/browser');
 const click=(p:Page,name:string)=>p.getByRole('button',{name,exact:true}).click();
 async function field(p:Page,name:string,value:string){const f=p.getByRole('spinbutton',{name,exact:true});await f.fill(value);await f.press('Tab');}
 async function setup(page:Page){await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await click(page,'New');await field(page,'Width (px)','1600');await field(page,'Height (px)','900');await click(page,'Create');await expect(page.getByRole('dialog',{name:'New document',exact:true})).toBeHidden();await page.getByRole('radio',{name:'Composition',exact:true}).focus();await page.getByRole('radio',{name:'Composition',exact:true}).press('Space');await expect(page.getByRole('textbox',{name:'Scene',exact:true})).toBeVisible();}
@@ -60,7 +57,7 @@ for(const scenario of ['authoring','links','raw','controls','geometry','late-rev
    await page.getByRole('button',{name:'Adjust semantic bounds with arrow keys',exact:true}).focus();await page.keyboard.press('ArrowRight');await expect(page.getByRole('spinbutton',{name:'X in document pixels',exact:true})).toHaveValue('1');
    await page.getByRole('combobox',{name:'Prompt expansion',exact:true}).selectOption('Large');await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Generate with Fast');await click(page,'Preview request draft');await expect(page.locator('#composition-errors')).toContainText('EXPANSION_ROUTE_CONFLICT');await expect(page.getByRole('combobox',{name:'Prompt expansion',exact:true})).toHaveValue('Large');await page.getByRole('combobox',{name:'Prompt expansion',exact:true}).selectOption('None');
    await click(page,'Preview request draft');expect(JSON.parse(await page.getByRole('textbox',{name:'Exact local prompt string'}).inputValue()).compositional_deconstruction.elements[0].color_palette).toEqual(['#FF0000']);await click(page,'Apply Composition');await expect(page.getByText('Composition applied and saved locally.',{exact:true})).toBeVisible();
-   await click(page,'Duplicate semantic element');await expect(page.locator('#semantic-tree').getByRole('treeitem')).toHaveCount(2);await click(page,'Move element earlier');await click(page,'Delete semantic element');await expect(page.locator('#semantic-tree').getByRole('treeitem')).toHaveCount(1);await expect(page.getByText(/1\/256 semantic elements; 0 native layers/)).toBeVisible();await page.getByRole('textbox',{name:'Scene',exact:true}).fill('Recovered unapplied composition');await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true}).first()).toBeVisible();await page.reload();await expect(page.getByRole('textbox',{name:'Scene',exact:true})).toHaveValue('Recovered unapplied composition');await click(page,'Review current document');await click(page,'Apply Composition');await expect(page.getByText('Composition applied and saved locally.',{exact:true})).toBeVisible();
+   await click(page,'Duplicate semantic element');await expect(page.locator('#semantic-tree').getByRole('treeitem')).toHaveCount(2);await click(page,'Move element earlier');await click(page,'Delete semantic element');await expect(page.locator('#semantic-tree').getByRole('treeitem')).toHaveCount(1);await expect(page.getByText(/1\/256 semantic elements; 0 native layers/)).toBeVisible();await page.getByRole('textbox',{name:'Scene',exact:true}).fill('Recovered unapplied composition');await expect(page.getByRole('contentinfo').filter({hasText:'Draft saved locally; not applied to the document'})).toBeVisible();await page.reload();await expect(page.getByRole('textbox',{name:'Scene',exact:true})).toHaveValue('Recovered unapplied composition');await click(page,'Review current document');await click(page,'Apply Composition');await expect(page.getByText('Composition applied and saved locally.',{exact:true})).toBeVisible();
   }
   if(scenario==='geometry'){
    await click(page,'Add object');await click(page,'Add literal bounds');await page.getByRole('switch',{name:'Move selected semantic bounds on canvas',exact:true}).check();const canvas=page.getByLabel('Document raster preview',{exact:true});await canvas.scrollIntoViewIfNeeded();const box=await canvas.boundingBox();expect(box).not.toBeNull();const x=box!.x+40,y=box!.y+40;

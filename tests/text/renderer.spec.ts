@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { ownedOPFS } from '../editor/owned-opfs';
-const test=base.extend<{nativeErrors:void}>({nativeErrors:[async({context},use,info)=>{
+const test=base.extend<{nativeErrors:void; initialRequests:string[]}>({initialRequests:async({context},use)=>{const requests:string[]=[];context.on('request',r=>requests.push(r.url()));await use(requests);},nativeErrors:[async({context},use,info)=>{
   const errors:{kind:string;message:string}[]=[];
   context.on('weberror',e=>errors.push({kind:'pageerror',message:e.error().message}));
   context.on('console',m=>{if(m.type()==='error')errors.push({kind:'console',message:m.text()});});
@@ -18,21 +18,20 @@ const {startLocalServer}=await import(pathToFileURL(resolve('dist/local/server/h
 let server: Awaited<ReturnType<typeof startLocalServer>>, origin: string, root: string;
 test.beforeAll(async () => {
   root=await mkdtemp(resolve(await realpath(tmpdir()),'ie-text-host-'));
-  server=await startLocalServer({root:resolve(root,'private'),staticDirectory:resolve('artifacts/p1c1/app')});
+  server=await startLocalServer({root:resolve(root,'private'),staticDirectory:resolve(process.env.TEXT_APP??'artifacts/p1c1/app')});
   origin=server.origin;
 });
 test.afterAll(async()=>{await server?.close();if(root)await rm(root,{recursive:true});});
-test.beforeEach(async({page},info)=>{
-  if(info.title.startsWith('stock native'))return;
-  const response=await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
+test.describe(()=>{
+test.beforeEach(async({page,initialRequests},info)=>{
+  const response=await page.goto(origin);
   expect(response!.headers()['content-security-policy']).not.toContain('wasm-unsafe-eval');
   await page.waitForFunction(()=>!!(window as any).textFixture);
 });
 
-test('real worker Latin, combining, ligature and supplementary mapping', async ({page}, info) => {
-  const errors:string[] = [], network:string[] = [];
-  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>network.push(r.url()));
-  await page.goto(origin); await page.waitForFunction(()=>!!(window as any).textFixture);
+test('real worker Latin, combining, ligature and supplementary mapping', async ({page,initialRequests}, info) => {
+  const errors:string[] = [], network:string[] = initialRequests;
+  page.on('pageerror',e=>errors.push(e.message));
   expect(network.some(u=>/wasm|\.ttf|\.otf|worker-/.test(u))).toBe(false);
   const result = await page.evaluate(()=> (window as any).textFixture.render('office A\u0301 🂡', ['NotoSans','NotoSansSymbols2']));
   expect(result.textUtf8).toBe('office A\u0301 🂡'); expect(result.frozen).toBe(true);
@@ -48,7 +47,6 @@ test('real worker Latin, combining, ligature and supplementary mapping', async (
 });
 
 test('real worker RTL per paragraph, bidi runs, CJK and exact retained bytes',async({page},info)=>{
-  await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
   const result=await page.evaluate(async()=>{
     const f=(window as any).textFixture; const a=await f.render('مرحبا ABC 123\n中文日本語', ['NotoSans','NotoSansArabic','NotoSansCJKsc']).catch((e:any)=>{throw Error('CJK '+String(e));});
     const b=await f.render('مرحبا ABC 123\n中文日本語', ['NotoSans','NotoSansArabic','NotoSansCJKsc']).catch((e:any)=>{throw Error('CJK repeated '+String(e));});
@@ -75,7 +73,6 @@ test('real worker RTL per paragraph, bidi runs, CJK and exact retained bytes',as
 });
 
 test('CPU straight alpha, fractional clip, wrapping, empty text and explicit direction',async({page},info)=>{
-  await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
   const output=await page.evaluate(async()=>{
     const f=(window as any).textFixture;
     async function draw(changes:any){const q=await f.request('MMMM\nMMMM');Object.assign(q,changes);const p=await f.renderer.prepare(q);return{hash:p.rasterHash,width:p.width,height:p.height,overflow:p.overflow,layout:JSON.parse(await p.layout.text()),pixels:Array.from(new Uint8Array(await p.rgba.arrayBuffer()))};}
@@ -142,7 +139,6 @@ test('missing diagnostics identify native affected spans without blaming support
 });
 
 test('missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse preparation',async({page},info)=>{
-  await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
   const results=await page.evaluate(async()=>{
     const f=(window as any).textFixture, base=await f.request('ABC'), results:any={};
     async function check(key:string,q:any){try{await f.renderer.prepare(q);results[key]={accepted:true};}catch(e:any){results[key]={code:e.code,details:e.details};}}
@@ -176,7 +172,6 @@ test('missing, corrupt, restricted, unreviewed and hash-mismatched fonts refuse 
 });
 
 test('exact admission boundaries preserve input and reject unsafe indices and geometry',async({page})=>{
-  await page.goto(origin);await page.waitForFunction(()=>!!(window as any).textFixture);
   const result=await page.evaluate(async()=>{
     const f=(window as any).textFixture,q=await f.request('a'),cases:any={};
     for(const [name,text] of Object.entries({bytesAt:'x'.repeat(16384),bytesOver:'x'.repeat(16385),utf8At:'é'.repeat(8192),utf8Over:'é'.repeat(8193),linesAt:'\n'.repeat(255),linesOver:'\n'.repeat(256),surrogate:'\ud800',crlf:'a\r\nb',combining:'A\u0301'})){
@@ -323,7 +318,9 @@ test('shared reservations reject oversized work before worker allocation and pre
   await info.attach('preallocation-refusals',{body:JSON.stringify(result),contentType:'application/json'});
 });
 
-test('stock native storage reset requires observed closure of every actual text worker',async({playwright,browserName},info)=>{
+});
+
+base('stock native storage reset requires observed closure of every actual text worker',async({playwright,browserName},info)=>{
   const profile=browserName==='webkit'?await mkdtemp(resolve(await realpath(tmpdir()),'ie-text-worker-')):undefined;
   const browser=profile?undefined:await playwright[browserName].launch();
   const context=profile?await playwright.webkit.launchPersistentContext(profile):await browser!.newContext();

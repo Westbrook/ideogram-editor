@@ -1,7 +1,6 @@
 // Actual prior executable, compiled only in an isolated temporary directory.
-import {execFileSync} from 'node:child_process';
-import {writeFile,symlink} from 'node:fs/promises';
-import {join,resolve} from 'node:path';
+import {compileLegacy} from '../../tooling/qualification/legacy-compiler.mjs';
+import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {rootFor,command} from '../store/helpers.mjs';
 import {startLocalServer} from '../../dist/local/server/http.js';
@@ -9,7 +8,7 @@ import {pair,call,cookieFrom,readHeaders,mutationHeaders} from '../session/helpe
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 export const priorCommit='dcd5f11dbd57cd7ed00c8ddf410857ce4700440e';
 export async function priorWriter(t,commit=priorCommit){
- const directory=await rootFor(t);execFileSync('git',['archive','--output='+join(directory,'source.tar'),commit,'server','src','tests','tooling','tsconfig.server.json']);execFileSync('tar',['-xf',join(directory,'source.tar'),'-C',directory]);await symlink(resolve('node_modules'),join(directory,'node_modules'));await writeFile(join(directory,'package.json'),'{"type":"module"}');execFileSync(resolve('node_modules/.bin/tsc'),['-p',join(directory,'tsconfig.server.json')]);
+ const directory=await rootFor(t);compileLegacy(directory,commit,['server','src','tests','tooling','tsconfig.server.json']);
  const load=path=>import(pathToFileURL(join(directory,path)).href);
  const [portable,raster,store,writer,archiveTools]=await Promise.all([load('tests/portable/helpers.mjs'),load('tests/raster/helpers.mjs'),load('tests/store/helpers.mjs'),load('dist/local/server/storage/writer.js'),load('tests/portable/archive-fixture.mjs')]);return {directory,...portable,...{importRaster:raster.importRaster,childFor:store.childFor,openWriter:writer.openWriter,archive:archiveTools}};
 }

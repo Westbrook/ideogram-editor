@@ -1,9 +1,10 @@
+import {specReceipt} from './receipt-path.js';
 import {test,expect,type Page} from '@playwright/test';
 import {mkdtemp,realpath,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {serverProcess} from './process.js';
-const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+const receipt=specReceipt(import.meta.url,'artifacts/p1b7/current');
 async function setup(page:Page){const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-rail-'));const server=await serverProcess(join(dir,'private'));await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();return server;}
 async function geometry(page:Page){return page.locator('.tool').evaluateAll(hosts=>hosts.map(host=>{const control=host.shadowRoot!.querySelector<HTMLElement>('[part~=control]')!,b=control.getBoundingClientRect(),icon=host.querySelector('svg')!.getBoundingClientRect(),label=host.querySelector('[slot=label]')!.getBoundingClientRect(),s=getComputedStyle(control);return {name:host.textContent!.trim(),width:b.width,height:b.height,iconBottom:icon.bottom,labelTop:label.top,centerDifference:Math.abs(icon.x+icon.width/2-label.x-label.width/2),background:s.backgroundColor,border:s.borderColor,fontSize:parseFloat(s.fontSize),weight:s.fontWeight,radius:parseFloat(s.borderRadius),opacity:s.opacity};}));}
 test('public rail restores icon-over-label surfaces and native disabled, selected, keyboard and pointer behavior',async({page})=>{

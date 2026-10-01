@@ -1,0 +1,38 @@
+{
+  "kind": "development-validation-measurement-plan-1",
+  "repeats": 3,
+  "statistics": [
+    "median",
+    "minimum",
+    "maximum"
+  ],
+  "environment": "Current owned macOS checkout; background host load uncontrolled. No physical qualification or broad speedup claim.",
+  "cohorts": [
+    {
+      "id": "tooling-concurrency",
+      "selection": "Full qualification helper gate, serial then two workers; one complete pair plus three small identical orchestration subsets.",
+      "compare": "Exact case name multiset, outcomes, skipped count and total elapsed time."
+    },
+    {
+      "id": "browser-batching",
+      "selection": "Compatible editor Chromium pilot; serial specs then same batch. Text lifecycle separately uses three engines.",
+      "compare": "Exact selected/discovered/completed case IDs and outcomes; retain failed attempts."
+    },
+    {
+      "id": "legacy-preparation",
+      "selection": "Same archived migration compiler and installed dependencies, fresh versus verified reused preparation.",
+      "compare": "Output digests plus actual unchanged migration assertions; three pairs."
+    },
+    {
+      "id": "prerequisite-reuse",
+      "selection": "Three fresh/unchanged preflight pairs.",
+      "compare": "Gate identity, actual executed/reused status and total elapsed including dependency hashing."
+    },
+    {
+      "id": "representative-invalidation",
+      "selection": "Small UI, server/domain, storage/protocol, broad source and dependency mutations in isolated scheduler controls.",
+      "compare": "No timing extrapolation: assert required build invalidation and unchanged successful tests eligible only under explicit resume."
+    }
+  ],
+  "adoption": "Keep serial default and opt-in batching/two workers. Enable no broader concurrency or assertion removal from a single pilot."
+}

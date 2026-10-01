@@ -1,3 +1,4 @@
+import {specReceipt} from './receipt-path.js';
 import {test,expect,click} from './integration-fixture.js';
 import {mkdtemp,realpath,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -16,7 +17,7 @@ import {acquireOwnedSetup} from './completion/setup-owned.mjs';
 
 const RAW='{"compositional_deconstruction":{"background":"","elements":[]},"high_level_description":"Original raw"}';
 test('public Scene edit saves the current model during original raw inspection',async({page,context})=>{
- const out=process.env.EDITOR_RECEIPT!,dir=await mkdtemp(join(await realpath(tmpdir()),'p1c6-composition-save-')),root=join(dir,'private');await mkdir(out,{recursive:true});
+ const out=specReceipt(import.meta.url),dir=await mkdtemp(join(await realpath(tmpdir()),'p1c6-composition-save-')),root=join(dir,'private');await mkdir(out,{recursive:true});
  const result:any={started:new Date().toISOString(),root,rawExpected:RAW,intended:'Unapplied semantic branch draft',observationErrors:[],requests:[],responses:[],terminals:[],commands:[],uiRequests:[],workers:[],cleanup:{passed:false,failures:[]}};
  const ids=new WeakMap<any,number>();let sequence=0;const id=(r:any)=>{if(!ids.has(r))ids.set(r,++sequence);return ids.get(r)!;};
  let stage='setup',hold:any,server:any,guard:any,dom:any=[],primary:any,admitted=false;const pending:Promise<unknown>[]=[];

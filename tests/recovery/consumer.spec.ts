@@ -14,7 +14,7 @@ test.beforeEach(async({context})=>{
   await context.route('**/*',route=>{if(new URL(route.request().url()).hostname!=='127.0.0.1')throw new Error('Provider/nonlocal request denied');return route.continue();});
 });
 test.afterEach(async()=>{if(server)await server.close();server=undefined;await rm(root,{recursive:true,force:true});});
-async function start(page:any){server=await startLocalServer({root,staticDirectory:resolve(output,'browser-app'),now:()=>now});await page.goto(server.issuePairingURL());await expect(page.locator('#state')).toHaveText('Recovery consumer ready');}
+async function start(page:any){server=await startLocalServer({root,staticDirectory:resolve(process.env.IE_RECOVERY_APP??resolve(output,'browser-app')),now:()=>now});await page.goto(server.issuePairingURL());await expect(page.locator('#state')).toHaveText('Recovery consumer ready');}
 async function snapshotFixture(){const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);for(let i=1;i<255;i++)await w.submit(encode(checkpoint(ref,String(i),'Snapshot '+i)),w.epoch);await w.close();return ref;}
 const state=(page:any)=>page.evaluate(()=> (window as any).harness.read());
 const recover=(page:any)=>page.evaluate(async()=>{try{return {cursor:await (window as any).harness.client.recover()};}catch(e){return {error:String(e)};}});

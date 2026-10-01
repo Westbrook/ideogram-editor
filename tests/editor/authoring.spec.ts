@@ -1,18 +1,13 @@
-import {test as base,expect,type Page} from '@playwright/test';
+import {isolatedBrowserTest as test} from './isolated-browser.js';
+import {specReceipt} from './receipt-path.js';
+import {expect,type Page} from '@playwright/test';
 import {mkdtemp,realpath,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {serverProcess} from './process.js';
 import {ownedOPFS} from './owned-opfs.js';
 import {recordDOMErrors} from './error-monitor.js';
-const test=base.extend({context:async({playwright,browserName,contextOptions,viewport},use)=>{
- const profile=browserName==='webkit'?await mkdtemp(join(await realpath(tmpdir()),'ie-p1c3-webkit-')):undefined;
- const browser=profile?undefined:await playwright[browserName].launch();
- const context=profile?await playwright.webkit.launchPersistentContext(profile,{...contextOptions,viewport}):await browser!.newContext({...contextOptions,viewport});
- await Promise.all(context.pages().map(page=>page.close()));
- try{await use(context);}finally{await context.close();await browser?.close();if(profile)await rm(profile,{recursive:true,force:true});}
-}});
-const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1c3/browser';
+const receipt=specReceipt(import.meta.url,'artifacts/p1c3/browser');
 const click=(p:Page,name:string)=>p.getByRole('button',{name,exact:true}).click();
 async function field(p:Page,name:string,value:string){const f=p.getByRole('spinbutton',{name,exact:true});await f.fill(value);await f.press('Tab');}
 async function cancelMask(p:Page){await click(p,'Cancel mask draft');await expect(p.getByText(/draft operations\./)).toHaveCount(0);await expect(p.getByRole('button',{name:'Cancel mask draft',exact:true})).toBeDisabled();await expect(p.getByRole('button',{name:'Import PNG mask',exact:true})).toBeEnabled();}
@@ -45,7 +40,7 @@ test('P1c3 selection, exact mask review, draft undo, attachment, sample, transfo
   await field(page,'Brush diameter (document px)','1');const brushBox=(await page.locator('canvas').boundingBox())!,bx=brushBox.x+brushBox.width/2,by=brushBox.y+brushBox.height/2;
   await page.getByRole('radio',{name:'subtract',exact:true}).last().focus();await page.keyboard.press('Space');
   await page.mouse.move(bx,by);await page.mouse.down();await page.mouse.move(bx+1,by);await page.mouse.up();await expect(page.getByText(/2 draft operations/)).toBeVisible();await click(page,'Undo mask stroke');await expect(page.getByText(/1 draft operations/)).toBeVisible();
-  await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true}).first()).toBeVisible();await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();await click(page,'Mask');await expect(page.getByText(/1 draft operations/)).toBeVisible();
+  await expect(page.getByRole('contentinfo').filter({hasText:'Draft saved locally; not applied to the document'})).toBeVisible();await page.reload();await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();await click(page,'Mask');await expect(page.getByText(/1 draft operations/)).toBeVisible();
   const second=await context.newPage();await second.goto(server.origin);await expect(second.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await second.getByRole('treeitem').first().click();await field(second,'Opacity (0–1)','0.75');await click(second,'Apply properties');await expect(second.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByText('Stale mask draft',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Preview mask',exact:true})).toBeDisabled();await second.close();await cancelMask(page);
   await expect(page.getByRole('button',{name:'Import PNG mask',exact:true})).toBeEnabled();await page.locator('en-file-upload').filter({hasText:'Import PNG mask'}).locator('input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await expect(page.getByRole('button',{name:'Review aligned mask',exact:true})).toBeVisible();const approvals=commands.filter(c=>c==='ApproveRaster').length;await field(page,'Imported mask X','0.5');await click(page,'Review aligned mask');await expect(page.getByText('Mask alignment must use whole document pixels at the imported native size.',{exact:true}).first()).toBeVisible();expect(commands.filter(c=>c==='ApproveRaster').length).toBe(approvals);await field(page,'Imported mask X','0');await click(page,'Review aligned mask');await expect(page.getByRole('button',{name:'Apply layer mask',exact:true})).toBeEnabled();await cancelMask(page);
   await click(page,'Lock layer');await expect(page.getByRole('button',{name:'Unlock layer',exact:true})).toBeVisible();await click(page,'Unlock layer');await expect(page.getByRole('button',{name:'Lock layer',exact:true})).toBeVisible();

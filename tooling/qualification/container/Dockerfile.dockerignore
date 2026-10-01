@@ -1,0 +1,41 @@
+# Explicit source closure: do not send local private roots, credentials, caches,
+# copied workspaces, prior outputs, or Git objects to the Docker daemon.
+**
+!package.json
+!package-lock.json
+!.npmrc
+!index.html
+!tsconfig*.json
+!vite*.config.ts
+!src/
+!src/**
+!server/
+!server/**
+!tests/
+!tests/**
+!tooling/
+!tooling/**
+!vendor/
+!vendor/**
+!.progress-report/
+.progress-report/**
+!.progress-report/project.json
+!docs/
+docs/**
+!docs/spec/
+!docs/spec/**
+!.github/
+.github/**
+!.github/workflows/
+!.github/workflows/**
+# Explicitly prepared and verified test prerequisite packet only. Never admit
+# the rest of artifacts/, evidence/, or an existing .git checkout.
+!artifacts/
+artifacts/**
+!artifacts/qualification-container-inputs/
+!artifacts/qualification-container-inputs/**
+# Never include interpreter caches or credential files in an admitted subtree.
+**/__pycache__/
+**/.env
+**/.env.*
+**/*.log

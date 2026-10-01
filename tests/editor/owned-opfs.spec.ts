@@ -1,3 +1,4 @@
+import {specReceipt} from './receipt-path.js';
 import {test,expect,type BrowserContext,type Page} from '@playwright/test';
 import {createServer} from 'node:http';
 import {mkdtemp,realpath,mkdir,writeFile,rm,readFile} from 'node:fs/promises';
@@ -5,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {ownedOPFS} from './owned-opfs.js';
-const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';
+const receipt=specReceipt(import.meta.url,'artifacts/p1b7/current');
 const bytes=[0,255,10,13,127,128];
 async function server(){const s=createServer((request,r)=>{if(request.url==='/api/v1/session/bootstrap'&&request.method==='POST')r.setHeader('Set-Cookie','ie_session=synthetic; HttpOnly; SameSite=Strict; Path=/');r.end('<!doctype html><title>Controlled native storage</title>');});await new Promise<void>(r=>s.listen(0,'127.0.0.1',r));return {origin:'http://127.0.0.1:'+(s.address() as {port:number}).port,close:()=>new Promise<void>(r=>s.close(()=>r()))};}
 async function setup(playwright:typeof import('playwright-core'),browserName:string){

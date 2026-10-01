@@ -1,3 +1,4 @@
+import {specReceipt} from './receipt-path.js';
 import {test,expect} from '@playwright/test';
 import {createServer} from 'node:http';
 import {stripTypeScriptTypes} from 'node:module';
@@ -75,6 +76,6 @@ test('destination failure cleanup preserves original errors, collisions and sele
   ]);
   expect(errors).toEqual([]);expect(domErrors).toEqual([]);
  }finally{
-  try{await guard.cleanup();guard.verify();}finally{await context.close();await browser?.close();if(profile)await rm(profile,{recursive:true});await new Promise<void>(r=>server.close(()=>r()));const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'native-destination.json'),JSON.stringify({browserName,results,errors,domErrors,ledger:guard.ledger},null,2));}
+  try{await guard.cleanup();guard.verify();}finally{await context.close();await browser?.close();if(profile)await rm(profile,{recursive:true});await new Promise<void>(r=>server.close(()=>r()));const receipt=specReceipt(import.meta.url,'artifacts/p1b7/current');await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'native-destination.json'),JSON.stringify({browserName,results,errors,domErrors,ledger:guard.ledger},null,2));}
  }
 });

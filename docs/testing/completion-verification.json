@@ -1,0 +1,237 @@
+{
+  "kind": "validation-completion-verification-1",
+  "recordedAt": "2026-10-01T00:37:02.336127+00:00",
+  "status": "implementation-verified-with-rollout-blockers",
+  "commitScope": "Validation edits only. Preceding product/dependency/qualification work remains outside the scoped commit. Results apply to the audited working tree, not a clean standalone validation commit.",
+  "logs": [
+    {
+      "path": "artifacts/validation-completion-20261001/validation-completion-helpers.log",
+      "bytes": 120362,
+      "sha256": "20b7ffbb0e4cba45907acaf6e0cdf0652581785df6bda00dfd108ca6f42888f9"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-draft-fix.log",
+      "bytes": 3050,
+      "sha256": "5eeda8d96dbd5bec6a035ddcf8c09ace15b742e36913397b0a64bfc4a3ff2d4f"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-finish-focused.log",
+      "bytes": 6701,
+      "sha256": "aaecf0766b83f1079fad99bbb5dcab3315fa1933a875cd01d3af100c039cad2e"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-final-cache-lock.log",
+      "bytes": 6613,
+      "sha256": "ff0635217b53a8cb9cb07065708cb464155ed2d8bc917ecdd437c6d41af292ed"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-source-only-recovery.log",
+      "bytes": 1399,
+      "sha256": "5cbb8244096839b0f67783fd8829041497dc9726fade48976558f5c105badca5"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-legacy-integration.log",
+      "bytes": 1052,
+      "sha256": "2ae6900edf99ebe2f41fdeeb1cbbe90a06c4315885a0b34aa30a54b6fd0950e5"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-tooling-serial.log",
+      "bytes": 494,
+      "sha256": "b92d283b90c781d6f9dcf373ed4a67262e309a8fb4876b9e74a02f2994fb6f04"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-tooling-parallel.log",
+      "bytes": 493,
+      "sha256": "254dc340aec3319b435c8eb4fa1a6de38e2f5603edc6a60ec8d3611ca5f1a5be"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-editor-serial.log",
+      "bytes": 802,
+      "sha256": "82511ae5ff07df2e6e671fd19d1df0f8d5a34349e52aaa6962890fbed5e7eec3"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-editor-serial-fixed.log",
+      "bytes": 803,
+      "sha256": "791bc880051e636a589a20b0052d9dfdef32f9fd00fd071017bd1ff429a2c74f"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-editor-serial-current.log",
+      "bytes": 803,
+      "sha256": "77a4b6ccded9b53ef6c82ac22d8bd3c3c92c0b3bb999a79320222017ad7ad3c8"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-editor-native.log",
+      "bytes": 1528,
+      "sha256": "08e86417448e68ad15cb355c3eda16b162ce99217080d4f40a1c6a787227ab48"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-editor-rail.log",
+      "bytes": 1018,
+      "sha256": "4117d5c22d1f61d86013379502c88e1cfd279eb890e030151b82e70eb7fef0e1"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-authoring-batch.log",
+      "bytes": 108,
+      "sha256": "e65374f3aee6538c2e5e378a78d8f29983cf2ed99629becfd0e466eb9513aab9"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-feedback-measurements.log",
+      "bytes": 104,
+      "sha256": "855819da468b9d2309f5dbae1ce5da5f676789836c97d8095dade8fef5e0bfbb"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-legacy-common.log",
+      "bytes": 16902,
+      "sha256": "7472cc8bb5cc753935e0ee75aa22724c0b2a00a3d419210f7df6d311d625ce22"
+    },
+    {
+      "path": "artifacts/validation-completion-20261001/validation-legacy-portable-current.log",
+      "bytes": 6194,
+      "sha256": "a37c20b6a23889d2d767984e7e56507d04f10d59878d8a1d0c18eea7c3155813"
+    }
+  ],
+  "toolingPair": {
+    "kind": "serial-parallel-tooling-comparison-1",
+    "caseNamesEqual": true,
+    "cases": {
+      "tests": 530,
+      "suites": 0,
+      "pass": 530,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "runs": [
+      {
+        "receipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-15-18.658Z-454d7517-026a-403e-8d7a-4c0cec183ebf/receipt.json",
+        "outcome": "PASS",
+        "elapsedMs": 127002.352916
+      },
+      {
+        "receipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-17-41.483Z-68fd01ee-e4af-4e0a-a37a-b2fc08a7d34a/receipt.json",
+        "outcome": "PASS",
+        "elapsedMs": 92604.412
+      }
+    ],
+    "limits": "One full pair, uncontrolled background host load; no statistical performance claim."
+  },
+  "linux": {
+    "log": "artifacts/validation-docker-completion/ci-source-only.log",
+    "image": "sha256:599d9e5368c3de3f82f2abd6a59dc4accac74a04a8fe46dd1b57dce6069212fc",
+    "helperTests": 531,
+    "wrapperTests": 3,
+    "failures": 0,
+    "skipped": 0,
+    "network": "none",
+    "serverBuildPresent": false,
+    "hostedActions": false
+  },
+  "legacy": {
+    "receipt": "artifacts/validation-measurements/legacy-1790814625586/receipt.json",
+    "statisticsMs": {
+      "fresh": {
+        "median": 1217.3577079999995,
+        "min": 1160.1820420000004,
+        "max": 1306.657792
+      },
+      "cached": {
+        "median": 679.1431659999998,
+        "min": 560.226334,
+        "max": 2762.527583
+      }
+    },
+    "actualMigrationTests": 7,
+    "outcomes": "PASS",
+    "additionalChecks": {
+      "textSchemaCases": 10,
+      "portableSchemaCases": 10,
+      "outcome": "PASS",
+      "priorFailure": "Six obsolete final-schema 13 assertions in portable test; changed to current schema 17. Intermediate 7/8 barriers, capacity refusals, exact rollback and SIGKILL checks unchanged.",
+      "commonHelpers": [
+        "tests/text-state/prior-writer.mjs",
+        "tests/portable/prior-writer.mjs"
+      ]
+    },
+    "totalPassedMigrationAndStorageCases": 27
+  },
+  "feedback": {
+    "receipt": "artifacts/validation-measurements/feedback-1790814856876/receipt.json",
+    "statisticsMs": {
+      "preflight-fresh": {
+        "min": 14044.019084,
+        "median": 14607.285582999997,
+        "max": 16288.857499999998
+      },
+      "preflight-warm": {
+        "min": 4951.3187499999985,
+        "median": 5259.42625,
+        "max": 5599.480209000001
+      },
+      "tooling-1": {
+        "min": 2505.2930830000114,
+        "median": 2505.497292,
+        "max": 2700.560000000005
+      },
+      "tooling-2": {
+        "min": 2131.862791000007,
+        "median": 2145.2596660000054,
+        "max": 2220.9649590000045
+      }
+    }
+  },
+  "authoring": {
+    "batchReceipt": "artifacts/validation-measurements/editor-batch-1790814797017/receipt.json",
+    "serialReceipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-24-46.300Z-68f71227-6e0a-4b8f-b93c-cd29951f5201/receipt.json",
+    "cases": [
+      {
+        "id": "ffbac78a90ea7b98869d-0554612f4fd2752a182b",
+        "file": "authoring.spec.ts",
+        "title": "P1c3 retained attached mask bounds and reviewed baseline Cancel/Apply",
+        "project": "",
+        "status": "expected",
+        "attempts": 1
+      },
+      {
+        "id": "ffbac78a90ea7b98869d-78c7350a783856aea36e",
+        "file": "authoring.spec.ts",
+        "title": "P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls",
+        "project": "",
+        "status": "expected",
+        "attempts": 1
+      },
+      {
+        "id": "ffbac78a90ea7b98869d-d97ba598d61f779a44e9",
+        "file": "authoring.spec.ts",
+        "title": "P1c3 inherited layer operations and reviewed geometry remain usable through public controls",
+        "project": "",
+        "status": "expected",
+        "attempts": 1
+      }
+    ],
+    "equalCaseSetsAndOutcomes": true,
+    "serialMs": 63441.58229200001,
+    "batchMs": 54546.33025,
+    "scope": "Three-case Chromium authoring/process-reuse pilot only; no full editor/engine/order adoption."
+  },
+  "retainedRolloutBlockers": [
+    {
+      "area": "composition",
+      "reason": "Display-tile aborted requests lack exact cancellation ownership proof."
+    },
+    {
+      "area": "native-text",
+      "reason": "Oversized saved draft is empty after reload."
+    },
+    {
+      "area": "tool-rail",
+      "reason": "Keyboard interaction leaves aria-pressed false."
+    }
+  ],
+  "limits": [
+    "No removed product assertions or changed acceptance ceilings.",
+    "No timed representative real UI/server/storage edit cohort; invalidation tested with isolated controls.",
+    "No hosted Actions: no Git remote configured.",
+    "A-R01 and native/resource/manual qualification remain independent."
+  ]
+}

@@ -1,0 +1,38 @@
+name: Fast validation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: fast-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  preflight-and-tooling:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Select pinned toolchain and verify inputs before install
+        run: |
+          python3 tooling/bootstrap-toolchain.py
+          python3 tooling/verify-vendor.py
+          echo "$GITHUB_WORKSPACE/.toolchain/bin" >> "$GITHUB_PATH"
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Types, inventory, import rules and build-free runner checks
+        run: |
+          npm run validate -- run --groups tooling --workers 1 --fresh
+          npm run verify:imports
+      - name: Retain failure and success receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fast-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/validation
+          if-no-files-found: warn
+          retention-days: 14
+# Fast feedback is supplemental. The trusted physical P pair and affected Q3,
+# native/manual and capability obligations in qualification.yml remain required.

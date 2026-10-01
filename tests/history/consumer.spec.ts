@@ -16,7 +16,7 @@ async function fixture(){
  await f.server.close();return {f,image,imported,c,document:d};
 }
 async function start(page:any,root:string){
- const server=await startLocalServer({root,staticDirectory:resolve(process.env.IE_RECOVERY_OUTPUT??'artifacts/p1b5/recovery','browser-app')});cleanup.push(()=>server.close());
+ const server=await startLocalServer({root,staticDirectory:resolve(process.env.IE_RECOVERY_APP??resolve(process.env.IE_RECOVERY_OUTPUT??'artifacts/p1b5/recovery','browser-app'))});cleanup.push(()=>server.close());
  await page.goto(server.issuePairingURL());await expect(page.locator('#state')).toHaveText('Recovery consumer ready');return server;
 }
 const read=(page:any)=>page.evaluate(()=>(window as any).harness.read());

@@ -1,3 +1,4 @@
+import {compileLegacy} from '../../tooling/qualification/legacy-compiler.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync, fork} from 'node:child_process';
@@ -45,7 +46,7 @@ try{
  console.log(JSON.stringify({command:c,pending,doc,receipt,input,preview}));
 }finally{await w.close();}
 `;
-async function build(t,commit){const dir=await rootFor(t),archive=execFileSync('git',['archive',commit,'server','src','tooling','tsconfig.server.json']);await writeFile(join(dir,'source.tar'),archive,{mode:0o600});execFileSync('tar',['-xf',join(dir,'source.tar'),'-C',dir]);await symlink(resolve('node_modules'),join(dir,'node_modules'));await writeFile(join(dir,'package.json'),'{"type":"module"}');execFileSync(resolve('node_modules/.bin/tsc'),['-p',join(dir,'tsconfig.server.json')]);await writeFile(join(dir,'seed.mjs'),seedScript);await writeFile(join(dir,'open.mjs'),`import {openWriter} from './dist/local/server/storage/writer.js'; let w;try{w=await openWriter({root:process.argv[2]});const id=process.argv[3];let s;for(let i=0;i<1000;i++){s=await w.commandState(id);if(s.record)break;await new Promise(r=>setTimeout(r,5));}console.log(JSON.stringify({epoch:w.epoch,state:s}));}catch(e){console.log(JSON.stringify({code:e.code}));}finally{if(w)await w.close();}`);return dir;}
+async function build(t,commit){const dir=await rootFor(t);compileLegacy(dir,commit);await writeFile(join(dir,'seed.mjs'),seedScript);await writeFile(join(dir,'open.mjs'),`import {openWriter} from './dist/local/server/storage/writer.js'; let w;try{w=await openWriter({root:process.argv[2]});const id=process.argv[3];let s;for(let i=0;i<1000;i++){s=await w.commandState(id);if(s.record)break;await new Promise(r=>setTimeout(r,5));}console.log(JSON.stringify({epoch:w.epoch,state:s}));}catch(e){console.log(JSON.stringify({code:e.code}));}finally{if(w)await w.close();}`);return dir;}
 test.before(async t=>{for(const commit of [dfa])executables.set(commit,await build(t,commit));});
 async function seed(t,approval){const root=await rootFor(t),old=executables.get(approval?correction:dfa);const value=JSON.parse(execFileSync(process.execPath,['--import',noEgress,join(old,'seed.mjs'),root,resolve('tests/raster/fixtures/orientation-6.png'),approval?'approval':'ordinary'],{encoding:'utf8'}));return {root,...value};}
 function oldOpen(commit,root,id){return JSON.parse(execFileSync(process.execPath,['--import',noEgress,join(executables.get(commit),'open.mjs'),root,id],{encoding:'utf8'}));}

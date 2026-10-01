@@ -1,32 +1,32 @@
 # Repository workflow
 
 - Use Node **26.10.0** and npm **12.1.0**, pinned by `engines` and `packageManager` in `package.json`. Use npm only. Select the pinned toolchain described in `tooling/README.txt`; install with `npm ci`.
-- Run gates cheapest first: `npm run typecheck`, then the Node suites below in order, then the Playwright targets. Stop at a failed gate; fix and rerun that gate before advancing. Do not repeat successful unrelated suites without a new reason.
-- After typecheck, run `npm run build:app` before the session gate on a clean checkout: its CLI launcher test requires `dist/app`. Rebuild it when app sources change.
-- Fast path: `npm run test:node` builds the server once, then runs all six Node suites. For selected areas use `npm run test:node -- session store`; selections always run in the table's order. Each invocation builds afresh and stops on the first failure.
-- Existing standalone scripts retain their original build steps. The fast path preserves their network guards, serial test execution, and file selections; it does not cover every test directory in the repository.
+- During implementation, run `npm run typecheck` as soon as a coherent edit is ready. Fix cheap failures before building or launching browsers. At a validation boundary use the shared runner below; it checks types first and reuses only a verified unchanged type result.
+- Plan without executing tests: `npm run validate -- plan --groups all --browsers all`. This is the current generated gate map; `npm run test:preflight` detects unowned Node/browser files, invalid prerequisites and incomplete consumer inputs without importing test modules.
+- Run affected Node groups together: `npm run test:node -- session store` or `npm run validate -- run --groups session,store`. `test:node` defaults to the six base groups; `-- features`, `-- helpers`, or `-- all` select the other registered groups. Use `all` for sweeping changes; the base ladder alone is not full coverage.
+- The development runner orders types → inventory → selected build-free tooling tests → vendor/import checks → necessary builds → ordinary Node suites → Node-hosted browser suites → Playwright. It builds each required target once, including the app for launcher tests. Stop at the first unsuccessful gate and repair that area before advancing.
+- Maintained session/store/protocol/assets/raster/history/provider/adapters and browser npm wrappers use the same runner. Combine related work into one invocation; do not interleave browser setup with ordinary Node testing. `--browser-groups consumer,shell` selects explicit browser families; omit it for the full selected-engine inventory.
+- Reuse the owned checkout, install and pinned browser cache. Prerequisite/build reuse verifies source, installed dependency and output contents. Ordinary tests rerun unless explicitly resuming a source-stable receipt with `--resume /absolute/path/receipt.json`; browser and prepared-fixture tests always rerun. `--fresh` disables reuse, including legacy compilation caching. Legacy cache restores verify immutable bytes and keep each migration’s writable state independent; retain corrupt/failed entries for diagnosis. Keep receipts in `artifacts/validation/` and do not delete failure evidence to retry.
+- One runner owns shared build outputs via the checkout's `artifacts/qualification/active.lock` and acquires the fixed physical-host timing lock before starting gates. Never remove another run's lock or rebuild its outputs. Confirm the owner exited before recovering a stale lock. Do not change sources during a run; drift makes its result inconclusive.
+- Correctness defaults to one worker. `--workers 2` is an opt-in pilot for the qualification Node group only; other Node groups remain serial with their existing guards. Do not increase concurrency until paired runs preserve cases, outcomes, isolation and resource headroom. Opt-in `--batch-browser` uses per-spec evidence namespaces and fresh contexts; `--serial-browser` restores separate editor invocations.
+- Keep performance, resource, cold-install, native/manual and P/Q3 campaigns separate and fresh as their contracts require. Do not run correctness work on a host while an exclusive timing campaign is active. Cached development results cannot satisfy those campaigns.
+- Do not repeat successful unrelated suites without changed inputs, a failure, or an unresolved concern. Record the selected coverage, executed/reused gates, pending work and actual outcome at handoff. See `docs/testing/VALIDATION.md` for commands, boundaries and remaining validation work.
 
 ## Gate map
 
-Run each script with `npm run <script>`; choose the failing area instead of repeating the whole ladder.
+The authoritative Node groups are in `tooling/qualification/suite-prerequisites.mjs`; the browser inventory is in `tooling/qualification/container/browser-plan.mjs`. Generate the exact dependency graph with `validate plan` instead of maintaining a second file list.
 
-| Script | Area |
+| Selection | Scope |
 | --- | --- |
-| `typecheck` | Consumer fixture, app, and server TypeScript |
-| `test:session` | Local HTTP/session security, pairing, private roots, launcher |
-| `test:store` | Durable SQLite writer, receipts, recovery, crash/failure behavior |
-| `test:protocol` | Commands, snapshots/tails, content transfer, retry and SSE protocol |
-| `test:assets` | Upload staging, asset storage, ownership, migration and crash recovery |
-| `test:raster` | Image decoding, conversion approval, pixel/export correctness, raster storage |
-| `test:history` | Image edits, undo/redo, retained branches, replay, schema migration |
-| `test:browser` | Playwright public En Reve consumer registration; first run `npm run build:consumer` |
-| `test:shell` | Playwright editor shell, session integration, keyboard/layout/CSP |
-| `test:recovery` | Playwright browser projection, snapshot/tail/SSE and multi-tab recovery |
-| `test:raster:browser` | Playwright raster conversion preview, approval, recovery and PNG content |
-| `test:text` | Playwright native text workers, shaping, rendering and admission in three browsers |
+| `--groups preflight` | Types and inventory only |
+| `--groups tooling` | Qualification harness tests and runner tests; no app/server build |
+| `--groups base` | Session, store, protocol, assets, raster, history |
+| `--groups features` | Product feature Node groups |
+| `--groups helpers` | Browser/recovery/text/completion/tooling helper Node groups |
+| `--groups all` | Every registered Node group; not every specialized campaign |
+| `--browsers chromium`, `firefox`, `webkit`, `all` | Selected-engine browser inventory; shared Chromium fixtures where required |
 
-- Browser tests require the browsers for the pinned Playwright dependency. Keep outputs in ignored directories; set `IE_RASTER_OUTPUT=artifacts/agent-raster` before `test:raster:browser` (its default JSON report is under tracked `evidence/`).
-- Specialized volume, resource and clean-consumer campaigns have additional prerequisites; consult the corresponding `tooling/*.txt` instead of treating this ladder as full product qualification.
+Browser binaries must match pinned Playwright. The runner checks availability before builds, never installs automatically, and gives each run an ignored evidence directory. Negative browser harness specs run only through their Node parents. Dedicated integration and display-image configurations own their respective specs.
 
 ## Vendored inputs and network guards
 

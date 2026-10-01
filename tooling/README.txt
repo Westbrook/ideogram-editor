@@ -1,3 +1,11 @@
+Current development validation workflow (2026-09-30)
+
+Use docs/testing/VALIDATION.md and AGENTS.md for current affected-suite scheduling,
+verified build reuse, browser batching and receipts. Generate the exact gate map
+with npm run validate -- plan --groups all --browsers all. Run types early.
+The P1a.1 sequence below is a historical clean-consumer qualification recipe,
+not a ladder to repeat after every edit. Fresh qualification remains fresh.
+
 P1a.1 package and public-consumer commands
 
 Run from the editor repository root on macOS/Linux, with Python 3.12+ and tar.

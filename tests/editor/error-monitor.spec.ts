@@ -1,3 +1,4 @@
+import {specReceipt} from './receipt-path.js';
 import {test,expect} from '@playwright/test';
 import {writeFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -19,6 +20,6 @@ test('real console errors, throws and rejected promises survive the network exce
  // even if a browser happens to forward it without a JavaScript stack.
  await page.evaluate(origin=>{setTimeout(()=>{const error=Error(origin.slice('http:/'.length)+'/api/v1/events/stream?after=17 due to access control checks.');error.name='Fetch API cannot load http';error.stack='';throw error;},0);},origin);await expect.poll(()=>dom.length).toBe(3);
  await context.close();expect(dom).toHaveLength(3);expect(pageErrors.filter(e=>!e.expected).length).toBeGreaterThanOrEqual(2);expect(consoleErrors).toContain(false);
- const receipt=process.env.EDITOR_RECEIPT??'artifacts/p1b7/current';await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'error-oracle-negatives.json'),JSON.stringify({browserName,dom,pageErrors,consoleErrors},null,2));
+ const receipt=specReceipt(import.meta.url,'artifacts/p1b7/current');await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'error-oracle-negatives.json'),JSON.stringify({browserName,dom,pageErrors,consoleErrors},null,2));
  }finally{await context.close();await new Promise<void>(resolve=>server.close(()=>resolve()));}
 });

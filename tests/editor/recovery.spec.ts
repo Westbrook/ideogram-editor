@@ -83,7 +83,7 @@ test('autosave receipt completion keeps the native Apply target stable during a 
  await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Stable native Apply');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await hit;
  const apply=page.getByRole('button',{name:'Apply properties',exact:true});await apply.scrollIntoViewIfNeeded();await expect(apply).toBeEnabled();
  const node=await apply.elementHandle(),before=await apply.boundingBox();expect(before).toBeTruthy();await page.mouse.move(before!.x+before!.width/2,before!.y+before!.height/2);await page.mouse.down();pressed=true;
- release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true})).toBeVisible();
+ release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByRole('contentinfo').filter({hasText:'Draft saved locally; not applied to the document'})).toBeVisible();
  const after=await apply.boundingBox();await page.mouse.up();pressed=false;
  expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Image · Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
  }finally{release();if(pressed)await page.mouse.up();await page.unrouteAll({behavior:'wait'});await f.server.close();}

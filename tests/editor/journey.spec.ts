@@ -1,3 +1,4 @@
+import {specReceipt} from './receipt-path.js';
 import {test,expect} from '@playwright/test';
 import {mkdtemp,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -31,7 +32,7 @@ test('E1 real reviewed import, edit and undo',async({page,context})=>{
  expect(errors).toEqual([]);
  // WebKit screenshot synchronization injects body {} as an inline style in Playwright.
  // Assert the actual workflow first; retain screenshot-tool CSP diagnostics separately.
- const before=errors.length;await page.screenshot({caret:'initial',path:(process.env.EDITOR_RECEIPT??'artifacts/p1b7/current')+'/editor.png'});
+ const before=errors.length;await page.screenshot({caret:'initial',path:(specReceipt(import.meta.url,'artifacts/p1b7/current'))+'/editor.png'});
  console.log('screenshot-only diagnostics',errors.slice(before));
  }finally{console.log('journey action diagnostics',commands,await page.evaluate(()=>performance.getEntriesByType('mark').filter(x=>x.name.startsWith('ie.intent.')).map(x=>x.name)));await server.close();}
 });

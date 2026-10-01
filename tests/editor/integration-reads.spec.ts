@@ -8,7 +8,7 @@ test('restored canvas and prompt issue one image read and preserve real gesture 
  try{
   await f.admit();await page.locator('.canvas-empty en-file-upload input').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
   const before=await state(f.root),asset=before.document.image.compositeAssetId,canvas=page.locator('canvas');await expect(canvas).toHaveAttribute('data-asset',asset);
-  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Restore this exact saved prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByText('Draft saved locally; not applied to the document',{exact:true}).first()).toBeVisible();
+  await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Restore this exact saved prompt');await page.getByRole('textbox',{name:'Prompt',exact:true}).blur();await expect(page.getByRole('contentinfo').filter({hasText:'Draft saved locally; not applied to the document'})).toBeVisible();
   const saved=rows(f.root,'ui_checkpoints').find(u=>u.preferences.documentId===before.document.id&&u.drafts.some((d:any)=>d.kind==='prompt'&&d.status==='saved-unapplied'));expect(saved).toBeDefined();
   // Hold only the original canvas requests before forwarding. Prompt recovery
   // and the ordinary UI render complete independently, exposing duplicate reads.
