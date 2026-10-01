@@ -74,3 +74,11 @@ test('pre-header SSE cancellation requires the exact observed owned abort in eve
   assert.equal(classify(e,origin,engine),false);assert.equal(classify(e,origin+'0',engine,[],[p]),false);
  }
 });
+
+test('WebKit bodyless release cancellation needs the exact successful 204 response',()=>{
+ const url=origin+'/api/v1/recovery/26cbeaab-17dd-4dca-a48a-99b544518a13/release';
+ const e={channel:'requestfailed',requestId:25,url,method:'POST',resourceType:'fetch',failure:{errorText:'cancelled'},response:{requestId:25,url,method:'POST',status:204}};
+ assert.equal(classify(e,origin,'webkit'),'exact-bodyless-recovery-release-response');
+ for(const change of [x=>x.response.requestId++,x=>x.response.url+='?other',x=>x.response.method='GET',x=>x.response.status=200,x=>x.response.status=500,x=>x.response.contentLength='1',x=>x.response.contentType='text/plain',x=>x.response=null,x=>x.method='GET',x=>x.resourceType='document',x=>x.failure.errorText='failed',x=>{x.url=origin+'/api/v1/commands';x.response.url=x.url;}]){const bad=structuredClone(e);change(bad);assert.equal(classify(bad,origin,'webkit'),false);}
+ assert.equal(classify(e,origin+'0','webkit'),false);assert.equal(classify(e,origin,'firefox'),false);assert.equal(classify(e,origin,'chromium'),false);
+});

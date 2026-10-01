@@ -6,6 +6,9 @@ const cancellation={chromium:'net::ERR_ABORTED',firefox:'NS_BINDING_ABORTED',web
 export function expectedCompositionCancellation(e,origin,engine,downloads=[],displayAborts=[]){
  if(engine==='chromium'&&expectedResponseCancellation(e,origin))return 'documented-response-cancellation';
  const r=e.response;
+ // A matching 204 release response is complete without a body. WebKit's
+ // pinned adapter reports its native response disposal as cancelled.
+ if(engine==='webkit'&&e.channel==='requestfailed'&&e.failure?.errorText===cancellation.webkit&&e.resourceType==='fetch'&&e.method==='POST'&&r?.requestId===e.requestId&&r.url===e.url&&r.method==='POST'&&r.status===204&&(r.contentLength===undefined||r.contentLength==='0')&&r.contentType===undefined&&new URL(e.url).origin===origin&&/^\/api\/v1\/recovery\/[0-9a-f-]{36}\/release$/.test(new URL(e.url).pathname))return 'exact-bodyless-recovery-release-response';
  if(e.channel==='requestfailed'&&e.failure?.errorText===cancellation[engine]&&e.resourceType==='fetch'&&e.method==='GET'&&!r&&new URL(e.url).origin===origin&&new URL(e.url).pathname==='/api/v1/events/stream'&&displayAborts.some(p=>p.requestId===e.requestId&&p.url===e.url&&p.exactOccurrence===true&&p.signalAborted===true))return 'exact-request-observed-event-stream-abort-before-headers';
  if(e.channel==='requestfailed'&&e.failure?.errorText===cancellation[engine]&&e.resourceType==='fetch'&&e.method==='GET'&&new URL(e.url).origin===origin&&/^\/api\/v1\/assets\/[^/]+\/display-tile$/.test(new URL(e.url).pathname)&&displayAborts.some(p=>p.requestId===e.requestId&&p.url===e.url&&p.exactOccurrence===true&&p.signalAborted===true)&&!r)return 'exact-request-observed-display-abort-before-headers';
  if(e.channel!=='requestfailed'||e.failure?.errorText!==cancellation[engine]||e.resourceType!=='fetch'||e.method!=='GET'||!r||r.requestId!==e.requestId||r.url!==e.url||r.method!==e.method||r.status!==200)return false;

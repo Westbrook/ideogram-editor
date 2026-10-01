@@ -49,9 +49,15 @@ export async function observeDisplayAborts(context:BrowserContext,requestId:(r:R
  };
  return Object.assign(proofsForRequests,{settle:async(page:Page)=>{
   // A deliberate recovery reload need not interrupt unrelated display reads.
-  // Wait only for this document's observed tiles, never the long-lived SSE.
+  // A gap between reads can still have queued tile decoding. Require the
+  // existing DOM marker for a fully drawn raster, or the public closed state.
+  // Never wait for the long-lived SSE or call private application methods.
   await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
-  await page.waitForFunction(()=>(window as any).__validationPendingDisplayTiles===0,null,{timeout:5000});
+  await page.waitForFunction(()=>{
+   const canvas=document.querySelector<HTMLCanvasElement>('canvas[aria-label="Document raster preview"]');
+   const closed=document.querySelector('footer')?.textContent?.includes('No document checkpoint');
+   return (window as any).__validationPendingDisplayTiles===0&&(closed||Boolean(canvas?.dataset.asset));
+  },null,{timeout:5000});
   await page.evaluate(()=>(window as any).__validationDisplayAbort({kind:'barrier',token:'',url:location.href}));
  },observations:()=>({starts,aborted:[...aborted],canceled:[...canceled],completed:[...completed],requests:requests.map(r=>({requestId:requestId(r),url:r.url()}))})});
 }

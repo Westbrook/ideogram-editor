@@ -1,7 +1,7 @@
 import {specReceipt} from './receipt-path.js';
 import {test,expect,type BrowserContext,type BrowserType} from '@playwright/test';
 import {createServer} from 'node:http';
-import {stripTypeScriptTypes} from 'node:module';
+import {transformSync} from 'rolldown/utils';
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
 import {readFile,mkdtemp,realpath,rm,mkdir,writeFile,stat} from 'node:fs/promises';
@@ -58,7 +58,7 @@ async function browserRSS(executable:string,profile:string){
 async function fixture(browserType:BrowserType,browserName:string){
  const payloads=new Map([['/payload',{bytes:largeBytes,hash:payloadHash(largeBytes)}],['/small',{bytes:smallBytes,hash:payloadHash(smallBytes)}]]);
  const sources=await Promise.all(['state/destination','protocol/sha256','observability/allocations'].map(async name=>({name,source:await readFile('src/'+name+'.ts','utf8')})));
- const modules=new Map(sources.map(({name,source})=>['/src/'+name+'.js',stripTypeScriptTypes(source)]));
+ const modules=new Map(sources.map(({name,source})=>{const transformed=transformSync(name+'.ts',source);if(transformed.errors.length)throw Error(transformed.errors.map(error=>error.message).join('; '));return ['/src/'+name+'.js',transformed.code];}));
  const requests:any[]=[],server=createServer((request,response)=>{
   const path=request.url??'/',source=modules.get(path),payload=payloads.get(path);
   if(source){response.setHeader('Content-Type','text/javascript');response.end(source);return;}
