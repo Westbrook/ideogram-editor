@@ -29,3 +29,17 @@ export function containerPacketEnvironment(environment) {
   return environment.IE_SCHEMA18_EXECUTABLE_PACKET === undefined ? {} :
     { IE_SCHEMA18_EXECUTABLE_PACKET: environment.IE_SCHEMA18_EXECUTABLE_PACKET };
 }
+
+// Summarize actual successful observations, preserving their execution order.
+// Planned gates alone cannot supply dependency proof.
+export function containerPrerequisiteIds(observations) {
+  if (!Array.isArray(observations)) throw Error('Container dependency proof requires executed gate observations');
+  const seen = new Set();
+  for (const observation of observations) {
+    if (!observation || typeof observation.id !== 'string' || !observation.id || seen.has(observation.id) || observation.outcome !== 'PASS') {
+      throw Error('Container dependency proof requires unique successful gate observations');
+    }
+    seen.add(observation.id);
+  }
+  return observations.filter(observation => !observation.id.startsWith('node:')).map(observation => observation.id);
+}

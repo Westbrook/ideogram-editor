@@ -226,6 +226,21 @@ function reviewedMemberAssignmentEffects(verifiedSources) {
   return { kind: 'reviewed-d11-data-member-assignments-1', sites };
 }
 
+// The exact corpus binds the sole #layer-tree query to the registered en-tree
+// template and these two comparison-only reads. The installed getter/model and
+// host consumers require their separate invocation-archive effect; this table
+// alone never declares a selectedKeys-named property or a type assertion safe.
+function reviewedDOMDataEffects(verifiedSources) {
+  const source = 'src/ui/shell.ts', text = verifiedSources.get(source);
+  const expression = '(tree as EnTree).selectedKeys[0]', starts = [];
+  for (let start = text.indexOf(expression); start !== -1; start = text.indexOf(expression, start + expression.length)) starts.push(start);
+  if (starts.length !== 2) fail('reviewed tree data-read inventory differs');
+  return { kind: 'reviewed-d11-dom-data-reads-1', sites: starts.map(start => ({
+    source, start, end: start + expression.length, sourceSha256: identity(source, text).sha256,
+    expressionSha256: identity(source, expression).sha256, effect: 'en-tree-selected-keys-zero-read',
+  })) };
+}
+
 /** Verify one finite current-source review. Caller-computed hashes or a receipt
  * are necessary join evidence, never authority for an alternative corpus.
  * The bootstrap body comes from the independently derived emitted prelude;
@@ -251,7 +266,7 @@ export function verifyD11ApplicationProfile({ sourceTextByPath, sourceInputs, bo
     verifiedSources.set(expected.path, text);
   }
   if (typeof bootstrapText !== 'string' || Buffer.byteLength(bootstrapText) !== bootstrap.rawBytes || !isDeepStrictEqual(identity(bootstrap.path, bootstrapText), bootstrap)) fail('reviewed inline bootstrap differs');
-  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }], memberAssignmentEffects: reviewedMemberAssignmentEffects(verifiedSources) };
+  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }], memberAssignmentEffects: reviewedMemberAssignmentEffects(verifiedSources), domDataEffects: reviewedDOMDataEffects(verifiedSources) };
 }
 
 export const verifyD11ApplicationSourceProfile = verifyD11ApplicationProfile;

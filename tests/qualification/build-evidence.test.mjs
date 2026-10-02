@@ -66,7 +66,7 @@ test('application receipt captures final preload rewrite and final HTML/manifest
   configInputs:receipt.sourceInputs.filter(input=>['.progress-report/project.json','tooling/build-evidence.ts','vite.app.config.ts'].includes(input.path)),
   inlineTransformOptions:'none',userPlugins:['consumer-build-evidence']});
  assert.deepEqual(receipt.dependencyInputs.map(input=>input.path),[...D11_INVOCATION_DEPENDENCY_PATHS]);
- assert.equal(receipt.dependencyInputs.length,25);
+ assert.equal(receipt.dependencyInputs.length,44);
  assert(receipt.sourceInputs.every(input=>!input.path.startsWith('node_modules/')));
  for(const input of receipt.dependencyInputs){const bytes=readFileSync(join(f.root,input.path));assert.deepEqual(input,{path:input.path,bytes:bytes.length,sha256:hash(bytes)});}
  assert.equal(f.plugin.writeBundle.order,'post');assert.equal(f.plugin.writeBundle.sequential,true);

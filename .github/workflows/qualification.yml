@@ -72,6 +72,14 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Require hosted schema18 packet provisioning
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/qualification-ci
+          printf '%s\n' 'prerequisite-unavailable: hosted container schema18 packet provisioning has not been defined.' > artifacts/qualification-ci/prerequisite-status.txt
+          echo '::error::Hosted container execution requires a reviewed platform-matching schema18 packet closure with every canonical absolute reference visible inside the container. No hosted provisioning contract is defined; toolchain, downloads and image build were not started.'
+          exit 2
       - name: Validate input and retain source identity
         shell: bash
         run: |

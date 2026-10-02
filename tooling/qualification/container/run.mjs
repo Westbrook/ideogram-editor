@@ -8,7 +8,7 @@ import { createGateLog } from './gate-log.mjs';
 import { createBrowserPlan } from './browser-plan.mjs';
 import { retainBrowserEvidence } from './browser-evidence.mjs';
 import { verifyInstalledInputs } from './inputs.mjs';
-import { parseContainerSelection, selectContainerNodePlan, containerPacketEnvironment } from './selection.mjs';
+import { parseContainerSelection, selectContainerNodePlan, containerPacketEnvironment, containerPrerequisiteIds } from './selection.mjs';
 import { executionEnvironment } from '../core.mjs';
 import { executeGate } from '../run.mjs';
 
@@ -130,7 +130,7 @@ try {
   }
   receipt.dependencyProof = {
     kind: 'same-invocation-prerequisites-1', sourceManifestSha256: receipt.sourceManifestSha256,
-    gates: ['typecheck', 'vendor', 'imports', 'raster-inputs', 'build-app', 'build-server'],
+    gates: containerPrerequisiteIds(receipt.functionalGates),
     gateReceipt: 'receipt.json#functionalGates', reusedAcross: nodePlan.filter(gate => gate.id.startsWith('node:')).map(gate => gate.id),
     reusedAcrossBrowserSteps: browserPlan.steps.filter(step => step.browser).map(step => step.id),
     limit: 'Fresh app/server commands in this invocation only; no external or historical dependency evidence reused.',

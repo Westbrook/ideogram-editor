@@ -112,8 +112,8 @@ test('invocation contract rejects malformed or nonexact top-level fields before 
     { ...shell(), kind: 'other' }, { ...shell(), profile: 'unreviewed-profile' }]) {
     assert.throws(() => verifyD11InvocationContract(value), Error);
   }
-  assert.equal(D11_INVOCATION_DEPENDENCY_PATHS.length, 25);
-  assert.equal(new Set(D11_INVOCATION_DEPENDENCY_PATHS).size, 25);
+  assert.equal(D11_INVOCATION_DEPENDENCY_PATHS.length, 44);
+  assert.equal(new Set(D11_INVOCATION_DEPENDENCY_PATHS).size, 44);
   assert(Object.isFrozen(D11_INVOCATION_DEPENDENCY_PATHS));
 });
 
@@ -133,7 +133,7 @@ test('authentic reviewed archives bind all installed members and emitted product
   const before = JSON.stringify(value.contract), result = verify(value);
   assert.equal(result.kind, 'verified-d11-invocation-contract-1');
   assert.equal(result.profile, 'd11-export-invocation-1');
-  assert.equal(value.contract.packages.length, 6);
+  assert.equal(value.contract.packages.length, 8);
   assert.deepEqual(result.inputs.map(row => row.path).sort(), [...D11_INVOCATION_DEPENDENCY_PATHS]);
   assert.deepEqual([...result.inputs].sort((a, b) => a.path.localeCompare(b.path)),
     [...value.dependencyInputs].sort((a, b) => a.path.localeCompare(b.path)));
@@ -142,7 +142,8 @@ test('authentic reviewed archives bind all installed members and emitted product
   assert.deepEqual(result.effects, { plainArrowEventBinding: 'stored-until-dispatch', eventInvocation: 'EventPart.handleEvent',
     nativeButtonStartupClick: 'not-dispatched-by-reviewed-own-lifecycle',
     repeatRender: 'eager-key-and-item-render-with-child-part-commit', nativeEditingBridgeStartup: 'no-preview-or-apply-dispatch',
-    supportedCompilation: 'reviewed-vite-app-config-and-build-evidence', applicationSourceProfile: 'reviewed-d11-startup-corpus-1' });
+    supportedCompilation: 'reviewed-vite-app-config-and-build-evidence', applicationSourceProfile: 'reviewed-d11-startup-corpus-1',
+    treeSelectedKeys: 'immutable-string-array-from-reviewed-value-model' });
   assert.equal(result.applicationSourceProfile.profile, 'reviewed-d11-startup-corpus-1');
   assert.deepEqual(result.compilationInputs.map(row => row.path), [...D11_COMPILATION_INPUT_PATHS]);
   assert.deepEqual(result.requiredAbsentGlobals, ['reactiveElementPolyfillSupport', 'litElementHydrateSupport',
@@ -324,4 +325,135 @@ test('local npm reader rejects a directory at the content-addressed archive path
   const cache = await localCache(t);
   await rm(cache.path); await mkdir(cache.path);
   await assert.rejects(cache.read({ integrity: cache.integrity }), /symlink or non-regular/);
+});
+
+// The selectedKeys effect is admitted only through this exact receiver/getter
+// dependency closure, never through a property name or a TypeScript annotation.
+const treeSelectionMembers = [
+  "node_modules/@en-reve/elements/dist/definitions/tree.js",
+  "node_modules/@en-reve/elements/dist/tree.js",
+  "node_modules/@en-reve/elements/dist/tree/index.js",
+  "node_modules/@en-reve/elements/dist/tree/element.js",
+  "node_modules/@en-reve/elements/dist/tree/interaction-controller.js",
+  "node_modules/@en-reve/elements/dist/tree/data-controller.js",
+  "node_modules/@en-reve/elements/dist/tree/lazy-controller.js",
+  "node_modules/@en-reve/elements/dist/tree/move-controller.js",
+  "node_modules/@en-reve/elements/dist/internal/child-upgrades.js",
+  "node_modules/@en-reve/elements/dist/internal/dom-kind.js",
+  "node_modules/@en-reve/primitives/dist/interactions/tree.js",
+  "node_modules/@en-reve/primitives/dist/state/value.js",
+  "node_modules/@en-reve/primitives/dist/interactions/signal-controller.js",
+  "node_modules/@en-reve/primitives/dist/interactions/virtual-collection.js",
+  "node_modules/@en-reve/primitives/dist/interactions/scroll-into-view.js",
+  "node_modules/signal-polyfill/package.json",
+  "node_modules/signal-polyfill/dist/index.js",
+  "node_modules/signal-utils/package.json",
+  "node_modules/signal-utils/dist/subtle/reaction.ts.js"
+];
+
+test('reviewed tree selection effect requires the complete installed and emitted member closure', async t => {
+  const original = await authentic(t); if (!original) return;
+  assert.equal(treeSelectionMembers.length, 19);
+  const pureForwarders = new Set(['node_modules/@en-reve/elements/dist/tree.js', 'node_modules/@en-reve/elements/dist/tree/index.js']);
+  for (const path of treeSelectionMembers) {
+    assert(D11_INVOCATION_DEPENDENCY_PATHS.includes(path), path);
+    const omitted = structuredClone(original);
+    omitted.dependencyInputs = omitted.dependencyInputs.filter(input => input.path !== path);
+    assert.throws(() => verify(omitted), /dependency input inventory/, 'omitted installed member: ' + path);
+    if (path.endsWith('.js') && !pureForwarders.has(path)) {
+      const notCompiled = structuredClone(original);
+      notCompiled.emittedModules = notCompiled.emittedModules.filter(value => value !== path);
+      assert.throws(() => verify(notCompiled), /compiled module graph/, 'uncompiled member: ' + path);
+    }
+  }
+  assert.equal(verify(original).effects.treeSelectedKeys, 'immutable-string-array-from-reviewed-value-model');
+});
+
+test('tree getter, model and host consumers cannot authorize altered installed or retained semantics', async t => {
+  const paths = [
+    'node_modules/@en-reve/elements/dist/tree/element.js',
+    'node_modules/@en-reve/primitives/dist/interactions/tree.js',
+    'node_modules/@en-reve/primitives/dist/state/value.js',
+    'node_modules/@en-reve/elements/dist/tree/data-controller.js',
+    'node_modules/@en-reve/primitives/dist/interactions/virtual-collection.js',
+    'node_modules/signal-polyfill/dist/index.js',
+    'node_modules/signal-utils/dist/subtle/reaction.ts.js',
+  ];
+  const changes = paths.flatMap(path => [
+    ['changed installed bytes: ' + path, value => {
+      const input = value.dependencyInputs.find(row => row.path === path);
+      input.sha256 = sha('unreviewed selection/model/controller implementation');
+    }],
+    ['self-consistent retained member and installed receipt: ' + path, value => {
+      const member = value.contract.packages.flatMap(packed => packed.members).find(row => row.installedPath === path);
+      member.text += '\n// unreviewed selection semantics\n';
+      const bytes = Buffer.from(member.text); member.rawBytes = bytes.length; member.sha256 = sha(bytes);
+      Object.assign(value.dependencyInputs.find(row => row.path === path), identity(path, bytes));
+    }],
+  ]);
+  changes.push(['caller-supplied effect cannot replace reviewed bytes', value => {
+    value.contract.effects = { treeSelectedKeys: 'immutable-string-array-from-reviewed-value-model' };
+  }]);
+  await rejectsMutations(t, changes);
+});
+
+test('tree value and reaction packages remain lock and package-resolution bound', async t => {
+  await rejectsMutations(t, ['signal-polyfill', 'signal-utils'].flatMap(name => [
+    ['changed version: ' + name, value => { value.lock.packages['node_modules/' + name].version = '0.0.0'; }],
+    ['changed resolution: ' + name, value => { value.lock.packages['node_modules/' + name].resolved += '?unreviewed'; }],
+    ['nested copy: ' + name, value => {
+      value.lock.packages['node_modules/other/node_modules/' + name] = { ...value.lock.packages['node_modules/' + name] };
+    }],
+    ['changed export metadata: ' + name, value => {
+      const member = value.contract.packages.find(packed => packed.name === name).members.find(row => row.installedPath.endsWith('/package.json'));
+      const metadata = JSON.parse(member.text); metadata.exports = { '.': './unreviewed.js' };
+      member.text = JSON.stringify(metadata); const bytes = Buffer.from(member.text);
+      member.rawBytes = bytes.length; member.sha256 = sha(bytes);
+      Object.assign(value.dependencyInputs.find(row => row.path === member.installedPath), identity(member.installedPath, bytes));
+    }],
+  ]));
+});
+
+test('tree effect preparation refuses an altered installed getter before accepting its archive contract', async t => {
+  const value = await authentic(t); if (!value) return;
+  const changedPath = 'node_modules/@en-reve/elements/dist/tree/element.js';
+  const read = async (path, maximum) => {
+    const retained = value.repoBytes[path]; assert(retained, 'unretained fixture read: ' + path);
+    const bytes = path === changedPath ? Buffer.from('export class EnTree { get selectedKeys() { return [() => {}]; } }') : Buffer.from(retained);
+    assert(bytes.length <= maximum); return { bytes };
+  };
+  const readArchive = async ({ name }) => Buffer.from(value.contract.packages.find(packed => packed.name === name).archive.data, 'base64');
+  await assert.rejects(prepareD11InvocationContract({ ...value, read, readArchive }), /installed member differs/);
+});
+
+
+test('only the authenticated two-link EnTree reexport chain may be absent from emitted modules', async t => {
+  const value = await authentic(t); if (!value) return;
+  const root = 'node_modules/@en-reve/elements/dist/';
+  const forwarders = [root + 'tree.js', root + 'tree/index.js'];
+  value.emittedModules = value.emittedModules.filter(path => !forwarders.includes(path));
+  const result = verify(value);
+  assert.deepEqual(result.treeForwarding, { kind: 'verified-d11-tree-forwarding-1', exportName: 'EnTree',
+    definition: root + 'definitions/tree.js', leaf: root + 'tree/element.js', links: [
+      { path: root + 'tree.js', specifier: './tree/index.js', target: root + 'tree/index.js', emitted: false },
+      { path: root + 'tree/index.js', specifier: './element.js', target: root + 'tree/element.js', emitted: false },
+    ] });
+  assert.equal(result.inputs.length, 44);
+  for (const path of forwarders) assert(result.inputs.some(input => input.path === path));
+  for (const path of [root + 'definitions/tree.js', root + 'tree/element.js', root + 'tree/data-controller.js']) {
+    const missing = structuredClone(value); missing.emittedModules = missing.emittedModules.filter(member => member !== path);
+    assert.throws(() => verify(missing), /compiled module graph/, 'missing required emitted authority: ' + path);
+  }
+  for (const path of forwarders) {
+    const missing = structuredClone(value); missing.dependencyInputs = missing.dependencyInputs.filter(input => input.path !== path);
+    assert.throws(() => verify(missing), /dependency input inventory/, 'forwarder installed bytes remain mandatory');
+    const redirected = structuredClone(value);
+    const member = redirected.contract.packages.flatMap(packed => packed.members).find(input => input.installedPath === path);
+    member.text = "export { UnreviewedTree as EnTree } from './unreviewed.js';";
+    const bytes = Buffer.from(member.text); member.sha256 = sha(bytes); member.rawBytes = bytes.length;
+    Object.assign(redirected.dependencyInputs.find(input => input.path === path), identity(path, bytes));
+    assert.throws(() => verify(redirected), Error, 'a caller-resealed redirect cannot borrow the original forwarding contract');
+  }
+  const invented = structuredClone(value); invented.contract.forwarders = forwarders;
+  assert.throws(() => verify(invented), /contract fields/, 'caller forwarding labels have no authority');
 });

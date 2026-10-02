@@ -44,6 +44,15 @@ and intermediate authority checks. Do not run packet-dependent container gates
 until the correct platform packet is prepared. Ordinary shared compilation reuse
 does not replace this requirement; formal container preparation remains fresh.
 
+The hosted `qualification.yml` container dispatch currently stops immediately
+following checkout with `prerequisite-unavailable`, before toolchain provisioning,
+fixture downloads or image building. Its existing evidence upload retains
+`artifacts/qualification-ci/prerequisite-status.txt`. No hosted packet transport
+has been defined. Enabling that job requires a separately reviewed provisioning
+contract for the genuine platform-matching packet and its complete sealed closure;
+a caller-selected path or archive does not establish that authority. The local
+invocation below remains available when its actual prerequisites are satisfied.
+
 ## Local execution
 
 Run these commands from the repository root using Docker with at least enough
@@ -65,7 +74,9 @@ docker build --progress=plain \
   --file tooling/qualification/container/Dockerfile .
 # Create /absolute/evidence-allocation.json from the schema below with your assigned capacity.
 # /absolute/verified-schema18-closure must contain the successfully restored,
-# platform-matching packet.json and every sealed relative reference it requires.
+# platform-matching packet.json and every sealed member it references.
+# Each embedded reference is a canonical absolute path and must also be visible
+# inside the container. Mounting this directory does not rewrite descriptor paths.
 QUALIFICATION_CONTAINER="ideogram-qualification-$(date -u +%Y%m%dT%H%M%SZ)"
 docker run --name "$QUALIFICATION_CONTAINER" --network none \
   --cap-drop ALL --security-opt no-new-privileges --shm-size=1g \
@@ -173,14 +184,16 @@ their own observations and cleanup dispositions. Actual case counts are retained
 Exceeding its budget needs explicit disposition rather than deleting cases.
 
 The container workflow remains an explicit `workflow_dispatch` mode. Choose
-`container`, supply the immutable image digest, and select browser/scope. It
-checks out full history and prepares the exact input packet before Docker build:
+`container`, supply the immutable image digest, and select browser/scope; it
+currently stops at the provisioning refusal described above. Its retained
+preparation sequence becomes usable only after separately reviewed hosted
+schema18 provisioning is implemented. That sequence prepares an exact packet:
 16 selected historical commits, six retained review ZIPs, and the exact public
 adapter fixture. Preparation verifies every identity. Selected Git tree metadata
 includes historical filenames/object IDs needed by archive path selection;
 unrelated historical blob contents and local Git configuration/remotes stay out.
-The workflow downloads only the pinned public fixture URL, never a provider API.
-Local callers can instead supply an already sealed fixture with `--adapter-fixture`.
+The retained download step selects only the pinned public fixture URL.
+Local callers can supply an already sealed fixture with `--adapter-fixture`.
 Input weights and the input packet are excluded from uploaded run artifacts.
 
 The same workflow has a separate physical qualification path for trusted manual

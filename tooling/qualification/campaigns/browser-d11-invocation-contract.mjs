@@ -19,7 +19,7 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 export const D11_COMPILATION_INPUT_PATHS = Object.freeze(['.progress-report/project.json', 'tooling/build-evidence.ts', 'vite.app.config.ts']);
 const REVIEWED_COMPILATION = [
   { path: 'vite.app.config.ts', rawBytes: 459, sha256: 'sha256:1254165ea4fb9b0cc2a83552b3f87c9132d45225e38959f11ce99f6130e89c4a' },
-  { path: 'tooling/build-evidence.ts', rawBytes: 14643, sha256: 'sha256:8dea77e7b87e497a94066147a6dbee44a2274edc07a1546a4808ee7ba8b1e668' },
+  { path: 'tooling/build-evidence.ts', rawBytes: 15812, sha256: 'sha256:a8cfa6fbcb440fa699a2be2899e5b44676ce646af7e67e609c4bc15ed8518f01' },
 ];
 
 // These are reviewed production members, not package-name exemptions. Runtime
@@ -51,6 +51,16 @@ const PACKAGES = [
     archiveSha256: 'sha256:01baeb4da2f42cf7ae14e2e0bf91b5199c7a10c23a8f899b289fed57827db11b',
     integrity: 'sha512-TyP4vV7EfglBb3IYwLO27ONejewFrIx5qCN8XUsmTQAUj3lFaAZBi7gu/QFWTlLlXyIXkw9Av4+03Ki0aiW31g==', members: [
       ['package.json', 1174, '90bdf39411df3e527e2ccbf26dabad33289a9da929237a3db11a390afe087507'],
+      ['dist/definitions/tree.js', 330, '4c024a599491811f7ae7e94c6accd680dc18d96ac1e50fd55335f3934c16a96a'],
+      ['dist/tree.js', 74, '333b17b51680453b3e5e3e16f56a45d66da9e2f04411cc58486c0f72c5ebdafc'],
+      ['dist/tree/index.js', 72, '258cdca84bc0fad7d5186474d7aeb96e03fdabd5d7d63421aa1223faa1d48e8e'],
+      ['dist/tree/element.js', 16226, 'e6a5d23ad49b2dab7c8999417d2ed83dacc38a4170afc8ae8f003cbeb47de07b'],
+      ['dist/tree/interaction-controller.js', 20936, '9d2126a4d00af94ed70cd4ff80f2f89f222f07cdfa4254a4328a372649935192'],
+      ['dist/tree/data-controller.js', 13913, 'eba34aee851a3e138dcb89821159efb24aa98d54134ba7d606dcd91597d62eb2'],
+      ['dist/tree/lazy-controller.js', 4220, '0a5850d4e2a8067fe7fabd235bae3679386966b614fa1a5e4b0c7d296773fe76'],
+      ['dist/tree/move-controller.js', 19566, '9928e5106a286a3dcbba96509ee29d53f825f4cff31427e6c8322e39c32febb5'],
+      ['dist/internal/child-upgrades.js', 4314, 'f9e8bc73582ddd471ef08e7ee241b9610e88065a7ed65984246d9f2c2ce6b1e8'],
+      ['dist/internal/dom-kind.js', 726, '8c135093cef7ba4e6c7f05089565df34e953a5c4ebd76d0672c030ad9a2ad1eb'],
       ['dist/definitions/button.js', 249, '01bda170373066f086311dccef844de29fb5cd24cf6222f1fc15f1ea7dd0961c'],
       ['dist/button.js', 80, '6da2cac2a5da37f804edc4c0be5bfed92e04a73dc3c84a766a11f3a01926aba8'],
       ['dist/button/index.js', 74, '9d864437ebca5b8a407c78e1a3180c8122bd647d7a32ee63e1286a9750bfa975'],
@@ -64,10 +74,23 @@ const PACKAGES = [
     archiveSha256: 'sha256:769baf6ac5652966e1a791688291d0ef87596ea1ed270ebe10735f4d51cf65c2',
     integrity: 'sha512-8UGr4RS/eW19iP9HBWpU5K7Q5GEMnQRPvq6G7FI8azibCecqfdBf7Nz4dFF0m8Ti12QIcTBEfvhiqGeweqqcoA==', members: [
       ['package.json', 1103, '28534fd92e36e4e027afcafb806dbb6cc4bb9e285ef86b5213b09bb5a1254662'],
+      ['dist/interactions/tree.js', 12494, '9d0cd649522d8e00f0e0e8ca9043063a53d568bcab00c1ebfeb2825388251068'],
+      ['dist/state/value.js', 948, '298634112d3954da08c15c2b2db1b9fe05185e4efa16bac3401fe5e169450364'],
+      ['dist/interactions/signal-controller.js', 1211, 'dacb99acdfe7312df80a0760e4889a9e9915e7e8d13ca7567368687c716a3ad6'],
+      ['dist/interactions/virtual-collection.js', 33490, 'f26f6868d65eaf8fb30ba339b8d22a934ec05ec861520d8e303985fd9d656190'],
+      ['dist/interactions/scroll-into-view.js', 11992, 'e3f204cf6b403f0c418730435f1942ce9bac7873478e9e476a5624d4016b3fd9'],
       ['dist/interactions/editing-controller.js', 5194, 'a82457b0e8ced258808675721c29f475734373c5b2672204fa59ac5a50736fee'],
       ['dist/interactions/events.js', 4279, 'eb0569335d5266defd088066c9315366a16bc081aa0ee4b7bbd1dee2b91bf422'],
       ['dist/interactions/static-styles.js', 6120, 'daa549156db3e728263cdb86ae1d73210831a1146ff617caac57547b306209aa'],
     ] },
+  { name: 'signal-polyfill', version: '0.2.2', integrity: 'sha512-p63Y4Er5/eMQ9RHg0M0Y64NlsQKpiu6MDdhBXpyywRuWiPywhJTpKJ1iB5K2hJEbFZ0BnDS7ZkJ+0AfTuL37Rg==', members: [
+    ['package.json', 1187, '2d92c7369892b149c34c53c7de4dd30d9d1fe8ab686570db699c7154c440ca4d'],
+    ['dist/index.js', 19825, 'eb9e97575cca78070eed9b53f4873fb8c7391946b305c709373c605806371187'],
+  ] },
+  { name: 'signal-utils', version: '0.21.1', integrity: 'sha512-i9cdLSvVH4j8ql8mz2lyrA93xL499P8wEbIev3ldSriXeUwqh+wM4Q5VPhIZ19gPtIS4BOopJuKB8l1+wH9LCg==', members: [
+    ['package.json', 1925, '5b8d69f9d83eae024a29f4cac1fdc3e3ae68eaad0f78a1b441a65d1c720eef4f'],
+    ['dist/subtle/reaction.ts.js', 2251, '041143f354bb847126b100d30bcb203b48e76d0e0d5c78d82c9d8c8dc19e15ab'],
+  ] },
 ].map(item => Object.freeze({ ...item,
   lockPath: 'node_modules/' + item.name,
   resolved: item.filename ? 'file:vendor/en-reve/' + SOURCE + '/' + item.filename
@@ -137,6 +160,32 @@ function dependencies(values) {
   return found;
 }
 
+// Rolldown can omit these two declaration-only forwarding modules. Their exact
+// archived and installed bytes still participate in the 44-member capture. This
+// fixed binding chain is checked only after authentication; it is not a generic
+// exemption for an index file or a missing emitted module.
+function verifiedTreeForwarding(authenticatedText, emitted) {
+  const root = 'node_modules/@en-reve/elements/dist/';
+  const definition = root + 'definitions/tree.js', leaf = root + 'tree/element.js';
+  equal(authenticatedText.get(definition), [
+    "import { EnTree } from '../tree.js';",
+    "import { treeItemDefinition } from './tree-item.js';",
+    '/** Registration metadata only; importing this module does not define elements. */',
+    'export const treeDefinition = {', "    tagName: 'en-tree',", '    elementClass: EnTree,',
+    '    dependencies: [treeItemDefinition],', '};', '//# sourceMappingURL=tree.js.map',
+  ].join('\n'), 'tree definition forwarding binding');
+  const links = [
+    { path: root + 'tree.js', specifier: './tree/index.js', target: root + 'tree/index.js', sourceMap: 'tree.js.map' },
+    { path: root + 'tree/index.js', specifier: './element.js', target: leaf, sourceMap: 'index.js.map' },
+  ];
+  for (const link of links) equal(authenticatedText.get(link.path),
+    "export { EnTree } from '" + link.specifier + "';\n//# sourceMappingURL=" + link.sourceMap,
+    'tree pure forwarding member');
+  if (!emitted.has(definition) || !emitted.has(leaf)) throw Error('D11 invocation tree definition or implementation leaf was not in the compiled module graph');
+  return { kind: 'verified-d11-tree-forwarding-1', exportName: 'EnTree', definition, leaf,
+    links: links.map(({ sourceMap, ...link }) => ({ ...link, emitted: emitted.has(link.path) })) };
+}
+
 /** Pure archive/member and build-input verification. This returns narrowly
  * reviewed effects; it never certifies a class, a callback escape, absence of
  * synthetic events, or absence of the optional framework hooks. Those remain
@@ -153,13 +202,12 @@ export function verifyD11InvocationContract(contract, { lock, dependencyInputs, 
   // The forwarded imports must select the reviewed production browser modules.
   // Merely retaining an unused reviewed file beside a different resolved module
   // cannot supply the event contract.
-  for (const item of PACKAGES) for (const member of item.members) if (!member.installedPath.endsWith('/package.json') && !emitted.has(member.installedPath)) throw Error('D11 invocation reviewed runtime member was not in the compiled module graph: ' + member.installedPath);
   for (const path of emitted) for (const item of PACKAGES) {
     if (path.includes('/' + item.lockPath + '/')) throw Error('D11 invocation compiled graph includes an unreviewed nested package identity');
     if (path.startsWith(item.lockPath + '/') && (/\/(?:development|node)\//.test(path.slice(item.lockPath.length)) || /[?#]/.test(path))) throw Error('D11 invocation compiled graph includes an unreviewed development, server or transformed variant');
   }
   if (!Array.isArray(contract.packages) || contract.packages.length !== PACKAGES.length) throw Error('D11 invocation requires the exact reviewed packages');
-  const inputs = [], localArchiveInputs = [];
+  const inputs = [], localArchiveInputs = [], authenticatedText = new Map();
   for (const [index, item] of PACKAGES.entries()) {
     const packed = contract.packages[index];
     fields(packed, ['name', 'lockPath', 'version', 'resolved', 'integrity', 'archive', 'members'], 'package');
@@ -175,6 +223,7 @@ export function verifyD11InvocationContract(contract, { lock, dependencyInputs, 
       const selected = bounded(readD11RegistrationArchiveMember(bytes, member.memberPath).bytes, MAX_MEMBER, 'member');
       if (selected.length !== member.rawBytes || sha(selected) !== member.sha256) throw Error('D11 invocation member differs from reviewed production bytes');
       equal(packed.members[memberIndex], { ...member, text: text(selected) }, 'member provenance');
+      authenticatedText.set(member.installedPath, text(selected));
       const input = identity(member.installedPath, selected);
       equal(installed.get(member.installedPath), input, 'compiled dependency member');
       inputs.push(input);
@@ -184,12 +233,16 @@ export function verifyD11InvocationContract(contract, { lock, dependencyInputs, 
       }
     }
   }
+  const treeForwarding = verifiedTreeForwarding(authenticatedText, emitted);
+  const omittedForwarders = new Set(treeForwarding.links.filter(link => !link.emitted).map(link => link.path));
+  for (const item of PACKAGES) for (const member of item.members) if (!member.installedPath.endsWith('/package.json') && !emitted.has(member.installedPath) && !omittedForwarders.has(member.installedPath)) throw Error('D11 invocation reviewed runtime member was not in the compiled module graph: ' + member.installedPath);
   return { kind: 'verified-d11-invocation-contract-1', profile: PROFILE,
     effects: { plainArrowEventBinding: 'stored-until-dispatch', eventInvocation: 'EventPart.handleEvent', nativeButtonStartupClick: 'not-dispatched-by-reviewed-own-lifecycle',
       repeatRender: 'eager-key-and-item-render-with-child-part-commit', nativeEditingBridgeStartup: 'no-preview-or-apply-dispatch',
-      supportedCompilation: 'reviewed-vite-app-config-and-build-evidence', applicationSourceProfile: 'reviewed-d11-startup-corpus-1' },
+      supportedCompilation: 'reviewed-vite-app-config-and-build-evidence', applicationSourceProfile: 'reviewed-d11-startup-corpus-1',
+      treeSelectedKeys: 'immutable-string-array-from-reviewed-value-model' },
     requiredAbsentGlobals: ['reactiveElementPolyfillSupport', 'litElementHydrateSupport', 'litElementPolyfillSupport', 'litHtmlPolyfillSupport'],
-    inputs, localArchiveInputs, compilationInputs: compiled.inputs, applicationSourceProfile };
+    inputs, localArchiveInputs, compilationInputs: compiled.inputs, applicationSourceProfile, treeForwarding };
 }
 
 /** Preparation performs bounded reads only. Registry archive acquisition is

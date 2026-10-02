@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { parseSync } from 'rolldown/utils';
 import { D11_ROLE_CONTEXT } from '../../tooling/qualification/campaigns/browser-d11-registration.mjs';
-import { assertD11MemberAssignmentEffects, deriveD11NativePreparationClosure, deriveD11WorkerActivation } from '../../tooling/qualification/campaigns/browser-d11-worker-activation.mjs';
+import { assertD11MemberAssignmentEffects, assertD11DOMDataEffects, deriveD11NativePreparationClosure, deriveD11WorkerActivation } from '../../tooling/qualification/campaigns/browser-d11-worker-activation.mjs';
 import { D11_APPLICATION_SOURCE_PATHS, verifyD11ApplicationProfile } from '../../tooling/qualification/campaigns/browser-d11-application-profile.mjs';
 
 const require = createRequire(import.meta.url);
@@ -211,4 +211,55 @@ test('caller-supplied profile and matched effects cannot mint a final Worker exc
   assert.equal(result.complete, false);
   assert.deepEqual(result.excludedWorkers, []);
   assert(result.missing.length > 0);
+});
+
+// The effect argument below exercises only the structural join. Actual archive,
+// installed input and emitted member authority is tested by the invocation
+// contract's authentic fixture; caller-created objects cannot mint exclusions.
+const treeEffect={treeSelectedKeys:'immutable-string-array-from-reviewed-value-model'};
+test('verified application profile binds both exact tree observations and requires their producer effect',async()=>{
+  const value=await specimen(),profile=verifyD11ApplicationProfile(value),proof=await provisional();
+  const source='src/ui/shell.ts',expression='(tree as EnTree).selectedKeys[0]';
+  const expected=[73211,73884].map(start=>({source,start,end:start+expression.length,
+    sourceSha256:identity(source,value.sourceTextByPath[source]).sha256,expressionSha256:identity(source,expression).sha256,effect:'en-tree-selected-keys-zero-read'}));
+  assert.deepEqual(profile.domDataEffects,{kind:'reviewed-d11-dom-data-reads-1',sites:expected});
+  assert.deepEqual(assertD11DOMDataEffects(proof.witness.conditionalDOMEffects,profile,treeEffect),expected);
+  for(const effect of [undefined,{}, {treeSelectedKeys:'any-property-is-data'}])assert.throws(()=>assertD11DOMDataEffects(proof.witness.conditionalDOMEffects,profile,effect));
+  profile.domDataEffects.sites[0].effect='changed';
+  assert.deepEqual(verifyD11ApplicationProfile(value).domDataEffects.sites,expected);
+});
+
+test('missing changed extra or caller-forged DOM observation rows cannot satisfy the final join',async()=>{
+  const profile=verifyD11ApplicationProfile(await specimen()),conditional=(await provisional()).witness.conditionalDOMEffects;
+  for(const mutate of [
+    x=>{x.sites.pop();},x=>{x.sites.push({...x.sites[0]});},x=>{x.sites[0].start++;},x=>{x.sites[0].end++;},
+    x=>{x.sites[0].source='src/ui/request.ts';},x=>{x.sites[0].sourceSha256='sha256:'+'0'.repeat(64);},
+    x=>{x.sites[0].expressionSha256='sha256:'+'0'.repeat(64);},x=>{x.sites[0].requirement='selectedKeys-name';},
+    x=>{x.sites.push({...x.sites[0],start:x.sites[0].end,end:x.sites[0].end+1});},
+  ]){const changed=structuredClone(conditional);mutate(changed);assert.throws(()=>assertD11DOMDataEffects(changed,profile,treeEffect));}
+  for(const mutate of [
+    x=>{delete x.domDataEffects;},x=>{x.domDataEffects.sites.pop();},x=>{x.domDataEffects.sites[0].effect='any-tree';},
+    x=>{x.domDataEffects.sites[0].expressionSha256='sha256:'+'0'.repeat(64);},x=>{x.inputs=x.inputs.filter(row=>row.path!=='src/ui/shell.ts');},
+  ]){const changed=structuredClone(profile);mutate(changed);assert.throws(()=>assertD11DOMDataEffects(conditional,changed,treeEffect));}
+  const value=await specimen();
+  const result=deriveD11WorkerActivation({...value,parser,roleContext:D11_ROLE_CONTEXT,files:[],outputTextByFile:{},
+    applicationSourceProfile:profile,conditionalDOMEffects:conditional,invocationEffects:treeEffect});
+  assert.equal(result.complete,false);assert.deepEqual(result.excludedWorkers,[]);
+});
+
+test('spoofed tree query registration template or property cannot acquire data-read authority',async()=>{
+  const authentic=await specimen(),source='src/ui/shell.ts';
+  for(const [before,after] of [
+    ["tree=this.querySelector<HTMLElement>('#layer-tree')","tree=this.querySelector<HTMLElement>('#other-owner')"],
+    ['<en-tree id="layer-tree"','<other-owner id="layer-tree"'],
+    ['(tree as EnTree).selectedKeys[0]','(tree as EnTree).controllers[0]'],
+    ['(tree as EnTree).selectedKeys[0]','(tree as EnTree).selectedKeys[1]'],
+    ["import { treeDefinition } from '@en-reve/elements/definitions/tree.js';","import { treeDefinition } from './fake-tree.js';"],
+  ]){
+    const value=structuredClone(authentic);assert(value.sourceTextByPath[source].includes(before));
+    value.sourceTextByPath[source]=value.sourceTextByPath[source].replace(before,after);
+    value.sourceInputs[value.sourceInputs.findIndex(row=>row.path===source)]=identity(source,value.sourceTextByPath[source]);
+    value.domDataEffects=verifyD11ApplicationProfile(authentic).domDataEffects;
+    assert.throws(()=>verifyD11ApplicationProfile(value),/reviewed application source differs/);
+  }
 });

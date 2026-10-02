@@ -359,3 +359,48 @@ test('computed member writes remain explicit conditional effects without exclusi
     assert.equal(result.complete,false);assert.deepEqual(result.excludedWorkers,[]);
   }
 });
+
+test('DOM numeric observations retain exact obligations without erasing receiver taint', async () => {
+  const baseline=deriveD11NativePreparationClosure(await specimen());
+  assert.equal(baseline.complete,true,baseline.missing.join('; '));
+  assert.equal(baseline.witness.conditionalDOMEffects.kind,'d11-conditional-dom-data-reads-1');
+  assert.deepEqual(baseline.witness.conditionalDOMEffects.sites.map(row=>[row.source,row.start,row.end]),[
+    ['src/ui/shell.ts',73211,73243],['src/ui/shell.ts',73884,73916],
+  ]);
+  for (const text of [
+    'const host=document.querySelector("en-tree");host.selectedKeys[0]===key;',
+    'const host=document.querySelector("other-owner");host.controllers[0]!==key;',
+  ]) {
+    const value=await specimen();value.sourceTextByPath['src/dom-observation.ts']=text;
+    const proof=deriveD11NativePreparationClosure(value);
+    assert.equal(proof.complete,true,proof.missing.join('; '));
+    const rows=proof.witness.conditionalDOMEffects.sites.filter(row=>row.source==='src/dom-observation.ts');
+    assert.equal(rows.length,1);assert.equal(rows[0].requirement,'reviewed-dom-data-read');
+    assert.equal(Object.hasOwn(proof,'excludedWorkers'),false);
+    const final=deriveD11WorkerActivation({...value,roleContext:D11_ROLE_CONTEXT,files:[],outputTextByFile:{},
+      conditionalDOMEffects:{kind:'d11-conditional-dom-data-reads-1',sites:[]},
+      applicationSourceProfile:{domDataEffects:{kind:'reviewed-d11-dom-data-reads-1',sites:[]}},
+      invocationEffects:{treeSelectedKeys:'immutable-string-array-from-reviewed-value-model'}});
+    assert.equal(final.complete,false);assert.deepEqual(final.excludedWorkers,[]);
+  }
+});
+
+test('DOM property-name and type-assertion lookalikes keep their ownership refusals', async () => {
+  for (const text of [
+    'const host=document.querySelector("en-tree");host.selectedKeys[key]===value;',
+    'const host=document.querySelector("en-tree");host.selectedKeys[0]();',
+    'const host=document.querySelector("en-tree");host.selectedKeys[0].preparePreview();',
+    'const host=document.querySelector("en-tree");const escaped=host.selectedKeys[0];escaped.preparePreview();',
+    'const host=document.querySelector("en-tree");consume(host.selectedKeys[0]);',
+    'const host=document.querySelector("en-tree");host.selectedKeys[0]=callback;',
+    'const host=document.querySelector("en-tree");(host as EnTree).selectedKeys[key]();',
+    'const host=document.querySelector("en-tree");host.selectedKeys["0"]===value;',
+    'const host=document.querySelector("en-tree");host.selectedKeys[-1]===value;',
+  ]) {
+    const value=await specimen();value.sourceTextByPath['src/dom-observation.ts']=text;
+    const proof=deriveD11NativePreparationClosure(value);
+    assert.equal(proof.complete,false,text);
+    const directCall=text==='const host=document.querySelector("en-tree");host.selectedKeys[0]();'||text==='const host=document.querySelector("en-tree");(host as EnTree).selectedKeys[key]();';
+    assert.equal(proof.missing.join('; '),directCall?'D11 Worker activation: computed callable alias is unresolved':'D11 Worker activation: computed DOM/controller ownership is unresolved',text);
+  }
+});

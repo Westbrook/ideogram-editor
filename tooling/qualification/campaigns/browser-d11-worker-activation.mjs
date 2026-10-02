@@ -419,6 +419,7 @@ function ownerBindings(source) {
 
 function opaqueOwnerCensus(source) {
   const bindings = ownerBindings(source), domBindings = new Set(), callableBindings = new Set(), callableNames = new Set();
+  const conditionalDOMReads = [];
   const value = (root, kind) => {
     const seen = new Set(), pending = [root];
     while (pending.length) {
@@ -450,7 +451,16 @@ function opaqueOwnerCensus(source) {
     if (pass === source.nodes.length) fail('owner alias census did not settle');
   }
   for (const node of source.nodes) {
-    if (node.type === 'MemberExpression' && node.computed && value(node.object, 'dom')) fail('computed DOM/controller ownership is unresolved');
+    if (node.type === 'MemberExpression' && node.computed && value(node.object, 'dom')) {
+      const parent = source.parent(node), index = literal(node.property);
+      // This does not erase DOM taint or grant a property-name exemption. A
+      // literal index observed only by equality can carry an explicit data-read
+      // obligation. Final admission must discharge its exact source and pinned
+      // producer effect; dynamic keys, invocation and other uses still refuse.
+      if (!Number.isSafeInteger(index) || index < 0 || parent?.type !== 'BinaryExpression' || !['===', '!=='].includes(parent.operator) || ![parent.left, parent.right].includes(node)) fail('computed DOM/controller ownership is unresolved');
+      conditionalDOMReads.push({ source: source.path, start: node.start, end: node.end,
+        sourceSha256: hash(source.text), expressionSha256: hash(source.text.slice(node.start, node.end)), requirement: 'reviewed-dom-data-read' });
+    }
     if (['CallExpression', 'NewExpression', 'TaggedTemplateExpression'].includes(node.type)) {
       const callee = unwrap(node.type === 'TaggedTemplateExpression' ? node.tag : node.callee);
       if (value(callee, 'callable') || callee?.type === 'Identifier' && !bindings.resolve(callee) && callableNames.has(callee.name)) fail('computed callable alias is unresolved');
@@ -463,8 +473,8 @@ function opaqueOwnerCensus(source) {
   // Computed property writes are not generically declared safe. Their exact
   // source effects remain conditional until final admission discharges every
   // row using the independently reviewed whole-corpus contract.
-  return bindings.conditionalAssignments.map(node => ({ source: source.path, start: node.start, end: node.end,
-    sourceSha256: hash(source.text), assignmentSha256: hash(source.text.slice(node.start, node.end)), requirement: 'reviewed-data-only-array-reordering' }));
+  return { memberAssignments: bindings.conditionalAssignments.map(node => ({ source: source.path, start: node.start, end: node.end,
+    sourceSha256: hash(source.text), assignmentSha256: hash(source.text.slice(node.start, node.end)), requirement: 'reviewed-data-only-array-reordering' })), domReads: conditionalDOMReads };
 }
 
 function ownReceiver(parsed, owner, name, creation, activatingMethod) {
@@ -561,10 +571,15 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     const parsed = new Map();
     for (const path of Object.keys(sourceTextByPath).filter(path => /\.[cm]?[jt]sx?$/.test(path) && !/\.d\.ts$/.test(path)).sort()) parsed.set(path, parse(path, sourceTextByPath[path], parser));
     for (const path of Object.values(PATHS)) if (!parsed.has(path)) fail('required source is absent: ' + path);
-    const conditionalSites = [];
-    for (const source of parsed.values()) { constructorCensus(source); conditionalSites.push(...opaqueOwnerCensus(source)); }
+    const conditionalSites = [], conditionalDOMSites = [];
+    for (const source of parsed.values()) {
+      constructorCensus(source); const census = opaqueOwnerCensus(source);
+      conditionalSites.push(...census.memberAssignments); conditionalDOMSites.push(...census.domReads);
+    }
     conditionalSites.sort((left, right) => left.source.localeCompare(right.source) || left.start - right.start);
+    conditionalDOMSites.sort((left, right) => left.source.localeCompare(right.source) || left.start - right.start);
     const conditionalMemberEffects = { kind: 'd11-conditional-member-assignments-1', sites: conditionalSites };
+    const conditionalDOMEffects = { kind: 'd11-conditional-dom-data-reads-1', sites: conditionalDOMSites };
     const native = parsed.get(PATHS.native), client = parsed.get(PATHS.client), durable = parsed.get(PATHS.durable);
     htmlBinding(native); htmlBinding(parsed.get(PATHS.shell));
     const n = klass(native, 'NativeTextEditing'), c = klass(client, 'TextRenderer'), d = klass(durable, 'DurableTextPreparation');
@@ -629,7 +644,7 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     if (engineBinding?.type !== 'VariableDeclarator' || engineBinding.init !== engineCall || engineDeclaration?.type !== 'VariableDeclaration' || workerModule.parent(engineDeclaration) !== workerModule.root) fail('worker engine entry is not eager module evaluation');
     const sourceInputs = [...parsed.keys()].sort().map(path => ({ path, rawBytes: Buffer.byteLength(sourceTextByPath[path]), sha256: hash(sourceTextByPath[path]) }));
     return finish({ source: PATHS.client, start: worker.start, end: worker.end, workerSource: PATHS.worker,
-      witness: { kind: 'd11-native-preview-state-gate-1', sourceInputs, event, conditionalMemberEffects,
+      witness: { kind: 'd11-native-preview-state-gate-1', sourceInputs, event, conditionalMemberEffects, conditionalDOMEffects,
         startup: ['constructor and instance fields', 'sync and restoreSession for any retained draft data', 'render and overlay', 'Open document', 'Save checkpoint'],
         coldState: 'preview absent; only the exact Preview click path initializes it',
         applyGate: { source: PATHS.native, start: guard.start, end: guard.end },
@@ -658,6 +673,27 @@ export function assertD11MemberAssignmentEffects(conditional, applicationSourceP
   return sites;
 }
 
+/** Structural join only. Its caller must independently verify both the current
+ * application profile and the installed/archive-bound producer effect. */
+export function assertD11DOMDataEffects(conditional, applicationSourceProfile, invocationEffects) {
+  const reviewed = applicationSourceProfile?.domDataEffects;
+  if (conditional?.kind !== 'd11-conditional-dom-data-reads-1' || !isDeepStrictEqual(Object.keys(conditional).sort(), ['kind', 'sites']) || !Array.isArray(conditional.sites) || conditional.sites.length > 4096 ||
+      applicationSourceProfile?.kind !== 'verified-d11-application-profile-1' || applicationSourceProfile.profile !== 'reviewed-d11-startup-corpus-1' || !Array.isArray(applicationSourceProfile.inputs) ||
+      reviewed?.kind !== 'reviewed-d11-dom-data-reads-1' || !isDeepStrictEqual(Object.keys(reviewed).sort(), ['kind', 'sites']) || !Array.isArray(reviewed.sites) || reviewed.sites.length > 4096 ||
+      invocationEffects?.treeSelectedKeys !== 'immutable-string-array-from-reviewed-value-model') fail('DOM data reads lack the reviewed producer contract');
+  const keys = ['end', 'expressionSha256', 'requirement', 'source', 'sourceSha256', 'start'];
+  const sites = conditional.sites.map(row => {
+    if (!row || !isDeepStrictEqual(Object.keys(row).sort(), keys) || typeof row.source !== 'string' || !Number.isSafeInteger(row.start) || !Number.isSafeInteger(row.end) || row.start < 0 || row.end <= row.start ||
+        !/^sha256:[a-f0-9]{64}$/.test(row.sourceSha256) || !/^sha256:[a-f0-9]{64}$/.test(row.expressionSha256) || row.requirement !== 'reviewed-dom-data-read') fail('DOM data-read obligation is malformed');
+    const inputs = applicationSourceProfile.inputs.filter(input => input.path === row.source);
+    if (inputs.length !== 1 || inputs[0].sha256 !== row.sourceSha256) fail('DOM data-read source is not reviewed');
+    const { requirement, ...identity } = row; return { ...identity, effect: 'en-tree-selected-keys-zero-read' };
+  });
+  const ordered = rows => [...rows].sort((left, right) => left.source.localeCompare(right.source) || left.start - right.start);
+  if (new Set(sites.map(row => row.source + ':' + row.start + ':' + row.end)).size !== sites.length || !isDeepStrictEqual(ordered(sites), ordered(reviewed.sites))) fail('DOM data reads differ from the reviewed complete inventory');
+  return sites;
+}
+
 /** Exclude only the proved emitted Worker constructor site from startup
  * activation. No emitted file, class, engine dependency, or budget is removed. */
 export function deriveD11WorkerActivation(args = {}) {
@@ -673,6 +709,7 @@ export function deriveD11WorkerActivation(args = {}) {
     if (invocation.effects?.nativeEditingBridgeStartup !== 'no-preview-or-apply-dispatch') fail('native editing bridge invocation effect is not archive-bound');
     if (invocation.effects?.applicationSourceProfile !== 'reviewed-d11-startup-corpus-1' || invocation.applicationSourceProfile?.profile !== 'reviewed-d11-startup-corpus-1') fail('application ownership census is not bound to the reviewed current corpus');
     const memberAssignmentEffects = assertD11MemberAssignmentEffects(proof.witness.conditionalMemberEffects, invocation.applicationSourceProfile);
+    const domDataEffects = assertD11DOMDataEffects(proof.witness.conditionalDOMEffects, invocation.applicationSourceProfile, invocation.effects);
     assertD11EventCorpus({ sourceTextByPath: args.sourceTextByPath, parser, requiredAbsentGlobals: invocation.requiredAbsentGlobals });
     for (const file of files.filter(file => file.kind === 'js')) constructorCensus(parse(file.file === 'inline:bootstrap' ? 'bootstrap.js' : file.file, outputTextByFile?.[file.file], parser));
     const importers = files.filter(file => file.kind === 'js' && [...file.sources ?? [], ...file.modules ?? []].includes(proof.source));
@@ -690,7 +727,7 @@ export function deriveD11WorkerActivation(args = {}) {
     if (target.startsWith('../') || !files.some(file => file.file === target && file.kind === 'js')) fail('emitted Worker target is absent');
     excludedWorkers.push({ source: proof.source, start: proof.start, end: proof.end, target, outputs: [importer.file],
       emittedSite: { file: importer.file, start: emitted.start, end: emitted.end }, reason: 'native-preview-state-gate',
-      witness: { ...proof.witness, memberAssignmentEffects, invocationProfile: invocation.profile, applicationSourceProfile: invocation.applicationSourceProfile, roleContext: args.roleContext } });
+      witness: { ...proof.witness, memberAssignmentEffects, domDataEffects, invocationProfile: invocation.profile, applicationSourceProfile: invocation.applicationSourceProfile, roleContext: args.roleContext } });
     return finish();
   } catch (error) { missing.push(error.message); return finish(); }
 }
