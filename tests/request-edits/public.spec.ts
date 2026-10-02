@@ -12,18 +12,35 @@ import {runs,step,throwFailures,finishFixture,type RunState} from '../editor/har
 import {publicReadRequest} from '../request/persistence-witness.js';
 
 // Incidental protocol diagnostics use native metadata; actual public reads below own their JSON bodies.
-function postResponseMetadata(page:Page,state:RunState){
-  type Row={id:number;method:string;origin:string;path:string;postKind:'command'|'ui';postId:string|null;postType:string|null;startedAt:string;startedMs:number;responseMs:number|null;status:number|null;terminal:'pending'|'finished'|'failed';terminalMs:number|null;failureText:string|null};
-  const limit=1024,rows:Row[]=[],identities=new WeakMap<Request,Row>();let dropped=0,truncated=0,stopped=false;
+function postResponseMetadata(page:Page,state:RunState,apiOrigin?:()=>string|undefined){
+  type Row={id:number;method:string;origin:string;path:string;query?:Record<string,string[]>|null;unknownQueryKeys?:number;queryIncomplete?:boolean;postKind:'command'|'ui'|null;postId:string|null;postType:string|null;startedAt:string;startedMs:number;responseMs:number|null;status:number|null;terminal:'pending'|'finished'|'failed';terminalMs:number|null;failureText:string|null};
+  type ConsoleRow={errorIndex:number;atMs:number;origin:string|null;path:string|null;line:number|null;column:number|null;locationAvailable:boolean};
+  const limit=1024,consoleLimit=128,rows:Row[]=[],consoleRows:ConsoleRow[]=[],identities=new WeakMap<Request,Row>(),omitted=new WeakSet<Request>();let dropped=0,truncated=0,consoleDropped=0,consoleErrors=0,stopped=false;
   const bounded=(value:unknown,cap:number)=>{if(typeof value!=='string')return null;if(value.length>cap)truncated++;return value.slice(0,cap);};
+  const retain=(request:Request)=>{
+    const previous=identities.get(request);if(previous)return previous;if(stopped||omitted.has(request))return;
+    if(rows.length===limit){if(!dropped)state.failures.push({phase:'response-metadata',error:Error('E3_RESPONSE_METADATA_LIMIT')});dropped++;omitted.add(request);return;}
+    const url=new URL(request.url()),query:Record<string,string[]>|null=apiOrigin&&/^\/api\/v1\/assets\/[^/]+\/(display|display-tile)$/.test(url.pathname)?{}:null;
+    let unknownQueryKeys=0,queryIncomplete=false;
+    if(query){let entries=0;for(const [key,value]of url.searchParams){if(++entries>32){queryIncomplete=true;truncated++;break;}if(!['identity','basis','edge','lod','x','y'].includes(key)){unknownQueryKeys++;continue;}(query[key]??=[]).push(bounded(value,256)!);}}
+    const row:Row={id:rows.length+1,method:request.method(),origin:bounded(url.origin,256)!,path:bounded(url.pathname,1024)!,...(apiOrigin?{query,unknownQueryKeys,queryIncomplete}:{}),postKind:null,postId:null,postType:null,startedAt:new Date().toISOString(),startedMs:performance.now(),responseMs:null,status:null,terminal:'pending',terminalMs:null,failureText:null};rows.push(row);identities.set(request,row);return row;
+  };
+  const request=(value:Request)=>{const url=new URL(value.url());if(url.origin===apiOrigin?.()&&url.pathname.startsWith('/api/v1/'))retain(value);};
   const response=(value:Response)=>{const row=identities.get(value.request());if(row){row.status=value.status();row.responseMs=performance.now();}};
   const terminal=(request:Request,outcome:'finished'|'failed')=>{const row=identities.get(request);if(row){row.terminal=outcome;row.terminalMs=performance.now();row.failureText=bounded(request.failure()?.errorText,256);}};
   const finished=(request:Request)=>terminal(request,'finished'),failed=(request:Request)=>terminal(request,'failed');
+  const consoleError=(message:import('@playwright/test').ConsoleMessage)=>{
+    if(message.type()!=='error')return;const errorIndex=++consoleErrors;
+    if(consoleRows.length===consoleLimit){if(!consoleDropped)state.failures.push({phase:'console-metadata',error:Error('E3_CONSOLE_METADATA_LIMIT')});consoleDropped++;return;}
+    const location=message.location();let url:URL|undefined;try{if(location.url){const parsed=new URL(location.url);if(['http:','https:'].includes(parsed.protocol))url=parsed;}}catch{}
+    consoleRows.push({errorIndex,atMs:performance.now(),origin:url?bounded(url.origin,256):null,path:url?bounded(url.pathname,1024):null,line:Number.isFinite(location.lineNumber)?location.lineNumber:null,column:Number.isFinite(location.columnNumber)?location.columnNumber:null,locationAvailable:!!url});
+  };
+  if(apiOrigin){page.on('request',request);page.on('console',consoleError);}
   page.on('response',response);page.on('requestfinished',finished);page.on('requestfailed',failed);
   return {
-    admit(request:Request,postKind:'command'|'ui',value:any){if(stopped)return;if(rows.length===limit){if(!dropped)state.failures.push({phase:'response-metadata',error:Error('E3_RESPONSE_METADATA_LIMIT')});dropped++;return;}const url=new URL(request.url()),row:Row={id:rows.length+1,method:request.method(),origin:bounded(url.origin,256)!,path:bounded(url.pathname,1024)!,postKind,postId:bounded(postKind==='command'?value.commandId:value.requestId,128),postType:bounded(value.body?.type,128),startedAt:new Date().toISOString(),startedMs:performance.now(),responseMs:null,status:null,terminal:'pending',terminalMs:null,failureText:null};rows.push(row);identities.set(request,row);},
-    snapshot(){return {schemaVersion:1,kind:'e3-post-response-metadata',responseBodiesRead:false,limit,dropped,truncated,rows};},
-    stop(){stopped=true;page.off('response',response);page.off('requestfinished',finished);page.off('requestfailed',failed);}
+    admit(request:Request,postKind:'command'|'ui',value:any){const row=retain(request);if(row){row.postKind=postKind;row.postId=bounded(postKind==='command'?value.commandId:value.requestId,128);row.postType=bounded(value.body?.type,128);}},
+    snapshot(){return apiOrigin?{schemaVersion:2,kind:'e3-api-response-metadata',responseBodiesRead:false,limit,dropped,truncated,rows,consoleLimit,consoleDropped,consoleRows}:{schemaVersion:1,kind:'e3-post-response-metadata',responseBodiesRead:false,limit,dropped,truncated,rows};},
+    stop(){stopped=true;if(apiOrigin){page.off('request',request);page.off('console',consoleError);}page.off('response',response);page.off('requestfinished',finished);page.off('requestfailed',failed);}
   };
 }
 
@@ -42,6 +59,7 @@ const test=base.extend({context:async({playwright,browserName,contextOptions,vie
 const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
 const button=(page:Page,id:string)=>page.locator('#'+id).getByRole('button');
 async function keyboard(control:Locator){await expect(control).toBeEnabled();await control.focus();await expect(control).toBeFocused();await control.press('Enter');}
+async function currentDocument(page:Page,id:string){await expect.poll(()=>page.evaluate(()=>{const view=(performance.getEntriesByName('ie.editor.updated').at(-1) as PerformanceMark|undefined)?.detail;return view?.ready===true&&view.busy===false?view.documentId:null;})).toBe(id);}
 async function number(page:Page,name:string,value:string){const input=page.getByRole('spinbutton',{name,exact:true});await input.fill(value);await input.press('Tab');}
 async function numeric(page:Page,id:string,value:string){const input=page.locator('#'+id).getByRole('spinbutton');await input.fill(value);await input.press('Tab');}
 const digest=(bytes:Uint8Array)=>'sha256:'+createHash('sha256').update(bytes).digest('hex');
@@ -58,7 +76,7 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
   const evidence:Record<string,unknown>={};
   const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:'e3-'};
   runs.set(context,state);
-  const responseMetadata=postResponseMetadata(page,state);
+  const responseMetadata=postResponseMetadata(page,state,()=>server?.origin);
   state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,responseMetadata:responseMetadata.snapshot(),effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
   state.finalCheck=async()=>{try{
     guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);
@@ -276,6 +294,7 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
     expect(newPlacement.body.placement).toBe('new-document');expect(newPlacement.body.mode).toBe('safe-region');expect(newPlacement.body.newDocumentId).toBeTruthy();
     expect(newPlacement.expectedDocumentRevision).toBe(staleTarget.revision);expect(newPlacement.body.textTreatment.plan).toEqual(placement.body.textTreatment.plan);expect(newPlacement.body.textTreatment.choice.nativeCopies).toEqual([]);expect(newPlacement.body.textTreatment.choice.approvalId).not.toBe(placement.body.textTreatment.choice.approvalId);
     await keyboard(button(page,'request-candidate-adopt-'+candidate.id));
+    await currentDocument(page,newPlacement.body.newDocumentId);
     await expect.poll(async()=>document(newPlacement.body.newDocumentId).then(value=>value.id,()=>null)).toBe(newPlacement.body.newDocumentId);
     await expect(page.getByRole('treeitem')).toHaveCount(1);
     const recoveredDocument=await document(newPlacement.body.newDocumentId),recoveredState=await imageState(recoveredDocument.id);
@@ -439,6 +458,7 @@ test(deferredAdoptionTitle,async({page,context,browserName})=>{
     await expect(page.locator('#request-candidate-deferred-review-'+candidate.id)).toContainText('The final result will be prepared after acceptance.');
     expect(commands.filter(command=>command.body.type==='PrepareCandidateAdoption'||command.body.type==='AdoptReviewedCandidate')).toEqual([]);expect(await document(documentId)).toEqual(originalDocument);expect(await imageState(documentId)).toEqual(originalState);
     await keyboard(button(page,'request-candidate-accept-prepare-'+candidate.id));
+    await currentDocument(page,placement.body.newDocumentId);
     await expect.poll(async()=>document(placement.body.newDocumentId).then(value=>value.id,()=>null)).toBe(placement.body.newDocumentId);await expect(page.getByRole('treeitem')).toHaveCount(1);
     const adoptedDocument=await document(placement.body.newDocumentId),adoptedState=await imageState(adoptedDocument.id),result=await pixels(adoptedState.layers[0].assetId);
     expect(adoptedState.layers).toHaveLength(1);expect(adoptedState.layers[0].opacity).toBe(1);expect(adoptedState.layers[0].mask).toBeNull();expect(adoptedState.layers[0].layerToDocument).toEqual([1,0,0,1,0,0]);
@@ -674,6 +694,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     const copy=newPlacement.body.textTreatment.choice.nativeCopies[0];expect(newPlacement.body.textTreatment.choice.nativeCopies).toHaveLength(1);expect(copy.sourceLayerId).toBe(nativeLayer.id);expect(copy.newLayerId).not.toBe(nativeLayer.id);expect(copy.newLayerId).not.toBe(newPlacement.body.newLayerId);expect(copy.transform).toEqual(nativeLayer.layerToDocument);
     const newComparison=await confirmActualLettering();
     await keyboard(button(page,'request-candidate-accept-prepare-'+candidate.id));
+    await currentDocument(page,newPlacement.body.newDocumentId);
     await expect.poll(async()=>document(newPlacement.body.newDocumentId).then(value=>value.id,()=>null)).toBe(newPlacement.body.newDocumentId);await expect(page.getByRole('treeitem')).toHaveCount(2);
     const recoveredDocument=await document(newPlacement.body.newDocumentId),recoveredState=await imageState(recoveredDocument.id),recoveredLayer=recoveredState.layers.find((layer:any)=>layer.id===newPlacement.body.newLayerId),copiedNative=recoveredState.layers.find((layer:any)=>layer.id===copy.newLayerId);
     expect(recoveredState.layers).toHaveLength(2);expect(await pixels(recoveredLayer.assetId)).toEqual(adoptedPixels);expect(copiedNative).toEqual({...nativeLayer,id:copy.newLayerId,version:'1',layerToDocument:copy.transform});

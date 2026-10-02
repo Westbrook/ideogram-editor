@@ -29,7 +29,28 @@ test('comparison refusal restores an oversized reveal field and old state surviv
 
 test('candidate commit performs no admission or synchronous host notification after preparation',async()=>{const before=totals(),f=fixture();let pressure;const update=f.host.requestUpdate;try{f.controller.retainCandidates([candidate()]);await flush();const prepared=f.controller.prepareCandidates([candidate('next')]),used=allocationLedger.snapshot().cpuBytes;pressure=allocationLedger.reserve({owner:'edit-test-pressure',kind:'control',cpuBytes:ALLOCATION_LIMITS.cpuBytes-ALLOCATION_LIMITS.textPartitionBytes-used});f.host.requestUpdate=()=>{throw Error('HOST_COMMIT_FAILED');};assert.doesNotThrow(()=>prepared.commit());assert.equal(f.controller.candidates.get('next').id,'next');assert.equal(f.controller.candidates.has('candidate'),false);await flush();pressure.release();pressure=null;f.host.requestUpdate=update;}finally{pressure?.release();f.host.requestUpdate=update;await f.close();}assert.deepEqual(totals(),before);});
 
-test('URL cleanup failure still drains every sibling before returning and retains the failed native URL for retry',async()=>{const before=totals(),f=fixture(),slow=deferred(),started=deferred(),revoked=[];let fail=true,settled=false;globalThis.__requestEditRevoke=url=>{if(url==='blob:first'&&fail)throw Error('NATIVE_REVOKE_FAILED');revoked.push(url);};try{const op=f.controller.models.operation();f.controller.url=async id=>id==='first'?'blob:first':slow.promise;const pending=f.controller.previewURLs(op,()=>true,async acquire=>{await acquire('first');void acquire('slow').catch(()=>{});started.resolve();throw Error('LOAD_FAILED');}).then(()=>assert.fail('Expected failed preview'),error=>{assert.match(error.message,/PREVIEW_RELEASE/);}).finally(()=>{settled=true;op.release();});await started.promise;await flush();assert.equal(settled,false);assert(f.controller.cleanupURLs.has('blob:first'));assert(f.controller.models.lifecycle.operations>0);slow.resolve('blob:slow');await pending;assert.equal(settled,true);assert(revoked.includes('blob:slow'));fail=false;await f.controller.dispose();assert.equal(f.controller.cleanupURLs.size,0);assert(revoked.includes('blob:first'));}finally{fail=false;slow.resolve('blob:slow');await f.close();delete globalThis.__requestEditRevoke;}assert.deepEqual(totals(),before);});
+test('URL cleanup failure drains the active acquisition and rejects its queued sibling before retrying the failed native URL',async()=>{
+ const before=totals(),f=fixture(),slow=deferred(),entered=deferred(),started=deferred(),revoked=[],calls=[],loadFailure=Error('LOAD_FAILED'),revokeFailure=Error('NATIVE_REVOKE_FAILED');
+ let fail=true,settled=false,op,pending,active,queued,activeSignal;
+ globalThis.__requestEditRevoke=url=>{if(url==='blob:first'&&fail)throw revokeFailure;revoked.push(url);};
+ try{
+  op=f.controller.models.operation();f.controller.url=async(id,_io,signal)=>{calls.push(id);if(id==='first')return 'blob:first';assert.equal(id,'slow','Canceled queued acquisition must not invoke the URL loader');activeSignal=signal;entered.resolve();return slow.promise;};
+  pending=f.controller.previewURLs(op,()=>true,async acquire=>{
+   await acquire('first');active=acquire('slow');void active.catch(()=>{});queued=acquire('queued');void queued.catch(()=>{});
+   await Promise.race([entered.promise,active.then(()=>{throw Error('Active URL completed before entering its loader');})]);started.resolve();throw loadFailure;
+  }).then(()=>assert.fail('Expected failed preview'),error=>{assert(error instanceof AggregateError);assert.match(error.message,/PREVIEW_RELEASE/);assert.equal(error.errors[0],loadFailure);assert(error.errors.some(cause=>cause instanceof AggregateError&&cause.errors.includes(revokeFailure)));}).finally(()=>{settled=true;op.release();});
+  await Promise.race([started.promise,pending.then(()=>{throw Error('Preview completed before the active URL failure boundary');})]);await flush();
+  assert.deepEqual(calls,['first','slow']);assert.equal(activeSignal.aborted,true);assert.equal(settled,false);assert(f.controller.cleanupURLs.has('blob:first'));assert(f.controller.models.lifecycle.operations>0);assert.deepEqual(revoked,[]);
+  slow.resolve('blob:slow');await pending;const [activeResult,queuedResult]=await Promise.allSettled([active,queued]);
+  assert.equal(activeResult.status,'rejected');assert.match(activeResult.reason.message,/superseded/);assert.equal(queuedResult.status,'rejected');assert.equal(queuedResult.reason,activeResult.reason);
+  assert.equal(settled,true);assert.deepEqual(calls,['first','slow']);assert.deepEqual(revoked,['blob:slow']);assert.equal(f.controller.models.lifecycle.operations,0);assert(f.controller.cleanupURLs.has('blob:first'));
+  fail=false;await f.controller.dispose();assert.equal(f.controller.cleanupURLs.size,0);assert.deepEqual(revoked,['blob:slow','blob:first']);
+ }finally{
+  fail=false;slow.resolve('blob:slow');entered.resolve();started.resolve();await Promise.allSettled([pending,active,queued].filter(Boolean));op?.release();
+  try{await f.close();}finally{delete globalThis.__requestEditRevoke;}
+ }
+ assert.deepEqual(totals(),before);
+});
 
 test('a reused server review ID cannot resolve a superseded local adoption callback',async()=>{const before=totals(),f=fixture();try{const old={token:1,review:{reviewId:'same-server-id'}},next={token:2,review:{reviewId:'same-server-id'}};f.controller.retain('placement:candidate',old);f.controller.placementReviews.set('candidate',old);assert.equal(f.controller.currentPlacement('candidate',1),old);f.controller.retain('placement:candidate',next);f.controller.placementReviews.set('candidate',next);assert.throws(()=>f.controller.currentPlacement('candidate',1),/current, unexpired placement review/);assert.equal(f.controller.currentPlacement('candidate',2),next);f.controller.placementReviews.clear();}finally{await f.close();}assert.deepEqual(totals(),before);});
 

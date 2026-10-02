@@ -201,9 +201,11 @@ export class RequestEdits {
  private async url(assetId:string,io:EditRead,signal:AbortSignal=io.signal,owns:()=>boolean=()=>true){const transport=this.editor.session.transport.bind(this.editor.session),url=await withDisplaySource(transport,assetId,{owner:'request-edit-descriptor',signal,owns},source=>createDisplayPreviewURL(transport,source,{owner:'request-edit-preview',edge:1024,signal,owns}));this.looseURLs.set(url,io.cleanup(()=>this.release(url)));return url;}
  private async previewURLs<T>(io:EditRead,owns:()=>boolean,load:(url:(assetId:string)=>Promise<string>,signal:AbortSignal)=>Promise<T>):Promise<T|null>{
   const abort=new AbortController(),urls=new Set<string>(),pending:Promise<string>[]=[];let transferred=false,canceled=false;
+  let preceding:Promise<unknown>=Promise.resolve();
   // Cleanup aborts sibling work too; only lifecycle cancellation supersedes the original failure.
   const close=(cancel=true)=>{if(cancel)canceled=true;abort.abort();const failures:unknown[]=[];for(const url of urls)try{this.release(url);}catch(error){failures.push(error);}urls.clear();if(failures.length)throw new AggregateError(failures,'REQUEST_EDIT_PREVIEW_RELEASE_FAILED');};this.previewLoads.add(close);
-  const acquire=(assetId:string)=>{const task=this.url(assetId,io,abort.signal,owns).then(url=>{if(abort.signal.aborted||!owns()){this.release(url);throw Error('Preview loading was superseded.');}urls.add(url);return url;});pending.push(task);return task;};
+  // Finish each owned read/decode before starting the next role; equal assets still own separate URLs.
+  const acquire=(assetId:string)=>{const task=preceding.then(()=>{if(abort.signal.aborted||!owns())throw Error('Preview loading was superseded.');return this.url(assetId,io,abort.signal,owns);}).then(url=>{if(abort.signal.aborted||!owns()){this.release(url);throw Error('Preview loading was superseded.');}urls.add(url);return url;});preceding=task;pending.push(task);void task.catch(()=>{});return task;};
   let result:T|undefined,failure:unknown,failed=false;const cleanupFailures:unknown[]=[];
   try{result=await load(acquire,abort.signal);if(!abort.signal.aborted&&owns()){transferred=true;urls.clear();}}
   catch(error){failure=error;failed=true;}

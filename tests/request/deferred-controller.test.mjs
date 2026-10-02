@@ -289,37 +289,58 @@ async function previewURLCase(t,kind){
  }
  if(kind.startsWith('mask-'))f.setJSON(path=>{const entry=entries.find(item=>item.type==='metadata'&&item.path===path);assert(entry,'Expected batch metadata '+path);entry.seen=true;return entry.promise;});
  f.editor.session.transport=path=>{const entry=entries.find(item=>item.type==='url'&&(path==='/api/v1/assets/'+item.assetId||path===previewPath(f.descriptor(item.assetId))));assert(entry,'Expected bounded batch image read '+path);if(path==='/api/v1/assets/'+entry.assetId){entry.descriptorSeen=true;return Promise.resolve(descriptorResponse(f.descriptor(entry.assetId)));}assert.equal(entry.descriptorSeen,true,'Descriptor precedes its rendition');entry.seen=true;return entry.promise;};
- const work=observePromise(start());await flush();assert.equal(work.result(),undefined,'The identity-validated preview is waiting on its sibling reads');assert(entries.every(entry=>entry.type==='url'?entry.descriptorSeen:entry.seen),'Every logical sibling starts its bounded descriptor or metadata read');const urlEntries=entries.filter(entry=>entry.type==='url'),admitted=Math.min(2,urlEntries.length);assert.equal(urlEntries.filter(entry=>entry.seen).length,admitted,'Only the scheduler-admitted renditions start fetching');assert.deepEqual(displayReadOwnership(),{active:admitted,queued:urlEntries.length-admitted,limit:2},'Remaining sibling renditions wait in the bounded shared scheduler');
- const unpublished=()=>{if(kind==='mask-restore')assert.equal(f.controller.built,null);else if(kind==='mask-create')assert.equal(f.controller.built,old);else if(kind==='inspection')assert.equal(f.controller.inspections.get(f.candidate.id),old);else assert.equal(f.controller.candidatePreviews.size,0);};
- return {f,ledger,entries,retained,work,unpublished,newURLs:()=>ledger.urls().filter(url=>!retained.includes(url))};
+ const work=observePromise(start()),finish=async()=>{for(const entry of entries)entry.resolve(entry.value);await work.settled;await f.controller.dispose();};
+ try{
+  await flush();assert.equal(work.result(),undefined,'The identity-validated preview is waiting on its admitted reads');const urlEntries=entries.filter(entry=>entry.type==='url');assert(entries.filter(entry=>entry.type==='metadata').every(entry=>entry.seen),'Independent metadata reads remain concurrent');assert.equal(urlEntries[0].descriptorSeen,true);assert.equal(urlEntries[0].seen,true);assert(urlEntries.slice(1).every(entry=>!entry.descriptorSeen&&!entry.seen),'Queued preview roles perform no descriptor or rendition IO');assert.deepEqual(displayReadOwnership(),{active:1,queued:0,limit:2},'This preview batch admits one URL through its full read and decode lifetime');
+  const unpublished=()=>{if(kind==='mask-restore')assert.equal(f.controller.built,null);else if(kind==='mask-create')assert.equal(f.controller.built,old);else if(kind==='inspection')assert.equal(f.controller.inspections.get(f.candidate.id),old);else assert.equal(f.controller.candidatePreviews.size,0);};
+  return {f,ledger,entries,retained,work,unpublished,finish,newURLs:()=>ledger.urls().filter(url=>!retained.includes(url))};
+ }catch(error){await finish();throw error;}
 }
 
-for(const kind of ['mask-restore','mask-create','inspection','eager-placement'])for(const order of ['pixels-first','error-first'])test(kind+' releases every acquired preview URL when a sibling fails '+order,async t=>{
- const c=await previewURLCase(t,kind),failed=c.entries[0],pixels=c.entries.find(entry=>entry.type==='url'&&entry!==failed),remaining=c.entries.filter(entry=>entry!==failed&&entry!==pixels);
- if(order==='pixels-first'){pixels.resolve(pixels.value);await flush();assert.equal(c.newURLs().length,1);}
- failed.reject(Error('Sibling preview load failed'));await flush();if(order==='error-first'){assert.equal(c.work.result(),undefined,'Failure waits for its pending siblings to settle');pixels.resolve(pixels.value);}for(const entry of remaining)entry.resolve(entry.value);
- await c.work.settled;await flush();assert.equal(c.work.result().status,'rejected');assert.match(c.work.result().reason.message,/Sibling preview load failed/);c.unpublished();c.ledger.assertReleasedOnce(c.newURLs());c.ledger.assertRetained(c.retained);
- c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());const revoked=[...c.ledger.revoked];c.f.controller.dispose();assert.deepEqual(c.ledger.revoked,revoked,'Disposal does not release failed batch URLs twice');
+for(const kind of ['mask-restore','mask-create','inspection','eager-placement'])for(const order of ['pixels-first','error-first'])test(kind+' releases acquired preview URLs and stops queued IO when a batch read fails '+order,async t=>{
+ const c=await previewURLCase(t,kind),urls=c.entries.filter(entry=>entry.type==='url'),metadata=c.entries.find(entry=>entry.type==='metadata'),failed=metadata??urls[order==='pixels-first'?1:0],pixels=metadata?urls[0]:order==='pixels-first'?urls[0]:null,cause=Error('Sibling preview load failed');
+ try{
+  if(order==='pixels-first'){pixels.resolve(pixels.value);await flush();assert.equal(c.newURLs().length,1);assert.equal(failed.seen,true,'The failing read has actually started');}
+  failed.reject(cause);await flush();
+  if(order==='error-first'&&metadata){assert.equal(c.work.result(),undefined,'Independent metadata failure waits for the active URL response to settle');pixels.resolve(pixels.value);}
+  for(const entry of c.entries)if(entry!==failed&&entry!==pixels)entry.resolve(entry.value);
+  await c.work.settled;await flush();assert.equal(c.work.result().status,'rejected');assert.equal(c.work.result().reason,cause,'A queued successor cannot replace the original failure');c.unpublished();c.ledger.assertReleasedOnce(c.newURLs());c.ledger.assertRetained(c.retained);
+  if(!metadata){const failedIndex=urls.indexOf(failed);assert(urls.slice(failedIndex+1).every(entry=>!entry.descriptorSeen&&!entry.seen),'Failure never starts the queued successor descriptors');}
+  await c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());const revoked=[...c.ledger.revoked];await c.f.controller.dispose();assert.deepEqual(c.ledger.revoked,revoked,'Disposal does not release failed batch URLs twice');
+ }finally{await c.finish();}
 });
 
 for(const kind of ['mask-restore','mask-create','inspection','eager-placement'])for(const boundary of ['owner','disposed'])test(kind+' cannot publish pending preview URLs after '+boundary+' replacement',async t=>{
- const c=await previewURLCase(t,kind),first=c.entries.find(entry=>entry.type==='url');first.resolve(first.value);await flush();assert.equal(c.newURLs().length,1);
- if(boundary==='owner')c.f.editor.draftOwner={drafts:new Map()};else c.f.controller.dispose();for(const entry of c.entries)if(entry!==first)entry.resolve(entry.value);await c.work.settled;await flush();
- if(boundary==='owner'){c.unpublished();c.ledger.assertRetained(c.retained);}else{assert.equal(c.f.controller.built,null);assert.equal(c.f.controller.inspections.size,0);assert.equal(c.f.controller.candidatePreviews.size,0);}
- c.ledger.assertReleasedOnce(c.newURLs());c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());
+ const c=await previewURLCase(t,kind),first=c.entries.find(entry=>entry.type==='url');let closing;
+ try{
+  first.resolve(first.value);await flush();assert.equal(c.newURLs().length,1);const queued=c.entries.filter(entry=>entry.type==='url'&&!entry.descriptorSeen);
+  if(boundary==='owner')c.f.editor.draftOwner={drafts:new Map()};else{closing=c.f.controller.dispose();void closing.catch(()=>{});}for(const entry of c.entries)if(entry!==first)entry.resolve(entry.value);await c.work.settled;await closing;await flush();
+  if(boundary==='owner'){c.unpublished();c.ledger.assertRetained(c.retained);}else{assert.equal(c.f.controller.built,null);assert.equal(c.f.controller.inspections.size,0);assert.equal(c.f.controller.candidatePreviews.size,0);}
+  assert(queued.every(entry=>!entry.descriptorSeen&&!entry.seen),'Stale or disposed queued roles perform no IO');c.ledger.assertReleasedOnce(c.newURLs());await c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());
+ }finally{for(const entry of c.entries)entry.resolve(entry.value);await Promise.allSettled(closing?[closing]:[]);await c.finish();}
 });
 
 for(const kind of ['mask-restore','mask-create','inspection','eager-placement'])test(kind+' retains the complete successful URL batch until replacement or disposal',async t=>{
- const c=await previewURLCase(t,kind);for(const entry of c.entries)entry.resolve(entry.value);await c.work.settled;await flush();assert.equal(c.work.result().status,'fulfilled');const fresh=c.newURLs();assert.equal(fresh.length,c.entries.filter(entry=>entry.type==='url').length);c.ledger.assertRetained(fresh);
- if(kind==='mask-restore')assert.equal(c.f.controller.built.url,fresh[0]);else if(kind==='mask-create'){assert.equal(c.f.controller.built.url,fresh[0]);assert.equal(c.f.draft.mask.assetId,'replacement-mask');c.ledger.assertReleasedOnce(c.retained.slice(-1));c.ledger.assertRetained(c.retained.slice(0,-1));}else if(kind==='inspection'){assert.notEqual(c.f.controller.inspections.get(c.f.candidate.id).candidateURL,c.retained[0]);c.ledger.assertReleasedOnce(c.retained);}else{assert.equal(c.f.controller.candidatePreviews.size,1);c.ledger.assertRetained(c.retained);}
- c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());
+ const c=await previewURLCase(t,kind);
+ try{
+  for(const entry of c.entries)entry.resolve(entry.value);await c.work.settled;await flush();assert.equal(c.work.result().status,'fulfilled');const fresh=c.newURLs();assert.equal(fresh.length,c.entries.filter(entry=>entry.type==='url').length);c.ledger.assertRetained(fresh);
+  if(kind==='mask-restore')assert.equal(c.f.controller.built.url,fresh[0]);else if(kind==='mask-create'){assert.equal(c.f.controller.built.url,fresh[0]);assert.equal(c.f.draft.mask.assetId,'replacement-mask');c.ledger.assertReleasedOnce(c.retained.slice(-1));c.ledger.assertRetained(c.retained.slice(0,-1));}else if(kind==='inspection'){assert.notEqual(c.f.controller.inspections.get(c.f.candidate.id).candidateURL,c.retained[0]);c.ledger.assertReleasedOnce(c.retained);}else{assert.equal(c.f.controller.candidatePreviews.size,1);c.ledger.assertRetained(c.retained);}
+  await c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());
+ }finally{await c.finish();}
 });
 
-test('a sibling response stream is canceled after inspection failure and cannot create an unowned URL',async t=>{
- const c=await previewURLCase(t,'inspection'),lateBytes=deferred(),[failed,first,late]=c.entries;let canceled=false;
- const stream=new ReadableStream({async pull(controller){await lateBytes.promise;if(!canceled){controller.enqueue(pngPixels(4,4));controller.close();}},cancel(){canceled=true;}});
- late.resolve(new Response(stream,{headers:responseFor(c.f.descriptor(late.assetId)).headers}));first.resolve(first.value);await flush();assert.equal(c.newURLs().length,1);failed.reject(Error('Candidate preview failed'));await c.work.settled;assert.equal(canceled,true);lateBytes.resolve();await flush();assert.equal(c.work.result().status,'rejected');c.unpublished();c.ledger.assertReleasedOnce(c.newURLs());c.ledger.assertRetained(c.retained);c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());
+for(const arrival of ['body-started','late-response'])test('independent mask metadata failure drains an active preview '+arrival+' without creating an unowned URL',async t=>{
+ const c=await previewURLCase(t,'mask-restore'),pixels=c.entries.find(entry=>entry.type==='url'),failed=c.entries.find(entry=>entry.path?.endsWith('/raster')),bodyStarted=deferred(),bodyBytes=deferred(),cancelStarted=deferred(),cancelRelease=deferred(),cause=Error('Mask metadata failed');let canceled=false;
+ const stream=new ReadableStream({async pull(controller){bodyStarted.resolve();await bodyBytes.promise;if(!canceled){controller.enqueue(pngPixels(4,4));controller.close();}},cancel(){canceled=true;cancelStarted.resolve();return cancelRelease.promise;}},{highWaterMark:0});
+ try{
+  if(arrival==='body-started'){pixels.resolve(new Response(stream,{headers:responseFor(c.f.descriptor(pixels.assetId)).headers}));await Promise.race([bodyStarted.promise,c.work.settled.then(()=>assert.fail('Preview finished before body read'))]);}
+  failed.reject(cause);for(const entry of c.entries)if(entry!==failed&&entry!==pixels)entry.resolve(entry.value);await flush();assert.equal(c.work.result(),undefined,'Metadata failure cannot skip the active URL lifetime');
+  if(arrival==='late-response')pixels.resolve(new Response(stream,{headers:responseFor(c.f.descriptor(pixels.assetId)).headers}));
+  await Promise.race([cancelStarted.promise,c.work.settled.then(()=>assert.fail('Preview finished before native cancellation'))]);await flush();assert.equal(c.work.result(),undefined,'Failure waits for actual cancellation completion');assert.equal(c.newURLs().length,0);
+  cancelRelease.resolve();bodyBytes.resolve();await c.work.settled;assert.equal(c.work.result().status,'rejected');assert.equal(c.work.result().reason,cause);assert.equal(canceled,true);assert.equal(stream.locked,false);c.unpublished();c.ledger.assertRetained(c.retained);
+ }finally{bodyBytes.resolve();cancelRelease.resolve();await c.finish();}
 });
+
 
 async function mappingURLFixture(t){
  const ledger=previewURLLedger(t),f=await fixture(t),originalManifest=requestMaskManifest(f),temporary=new Map();originalManifest.plan.clip={x:1,y:1,width:2,height:2};const maskAsset=structuredClone(f.descriptor('mask'));let prepared=0,onPrepare=null;
@@ -371,10 +392,11 @@ for(const replacement of ['source','mask'])test('synchronizing a replacement '+r
 
 for(const interruption of ['fetch-failure','superseded-generation'])test('the same immutable mask can restore again after '+interruption+' without retaining a failed key',async t=>{
  const c=await previewURLCase(t,'mask-restore'),pixels=c.entries.find(entry=>entry.type==='url'),manifest=c.entries.find(entry=>entry.path?.endsWith('/raster')).value,asset=c.entries.find(entry=>entry.path==='/api/v1/assets/mask').value;
+ try{
  if(interruption==='fetch-failure')pixels.reject(Error('Mask content fetch failed'));else{pixels.resolve(pixels.value);await flush();assert.equal(c.newURLs().length,1);c.f.controller.invalidateMapping();}
  for(const entry of c.entries)if(entry!==pixels)entry.resolve(entry.value);await c.work.settled;await flush();assert.equal(c.work.result().status,interruption==='fetch-failure'?'rejected':'fulfilled');assert.equal(c.f.controller.built,null);assert.equal(c.f.controller.maskKey,'');c.ledger.assertReleasedOnce(c.newURLs());c.ledger.assertRetained(c.retained);
  c.f.setJSON(path=>{if(path==='/api/v1/assets/mask/raster')return manifest;if(path==='/api/v1/assets/mask')return asset;assert.fail('Unexpected restoration metadata '+path);});const retries=[];c.f.editor.session.transport=async path=>{retries.push(path);return displayRoute(path,c.f.descriptor);};await c.f.controller.sync();await flush();
- assert.deepEqual(retries,['/api/v1/assets/mask',previewPath(c.f.descriptor('mask'))]);assert.equal(c.f.controller.maskKey,'mask');assert.equal(c.f.controller.built.asset.id,'mask');const restored=c.f.controller.built.url;assert.equal(restored,c.newURLs().at(-1));c.ledger.assertRetained([...c.retained,restored]);c.ledger.assertReleasedOnce(c.newURLs().filter(url=>url!==restored));c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());
+ assert.deepEqual(retries,['/api/v1/assets/mask',previewPath(c.f.descriptor('mask'))]);assert.equal(c.f.controller.maskKey,'mask');assert.equal(c.f.controller.built.asset.id,'mask');const restored=c.f.controller.built.url;assert.equal(restored,c.newURLs().at(-1));c.ledger.assertRetained([...c.retained,restored]);c.ledger.assertReleasedOnce(c.newURLs().filter(url=>url!==restored));c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls()); }finally{await c.finish();}
 });
 
 
@@ -387,3 +409,34 @@ test('bounded candidate display keeps full retained dimensions and identity thro
 });
 
 for(const schema of [1,3,99])test('asset projection schema '+schema+' cannot replace the retained candidate inspection',async t=>{const f=await fixture(t);await inspect(f);const prior=f.controller.inspections.get(f.candidate.id),priorURLs=[prior.candidateURL,prior.sourceURL,prior.maskURL];f.setJSON(path=>{if(path==='/api/v1/assets/returned')return {...projection(f.asset),projectionSchema:schema};if(path.startsWith('/api/v1/jobs/job/candidates'))return structuredClone(f.view);throw Error('Unexpected read '+path);});await f.click(inspectId);assert.equal(f.errors.length,1);assert.equal(f.controller.inspections.get(f.candidate.id),prior);assert.deepEqual([prior.candidateURL,prior.sourceURL,prior.maskURL],priorURLs);for(const url of priorURLs)assert(displayPreviewInfo(url),'Prior complete inspection preview stays admitted');});
+
+
+test('queued inspection preview performs no IO until the previous body, decode and scheduler lease finish',async t=>{
+ const c=await previewURLCase(t,'inspection'),[first,...queued]=c.entries.filter(entry=>entry.type==='url'),bodyEntered=deferred(),decodeEntered=deferred(),decodeRelease=deferred(),decode=globalThis.createImageBitmap,transport=c.f.editor.session.transport,bytes=pngPixels(4,4),half=Math.floor(bytes.length/2);let bodyController,bodyClosed=false,unlocks=0,decodes=0,bitmapCloses=0,nextDescriptor=false;
+ const finishBody=()=>{if(!bodyClosed){bodyClosed=true;bodyController.enqueue(bytes.subarray(half));bodyController.close();}},body=new ReadableStream({start(controller){bodyController=controller;controller.enqueue(bytes.subarray(0,half));},pull(){bodyEntered.resolve();},cancel(){bodyClosed=true;}},{highWaterMark:0}),getReader=body.getReader.bind(body);
+ body.getReader=()=>{const reader=getReader();return {get closed(){return reader.closed;},read:()=>reader.read(),cancel:()=>reader.cancel(),releaseLock(){reader.releaseLock();unlocks++;}};};
+ globalThis.createImageBitmap=async blob=>{const bitmap=await decode(blob);if(++decodes===1){decodeEntered.resolve();await decodeRelease.promise;return {width:bitmap.width,height:bitmap.height,close(){try{assert(queued.every(entry=>!entry.descriptorSeen&&!entry.seen),'No successor begins before the previous bitmap closes');}finally{bitmap.close();bitmapCloses++;}}};}return bitmap;};
+ c.f.editor.session.transport=(path,...args)=>{if(path==='/api/v1/assets/'+queued[0].assetId){nextDescriptor=true;assert.equal(unlocks,1);assert.equal(bitmapCloses,1);assert.equal(c.newURLs().length,1);assert.deepEqual(displayReadOwnership(),{active:0,queued:0,limit:2},'The predecessor releases its actual shared scheduler lease before the next descriptor read');}return transport(path,...args);};
+ try{
+  first.resolve(new Response(body,{headers:responseFor(c.f.descriptor(first.assetId)).headers}));await Promise.race([bodyEntered.promise,c.work.settled.then(()=>assert.fail('Inspection completed before body read'))]);await flush();
+  assert.equal(body.locked,true);assert.equal(decodes,0);assert.equal(c.newURLs().length,0);assert(queued.every(entry=>!entry.descriptorSeen&&!entry.seen));assert.deepEqual(displayReadOwnership(),{active:1,queued:0,limit:2});
+  finishBody();await Promise.race([decodeEntered.promise,c.work.settled.then(()=>assert.fail('Inspection completed before decoder'))]);await flush();
+  assert.equal(body.locked,false);assert.equal(unlocks,1);assert.equal(bitmapCloses,0);assert.equal(c.newURLs().length,0);assert(queued.every(entry=>!entry.descriptorSeen&&!entry.seen),'EOF and native unlock alone do not release the queued URL');assert.deepEqual(displayReadOwnership(),{active:1,queued:0,limit:2});
+  decodeRelease.resolve();await flush();assert.equal(bitmapCloses,1);assert.equal(nextDescriptor,true);assert.equal(queued[0].seen,true);assert.equal(queued[1].descriptorSeen,undefined);assert.equal(c.newURLs().length,1);assert.deepEqual(displayReadOwnership(),{active:1,queued:0,limit:2});
+  for(const entry of queued)entry.resolve(entry.value);await c.work.settled;assert.equal(c.work.result().status,'fulfilled');assert.equal(c.newURLs().length,3);c.ledger.assertRetained(c.newURLs());assert.deepEqual(displayReadOwnership(),{active:0,queued:0,limit:2});
+ }finally{finishBody();decodeRelease.resolve();try{await c.finish();}finally{globalThis.createImageBitmap=decode;c.f.editor.session.transport=transport;}}
+});
+
+test('equal after-composite and native-on role assets acquire separate URL owners serially through the actual display reader',async t=>{
+ const ledger=previewURLLedger(t),f=await fixture(t),io=f.controller.models.operation(),asset=f.descriptor('after-native-on'),descriptor='/api/v1/assets/'+asset.id,rendition=previewPath(asset),firstResponse=deferred(),entered=deferred(),decodeEntered=deferred(),decodeRelease=deferred(),reads=[],transport=f.editor.session.transport,decode=globalThis.createImageBitmap,response=responseFor(asset),getReader=response.body.getReader.bind(response.body);let renditions=0,unlocks=0,decodes=0,bitmapCloses=0,work;
+ response.body.getReader=()=>{const reader=getReader();return {get closed(){return reader.closed;},read:()=>reader.read(),cancel:()=>reader.cancel(),releaseLock(){reader.releaseLock();unlocks++;}};};
+ globalThis.createImageBitmap=async blob=>{const bitmap=await decode(blob),index=++decodes;if(index===1){decodeEntered.resolve();await decodeRelease.promise;}return {width:bitmap.width,height:bitmap.height,close(){try{if(index===1)assert.deepEqual(reads,[descriptor,rendition],'The equal-asset successor waits until its predecessor bitmap closes');}finally{bitmap.close();bitmapCloses++;}}};};
+ f.editor.session.transport=(path,init)=>{reads.push(path);assert(path===descriptor||path===rendition);if(path===descriptor&&reads.length===3){assert.equal(unlocks,1);assert.equal(bitmapCloses,1);assert.equal(ledger.created.length,1);assert.deepEqual(displayReadOwnership(),{active:0,queued:0,limit:2});}if(path===rendition&&++renditions===1){entered.resolve();return firstResponse.promise;}return transport(path,init);};
+ try{
+  work=observePromise(f.controller.previewURLs(io,f.owns(),async acquire=>{const [afterURL,nativeOnURL]=await Promise.all([acquire(asset.id),acquire(asset.id)]);return {afterURL,nativeOnURL};}));
+  await Promise.race([entered.promise,work.settled.then(()=>assert.fail('Role batch completed before its held display response'))]);await flush();assert.deepEqual(reads,[descriptor,rendition],'The second role has not even fetched its same-asset descriptor');assert.equal(ledger.created.length,0);assert.deepEqual(displayReadOwnership(),{active:1,queued:0,limit:2});
+  firstResponse.resolve(response);await Promise.race([decodeEntered.promise,work.settled.then(()=>assert.fail('Role batch completed before its held decoder'))]);await flush();assert.equal(response.body.locked,false);assert.equal(unlocks,1);assert.equal(bitmapCloses,0);assert.equal(ledger.created.length,0);assert.deepEqual(reads,[descriptor,rendition],'The same-asset role remains queued after body EOF and native unlock');assert.deepEqual(displayReadOwnership(),{active:1,queued:0,limit:2});
+  decodeRelease.resolve();await work.settled;assert.equal(work.result().status,'fulfilled');const {afterURL,nativeOnURL}=work.result().value;assert.notEqual(afterURL,nativeOnURL,'Equal asset identities keep independent role URL owners');assert.deepEqual(reads,[descriptor,rendition,descriptor,rendition]);assert.equal(decodes,2);assert.equal(bitmapCloses,2);assert.equal(ledger.created.length,2);assert.equal(displayPreviewInfo(afterURL).source,asset.raster.pixelIdentity);assert.equal(displayPreviewInfo(nativeOnURL).source,asset.raster.pixelIdentity);ledger.assertRetained([afterURL,nativeOnURL]);
+  io.release();await flush();ledger.assertReleasedOnce([afterURL,nativeOnURL]);assert.equal(displayPreviewInfo(afterURL),undefined);assert.equal(displayPreviewInfo(nativeOnURL),undefined);assert.deepEqual(displayReadOwnership(),{active:0,queued:0,limit:2});
+ }finally{firstResponse.resolve(response);decodeRelease.resolve();await work?.settled;try{io.release();await f.controller.dispose();}finally{globalThis.createImageBitmap=decode;f.editor.session.transport=transport;}}
+});
