@@ -1,5 +1,5 @@
 import {confirmImageImports} from '../editor/image-import-flow.js';
-import {test as base,expect,type Page,type Locator,type JSHandle} from '@playwright/test';
+import {test as base,expect,type Page,type Locator,type JSHandle,type Request,type Response} from '@playwright/test';
 import {mkdtemp,realpath,readFile,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -10,6 +10,22 @@ import {ownedOPFS} from '../editor/owned-opfs.js';
 import {recordDOMErrors} from '../editor/error-monitor.js';
 import {runs,step,throwFailures,finishFixture,type RunState} from '../editor/harness-lifecycle.js';
 import {publicReadRequest} from '../request/persistence-witness.js';
+
+// Incidental protocol diagnostics use native metadata; actual public reads below own their JSON bodies.
+function postResponseMetadata(page:Page,state:RunState){
+  type Row={id:number;method:string;origin:string;path:string;postKind:'command'|'ui';postId:string|null;postType:string|null;startedAt:string;startedMs:number;responseMs:number|null;status:number|null;terminal:'pending'|'finished'|'failed';terminalMs:number|null;failureText:string|null};
+  const limit=1024,rows:Row[]=[],identities=new WeakMap<Request,Row>();let dropped=0,truncated=0,stopped=false;
+  const bounded=(value:unknown,cap:number)=>{if(typeof value!=='string')return null;if(value.length>cap)truncated++;return value.slice(0,cap);};
+  const response=(value:Response)=>{const row=identities.get(value.request());if(row){row.status=value.status();row.responseMs=performance.now();}};
+  const terminal=(request:Request,outcome:'finished'|'failed')=>{const row=identities.get(request);if(row){row.terminal=outcome;row.terminalMs=performance.now();row.failureText=bounded(request.failure()?.errorText,256);}};
+  const finished=(request:Request)=>terminal(request,'finished'),failed=(request:Request)=>terminal(request,'failed');
+  page.on('response',response);page.on('requestfinished',finished);page.on('requestfailed',failed);
+  return {
+    admit(request:Request,postKind:'command'|'ui',value:any){if(stopped)return;if(rows.length===limit){if(!dropped)state.failures.push({phase:'response-metadata',error:Error('E3_RESPONSE_METADATA_LIMIT')});dropped++;return;}const url=new URL(request.url()),row:Row={id:rows.length+1,method:request.method(),origin:bounded(url.origin,256)!,path:bounded(url.pathname,1024)!,postKind,postId:bounded(postKind==='command'?value.commandId:value.requestId,128),postType:bounded(value.body?.type,128),startedAt:new Date().toISOString(),startedMs:performance.now(),responseMs:null,status:null,terminal:'pending',terminalMs:null,failureText:null};rows.push(row);identities.set(request,row);},
+    snapshot(){return {schemaVersion:1,kind:'e3-post-response-metadata',responseBodiesRead:false,limit,dropped,truncated,rows};},
+    stop(){stopped=true;page.off('response',response);page.off('requestfinished',finished);page.off('requestfailed',failed);}
+  };
+}
 
 const receipt=process.env.EDITOR_RECEIPT??'artifacts/p26-request-edits';
 const maskReReviewTitle='E3 actual-output placement re-review retains the decoded mask element without another native load';
@@ -36,31 +52,27 @@ const objectPath=(root:string,ref:{hash:string})=>join(root,'objects','sha256',r
 // the same commands and retained objects as the editor.
 test('E3 keyboard mask and native overlay survive safe adoption history and stale-target recovery',async({page,context,browserName})=>{
   const guard=await ownedOPFS(context,'p26-e3'),errors=await recordDOMErrors(context);
-  const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],commands:any[]=[],uiRequests:any[]=[],replies:any[]=[],pending:Promise<void>[]=[];
+  const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],commands:any[]=[],uiRequests:any[]=[];
   const dir=await mkdtemp(join(await realpath(tmpdir()),'p26-e3-')),root=join(dir,'private');
   let server:Awaited<ReturnType<typeof serverProcess>>|undefined,effects:any,closed:any;
   const evidence:Record<string,unknown>={};
   const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:'e3-'};
   runs.set(context,state);
-  state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,replies,effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
-  state.finalCheck=async()=>{
+  const responseMetadata=postResponseMetadata(page,state);
+  state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,responseMetadata:responseMetadata.snapshot(),effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
+  state.finalCheck=async()=>{try{
     guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);
     expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);
     expect(closed?.closed).toBe(true);expect(closed?.resources.objects).toEqual({reservedBytes:'0',activeTransfers:0});
     expect(closed?.resources.raster.activeWorkers).toBe(0);
-  };
+  }finally{responseMetadata.stop();}};
   await context.exposeBinding('requestEditsCSP',(_source,value)=>csp.push(value));
   await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>(window as any).requestEditsCSP({directive:event.effectiveDirective,blocked:event.blockedURI})));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
   page.on('request',request=>{
     if(request.method()!=='POST')return;const path=new URL(request.url()).pathname;
-    if(path==='/api/v1/commands')commands.push(JSON.parse(request.postData()!).command);
-    if(path.startsWith('/api/v1/ui/'))uiRequests.push(JSON.parse(request.postData()!));
-  });
-  page.on('response',response=>{
-    const path=new URL(response.url()).pathname;
-    if(response.request().method()==='POST'&&(path==='/api/v1/commands'||path.startsWith('/api/v1/ui/')))
-      pending.push(response.json().then(value=>{replies.push({path,request:JSON.parse(response.request().postData()!),value});}).catch(error=>{state.failures.push({phase:'response-observation',error});}));
+    if(path==='/api/v1/commands'){const value=JSON.parse(request.postData()!).command;commands.push(value);responseMetadata.admit(request,'command',value);}
+    if(path.startsWith('/api/v1/ui/')){const value=JSON.parse(request.postData()!);uiRequests.push(value);responseMetadata.admit(request,'ui',value);}
   });
   async function read(path:string){return page.evaluate(async spec=>{const response=await fetch(spec.path,spec.init);if(!response.ok)throw Error('Public read '+response.status);return response.json();},publicReadRequest(path));}
   async function document(id:string){return (await read('/api/v1/documents/'+id)).projection.value;}
@@ -99,9 +111,28 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
     await page.getByRole('treeitem').filter({hasText:imported.body.name}).click();
     await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');
     await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('E3 recolor the reviewed region while retaining editable overlay');
-    await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');
-    await keyboard(button(page,'request-capture-single'));
-    await expect.poll(()=>commands.filter(command=>command.body.type==='PrepareRequestSource').length).toBe(1);
+    const captureObserver=await page.evaluateHandle(()=>{
+      const document=window.document;
+      const limit=32,events:Record<string,unknown>[]=[],snapshots:Record<string,unknown>[]=[],eventRows=new WeakMap<Event,Record<string,unknown>>();let dropped=0,truncated=0;
+      const bounded=(value:string,cap:number)=>{if(value.length>cap)truncated++;return value.slice(0,cap);};
+      const control=()=>document.querySelector('#request-capture-single')?.shadowRoot?.querySelector<HTMLButtonElement>('button')??null,initialControl=control();
+      function snapshot(){const native=control(),host=document.querySelector('#request-capture-single');let active=document.activeElement;while(active?.shadowRoot?.activeElement)active=active.shadowRoot.activeElement;const mark=performance.getEntriesByName('ie.editor.updated').at(-1) as PerformanceMark|undefined,detail=mark?.detail,footer=document.querySelector('footer')?.textContent??'',source=document.querySelector('#request-source-status')?.textContent?.trim();return {at:performance.now(),nativePresent:!!native,sameNative:native===initialControl,connected:native?.isConnected??false,disabled:native?.disabled??null,hostDisabled:host?.hasAttribute('disabled')??null,ariaDisabled:native?.getAttribute('aria-disabled')??null,focused:active===native,activeTag:bounded(active?.tagName??'',32),activeId:bounded(active?.id??'',80),strength:bounded(document.querySelector('#request-strength')?.shadowRoot?.querySelector<HTMLInputElement>('input')?.value??'',32),editBusy:document.querySelector('.request-edits')?.getAttribute('aria-busy')??null,operationBusy:document.querySelector('.operation-status')?.getAttribute('aria-busy')??null,requestErrors:bounded(document.querySelector('#request-errors')?.shadowRoot?.querySelector('[part="base"]')?.textContent??'',512),requestStatus:bounded(document.querySelector('#request-announcements')?.textContent??'',512),source:source==='No source captured.'?'none':source?.includes('source ·')?'captured':'other',footer:footer.includes('Accepted edits saved locally · Draft saved locally; not applied to the document')?'saved':footer.includes('Draft saving')?'saving':footer.includes('Unsaved UI draft')?'unsaved':'other',editor:{ready:typeof detail?.ready==='boolean'?detail.ready:null,busy:typeof detail?.busy==='boolean'?detail.busy:null,documentPresent:typeof detail?.documentId==='string',revision:typeof detail?.revision==='string'?bounded(detail.revision,32):null}};}
+      const capture=(event:Event)=>{if(events.length===limit){dropped++;return;}const target=event.composedPath()[0],native=control(),key=event instanceof KeyboardEvent?event:null,row:Record<string,unknown>={type:event.type,eventTime:event.timeStamp,trusted:event.isTrusted,key:key?bounded(key.key,24):null,alt:key?.altKey??null,ctrl:key?.ctrlKey??null,meta:key?.metaKey??null,shift:key?.shiftKey??null,targetIsCapture:target===native,targetTag:target instanceof Element?bounded(target.tagName,32):'',targetId:target instanceof Element?bounded(target.id,80):'',defaultPreventedAtCapture:event.defaultPrevented,defaultPreventedAtDocumentBubble:null,...snapshot()};events.push(row);eventRows.set(event,row);};
+      const bubble=(event:Event)=>{const row=eventRows.get(event);if(row)row.defaultPreventedAtDocumentBubble=event.defaultPrevented;};
+      for(const type of ['keydown','keyup','click']){document.addEventListener(type,capture,{capture:true,passive:true});document.addEventListener(type,bubble,{passive:true});}
+      const mark=(phase:string)=>{if(snapshots.length===limit){dropped++;return;}snapshots.push({phase,...snapshot()});};mark('before-input-settings');
+      return {mark,stop(){for(const type of ['keydown','keyup','click']){document.removeEventListener(type,capture,true);document.removeEventListener(type,bubble);}mark('stopped');return {limit,dropped,truncated,events,snapshots};}};
+    });
+    try{
+      await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');await expect(page.locator('#request-strength').getByRole('spinbutton')).toHaveValue('1');
+      await captureObserver.evaluate(observer=>observer.mark('before-keyboard'));
+      await keyboard(button(page,'request-capture-single'));
+      await captureObserver.evaluate(observer=>observer.mark('after-keyboard'));
+      await expect.poll(()=>commands.filter(command=>command.body.type==='PrepareRequestSource').length).toBe(1);
+    }finally{
+      await step(state,'capture-observation',async()=>{evidence.captureAdmission=await captureObserver.evaluate(observer=>observer.stop());});
+      await step(state,'capture-observation-dispose',()=>captureObserver.dispose());
+    }
     await expect(page.locator('.typed-request')).toContainText('single-layer');
     await page.locator('#request-mask-shape').getByRole('combobox').selectOption('rectangle');
     for(const [id,value]of [['x','192'],['y','192'],['width','127'],['height','128'],['feather','7']])await numeric(page,'request-mask-'+id,value);
@@ -266,9 +297,7 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
     evidence.review=job.review;evidence.candidate=candidate;
     if(browserName!=='webkit')await page.screenshot({path:join(receipt,'e3-adopted.png'),caret:'initial'});
   }catch(error){state.failures.push({phase:'body',error});}finally{
-    await step(state,'response-observations',()=>Promise.all(pending));
     if(!state.failures.length)await step(state,'logical-cleanup',async()=>{for(const current of context.pages())await current.goto('about:blank');await guard.cleanup();guard.verify();});
-    await step(state,'quiesced-response-observations',()=>Promise.all(pending));
     if(server)state.writerClosed=await step(state,'writer-close',()=>server!.close());
     if(state.writerClosed)await step(state,'native-close-receipt',async()=>{closed=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));expect(closed.closed).toBe(true);expect(closed.errors).toEqual([]);});
     throwFailures(state.failures);
@@ -311,7 +340,7 @@ test(maskReReviewTitle,async({page,context,browserName})=>{
     await click(page,'Import image');await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeVisible();await page.locator('en-dialog#editor-dialog').locator('en-file-upload input[type=file]').setInputFiles(sourceFile);await confirmImageImports(page,{names:['Mask re-review source.png'],destination:'current'});
     await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();
     const originalDocument=(await read('/api/v1/documents/'+documentId)).projection.value;
-    await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Review the same retained mask with actual returned dimensions');await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');
+    await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Review the same retained mask with actual returned dimensions');await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');await expect(page.locator('#request-strength').getByRole('spinbutton')).toHaveValue('1');
     await keyboard(button(page,'request-capture-single'));await expect.poll(()=>commands.filter(command=>command.body.type==='PrepareRequestSource').length).toBe(1);
     await page.locator('#request-mask-shape').getByRole('combobox').selectOption('rectangle');for(const [id,value]of [['x','192'],['y','192'],['width','128'],['height','128'],['feather','0']])await numeric(page,'request-mask-'+id,value);
     await keyboard(button(page,'request-mask-build'));await expect(page.locator('.typed-request')).toContainText('partial coverage');await keyboard(button(page,'request-mapping-preview'));await keyboard(button(page,'request-mask-confirm'));await keyboard(button(page,'request-document'));await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();await keyboard(button(page,'accept-request'));await keyboard(button(page,'enqueue-request'));
@@ -392,7 +421,7 @@ test(deferredAdoptionTitle,async({page,context,browserName})=>{
     await click(page,'Import image');await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeVisible();await page.locator('en-dialog#editor-dialog').locator('en-file-upload input[type=file]').setInputFiles(sourceFile);await confirmImageImports(page,{names:['Deferred source.png'],destination:'current'});
     await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();
     const originalDocument=await document(documentId),originalState=await imageState(documentId);
-    await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Prepare the reviewed masked result only when I accept its new document');await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');
+    await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Prepare the reviewed masked result only when I accept its new document');await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');await expect(page.locator('#request-strength').getByRole('spinbutton')).toHaveValue('1');
     await keyboard(button(page,'request-capture-single'));await expect.poll(()=>commands.filter(command=>command.body.type==='PrepareRequestSource').length).toBe(1);
     await page.locator('#request-mask-shape').getByRole('combobox').selectOption('rectangle');for(const [id,value]of [['x','192'],['y','192'],['width','128'],['height','128'],['feather','8']])await numeric(page,'request-mask-'+id,value);
     await keyboard(button(page,'request-mask-build'));await expect(page.locator('.typed-request')).toContainText('partial coverage');await keyboard(button(page,'request-mapping-preview'));await keyboard(button(page,'request-mask-confirm'));await keyboard(button(page,'request-document'));await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();await keyboard(button(page,'accept-request'));await keyboard(button(page,'enqueue-request'));
@@ -432,31 +461,27 @@ test(deferredAdoptionTitle,async({page,context,browserName})=>{
 // This functional case makes no all-cache encoded-only performance claim.
 test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
   const guard=await ownedOPFS(context,'p26-native-deferred'),errors=await recordDOMErrors(context);
-  const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],commands:any[]=[],uiRequests:any[]=[],replies:any[]=[],pending:Promise<void>[]=[];
+  const csp:unknown[]=[],external:string[]=[],consoleErrors:string[]=[],commands:any[]=[],uiRequests:any[]=[];
   const dir=await mkdtemp(join(await realpath(tmpdir()),'p26-native-deferred-')),root=join(dir,'private');
   let server:Awaited<ReturnType<typeof serverProcess>>|undefined,effects:any,closed:any;
   const evidence:Record<string,unknown>={};
   const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:'e3-native-deferred-'};
   runs.set(context,state);
-  state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,replies,effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
-  state.finalCheck=async()=>{
+  const responseMetadata=postResponseMetadata(page,state);
+  state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,responseMetadata:responseMetadata.snapshot(),effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
+  state.finalCheck=async()=>{try{
     guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);
     expect(errors).toEqual([]);expect(csp).toEqual([]);expect(external).toEqual([]);expect(consoleErrors).toEqual([]);
     expect(closed?.closed).toBe(true);expect(closed?.resources.objects).toEqual({reservedBytes:'0',activeTransfers:0});
     expect(closed?.resources.raster.activeWorkers).toBe(0);
-  };
+  }finally{responseMetadata.stop();}};
   await context.exposeBinding('nativeDeferredCSP',(_source,value)=>csp.push(value));
   await context.addInitScript(()=>addEventListener('securitypolicyviolation',event=>(window as any).nativeDeferredCSP({directive:event.effectiveDirective,blocked:event.blockedURI})));
   page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
   page.on('request',request=>{
     if(request.method()!=='POST')return;const path=new URL(request.url()).pathname;
-    if(path==='/api/v1/commands')commands.push(JSON.parse(request.postData()!).command);
-    if(path.startsWith('/api/v1/ui/'))uiRequests.push(JSON.parse(request.postData()!));
-  });
-  page.on('response',response=>{
-    const path=new URL(response.url()).pathname;
-    if(response.request().method()==='POST'&&(path==='/api/v1/commands'||path.startsWith('/api/v1/ui/')))
-      pending.push(response.json().then(value=>{replies.push({path,request:JSON.parse(response.request().postData()!),value});}).catch(error=>{state.failures.push({phase:'response-observation',error});}));
+    if(path==='/api/v1/commands'){const value=JSON.parse(request.postData()!).command;commands.push(value);responseMetadata.admit(request,'command',value);}
+    if(path.startsWith('/api/v1/ui/')){const value=JSON.parse(request.postData()!);uiRequests.push(value);responseMetadata.admit(request,'ui',value);}
   });
   async function read(path:string){return page.evaluate(async spec=>{const response=await fetch(spec.path,spec.init);if(!response.ok)throw Error('Public read '+response.status);return response.json();},publicReadRequest(path));}
   async function document(id:string){return (await read('/api/v1/documents/'+id)).projection.value;}
@@ -495,7 +520,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     await page.getByRole('treeitem').filter({hasText:imported.body.name}).click();
     await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');
     await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('E3 recolor the reviewed region while retaining editable overlay');
-    await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');
+    await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');await expect(page.locator('#request-strength').getByRole('spinbutton')).toHaveValue('1');
     await keyboard(button(page,'request-capture-single'));
     await expect.poll(()=>commands.filter(command=>command.body.type==='PrepareRequestSource').length).toBe(1);
     await expect(page.locator('.typed-request')).toContainText('single-layer');
@@ -670,9 +695,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     evidence.review=job.review;evidence.candidate=candidate;
     if(browserName!=='webkit')await page.screenshot({path:join(receipt,'e3-native-deferred-adopted.png'),caret:'initial'});
   }catch(error){state.failures.push({phase:'body',error});}finally{
-    await step(state,'response-observations',()=>Promise.all(pending));
     if(!state.failures.length)await step(state,'logical-cleanup',async()=>{for(const current of context.pages())await current.goto('about:blank');await guard.cleanup();guard.verify();});
-    await step(state,'quiesced-response-observations',()=>Promise.all(pending));
     if(server)state.writerClosed=await step(state,'writer-close',()=>server!.close());
     if(state.writerClosed)await step(state,'native-close-receipt',async()=>{closed=JSON.parse(await readFile(join(root,'request-edits-fixture.json'),'utf8'));expect(closed.closed).toBe(true);expect(closed.errors).toEqual([]);});
     throwFailures(state.failures);
