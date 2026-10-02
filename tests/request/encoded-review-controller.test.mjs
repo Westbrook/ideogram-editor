@@ -151,10 +151,6 @@ async function fixture(t,{nativeLettering=false}={}) {
   // Rendering calls liveness, so querySelector must never trigger a render.
   const host = { isConnected:true, requestUpdate() {updates++;if(scheduled)return;scheduled=true;this.updateComplete=Promise.resolve().then(()=>{scheduled=false;publish();});void this.updateComplete.catch(error=>errors.push(error));}, updateComplete: Promise.resolve(),querySelector(selector){assert.equal(selector,'#'+newId);return mounted.has(newId)?{isConnected:host.isConnected,checkVisibility:()=>panelVisible}:null;} };
   const controller = new RequestEdits(host, editor, { draft: () => undefined,entryKey:()=>undefined,hold(expected){assert.equal(expected,undefined);return documentOwner.pin();},mutate(){assert.fail('Unexpected authoring mutation');}, changed() {}, owns: () => () => current, error: error => errors.push(error) });
-  controller.retainCandidates([candidate]);
-  const inspection={ candidate, asset: { raster: { width: 4, height: 4 } }, raster: { plan, source: { scope: 'visible-document' } },...(treatment?{textTreatment:treatment.envelope}:{}), sourceURL: '', candidateURL: '', maskURL: '', decoded: { source: false, candidate: false, mask: false }, actualApproved: false, clipActual: false };controller.inspections.set(candidate.id,inspection);
-  controller.candidateMode.set(candidate.id, 'safe-region');
-  const rendered = () => {const tree=render(controller.renderCandidate(candidate,false,treatment?.envelope));mounted=new Map(tree.buttons.filter(row=>row.id).map(row=>[row.id,row]));return tree;};publish=rendered;
   t.after(async()=>{
     // Release transport barriers before awaiting the actual controller drain;
     // otherwise the cleanup would wait on the fixture's own suspended response.
@@ -164,6 +160,11 @@ async function fixture(t,{nativeLettering=false}={}) {
     try{await flush();await release;}finally{for(const owner of viewOwners)owner.release();}
     assert.equal(lifecycleClock.timers.size,0);assert.deepEqual(displayPreviewOwnership(),displayBaseline);assert.deepEqual(totals(),baseline);
   });
+  await controller.sync();
+  controller.retainCandidates([candidate]);
+  const inspection={ candidate, asset: { raster: { width: 4, height: 4 } }, raster: { plan, source: { scope: 'visible-document' } },...(treatment?{textTreatment:treatment.envelope}:{}), sourceURL: '', candidateURL: '', maskURL: '', decoded: { source: false, candidate: false, mask: false }, actualApproved: false, clipActual: false };controller.inspections.set(candidate.id,inspection);
+  controller.candidateMode.set(candidate.id, 'safe-region');
+  const rendered = () => {const tree=render(controller.renderCandidate(candidate,false,treatment?.envelope));mounted=new Map(tree.buttons.filter(row=>row.id).map(row=>[row.id,row]));return tree;};publish=rendered;
   // Admit each real display URL before publishing the retained inspection.
   // The controller already owns the partial inspection if admission fails.
   for(const key of ['source','candidate','mask'])inspection[key+'URL']=await fixtureDisplayURL(key);

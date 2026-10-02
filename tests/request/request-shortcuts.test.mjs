@@ -171,7 +171,7 @@ for(const change of ['field','operation','document','identity'])test('queued val
 });
 
 test('actual masked transport mapping errors reach inline controls and current summary links, then clear on correction',async t=>{
- const f=await fixture(t);f.flow.operationChanged('Edit masked region with Ideogram v4.5');installEditSource(f);const source=f.flow.entry().draft.source,ref=(number,mediaType='application/json',byteLength='32')=>({hash:'sha256:'+number.toString(16).padStart(64,'0'),byteLength,mediaType});
+ const f=await fixture(t);f.flow.operationChanged('Edit masked region with Ideogram v4.5');await f.flow.requestEdits.sync();installEditSource(f);const source=f.flow.entry().draft.source,ref=(number,mediaType='application/json',byteLength='32')=>({hash:'sha256:'+number.toString(16).padStart(64,'0'),byteLength,mediaType});
  const mask={assetId:'mask',version:'1',blob:ref(7,'image/png'),pixels:ref(8,'application/x-ideogram-rgba8','64'),width:8,height:2,sourceHash:source.pixels.hash,polarity:'white-edit',empty:false,full:false,fullAcknowledged:false,cropAcknowledged:false,plan:ref(9),binding:bindRequestMask(source)},manifest={plan:{hard:ref(10,'application/x-ideogram-r16le','32'),effective:ref(11,'application/x-ideogram-r16le','32')}};
  f.flow.mutateEntry(mask,next=>{next.draft.mask=mask;next.draft.preparedInputs=null;next.draft.fields.width=next.draft.fields.height='128';});const edits=f.flow.requestEdits;edits.geometry={x:'0',y:'0',width:'8',height:'2',left:'0',top:'0',right:'0',bottom:'0'};f.editor.beginFeedback=()=>{};await flush();
  // Use the real RequestEdits action/error hook and mappingPlan; only source/mask descriptors are synthetic.

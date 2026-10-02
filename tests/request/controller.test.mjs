@@ -562,3 +562,37 @@ test('a replacement request owner drains its predecessor preview before child sy
  const successor=f.start();await Promise.all([first,successor]);assert.notEqual(f.instance.entry(),oldEntry);assert.equal(f.cancels(),1);assert.equal(f.children.length,1);assert.equal(f.children[0].entry,f.instance.entry());assert.equal(f.created.length,0);
  await f.instance.source('next','asset');await f.start();assert.equal(f.renditions().length,3);assert(f.renditions().slice(1).every(row=>row.path.startsWith('/api/v1/assets/next/display?')));assert.equal(f.created.length,2);assert.deepEqual(f.errors,[]);assertRestoreWorkDrained(f);
 });
+
+
+function captureControl(f,id='request-capture-single'){
+ const template=find(f.instance.render(),'<en-button id="'+id+'"');assert(template,'The current request renders '+id);
+ const disabled=template.strings.findIndex(part=>part.includes('?disabled='));assert(disabled>=0);
+ return {disabled:template.values[disabled],click:template.values.find(value=>typeof value==='function')};
+}
+function captureTransport(f,gate){
+ const commands=[],feedback=[],asset=previewProjection('captured').projection.value;
+ f.editor.view.selected=['picture'];f.editor.beginFeedback=time=>feedback.push(time);
+ f.editor.command=async(body,document)=>{commands.push({body:structuredClone(body),document:structuredClone(document)});if(gate){gate.entered.resolve();await gate.release.promise;}return [{type:'AssetRegistered',payload:{asset}}];};
+ return {commands,feedback,asset};
+}
+for(const operation of ['Transform with Ideogram v4.5','Edit masked region with Ideogram v4.5'])test('rendered '+operation+' capture waits for child entry adoption',async t=>{
+ const f=await previewController(t),capture=captureTransport(f),child=f.instance.requestEdits,dispose=child.dispose.bind(child),entered=previewDeferred(),adopt=previewDeferred();let pending;
+ child.dispose=async()=>{await dispose();entered.resolve();await adopt.promise;};
+ try{
+  f.instance.operationChanged(operation);pending=f.start();await entered.promise;await flush();const entry=f.instance.entry(),saved=f.saved.length;
+  for(const id of ['request-capture-single','request-capture-selected','request-capture-visible'])assert.equal(captureControl(f,id).disabled,true,'Capture is unavailable before the current entry is adopted');
+  captureControl(f).click(event());await tick();await flush();assert.deepEqual(capture.commands,[]);assert.deepEqual(capture.feedback,[]);assert.equal(f.instance.entry(),entry);assert.equal(f.saved.length,saved);assert.equal(entry.draft.source,null);
+  adopt.resolve();await pending;await flush();assert.equal(captureControl(f).disabled,false);
+  captureControl(f).click(event());await f.entered;assert.deepEqual(capture.commands,[{body:{type:'PrepareRequestSource',scope:'single-layer',layerIds:['picture']},document:{id:'doc',revision:'1'}}]);f.finish();await Promise.all([...child.nativeWork]);await flush();
+  const source=f.instance.entry().draft.source;assert.equal(source.assetId,'captured');assert.equal(source.scope,'single-layer');assert.deepEqual([source.width,source.height],[3,2]);assert.equal(source.documentRevision,'1');assert.deepEqual(source.capture,capture.asset.raster.manifest);assert.deepEqual(JSON.parse(f.saved.at(-1).text).draft.source,source);assert(child.sourceURL);assert.equal(f.created.length,1);assert.equal(capture.feedback.length,1);assert.deepEqual(f.editor.view.document,{id:'doc',revision:'1'});assert.deepEqual(f.errors,[]);
+ }finally{adopt.resolve();f.finish();await Promise.allSettled([pending].filter(Boolean));await f.instance.dispose();await Promise.allSettled([...child.nativeWork]);}
+});
+
+for(const boundary of ['owner','revision','generation','dispose'])test('an adopted v4.5 source capture still refuses a late '+boundary+' result',async t=>{
+ const f=await previewController(t,{gateAt:99}),gate={entered:previewDeferred(),release:previewDeferred()},capture=captureTransport(f,gate),child=f.instance.requestEdits;let closing;
+ try{
+  f.instance.operationChanged('Edit masked region with Ideogram v4.5');await f.start();assert.equal(captureControl(f).disabled,false);captureControl(f).click(event());await gate.entered.promise;assert.equal(capture.commands.length,1);
+  if(boundary==='owner')f.editor.draftOwner={drafts:new Map()};else if(boundary==='revision')f.editor.view.document={id:'doc',revision:'2'};else if(boundary==='generation')f.instance.mutateEntry('changed prompt',next=>{next.text='changed prompt';});else closing=f.track(f.instance.dispose());
+  const saved=f.saved.length;gate.release.resolve();await Promise.allSettled([...child.nativeWork]);await closing;await flush();assert.equal(f.saved.length,saved);assert.equal(f.instance.entry()?.draft.source??null,null);assert.equal(f.renditions().length,0);assert.equal(f.created.length,0);assert.deepEqual(f.errors,[]);
+ }finally{gate.release.resolve();await Promise.allSettled([closing,...child.nativeWork].filter(Boolean));await f.instance.dispose();}
+});
