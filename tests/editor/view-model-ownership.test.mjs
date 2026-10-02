@@ -302,3 +302,34 @@ test('a later real tile draw can establish canonical submission after the first 
 // Register cleanup only after all top-level asynchronous fixture imports and
 // test declarations; the shared observation owner must outlive every client.
 test.after(()=>navigation.dispose());
+
+// Same-revision refresh and draft-triggered view reads may overlap. Native HEAD
+// gates control only completion order; actual collection, read validation,
+// publication, document pins and render/action borrows run unchanged.
+for(const first of ['replacement','retained-selection'])test(`same-revision document rows remain owned when ${first} finishes first`,async()=>{
+ const before=ownershipTotals(),f=fixture(),gates=[{entered:deferred(),release:deferred()},{entered:deferred(),release:deferred()}];let older,replacement,head=0;
+ try{
+  await f.client.loadDocument(f.document);const oldOwner=f.client.documentsMetadata,oldRow=f.client.view.document;
+  const roots={image:f.client.view.image,history:f.client.view.history,checkpoints:f.client.view.checkpoints,save:f.client.view.save};
+  const transport=f.client.session.transport;f.client.session.transport=async(path,init)=>{if(init?.method==='HEAD'){const gate=gates[head++];assert(gate,'Only the two overlapping loads reach HEAD');gate.entered.resolve();await gate.release.promise;}return transport(path,init);};
+  f.client.cache.rows=async function*(generation,type){assert.equal(generation,'g');assert.equal(type,'document');yield {value:structuredClone(oldRow)};};
+  older=f.client.loadDocument(oldRow);void older.catch(()=>{});await reached(gates[0].entered.promise,older,'the retained row HEAD');
+  replacement=f.client.refresh();void replacement.catch(()=>{});await reached(gates[1].entered.promise,replacement,'the replacement row HEAD');
+  const nextOwner=f.client.documentsMetadata,nextRow=f.client.view.documents[0];
+  assert.notEqual(nextOwner,oldOwner);assert.notEqual(nextRow,oldRow);assert.equal(nextRow.id,oldRow.id);assert.equal(nextRow.revision,oldRow.revision);assert.equal(f.state.publishedGeneration,'g');
+  assert.equal(f.client.view.document,oldRow);assert.equal(f.client.selectedDocumentMetadata,oldOwner);
+  const borrow=(row,owner)=>{const descriptors=f.client.renderViewModels(row);assert.equal(descriptors.length,1);assert.equal(descriptors[0].value,owner.documents);const unpin=descriptors[0].pin();unpin();const release=f.client.pinViewModels(row);release();};
+  if(first==='replacement'){
+   gates[1].release.resolve();await replacement;const accepted=f.client.view;assert.equal(accepted.document,nextRow);borrow(nextRow,nextOwner);
+   gates[0].release.resolve();await older;assert.equal(f.client.view,accepted,'A completed old row cannot overwrite the newer owned view');
+   assert.throws(()=>f.client.renderViewModels(oldRow),/VIEW_MODEL_UNOWNED/);assert.throws(()=>f.client.pinViewModels(oldRow),/VIEW_MODEL_UNOWNED/);
+  }else{
+   gates[0].release.resolve();await older;assert.equal(f.client.view.document,oldRow);assert.equal(f.client.selectedDocumentMetadata,oldOwner);borrow(oldRow,oldOwner);
+   gates[1].release.resolve();await replacement;
+  }
+  assert.equal(head,2);assert.equal(f.client.view.document,nextRow);assert.equal(f.client.selectedDocumentMetadata,nextOwner);borrow(nextRow,nextOwner);
+  for(const [name,value]of Object.entries(roots))assert.equal(f.client.view[name],value,'The regression must reach the document-row boundary with unchanged reused '+name);
+  assert.equal(f.client.viewReads.ownership.activeReads,0);assert.equal(f.client.viewModels.ownership.retiredPinnedRoots,0);assert.equal(f.client.viewModels.ownership.activePins,0);
+ }finally{for(const gate of gates)gate.release.resolve();await Promise.allSettled([older,replacement].filter(Boolean));await f.close();}
+ assert.deepEqual(ownershipTotals(),before);
+});

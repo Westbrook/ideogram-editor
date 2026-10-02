@@ -105,7 +105,7 @@ export function extractBrowserMeasurements({ cell, sample = {}, visits, result, 
       translated = rule.unit === 'violations' && rule.budgetId === 'R25'
         ? rejectedDraftMeasurement({ cell, proof: result?.observations?.rejectedDraftProof })
         : { reason: 'Rejected draft registry identity or unit is invalid' };
-    } else if (['R35CurrentFontFaces', 'R35SingleFontBytes', 'R35CurrentFontSetBytes'].includes(rule.name)) {
+    } else if (['R35CurrentFontFaces', 'R35SingleFontBytes', 'R35CurrentFontSetBytes', 'R35SilentFontSubstitutionCount'].includes(rule.name)) {
       translated = ordinaryTextMeasurement({cell, sample, rule, proof: ordinaryTextProof});
     } else if (ORDINARY_COMPOSITION_NAMES.includes(rule.name)) {
       translated = ordinaryCompositionMeasurement({cell, sample, rule, proof: ordinaryCompositionProof});

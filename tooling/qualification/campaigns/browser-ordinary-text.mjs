@@ -6,6 +6,7 @@ import {attemptIdentity, digest, intervalWait} from './common.mjs';
 import {readPhaseSnapshot} from './browser-phase-snapshot.mjs';
 import {collectCurrentDocumentFonts, inspectCurrentDocumentFonts} from './browser-text-fonts.mjs';
 import {inspectOrdinaryTextObservation} from './ordinary-text-phases.mjs';
+import {collectOrdinaryFontInvariant, replayOrdinaryFontInvariant, ordinaryFontInvariantMeasurement, ORDINARY_FONT_INVARIANT_SOURCE_FILES} from './browser-text-invariant.mjs';
 
 export const ORDINARY_TEXT_OPERATIONS = Object.freeze(['text.font-set', 'text.active-layout', 'text.apply', 'text.mixed-ready']);
 export const ORDINARY_TEXT_LIMITS = Object.freeze({raw: 4 * 1024 * 1024, binding: 128 * 1024, publicJSON: 256 * 1024, state: 16 * 1024, steps: 1});
@@ -15,7 +16,7 @@ const same = (a, b, message) => demand(isDeepStrictEqual(a, b), message);
 const decode = bytes => JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(bytes));
 const encode = value => Buffer.from(JSON.stringify(value));
 const finite = value => Number.isFinite(value) && value >= 0;
-const registryNames = new Set(['R35CurrentFontFaces', 'R35SingleFontBytes', 'R35CurrentFontSetBytes']);
+const registryNames = new Set(['R35CurrentFontFaces', 'R35SingleFontBytes', 'R35CurrentFontSetBytes', 'R35SilentFontSubstitutionCount']);
 const observedPhaseNames = new Set(['text.font-ready.worker', 'text.preview.render-submitted', 'text.apply.authority-durable',
   'document.recovery.model-ready', 'document.viewport.canonical-ready', 'document.controls.edit-available']);
 function textFixtureIdentity(fixture) {
@@ -187,7 +188,7 @@ function navigationObservation(step, fixture) {
 
 /** Pure replay of retained application observations, not an authority issuer.
  * Missing children never turn into zero violations or a physical claim. */
-export function inspectOrdinaryTextRaw(raw, binding) {
+export function inspectOrdinaryTextRaw(raw, binding, {fontInvariantProof} = {}) {
   const missing = [], failures = [], phases = [], measurements = [], children = [];
   demand(raw?.kind === 'ordinary-text-raw-1' && raw.nonce === binding.nonce && Array.isArray(raw.steps) && raw.steps.length <= ORDINARY_TEXT_LIMITS.steps && Array.isArray(raw.missing), 'Malformed ordinary text observation');
   same(raw.binding, binding.attempt, 'Ordinary text raw attempt differs');
@@ -224,6 +225,12 @@ export function inspectOrdinaryTextRaw(raw, binding) {
     }
     const value = inspectCurrentDocumentFonts(raw.fonts, binding.attempt, {draftProof});
     measurements.push(...value.measurements); missing.push(...value.missing); children.push({kind: 'current-document-font-accounting-1', ...value});
+    // The current-root/font-file proof and independently admitted open preview
+    // lineage remain prerequisites. Sidecar validation cannot bypass either.
+    const invariant = !value.missing.length && value.measurements.length === 3
+      ? ordinaryFontInvariantMeasurement({fonts: raw.fonts, evidence: raw.fontInvariant, proof: fontInvariantProof}) : null;
+    if (invariant) measurements.push(invariant);
+    else missing.push('Accepted-source declared-font invariant lacks complete immutable source/layout/text/font replay');
   } else missing.push('Complete closed-editor current-document font accounting is unavailable');
   return {kind: 'ordinary-text-analysis-1', qualification: false, physicalPresentation: false, scanout: false, freshAllTextLayout: false,
     measurements, phases, children, missing: [...new Set(missing)], failures: [...new Set(failures)]};
@@ -243,14 +250,14 @@ export function readOrdinaryTextProof(proof) {const value = proof && proofs.get(
 
 /** Called only by the owned browser driver. It observes existing actions and
  * cannot add Preview, Apply, Cancel, navigation, input or layout work. */
-export function createOrdinaryTextObserver({page, cell, sample, serial, fixture, runtime, environment, processIdentity, output, signal, journal}) {
+export function createOrdinaryTextObserver({page, repo, root, cell, sample, serial, fixture, runtime, environment, processIdentity, output, signal, journal}) {
   demand(ORDINARY_TEXT_OPERATIONS.includes(cell.operation), 'Ordinary text cell required');
   const nonce = randomBytes(16).toString('hex'), prefix = 'ordinary-text-' + nonce;
   const binding = {kind: 'ordinary-text-binding-1', nonce, operation: cell.operation,
     attempt: {cellId: cell.id, id: attemptIdentity(cell, sample.cache, sample.ordinal, sample.prime), cache: sample.cache, ordinal: sample.ordinal, prime: Boolean(sample.prime), serial},
     fixtureSeal: fixture.seal, textFixture: textFixtureIdentity(fixture), environment, processIdentity, runtime};
-  const raw = {kind: 'ordinary-text-raw-1', nonce, binding: binding.attempt, clock: 'runner-monotonic', startedMs: performance.now(), endedMs: null, steps: [], fonts: null, missing: []};
-  let live = true, stepping = false, finished = false;
+  const raw = {kind: 'ordinary-text-raw-1', nonce, binding: binding.attempt, clock: 'runner-monotonic', startedMs: performance.now(), endedMs: null, steps: [], fonts: null, fontInvariant: null, missing: []};
+  let live = true, stepping = false, finished = false, fontInvariantProof;
   const retain = async (name, value, maximum) => {const bytes = encode(value); demand(bytes.length <= maximum, 'Ordinary text artifact bound'); const path = prefix + '-' + name + '.json'; await writeFile(join(output, path), bytes, {mode: 0o600, flag: 'wx'}); return {path, bytes: bytes.length, sha256: digest(bytes)};};
   return {
     async step(kind, action) {
@@ -309,6 +316,10 @@ export function createOrdinaryTextObserver({page, cell, sample, serial, fixture,
           }
           raw.fonts = await collectCurrentDocumentFonts({page, documentId: fixture.text.documentId,
             fontAssetIds: fixture.native?.fontAssetIds ?? [], binding: binding.attempt, signal});
+          try {
+            const invariant = await collectOrdinaryFontInvariant({repo, root, fonts: raw.fonts, nonce, output, signal});
+            raw.fontInvariant = invariant.evidence; fontInvariantProof = invariant.proof;
+          } catch {raw.missing.push('Accepted-source declared-font invariant immutable inputs or validation unavailable');}
         } catch (error) {raw.missing.push('Ordinary text post-action observation unavailable: ' + String(error.message).slice(0, 256));}
         stepping = false;
       }
@@ -317,7 +328,7 @@ export function createOrdinaryTextObserver({page, cell, sample, serial, fixture,
     async finish() {
       demand(live && !stepping && !finished, 'Ordinary text observer did not settle'); live = false; finished = true; raw.endedMs = performance.now();
       const bindingArtifact = await retain('binding', binding, ORDINARY_TEXT_LIMITS.binding), artifact = await retain('raw', raw, ORDINARY_TEXT_LIMITS.raw);
-      const analysis = inspectOrdinaryTextRaw(raw, binding);
+      const analysis = inspectOrdinaryTextRaw(raw, binding, {fontInvariantProof});
       const observation = {kind: 'ordinary-text-observation-1', nonce, binding: bindingArtifact, raw: artifact, analysis, qualification: false, physicalPresentation: false};
       const measurements = measurementRows(analysis, {...artifact, path: join(output, artifact.path)}), proof = Object.freeze({}); proofs.set(proof, {binding, observation, analysis, measurements});
       await journal?.({event: 'ordinary-text-observed', cellId: cell.id, nonce, binding: bindingArtifact, raw: artifact});
@@ -349,8 +360,10 @@ export async function verifyOrdinaryTextEvidence({attempt, cell, serial, fixture
   // retained-artifact identities use common.digest's explicit sha256 prefix.
   demand(['sourceDigest', 'controlDigest'].every(key => SOURCE_SHA.test(environment?.[key] ?? '')) &&
     ['buildDigest', 'toolsDigest'].every(key => SHA.test(environment?.[key] ?? '')), 'Ordinary text executable bindings missing');
-  for (const name of ['browser.mjs', 'browser-text.mjs', 'browser-ordinary-text.mjs', 'browser-text-fonts.mjs', 'ordinary-text-phases.mjs', 'browser-measurements.mjs', 'worker.mjs', 'run.mjs', 'verification.mjs']) demand(controlFiles?.some(file => file.path === 'tooling/qualification/campaigns/' + name && SOURCE_SHA.test(file.sha256)), 'Ordinary text control source closure missing: ' + name);
+  for (const name of ['browser.mjs', 'browser-text.mjs', 'browser-ordinary-text.mjs', 'browser-text-fonts.mjs', 'browser-text-invariant.mjs', 'ordinary-text-phases.mjs', 'browser-measurements.mjs', 'worker.mjs', 'run.mjs', 'verification.mjs']) demand(controlFiles?.some(file => file.path === 'tooling/qualification/campaigns/' + name && SOURCE_SHA.test(file.sha256)), 'Ordinary text control source closure missing: ' + name);
   for (const name of ['src/ui/native-text.ts', 'src/ui/shell.ts', 'src/state/editor-client.ts', 'src/observability/browser.ts', 'src/observability/navigation-observations.ts']) demand(sourceFiles?.some(file => file.path === name && SOURCE_SHA.test(file.sha256)), 'Ordinary text application source closure missing: ' + name);
+  demand(controlFiles?.some(file => file.path === 'tooling/qualification/evidence-volume.mjs' && SOURCE_SHA.test(file.sha256)), 'Ordinary font invariant evidence allocation control closure missing');
+  for (const name of ORDINARY_FONT_INVARIANT_SOURCE_FILES) demand(sourceFiles?.some(file => file.path === name && SOURCE_SHA.test(file.sha256)), 'Ordinary font invariant validator source closure missing: ' + name);
   const runtime = decode(await readRetained('browser-runtime.json', {maximum: 1024 * 1024})); same(binding.runtime, runtime, 'Ordinary text actual browser differs'); same(runtime.fixtureSeal, fixture.seal, 'Ordinary text browser fixture differs');
   demand(runtime.ownedLaunch?.context?.createdBy === 'browser.newContext' && runtime.browserPid > 1 && runtime.backendPid > 1 && runtime.playwrightModule?.startsWith(join(sourceRoot, 'node_modules') + sep) && runtime.executable?.startsWith(browserCache + sep), 'Ordinary text owned browser path differs');
   const pins = tools?.browserPins?.browsers?.filter(pin => pin.name === runtime.engine);
@@ -370,7 +383,9 @@ export async function verifyOrdinaryTextEvidence({attempt, cell, serial, fixture
   }
   const events = journalEvents.filter(event => event.event === 'ordinary-text-observed' && event.nonce === observation.nonce && event.cellId === cell.id);
   demand(events.length === 1 && events[0].monotonicMs >= raw.endedMs && events[0].monotonicMs <= attempt.endMs, 'Ordinary text journal closure differs'); same(events[0].binding, observation.binding, 'Ordinary text journal binding differs'); same(events[0].raw, observation.raw, 'Ordinary text journal raw differs');
-  const analysis = inspectOrdinaryTextRaw(raw, binding); same(analysis, observation.analysis, 'Ordinary text analysis differs');
+  const fontInvariantProof = raw.fontInvariant ? await replayOrdinaryFontInvariant({repo: sourceRoot, fonts: raw.fonts, nonce: binding.nonce, output: groupOutput,
+    evidence: raw.fontInvariant, readRetained, retainedFiles}) : undefined;
+  const analysis = inspectOrdinaryTextRaw(raw, binding, {fontInvariantProof}); same(analysis, observation.analysis, 'Ordinary text analysis differs');
   demand(!analysis.failures.length || attempt.status === 'FAIL' && attempt.result.status === 'FAIL', 'Ordinary text observed contradiction was not reported as failure');
   demand(!analysis.missing.length || attempt.status !== 'PASS' && attempt.result.status !== 'PASS', 'Ordinary text missing observations were reported complete');
   const measurements = measurementRows(analysis, {...observation.raw, path: join(groupOutput, observation.raw.path)});

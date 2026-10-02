@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {EventEmitter} from 'node:events';
+import {adapterResources} from '../../dist/local/server/observability/adapter-resources.js';
 import {AssetRoutes} from '../../dist/local/server/assets.js';
 import {assetProjectionSchema,validateAssetProjection} from '../../dist/local/src/protocol/asset-projection.js';
 
@@ -36,13 +38,35 @@ test('asset projection rejects future, mismatched, malformed and extra direct me
   for(const value of [null,[],{},true])assert.throws(()=>validateAssetProjection(value));
 });
 
+// A route may finish before the HTTP reply does. Hold the actual end callback
+// and emit the terminal event so the production reply owner remains testable.
+class HeldResponse extends EventEmitter {
+  destroyed=false;closed=false;writableEnded=false;writableFinished=false;done;
+  writeHead(code,headers){this.status=code;this.headers=headers;return this;}
+  end(bytes,done){assert.equal(typeof done,'function');this.writableEnded=true;this.byteLength=bytes.length;this.body=JSON.parse(bytes.toString());this.done=done;return this;}
+  finish(){const done=this.done;this.done=undefined;this.writableFinished=true;this.emit('finish');done?.();}
+  close(){this.destroyed=true;this.closed=true;this.done=undefined;this.emit('close');}
+}
+const responseBuffers=()=>adapterResources.snapshot().groups.find(group=>group.owner==='protocol-response'&&group.kind==='json-bytes')?.buffers??0;
+
 test('asset view route emits matching separate schema and refuses invalid assets before writing headers',async()=>{
   for(const asset of [original(),raster(),raster('derived','raster-preview'),raster('derived')]){
-    let body,status,authentications=0;
+    let authentications=0;
     const routes=new AssetRoutes({assetProjection:async id=>{assert.equal(id,asset.id);return {asset,highWater:'12'};}},()=>0);
-    const response={writeHead(code,headers){status=code;assert.match(headers['Content-Type'],/^application\/json/);},end(bytes){body=JSON.parse(bytes.toString());}};
-    await routes.handle({method:'GET'},response,routes.match('/api/v1/assets/'+asset.id),new URLSearchParams(),()=>{authentications++;return {};},async()=>assert.fail('read route must not mutate roots'));
-    assert.equal(status,200);assert.equal(authentications,1);assert.deepEqual(body,envelope(asset));assert.deepEqual(validateAssetProjection(body),asset);
+    const response=new HeldResponse(),baseline=adapterResources.snapshot(),buffers=responseBuffers();
+    try{
+      await routes.handle({method:'GET'},response,routes.match('/api/v1/assets/'+asset.id),new URLSearchParams(),()=>{authentications++;return {};},async()=>assert.fail('read route must not mutate roots'));
+      assert.equal(response.status,200);assert.match(response.headers['Content-Type'],/^application\/json/);assert.equal(response.headers['Content-Length'],response.byteLength);
+      assert.equal(authentications,1);assert.deepEqual(response.body,envelope(asset));assert.deepEqual(validateAssetProjection(response.body),asset);
+      assert.equal(response.writableEnded,true);assert.equal(response.writableFinished,false);
+      assert.equal(responseBuffers(),buffers+1);assert.equal(adapterResources.snapshot().activeLeases,baseline.activeLeases+1);
+      response.finish();
+      assert.equal(response.writableFinished,true);assert.equal(response.done,undefined);assert.equal(responseBuffers(),buffers);
+      for(const event of ['finish','close','error'])assert.equal(response.listenerCount(event),0);
+      const after=adapterResources.snapshot();
+      for(const key of ['cpuBytes','backingStores','activeLeases','returnedBuffers','droppedTransitions','unscopedReturnedBuffers'])assert.equal(after[key],baseline[key],key);
+      assert.equal(after.aggregate.currentCpuBytes,baseline.aggregate.currentCpuBytes);
+    }finally{response.close();}
   }
   const invalid=raster('future-derived');let writes=0;
   const routes=new AssetRoutes({assetProjection:async()=>({asset:invalid,highWater:'12'})},()=>0);

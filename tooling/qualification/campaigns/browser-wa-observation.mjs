@@ -46,8 +46,8 @@ export const WA_OPAQUE_PATH_SOURCE_PINS = freeze([
   },
   {
     "path": "src/state/editor-client.ts",
-    "bytes": 126971,
-    "sha256": "sha256:98572c624d268912aa82dae2e3e84daf40797dba828b9b03301bfbc306cca162"
+    "bytes": 127262,
+    "sha256": "sha256:da4f0b401496715287ca10832a227bc753e2a460dceae5993ae6e1469e7609a1"
   },
   {
     "path": "src/protocol/sha256.ts",
@@ -86,8 +86,13 @@ export const WA_OPAQUE_PATH_SOURCE_PINS = freeze([
   },
   {
     "path": "src/observability/allocations.ts",
-    "bytes": 39758,
-    "sha256": "sha256:95ea4f1dd0e6cba1cce3950d48df473d78168a76cd5c2bc16d5e83c92ab16e9d"
+    "bytes": 40091,
+    "sha256": "sha256:31a220cd0df3df7577212c64b5e5db3a21c16dc3c95de99f77721c4c6e77ac06"
+  },
+  {
+    "path": "src/observability/composition-observations.ts",
+    "bytes": 11819,
+    "sha256": "sha256:e732150702ee4508467330c50e11f074d2916d82297d0315c145926ee29807a4"
   },
   {
     "path": "src/observability/diagnostic-memory.ts",

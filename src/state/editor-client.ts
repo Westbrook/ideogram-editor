@@ -352,6 +352,10 @@ export class EditorClient {
         // A concurrently paged/replaced root may retire a borrowed reuse while
         // the other responses drain. Never republish it under a released pin.
         if(imageRow.reused&&!this.viewModels.isCurrent('image',image)||historyRow.reused&&!this.viewModels.isCurrent('history',history)||checkpointRow.reused&&!this.viewModels.isCurrent('checkpoints',checkpoints)||saveRow.reused&&!this.viewModels.isCurrent('save',save))return;
+        // Another same-revision refresh may replace both recognized list owners
+        // while this read retains its own old-row pin. That private pin keeps
+        // validation safe, but cannot make the retired row publishable again.
+        if(!this.documentRowOwner(document))return;
         if(!imageRow.reused)inputs.push(this.viewInput('image',imageRow.model,imageRow.key,image));
         if(!historyRow.reused)inputs.push(this.viewInput('history',historyRow.model,historyRow.key,history.items));
         if(!checkpointRow.reused)inputs.push(this.viewInput('checkpoints',checkpointRow.model,checkpointRow.key,checkpoints.items));

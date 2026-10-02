@@ -14,7 +14,7 @@ const same = (a, b, message) => demand(isDeepStrictEqual(a, b), message);
 const rows = values => (values ?? []).filter(row => names.has(row.name));
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 
-/** A continuous prompt journal proves its recorded payload reservations only.
+/** A continuous producer journal proves its selected payload reservations only.
  * Keep those diagnostics outside scoreable resident-workspace rows, including
  * when a conservative allowance exceeds a ceiling. Exact byte rows retain
  * their independent producer coverage. No native/RSS authority is introduced. */
@@ -26,7 +26,8 @@ export function projectLifecycleComposition({allocations, required, failed = fal
     {required: selected, failed: failed || !boundaries});
   const measurements = derived.measurements.filter(row => !workspaceNames.has(row.name));
   const logicalReservations = derived.measurements.filter(row => workspaceNames.has(row.name)).map(row => ({...row,
-    complete: false, scope: 'prompt-kind-logical-reservations-only', ceilingAssessment: 'unavailable'}));
+    complete: false, scope: row.name === 'R38TextCaptionWorkspaceBytes' ?
+      'prompt-and-selected-composition-control-logical-reservations-only' : 'prompt-kind-raw-inspection-logical-reservations-only', ceilingAssessment: 'unavailable'}));
   if (selected.includes('R38TextCaptionWorkspaceBytes') && !logicalReservations.some(row => row.name === 'R38TextCaptionWorkspaceBytes')) {
     const observed = allocations.map(value => value.captionWorkspaceBytes).filter(natural);
     if (observed.length) logicalReservations.push({name: 'R38TextCaptionWorkspaceBytes', value: Math.max(...observed), unit: 'bytes',

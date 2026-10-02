@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {mkdtemp, readFile, rm} from 'node:fs/promises';
+import {mkdtemp, mkdir, readFile, writeFile, stat, readdir, realpath, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {createOrdinaryTextObserver, inspectOrdinaryTextRaw, ordinaryTextMeasurement, readOrdinaryTextProof, verifyOrdinaryTextEvidence, readOrdinaryTextPublicState, ORDINARY_TEXT_LIMITS} from '../../tooling/qualification/campaigns/browser-ordinary-text.mjs';
 import {extractBrowserMeasurements} from '../../tooling/qualification/campaigns/browser-measurements.mjs';
+import {collectOrdinaryFontInvariant, replayOrdinaryFontInvariant, ordinaryFontInvariantMeasurement, ORDINARY_FONT_INVARIANT_SOURCE_FILES} from '../../tooling/qualification/campaigns/browser-text-invariant.mjs';
 
 const hash = value => 'sha256:' + createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
 const clone = value => structuredClone(value);
@@ -14,8 +16,8 @@ const compositeFields = () => ({documentWidth: 64, documentHeight: 32, composite
     manifest: {hash: hash('manifest'), byteLength: '100', mediaType: 'application/json'}, pixels: {hash: hash('composite-pixels'), byteLength: '8192', mediaType: 'application/x-ideogram-rgba8'}, pixelIdentity: hash('composite-identity')}});
 // Synthetic retained-byte fixture for the verifier. It is not a browser run,
 // physical measurement, operator review, or campaign qualification receipt.
-function packet() {
-  const nonce = '1'.repeat(32), output = '/evidence/group', sourceRoot = '/product', browserCache = '/cache';
+function packet({sourceRoot = '/product', output = '/evidence/group'} = {}) {
+  const nonce = '1'.repeat(32), browserCache = '/cache';
   const cell = {id: 'I10H/WXn-active-layout', operation: 'text.active-layout', workload: 'WXn', requiredMeasurements: []};
   const attempt = {id: cell.id + '/cold/scored/1', cache: 'cold', ordinal: 1, prime: false, startMs: 10, endMs: 500, status: 'INCONCLUSIVE', result: {observations: {}, measurements: [], phases: []}};
   const fixture = {seal: {path: '/original/fixture.json', bytes: 10, sha256: hash('fixture')}, text: {documentId: 'doc', activeLayerId: 'layer', corpus: {sha256: hash('Text')}, expectedPreviewHash: hash('pixels'), fonts: [{bytes: 1024}]}};
@@ -24,7 +26,7 @@ function packet() {
   const uuid = '12345678-1234-1234-1234-123456789abc', browserRegistration = 'owned-process-100-' + uuid + '.json';
   const browserProcess = {kind: 'browser', pid: 100, pgid: 100, executable: '/cache/chromium/browser', startedAtIdentity: 'real-identity'};
   const runtime = {engine: 'chromium', browserPid: 100, backendPid: 101, fixtureSeal: fixture.seal, executable: browserProcess.executable,
-    revision: '1243', version: '153.0.8010.12', executableIdentity: {bytes: 123, sha256: hash('browser')}, playwrightModule: '/product/node_modules/playwright-core/index.mjs',
+    revision: '1243', version: '153.0.8010.12', executableIdentity: {bytes: 123, sha256: hash('browser')}, playwrightModule: sourceRoot + '/node_modules/playwright-core/index.mjs',
     ownedLaunch: {context: {createdBy: 'browser.newContext'}, process: {...browserProcess, registration: {path: output + '/' + browserRegistration}}}};
   const tools = {browserPins: {browsers: [{name: runtime.engine, revision: runtime.revision, browserVersion: runtime.version}]}};
   const prepared = {engine: runtime.engine, executable: runtime.executable, version: runtime.version, revision: runtime.revision, ...runtime.executableIdentity};
@@ -55,13 +57,14 @@ function packet() {
   const files = new Map(), put = (path, value) => {const bytes = Buffer.from(JSON.stringify(value)); files.set(path, bytes); return {path, bytes: bytes.length, sha256: hash(bytes)};};
   put('browser-runtime.json', runtime); put(browserRegistration, {kind: 'perf-owned-processes-1', ownerPid: 99, processes: [browserProcess]});
   put('owned-process-101-' + uuid + '.json', {kind: 'perf-owned-processes-1', ownerPid: 99, processes: [{kind: 'backend', pid: 101, pgid: 101}]});
-  const controlFiles = ['browser.mjs','browser-text.mjs','browser-ordinary-text.mjs','browser-text-fonts.mjs','ordinary-text-phases.mjs','browser-measurements.mjs','worker.mjs','run.mjs','verification.mjs'].map(name => ({path: 'tooling/qualification/campaigns/' + name, sha256: hash(name).slice(7)}));
-  const sourceFiles = ['src/ui/native-text.ts','src/ui/shell.ts','src/state/editor-client.ts','src/observability/browser.ts','src/observability/navigation-observations.ts'].map(path => ({path, sha256: hash(path).slice(7)}));
+  const controlFiles = ['browser.mjs','browser-text.mjs','browser-ordinary-text.mjs','browser-text-fonts.mjs','browser-text-invariant.mjs','ordinary-text-phases.mjs','browser-measurements.mjs','worker.mjs','run.mjs','verification.mjs'].map(name => ({path: 'tooling/qualification/campaigns/' + name, sha256: hash(name).slice(7)}));
+  controlFiles.push({path: 'tooling/qualification/evidence-volume.mjs', sha256: hash('evidence-volume.mjs').slice(7)});
+  const sourceFiles = ['src/ui/native-text.ts','src/ui/shell.ts','src/state/editor-client.ts','src/observability/browser.ts','src/observability/navigation-observations.ts', ...ORDINARY_FONT_INVARIANT_SOURCE_FILES].map(path => ({path, sha256: hash(path).slice(7)}));
   const args = {attempt, cell, serial: 1, fixture, environment, workerProcessIdentity, groupOutput: output, controlFiles, sourceFiles, sourceRoot, browserCache, tools, developerState, developerStateIdentity,
     retainedFiles: [], readRetained: async (path, {maximum}) => {assert(files.has(path)); const bytes = files.get(path); assert(bytes.length <= maximum); return bytes;}, journalEvents: []};
-  const seal = () => {
+  const seal = (options = {}) => {
     const rawArtifact = put('ordinary-text-' + nonce + '-raw.json', raw), bindingArtifact = put('ordinary-text-' + nonce + '-binding.json', binding);
-    const analysis = inspectOrdinaryTextRaw(raw, binding);
+    const analysis = inspectOrdinaryTextRaw(raw, binding, options);
     attempt.result.observations.ordinaryText = {kind: 'ordinary-text-observation-1', nonce, binding: bindingArtifact, raw: rawArtifact, analysis, qualification: false, physicalPresentation: false};
     attempt.result.phases = clone(analysis.phases);
     args.retainedFiles = [...files].map(([path, bytes]) => ({path, bytes: bytes.length, sha256: hash(bytes)}));
@@ -128,7 +131,7 @@ function fullFontObservation(p) {
 test('full current-font retained proof supplies all three registry rows and rejects serialized or altered publication', async () => {
   const p = packet(); fullFontObservation(p);
   const proof = await verifyOrdinaryTextEvidence(p.args), observation = readOrdinaryTextProof(proof).observation;
-  assert.deepEqual(observation.analysis.missing, []); assert.deepEqual(observation.analysis.failures, []);
+  assert.deepEqual(observation.analysis.missing, ['Accepted-source declared-font invariant lacks complete immutable source/layout/text/font replay']); assert.deepEqual(observation.analysis.failures, []);
   const expected = {R35CurrentFontFaces: 2, R35SingleFontBytes: 2048, R35CurrentFontSetBytes: 3072};
   const rows = p.args.cell.requiredMeasurements.map(rule => ordinaryTextMeasurement({cell: p.args.cell, sample: p.args.attempt, rule, proof}).measurement);
   assert.deepEqual(Object.fromEntries(rows.map(row => [row.name, row.value])), expected);
@@ -326,4 +329,266 @@ test('source identity correction does not permit unprefixed retained artifact or
   const q = packet(); q.binding.runtime.executableIdentity.sha256 = q.binding.runtime.executableIdentity.sha256.slice(7);
   q.files.set('browser-runtime.json', Buffer.from(JSON.stringify(q.binding.runtime))); q.seal();
   await assert.rejects(verifyOrdinaryTextEvidence(q.args), /browser version pin/);
+});
+
+const invariantRule = {name: 'R35SilentFontSubstitutionCount', budgetId: 'R35', unit: 'violations'};
+// Explicit synthetic retained-state fixture. Real production validators and
+// immutable-file proof ownership execute; no real font parsing, native shaping,
+// browser process, physical measurement or qualification is represented here.
+async function invariantFixture(t, {mutateLayout, mutateSource} = {}) {
+  const repo = resolve(fileURLToPath(new URL('../../', import.meta.url)));
+  const [{canonical}, {dependencyIdentity}] = await Promise.all([
+    import('../../dist/local/server/storage/canonical.js'), import('../../dist/local/server/text/validation.js'),
+  ]);
+  const directory = await realpath(await mkdtemp(join(tmpdir(), 'ordinary-font-invariant-')));
+  t.after(() => rm(directory, {recursive: true, force: true}));
+  const root = join(directory, 'private'), allocationRoot = join(directory, 'evidence'), output = join(allocationRoot, 'group');
+  for (const path of [root, allocationRoot, output, join(root, 'objects'), join(root, 'objects', 'sha256'), join(root, 'staging')]) await mkdir(path, {mode: 0o700});
+  const allocationPath = join(directory, 'allocation.json'), insufficientAllocationPath = join(directory, 'insufficient-allocation.json');
+  for (const [path, capacityBytes] of [[allocationPath, 32 * 1048576], [insufficientAllocationPath, 1048576]]) await writeFile(path, JSON.stringify({
+    kind: 'evidence-volume-allocation-1', allocationId: 'ordinary-font-invariant-test', purpose: 'qualification-evidence-only',
+    capacityBytes, root: allocationRoot, issuedAt: '2026-01-01T00:00:00.000Z', owner: 'ordinary-font-invariant-test',
+  }), {mode: 0o600, flag: 'wx'});
+  const p = packet({sourceRoot: repo, output}), inputs = new Map();
+  const ref = (value, mediaType = 'application/json') => {
+    const bytes = Buffer.isBuffer(value) ? value : Buffer.from(typeof value === 'string' ? value : canonical(value));
+    const result = {hash: hash(bytes), byteLength: String(bytes.length), mediaType}; inputs.set(result.hash, bytes); return result;
+  };
+  const identified = value => {const {id: _old, ...body} = value; return {...body, id: hash(canonical(body))};};
+  const font = identified({schemaVersion: 1, bytes: ref(Buffer.alloc(32, 7), 'application/octet-stream'), faceIndex: 0,
+    format: 'static-ttf', parserProfile: 'sfnt-static-1-freetype-canvaskit040', fsType: 0,
+    licenseRecord: ref('Synthetic permitted license', 'text/plain'), origin: 'local-file', embedding: 'permitted'});
+  const renderer = {schemaVersion: 1, id: hash('synthetic renderer'), manifest: ref('synthetic renderer manifest')}, sources = [];
+  const layers = ['Text', 'Hide'].map((content, index) => {
+    const frame = {width: 20, height: 10}, end = content.length;
+    const layout = {version: 'layout-1', policy: 'text-layout-1', frame,
+      indexConvention: 'half-open; UTF-16 native; UTF-8 shaped offsets; -1 scalar interiors; downstream at start/upstream at end',
+      utf16ToUtf8: [0,1,2,3,4], utf8ToUtf16: [0,1,2,3,4],
+      lineHeightPolicy: 'max-supplied-font-metrics-times-multiplier; symmetric-leading; native-rounded-baselines',
+      fontMetrics: [{hash: font.bytes.hash, ascent: -8, descent: 2, leading: 0}], intrinsicHeight: 10, requestedLineHeight: 10, logicalLines: 1,
+      paragraphs: [{startUtf16: 0, endUtf16: end, startUtf8: 0, endUtf8: end, top: 0, height: 10, direction: 'ltr',
+        lines: [{baseline: 8, ascent: 8, descent: 2, height: 10, width: 20, left: 0, lineNumber: 0, isHardBreak: false,
+          startUtf8: 0, endUtf8: end, startUtf16: 0, endUtf16: end, endExcludingWhitespacesUtf16: end,
+          endIncludingNewlineUtf16: end, endExcludingWhitespacesUtf8: end, endIncludingNewlineUtf8: end}],
+        runs: [{fontHash: font.bytes.hash, size: 10, flags: 0, glyphs: [1], offsetsUtf8: [0,end], offsetsUtf16: [0,end],
+          positions: [0,0,20,0], inkBounds: [[0,0,20,10]], top: 0, bottom: 10, baseline: 8}],
+        clusters: [{startUtf16: 0, endUtf16: end, startUtf8: 0, endUtf8: end, direction: 'ltr', rect: [0,0,20,10], ranges: [{rect: [0,0,20,10], direction: 'ltr'}]}]}],
+      height: 10, overflow: false};
+    mutateLayout?.(layout, index);
+    const text = identified({schemaVersion: 1, textUtf8: ref(content, 'text/plain'),
+      style: {primaryFont: font.bytes.hash, explicitFallbacks: [], sizePx: 10, lineHeightMultiplier: 1, fill: [0,0,0,255], align: 'start', direction: 'auto'},
+      frame, layoutPolicy: 'text-layout-1', fonts: [font]});
+    const source = {schemaVersion: 1, text, render: {schemaVersion: 1, textVersion: text.id, rendererProfile: renderer,
+      layout: ref(layout), pixels: {hash: hash('pixels'), byteLength: '800', mediaType: 'application/x-ideogram-rgba8'},
+      width: 20, height: 10, overflow: false, resolvedFonts: [font.id]}};
+    source.render.dependencyHash = dependencyIdentity(source); mutateSource?.(source, index);
+    source.render = identified(source.render); sources.push(source);
+    return {id: index ? 'hidden-layer' : 'layer', version: '2', kind: 'text', name: index ? 'Hidden synthetic text' : 'Synthetic text',
+      assetId: 'pixels_' + index, layerToDocument: [1,0,0,1,0,0], opacity: 1, visible: index === 0, locked: false, blend: 'normal', mask: null, source: ref(source)};
+  });
+  const image = {schemaVersion: 2, width: 64, height: 32, layers}, imageState = ref(image), step = p.raw.steps[0];
+  for (const value of [step.identity, step.before.accepted, step.after.accepted]) {value.fontBytes = 32; value.dependencyHash = sources[0].render.dependencyHash;}
+  step.after.state.preview.dependencyHash = sources[0].render.dependencyHash;
+  step.after.productPhases.trace.records[0].context.evidenceHash = sources[0].render.dependencyHash;
+  step.after.productPhases.workerObservations.traces[0].records[0].context.bytes = 32;
+  step.before.accepted.imageState = clone(imageState); step.after.accepted.imageState = clone(imageState);
+  p.binding.textFixture.fontBytes = 32; p.args.fixture.text.fonts = [{bytes: 32}];
+  const acceptedRoot = {documentId: 'doc', revision: '3', imageState, semanticDigest: hash('synthetic accepted semantic root'),
+    orderedLayerIds: layers.map(layer => layer.id), observedImageHash: imageState.hash, observedImageBytes: Number(imageState.byteLength)};
+  const native = {present: true, hidden: false, session: 'draft', sessionId: 'session', documentId: 'doc', documentRevision: '3', layerId: 'layer', layerVersion: '2',
+    generation: 7, savedGeneration: 7, preview: clone(step.after.state.preview), nativeTextHash: hash('Text')};
+  p.raw.fonts = {kind: 'current-document-fonts-1', binding: clone(p.binding.attempt), clock: 'browser-performance', timeOrigin: step.after.timeOrigin,
+    startMs: 230, endMs: 250, before: acceptedRoot, after: clone(acceptedRoot),
+    layers: layers.map((layer, index) => {const source = sources[index]; return {id: layer.id, version: layer.version, kind: layer.kind,
+      source: layer.source, observedSourceHash: layer.source.hash, observedSourceBytes: Number(layer.source.byteLength), textVersion: source.text.id,
+      renderVersion: source.render.id, renderer, fontIds: [font.id], textHash: source.text.textUtf8.hash, renderDependencyHash: source.render.dependencyHash,
+      rasterHash: source.render.pixels.hash, width: source.render.width, height: source.render.height};}),
+    fonts: [font], files: [{assetId: 'font-asset', assetVersion: '1', hash: font.bytes.hash, bytes: 32, observedHash: font.bytes.hash, observedBytes: 32, fontIds: [font.id]}],
+    nativeEditorBefore: native, nativeEditorAfter: clone(native), missing: []};
+  for (const [digest, bytes] of inputs) {
+    const parent = join(root, 'objects', 'sha256', digest.slice(7,9)); await mkdir(parent, {recursive: true, mode: 0o700});
+    await writeFile(join(parent, digest.slice(7)), bytes, {mode: 0o600, flag: 'wx'});
+  }
+  const collect = async ({allocationPath: selectedAllocation = allocationPath, ...options} = {}) => {
+    // The production collector reads the actual sealed allocation from its
+    // ordinary environment; restore the runner's allocation on every path.
+    const previous = process.env.IE_EVIDENCE_ALLOCATION;
+    if (selectedAllocation === null) delete process.env.IE_EVIDENCE_ALLOCATION; else process.env.IE_EVIDENCE_ALLOCATION = selectedAllocation;
+    try {return await collectOrdinaryFontInvariant({repo, root, output, fonts: p.raw.fonts, nonce: p.raw.nonce, ...options});}
+    finally {if (previous === undefined) delete process.env.IE_EVIDENCE_ALLOCATION; else process.env.IE_EVIDENCE_ALLOCATION = previous;}
+  };
+  const retain = async evidence => {for (const member of evidence.members) p.files.set(member.path, await readFile(join(output, member.path)));};
+  const seals = () => [...p.files].map(([path, bytes]) => ({path, bytes: bytes.length, sha256: hash(bytes)}));
+  const replay = (evidence, options = {}) => replayOrdinaryFontInvariant({repo, output, fonts: p.raw.fonts, nonce: p.raw.nonce, evidence,
+    readRetained: p.args.readRetained, retainedFiles: seals(), ...options});
+  const publish = ({evidence, proof}) => {
+    p.raw.fontInvariant = evidence; p.args.cell.requiredMeasurements = [
+      {name: 'R35CurrentFontFaces', unit: 'count', budgetId: 'R35'}, {name: 'R35SingleFontBytes', unit: 'bytes', budgetId: 'R35'},
+      {name: 'R35CurrentFontSetBytes', unit: 'bytes', budgetId: 'R35'}, invariantRule,
+    ];
+    p.seal({fontInvariantProof: proof}); const observation = p.args.attempt.result.observations.ordinaryText;
+    p.args.attempt.result.measurements = observation.analysis.measurements.map(row => ({...row,
+      evidence: [{kind: 'ordinary-text-retained-observation-1', artifact: {...observation.raw, path: join(p.args.groupOutput, observation.raw.path)}}]}));
+  };
+  return {p, repo, root, output, allocationRoot, allocationPath, insufficientAllocationPath, inputs, sources, image, font, collect, retain, replay, publish};
+}
+
+test('exact accepted hidden-layer layouts issue an opaque font invariant and replay all four registry rows', async t => {
+  const f = await invariantFixture(t), result = await f.collect(); await f.retain(result.evidence);
+  assert.equal(f.image.layers[1].visible, false); assert.equal(result.evidence.members.length, 7);
+  assert.equal(result.evidence.members.filter(member => member.ref.hash === f.font.bytes.hash).length, 1);
+  assert.equal(result.evidence.admission.members.length, 7);
+  assert.deepEqual(result.evidence.admission.members.map(member => member.path), result.evidence.members.map(member => member.path));
+  for (const member of result.evidence.members) {assert.equal((await stat(join(f.output, member.path))).mode & 0o777, 0o600); assert.equal(hash(f.p.files.get(member.path)), member.ref.hash);}
+  assert.equal(ordinaryFontInvariantMeasurement({fonts: f.p.raw.fonts, ...result}).value, 0);
+  assert.equal(ordinaryFontInvariantMeasurement({fonts: f.p.raw.fonts, evidence: result.evidence, proof: clone(result.proof)}), null);
+  assert.equal(ordinaryFontInvariantMeasurement({fonts: f.p.raw.fonts, proof: result.proof}), null);
+  const replayed = await f.replay(result.evidence);
+  assert.equal(ordinaryFontInvariantMeasurement({fonts: f.p.raw.fonts, evidence: result.evidence, proof: replayed}).value, 0);
+  f.publish(result); const proof = await verifyOrdinaryTextEvidence(f.p.args), admitted = readOrdinaryTextProof(proof);
+  assert.deepEqual(admitted.observation.analysis.missing, []); assert.deepEqual(admitted.observation.analysis.failures, []);
+  const rows = extractBrowserMeasurements({cell: f.p.args.cell, sample: f.p.args.attempt, ordinaryTextProof: proof});
+  assert.deepEqual(Object.fromEntries(rows.measurements.map(row => [row.name, row.value])), {
+    R35CurrentFontFaces: 1, R35SingleFontBytes: 32, R35CurrentFontSetBytes: 32, R35SilentFontSubstitutionCount: 0,
+  });
+  assert.deepEqual(rows.unavailable, []); assert.equal(admitted.observation.analysis.physicalPresentation, false);
+  assert.equal(admitted.observation.analysis.freshAllTextLayout, false);
+});
+
+test('production validators reject self-consistent sidecar hashes hiding substituted layout fonts or false dependencies', async t => {
+  for (const options of [
+    {mutateLayout: (layout, index) => {if (index) layout.paragraphs[0].runs[0].fontHash = hash('undeclared hidden-layer font');}},
+    {mutateLayout: (layout, index) => {if (index) layout.fontMetrics[0].hash = hash('undeclared hidden metrics');}},
+    {mutateSource: (source, index) => {if (index) source.render.dependencyHash = hash('forged accepted dependency');}},
+    {mutateSource: (source, index) => {if (index) source.render.resolvedFonts[0] = hash('undeclared resolved font');}},
+  ]) {
+    const f = await invariantFixture(t, options);
+    await assert.rejects(f.collect());
+    assert.equal(ordinaryFontInvariantMeasurement({fonts: f.p.raw.fonts, evidence: {}, proof: {value: 0}}), null);
+  }
+});
+
+test('retained immutable sidecars, outer seals, exact member inventory and validator bytes are independently checked', async t => {
+  const f = await invariantFixture(t), result = await f.collect(); await f.retain(result.evidence);
+  for (const change of [
+    evidence => {evidence.members[0].path = '../foreign.bin';},
+    evidence => {evidence.members[0].sha256 = hash('forged outer identity');},
+    evidence => {evidence.members.pop();},
+    evidence => {evidence.members.push(clone(evidence.members[0]));},
+    evidence => {evidence.validatorInputs[0].sha256 = hash('different validator');},
+    evidence => {evidence.binding.ordinal++;},
+    evidence => {evidence.root.revision = '4';},
+    evidence => {evidence.admission.metadataAllowanceBytes--;},
+    evidence => {evidence.admission.output = join(f.allocationRoot, 'foreign-group');},
+    evidence => {evidence.admission.observation.attempts[0].hash = '0'.repeat(64);},
+    evidence => {evidence.admission.members[0].chargedAllocatedBytes++;},
+    evidence => {evidence.admission.members[0].projectedEntries++;},
+    evidence => {evidence.admission.members.pop();},
+    evidence => {evidence.admission.allocation.capacityBytes = 1048576;},
+    evidence => {evidence.admission.limitations = [];},
+  ]) {const evidence = clone(result.evidence); change(evidence); await assert.rejects(f.replay(evidence));}
+  const member = result.evidence.members.find(row => row.ref.hash === f.font.bytes.hash), original = f.p.files.get(member.path);
+  const changed = Buffer.from(original); changed[0] ^= 1; f.p.files.set(member.path, changed);
+  await assert.rejects(f.replay(result.evidence), /outer seal/);
+  const forgedOuter = [...f.p.files].map(([path, bytes]) => ({path, bytes: bytes.length, sha256: path === member.path ? member.sha256 : hash(bytes)}));
+  await assert.rejects(f.replay(result.evidence, {retainedFiles: forgedOuter}), /input bytes/);
+  f.p.files.set(member.path, original); assert(await f.replay(result.evidence));
+});
+
+test('a genuine immutable proof cannot bypass public font presence, open draft lineage or changed accepted roots', async t => {
+  const f = await invariantFixture(t), result = await f.collect(); await f.retain(result.evidence); f.publish(result);
+  for (const change of [fonts => {fonts.files[0].observedHash = hash('different public bytes');}, fonts => {fonts.files = [];},
+    fonts => {fonts.nativeEditorBefore.preview.id = fonts.nativeEditorAfter.preview.id = 'unrelated-preview';},
+    fonts => {fonts.nativeEditorBefore.nativeTextHash = fonts.nativeEditorAfter.nativeTextHash = hash('unrelated draft');},
+    fonts => {fonts.after.revision = '4';}]) {
+    const raw = clone(f.p.raw); change(raw.fonts);
+    assert.equal(ordinaryFontInvariantMeasurement({fonts: raw.fonts, evidence: result.evidence, proof: result.proof}), null);
+    try {const analysis = inspectOrdinaryTextRaw(raw, f.p.binding, {fontInvariantProof: result.proof});
+      assert(!analysis.measurements.some(row => row.name === invariantRule.name)); assert(analysis.missing.length > 0);
+    } catch (error) {assert.match(error.message, /Font inventory/);}
+  }
+  const raw = clone(f.p.raw); raw.steps[0].after.accepted.imageState.hash = hash('changed accepted root');
+  assert.throws(() => inspectOrdinaryTextRaw(raw, f.p.binding, {fontInvariantProof: result.proof}), /accepted|image root/);
+  // Even a fresh semantic replay cannot approve an unrelated current editor.
+  const unrelated = clone(f.p.raw.fonts); unrelated.nativeEditorBefore.preview.id = unrelated.nativeEditorAfter.preview.id = 'foreign';
+  const proof = await f.replay(result.evidence, {fonts: unrelated});
+  const analysis = inspectOrdinaryTextRaw({...f.p.raw, fonts: unrelated}, f.p.binding, {fontInvariantProof: proof});
+  assert(!analysis.measurements.some(row => row.name === invariantRule.name)); assert(analysis.missing.some(message => /preview lineage/.test(message)));
+});
+
+test('forged invariant zero and serialized issuer state cannot enter the ordinary retained replay path', async t => {
+  const f = await invariantFixture(t), result = await f.collect(); await f.retain(result.evidence); f.publish(result);
+  const claimed = clone(f.p.raw); claimed.fontInvariant = {value: 0};
+  const analysis = inspectOrdinaryTextRaw(claimed, f.p.binding, {fontInvariantProof: clone(result.proof)});
+  assert(!analysis.measurements.some(row => row.name === invariantRule.name));
+  f.p.args.attempt.result.measurements.find(row => row.name === invariantRule.name).value = 1;
+  await assert.rejects(verifyOrdinaryTextEvidence(f.p.args), /published measurements differ/);
+  f.publish(result); f.p.raw.fontInvariant = {value: 0}; f.p.seal();
+  await assert.rejects(verifyOrdinaryTextEvidence(f.p.args), /retained proof shape/);
+});
+
+test('actual allocated evidence headroom admits deduplicated writes and refuses cumulative growth before another input proof', async t => {
+  const f = await invariantFixture(t), {Objects} = await import('../../dist/local/server/storage/objects.js');
+  const previousAllocation = process.env.IE_EVIDENCE_ALLOCATION, originalProve = Objects.prototype.prove;
+  let attempts = 0;
+  // This counter delegates the real proof boundary. Absence of admission must
+  // refuse before acquiring an immutable input or allocating/writing a sidecar.
+  Objects.prototype.prove = function(...args) {attempts++; return Reflect.apply(originalProve, this, args);};
+  try {
+    await assert.rejects(f.collect({allocationPath: null}), /IE_EVIDENCE_ALLOCATION/);
+    await assert.rejects(f.collect({allocationPath: f.insufficientAllocationPath}), /evidence allocation/);
+    assert.equal(attempts, 0); assert.deepEqual(await readdir(f.output), []);
+    assert.equal(process.env.IE_EVIDENCE_ALLOCATION, previousAllocation);
+  } finally {Objects.prototype.prove = originalProve;}
+  const first = await f.collect(), admission = first.evidence.admission;
+  const initial = admission.observation.attempts[admission.observation.selectedAttempt].sample;
+  assert.equal(admission.allocation.root, f.allocationRoot); assert.equal(admission.output, f.output);
+  assert.equal(admission.members.length, first.evidence.members.length);
+  const sidecarAllocated = (await Promise.all(first.evidence.members.map(member => stat(join(f.output, member.path))))).reduce((sum, value) => sum + value.blocks * 512, 0);
+  const priorPath = join(f.allocationRoot, 'prior-attempt.bin');
+  await writeFile(priorPath, Buffer.alloc(65536, 0x5a), {mode: 0o600, flag: 'wx'});
+  const priorAllocated = (await stat(priorPath)).blocks * 512;
+  assert(priorAllocated > 0); assert(sidecarAllocated > 0);
+  const second = await f.collect({nonce: '2'.repeat(32)}), current = second.evidence.admission;
+  const observed = current.observation.attempts[current.observation.selectedAttempt].sample;
+  assert(observed.observedAllocatedBytes >= initial.observedAllocatedBytes + sidecarAllocated + priorAllocated);
+  assert.equal(current.members.length, 7);
+  // A real reduced manifest fits the first observed baseline, but cumulative
+  // retained evidence makes even the next first member cross the existing 90%.
+  const firstCharge = current.members[0].chargedAllocatedBytes;
+  const capacityBytes = Math.ceil((observed.observedAllocatedBytes + current.metadataAllowanceBytes + firstCharge / 2) / 0.9);
+  assert(initial.observedAllocatedBytes + current.metadataAllowanceBytes + firstCharge < capacityBytes * 0.9);
+  const cumulativePath = join(f.root, '..', 'cumulative-allocation.json');
+  const manifest = JSON.parse(await readFile(f.allocationPath, 'utf8'));
+  await writeFile(cumulativePath, JSON.stringify({...manifest, allocationId: 'ordinary-font-cumulative-test', capacityBytes}), {mode: 0o600, flag: 'wx'});
+  const before = (await readdir(f.output)).sort(); attempts = 0;
+  Objects.prototype.prove = function(...args) {attempts++; return Reflect.apply(originalProve, this, args);};
+  try {
+    await assert.rejects(f.collect({allocationPath: cumulativePath, nonce: '3'.repeat(32)}), /existing evidence allocation/);
+    assert.equal(attempts, 0); assert.deepEqual((await readdir(f.output)).sort(), before);
+    assert.equal(process.env.IE_EVIDENCE_ALLOCATION, previousAllocation);
+  } finally {Objects.prototype.prove = originalProve;}
+});
+
+test('actual immutable proof leases drain on held-read failure, cancellation and exclusive sidecar refusal', async t => {
+  const f = await invariantFixture(t), {Objects} = await import('../../dist/local/server/storage/objects.js');
+  const originalRead = Objects.prototype.readRange, originalRelease = Objects.prototype.releaseProof, originalClose = Objects.prototype.close;
+  let held = 0, released = 0, closed = 0, owner;
+  // Explicit failure at the real public Objects read boundary, after prove has
+  // acquired its actual token. All release/close calls delegate to production.
+  Objects.prototype.readRange = function(...args) {owner = this; held = this.proofInventory().retained; throw Error('controlled immutable read failure');};
+  Objects.prototype.releaseProof = function(...args) {released++; return Reflect.apply(originalRelease, this, args);};
+  Objects.prototype.close = function(...args) {closed++; return Reflect.apply(originalClose, this, args);};
+  try {await assert.rejects(f.collect(), /controlled immutable read failure/);}
+  finally {Objects.prototype.readRange = originalRead; Objects.prototype.releaseProof = originalRelease; Objects.prototype.close = originalClose;}
+  assert.equal(held, 1); assert.equal(released, 1); assert.equal(closed, 1);
+  assert.deepEqual(owner.proofInventory(), {pending: 0, retained: 0, activeReaders: 0, metadataBytes: 0});
+  assert.deepEqual(await readdir(f.output), []);
+  const abort = new AbortController(); abort.abort(); await assert.rejects(f.collect({signal: abort.signal}));
+  assert.deepEqual(await readdir(f.output), []);
+  const complete = await f.collect(); await f.retain(complete.evidence);
+  const before = await readFile(join(f.output, complete.evidence.members[0].path));
+  await assert.rejects(f.collect(), /EEXIST/); assert.deepEqual(await readFile(join(f.output, complete.evidence.members[0].path)), before);
+  await assert.rejects(f.replay(complete.evidence, {signal: abort.signal}));
+  assert(await f.replay(complete.evidence));
 });

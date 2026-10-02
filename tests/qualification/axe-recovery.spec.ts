@@ -86,7 +86,10 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     await expect(copyContent.getByRole('region',{name:'Action needs attention',exact:true})).toBeFocused();
     await expect(copyContent).toContainText('Content unavailable or missing. Accepted records are retained; restore the exact resource, then reconnect.');
     await expect(page.getByRole('region',{name:'Prepared file',exact:true})).toHaveCount(0);
-    await evidence.scan('copy-missing-dependency');await page.keyboard.press('Escape');await expect(copyDialog).toBeHidden();await evidence.captureExposed('copy-missing-dependency','activity');
+    await evidence.scan('copy-missing-dependency');await page.keyboard.press('Escape');await expect(copyDialog).toBeHidden();
+    // Native modality closes before exit paint; capture Activity only after the public surface stops painting.
+    await expect(copyContent.locator('dialog[part~="surface"]')).toHaveCSS('display','none');
+    await evidence.captureExposed('copy-missing-dependency','activity');
     // Relink through the real font upload/finalize/import path. Merely moving
     // the held file back would not exercise the product's recovery action.
     phase='exact-relink';await click(page,'Edit text');await click(page,'Local font import and exact relink');

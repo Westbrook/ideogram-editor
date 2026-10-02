@@ -2,14 +2,19 @@ import {diagnosticMemory,diagnosticPayloadBytes,DiagnosticReads,type DiagnosticM
 /** Bounded, numeric R38 producer evidence. Never retains authored strings,
  * parsed graphs, URLs or byte buffers. This observer cannot grant authority. */
 export type CompositionOperation='parse'|'serialize'|'ui-issues'|'retained-page'|'blob-read'|'stream-read';
-export type CompositionObservationKind='ownership'|'derived-snapshot'|'issues'|'raw-page'|'raw-read'|'raw-inspection';
+export type CompositionObservationKind='ownership'|'control-ownership'|'derived-snapshot'|'issues'|'raw-page'|'raw-read'|'raw-inspection';
 type Source={hash:string;byteLength:string};
 type Parsed={state:string;issues:unknown[];value?:unknown};
-export type CompositionObservation={sequence:number;atMs:number;kind:CompositionObservationKind;operation?:CompositionOperation;utf8Bytes?:number;issueCount?:number;receivedBytes?:number;sourceBytes?:number;offset?:number;sourceHash?:string;parseState?:string;derivedPresent?:boolean;violations?:number;retainedIdentity?:boolean;complete:boolean;promptOwnedBytes:number;rawInspectionOwnedBytes:number};
-type CompositionBirth=Readonly<{kind:'composition-observer-birth-1';instanceId:string;atMs:number;cursor:0;invalid:0;ownershipStarted:false;promptOwnedBytes:0;rawInspectionOwnedBytes:0}>;
+export type CompositionObservation={sequence:number;atMs:number;kind:CompositionObservationKind;operation?:CompositionOperation;utf8Bytes?:number;issueCount?:number;receivedBytes?:number;sourceBytes?:number;offset?:number;sourceHash?:string;parseState?:string;derivedPresent?:boolean;violations?:number;retainedIdentity?:boolean;complete:boolean;promptOwnedBytes:number;rawInspectionOwnedBytes:number;compositionControlOwnedBytes:number};
+type CompositionBirth=Readonly<{kind:'composition-observer-birth-1';instanceId:string;atMs:number;cursor:0;invalid:0;ownershipStarted:false;promptOwnedBytes:0;rawInspectionOwnedBytes:0;compositionControlOwnedBytes:0}>;
 const operations=new Set<CompositionOperation>(['parse','serialize','ui-issues','retained-page','blob-read','stream-read']);
 const parsedStates=new Set(['supported','ambiguous','unsupported','malformed','over-limit']);
 const rawOwners=new Set(['composition-raw-copy','composition-raw-read','composition-raw-read-operation','composition-raw-page','composition-parse-scratch','composition-parse-model','composition-convert-text','composition-encode','request-prompt-page','request-prompt-read','request-prompt-read-operation']);
+// These three owners are allocated only by composition/memory.ts. Shared
+// upload, draft, command, parser/native and unrelated UI owners are not claimed
+// by this selected control total. It is a projection of existing ledger
+// transitions, not another admission ledger or a resident-memory measurement.
+const controlOwners=new Set(['composition-render-payload','composition-read-operation','composition-response-model']);
 const natural=(v:number)=>Number.isSafeInteger(v)&&v>=0;
 
 /** Exact JSON.stringify UTF8 size for plain JSON-shaped producer values, without
@@ -32,24 +37,32 @@ export function jsonUtf8Bytes(value:unknown):number {
 }
 
 export class CompositionObservations {
- private rows:CompositionObservation[]=[];private sequence=0;private invalid=0;private last=0;private prompt=0;private raw=0;private ownershipStarted=false;
+ private rows:CompositionObservation[]=[];private sequence=0;private invalid=0;private last=0;private prompt=0;private raw=0;private control=0;private ownershipStarted=false;
  private readonly origin:number;private readonly birth:CompositionBirth;private readonly lease:DiagnosticLease;private readonly reads:DiagnosticReads;private disposed=false;
  private readonly capacityBytes:number;
  constructor(private readonly capacity=2048,private readonly now:()=>number=()=>performance.now(),wallNow:()=>number=Date.now,memory:DiagnosticMemory=diagnosticMemory){if(!Number.isInteger(capacity)||capacity<1||capacity>8192)throw Error('COMPOSITION_OBSERVER_CAPACITY');this.capacityBytes=capacity*1024+65536;this.lease=memory.reserve('diagnostic-composition-records',this.capacityBytes);this.reads=new DiagnosticReads('diagnostic-composition-read',4,memory);try{const atMs=now();this.origin=wallNow()-atMs;if(!Number.isFinite(this.origin)||!Number.isFinite(atMs)||atMs<0)throw Error('COMPOSITION_OBSERVER_CLOCK');this.last=atMs;
   // The singleton is constructed before AllocationLedger can issue a prompt
-  // lease. This actual birth stays outside the bounded ring; it is not a
+  // or selected control lease. This actual birth stays outside the bounded ring; it is not a
   // reconstructed zero, an old capture upgrade, or a physical-memory claim.
-  this.birth=Object.freeze({kind:'composition-observer-birth-1',instanceId:crypto.randomUUID(),atMs,cursor:0,invalid:0,ownershipStarted:false,promptOwnedBytes:0,rawInspectionOwnedBytes:0});
+  this.birth=Object.freeze({kind:'composition-observer-birth-1',instanceId:crypto.randomUUID(),atMs,cursor:0,invalid:0,ownershipStarted:false,promptOwnedBytes:0,rawInspectionOwnedBytes:0,compositionControlOwnedBytes:0});
  }catch(error){this.lease.release();throw error;}}
- private record(value:Omit<CompositionObservation,'sequence'|'atMs'|'promptOwnedBytes'|'rawInspectionOwnedBytes'>){
+ private record(value:Omit<CompositionObservation,'sequence'|'atMs'|'promptOwnedBytes'|'rawInspectionOwnedBytes'|'compositionControlOwnedBytes'>){
   if(this.disposed)return;const at=this.now();if(!Number.isFinite(at)||at<0||at<this.last){this.invalid++;return;}this.last=at;
-  const row={...value,sequence:++this.sequence,atMs:at,promptOwnedBytes:this.prompt,rawInspectionOwnedBytes:this.raw};this.rows[(this.sequence-1)%this.capacity]=row;
+  const row={...value,sequence:++this.sequence,atMs:at,promptOwnedBytes:this.prompt,rawInspectionOwnedBytes:this.raw,compositionControlOwnedBytes:this.control};this.rows[(this.sequence-1)%this.capacity]=row;
  }
  // Observer failure never changes the product's accepted allocation/cleanup.
  ownership(owner:string,before:number,after:number,promptTotal:number){if(this.disposed)return;try{
-  if(!natural(before)||!natural(after)||!natural(promptTotal)||this.prompt-before+after!==promptTotal)throw Error('COMPOSITION_OBSERVER_OWNER');
+  if(!natural(before)||!natural(after)||!natural(promptTotal)||!natural(promptTotal+this.control)||this.prompt-before+after!==promptTotal)throw Error('COMPOSITION_OBSERVER_OWNER');
   const raw=this.raw+(rawOwners.has(owner)?after-before:0);if(!natural(raw)||raw>promptTotal)throw Error('COMPOSITION_OBSERVER_OWNER');
   this.prompt=promptTotal;this.raw=raw;this.ownershipStarted=true;this.record({kind:'ownership',complete:true});
+ }catch{this.invalid++;}}
+ // Preserve overlapping response/render ownership through the real ledger
+ // resize and release boundaries. markUnused is not a release; failed cleanup
+ // therefore remains visible without inventing a browser/native terminal ack.
+ controlOwnership(owner:string,before:number,after:number){if(this.disposed||!controlOwners.has(owner))return;try{
+  const control=this.control-before+after;
+  if(!natural(before)||!natural(after)||!natural(control)||!natural(this.prompt+control))throw Error('COMPOSITION_OBSERVER_CONTROL_OWNER');
+  this.control=control;this.record({kind:'control-ownership',complete:true});
  }catch{this.invalid++;}}
  value(kind:'derived-snapshot'|'issues',value:unknown,operation:CompositionOperation){if(this.disposed)return;try{
   if(!operations.has(operation)||kind==='issues'&&!Array.isArray(value))throw Error('COMPOSITION_OBSERVER_OPERATION');
@@ -81,7 +94,7 @@ export class CompositionObservations {
   return this.reads.read(logicalBytes,()=>{
    const records:CompositionObservation[]=[];const oldest=Math.max(1,this.sequence-this.rows.length+1);
    for(let sequence=oldest;sequence<=this.sequence;sequence++)records.push({...this.rows[(sequence-1)%this.capacity]});
-   return {kind:'composition-resource-observations-1' as const,schemaVersion:1 as const,lane:'browser-main' as const,instanceId:this.birth.instanceId,atMs,birth:{...this.birth},clockOriginUnixMs:this.origin,cursor:this.sequence,oldestSequence:oldest,dropped:Math.max(0,this.sequence-this.capacity),invalid:this.invalid,ownershipStarted:this.ownershipStarted,promptOwnedBytes:this.prompt,rawInspectionOwnedBytes:this.raw,
+   return {kind:'composition-resource-observations-1' as const,schemaVersion:1 as const,lane:'browser-main' as const,instanceId:this.birth.instanceId,atMs,birth:{...this.birth},clockOriginUnixMs:this.origin,cursor:this.sequence,oldestSequence:oldest,dropped:Math.max(0,this.sequence-this.capacity),invalid:this.invalid,ownershipStarted:this.ownershipStarted,promptOwnedBytes:this.prompt,rawInspectionOwnedBytes:this.raw,compositionControlOwnedBytes:this.control,
     ownershipBasis:'application-logical-payload-reservations' as const,physicalMemoryComplete:false as const,
     observerMetadata:{complete:true as const,ringCapacity:this.capacity,retainedRecords:this.rows.length,snapshotRecords:records.length,capacityBytes:this.capacityBytes,snapshotAllowanceBytes:logicalBytes*3+65536,basis:'admitted-application-diagnostic-payload-allowances' as const},records};
   });

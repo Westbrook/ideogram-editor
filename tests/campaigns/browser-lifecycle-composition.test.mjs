@@ -22,7 +22,7 @@ function producer(t, {capacity = 64, rawReservation = 80} = {}) {
   const snapshot = () => {const handle = observer.readSnapshot(); try {return clone(handle.value);} finally {handle.release();}};
   const before = snapshot();
   const prompt = reserve('composition-caption', 100), raw = reserve('composition-raw-page', rawReservation);
-  // This real Composition control owner is absent from the prompt-only journal.
+  // This real Composition model overlaps both prompt owners in the journal.
   const control = reserve('composition-response-model', 400, 'control');
   const caption = {text: 'é🖼'}, original = Buffer.from(JSON.stringify(caption));
   const source = {hash: hash(original), byteLength: String(original.length)};
@@ -70,8 +70,10 @@ test('actual ledger journal preserves exact byte rows and withholds incomplete r
   assert.deepEqual(result.measurements.map(row => row.value), [Buffer.byteLength(JSON.stringify(p.caption)), 2, p.original.length, 0]);
   assert(result.measurements.every(row => row.complete));
   const logical = result.evidence.logicalReservations;
-  assert.deepEqual(logical.map(row => [row.name, row.value]), [[workspaceNames[0], 80], [workspaceNames[1], 180]]);
+  assert.deepEqual(logical.map(row => [row.name, row.value]), [[workspaceNames[0], 80], [workspaceNames[1], 580]]);
   assert(logical.every(row => row.complete === false && row.ceilingAssessment === 'unavailable'));
+  assert.equal(logical[1].scope, 'prompt-and-selected-composition-control-logical-reservations-only');
+  assert.equal(logical[0].scope, 'prompt-kind-raw-inspection-logical-reservations-only');
   assert(result.evidence.missing.some(reason => reason.startsWith(workspaceNames[1])));
   assert.equal(result.evidence.physicalMemoryComplete, false); assert.equal(result.evidence.originalRawHashVerification, false);
 });
@@ -81,6 +83,16 @@ test('an actual conservative raw allowance above 16 MiB cannot manufacture a sco
   assert(result.evidence.logicalReservations.find(row => row.name === workspaceNames[0]).value > 16 * 1048576);
   assert(!result.measurements.some(row => workspaceNames.includes(row.name)));
   assert(result.measurements.find(row => row.name === 'R38RawPageBytes').value < 32768);
+});
+
+test('selected control allowance above 64 MiB remains an unscored lifecycle diagnostic', t => {
+  const p = producer(t), held = p.reserve('composition-response-model', 64 * 1048576 + 1, 'control');
+  p.allocations[1].compositionObservations = p.snapshot();
+  const result = projectLifecycleComposition({allocations: p.allocations, required: [...LIFECYCLE_COMPOSITION_NAMES]});
+  const workspace = result.evidence.logicalReservations.find(row => row.name === workspaceNames[1]);
+  assert.equal(workspace.value, 64 * 1048576 + 1); assert.equal(workspace.complete, false); assert.equal(workspace.ceilingAssessment, 'unavailable');
+  assert(!result.measurements.some(row => workspaceNames.includes(row.name))); assert.equal(result.evidence.physicalMemoryComplete, false);
+  held.release();
 });
 
 test('missing endpoint, overflow and failed action retain only incomplete byte observations', t => {
@@ -118,6 +130,8 @@ for (const [name, mutate] of [
   ['changed realm', p => {p.raw.allocations[1].compositionObservations.instanceId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';}],
   ['missing record', p => {p.raw.allocations[1].compositionObservations.records.pop();}],
   ['forged zero violations', p => {const row = p.raw.allocations[1].compositionObservations.records.find(row => row.kind === 'raw-page'); row.receivedBytes--; row.violations = 0;}],
+  ['control reservation field omitted', p => {delete p.raw.allocations[1].compositionObservations.records.find(row => row.kind === 'control-ownership').compositionControlOwnedBytes;}],
+  ['control reservation changes prompt', p => {p.raw.allocations[1].compositionObservations.records.find(row => row.kind === 'control-ownership').promptOwnedBytes++;}],
   ['nonownership reservation change', p => {p.raw.allocations[1].compositionObservations.records.find(row => row.kind === 'raw-page').promptOwnedBytes++;}],
 ]) test('replay rejects resealed ' + name, async t => {
   const p = packet(t); mutate(p); p.reseal(); await assert.rejects(verifyLifecycleCompositionEvidence(p.args));

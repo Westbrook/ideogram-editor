@@ -75,8 +75,8 @@ function inspectCompositionReservations(raw, intervals, coverage, missing) {
       const compositionPoints = raw.snapshots.slice(resource.fromSnapshot, resource.toSnapshot + 1).flatMap(item => [item.value.composition, ...item.value.composition.records]);
       // Equal timestamps may straddle a boundary under reduced timer precision.
       // Only strictly interior observations establish this contradiction.
-      demand(compositionPoints.filter(point => point.atMs > window.initial.atMs && point.atMs < window.final.atMs).every(point => point.promptOwnedBytes <= peak.bytes),
-        'Composition prompt observations exceed the central reservation superset');
+      demand(compositionPoints.filter(point => point.atMs > window.initial.atMs && point.atMs < window.final.atMs).every(point => point.promptOwnedBytes + point.compositionControlOwnedBytes <= peak.bytes),
+        'Composition selected payload observations exceed the central reservation superset');
     }
     covered.add(intervalKey); windows.add(windowKey);
     const transitionCoverageComplete = replay.complete && coverage && !raw.failed;
@@ -159,9 +159,11 @@ export function inspectOrdinaryCompositionRaw(raw, binding) {
       method: name.endsWith('Count') ? 'Independently replayed retained-source page extents and parse-state claims across each actually observed browser realm' :
         'Maximum of actual producer byte observations across each separately replayed browser realm', complete};
     if (workspaceNames.has(name)) {
-      // Prompt-kind reservations do not include Composition control-model and
-      // browser/native implementation overhead. Keep those numbers diagnostic.
-      logicalReservations.push({...row, complete: false, scope: 'prompt-kind-logical-reservations-only'});
+      // The recorded union includes the three explicit Composition control
+      // owners, but omits shared transport/control and browser/native overhead.
+      // Exact selected reservations remain outside resident-workspace claims.
+      logicalReservations.push({...row, complete: false, scope: name === 'R38TextCaptionWorkspaceBytes' ?
+        'prompt-and-selected-composition-control-logical-reservations-only' : 'prompt-kind-raw-inspection-logical-reservations-only'});
       missing.push(name + ': complete resident Composition allocation coverage is unavailable');
     } else if (complete) measurements.push(row);
     else missing.push(name + ': original operation producer coverage is incomplete');
@@ -244,6 +246,9 @@ export function createOrdinaryCompositionObserver({page, cell, sample, serial, f
     async navigation(action) {
       demand(observing && !navigating && !finished && raw.navigations.length < ORDINARY_COMPOSITION_LIMITS.navigations && typeof action === 'function', 'Composition navigation must belong to the original operation');
       navigating = true;
+      // This closes before the actual navigation. Later handlers, microtasks
+      // and native realm teardown have no acknowledged terminal snapshot;
+      // even a pagehide callback would not prove that those owners settled.
       const before = await captureSafely(); await endResource(before);
       const entry = {before, after: null, startedMs: performance.now(), endedMs: null, completed: false}; raw.navigations.push(entry);
       try {signal?.throwIfAborted(); const value = await action(); entry.completed = true; return value;}

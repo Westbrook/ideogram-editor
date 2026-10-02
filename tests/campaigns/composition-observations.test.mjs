@@ -124,10 +124,12 @@ test('birth remains immutable and independent of a ring that has already overflo
 function completeInterval() {
   const observer = recorder(32), ledger = new AllocationLedger(observer);
   const held = ledger.reserve({ owner: 'request-prompt-retained', kind: 'prompt', cpuBytes: 3 });
-  const before = snapshot(observer), raw = ledger.reserve({ owner: 'composition-raw-copy', kind: 'prompt', cpuBytes: 10 });
+  const before = snapshot(observer), control = ledger.reserve({ owner: 'composition-read-operation', kind: 'control', cpuBytes: 5 });
+  const raw = ledger.reserve({ owner: 'composition-raw-copy', kind: 'prompt', cpuBytes: 10 });
   observer.parsed(10, { state: 'supported', issues: [], value: {} }, source(10));
-  observer.page(source(10), 0, 10); raw.release(); const after = snapshot(observer); held.release();
-  assert(deriveCompositionMeasurements([before, after]).measurements.every(row => row.complete));
+  observer.page(source(10), 0, 10); raw.release(); control.release(); const after = snapshot(observer); held.release();
+  const result = deriveCompositionMeasurements([before, after]);
+  assert.equal(result.evidence.complete, true);assert(result.measurements.length > 0);assert(result.measurements.every(row => row.complete));
   return [before, after];
 }
 function mutateRow(snapshots, kind, mutate) {
@@ -213,3 +215,117 @@ test('actual snapshot and birth clocks fail closed before producing inconsistent
   at = 2; const after = snapshot(observer); assert.equal(after.invalid, 1);
   assert.equal(deriveCompositionMeasurements([after], { start: 'birth' }).evidence.complete, false);
 });
+
+// Workspace diagnostics replay simultaneous amounts. Separate prompt and
+// control peaks cannot be added after the fact, and remain nonresident evidence.
+test('real Composition control and prompt transitions yield a simultaneous workspace maximum', () => {
+  const observer = recorder(64), ledger = new AllocationLedger(observer);
+  const prompt = ledger.reserve({ owner: 'request-prompt-retained', kind: 'prompt', cpuBytes: 10 });
+  const before = snapshot(observer), render = ledger.reserve({ owner: 'composition-render-payload', kind: 'control', cpuBytes: 40 });
+  const read = ledger.reserve({ owner: 'composition-read-operation', kind: 'control', cpuBytes: 30 });
+  const model = ledger.reserve({ owner: 'composition-response-model', kind: 'control', cpuBytes: 50 });
+  prompt.resize({ cpuBytes: 20 });model.release();read.release();render.release();prompt.resize({ cpuBytes: 100 });prompt.release();
+  const after = snapshot(observer), result = deriveCompositionMeasurements([before, after]);
+  const workspace = result.measurements.find(row => row.name === 'R38TextCaptionWorkspaceBytes');
+  assert.equal(workspace.value, 140);assert.equal(workspace.complete, true);assert.equal(result.evidence.complete, true);
+  assert.equal(Math.max(...after.records.map(row => row.promptOwnedBytes)) + Math.max(...after.records.map(row => row.compositionControlOwnedBytes)), 220, 'sum of independent peaks differs from the simultaneous maximum');
+  assert.deepEqual(after.records.filter(row => row.kind === 'control-ownership').map(row => row.compositionControlOwnedBytes), [40, 70, 120, 70, 40, 0]);
+  assert.equal(after.compositionControlOwnedBytes, 0);assert.equal(after.promptOwnedBytes, 0);assert.equal(after.rawInspectionOwnedBytes, 0);
+  assert.equal(after.physicalMemoryComplete, false);
+  assert(!result.measurements.some(row => row.name === 'R38MaterializedRawInspectionBytes'), 'control reads do not create raw-inspection evidence');
+});
+
+test('only the three exact Composition control owners enter the producer journal', () => {
+  const observer = recorder(32), ledger = new AllocationLedger(observer), before = snapshot(observer);
+  for (const owner of ['composition-render-payload-extra', 'composition-read-operation-extra', 'composition-response-model-extra', 'composition-unrelated', 'request-prompt-page']) {
+    const lease = ledger.reserve({ owner, kind: 'control', cpuBytes: 17 });lease.resize({ cpuBytes: 31 });lease.markUnused();lease.release();
+  }
+  for (const kind of ['scratch', 'copy', 'staging']) {
+    const lease = ledger.reserve({ owner: 'composition-render-payload', kind, cpuBytes: 19 });lease.resize({ cpuBytes: 29 });lease.release();
+  }
+  const after = snapshot(observer);
+  assert.equal(after.cursor, before.cursor);assert.equal(after.invalid, 0);assert.equal(after.ownershipStarted, false);
+  assert.equal(after.promptOwnedBytes, 0);assert.equal(after.compositionControlOwnedBytes, 0);assert.equal(after.rawInspectionOwnedBytes, 0);
+  assert.equal(after.birth.compositionControlOwnedBytes, 0);
+});
+
+test('refused control admission and resize, markUnused and repeated release add no fake transitions', () => {
+  const observer = recorder(32), ledger = new AllocationLedger(observer);
+  const lease = ledger.reserve({ owner: 'composition-render-payload', kind: 'control', cpuBytes: 5 }), admitted = snapshot(observer);
+  assert.throws(() => ledger.reserve({ owner: 'composition-response-model', kind: 'control', cpuBytes: 512 * 1048576 }), /ALLOCATION_BUDGET/);
+  assert.throws(() => lease.resize({ cpuBytes: 512 * 1048576 }), /ALLOCATION_BUDGET/);
+  assert.throws(() => lease.resize({ cpuBytes: NaN }), /ALLOCATION_INVALID/);
+  lease.markUnused();const refused = snapshot(observer);
+  assert.equal(refused.cursor, admitted.cursor);assert.equal(refused.invalid, 0);assert.equal(refused.compositionControlOwnedBytes, 5);
+  lease.release();const released = snapshot(observer);lease.release();
+  assert.equal(released.cursor, admitted.cursor + 1);assert.equal(released.compositionControlOwnedBytes, 0);assert.equal(snapshot(observer).cursor, released.cursor);
+});
+
+test('control-only ownership supports actual birth and ordinary intervals without inventing raw inspection', () => {
+  const observer = recorder(32), ledger = new AllocationLedger(observer), before = snapshot(observer);
+  const render = ledger.reserve({ owner: 'composition-render-payload', kind: 'control', cpuBytes: 64 });render.release();
+  const after = snapshot(observer);
+  for (const [snapshots, options] of [[[after], { start: 'birth' }], [[before, after], {}]]) {
+    const result = deriveCompositionMeasurements(snapshots, options), workspace = result.measurements.find(row => row.name === 'R38TextCaptionWorkspaceBytes');
+    assert.equal(result.evidence.complete, true);assert.equal(workspace.value, 64);assert.equal(workspace.complete, true);
+    assert(!result.measurements.some(row => row.name === 'R38MaterializedRawInspectionBytes'));
+  }
+  assert.equal(after.birth.compositionControlOwnedBytes, 0);after.birth.compositionControlOwnedBytes = 1;
+  assert.equal(snapshot(observer).birth.compositionControlOwnedBytes, 0, 'returned birth cannot rewrite the actual producer zero');
+});
+
+test('control-only ring overflow remains incomplete until actual intermediate snapshots bridge the gap', () => {
+  const observer = recorder(2), ledger = new AllocationLedger(observer), before = snapshot(observer);
+  const render = ledger.reserve({ owner: 'composition-render-payload', kind: 'control', cpuBytes: 4 });render.resize({ cpuBytes: 8 });
+  const middle = snapshot(observer);render.resize({ cpuBytes: 12 });render.release();const after = snapshot(observer);
+  assert.equal(deriveCompositionMeasurements([before, after]).evidence.complete, false);
+  const result = deriveCompositionMeasurements([before, middle, after]);
+  assert.equal(result.evidence.complete, true);const workspace = result.measurements.find(row => row.name === 'R38TextCaptionWorkspaceBytes');assert.equal(workspace.value, 12);assert.equal(workspace.complete, true);
+});
+
+function mutateIntervalRow(values, kind, mutate) {
+  const sequence = values.at(-1).records.find(row => row.sequence > values[0].cursor && row.kind === kind).sequence;
+  for (const value of values) for (const row of value.records) if (row.sequence === sequence) mutate(row);
+}
+const controlTampering = [
+  ['missing mandatory control counter on row', values => mutateIntervalRow(values, 'control-ownership', row => { delete row.compositionControlOwnedBytes; })],
+  ['missing mandatory control counter on snapshot', values => { delete values[1].compositionControlOwnedBytes; }],
+  ['missing mandatory control counter at birth', values => { for (const value of values) delete value.birth.compositionControlOwnedBytes; }],
+  ['forged nonzero control birth', values => { for (const value of values) value.birth.compositionControlOwnedBytes = 1; }],
+  ['control row mutating prompt', values => mutateIntervalRow(values, 'control-ownership', row => { row.promptOwnedBytes++; })],
+  ['control row mutating raw inspection', values => mutateIntervalRow(values, 'control-ownership', row => { row.rawInspectionOwnedBytes++; })],
+  ['prompt row mutating control', values => mutateIntervalRow(values, 'ownership', row => { row.compositionControlOwnedBytes++; })],
+  ['nonownership row mutating control', values => mutateIntervalRow(values, 'issues', row => { row.compositionControlOwnedBytes++; })],
+  ['control endpoint mismatch', values => { values[1].compositionControlOwnedBytes++; }],
+  ['negative control amount', values => mutateIntervalRow(values, 'control-ownership', row => { row.compositionControlOwnedBytes = -1; })],
+  ['fractional control amount', values => mutateIntervalRow(values, 'control-ownership', row => { row.compositionControlOwnedBytes = 0.5; })],
+  ['prompt plus control exceeding safe integer', values => mutateIntervalRow(values, 'control-ownership', row => { row.compositionControlOwnedBytes = Number.MAX_SAFE_INTEGER; })],
+  ['control transition disguised as prompt transition', values => mutateIntervalRow(values, 'control-ownership', row => { row.kind = 'ownership'; })],
+  ['prompt transition disguised as control transition', values => mutateIntervalRow(values, 'ownership', row => { row.kind = 'control-ownership'; })],
+  ['control row carrying undeclared owner text', values => mutateIntervalRow(values, 'control-ownership', row => { row.owner = 'composition-read-operation'; })],
+  ['missing retained control transition', values => { const index = values[1].records.findIndex(row => row.kind === 'control-ownership');values[1].records.splice(index, 1); }],
+];
+for (const [name, mutate] of controlTampering) test('strict Composition control replay rejects ' + name, () => {
+  const values = completeInterval();mutate(values);const result = deriveCompositionMeasurements(values);
+  assert.equal(result.evidence.complete, false);assert(!result.measurements.some(row => row.complete));
+});
+
+for (const [name, promptBytes, controlBytes] of [['control-only', 0, 37], ['prompt-only', 31, 0], ['prompt plus control', 31, 37]]) {
+  test('positive carried ' + name + ' reservations remain visible without an interval ownership transition', () => {
+    const observer = recorder(32), ledger = new AllocationLedger(observer);
+    const prompt = promptBytes ? ledger.reserve({owner: 'request-prompt-retained', kind: 'prompt', cpuBytes: promptBytes}) : null;
+    const render = controlBytes ? ledger.reserve({owner: 'composition-render-payload', kind: 'control', cpuBytes: controlBytes}) : null;
+    try {
+      const before = snapshot(observer);observer.value('issues', [], 'ui-issues');const after = snapshot(observer);
+      assert.deepEqual(after.records.filter(row => row.sequence > before.cursor).map(row => row.kind), ['issues']);
+      assert.equal(before.promptOwnedBytes, promptBytes);assert.equal(before.compositionControlOwnedBytes, controlBytes);
+      assert.equal(after.promptOwnedBytes, promptBytes);assert.equal(after.compositionControlOwnedBytes, controlBytes);
+      const result = deriveCompositionMeasurements([before, after]), workspace = result.measurements.find(row => row.name === 'R38TextCaptionWorkspaceBytes');
+      assert.equal(result.evidence.complete, true);assert.equal(result.evidence.ownershipUpdates, 0);
+      assert.equal(workspace.value, promptBytes + controlBytes);assert.equal(workspace.complete, true);
+      assert(!result.measurements.some(row => row.name === 'R38MaterializedRawInspectionBytes'));
+      assert(result.missing.some(value => value.startsWith('R38MaterializedRawInspectionBytes: operation was not observed')));
+      assert.equal(after.physicalMemoryComplete, false);
+    } finally {render?.release();prompt?.release();}
+  });
+}

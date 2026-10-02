@@ -341,3 +341,38 @@ test('matching sealed active-layer fonts cannot establish complete document-wide
     assert.deepEqual(output.unavailable.map(row => row.reason), fontRules.map(() => 'Current owned ordinary-text observation proof unavailable'));
   }
 });
+
+const fontInvariantRule = { name: 'R35SilentFontSubstitutionCount', budgetId: 'R35', unit: 'violations' };
+
+test('legacy active-layer font rows and claimed zero cannot establish the R35 font invariant', () => {
+  for (const status of ['PASS', 'INCONCLUSIVE']) for (const claimedZero of [false, true]) {
+    const value = fontInput();
+    value.cell.requiredMeasurements = [{ ...fontInvariantRule }]; value.result.status = status;
+    if (claimedZero) {
+      value.result.measurements = [{ ...fontInvariantRule, value: 0, method: 'Claimed matching active-layer fonts' }];
+      value.result.observations.silentFontSubstitutionCount = 0;
+      value.evidence = { silentFontSubstitutionCount: 0 };
+      value.resources = { [fontInvariantRule.name]: 0 };
+    }
+    assert.equal(missing(value).unavailable[0].reason, 'Current owned ordinary-text observation proof unavailable');
+  }
+});
+
+test('unissued and serialized ordinary-text proof lookalikes cannot authorize the R35 font invariant', () => {
+  const value = fontInput(); value.cell.requiredMeasurements = [{ ...fontInvariantRule }];
+  const row = { name: fontInvariantRule.name, value: 0, unit: fontInvariantRule.unit,
+    method: 'Claimed current ordinary-text font observation', evidence: [{ kind: 'ordinary-text-retained-observation-1' }] };
+  // Deliberately fabricated data models the issuer's visible fields. Neither
+  // matching fields nor a serialized report is the issuer's WeakMap identity.
+  const lookalike = {
+    binding: { operation: value.cell.operation, attempt: { cellId: value.cell.id,
+      cache: value.sample.cache, ordinal: value.sample.ordinal, prime: false } },
+    observation: { kind: 'ordinary-text-observation-1', qualification: false, physicalPresentation: false,
+      analysis: { measurements: [row], missing: [], failures: [] } },
+    measurements: [row],
+  };
+  for (const proof of [Object.freeze({}), lookalike, JSON.parse(JSON.stringify(lookalike))]) {
+    value.ordinaryTextProof = proof;
+    assert.equal(missing(value).unavailable[0].reason, 'Current owned ordinary-text observation proof unavailable');
+  }
+});

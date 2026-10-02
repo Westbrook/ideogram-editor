@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {CompositionObservations} from '../../dist/local/src/observability/composition-observations.js';
-import {TextResourceObservations, TEXT_RESOURCE_ROW_LIMIT} from '../../dist/local/src/observability/allocations.js';
+import {AllocationLedger, TextResourceObservations, TEXT_RESOURCE_ROW_LIMIT} from '../../dist/local/src/observability/allocations.js';
 import {inspectOrdinaryCompositionRaw, ordinaryCompositionMeasurement, verifyOrdinaryCompositionEvidence,
   ORDINARY_COMPOSITION_NAMES} from '../../tooling/qualification/campaigns/browser-ordinary-composition.mjs';
 
@@ -42,6 +42,32 @@ test('same-realm actual producer journal supplies observed sizes and preserves w
   assert(result.logicalReservations.every(row => row.complete === false));
   assert(result.missing.some(value => value.includes('resident Composition')));
   assert.equal(result.qualification, false); assert.equal(result.physicalMemoryComplete, false);
+});
+
+test('selected control owners extend ordinary simultaneous diagnostics without granting resident coverage', t => {
+  const f = fixture(t), ledger = new AllocationLedger(f.producer); f.capture();
+  const render = ledger.reserve({owner: 'composition-render-payload', kind: 'control', cpuBytes: 40});
+  f.work(); render.release();
+  const unrelated = ledger.reserve({owner: 'unrelated-editor-control', kind: 'control', cpuBytes: 1048576});
+  const model = ledger.reserve({owner: 'composition-response-model', kind: 'control', cpuBytes: 120});
+  model.release(); unrelated.release(); f.capture();
+  const result = inspectOrdinaryCompositionRaw(f.raw, f.binding), workspace = result.logicalReservations.find(row => row.name === 'R38TextCaptionWorkspaceBytes');
+  assert.equal(workspace.value, 140, 'prompt 100 overlaps render 40; model 120 occurs later; unrelated control is excluded');
+  assert.equal(workspace.scope, 'prompt-and-selected-composition-control-logical-reservations-only');
+  assert.equal(result.logicalReservations.find(row => row.name === 'R38MaterializedRawInspectionBytes').value, 100);
+  assert(result.logicalReservations.every(row => row.complete === false));
+  assert(!names(result).some(name => ['R38TextCaptionWorkspaceBytes', 'R38MaterializedRawInspectionBytes'].includes(name)));
+  assert.deepEqual(result.failures, []); assert.equal(result.physicalMemoryComplete, false); assert.equal(result.qualification, false);
+});
+
+test('selected control payload allowance above 64 MiB remains an unscored ordinary diagnostic', t => {
+  const f = fixture(t), ledger = new AllocationLedger(f.producer); f.capture();
+  const model = ledger.reserve({owner: 'composition-response-model', kind: 'control', cpuBytes: 64 * 1048576 + 1});
+  f.work(); model.release(); f.capture();
+  const result = inspectOrdinaryCompositionRaw(f.raw, f.binding), workspace = result.logicalReservations.find(row => row.name === 'R38TextCaptionWorkspaceBytes');
+  assert.equal(workspace.value, 64 * 1048576 + 101); assert.equal(workspace.complete, false);
+  assert.deepEqual(result.failures, []); assert(!names(result).includes('R38TextCaptionWorkspaceBytes'));
+  assert(result.missing.some(value => value.startsWith('R38TextCaptionWorkspaceBytes: complete resident')));
 });
 
 test('no executed operation supplies no invented zero rows', t => {
@@ -213,13 +239,17 @@ for (const mismatch of ['bytes', 'source', 'process', 'fixture', 'browser', 'sch
 // pretend that a pre-navigation read captured the old realm's final work.
 test('navigation from an instrumented application realm preserves its terminal coverage gap', t => {
   const prior = fixture(t), next = fixture(t);
-  prior.capture(); prior.work(); prior.capture();
+  prior.capture();
+  const control = new AllocationLedger(prior.producer).reserve({owner: 'composition-render-payload', kind: 'control', cpuBytes: 32});
+  prior.work(); control.release(); prior.capture();
   next.work(); prior.capture(next.snapshot(2000)); prior.capture(next.snapshot(2000));
   prior.raw.navigations.push({before: 1, after: 2, startedMs: 22, endedMs: 29, completed: true});
   const result = inspectOrdinaryCompositionRaw(prior.raw, prior.binding);
   assert.equal(result.intervals.length, 2);
   assert(result.intervals.every(interval => interval.evidence.complete));
   assert.notEqual(result.intervals[0].instanceId, result.intervals[1].instanceId);
+  assert.equal(result.logicalReservations.find(row => row.name === 'R38TextCaptionWorkspaceBytes').value, 132);
+  assert(result.logicalReservations.every(row => row.complete === false));
   assert(result.intervals.every(interval => interval.measurements.some(row => row.name === 'R38RawTruncationOrFalseCompletenessCount' && row.complete && row.value === 0)));
   assert.deepEqual(result.measurements, []);
   assert(result.missing.includes('Prior application realm terminal resource coverage is unavailable across navigation'));
@@ -259,11 +289,13 @@ test('a missing observer in an arbitrary old document is not proof of an empty p
 // Synthetic ledger points feed the real bounded transition producer; it owns
 // the resulting rows, acknowledgments and peak arithmetic. This does not claim
 // actual browser allocations, a renderer review, or a physical-memory bound.
-function reservationFixture(t, {overCeiling = false, incomplete = false, promptPeak = 0} = {}) {
+function reservationFixture(t, {overCeiling = false, incomplete = false, promptPeak = 0, controlPeak = 0} = {}) {
   const f = fixture(t); f.capture();
   if (promptPeak) f.producer.ownership('composition-raw-copy', 0, promptPeak, promptPeak);
+  const control = controlPeak ? new AllocationLedger(f.producer).reserve({owner: 'composition-render-payload', kind: 'control', cpuBytes: controlPeak}) : null;
   f.producer.page(source, 0, 100);
   if (promptPeak) f.producer.ownership('composition-raw-copy', promptPeak, 0, 0);
+  control?.release();
   f.capture();
   const first = f.raw.snapshots[0], last = f.raw.snapshots[1], ledgerId = crypto.randomUUID();
   const producer = new TextResourceObservations(ledgerId, first.value.timeOrigin);
@@ -342,6 +374,13 @@ for (const mutation of ['begin-ack', 'end-ack', 'realm-clock', 'replayed-peak', 
     assert(result.missing.includes('Composition central reservation replay is incomplete'));
   });
 }
+
+test('selected control interior peak cannot exceed its claimed central superset', t => {
+  const f = reservationFixture(t, {controlPeak: 100}), result = inspectOrdinaryCompositionRaw(f.raw, f.binding);
+  assert.equal(result.reservationObservations.length, 0);
+  assert(result.missing.includes('Composition central reservation replay is incomplete'));
+  assert.deepEqual(result.failures, [], 'inconsistent diagnostic evidence does not invent an R38 ceiling breach');
+});
 
 test('incomplete central transitions keep the actual observed value without complete coverage', t => {
   const f = reservationFixture(t, {incomplete: true}), result = inspectOrdinaryCompositionRaw(f.raw, f.binding);

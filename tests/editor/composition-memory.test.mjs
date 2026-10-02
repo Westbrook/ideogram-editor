@@ -86,3 +86,70 @@ test('throw undefined is still a sticky native cancellation failure',async()=>{
  await assert.rejects(readCompositionBytes(response,8,()=>false,new AbortController().signal),error=>{failure=error;return error instanceof PromptReaderCleanupError;});
  assert.equal(failure.cancellationFailed,true);assert.ok(failure.errors.includes(undefined));assert.equal(allocationLedger.snapshot().cpuBytes,before.cpuBytes+8);await assert.rejects(failure.retry(),PromptReaderCleanupError);
 });
+
+// Each new lifetime fixture receives the real isolated producer/ledger graph:
+// retained native cleanup debt in another case must not become its baseline.
+async function controlCompositionFixture(){
+ const modules=await isolatedDiagnosticModules();
+ const localPromptURL=await source(prefix+'/src/observability/prompt-memory.ts',{'./allocations.js':modules.allocationsURL});
+ const localMemoryURL=await source(prefix+'/src/composition/memory.ts',{'../observability/allocations.js':modules.allocationsURL,'../observability/prompt-memory.js':localPromptURL,'../observability/composition-observations.js':modules.compositionObservationsURL,'./view.js':compositionViewURL,'./core.js':coreURL});
+ return {...await import(localMemoryURL),allocationLedger:(await import(modules.allocationsURL)).allocationLedger,observations:(await import(modules.compositionObservationsURL)).compositionObservations};
+}
+function compositionSnapshot(observer){const read=observer.readSnapshot();try{return structuredClone(read.value);}finally{read.release();}}
+
+test('control render ownership survives UI release until the last async pin drains',async()=>{
+ const graph=await controlCompositionFixture(),before=compositionSnapshot(graph.observations);
+ const prompt=graph.compositionAllowance('composition-test-prompt',11),render=graph.compositionRenderAllowance(37),unpin=render.pin();
+ try{
+  render.grow(13);render.release();
+  const retained=compositionSnapshot(graph.observations);
+  assert.equal(retained.compositionControlOwnedBytes,50);assert.equal(retained.promptOwnedBytes,11);assert.equal(retained.rawInspectionOwnedBytes,0);
+  unpin();const drained=compositionSnapshot(graph.observations);
+  assert.equal(drained.compositionControlOwnedBytes,0);assert.equal(drained.promptOwnedBytes,11);
+  assert.deepEqual(drained.records.filter(row=>row.sequence>before.cursor&&row.kind==='control-ownership').map(row=>row.compositionControlOwnedBytes),[37,50,0]);
+  const cursor=drained.cursor;unpin();render.release();assert.equal(compositionSnapshot(graph.observations).cursor,cursor);
+ }finally{unpin();render.release();prompt.release();}
+ const after=compositionSnapshot(graph.observations);assert.equal(after.compositionControlOwnedBytes,0);assert.equal(after.promptOwnedBytes,0);assert.equal(after.physicalMemoryComplete,false);
+});
+
+test('JSON response read records simultaneous control raw and parse allowances without charging raw inspection',async()=>{
+ const graph=await controlCompositionFixture(),value={caption:'ok',scene:'😀'},payload=utf8.encode(JSON.stringify(value)),prompt=graph.compositionAllowance('composition-test-prompt',9);
+ const before=compositionSnapshot(graph.observations),admitted=graph.reserveCompositionRead();let owned;
+ try{
+  owned=await graph.readCompositionJSON(new Response(payload,{headers:{'content-length':String(payload.byteLength)}}),()=>true,new AbortController().signal,'accepted',admitted);
+  assert.deepEqual(owned.value,value);
+  const after=compositionSnapshot(graph.observations),rows=after.records.filter(row=>row.sequence>before.cursor);
+  assert.equal(Math.max(...rows.map(row=>row.compositionControlOwnedBytes)),payload.byteLength*7+8,'raw n and parse/decode 6n+8 coexist');
+  assert.equal(after.compositionControlOwnedBytes,graph.compositionPayloadBytes(value));
+  assert(rows.every(row=>row.kind==='control-ownership'&&row.promptOwnedBytes===9&&row.rawInspectionOwnedBytes===0));
+  assert.equal(after.physicalMemoryComplete,false);
+ }finally{owned?.owner.release();prompt.release();}
+ const after=compositionSnapshot(graph.observations);assert.equal(after.compositionControlOwnedBytes,0);assert.equal(after.promptOwnedBytes,0);
+});
+
+test('malformed JSON releases both control raw and parse owners after preserving their overlap',async()=>{
+ const graph=await controlCompositionFixture(),payload=utf8.encode('{broken'),before=compositionSnapshot(graph.observations);
+ await assert.rejects(graph.readCompositionJSON(new Response(payload,{headers:{'content-length':String(payload.byteLength)}}),()=>true,new AbortController().signal,'draft',graph.reserveCompositionRead()),SyntaxError);
+ const after=compositionSnapshot(graph.observations),rows=after.records.filter(row=>row.sequence>before.cursor);
+ assert.equal(Math.max(...rows.map(row=>row.compositionControlOwnedBytes)),payload.byteLength*7+8);
+ assert.equal(after.compositionControlOwnedBytes,0);assert.equal(after.promptOwnedBytes,0);assert.equal(after.rawInspectionOwnedBytes,0);
+ assert.equal(rows.at(-1).compositionControlOwnedBytes,0);assert(rows.every(row=>row.kind==='control-ownership'));
+});
+
+test('failed JSON reader unlock keeps control cleanup debt until actual retry succeeds',async()=>{
+ const graph=await controlCompositionFixture(),gate=deferred(),cancelStarted=deferred(),primary=Error('control read failed'),unlock=Error('control unlock failed');let attempts=0,failure;
+ const reader={async read(){throw primary;},cancel(){cancelStarted.resolve();return gate.promise;},releaseLock(){if(++attempts===1)throw unlock;}};
+ const response={ok:true,headers:new Headers({'content-length':'8'}),body:{getReader:()=>reader}},before=graph.allocationLedger.snapshot();
+ const pending=graph.readCompositionJSON(response,()=>true,new AbortController().signal,'accepted',graph.reserveCompositionRead());
+ await cancelStarted.promise;
+ try{const waiting=compositionSnapshot(graph.observations);assert.equal(waiting.compositionControlOwnedBytes,8);assert.equal(waiting.promptOwnedBytes,0);assert.equal(waiting.rawInspectionOwnedBytes,0);}
+ finally{gate.resolve();}
+ await assert.rejects(pending,error=>{failure=error;return error instanceof graph.CompositionReadCleanupError;});
+ assert.equal(failure.resource.response,response);assert.equal(failure.resource.retainedReader,reader);assert.ok(failure.errors.includes(primary));assert.ok(failure.errors.includes(unlock));
+ const debt=compositionSnapshot(graph.observations),charged=graph.allocationLedger.snapshot();
+ assert.equal(debt.compositionControlOwnedBytes,8);assert.equal(charged.byKind.control.cpuBytes,before.byKind.control.cpuBytes+8);assert.equal(charged.unusedHandles,before.unusedHandles+2);
+ await failure.retry();const after=compositionSnapshot(graph.observations);
+ assert.equal(after.compositionControlOwnedBytes,0);assert.equal(after.promptOwnedBytes,0);assert.equal(graph.allocationLedger.snapshot().unusedHandles,before.unusedHandles);
+ assert.equal(after.records.filter(row=>row.sequence>debt.cursor&&row.kind==='control-ownership').length,1,'markUnused does not fabricate a release; successful retry releases once');
+ const cursor=after.cursor;await failure.retry();assert.equal(compositionSnapshot(graph.observations).cursor,cursor);
+});

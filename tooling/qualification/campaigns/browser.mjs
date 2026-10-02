@@ -971,7 +971,7 @@ export async function createBrowserCampaign(context = {}) {
       const module = cell.operation.startsWith('text.') ? await import('./browser-text.mjs') : null;
       if (ORDINARY_TEXT_OPERATIONS.includes(cell.operation) && browserOptions.byteAudit !== true) {
         if (context.services?.ordinaryText !== undefined) throw Error('An external service cannot replace ordinary text observation');
-        ordinaryText = createOrdinaryTextObserver({page, cell, sample, serial: index, fixture, runtime: nativeBrowserRuntime,
+        ordinaryText = createOrdinaryTextObserver({page, repo, root, cell, sample, serial: index, fixture, runtime: nativeBrowserRuntime,
           environment: context.ordinaryTextEnvironment, processIdentity: context.processIdentity, output, signal, journal: context.trace});
       }
       if (context.services?.compositionObservation !== undefined) throw Error('An external service cannot replace ordinary composition observation');

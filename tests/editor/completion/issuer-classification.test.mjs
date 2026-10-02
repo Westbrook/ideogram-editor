@@ -161,7 +161,7 @@ test('reviewed network boundary hashes are fixed independently of candidates',()
   'src/text/contracts.ts':'96aa65d78cf834c14def464df88d3b94982193cfeabc8f70b1eaba3d86fae6ec',
   'src/text/durable.ts':'6b426048f78f1a95d8a23c9b4e7724ce2774e7a0cc47bea8968b4258a2682d52',
   'src/text/engine.ts':'c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830',
-  'src/state/editor-client.ts':'98572c624d268912aa82dae2e3e84daf40797dba828b9b03301bfbc306cca162',
+  'src/state/editor-client.ts':'da4f0b401496715287ca10832a227bc753e2a460dceae5993ae6e1469e7609a1',
  'src/observability/adapter-upload-hook.ts':'756a93d71aff8092d41c9eefa8ddabbe5983acdcc2f5350e958b3b263db8ceb9',
  'src/observability/adapter-upload.ts':'77d8bc7603e9a7db0df09369078b02381bca012c92c30c7df1a3b014b198dbba',
  'src/ui/adapter-library.ts':'2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80',
@@ -171,7 +171,8 @@ test('reviewed network boundary hashes are fixed independently of candidates',()
   'src/observability/model-memory.ts':'79d5f368134a38dcc01abdf29d42bff9840c4f42d6e3f8aa3c83864d5e58f118',
   'src/observability/prompt-memory.ts':'65d2bd5efb45197f2f4edecbcbde7b40f0fc65acb278fde42e02f57146eb30dc',
   'src/observability/recovery-memory.ts':'52c4b1f97ae3ee5e3eec4e88ca0274174aaea1b54f611ec27a948393f052b492',
-  'src/observability/allocations.ts':'95ea4f1dd0e6cba1cce3950d48df473d78168a76cd5c2bc16d5e83c92ab16e9d',
+  'src/observability/allocations.ts':'31a220cd0df3df7577212c64b5e5db3a21c16dc3c95de99f77721c4c6e77ac06',
+  'src/observability/composition-observations.ts':'e732150702ee4508467330c50e11f074d2916d82297d0315c145926ee29807a4',
   'src/ui/storage-library.ts':'d545b60a0d2cc13707b9d42bd58480693bbf61b533a2269fad0e4ba964878216',
   'src/ui/model-owner.ts':'b6e6daa3fc7ec66dc5f5e6a8f193d6d395028326f739a2802bb8e18232346524',
  });

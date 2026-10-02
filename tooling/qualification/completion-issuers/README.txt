@@ -84,5 +84,5 @@ manifest after the current typecheck/build, including the current imported
 original-recovery-reader.ts and completion/sse-publication.mjs helpers. A changed
 helper or source input needs a fresh receipt; do not relabel historical issuer
 manifests, prior gate receipts, or native/browser artifacts as current evidence.
-The eight-fetch/three-XHR partition remains a strict emitted-build assertion;
+The nine-fetch/three-XHR partition remains a strict emitted-build assertion;
 source review alone does not establish that the final build meets it.
