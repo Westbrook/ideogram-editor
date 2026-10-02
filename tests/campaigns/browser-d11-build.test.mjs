@@ -335,21 +335,35 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
     assert.equal(entries.length, 1, 'Actual emitted fixture entry changed: ' + name);
     return entries[0].file;
   };
-  const browser = named('browser'), shell = named('shell'), featureEntry = named('export');
+  // Source attribution is independent of generated chunk names. This reviewed
+  // declaration remains present while its shell-owned implementation is absent
+  // from the importing chunk's emitted static dependencies.
+  const sourcePath = 'src/protocol/validate.ts', targetSource = 'src/protocol/request-edits.ts';
+  const attributedOutput = path => {
+    const owners = build.files.filter(file => file.kind === 'js' && file.modules.includes(path));
+    assert.equal(owners.length, 1, 'Exact emitted source attribution changed: ' + path);
+    return owners[0].file;
+  };
+  const origin = attributedOutput(sourcePath), shell = attributedOutput(targetSource), featureEntry = named('export');
+  assert.equal(shell, named('shell'));assert.notEqual(origin, shell);
+  const source = input.sourceTextByPath[sourcePath];
+  const expression = "import {validateRequestSourceCapture} from './request-edits.js';";
+  assert.equal(source.slice(479, 543), expression);assert.equal(source.indexOf(expression), 479);
+  assert.equal(source.indexOf(expression, 480), -1);
   const graph = build.roles.staticImportGraph;
   assert.equal(build.roles.complete, true, build.roles.missing.join('; '));
   assert.equal(graph?.kind, 'd11-emitted-static-graph-1');
   assert.equal(graph.policy, 'verified-compiled-chunk-dependencies');
-  assert(!graph.edges.some(edge => edge.output === browser && edge.target === shell));
-  const omitted = graph.omittedSourceAttributions.filter(edge => edge.source === 'src/protocol/validate.ts' && edge.output === browser && edge.target === shell);
+  assert(!graph.edges.some(edge => edge.output === origin && edge.target === shell));
+  const omitted = graph.omittedSourceAttributions.filter(edge => edge.source === sourcePath && edge.start === 479 && edge.end === 543 && edge.output === origin && edge.target === shell);
   assert.equal(omitted.length, 1);
-  const source = input.sourceTextByPath[omitted[0].source];
   assert.equal(omitted[0].sourceSha256, 'sha256:' + hash(source));
   assert.equal(omitted[0].expressionSha256, 'sha256:' + hash(source.slice(omitted[0].start, omitted[0].end)));
   const feature = build.roles.lazyFeatures.find(row => row.id === 'src/ui/export.ts');
-  const expectedFeature = ['export', 'browser', 'model-memory', 'lit', 'adapter-upload-hook', 'preload-helper', 'adapters'].map(named).sort();
+  const expectedFeature = ['export', 'browser', 'model-memory', 'lit', 'adapter-upload-hook', 'preload-helper', 'adapters', 'display-image', 'sha256'].map(named).sort();
   assert.deepEqual(feature.files, expectedFeature);
   assert.deepEqual(feature.closureFiles, expectedFeature);
+  assert(expectedFeature.includes(origin), 'The refined source owner remains charged to the Export closure.');
   const shared = expectedFeature.filter(file => file !== featureEntry);
   assert(shared.every(file => build.roles.startupFiles.includes(file)), 'Shared startup dependencies must remain charged to the feature.');
   assert(!build.roles.startupFiles.includes(featureEntry));
@@ -378,6 +392,7 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
     }
     return [...found].sort();
   };
+  assert.deepEqual(staticFiles(['src/ui/export.ts']), expectedFeature, 'Independent manifest traversal must match all nine reviewed feature files.');
   const startupExpected = [...staticFiles(['index.html', 'src/ui/shell.ts', 'src/ui/editor-panels.ts', 'src/observability/adapter-upload.ts']), 'inline:bootstrap'].sort();
   assert.deepEqual(build.roles.startupFiles, startupExpected);
   const storageEntry = named('storage-library'), importEntry = named('image-import');
@@ -409,20 +424,20 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
   const seal = value => { const { sha256: _old, ...body } = value; return { ...body, sha256: 'sha256:' + hash(canonical(body)) }; };
   const changedOutput = text => {
     const bytes = Buffer.from(text), gzipBytes = gzipSync(bytes).length;
-    return { ...input, outputTextByFile: { ...input.outputTextByFile, [browser]: text },
-      files: build.files.map(file => file.file === browser ? { ...file, rawBytes: bytes.length,
+    return { ...input, outputTextByFile: { ...input.outputTextByFile, [origin]: text },
+      files: build.files.map(file => file.file === origin ? { ...file, rawBytes: bytes.length,
         sha256: 'sha256:' + hash(bytes), gzipBytes, computedGzipBytes: gzipBytes } : file) };
   };
   // This is a synthetic role-analysis control, not a finalized build or an
   // authenticated receipt. Reintroducing a real emitted dependency must count
   // its full closure; a fresh canonical reducer seal does not authenticate it.
-  const reintroduced = changedOutput(`import ${JSON.stringify('./' + shell.slice(shell.lastIndexOf('/') + 1))};\n` + input.outputTextByFile[browser]);
+  const reintroduced = changedOutput(`import ${JSON.stringify('./' + shell.slice(shell.lastIndexOf('/') + 1))};\n` + input.outputTextByFile[origin]);
   const mutantRoles = deriveD11Roles(reintroduced);
   assert.equal(mutantRoles.complete, true, mutantRoles.missing.join('; '));
-  assert(mutantRoles.staticImportGraph.edges.some(edge => edge.output === browser && edge.target === shell));
-  assert(!mutantRoles.staticImportGraph.omittedSourceAttributions.some(edge => edge.output === browser && edge.target === shell));
+  assert(mutantRoles.staticImportGraph.edges.some(edge => edge.output === origin && edge.target === shell));
+  assert(!mutantRoles.staticImportGraph.omittedSourceAttributions.some(edge => edge.output === origin && edge.target === shell));
   assert.deepEqual(mutantRoles.startupFiles, build.roles.startupFiles, 'The dependency was already startup-owned.');
-  const delta = reintroduced.files.find(file => file.file === browser).gzipBytes - byFile.get(browser).gzipBytes;
+  const delta = reintroduced.files.find(file => file.file === origin).gzipBytes - byFile.get(origin).gzipBytes;
   const mutantAudit = observeD11Build(seal({ ...build, files: reintroduced.files, roles: mutantRoles,
     roleInputs: { ...build.roleInputs, outputTextByFile: reintroduced.outputTextByFile } }));
   assert.equal(mutantAudit.status, 'FAIL');
@@ -438,10 +453,10 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
     ['forged invocation', () => ({ ...input, invocationContract: { ...input.invocationContract, profile: 'unreviewed' } })],
     ['changed compiler', () => ({ ...input, compilation: { ...input.compilation, configFile: 'other.config.ts' } })],
     ['changed corpus', () => ({ ...input, sourceTextByPath: { ...input.sourceTextByPath, 'src/main.ts': input.sourceTextByPath['src/main.ts'] + '\n' } })],
-    ['missing output', () => { const outputTextByFile = { ...input.outputTextByFile }; delete outputTextByFile[browser]; return { ...input, outputTextByFile }; }],
-    ['stale output identity', () => ({ ...input, outputTextByFile: { ...input.outputTextByFile, [browser]: input.outputTextByFile[browser] + '\n' } })],
-    ['unknown static target', () => changedOutput('import "./unrecorded.js";\n' + input.outputTextByFile[browser])],
-    ['malformed emitted import', () => changedOutput('import ;\n' + input.outputTextByFile[browser])],
+    ['missing output', () => { const outputTextByFile = { ...input.outputTextByFile }; delete outputTextByFile[origin]; return { ...input, outputTextByFile }; }],
+    ['stale output identity', () => ({ ...input, outputTextByFile: { ...input.outputTextByFile, [origin]: input.outputTextByFile[origin] + '\n' } })],
+    ['unknown static target', () => changedOutput('import "./unrecorded.js";\n' + input.outputTextByFile[origin])],
+    ['malformed emitted import', () => changedOutput('import ;\n' + input.outputTextByFile[origin])],
   ]) {
     const refused = deriveD11Roles(change());
     assert.equal(refused.complete, false, label);

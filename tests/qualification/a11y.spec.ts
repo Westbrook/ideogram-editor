@@ -250,7 +250,11 @@ test('AX03 semantic validation links and deletion preserve meaningful keyboard f
     await expect(page.getByRole('spinbutton',{name:'X in document pixels',exact:true})).toHaveValue('1');
     await expect(page.getByRole('spinbutton',{name:'Y in document pixels',exact:true})).toHaveValue('10');
     await edit(page,page.getByRole('textbox',{name:'Appearance description',exact:true}),'First object');
-    await action(page,'Add semantic text');await edit(page,page.getByRole('textbox',{name:'Appearance description',exact:true}),'Second element');
+    await action(page,'Add semantic text');
+    await expect(page.getByRole('heading',{name:'Semantic text inspector',exact:true})).toBeVisible();
+    await expect(page.locator('#semantic-tree').getByRole('treeitem',{name:'2. Text · Untitled',exact:true})).toHaveAttribute('aria-selected','true');
+    await edit(page,page.getByRole('textbox',{name:'Appearance description',exact:true}),'Second element');
+    await expect(page.locator('#semantic-tree').getByRole('treeitem',{name:'1. Object · First object',exact:true})).toBeVisible();
     await action(page,'Move element earlier');
     const rows=page.locator('#semantic-tree').getByRole('treeitem');await expect(rows).toHaveCount(2);await expect(rows.first()).toContainText('Second element');
     await action(page,'Move element later');await expect(rows.last()).toContainText('Second element');
