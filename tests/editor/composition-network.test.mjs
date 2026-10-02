@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {expectedDisplayBusy,expectedCompositionCancellation as classify,validOriginalReadBijection,validUntimedOriginalReadBijection} from './composition-network.mjs';
+import {expectedDisplayBusy,expectedCompositionCancellation as classify,validOriginalReadBijection,validUntimedOriginalReadBijection,queueBodyObserverDisposition} from './composition-network.mjs';
 const origin='http://127.0.0.1:54321',url=origin+'/api/v1/documents/doc/composition?revision=2&raw=0&download=1';
 const event={channel:'requestfailed',requestId:9,url,method:'GET',resourceType:'fetch',failure:{errorText:'net::ERR_ABORTED'},response:{requestId:9,url,method:'GET',status:200,contentType:'application/octet-stream',contentLength:'64',etag:'"sha256:'+'a'.repeat(64)+'"'}};
 const proof={requestId:9,url,oneOwnedRequestInExplicitExportWindow:true,destinationComplete:true,downloadName:'caption-original.bin',downloadURL:'blob:'+origin+'/actual',bytes:64,sha256:'a'.repeat(64)};
@@ -468,4 +468,35 @@ test('untimed full raw bucket admits32 vertices but refuses33 without truncation
  const within=make(32),proofs=displayReadProofs(within.rows,within.requests);assert.equal(proofs.length,32);assert(proofs.every(p=>p.bijection.version===2&&p.bijection.operations.length===32&&p.bijection.requests.length===32));
  assert.equal(proofs.find(p=>p.requestId===1000).requestStart,null);assert(proofs.filter(p=>p.requestId!==1000).every(p=>p.bodyComplete&&p.eligibleRequests.includes(1000)));
  const outside=make(33);assert.deepEqual(displayReadProofs(outside.rows,outside.requests),[]);
+});
+
+
+function queueObserverSample(){
+ const {rows,q}=displaySample('/api/v1/queue'),raw={events:rows,requests:[q],errors:[]};
+ const snapshot={capturedAt:150,eventLimit:DISPLAY_OBSERVATION_LIMIT,requestLimit:DISPLAY_REQUEST_LIMIT,raw:structuredClone(raw),proofs:displayReadProofs(rows,[q])};
+ const row={id:1,originalRequestId:9,epoch:2,method:'GET',origin,path:'/api/v1/queue',hasQuery:false,status:200,stage:'json',body:'failed',terminal:'failed',nativeFailure:'net::ERR_ABORTED',contentType:'application/json; charset=utf-8',contentLength:'64'};
+ const later={...row,id:2,originalRequestId:10,stage:'complete',body:'complete',terminal:'finished',nativeFailure:null};
+ const error=Error('response.json: Protocol error (Network.getResponseBody): No data found for resource with given identifier\nResponse body is not available for a response that was navigated away from. Read response.body() before triggering any navigation.');
+ return {row,error,later,snapshot,current:structuredClone(raw)};
+}
+const queueDisposition=s=>queueBodyObserverDisposition(s.row,s.error,origin,s.engine??'chromium',[s.row,...(s.later?[s.later]:[])],s.snapshot,s.current);
+test('queue observer loss requires exact original EOF and a later fully observed same-epoch public response',()=>{
+ const sample=queueObserverSample();assert.deepEqual(queueDisposition(sample),{kind:'exact-original-queue-eof-observer-loss',requestId:9,frameId:1,document:'10000000-0000-4000-8000-000000000001',operation:1,bytes:64,laterObservationId:2});
+ assert.equal(sample.row.body,'failed');assert.equal('value' in sample.row,false);
+ for(const change of [s=>s.engine='firefox',s=>s.row.method='POST',s=>s.row.origin+='0',s=>s.row.path+='/extra',s=>s.row.hasQuery=true,s=>s.row.status=201,s=>s.row.stage='response',s=>s.row.body='pending',s=>s.row.terminal='finished',s=>s.row.nativeFailure='net::ERR_FAILED',s=>s.row.contentType='text/plain',s=>s.row.contentLength='063',s=>s.row.contentLength='0',s=>s.row.contentLength='65',s=>s.error=Error('net::ERR_ABORTED'),s=>s.error=Error(s.error.message+' extra')]){const s=queueObserverSample();change(s);assert.equal(queueDisposition(s),false);}
+ for(const change of [s=>s.later=null,s=>s.later.id=1,s=>s.later.epoch++,s=>s.later.method='POST',s=>s.later.origin+='0',s=>s.later.hasQuery=true,s=>s.later.path+='/extra',s=>s.later.status=500,s=>s.later.body='failed',s=>s.later.stage='retain',s=>s.later.terminal='unknown',s=>s.later.nativeFailure='net::ERR_ABORTED']){const s=queueObserverSample();change(s);assert.equal(queueDisposition(s),false);}
+});
+test('queue observer loss refuses missing, duplicate, incomplete or canceled original proofs',()=>{
+ for(const change of [s=>s.snapshot.proofs=[],s=>s.snapshot.proofs.push(structuredClone(s.snapshot.proofs[0])),s=>s.snapshot.proofs[0].requestId++,s=>s.snapshot.proofs[0].url+='?x=1',s=>s.snapshot.proofs[0].status=201,s=>s.snapshot.proofs[0].exactOccurrence=false,s=>s.snapshot.proofs[0].requestFrame++,s=>s.snapshot.proofs[0].eligibleRequests.push(10),s=>s.snapshot.proofs[0].bodyComplete=false,s=>s.snapshot.proofs[0].signalAborted=true,s=>s.snapshot.proofs[0].bodyCanceled=true,s=>s.snapshot.proofs[0].bytes--,s=>s.snapshot.raw.errors.push('collector error'),s=>s.current.errors.push('collector error'),s=>s.snapshot.eventLimit=s.snapshot.raw.events.length,s=>s.snapshot.requestLimit=s.snapshot.raw.requests.length]){const s=queueObserverSample();change(s);assert.equal(queueDisposition(s),false);}
+});
+test('queue snapshot retains every original bucket member and refuses unfinished or late pre-boundary evidence',()=>{
+ const pending=displaySample('/api/v1/queue',{operation:2,start:125});pending.q.requestId=10;
+ for(const part of ['rows','request','both']){const s=queueObserverSample();if(part!=='request'){s.snapshot.raw.events.push(pending.rows[0]);s.current.events.push(pending.rows[0]);}if(part!=='rows'){s.snapshot.raw.requests.push({...pending.q,response:undefined});s.current.requests.push({...pending.q,response:undefined});}s.snapshot.proofs=displayReadProofs(s.snapshot.raw.events,s.snapshot.raw.requests);assert.equal(queueDisposition(s),false,part);}
+ for(const change of [s=>s.current.events.push({...s.current.events[0],kind:'abort',at:160,aborted:true}),s=>s.current.events.push({...s.current.events[0],kind:'clone',at:160}),s=>s.current.events.push({...pending.rows[0],start:149,at:149}),s=>s.current.requests.push({...pending.q,startTime:149}),s=>s.current.requests[0].response.status=201]){const s=queueObserverSample();change(s);assert.equal(queueDisposition(s),false);}
+});
+test('queue snapshot is immutable and only demonstrably later same-bucket traffic stays separate',()=>{
+ const s=queueObserverSample(),next=displaySample('/api/v1/queue',{operation:2,start:200});next.q.requestId=10;
+ s.current.events.push(...next.rows);s.current.requests.push(next.q);assert.ok(queueDisposition(s));assert.equal(s.snapshot.raw.events.length,4);assert.equal(s.snapshot.raw.requests.length,1);
+ const unknown={...next.q,requestId:11,startTime:0,response:undefined};s.current.requests.push(unknown);
+ assert.deepEqual(displayReadProofs(s.current.events,s.current.requests),[]);assert.equal(queueDisposition(s),false,'a later unavailable timestamp cannot silently validate the captured proof');assert.equal(s.snapshot.proofs.length,1);
 });
