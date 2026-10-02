@@ -48,3 +48,4 @@ const {installCandidateHooks}=await import(${JSON.stringify(runtimeURL)});
 installCandidateHooks(${JSON.stringify(authorizationPath)},${JSON.stringify(authorizationHash)});
 `;
 }
+
