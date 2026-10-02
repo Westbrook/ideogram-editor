@@ -133,11 +133,11 @@ test('adapter fixture admission rejects unsealed bytes and symbolic-link paths',
 });
 
 test('closure pins every current migration snapshot and the seven exact external fixtures', async () => {
-  assert.equal(historyRequirements.length, 16);
-  assert.equal(new Set(historyRequirements.map(item => item.commit)).size, 16);
+  assert.equal(historyRequirements.length, 17);
+  assert.equal(new Set(historyRequirements.map(item => item.commit)).size, 17);
   assert.equal(fixtureRequirements.length, 7);
   assert.equal(fixtureRequirements.at(-1).bytes, 85299896);
-  const consumerPaths = ['tests/assets/storage.test.mjs', 'tests/protocol/recovery.test.mjs', 'tests/raster/storage.test.mjs', 'tests/raster/schema.test.mjs', 'tests/history/schema.test.mjs', 'tests/history/mask-schema.test.mjs', 'tests/history/retained-mask-schema.test.mjs', 'tests/portable/schema.test.mjs', 'tests/portable/prior-writer.mjs', 'tests/text-state/prior-writer.mjs', 'tests/text-state/placement-schema.test.mjs', 'tests/composition/schema.test.mjs', 'tests/candidates/compatibility.test.mjs', 'tests/recovery/compatibility.test.mjs', 'tests/recovery/p2-schema.test.mjs'];
+  const consumerPaths = ['tests/assets/storage.test.mjs', 'tests/protocol/recovery.test.mjs', 'tests/raster/storage.test.mjs', 'tests/raster/schema.test.mjs', 'tests/history/schema.test.mjs', 'tests/history/returned-description.test.mjs', 'tests/history/mask-schema.test.mjs', 'tests/history/retained-mask-schema.test.mjs', 'tests/portable/schema.test.mjs', 'tests/portable/prior-writer.mjs', 'tests/text-state/prior-writer.mjs', 'tests/text-state/placement-schema.test.mjs', 'tests/composition/schema.test.mjs', 'tests/candidates/compatibility.test.mjs', 'tests/recovery/compatibility.test.mjs', 'tests/recovery/p2-schema.test.mjs'];
   const found = new Set();
   for (const path of consumerPaths) for (const match of String(await readFile(path)).matchAll(/['"]([a-f0-9]{40})['"]/g)) found.add(match[1]);
   assert.deepEqual([...found].sort(), historyRequirements.map(item => item.commit).sort());

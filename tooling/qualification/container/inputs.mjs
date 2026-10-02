@@ -28,6 +28,7 @@ export const historyRequirements = [
   ['9764b03ae889ae2fe2cf5d38e9e8e66bd6cf2eb4', withTests],
   ['086c9a677512f1faae98f9e947084ffb93c09431', withTests],
   ['5650326b623d4aa2080772307708aa9f1854aa52', withTests],
+  ['8901d923f309125c5bc19605efe76a871a7ee1df', code],
 ].map(([commit, paths]) => ({ commit, paths }));
 
 export const fixtureRequirements = [

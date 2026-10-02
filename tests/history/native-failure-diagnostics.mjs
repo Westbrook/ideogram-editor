@@ -3,10 +3,10 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {terminal} from '../raster/helpers.mjs';
 
-// Diagnostic-only: preserve the original assertion and its fixed terminal wait.
+// Diagnostic-only: preserve the caller's original assertion and terminal wait.
 // A failed pending operation is never reposted or granted more capacity here.
-export async function terminalWithDiagnostics(f,request,baseline){
- try{return await terminal(f,request);}catch(error){
+export async function terminalWithDiagnostics(f,request,baseline,run=()=>terminal(f,request)){
+ try{return await run();}catch(error){
   let status;try{status=await f.read('/api/v1/commands/'+request.command.commandId);}catch{}
   if(status?.status===202&&status.json?.phase==='waiting-for-resources')try{
    const commandId=request.command.commandId,trigger=join(f.root,'j19-diagnostic-request.json'),result=join(f.root,'j19-diagnostic-'+commandId+'.json');

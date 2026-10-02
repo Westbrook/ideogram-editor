@@ -25,6 +25,7 @@ import {allocationLedger,type AllocationLease} from '../observability/allocation
 import {hashRelinkInputs} from './font-relink.js';
 import {cloneOwnedModel,modelPayloadBytes,type OwnedModel} from '../observability/model-memory.js';
 import {paintTextPreview} from './native-text-preview.js';
+import {scanDraftText,planTextSplit,TEXT_ADMISSION,type TextSplitRange} from '../text/split.js';
 
 class AdmittedEditingBridge extends EditingController {
   constructor(host:LitElement,options:ConstructorParameters<typeof EditingController>[1],private paused:()=>boolean,private finishAdmitted:()=>void){super(host,options);}
@@ -43,6 +44,9 @@ type NativeDraft=Pick<Draft,'id'|'targetLayerId'|'expectedDocumentRevision'>;
 type NativeViewSnapshot={document:NativeDocument;readRevision:string;layer:NativeLayer|null;draft:NativeDraft|null;returned?:ReturnedTextProposal};
 type Session={id:string;document:NativeDocument;layerId:string;layerVersion:string;name:string;draftId:string;original?:TextSource;locked:boolean;text:string;style:TextStyle;frame:{width:number;height:number};fonts:FontVersion[];placement?:TextPlacement;description?:ReturnedDescriptionSelection};
 type Preview={revision:number;hash:string;overflow:boolean;width:number;height:number;pixels:Uint8ClampedArray<ArrayBuffer>;id:string;generation:number;layerVersion:string;textHash:string;dependencyHash:string};
+type SplitPart={range:TextSplitRange;layerId:string;name:string;offset:TextPlacement;candidate?:BlobRef;reviewedDependencyHash?:string;reviewedRasterHash?:string};
+type SplitReview={revision:number;generation:string;originalText:BlobRef;parts:SplitPart[];index:number};
+type DocumentTextUsage={documentId:string;revision:string;imageHash:string;bytes:number;layers:number};
 export class NativeTextEditing {
   readonly control=document.createElement('textarea');
   private model=createDraftModel();private bridge:AdmittedEditingBridge;private adapter=new ControlAdapter();
@@ -60,6 +64,7 @@ export class NativeTextEditing {
   private previewSurfaceLease?:AllocationLease;
   private readCleanupErrors=new Set<unknown>();private stageOwners=new Set<OwnedModel<BlobRef>>();
   private renderer?:TextRenderer;private preparation?:DurableTextPreparation;private preview?:Preview;
+  private splitOwner?:OwnedModel<SplitReview>;private documentUsage?:DocumentTextUsage;private usageRead?:{epoch:number;owner:EditorClient['draftOwner'];documentId:string;revision:string;imageHash:string;task:Promise<void>};
   private opener?:HTMLElement;private restoring='';private restoringEpoch=0;private work=0;
   private preparedHash='';private fontLoadFailed=false;private library:TextLibrary;private storage:TextStorage;private files:readonly File[]=[];private licenses:readonly File[]=[];
   private abort=new AbortController();private reads=new AbortController();private pending=new Set<Promise<unknown>>();private closing=false;private disposed=false;private releasing?:Promise<void>;private embeddingReviewed=false;
@@ -140,6 +145,51 @@ export class NativeTextEditing {
     try{return await this.editor.ownedJSON<T>(path,'native-descriptor',{signal:this.reads.signal},()=>!this.reads.signal.aborted,65536,'prompt');}
     catch(error){if(error instanceof PromptReaderCleanupError)this.controlCleanup.add(error);throw error;}
   }
+  private usageCurrent(){const d=this.editor.view.document,u=this.documentUsage;return !!d&&!!u&&u.documentId===d.id&&u.revision===d.revision&&u.imageHash===(d.image?.state.hash??'');}
+  private ensureDocumentUsage(s:Session):Promise<void>{
+    if(this.usageCurrent())return Promise.resolve();
+    const d=this.editor.view.document,image=this.editor.view.image,epoch=this.epoch,owner=this.editor.draftOwner;
+    if(!d||!image||d.id!==s.document.id||d.revision!==s.document.revision)return Promise.reject(Error('Current document text usage is unavailable.'));
+    const documentId=d.id,documentRevision=d.revision,imageHash=d.image?.state.hash??'',prior=this.usageRead;
+    if(prior){
+      if(prior.epoch===epoch&&prior.owner===owner&&prior.documentId===documentId&&prior.revision===documentRevision&&prior.imageHash===imageHash)return prior.task;
+      // A different session may open before the retired reader drains. Join its
+      // cleanup, then admit the new scope; never retry a failed same-scope read.
+      return this.track(()=>this.withSession(s,async()=>{await Promise.allSettled([prior.task]);
+        if(!this.available()||this.epoch!==epoch||this.editor.draftOwner!==owner||this.session?.draftId!==s.draftId||this.editor.view.document?.id!==documentId||this.editor.view.document.revision!==documentRevision||(this.editor.view.document.image?.state.hash??'')!==imageHash)throw Error('Text usage scope changed.');
+        if(this.usageRead===prior)this.usageRead=undefined;await this.ensureDocumentUsage(s);
+      }));
+    }
+    const releaseView=this.editor.pinViewModels(d);let snapshot:OwnedModel<{documentId:string;revision:string;imageHash:string;layers:number;text:{id:string;version:string}[]}>;
+    try{snapshot=this.memory.clone('text-usage-input',{documentId:d.id,revision:d.revision,imageHash:d.image?.state.hash??'',layers:image.layers.length,text:image.layers.filter(layer=>layer.kind==='text').map(layer=>({id:layer.id,version:layer.version}))});}finally{releaseView();}
+    const task=this.track(async()=>{const input=snapshot.value;let bytes=0;
+      try{if(input.layers>TEXT_ADMISSION.layers)throw Error('Document layer count exceeds 100.');
+        for(const layer of input.text){
+          const metadata=await this.readControl<{source:TextSource;layerVersion:string}>('/api/v1/documents/'+input.documentId+'/text?layerId='+layer.id+'&revision='+input.revision);
+          try{const value=metadata.value,length=Number(value.source.text.textUtf8.byteLength);if(value.layerVersion!==layer.version||!Number.isSafeInteger(length)||length<0||length>TEXT_ADMISSION.layerBytes)throw Error('Current document text usage could not be verified.');bytes+=length;}finally{metadata.release();}
+          if(!this.available()||epoch!==this.epoch||this.editor.draftOwner!==owner||this.editor.view.document?.id!==input.documentId||this.editor.view.document.revision!==input.revision)throw Error('Document changed while reading text usage.');
+        }
+        if(!this.available()||epoch!==this.epoch||this.editor.draftOwner!==owner||this.editor.view.document?.id!==input.documentId||this.editor.view.document.revision!==input.revision||(this.editor.view.document.image?.state.hash??'')!==input.imageHash)throw Error('Document changed while reading text usage.');
+        this.documentUsage={documentId:input.documentId,revision:input.revision,imageHash:input.imageHash,bytes,layers:input.layers};
+      }finally{snapshot.release();this.changed();}
+    });this.usageRead={epoch,owner,documentId,revision:documentRevision,imageHash,task};
+    void task.finally(()=>{snapshot.release();if(this.usageRead?.task===task)this.usageRead=undefined;}).catch(()=>{});return task;
+  }
+  private refreshDocumentUsage(s:Session){void this.ensureDocumentUsage(s).catch(error=>{if(this.available()&&this.session?.draftId===s.draftId){this.error=nativeDiagnostic(error);this.changed();}});}
+  private admissionReason(split=false,usage=scanDraftText(this.control.value)){
+    const s=this.session;if(!s)return 'Open a text draft first.';
+    if(!usage.validUnicode)return 'Text contains an incomplete Unicode scalar. Finish composition or edit it; the full draft remains available.';
+    if(usage.requiresLFConversion)return 'Review conversion of carriage returns to LF before applying text; the full draft remains available.';
+    if(!split&&usage.bytes>TEXT_ADMISSION.layerBytes)return `UTF-8 text uses ${usage.bytes} bytes; one layer permits 16384 bytes. Review a split, shorten manually, or cancel.`;
+    if(!split&&usage.lines>TEXT_ADMISSION.layerLines)return `Text uses ${usage.lines} logical lines; one layer permits 256. Review a split, shorten manually, or cancel.`;
+    if(!this.usageCurrent())return this.usageRead?'Current document text usage is being verified. Apply and split adoption are unavailable.':'Current document text usage is unavailable. Verify it before Apply or split adoption.';
+    const total=this.documentUsage!.bytes-(s.original?Number(s.original.text.textUtf8.byteLength):0)+usage.bytes;
+    if(total>TEXT_ADMISSION.documentBytes)return `Projected document text uses ${total} bytes; the document permits 1048576 bytes. Splitting does not reduce this total. Shorten text or remove another text layer.`;
+    if(!split&&this.documentUsage!.layers+(s.original?0:1)>TEXT_ADMISSION.layers)return 'The document permits 100 combined image and text layers. Remove a layer before applying this new text.';
+    return '';
+  }
+  private clearSplit(){const owner=this.splitOwner;this.splitOwner=undefined;if(owner)this.memory.retire(owner);}
+  private replaceSplit(value:SplitReview){const next=this.memory.clone('text-split-review',value,32768),old=this.splitOwner;this.splitOwner=next;if(old)this.memory.retire(old);this.changed();}
   private controlCleanup=new Set<PromptReaderCleanupError>();
   constructor(private host:LitElement,private editor:EditorClient,private draw:()=>void,private screenPoint:(p:readonly [number,number])=>readonly [number,number]){
     this.memory=new NativeControlMemory(host);
@@ -172,13 +222,13 @@ export class NativeTextEditing {
     const owner=this.sessionOwners.get(session);if(!owner)throw Error('NATIVE_TEXT_SESSION_UNOWNED');const releases=[owner.pin(),...Array.from(this.fileOwners.values(),file=>file.pin())];const release=()=>{for(const end of releases)end();};
     try{return work().finally(release);}catch(error){release();throw error;}
   }
-  private retireSession(){this.fontLoadFailed=false;this.rejectPendingSwitch('stale-session');const session=this.session;this.session=undefined;this.cancelSwitchFrame();if(session){this.bridge.reset(!this.disposed);const owner=this.sessionOwners.get(session);if(owner)this.memory.retire(owner);this.nativeRefused=false;this.nativeComposing=false;this.model.endComposition('');this.model.setValue('');this.bridge.sync();this.control.value='';this.nativeLease?.release();this.nativeLease=undefined;this.compositionUnits=0;this.preparedHash='';this.inputCandidate?.release();this.inputCandidate=undefined;}}
+  private retireSession(){this.clearSplit();this.fontLoadFailed=false;this.rejectPendingSwitch('stale-session');const session=this.session;this.session=undefined;this.cancelSwitchFrame();if(session){this.bridge.reset(!this.disposed);const owner=this.sessionOwners.get(session);if(owner)this.memory.retire(owner);this.nativeRefused=false;this.nativeComposing=false;this.model.endComposition('');this.model.setValue('');this.bridge.sync();this.control.value='';this.nativeLease?.release();this.nativeLease=undefined;this.compositionUnits=0;this.preparedHash='';this.inputCandidate?.release();this.inputCandidate=undefined;}}
   private available(){return !this.closing&&!this.disposed&&!this.readCleanupErrors.size&&!this.controlCleanup.size;}
   // The caller saves the draft and closed view before invoking this method. It
   // relinquishes only ephemeral ownership; Cancel is the separate draft deletion.
   releaseDocument():Promise<void>{
     if(this.releasing)return this.releasing;
-    this.closing=true;this.actionLifetime++;this.nativeRefused=false;this.nativeComposing=false;this.compositionUnits=0;this.inputCandidate?.release();this.inputCandidate=undefined;for(const [timer,release]of this.actionTimers){clearTimeout(timer);release();}this.actionTimers.clear();this.epoch++;this.revision++;this.focusEpoch++;this.presentationEpoch++;
+    this.closing=true;this.documentUsage=undefined;this.actionLifetime++;this.nativeRefused=false;this.nativeComposing=false;this.compositionUnits=0;this.inputCandidate?.release();this.inputCandidate=undefined;for(const [timer,release]of this.actionTimers){clearTimeout(timer);release();}this.actionTimers.clear();this.epoch++;this.revision++;this.focusEpoch++;this.presentationEpoch++;
     clearTimeout(this.timer);this.timer=undefined;this.adapter.invalidate();this.reads.abort();this.library.invalidate();
     this.inputPhase?.span.end('cancelled');this.inputPhase=undefined;this.pendingActionTime=undefined;
     this.retireSession();this.pendingSwitch=undefined;this.pendingAction=undefined;this.cancelIntentEpoch=undefined;this.cancelFocusEpoch=undefined;this.cancelDispatchEpoch=undefined;this.opener=undefined;this.restoring='';this.restoringEpoch=0;
@@ -209,7 +259,7 @@ export class NativeTextEditing {
   private changed(){this.host.requestUpdate();this.draw();}
   private async admission(id:string,release=false){if(!release&&!this.available())throw Error('TEXT_DOCUMENT_RELEASED');try{await this.editor.withJSON('/api/v1/text-admission/'+id+(release?'/release':''),'native-admission',()=>undefined,{method:'POST',headers:{'Content-Type':'application/json'},body:'{"protocolVersion":1}'});}catch(error){if(error instanceof PromptReaderCleanupError)this.controlCleanup.add(error);throw error;}}
   private clearPreview(){if(this.preview)this.preview.pixels=new Uint8ClampedArray(0);this.preview=undefined;const canvas=this.host.querySelector<HTMLCanvasElement>('#native-text-preview');if(canvas){canvas.width=0;canvas.height=0;}this.previewLease?.release();this.previewLease=undefined;this.previewSurfaceLease?.release();this.previewSurfaceLease=undefined;}
-  private invalidate(){this.revision++;if(!this.pendingSwitchCancelled)this.rejectPendingSwitch('stale-generation');this.clearPreview();this.renderer?.cancel();this.preparation?.cancel();if(!this.fontLoadFailed)this.error='';this.changed();}
+  private invalidate(){this.clearSplit();this.revision++;if(!this.pendingSwitchCancelled)this.rejectPendingSwitch('stale-generation');this.clearPreview();this.renderer?.cancel();this.preparation?.cancel();if(!this.fontLoadFailed)this.error='';this.changed();}
   private eventTime(event:Event){const now=browserPhases.recorder.timestamp();return Number.isFinite(event.timeStamp)&&event.timeStamp>=0&&event.timeStamp<=now?event.timeStamp:undefined;}
   private observeInput(event:Event){
     const s=this.session;if(!s||!this.available())return;
@@ -353,7 +403,7 @@ export class NativeTextEditing {
     this.model.setValue(text);this.bridge.sync();this.presentation='anchored';this.revision++;this.error='';this.message=layer?.locked?'Unlock to edit. Text remains selectable and copyable.':'Text draft. Preview and Apply explicitly; typing never generates.';
     if(s.description){this.message='Returned description draft. Confirm the literal, approximate placement and local font; preview then apply. Existing pixels stay unchanged.';this.save(false);}
     const revision=this.revision,parent=this.control.parentNode;
-    void this.checkFonts(s);this.changed();await this.host.updateComplete;
+    this.refreshDocumentUsage(s);void this.checkFonts(s);this.changed();await this.host.updateComplete;
     if(this.owns(s,epoch,revision)&&this.focusEpoch===focus&&this.control.isConnected&&this.control.parentNode===parent)this.control.focus({preventScroll:true});
     }finally{for(const value of loaded)value.release();release();snapshot.release();}
   }
@@ -376,7 +426,7 @@ export class NativeTextEditing {
     if(!current())return;
     const proposal:Session={id:sessionId,document:d,layerId:layer?.id??crypto.randomUUID(),layerVersion:layer?.version??'0',name:layer?.name??'Recovered text',draftId:draft.id,original,locked:!!layer?.locked,text,fonts:value.value.fonts,style:value.value.style,frame:value.value.frame,...original?{}:{placement:value.value.kind==='text-draft-2'||value.value.kind==='text-draft-3'?value.value.placement:{x:0,y:0}},...value.value.kind==='text-draft-3'?{description:value.value.description}:{}};
     const owned=this.ownSession(()=>structuredClone(proposal),modelPayloadBytes(proposal),proposal.name.length);try{this.admitNative(text,true);}catch(error){owned.release();throw error;}const s=this.commitSession(owned,draftOwner);transferred=true;this.nativeRefused=false;
-    this.model.setValue(text);this.bridge.sync();this.revision++;this.message='Recovered text draft. It has not been applied.';this.error='';void this.checkFonts(s);this.changed();
+    this.model.setValue(text);this.bridge.sync();this.revision++;this.message='Recovered text draft. It has not been applied.';this.error='';this.refreshDocumentUsage(s);void this.checkFonts(s);this.changed();
     }finally{for(const value of loaded)value.release();release();snapshot.release();if(!transferred){if(this.restoring===key&&this.restoringEpoch===epoch){this.restoring='';this.restoringEpoch=0;}}}
   }
   private captureRestoreView(){const draft=this.editor.ui?.drafts.find(value=>value.kind==='text'&&value.status==='saved-unapplied'&&value.documentId===this.editor.view.document?.id);if(!draft)return;return this.captureView(this.editor.view.image?.layers.find(layer=>layer.id===draft.targetLayerId),draft);}
@@ -456,24 +506,25 @@ export class NativeTextEditing {
     const next=this.proposeSession(s,modelPayloadBytes(font)+2048,candidate=>{candidate.fonts=append?[...candidate.fonts,structuredClone(font)]:[structuredClone(font)];candidate.style={...candidate.style,primaryFont:candidate.fonts[0].bytes.hash,explicitFallbacks:candidate.fonts.slice(1).map(f=>f.bytes.hash)};});this.acceptSession(next);
     this.fontId=id;this.fontStatus='Available exact font versions.';this.message='Font substitution draft. Preview reflow before Apply; previous history is unchanged.';}finally{imported.release();}
   }
-  private async request():Promise<OwnedModel<TextRequest>>{
+  private async request(part?:SplitPart):Promise<OwnedModel<TextRequest>>{
     const s=this.session;if(!s||!this.available())throw Error('Open a text draft first.');const epoch=this.epoch,revision=this.revision;
     if(this.nativeRefused)throw Error('Revise the full native input before preparing text.');if(s.locked)throw Error('Unlock to edit.');if(this.stale)throw Error('Stale text draft. Copy your text or cancel before opening the current layer.');
     if(s.placement)textPlacement(s.placement);const loaded=await this.library.load(s.fonts);let requestOwner:OwnedModel<TextRequest>|undefined,transferred=false;try{const fonts=loaded.value;this.assert(s,epoch,revision);
-    const token={documentId:s.document.id,documentRevision:s.document.revision,layerId:s.layerId,layerVersion:s.layerVersion,sessionId:s.id,generation:Number(this.editor.draftOwner?.drafts.get(s.draftId)?.generation??'0')},metadata={token,text:s.text,style:s.style,frame:s.frame,fonts:[]};let bytes=modelPayloadBytes(metadata);for(const font of fonts)bytes+=modelPayloadBytes({hash:font.hash,bytes:null,faceIndex:font.faceIndex,origin:font.origin,license:font.license});
-    requestOwner=this.memory.create('request',bytes,()=>({token,text:s.text,style:structuredClone(s.style),frame:{...s.frame},fonts:fonts.map(font=>({...font,license:{...font.license}}))}),()=>bytes,fonts.length+1);
+    const text=part?s.text.slice(part.range.start16,part.range.end16):s.text,token={documentId:s.document.id,documentRevision:s.document.revision,layerId:part?.layerId??s.layerId,layerVersion:part&&part.layerId!==s.layerId?'0':s.layerVersion,sessionId:s.id,generation:Number(this.editor.draftOwner?.drafts.get(s.draftId)?.generation??'0')},metadata={token,text,style:s.style,frame:s.frame,fonts:[]};let bytes=modelPayloadBytes(metadata);for(const font of fonts)bytes+=modelPayloadBytes({hash:font.hash,bytes:null,faceIndex:font.faceIndex,origin:font.origin,license:font.license});
+    requestOwner=this.memory.create('request',bytes,()=>({token,text,style:structuredClone(s.style),frame:{...s.frame},fonts:fonts.map(font=>({...font,license:{...font.license}}))}),()=>bytes,fonts.length+1);
     // Request Blob aliases borrow the loader's real backing. Join that owner to
     // the request rather than relying on the library's independently clearable root.
     const request=requestOwner;let refs=1,live=true;const unref=()=>{if(!--refs){request.release();loaded.release();}};
     const result=Object.freeze({value:request.value,release:()=>{if(live){live=false;unref();}},pin:()=>{if(!refs)throw Error('NATIVE_TEXT_REQUEST_RELEASED');refs++;let pinned=true;return ()=>{if(pinned){pinned=false;unref();}};}});transferred=true;return result;
     }finally{if(!transferred){requestOwner?.release();loaded.release();}}
   }
-  private async preparePreview(){
+  private async preparePreview(part?:SplitPart){
     const s=this.session;if(!s)return;if(this.composing)throw Error('Finish composition before previewing.');
+    const admissionEpoch=this.epoch,admissionRevision=this.revision;await this.ensureDocumentUsage(s);this.assert(s,admissionEpoch,admissionRevision);const reason=this.admissionReason(!!part);if(reason)throw Error(reason);if(!part)this.clearSplit();
     const previewId=crypto.randomUUID(),layout=browserPhases.recorder.start('text.layout',{documentId:s.document.id,revision:s.document.revision,layerId:s.layerId,sessionId:s.id,snapshotId:s.draftId,previewId});
     try{
     const epoch=this.epoch,revision=this.revision;this.clearPreview();await this.cleanupRender();this.assert(s,epoch,revision);this.message='Preparing text layout…';this.changed();
-    let requestOwner:OwnedModel<TextRequest>|undefined;try{requestOwner=await this.request();const request=requestOwner.value;this.assert(s,epoch,revision);this.renderer=new TextRenderer();const value=await this.renderer.prepare(request);
+    let requestOwner:OwnedModel<TextRequest>|undefined;try{requestOwner=await this.request(part);const request=requestOwner.value;this.assert(s,epoch,revision);this.renderer=new TextRenderer();const value=await this.renderer.prepare(request);
       let pixelsLease:ReturnType<typeof textMemory.reserve>|undefined,surfaceLease:AllocationLease|undefined;
       try{this.assert(s,epoch,revision);/* Fixed 4 KiB also owns bounded scalar preview/token diagnostics through preview retirement. */pixelsLease=textMemory.reserve(value.rgba.size*2+4096);surfaceLease=allocationLedger.reserve({owner:'native-text-preview',kind:'canvas',gpuBytes:value.rgba.size,previewCacheBytes:value.rgba.size,handles:1});const pixels=new Uint8ClampedArray(await value.rgba.arrayBuffer());this.assert(s,epoch,revision);
         // Until arrayBuffer settles these reservations belong to this operation,
@@ -489,10 +540,63 @@ export class NativeTextEditing {
     }catch(error){layout.end(!this.available()||this.session!==s?'cancelled':'error');throw error;}
   }
   private paintPreview(){const p=this.preview,canvas=this.host.querySelector<HTMLCanvasElement>('#native-text-preview');if(!p||!canvas)return false;paintTextPreview(canvas,p);return true;}
+  private async beginSplit(){
+    const s=this.session;if(!s)return;if(this.composing)throw Error('Finish composition before reviewing a split.');
+    const epoch=this.epoch,revision=this.revision;await this.ensureDocumentUsage(s);this.assert(s,epoch,revision);const reason=this.admissionReason(true);if(reason)throw Error(reason);
+    const availableParts=TEXT_ADMISSION.layers-this.documentUsage!.layers+(s.original?1:0);if(availableParts<2)throw Error('A split needs at least two layer slots within the 100 combined image and text layer limit. The full draft is unchanged.');
+    const workspace=this.memory.workspace('split-boundaries',s.text.length*8+65536);let rangeOwner:OwnedModel<TextSplitRange[]>;
+    try{rangeOwner=this.memory.clone('split-ranges',planTextSplit(s.text,availableParts));}catch(error){if(error instanceof Error&&error.message==='TEXT_SPLIT_GRAPHEME_LIMIT')throw Error('A single Unicode grapheme exceeds the 16384-byte layer limit and cannot be split safely. Shorten it manually; the full draft is unchanged.');if(error instanceof Error&&error.message==='TEXT_SPLIT_LAYER_LIMIT')throw Error(`The draft does not fit the ${availableParts} available layer slots within the 100 combined layer limit. The full draft is unchanged.`);throw error;}finally{workspace.release();}
+    try{const ranges=rangeOwner.value;if(ranges.length<2)throw Error('This text fits one layer. Preview and Apply it, or shorten it manually.');
+    if(this.documentUsage!.layers-(s.original?1:0)+ranges.length>TEXT_ADMISSION.layers)throw Error(`This split needs ${ranges.length} layers and would exceed 100 combined image and text layers. The full draft is unchanged.`);
+    this.clearSplit();this.clearPreview();await this.cleanupRender();this.assert(s,epoch,revision);this.save(false);await this.flushCurrent(s);this.assert(s,epoch,revision);
+    const saved=this.editor.draftOwner?.drafts.get(s.draftId);if(!saved||saved.savedGeneration!==saved.generation)throw Error('Save the full current draft before reviewing a split.');
+    const metadata=await this.readControl<{draft:Draft;value:TextDraft}>('/api/v1/ui/'+s.id+'/text?draftId='+s.draftId);
+    try{this.assert(s,epoch,revision);if(metadata.value.draft.generation!==saved.generation||Number(metadata.value.value.textUtf8.byteLength)!==scanDraftText(s.text).bytes)throw Error('The saved full draft changed. Review the split again.');
+      const parts=ranges.map((range,index):SplitPart=>({range,layerId:index===0?s.layerId:crypto.randomUUID(),name:index===0?s.name:'Text part '+(index+1),offset:{x:0,y:index*s.frame.height}}));
+      this.replaceSplit({revision,generation:saved.generation,originalText:{...metadata.value.value.textUtf8},parts,index:0});
+    }finally{metadata.release();}
+    }finally{rangeOwner.release();}
+    await this.previewSplitPart();
+  }
+  private async previewSplitPart(){const owner=this.splitOwner,s=this.session;if(!owner||!s)return;const release=owner.pin();try{if(owner.value.revision!==this.revision)throw Error('Text changed. Review a new split.');const part=owner.value.parts[owner.value.index];if(!part)throw Error('Every split part is already confirmed.');await this.preparePreview(part);if(this.splitOwner!==owner)throw Error('Split review changed.');this.message=`Part ${owner.value.index+1} of ${owner.value.parts.length} has a native layout preview. Review its placement, then confirm this part.`;this.changed();}catch(error){if(this.splitOwner===owner)this.clearPreview();throw error;}finally{release();}}
+  private splitOffset(event:Event,key:'x'|'y'){
+    const target=event.currentTarget as HTMLInputElement,epoch=this.epoch,revision=this.revision;this.adapter.settled(event,()=>true,()=>{const owner=this.splitOwner;if(!owner||epoch!==this.epoch||revision!==this.revision||owner.value.index===0||owner.value.index>=owner.value.parts.length||this.work)return;const number=Number(target.value);if(!Number.isFinite(number)){this.error='Use a finite local offset.';this.changed();return;}const next=structuredClone(owner.value);next.parts[next.index].offset[key]=number;this.replaceSplit(next);});
+  }
+  private async confirmSplitPart(){
+    const owner=this.splitOwner,s=this.session;if(!owner||!s)return;if(this.composing)throw Error('Finish composition before confirming a split part.');const release=owner.pin(),epoch=this.epoch,revision=this.revision,part=owner.value.parts[owner.value.index],preview=this.preview?{revision:this.preview.revision,hash:this.preview.hash,dependencyHash:this.preview.dependencyHash}:undefined;
+    if(!part||!preview||preview.revision!==revision||owner.value.revision!==revision){release();throw Error('Preview this current split part first.');}
+    let requestOwner:OwnedModel<TextRequest>|undefined,nextOwner:OwnedModel<SplitReview>|undefined;
+    try{
+      try{this.clearPreview();await this.cleanupRender();this.assert(s,epoch,revision);requestOwner=await this.request(part);this.preparation=new DurableTextPreparation(this.storage);const result=await this.preparation.prepare(requestOwner.value,s.fonts);this.assert(s,epoch,revision);
+        if(this.splitOwner!==owner||this.preparedHash!==preview.hash||result.dependencyHash!==preview.dependencyHash)throw Error('The split preview identity changed. Review this part again.');
+        const next=structuredClone(owner.value),row=next.parts[next.index];row.candidate={...result.candidate};row.reviewedDependencyHash=result.dependencyHash;row.reviewedRasterHash=preview.hash;next.index++;nextOwner=this.memory.clone('text-split-next',next);
+      }finally{try{await this.cleanupRender(false);}finally{requestOwner?.release();}if(!this.previewLease&&!this.closing)await releaseTextRealm(this.storage);}
+      this.assert(s,epoch,revision);if(this.splitOwner!==owner)throw Error('Split review changed.');this.replaceSplit(nextOwner!.value);
+    }finally{nextOwner?.release();release();}
+    if(this.splitOwner&&this.splitOwner.value.index<this.splitOwner.value.parts.length)await this.previewSplitPart();else{this.message='Every split part has a reviewed native layout. Adopt the split explicitly to change the document.';this.changed();}
+  }
+  private async cancelSplit(){this.clearSplit();this.clearPreview();await this.cleanupRender();this.message='Split review cancelled. The complete text draft remains available for Copy or editing.';this.changed();}
+  private async adoptSplit(){
+    const owner=this.splitOwner,s=this.session;if(!owner||!s)return;if(this.composing)throw Error('Finish composition before adopting a split.');const release=owner.pin(),epoch=this.epoch,revision=this.revision,review=owner.value;
+    try{await this.ensureDocumentUsage(s);this.assert(s,epoch,revision);const reason=this.admissionReason(true);if(reason)throw Error(reason);
+      if(review.revision!==revision||review.index!==review.parts.length||review.parts.some(part=>!part.candidate||!part.reviewedDependencyHash||!part.reviewedRasterHash))throw Error('Review and confirm every split part before adoption.');
+      const saved=this.editor.draftOwner?.drafts.get(s.draftId);if(!saved||saved.generation!==review.generation||saved.savedGeneration!==saved.generation)throw Error('The full saved draft changed. Review the split again.');
+      if(this.documentUsage!.layers-(s.original?1:0)+review.parts.length>TEXT_ADMISSION.layers)throw Error('The split would exceed 100 combined layers.');
+      this.clearPreview();await this.cleanupRender();this.assert(s,epoch,revision);
+      const workspace=this.memory.workspace('split-plan-json',65536*6);let planRef:BlobRef;
+      try{const plan={kind:'text-split-plan-1' as const,originalText:review.originalText,parts:review.parts.map(part=>({layerId:part.layerId,name:part.name,startByte:part.range.startByte,endByte:part.range.endByte,candidate:part.candidate!,offset:part.offset,reviewedDependencyHash:part.reviewedDependencyHash!,reviewedRasterHash:part.reviewedRasterHash!})),...s.description?{description:s.description}:{}};const blob=new Blob([canonical(plan)],{type:'application/json'});if(blob.size>65536)throw Error('Split review metadata exceeds 65536 bytes. Shorten layer names or reduce the number of parts.');planRef=await this.storage.stage(blob,'application/json');}finally{workspace.release();}
+      this.assert(s,epoch,revision);
+      return await this.editor.withCommandEvents({type:'SplitTextDraft',draft:{sessionId:s.id,draftId:s.draftId,generation:review.generation},sourceLayer:s.original?{layerId:s.layerId,layerVersion:s.layerVersion}:null,plan:planRef,reviewedPlanHash:planRef.hash},()=>{
+        if(this.session===s&&this.revision===revision){this.retireSession();this.epoch++;this.message=`Reviewed text split applied as ${review.parts.length} layers in one history action.`;this.editor.select([review.parts[0].layerId]);return this.returnFocus();}
+        if(this.available()&&this.epoch===epoch)this.message='The reviewed split was saved; newer typing remains an unapplied draft.';
+      },s.document);
+    }finally{release();this.releaseStageOwners();this.changed();}
+  }
   private async apply(intentTime?:number){
     const s=this.session;if(!s)return;if(this.cancelIntentEpoch!==undefined)return;if(this.composing){this.pendingAction='apply';this.pendingActionTime=intentTime??browserPhases.recorder.timestamp();this.message='Apply after composition';this.changed();return;}
     const layout=browserPhases.recorder.start('text.layout',{documentId:s.document.id,revision:s.document.revision,layerId:s.layerId,sessionId:s.id,snapshotId:s.draftId,...this.preview?{previewId:this.preview.id,assetHash:this.preview.hash,evidenceHash:this.preview.dependencyHash,width:this.preview.width,height:this.preview.height}:{}},intentTime);
     try {
+    const admissionEpoch=this.epoch,admissionRevision=this.revision;await this.ensureDocumentUsage(s);this.assert(s,admissionEpoch,admissionRevision);const reason=this.admissionReason();if(reason)throw Error(reason);
     if(!this.preview||this.preview.revision!==this.revision)throw Error('Preview the current text and font layout before Apply.');
     if(!s.original&&!s.text)throw Error('Enter text before creating a layer.');
     const epoch=this.epoch,revision=this.revision,preview=this.preview;this.clearPreview();
@@ -538,6 +642,7 @@ export class NativeTextEditing {
   dispose(){this.disposed=true;this.abort.abort();return this.releaseDocument();}
   render(){
     const s=this.session,disabled=!!this.work||this.editor.view.busy||!this.editor.view.ready||this.stale||!!s?.locked;
+    const usage=scanDraftText(this.control.value),admission=s?this.admissionReason(false,usage):'',split=this.splitOwner?.value,part=split?.parts[split.index],splitReason=s?this.admissionReason(true,usage):'',projected=s&&this.usageCurrent()?this.documentUsage!.bytes-(s.original?Number(s.original.text.textUtf8.byteLength):0)+usage.bytes:undefined;
     // Template values remain reachable until Lit commits their replacement.
     // One pin per rendered session covers that interval; callbacks below retain
     // only epochs and reacquire live sessions instead of retaining retired ones.
@@ -545,7 +650,7 @@ export class NativeTextEditing {
     const sequence=++this.renderSequence;
     this.renderCommit=this.host.updateComplete.then(()=>{if(sequence!==this.renderSequence)return;for(const [prior,release]of this.renderPins)if(prior!==s){this.renderPins.delete(prior);release();}});
     void this.renderCommit.catch(()=>{});
-    this.control.setAttribute('aria-invalid',String(!!this.error));this.control.setAttribute('aria-describedby',this.error?'native-text-policy native-text-error':'native-text-policy');if(this.error)this.control.setAttribute('aria-errormessage','native-text-error');else this.control.removeAttribute('aria-errormessage');
+    this.control.setAttribute('aria-invalid',String(!!this.error||!usage.validUnicode||usage.requiresLFConversion||usage.bytes>TEXT_ADMISSION.layerBytes||usage.lines>TEXT_ADMISSION.layerLines||projected!==undefined&&projected>TEXT_ADMISSION.documentBytes));this.control.setAttribute('aria-describedby','native-text-policy native-text-usage native-text-admission'+(this.error?' native-text-error':''));if(this.error)this.control.setAttribute('aria-errormessage','native-text-error');else this.control.removeAttribute('aria-errormessage');
     this.control.readOnly=!!s?.locked;this.control.dir=s?.style.direction==='auto'?'auto':s?.style.direction??'auto';
     const layer=this.editor.view.image?.layers.find(l=>l.id===s?.layerId),point=this.screenPoint([layer?.layerToDocument[4]??s?.placement?.x??0,layer?.layerToDocument[5]??s?.placement?.y??0]);
     const renderEpoch=this.epoch;void this.host.updateComplete.then(()=>{if(renderEpoch!==this.epoch||!this.available())return;const region=this.host.querySelector<HTMLElement>('#native-text-editor');region?.style.setProperty('--text-left',Math.max(12,Math.min(innerWidth-460,point[0]))+'px');region?.style.setProperty('--text-top',Math.max(155,Math.min(innerHeight-300,point[1]))+'px');});
@@ -553,13 +658,21 @@ export class NativeTextEditing {
     <en-card><h2 slot="header">${s?.name??'Text'} <en-badge>Text draft</en-badge></h2>
     <en-stack gap="small"><label for="native-text-content">Edit text — ${s?.name??'Text'}</label><div class="native-text-host">${this.control}</div>
     <en-toolbar label="Text editing actions" keyboard-navigation="tab">
-    <en-button ?disabled=${disabled||this.cancelIntentEpoch!==undefined} @pointerdown=${(e:PointerEvent)=>this.preventCompositionFocus(e)} @click=${(e:Event)=>this.action(e,'Apply text',()=>this.apply(this.eventTime(e)),renderEpoch)}>Apply text</en-button>
+    <en-button ?disabled=${disabled||!!admission||!!split||this.cancelIntentEpoch!==undefined} @pointerdown=${(e:PointerEvent)=>this.preventCompositionFocus(e)} @click=${(e:Event)=>this.action(e,'Apply text',()=>this.apply(this.eventTime(e)),renderEpoch)}>Apply text</en-button>
     <en-button variant="secondary" ?disabled=${!!this.work} @pointerdown=${(e:PointerEvent)=>this.preventCompositionFocus(e)} @click=${(e:Event)=>this.action(e,'Cancel text edit',()=>this.cancel(),renderEpoch)}>Cancel text edit</en-button>
     <en-button variant="secondary" ?disabled=${this.stale||this.cancelIntentEpoch!==undefined} @pointerdown=${(e:PointerEvent)=>this.preserveSwitchFocus(e)} @click=${(e:Event)=>this.switchAction(e,(this.pendingSwitch?.target??this.presentation)==='anchored'?'inspector':'anchored',renderEpoch)}>${(this.pendingSwitch?.target??this.presentation)==='anchored'?'Continue in inspector':'Return to card'}</en-button>
     ${this.pendingSwitch?html`<en-button @pointerdown=${(e:PointerEvent)=>this.preventCompositionFocus(e)} @click=${(e:Event)=>this.deferredAction(e,()=>{if(this.epoch!==renderEpoch||!this.available())return;this.rejectPendingSwitch('cancelled');this.message='Switch cancelled';this.changed();})}>Cancel switch</en-button>`:nothing}</en-toolbar>
     <en-alert announcement="polite">${this.stale?'Stale text draft. Full text is retained; copy it or Cancel before opening the current layer.':this.message}</en-alert>
     ${s?.description?html`<en-alert announcement="none">Creating editable text from retained description element ${s.description.elementIndex+1}. Caption geometry is approximate; the selected local font is not recovered from the image. Existing generated lettering remains in its pixels. Placement choice: ${s.description.placementChoice}. Apply confirms the literal and local preview shown here.</en-alert>`:nothing}
     <p id="native-text-policy" class="muted">One style for the whole frame. Enter inserts a newline. Preview then Apply; Cancel preserves the accepted layer. Native typing undo stays in this field.</p>
+    <p id="native-text-usage">UTF-8 bytes: ${usage.validUnicode?usage.bytes:'invalid Unicode'} / 16384. Logical LF lines: ${usage.lines} / 256. Unicode scalars: ${usage.validUnicode?usage.scalars:'invalid Unicode'}. Projected document text: ${projected??'unknown'} / 1048576 bytes. Combined image and text layers after ordinary Apply: ${s&&this.usageCurrent()?this.documentUsage!.layers+(s.original?0:1):'unknown'} / 100.</p>
+    <p id="native-text-admission" role="status">${admission||'Text is within the measured admission limits. Preview is still required before Apply.'}</p>
+    ${s&&!this.usageCurrent()?html`<en-button variant="secondary" ?disabled=${disabled||!!this.usageRead} @click=${(e:Event)=>this.action(e,'Verify document text usage',async()=>{const current=this.session;if(current){await this.ensureDocumentUsage(current);this.error='';this.changed();}},renderEpoch)}>Verify document text usage</en-button>`:nothing}
+    <en-stack direction="horizontal" wrap><en-button id="native-text-copy" variant="secondary" ?disabled=${this.composing} @pointerdown=${(e:PointerEvent)=>this.preventCompositionFocus(e)} @click=${(e:Event)=>this.deferredAction(e,()=>{if(this.epoch!==renderEpoch||!this.session)return;this.control.focus();this.control.select();})}>Select full draft for Copy</en-button><en-button variant="secondary" @click=${(e:Event)=>this.deferredAction(e,()=>{if(this.epoch===renderEpoch&&this.session)this.control.focus();})}>Shorten manually</en-button><en-button id="native-text-split-review" variant="secondary" ?disabled=${disabled||this.composing||!!splitReason||usage.bytes<=16384&&usage.lines<=256} @click=${(e:Event)=>this.action(e,'Review split into layers',()=>this.beginSplit(),renderEpoch)}>Review split into layers</en-button></en-stack>
+    ${split&&s?html`<section id="native-text-split-plan" aria-label="Reviewed text split"><h3>Review every split layer</h3><p id="native-text-split-status" role="status">${part?`Part ${split.index+1} of ${split.parts.length}: ${part.range.bytes} UTF-8 bytes and ${part.range.lines} logical lines.`:`All ${split.parts.length} parts confirmed; adoption has not yet changed the document.`}</p>
+    <p>The full draft is unchanged. Parts preserve its exact text and LF characters in order. Each part uses the selected font, style and ${s.frame.width} × ${s.frame.height} frame. ${s.original?'The first part keeps this layer identity and advances its version; other parts follow it in stack order. Existing composition bindings become stale and need explicit review.':'New text parts are added together in order.'} ${layer?`Visibility ${layer.visible?'on':'off'}, opacity ${layer.opacity}, transform [${layer.layerToDocument.join(', ')}] and ${layer.mask?'the existing document-space mask':'no mask'} are inherited.`:'Parts use the new text position and full opacity.'} These are native layout previews before inherited document masks and opacity. Local offsets can place text outside the document; overlap and clipping may change the combined appearance.</p>
+    ${part?html`<p>Layer ${split.index+1}: ${part.name}. Byte range ${part.range.startByte}–${part.range.endByte}. Local position ${part.offset.x}, ${part.offset.y}.</p><en-number-field id="native-text-split-offset-x" label="Split local X (document px)" .value=${String(part.offset.x)} ?disabled=${disabled||split.index===0} @en-change=${(e:Event)=>this.splitOffset(e,'x')}></en-number-field><en-number-field id="native-text-split-offset-y" label="Split local Y (document px)" .value=${String(part.offset.y)} ?disabled=${disabled||split.index===0} @en-change=${(e:Event)=>this.splitOffset(e,'y')}></en-number-field><en-button variant="secondary" ?disabled=${disabled||this.composing} @click=${(e:Event)=>this.action(e,'Preview split part',()=>this.previewSplitPart(),renderEpoch)}>Preview this part again</en-button><en-button id="native-text-split-confirm" ?disabled=${disabled||this.composing||!this.preview} @click=${(e:Event)=>this.action(e,'Confirm split part',()=>this.confirmSplitPart(),renderEpoch)}>${split.index+1<split.parts.length?'Confirm this part and preview next':'Confirm this part'}</en-button>`:nothing}
+    <en-button id="native-text-split-adopt" ?disabled=${disabled||this.composing||!!splitReason||split.index!==split.parts.length} @click=${(e:Event)=>this.action(e,'Adopt reviewed split',()=>this.adoptSplit(),renderEpoch)}>Adopt reviewed split</en-button><en-button id="native-text-split-cancel" variant="secondary" ?disabled=${!!this.work} @click=${(e:Event)=>this.action(e,'Cancel split review',()=>this.cancelSplit(),renderEpoch)}>Cancel split review</en-button></section>`:nothing}
     ${this.error?html`<en-alert id="native-text-error" variant="warning" announcement="polite">${this.error}</en-alert>`:nothing}
     ${s?html`<div class="text-style-grid">${s.placement?html`${this.number('New text X (document px)',s.placement.x,(s,v)=>s.placement={...s.placement!,x:v})}${this.number('New text Y (document px)',s.placement.y,(s,v)=>s.placement={...s.placement!,y:v})}`:nothing}
     <en-select label="Font choice" .value=${this.fontId} ?disabled=${disabled} @en-change=${(e:Event)=>{const host=e.currentTarget as HTMLInputElement,value=host.value;this.adapter.settled(e,()=>value,id=>{if(!this.available()||this.epoch!==renderEpoch||!this.session)return;if(!fontChoices.some(font=>font.id===id)){this.adapter.write(host,'value',this.fontId);this.error='Choose a bundled regular font.';}else if(!this.setForm('fontId',id))this.adapter.write(host,'value',this.fontId);this.changed();});}}>${fontChoices.map(f=>html`<en-select-option value=${f.id}>${f.id} · Regular · ${f.sha256.slice(0,8)}</en-select-option>`)}</en-select>
@@ -571,8 +684,8 @@ export class NativeTextEditing {
     <en-stack direction="horizontal" wrap><en-button ?disabled=${disabled} @click=${(e:Event)=>this.action(e,'Choose text font',()=>this.chooseFont(this.fontId),renderEpoch)}>Use selected font</en-button><en-button variant="secondary" ?disabled=${disabled} @click=${(e:Event)=>this.action(e,'Add explicit fallback',()=>this.chooseFont(this.fontId,true),renderEpoch)}>Add explicit fallback</en-button></en-stack>
     <en-alert announcement="none">${this.fontStatus}</en-alert><en-alert announcement="none">Exact font order: ${s.fonts.map(f=>fontChoices.find(x=>'sha256:'+x.sha256===f.bytes.hash)?.id??('Local regular font · '+f.id.slice(7,15))).join(' → ')}. ${s.original?'Retained appearance stays available while edits are previewed. Font substitution changes this version only.':'New frame position is applied with text in one Undo unit. Existing layer Transform controls move, rotate or scale without reflow.'} Frame dimensions reflow text; layer scale does not.</en-alert>
     <en-accordion-item label="Local font import and exact relink"><en-file-upload label="Font file" accept=".ttf,.otf" .files=${this.files} .maxFileSize=${LIMITS.faceBytes} @en-change=${(e:Event)=>this.filesChanged(e,'files',renderEpoch)}></en-file-upload><en-file-upload label="Font license record" accept="text/plain,.txt" .files=${this.licenses} .maxFileSize=${65536} @en-change=${(e:Event)=>this.filesChanged(e,'licenses',renderEpoch)}></en-file-upload><en-alert announcement="none">Import only a supported static regular font with editable embedding permission. Exact relink must match the retained bytes and license; a different font requires substitution preview.</en-alert><en-switch label="I have permission to embed this font" .checked=${this.embeddingReviewed} @en-change=${(e:Event)=>{const h=e.currentTarget as unknown as {checked:boolean};this.adapter.settled(e,()=>h.checked,v=>{if(!this.available()||this.epoch!==renderEpoch||!this.session)return;this.embeddingReviewed=v;this.changed();});}}></en-switch><en-button ?disabled=${disabled||!this.embeddingReviewed} @click=${(e:Event)=>this.action(e,'Import local font',()=>this.importFont(),renderEpoch)}>Import as substitution draft</en-button><en-button variant="secondary" ?disabled=${disabled} @click=${(e:Event)=>this.action(e,'Relink exact font',()=>this.importFont(true),renderEpoch)}>Relink exact font</en-button></en-accordion-item>
-    <en-button variant="secondary" ?disabled=${disabled||this.composing} @click=${(e:Event)=>this.action(e,'Preview text',()=>this.preparePreview(),renderEpoch)}>Preview text</en-button>
-    ${this.preview?html`<en-alert variant=${this.preview.overflow?'warning':'info'} announcement="none">${this.preview.overflow?'Clipped overflow. Full text is retained. Enlarge the frame, reduce text size or line height, or Apply this clipped preview.':'Text fits the preview frame.'} Draft preview only.</en-alert><canvas id="native-text-preview" width="0" height="0" aria-label="Canonical text draft preview"></canvas>`:nothing}`:nothing}
+    <en-button variant="secondary" ?disabled=${disabled||this.composing||!!admission||!!split} @click=${(e:Event)=>this.action(e,'Preview text',()=>this.preparePreview(),renderEpoch)}>Preview text</en-button>
+    ${this.preview?html`<en-alert variant=${this.preview.overflow?'warning':'info'} announcement="none">${this.preview.overflow?(split?'Clipped overflow. The full draft is retained. Review this clipped part explicitly, or cancel the split review and enlarge the frame or shorten the text.':'Clipped overflow. Full text is retained. Enlarge the frame, reduce text size or line height, or Apply this clipped preview.'):'Text fits the preview frame.'} Draft preview only.</en-alert><canvas id="native-text-preview" width="0" height="0" aria-label="Canonical text draft preview"></canvas>`:nothing}`:nothing}
     </en-stack></en-card></section>`;
   }
 }

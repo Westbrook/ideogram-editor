@@ -6,6 +6,21 @@ import {adapterResources} from '../../dist/local/server/observability/adapter-re
 import {createNativeMemoryRecorder,nativeMemoryPhases as phase} from './native-memory-diagnostics.mjs';
 
 const memoryOwners=new WeakMap();
+const portableImportFailures=new WeakMap();
+function installImportFailureObservation(store){
+ const owner=store.portables,original=owner.acceptImport;let active=true;
+ const observed=async function(...args){
+  try{return await Reflect.apply(original,this,args);}catch(error){
+   if(active)try{
+    const stack=typeof error?.stack==='string'?error.stack:'';
+    portableImportFailures.set(store,{kind:'portable-import-failure-1',phase:'acceptImport-rejection',commandId:String(args[1]?.commandId??'').slice(0,80),operationId:String(args[2]??'').slice(0,80),error:{name:String(error?.name??'Unknown').slice(0,80),code:typeof error?.code==='string'?error.code.slice(0,80):null,stack:stack.slice(0,4096),stackTruncated:stack.length>4096},process:process.memoryUsage()});
+   }catch{}
+   throw error;
+  }
+ };
+ owner.acceptImport=observed;
+ return ()=>{active=false;if(owner.acceptImport===observed)owner.acceptImport=original;portableImportFailures.delete(store);};
+}
 function installMemoryObservation(store){
  // Only the native fixture opts in. Other users of failure diagnostics retain
  // their existing behavior and allocate no transition ring or method wrappers.
@@ -48,8 +63,8 @@ function installMemoryObservation(store){
 export function captureOwnedDiagnostics(store,commandId){
  const owners=[],releaseFailures=[];let bytes;
  try{
-  const history=store.histories.readObservations();owners.push(history);const raster=store.rasters.readDiagnostics();owners.push(raster);const text=store.texts.readObservations();owners.push(text);
-  const r=raster.value,payload={kind:'j19-owned-diagnostics-1',commandId,capturedAt:new Date().toISOString(),process:process.memoryUsage(),text:{reservedCPU:store.texts.reservedCPU,externalBytes:store.texts.externalBytes(),backendCPU:store.texts.backendCPU(),observations:text.value.slice(-32)},history:history.value.slice(-32),raster:{...r,observations:r.observations.slice(-64),workerPhases:r.workerPhases.slice(-32)},objects:store.objects.reservationInventory(),...(memoryOwners.has(store)?{memoryTransitions:memoryOwners.get(store).snapshot()}: {})};
+  const history=store.histories.readObservations();owners.push(history);const raster=store.rasters.readDiagnostics();owners.push(raster);const text=store.texts.readObservations();owners.push(text);const portable=store.portables.readObservations();owners.push(portable);
+  const r=raster.value,payload={kind:'j19-owned-diagnostics-1',commandId,capturedAt:new Date().toISOString(),process:process.memoryUsage(),text:{reservedCPU:store.texts.reservedCPU,externalBytes:store.texts.externalBytes(),backendCPU:store.texts.backendCPU(),observations:text.value.slice(-32)},history:history.value.slice(-32),raster:{...r,observations:r.observations.slice(-64),workerPhases:r.workerPhases.slice(-32)},portable:{observations:portable.value.slice(-64),droppedObservations:store.portables.droppedObservations,ownership:store.portables.resourceOwnership(),...(portableImportFailures.has(store)?{importFailure:portableImportFailures.get(store)}:{})},objects:store.objects.reservationInventory(),...(memoryOwners.has(store)?{memoryTransitions:memoryOwners.get(store).snapshot()}: {})};
   bytes=Buffer.from(JSON.stringify(payload));if(bytes.length>262144)throw Error('J19_DIAGNOSTIC_BOUND');
  }catch(error){bytes=Buffer.from(JSON.stringify({kind:'j19-diagnostic-unavailable-1',commandId,reason:String(error.code??error.message??error.name).slice(0,80),process:process.memoryUsage()}));}
  finally{for(const owner of owners.reverse())try{owner.release();}catch(error){releaseFailures.push(String(error.code??error.name).slice(0,80));}}
@@ -66,4 +81,4 @@ export function installFailureDiagnostics(store){
  },25);
  return ()=>{clearInterval(timer);stopMemory();};
 }
-export async function setup(store){const closeObserver=await setupObserver(store),stopDiagnostics=installFailureDiagnostics(store);return async()=>{stopDiagnostics();await closeObserver();};}
+export async function setup(store){const closeObserver=await setupObserver(store),stopDiagnostics=installFailureDiagnostics(store),stopImportObservation=installImportFailureObservation(store);return async()=>{try{stopDiagnostics();}finally{stopImportObservation();await closeObserver();}};}

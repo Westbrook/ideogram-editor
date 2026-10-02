@@ -6,7 +6,7 @@ const FIXED_REQUEST = 65536;
 const LOAN_METADATA = 65536;
 const VERIFICATION_SCRATCH = 2097152;
 export type TextCounts = { scalars: number; lines: number; bytes: number };
-export type VerificationOptions = { legacy?: boolean; layoutBytes?: number };
+export type VerificationOptions = { legacy?: boolean; layoutBytes?: number; retainedRunQuota?: boolean };
 
 function counts(text: string): TextCounts {
  if (typeof text !== 'string' || text.length > 16384) throw Error('TEXT_VERIFICATION_CAPACITY');
@@ -21,12 +21,14 @@ function counts(text: string): TextCounts {
 }
 
 /** Quotas bound native export before JS arrays exist; output bytes are separate. */
-export function textWorkspaceBudget(textLength:number,indices:TextCounts,width:number,height:number,fontBytes:number,wasmBytes:number) {
+export function textWorkspaceBudget(textLength:number,indices:TextCounts,width:number,height:number,fontBytes:number,wasmBytes:number,options:{retainedRunQuota?:boolean}={}) {
  if (![textLength,indices.scalars,indices.lines,indices.bytes,fontBytes,wasmBytes].every(Number.isSafeInteger)||
      textLength<0||textLength>16384||indices.scalars<0||indices.scalars>textLength||indices.bytes<textLength||indices.lines<1||indices.lines>256||indices.bytes>16384||fontBytes<0||fontBytes>67108864||wasmBytes<=0||wasmBytes>33554432||
      ![width,height].every(value=>Number.isFinite(value)&&value>0&&value<=8192)) throw Error('TEXT_VERIFICATION_CAPACITY');
  const glyphs=Math.max(64,8*indices.scalars);
- const runs=Math.min(glyphs,Math.max(64,Math.ceil(indices.scalars/8)));
+ // LF boundaries can each start another native run, independently of text size.
+ // Retained streamed profiles keep their exact prior workspace/output booking.
+ const runs=Math.min(glyphs,Math.max(64,Math.ceil(indices.scalars/8))+(options.retainedRunQuota?0:indices.lines-1));
  const lines=Math.max(indices.lines,Math.min(glyphs,Math.max(64,Math.ceil(indices.scalars/4))));
  const rectangles=glyphs*2;
  // Native visitor arrays: 14G+12R; current glyph-bounds copy: <=16G.
@@ -62,7 +64,7 @@ export function verificationBudget(text:string,width:number,height:number,fontBy
   if(layout>LAYOUT_CAPACITY||!Number.isSafeInteger(bytes)||bytes>TEXT_CAPACITY)throw Error('TEXT_VERIFICATION_CAPACITY');
   return {bytes,startup,resident,request,scratch,layout,workspace:0};
  }
- const plan=textWorkspaceBudget(text.length,indices,width,height,fontBytes,wasmBytes);
+ const plan=textWorkspaceBudget(text.length,indices,width,height,fontBytes,wasmBytes,options);
  const request=3*fontBytes+4*plan.raster+3*plan.layout+plan.indexes+plan.workspace+FIXED_REQUEST;
  const scratch=VERIFICATION_SCRATCH,bytes=Math.max(plan.startup,plan.resident+request)+scratch;
  // Includes the caller backing and loan metadata, even when no engine is live.

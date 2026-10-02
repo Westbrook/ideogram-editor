@@ -1,10 +1,12 @@
 import {DiagnosticRing} from '../observability/diagnostic-memory.js';
-import {returnedDescriptionSelection} from '../../src/text/returned-description.js';
+import {returnedDescriptionSelection,validateReturnedDescriptionSelection} from '../../src/text/returned-description.js';
 import {readFileSync} from 'node:fs';
 import {runVerification} from '../text/supervisor.js';
 import {verificationBudget} from '../../src/protocol/text-budget.js';
 import {retainedProfile,usesStreamingLayout} from '../text/validation.js';
-import {textDraft} from '../../src/protocol/text.js';
+import {textDraft,draftRefs,textSplitPlan} from '../../src/protocol/text.js';
+import {planTextSplit} from '../../src/text/split.js';
+import {imageState} from '../../src/protocol/history-validation.js';
 import {parseControlJSON} from '../../src/protocol/json.js';
 import { Worker } from 'node:worker_threads';
 import {adapterResources} from '../observability/adapter-resources.js';
@@ -16,10 +18,12 @@ import { StoreError } from './errors.js';
 import type { BlobRef, Command, Document } from '../../src/protocol/store.js';
 import type { Asset } from '../../src/protocol/assets.js';
 import type { ImageState } from '../../src/protocol/history.js';
-import type { FontVersion, TextCandidate, TextSource } from '../../src/protocol/text.js';
+import type { FontVersion, TextCandidate, TextSource, TextDraft, TextSplitPlan } from '../../src/protocol/text.js';
 import { canonical, hashBytes, isId } from './canonical.js';
 import { profile, profileRef, identity, validateSource, validateLayout, layoutValidationBytes, dependencyIdentity, dependencies, bundledFont } from '../text/validation.js';
 import { keys, requireValue as ok } from '../../src/protocol/validate.js';
+
+export type PreparedTextSplit={plan:TextSplitPlan;saved:TextDraft;candidates:TextCandidate[];draftRef:BlobRef};
 
 export class Texts {
  private verifying=false;private readyLoans=new Set<string>();
@@ -109,12 +113,116 @@ export class Texts {
   return value;
   }finally{releaseCoverage();}
  }
+ private splitMetadata(ref:BlobRef,savedDraft=false){
+  if(!(ref.mediaType==='application/json'||savedDraft&&(ref.mediaType==='text/plain'||ref.mediaType==='text/plain;charset=utf-8'))||BigInt(ref.byteLength)>65536n)throw new AssetRejection('CAPACITY','TEXT_SPLIT_METADATA_LIMIT');
+  this.guardMetadata(Number(ref.byteLength));this.objects.verify(ref);const bytes=this.read(ref,65536),value=parseControlJSON(bytes);
+  if(canonical(value)!==bytes.toString('utf8'))throw new AssetRejection('INVALID_INPUT','TEXT_SPLIT_METADATA_NOT_CANONICAL');return value;
+ }
+ private splitPlan(ref:BlobRef):TextSplitPlan{
+  try{const plan=this.splitMetadata(ref);textSplitPlan(plan);return plan;}catch(error){if(error instanceof StoreError||error instanceof AssetRejection)throw error;throw new AssetRejection('INVALID_INPUT','TEXT_SPLIT_PLAN_INVALID');}
+ }
+ private splitSaved(c:Command,d:Document,auth:AssetAuth):{saved:TextDraft;draftRef:BlobRef;availableParts:number}{
+  const b=c.body;if(b.type!=='SplitTextDraft')throw new StoreError('UNSUPPORTED_COMMAND');
+  const binding=this.db.prepare('SELECT client_id,expires FROM client_bindings WHERE cookie_hash=?').get(auth.sessionHash);
+  if(c.clientId!==auth.clientId||c.sessionId!==b.draft.sessionId||!Number.isFinite(auth.now)||!Number.isFinite(auth.expires)||auth.now>=auth.expires||!binding||binding.client_id!==auth.clientId||auth.now>=Number(binding.expires)||String(this.db.prepare("SELECT value FROM meta WHERE key='writerEpoch'").get()?.value)!==this.epoch)throw new AssetRejection('STALE_REVISION','TEXT_SPLIT_AUTHORITY_CHANGED');
+  if(c.documentId!==d.id||c.expectedDocumentRevision!==d.revision||this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(d.id))throw new AssetRejection('STALE_REVISION','TEXT_SPLIT_DOCUMENT_CHANGED');
+  const row=this.db.prepare('SELECT json FROM ui_checkpoints WHERE client_id=? AND session_id=?').get(c.clientId,b.draft.sessionId);
+  if(!row||Buffer.byteLength(String(row.json))>65536)throw new AssetRejection('STALE_REVISION','TEXT_DRAFT_REQUIRED');
+  this.guardMetadata(65536);const draft=JSON.parse(String(row.json)).drafts.find((value:any)=>value.id===b.draft.draftId);
+  if(!draft||draft.kind!=='text'||draft.generation!==b.draft.generation||draft.documentId!==d.id||draft.expectedDocumentRevision!==d.revision||draft.targetLayerId!==(b.sourceLayer?.layerId??null)||draft.composing||draft.status!=='saved-unapplied')throw new AssetRejection('STALE_REVISION','DRAFT_GENERATION_CHANGED');
+  const asset=this.assets.asset(draft.assetId);
+  if(!asset||asset.qualification!=='opaque-text'||asset.safety!=='safe'||asset.availability!=='available')throw new AssetRejection('STALE_REVISION','TEXT_DRAFT_REQUIRED');
+  const saved=this.splitMetadata(asset.blob,true);try{textDraft(saved);}catch{throw new AssetRejection('INVALID_INPUT','TEXT_SPLIT_DRAFT_INVALID');}
+  let state:ImageState={schemaVersion:1,width:d.width,height:d.height,layers:[]};
+  if(d.image){
+   if(BigInt(d.image.state.byteLength)>8388608n)throw new AssetRejection('CAPACITY','TEXT_SPLIT_STATE_LIMIT');
+   this.guardMetadata(Number(d.image.state.byteLength));this.objects.verify(d.image.state);const parsed=parseControlJSON(this.read(d.image.state,8388608),8388608);imageState(parsed);state=parsed;
+  }
+  if(b.sourceLayer){
+   if(saved.kind!=='text-draft-1'||!d.image)throw new AssetRejection('STALE_REVISION','TEXT_DRAFT_PLACEMENT_CHANGED');
+   const layer=state.layers.find(value=>value.id===b.sourceLayer!.layerId);
+   if(!layer||layer.kind!=='text'||layer.version!==b.sourceLayer.layerVersion)throw new AssetRejection('STALE_REVISION','TEXT_LAYER_CHANGED');
+   if(layer.locked)throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');
+  }
+  const aggregate=state.layers.reduce((total,layer)=>total+(layer.kind==='text'&&layer.id!==b.sourceLayer?.layerId?BigInt(this.source(layer.source).text.textUtf8.byteLength):0n),BigInt(saved.textUtf8.byteLength));
+  if(aggregate>1048576n)throw new AssetRejection('CAPACITY','TEXT_DOCUMENT_LIMIT');
+  const availableParts=100-state.layers.length+(b.sourceLayer?1:0);if(availableParts<2)throw new AssetRejection('CAPACITY','DOCUMENT_LAYER_LIMIT');
+  return {saved,draftRef:asset.blob,availableParts};
+ }
+ private splitCandidate(ref:BlobRef):TextCandidate{
+  try{const value=this.splitMetadata(ref) as unknown as TextCandidate;keys(value,['schemaVersion','token','source']);ok(value.schemaVersion===1);keys(value.token,['documentId','documentRevision','layerId','layerVersion','sessionId','generation']);ok(Number.isSafeInteger(value.token.generation)&&value.token.generation>=0);validateSource(value.source);return value;}catch(error){if(error instanceof StoreError||error instanceof AssetRejection)throw error;throw new AssetRejection('INVALID_INPUT','TEXT_CANDIDATE_INVALID');}
+ }
+ private splitCandidateFence(c:Command,d:Document,saved:TextDraft,plan:TextSplitPlan,value:TextCandidate,index:number){
+  const b=c.body;if(b.type!=='SplitTextDraft')throw new StoreError('UNSUPPORTED_COMMAND');
+  const part=plan.parts[index],token=value.token,source=value.source;
+  if(!part||token.documentId!==d.id||token.documentRevision!==d.revision||token.sessionId!==b.draft.sessionId||String(token.generation)!==b.draft.generation||token.layerId!==part.layerId||token.layerVersion!==(index===0&&b.sourceLayer?b.sourceLayer.layerVersion:'0'))throw new AssetRejection('STALE_REVISION','TEXT_TOKEN_CHANGED');
+  if(index===0&&(part.offset.x!==0||part.offset.y!==0||b.sourceLayer&&part.layerId!==b.sourceLayer.layerId))throw new AssetRejection('STALE_REVISION','TEXT_SPLIT_ORIGIN_CHANGED');
+  if(canonical(saved.style)!==canonical(source.text.style)||canonical(saved.frame)!==canonical(source.text.frame)||canonical(saved.fonts)!==canonical(source.text.fonts))throw new AssetRejection('STALE_REVISION','TEXT_DRAFT_CONTENT_CHANGED');
+  if(source.render.rendererProfile.id!==profile.id||canonical(source.render.rendererProfile.manifest)!==canonical(profileRef))throw new AssetRejection('INCOMPATIBLE','TEXT_PROFILE_UNSUPPORTED');
+  if(part.reviewedDependencyHash!==source.render.dependencyHash||part.reviewedRasterHash!==source.render.pixels.hash)throw new AssetRejection('STALE_REVISION','TEXT_SPLIT_PREVIEW_CHANGED');
+ }
+ private splitDescription(saved:TextDraft,plan:TextSplitPlan){
+  if(saved.kind!=='text-draft-3'){if(plan.description)throw new AssetRejection('STALE_REVISION','TEXT_DESCRIPTION_DRAFT_CHANGED');return;}
+  const selection=plan.description;
+  if(!selection)throw new AssetRejection('STALE_REVISION','TEXT_DESCRIPTION_DRAFT_CHANGED');
+  try{validateReturnedDescriptionSelection(selection);}catch{throw new AssetRejection('INVALID_INPUT','RETURNED_DESCRIPTION_SELECTION_CHANGED');}
+  if(canonical(saved.description)!==canonical(selection))throw new AssetRejection('STALE_REVISION','TEXT_DESCRIPTION_DRAFT_CHANGED');
+ }
+ splitFence(c:Command,d:Document,auth:AssetAuth,value:PreparedTextSplit){
+  const b=c.body;if(b.type!=='SplitTextDraft')throw new StoreError('UNSUPPORTED_COMMAND');
+  const current=this.splitSaved(c,d,auth),plan=this.splitPlan(b.plan);
+  if(b.reviewedPlanHash!==b.plan.hash||canonical(plan)!==canonical(value.plan)||canonical(current.draftRef)!==canonical(value.draftRef)||canonical(current.saved)!==canonical(value.saved)||canonical(plan.originalText)!==canonical(current.saved.textUtf8)||value.candidates.length!==plan.parts.length)throw new AssetRejection('STALE_REVISION','TEXT_SPLIT_PLAN_CHANGED');
+  this.guardMetadata(Number(b.plan.byteLength)+Number(current.draftRef.byteLength)+plan.parts.reduce((total,part)=>total+Number(part.candidate.byteLength),0));
+  this.splitDescription(current.saved,plan);
+  for(const [index,part]of plan.parts.entries()){
+   const candidate=this.splitCandidate(part.candidate);
+   if(canonical(candidate)!==canonical(value.candidates[index]))throw new AssetRejection('STALE_REVISION','TEXT_SPLIT_CANDIDATE_CHANGED');
+   this.splitCandidateFence(c,d,current.saved,plan,candidate,index);
+  }
+ }
+ async split(c:Command,d:Document,auth:AssetAuth,protect:(ref:BlobRef)=>Promise<void>,check:()=>void):Promise<PreparedTextSplit>{
+  const b=c.body;if(b.type!=='SplitTextDraft')throw new StoreError('UNSUPPORTED_COMMAND');
+  const releaseCoverage=adapterResources.uncovered('text-split-validation');
+  try{
+   check();if(this.verifying||this.reservedCPU)throw new StoreError('QUEUE_FULL');
+   if(this.db.prepare('SELECT 1 FROM text_admissions LIMIT 1').get())throw new AssetRejection('CAPACITY','TEXT_REALM_OWNS_CAPACITY');
+   const {saved,draftRef,availableParts}=this.splitSaved(c,d,auth);
+   if(!['text/plain','text/plain;charset=utf-8'].includes(saved.textUtf8.mediaType)||BigInt(saved.textUtf8.byteLength)>1048576n)throw new AssetRejection('CAPACITY','TEXT_SPLIT_ORIGINAL_LIMIT');
+   await protect(draftRef);for(const ref of draftRefs(saved))await protect(ref);await protect(b.plan);check();
+   const plan=this.splitPlan(b.plan);
+   if(b.reviewedPlanHash!==b.plan.hash||canonical(plan.originalText)!==canonical(saved.textUtf8))throw new AssetRejection('STALE_REVISION','TEXT_SPLIT_PLAN_CHANGED');
+   const metadataBytes=Number(b.plan.byteLength)+Number(draftRef.byteLength)+Number(saved.textUtf8.byteLength)+plan.parts.reduce((total,part)=>total+Number(part.candidate.byteLength),0);this.guardMetadata(metadataBytes);
+   this.splitDescription(saved,plan);if(plan.description)await protect(plan.description.returnedPrompt);
+   const original=this.read(saved.textUtf8,1048576);let ranges:ReturnType<typeof planTextSplit>;
+   try{ranges=planTextSplit(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(original),availableParts);}catch(error){if(error instanceof Error&&error.message==='TEXT_SPLIT_LAYER_LIMIT')throw new AssetRejection('CAPACITY','TEXT_SPLIT_LAYER_LIMIT');throw new AssetRejection('INVALID_INPUT','TEXT_SPLIT_RANGES_INVALID');}
+   if(ranges.length!==plan.parts.length||ranges.some((range,index)=>range.startByte!==plan.parts[index].startByte||range.endByte!==plan.parts[index].endByte))throw new AssetRejection('INVALID_INPUT','TEXT_SPLIT_RANGES_CHANGED');
+   const candidates:TextCandidate[]=[];
+   for(const [index,part]of plan.parts.entries()){
+    check();await protect(part.candidate);const candidate=this.splitCandidate(part.candidate),source=candidate.source;this.splitCandidateFence(c,d,saved,plan,candidate,index);
+    for(const ref of dependencies(source))await protect(ref);
+    const text=this.read(source.text.textUtf8,16384),expected=original.subarray(part.startByte,part.endByte);
+    if(text.byteLength!==expected.byteLength||!text.every((byte,offset)=>byte===expected[offset]))throw new AssetRejection('INVALID_INPUT','TEXT_SPLIT_CONTENT_CHANGED');
+    if(dependencyIdentity(source)!==source.render.dependencyHash)throw new AssetRejection('INVALID_INPUT','TEXT_DEPENDENCY_HASH');
+    for(const font of source.text.fonts){const rows=this.db.prepare("SELECT json FROM assets WHERE json_extract(json,'$.font.id')=?").all(font.id);if(!rows.some(row=>canonical(JSON.parse(String(row.json)).font)===canonical(font)))throw new AssetRejection('INCOMPATIBLE','FONT_IMPORT_REQUIRED');}
+    {
+     const layoutBytes=Number(source.render.layout.byteLength);this.guardMetadata(layoutBytes);let layout:Uint8Array,validationBytes:number;
+     try{layout=this.read(source.render.layout,8388608);validationBytes=layoutValidationBytes(layout);}catch{throw new AssetRejection('INVALID_INPUT','TEXT_LAYOUT_INVALID');}
+     if(process.memoryUsage().rss+this.externalBytes()+this.reservedCPU+this.backendCPU()+validationBytes>536870912||validationBytes>134217728)throw new AssetRejection('CAPACITY','TEXT_VALIDATION_MEMORY');
+     try{validateLayout(source,layout,text);if(!text.length)throw Error();}catch{throw new AssetRejection('INVALID_INPUT','TEXT_LAYOUT_INVALID');}
+    }
+    // Every part is verified serially after the browser has released its realm;
+    // this path neither grants an admission nor borrows/refunds another owner.
+    await this.verify(source,ref=>this.objects.path(ref),check);candidates.push(candidate);
+   }
+   const value={plan,saved,candidates,draftRef};check();this.splitFence(c,d,auth,value);return value;
+  }finally{releaseCoverage();}
+ }
  async verify(s:TextSource,path:(ref:BlobRef)=>string,check:()=>void,admissionId?:string){
   check();if(this.verifying)throw new StoreError('QUEUE_FULL');if(!retainedProfile(s.render.rendererProfile))throw new AssetRejection('INCOMPATIBLE','TEXT_PROFILE_UNSUPPORTED');
   const releaseCoverage=adapterResources.uncovered('text-verification-input');try{
   const textBytes=readFileSync(path(s.text.textUtf8));if(hashBytes(textBytes)!==s.text.textUtf8.hash)throw new StoreError('CORRUPT_OBJECT');
   const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(textBytes);
-  let budget;try{budget=verificationBudget(text,s.text.frame.width,s.text.frame.height,s.text.fonts.reduce((n,f)=>n+Number(f.bytes.byteLength),0),profile.engine.wasm.bytes,{legacy:!usesStreamingLayout(s.render.rendererProfile.id),layoutBytes:Number(s.render.layout.byteLength)});}catch{throw new AssetRejection('CAPACITY','TEXT_VERIFICATION_CAPACITY');}
+  let budget;try{budget=verificationBudget(text,s.text.frame.width,s.text.frame.height,s.text.fonts.reduce((n,f)=>n+Number(f.bytes.byteLength),0),profile.engine.wasm.bytes,{legacy:!usesStreamingLayout(s.render.rendererProfile.id),layoutBytes:Number(s.render.layout.byteLength),retainedRunQuota:s.render.rendererProfile.id!==profile.id});}catch{throw new AssetRejection('CAPACITY','TEXT_VERIFICATION_CAPACITY');}
   const row=this.db.prepare('SELECT id FROM text_admissions').get();const borrowed=!!admissionId&&row?.id===admissionId;
   if(borrowed){if(Number(admissionId!.split('_')[2])!==budget.bytes)throw new AssetRejection('INVALID_INPUT','TEXT_VERIFICATION_ADMISSION');this.readyLoans.add(admissionId!);}
   else if(row)throw new AssetRejection('CAPACITY','TEXT_REALM_OWNS_CAPACITY');

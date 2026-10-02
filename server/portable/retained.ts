@@ -1,4 +1,6 @@
-import {validateReturnedTextOrigin,returnedTextOriginRefs} from '../../src/text/returned-description.js';
+import {validateReturnedTextOrigin,returnedTextOriginRefs,validateReturnedTextSplitOrigin} from '../../src/text/returned-description.js';
+import {textDraft,textSplitPlan} from '../../src/protocol/text.js';
+import {validateRetainedTextCandidate} from './returned-description.js';
 import {requestPrompt} from '../../src/request/family.js';
 import type {BlobRef} from '../../src/protocol/store.js';
 import {rasterManifest,contributionStack,blob,keys,requireValue as ok} from '../../src/protocol/validate.js';
@@ -32,6 +34,10 @@ export async function validateRetainedRasterMetadata(root:BlobRef,raster:RasterI
  while(ref){check();metadataRef(ref);ok(visited.size<4096&&!visited.has(ref.hash));visited.add(ref.hash);
   const value=await read(ref);
   if(value?.kind==='created-text-description-1'){validateReturnedTextOrigin(value);validateSource(await read(value.createdSource));return;}
+  if(value?.kind==='created-text-split-description-1'){
+   validateReturnedTextSplitOrigin(value);const saved=await read(value.draft);textDraft(saved);ok(saved.kind==='text-draft-3');const plan=await read(value.plan);textSplitPlan(plan);
+   ok(canonical(plan.originalText)===canonical(saved.textUtf8)&&canonical(plan.description)===canonical(saved.description));return;
+  }
   retainedRasterMetadata(value);const manifest=await read(value.manifest);rasterManifest(manifest);
   ok(manifest.pipeline===raster.pipeline&&manifest.width===raster.width&&manifest.height===raster.height&&canonical(manifest.pixels)===canonical(raster.pixels)&&hashBytes(canonical({pipeline:manifest.pipeline,width:manifest.width,height:manifest.height,tiles:manifest.tiles}))===raster.pixelIdentity);
   ref=value.previous;
@@ -43,6 +49,9 @@ export async function validateRetainedRasterMetadata(root:BlobRef,raster:RasterI
 export function retainedMetadataReferences(v:any):RetainedReference[]{
  const out=new Map<string,RetainedReference>(),lengths=new Map<string,string>();const add=(ref:BlobRef,inspect=false)=>{blob(ref);const length=lengths.get(ref.hash);ok(length===undefined||length===ref.byteLength);lengths.set(ref.hash,ref.byteLength);const key=ref.hash+':'+ref.mediaType,old=out.get(key);out.set(key,{ref,inspect:inspect||!!old?.inspect});};
  if(v?.kind==='created-text-description-1'){validateReturnedTextOrigin(v);for(const ref of returnedTextOriginRefs(v))add(ref,ref===v.createdSource);}
+ else if(v?.kind==='created-text-split-description-1'){validateReturnedTextSplitOrigin(v);add(v.draft);add(v.plan,true);}
+ else if(v?.kind==='text-split-plan-1'){textSplitPlan(v);add(v.originalText);if(v.description)add(v.description.returnedPrompt);for(const part of v.parts)add(part.candidate,true);}
+ else if(v?.schemaVersion===1&&v.token&&v.source){const candidate=validateRetainedTextCandidate(v);for(const ref of dependencies(candidate.source))add(ref);}
  else if(v?.kind==='retained-raster-metadata-1'){retainedRasterMetadata(v);add(v.manifest,true);if(v.previous)add(v.previous,true);}
  else if(v?.format==='straight-srgb-rgba8'&&v.plan){rasterManifest(v);references(v,r=>add(r,r.mediaType==='application/json'));}
  else if(v?.kind==='cp1-contribution-stack-v1'){contributionStack(v);for(const c of v.contributions){add(c.manifest,true);add(c.pixels);}}

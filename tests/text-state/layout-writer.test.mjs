@@ -65,7 +65,7 @@ test('a smaller admitted capacity is enforced in bytes before append, including 
 const profile=data('export default {id:"test-layout-profile"};');
 const bidi=await source('src/text/bidi.ts',{'./bidi-data.json':data('export default '+await readFile('src/text/bidi-data.json','utf8'))});
 const coreURL=await source('src/text/core.ts',{
- './profile.json':profile,'./retained-profiles/7a4dbc6c.json':data('export default {id:"retained-streamed-profile"};'),'./retained-profiles/4fd6f6a1.json':data('export default {id:"retained-stable-stream-profile"};'),'./retained-profiles/68efa85f.json':data('export default {id:"retained-integration-profile"};'),'./retained-profiles/6d77f925.json':data('export default {id:"retained-combined-cpu-profile"};'),'./retained-profiles/c6ca02c2.json':data('export default {id:"retained-adapter-ownership-profile"};'),'./retained-profiles/1c399d52.json':data('export default {id:"retained-http-framing-profile"};'),'./retained-profiles/e648eede.json':data('export default {id:"retained-deferred-manifest-profile"};'),'./retained-profiles/891a4688.json':data('export default {id:"retained-startup-profile"};'),'./retained-profiles/b96236b0.json':data('export default {id:"retained-text-resources-profile"};'),'./admission':admission,'./contracts':contracts,'./layout-writer':writerURL,'./bidi':bidi,
+ './profile.json':profile,'./retained-profiles/7a4dbc6c.json':data('export default {id:"retained-streamed-profile"};'),'./retained-profiles/4fd6f6a1.json':data('export default {id:"retained-stable-stream-profile"};'),'./retained-profiles/68efa85f.json':data('export default {id:"retained-integration-profile"};'),'./retained-profiles/6d77f925.json':data('export default {id:"retained-combined-cpu-profile"};'),'./retained-profiles/c6ca02c2.json':data('export default {id:"retained-adapter-ownership-profile"};'),'./retained-profiles/1c399d52.json':data('export default {id:"retained-http-framing-profile"};'),'./retained-profiles/e648eede.json':data('export default {id:"retained-deferred-manifest-profile"};'),'./retained-profiles/891a4688.json':data('export default {id:"retained-startup-profile"};'),'./retained-profiles/b96236b0.json':data('export default {id:"retained-text-resources-profile"};'),'./retained-profiles/2e9362c1.json':data('export default {id:"retained-admission-split-profile"};'),'./retained-profiles/6f7be5be.json':data('export default {id:"retained-paragraph-budget-profile"};'),'./admission':admission,'./contracts':contracts,'./layout-writer':writerURL,'./bidi':bidi,
  './font':data('export function inspectFont(){return {format:"static-ttf",parserProfile:"fixture-parser",fsType:0};}'),
  './memory':data('export function planText(request,options){globalThis.__layoutTestPlans?.push(options);return {glyphs:64,runs:64,lines:64,rectangles:128,layout:globalThis.__layoutTestLimit??8388608};}'),
 });
@@ -143,22 +143,30 @@ test('actual core uses the admitted output capacity rather than the global ceili
 test('actual core fixes frame field order across browser and canonical server requests',async()=>{
  const browser=fixture(),server=fixture();server.request.frame={height:browser.request.frame.height,width:browser.request.frame.width};
  assert.notDeepEqual(Object.keys(browser.request.frame),Object.keys(server.request.frame));
- const a=await prepareText(browser.request,browser.ck),b=await prepareText(server.request,server.ck);
- assert.equal(await b.layout.text(),await a.layout.text());assert.equal(b.layoutHash,a.layoutHash);assert.equal(b.rasterHash,a.rasterHash);assert.equal(b.dependencyHash,a.dependencyHash);
- assert((await a.layout.text()).startsWith('{"version":"layout-1","policy":"text-layout-1","frame":{"width":10,"height":24.5}'));
+ const plans=[];globalThis.__layoutTestPlans=plans;
+ try{
+  const a=await prepareText(browser.request,browser.ck),b=await prepareText(server.request,server.ck);
+  assert.deepEqual(plans,[{legacy:false,retainedRunQuota:false},{legacy:false,retainedRunQuota:false}]);
+  assert.equal(await b.layout.text(),await a.layout.text());assert.equal(b.layoutHash,a.layoutHash);assert.equal(b.rasterHash,a.rasterHash);assert.equal(b.dependencyHash,a.dependencyHash);
+  assert((await a.layout.text()).startsWith('{"version":"layout-1","policy":"text-layout-1","frame":{"width":10,"height":24.5}'));
+ }finally{delete globalThis.__layoutTestPlans;}
 });
 test('retained streamed profile can reproduce either original frame key order',async()=>{
  const a=fixture(),b=fixture();b.request.frame={height:a.request.frame.height,width:a.request.frame.width};
- const left=await prepareText(a.request,a.ck,'retained-streamed-profile'),right=await prepareText(b.request,b.ck,'retained-streamed-profile');
- assert.notEqual(left.layoutHash,right.layoutHash);assert.equal(left.rasterHash,right.rasterHash);assert.deepEqual(JSON.parse(await left.layout.text()),JSON.parse(await right.layout.text()));
+ const plans=[];globalThis.__layoutTestPlans=plans;
+ try{
+  const left=await prepareText(a.request,a.ck,'retained-streamed-profile'),right=await prepareText(b.request,b.ck,'retained-streamed-profile');
+  assert.deepEqual(plans,[{legacy:false,retainedRunQuota:true},{legacy:false,retainedRunQuota:true}]);
+  assert.notEqual(left.layoutHash,right.layoutHash);assert.equal(left.rasterHash,right.rasterHash);assert.deepEqual(JSON.parse(await left.layout.text()),JSON.parse(await right.layout.text()));
+ }finally{delete globalThis.__layoutTestPlans;}
 });
 
-for(const retainedId of ['retained-stable-stream-profile','retained-integration-profile','retained-combined-cpu-profile','retained-adapter-ownership-profile','retained-http-framing-profile','retained-deferred-manifest-profile','retained-startup-profile','retained-text-resources-profile'])test(retainedId+' preserves normalized frame bytes and streaming plan',async()=>{
+for(const retainedId of ['retained-stable-stream-profile','retained-integration-profile','retained-combined-cpu-profile','retained-adapter-ownership-profile','retained-http-framing-profile','retained-deferred-manifest-profile','retained-startup-profile','retained-text-resources-profile','retained-admission-split-profile','retained-paragraph-budget-profile'])test(retainedId+' preserves normalized frame bytes and streaming plan',async()=>{
  const browser=fixture(),server=fixture();server.request.frame={height:browser.request.frame.height,width:browser.request.frame.width};
  const plans=[];globalThis.__layoutTestPlans=plans;
  try{
   const a=await prepareText(browser.request,browser.ck,retainedId),b=await prepareText(server.request,server.ck,retainedId);
-  assert.deepEqual(plans,[{legacy:false},{legacy:false}]);assert.equal(await a.layout.text(),await b.layout.text());assert.equal(a.layoutHash,b.layoutHash);assert.equal(a.rasterHash,b.rasterHash);assert.equal(a.dependencyHash,b.dependencyHash);
+  assert.deepEqual(plans,[{legacy:false,retainedRunQuota:true},{legacy:false,retainedRunQuota:true}]);assert.equal(await a.layout.text(),await b.layout.text());assert.equal(a.layoutHash,b.layoutHash);assert.equal(a.rasterHash,b.rasterHash);assert.equal(a.dependencyHash,b.dependencyHash);
   assert((await a.layout.text()).startsWith('{"version":"layout-1","policy":"text-layout-1","frame":{"width":10,"height":24.5}'));
  }finally{delete globalThis.__layoutTestPlans;}
 });

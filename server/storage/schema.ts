@@ -1,6 +1,8 @@
 import {installedSchema16Maintenance,copySchema16Maintenance,schema16MaintenanceFiles,type Schema16MaintenancePacket} from './schema16-maintenance.js';
 import { supportsProjectionSchema, projectionEntity } from '../../src/protocol/projection-schema.js';
 import {validateCompositionTextReview} from '../../src/composition/text-export.js';
+import {textSplitPlan} from '../../src/protocol/text.js';
+import {validateReturnedTextSplitOrigin} from '../../src/text/returned-description.js';
 import {assertCompositionTextSchema19Ready,assertCompositionTextSchema19Receipt} from './composition-text-schema.js';
 import { tmpdir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
@@ -165,6 +167,9 @@ const editor18Commands=new Set(['PrepareV45EditInputs','CreateDocument','SaveRec
 const editor18Events=new Set(['LocalQueueReordered','QueueDraftReplacementSaved','QueueOrderInitialized','RasterImportInspectionPrepared']);
 const editorRasterPlans=new Set(['decoded-native','cp1-composition','cp1-layer-contribution-v1','authored-mask-v1','authored-mask-v2','authored-request-mask-v1','request-mask-resize','request-mask-binary-v1','request-source-transport-v1','request-preservation-v1','request-source-capture-v1','retained-candidate-v1','retained-text','frozen-png-export','frozen-image-export-v1','candidate-lettering-comparison-v1','v45-edit-inputs-1','v45-edit-mask-v1','solid-background-v1','decoded-derived-v1']);
 const editorKindFamilies=[...editor18Kinds].filter(kind=>/-v?[0-9]+$/.test(kind)).map(kind=>kind.replace(/[0-9]+$/,''));
+// Current split semantics are independent of the sealed schema18 capability.
+const currentTextSplitKinds=new Set(['created-text-split-description-1','text-split-plan-1']);
+const currentTextSplitKindFamilies=[...currentTextSplitKinds].map(kind=>kind.replace(/[0-9]+$/,''));
 
 // Fixed owned scratch namespace, outside the store. Index scratch holds only
 // hashes/ref descriptors; database scratch temporarily holds private store SQL
@@ -255,11 +260,12 @@ export function assertEditorSemanticCompatibility(db:DatabaseSync,root:string,ve
   let snapshotProjection:number|null=null,snapshotDependencyFailure=false;
   const introduced=()=>{if(version<18||snapshotProjection!==null&&snapshotProjection<9)future();};
   const compositionTextIntroduced=()=>{if(version<19)future();};
+  const textSplitIntroduced=()=>{if(version<19)future();};
   const names=new Set(db.prepare("SELECT name FROM sqlite_schema WHERE type='table'").all().map(row=>String(row.name)));
   const hasTable=(name:string)=>names.has(name);
   if(hasTable('raster_import_inspections'))introduced();
   const hasColumn=(table:string,column:string)=>hasTable(table)&&db.prepare(`PRAGMA table_info(${table})`).all().some(row=>row.name===column);
-  type EdgeKind='metadata'|'image'|'raster'|'draft'|'text-draft'|'treatment'|'composition'|'projection'|'composition-text-projection'|'snapshot';
+  type EdgeKind='metadata'|'image'|'raster'|'draft'|'text-draft'|'text-split-plan'|'treatment'|'composition'|'projection'|'composition-text-projection'|'snapshot';
   const scratch=editorScanScratch(root),index=scratch.db;
   try {
   let required=false,currentUI=false;
@@ -290,10 +296,13 @@ export function assertEditorSemanticCompatibility(db:DatabaseSync,root:string,ve
       try{validateCompositionTextReview(value);}catch{throw new StoreError('CORRUPT_OBJECT');}
     }
     if(editor18Kinds.has(kind)){introduced();if(value.schemaVersion!==undefined&&value.schemaVersion!==(kind==='text-draft-3'?3:1))future();}
+    if(typeof kind==='string'&&currentTextSplitKindFamilies.some(prefix=>kind.startsWith(prefix))){if(!currentTextSplitKinds.has(kind))future();textSplitIntroduced();}
     if(typeof kind==='string'&&(kind.startsWith('request-draft-')||kind.startsWith('request-review-'))&&!['request-draft-1','request-review-1','request-draft-v45-1','request-review-v45-1','request-review-text-1'].includes(kind))future();
     if(typeof kind==='string'&&kind.startsWith('text-draft-')&&!['text-draft-1','text-draft-2','text-draft-3'].includes(kind))future();
     if(typeof kind==='string'&&editorKindFamilies.some(prefix=>kind.startsWith(prefix))&&!editor18Kinds.has(kind)&&!['text-draft-1','text-draft-2'].includes(kind))future();
     if(editor18Commands.has(value.type)||editor18Events.has(value.type)||value.kind==='image-edit'&&editor18Commands.has(value.operation))introduced();
+    if(value.type==='SplitTextDraft'||value.kind==='image-edit'&&value.operation==='SplitTextDraft')textSplitIntroduced();
+    if(value.type==='SplitTextDraft')edge(value.plan,'text-split-plan');
     if(value.type==='ReviewCandidatePlacement'&&value.preparation!==undefined){if(value.preparation!=='encoded-rebuild')future();introduced();}
     if(value.type==='PrepareRaster'&&value.importPlan!==undefined)introduced();
     if(['generate-v45','transform-v45','inpaint-v45'].includes(value.operation))introduced();
@@ -358,6 +367,15 @@ export function assertEditorSemanticCompatibility(db:DatabaseSync,root:string,ve
       if(value.schemaVersion!==1)future();if(value.edit?.requestPlan)edge(value.edit.requestPlan);if(value.prompt?.mode==='composition-text'){compositionTextIntroduced();edge(value.prompt.projection,'composition-text-projection',524288);}else if(value.prompt?.projection)edge(value.prompt.projection,'projection',524288);
     }
     if(kind==='created-text-description-1'){if(value.schemaVersion!==1)future();edge(value.createdSource);}
+    if(kind==='created-text-split-description-1'){
+      if(value.schemaVersion!==1)future();try{validateReturnedTextSplitOrigin(value);}catch{throw new StoreError('CORRUPT_OBJECT');}
+      edge(value.draft,'text-draft');edge(value.plan,'text-split-plan');
+    }
+    if(kind==='text-split-plan-1'){
+      try{textSplitPlan(value);}catch{throw new StoreError('CORRUPT_OBJECT');}
+      for(const part of value.parts)edge(part.candidate);
+      // originalText and description.returnedPrompt are exact authored bytes.
+    }
     if(kind==='retained-raster-metadata-1'){edge(value.manifest,'raster');if(value.previous)edge(value.previous);}
     if(kind==='adopted-candidate-lineage-1'&&value.result?.request?.specification){
       const request=value.result.request.specification;if(request.source?.capture)edge(request.source.capture,'raster');if(request.mask?.plan)edge(request.mask.plan,'raster');
@@ -410,7 +428,7 @@ export function assertEditorSemanticCompatibility(db:DatabaseSync,root:string,ve
       if(kind==='snapshot'){scanSnapshot(ref);required=previousRequired;continue;}
       read(ref,fd=>{const bytes=Buffer.alloc(Number(ref.byteLength));let offset=0;while(offset<bytes.length){const n=readSync(fd,bytes,offset,bytes.length-offset,offset);if(!n)throw new StoreError('CORRUPT_OBJECT');offset+=n;}
         let value:any;try{value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{throw new StoreError('CORRUPT_OBJECT');}
-        if(kind==='raster'&&value?.format!=='straight-srgb-rgba8'||kind==='image'&&!Array.isArray(value?.layers)||kind==='draft'&&!['request-draft-1','request-draft-v45-1'].includes(value?.kind)||kind==='text-draft'&&!['text-draft-1','text-draft-2','text-draft-3'].includes(value?.kind)||kind==='treatment'&&value?.kind!=='text-treatment-plan-1'||kind==='composition'&&value?.kind!=='composition-version-1'||kind==='projection'&&value?.serializer!=='caption-json-1'||kind==='composition-text-projection'&&value?.serializer!=='composition-text-1')future();walk(value);
+        if(kind==='raster'&&value?.format!=='straight-srgb-rgba8'||kind==='image'&&!Array.isArray(value?.layers)||kind==='draft'&&!['request-draft-1','request-draft-v45-1'].includes(value?.kind)||kind==='text-draft'&&!['text-draft-1','text-draft-2','text-draft-3'].includes(value?.kind)||kind==='text-split-plan'&&value?.kind!=='text-split-plan-1'||kind==='treatment'&&value?.kind!=='text-treatment-plan-1'||kind==='composition'&&value?.kind!=='composition-version-1'||kind==='projection'&&value?.serializer!=='caption-json-1'||kind==='composition-text-projection'&&value?.serializer!=='composition-text-1')future();walk(value);
       },mustRead);required=previousRequired;
     }
   };

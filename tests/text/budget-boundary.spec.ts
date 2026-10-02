@@ -101,9 +101,11 @@ async function prepareBoundary(page: Page, text: string) {
   }, { text, font });
 }
 
+// Independent W=30G+1024runs+512lines+256KiB for these fixed ASCII specimens:
+// (G,runs,lines)=(131072,2303,4096) and (114688,1792,3584).
 const cases = [
-  { name: '16 KiB and 256 logical lines', text: ['A'.repeat(64), ...Array.from({ length: 255 }, () => 'A'.repeat(63))].join('\n'), bytes: 16384, paragraphs: 256 },
-  { name: '14 KiB in one naturally wrapped paragraph', text: 'A'.repeat(14 * 1024), bytes: 14 * 1024, paragraphs: 1 },
+  { name: '16 KiB and 256 logical lines', text: ['A'.repeat(64), ...Array.from({ length: 255 }, () => 'A'.repeat(63))].join('\n'), bytes: 16384, paragraphs: 256, workspace: 8649728 },
+  { name: '14 KiB in one naturally wrapped paragraph', text: 'A'.repeat(14 * 1024), bytes: 14 * 1024, paragraphs: 1, workspace: 7372800 },
 ];
 
 for (const specimen of cases) {
@@ -147,7 +149,7 @@ for (const specimen of cases) {
     expect(result.layoutBytes).toBeGreaterThan(65536);
     expect(result.layoutBytes).toBeLessThanOrEqual(result.plan.layout);
     expect(result.plan.layout).toBeLessThanOrEqual(8 * 1024 ** 2);
-    expect(result.plan.workspace).toBeLessThanOrEqual(8 * 1024 ** 2);
+    expect(result.plan.workspace).toBe(specimen.workspace);
     expect(result.allocation.layoutBytes).toBe(result.layoutBytes);
     expect(result.allocation.rasterBytes).toBe(360 * 180 * 4);
     expect(result.allocation.wasmHeapBytes).toBeLessThanOrEqual(32 * 1024 ** 2);

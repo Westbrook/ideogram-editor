@@ -22,11 +22,13 @@ import httpFramingPrior from '../../src/text/retained-profiles/1c399d52.json';
 import deferredManifestPrior from '../../src/text/retained-profiles/e648eede.json';
 import startupProfilePrior from '../../src/text/retained-profiles/891a4688.json';
 import textResourcesPrior from '../../src/text/retained-profiles/b96236b0.json';
+import admissionSplitPrior from '../../src/text/retained-profiles/2e9362c1.json';
+import paragraphBudgetPrior from '../../src/text/retained-profiles/6f7be5be.json';
 const require=createRequire(import.meta.url);
 const hash=b=>'sha256:'+createHash('sha256').update(b).digest('hex');
 const sealed=(path,entry)=>{const b=readFileSync(path);if(b.length!==entry.bytes||hash(b)!=='sha256:'+entry.sha256)throw Error('TEXT_ENGINE_HASH');return b;};
 const layoutLimit=8388608;
-const retainedProfiles=new Set([prior.id,rejected.id,maskPrior.id,gridPrior.id,placementPrior.id,compositionPrior.id,streamedPrior.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id]);
+const retainedProfiles=new Set([prior.id,rejected.id,maskPrior.id,gridPrior.id,placementPrior.id,compositionPrior.id,streamedPrior.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id,admissionSplitPrior.id,paragraphBudgetPrior.id]);
 export function restoreRetainedFrameOrder(expected,frame){
  if(!frame||typeof frame!=='object'||Object.keys(frame).length!==2||!Object.hasOwn(frame,'width')||!Object.hasOwn(frame,'height')||![frame.width,frame.height].every(value=>Number.isFinite(value)&&value>0&&value<=8192))throw Error('TEXT_NATIVE_MISMATCH');
  const fd=openSync(expected.layoutPath,'r');
@@ -51,7 +53,7 @@ export async function verifyPreparedLayout(expected,prepared,rendererProfile,tex
   length+=chunk.length;if(length>layoutLimit)throw Error('TEXT_NATIVE_MISMATCH');digest.update(chunk);
  }
  if('sha256:'+digest.digest('hex')!==expected.layoutHash)throw Error('TEXT_NATIVE_MISMATCH');
- if(rendererProfile===profile.id||rendererProfile===frameOrderPrior.id||rendererProfile===ownershipPrior.id||rendererProfile===integrationPrior.id||rendererProfile===combinedCPUPrior.id||rendererProfile===adapterOwnershipPrior.id||rendererProfile===httpFramingPrior.id||rendererProfile===deferredManifestPrior.id||rendererProfile===startupProfilePrior.id||rendererProfile===textResourcesPrior.id){if(prepared.layoutHash!==expected.layoutHash)throw Error('TEXT_NATIVE_MISMATCH');return;}
+ if(rendererProfile===profile.id||rendererProfile===frameOrderPrior.id||rendererProfile===ownershipPrior.id||rendererProfile===integrationPrior.id||rendererProfile===combinedCPUPrior.id||rendererProfile===adapterOwnershipPrior.id||rendererProfile===httpFramingPrior.id||rendererProfile===deferredManifestPrior.id||rendererProfile===startupProfilePrior.id||rendererProfile===textResourcesPrior.id||rendererProfile===admissionSplitPrior.id||rendererProfile===paragraphBudgetPrior.id){if(prepared.layoutHash!==expected.layoutHash)throw Error('TEXT_NATIVE_MISMATCH');return;}
  // Retained profiles historically accepted canonical key reordering. Their
  // original preflight limited this path to at most480 scalars (and8MiB layout),
  // so new larger current-profile requests never enter the legacy graph path.

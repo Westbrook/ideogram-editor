@@ -13,26 +13,47 @@ export type TextVersion = { schemaVersion:1; id:string; textUtf8:BlobRef; style:
 export type TextRenderVersion = { schemaVersion:1; id:string; textVersion:string; rendererProfile:RendererProfile; dependencyHash:string; layout:BlobRef; pixels:BlobRef; width:number;height:number;overflow:boolean;resolvedFonts:string[] };
 export type TextSource = { schemaVersion:1; text:TextVersion; render:TextRenderVersion };
 export type TextCandidate = { schemaVersion:1; token:TextToken; source:TextSource };
+export type TextSplitPlan = {kind:'text-split-plan-1';originalText:BlobRef;parts:{layerId:string;name:string;startByte:number;endByte:number;candidate:BlobRef;offset:TextPlacement;reviewedDependencyHash:string;reviewedRasterHash:string}[];description?:ReturnedDescriptionSelection};
 export type TextBody =
  | {type:'ImportFont'; source:BlobRef; license:BlobRef; origin:'bundled'|'local-file'; embeddingReviewed:true}
  | {type:'CreateTextLayer';layerId:string;name:string;candidate:BlobRef;draft:DraftFence;admissionId:string;placement?:TextPlacement}
  | {type:'CreateTextFromReturnedDescription';layerId:string;name:string;candidate:BlobRef;draft:DraftFence;admissionId:string;placement:TextPlacement;description:ReturnedDescriptionReview}
  | {type:'CommitTextEdit'|'ReplaceTextFont';layerId:string;layerVersion:string;candidate:BlobRef;draft:DraftFence;admissionId:string;reviewedDependencyHash:string}
+ | {type:'SplitTextDraft';draft:DraftFence;sourceLayer:{layerId:string;layerVersion:string}|null;plan:BlobRef;reviewedPlanHash:string}
  | {type:'RasterizeTextDerivative';layerId:string;layerVersion:string;newLayerId:string;name:string;hideOriginal:boolean;reviewedRender:string;draft:DraftFence|null};
-export const textCommands=['ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'] as const;
+export const textCommands=['ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','CommitTextEdit','ReplaceTextFont','SplitTextDraft','RasterizeTextDerivative'] as const;
 export const isTextCommand=(type:string)=>(textCommands as readonly string[]).includes(type);
 export const hash=(v:unknown):v is string=>typeof v==='string'&&/^sha256:[a-f0-9]{64}$/.test(v);
 export function textBody(b:any){
- const fields:Record<string,string[]>={ImportFont:['source','license','origin','embeddingReviewed'],CreateTextLayer:['layerId','name','candidate','draft','admissionId'],CreateTextFromReturnedDescription:['layerId','name','candidate','draft','admissionId','placement','description'],CommitTextEdit:['layerId','layerVersion','candidate','draft','admissionId','reviewedDependencyHash'],ReplaceTextFont:['layerId','layerVersion','candidate','draft','admissionId','reviewedDependencyHash'],RasterizeTextDerivative:['layerId','layerVersion','newLayerId','name','hideOriginal','reviewedRender','draft']};
+ const fields:Record<string,string[]>={ImportFont:['source','license','origin','embeddingReviewed'],CreateTextLayer:['layerId','name','candidate','draft','admissionId'],CreateTextFromReturnedDescription:['layerId','name','candidate','draft','admissionId','placement','description'],CommitTextEdit:['layerId','layerVersion','candidate','draft','admissionId','reviewedDependencyHash'],ReplaceTextFont:['layerId','layerVersion','candidate','draft','admissionId','reviewedDependencyHash'],SplitTextDraft:['draft','sourceLayer','plan','reviewedPlanHash'],RasterizeTextDerivative:['layerId','layerVersion','newLayerId','name','hideOriginal','reviewedRender','draft']};
  keys(b,['type',...fields[b.type],...(b.type==='CreateTextLayer'&&'placement'in b?['placement']:[])]);
  if('placement'in b)textPlacement(b.placement);
  if(b.type==='CreateTextFromReturnedDescription'){validateReturnedDescriptionReview(b.description);ok(b.description.placement.x===b.placement.x&&b.description.placement.y===b.placement.y);}
  if(b.type==='ImportFont'){blob(b.source);blob(b.license);ok(['bundled','local-file'].includes(b.origin)&&b.embeddingReviewed===true);return;}
+ if(b.type==='SplitTextDraft'){
+  blob(b.plan);ok(b.plan.mediaType==='application/json'&&BigInt(b.plan.byteLength)<=65536n&&hash(b.reviewedPlanHash)&&b.reviewedPlanHash===b.plan.hash);
+  if(b.sourceLayer!==null){keys(b.sourceLayer,['layerId','layerVersion']);ok(id(b.sourceLayer.layerId)&&seq(b.sourceLayer.layerVersion));}
+  keys(b.draft,['sessionId','draftId','generation']);ok(id(b.draft.sessionId)&&id(b.draft.draftId)&&seq(b.draft.generation));return;
+ }
  ok(id(b.layerId));if('layerVersion'in b)ok(seq(b.layerVersion));if('name'in b)ok(typeof b.name==='string'&&b.name.length>0&&new TextEncoder().encode(b.name).length<=1024);
  if('candidate'in b){blob(b.candidate);ok(b.candidate.mediaType==='application/json'&&BigInt(b.candidate.byteLength)<=65536n&&id(b.admissionId));}
  if('reviewedDependencyHash'in b)ok(hash(b.reviewedDependencyHash));
  if(b.type==='RasterizeTextDerivative')ok(id(b.newLayerId)&&hash(b.reviewedRender)&&typeof b.hideOriginal==='boolean');
  if(b.draft!==null){keys(b.draft,['sessionId','draftId','generation']);ok(id(b.draft.sessionId)&&id(b.draft.draftId)&&seq(b.draft.generation));}else ok(b.type==='RasterizeTextDerivative');
+}
+export function textSplitPlan(v:any):asserts v is TextSplitPlan{
+ keys(v,['kind','originalText','parts',...(Object.hasOwn(v,'description')?['description']:[])]);blob(v.originalText);
+ ok(v.kind==='text-split-plan-1'&&['text/plain','text/plain;charset=utf-8'].includes(v.originalText.mediaType)&&Array.isArray(v.parts)&&v.parts.length>=2&&v.parts.length<=100);
+ const layerIds=new Set<string>();let endByte=0;
+ for(const part of v.parts){
+  keys(part,['layerId','name','startByte','endByte','candidate','offset','reviewedDependencyHash','reviewedRasterHash']);blob(part.candidate);textPlacement(part.offset);
+  ok(id(part.layerId)&&!layerIds.has(part.layerId)&&typeof part.name==='string'&&part.name.length>0&&new TextEncoder().encode(part.name).length<=1024&&
+   Number.isSafeInteger(part.startByte)&&Number.isSafeInteger(part.endByte)&&part.startByte===endByte&&part.endByte>part.startByte&&
+   part.candidate.mediaType==='application/json'&&BigInt(part.candidate.byteLength)<=65536n&&hash(part.reviewedDependencyHash)&&hash(part.reviewedRasterHash));
+  layerIds.add(part.layerId);endByte=part.endByte;
+ }
+ ok(v.parts[0].offset.x===0&&v.parts[0].offset.y===0&&BigInt(endByte)===BigInt(v.originalText.byteLength));
+ if(Object.hasOwn(v,'description'))validateReturnedDescriptionSelection(v.description);
 }
 export function fontVersion(f:any){keys(f,['schemaVersion','id','bytes','faceIndex','format','parserProfile','fsType','licenseRecord','origin','embedding']);blob(f.bytes);blob(f.licenseRecord);ok(f.schemaVersion===1&&hash(f.id)&&f.faceIndex===0&&['static-ttf','static-otf'].includes(f.format)&&f.parserProfile==='sfnt-static-1-freetype-canvaskit040'&&Number.isInteger(f.fsType)&&f.fsType>=0&&f.fsType<=65535&&!(f.fsType&~0x0108)&&((f.fsType&14)===0||(f.fsType&14)===8)&&['bundled','local-file'].includes(f.origin)&&f.embedding==='permitted'&&BigInt(f.bytes.byteLength)>=12n&&BigInt(f.bytes.byteLength)<=16777216n&&BigInt(f.licenseRecord.byteLength)>0n&&BigInt(f.licenseRecord.byteLength)<=65536n);}
 export function textSource(s:any):asserts s is TextSource{

@@ -188,7 +188,7 @@ The container workflow remains an explicit `workflow_dispatch` mode. Choose
 currently stops at the provisioning refusal described above. Its retained
 preparation sequence becomes usable only after separately reviewed hosted
 schema18 provisioning is implemented. That sequence prepares an exact packet:
-16 selected historical commits, six retained review ZIPs, and the exact public
+17 selected historical commits, six retained review ZIPs, and the exact public
 adapter fixture. Preparation verifies every identity. Selected Git tree metadata
 includes historical filenames/object IDs needed by archive path selection;
 unrelated historical blob contents and local Git configuration/remotes stay out.

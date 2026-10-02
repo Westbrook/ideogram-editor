@@ -768,7 +768,7 @@ export class Rasters {
     }catch(error){for(const proof of proofs)this.objects.releaseProof(proof.token);throw error;}
     finally{try{rmSync(directory,{recursive:true,force:true});this.db.prepare('DELETE FROM deletion_work WHERE path=?').run(directory);}catch(error){for(const proof of proofs)this.objects.releaseProof(proof.token);throw error;}finally{this.documentBusy=false;this.reservedCPU=0;releaseCoverage();this.schedule();}}
   }
-  async prepareDocument(body: (Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>&{requestSource?:RequestSourceCapture})|{type:'RequestMaskTransport'|'RequestSourceTransport';assetId:string;plan:RequestRasterPlan}|{type:'PreserveRequestCandidate';sourceAssetId:string;candidateAssetId:string;maskAssetId:string;plan:RequestRasterPlan;outputMapping?:RequestOutputMapping}|{type:'RetainText';source:BlobRef;pixels:BlobRef;width:number;height:number}|{type:'PrepareCandidate';assetId:string}|{type:'SolidBackground';width:number;height:number;color:readonly [number,number,number,255]}, id:string, slot:string, check:()=>void, preparedInput?:Asset,workDocumentId?:string) {
+  async prepareDocument(body: (Extract<RasterBody,{type:'ComposeRaster'|'ExportRaster'}>&{requestSource?:RequestSourceCapture})|{type:'RequestMaskTransport'|'RequestSourceTransport';assetId:string;plan:RequestRasterPlan}|{type:'PreserveRequestCandidate';sourceAssetId:string;candidateAssetId:string;maskAssetId:string;plan:RequestRasterPlan;outputMapping?:RequestOutputMapping}|{type:'RetainText';source:BlobRef;pixels:BlobRef;width:number;height:number}|{type:'PrepareCandidate';assetId:string}|{type:'SolidBackground';width:number;height:number;color:readonly [number,number,number,255]}, id:string, slot:string, check:()=>void, preparedInput?:Asset,workDocumentId?:string,preparedInputs?:ReadonlyMap<string,Asset>) {
     if(this.running||this.documentBusy||this.closing)throw new StoreError('QUEUE_FULL');
     const releaseCoverage=adapterResources.uncovered('raster-document-job');this.documentBusy=true;
     const proofs:{ref:BlobRef;token:string}[]=[];
@@ -776,7 +776,8 @@ export class Rasters {
       const requestPlan='plan' in body?body.plan:undefined;if(requestPlan)validateRequestRasterPlan(requestPlan);
       const ids=body.type==='ComposeRaster'?[...new Set(body.layers.flatMap(l=>[l.assetId,...(l.mask?[l.mask.assetId]:[])]))]:body.type==='PreserveRequestCandidate'?[...new Set([body.sourceAssetId,body.candidateAssetId,body.maskAssetId])]:body.type==='ExportRaster'||body.type==='RequestMaskTransport'||body.type==='RequestSourceTransport'?[body.assetId]:[];
       const inputs:InputRaster[]=[],dependencies:BlobRef[]=[];
-      for(const assetId of ids){const a=preparedInput?.id===assetId?preparedInput:this.asset(assetId,true);const info=a.raster!;
+      if(preparedInputs&&preparedInputs.size>100)throw new AssetRejection('CAPACITY','DOCUMENT_LAYER_LIMIT');
+      for(const assetId of ids){const a=preparedInputs?.get(assetId)??(preparedInput?.id===assetId?preparedInput:this.asset(assetId,true));const info=a.raster!;
         for(const ref of [info.pixels,info.manifest])if(!proofs.some(p=>p.ref.hash===ref.hash))proofs.push({ref,token:await this.objects.prove(ref,check)});
         const maskPlan=info.role==='mask'?this.manifest(assetId).plan as {hard:BlobRef;effective:BlobRef}:undefined;let coverage=maskPlan?.effective;if(coverage)proofs.push({ref:coverage,token:await this.objects.prove(coverage,check)});
         if(body.type==='RequestMaskTransport'||body.type==='PreserveRequestCandidate'&&assetId===body.maskAssetId){

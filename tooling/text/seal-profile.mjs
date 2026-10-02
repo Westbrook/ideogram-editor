@@ -41,6 +41,12 @@ profile.sourceRecipe.push({path:startupProfilePriorPath,bytes:startupProfilePrio
 // Retain the exact profile before eager reservation-source binding and R35 observation.
 const textResourcesPriorPath='src/text/retained-profiles/b96236b0.json',textResourcesPriorBytes=await readFile(textResourcesPriorPath);
 profile.sourceRecipe.push({path:textResourcesPriorPath,bytes:textResourcesPriorBytes.length,sha256:sha(textResourcesPriorBytes)});
+// Preserve the stable streamed renderer before native admission recovery and split drafts.
+const admissionSplitPriorPath='src/text/retained-profiles/2e9362c1.json',admissionSplitPriorBytes=await readFile(admissionSplitPriorPath);
+profile.sourceRecipe.push({path:admissionSplitPriorPath,bytes:admissionSplitPriorBytes.length,sha256:sha(admissionSplitPriorBytes)});
+// Retain the exact streamed renderer before paragraph-aware run reservations.
+const paragraphBudgetPriorPath='src/text/retained-profiles/6f7be5be.json',paragraphBudgetPriorBytes=await readFile(paragraphBudgetPriorPath);
+profile.sourceRecipe.push({path:paragraphBudgetPriorPath,bytes:paragraphBudgetPriorBytes.length,sha256:sha(paragraphBudgetPriorBytes)});
 for(const path of ['src/observability/diagnostic-memory.ts','tooling/text/source-closure.json','tooling/text/configure-source.py','tooling/text/canvaskit-source.patch','tooling/text/rebuild.py','tooling/text/MEMORY.txt','server/static.ts','server/http.ts','server/storage/text.ts','server/text/font.ts','server/text/worker.ts','server/text/supervisor.ts','server/observability/adapter-resources.ts','server/text/validation.ts','server/text/render-worker.mjs','tests/text-state/verifier.vite.config.ts','tooling/text/verifier.vite.config.ts','src/protocol/text-budget.ts','src/observability/phases.ts','src/observability/browser-worker-observations.ts','src/text/retained-profiles/b89503d3.json','src/protocol/text.ts','src/text/retained-profiles/c19791ae.json','src/text/retained-profiles/6e8a481e.json','src/text/retained-profiles/d047f5be.json','src/text/retained-profiles/304528c9.json','src/text/retained-profiles/ff24a513.json','src/text/retained-profiles/f5e8bd34.json','src/text/retained-profiles/7a4dbc6c.json']){
   const b=await readFile(path);profile.sourceRecipe.push({path,bytes:b.length,sha256:sha(b)});
 }

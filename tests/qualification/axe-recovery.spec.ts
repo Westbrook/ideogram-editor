@@ -96,7 +96,7 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     await expect.poll(async()=>createHash('sha256').update(await readFile(original!)).digest('hex')).toBe(font.sha256);
     faultActive=false;
     await expect(text).toHaveValue('Retained exact font\nAccepted appearance survives.');await evidence.scan('exact-font-relinked');
-    await click(page,'Preview text');await expect(page.getByText('Text preview ready. Accepted appearance is unchanged.',{exact:true})).toBeVisible();await expect(page.locator('#native-text-error')).toHaveCount(0);await expect(text).toHaveAttribute('aria-invalid','false');await expect(text).not.toHaveAttribute('aria-errormessage');await expect(text).toHaveAttribute('aria-describedby','native-text-policy');await click(page,'Cancel text edit');
+    await click(page,'Preview text');await expect(page.getByText('Text preview ready. Accepted appearance is unchanged.',{exact:true})).toBeVisible();await expect(page.locator('#native-text-error')).toHaveCount(0);await expect(text).toHaveAttribute('aria-invalid','false');await expect(text).not.toHaveAttribute('aria-errormessage');await expect(text).toHaveAttribute('aria-describedby','native-text-policy native-text-usage native-text-admission');await click(page,'Cancel text edit');
     phase='copy-after-exact-recovery';await click(page,'Save copy');await click(page,'Prepare complete copy');
     await expect(page.getByRole('region',{name:'Prepared file',exact:true})).toContainText('Full-history copy');await expect(copyDialog).toBeHidden();
     await evidence.scan('copy-after-exact-recovery');await evidence.finish();

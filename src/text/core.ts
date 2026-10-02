@@ -9,6 +9,8 @@ import retainedHTTPFraming from './retained-profiles/1c399d52.json';
 import retainedDeferredManifest from './retained-profiles/e648eede.json';
 import retainedStartupProfile from './retained-profiles/891a4688.json';
 import retainedTextResources from './retained-profiles/b96236b0.json';
+import retainedAdmissionSplit from './retained-profiles/2e9362c1.json';
+import retainedParagraphBudget from './retained-profiles/6f7be5be.json';
 import { admitRequest, textIndices } from './admission';
 import { fail, hashBytes, LIMITS } from './contracts';
 import type { PreparedText, TextRequest } from './contracts';
@@ -41,7 +43,7 @@ function suppliedFaces(ck: Kit, order: string[], buffers: Map<string, ArrayBuffe
 }
 export async function prepareText(request: TextRequest, ck: Kit, rendererProfile = profile.id, phases?: PhaseRecorder): Promise<PreparedText> {
   const { order, total } = admitRequest(request);
-  const indices = textIndices(request.text), plan = planText(request, { legacy: rendererProfile !== profile.id && rendererProfile !== retainedStream.id && rendererProfile !== retainedStableStream.id && rendererProfile !== retainedIntegration.id && rendererProfile !== retainedCombinedCPU.id && rendererProfile !== retainedAdapterOwnership.id && rendererProfile !== retainedHTTPFraming.id && rendererProfile !== retainedDeferredManifest.id && rendererProfile !== retainedStartupProfile.id && rendererProfile !== retainedTextResources.id });
+  const indices = textIndices(request.text), plan = planText(request, { legacy: rendererProfile !== profile.id && rendererProfile !== retainedStream.id && rendererProfile !== retainedStableStream.id && rendererProfile !== retainedIntegration.id && rendererProfile !== retainedCombinedCPU.id && rendererProfile !== retainedAdapterOwnership.id && rendererProfile !== retainedHTTPFraming.id && rendererProfile !== retainedDeferredManifest.id && rendererProfile !== retainedStartupProfile.id && rendererProfile !== retainedTextResources.id && rendererProfile !== retainedAdmissionSplit.id && rendererProfile !== retainedParagraphBudget.id, retainedRunQuota: rendererProfile !== profile.id });
   const fontBuffers = new Map<string, ArrayBuffer>();
   let glyphBudget = plan.glyphs, runBudget = plan.runs, lineBudget = plan.lines, rectBudget = plan.rectangles;
   const dependencies: PreparedText['dependencies'][number][] = [];

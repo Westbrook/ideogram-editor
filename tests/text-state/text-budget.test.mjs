@@ -25,3 +25,61 @@ for(const [label,args]of [
 ])test('refuses '+label+' before allocation',()=>assert.throws(()=>verificationBudget(...args),/TEXT_VERIFICATION_CAPACITY/));
 test('legacy comparison books actual retained bytes before its canonical fallback',()=>{const small=verificationBudget('A',360,180,569208,WASM,{legacy:true}),large=verificationBudget('A',360,180,569208,WASM,{legacy:true,layoutBytes:4*1024**2});assert(large.bytes>small.bytes);assert.equal(large.layout,4*1024**2);assert.throws(()=>verificationBudget('A',360,180,569208,WASM,{legacy:true,layoutBytes:8*1024**2+1}),/TEXT_VERIFICATION_CAPACITY/);});
 test('retained renderer profiles retain their original native fragmentation quotas',()=>{const q=request('A'.repeat(480),new Blob([new Uint8Array(569208)])),current=planText(q),legacy=planText(q,{legacy:true});assert.equal(legacy.glyphs,3840);assert.equal(legacy.runs,legacy.glyphs);assert.equal(legacy.lines,legacy.glyphs);assert.equal(legacy.workspace,0);assert(current.runs<legacy.runs);assert(legacy.layout<=8*1024**2);});
+
+const {scanDraftText,planTextSplit}=await import(await module('src/text/split.ts'));
+function splitRanges(text,maxParts){
+ const ranges=planTextSplit(text,maxParts),encoded=Buffer.from(text),pieces=[];let start16=0,startByte=0;assert(ranges.length>0&&ranges.length<=100);
+ for(const range of ranges){const part=text.slice(range.start16,range.end16),bytes=Buffer.from(part);assert.deepEqual(range,{startByte,endByte:startByte+bytes.length,start16,end16:start16+part.length,bytes:bytes.length,lines:part.split('\n').length});assert(range.end16>range.start16);assert(range.bytes<=16384);assert(range.lines<=256);assert.equal(scanDraftText(part).validUnicode,true);assert.deepEqual(encoded.subarray(range.startByte,range.endByte),bytes);pieces.push(bytes);start16=range.end16;startByte=range.endByte;}
+ assert.equal(start16,text.length);assert.equal(startByte,encoded.length);assert.deepEqual(Buffer.concat(pieces),encoded);assert.equal(ranges.map(r=>text.slice(r.start16,r.end16)).join(''),text);
+ const cuts=new Set(ranges.slice(0,-1).map(r=>r.end16));for(const part of new Intl.Segmenter('und',{granularity:'grapheme'}).segment(text))cuts.delete(part.index);assert.equal(cuts.size,0,'Every interior cut is an extended-grapheme boundary');return ranges;
+}
+test('draft usage counts the complete native string without normalizing or replacing Unicode',()=>{
+ assert.deepEqual(scanDraftText(''),{bytes:0,lines:1,scalars:0,validUnicode:true,requiresLFConversion:false});
+ assert.deepEqual(scanDraftText('Aé中😀é\n'),{bytes:14,lines:2,scalars:7,validUnicode:true,requiresLFConversion:false});
+ assert.deepEqual(scanDraftText('a\r\nb\rc'),{bytes:6,lines:2,scalars:6,validUnicode:true,requiresLFConversion:true});
+ assert.deepEqual(scanDraftText('\ud800A\udc00'),{bytes:7,lines:1,scalars:3,validUnicode:false,requiresLFConversion:false});
+ assert.deepEqual(scanDraftText('\ufeff'+('x'.repeat(70000))),{bytes:70003,lines:1,scalars:70001,validUnicode:true,requiresLFConversion:false});
+});
+test('text split preserves exact 16KiB admission and multibyte overflow without normalization',()=>{
+ assert.equal(splitRanges('é'.repeat(8192)).length,1);const ranges=splitRanges('é'.repeat(8193));assert.deepEqual(ranges.map(r=>[r.bytes,r.end16]),[[16384,8192],[2,8193]]);
+ assert.equal(splitRanges('x'.repeat(16384)).length,1);assert.deepEqual(splitRanges('x'.repeat(16385)).map(r=>r.bytes),[16384,1]);
+});
+test('text split distinguishes 256 and 257 logical lines and retains the trailing LF',()=>{
+ const at='x\n'.repeat(255),over=at+'x\n';assert.equal(scanDraftText(at).lines,256);assert.equal(splitRanges(at).length,1);assert.equal(scanDraftText(over).lines,257);assert.deepEqual(splitRanges(over).map(r=>[r.bytes,r.lines]),[[510,256],[2,2]]);
+});
+test('text split prefers the last complete LF then cuts a long tail losslessly',()=>{
+ const text='header\n'+'x'.repeat(32769),ranges=splitRanges(text);assert.deepEqual(ranges.map(r=>[r.bytes,r.lines]),[[7,2],[16384,1],[16384,1],[1,1]]);assert.equal(text.slice(0,ranges[0].end16),'header\n');
+});
+for(const [label,cluster]of [['combining','é'],['ZWJ','👩‍👩‍👧‍👦'],['regional indicators','🇯🇵']])test('text split keeps '+label+' clusters whole at the byte boundary',()=>{
+ const prefix='x'.repeat(16383),text=prefix+cluster+'z',ranges=splitRanges(text);assert.equal(ranges.length,2);assert.equal(ranges[0].end16,prefix.length);assert.equal(text.slice(ranges[1].start16),cluster+'z');
+});
+test('text split accepts exactly the 1MiB document text budget',()=>{const text=('é'+'́'.repeat(8191)).repeat(64);assert.equal(Buffer.byteLength(text),1048576);const ranges=splitRanges(text);assert.equal(ranges.length,64);assert(ranges.every(r=>r.bytes===16384));});
+test('text split accepts 100 parts and refuses a 101st even below the aggregate byte cap',()=>{assert.equal(splitRanges('\n'.repeat(25500)).length,100);assert.throws(()=>planTextSplit('\n'.repeat(25501)),/TEXT_SPLIT_LAYER_LIMIT/);});
+for(const [label,text,code]of [
+ ['empty draft','','TEXT_SPLIT_EMPTY'],['unpaired high surrogate','A\ud800','TEXT_SURROGATE'],['unpaired low surrogate','\udc00A','TEXT_SURROGATE'],['CRLF draft','A\r\nB','TEXT_REQUIRES_REVIEWED_LF_CONVERSION'],['bare CR draft','A\rB','TEXT_REQUIRES_REVIEWED_LF_CONVERSION'],['over 1MiB','x'.repeat(1048577),'TEXT_DOCUMENT_BYTES'],['indivisible combining cluster','A'+'́'.repeat(8192),'TEXT_SPLIT_GRAPHEME_LIMIT'],
+])test('text split refuses '+label+' without a partial plan',()=>assert.throws(()=>planTextSplit(text),error=>error.message===code));
+
+test('LF-preferred split retries tight grapheme packing instead of falsely refusing 101 half-full layers',()=>{const text=Array.from({length:101},()=> 'x'.repeat(8192)).join('\n'),ranges=splitRanges(text);assert.equal(Buffer.byteLength(text),827492);assert.equal(ranges.length,51);assert(ranges.slice(0,-1).every(range=>range.bytes===16384));});
+test('split planning respects available combined-layer slots while preserving every byte',()=>{const text='header\n'+'x'.repeat(32769);assert.equal(splitRanges(text).length,4);assert.equal(splitRanges(text,3).length,3);assert.throws(()=>planTextSplit(text,2),/TEXT_SPLIT_LAYER_LIMIT/);for(const slots of [0,101,1.5])assert.throws(()=>planTextSplit('x',slots),/TEXT_SPLIT_LAYER_LIMIT/);});
+
+
+for(const [label,text,paragraphs,nonempty,runs]of [
+ ['65 nonempty paragraphs',Array(65).fill('A').join('\n'),65,65,128],
+ ['256 nonempty paragraphs',Array(256).fill('A').join('\n'),256,256,319],
+ ['a trailing LF at the logical-line limit','A\n'.repeat(255),256,255,319],
+ ['256 blank paragraphs','\n'.repeat(255),256,0,319],
+ ['mixed blank and nonempty paragraphs',Array.from({length:256},(_,index)=>index%2?'':'A').join('\n'),256,128,319],
+])test('native run admission books '+label+' in browser and verifier plans',()=>{
+ const fontBytes=569208,q=request(text,new Blob([new Uint8Array(fontBytes)])),plan=planText(q),budget=verificationBudget(text,360,180,fontBytes,WASM),logical=text.split('\n');assert.equal(logical.length,paragraphs);assert.equal(logical.filter(part=>part.length>0).length,nonempty);assert(plan.runs>=nonempty,'Every nonempty hard paragraph needs at least one native run');assert.equal(plan.runs,runs);assert(plan.runs<=plan.glyphs);assert(plan.lines>=paragraphs);assert.equal(plan.workspace,budget.workspace);assert.equal(plan.layout,budget.layout);assert.equal(plan.bytes-fontBytes,budget.request,'Verifier and browser book the same work while the caller retains its one font backing');assert(plan.layout>=16384&&plan.layout<=8*1024**2);assert(budget.bytes+fontBytes+65536<=CAP);
+ const lease=textMemory.reserve(plan.bytes+engineResidentBytes);try{assert.equal(textMemory.snapshot.textBytes,plan.bytes+engineResidentBytes);assert(textMemory.snapshot.textBytes<=CAP);}finally{lease.release();}assert.equal(textMemory.snapshot.textBytes,0);
+});
+test('retained streamed profiles keep their exact pre-paragraph run and workspace quotas',()=>{
+ const text='A\n'.repeat(255),fontBytes=569208,q=request(text,new Blob([new Uint8Array(fontBytes)])),current=planText(q),retained=planText(q,{retainedRunQuota:true}),backend=verificationBudget(text,360,180,fontBytes,WASM,{retainedRunQuota:true}),direct=textWorkspaceBudget(510,{scalars:510,bytes:510,lines:256},360,180,fontBytes,WASM,{retainedRunQuota:true});
+ assert.deepEqual({glyphs:retained.glyphs,runs:retained.runs,lines:retained.lines,workspace:retained.workspace,layout:retained.layout},{glyphs:4080,runs:64,lines:256,workspace:581152,layout:8388608});assert.equal(current.runs,319);assert.equal(current.workspace,842272);assert.equal(current.workspace-retained.workspace,255*1024);assert.equal(current.layout,retained.layout);assert.equal(retained.workspace,backend.workspace);assert.equal(retained.layout,backend.layout);assert.equal(retained.bytes-fontBytes,backend.request);assert.equal(direct.runs,64);assert.equal(direct.workspace,581152);assert.equal(direct.layout,8388608);assert(backend.bytes+fontBytes+65536<=CAP);
+});
+test('one-paragraph current and retained budgets remain identical at empty, ordinary and 16KiB input sizes',()=>{
+ for(const length of [0,480,16384]){const text='A'.repeat(length),q=request(text,new Blob([new Uint8Array(569208)]));assert.deepEqual(planText(q),planText(q,{retainedRunQuota:true}));assert.deepEqual(verificationBudget(text,360,180,569208,WASM),verificationBudget(text,360,180,569208,WASM,{retainedRunQuota:true}));}
+});
+test('full text and font inputs pay for every additional paragraph run without raising layout or memory caps',()=>{
+ const q=request(maxLines,new Blob([new Uint8Array(FONTS)])),current=planText(q),retained=planText(q,{retainedRunQuota:true}),budget=verificationBudget(maxLines,360,180,FONTS,WASM),oldBudget=verificationBudget(maxLines,360,180,FONTS,WASM,{retainedRunQuota:true});assert.equal(retained.runs,2048);assert.equal(current.runs,2303);assert.equal(retained.workspace,8388608);assert.equal(current.workspace,8649728);assert.equal(current.workspace-retained.workspace,255*1024);assert.equal(retained.layout-current.layout,87040,'The extra workspace reduces the three-copy layout allowance');assert(current.layout>=16384&&current.layout<=8*1024**2);assert.equal(current.bytes,retained.bytes);assert.equal(budget.bytes,oldBudget.bytes);assert.equal(budget.workspace,current.workspace);assert.equal(budget.layout,current.layout);assert.equal(current.bytes-FONTS,budget.request);assert(budget.bytes+FONTS+65536<=CAP);assert(current.bytes+engineResidentBytes<=CAP);
+});

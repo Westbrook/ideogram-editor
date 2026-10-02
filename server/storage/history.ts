@@ -9,7 +9,7 @@ import {validDocumentName} from '../../src/protocol/document-creation.js';
 import {RequestError} from '../../src/request/core.js';
 import {TextTreatmentError} from '../../src/request/text-treatment.js';
 import {TextTreatments} from './text-treatment.js';
-import {assertReturnedDescriptionOwner,prepareReturnedTextOrigin,returnedTextOriginRoot} from './returned-description.js';
+import {assertReturnedDescriptionOwner,assertReturnedDescriptionSelectionOwner,prepareReturnedTextOrigin,prepareReturnedTextSplitOrigin,returnedTextOriginRoot} from './returned-description.js';
 import {lineageRecord,lineageAssetIds,type AdoptedCandidateLineage} from '../portable/lineage.js';
 import {retainedMetadataReferences,validateRetainedRasterMetadata} from '../portable/retained.js';
 import {requestAssetIds} from '../portable/candidates.js';
@@ -20,7 +20,7 @@ import {compositionDraft,compositionDraftRefs} from '../../src/composition/draft
 import {readComposition,validateCommit,compositionRefs,imagePatch} from './composition.js';
 import {maskGrid,retainedMask,r16Mask,translateMask} from '../../src/raster/mapping.js';
 import {maskDraftValue,maskBindings,resolveMaskPlan} from '../../src/raster/mask.js';
-import type { Texts } from './text.js';
+import type { Texts, PreparedTextSplit } from './text.js';
 import type { TextCandidate } from '../../src/protocol/text.js';
 import { document as validateDocument, imageEditPreview as validatePreview, rasterManifest as validateRasterManifest } from '../../src/protocol/validate.js';
 import { createHash, randomUUID } from 'node:crypto';
@@ -190,7 +190,7 @@ export class Histories {
     for(const table of ['asset_preparations','raster_preparations','portable_preparations'])if(this.db.prepare(`SELECT id FROM ${table} WHERE id=?`).get(c.commandId))throw new StoreError('COMMAND_ID_REUSE');
     const pending=this.pending(c.commandId);if(pending){
       if(pending.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');
-      if(['ReviewCandidatePlacement','AdoptReviewedCandidate','ReviewImageEdit','ResampleImage','CreateFlattenedCopy','AdoptCandidate','ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(c.body.type))this.authorities.set(c.commandId,{auth:{...auth},started:performance.now()});
+      if(['ReviewCandidatePlacement','AdoptReviewedCandidate','ReviewImageEdit','ResampleImage','CreateFlattenedCopy','AdoptCandidate','ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','SplitTextDraft','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(c.body.type))this.authorities.set(c.commandId,{auth:{...auth},started:performance.now()});
       // Retain this exact retry across a busy worker or unavailable IO slot.
       // Ordinary availability callbacks must not depend on a one-shot scan of waiting work.
       this.db.exec('BEGIN IMMEDIATE');try{
@@ -203,7 +203,7 @@ export class Histories {
       this.db.prepare('INSERT INTO history_preparations VALUES (?,?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),serialized,randomUUID(),'preparing',canonical(c.body.type==='ExportDocument'?this.document(c.documentId!):null));
       this.barrier('history-preparation-before-commit');this.db.exec('COMMIT');this.barrier('history-preparation-after-commit');if(c.body.type==='ResampleImage'||c.body.type==='CreateFlattenedCopy'||c.body.type==='AdoptCandidate')this.barrier('image-edit-preparation-after-commit');
     }catch(e){if(this.db.isTransaction)this.db.exec('ROLLBACK');throw e;}
-    if(['ReviewCandidatePlacement','AdoptReviewedCandidate','ReviewImageEdit','ResampleImage','CreateFlattenedCopy','AdoptCandidate','ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(c.body.type))this.authorities.set(c.commandId,{auth:{...auth},started:performance.now()});
+    if(['ReviewCandidatePlacement','AdoptReviewedCandidate','ReviewImageEdit','ResampleImage','CreateFlattenedCopy','AdoptCandidate','ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','SplitTextDraft','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative'].includes(c.body.type))this.authorities.set(c.commandId,{auth:{...auth},started:performance.now()});
     this.schedule(true);return null;
   }
   encodedReviewProofInventory(){return this.encodedReviewProofs.inventory();}
@@ -283,7 +283,7 @@ export class Histories {
   private assertCommand(c:Command,d:Document|null){
     if(!d||!c.documentId||d.id!==c.documentId)throw new AssetRejection('INVALID_INPUT','DOCUMENT_REQUIRED');
     if(c.expectedDocumentRevision!==d.revision)throw new AssetRejection('STALE_REVISION','REVISION_CHANGED',d.revision);
-    if('draft' in c.body){let layerId='layerId' in c.body&&(c.body.type!=='CreateTextLayer'&&c.body.type!=='CreateTextFromReturnedDescription')?c.body.layerId:null;
+    if('draft' in c.body){let layerId=c.body.type==='SplitTextDraft'?c.body.sourceLayer?.layerId??null:'layerId' in c.body&&(c.body.type!=='CreateTextLayer'&&c.body.type!=='CreateTextFromReturnedDescription')?c.body.layerId:null;
       if(c.body.type==='ResampleImage'&&c.body.draft){const preview=this.preview(c.body.previewId,this.authority(c.commandId));layerId=JSON.parse(Buffer.from(this.objects.verify(preview.plan,true)!).toString('utf8')).layerId;}
       const draft=this.ui.fence(c.clientId,c.body.draft,d.id,c.expectedDocumentRevision,layerId);
       if(draft?.kind==='composition'){if(!('composition'in c.body))throw new AssetRejection('INVALID_INPUT','COMPOSITION_DRAFT_COMMAND_MISMATCH');const asset=this.assets.asset(draft.assetId);if(!asset)throw new AssetRejection('MISSING_ASSET','DRAFT_MISSING');const envelope=JSON.parse(Buffer.from(this.objects.verify(asset.blob,true)!).toString());compositionDraft(envelope);const composition=c.body.composition;let changed=false;this.rasters.compositionMemory.draft(this.objects,envelope,graph=>{this.rasters.compositionMemory.compositions([composition],()=>{const value=readComposition(composition,historyCompositionReader(this.objects,[composition]));if(canonical(graph.composition)!==canonical(value)||canonical(draft.compositionBindings)!==canonical(composition.bindings))changed=true;});});if(changed)throw new AssetRejection('STALE_REVISION','COMPOSITION_DRAFT_CHANGED');return draft;}
@@ -359,7 +359,7 @@ export class Histories {
     if(this.db.prepare("SELECT 1 FROM portable_maps m JOIN portable_namespaces n ON n.id=m.namespace WHERE n.document_id=? AND m.kind='layer' AND m.local_id=? LIMIT 1").get(documentId,id))return true;
     // Deferred reviews do not reserve layer IDs; an accepted deferred edit roots
     // its actual layer identity in history even after Undo or a branch switch.
-    for(const row of this.db.prepare("SELECT json FROM history WHERE document_id=? AND json_extract(json,'$.operation')='AdoptReviewedCandidate'").iterate(documentId))if(this.versionState(JSON.parse(String(row.json)).after).layers.some(layer=>layer.id===id))return true;
+    for(const row of this.db.prepare("SELECT json FROM history WHERE document_id=? AND json_extract(json,'$.operation') IN ('AdoptReviewedCandidate','SplitTextDraft')").iterate(documentId))if(this.versionState(JSON.parse(String(row.json)).after).layers.some(layer=>layer.id===id))return true;
     return !!this.db.prepare("SELECT 1 FROM commands WHERE json_extract(canonical,'$.command.documentId')=? AND json_extract(receipt,'$.status')='accepted' AND json_extract(canonical,'$.command.body.type')!='ReviewCandidatePlacement' AND (json_extract(canonical,'$.command.body.layerId')=? OR json_extract(canonical,'$.command.body.newLayerId')=?) LIMIT 1").get(documentId,id,id);
   }
   private patch(before:ImageState,after:ImageState,operation:HistoryBody['type']):ImagePatch {
@@ -595,8 +595,8 @@ export class Histories {
   private async prepare(id:string,slot:string){
     const start=performance.now(),pending=this.pending(id);if(!pending)return;
     const c=pending.command,b=c.body as HistoryBody,bytes=Buffer.from(String(this.db.prepare('SELECT original FROM history_preparations WHERE id=?').get(id)!.original));
-    let textAsset:import('../../src/protocol/assets.js').Asset|undefined;let textCandidate:TextCandidate|undefined;let adoptedLineage:BlobRef|undefined,adoptedIdentity:CandidateAdoptionIdentity|undefined;
-    let nativeStage:'candidate'|'source-metadata'|'retain-text'|'native-state'|'native-limits'|'state-metadata'|'dependency-proofs'|'composite'|'patch-metadata'|'commit'|undefined;
+    let textAsset:import('../../src/protocol/assets.js').Asset|undefined;let textCandidate:TextCandidate|undefined;let textSplit:PreparedTextSplit|undefined;const splitTextAssets=new Map<string,Asset>();let adoptedLineage:BlobRef|undefined,adoptedIdentity:CandidateAdoptionIdentity|undefined;
+    let nativeStage:'candidate'|'split-candidates'|'split-retain-text'|'source-metadata'|'retain-text'|'native-state'|'native-limits'|'state-metadata'|'dependency-proofs'|'composite'|'patch-metadata'|'commit'|undefined;
     const proofs:Proof[]=[];const check=()=>{
       this.check();if(this.closing)throw new StoreError('CLOSED');
       if(b.type==='ExportDocument'&&this.db.prepare('SELECT 1 FROM commands WHERE id=?').get(id))throw new AssetRejection('INVALID_INPUT','EXPORT_CANCELED');
@@ -645,11 +645,11 @@ export class Histories {
     const assetIds=new Set<string>(),assetIdentities=new Map<string,string>(),versionIds=new Set<string>(),lineageIds=new Set<string>(),evidenceAttempts=new Set<string>();
     const protectAsset=async(id:string):Promise<void>=>{
       if(assetIds.has(id))return;assetIds.add(id);if(assetIds.size>512)throw new StoreError('CAPACITY');
-      const a=textAsset?.id===id?textAsset:this.assets.asset(id);if(!a||a.availability!=='available')throw new AssetRejection('MISSING_ASSET','HISTORY_DEPENDENCY_MISSING');
-      if(textAsset?.id!==id)assetIdentities.set(id,canonical(a));
+      const staged=splitTextAssets.get(id)??(textAsset?.id===id?textAsset:undefined),a=staged??this.assets.asset(id);if(!a||a.availability!=='available')throw new AssetRejection('MISSING_ASSET','HISTORY_DEPENDENCY_MISSING');
+      if(!staged)assetIdentities.set(id,canonical(a));
       for(const ref of [a.blob,...a.dependencies])await protect(ref);
       if(a.retainedMetadata){await validateRetainedRasterMetadata(a.retainedMetadata,a.raster!,async ref=>JSON.parse(Buffer.from(this.objects.verify(ref,true)!).toString('utf8')),check);await protectFrozenMetadata(a.retainedMetadata);}
-      if(a.raster){const m=textAsset?.id===id?JSON.parse(Buffer.from(this.objects.verify(a.raster.manifest,true)!).toString()):this.rasters.manifest(id);for(const ref of [...m.dependencies,...this.rasters.contributionRefs(m)])await protect(ref);const plan=m.plan as {kind?:string;source?:BlobRef;capture?:RequestSourceCapture;lineage?:BlobRef};if(plan.kind==='retained-text'&&plan.source)await protectTextSource(plan.source);if(plan.kind==='request-source-capture-v1'&&plan.capture)await protectVersion(plan.capture.image);if(plan.kind==='retained-candidate-v1'&&plan.lineage){for(const row of this.db.prepare('SELECT attempt_id FROM candidate_asset_evidence WHERE asset_id=? AND manifest_hash=?').all(a.id,a.raster.manifest.hash))evidenceAttempts.add(String(row.attempt_id));await protectLineage(plan.lineage);}for(const child of a.raster.sourceAssetIds)await protectAsset(child);}
+      if(a.raster){const m=staged?JSON.parse(Buffer.from(this.objects.verify(a.raster.manifest,true)!).toString()):this.rasters.manifest(id);for(const ref of [...m.dependencies,...this.rasters.contributionRefs(m)])await protect(ref);const plan=m.plan as {kind?:string;source?:BlobRef;capture?:RequestSourceCapture;lineage?:BlobRef};if(plan.kind==='retained-text'&&plan.source)await protectTextSource(plan.source);if(plan.kind==='request-source-capture-v1'&&plan.capture)await protectVersion(plan.capture.image);if(plan.kind==='retained-candidate-v1'&&plan.lineage){for(const row of this.db.prepare('SELECT attempt_id FROM candidate_asset_evidence WHERE asset_id=? AND manifest_hash=?').all(a.id,a.raster.manifest.hash))evidenceAttempts.add(String(row.attempt_id));await protectLineage(plan.lineage);}for(const child of a.raster.sourceAssetIds)await protectAsset(child);}
     };
     const protectComposition=async(composition:CompositionRef):Promise<void>=>{await this.rasters.compositionMemory.compositionsAsync([composition],async()=>{const graph=readComposition(composition,historyCompositionReader(this.objects,[composition]));for(const ref of [composition.value,...compositionRefs(graph)])await protect(ref);});};
     const protectVersion=async(version:ImageVersion):Promise<void>=>{
@@ -893,6 +893,33 @@ export class Histories {
           if('composition'in b){
             if(this.usedComposition(document.id,b.composition.id))throw new AssetRejection('INVALID_INPUT','COMPOSITION_VERSION_REUSE');
             this.validateCompositionCommit(b.type,b.composition,before);after=structuredClone(before);after.schemaVersion=5;after.composition=b.composition;
+          }else if(b.type==='SplitTextDraft'){
+            nativeStage='split-candidates';textSplit=await this.texts.split(c,document,this.authority(id),protect,()=>{check();this.assertCommand(c,this.document(c.documentId!));this.authority(id);});
+            after=structuredClone(before);after.schemaVersion=before.schemaVersion>=3?before.schemaVersion:2;
+            const old=b.sourceLayer?after.layers.find(layer=>layer.id===b.sourceLayer!.layerId):undefined;
+            if(b.sourceLayer&&(!old||old.kind!=='text'||old.version!==b.sourceLayer.layerVersion))throw new AssetRejection('STALE_REVISION','TEXT_LAYER_CHANGED');
+            if(old?.locked)throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');
+            if(after.layers.length+textSplit.plan.parts.length-(old?1:0)>100)throw new AssetRejection('CAPACITY','DOCUMENT_LAYER_LIMIT');
+            const placement='placement'in textSplit.saved?textSplit.saved.placement:{x:0,y:0},base=old?.layerToDocument??[1,0,0,1,placement.x,placement.y];
+            let inheritedOrigin=old?returnedTextOriginRoot(this.objects,this.assets.asset(old.assetId)?.retainedMetadata):null;
+            if(textSplit.plan.description){
+              this.texts.guardMetadata(Number(textSplit.plan.description.returnedPrompt.byteLength));
+              const origin=await prepareReturnedTextSplitOrigin({db:this.db,objects:this.objects,saved:textSplit.saved,plan:textSplit.plan,draftRef:textSplit.draftRef,planRef:b.plan,document,protect,check});
+              inheritedOrigin=await metadata(origin);
+            }
+            const children:ImageState['layers']=[];
+            for(let index=0;index<textSplit.plan.parts.length;index++){
+              check();const part=textSplit.plan.parts[index]!,candidate=textSplit.candidates[index]!;
+              if(!(old&&index===0)&&this.usedLayer(document.id,part.layerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');
+              const source=await metadata(candidate.source);nativeStage='split-retain-text';
+              const prepared=await this.rasters.prepareDocument({type:'RetainText',source,pixels:candidate.source.render.pixels,width:candidate.source.render.width,height:candidate.source.render.height},randomUUID(),slot,check);proofs.push(...prepared.proofs);
+              const asset:Asset=inheritedOrigin?{...prepared.asset,retainedMetadata:inheritedOrigin,dependencies:[...prepared.asset.dependencies,inheritedOrigin]}:prepared.asset;
+              splitTextAssets.set(asset.id,asset);facts.push({type:'AssetRegistered',payload:{asset}});
+              const {x,y}=part.offset,layerToDocument:ImageState['layers'][number]['layerToDocument']=[base[0]!,base[1]!,base[2]!,base[3]!,base[4]!+base[0]!*x+base[2]!*y,base[5]!+base[1]!*x+base[3]!*y];
+              children.push(old?{...structuredClone(old),id:part.layerId,version:index===0?String(BigInt(old.version)+1n):'1',name:part.name,kind:'text',source,assetId:asset.id,layerToDocument}:{id:part.layerId,version:'1',name:part.name,kind:'text',source,assetId:asset.id,layerToDocument,opacity:1,visible:true,locked:false,blend:'normal',mask:null});
+            }
+            if(old)after.layers.splice(after.layers.indexOf(old),1,...children);else after.layers.push(...children);
+            try{imageState(after);}catch{throw new AssetRejection('INVALID_INPUT','INVALID_IMAGE_STATE');}
           }else if('candidate'in b){
             nativeStage='candidate';textCandidate=await this.texts.candidate(c,document,this.authority(id),protect,()=>{check();this.assertCommand(c,this.document(c.documentId!));this.authority(id);});nativeStage='source-metadata';const source=await metadata(textCandidate.source);
             nativeStage='retain-text';const prepared=await this.rasters.prepareDocument({type:'RetainText',source,pixels:textCandidate.source.render.pixels,width:textCandidate.source.render.width,height:textCandidate.source.render.height},randomUUID(),slot,check);proofs.push(...prepared.proofs);textAsset=prepared.asset;nativeStage='native-state';
@@ -950,7 +977,7 @@ export class Histories {
       if(version.compositeAssetId&&b.type!=='ExportDocument')await protectAsset(version.compositeAssetId);
       const navigation=b.type==='Undo'||b.type==='Redo'||b.type==='SwitchBranch';
       if(!navigation&&b.type!=='SaveCheckpoint'&&!version.compositeAssetId){
-        if(nativeStage)nativeStage='composite';const prepared=await this.rasters.prepareDocument({type:'ComposeRaster',width:after.width,height:after.height,layers:(exportLayers??after.layers.filter(l=>l.visible)).map(l=>({assetId:l.assetId,transform:l.layerToDocument,opacity:l.opacity,mask:l.mask}))},randomUUID(),slot,check,textAsset);
+        if(nativeStage)nativeStage='composite';const prepared=await this.rasters.prepareDocument({type:'ComposeRaster',width:after.width,height:after.height,layers:(exportLayers??after.layers.filter(l=>l.visible)).map(l=>({assetId:l.assetId,transform:l.layerToDocument,opacity:l.opacity,mask:l.mask}))},randomUUID(),slot,check,textAsset,undefined,splitTextAssets);
         proofs.push(...prepared.proofs);facts.push({type:'AssetRegistered',payload:{asset:prepared.asset}});version={...version,compositeAssetId:prepared.asset.id};
       }
       if(b.type==='ExportDocument'){
@@ -965,7 +992,7 @@ export class Histories {
       }
       if(nativeStage)nativeStage='commit';this.barrier('history-after-proofs');await new Promise<void>(resolve=>setImmediate(resolve));check();
       this.commit(bytes,(current,revision)=>{
-        const currentMaskDraft=this.assertCommand(c,b.type==='ExportDocument'?document:current);if((currentMaskDraft?canonical(currentMaskDraft):null)!==maskDraftIdentity)throw new AssetRejection('STALE_REVISION','MASK_DRAFT_CHANGED');if('composition'in b){if(canonical(current)!==canonical(document))throw new AssetRejection('STALE_REVISION','COMPOSITION_BASE_CHANGED');this.validateCompositionCommit(b.type,b.composition,before);}if(textCandidate){this.texts.fence(c,current,this.authority(id),textCandidate);this.texts.limits(after);if(b.type==='CreateTextFromReturnedDescription')assertReturnedDescriptionOwner(this.db,b.description,current);}if(b.type==='RasterizeTextDerivative')this.authority(id);if(b.type==='ResampleImage'||b.type==='CreateFlattenedCopy'||b.type==='AdoptCandidate')this.approved(c,current);for(const p of proofs)this.objects.proven(p.ref,p.token);
+        const currentMaskDraft=this.assertCommand(c,b.type==='ExportDocument'?document:current);if((currentMaskDraft?canonical(currentMaskDraft):null)!==maskDraftIdentity)throw new AssetRejection('STALE_REVISION','MASK_DRAFT_CHANGED');if('composition'in b){if(canonical(current)!==canonical(document))throw new AssetRejection('STALE_REVISION','COMPOSITION_BASE_CHANGED');this.validateCompositionCommit(b.type,b.composition,before);}if(textCandidate){this.texts.fence(c,current,this.authority(id),textCandidate);this.texts.limits(after);if(b.type==='CreateTextFromReturnedDescription')assertReturnedDescriptionOwner(this.db,b.description,current);}if(textSplit){this.texts.splitFence(c,current,this.authority(id),textSplit);this.texts.limits(after);if(textSplit.plan.description)assertReturnedDescriptionSelectionOwner(this.db,textSplit.plan.description,current);}if(b.type==='RasterizeTextDerivative')this.authority(id);if(b.type==='ResampleImage'||b.type==='CreateFlattenedCopy'||b.type==='AdoptCandidate')this.approved(c,current);for(const p of proofs)this.objects.proven(p.ref,p.token);
         this.barrier('history-before-register');for(const p of proofs)this.objects.proven(p.ref,p.token);for(const [id,identity]of assetIdentities)if(canonical(this.assets.asset(id))!==identity)throw new AssetRejection('STALE_REVISION','HISTORY_DEPENDENCY_CHANGED');
         const seen=new Set<string>();for(const p of proofs){if(seen.has(p.ref.hash))continue;seen.add(p.ref.hash);this.register('history-command:'+id,p.ref,p.token);}
         const all:HistoryBuild['facts']=[...facts];

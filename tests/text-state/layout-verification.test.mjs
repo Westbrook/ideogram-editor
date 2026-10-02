@@ -19,6 +19,8 @@ import httpFramingPrior from '../../src/text/retained-profiles/1c399d52.json' wi
 import deferredManifestPrior from '../../src/text/retained-profiles/e648eede.json' with {type:'json'};
 import startupProfilePrior from '../../src/text/retained-profiles/891a4688.json' with {type:'json'};
 import textResourcesPrior from '../../src/text/retained-profiles/b96236b0.json' with {type:'json'};
+import admissionSplitPrior from '../../src/text/retained-profiles/2e9362c1.json' with {type:'json'};
+import paragraphBudgetPrior from '../../src/text/retained-profiles/6f7be5be.json' with {type:'json'};
 
 const hash=bytes=>'sha256:'+createHash('sha256').update(bytes).digest('hex');
 async function staged(t,bytes){const directory=await mkdtemp(join(tmpdir(),'native-layout-'));t.after(()=>rm(directory,{recursive:true,force:true}));const layoutPath=join(directory,'layout.json');await writeFile(layoutPath,bytes);return {layoutPath,layoutHash:hash(bytes)};}
@@ -26,14 +28,14 @@ async function staged(t,bytes){const directory=await mkdtemp(join(tmpdir(),'nati
 test('current and retained streamed verification hash every chunk without materializing prepared JSON',async t=>{
  const bytes=Buffer.from('{"value":"'+'a'.repeat(3*65536+17)+'"}'),expected=await staged(t,bytes);
  const prepared={layoutHash:hash(bytes),layout:{text(){throw Error('current layout must not be decoded');},get size(){throw Error('current layout must not be read');}}};
- for(const id of [profile.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id])await verifyPreparedLayout(expected,prepared,id,'a'.repeat(16384));
+ for(const id of [profile.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id,admissionSplitPrior.id,paragraphBudgetPrior.id])await verifyPreparedLayout(expected,prepared,id,'a'.repeat(16384));
  const corrupted=Buffer.from(bytes);corrupted[65536+10]=98;await writeFile(expected.layoutPath,corrupted);
- for(const id of [profile.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id])await assert.rejects(verifyPreparedLayout(expected,prepared,id,'a'),/TEXT_NATIVE_MISMATCH/);
+ for(const id of [profile.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id,admissionSplitPrior.id,paragraphBudgetPrior.id])await assert.rejects(verifyPreparedLayout(expected,prepared,id,'a'),/TEXT_NATIVE_MISMATCH/);
 });
 
 test('current and retained streamed layout require exact bytes even when reordered JSON is semantically equal',async t=>{
  const expected=await staged(t,Buffer.from('{"a":1,"b":2}')),layout=new Blob(['{"b":2,"a":1}']);
- for(const id of [profile.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id])await assert.rejects(verifyPreparedLayout(expected,{layout,layoutHash:hash(Buffer.from(await layout.text()))},id,'a'),/TEXT_NATIVE_MISMATCH/);
+ for(const id of [profile.id,frameOrderPrior.id,ownershipPrior.id,integrationPrior.id,combinedCPUPrior.id,adapterOwnershipPrior.id,httpFramingPrior.id,deferredManifestPrior.id,startupProfilePrior.id,textResourcesPrior.id,admissionSplitPrior.id,paragraphBudgetPrior.id])await assert.rejects(verifyPreparedLayout(expected,{layout,layoutHash:hash(Buffer.from(await layout.text()))},id,'a'),/TEXT_NATIVE_MISMATCH/);
 });
 
 test('retained profile accepts historical canonical ordering only inside original planner bound',async t=>{
@@ -47,17 +49,17 @@ test('retained profile accepts historical canonical ordering only inside origina
 
 test('verification rejects staged bytes beyond the frozen8MiB layout ceiling',async t=>{
  const bytes=Buffer.alloc(8388609,32),expected=await staged(t,bytes);
- for(const id of [profile.id,startupProfilePrior.id,textResourcesPrior.id])await assert.rejects(verifyPreparedLayout(expected,{layoutHash:expected.layoutHash},id,'a'),/TEXT_NATIVE_MISMATCH/);
+ for(const id of [profile.id,startupProfilePrior.id,textResourcesPrior.id,admissionSplitPrior.id,paragraphBudgetPrior.id])await assert.rejects(verifyPreparedLayout(expected,{layoutHash:expected.layoutHash},id,'a'),/TEXT_NATIVE_MISMATCH/);
 });
 
 test('retained streamed profile keeps its exact manifest and full16KiB admission',()=>{
  assert.notEqual(profile.id,integrationPrior.id,'Integrated adoption must generate a new current application profile');
  assert.deepEqual(profile.engine,integrationPrior.engine,'Native engine identity remains unchanged');assert.deepEqual(profile.fonts,integrationPrior.fonts,'Exact bundled font identities remain unchanged');
- for(const [file,retained]of [['7a4dbc6c',frameOrderPrior],['4fd6f6a1',ownershipPrior],['68efa85f',integrationPrior],['6d77f925',combinedCPUPrior],['c6ca02c2',adapterOwnershipPrior],['1c399d52',httpFramingPrior],['e648eede',deferredManifestPrior],['891a4688',startupProfilePrior],['b96236b0',textResourcesPrior]]){
+ for(const [file,retained]of [['7a4dbc6c',frameOrderPrior],['4fd6f6a1',ownershipPrior],['68efa85f',integrationPrior],['6d77f925',combinedCPUPrior],['c6ca02c2',adapterOwnershipPrior],['1c399d52',httpFramingPrior],['e648eede',deferredManifestPrior],['891a4688',startupProfilePrior],['b96236b0',textResourcesPrior],['2e9362c1',admissionSplitPrior],['6f7be5be',paragraphBudgetPrior]]){
   const bytes=fs.readFileSync(new URL('../../src/text/retained-profiles/'+file+'.json',import.meta.url)),manifest={hash:hash(bytes),byteLength:String(bytes.length),mediaType:'application/json'};
   assert(retainedProfile({schemaVersion:1,id:retained.id,manifest}));assert.equal(retainedProfile({schemaVersion:1,id:retained.id,manifest:{...manifest,hash:hash(Buffer.from('changed'))}}),false);
   assert.equal(usesStreamingLayout(retained.id),true);
-  const text='a'.repeat(16384),budget=verificationBudget(text,120,70,1024,profile.engine.wasm.bytes,{legacy:!usesStreamingLayout(retained.id)});
+  const text='a'.repeat(16384),budget=verificationBudget(text,120,70,1024,profile.engine.wasm.bytes,{legacy:!usesStreamingLayout(retained.id),retainedRunQuota:true});
   assert(budget.bytes<=134217728);assert.throws(()=>verificationBudget(text,120,70,1024,profile.engine.wasm.bytes,{legacy:true}),/TEXT_VERIFICATION_CAPACITY/);
  }
  assert.equal(usesStreamingLayout(profile.id),true);assert.equal(usesStreamingLayout(retained.id),false);assert.equal(usesStreamingLayout('unknown'),false);
@@ -163,4 +165,32 @@ test('text resource successor retains exact b96236b0 bytes and seals its synchro
  for(const [path,rows]of [['src/text/memory.ts',profile.adapterSources],['src/observability/diagnostic-memory.ts',profile.sourceRecipe]]){
   const bytes=fs.readFileSync(new URL('../../'+path,import.meta.url));assert.deepEqual(rows.filter(row=>row.path===path),[{path,bytes:bytes.length,sha256:hash(bytes).slice(7)}]);
  }
+});
+
+test('admission split successor retains exact 2e9362c1 bytes and current source bindings',()=>{
+ const path='src/text/retained-profiles/2e9362c1.json',bytes=fs.readFileSync(new URL('../../'+path,import.meta.url));
+ assert.equal(bytes.length,18885);assert.equal(hash(bytes),'sha256:acd1585535b30b39843af8615e2a40f95291b178a167e40535bea16528918427');
+ assert.equal(admissionSplitPrior.id,'sha256:2e9362c15e8371646c1c4d86dbba856c10f03af67592b62364c54a0d75821955');assert.notEqual(profile.id,admissionSplitPrior.id);
+ for(const key of ['engine','fonts','memory','rasterProfile'])assert.deepEqual(profile[key],admissionSplitPrior[key]);
+ assert.deepEqual(profile.sourceRecipe.filter(row=>row.path===path),[{path,bytes:bytes.length,sha256:hash(bytes).slice(7)}]);
+ for(const [path,rows]of [['src/text/core.ts',profile.adapterSources],['src/text/split.ts',profile.adapterSources],['src/protocol/text.ts',profile.sourceRecipe],['server/storage/text.ts',profile.sourceRecipe],['server/text/validation.ts',profile.sourceRecipe],['server/text/render-worker.mjs',profile.sourceRecipe]]){
+  const bytes=fs.readFileSync(new URL('../../'+path,import.meta.url));assert.deepEqual(rows.filter(row=>row.path===path),[{path,bytes:bytes.length,sha256:hash(bytes).slice(7)}]);
+ }
+});
+
+test('paragraph budget successor retains exact 6f7be5be bytes and current reservation source bindings',()=>{
+ const path='src/text/retained-profiles/6f7be5be.json',bytes=fs.readFileSync(new URL('../../'+path,import.meta.url));
+ assert.equal(bytes.length,19214);assert.equal(hash(bytes),'sha256:c631086528d51d967a6a692777ff8fd5004ddf410e47b003f3ef7cbd0311a4bf');
+ assert.equal(paragraphBudgetPrior.id,'sha256:6f7be5beef4847300f8c5687894cf1cc3cd4b46b4e2ad98638c6e9f1924c671d');assert.notEqual(profile.id,paragraphBudgetPrior.id);
+ for(const key of ['engine','fonts','memory','rasterProfile'])assert.deepEqual(profile[key],paragraphBudgetPrior[key],key+' remains the exact native output profile');
+ assert.deepEqual(profile.sourceRecipe.filter(row=>row.path===path),[{path,bytes:bytes.length,sha256:hash(bytes).slice(7)}]);
+ for(const [path,rows]of [['src/text/core.ts',profile.adapterSources],['src/text/memory.ts',profile.adapterSources],['src/protocol/text-budget.ts',profile.sourceRecipe],['server/storage/text.ts',profile.sourceRecipe],['server/text/validation.ts',profile.sourceRecipe],['server/text/render-worker.mjs',profile.sourceRecipe]]){
+  const bytes=fs.readFileSync(new URL('../../'+path,import.meta.url));assert.deepEqual(rows.filter(row=>row.path===path),[{path,bytes:bytes.length,sha256:hash(bytes).slice(7)}]);
+ }
+});
+
+test('retained streamed verification reserves the exact pre109 paragraph workspace',()=>{
+ const text='a\n'.repeat(255)+'a',scalars=511,glyphs=Math.max(64,8*scalars),runs=Math.min(glyphs,Math.max(64,Math.ceil(scalars/8))),lines=Math.max(256,Math.min(glyphs,Math.max(64,Math.ceil(scalars/4))));
+ const budget=verificationBudget(text,120,70,1024,profile.engine.wasm.bytes,{retainedRunQuota:true});
+ assert.equal(runs,64);assert.equal(lines,256);assert.equal(budget.workspace,30*glyphs+1024*runs+512*lines+262144);assert(budget.bytes<=134217728);
 });

@@ -104,7 +104,7 @@ export function unownedFontBytes(request: TextRequest) {
   return request.fonts.reduce((n, f) => n + (ownedFonts.has(f.bytes) ? 0 : f.bytes.size), 0);
 }
 
-export function planText(request: TextRequest, options: { legacy?: boolean } = {}) {
+export function planText(request: TextRequest, options: { legacy?: boolean; retainedRunQuota?: boolean } = {}) {
   const { indices, total } = admitRequest(request);
   let plan;
   try {
@@ -115,7 +115,7 @@ export function planText(request: TextRequest, options: { legacy?: boolean } = {
       plan = { glyphs, runs: glyphs, lines, rectangles: glyphs * 2, layout,
         raster: Math.ceil(request.frame.width) * Math.ceil(request.frame.height) * 4,
         indexes: (request.text.length + indices.bytes + indices.scalars + 3) * 128, workspace: 0 };
-    } else plan = textWorkspaceBudget(request.text.length, indices, request.frame.width, request.frame.height, total, engine.wasm.bytes);
+    } else plan = textWorkspaceBudget(request.text.length, indices, request.frame.width, request.frame.height, total, engine.wasm.bytes, options);
   }
   catch { fail('TEXT_MEMORY_BUDGET'); }
   const { glyphs, runs, lines, rectangles, layout, raster, indexes, workspace } = plan;

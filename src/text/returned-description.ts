@@ -16,6 +16,9 @@ export type ReturnedDescriptionReview={
 export type ReturnedDescriptionSelection=Pick<ReturnedDescriptionReview,'jobId'|'attemptId'|'returnedPrompt'|'elementIndex'|'elementHash'|'placementChoice'|'duplicationAcknowledged'>&{kind:'returned-description-selection-1'};
 export type ReturnedTextProposal={selection:ReturnedDescriptionSelection;literal:string;frame:{width:number;height:number};placement:TextPlacement};
 export type ReturnedTextOrigin={schemaVersion:1;kind:'created-text-description-1';review:ReturnedDescriptionReview;createdLayerId:string;createdSource:BlobRef};
+/** Immutable reviewed split evidence. Candidate tokens in the plan are original
+ * namespace observations and never grant checkpoint or writer authority. */
+export type ReturnedTextSplitOrigin={schemaVersion:1;kind:'created-text-split-description-1';draft:BlobRef;plan:BlobRef};
 const hash=(value:string)=>new SHA256().update(new TextEncoder().encode(value)).digest();
 const digest=(v:unknown)=>typeof v==='string'&&/^sha256:[a-f0-9]{64}$/.test(v);
 const same=(a:unknown,b:unknown)=>canonical(a)===canonical(b);
@@ -54,6 +57,11 @@ export function validateReturnedTextOrigin(v:any):asserts v is ReturnedTextOrigi
  keys(v,['schemaVersion','kind','review','createdLayerId','createdSource']);ok(v.schemaVersion===1&&v.kind==='created-text-description-1'&&id(v.createdLayerId));validateReturnedDescriptionReview(v.review);blob(v.createdSource);ok(v.createdSource.mediaType==='application/json'&&BigInt(v.createdSource.byteLength)<=65536n);
 }
 export function returnedTextOriginRefs(v:ReturnedTextOrigin):BlobRef[]{validateReturnedTextOrigin(v);return [v.review.returnedPrompt,v.review.literal,v.createdSource];}
+export function validateReturnedTextSplitOrigin(v:any):asserts v is ReturnedTextSplitOrigin {
+ keys(v,['schemaVersion','kind','draft','plan']);ok(v.schemaVersion===1&&v.kind==='created-text-split-description-1');
+ blob(v.draft);blob(v.plan);ok(['application/json','text/plain','text/plain;charset=utf-8'].includes(v.draft.mediaType)&&BigInt(v.draft.byteLength)<=65536n&&v.plan.mediaType==='application/json'&&BigInt(v.plan.byteLength)<=65536n);
+}
+export function returnedTextSplitOriginRefs(v:ReturnedTextSplitOrigin):BlobRef[]{validateReturnedTextSplitOrigin(v);return [v.draft,v.plan];}
 
 /** Caption boxes are row-first normalized suggestions, never measured geometry. */
 export function approximateReturnedTextBox(box:ReturnedTextElement['box'],width:number,height:number){

@@ -38,8 +38,11 @@ registration, rather than allocating another ArrayBuffer per font.
 
 Current streamed-layout profile:
 G=max(64,8*scalarCount) remains an expansion ceiling. The native export quotas
-are runs<=min(G,max(64,ceil(scalars/8))) and
+are runs<=min(G,max(64,ceil(scalars/8))+logicalLines-1) and
 lines<=max(logicalLines,min(G,max(64,ceil(scalars/4)))); rectangles<=2G.
+Each LF boundary reserves one additional possible native run, since even short
+paragraphs can create separate runs. The existing expansion allowance remains;
+blank paragraphs and a trailing LF are preserved without charging fake glyphs.
 Actual unusually fragmented geometry can refuse at these independent workspace
 quotas. No text/font/glyph truncation or reduced fixture is used to fit a quota.
 The native count pass checks glyph/run/line quotas before JS shaped arrays exist;
@@ -76,7 +79,14 @@ graphs or canonical strings. It books2MiB scratch and checks both startup and
 resident peaks including caller F+64KiB loan metadata against the same128MiB.
 Unrelated live caches still consume the actual shared pool and may refuse.
 
-Retained older renderer profiles keep the original G/runs/line quotas and old
+Retained streamed renderer profiles through6f7be5be keep their exact prior
+runs<=min(G,max(64,ceil(scalars/8))) quota, W and resulting output/verification
+capacity. Internal profile routing selects this reservation before preparation
+and verification; it does not reinterpret accepted bytes under the new quota.
+The current profile alone adds the LF allowance. No layout, native heap or total
+text/CPU cap changes, and all layout/pixel hash comparisons remain exact.
+
+Retained older canonical renderer profiles keep the original G/runs/line quotas and old
 6L request+2L comparison scratch model. Their serialized capacity estimate must
 already fit8MiB; actual retained layout bytes can increase comparison booking.
 This deliberately preserves their previous small-layout semantic comparison
