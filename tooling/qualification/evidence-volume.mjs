@@ -10,7 +10,21 @@ const hash = value => createHash('sha256').update(typeof value === 'string' ? va
 const id = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value);
 const utc = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
 const stamp = value => [value.dev, value.ino, value.size, value.mtimeNs, value.ctimeNs].map(String).join(':');
-const opaqueError = error => ({ code: typeof error?.code === 'string' ? error.code : 'EVIDENCE_IO', message: 'Evidence observation unavailable; inspect protected controller diagnostics.' });
+const observationDiagnostics = new WeakMap();
+const opaqueError = error => ({ code: typeof error?.code === 'string' ? error.code : 'EVIDENCE_IO', message: observationDiagnostics.get(error) ?? 'Evidence observation unavailable; inspect protected controller diagnostics.' });
+// Only sampler-owned context is retained; never filesystem error messages or
+// absolute/error-supplied paths. Keep the historical failure schema unchanged.
+function observationError(error, root, path, phase, originalCode = error?.code) {
+  if (observationDiagnostics.has(error)) return error;
+  const code = typeof error?.code === 'string' ? error.code : 'EVIDENCE_IO';
+  const rawCode = typeof originalCode === 'string' && /^[A-Z0-9_]{1,48}$/.test(originalCode) ? originalCode : 'EVIDENCE_IO';
+  const owned = path === root ? '.' : relative(root, path);
+  const member = (owned === '..' || owned.startsWith('../') || isAbsolute(owned) ? '<outside>' : owned).replace(/[^\x20-\x7e]|[\\"]/g, '?').slice(0, 160);
+  const failure = Object.assign(Error('Evidence observation unavailable'), { code });
+  observationDiagnostics.set(failure, `Evidence observation unavailable; phase=${phase}; code=${rawCode}; member=${member}`);
+  return failure;
+}
+
 export function relativeMember(root, path) {
   const value = relative(root, resolve(path));
   if (!value || value === '..' || value.startsWith('../') || isAbsolute(value) || value.includes('\\')) throw Error('Evidence member must be strictly inside allocated root');
@@ -93,11 +107,37 @@ async function checkRoot(allocation) {
   const stat = await lstat(allocation.root, { bigint: true });
   if (!stat.isDirectory() || stat.isSymbolicLink() || String(stat.dev) !== allocation.directoryIdentity.dev || String(stat.ino) !== allocation.directoryIdentity.ino || await realpath(allocation.root) !== allocation.root) throw Error('Allocated evidence root changed');
 }
+// An enumerated child disappearing is a failed membership observation, not a
+// successful partial count. Validate the allocation and every surviving known
+// ancestor before admitting the existing bounded fresh-scan retry.
+async function confirmDescendantMutation(allocation, path, ancestors, before) {
+  const check = async () => {
+    try { await checkRoot(allocation); }
+    catch (error) { throw observationError(error, allocation.root, allocation.root, 'verify-root'); }
+  };
+  await check();
+  for (const entry of [...ancestors, { path, before }]) {
+    if (entry.path === allocation.root) continue;
+    let current;
+    try { current = await lstat(entry.path, { bigint: true }); }
+    catch (error) {
+      if (error.code === 'ENOENT') { await check(); return; }
+      throw observationError(error, allocation.root, entry.path, 'verify-member');
+    }
+    if (current.isSymbolicLink() || (entry.path !== path ? !current.isDirectory() : !current.isDirectory() && !current.isFile())) {
+      throw observationError(Object.assign(Error('Evidence entry changed'), { code: 'EVIDENCE_ENTRY' }), allocation.root, entry.path, 'verify-member');
+    }
+    if (entry.before && (entry.before.dev !== current.dev || entry.before.ino !== current.ino || entry.before.isDirectory() !== current.isDirectory() || entry.before.isFile() !== current.isFile())) {
+      throw observationError(Object.assign(Error('Evidence ancestor identity changed'), { code: 'EVIDENCE_IDENTITY' }), allocation.root, entry.path, 'verify-member');
+    }
+  }
+  await check();
+}
 /** Streaming traversal: no content is opened and no path outside the allocation is followed.
  * This is a periodic non-atomic filesystem counter, not a filesystem write-event oracle. */
 export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry = lstat, openDirectory = opendir } = {}) {
   if (!Number.isSafeInteger(maxEntries) || maxEntries < 1 || maxEntries > LIMIT) throw Error('Evidence traversal limit must remain bounded');
-  await checkRoot(allocation);
+  try { await checkRoot(allocation); } catch (error) { throw observationError(error, allocation.root, allocation.root, 'root-before'); }
   const startedAt = new Date().toISOString(), startMs = performance.now(), seen = new Set();
   let logicalBytes = 0n, allocatedBytes = 0n, entries = 0, files = 0, hardLinks = 0, concurrentChanges = 0, blocksAvailable = true;
   const failures = [];
@@ -105,9 +145,14 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
   // slots are busy, recurse inline: no waiting semaphore or whole-tree queue.
   // Every directory waits for its descendants before the original post-stat.
   let branches = 0, traversalFailed = false, traversalFailure;
-  const rememberFailure = error => { if (!traversalFailed) { traversalFailed = true; traversalFailure = error; } };
-  async function walk(path, depth) {
-    const children = new Set();
+  const rememberFailure = error => {
+    if (!traversalFailed || traversalFailure.code === 'EVIDENCE_MUTATION' && error.code !== 'EVIDENCE_MUTATION') {
+      traversalFailed = true; traversalFailure = error;
+    }
+  };
+  async function walk(path, depth, ancestors = []) {
+    const children = new Set(); let phase = 'bound', before;
+
     try {
       if (traversalFailed) throw traversalFailure;
     if (depth > 128 || entries >= maxEntries) {
@@ -117,7 +162,8 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
       throw Object.assign(Error('Evidence traversal bound'), { code: 'EVIDENCE_BOUND' });
     }
     entries++;
-    const before = await statEntry(path, { bigint: true });
+    phase = 'stat-before'; before = await statEntry(path, { bigint: true });
+    phase = 'entry';
     if (before.isSymbolicLink() || !before.isFile() && !before.isDirectory()) throw Object.assign(Error('Unsupported evidence entry'), { code: 'EVIDENCE_ENTRY' });
     const identity = `${before.dev}:${before.ino}`;
     if (!seen.has(identity)) {
@@ -126,28 +172,47 @@ export async function sampleVolume(allocation, { maxEntries = LIMIT, statEntry =
       if (before.isFile()) { logicalBytes += before.size; files++; }
     } else { hardLinks++; if (before.isDirectory()) throw Object.assign(Error('Directory cycle'), { code: 'EVIDENCE_CYCLE' }); }
     if (before.isDirectory()) {
-      const directory = await openDirectory(path);
+      phase = 'open-directory'; const directory = await openDirectory(path);
+      phase = 'read-directory';
+      const lineage = [...ancestors, { path, before }];
       for await (const entry of directory) {
         if (traversalFailed) throw traversalFailure;
         if (branches < 3) {
           branches++;
           let child;
-          child = walk(join(path, entry.name), depth + 1)
+          child = walk(join(path, entry.name), depth + 1, lineage)
             .catch(rememberFailure)
             .finally(() => { branches--; children.delete(child); });
           children.add(child);
-        } else await walk(join(path, entry.name), depth + 1);
+        } else await walk(join(path, entry.name), depth + 1, lineage);
       }
       await Promise.allSettled(children);
       if (traversalFailed) throw traversalFailure;
     }
-    const after = await statEntry(path, { bigint: true });
-    if (before.dev !== after.dev || before.ino !== after.ino || before.isDirectory() !== after.isDirectory() || before.isFile() !== after.isFile()) throw Object.assign(Error('Evidence identity changed during sample'), { code: 'EVIDENCE_MUTATION' });
+    phase = 'stat-after'; const after = await statEntry(path, { bigint: true });
+    phase = 'identity';
+    if (after.isSymbolicLink() || !after.isFile() && !after.isDirectory()) throw Object.assign(Error('Unsupported evidence entry'), { code: 'EVIDENCE_ENTRY' });
+    if (before.dev !== after.dev || before.ino !== after.ino || before.isDirectory() !== after.isDirectory() || before.isFile() !== after.isFile()) throw Object.assign(Error('Evidence identity changed during sample'), { code: depth === 0 ? 'EVIDENCE_ROOT' : 'EVIDENCE_MUTATION' });
     if (stamp(before) !== stamp(after)) { concurrentChanges++; if (before.isDirectory()) throw Object.assign(Error('Evidence membership changed during sample'), { code: 'EVIDENCE_MUTATION' }); }
-    } catch (error) { rememberFailure(error); throw error; }
-    finally { await Promise.allSettled(children); }
+    } catch (error) {
+      let failure = error;
+      if (!observationDiagnostics.has(error)) {
+        if (depth > 0 && error?.code === 'ENOENT' && ['stat-before', 'open-directory', 'read-directory', 'stat-after'].includes(phase)) {
+          try {
+            await confirmDescendantMutation(allocation, path, ancestors, before);
+            failure = Object.assign(Error('Enumerated evidence member disappeared'), { code: 'EVIDENCE_MUTATION' });
+          } catch (refused) { failure = refused; }
+        }
+        failure = observationError(failure, allocation.root, path, phase, error?.code);
+      }
+      rememberFailure(failure); throw failure;
+    } finally { await Promise.allSettled(children); }
   }
-  try { await walk(allocation.root, 0); await checkRoot(allocation); } catch (error) { failures.push(opaqueError(error)); }
+  try {
+    await walk(allocation.root, 0);
+    try { await checkRoot(allocation); } catch (error) { throw observationError(error, allocation.root, allocation.root, 'root-after'); }
+  } catch (error) { failures.push(opaqueError(traversalFailed ? traversalFailure : error)); }
+
   const safe = logicalBytes <= BigInt(Number.MAX_SAFE_INTEGER) && allocatedBytes <= BigInt(Number.MAX_SAFE_INTEGER);
   return { kind: 'evidence-volume-sample-1', startedAt, finishedAt: new Date().toISOString(), startMs, endMs: performance.now(),
     method: 'bounded-nofollow-streaming-lstat', consistency: 'non-atomic-observation-window', completeTraversal: failures.length === 0 && safe && blocksAvailable,

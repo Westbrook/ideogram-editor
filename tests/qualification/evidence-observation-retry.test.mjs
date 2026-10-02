@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {mkdtemp,mkdir,writeFile,readFile,rm,realpath,lstat,opendir,symlink,utimes} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,rm,realpath,lstat,opendir,symlink,utimes,rename} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {performance} from 'node:perf_hooks';
@@ -188,4 +188,200 @@ test('unchanged v1 verifier replays v1-format retained evidence from actual comp
  let lastStart=audit.startedMonotonicMs;let maximumGapMs=0;for(const record of records){maximumGapMs=Math.max(maximumGapMs,record.sample.startMs-lastStart);lastStart=record.sample.startMs;}
  audit.maximumGapMs=maximumGapMs;await writeResealed(f,records,audit);
  assert.equal((await verifyEvidenceAudit(f.monitor.reference,f.receiptPath)).status,'PASS');
+});
+
+// The seams below still enumerate native Dir handles and mutate real private
+// fixture paths. They control when a native ENOENT becomes observable; they do
+// not fabricate a successful sample or make a timing/qualification claim.
+function descendantRace(f,{target=join(f.volume,'seed.bin'),phase='stat-before',mutate=path=>rm(path,{recursive:true}),onFailure=()=>{}}={}){
+ let fired=false,starts=0,targetStats=0;const handles=[],enumerated=new Set();
+ const trigger=async()=>{assert(enumerated.has(target),'the disappearing child was actually enumerated');fired=true;await mutate(target);};
+ return {handles,get starts(){return starts;},get fired(){return fired;},sampleOptions:{
+  async statEntry(path,options){
+   if(path===target){
+    targetStats++;
+    if(!fired&&(phase==='stat-before'&&targetStats===1||phase==='stat-after'&&targetStats===2))await trigger();
+   }
+   try{return await lstat(path,options);}catch(error){if(path===target)onFailure(error);throw error;}
+  },
+  async openDirectory(path){
+   if(path===f.volume){await assertClosed(handles);starts++;}
+   if(path===target&&!fired&&phase==='open-directory')await trigger();
+   const handle=await opendir(path);handles.push(handle);
+   return {async *[Symbol.asyncIterator](){
+    for await(const entry of handle){
+     enumerated.add(join(path,entry.name));
+     if(path===target&&!fired&&phase==='read-directory'){
+      await trigger();
+      // A native iterator need not report an unlinked directory on every OS.
+      // Expose the actual missing path error while that native iterator is
+      // active; abrupt generator completion must still close its Dir handle.
+      await lstat(path,{bigint:true});
+     }
+     yield entry;
+    }
+   }};
+  }
+ }};
+}
+function descendantFailure(observation,{phase,member,code='EVIDENCE_MUTATION',original='ENOENT'}){
+ const sample=observation.attempts[0].sample;
+ assert.equal(sample.completeTraversal,false);assert.equal(sample.failures.length,1);
+ assert.deepEqual(sample.failures[0],{code,message:'Evidence observation unavailable; phase='+phase+'; code='+original+'; member='+member});
+ assert.deepEqual(Object.keys(sample.failures[0]).sort(),['code','message']);
+ assert.equal(observation.maxAttempts,3);assert.equal(observation.maxWindowMs,1000);verifyAttemptChain(observation);
+ return sample.failures[0];
+}
+
+for(const [kind,phase]of [['file','stat-before'],['directory','stat-before'],['directory','open-directory'],['directory','read-directory'],['file','stat-after'],['directory','stat-after']])test('an enumerated '+kind+' disappearing during '+phase+' retains failure before a fresh complete scan',async t=>{
+ const f=await fixture(t);clock(t);const target=join(f.volume,'vanishing');
+ if(kind==='file')await writeFile(target,Buffer.alloc(19,3));
+ else{await mkdir(target);if(phase==='read-directory')await writeFile(join(target,'child.bin'),Buffer.alloc(23,4));}
+ const scan=descendantRace(f,{target,phase}),observation=await observeVolume(f.allocation,scan.sampleOptions),verified=validateEvidenceObservation(observation);
+ assert.equal(scan.fired,true);assert.equal(scan.starts,2);assert.equal(observation.attempts.length,2);assert.equal(observation.selectedAttempt,1);
+ descendantFailure(observation,{phase,member:'vanishing'});assert.equal(verified.failedAttempts,1);
+ assert.equal(verified.chosenSample.completeTraversal,true);assert.equal(verified.chosenSample.entries,2);assert.equal(verified.chosenSample.uniqueFiles,1);
+ assert.equal(verified.chosenSample.observedLogicalBytes,8);await assertClosed(scan.handles);
+});
+
+test('a disappearing subtree is retried only after its surviving allocation ancestor is verified',async t=>{
+ const f=await fixture(t);clock(t);const branch=join(f.volume,'branch'),target=join(branch,'leaf');await mkdir(branch);await writeFile(target,'leaf');
+ const scan=descendantRace(f,{target,mutate:()=>rm(branch,{recursive:true})}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ descendantFailure(observation,{phase:'stat-before',member:'branch/leaf'});
+ assert.equal(scan.starts,2);assert.equal(observation.selectedAttempt,1);assert.equal(validateEvidenceObservation(observation).chosenSample.observedLogicalBytes,8);await assertClosed(scan.handles);
+});
+
+for(const kind of ['removed','replaced','symlinked'])test('a '+kind+' allocation root cannot turn a missing descendant into a retry',async t=>{
+ const f=await fixture(t);clock(t);const former=join(f.root,'former-volume'),outside=join(f.root,'outside');await mkdir(outside);
+ const scan=descendantRace(f,{mutate:async()=>{
+  if(kind==='removed')await rm(f.volume,{recursive:true});
+  else{await rename(f.volume,former);if(kind==='replaced')await mkdir(f.volume,{mode:0o700});else await symlink(outside,f.volume);}
+ }}),observation=await observeVolume(f.allocation,scan.sampleOptions),verified=validateEvidenceObservation(observation);
+ assert.equal(scan.fired,true);assert.equal(scan.starts,1);assert.equal(observation.attempts.length,1);assert.equal(observation.selectedAttempt,null);assert.equal(verified.chosenSample,null);
+ const failure=observation.attempts[0].sample.failures[0];assert.notEqual(failure.code,'EVIDENCE_MUTATION');
+ assert.equal(failure.message,'Evidence observation unavailable; phase=verify-root; code='+(kind==='removed'?'ENOENT':'EVIDENCE_IO')+'; member=.');
+ // In particular, root verification's own ENOENT must not be caught again by
+ // the parent's read-directory catch and reclassified as a child mutation.
+ verifyAttemptChain(observation);await assertClosed(scan.handles);
+});
+
+for(const kind of ['replaced','symlinked','regular-file'])test('a '+kind+' surviving ancestor remains a nonretryable missing-child failure',async t=>{
+ const f=await fixture(t);clock(t);const branch=join(f.volume,'branch'),target=join(branch,'leaf'),former=join(f.root,'former-branch'),outside=join(f.root,'outside');
+ await mkdir(branch);await mkdir(outside);await writeFile(target,'leaf');
+ const scan=descendantRace(f,{target,mutate:async()=>{
+  await rename(branch,former);
+  if(kind==='replaced')await mkdir(branch);else if(kind==='symlinked')await symlink(outside,branch);else await writeFile(branch,'not a directory');
+ }}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ assert.equal(scan.fired,true);assert.equal(scan.starts,1);assert.equal(observation.attempts.length,1);assert.equal(observation.selectedAttempt,null);
+ assert.equal(validateEvidenceObservation(observation).chosenSample,null);
+ if(kind==='regular-file')descendantFailure(observation,{phase:'stat-before',member:'branch/leaf',code:'ENOTDIR',original:'ENOTDIR'});
+ else descendantFailure(observation,{phase:'verify-member',member:'branch',code:kind==='replaced'?'EVIDENCE_IDENTITY':'EVIDENCE_ENTRY',original:kind==='replaced'?'EVIDENCE_IDENTITY':'EVIDENCE_ENTRY'});
+ await assertClosed(scan.handles);
+});
+
+test('a descendant recreated with a new identity before missing-path verification is not admitted as a disappearance',async t=>{
+ const f=await fixture(t);clock(t);const target=join(f.volume,'vanishing'),former=join(f.root,'former-member');await mkdir(target);
+ const scan=descendantRace(f,{target,phase:'open-directory',mutate:async()=>{
+  await rename(target,former);await mkdir(target);
+  // The native missing-path result arrives after a replacement has appeared.
+  await lstat(join(target,'already-removed'),{bigint:true});
+ }}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ descendantFailure(observation,{phase:'verify-member',member:'vanishing',code:'EVIDENCE_IDENTITY',original:'EVIDENCE_IDENTITY'});
+ assert.equal(scan.starts,1);assert.equal(observation.attempts.length,1);assert.equal(observation.selectedAttempt,null);assert.equal(validateEvidenceObservation(observation).chosenSample,null);await assertClosed(scan.handles);
+});
+
+test('a native root replacement witnessed by post-stat is a hard failure without a fresh scan',async t=>{
+ const f=await fixture(t);clock(t);let rootStats=0,starts=0;const handles=[],former=join(f.root,'former-volume');
+ const observation=await observeVolume(f.allocation,{
+  async openDirectory(path){if(path===f.volume)starts++;const handle=await opendir(path);handles.push(handle);return handle;},
+  async statEntry(path,options){
+   if(path===f.volume&&++rootStats===2){await assertClosed(handles);await rename(f.volume,former);await mkdir(f.volume,{mode:0o700});}
+   return lstat(path,options);
+  }
+ });
+ descendantFailure(observation,{phase:'identity',member:'.',code:'EVIDENCE_ROOT',original:'EVIDENCE_ROOT'});
+ assert.equal(rootStats,2);assert.equal(starts,1);assert.equal(observation.attempts.length,1);assert.equal(observation.selectedAttempt,null);assert.equal(validateEvidenceObservation(observation).chosenSample,null);await assertClosed(handles);
+});
+
+test('a native target symlink replacement witnessed by post-stat never becomes a retryable identity mutation',async t=>{
+ const f=await fixture(t);clock(t);const target=join(f.volume,'seed.bin'),former=join(f.root,'former-seed'),outside=join(f.root,'outside');await writeFile(outside,'not followed');
+ const scan=descendantRace(f,{target,phase:'stat-after',mutate:async()=>{await rename(target,former);await symlink(outside,target);}}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ descendantFailure(observation,{phase:'identity',member:'seed.bin',code:'EVIDENCE_ENTRY',original:'EVIDENCE_ENTRY'});
+ assert.equal(scan.fired,true);assert.equal(scan.starts,1);assert.equal(observation.attempts.length,1);assert.equal(observation.selectedAttempt,null);assert.equal(validateEvidenceObservation(observation).chosenSample,null);await assertClosed(scan.handles);
+});
+
+for(const [phase,code]of [['stat-before','EIO'],['open-directory','EACCES'],['read-directory','EIO'],['stat-after','EACCES']])test(code+' during descendant '+phase+' retains its own failure and never retries',async t=>{
+ const f=await fixture(t);clock(t);const target=join(f.volume,'restricted');await mkdir(target);await writeFile(join(target,'child'),'child');
+ const scan=descendantRace(f,{target,phase,mutate:async()=>{throw Object.assign(Error('private message '+f.root),{code,path:f.root});}}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ descendantFailure(observation,{phase,member:'restricted',code,original:code});
+ assert.equal(scan.starts,1);assert.equal(observation.attempts.length,1);assert.equal(observation.selectedAttempt,null);assert.equal(validateEvidenceObservation(observation).chosenSample,null);
+ assert(!observation.attempts[0].sample.failures[0].message.includes(f.root));await assertClosed(scan.handles);
+});
+
+test('descendant diagnostics bound and sanitize the actual enumerated member without exposing absolute or error-supplied paths',async t=>{
+ const f=await fixture(t);clock(t);const name='member\\with\ncontrol"'+ 'x'.repeat(180),target=join(f.volume,name);await writeFile(target,'private');
+ const scan=descendantRace(f,{target}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ const member=name.replace(/[^\x20-\x7e]|[\\"]/g,'?').slice(0,160),failure=descendantFailure(observation,{phase:'stat-before',member});
+ assert.equal(member.length,160);assert(!failure.message.includes(f.root));assert(!/[\x00-\x1f\x7f\\"]/.test(failure.message));
+ assert.equal(scan.starts,2);assert.equal(observation.selectedAttempt,1);assert.equal(validateEvidenceObservation(observation).failedAttempts,1);await assertClosed(scan.handles);
+});
+
+for(const elapsed of [999,1000])test('a vanished-child failure at '+elapsed+'ms obeys the existing fixed retry window',async t=>{
+ const f=await fixture(t),time=clock(t),scan=descendantRace(f,{onFailure:()=>time.set(elapsed)}),observation=await observeVolume(f.allocation,scan.sampleOptions);
+ descendantFailure(observation,{phase:'stat-before',member:'seed.bin'});
+ assert.equal(observation.windowEndMs,elapsed);assert.equal(scan.starts,elapsed===999?2:1);assert.equal(observation.attempts.length,elapsed===999?2:1);
+ assert.equal(observation.selectedAttempt,elapsed===999?1:null);assert.equal(validateEvidenceObservation(observation).chosenSample===null,elapsed===1000);await assertClosed(scan.handles);
+});
+
+for(const siblingFailure of [false,true])test('a missing descendant drains every original branch '+(siblingFailure?'and a held hard failure prevents retry':'before launching its retry'),async t=>{
+ const f=await fixture(t);clock(t);const held=join(f.volume,'a-held'),member=join(held,'pending'),victim=join(f.volume,'z-vanishing');
+ await mkdir(held);await writeFile(member,'held');await writeFile(victim,'vanishing');
+ let enter,release,missing;const entered=new Promise(resolve=>{enter=resolve;}),gate=new Promise(resolve=>{release=resolve;}),missingObserved=new Promise(resolve=>{missing=resolve;});
+ let starts=0,heldFinished=false,settled=false,fired=false;const handles=[];
+ const options={
+  async openDirectory(path){
+   if(path===f.volume){await assertClosed(handles);starts++;if(starts>1)assert.equal(heldFinished,true,'the original branch settled before the fresh scan');}
+   const handle=await opendir(path);handles.push(handle);
+   return {async *[Symbol.asyncIterator](){
+    if(path===f.volume){
+     // Only this tiny fixture orders already-read native entries, so sibling
+     // branch issuance does not depend on directory enumeration order.
+     const entries=[];for await(const entry of handle)entries.push(entry);entries.sort((a,b)=>a.name.localeCompare(b.name));
+     for(const entry of entries)yield entry;
+    }else for await(const entry of handle)yield entry;
+   }};
+  },
+  async statEntry(path,options){
+   if(path===member&&starts===1){
+    enter();await gate;heldFinished=true;
+    if(siblingFailure)throw Object.assign(Error('held permission refusal'),{code:'EACCES'});
+   }
+   if(path===victim&&!fired){fired=true;await entered;await rm(victim);try{return await lstat(path,options);}catch(error){missing();throw error;}}
+   return lstat(path,options);
+  }
+ };
+ const pending=observeVolume(f.allocation,options);pending.then(()=>{settled=true;},()=>{settled=true;});
+ try{
+  await Promise.race([missingObserved,pending.then(()=>{throw Error('the controlled missing descendant was never observed');})]);
+  assert.equal(starts,1);assert.equal(settled,false);assert.equal(heldFinished,false);
+  release();const observation=await pending,verified=validateEvidenceObservation(observation);
+  assert.equal(heldFinished,true);
+  if(siblingFailure){
+   assert.equal(starts,1);assert.equal(observation.attempts.length,1);assert.equal(observation.selectedAttempt,null);assert.equal(verified.chosenSample,null);
+   descendantFailure(observation,{phase:'stat-before',member:'a-held/pending',code:'EACCES',original:'EACCES'});
+  }else{
+   assert.equal(starts,2);assert.equal(observation.attempts.length,2);assert.equal(observation.selectedAttempt,1);
+   descendantFailure(observation,{phase:'stat-before',member:'z-vanishing'});assert.equal(verified.chosenSample.observedLogicalBytes,12);
+  }
+  await assertClosed(handles);
+ }finally{release();await pending;await assertClosed(handles);}
+});
+
+test('retained replay preserves a real vanished-child attempt and accepts only the drained fresh full scan',async t=>{
+ let scan;const f=await retain(t,{sampleOptions:fixture=>{scan=descendantRace(fixture);return scan.sampleOptions;}});
+ const observation=f.records[0].observation;descendantFailure(observation,{phase:'stat-before',member:'seed.bin'});
+ assert.equal(observation.attempts.length,2);assert.equal(observation.selectedAttempt,1);assert.equal(f.audit.failedAttempts,1);assert.equal(f.audit.attempts,3);
+ assert.equal(f.audit.unknownSamples,0);assert.equal(f.audit.status,'PASS');assert.equal((await verifyEvidenceAudit(f.monitor.reference,f.receiptPath)).status,'PASS');await assertClosed(scan.handles);
+ const records=structuredClone(f.records),audit=structuredClone(f.audit);records[0].observation.attempts[0].sample.failures[0].code='ENOENT';resealAttempts(records[0].observation);
+ await writeResealed(f,records,audit);await assert.rejects(verifyEvidenceAudit(f.monitor.reference,f.receiptPath));
 });

@@ -12,10 +12,10 @@ import {runs,step,throwFailures,finishFixture,type RunState} from '../editor/har
 import {publicReadRequest} from '../request/persistence-witness.js';
 
 // Incidental protocol diagnostics use native metadata; actual public reads below own their JSON bodies.
-function postResponseMetadata(page:Page,state:RunState,apiOrigin?:()=>string|undefined){
+function postResponseMetadata(page:Page,state:RunState,apiOrigin?:()=>string|undefined,limit:1024|2048=1024){
   type Row={id:number;method:string;origin:string;path:string;query?:Record<string,string[]>|null;unknownQueryKeys?:number;queryIncomplete?:boolean;postKind:'command'|'ui'|null;postId:string|null;postType:string|null;startedAt:string;startedMs:number;responseMs:number|null;status:number|null;terminal:'pending'|'finished'|'failed';terminalMs:number|null;failureText:string|null};
   type ConsoleRow={errorIndex:number;atMs:number;origin:string|null;path:string|null;line:number|null;column:number|null;locationAvailable:boolean};
-  const limit=1024,consoleLimit=128,rows:Row[]=[],consoleRows:ConsoleRow[]=[],identities=new WeakMap<Request,Row>(),omitted=new WeakSet<Request>();let dropped=0,truncated=0,consoleDropped=0,consoleErrors=0,stopped=false;
+  const consoleLimit=128,rows:Row[]=[],consoleRows:ConsoleRow[]=[],identities=new WeakMap<Request,Row>(),omitted=new WeakSet<Request>();let dropped=0,truncated=0,consoleDropped=0,consoleErrors=0,stopped=false;
   const bounded=(value:unknown,cap:number)=>{if(typeof value!=='string')return null;if(value.length>cap)truncated++;return value.slice(0,cap);};
   const retain=(request:Request)=>{
     const previous=identities.get(request);if(previous)return previous;if(stopped||omitted.has(request))return;
@@ -549,7 +549,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
   const evidence:Record<string,unknown>={};
   const state:RunState={failures:[],roots:[dir],writerClosed:false,contextClosed:false,browserClosed:false,retention:[],receipt,prefix:'e3-native-deferred-'};
   runs.set(context,state);
-  const responseMetadata=postResponseMetadata(page,state);
+  const responseMetadata=postResponseMetadata(page,state,()=>server?.origin,2048);
   state.observe=()=>({errors,csp,external,consoleErrors,commands,uiRequests,responseMetadata:responseMetadata.snapshot(),effects,closed,evidence,process:server?.lifecycle,requestLifecycle:guard.requests,cleanup:guard.ledger});
   state.finalCheck=async()=>{try{
     guard.verify();expect(guard.ledger.filter(entry=>entry.phase==='refused')).toEqual([]);
