@@ -20,7 +20,7 @@ type CleanupFailure={record:ExportRecord;retired:boolean;commandId:string;owner:
 
 /** Encoding happens once. Display renditions are derived from the exact encoded export. */
 export class ExportControls {
- private controls=new ControlAdapter();private epoch=0;private generation=0;private owner:Owner|null=null;private active:ExportOperation|null=null;private abort:AbortController|null=null;
+ private controls=new ControlAdapter();private epoch=0;private generation=0;private fieldGeneration=0;private owner:Owner|null=null;private active:ExportOperation|null=null;private abort:AbortController|null=null;
  private form:ExportForm|null=null;private prepared:Prepared|null=null;private busy=false;private composing=false;private message='';private error='';
  private operations=new Set<ExportOperation>();private cleanupFailures=new Map<string,CleanupFailure>();private cleanupWaiters=new Set<()=>void>();
  private memory:ExportMemory;private formOwner:OwnedModel<ExportForm>|null=null;private ownerRecord:ExportRecord|null=null;private serial=0;private draftSerial=0;private draftIds=new WeakMap<object,number>();
@@ -33,7 +33,7 @@ export class ExportControls {
  private current(owner:Owner){return this.editor.view.ready&&!!owner.documentId&&owner.epoch===this.epoch&&owner.documentId===this.editor.view.document?.id&&owner.documentEpoch===this.editor.documentEpoch&&owner.session===this.editor.session&&owner.identity===this.editor.session.identity()&&owner.sessionId===this.editor.sessionId&&owner.draftOwner===this.draftIdentity();}
  private resolveOwner(id:number){const owner=this.owner;return owner?.id===id&&this.current(owner)?owner:null;}
  private clearPrepared(){const prepared=this.prepared;if(!prepared)return;revokeDisplayPreviewURL(prepared.url);this.prepared=null;for(const model of prepared.payloads)this.memory.retire(model);this.memory.retire(prepared.record);}
- private clearPreview(){const active=this.active;if(active&&!active.durable)void this.requestCancellation(active);this.abort?.abort();this.abort=null;this.clearPrepared();this.active=null;this.busy=false;this.generation++;this.controls.invalidate();}
+ private clearPreview(preserveFieldCallbacks=false){const active=this.active;if(active&&!active.durable)void this.requestCancellation(active);this.abort?.abort();this.abort=null;this.clearPrepared();this.active=null;this.busy=false;this.generation++;if(!preserveFieldCallbacks)this.fieldGeneration++;this.controls.invalidate();}
  releaseDocument(){this.clearPreview();this.epoch++;this.owner=null;this.ownerRecord?.release();this.ownerRecord=null;this.form=null;if(this.formOwner)this.memory.retire(this.formOwner);this.formOwner=null;for(const [timer,finish]of this.timers){clearTimeout(timer);finish();}this.timers.clear();this.composing=false;this.message='';this.error='';this.changed();}
  dispose(){this.releaseDocument();}
  inspect(){const pendingPreparations=[...this.operations].filter(operation=>operation.preparing).length,pendingCancellations=[...this.operations].filter(operation=>operation.pendingCancellation||operation.cancelRequested&&!operation.durable&&!operation.cancelOutcome&&!operation.cleanupError).length+[...this.cleanupFailures.values()].filter(failure=>failure.pending).length,cleanupFailures=[...this.operations].filter(operation=>operation.cleanupError).length+[...this.cleanupFailures.values()].filter(failure=>failure.message).length;return {previewURLs:this.prepared?1:0,activeReads:this.abort?1:0,retainedDocument:this.prepared!==null||pendingPreparations>0,preparing:this.busy||pendingPreparations>0,pendingPreparations,pendingCancellations,cleanupFailures};}
@@ -73,13 +73,13 @@ export class ExportControls {
  }
  cancel(){
   const active=this.active;
-  if(active&&!active.durable){this.abort?.abort();this.abort=null;this.generation++;this.controls.invalidate();active.cancelRequested=true;this.busy=true;this.error='';this.message='Cancellation requested. Waiting for the local export worker to stop and release its partial output. Previous prepared files and destination files remain available.';void this.requestCancellation(active);this.changed();return;}
+  if(active&&!active.durable){this.abort?.abort();this.abort=null;this.generation++;this.fieldGeneration++;this.controls.invalidate();active.cancelRequested=true;this.busy=true;this.error='';this.message='Cancellation requested. Waiting for the local export worker to stop and release its partial output. Previous prepared files and destination files remain available.';void this.requestCancellation(active);this.changed();return;}
   const durable=active?.durable||!!this.prepared;this.clearPreview();this.message=durable?'Export preview closed. Encoding already completed; its exact bytes remain saved locally. Previous destination files remain available.':'Export review canceled. Previous prepared files and destination files remain available.';this.error='';this.changed();
  }
  private finishCancellation(operation:ExportOperation,status:'canceled'|'completed'|'failed',code?:string){
   operation.cancelOutcome=status;operation.cleanupError=null;if(operation.commandId)this.removeCleanup(operation.commandId);if(!operation.durable)operation.phase.end(status==='canceled'?'cancelled':status==='failed'?'rejected':'incomplete',{boundary:'cancel-intent'});this.trackSettlement(operation);
   if(this.active!==operation||!this.current(operation.owner))return;
-  this.abort?.abort();this.abort=null;this.active=null;this.busy=false;this.generation++;this.controls.invalidate();this.error='';
+  this.abort?.abort();this.abort=null;this.active=null;this.busy=false;this.generation++;this.fieldGeneration++;this.controls.invalidate();this.error='';
   this.message=status==='canceled'?'Export canceled. The local worker has stopped and its partial output has been removed. Previous prepared files and destination files remain available.':status==='failed'?'The original export failed before cancellation completed. Its rejected receipt is retained. Previous prepared files and destination files remain available.':'Export finished before cancellation. Its exact encoded bytes remain saved locally; the preview is closed. Previous destination files remain available.';if(status==='failed')this.error=exportDiagnostic(code,'EXPORT_UNAVAILABLE');this.changed();
  }
  private requestCancellation(operation:ExportOperation){
@@ -93,8 +93,8 @@ export class ExportControls {
  }
  private callbackOwner(){const record=this.memory.record('action');let done!:()=>void;const task=new Promise<void>(resolve=>done=resolve);this.callbacks.add(task);let live=true;return ()=>{if(live){live=false;record.release();this.callbacks.delete(task);done();this.signalCleanup();}};}
  private fieldHandler(key:keyof ExportForm,ownerId:number,generation:number){return (event:Event)=>{
-  if(!this.resolveOwner(ownerId)||generation!==this.generation)return;const host=event.currentTarget as HTMLElement&{value:string;checked:boolean};let finish:()=>void;try{finish=this.callbackOwner();}catch(error){const form=this.form;if(form){if(key==='includeHidden')this.controls.write(host,'checked',form.includeHidden);else this.controls.write(host,'value',form[key]);}this.error=exportDiagnostic(error);this.changed();return;}
-  try{this.controls.settled(event,()=>key==='includeHidden'?host.checked:host.value,value=>{const owner=this.resolveOwner(ownerId),form=this.form;if(!owner||!form||this.busy||generation!==this.generation)return;
+  if(!this.resolveOwner(ownerId)||generation!==this.fieldGeneration)return;const host=event.currentTarget as HTMLElement&{value:string;checked:boolean};let finish:()=>void;try{finish=this.callbackOwner();}catch(error){const form=this.form;if(form){if(key==='includeHidden')this.controls.write(host,'checked',form.includeHidden);else this.controls.write(host,'value',form[key]);}this.error=exportDiagnostic(error);this.changed();return;}
+  try{this.controls.settled(event,()=>key==='includeHidden'?host.checked:host.value,value=>{const owner=this.resolveOwner(ownerId),form=this.form;if(!owner||!form||this.busy||generation!==this.fieldGeneration)return;
    let next:OwnedModel<ExportForm>|undefined;try{const bytes=modelPayloadBytes(form)-modelPayloadBytes(form[key])+modelPayloadBytes(value);next=this.memory.create('form',bytes,()=>({...form,[key]:value}),EXPORT_MEMORY_LIMITS.formBytes);this.clearPreview();const prior=this.formOwner;this.formOwner=next;this.form=next.value;next=undefined;if(prior)this.memory.retire(prior);this.error='';this.message='Settings changed. Prepare a fresh preview before confirming export.';this.changed();}
    catch(error){next?.release();if(key==='includeHidden')this.controls.write(host,'checked',form.includeHidden);else this.controls.write(host,'value',form[key]);this.error=exportDiagnostic(error);this.changed();}
   });}finally{queueMicrotask(finish);}
@@ -108,7 +108,9 @@ export class ExportControls {
    void Promise.resolve(task).catch(error=>{if(this.resolveOwner(ownerId)){this.error=exportDiagnostic(error);this.changed();}}).finally(finish);
   },0);this.timers.set(timer,finish);
  };}
- private compositionHandler(start:boolean,ownerId:number){return ()=>{if(!this.resolveOwner(ownerId))return;this.composing=start;if(start)this.clearPreview();this.changed();};}
+ // Native IME insertion can commit before the next render. Revoke prior actions
+ // and previews while keeping that same field's accepted-change callback live.
+ private compositionHandler(start:boolean,ownerId:number){return ()=>{if(!this.resolveOwner(ownerId))return;this.composing=start;if(start)this.clearPreview(true);this.changed();};}
  private async prepare(owner:Owner,intentTime=performance.now()){
   let document:Document|null|undefined=this.editor.view.document;if(!document||!this.form||!this.current(owner))return;
   let record:ExportRecord|undefined,reviewRecord:ExportRecord|undefined,documentModel:OwnedModel<Document>|undefined,optionsModel:OwnedModel<DocumentExportOptions>|undefined,assetModel:OwnedModel<Asset>|undefined,responseModel:OwnedModel<Asset>|undefined;let token:ExportOperation|undefined;
@@ -116,7 +118,7 @@ export class ExportControls {
    record=this.memory.record('operation');documentModel=this.memory.clone('document',document);document=undefined;const frozen=documentModel.value,inputBytes=modelPayloadBytes(this.form)+modelPayloadBytes(this.editor.view.selected);
    if(this.editor.view.selected.length>100||inputBytes>EXPORT_MEMORY_LIMITS.modelBytes/4)throw Error('EXPORT_OPTIONS_LIMIT');
    const scratch=reserveModelBytes('export-options-scratch',inputBytes*4+8192);try{optionsModel=this.memory.create('options',inputBytes+8192,()=>exportOptions(this.form!,frozen,this.editor.view.image,this.editor.view.selected));}finally{scratch.release();}
-   const options=optionsModel.value;this.generation++;this.controls.invalidate();const phase=browserPhases.recorder.start('document.export',{documentId:frozen.id,revision:frozen.revision,boundary:'intent'},intentTime);
+   const options=optionsModel.value;this.generation++;this.fieldGeneration++;this.controls.invalidate();const phase=browserPhases.recorder.start('document.export',{documentId:frozen.id,revision:frozen.revision,boundary:'intent'},intentTime);
    token={id:++this.serial,record,owner,commandId:null,cancelRequested:false,cancelTask:null,cancelOutcome:null,durable:false,phase,preparing:true,pendingCancellation:false,cleanupError:null};record=undefined;const operation=token,generation=this.generation;this.operations.add(operation);this.active=operation;this.busy=true;this.error='';this.message='Compositing and encoding the chosen revision. Preparing durable local export bytes…';this.changed();
    const current=()=>this.current(owner)&&this.active===operation&&this.generation===generation;
    // Keep the returned asset admitted until our independent review clone owns it.
@@ -139,11 +141,11 @@ export class ExportControls {
  private confirm(prepared:Prepared,owner:Owner){if(!this.current(owner)||this.prepared!==prepared||!prepared.loaded||prepared.confirmed||this.composing)return;this.editor.confirmExport(prepared.asset,prepared.document);prepared.confirmed=true;this.message='Export ready. Choose a destination for the prepared file. A download request alone does not confirm a destination write.';this.changed();this.onConfirmed();}
  render(){
   const form=this.form,owner=this.owner,prepared=this.prepared,active=this.active;if(!form||!owner)return html`<p>Open a document before preparing an export.</p>`;
-  const text=(key:Exclude<keyof ExportForm,'includeHidden'>)=>this.fieldHandler(key,owner.id,this.generation),disabled=this.busy||this.editor.view.busy||!this.current(owner);
+  const text=(key:Exclude<keyof ExportForm,'includeHidden'>)=>this.fieldHandler(key,owner.id,this.fieldGeneration),disabled=this.busy||this.editor.view.busy||!this.current(owner);
   return html`<section class="export-controls" aria-label="Export settings and preview" aria-busy=${String(this.busy)} @compositionstart=${this.compositionHandler(true,owner.id)} @compositionend=${this.compositionHandler(false,owner.id)}>
    <p role="status">${this.message}</p>${this.error?html`<p role="alert">${this.error}</p>`:nothing}
    <en-select id="export-scope" label="Export scope" .value=${form.scope} ?disabled=${disabled} @en-change=${text('scope')}><en-select-option value="visible-document">Whole visible document</en-select-option><en-select-option value="selected-layers">Explicit selected-layer composite</en-select-option></en-select>
-   ${form.scope==='selected-layers'?html`<p>${this.editor.view.selected.length} selected layers; original document bounds and layer order are retained.</p><en-switch id="export-include-hidden" label="Include hidden selected layers" .checked=${form.includeHidden} ?disabled=${disabled} @en-change=${this.fieldHandler('includeHidden',owner.id,this.generation)}></en-switch>`:nothing}
+   ${form.scope==='selected-layers'?html`<p>${this.editor.view.selected.length} selected layers; original document bounds and layer order are retained.</p><en-switch id="export-include-hidden" label="Include hidden selected layers" .checked=${form.includeHidden} ?disabled=${disabled} @en-change=${this.fieldHandler('includeHidden',owner.id,this.fieldGeneration)}></en-switch>`:nothing}
    <en-select id="export-format" label="Export format" .value=${form.format} ?disabled=${disabled} @en-change=${text('format')}><en-select-option value="png">PNG with alpha</en-select-option><en-select-option value="jpeg">JPEG with opaque matte</en-select-option></en-select>
    <en-select id="export-dimensions" label="Export dimensions" .value=${form.dimensions} ?disabled=${disabled} @en-change=${text('dimensions')}><en-select-option value="native">Native document dimensions</en-select-option><en-select-option value="resize">Deliberate export resize</en-select-option></en-select>
    ${form.dimensions==='resize'?html`<div class="property-grid"><en-number-field id="export-width" label="Export width (px)" .value=${form.width} .min=${1} .max=${8192} .step=${1} ?disabled=${disabled} @en-change=${text('width')}></en-number-field><en-number-field id="export-height" label="Export height (px)" .value=${form.height} .min=${1} .max=${8192} .step=${1} ?disabled=${disabled} @en-change=${text('height')}></en-number-field></div><p>Resize changes only this export. Review the actual result before approval.</p>`:nothing}

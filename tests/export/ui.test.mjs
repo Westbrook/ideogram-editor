@@ -268,6 +268,22 @@ test('a failed preparation is visible, retains the old download and does not ret
 test('an old failed preparation cannot overwrite a newer owner preview',async()=>{
  const f=fixture();await f.initial();const prepare=f.editor.prepareExport,pending=deferred();f.editor.prepareExport=()=>pending.promise;await f.prepare();replaceOwner(f,'draft owner');f.instance.sync();f.instance.begin();await flush();f.editor.prepareExport=prepare;await f.ready();const url=attribute(f.template(),'export-preview','src');pending.reject(Error('Old export failed'));await settle();assert.equal(attribute(f.template(),'export-preview','src'),url);assert(!f.text().includes('Old export failed'));
 });
+for(const preview of [false,true])for(const [key,value]of [['matte','#123456'],['width','6'],['height','4'],['quality','0.73']])test(`same-turn composed ${key} edit is retained ${preview?'after revoking an existing preview':'before the first preview'}`,async()=>{
+ const f=fixture();await f.initial();await f.change('format','jpeg');await f.change('dimensions','resize');await f.setArtifact('jpeg',8,6);if(preview)await f.ready();
+ const change=f.callback('export-'+key,'@en-change'),prepare=f.callback('prepare-export'),confirm=preview?f.callback('confirm-export'):null,[start,end]=f.composition(),count=f.prepared.length;
+ // Firefox's pinned text insertion can send the entire composition without a
+ // render between its start and the accepted field change. Keep this turn whole.
+ prepare(event());if(confirm)confirm(event());start();change(event(value));end();await settle();
+ assert.equal(attribute(f.template(),'export-'+key,'.value'),value);assert.equal(f.prepared.length,count);assert.deepEqual(f.confirmed,[]);assert(!find(f.template(),'id="export-review"'));assert.equal(f.editor.view.download,f.prior);
+ const expected={scope:{kind:'visible-document'},format:'jpeg',resize:{width:key==='width'?6:8,height:key==='height'?4:6},matte:key==='matte'?'#123456':'#FFFFFF',quality:key==='quality'?0.73:0.9};
+ await f.setArtifact('jpeg',expected.resize.width,expected.resize.height,expected.quality*100);await f.ready();assert.deepEqual(f.prepared.at(-1).options,expected);
+});
+for(const boundary of ['late native veto','document','draft owner'])test('same-turn composed field settlement refuses '+boundary,async()=>{
+ const f=fixture();await f.initial();await f.change('format','jpeg');const change=f.callback('export-matte','@en-change'),[start,end]=f.composition(),e=event('#123456');
+ start();change(e);if(boundary==='late native veto')e.defaultPrevented=true;else replaceOwner(f,boundary);end();await settle();
+ assert.equal(attribute(f.template(),'export-matte','.value'),'#FFFFFF');assert.deepEqual(f.prepared,[]);assert.deepEqual(f.confirmed,[]);
+});
+
 test('composition ending before action settlement cannot resurrect the discarded preview',async()=>{
  const f=fixture();await f.initial();await f.ready();f.callback('confirm-export')(event());const [start,end]=f.composition();start();end();await settle();assert.deepEqual(f.confirmed,[]);assert(!find(f.template(),'id="export-review"'));await f.ready();f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed.length,1);
 });
