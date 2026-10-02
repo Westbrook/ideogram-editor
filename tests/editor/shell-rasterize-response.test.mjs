@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {transformWithOxc} from 'vite';
 import {allocationsURL,promptMemoryURL} from '../owned-preview-module.mjs';
 
+const renderId='sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 const root=process.env.SHELL_RASTERIZE_ROOT??'.',data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 async function moduleURL(path,imports={}){let code=(await transformWithOxc(await readFile(path,'utf8'),path)).code;for(const [name,url]of Object.entries(imports))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));return data(code);}
 const memoryURL=await moduleURL('src/observability/model-memory.ts',{'./allocations.js':allocationsURL,'./prompt-memory.js':promptMemoryURL});
@@ -27,20 +28,20 @@ function fixture(options={}){
  const before=totals(),fields=cloneOwnedModel('fixture-inspector',{document:{id:'document',revision:'7'},layer:{id:'layer',version:'4',kind:'text',locked:false,name:'Editable name',assetId:'asset'},values:{}}),renders=new RenderModelOwners(),panel=deferred(),commit=deferred(),command=deferred();
  const connection={identity:()=> 'client'},started=[];let updates=0,shown=0,responseOwner,commandBody;
  const shell=Object.create(shellModule.EditorShell.prototype);
- const editor={session:connection,sessionId:'ui',documentEpoch:1,view:{document:fields.value.document},async withJSON(path,owner,work,init,owns,maxBytes){assert.equal(maxBytes,65536);responseOwner=await readOwnedJSON(async()=>response(options.response??{source:{render:{id:'render-accepted'}}}),path,{owner,init,owns,maxBytes});try{options.beforeWork?.();return await work(responseOwner.value);}finally{responseOwner.release();}},async withCommandEvents(body,consume){commandBody=body;await command.promise;return consume([]);}};
+ const editor={session:connection,sessionId:'ui',documentEpoch:1,view:{document:fields.value.document},async withJSON(path,owner,work,init,owns,maxBytes){assert.equal(maxBytes,65536);responseOwner=await readOwnedJSON(async()=>response(options.response??{source:{render:{id:renderId}}}),path,{owner,init,owns,maxBytes});try{options.beforeWork?.();return await work(responseOwner.value);}finally{responseOwner.release();}},async withCommandEvents(body,consume){commandBody=body;await command.promise;return consume([]);}};
  Object.assign(shell,{fieldsOwner:fields,inspectorFieldsGeneration:1,copyPanelEpoch:0,panel:null,lifecycle:new AbortController(),panels:()=>options.deferPanel?panel.promise:Promise.resolve(),updateComplete:options.deferCommit?commit.promise:Promise.resolve(),requestUpdate(){updates++;},querySelector(){return {show(){shown++;}};}});shellModule.bind(editor);
  const start=()=>{const task=shell.reviewTextRasterOwned();started.push(task);void task.catch(()=>{});return task;};
  return {before,fields,shell,editor,renders,panel,commit,command,start,get shown(){return shown;},get updates(){return updates;},get responseOwner(){return responseOwner;},get commandBody(){return commandBody;},async cleanup(){panel.resolve();commit.resolve();command.resolve();await Promise.allSettled(started);shell.setRasterizeReview();shell.setFields();renders.clear();assert.deepEqual(totals(),before);}};
 }
 
 test('actual raster review scopes response and independently owns the accepted render identity',async()=>{
- const f=fixture();try{await f.start();const review=f.shell.rasterizeOwner;assert.equal(review.value.render,'render-accepted');assert.equal(review.value.layer.name,'Editable name');assert.notEqual(review.value.document,f.fields.value.document);assert.notEqual(review.value.layer,f.fields.value.layer);released(f.responseOwner);f.fields.value.layer.name='Later local field';assert.equal(review.value.layer.name,'Editable name');assert.equal(f.shown,1);alive(review);}finally{await f.cleanup();}
+ const f=fixture();try{await f.start();const review=f.shell.rasterizeOwner;assert.equal(review.value.render,renderId);assert.equal(review.value.layer.name,'Editable name');assert.notEqual(review.value.document,f.fields.value.document);assert.notEqual(review.value.layer,f.fields.value.layer);released(f.responseOwner);f.fields.value.layer.name='Later local field';assert.equal(review.value.layer.name,'Editable name');assert.equal(f.shown,1);alive(review);}finally{await f.cleanup();}
 });
 test('adopted review lives through actual render retirement after the panel closes',async()=>{
  const f=fixture();try{await f.start();const model=f.shell.rasterizeOwner;f.renders.begin([model]);f.renders.commit();f.shell.closePanel();assert.equal(f.shell.rasterizeReview,null);alive(model);f.renders.begin([]);alive(model);f.renders.commit();released(model);}finally{await f.cleanup();}
 });
 test('an in-flight Apply pins the review after close and render retirement until command settlement',async()=>{
- const f=fixture();let applying;try{await f.start();const model=f.shell.rasterizeOwner;f.renders.begin([model]);f.renders.commit();applying=f.shell.applyTextRasterOwned();void applying.catch(()=>{});assert.equal(f.commandBody.reviewedRender,'render-accepted');f.shell.closePanel();f.renders.begin([]);f.renders.commit();alive(model);f.command.resolve();await applying;released(model);}finally{f.command.resolve();await applying?.catch(()=>{});await f.cleanup();}
+ const f=fixture();let applying;try{await f.start();const model=f.shell.rasterizeOwner;f.renders.begin([model]);f.renders.commit();applying=f.shell.applyTextRasterOwned();void applying.catch(()=>{});assert.equal(f.commandBody.reviewedRender,renderId);f.shell.closePanel();f.renders.begin([]);f.renders.commit();alive(model);f.command.resolve();await applying;released(model);}finally{f.command.resolve();await applying?.catch(()=>{});await f.cleanup();}
 });
 for(const change of ['close','session','identity','document-epoch'])test('stale raster review '+change+' cannot publish after awaited panels',async()=>{
  const f=fixture({deferPanel:true});try{const work=f.start();while(!f.responseOwner)await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));if(change==='close')f.shell.closePanel();else if(change==='session')f.editor.sessionId='replacement';else if(change==='identity')f.editor.session={identity:()=> 'replacement'};else f.editor.documentEpoch++;f.panel.resolve();await assert.rejects(work,/Text changed/);assert.equal(f.shell.rasterizeReview,null);assert.equal(f.shown,0);released(f.responseOwner);}finally{await f.cleanup();}
@@ -59,5 +60,17 @@ test('failed host commit keeps an admitted review until actual render roots can 
 test('oversized layer metadata refuses before cloning and preserves the previous review',async t=>{
  const f=fixture();try{await f.start();const prior=f.shell.rasterizeOwner,fields=cloneOwnedModel('fixture-large-inspector',{...f.fields.value,layer:{...f.fields.value.layer,name:'x'.repeat(33*1024)}});f.shell.setFields(fields);let reviewClones=0;const clone=structuredClone;t.mock.method(globalThis,'structuredClone',(value,...options)=>{if(value&&typeof value==='object'&&'render'in value&&'document'in value&&'layer'in value)reviewClones++;return clone(value,...options);});
  await assert.rejects(f.start(),/review metadata is too large/);assert.equal(reviewClones,0,'The actual oversized review is rejected before native structuredClone');assert.equal(f.shell.rasterizeOwner,prior);alive(prior);released(f.responseOwner);
+ }finally{await f.cleanup();}
+});
+
+for(const [label,id] of [
+ ['generic identifier','render-accepted'],['missing',undefined],['null',null],['numeric',7],['object',{}],
+ ['uppercase hex','sha256:'+'A'.repeat(64)],['short digest','sha256:'+'a'.repeat(63)],['long digest','sha256:'+'a'.repeat(65)],
+ ['wrong algorithm','sha512:'+'a'.repeat(64)],['trailing whitespace',renderId+' '],
+])test('invalid raster review hash '+label+' preserves the prior admitted review',async()=>{
+ const options={},f=fixture(options);try{
+  await f.start();const prior=f.shell.rasterizeOwner;assert.equal(prior.value.render,renderId);assert.equal(f.shown,1);
+  options.response={source:{render:{id}}};await assert.rejects(f.start(),/Text render is unavailable/);
+  assert.equal(f.shell.rasterizeOwner,prior);assert.equal(prior.value.render,renderId);assert.equal(f.shown,1);alive(prior);released(f.responseOwner);
  }finally{await f.cleanup();}
 });

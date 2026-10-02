@@ -559,7 +559,7 @@ class EditorShell extends LitElement {
       const session=editor.sessionId,connection=editor.session,identity=connection.identity(),epoch=editor.documentEpoch,panelEpoch=this.copyPanelEpoch;
       const current=()=>identity!==null&&!this.inspectorDrain&&editor.session===connection&&connection.identity()===identity&&editor.sessionId===session&&editor.documentEpoch===epoch&&this.copyPanelEpoch===panelEpoch&&editor.view.document?.id===document.id&&editor.view.document.revision===document.revision&&this.fieldsOwner===owner;
       next=await editor.withJSON<{source:TextSource},OwnedModel<RasterizeReview>>('/api/v1/documents/'+document.id+'/text?layerId='+layer.id+'&revision='+document.revision,'editor-rasterize-response',value=>{
-        const render=value?.source?.render?.id;if(typeof render!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(render))throw Error('Text render is unavailable.');
+        const render=value?.source?.render?.id;if(typeof render!=='string'||!/^sha256:[a-f0-9]{64}$/.test(render))throw Error('Text render is unavailable.');
         const review={document,layer,render,session},bytes=modelPayloadBytes(review);if(bytes>RASTERIZE_REVIEW_BYTES)throw Error('This text layer’s review metadata is too large. Shorten its name before reviewing a raster copy.');
         return createOwnedModel('editor-rasterize-review',bytes,()=>structuredClone(review));
       },{signal:this.lifecycle?.signal},current,65536);

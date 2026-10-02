@@ -91,8 +91,8 @@ const expectedAssignments = [
   ['src/ui/composition.ts', 43202, '[es[i],es[j]]=[es[j],es[i]]'],
   ['src/ui/composition.ts', 54474, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
   ['src/ui/request-v45-edit.ts', 12316, '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],
-  ['src/ui/shell.ts', 83759, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
-  ['src/ui/shell.ts', 83817, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
+  ['src/ui/shell.ts', 83758, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
+  ['src/ui/shell.ts', 83816, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
 ];
 let retainedClosure;
 async function provisional() {
@@ -220,7 +220,7 @@ const treeEffect={treeSelectedKeys:'immutable-string-array-from-reviewed-value-m
 test('verified application profile binds both exact tree observations and requires their producer effect',async()=>{
   const value=await specimen(),profile=verifyD11ApplicationProfile(value),proof=await provisional();
   const source='src/ui/shell.ts',expression='(tree as EnTree).selectedKeys[0]';
-  const expected=[73507,74180].map(start=>({source,start,end:start+expression.length,
+  const expected=[73506,74179].map(start=>({source,start,end:start+expression.length,
     sourceSha256:identity(source,value.sourceTextByPath[source]).sha256,expressionSha256:identity(source,expression).sha256,effect:'en-tree-selected-keys-zero-read'}));
   assert.deepEqual(profile.domDataEffects,{kind:'reviewed-d11-dom-data-reads-1',sites:expected});
   assert.deepEqual(assertD11DOMDataEffects(proof.witness.conditionalDOMEffects,profile,treeEffect),expected);

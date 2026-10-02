@@ -9,6 +9,7 @@ export function integrationCancellation(e,origin,engine,downloads=[],faults=[],f
  if(e.channel!=='requestfailed'||e.failure?.errorText!==literals[engine]||e.resourceType!=='fetch'||!r||r.requestId!==e.requestId||r.url!==e.url||r.method!==e.method)return false;
  const u=new URL(e.url);if(u.origin!==origin)return false;
  if(originalRecoveryCompletion(e,recovery.proofs??[]))return 'abort-with-proven-original-recovery-body';
+ if(originalAssetBodyEOF(e,origin,workflowProofs))return 'exact-original-asset-response-eof';
  if(u.search)return false;
  // server/storage/portable.ts localId creates this exact imported namespace.
  // The document HEAD endpoint ends after the authoritative entity version.
@@ -38,4 +39,20 @@ export function originalRecoveryCompletion(e,proofs){
 export function originalSSECancellation(e,origin,engine,proofs){
  if(e.channel!=='requestfailed'||e.response!==null||e.method!=='GET'||e.resourceType!=='fetch'||e.failure?.errorText!==literals[engine])return false;const u=new URL(e.url);if(u.origin!==origin||u.pathname!=='/api/v1/events/stream'||u.searchParams.size!==1||!/^\d+$/.test(u.searchParams.get('after')??''))return false;
  return proofs.some(p=>p.association==='unique-frame-time-window'&&p.requestId===e.requestId&&p.url===e.url&&p.frameId===p.requestFrame&&p.document?.length===36&&p.eligibleRequests.length===1&&p.eligibleRequests[0]===e.requestId&&p.concurrentOperations.length===0&&p.redirectedFrom===null&&p.hasSignal===true&&p.name==='AbortError'&&p.signalAbort?.aborted===true&&p.signalAbort.reasonName==='AbortError'&&p.signalAbort.operation===p.operation&&p.signalAbort.document===p.document&&p.signalAbort.frameId===p.frameId&&p.signalAbort.at>=p.start&&p.signalAbort.at<=p.at&&p.responseStatus===undefined);
+}
+
+// This is the same bounded original-response EOF claim as the workflow JSON
+// route, restricted to asset content. Raw native ERR_ABORTED stays in evidence.
+// Count + ETag framing is NOT a digest of consumed bytes, font validation,
+// domain success, causal attribution, cleanup, or native transport success.
+export function originalAssetBodyEOF(e,origin,proofs){
+ const r=e?.response;if(e?.channel!=='requestfailed'||e.resourceType!=='fetch'||!Object.values(literals).includes(e.failure?.errorText)||e.method!=='GET'||r?.requestId!==e.requestId||r.url!==e.url||r.method!==e.method||r.status!==200||r.contentType!=='application/octet-stream'||!/^[1-9][0-9]*$/.test(r.contentLength??'')||!/^"sha256:[a-f0-9]{64}"$/.test(r.etag??''))return false;
+ let u;try{u=new URL(e.url);}catch{return false;}
+ if(u.origin!==origin||u.search||u.hash||!/^\/api\/v1\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/content$/.test(u.pathname))return false;
+ if(!Array.isArray(proofs)||proofs.some(p=>!p||typeof p!=='object'))return false;
+ const matches=proofs.filter(p=>p.requestId===e.requestId);if(matches.length!==1)return false;
+ const p=matches[0],w=p.assetBodyEOF,time=n=>Number.isFinite(n)&&n>0,positive=n=>Number.isSafeInteger(n)&&n>0;
+ if(p.association!=='unique-frame-time-window'||p.exactOccurrence!==true||p.bijection!==undefined||p.inferredAssociation!==undefined||p.requestTiming!==undefined||p.requestStartRaw!==undefined||p.url!==e.url||p.method!=='GET'||p.status!==200||!positive(p.requestId)||!positive(p.frameId)||p.frameId!==p.requestFrame||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(p.document??'')||!positive(p.operation)||!Array.isArray(p.eligibleRequests)||p.eligibleRequests.length!==1||p.eligibleRequests[0]!==e.requestId||!Array.isArray(p.concurrentOperations)||p.concurrentOperations.length!==0||p.bodyComplete!==true||p.bodyCanceled!==false||!positive(p.bytes)||String(p.bytes)!==r.contentLength)return false;
+ if(!w||w.kind!=='original-asset-body-eof-1'||w.frameId!==p.frameId||w.document!==p.document||w.operation!==p.operation||w.url!==p.url||w.method!==p.method||w.start!==p.start||w.completedAt!==p.end||w.reader!==1||w.originalReader!==true||w.bytes!==p.bytes||![w.start,w.responseAt,w.readerAt,w.completedAt,p.requestStart].every(time)||!(w.start<=w.responseAt&&w.responseAt<=w.readerAt&&w.readerAt<=w.completedAt&&p.requestStart>=w.start-2&&p.requestStart<=w.responseAt+2))return false;
+ return w.signalAbortAt===null?w.observedRows===4&&p.signalAborted===false:w.observedRows===5&&p.signalAborted===true&&time(w.signalAbortAt)&&w.signalAbortAt>w.completedAt;
 }
