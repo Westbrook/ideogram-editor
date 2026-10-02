@@ -59,7 +59,7 @@ const test=base.extend({context:async({playwright,browserName,contextOptions,vie
 const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
 const button=(page:Page,id:string)=>page.locator('#'+id).getByRole('button');
 async function keyboard(control:Locator){await expect(control).toBeEnabled();await control.focus();await expect(control).toBeFocused();await control.press('Enter');}
-async function currentDocument(page:Page,id:string){await expect.poll(()=>page.evaluate(()=>{const view=(performance.getEntriesByName('ie.editor.updated').at(-1) as PerformanceMark|undefined)?.detail;return view?.ready===true&&view.busy===false?view.documentId:null;})).toBe(id);}
+async function currentDocument(page:Page,id:string,revision?:string){await expect.poll(()=>page.evaluate(expectedRevision=>{const view=(performance.getEntriesByName('ie.editor.updated').at(-1) as PerformanceMark|undefined)?.detail;return view?.ready===true&&view.busy===false&&(expectedRevision===undefined||view.revision===expectedRevision)?view.documentId:null;},revision)).toBe(id);}
 async function number(page:Page,name:string,value:string){const input=page.getByRole('spinbutton',{name,exact:true});await input.fill(value);await input.press('Tab');}
 async function numeric(page:Page,id:string,value:string){const input=page.locator('#'+id).getByRole('spinbutton');await input.fill(value);await input.press('Tab');}
 const digest=(bytes:Uint8Array)=>'sha256:'+createHash('sha256').update(bytes).digest('hex');
@@ -165,6 +165,7 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
     expect(authoredMask.body.plan.feather).toBe(8);
     expect(authoredMask.body.plan.operations.at(-1)).toEqual({kind:'shape',mode:'replace',shape:{kind:'rectangle',x:192,y:192,width:128,height:128}});
     await keyboard(button(page,'request-document'));
+    await expect(page.locator('.typed-request').getByText('Request document revision confirmed.',{exact:true})).toBeVisible();
     await page.locator('#text-treatment-kind').getByRole('combobox').selectOption('native-overlay');
     await page.locator('#text-treatment-retain-'+nativeLayer.id).getByRole('checkbox').check();
     await page.locator('#text-treatment-placement').getByRole('combobox').selectOption('current-document');
@@ -265,12 +266,17 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
     }
     expect(exterior).toBeGreaterThan(0);expect(interior).toBeGreaterThan(0);expect(feather).toBeGreaterThan(0);expect(firstMismatch).toBeNull();
     const acceptedHistory=adoptedDocument.historyHead;
+    await currentDocument(page,documentId,adoptedDocument.revision);
     await keyboard(page.getByRole('button',{name:'Undo',exact:true}));
-    await expect.poll(async()=>(await document(documentId)).image).toEqual(originalDocument.image);
+    let undoneRevision=adoptedDocument.revision;
+    await expect.poll(async()=>{const value=await document(documentId);undoneRevision=value.revision;return value.image;}).toEqual(originalDocument.image);
     expect(await imageState(documentId)).toEqual(originalState);
+    await currentDocument(page,documentId,undoneRevision);
     await keyboard(page.getByRole('button',{name:'Redo',exact:true}));
-    await expect.poll(async()=>(await document(documentId)).historyHead).toBe(acceptedHistory);
+    let redoneRevision=undoneRevision;
+    await expect.poll(async()=>{const value=await document(documentId);redoneRevision=value.revision;return value.historyHead;}).toBe(acceptedHistory);
     expect(await imageState(documentId)).toEqual(adoptedState);
+    await currentDocument(page,documentId,redoneRevision);
     expect(await pixels(source.assetId)).toEqual(sourcePixels);expect(digest(await readFile(objectPath(root,maskPlan.effectiveMask)))).toBe(maskDigest);
     await page.getByRole('treeitem').filter({hasText:'Text'}).click();await click(page,'Edit text');
     await expect(page.locator('#native-text-content')).toHaveValue('Editable overlay');await click(page,'Cancel text edit');
@@ -363,7 +369,7 @@ test(maskReReviewTitle,async({page,context,browserName})=>{
     await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Review the same retained mask with actual returned dimensions');await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');await expect(page.locator('#request-strength').getByRole('spinbutton')).toHaveValue('1');
     await keyboard(button(page,'request-capture-single'));await expect.poll(()=>commands.filter(command=>command.body.type==='PrepareRequestSource').length).toBe(1);
     await page.locator('#request-mask-shape').getByRole('combobox').selectOption('rectangle');for(const [id,value]of [['x','192'],['y','192'],['width','128'],['height','128'],['feather','0']])await numeric(page,'request-mask-'+id,value);
-    await keyboard(button(page,'request-mask-build'));await expect(page.locator('.typed-request')).toContainText('partial coverage');await keyboard(button(page,'request-mapping-preview'));await keyboard(button(page,'request-mask-confirm'));await keyboard(button(page,'request-document'));await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();await keyboard(button(page,'accept-request'));await keyboard(button(page,'enqueue-request'));
+    await keyboard(button(page,'request-mask-build'));await expect(page.locator('.typed-request')).toContainText('partial coverage');await keyboard(button(page,'request-mapping-preview'));await keyboard(button(page,'request-mask-confirm'));await expect(page.locator('#request-mask-status')).toContainText('Request mask plan confirmed.');await keyboard(button(page,'request-document'));await expect(page.locator('.typed-request').getByText('Request document revision confirmed.',{exact:true})).toBeVisible();await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();await keyboard(button(page,'accept-request'));await keyboard(button(page,'enqueue-request'));
     let job:any,view:any;
     await expect.poll(async()=>{job=(await read('/api/v1/queue')).jobs[0];return job?.attempts[0]?.state;}).toBe('provider-terminal');
     await expect.poll(async()=>{view=await read('/api/v1/jobs/'+job.id+'/candidates?attempt='+job.attempts[0].id);return view.items[0]?.state;}).toBe('prepared');
@@ -444,7 +450,7 @@ test(deferredAdoptionTitle,async({page,context,browserName})=>{
     await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await page.getByRole('textbox',{name:'Prompt',exact:true}).fill('Prepare the reviewed masked result only when I accept its new document');await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');await expect(page.locator('#request-strength').getByRole('spinbutton')).toHaveValue('1');
     await keyboard(button(page,'request-capture-single'));await expect.poll(()=>commands.filter(command=>command.body.type==='PrepareRequestSource').length).toBe(1);
     await page.locator('#request-mask-shape').getByRole('combobox').selectOption('rectangle');for(const [id,value]of [['x','192'],['y','192'],['width','128'],['height','128'],['feather','8']])await numeric(page,'request-mask-'+id,value);
-    await keyboard(button(page,'request-mask-build'));await expect(page.locator('.typed-request')).toContainText('partial coverage');await keyboard(button(page,'request-mapping-preview'));await keyboard(button(page,'request-mask-confirm'));await keyboard(button(page,'request-document'));await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();await keyboard(button(page,'accept-request'));await keyboard(button(page,'enqueue-request'));
+    await keyboard(button(page,'request-mask-build'));await expect(page.locator('.typed-request')).toContainText('partial coverage');await keyboard(button(page,'request-mapping-preview'));await keyboard(button(page,'request-mask-confirm'));await expect(page.locator('#request-mask-status')).toContainText('Request mask plan confirmed.');await keyboard(button(page,'request-document'));await expect(page.locator('.typed-request').getByText('Request document revision confirmed.',{exact:true})).toBeVisible();await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();await keyboard(button(page,'accept-request'));await keyboard(button(page,'enqueue-request'));
     let job:any,view:any;
     await expect.poll(async()=>{job=(await read('/api/v1/queue')).jobs[0];return job?.attempts[0]?.state;}).toBe('provider-terminal');
     await expect.poll(async()=>{view=await read('/api/v1/jobs/'+job.id+'/candidates?attempt='+job.attempts[0].id);return view.items[0]?.state;}).toBe('prepared');
@@ -558,6 +564,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     expect(authoredMask.body.plan.feather).toBe(8);
     expect(authoredMask.body.plan.operations.at(-1)).toEqual({kind:'shape',mode:'replace',shape:{kind:'rectangle',x:192,y:192,width:128,height:128}});
     await keyboard(button(page,'request-document'));
+    await expect(page.locator('.typed-request').getByText('Request document revision confirmed.',{exact:true})).toBeVisible();
     await page.locator('#text-treatment-kind').getByRole('combobox').selectOption('native-overlay');
     await page.locator('#text-treatment-retain-'+nativeLayer.id).getByRole('checkbox').check();
     await page.locator('#text-treatment-placement').getByRole('combobox').selectOption('current-document');
@@ -663,12 +670,17 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     }
     expect(exterior).toBeGreaterThan(0);expect(interior).toBeGreaterThan(0);expect(feather).toBeGreaterThan(0);expect(firstMismatch).toBeNull();
     const acceptedHistory=adoptedDocument.historyHead;
+    await currentDocument(page,documentId,adoptedDocument.revision);
     await keyboard(page.getByRole('button',{name:'Undo',exact:true}));
-    await expect.poll(async()=>(await document(documentId)).image).toEqual(originalDocument.image);
+    let undoneRevision=adoptedDocument.revision;
+    await expect.poll(async()=>{const value=await document(documentId);undoneRevision=value.revision;return value.image;}).toEqual(originalDocument.image);
     expect(await imageState(documentId)).toEqual(originalState);
+    await currentDocument(page,documentId,undoneRevision);
     await keyboard(page.getByRole('button',{name:'Redo',exact:true}));
-    await expect.poll(async()=>(await document(documentId)).historyHead).toBe(acceptedHistory);
+    let redoneRevision=undoneRevision;
+    await expect.poll(async()=>{const value=await document(documentId);redoneRevision=value.revision;return value.historyHead;}).toBe(acceptedHistory);
     expect(await imageState(documentId)).toEqual(adoptedState);
+    await currentDocument(page,documentId,redoneRevision);
     expect(await pixels(source.assetId)).toEqual(sourcePixels);expect(digest(await readFile(objectPath(root,maskPlan.effectiveMask)))).toBe(maskDigest);
     await page.getByRole('treeitem').filter({hasText:'Text'}).click();await click(page,'Edit text');
     await expect(page.locator('#native-text-content')).toHaveValue('Editable overlay');await click(page,'Cancel text edit');
