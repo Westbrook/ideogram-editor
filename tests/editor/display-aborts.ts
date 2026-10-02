@@ -1,6 +1,6 @@
 import type {BrowserContext, Request, Page, Frame} from '@playwright/test';
 
-type Observation={kind:string;document:string;operation:number;url:string;method:string;start:number;at:number;frameId:number;hasSignal?:boolean;aborted?:boolean;status?:number;responseURL?:string;redirected?:boolean;reader?:number;bytes?:number;errorName?:string;originalReader?:boolean};
+type Observation={kind:string;document:string;operation:number;url:string;method:string;start:number;at:number;frameId:number;hasSignal?:boolean;aborted?:boolean;status?:number;responseURL?:string;redirected?:boolean;reader?:number;bytes?:number;errorName?:string;originalReader?:boolean;readCalls?:number};
 type OriginalRequest={requestId:number;frameId:number;url:string;method:string;resourceType:string;startTime:number;redirected:boolean;response?:{url:string;status:number;fromServiceWorker:boolean}};
 export const DISPLAY_OBSERVATION_LIMIT=20000,DISPLAY_REQUEST_LIMIT=5000;
 export const displayReadPath=(url:string)=>/^\/api\/v1\/(?:events\/stream|assets\/[^/]+(?:\/display-tile)?|(?:documents|ui)\/[^/]+\/composition|documents\/[^/]+\/(?:image|history|checkpoints|save-status)|ui\/[^/]+|queue)$/.test(new URL(url).pathname);
@@ -36,6 +36,17 @@ export function displayReadProofs(events:readonly Observation[],requests:readonl
   if(!(s.at<=r.at&&r.at<=reader.at&&reader.at<=done.at)||abort&&(s.hasSignal!==true||abort.aborted!==true||abort.at<=done.at))return null;
   return {kind:'original-asset-body-eof-1' as const,frameId:s.frameId,document:s.document,operation:s.operation,url:s.url,method:s.method,start:s.start,responseAt:r.at,readerAt:reader.at,completedAt:done.at,signalAbortAt:abort?.at??null,reader:1,originalReader:true as const,bytes:done.bytes!,observedRows:op.rows.length};
  };
+ // Rejection cancellation is separate from EOF: the original reader's cancel
+ // fulfilled without any read call. Call rows also retain later/pending calls,
+ // so a terminal scalar snapshot cannot hide subsequent reads or cancels.
+ const assetRejectionCancel=(op:Candidate,q:OriginalRequest)=>{
+  const [s,r,reader,call,done,abort]=op.rows;
+  if(op.rows.length!==5&&op.rows.length!==6||s?.kind!=='start'||r?.kind!=='response'||reader?.kind!=='reader'||call?.kind!=='asset-cancel-call'||done?.kind!=='cancel'||op.rows.length===6&&abort?.kind!=='abort')return null;
+  const u=new URL(s.url);
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s.document)||s.method!=='GET'||u.search||u.hash||!/^\/api\/v1\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/content$/.test(u.pathname)||typeof s.hasSignal!=='boolean'||r.status!==404||reader.reader!==1||call.reader!==1||done.reader!==1||call.originalReader!==true||done.originalReader!==true||call.readCalls!==0||done.readCalls!==0||call.bytes!==0||done.bytes!==0||q.redirected!==false||q.response?.fromServiceWorker!==false||requests.filter(other=>other.requestId===q.requestId).length!==1)return null;
+  if(!(s.at<=r.at&&r.at<=reader.at&&reader.at<=call.at&&call.at<=done.at)||abort&&(s.hasSignal!==true||abort.aborted!==true||abort.at<done.at))return null;
+  return {kind:'original-asset-rejection-cancel-1' as const,frameId:s.frameId,document:s.document,operation:s.operation,url:s.url,method:s.method,start:s.start,responseAt:r.at,readerAt:reader.at,cancelCalledAt:call.at,cancelFulfilledAt:done.at,signalAbortAt:abort?.at??null,reader:1,originalReader:true as const,readCalls:0 as const,bytes:0 as const,observedRows:op.rows.length};
+ };
  const overlap=(op:Candidate)=>candidates.filter(other=>other!==op&&!!other.start&&!!op.start&&other.start.frameId===op.start.frameId&&other.start.document===op.start.document&&other.start.url===op.start.url&&other.start.method===op.start.method&&other.start.start<=op.end&&other.end>=op.start.start);
  // Row/terminal/native-response checks are shared by both association paths.
  const proofFor=(op:Candidate,q:OriginalRequest)=>{
@@ -57,8 +68,8 @@ export function displayReadProofs(events:readonly Observation[],requests:readonl
   const bodyComplete=!!r&&readers.length===1&&completed.length===1&&!readFailed;
   const bodyCanceled=!!r&&canceled.some(e=>e.reader===0||e.reader===1&&readers.length===1);
   if(!signalAborted&&!bodyCanceled&&!bodyComplete)return null;
-  const assetBodyEOF=bodyComplete?assetEOF(op,q):null;
-  return {...assetBodyEOF?{assetBodyEOF}:{},requestId:q.requestId,url:s.url,method:s.method,signalAborted,bodyCanceled,bodyComplete,...bodyComplete?{bytes:completed[0].bytes}:{},...r?{status:r.status}:{},exactOccurrence:true as const,association:'unique-frame-time-window' as const,frameId:s.frameId,requestFrame:q.frameId,document:s.document,operation:s.operation,start:s.start,end:Number.isFinite(op.end)?op.end:null,requestStart:q.startTime,eligibleRequests:[q.requestId],concurrentOperations:[]};
+  const assetBodyEOF=bodyComplete?assetEOF(op,q):null,assetRejectionCancellation=bodyCanceled?assetRejectionCancel(op,q):null;
+  return {...assetBodyEOF?{assetBodyEOF}:{},...assetRejectionCancellation?{assetRejectionCancellation}:{},requestId:q.requestId,url:s.url,method:s.method,signalAborted,bodyCanceled,bodyComplete,...bodyComplete?{bytes:completed[0].bytes}:{},...r?{status:r.status}:{},exactOccurrence:true as const,association:'unique-frame-time-window' as const,frameId:s.frameId,requestFrame:q.frameId,document:s.document,operation:s.operation,start:s.start,end:Number.isFinite(op.end)?op.end:null,requestStart:q.startTime,eligibleRequests:[q.requestId],concurrentOperations:[]};
  };
  // Buckets include every raw row group and native entry before validation.
  // A corrupt/startless group cannot be filtered away to manufacture uniqueness.
@@ -185,14 +196,15 @@ export function installDisplayReadObserver(){
    const clone=response.clone;response.clone=function(this:Response,...args:[]){emit('clone');return Reflect.apply(clone,this,args);};
    const body=response.body;if(!body)return;
    const assetBody=/^\/api\/v1\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/content$/.test(url.pathname)&&!url.search&&!url.hash;
+   const rejectedAssetBody=assetBody&&response.status===404;
    const getReader=body.getReader,cancel=body.cancel,tee=body.tee;let readers=0;
    body.tee=function(this:ReadableStream<Uint8Array>,...args:[]){emit('tee');return Reflect.apply(tee,this,args);};
-   body.cancel=function(this:ReadableStream<Uint8Array>,...args:Parameters<typeof cancel>){const p=Reflect.apply(cancel,this,args);watch(p,()=>emit('cancel',{reader:0}),e=>emit('cancel-rejected',{reader:0,errorName:e?.name}));return p;};
+   body.cancel=function(this:ReadableStream<Uint8Array>,...args:Parameters<typeof cancel>){if(rejectedAssetBody)emit('asset-cancel-call',{reader:0});const p=Reflect.apply(cancel,this,args);watch(p,()=>emit('cancel',{reader:0}),e=>emit('cancel-rejected',{reader:0,errorName:e?.name}));return p;};
    body.getReader=function(this:ReadableStream<Uint8Array>,...args:any[]){
-    const originalBody=this===body,reader=Reflect.apply(getReader,this,args),read=reader.read,cancelReader=reader.cancel,number=++readers;let bytes=0,originalReader=originalBody;
+    const originalBody=this===body,reader=Reflect.apply(getReader,this,args),read=reader.read,cancelReader=reader.cancel,number=++readers;let bytes=0,readCalls=0,originalReader=originalBody;
     try{emit('reader',{reader:number});
-    reader.read=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){originalReader&&=this===reader;const p=Reflect.apply(read,this,args) as Promise<ReadableStreamReadResult<Uint8Array>>;watch(p,part=>{if(part.done)emit('complete',{reader:number,bytes,...assetBody?{originalReader}:{}});else{bytes+=part.value.byteLength;if(!Number.isSafeInteger(bytes))emit('observer-error');}},e=>emit('read-rejected',{reader:number,errorName:e?.name}));return p;};
-    reader.cancel=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){const p=Reflect.apply(cancelReader,this,args);watch(p,()=>emit('cancel',{reader:number}),e=>emit('cancel-rejected',{reader:number,errorName:e?.name}));return p;};
+    reader.read=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){originalReader&&=this===reader;if(rejectedAssetBody)emit('asset-read-call',{reader:number,originalReader,readCalls:++readCalls});const p=Reflect.apply(read,this,args) as Promise<ReadableStreamReadResult<Uint8Array>>;watch(p,part=>{if(part.done)emit('complete',{reader:number,bytes,...assetBody?{originalReader}:{}});else{bytes+=part.value.byteLength;if(!Number.isSafeInteger(bytes))emit('observer-error');}},e=>emit('read-rejected',{reader:number,errorName:e?.name}));return p;};
+    reader.cancel=function(this:ReadableStreamDefaultReader<Uint8Array>,...args:any[]){const originalCancelReader=originalReader&&this===reader;if(rejectedAssetBody)emit('asset-cancel-call',{reader:number,originalReader:originalCancelReader,readCalls,bytes});const p=Reflect.apply(cancelReader,this,args);watch(p,()=>emit('cancel',{reader:number,...rejectedAssetBody?{originalReader:originalCancelReader,readCalls,bytes}:{}}),e=>emit('cancel-rejected',{reader:number,errorName:e?.name}));return p;};
     }catch(error){fail(error);}
     return reader;
    } as typeof body.getReader;

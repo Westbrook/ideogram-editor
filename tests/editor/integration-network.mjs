@@ -10,6 +10,7 @@ export function integrationCancellation(e,origin,engine,downloads=[],faults=[],f
  const u=new URL(e.url);if(u.origin!==origin)return false;
  if(originalRecoveryCompletion(e,recovery.proofs??[]))return 'abort-with-proven-original-recovery-body';
  if(originalAssetBodyEOF(e,origin,workflowProofs))return 'exact-original-asset-response-eof';
+ if(originalRejectedAssetCancellation(e,origin,faults,workflowProofs))return 'own-rejected-asset-original-reader-cancellation';
  if(u.search)return false;
  // server/storage/portable.ts localId creates this exact imported namespace.
  // The document HEAD endpoint ends after the authoritative entity version.
@@ -55,4 +56,21 @@ export function originalAssetBodyEOF(e,origin,proofs){
  if(p.association!=='unique-frame-time-window'||p.exactOccurrence!==true||p.bijection!==undefined||p.inferredAssociation!==undefined||p.requestTiming!==undefined||p.requestStartRaw!==undefined||p.url!==e.url||p.method!=='GET'||p.status!==200||!positive(p.requestId)||!positive(p.frameId)||p.frameId!==p.requestFrame||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(p.document??'')||!positive(p.operation)||!Array.isArray(p.eligibleRequests)||p.eligibleRequests.length!==1||p.eligibleRequests[0]!==e.requestId||!Array.isArray(p.concurrentOperations)||p.concurrentOperations.length!==0||p.bodyComplete!==true||p.bodyCanceled!==false||!positive(p.bytes)||String(p.bytes)!==r.contentLength)return false;
  if(!w||w.kind!=='original-asset-body-eof-1'||w.frameId!==p.frameId||w.document!==p.document||w.operation!==p.operation||w.url!==p.url||w.method!==p.method||w.start!==p.start||w.completedAt!==p.end||w.reader!==1||w.originalReader!==true||w.bytes!==p.bytes||![w.start,w.responseAt,w.readerAt,w.completedAt,p.requestStart].every(time)||!(w.start<=w.responseAt&&w.responseAt<=w.readerAt&&w.readerAt<=w.completedAt&&p.requestStart>=w.start-2&&p.requestStart<=w.responseAt+2))return false;
  return w.signalAbortAt===null?w.observedRows===4&&p.signalAborted===false:w.observedRows===5&&p.signalAborted===true&&time(w.signalAbortAt)&&w.signalAbortAt>w.completedAt;
+}
+
+// Only an explicitly declared own404 fault can use this rejection disposition.
+// The original reader cancel fulfilled without a read; the native failure stays
+// recorded. This is not EOF, a hash/font proof, transport success or abort cause.
+export function originalRejectedAssetCancellation(e,origin,faults,proofs){
+ const r=e?.response;if(e?.channel!=='requestfailed'||e.resourceType!=='fetch'||!Object.values(literals).includes(e.failure?.errorText)||e.method!=='GET'||r?.requestId!==e.requestId||r.url!==e.url||r.method!==e.method||r.status!==404||r.contentType!=='application/json; charset=utf-8'||typeof r.contentLength!=='string'||!/^[1-9][0-9]*$/.test(r.contentLength)||!Number.isSafeInteger(Number(r.contentLength)))return false;
+ let u;try{u=new URL(e.url);}catch{return false;}
+ if(u.origin!==origin||u.search||u.hash||!/^\/api\/v1\/assets\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/content$/.test(u.pathname))return false;
+ if(!Array.isArray(faults)||faults.some(f=>!f||typeof f!=='object'))return false;
+ const declared=faults.filter(f=>f.url===e.url);if(declared.length!==1||declared[0].status!==404||declared[0].reason!=='Own exact font object removed; retained canonical pixels remain present.')return false;
+ if(!Array.isArray(proofs)||proofs.some(p=>!p||typeof p!=='object'))return false;
+ const matches=proofs.filter(p=>p.requestId===e.requestId);if(matches.length!==1)return false;
+ const p=matches[0],w=p.assetRejectionCancellation,time=n=>Number.isFinite(n)&&n>0,positive=n=>Number.isSafeInteger(n)&&n>0;
+ if(p.association!=='unique-frame-time-window'||p.exactOccurrence!==true||p.bijection!==undefined||p.inferredAssociation!==undefined||p.requestTiming!==undefined||p.requestStartRaw!==undefined||p.url!==e.url||p.method!=='GET'||p.status!==404||!positive(p.requestId)||!positive(p.frameId)||p.frameId!==p.requestFrame||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(p.document??'')||!positive(p.operation)||!Array.isArray(p.eligibleRequests)||p.eligibleRequests.length!==1||p.eligibleRequests[0]!==e.requestId||!Array.isArray(p.concurrentOperations)||p.concurrentOperations.length!==0||p.bodyComplete!==false||p.bodyCanceled!==true||p.bytes!==undefined||p.assetBodyEOF!==undefined)return false;
+ if(!w||w.kind!=='original-asset-rejection-cancel-1'||w.frameId!==p.frameId||w.document!==p.document||w.operation!==p.operation||w.url!==p.url||w.method!==p.method||w.start!==p.start||w.cancelFulfilledAt!==p.end||w.reader!==1||w.originalReader!==true||w.readCalls!==0||w.bytes!==0||![w.start,w.responseAt,w.readerAt,w.cancelCalledAt,w.cancelFulfilledAt,p.requestStart].every(time)||!(w.start<=w.responseAt&&w.responseAt<=w.readerAt&&w.readerAt<=w.cancelCalledAt&&w.cancelCalledAt<=w.cancelFulfilledAt&&p.requestStart>=w.start-2&&p.requestStart<=w.responseAt+2))return false;
+ return w.signalAbortAt===null?w.observedRows===5&&p.signalAborted===false:w.observedRows===6&&p.signalAborted===true&&time(w.signalAbortAt)&&w.signalAbortAt>=w.cancelFulfilledAt;
 }

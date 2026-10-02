@@ -599,20 +599,21 @@ export class Histories {
       const length=placementMetadataBytes(value,maximum,reason),owned=this.rasters.compositionMemory.ownedMetadata(length,()=>Buffer.from(canonical(value)));
       try{if(owned.value.byteLength!==length)throw new StoreError('CORRUPT_STORE');const ref=this.objects.putJSONInSlot(owned.value,slot);await protect(ref);return ref;}finally{owned.release();}
     };
+    let replacementSource:string|undefined;
     const frozenText=b.type==='Undo'||b.type==='Redo'||b.type==='SwitchBranch'||b.type==='PrepareRequestSource';
     // Frozen use never executes fonts. Only absent exact FontVersion.bytes may
     // be unavailable; metadata, layouts, profiles, licenses and pixels retain
     // their ordinary proofs. Present but corrupt/unsafe font files still reject.
-    const protectFontBytes=async(ref:BlobRef)=>{
-      try{await protect(ref);}catch(error){if(!frozenText||!(error instanceof StoreError)||error.code!=='MISSING_OBJECT')throw error;}
+    const protectFontBytes=async(ref:BlobRef,allowMissing=false)=>{
+      try{await protect(ref);}catch(error){if(!(frozenText||allowMissing)||!(error instanceof StoreError)||error.code!=='MISSING_OBJECT')throw error;}
     };
     const fontOnlyRefs=(source:ReturnType<Texts['source']>)=>{
       const required=new Set([source.text.textUtf8,source.render.layout,source.render.pixels,source.render.rendererProfile.manifest,...source.text.fonts.map(font=>font.licenseRecord)].map(ref=>canonical(ref)));
       return new Set(source.text.fonts.map(font=>canonical(font.bytes)).filter(key=>!required.has(key)));
     };
     const protectTextSource=async(ref:BlobRef)=>{
-      await protect(ref);const source=this.texts.source(ref),fonts=fontOnlyRefs(source);
-      for(const dependency of textRefs(source))await (fonts.has(canonical(dependency))?protectFontBytes:protect)(dependency);
+      await protect(ref);const source=this.texts.source(ref),fonts=fontOnlyRefs(source),allowMissing=canonical(ref)===replacementSource;
+      for(const dependency of textRefs(source))await (fonts.has(canonical(dependency))?protectFontBytes(dependency,allowMissing):protect(dependency));
     };
     const assetIds=new Set<string>(),assetIdentities=new Map<string,string>(),versionIds=new Set<string>(),lineageIds=new Set<string>(),evidenceAttempts=new Set<string>();
     const protectAsset=async(id:string):Promise<void>=>{
@@ -880,7 +881,17 @@ export class Histories {
             facts.push({type:'AssetRegistered',payload:{asset:textAsset}});
             after=structuredClone(before);after.schemaVersion=before.schemaVersion>=3?before.schemaVersion:2;const old=after.layers.find(l=>l.id===b.layerId);
             if((b.type==='CreateTextLayer'||b.type==='CreateTextFromReturnedDescription')){if(this.usedLayer(document.id,b.layerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');after.layers.push({id:b.layerId,version:'1',kind:'text',source,name:b.name,assetId:textAsset.id,layerToDocument:[1,0,0,1,b.placement?.x??0,b.placement?.y??0],opacity:1,visible:true,locked:false,blend:'normal',mask:null});}
-            else{if(!old||old.kind!=='text'||old.version!==b.layerVersion)throw new AssetRejection('STALE_REVISION','TEXT_LAYER_CHANGED');if(old.locked)throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');const prior=this.texts.source(old.source);if(b.type==='CommitTextEdit'&&canonical(prior.text.fonts)!==canonical(textCandidate.source.text.fonts))throw new AssetRejection('INCOMPATIBLE','REVIEWED_FONT_REPLACEMENT_REQUIRED');old.assetId=textAsset.id;old.source=source;old.version=String(BigInt(old.version)+1n);}
+            else{if(!old||old.kind!=='text'||old.version!==b.layerVersion)throw new AssetRejection('STALE_REVISION','TEXT_LAYER_CHANGED');if(old.locked)throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');const prior=this.texts.source(old.source);if(b.type==='CommitTextEdit'&&canonical(prior.text.fonts)!==canonical(textCandidate.source.text.fonts))throw new AssetRejection('INCOMPATIBLE','REVIEWED_FONT_REPLACEMENT_REQUIRED');
+              if(b.type==='ReplaceTextFont'){
+                // Prove unrelated owners before permitting the target's old font.
+                // Shared assets/sources must not inherit the exception via visited sets.
+                for(const layer of before.layers){
+                  if(layer.id!==old.id){await protectAsset(layer.assetId);if(layer.kind==='text')await protectTextSource(layer.source);}
+                  if(layer.mask)await protectAsset(layer.mask.assetId);
+                }
+                replacementSource=canonical(old.source);
+              }
+              old.assetId=textAsset.id;old.source=source;old.version=String(BigInt(old.version)+1n);}
           }else if(b.type==='RasterizeTextDerivative'){
             after=structuredClone(before);const old=after.layers.find(l=>l.id===b.layerId);if(!old||old.kind!=='text'||old.version!==b.layerVersion)throw new AssetRejection('STALE_REVISION','TEXT_LAYER_CHANGED');if(old.locked)throw new AssetRejection('INVALID_INPUT','LAYER_LOCKED');if(this.texts.source(old.source).render.id!==b.reviewedRender)throw new AssetRejection('STALE_REVISION','TEXT_DERIVATIVE_REVIEW_CHANGED');if(this.usedLayer(document.id,b.newLayerId))throw new AssetRejection('INVALID_INPUT','LAYER_ID_REUSE');const {source,kind,...props}=old;after.layers.splice(after.layers.indexOf(old)+1,0,{...props,id:b.newLayerId,version:'1',name:b.name,kind:'image'});if(b.hideOriginal){old.visible=false;old.version=String(BigInt(old.version)+1n);}
           }else after=this.edit(c,document,before);

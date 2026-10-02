@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
-import {readFile,writeFile,unlink} from 'node:fs/promises';
+import {readFile,writeFile,unlink,symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {Worker} from 'node:worker_threads';
 import {setup,upload,workspace,edit,doc,copy,preview} from '../portable/helpers.mjs';
@@ -77,15 +77,15 @@ async function nativeSource(f,font,profileBytes,literal){
   const render=identify({schemaVersion:1,textVersion:text.id,rendererProfile:{schemaVersion:1,id:profile.id,manifest},dependencyHash,layout,pixels,width:rendered.width,height:rendered.height,overflow:rendered.overflow,resolvedFonts:[font.id]});
   return {schemaVersion:1,text,render};
 }
-async function preparedText(f,source,profile,{create=false}={}){
-  const document=await doc(f),layer=(await image(f)).layers.find(layer=>layer.id===nativeId),draftId='draft_'+randomUUID();
-  const token={documentId:document.id,documentRevision:document.revision,layerId:nativeId,layerVersion:create?'0':layer.version,sessionId,generation:1};
+async function preparedText(f,source,profile,{create=false,replace=false,layerId=nativeId}={}){
+  const document=await doc(f),layer=(await image(f)).layers.find(layer=>layer.id===layerId),draftId='draft_'+randomUUID();
+  const token={documentId:document.id,documentRevision:document.revision,layerId,layerVersion:create?'0':layer.version,sessionId,generation:1};
   const candidate=await put(f,Buffer.from(canonical({schemaVersion:1,token,source})),'application/json');
   const draft=await stage(f,Buffer.from(canonical({schemaVersion:1,kind:'text-draft-1',textUtf8:source.text.textUtf8,style:source.text.style,frame:source.text.frame,fonts:source.text.fonts})),'caption','text/plain');
-  await ui(f,{type:'SaveDraft',draft:{id:draftId,generation:'1',kind:'text',documentId:document.id,targetLayerId:create?null:nativeId,expectedDocumentRevision:document.revision,assetId:draft.id,composing:false}});
+  await ui(f,{type:'SaveDraft',draft:{id:draftId,generation:'1',kind:'text',documentId:document.id,targetLayerId:create?null:layerId,expectedDocumentRevision:document.revision,assetId:draft.id,composing:false}});
   const literal=(await retained(f,source.text.textUtf8)).toString(),budget=verificationBudget(literal,frame.width,frame.height,source.text.fonts.reduce((sum,font)=>sum+Number(font.bytes.byteLength),0),profile.engine.wasm.bytes);
   const admissionId=randomUUID()+'_1_'+budget.bytes;assert.equal((await f.post('/api/v1/text-admission/'+admissionId,{protocolVersion:1})).status,200);
-  const body={type:create?'CreateTextLayer':'CommitTextEdit',layerId:nativeId,...(create?{name:'Frozen native text'}:{layerVersion:layer.version,reviewedDependencyHash:source.render.dependencyHash}),candidate,draft:{sessionId,draftId,generation:'1'},admissionId};
+  const body={type:create?'CreateTextLayer':replace?'ReplaceTextFont':'CommitTextEdit',layerId,...(create?{name:'Frozen native text'}:{layerVersion:layer.version,reviewedDependencyHash:source.render.dependencyHash}),candidate,draft:{sessionId,draftId,generation:'1'},admissionId};
   return {document,body,release:async()=>assert.equal((await f.post('/api/v1/text-admission/'+admissionId+'/release',{protocolVersion:1})).status,200)};
 }
 async function fixture(t){
@@ -180,4 +180,63 @@ test('imported captured native ancestry keeps its exact metadata when the local 
     assert.deepEqual(await metadata(target,sourceRef),originalMetadata);
     await rejected(target,{type:'SaveCopy'},id);
   });
+});
+
+async function substitutionFixture(t){
+  const value=await fixture(t),{f,profile,profileBytes}=value,bundled=profile.fonts.find(font=>font.id==='NotoSansArabic');
+  const bytes=(await stage(f,await readFile('vendor/text/'+bundled.file),'font','application/octet-stream')).blob,license=(await stage(f,await readFile('vendor/text/'+bundled.licenseFile),'caption','text/plain')).blob;
+  const replacementFont=(await edit(f,{type:'ImportFont',source:bytes,license,origin:'bundled',embeddingReviewed:true})).event.payload.asset.font;
+  const replacement=await nativeSource(f,replacementFont,profileBytes,'مرحبا');
+  assert.notEqual(replacementFont.bytes.hash,value.font.bytes.hash);
+  return {...value,replacementFont,replacement};
+}
+async function rejectSubstitution(f,replacement,profile){
+  // Bind the real candidate to the current owner after every fixture mutation.
+  const prepared=await preparedText(f,replacement,profile,{replace:true});
+  try{
+    const before=await doc(f),state=await image(f),result=await run(f,prepared.body,'document_1',{sessionId});
+    assert.equal(result.receipt.status,'rejected',result.response.text);assert.equal(result.receipt.code,'MISSING_ASSET',result.response.text);
+    assert.deepEqual(await doc(f),before);assert.deepEqual(await image(f),state);
+    assert.deepEqual((await terminal(f,result.command)).json.receipt,result.receipt);
+  }finally{await prepared.release();}
+}
+
+test('reviewed font replacement admits only the target missing font and retains exact history and copy limitations',async t=>{
+  const {f,font,source,sourceRef,profile,replacement}=await substitutionFixture(t),before=await doc(f),beforeState=await image(f);
+  await without(f,font.bytes,async()=>{
+    const prepared=await preparedText(f,replacement,profile,{replace:true});let result;
+    try{result=await run(f,prepared.body,'document_1',{sessionId});assert.equal(result.receipt.status,'accepted',result.response.text);}finally{await prepared.release();}
+    const after=await doc(f),afterState=await image(f),layer=afterState.layers.find(layer=>layer.id===nativeId),changes=(await events(f,result.receipt)).filter(event=>event.type==='ImageEdited');
+    assert.equal(changes.length,1);assert.equal(changes[0].payload.history.operation,'ReplaceTextFont');assert.equal(changes[0].payload.history.parent,before.historyHead);assert.deepEqual(changes[0].payload.history.before,before.image);assert.deepEqual(changes[0].payload.history.after,after.image);
+    assert.equal(after.historyHead,changes[0].payload.history.id);assert.equal(after.revision,String(BigInt(before.revision)+1n));assert.equal(layer.version,'2');assert.deepEqual(await metadata(f,layer.source),replacement);
+    assert.deepEqual(await metadata(f,sourceRef),source);await assert.rejects(readFile(objectPath(f,font.bytes)),{code:'ENOENT'});await rejected(f,{type:'SaveCopy'});
+    const undone=await accepted(f,{type:'Undo',historyHead:after.historyHead});assert.deepEqual(undone.document.image,before.image);assert.deepEqual(await image(f),beforeState);
+    const redone=await accepted(f,{type:'Redo',historyNode:after.historyHead});assert.deepEqual(redone.document.image,after.image);assert.deepEqual(await image(f),afterState);await rejected(f,{type:'SaveCopy'});
+  });
+  // Restoring the exact old font repairs full-history closure, not the substitution.
+  const repaired=await copy(f);assert.equal(repaired.bundle.status,'copy-ready');
+});
+
+for(const alias of ['shared-asset','shared-source','shared-font'])test('font replacement cannot waive an unrelated '+alias+' owner',async t=>{
+  const {f,font,source,profile,profileBytes,replacement}=await substitutionFixture(t);
+  if(alias==='shared-asset')await accepted(f,{type:'DuplicateLayer',layerId:nativeId,layerVersion:'1',newLayerId:'unrelated_native',name:'Other retained owner',draft:null});
+  else{
+    const otherSource=alias==='shared-source'?source:await nativeSource(f,font,profileBytes,'Different retained text');
+    const prepared=await preparedText(f,otherSource,profile,{create:true,layerId:'unrelated_native'});
+    try{const result=await run(f,prepared.body,'document_1',{sessionId});assert.equal(result.receipt.status,'accepted',result.response.text);}finally{await prepared.release();}
+  }
+  const state=await image(f),target=state.layers.find(layer=>layer.id===nativeId),other=state.layers.find(layer=>layer.id==='unrelated_native');
+  assert(state.layers.indexOf(target)<state.layers.indexOf(other),'The eligible target is visited before the unrelated alias');
+  if(alias==='shared-asset')assert.equal(other.assetId,target.assetId);else assert.notEqual(other.assetId,target.assetId);
+  if(alias==='shared-font')assert.notDeepEqual(other.source,target.source);else assert.deepEqual(other.source,target.source);
+  await without(f,font.bytes,()=>rejectSubstitution(f,replacement,profile));
+});
+
+for(const damage of ['replacement-font','old-source','old-text','old-layout','old-license','old-profile','old-pixels','corrupt-old-font','unsafe-old-font'])test('font replacement retains strict '+damage+' proofs',async t=>{
+  const {f,font,source,sourceRef,profile,replacementFont,replacement}=await substitutionFixture(t);
+  const ref=damage==='replacement-font'?replacementFont.bytes:damage==='old-source'?sourceRef:damage==='old-text'?source.text.textUtf8:damage==='old-layout'?source.render.layout:damage==='old-license'?font.licenseRecord:damage==='old-profile'?source.render.rendererProfile.manifest:damage==='old-pixels'?source.render.pixels:font.bytes;
+  await without(f,ref,async()=>{
+    const unsafe=damage==='unsafe-old-font',path=objectPath(f,ref);if(unsafe)await symlink(objectPath(f,replacementFont.bytes),path);
+    try{await rejectSubstitution(f,replacement,profile);}finally{if(unsafe)await unlink(path);}
+  },{corrupt:damage==='corrupt-old-font'});
 });

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {integrationCancellation as classify,originalAssetBodyEOF} from './integration-network.mjs';
+import {integrationCancellation as classify,originalAssetBodyEOF,originalRejectedAssetCancellation} from './integration-network.mjs';
 const origin='http://127.0.0.1:54321',url=origin+'/api/v1/assets/00000000-0000-0000-0000-000000000001/content';
 const head={channel:'requestfailed',requestId:7,url,method:'HEAD',resourceType:'fetch',failure:{errorText:'net::ERR_ABORTED'},response:{requestId:7,url,method:'HEAD',status:404,contentType:'application/json; charset=utf-8'}};
 const fault={url,status:404,reason:'Fixture removed the actual exact font object'};
@@ -147,5 +147,110 @@ test('actual observer records original asset reader provenance without replacing
   assert.deepEqual(observed.map(e=>e.kind),['start','response','reader','complete']);assert.equal(observed.at(-1).originalReader,borrow==='none');assert.equal(observed.at(-1).bytes,64);
   const rows=observed.map(e=>({...e,frameId:1})),native={requestId:7,frameId:1,url,method:'GET',resourceType:'fetch',startTime:rows[0].start,redirected:false,response:{url,status:200,fromServiceWorker:false}},event=assetRead().event;event.requestId=event.response.requestId=7;
   assert.equal(withWorkflow(event,'chromium',displayReadProofs(rows,[native])),borrow==='none'?assetEOFReason:false);
+ }
+});
+
+
+const rejectionReason='own-rejected-asset-original-reader-cancellation';
+const missingFontFault={url,status:404,reason:'Own exact font object removed; retained canonical pixels remain present.'};
+function rejectedAsset(engine='chromium',lateAbort=true){
+ const x=workflowRead('GET','/api/v1/assets/00000000-0000-0000-0000-000000000001/content',404,engine);
+ x.rows[0].hasSignal=lateAbort;
+ x.rows.splice(3,1,{...x.rows[2],kind:'asset-cancel-call',at:112,originalReader:true,readCalls:0,bytes:0},{...x.rows[2],kind:'cancel',at:120,originalReader:true,readCalls:0,bytes:0});
+ if(lateAbort)x.rows.push({...x.rows[0],kind:'abort',at:130,aborted:true});
+ Object.assign(x.event.response,{contentLength:'163'});return x;
+}
+const withRejection=(x,proofs=displayReadProofs(x.rows,[x.native]),faults=[missingFontFault],engine='chromium')=>classify(x.event,origin,engine,[],faults,[],[],{proofs:[],sse:[]},proofs);
+test('own declared font404 rejection accepts only observed fulfilled original-reader cancellation, retaining native failure',()=>{
+ for(const engine of ['chromium','firefox','webkit'])for(const lateAbort of [false,true]){
+  const x=rejectedAsset(engine,lateAbort),before=structuredClone(x),proofs=displayReadProofs(x.rows,[x.native]);assert.equal(proofs.length,1);
+  assert.deepEqual(proofs[0].assetRejectionCancellation,{kind:'original-asset-rejection-cancel-1',frameId:1,document:x.rows[0].document,operation:1,url:x.event.url,method:'GET',start:100,responseAt:110,readerAt:111,cancelCalledAt:112,cancelFulfilledAt:120,signalAbortAt:lateAbort?130:null,reader:1,originalReader:true,readCalls:0,bytes:0,observedRows:lateAbort?6:5});
+  assert.equal(withRejection(x,proofs,[missingFontFault],engine),rejectionReason);assert.equal(proofs[0].bodyComplete,false);assert.equal(proofs[0].bodyCanceled,true);assert.equal(Object.hasOwn(proofs[0],'bytes'),false);assert.equal(Object.hasOwn(proofs[0],'assetBodyEOF'),false);assert.deepEqual(x,before);
+ }
+ // The observer row order is strict even when the native clock has equal values;
+ // no unobserved elapsed interval or abort-cause claim is manufactured.
+ const equal=rejectedAsset();equal.rows[5].at=equal.rows[4].at;assert.equal(withRejection(equal),rejectionReason);
+ const old=rejectedAsset();old.rows.splice(3,1);delete old.rows[3].originalReader;delete old.rows[3].readCalls;delete old.rows[3].bytes;
+ assert.equal(displayReadProofs(old.rows,[old.native])[0].bodyCanceled,true);assert.equal(withRejection(old),false,'run106-style scalar cancellation is not the new original-call witness');
+});
+test('rejected asset disposition requires its exact declared missing-font fault and public404 response',()=>{
+ const x=rejectedAsset(),proofs=displayReadProofs(x.rows,[x.native]);
+ for(const faults of [[],[fault],[{...missingFontFault,url:url+'?other'}],[{...missingFontFault,status:503}],[{...missingFontFault,reason:''}],[missingFontFault,{...missingFontFault}],null,{},[null]])assert.equal(originalRejectedAssetCancellation(x.event,origin,faults,proofs),false);
+ const edits=[e=>e.channel='response',e=>e.resourceType='other',e=>e.failure.errorText='net::ERR_FAILED',e=>e.method=e.response.method='POST',e=>e.response.requestId++,e=>e.response.url+='?other',e=>e.response.method='HEAD',e=>e.response.status=200,e=>e.response.status=503,e=>e.response.contentType='application/octet-stream',e=>delete e.response.contentLength,e=>e.response.contentLength='0163',e=>e.response.contentLength='0',e=>e.response.contentLength=163,e=>e.response.contentLength=String(Number.MAX_SAFE_INTEGER+1)];
+ for(const [i,edit]of edits.entries()){const bad=structuredClone(x);edit(bad.event);assert.equal(withRejection(bad,proofs),false,'public framing '+i);}
+ for(const target of [url+'?extra=1',url+'#fragment',url.replace(origin,'http://127.0.0.1:54322'),origin+'/api/v1/assets/not-an-id/content',origin+'/assets/font.ttf']){
+  const y=rejectedAsset();y.event.url=y.event.response.url=y.native.url=y.native.response.url=target;for(const row of y.rows){row.url=target;if(row.responseURL)row.responseURL=target;}
+  assert.equal(withRejection(y,undefined,[{...missingFontFault,url:target}]),false,target);
+ }
+});
+test('rejected asset witness refuses any read call, duplicate cancellation, incomplete collection or non-original receiver',()=>{
+ const mutations=[x=>x.rows.splice(0,1),x=>x.rows.splice(1,1),x=>x.rows.splice(2,1),x=>x.rows.splice(3,1),x=>x.rows.splice(4,1),x=>x.rows[3].originalReader=false,x=>delete x.rows[4].originalReader,x=>delete x.rows[3].readCalls,x=>x.rows[4].readCalls=1,x=>x.rows[3].bytes=1,x=>x.rows[4].reader=0,x=>x.rows.splice(3,0,{...x.rows[2],reader:2}),x=>x.rows.push({...x.rows[3],at:140}),x=>x.rows.push({...x.rows[4],at:140}),x=>x.rows.splice(3,0,{...x.rows[2],kind:'asset-read-call',at:111,readCalls:1}),x=>x.rows.push({...x.rows[2],kind:'asset-read-call',at:140,readCalls:1}),...['clone','tee','observer-error','read-rejected','cancel-rejected','rejected','complete','unknown-observation'].map(kind=>x=>x.rows.splice(4,0,{...x.rows[3],kind,at:115,errorName:'AbortError'})),x=>x.rows[5].at=119,x=>x.rows[5].aborted=false,x=>x.rows[0].hasSignal=false,x=>x.rows[3].at=110,x=>x.rows[4].at=111,x=>x.rows[4].at=NaN,x=>[x.rows[4],x.rows[5]]=[x.rows[5],x.rows[4]]];
+ for(const [i,mutate]of mutations.entries()){const x=rejectedAsset();mutate(x);assert.equal(withRejection(x),false,'raw refusal '+i);}
+ const x=rejectedAsset();assert.equal(withRejection(x,displayReadProofs(x.rows,[x.native],['lost binding'])),false);
+ assert.deepEqual(displayReadProofs(Array.from({length:DISPLAY_OBSERVATION_LIMIT},()=>x.rows[0]),[x.native]),[]);
+ assert.deepEqual(displayReadProofs(x.rows,Array.from({length:DISPLAY_REQUEST_LIMIT},()=>x.native)),[]);
+});
+test('rejected asset witness requires unique native timing and refuses fallback or substituted identity',()=>{
+ for(const [i,mutate]of [n=>n.frameId++,n=>n.startTime=0,n=>delete n.startTime,n=>n.startTime=NaN,n=>n.startTime=113,n=>n.method='POST',n=>n.resourceType='other',n=>n.redirected=true,n=>delete n.redirected,n=>delete n.response,n=>n.response.url+='?other',n=>n.response.status=503,n=>n.response.fromServiceWorker=true,n=>delete n.response.fromServiceWorker].entries()){
+  const x=rejectedAsset();mutate(x.native);assert.equal(withRejection(x),false,'native '+i);
+ }
+ const x=rejectedAsset();for(const native of [[],[x.native,{...x.native,requestId:20}],[x.native,{...x.native,frameId:2,url:origin+'/api/v1/queue'}]])assert.equal(withRejection(x,displayReadProofs(x.rows,native)),false);
+ const other=x.rows.map(row=>({...row,operation:2}));assert.equal(withRejection(x,displayReadProofs([...x.rows,...other],[x.native,{...x.native,requestId:20}])),false);
+});
+test('rejected asset disposition refuses altered, duplicated, historical and inferred proof envelopes',()=>{
+ const x=rejectedAsset(),[proof]=displayReadProofs(x.rows,[x.native]);
+ const edits=[p=>delete p.assetRejectionCancellation,p=>p.requestId++,p=>p.frameId++,p=>p.requestFrame++,p=>p.document='other',p=>p.operation++,p=>p.url+='?other',p=>p.method='POST',p=>p.status=200,p=>p.bodyComplete=true,p=>p.bodyCanceled=false,p=>p.signalAborted=false,p=>p.bytes=0,p=>p.assetBodyEOF={},p=>p.exactOccurrence=false,p=>p.eligibleRequests.push(20),p=>p.concurrentOperations.push(2),p=>p.association='unique-frame-time-bijection',p=>p.bijection={},p=>p.inferredAssociation=false,p=>p.requestTiming='observed',p=>p.requestStartRaw=101,p=>p.requestStart=0,p=>p.requestStart=113,p=>p.end++,p=>p.assetRejectionCancellation.kind='body-count',p=>p.assetRejectionCancellation.frameId++,p=>p.assetRejectionCancellation.document='other',p=>p.assetRejectionCancellation.operation++,p=>p.assetRejectionCancellation.url+='?other',p=>p.assetRejectionCancellation.method='POST',p=>p.assetRejectionCancellation.start++,p=>p.assetRejectionCancellation.reader=0,p=>p.assetRejectionCancellation.originalReader=false,p=>p.assetRejectionCancellation.readCalls=1,p=>p.assetRejectionCancellation.bytes=1,p=>p.assetRejectionCancellation.cancelFulfilledAt++,p=>p.assetRejectionCancellation.responseAt=99,p=>p.assetRejectionCancellation.readerAt=113,p=>p.assetRejectionCancellation.cancelCalledAt=121,p=>p.assetRejectionCancellation.signalAbortAt=119,p=>p.assetRejectionCancellation.signalAbortAt=null,p=>p.assetRejectionCancellation.observedRows=5];
+ for(const [i,edit]of edits.entries()){const p=structuredClone(proof);edit(p);assert.equal(withRejection(x,[p]),false,'proof '+i);}
+ assert.equal(withRejection(x,[proof,structuredClone(proof)]),false);
+ for(const malformed of [null,undefined,{},[null],[proof,null]])assert.equal(originalRejectedAssetCancellation(x.event,origin,[missingFontFault],malformed),false);
+});
+async function rejectionObserverVM({cancel=()=>Promise.resolve(),read=()=>Promise.resolve({done:false,value:new Uint8Array(0)}),bodyCancel=()=>{throw Error('No observer body cancel');}}={}){
+ const observed=[],calls=[];
+ const reader={read:function(...args){calls.push({kind:'read',receiver:this,args});return Reflect.apply(read,this,args);},cancel:function(...args){calls.push({kind:'cancel',receiver:this,args});return Reflect.apply(cancel,this,args);}};
+ const body={getReader:function(...args){calls.push({kind:'getReader',receiver:this,args});return reader;},cancel:function(...args){calls.push({kind:'body-cancel',receiver:this,args});return Reflect.apply(bodyCancel,this,args);},tee(){throw Error('No observer tee');}};
+ const response={body,status:404,url,redirected:false,clone(){throw Error('No observer clone');}},fetchPromise=Promise.resolve(response);
+ const realm=createContext({URL,Request,Promise,performance,crypto:webcrypto,location:{protocol:'http:',origin,href:origin+'/'}});realm.window=realm;realm.fetch=function(...args){calls.push({kind:'fetch',receiver:this,args});return fetchPromise;};realm.__validationDisplayAbort=event=>{observed.push(event);return Promise.resolve();};
+ runInContext('('+installDisplayReadObserver.toString()+')()',realm);
+ const fetchThis={},init={};assert.equal(realm.fetch.call(fetchThis,url,init),fetchPromise);assert.equal(await fetchPromise,response);
+ const verdict=()=>{const rows=observed.map(e=>({...e,frameId:1})),native={requestId:19,frameId:1,url,method:'GET',resourceType:'fetch',startTime:rows[0].start,redirected:false,response:{url,status:404,fromServiceWorker:false}};return withRejection(rejectedAsset(),displayReadProofs(rows,[native]));};
+ return {realm,reader,body,response,observed,calls,verdict,fetchThis,init};
+}
+test('actual observer preserves original cancel receiver arguments Promise and settlement before own404 disposition',async()=>{
+ let resolveCancel;const result={cancelled:'opaque-native-result'},promise=new Promise(resolve=>{resolveCancel=resolve;});const f=await rejectionObserverVM({cancel:()=>promise});
+ assert.equal(f.body.getReader('option'),f.reader);const argument={reason:'owned rejection'};assert.equal(f.reader.cancel(argument),promise);
+ await f.realm.__validationDisplayObserver.flush();assert.equal(f.verdict(),false);assert.deepEqual(f.observed.map(e=>e.kind),['start','response','reader','asset-cancel-call']);
+ resolveCancel(result);assert.equal(await promise,result);await f.realm.__validationDisplayObserver.flush();assert.equal(f.verdict(),rejectionReason);
+ assert.deepEqual(f.observed.map(e=>e.kind),['start','response','reader','asset-cancel-call','cancel']);assert.equal(f.observed.at(-1).readCalls,0);assert.equal(f.observed.at(-1).bytes,0);assert.equal(f.observed.at(-1).originalReader,true);
+ assert.deepEqual(f.calls.map(c=>c.kind),['fetch','getReader','cancel']);assert.equal(f.calls[0].receiver,f.fetchThis);assert.equal(f.calls[0].args[1],f.init);assert.equal(f.calls[1].receiver,f.body);assert.deepEqual(f.calls[1].args,['option']);assert.equal(f.calls[2].receiver,f.reader);assert.equal(f.calls[2].args[0],argument);
+});
+test('actual observer refuses borrowed receivers and all reads including zero-byte pending or post-cancel calls',async()=>{
+ for(const mode of ['body','cancel','zero-read','pending-read','late-read']){
+  const never=new Promise(()=>{}),f=await rejectionObserverVM(mode==='pending-read'?{read:()=>never}:{}),foreign={};
+  assert.equal(f.body.getReader.call(mode==='body'?foreign:f.body),f.reader);
+  if(mode==='zero-read')await f.reader.read();if(mode==='pending-read')assert.equal(f.reader.read(),never);
+  await f.reader.cancel.call(mode==='cancel'?foreign:f.reader);
+  if(mode==='late-read'){await f.realm.__validationDisplayObserver.flush();assert.equal(f.verdict(),rejectionReason);await f.reader.read();}
+  await f.realm.__validationDisplayObserver.flush();assert.equal(f.verdict(),false,mode);
+  assert.equal(f.calls.filter(c=>c.kind==='read').length,mode.includes('read')?1:0);
+ }
+});
+test('actual observer keeps native cancel rejection or synchronous throw and cannot hide a second pending cancel',async()=>{
+ for(const mode of ['reject','throw']){
+  const reason=Error('original '+mode);let returned;
+  const f=await rejectionObserverVM({cancel:()=>{if(mode==='throw')throw reason;return returned=Promise.reject(reason);}});f.body.getReader();
+  if(mode==='throw')assert.throws(()=>f.reader.cancel(),e=>e===reason);else{const p=f.reader.cancel();assert.equal(p,returned);await assert.rejects(p,e=>e===reason);}
+  await f.realm.__validationDisplayObserver.flush();assert.equal(f.verdict(),false);assert.equal(f.calls.filter(c=>c.kind==='cancel').length,1);assert.equal(f.observed.some(e=>e.kind==='asset-cancel-call'),true);assert.equal(f.observed.some(e=>e.kind==='cancel'),false);
+ }
+ let cancels=0;const never=new Promise(()=>{}),f=await rejectionObserverVM({cancel:()=>++cancels===1?Promise.resolve():never});f.body.getReader();await f.reader.cancel();await f.realm.__validationDisplayObserver.flush();assert.equal(f.verdict(),rejectionReason);assert.equal(f.reader.cancel(),never);await f.realm.__validationDisplayObserver.flush();assert.equal(f.verdict(),false);assert.equal(cancels,2);
+});
+
+test('actual observer retains direct-body cancel attempts even when pending or throwing around reader cancellation',async()=>{
+ const never=new Promise(()=>{}),before=await rejectionObserverVM({bodyCancel:()=>never});
+ const reason={owned:'body cancel'};assert.equal(before.body.cancel(reason),never);before.body.getReader();await before.reader.cancel();await before.realm.__validationDisplayObserver.flush();assert.equal(before.verdict(),false);
+ assert.deepEqual(before.observed.map(e=>e.kind),['start','response','asset-cancel-call','reader','asset-cancel-call','cancel']);assert.equal(before.observed[2].reader,0);assert.equal(before.calls[1].receiver,before.body);assert.equal(before.calls[1].args[0],reason);
+ for(const mode of ['pending','throw']){
+  const failure=Error('original body failure'),after=await rejectionObserverVM({bodyCancel:()=>{if(mode==='throw')throw failure;return never;}}),foreign={};after.body.getReader();await after.reader.cancel();await after.realm.__validationDisplayObserver.flush();assert.equal(after.verdict(),rejectionReason);
+  if(mode==='throw')assert.throws(()=>after.body.cancel.call(foreign,reason),e=>e===failure);else assert.equal(after.body.cancel.call(foreign,reason),never);
+  await after.realm.__validationDisplayObserver.flush();assert.equal(after.verdict(),false);assert.equal(after.calls.at(-1).receiver,foreign);assert.equal(after.calls.at(-1).args[0],reason);assert.equal(after.observed.at(-1).kind,'asset-cancel-call');assert.equal(after.observed.at(-1).reader,0);
  }
 });
