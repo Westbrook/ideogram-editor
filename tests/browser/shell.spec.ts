@@ -583,6 +583,34 @@ test('B06 320px and 200% equivalent reflow, draft retention, named drawers and f
   await page.getByRole('button',{name:'Hide layers',exact:true}).click();
   await page.getByRole('button', {name:'Show request',exact:true}).click();
   await page.screenshot({path:output+'/shell-reflow-320.png',fullPage:true});
+  const skipViewport=page.viewportSize();if(!skipViewport)throw Error('The skip-link fixture requires its configured viewport.');
+  const destinations=[['results','History'],['inspector','Layers'],['canvas','Canvas'],['request','Request']] as const,newButton=page.locator('.document-bar').getByRole('button',{name:'New',exact:true});
+  const skipGeometry=()=>page.locator('.skip-links').evaluate(region=>{
+    const hosts=[...region.querySelectorAll<HTMLElement>('en-link')];if(hosts.length!==4)throw Error('Expected the four public skip links.');
+    const box=(element:Element)=>{const rect=element.getBoundingClientRect();return {left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height};};
+    return {width:innerWidth,height:innerHeight,clientWidth:window.document.documentElement.clientWidth,scrollWidth:window.document.documentElement.scrollWidth,links:hosts.map(host=>{const anchor=host.shadowRoot?.querySelector<HTMLAnchorElement>('a');if(!anchor)throw Error('Expected the native skip-link anchor.');const style=getComputedStyle(anchor),range=window.document.createRange();range.selectNodeContents(host);const labelRects=range.getClientRects(),labelCount=labelRects.length,labels=Array.from({length:Math.min(labelCount,8)},(_,index)=>{const rect=labelRects[index]!;return {left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height};});range.detach();return {labelCount,labels,target:anchor.getAttribute('href'),focused:host.shadowRoot?.activeElement===anchor,focusVisible:anchor.matches(':focus-visible'),outlineStyle:style.outlineStyle,outlineWidth:Number.parseFloat(style.outlineWidth),clearance:Math.max(0,Number.parseFloat(style.outlineWidth)+Number.parseFloat(style.outlineOffset)),host:box(host),anchor:box(anchor)};})};
+  });
+  const labelBoxes=(link:Awaited<ReturnType<typeof skipGeometry>>['links'][number])=>{expect(link.labelCount).toBeGreaterThan(0);expect(link.labelCount).toBeLessThanOrEqual(8);expect(link.labels).toHaveLength(link.labelCount);for(const bounds of link.labels){expect(bounds.width).toBeGreaterThan(0);expect(bounds.height).toBeGreaterThan(0);}return link.labels;};
+  let skipFailure:unknown;
+  try{
+    for(const width of [320,390,1440]){
+      await page.setViewportSize({width,height:skipViewport.height});
+      for(let target=0;target<destinations.length;target++){
+        await expect(newButton).toBeEnabled();await newButton.focus();await expect(newButton).toBeFocused();
+        const resting=await skipGeometry();expect(resting.scrollWidth).toBe(resting.clientWidth);for(const link of resting.links){expect(link.focused).toBe(false);expect(link.host.bottom).toBeLessThanOrEqual(0);expect(link.anchor.bottom).toBeLessThanOrEqual(0);for(const bounds of labelBoxes(link))expect(bounds.bottom).toBeLessThanOrEqual(0);}
+        for(let index=0;index<=target;index++){
+          await page.keyboard.press('Shift+Tab');const [id,label]=destinations[index]!;await expect(page.locator('.skip-links').getByRole('link',{name:'Go to '+label,exact:true})).toBeFocused();
+          const focused=await skipGeometry();expect(focused.scrollWidth).toBe(focused.clientWidth);
+          for(const link of focused.links){if(link.target!=='#'+id){expect(link.focused).toBe(false);expect(link.host.bottom).toBeLessThanOrEqual(0);expect(link.anchor.bottom).toBeLessThanOrEqual(0);for(const bounds of labelBoxes(link))expect(bounds.bottom).toBeLessThanOrEqual(0);continue;}expect(link.focused).toBe(true);expect(link.focusVisible).toBe(true);expect(link.outlineStyle).not.toBe('none');expect(link.outlineWidth).toBeGreaterThan(0);
+            for(const bounds of [link.host,link.anchor,...labelBoxes(link)]){expect(bounds.width).toBeGreaterThan(0);expect(bounds.height).toBeGreaterThan(0);expect(bounds.left).toBeGreaterThanOrEqual(0);expect(bounds.top).toBeGreaterThanOrEqual(0);expect(bounds.right).toBeLessThanOrEqual(focused.width);expect(bounds.bottom).toBeLessThanOrEqual(focused.height);}
+            expect(link.anchor.left-link.clearance).toBeGreaterThanOrEqual(0);expect(link.anchor.top-link.clearance).toBeGreaterThanOrEqual(0);expect(link.anchor.right+link.clearance).toBeLessThanOrEqual(focused.width);expect(link.anchor.bottom+link.clearance).toBeLessThanOrEqual(focused.height);
+          }
+        }
+        const [id]=destinations[target]!;await page.keyboard.press('Enter');await expect(page.locator('#'+id)).toBeVisible();await expect(page.locator('#'+id)).toBeFocused();await expect.poll(()=>page.evaluate(()=>window.location.hash)).toBe('#'+id);
+        const activated=await skipGeometry();expect(activated.scrollWidth).toBe(activated.clientWidth);for(const link of activated.links){expect(link.focused).toBe(false);expect(link.host.bottom).toBeLessThanOrEqual(0);expect(link.anchor.bottom).toBeLessThanOrEqual(0);for(const bounds of labelBoxes(link))expect(bounds.bottom).toBeLessThanOrEqual(0);}
+      }
+    }
+  }catch(error){skipFailure=error;throw error;}finally{try{await page.setViewportSize(skipViewport);}catch(error){if(skipFailure!==undefined)throw new AggregateError([skipFailure,error],'Skip-link checks and viewport restoration failed');throw error;}}
 });
 
 test('B07 trusted report flag, navigation fragment, unflagged absence and offline recovery', async ({ page, local }) => {

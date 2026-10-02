@@ -21,7 +21,7 @@ const viewport=(page:Page)=>page.evaluate(()=>{
 });
 test('Zoom pointer clicks keep their exact canvas anchor, Alt reverses the step, and drag never falls through to Pan',async({page,context,browserName},testInfo)=>{
  const guard=await ownedOPFS(context,'zoom-tool-'+browserName),dir=await mkdtemp(join(await realpath(tmpdir()),'ie-zoom-tool-')),server=await serverProcess(join(dir,'private'));
- const failures:unknown[]=[];let anchor:{x:number;y:number}|null=null,diagnostics:import('@playwright/test').JSHandle<{read:()=>{events:PointerObservation[];dropped:number};finish:(point:{x:number;y:number}|null)=>unknown}>|undefined;
+ const failures:unknown[]=[],cleanup={guardAttempted:false,guardVerified:false,serverCloseReturned:false,tempDirectoryRemoved:false};let anchor:{x:number;y:number}|null=null,diagnostics:import('@playwright/test').JSHandle<{read:()=>{events:PointerObservation[];dropped:number};finish:(point:{x:number;y:number}|null)=>unknown}>|undefined;
  try{
   await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
   await page.locator('.canvas-empty en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await confirmImageImports(page,{names:['hidden-alpha.png'],destination:'new',close:false});await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();const importControls=page.locator('en-dialog#editor-dialog');await importControls.getByRole('button',{name:'Open imported document',exact:true}).click();await expect(page.locator('canvas[data-asset]')).not.toHaveAttribute('data-asset','');await importControls.getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeHidden();
@@ -70,8 +70,20 @@ test('Zoom pointer clicks keep their exact canvas anchor, Alt reverses the step,
   await page.getByRole('button',{name:'100%',exact:true}).focus();await page.keyboard.press('Enter');await expect(page.getByRole('spinbutton',{name:'Zoom percentage',exact:true})).toHaveValue('100');expect(await page.locator('.document-name').textContent()).toBe(revision);expect(Object.values(await server.effects()).every(value=>value===0)).toBe(true);
  }catch(error){failures.push(error);}finally{
   if(diagnostics){try{const evidence=await diagnostics.evaluate((capture,point)=>capture.finish(point),anchor);await testInfo.attach('zoom-pointer-public-evidence',{body:JSON.stringify(evidence,null,2),contentType:'application/json'});}catch(error){failures.push(error);}finally{try{await diagnostics.dispose();}catch(error){failures.push(error);}}}
-  try{await guard.cleanup();guard.verify();}catch(error){failures.push(error);}
-  try{await server.close();await rm(dir,{recursive:true,force:true});}catch(error){failures.push(error);}
+  try{cleanup.guardAttempted=true;await guard.cleanup();guard.verify();cleanup.guardVerified=true;}catch(error){failures.push(error);}
+  try{await server.close();cleanup.serverCloseReturned=true;await rm(dir,{recursive:true,force:true});cleanup.tempDirectoryRemoved=true;}catch(error){failures.push(error);}
+  try{
+   // Capture after cleanup so a refusal's actual reason survives; never alter guard admission or reset policy.
+   const limits={ledger:256,requests:512,string:512,list:16},dropped={ledger:Math.max(0,guard.ledger.length-limits.ledger),requests:Math.max(0,guard.requests.length-limits.requests),strings:0,listValues:0};
+   const text=(value:unknown)=>{if(typeof value!=='string')return undefined;if(value.length>limits.string)dropped.strings++;return value.slice(0,limits.string);};
+   const number=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)?value:undefined;
+   const strings=(value:unknown)=>{if(!Array.isArray(value))return undefined;dropped.listValues+=Math.max(0,value.length-limits.list);return value.slice(0,limits.list).map(text);};
+   const ledger=guard.ledger.slice(0,limits.ledger).map(entry=>({phase:text(entry.phase),reason:text(entry.reason),error:text(entry.error),origin:text(entry.origin),admitted:strings(entry.admitted),visited:strings(entry.visited),reasons:strings(entry.reasons),resetCalls:number(entry.resetCalls),count:number(entry.count),cookieCount:number(entry.cookieCount),entryCount:Array.isArray(entry.entries)?entry.entries.length:undefined,localStorage:number(entry.localStorage),databaseCount:Array.isArray(entry.indexedDB)?entry.indexedDB.length:undefined,serviceWorkers:number(entry.serviceWorkers)}));
+   const requests=guard.requests.slice(0,limits.requests).map(entry=>({sequence:number(entry.sequence),at:text(entry.at),monotonicMs:number(entry.monotonicMs),event:text(entry.event),requestId:number(entry.requestId),method:text(entry.method),location:entry.location?{protocol:text(entry.location.protocol),origin:text(entry.location.origin),path:text(entry.location.path),invalid:entry.location.invalid===true}:undefined,resourceType:text(entry.resourceType),pageId:number(entry.pageId),frameId:number(entry.frameId),frameIdentity:text(entry.frameIdentity),guardPhase:text(entry.guardPhase)}));
+   const evidence={limits,dropped,counts:{ledger:guard.ledger.length,requests:guard.requests.length},cleanup:{...cleanup,remainingContextPages:context.pages().length,contextClosure:'Owned context fixture runs its existing close after this test body.'},ledger,requests};
+   if(Object.values(dropped).some(value=>value!==0))failures.push(Error('ZOOM_OWNERSHIP_DIAGNOSTICS_TRUNCATED'));
+   await testInfo.attach('zoom-owned-cleanup-evidence',{body:JSON.stringify(evidence,null,2),contentType:'application/json'});
+  }catch(error){failures.push(error);}
  }
  if(failures.length===1)throw failures[0];
  if(failures.length)throw new AggregateError(failures,'Zoom pointer assertions and owned cleanup failed');

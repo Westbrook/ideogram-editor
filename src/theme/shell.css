@@ -24,7 +24,7 @@ h1, h2 { margin: 0; font-size: 14px; font-weight: 600; }
 .startup h1 { font-size: 26px; margin: 20px 0 12px; }
 .startup a { display: inline-block; margin-top: 24px; }
 ie-shell { display: flex; flex-direction: column; height: 100dvh; min-height: 650px; }
-.skip-links { position: fixed; inset: 4px auto auto 4px; z-index: 20; display: flex; gap: 8px; }
+.skip-links { position: fixed; inset: 4px 4px auto 4px; z-index: 20; display: flex; gap: 8px; }
 .skip-links en-link { position: absolute; transform: translateY(-180%); white-space: nowrap; padding: 12px; background: var(--en-color-surface); border: 1px solid var(--en-color-boundary); }
 .skip-links en-link:focus-within { position: static; transform: none; }
 .document-bar { min-height: 72px; display: flex; align-items: center; gap: 28px; padding: 12px 20px; border-bottom: 1px solid var(--en-color-line); background: var(--en-color-surface); }
