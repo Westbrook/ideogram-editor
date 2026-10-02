@@ -51,7 +51,7 @@ export async function launch(options: {
   };
   log(`Ideogram Editor local server: ${server.origin}`);
   log(`Private storage root: ${server.root}`);
-  log(provider.mode==='fal'?'Fal Generate configured. Each exact queued request still requires in-app charge and privacy authorization.':'Durable editor started. Fal is disabled; local review and enqueue make no provider call.');
+  log(provider.mode==='fal-v45-blocked'?'Ideogram v4.5 selected for local review. Live dispatch is blocked by unavailable safety evidence; no provider key was read.':provider.mode==='fal'?'Fal V4 compatibility configured. Each exact queued request still requires in-app charge and privacy authorization.':'Durable editor started. Fal is disabled; local review and enqueue make no provider call.');
   try { if (options.open !== false) await pair(); }
   catch { await server.close(); throw new Error('Browser launch failed. Start again from a local desktop session.'); }
   return { ...server, pair };

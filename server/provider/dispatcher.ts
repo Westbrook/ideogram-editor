@@ -34,7 +34,8 @@ export class QueueDispatcher {
    try{const receipt=await this.provider.upload(this.config.uploadURL,attempt,{...this.queue.inputStream(item.transport),evidence:request},response,this.controller.signal);
     if(!stillReserved()){uploadPhase.end('cancelled');return null;}
     if(receipt.outcome!=='complete'||receipt.status!==200)throw new ProviderError('INTERRUPTED');
-    const value=this.readControl(receipt.evidence.recordId),url=exactURL(value.url);if(url.origin!==this.config.mediaOrigin)throw new ProviderError('POLICY');mapping[item.role]=url.href;
+    const value=this.readControl(receipt.evidence.recordId),url=exactURL(value.url);if(url.origin!==this.config.mediaOrigin)throw new ProviderError('POLICY');
+    this.queue.recordUpload(jobId,attempt.attemptId,item,url.href,receipt.evidence.recordId);mapping[item.role]=url.href;
     uploadPhase.end('ok',{boundary:'acknowledged'});
    }catch(error){uploadPhase.end(this.controller.signal.aborted?'cancelled':'error');throw error;}
   }

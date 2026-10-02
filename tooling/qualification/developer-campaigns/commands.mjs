@@ -1,3 +1,5 @@
+import { startEvidenceMonitor, retainEvidenceAudit } from '../evidence-volume.mjs';
+import { randomUUID as evidenceUUID } from 'node:crypto';
 import {readFile, writeFile, mkdir, lstat, realpath} from 'node:fs/promises';
 import {join, dirname, resolve, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -121,7 +123,7 @@ export function observeD11Build(inventory, {artifact} = {}) {
 
 export async function auditBuild(source, {d11Output} = {}) {
   const files = await fileManifest(join(source, 'dist'));
-  const inventory = await loadD11Build({repo: source});
+  const inventory = await loadD11Build({repo: source, cacheDirectory: process.env.IE_D11_NPM_CACHE});
   // The full app/server identity precedes test-consumer outputs. Recheck it
   // after the detailed app audit so the two identities share one boundary.
   if (json(await fileManifest(join(source, 'dist'))) !== json(files)) throw Error('Build inventory changed during D11 artifact audit');
@@ -303,11 +305,26 @@ export function summarizeCommands(groups) {
     outcome: groups.some(group => group.status === 'failed') || cells.some(cell => cell.outcome === 'FAIL') || ratios.some(ratio => ratio.outcome === 'FAIL') || envelopes.length || identityMismatch || buildIdentityMismatch || buildObservations.some(observed => observed.status === 'FAIL') ? 'FAIL' : !complete || !buildComplete || cells.some(cell => cell.outcome !== 'PASS') ? 'INCONCLUSIVE' : 'PASS'};
 }
 
-export async function runDeveloperCommandCampaign({sourceRoot = root, output, registry, browserDownloadHost, inputPacket, abortSignal, timingLease} = {}) {
+export async function runDeveloperCommandCampaign(options = {}) {
+  if (options.evidenceStorage) return runDeveloperCommandCampaignObserved(options);
+  if (!options.output) throw Error('An executed evidence-accounted I1 campaign requires explicit output');
+  const output = resolve(options.output), monitor = await startEvidenceMonitor({ output, campaignId: 'I1-' + evidenceUUID(), onAlarm: alarm => console.error(JSON.stringify({ evidenceStorageAlarm: alarm })) });
+  let outcome = 'FAIL';
+  try { const receipt = await runDeveloperCommandCampaignObserved({ ...options, evidenceStorage: monitor.reference }); outcome = receipt.status; return receipt; }
+  finally {
+    const candidate = join(output, 'receipt.json');
+    const receiptPath = await lstat(candidate).then(value => value.isFile() ? candidate : null, () => null);
+    const audit = await monitor.finish({ receiptPath, outcome });
+    if (receiptPath) await retainEvidenceAudit(monitor.reference, output);
+    if (audit.status !== 'PASS') { if (process.exitCode !== 1) process.exitCode = audit.status === 'FAIL' ? 1 : 2; throw Object.assign(Error('Evidence volume audit ' + audit.status), { code: 'EVIDENCE_' + audit.status }); }
+  }
+}
+
+async function runDeveloperCommandCampaignObserved({sourceRoot = root, output, registry, browserDownloadHost, inputPacket, abortSignal, timingLease, evidenceStorage = null} = {}) {
   sourceRoot = await realpath(sourceRoot); const run = await createRun(sourceRoot, output, {timingLease});
   const started = performance.now();
   const receipt = {kind: 'developer-command-campaign-receipt-1', job: 'I1', startedAt: new Date().toISOString(), plan: developerCommandPlan(),
-    pinned: null, environment: observedEnvironment(), registry: registry ?? null, browserDownloadHost: browserDownloadHost ?? null, groups: [], status: 'running', qualification: false};
+    ...(evidenceStorage ? {evidenceStorage} : {}), pinned: null, environment: observedEnvironment(), registry: registry ?? null, browserDownloadHost: browserDownloadHost ?? null, groups: [], status: 'running', qualification: false};
   try {
     const pinned = await toolchain(sourceRoot); receipt.pinned = pinned;
     if (!inputPacket) { inputPacket = join(run.directory, 'fixture-inputs'); receipt.fixturePreparation = await prepareInputs({root: sourceRoot, output: inputPacket}); }

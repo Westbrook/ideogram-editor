@@ -36,7 +36,12 @@ export async function setup(store) {
   const effects = [], uploads = [], submissions = [], requests = new Map(), uploadedBytes = new Map();
   const errors = [], diagnostics = [], failures = [], sockets = new Set();
   let origin = '', pending, closing = false, context = null;
-  const png = await sharp({ create: { width: 512, height: 512, channels: 4, background: '#2468ac' } }).png().toBuffer();
+  const fixtureOptions = new URL(import.meta.url).searchParams;
+  assert([...fixtureOptions.keys()].every(key => key === 'resultSize') && fixtureOptions.getAll('resultSize').length <= 1, 'Unknown or repeated local fixture option');
+  const configuredSize = fixtureOptions.get('resultSize') ?? '512';
+  assert(configuredSize === '256' || configuredSize === '512', 'Only the two local fixture result grids are allowed');
+  const resultSize = Number(configuredSize);
+  const png = await sharp({ create: { width: resultSize, height: resultSize, channels: 4, background: '#2468ac' } }).png().toBuffer();
   const mark = (phase, jobId, attemptId) => {
     context = { phase, jobId, attemptId, endpoint, profileId: profile.id };
     diagnostics.push({ ...context });
@@ -59,7 +64,7 @@ export async function setup(store) {
         media: effects.filter(e => e.method === 'GET' && e.path.startsWith('/image/')).length,
       },
       profiles: [{ id: profile.id, endpoint: profile.endpoint, version: profile.version }],
-      result: { width: 512, height: 512, rgba: [36, 104, 172, 255], bytes: png.length, sha256: sha256(png) },
+      result: { width: resultSize, height: resultSize, rgba: [36, 104, 172, 255], bytes: png.length, sha256: sha256(png) },
       diagnostics, failures, ...extra,
     }, null, 2), { mode: 0o600 });
     renameSync(filename + '.tmp', filename);
@@ -113,7 +118,7 @@ export async function setup(store) {
         assert(request, 'Request identity exists');
         if (match[2]) res.end(JSON.stringify({ request_id: request.id, status: 'COMPLETED' }));
         else res.end(JSON.stringify({
-          images: [{ url: origin + '/image/' + request.id + '?token=fixture-transfer-secret', content_type: 'image/png', file_size: png.length, width: 512, height: 512 }],
+          images: [{ url: origin + '/image/' + request.id + '?token=fixture-transfer-secret', content_type: 'image/png', file_size: png.length, width: resultSize, height: resultSize }],
           prompt: request.value.prompt, seed: 31, timings: { inference: 0.4 }, has_nsfw_concepts: [false],
         }));
       }
@@ -187,8 +192,10 @@ export async function setup(store) {
     const closed = new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     for (const socket of sockets) socket.destroy();
     await Promise.all([closed, ...socketClosures]);
+    const rasterRead = store.rasters.readDiagnostics();
+    try {
     const resources = {
-      objects: store.objects.reservationInventory(), raster: store.rasters.diagnostics(),
+      objects: store.objects.reservationInventory(), raster: rasterRead.value,
       text: { reservedCPU: store.texts.reservedCPU, externalBytes: store.texts.externalBytes() },
       fixture: { listening: server.listening, sockets: sockets.size, pending: Boolean(pending) },
     };
@@ -200,5 +207,6 @@ export async function setup(store) {
     assert.equal(resources.raster.activeWorkers, 0);
     assert.equal(resources.raster.reservedCPU, 0);
     assert.deepEqual(resources.fixture, { listening: false, sockets: 0, pending: false });
+    } finally { rasterRead.release(); }
   };
 }

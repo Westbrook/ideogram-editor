@@ -7,6 +7,11 @@ import { cp, lstat, mkdir, open, readFile, realpath, writeFile } from 'node:fs/p
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { adapterLifecycleResult, measureAdapterAction } from './adapter-lifecycle.mjs';
+import { resolveAdapterCorpus, assertImportedAdapterBinding } from './adapter-corpus.mjs';
+import { createAdapterRetainedOracle } from './adapter-retained-oracle.mjs';
+import { retainAdapterCycleMeasurements } from './adapter-measurements.mjs';
+import { createAdapterResourceSampler, adapterReleaseWitness } from './adapter-resources.mjs';
+import {observedAdapterFileChunks, collectAdapterImportProof, retainAdapterImportObservation} from './adapter-import-observation.mjs';
 
 export const ADAPTER_CHUNK = 1024 * 1024;
 export const ADAPTER_NORMAL_BYTES = 256 * ADAPTER_CHUNK;
@@ -31,11 +36,11 @@ export function adapterFixtureHeader(bytes) {
   return header;
 }
 
-export async function hashAdapterFile(path, signal) {
+export async function hashAdapterFile(path, signal, resources) {
   const info = await lstat(path);
   if (!info.isFile() || info.isSymbolicLink()) throw Error('Adapter fixture must be a regular nonsymlinked file');
   const hash = createHash('sha256'); let bytes = 0, chunks = 0, maxChunk = 0;
-  for await (const chunk of createReadStream(path, { highWaterMark: ADAPTER_CHUNK })) {
+  for await (const chunk of resources ? observedAdapterFileChunks(path, {signal, resources}) : createReadStream(path, { highWaterMark: ADAPTER_CHUNK })) {
     abort(signal); hash.update(chunk); bytes += chunk.length; chunks++; maxChunk = Math.max(maxChunk, chunk.length);
   }
   const after = await lstat(path);
@@ -117,7 +122,7 @@ async function adapterIO(writer, options) {
         detail.receipt = record.receipt; detail.receiptObservedMs = performance.now() - start;
         assert.equal(record.receipt.status, 'accepted', JSON.stringify(record.receipt));
         const event = (await writer.events(String(BigInt(record.receipt.fromSeq) - 1n))).events.find(event => event.commandId === request.command.commandId);
-        assert(event, 'A durable accepted receipt must have its domain event'); detail.eventSeq = event.seq;
+        assert(event, 'A durable accepted receipt must have its domain event'); detail.eventSeq = event.seq; if (options.resources?.()) detail.event = event;
         return event.payload.asset;
       }
       if (performance.now() - start > 180000) throw Error('Adapter command did not publish a durable receipt within 180 seconds');
@@ -128,7 +133,7 @@ async function adapterIO(writer, options) {
     const stagingId = randomUUID(); detail.stagingId = stagingId;
     await writer.assetCreate({ protocolVersion: 1, stagingId, purpose, expectedBytes: String(file.bytes), sha256: file.hash, mediaType: file.mediaType }, auth());
     let offset = 0, chunks = 0, maximumChunk = 0;
-    for await (const bytes of createReadStream(file.path, { highWaterMark: ADAPTER_CHUNK })) {
+    for await (const bytes of options.resources?.() ? observedAdapterFileChunks(file.path, {signal: options.signal, resources: options.resources()}) : createReadStream(file.path, { highWaterMark: ADAPTER_CHUNK })) {
       abort(options.signal); const token = await writer.assetBeginChunk(stagingId, String(offset), bytes.length, auth());
       await writer.assetChunk(token, bytes, auth()); offset += bytes.length; chunks++; maximumChunk = Math.max(maximumChunk, bytes.length);
     }
@@ -136,8 +141,8 @@ async function adapterIO(writer, options) {
     const asset = await command({ type: 'FinalizeStaging', stagingId, expectedSha256: file.hash }, 'assetCommand', detail);
     assert.deepEqual(asset.blob, ref(file, file.mediaType)); return asset;
   }
-  const register = (weights, config, name, detail) => command({ type: 'RegisterAdapterVersion', adapterId: null, previousVersionId: null, weightsAssetId: weights.id, configAssetId: config?.id ?? null,
-    provenanceAssetId: null, name, declaredFamily: 'ideogram-v4', declaredFormat: 'fal', provenanceText: 'Deterministic qualification fixture. Structural inspection is not provider runtime verification.' }, 'adapterCommand', detail);
+  const register = (weights, config, name, detail, declaration = {}) => command({ type: 'RegisterAdapterVersion', adapterId: null, previousVersionId: null, weightsAssetId: weights.id, configAssetId: config?.id ?? null,
+    provenanceAssetId: declaration.provenanceAssetId ?? null, name, declaredFamily: declaration.declaredFamily ?? 'ideogram-v4', declaredFormat: declaration.declaredFormat ?? 'fal', provenanceText: 'Sealed local qualification fixture. Structural inspection is not provider runtime verification.' }, 'adapterCommand', detail);
   return { auth, envelope, stage, register, command };
 }
 
@@ -173,7 +178,9 @@ const operation = cell => cell.operation ?? cell.action;
 const result = (phases, observations, missing = []) => ({ status: missing.length ? 'inconclusive' : 'pass', phases, assertions: (observations.assertions ?? []).map((value, index) => typeof value === 'string' ? { id: 'adapter-' + (index + 1), passed: true, evidence: value } : value), observations, evidence: observations.evidence ?? [], missing });
 
 export async function createAdapterCampaign(context) {
-  const { repo, output, signal } = context; let writer, io, fixtures, library, closeTransport, rootPrepared = false, draftGeneration = 0;
+  const { repo, output, signal } = context; let writer, io, fixtures, library, closeTransport, rootPrepared = false, draftGeneration = 0, lifecycleOracle = null, corpusResolution = null, lastRelease = null, resourceSampler = null;
+  const ownedSelectionReads = new Map();
+  let oracleBaseline = null, importResources = null, activeImportSampler = null;
   const root = join(output, 'adapter-store');
   const documentId = context.fixture?.documentId ?? 'wa-campaign-document';
   const startedAt = context.processIdentity?.startedAt ?? new Date(Date.now() - process.uptime() * 1000).toISOString();
@@ -181,7 +188,11 @@ export async function createAdapterCampaign(context) {
     if (writer) return;
     if (!rootPrepared && context.fixture?.root) { await cp(context.fixture.root, root, { recursive: true, force: false, errorOnExist: true, preserveTimestamps: true }); library = context.fixture.adapterLibrary ?? context.fixture.adapters?.library ?? null; }
     await mkdir(root, { recursive: true, mode: 0o700 }); const { openWriter } = await moduleAt(repo, 'server/storage/writer.js');
-    writer = await openWriter({ root }, globalThis.__storeNetworkCounters ? { effectCounters: globalThis.__storeNetworkCounters.shared } : undefined); await writer.protocolDefaults(); io = await adapterIO(writer, { repo, output, signal });
+    writer = await openWriter({ root }, globalThis.__storeNetworkCounters ? { effectCounters: globalThis.__storeNetworkCounters.shared } : undefined); await writer.protocolDefaults();
+    // The sealed fixture already contains its preparation client binding. A
+    // fresh cohort client preserves that original row and avoids duplicate
+    // primary-key insertion when a transfer reopens the copied store.
+    io = await adapterIO(writer, { repo, output, signal, resources: () => importResources, clientId: 'campaign-adapter-' + randomUUID() });
     rootPrepared = true;
   }
   async function caption(text) {
@@ -205,15 +216,18 @@ export async function createAdapterCampaign(context) {
     return ui({ type: 'SaveDraft', draft: { id: 'wa-campaign-request', generation: String(draftGeneration), kind: 'request', documentId, targetLayerId: null,
       expectedDocumentRevision: await writer.documentRevision(documentId), assetId: staged.id, composing: false } });
   }
-  async function currentSelection() {
+  async function currentSelection({ retain = false } = {}) {
     const state = await writer.uiRead('campaign-adapter-session', io.auth()), draft = state.drafts.find(item => item.id === 'wa-campaign-request');
     if (!draft) return [];
     const content = await writer.assetVerify(draft.assetId);
+    ownedSelectionReads.set(content.handle, { acquiredMs: performance.now(), assetId: draft.assetId, handleIdentity: digest(content.handle) });
+    let retained = false, bytes = null;
     try {
       const size = Number(content.asset.blob.byteLength); assert(size <= 65536, 'Qualification selection draft is bounded metadata');
-      const bytes = await writer.assetContent(draft.assetId, content.handle, '0', size), value = JSON.parse(Buffer.from(bytes).toString('utf8'));
-      assert(Array.isArray(value.adapters)); return value.adapters;
-    } finally { await writer.assetRelease(content.handle); }
+      bytes = await writer.assetContent(draft.assetId, content.handle, '0', size);
+      const value = JSON.parse(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('utf8'));
+      assert(Array.isArray(value.adapters)); retained = retain; return value.adapters;
+    } finally { if (bytes) writer.releaseResourceBytes?.(bytes); if (!retained) { await writer.assetRelease(content.handle); ownedSelectionReads.delete(content.handle); } }
   }
   async function phase(phases, name, work) {
     abort(signal); const startMs = performance.now(), entry = { name, startedAt: new Date().toISOString(), startMs, startMonotonicMs: startMs, outcome: 'running' }; phases.push(entry);
@@ -226,48 +240,71 @@ export async function createAdapterCampaign(context) {
     if (!['adapter.import', 'adapter.select', 'adapter.lifecycle', 'adapter.transfer', 'adapter.setup', 'adapter.audit'].includes(operation(cell))) throw Error('Unsupported adapter operation: ' + operation(cell));
     if (operation(cell) === 'adapter.audit') return { kind: 'adapter-predecessor-audit', unrelatedWriterOpened: false, declaredReceipts: context.configuration?.auditReceipts ?? [] };
     const input = cellInput(cell), bytes = input.bytes ?? ADAPTER_NORMAL_BYTES;
+    if (operation(cell) === 'adapter.lifecycle') {
+      corpusResolution ??= await resolveAdapterCorpus(context.fixture, { signal, requiredBytes: ADAPTER_NORMAL_BYTES });
+      if (corpusResolution.specimen) fixtures = { weights: [corpusResolution.specimen.weights], config: corpusResolution.specimen.config };
+      await ensureWriter();
+      if (!context.fixture?.documentId || !await writer.document(documentId)) throw Object.assign(Error('WA requires its complete sealed W1 document; no empty replacement is created'), { code: 'CAMPAIGN_PREREQUISITE' });
+      if (library?.entries?.length !== 100) throw Object.assign(Error('WA requires its existing sealed 100-entry library'), { code: 'CAMPAIGN_PREREQUISITE' });
+      await preferences(false);
+      if (!lifecycleOracle) {
+        lifecycleOracle = await createAdapterRetainedOracle({ repo, root, fixture: context.fixture, output, signal });
+        oracleBaseline = await lifecycleOracle.baseline();
+        if (oracleBaseline.status === 'FAIL') throw Error('The sealed WA baseline failed its retained metadata/byte proof');
+      }
+      return { root, corpus: corpusResolution, baseline: oracleBaseline, library, missing: corpusResolution.missing };
+    }
     if (!fixtures?.weights.some(item => item.bytes === bytes)) {
       const prepared = await prepareAdapterFixtures(join(output, 'adapter-fixtures-' + bytes), { sizes: [bytes], signal });
       fixtures = fixtures ? { ...prepared, weights: [...fixtures.weights, ...prepared.weights] } : prepared;
     }
     await ensureWriter();
     if (!library && operation(cell) !== 'adapter.audit') library = await prepareAdapterLibrary(writer, fixtures, { repo, root, output, signal, officialPath: context.fixture?.officialAdapterPath });
-    if (operation(cell) === 'adapter.lifecycle') {
-      if (!await writer.document(documentId)) { const request = io.envelope({ type: 'NewDocument', width: 2048, height: 2048, color: 'sRGB', depth: 8 }); request.command.documentId = documentId; assert.equal((await writer.submit(Buffer.from(JSON.stringify(request)), writer.epoch)).status, 'accepted'); }
-      await preferences(false);
-    }
     return { fixture: fixtures, root, library, limitations: ['Filesystem cache state is supplied and attested by the outer campaign controller; this module does not flush OS caches.'] };
   }
-  async function imported(cell, phases) {
+  async function imported(cell, phases, specimen = null) {
     const importStartMs = performance.now();
     const bytes = cellInput(cell).bytes ?? ADAPTER_NORMAL_BYTES, fixture = fixtures.weights.find(item => item.bytes === bytes); assert(fixture, 'Prepare this exact fixture size first');
-    await phase(phases, 'local-weights-hash', async entry => { Object.assign(entry, await hashAdapterFile(fixture.path, signal)); assert.equal(entry.hash, fixture.hash); });
-    await phase(phases, 'local-config-hash', async entry => { Object.assign(entry, await hashAdapterFile(fixtures.config.path, signal)); assert.equal(entry.hash, fixtures.config.hash); });
+    await phase(phases, 'local-weights-hash', async entry => { Object.assign(entry, await hashAdapterFile(fixture.path, signal, importResources)); assert.equal(entry.hash, fixture.hash); });
+    await phase(phases, 'local-config-hash', async entry => { Object.assign(entry, await hashAdapterFile(fixtures.config.path, signal, importResources)); assert.equal(entry.hash, fixtures.config.hash); });
     const weights = await phase(phases, 'weights-stage-hash-durable', entry => io.stage(fixture, 'adapter', entry));
     const config = await phase(phases, 'config-stage-hash-durable', entry => io.stage(fixtures.config, 'caption', entry));
-    const asset = await phase(phases, 'header-profile-config-inspection-and-registration-durable', entry => io.register(weights, config, `WA ${bytes} byte import`, entry));
-    assert.equal(asset.adapter.qualification, 'structurally-valid'); assert.equal(asset.adapter.validation.locallyEligible, false); assert.equal(asset.adapter.validation.runtimeVerified, false);
+    const provenance = specimen?.provenance ? await phase(phases, 'provenance-stage-hash-durable', entry => io.stage(specimen.provenance, 'caption', entry)) : null;
+    const asset = await phase(phases, 'header-profile-config-inspection-and-registration-durable', entry => io.register(weights, config, `WA ${bytes} byte import`, entry, { ...specimen, provenanceAssetId: provenance?.id ?? null }));
+    assert.equal(asset.adapter.validation.runtimeVerified, false);
+    if (!specimen) { assert.equal(asset.adapter.qualification, 'structurally-valid'); assert.equal(asset.adapter.validation.locallyEligible, false); }
     assert.deepEqual(asset.adapter.weights, weights.blob); assert.deepEqual(asset.adapter.config, config.blob);
     const view = await phase(phases, 'durable-entry-observation', () => writer.adapterView(asset.id)); assert.equal(view.versionId, asset.id);
-    const importEndMs = performance.now(); phases.push({ name: 'adapter.import-durable', startMs: importStartMs, endMs: importEndMs, elapsedMs: importEndMs - importStartMs, outcome: 'expected' });
-    return { asset, view, fixture, config: fixtures.config };
+    const importEndMs = performance.now(); phases.push({ name: 'adapter.import-durable', startMs: importStartMs, endMs: importEndMs, elapsedMs: importEndMs - importStartMs, durationMs: importEndMs - importStartMs, outcome: 'expected' });
+    const binding = specimen ? assertImportedAdapterBinding({ asset, view, specimen, ...(await moduleAt(repo, 'src/adapters/profile.js')) }) : null;
+    return { asset, view, fixture, config: fixtures.config, binding, ...(importResources ? {storedAssets: {weights, config, registration: asset}} : {}) };
   }
   async function execute(cell, sample = {}) {
     if (operation(cell) === 'adapter.audit') { const { performAdapterAudit } = await import('./adapter-audit.mjs'); return performAdapterAudit(context, cell); }
     if (!writer || !fixtures) await prepareCell(cell); const phases = [], op = operation(cell);
     if (op === 'adapter.import') {
-      const importedValue = await imported(cell, phases);
-      const answer = result(phases, { ...importedValue, browserTensorBytes: 0, assertions: ['Exact weights/config hashes and byte counts retained.', 'Production streaming stage, full hash, bounded header/config inspection and durable registration completed.', 'Synthetic structure did not gain V4 eligibility.'] });
-      answer.measurements = [
-        { name: 'T05IncompleteOrUnverifiedIdentityAcceptanceCount', value: 0, unit: 'violations', method: 'Production receipt and retained metadata identity assertions; ineligible weights remain ineligible.', evidence: [importedValue.asset.id] },
-        { name: 'T05BrowserTensorBytes', value: 0, unit: 'bytes', method: 'This C backend process has no browser and streams bounded files through production storage APIs.', evidence: [process.pid] },
-        { name: 'R17BackendRssBytes', value: process.resourceUsage().maxRSS * 1024, unit: 'bytes', method: 'OS cumulative Node-process high-water RSS including writer worker threads, setup and warm primes.', evidence: [process.pid] },
-      ];
-      if (globalThis.__storeNetworkCounters) {
-        const before = globalThis.__storeNetworkCounters.read(); const reread = await writer.adapterView(importedValue.asset.id); assert.deepEqual(reread, importedValue.view); const after = globalThis.__storeNetworkCounters.read(); assert.deepEqual(after, before);
-        answer.measurements.push({ name: 'T06UnchangedOwnedAssetFetches', value: 0, unit: 'count', method: 'Separate exact-owned metadata lookup under shared main/worker no-network counters; not a transfer specimen.', evidence: [{ before, after }] });
+      const processIdentity = JSON.stringify(rawLifecycleIdentity());
+      importResources = (await moduleAt(repo, 'server/observability/adapter-resources.js')).adapterResources;
+      activeImportSampler = createAdapterResourceSampler({writer: () => writer, output, processIdentity, signal});
+      let sampling;
+      try {
+        // The independent shared allocation window starts before the first
+        // input read and ends after all stored-byte/receipt verification.
+        await activeImportSampler.measure();
+        const importedValue = await imported(cell, phases);
+        const proof = await collectAdapterImportProof({writer, root, resources: importResources, imported: importedValue, phases, signal, counters: globalThis.__storeNetworkCounters});
+        sampling = await activeImportSampler.stop();
+        const retained = await retainAdapterImportObservation({output, cell, sample, workerProcessIdentity: context.processIdentity,
+          processIdentity, imported: importedValue, phases, proof, sampling, backendHighWaterRssBytes: process.resourceUsage().maxRSS * 1024});
+        const answer = result(phases, {...importedValue, browserTensorBytes: 0}, retained.missing);
+        answer.adapterImport = retained.observation; answer.measurements = retained.measurements;
+        return answer;
+      } finally {
+        // Closing a failed observation retains its raw failure bytes. It must
+        // not leave a window active across a later warm attempt or cleanup.
+        try {if (!sampling) await activeImportSampler.stop();}
+        finally {activeImportSampler = null; importResources = null;}
       }
-      return answer;
     }
     if (op === 'adapter.select') {
       const viewed = await phase(phases, 'metadata-library-selection-read', async () => {
@@ -280,31 +317,80 @@ export async function createAdapterCampaign(context) {
     if (op === 'adapter.lifecycle') {
       const lifecyclePhases = [], countersBefore = globalThis.__storeNetworkCounters?.read() ?? null, selectionBefore = await currentSelection();
       assert.deepEqual(selectionBefore, [], 'This isolated WA cohort starts with no request attachments');
-      const fixedWeights = fixtures.weights.find(item => item.bytes === ADAPTER_NORMAL_BYTES), fixedConfig = fixtures.config;
-      assert(fixedWeights && fixedConfig, 'WA lifecycle has fixed normal weights and config');
+      const specimen = corpusResolution?.specimen, missing = [...(corpusResolution?.missing ?? [])], resourceSamples = [];
+      const sampleResources = async action => { const value = { ...await measureResources(), action, observedMs: performance.now() }; resourceSamples.push(value); return value; };
+      const ownershipKeys = ['processTree', 'workerThreads', 'stagingBuffers', 'hashBuffers', 'headerBuffers', 'configBuffers', 'ioCopies', 'metadataConsumers', 'assetReadHandles', 'proofHandles', 'streamHandles'];
+      const allocationsCovered = value => value.cpuBytes !== null && ownershipKeys.every(key => value.backendOwnership?.coverage?.[key] === true);
+      const assertions = { fixedArtifactsImported: null, selectionRestored: null, durableFixturePreserved: null, noBrowserTensorDecode: true, zeroUnexpectedFetches: null };
+      await sampleResources('before-open');
       await phase(phases, 'open-document-and-library-consumers', async entry => { entry.receipt = await preferences(true); entry.page = await writer.adapterList(); });
-      const importedValue = await measureAdapterAction(lifecyclePhases, phases, 'import', () => imported(cell, phases));
-      assert.equal(importedValue.asset.adapter.weights.hash, fixedWeights.hash); assert.equal(importedValue.asset.adapter.config.hash, fixedConfig.hash);
-      const entries = library.eligibleEntries;
-      const assertions = { fixedArtifactsImported: true, selectionRestored: null, durableFixturePreserved: null, noBrowserTensorDecode: true, zeroUnexpectedFetches: null };
-      if (entries.length !== 3) return adapterLifecycleResult({ phases: lifecyclePhases, childPhases: phases, assertions, weightsIdentity: fixedWeights.hash, configIdentity: fixedConfig.hash, observations: { imported: importedValue, cycle: sample.cycle ?? null, actionsCompleted: ['open', 'import'], forcedGC: false }, missing: ['Three supported immutable selection versions are absent; remaining WA lifecycle actions cannot be represented by synthetic eligibility.'] });
-      let selectionAfter, diagnostics;
-      await measureAdapterAction(lifecyclePhases, phases, 'select', () => phase(phases, 'select-three-immutable-adapters-in-durable-request-draft', async entry => {
-        entry.receipt = await saveSelection(entries); entry.versions = entries.map(item => item.versionId); entry.observedSelection = await currentSelection();
-        assert.deepEqual(entry.observedSelection.map(item => ({ version: item.version, hash: item.hash })), entries.map(item => ({ version: item.versionId, hash: item.weights.hash })));
-      }));
-      await measureAdapterAction(lifecyclePhases, phases, 'unselect', () => phase(phases, 'unselect-all-adapters-in-durable-request-draft', async entry => {
-        entry.receipt = await saveSelection([]); selectionAfter = await currentSelection(); assert.deepEqual(selectionAfter, selectionBefore); assertions.selectionRestored = true;
-      }));
+      let importedValue = null, selectionAfter = null, closure = null, ownedLookup = null, entries = [];
+      if (specimen) {
+        importedValue = await measureAdapterAction(lifecyclePhases, phases, 'import', () => imported(cell, phases, specimen));
+        assertions.fixedArtifactsImported = true;
+        missing.push(...importedValue.binding.missing);
+        await sampleResources('after-import');
+        if (globalThis.__storeNetworkCounters) {
+          const before = globalThis.__storeNetworkCounters.read(), observed = await writer.adapterView(importedValue.asset.id), after = globalThis.__storeNetworkCounters.read();
+          ownedLookup = { before, after, expected: importedValue.view, observed }; assert.deepEqual(observed, importedValue.view); assert.deepEqual(after, before);
+        }
+        if (importedValue.binding.eligible) {
+          // Every selected version is the durable version created in this cycle.
+          // The separately sealed 85 MiB reference library cannot substitute.
+          entries = [importedValue.view];
+          await measureAdapterAction(lifecyclePhases, phases, 'select', () => phase(phases, 'select-exact-imported-version-in-durable-request-draft', async entry => {
+            entry.receipt = await saveSelection(entries); entry.versions = entries.map(item => item.versionId);
+            entry.observedSelection = await currentSelection({ retain: true });
+            assert.deepEqual(entry.observedSelection.map(item => ({ version: item.version, hash: item.hash })), entries.map(item => ({ version: item.versionId, hash: item.weights.hash })));
+          }));
+          await sampleResources('after-select');
+          await measureAdapterAction(lifecyclePhases, phases, 'unselect', () => phase(phases, 'unselect-exact-imported-version-in-durable-request-draft', async entry => {
+            entry.receipt = await saveSelection([]); selectionAfter = await currentSelection(); assert.deepEqual(selectionAfter, selectionBefore); assertions.selectionRestored = true;
+          }));
+        }
+      } else missing.push('The sealed fixed-size WA import specimen is unavailable; no replacement fixture was generated.');
       await measureAdapterAction(lifecyclePhases, phases, 'close', () => phase(phases, 'close-document-consumers', async entry => { entry.receipt = await preferences(false); }));
-      await measureAdapterAction(lifecyclePhases, phases, 'release', () => phase(phases, 'release-transient-operation-consumers', async entry => {
-        const state = await writer.uiRead('campaign-adapter-session', io.auth()); assert.equal(state.preferences.documentId, null); entry.openDocument = null; diagnostics = entry.diagnostics = await writer.diagnostics();
+      await measureAdapterAction(lifecyclePhases, phases, 'release', () => phase(phases, 'release-owned-selection-read-consumers', async entry => {
+        const startMs = performance.now(), acquired = [...ownedSelectionReads.values()];
+        for (const handle of [...ownedSelectionReads.keys()]) { await writer.assetRelease(handle); ownedSelectionReads.delete(handle); }
+        const scopedEndMs = performance.now();
+        const state = await writer.uiRead('campaign-adapter-session', io.auth()); assert.equal(state.preferences.documentId, null);
+        let resourceObservation = await sampleResources('after-release');
+        lastRelease = adapterReleaseWitness({ startMs, scopedEndMs, acquired, resources: resourceObservation, processIdentity: JSON.stringify(rawLifecycleIdentity()) });
+        // A completed writer call is not proof that its last consumer released.
+        // Observe real ownership until quiescent or the specified release limit.
+        while (acquired.length && !lastRelease.completeOwnerCoverage && performance.now() - startMs < 5000
+          && resourceObservation.producer?.aggregate?.integrityComplete === true) {
+          abort(signal); await wait(Math.min(100, Math.max(1, 5000 - (performance.now() - startMs)))); abort(signal);
+          resourceObservation = await sampleResources('after-release');
+          lastRelease = adapterReleaseWitness({ startMs, scopedEndMs, acquired, resources: resourceObservation, processIdentity: JSON.stringify(rawLifecycleIdentity()) });
+        }
+        const observedReaders = resourceObservation.campaignConsumers?.retainedOracleReaders;
+        lastRelease.releaseLimitViolation = lastRelease.endMs !== null && lastRelease.endMs - startMs > 5000
+          && (resourceObservation.unusedHandles > 0 || resourceObservation.campaignConsumers?.scopedSelectionReaders > 0
+            || observedReaders?.openFiles > 0 || observedReaders?.openDatabases > 0);
+        entry.release = lastRelease;
       }));
+      if (lifecycleOracle) {
+        closure = await phase(phases, 'complete-retained-fixture-byte-closure', () => lifecycleOracle.checkpoint({ importedAssetIds: importedValue ? [importedValue.asset.id] : [] }));
+        assertions.durableFixturePreserved = closure.assertions?.durableFixturePreserved ?? null;
+        missing.push(...(closure.missing ?? []));
+      }
       const countersAfter = globalThis.__storeNetworkCounters?.read() ?? null;
       if (countersBefore && countersAfter) { assert.deepEqual(countersAfter, countersBefore); assertions.zeroUnexpectedFetches = true; }
-      return adapterLifecycleResult({ phases: lifecyclePhases, childPhases: phases, assertions, selectedEntries: entries, weightsIdentity: fixedWeights.hash, configIdentity: fixedConfig.hash,
-        observations: { imported: importedValue, cycle: sample.cycle ?? null, selectionBefore, selectionAfter, countersBefore, countersAfter, diagnostics, selectedImportedIdentity: false, actionsCompleted: ['open', 'import', 'select', 'unselect', 'close', 'release'], forcedGC: false },
-        missing: ['The synthetic 256 MiB imported identity has no eligible profile; actual durable draft selection uses distinct sealed 85,299,896-byte versions. Same-import WA lifecycle remains unqualified.', 'No complete retained-fixture byte-closure or unused-handle/release-duration observation is available in this backend-only workflow.', ...(!context.fixture?.documentId ? ['No full sealed W1 document fixture supplied; this run used a real empty 2048x2048 document.'] : [])] });
+      if (!entries.length) missing.push('Selection/unselection require actual supported eligibility for the exact imported weights/config; no other version was attached.');
+      const ownedCoverage = resourceSamples.every(allocationsCovered);
+      if (!ownedCoverage || lastRelease?.completeOwnerCoverage !== true)
+        missing.push('Actual backend allocation or post-release unused-handle ownership evidence is incomplete; scoped reader release alone cannot establish it.');
+      const measurements = await retainAdapterCycleMeasurements({ output, cell, cycle: sample.cycle, processIdentity: JSON.stringify(await lifecycleIdentity()), fixtureIdentity: context.fixture?.seal?.sha256, specimen, imported: importedValue, closure, ownedLookup, phases: lifecyclePhases });
+      const answer = adapterLifecycleResult({ phases: lifecyclePhases, childPhases: phases, assertions, selectedEntries: entries,
+        weightsIdentity: specimen?.weights.hash ?? null, configIdentity: specimen?.config.hash ?? null, releaseMs: lastRelease?.durationMs ?? null, resourceSamples,
+        observations: { imported: importedValue, importedBinding: importedValue?.binding.binding ?? null, cycle: sample.cycle ?? null, selectionBefore, selectionAfter,
+          countersBefore, countersAfter, ownedLookup, closure, selectedImportedIdentity: entries.length ? true : null, release: lastRelease, forcedGC: false },
+        missing });
+      answer.measurements = measurements;
+      if (lastRelease?.releaseLimitViolation) { answer.status = 'FAIL'; answer.capViolation = true; }
+      return answer;
     }
     if (op === 'adapter.transfer') {
       const transport = await import('./adapter-transfers.mjs');
@@ -323,13 +409,23 @@ export async function createAdapterCampaign(context) {
     if (op === 'adapter.setup') return result(phases, { fixture: fixtures, library, root });
     throw Error('Unsupported adapter operation: ' + op);
   }
+  function rawLifecycleIdentity() { return { pid: process.pid, startedAt, writerEpoch: writer?.epoch ?? null, root }; }
+  async function lifecycleIdentity() {
+    resourceSampler ??= createAdapterResourceSampler({ writer: () => writer, output, processIdentity: () => JSON.stringify(rawLifecycleIdentity()), signal,
+      readCampaignConsumers: () => ({ scopedSelectionReaders: ownedSelectionReads.size, retainedOracleReaders: lifecycleOracle?.readerObservation() ?? null }) });
+    await resourceSampler.start(); return rawLifecycleIdentity();
+  }
+  async function measureResources() {
+    await lifecycleIdentity();
+    return resourceSampler.measure();
+  }
   return { prepareCell, resetCell: async (cell, sample) => ({ cell: cell.id, cache: sample.cache, processReset: false, retainedFixtureIdentities: fixtures?.weights.map(item => item.hash) ?? [] }), execute,
-    lifecycleCycle: execute,
-    async lifecycleIdentity() { return { pid: process.pid, startedAt, writerEpoch: writer?.epoch ?? null, root }; },
+    lifecycleCycle: execute, lifecycleIdentity, measureResources,
     get fixtureIdentity() { return context.fixture?.seal?.sha256 ?? context.fixture?.manifestHash ?? context.fixture?.sha256 ?? null; },
-    get weightsIdentity() { return fixtures?.weights.find(item => item.bytes === ADAPTER_NORMAL_BYTES)?.hash ?? null; },
-    get configIdentity() { return fixtures?.config.hash ?? null; },
-    async measureResources() { const diagnostics = writer ? await writer.diagnostics() : null; return { backendRssBytes: process.memoryUsage().rss, browserRssBytes: null, cpuBytes: null, gpuBytes: null, previewCacheBytes: null, settledBytes: null, unusedHandles: null, textureSide: null, deviceTextureLimit: null, processTree: { kind: 'node-process-and-worker-threads', pid: process.pid }, diagnostics, activeResources: process.getActiveResourcesInfo(), forcedGC: false }; },
-    async releaseEvidence() { return { consumers: [], browserConsumersPresent: false, retainedDurableFixtures: true, diagnostics: writer ? await writer.diagnostics() : null, missing: ['No browser consumer release measurement is provided by the backend-only adapter.'] }; },
-    async close() { await closeTransport?.(); if (writer) { await writer.close(); writer = null; } } };
+    get weightsIdentity() { return corpusResolution?.specimen?.weights.hash ?? fixtures?.weights.find(item => item.bytes === ADAPTER_NORMAL_BYTES)?.hash ?? null; },
+    get configIdentity() { return corpusResolution?.specimen?.config.hash ?? fixtures?.config.hash ?? null; },
+    async releaseEvidence() { return { release: lastRelease, scopedSelectionReaders: ownedSelectionReads.size, completeOwnerCoverage: lastRelease?.completeOwnerCoverage === true, resourceObservation: lastRelease?.resourceObservation ?? null }; },
+    async finalizeLifecycle() { return lifecycleOracle ? lifecycleOracle.completeSeries() : { status: 'INCONCLUSIVE', complete: false, missing: ['The initial WA retained fixture oracle was unavailable.'] }; },
+    async resourceSamplingEvidence() { return resourceSampler ? resourceSampler.stop() : { kind: 'attributed-backend-process-and-allocation-ledger', complete: false, missing: ['No continuous resource sampler was started before B0.'] }; },
+    async close() { if (resourceSampler) await resourceSampler.stop(); await closeTransport?.(); if (writer) { for (const handle of [...ownedSelectionReads.keys()]) { await writer.assetRelease(handle); ownedSelectionReads.delete(handle); } await writer.close(); writer = null; } await lifecycleOracle?.close(); } };
 }

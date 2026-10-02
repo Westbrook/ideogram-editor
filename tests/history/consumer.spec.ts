@@ -39,7 +39,7 @@ test('new image history snapshot plus tail is equivalent to full replay and corr
   const c=command(f.f.ref,{clientId:auth.clientId,expectedDocumentRevision:d.revision,body:{type:'SaveCheckpoint',name:'Retained '+i}});await w.historyCommand(encode(c),auth);
   for(;;){const s=await w.commandState(c.command.commandId);if(s.record){expect(s.record.receipt.status).toBe('accepted');break;}await new Promise(r=>setTimeout(r,1));}d=await w.document('document_1');
  }
- const diagnostics=await w.diagnostics();expect(BigInt(diagnostics.observations.snapshot.latest)).toBeGreaterThanOrEqual(250n);await w.close();
+ {const diagnosticRead=await w.readDiagnostics();try{expect(BigInt(diagnosticRead.value.observations.snapshot.latest)).toBeGreaterThanOrEqual(250n);}finally{diagnosticRead.release();}}await w.close();
  await start(page,f.f.root);await recover(page);expect((await read(page)).document).toEqual(d);
  await page.evaluate(async()=>{const h=(window as any).harness,p=await h.cache.published(),generation=crypto.randomUUID();await h.cache.clone(p.generation,generation);await h.cache.publish({...p,generation,cursor:'0'},p);});const prior=await read(page);
  await page.route('**/api/v1/protocol-content/**',async route=>{const r=await route.fetch(),b=await r.body();b[b.length-2]^=1;await route.fulfill({response:r,body:b});});

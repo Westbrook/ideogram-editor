@@ -110,3 +110,58 @@ test('an HTTP disconnect while the root check is pending never launches deferred
   res.destroyed = true; res.emit('close'); root.resolve(); await result;
   assert.equal(begins, 0); assert.ok(releases >= 1);
 });
+
+
+test('storage clear skips live pins and raw LOD0, then removes only released derivatives and recomputes them', async t => {
+  const f = await fixture(t), original = await readFile(f.objects.path(f.asset.raster.pixels));
+  const info = await f.displays.begin('pinned-preview', 'image', f.query(256));
+  const raw = {kind:'tile',basis:'pixels',identity:f.asset.raster.pixelIdentity,x:0,y:0,lod:0};
+  await f.displays.begin('raw-tile', 'image', raw);
+  assert.equal(f.displays.hasReaders(), true);
+  const pinned = f.displays.clearRegistered();
+  assert.equal(pinned.removedEntries, 0); assert.equal(pinned.pinnedEntries, 1);
+  assert.equal(pinned.freedLogicalBytes, '0'); assert.equal(pinned.outcome, 'complete');
+  assert.equal(hash(f.displays.read('pinned-preview', '0', Number(info.byteLength))), info.hash);
+  assert.deepEqual(f.displays.read('raw-tile', '0', original.length), original);
+  await f.displays.release('pinned-preview'); await f.displays.release('raw-tile');
+  assert.equal(f.displays.hasReaders(), false);
+  const cleared = f.displays.clearRegistered();
+  assert.equal(cleared.outcome, 'complete'); assert.equal(cleared.removedEntries, 1);
+  assert.equal(cleared.freedLogicalBytes, info.byteLength); assert.deepEqual(cleared.failures, []);
+  assert.deepEqual(await readdir(join(f.root, 'display-cache')), []);
+  assert.deepEqual(await readFile(f.objects.path(f.asset.raster.pixels)), original);
+  const again = await f.displays.begin('recomputed', 'image', f.query(256));
+  assert.equal(again.hash, info.hash); assert.equal(f.count(), 2);
+  await f.displays.release('recomputed'); idle(f);
+});
+
+test('storage clear retains unexpected members and changed registered file identities', async t => {
+  const f = await fixture(t);
+  await f.displays.begin('seed', 'image', f.query(256)); await f.displays.release('seed');
+  const directory = join(f.root, 'display-cache', (await readdir(join(f.root, 'display-cache')))[0]);
+  const sentinel = join(directory, 'unregistered'), data = join(directory, 'data'), before = await readFile(data);
+  await writeFile(sentinel, 'keep', {mode:0o600});
+  const refused = f.displays.clearRegistered();
+  assert.equal(refused.outcome, 'partial'); assert.equal(refused.removedEntries, 0);
+  assert.equal(refused.freedLogicalBytes, '0'); assert.equal(refused.retainedEntries, 1);
+  assert.equal(refused.failures.length, 1); assert.equal(await readFile(sentinel, 'utf8'), 'keep');
+  assert.deepEqual(await readFile(data), before); idle(f);
+  const separate = await fixture(t);
+  await separate.displays.begin('seed', 'image', separate.query(256)); await separate.displays.release('seed');
+  const changed = join(separate.root, 'display-cache', (await readdir(join(separate.root, 'display-cache')))[0]), changedData = join(changed, 'data');
+  await writeFile(changedData, Buffer.from('changed'));
+  const rejected = separate.displays.clearRegistered();
+  assert.equal(rejected.outcome, 'partial'); assert.equal(rejected.removedEntries, 0);
+  assert.equal(rejected.failures[0].reason, 'identity'); assert.equal(await readFile(changedData, 'utf8'), 'changed'); idle(separate);
+});
+
+test('storage clear observes but never deletes an active derivative build', async t => {
+  const started = defer(), gate = defer();
+  const f = await fixture(t, ({setStop}) => {setStop(() => gate.resolve()); started.resolve(); return gate.promise;});
+  const pending = f.displays.begin('building', 'image', f.query(256)); await started.promise;
+  const directories = await readdir(join(f.root, 'display-cache'));
+  const result = f.displays.clearRegistered();
+  assert.equal(result.activeBuilds, 1); assert.equal(result.removedEntries, 0);
+  assert.deepEqual(await readdir(join(f.root, 'display-cache')), directories);
+  gate.resolve(); await pending; await f.displays.release('building'); idle(f);
+});

@@ -5,7 +5,14 @@ import { join } from 'node:path';
 import { ABSOLUTE_MS, IDLE_MS, PAIRING_MS } from '../../dist/local/server/sessions.js';
 import { fixture, call, pair, tokenFrom, cookieFrom, readHeaders, mutationHeaders, exchange } from './helpers.mjs';
 
+function framedJSON(response) {
+  assert.equal(response.headers['content-type'], 'application/json; charset=utf-8');
+  assert.equal(response.headers['content-length'], String(Buffer.byteLength(response.text, 'utf8')));
+  assert.equal(response.headers['transfer-encoding'], undefined);
+}
+
 function denied(response, status, code) {
+  framedJSON(response);
   assert.equal(response.status, status);
   assert.equal(response.json.protocolVersion, 1);
   assert.match(response.json.requestId, /^[A-Za-z0-9_-]{1,128}$/);
@@ -31,6 +38,7 @@ test('SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed s
   denied(await call(server.origin, '/api/v1/capabilities', { headers: { Origin: server.origin } }), 401, 'SESSION_REQUIRED');
   const paired = await pair(server);
   assert.equal(paired.status, 200);
+  framedJSON(paired);
   const cookie = cookieFrom(paired);
   assert.match(paired.headers['set-cookie'][0], /^ie_session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Strict; Path=\/$/);
   assert.match(paired.json.csrfToken, /^[A-Za-z0-9_-]{43}$/);
@@ -38,13 +46,15 @@ test('SEC01/02: exact OS-selected origin, anonymous shell, authenticated typed s
   assert.deepEqual(Object.keys(paired.json).sort(), ['clientId', 'csrfToken', 'idleExpiresAt', 'protocolVersion', 'sessionExpiresAt']);
   const session = await call(server.origin, '/api/v1/session', { headers: readHeaders(cookie) });
   assert.equal(session.status, 200);
+  framedJSON(session);
   assert.equal(session.json.clientId, paired.json.clientId);
   const capabilities = await call(server.origin, '/api/v1/capabilities', { headers: readHeaders(cookie) });
+  framedJSON(capabilities);
   // Fresh storage can still report real host disk pressure. Assert the public
   // 80% threshold against the filesystem rather than assuming an empty host.
   const space=await statfs(server.root,{bigint:true});
   const expectedStorage=(space.blocks-space.bavail)*100n>=space.blocks*80n?'pressure':'ready';
-  assert.deepEqual(capabilities.json, { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 8, credentialConfigured: false,
+  assert.deepEqual(capabilities.json, { protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 9, credentialConfigured: false,
     storageState: expectedStorage, connectionState: 'unknown', limits: [], profiles: [
       { id: 'LP-1', version: '1', state: 'unqualified' }, { id: 'LS-1', version: '1', state: 'unqualified' },
       { id: 'EF-1', version: '1', state: 'unavailable' }, { id: 'PF-1', version: '3', state: 'unqualified' }, { id: 'TEXT-DURABLE', version: '1', state: 'unqualified' }] });
@@ -88,6 +98,8 @@ test('SEC02: missing-Origin reads require both same-origin metadata and LP-1 mar
   denied(await call(server.origin, '/api/v1/session', { headers: readHeaders(cookie), raw: Buffer.from('{}') }), 400, 'MALFORMED_REQUEST');
   const head = await call(server.origin, '/api/v1/session', { method: 'HEAD', headers: readHeaders(cookie) });
   assert.equal(head.status, 405); assert.equal(head.headers.allow, 'GET'); assert.equal(head.text, '');
+  assert.match(head.headers['content-length'], /^[1-9][0-9]*$/);
+  assert.equal(head.headers['transfer-encoding'], undefined);
 });
 
 test('SEC03: one-use pairing is atomic and expires at precisely five minutes', async t => {
@@ -120,6 +132,7 @@ test('SEC03: rotation, revoke and concurrent pending mutations invalidate old cr
   const responses = await Promise.all([1, 2].map(() => call(server.origin, '/api/v1/session/renew', { method: 'POST', headers, body })));
   assert.deepEqual(responses.map(r => r.status).sort(), [200, 401]);
   const renewed = responses.find(r => r.status === 200);
+  framedJSON(renewed);
   assert.equal(renewed.json.clientId, paired.json.clientId);
   assert.equal(renewed.json.sessionExpiresAt, paired.json.sessionExpiresAt);
   assert.notEqual(cookieFrom(renewed), cookieFrom(paired));
@@ -130,6 +143,8 @@ test('SEC03: rotation, revoke and concurrent pending mutations invalidate old cr
   pending.request.write('{');
   const revoked = await call(server.origin, '/api/v1/session/revoke', { method: 'POST', headers: mutationHeaders(server, renewed), body });
   assert.equal(revoked.status, 204); assert.equal(revoked.text, ''); assert.match(revoked.headers['set-cookie'][0], /Max-Age=0/);
+  assert.equal(revoked.headers['content-length'], undefined);
+  assert.equal(revoked.headers['transfer-encoding'], undefined);
   pending.request.end('"protocolVersion":1}');
   denied(await pending.response, 401, 'SESSION_REQUIRED');
   denied(await call(server.origin, '/api/v1/session', { headers: readHeaders(cookieFrom(renewed)) }), 401, 'SESSION_REQUIRED');

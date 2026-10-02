@@ -1,3 +1,5 @@
+import {importPlan as validateImportPlan} from '../../src/protocol/raster-import.js';
+import {v45EditPreparation} from '../../src/protocol/v45-inputs.js';
 import {adapterRegistration} from '../../src/protocol/adapters.js';
 import {isQueueCommand} from '../../src/protocol/queue.js';
 import {validateMaskMapping} from '../../src/raster/mapping.js';
@@ -62,10 +64,13 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
     else if(body.type==='DeleteDocument'){keys(body,['type','documentId','planId','planHash','expectedRevision','rootGeneration','acknowledgeRunningAndUncertain']);if(!isId(body.documentId)||!isId(body.planId)||!isSeq(body.expectedRevision)||![body.planHash,body.rootGeneration].every(v=>typeof v==='string'&&/^sha256:[a-f0-9]{64}$/.test(v))||typeof body.acknowledgeRunningAndUncertain!=='boolean')bad();}
     else if(body.type==='CollectDocumentGarbage'){keys(body,['type','documentId']);if(!isId(body.documentId))bad();}
     else if(['CancelJob','RecoverJob','UndoPendingJob','RedoPendingJob'].includes(String(body.type))){keys(body,['type','jobId','attemptId','expectedVersion']);if(!isId(body.jobId)||!isId(body.attemptId)||!isSeq(body.expectedVersion))bad();}
+    else if(body.type==='ReorderLocalQueue'){keys(body,['type','jobId','expectedVersion','neighborId','expectedNeighborVersion','expectedOrderVersion','direction']);if(!isId(body.jobId)||!isId(body.neighborId)||body.jobId===body.neighborId||![body.expectedVersion,body.expectedNeighborVersion,body.expectedOrderVersion].every(isSeq)||!(body.direction==='up'||body.direction==='down'))bad();}
+    else if(body.type==='EditQueuedJob'){keys(body,['type','jobId','expectedVersion','sessionId','expectedUISeq','replacementDraftId']);if(![body.jobId,body.sessionId,body.replacementDraftId].every(isId)||![body.expectedVersion,body.expectedUISeq].every(isSeq))bad();}
     else if(body.type==='CancelUnstartedJob'){keys(body,['type','jobId','expectedVersion']);if(!isId(body.jobId)||!isSeq(body.expectedVersion))bad();}
     else {const risk=body.type==='OverrideUncertainHold'?'acknowledgeOverlapAndChargeRisk':'acknowledgeDuplicateWorkAndChargeRisk';keys(body,['type','jobId','attemptId','expectedVersion',risk]);if(!isId(body.jobId)||!isId(body.attemptId)||!isSeq(body.expectedVersion)||body[risk]!==true)bad();}
   } else if (isPortableCommand(String(body.type))) {
     if(body.type==='SaveCopy')keys(body,['type']);
+    else if(body.type==='SaveRecoveryCopy'){keys(body,['type','acknowledgementId']);if(!isId(body.acknowledgementId))bad();}
     else if(body.type==='PreviewBundleImport'){keys(body,['type','stagingId','expectedSha256']);if(!isId(body.stagingId)||typeof body.expectedSha256!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.expectedSha256))bad();}
     else if(body.type==='ImportBundle'){keys(body,['type','reviewId','reviewHash']);if(!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash))bad();}
     else{keys(body,['type','operationId']);if(!isId(body.operationId))bad();}
@@ -85,11 +90,13 @@ export function parseCommand(bytes: Uint8Array): CommandRequest {
     if (!isId(body.stagingId)||!isId(body.expectedOwnerClientId)||!isSeq(body.expectedVersion)||!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash)) bad();
   } else if (body.type === 'FinalizeStaging') {
     keys(body, ['type','stagingId','expectedSha256']); if (!isId(body.stagingId)||typeof body.expectedSha256!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.expectedSha256)) bad();
-  } else if (body.type === 'PrepareRaster' || body.type === 'ReviewRaster' || body.type === 'ExportRaster') {
-    keys(body,['type','assetId',...(body.type==='ExportRaster'&&Object.hasOwn(body,'options')?['options']:[])]); if(!isId(body.assetId))bad();
+  } else if (body.type === 'InspectRasterOriginal' || body.type === 'PrepareRaster' || body.type === 'ReviewRaster' || body.type === 'ExportRaster') {
+    keys(body,['type','assetId',...(body.type==='ExportRaster'&&Object.hasOwn(body,'options')?['options']:[]),...(body.type==='PrepareRaster'&&Object.hasOwn(body,'importPlan')?['importPlan']:[])]); if(!isId(body.assetId))bad();
+    if(body.type==='PrepareRaster'&&Object.hasOwn(body,'importPlan'))try{validateImportPlan(body.importPlan,0x7fffffff,0x7fffffff);}catch{bad();}
     if(body.type==='ExportRaster'&&Object.hasOwn(body,'options'))try{exportOptions(body.options,false);}catch{bad();}
   } else if (body.type === 'ApproveRaster') {
     keys(body,['type','assetId','reviewId','reviewHash']);if(!isId(body.assetId)||!isId(body.reviewId)||typeof body.reviewHash!=='string'||!/^sha256:[a-f0-9]{64}$/.test(body.reviewHash))bad();
+  } else if(body.type==='PrepareV45EditInputs'){try{v45EditPreparation(body);}catch{bad();}
   } else if(body.type==='PrepareRequestMask'){keys(body,['type','sourceAssetId','plan','clip']);if(!isId(body.sourceAssetId))bad();try{validateMaskPlan(body.plan);}catch{bad();}if(body.clip!==null){keys(body.clip,['x','y','width','height']);const r=body.clip;const p=body.plan as {width:number;height:number};if(!Object.values(r).every(Number.isSafeInteger)||(r.x as number)<0||(r.y as number)<0||(r.width as number)<=0||(r.height as number)<=0||(r.x as number)+(r.width as number)>p.width||(r.y as number)+(r.height as number)>p.height)bad();}
   } else if (body.type === 'PrepareMask') {
     keys(body,['type','plan']);try{validateMaskPlan(body.plan);}catch{bad();}

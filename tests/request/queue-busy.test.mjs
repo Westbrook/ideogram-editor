@@ -36,6 +36,8 @@ test('a superseded public risk acknowledgement cannot authorize the newer select
 test('fresh public cancellation uses the currently refreshed job version once',async t=>{
  const f=await fixture(t),q=f.getQueue();q.jobs[0].version='9';f.setQueue(q);await refresh(f);f.click(cancel);await until(()=>f.commands.length===1);assert.deepEqual(f.commands[0],{type:'CancelJob',jobId:'job',attemptId:'attempt',expectedVersion:'9'});f.cancellation.resolve();await settled(f);
 });
-test('older displayed payload is not rewritten or replayed after a version rejection',async t=>{
- const f=await fixture(t),old=f.button(cancel),q=f.getQueue();q.jobs[0].version='9';f.setQueue(q);await refresh(f);f.editor.command=async body=>{f.commands.push(body);throw Error('fixture stale expectedVersion');};old.click(f.event());await turn();await settled(f);assert.deepEqual(f.commands,[{type:'CancelJob',jobId:'job',attemptId:'attempt',expectedVersion:'5'}]);assert.match(f.render().errors.join(' '),/fixture stale expectedVersion/);
+test('a refreshed queue refuses the old callback and never rewrites or replays a rejected current payload',async t=>{
+ const f=await fixture(t),old=f.button(cancel),q=f.getQueue();q.jobs[0].version='9';f.setQueue(q);await refresh(f);f.editor.command=async body=>{f.commands.push(body);throw Error('fixture stale expectedVersion');};
+ old.click(f.event());await turn();assert.deepEqual(f.commands,[],'The old rendered page cannot authorize a command after refresh');
+ f.click(cancel);await until(()=>f.commands.length===1);await settled(f);await turn();assert.deepEqual(f.commands,[{type:'CancelJob',jobId:'job',attemptId:'attempt',expectedVersion:'9'}]);assert.match(f.render().errors.join(' '),/fixture stale expectedVersion/);await turn();assert.equal(f.commands.length,1,'A rejected payload is never rewritten or replayed');
 });

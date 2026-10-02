@@ -1,5 +1,5 @@
 import {functionalGates} from './manifest.mjs';
-import {nodeGroups, requiredSuiteEnvironment, fastNodeFiles, buildFreeFastNodeFiles} from './suite-prerequisites.mjs';
+import {nodeGroups, expandNodeGateSelection, completionPrerequisitesFor, requiredSuiteEnvironment, freshFixtureFiles, fastNodeFiles, buildFreeFastNodeFiles} from './suite-prerequisites.mjs';
 import {nativeNodeBrowserFiles} from './developer-campaigns/selectors.mjs';
 import {createBrowserPlan} from './container/browser-plan.mjs';
 
@@ -18,7 +18,7 @@ export function developmentPlan(root,{groups='base',browsers='none',output,worke
   const aliases={...nodeGroups,all:Object.values(nodeGroups).flat(),preflight:[],tooling:['qualification','tooling'],archives:['python:archives'],reviews:['python:reviews'],vendor:['python:vendor']};
   const names=aliases[groups]??groups.split(',');
   if(!names.length && groups!=='preflight')throw Error('Empty selection');
-  const requested=new Set(names.map(name=>name.startsWith('python:')?name:`node:${name}`));
+  const requested=new Set(expandNodeGateSelection(all,names.map(name=>name.startsWith('python:')?name:`node:${name}`)));
   for(const gate of toolingGates)known.set(gate.id,gate);
   for(const id of requested)if(!known.has(id))throw Error(`Unknown validation group: ${id}`);
   const focused=nodeFiles===null?null:nodeFiles.split(',');
@@ -39,8 +39,10 @@ export function developmentPlan(root,{groups='base',browsers='none',output,worke
     const ordinary=gate.files.filter(file=>!hosted.includes(file)&&!fast.includes(file));
     function split(files,suffix){
       const result={...gate,id:id+suffix,files,command:[...gate.command.slice(0,gate.command.indexOf('--test-concurrency=1')),'--test-concurrency=1',...files],dependencies:suffix===':fast'&&files.every(file=>buildFreeFastNodeFiles.includes(file))?['preflight']:['build-server'],requiredEnvironment:requiredSuiteEnvironment(files)};
-      delete result.browserPrerequisites;delete result.fixtureBuild;
-      if(id==='node:session'||suffix===':browser')result.dependencies.push('build-app');
+      delete result.browserPrerequisites;delete result.fixtureBuild;delete result.freshFixtureFiles;delete result.completionPrerequisites;
+      const completion=completionPrerequisitesFor(files);if(completion)result.completionPrerequisites=completion;
+      const freshFiles=freshFixtureFiles(files);if(freshFiles.length)result.freshFixtureFiles=freshFiles;
+      if(id==='node:session'||suffix===':browser'||result.completionPrerequisites)result.dependencies.push('build-app');
       if(result.dependencies.includes('build-server')&&['node:raster','node:history','node:portable','node:export'].includes(id))result.dependencies.push('raster-inputs');
       if(suffix===':browser'){result.browserPrerequisites={engines:['chromium'],files};if(files.includes('tests/text-state/native.test.mjs'))result.fixtureBuild=gate.fixtureBuild;}
       return result;
@@ -58,20 +60,21 @@ export function developmentPlan(root,{groups='base',browsers='none',output,worke
     const serial=createBrowserPlan({selection:browsers,scope:'features',output});
     const families=browserGroups==='all'?null:browserGroups.split(',');
     if(families && (new Set(families).size!==families.length||families.some(f=>!(batchEditor&&f==='editor-batch')&&!serial.steps.some(s=>s.family===f&&s.config))))throw Error('Unknown or duplicate browser family');
-    const selected=serial.steps.filter(s=>s.config&&(!families||families.includes(s.family)||(batchEditor&&families.includes('editor-batch')&&s.family.startsWith('editor-'))));
-    const editorSelection=[...new Set(selected.filter(s=>s.family.startsWith('editor-')).flatMap(s=>s.files))];
+    const batchable=step=>step.config==='tests/editor/integration-regression.config.ts';
+    const selected=serial.steps.filter(s=>s.config&&(!families||families.includes(s.family)||(batchEditor&&families.includes('editor-batch')&&batchable(s))));
+    const editorSelection=[...new Set(selected.filter(batchable).flatMap(s=>s.files))];
     const full=batchEditor&&editorSelection.length?createBrowserPlan({selection:browsers,scope:'features',output,batchEditor:true,editorSelection}):serial;
     const tests=full.steps.filter(s=>s.config&&(s.family==='editor-batch'&&editorSelection.length||selected.some(p=>p.id===s.id))).map(s=>structuredClone(s));
     if(browserGrep!==null)for(const step of tests)step.args.push('--grep',browserGrep);
     const fixtures=new Set(tests.flatMap(s=>s.prerequisites));
-    const prerequisites=tests.every(s=>['consumer','display-image'].includes(s.family))?['imports']:['build-app','build-server','raster-inputs'];
+    const prerequisites=tests.every(s=>['consumer','editor-display-image'].includes(s.family))?['imports']:['build-app','build-server','raster-inputs'];
     browserPlan={...full,steps:[...full.steps.filter(s=>fixtures.has(s.id)).map(s=>s.id==='build-consumer'?{...s,executable:'node',args:['tooling/qualification/development-build.mjs','consumer']}:s),...tests],prerequisites,requiredBrowsers:[...new Set(tests.map(s=>s.browser))]};
     browserPlan.prerequisites.forEach(add);
   }
-  const needsIssuers=[...early,...selected,...late].some(g=>g.completionPrerequisites)||browserPlan?.steps.some(s=>s.config&&!['consumer','display-image','text','projection','history','raster'].includes(s.family));
+  const needsIssuers=[...early,...selected,...late].some(g=>g.completionPrerequisites)||browserPlan?.steps.some(s=>s.config&&!['consumer','editor-display-image','text','projection','history','raster'].includes(s.family));
   if(needsIssuers){known.set('completion-source',{id:'completion-source',command:['node','tooling/qualification/completion-issuers/index.mjs','--check-source'],dependencies:['preflight'],timeoutMs:60_000});add('completion-source');}
   if([...early,...selected,...late].some(g=>g.dependencies.includes('build-server'))||browserPlan?.prerequisites.includes('build-server')){known.set('storage-environment',{id:'storage-environment',command:['node','tooling/qualification/development-environment.mjs'],dependencies:['preflight'],timeoutMs:15_000});add('storage-environment');}
-  const stages=['typecheck','preflight','completion-source','storage-environment','node:qualification','node:tooling','python:reviews','python:archives',...early.filter(gate=>!gate.dependencies.includes('build-server')).map(gate=>gate.id),'vendor','python:vendor','imports','raster-inputs','build-server',...early.filter(gate=>gate.dependencies.includes('build-server')).map(gate=>gate.id),'build-app'];
+  const stages=['typecheck','preflight','completion-source','storage-environment','node:tooling','python:reviews','python:archives',...early.filter(gate=>!gate.dependencies.includes('build-server')).map(gate=>gate.id),'vendor','python:vendor','text-inputs','imports','raster-inputs','build-server',...early.filter(gate=>gate.dependencies.includes('build-server')).map(gate=>gate.id),'build-app'];
   const order=[...stages,...selected.map(gate=>gate.id),...late.map(gate=>gate.id)];
   const gates=[...new Set(order)].filter(id=>required.has(id)).map(id=>structuredClone(known.get(id)));
   const tooling=gates.find(gate=>gate.id==='node:qualification');

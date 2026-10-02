@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {setup} from '../../tests/protocol/helpers.mjs';
 import {importRaster,terminal} from '../../tests/raster/helpers.mjs';
 import {openWriter} from '../../dist/local/server/storage/writer.js';
+let diagnosticsRead;
 const cleanup=[],f=await setup({after:fn=>cleanup.push(fn)}),http=[],writer=[];
 const facts={at:new Date().toISOString(),qualification:false,root:f.root,limits:'Serial tiny 3x2 fixture on this host, without exclusive-host qualification. Full HTTP clocks include preparation and polling. Writer append is a separate subclock. No UI paint, supported-envelope, R20/R21/R22/R23/R31 or memory qualification.',targets:{R20TargetMs:20,R20CeilingMs:50},http,writer};
 try{
@@ -24,9 +25,9 @@ try{
    for(let n=0;n<1000;n++){r=await w.commandState(c.command.commandId);if(r.record)break;await new Promise(r=>setTimeout(r,2));}
    assert.equal(r.record.receipt.status,'accepted');writer.push({commandId:c.command.commandId,fullReceiptMs:performance.now()-start});
   }
-  facts.diagnostics=await w.diagnostics();
+  diagnosticsRead=await w.readDiagnostics();facts.diagnostics=diagnosticsRead.value;
  }finally{await w.close();}
  facts.summary={httpAdmissionMaxMs:Math.max(...http.map(x=>x.admissionMs)),httpFullReceiptMaxMs:Math.max(...http.map(x=>x.fullReceiptMs)),httpFullOver50:http.filter(x=>x.fullReceiptMs>50).length,writerFullReceiptMaxMs:Math.max(...writer.map(x=>x.fullReceiptMs)),appendMaxMs:Math.max(...facts.diagnostics.observations.appendMs)};
  facts.status='passed';console.log(JSON.stringify(facts.summary));
 }catch(error){facts.status='failed';facts.error=String(error);throw error;}
-finally{await writeFile('evidence/p1b5/observations.json',JSON.stringify(facts,null,2)+'\n');for(const close of cleanup.reverse())await close();}
+finally{try{await writeFile('evidence/p1b5/observations.json',JSON.stringify(facts,null,2)+'\n');for(const close of cleanup.reverse())await close();}finally{delete facts.diagnostics;diagnosticsRead?.release();diagnosticsRead=undefined;}}

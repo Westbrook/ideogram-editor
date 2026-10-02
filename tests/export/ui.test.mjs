@@ -1,4 +1,6 @@
+import {browserPhasesURL as browser} from '../owned-preview-module.mjs';
 import {allocationsURL,displayPreviewURL,displaySchedulerURL} from '../display-module.mjs';
+import {modelMemoryURL,exportMemoryURL} from './memory-module.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -9,7 +11,7 @@ import sharp from 'sharp';
 // Load the production controller and ControlAdapter. The Lit stand-in only
 // retains template values so these tests can call the real rendered handlers.
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
-const sourceRoot=process.env.IE_DISPLAY_SOURCE_ROOT?process.env.IE_DISPLAY_SOURCE_ROOT.replace(/\/$/,'')+'/':'';
+const exportRoot=process.env.IE_EXPORT_SOURCE_ROOT??process.env.IE_DISPLAY_SOURCE_ROOT,sourceRoot=exportRoot?exportRoot.replace(/\/$/,'')+'/':'';
 const lit=data('export const nothing=null;export function html(strings,...values){return {strings,values};}');
 // The DOM-owning AsyncDirective has its own lifecycle suite. This template
 // stand-in preserves only the URL value used by the actual export controller.
@@ -17,18 +19,13 @@ const displayImage=data('export const displayImage=value=>value;');
 const adapter=data((await transformWithOxc(await readFile('src/ui/adapters.ts','utf8'),'adapters.ts')).code);
 const options=data((await transformWithOxc(await readFile('src/state/export-options.ts','utf8'),'export-options.ts')).code);
 const sha256=data((await transformWithOxc(await readFile('src/protocol/sha256.ts','utf8'),'sha256.ts')).code);
-const phases=data((await transformWithOxc(await readFile('src/observability/phases.ts','utf8'),'phases.ts')).code);
-let workerCode=(await transformWithOxc(await readFile('src/observability/browser-worker-observations.ts','utf8'),'browser-worker-observations.ts')).code;
-workerCode=workerCode.replaceAll(JSON.stringify('./phases.js'),JSON.stringify(phases)).replaceAll("'./phases.js'",JSON.stringify(phases));
-const workers=data(workerCode);
-let browserCode=(await transformWithOxc(await readFile('src/observability/browser.ts','utf8'),'browser.ts')).code;
-for(const [name,url]of Object.entries({'./phases.js':phases,'./browser-worker-observations.js':workers,'./allocations.js':allocationsURL}))browserCode=browserCode.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));
-const browser=data(browserCode);
 let code=(await transformWithOxc(await readFile(sourceRoot+'src/ui/export.ts','utf8'),'export.ts')).code;
-for(const [name,url]of Object.entries({'./display-image.js':displayImage,'../observability/display-preview.js':displayPreviewURL,'../observability/allocations.js':allocationsURL,'lit':lit,'./adapters.js':adapter,'../state/export-options.js':options,'../protocol/sha256.js':sha256,'../observability/browser.js':browser}))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));
+for(const [name,url]of Object.entries({'../observability/model-memory.js':modelMemoryURL,'./export-memory.js':exportMemoryURL,'./display-image.js':displayImage,'../observability/display-preview.js':displayPreviewURL,'../observability/allocations.js':allocationsURL,'lit':lit,'./adapters.js':adapter,'../state/export-options.js':options,'../protocol/sha256.js':sha256,'../observability/browser.js':browser}))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));
 const {ExportControls}=await import(data(code));
-const {displayPreviewInfo,displayPreviewOwnership,cancelDisplayPreviewReads,waitForDisplayPreviewReads}=await import(displayPreviewURL),{waitForDisplayReads,displayReadOwnership}=await import(displaySchedulerURL),{allocationLedger}=await import(allocationsURL);
-const owned=new Set(),liveBitmaps=new Set(),fixtureGates=new Set(),decodeCalls=[];
+const {displayPreviewInfo,displayPreviewOwnership,cancelDisplayPreviewReads,waitForDisplayPreviewReads}=await import(displayPreviewURL),{waitForDisplayReads,displayReadOwnership}=await import(displaySchedulerURL),{allocationLedger,ALLOCATION_LIMITS}=await import(allocationsURL),{EXPORT_MEMORY_LIMITS}=await import(exportMemoryURL),{modelPayloadBytes,createOwnedModel}=await import(modelMemoryURL);
+// Persistent instrumentation is admitted once; every component owner must return to this exact baseline.
+const diagnosticBaseline=allocationLedger.snapshot();
+const owned=new Map(),liveBitmaps=new Set(),fixtureGates=new Set(),decodeCalls=[];
 const savedBitmap=Object.getOwnPropertyDescriptor(globalThis,'createImageBitmap');
 // Node has no native ImageBitmap. This browser-boundary double exposes the
 // dimensions/close contract after the real helper validates the PNG. Fixture
@@ -42,7 +39,7 @@ async function decodeBitmap(blob){
 Object.defineProperty(globalThis,'createImageBitmap',{configurable:true,writable:true,value:decodeBitmap});
 test.afterEach(async()=>{
  globalThis.createImageBitmap=decodeBitmap;
- try{for(const release of fixtureGates)release();fixtureGates.clear();for(const controller of owned)controller.dispose();owned.clear();cancelDisplayPreviewReads();await waitForDisplayPreviewReads();await waitForDisplayReads();assert.equal(liveBitmaps.size,0);assert.equal(allocationLedger.snapshot().activeRecords,0);assert.deepEqual(displayPreviewOwnership(),{activeReads:0,previewURLs:0,imageConsumers:0,failedNativeOwners:0,cleanupFailures:0});}
+ try{for(const release of fixtureGates)release();fixtureGates.clear();for(const [controller,restore]of owned){restore();await controller.releaseAndWait();}owned.clear();cancelDisplayPreviewReads();await waitForDisplayPreviewReads();await waitForDisplayReads();assert.equal(liveBitmaps.size,0);assert.equal(allocationLedger.snapshot().activeRecords,diagnosticBaseline.activeRecords);assert.deepEqual(displayPreviewOwnership(),{activeReads:0,previewURLs:0,imageConsumers:0,failedNativeOwners:0,cleanupFailures:0});}
  finally{decodeCalls.length=0;}
 });
 test.after(()=>{if(savedBitmap)Object.defineProperty(globalThis,'createImageBitmap',savedBitmap);else delete globalThis.createImageBitmap;});
@@ -83,15 +80,16 @@ async function artifact(format,width,height,quality=90){
 }
 const original=await artifact('png',8,6),encoded=original.encoded,imageHash=hash(encoded);
 function fixture(){
+ const responseOwners=[];const ownResponse=(value,kind)=>{const payload=createOwnedModel('export-test-response',modelPayloadBytes(value),()=>structuredClone(value)),record={kind,released:false,value:payload.value};responseOwners.push(record);return {value:payload.value,pin:()=>payload.pin(),release(){assert.equal(record.released,false,'Exact response released once');record.released=true;payload.release();}};};
  let instance,rendered,identity='client',bytes=original;const prepared=[],confirmed=[],reads=[],commands=[],cancellations=[];
  const document={id:'document',revision:'4',historyHead:'history-4',width:8,height:6,name:'Frozen document'},prior={path:'/prior/content',name:'previous.png',status:'ready'};
  const asset={id:'encoded-asset',availability:'available',safety:'safe',blob:{hash:imageHash,byteLength:String(encoded.byteLength),mediaType:'image/png'},raster:{role:'export',width:8,height:6,pixelIdentity:original.pixelIdentity}};
  const response=()=>new Response(bytes.rendition,{headers:{etag:'"'+hash(bytes.rendition)+'"','content-length':String(bytes.rendition.byteLength),'content-type':'image/png','x-display-profile':'cp1-display-v1','x-display-source':asset.blob.hash,'x-display-basis':'encoded','x-display-width':String(bytes.previewWidth),'x-display-height':String(bytes.previewHeight),'x-display-source-width':String(asset.raster.width),'x-display-source-height':String(asset.raster.height),'x-display-lod':'0'}});
- const editor={view:{ready:true,busy:false,document,image:{layers:[{id:'visible-layer',visible:true},{id:'hidden-layer',visible:false}]},selected:['visible-layer'],download:prior},documentEpoch:1,sessionId:'session',session:{identity:()=>identity,async transport(path,init){reads.push({path,init});return response();}},draftOwner:{drafts:new Map()},async prepareExport(options,document,onJournaled){prepared.push({options:structuredClone(options),document:structuredClone(document)});onJournaled?.('export-command-'+prepared.length);return asset;},async cancelExport(commandId,owner){cancellations.push({commandId,owner});return {protocolVersion:1,commandId,status:'canceled',receipt:{status:'rejected',code:'INVALID_INPUT'}};},confirmExport(asset,document){confirmed.push({asset,document});this.view.download={asset,document};},async command(...args){commands.push(args);throw Error('Unexpected command from export controls');}};
+ const editor={async ownedPrepareExport(...args){return ownResponse(await this.prepareExport(...args),'asset');},async ownedCancelExport(...args){return ownResponse(await this.cancelExport(...args),'cancel');},view:{ready:true,busy:false,document,image:{layers:[{id:'visible-layer',visible:true},{id:'hidden-layer',visible:false}]},selected:['visible-layer'],download:prior},documentEpoch:1,sessionId:'session',session:{identity:()=>identity,async transport(path,init){reads.push({path,init});return response();}},draftOwner:{drafts:new Map()},async prepareExport(options,document,onJournaled){prepared.push({options:structuredClone(options),document:structuredClone(document)});onJournaled?.('export-command-'+prepared.length);return asset;},async cancelExport(commandId,owner){cancellations.push({commandId,owner});return {protocolVersion:1,commandId,status:'canceled',receipt:{status:'rejected',code:'INVALID_INPUT'}};},confirmExport(asset,document){confirmed.push({asset,document});this.view.download={asset,document};},async command(...args){commands.push(args);throw Error('Unexpected command from export controls');}};
  const host={requestUpdate(){this.updateComplete=Promise.resolve().then(()=>rendered=instance.render());},updateComplete:Promise.resolve()};
- instance=new ExportControls(host,editor);owned.add(instance);
+ instance=new ExportControls(host,editor);const cancelExport=editor.cancelExport;owned.set(instance,()=>{editor.cancelExport=cancelExport;});
  const callback=(id,type='@click')=>handler(rendered,id,type);
- return {instance,host,editor,document,asset,prior,prepared,confirmed,reads,commands,cancellations,response,identity(value){identity=value;},template:()=>rendered,text:()=>text(rendered),callback,
+ return {responseOwners,instance,host,editor,document,asset,prior,prepared,confirmed,reads,commands,cancellations,response,identity(value){identity=value;},template:()=>rendered,text:()=>text(rendered),callback,
   encoded:()=>bytes.encoded,rendition:()=>bytes.rendition,
   async setArtifact(format,width,height,quality=90){bytes=await artifact(format,width,height,quality);Object.assign(asset.blob,{hash:hash(bytes.encoded),byteLength:String(bytes.encoded.length),mediaType:format==='jpeg'?'image/jpeg':'image/png'});Object.assign(asset.raster,{width,height,pixelIdentity:bytes.pixelIdentity});},
   async initial(){instance.begin();await flush();},
@@ -357,5 +355,110 @@ test('awaited release still counts an aborted preview read until its original cl
 test('awaited release keeps decoder ownership until a late bitmap is closed',async()=>{
  const f=fixture();await f.initial();const complete=await pendingAt(f,'bitmap decode'),decoded=decodeCalls.at(-1);let released=false;const release=f.instance.releaseAndWait().then(()=>{released=true;});await settle();
  assert.equal(released,false);assert.equal(f.instance.inspect().pendingPreparations,1);assert.equal(f.instance.inspect().retainedDocument,true);assert.equal(displayPreviewOwnership().activeReads,1);assert.equal(displayPreviewOwnership().previewURLs,0);assert.equal(displayReadOwnership().active,1);assert.ok(allocationLedger.snapshot().byKind.bitmap.cpuBytes>0);assert.equal(decoded.closes,0);assert.equal(liveBitmaps.size,1);assert.deepEqual(f.cancellations,[]);
- complete();await release;await waitForDisplayPreviewReads();await waitForDisplayReads();assert.equal(released,true);assert.equal(decoded.closes,1);assert.equal(liveBitmaps.size,0);assert.equal(f.instance.inspect().retainedDocument,false);assert.equal(displayPreviewOwnership().activeReads,0);assert.equal(displayReadOwnership().active,0);assert.equal(allocationLedger.snapshot().activeRecords,0);assert(!find(f.template(),'id="export-review"'));assert.deepEqual(f.confirmed,[]);assert.equal(f.editor.view.download,f.prior);
+ complete();await release;await waitForDisplayPreviewReads();await waitForDisplayReads();assert.equal(released,true);assert.equal(decoded.closes,1);assert.equal(liveBitmaps.size,0);assert.equal(f.instance.inspect().retainedDocument,false);assert.equal(displayPreviewOwnership().activeReads,0);assert.equal(displayReadOwnership().active,0);assert.equal(allocationLedger.snapshot().activeRecords,diagnosticBaseline.activeRecords);assert(!find(f.template(),'id="export-review"'));assert.deepEqual(f.confirmed,[]);assert.equal(f.editor.view.download,f.prior);
 });
+
+// Logical application payload ownership. These tests do not claim native heap,
+// ImageBitmap/browser RSS, DOM, or physical Blob-residency qualification.
+function fillCPU(leave=0){
+ const used=allocationLedger.snapshot().cpuBytes;
+ return allocationLedger.reserve({owner:'export-fixture-pressure',kind:'control',cpuBytes:ALLOCATION_LIMITS.cpuBytes-ALLOCATION_LIMITS.textPartitionBytes-used-leave});
+}
+const emptyExportMemory={models:0,records:{operation:0,owner:0,action:0},retired:0,pending:0,failed:0,callbacks:0,timers:0};
+test('refused document admission does not clone or replace the prior complete review',async()=>{
+ const f=fixture();await f.initial();await f.ready();const expected={asset:structuredClone(f.asset),document:structuredClone(f.document)},url=attribute(f.template(),'export-preview','src');f.document.name='N'.repeat(8192);
+ const nativeClone=globalThis.structuredClone;let clones=0;globalThis.structuredClone=(value,...args)=>{if(value===f.document)clones++;return nativeClone(value,...args);};const pressure=fillCPU(512+16384+1);
+ try{await f.prepare();assert.equal(clones,0);assert.equal(f.prepared.length,1);assert.match(f.text(),/ALLOCATION_BUDGET/);assert.equal(attribute(f.template(),'export-preview','src'),url);assert.equal(attribute(f.template(),'confirm-export','?disabled'),false);assert.deepEqual(f.cancellations,[]);}
+ finally{pressure.release();globalThis.structuredClone=nativeClone;}
+ f.callback('confirm-export')(event());await settle();assert.deepEqual(f.confirmed,[expected]);
+});
+for(const reason of ['field limit','shared budget'])test('form replacement refused by '+reason+' preserves the exact prior field and preview',async()=>{
+ const f=fixture();await f.initial();await f.change('format','jpeg');await f.setArtifact('jpeg',8,6);await f.ready();const url=attribute(f.template(),'export-preview','src'),next=reason==='field limit'?'X'.repeat(EXPORT_MEMORY_LIMITS.formBytes):'#000000',e=event(next),pressure=reason==='shared budget'?fillCPU(512):null;
+ try{f.callback('export-matte','@en-change')(e);await flush();assert.equal(e.currentTarget.value,'#FFFFFF');assert.equal(attribute(f.template(),'export-matte','.value'),'#FFFFFF');assert.equal(attribute(f.template(),'export-preview','src'),url);assert.equal(attribute(f.template(),'confirm-export','?disabled'),false);assert.match(f.text(),reason==='field limit'?/EXPORT_MODEL_LIMIT/:/ALLOCATION_BUDGET/);assert.equal(f.prepared.length,1);assert.deepEqual(f.cancellations,[]);}
+ finally{pressure?.release();}
+ f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed.length,1);assert.equal(f.confirmed[0].asset.blob.mediaType,'image/jpeg');
+});
+test('asset admission after durable encoding preserves the prior reviewed artifact without canceling accepted work',async()=>{
+ const f=fixture();await f.initial();await f.ready();const expected={asset:structuredClone(f.asset),document:structuredClone(f.document)},url=attribute(f.template(),'export-preview','src'),prepare=f.editor.ownedPrepareExport;let pressure;
+ f.editor.ownedPrepareExport=async(...args)=>{const response=await prepare.apply(f.editor,args);pressure=fillCPU(16384);return response;};
+ try{await f.prepare();assert.equal(f.prepared.length,2);assert.equal(f.reads.length,1);assert.match(f.text(),/ALLOCATION_BUDGET/);assert.equal(attribute(f.template(),'export-preview','src'),url);assert.equal(attribute(f.template(),'confirm-export','?disabled'),false);assert.deepEqual(f.cancellations,[]);}
+ finally{pressure?.release();}
+ f.callback('confirm-export')(event());await settle();assert.deepEqual(f.confirmed,[expected]);
+});
+test('a replacement remains separate until its bounded encoded preview is ready',async()=>{
+ const f=fixture();await f.initial();await f.ready();const url=attribute(f.template(),'export-preview','src'),complete=await pendingAt(f,'preparation');
+ assert.equal(attribute(f.template(),'export-preview','src'),url);assert.equal(attribute(f.template(),'confirm-export','?disabled'),true);assert.equal(f.instance.inspectMemory().models,6);complete();const deadline=performance.now()+2000;while(f.instance.inspect().pendingPreparations&&performance.now()<deadline)await new Promise(resolve=>setImmediate(resolve));await flush();
+ assert.notEqual(attribute(f.template(),'export-preview','src'),url);assert.equal(f.instance.inspectMemory().models,4);assert.equal(f.instance.inspectMemory().records.operation,0);assert.equal(f.instance.inspectMemory().records.owner,2);assert.deepEqual(f.confirmed,[]);
+});
+test('owned snapshots remain booked after release until preparation and cancellation actually settle',async()=>{
+ const f=fixture(),reply=deferred();await f.initial();const complete=await pendingAt(f,'preparation'),cancel=f.editor.cancelExport;f.editor.cancelExport=async(...args)=>{await cancel(...args);return reply.promise;};
+ const finish=()=>reply.resolve({protocolVersion:1,status:'canceled',receipt:{status:'rejected',code:'INVALID_INPUT'}});fixtureGates.add(finish);
+ let settled=false;const release=f.instance.releaseAndWait().then(()=>{settled=true;});await settle();assert.equal(settled,false);assert.equal(f.instance.inspectMemory().models,2);assert.equal(f.instance.inspectMemory().records.operation,1);assert.equal(f.instance.inspectMemory().records.action,1);assert.ok(allocationLedger.snapshot().byKind.control.cpuBytes-diagnosticBaseline.byKind.control.cpuBytes>=16384+512);
+ finish();fixtureGates.delete(finish);await settle();assert.equal(settled,false);assert.equal(f.instance.inspectMemory().models,2);complete();await release;assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);assert.equal(allocationLedger.snapshot().activeRecords,diagnosticBaseline.activeRecords);
+});
+test('the operation cap retains prior work and refuses another preparation before calling the writer',async()=>{
+ const f=fixture(),pending=deferred();await f.initial();await f.ready();const url=attribute(f.template(),'export-preview','src'),prepare=f.editor.prepareExport;f.editor.prepareExport=async(...args)=>{await prepare(...args);return pending.promise;};const finish=()=>pending.resolve(f.asset);fixtureGates.add(finish);
+ for(let index=0;index<EXPORT_MEMORY_LIMITS.operations;index++){await f.prepare();f.instance.cancel();await settle();}
+ assert.equal(f.prepared.length,1+EXPORT_MEMORY_LIMITS.operations);assert.equal(f.instance.inspectMemory().records.operation,EXPORT_MEMORY_LIMITS.operations);assert.equal(f.instance.inspect().pendingPreparations,EXPORT_MEMORY_LIMITS.operations);
+ await f.prepare();assert.equal(f.prepared.length,1+EXPORT_MEMORY_LIMITS.operations);assert.match(f.text(),/EXPORT_OPERATION_CAPACITY/);assert.equal(attribute(f.template(),'export-preview','src'),url);assert.equal(f.cancellations.length,EXPORT_MEMORY_LIMITS.operations);
+ finish();fixtureGates.delete(finish);await f.instance.releaseAndWait();assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);assert.equal(f.editor.view.download,f.prior);
+});
+test('uncertain settled cancellations keep bounded exact-command ownership until explicit successful drain',async()=>{
+ const f=fixture(),pending=deferred();await f.initial();const prepare=f.editor.prepareExport,cancel=f.editor.cancelExport;f.editor.prepareExport=async(...args)=>{await prepare(...args);return pending.promise;};f.editor.cancelExport=async(...args)=>{await cancel(...args);throw Error('Receipt delivery uncertain');};await f.prepare();f.instance.cancel();await settle();pending.reject(Error('Original delivery lost'));await settle();
+ assert.equal(f.instance.inspect().cleanupFailures,1);assert.equal(f.instance.inspectMemory().models,1);assert.equal(f.instance.inspectMemory().records.operation,1);assert.equal(f.instance.inspectMemory().records.action,0);assert.deepEqual(f.cancellations.map(row=>row.commandId),['export-command-1']);await assert.rejects(f.instance.releaseAndWait(),/EXPORT_RELEASE_UNCONFIRMED/);assert.equal(f.instance.inspectMemory().records.operation,1);
+ f.editor.cancelExport=cancel;await f.instance.releaseAndWait();assert.deepEqual(f.cancellations.map(row=>row.commandId),['export-command-1','export-command-1','export-command-1']);assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);
+});
+test('queued action ownership is capped and disposal drains vetoed native tasks without starting work',async()=>{
+ const f=fixture();await f.initial();const prepare=f.callback('prepare-export');for(let index=0;index<=EXPORT_MEMORY_LIMITS.actions;index++){const e=event();e.defaultPrevented=true;prepare(e);}
+ assert.equal(f.instance.inspectMemory().records.action,EXPORT_MEMORY_LIMITS.actions);assert.equal(f.instance.inspectMemory().timers,EXPORT_MEMORY_LIMITS.actions);await flush();assert.match(f.text(),/EXPORT_ACTION_CAPACITY/);await f.instance.releaseAndWait();await settle();assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);assert.deepEqual(f.prepared,[]);assert.deepEqual(f.commands,[]);
+});
+test('retained old form, composition, load and confirmation callbacks cannot keep a released payload live',async()=>{
+ const f=fixture();await f.initial();await f.ready();const old={field:f.callback('export-format','@en-change'),load:f.callback('export-preview','@load'),error:f.callback('export-preview','@error'),confirm:f.callback('confirm-export'),composition:f.composition()};
+ await f.instance.releaseAndWait();assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);assert.equal(allocationLedger.snapshot().activeRecords,diagnosticBaseline.activeRecords);await f.initial();await f.ready();const url=attribute(f.template(),'export-preview','src');old.field(event('jpeg'));old.composition[0]();old.composition[1]();old.load({currentTarget:{src:url,naturalWidth:8,naturalHeight:6}});old.error();old.confirm(event());await settle();
+ assert.equal(attribute(f.template(),'export-format','.value'),'png');assert.equal(attribute(f.template(),'export-preview','src'),url);assert.equal(attribute(f.template(),'confirm-export','?disabled'),false);assert.deepEqual(f.confirmed,[]);f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed.length,1);
+});
+test('a form callback retained from a prior generation cannot alter the current review',async()=>{
+ const f=fixture();await f.initial();const old=f.callback('export-format','@en-change');await f.ready();old(event('jpeg'));await settle();assert.equal(attribute(f.template(),'export-format','.value'),'png');assert(find(f.template(),'id="export-review"'));assert.equal(f.instance.inspectMemory().models,4);assert.deepEqual(f.confirmed,[]);
+});
+test('a failed destination-record admission leaves export confirmation retryable',async()=>{
+ const f=fixture();await f.initial();await f.ready();const confirm=f.editor.confirmExport;f.editor.confirmExport=()=>{throw Error('DOWNLOAD_MEMORY_BUDGET');};f.callback('confirm-export')(event());await settle();assert.match(f.text(),/DOWNLOAD_MEMORY_BUDGET/);assert.equal(attribute(f.template(),'confirm-export','?disabled'),false);assert.deepEqual(f.confirmed,[]);f.editor.confirmExport=confirm;f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed.length,1);assert.equal(f.prepared.length,1);
+});
+test('UI retirement timeout retains owned snapshots until the actual later template commit',async()=>{
+ const f=fixture(),commit=deferred();await f.initial();await f.ready();const requestUpdate=f.host.requestUpdate;f.host.requestUpdate=function(){this.updateComplete=commit.promise.then(()=>{requestUpdate.call(this);return this.updateComplete;});};
+ try{await assert.rejects(f.instance.releaseAndWait(20),/EXPORT_RELEASE_UNCONFIRMED.*UI release has not settled/);assert.equal(f.instance.inspectMemory().models,4);assert.equal(f.instance.inspectMemory().retired,5);assert.ok(f.instance.inspectMemory().pending>0);assert.ok(allocationLedger.snapshot().byKind.control.cpuBytes-diagnosticBaseline.byKind.control.cpuBytes>0);assert.equal(f.instance.inspect().previewURLs,0);}
+ finally{f.host.requestUpdate=requestUpdate;commit.resolve();await f.instance.releaseAndWait();}
+ assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);assert(!find(f.template(),'id="export-review"'));assert.equal(allocationLedger.snapshot().activeRecords,diagnosticBaseline.activeRecords);
+});
+test('a blocked begin admission retains the current complete settings and reviewed file',async()=>{
+ const f=fixture();await f.initial();await f.ready();const url=attribute(f.template(),'export-preview','src'),pressure=fillCPU();
+ try{f.instance.begin();await flush();assert.match(f.text(),/ALLOCATION_BUDGET/);assert.equal(attribute(f.template(),'export-preview','src'),url);assert.equal(attribute(f.template(),'export-format','.value'),'png');assert.equal(attribute(f.template(),'confirm-export','?disabled'),false);assert.deepEqual(f.cancellations,[]);}
+ finally{pressure.release();}f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed.length,1);
+});
+test('option normalization is not entered when its scratch cannot be admitted',async()=>{
+ const f=fixture();await f.initial();await f.ready();const url=attribute(f.template(),'export-preview','src'),nativeSet=globalThis.Set;let normalized=0;globalThis.Set=class extends nativeSet{constructor(value){if(value===f.editor.view.selected)normalized++;super(value);}};
+ const pressure=fillCPU(512+16384+modelPayloadBytes(f.document)+8191);
+ try{await f.prepare();assert.equal(normalized,0);assert.equal(f.prepared.length,1);assert.match(f.text(),/ALLOCATION_BUDGET/);assert.equal(attribute(f.template(),'export-preview','src'),url);assert.deepEqual(f.cancellations,[]);}
+ finally{pressure.release();globalThis.Set=nativeSet;}
+ f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed.length,1);
+});
+test('reopening export during an old drain cannot report the new review released',async()=>{
+ const f=fixture();await f.initial();const prepare=f.editor.prepareExport,complete=await pendingAt(f,'preparation'),release=assert.rejects(f.instance.releaseAndWait(),/EXPORT_RELEASE_SUPERSEDED/);f.instance.begin();await flush();await release;
+ assert.equal(attribute(f.template(),'export-format','.value'),'png');assert.ok(f.instance.inspectMemory().models>0);f.editor.prepareExport=prepare;await f.ready();const url=attribute(f.template(),'export-preview','src');complete();await settle();assert.equal(attribute(f.template(),'export-preview','src'),url);f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed.length,1);
+});
+for(const [label,code,expected]of [['oversized string','X'.repeat(EXPORT_MEMORY_LIMITS.errorUnits+1),/oversized diagnostic/],['non-string',{untrusted:'receipt code'},/EXPORT_UNAVAILABLE/]])test('a cancellation receipt with '+label+' code cannot bypass bounded diagnostics',async()=>{
+ const f=fixture();await f.initial();const complete=await pendingAt(f,'preparation');f.editor.cancelExport=async()=>({status:'completed',receipt:{status:'rejected',code}});f.instance.cancel();await settle();assert.match(f.text(),expected);assert.match(f.text(),/original export failed/);assert(!f.text().includes('X'.repeat(EXPORT_MEMORY_LIMITS.errorUnits)));assert(!f.text().includes('[object Object]'));complete();await f.instance.releaseAndWait();assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);
+});
+for(const boundary of ['document','identity','draft owner'])test('an image error cannot change a stale owner before sync after '+boundary,async()=>{
+ const f=fixture();await f.initial();await f.ready();const imageError=f.callback('export-preview','@error');replaceOwner(f,boundary);imageError();await flush();assert(!f.text().includes('Encoded export could not be displayed.'));assert.deepEqual(f.confirmed,[]);f.instance.sync();await f.instance.releaseAndWait();assert.deepEqual(f.instance.inspectMemory(),emptyExportMemory);
+});
+
+for(const phase of ['ready','stale','invalid','clone-refused'])test('owned export response releases once after '+phase+' result handoff',async()=>{
+ const f=fixture();await f.initial();let pressure;try{
+  if(phase==='invalid')f.asset.raster.role='canonical';
+  if(phase==='clone-refused'){const original=f.editor.ownedPrepareExport;f.editor.ownedPrepareExport=async(...args)=>{const result=await original.apply(f.editor,args);pressure=fillCPU(16384);return result;};}
+  if(phase==='stale'){const complete=await pendingAt(f,'preparation');replaceOwner(f,'document');f.instance.sync();complete();await settle();}else await f.prepare();
+  await settle();const result=f.responseOwners.find(value=>value.kind==='asset');assert(result);assert.equal(result.released,true);assert.equal(f.responseOwners.filter(value=>value.kind==='asset').length,1);
+  if(phase==='ready'){const deadline=performance.now()+2000;while(!find(f.template(),'id="export-review"')&&!find(f.template(),'role="alert"')&&performance.now()<deadline)await new Promise(resolve=>setImmediate(resolve));assert(find(f.template(),'id="export-review"'));const original=structuredClone(result.value);result.value.id='changed after response release';result.value.blob.hash='changed';f.load();await flush();f.callback('confirm-export')(event());await settle();assert.equal(f.confirmed[0].asset.id,original.id);assert.equal(f.confirmed[0].asset.blob.hash,original.blob.hash);}else assert(!find(f.template(),'id="export-review"'));
+ }finally{pressure?.release();}
+});
+test('owned cancellation response releases after updating only bounded export status',async()=>{const f=fixture();await f.initial();const complete=await pendingAt(f,'preparation');f.instance.cancel();await settle();const response=f.responseOwners.find(value=>value.kind==='cancel');assert(response);assert.equal(response.released,true);assert.match(f.text(),/Export canceled/);complete();await settle();assert(f.responseOwners.every(value=>value.released));});

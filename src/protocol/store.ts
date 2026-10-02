@@ -8,6 +8,8 @@ import type { HistoryBody, HistoryFact, ImageVersion } from './history.js';
 import type { RasterBody } from './raster.js';
 export type Seq = string;
 export type BlobRef = { hash: string; byteLength: string; mediaType: string };
+export type DocumentCreationBackground={kind:'transparent'}|{kind:'solid';color:readonly [number,number,number,255]};
+export type DocumentCreationMetadata={schemaVersion:1;name:string;creationBackground:{kind:'transparent'}|{kind:'solid';color:readonly [number,number,number,255];layerId:string}};
 export type FoundationBody =
   | { type: 'NewDocument'; width: number; height: number; color: string; depth: number }
   | { type: 'SaveCheckpoint'; name: string };
@@ -27,6 +29,7 @@ export type Document = {
   color: 'sRGB'; depth: 8; orderedLayerIds: readonly string[]; historyHead: string;
   checkpoint: string | null; compositionVersion: string | null;
   image?: ImageVersion; redo?: string | null;
+  metadata?:DocumentCreationMetadata;
 };
 export type HistoryNode = {
   id: string; documentId: string; branchId: string; parent: string | null;

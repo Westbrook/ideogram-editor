@@ -173,13 +173,13 @@ test('EMPTY-NATIVE refuses native work without admitting a hidden favicon except
 import {restoredRoutes} from './restored-route.mjs';
 import {restoredRouteFlow} from './restored-route-flow.mjs';
 const cancelPath='/api/v1/assets/image/content',cancelPattern='**'+cancelPath;
-async function canceledFixture(){
+async function canceledFixture(readPath=cancelPath){
  const f=fixture(),events=[],objects=new Map(),rows=[],page={},context={},frame={page:()=>page};page.context=()=>context;page.mainFrame=()=>frame;let sequence=0;
  const ep=i=>({index:i,mode:'RESTORED-NON-NATIVE',fixture:'restored-reads',epoch:i===2?f.x.epoch:'prior',owner:structuredClone(f.x.page),origin:f.admission.origin,pid:f.admission.serverOwner.pid,server:{origin:f.admission.origin,instance:f.admission.serverOwner.instance}}),epochs=[ep(1)];let current=epochs[0];
- const api=restoredRoutes({current:()=>current,epochs:()=>epochs,page,context,id:q=>q.id,objects,rows,events,order:()=>++sequence,fail:()=>{}}),reg=api.register(cancelPattern,cancelPath);reg.registered();current=ep(2);epochs.push(current);api.begin(current);api.activate(current);
+ const api=restoredRoutes({current:()=>current,epochs:()=>epochs,page,context,id:q=>q.id,objects,rows,events,order:()=>++sequence,fail:()=>{}}),reg=api.register('**'+readPath,readPath);reg.registered();current=ep(2);epochs.push(current);api.begin(current);api.activate(current);
  const start=structuredClone(f.x.network.find(n=>n.name==='Network.requestWillBeSent'));start.sequence=++sequence;
  const terminal={sequence:++sequence,controllerSessionLabel:start.controllerSessionLabel,name:'Network.loadingFailed',params:{requestId:start.params.requestId,type:'Other',errorText:'net::ERR_ABORTED',canceled:true}};
- f.x.network=[start,terminal];f.x.server=[];const q={id:1,frame:()=>frame,method:()=> 'GET',url:()=>current.origin+cancelPath};objects.set(1,q);const receipt=reg.hold({request:()=>q,continue:async()=>{}});receipt.release();await receipt.continue();reg.removing();reg.removed();
+ f.x.network=[start,terminal];f.x.server=[];const q={id:1,frame:()=>frame,method:()=> 'GET',url:()=>current.origin+readPath};objects.set(1,q);const receipt=reg.hold({request:()=>q,continue:async()=>{}});receipt.release();await receipt.continue();reg.removing();reg.removed();
  f.window=api.ancillaryWindow(current);return f;
 }
 const canceled=f=>accountFavicon(f.x,f.admission,{cancellation:f.window});
@@ -243,3 +243,74 @@ for(const [name,change,reason]of [
  ['native typed Node',({h})=>{h.originalRequest('/ordinary');h.serverRows.find(r=>r.kind==='response').headers['content-type']=['text/plain','application/wasm'];h.saveLedger();},/forbids native server/],
 ])test('actual canceled account cannot hide original '+name,async()=>{const {h}=await canceledPair({change});await assert.rejects(h.monitor.closeEpoch(),reason);assert.equal(h.record().epochs[1].ancillary,undefined);});
 for(const name of ['PW','Node','response','context','route'])test('actual canceled late '+name+' contradiction cannot be qualified',async()=>{const {h,registration}=await canceledPair();await h.monitor.closeEpoch();if(name==='PW'){const q={testId:900,url:()=>h.server.origin+'/favicon.ico',method:()=> 'GET',resourceType:()=> 'other',redirectedFrom:()=>null,redirectedTo:()=>null,frame:()=>h.page.mainFrame(),allHeaders:async()=>({})};h.context.emit('request',q);}if(name==='Node'){h.serverRows.push({kind:'request',id:999,pid:h.server.pid,url:'/favicon.ico',path:'/favicon.ico',headers:{}});h.saveLedger();}if(name==='response')h.pageSession.emit('Network.responseReceived',{requestId:'canceled-icon-2',response:{url:h.server.origin+'/favicon.ico'}});if(name==='context')h.page.context=()=>({});if(name==='route'){registration.removalFailed(Error('late route contradiction'));h.monitor.save();assert(h.record().errors.some(e=>e.includes('late route contradiction')));}await assert.rejects(h.monitor.beforeNavigate(),name==='PW'?/no original PW witness/:name==='Node'?/unique protocol response/:name==='response'?/exactly original start/:name==='context'?/Original window context/:/Permanent epoch failure/);assert.equal(h.record().complete,false);});
+
+
+// Synthetic current-framing counterpart of the untouched saved168 metadata.
+// Mirrors the two writeHead arguments and original nested setters observed in
+// run49; no synthetic body bytes, consumption or qualification are asserted.
+function explicitLengthMetadata({server:rows,network}){
+ const outer=rows.find(r=>r.kind==='header-call'&&r.name==='writeHead'),at=rows.findIndex(r=>r.kind==='header-return'&&r.name==='writeHead');
+ const contentCall=rows.find(r=>r.kind==='header-call'&&r.name==='setHeader'&&r.args[0]==='Content-Type'),contentReturn=rows[at-1];
+ const length=network.filter(r=>r.name==='Network.dataReceived').reduce((n,r)=>n+r.params.dataLength,0);assert.equal(length,163);
+ outer.args[1]['Content-Length']=length;
+ rows.splice(at,0,{...structuredClone(contentCall),args:['Content-Length',length]},{...structuredClone(contentReturn),headers:{...contentReturn.headers,'content-length':length}});
+ for(const row of rows.slice(at+2)){row.headers['content-length']=length;if(row.headerNames)row.headerNames.push('content-length');}
+ const sequence=rows[0].sequence;rows.forEach((r,i)=>r.sequence=sequence+i);
+ const extra=network.find(r=>r.name==='Network.responseReceivedExtraInfo').params,response=network.find(r=>r.name==='Network.responseReceived').params.response;
+ for(const headers of [extra.headers,response.headers]){const key=Object.keys(headers).find(k=>k.toLowerCase()==='transfer-encoding');assert(key);delete headers[key];headers['Content-Length']=String(length);}
+ extra.headersText=extra.headersText.replace(/Transfer-Encoding: chunked/i,'Content-Length: '+length);
+ const headerBytes=Buffer.byteLength(extra.headersText);response.encodedDataLength=headerBytes;
+ const data=network.filter(r=>r.name==='Network.dataReceived');let remaining=length;
+ for(const row of data)if(row.params.encodedDataLength>0){row.params.encodedDataLength=remaining;remaining=0;}
+ assert.equal(remaining,0);network.find(r=>r.name==='Network.loadingFinished').params.encodedDataLength=headerBytes+length;
+}
+function framedFixture(){const f=fixture();explicitLengthMetadata(f.x);return f;}
+const lengthCall=f=>f.x.server.find(r=>r.kind==='header-call'&&r.name==='setHeader'&&r.args[0]==='Content-Length');
+const outerCall=f=>f.x.server.find(r=>r.kind==='header-call'&&r.name==='writeHead');
+
+test('explicit JSON content length joins original nested setters and wire counters without consumption credit',()=>{
+ const f=framedFixture(),before=structuredClone(f),r=accountFavicon(f.x,f.admission),record=r.account.records[0];
+ assert.deepEqual(f,before);assert.equal(r.server.length,0);assert.equal(r.network.length,0);
+ noAncillaryQualification(r.account);noAncillaryQualification(record);
+ assert.equal(record.bodyObserved,false);assert.equal(record.bodyHash,null);assert.equal(record.pwExposure,false);
+ assert.deepEqual(Object.keys(record.automaticWireHeaders),['date']);assert.equal(record.counters.data,163);assert.equal(record.counters.encodedData,163);
+ assert.equal(record.serverRows.find(r=>r.kind==='header-call'&&r.name==='writeHead').args[1]['Content-Length'],163);
+ assert.deepEqual(accountFavicon(f.x,f.admission,{previous:r.account}).account,r.account);
+});
+
+test('explicit length framing refuses missing, contradictory and unobserved declarations',()=>{
+ const changes=[
+  ...[0,-1,1.5,'0163','+163','163 ',Number.MAX_SAFE_INTEGER+1].map(value=>['invalid '+String(value),f=>outerCall(f).args[1]['Content-Length']=value]),
+  ['unknown writeHead header',f=>outerCall(f).args[1]['X-Unreviewed']='true'],
+  ['mixed declared framing',f=>outerCall(f).args[1]['Transfer-Encoding']='chunked'],
+  ['missing declared length',f=>delete outerCall(f).args[1]['Content-Length']],
+  ['missing nested setter',f=>{const i=f.x.server.indexOf(lengthCall(f));f.x.server.splice(i,2);}],
+  ['mismatched nested setter',f=>lengthCall(f).args[1]=164],
+  ['unknown nested setter',f=>lengthCall(f).args[0]='X-Unreviewed'],
+  ['duplicate nested setter',f=>{const i=f.x.server.indexOf(lengthCall(f));f.x.server.splice(i,0,...structuredClone(f.x.server.slice(i,i+2)));const seq=f.x.server[0].sequence;f.x.server.forEach((r,j)=>r.sequence=seq+j);}],
+  ['changed outer return',f=>f.x.server.find(r=>r.kind==='header-return'&&r.name==='writeHead').headers['content-length']=164],
+  ['changed final snapshot',f=>server(f,'response-close').headers['content-length']=164],
+  ['changed regular wire header',f=>event(f,'responseReceived').response.headers['Content-Length']='164'],
+  ['changed ExtraInfo length',f=>event(f,'responseReceivedExtraInfo').headers['Content-Length']='164'],
+  ['changed raw wire length',f=>event(f,'responseReceivedExtraInfo').headersText=event(f,'responseReceivedExtraInfo').headersText.replace('Content-Length: 163','Content-Length: 164')],
+  ['mixed wire framing',f=>{event(f,'responseReceivedExtraInfo').headers['Transfer-Encoding']='chunked';event(f,'responseReceived').response.headers['Transfer-Encoding']='chunked';}],
+  ['changed original data counter',f=>event(f,'dataReceived').dataLength++],
+ ];
+ for(const [name,change]of changes){const f=framedFixture();accountFavicon(f.x,f.admission);change(f);assert.throws(()=>accountFavicon(f.x,f.admission),/Ancillary/,name);}
+});
+
+test('actual restored monitor seals both explicitly framed epochs without native or transport qualification',async()=>{
+ const h=await monitorHarness({mode:'RESTORED-NON-NATIVE',fixture:'restored-reads'});h.originalRequest('/');
+ const change=({rows,network})=>explicitLengthMetadata({server:rows,network});inject(h,change);
+ const registration=h.monitor.restoredRoute('**/api/v1/assets/image/content','/api/v1/assets/image/content');registration.registered();await restoredClose(h);await h.nextEpoch();
+ inject(h,change,2);const q=h.originalRequest('/api/v1/assets/image/content'),receipt=registration.hold({request:()=>q,continue:async()=>{}});receipt.release();await receipt.continue();registration.removing();registration.removed();registration.confirmedRestoration();
+ await restoredClose(h,'terminal');await h.monitor.detach();await h.monitor.finish(true);const r=h.record();assert(r.complete);assert.equal(r.epochs.length,2);
+ for(const e of r.epochs){assert(e.closed&&e.navigationSealed);noAncillaryQualification(e.ancillary);noAncillaryQualification(e.ancillary.records[0]);assert.equal(e.ancillary.records[0].bodyHash,null);assert.equal(e.ancillary.records[0].bodyObserved,false);assert.equal(e.collector,undefined);assert.equal(e.qualification,undefined);assert.equal(e.restoredNative.qualified,false);assert.equal(e.restoredNative.transportQualified,false);}
+ assert.equal(h.monitor.qualifies({}),false);assert(!h.calls.some(c=>['Network.getResponseBody','Network.configureDurableMessages'].includes(c.method)));
+});
+
+
+test('observed ancillary cancellation accepts the exact restored pixel tile window without stronger proof',async()=>{
+ const path='/api/v1/assets/image/display-tile?identity=sha256%3A'+'a'.repeat(64)+'&basis=pixels&lod=0&x=0&y=0',f=await canceledFixture(path),before=structuredClone(f),r=canceled(f),a=r.account.records[0];assert.equal(a.routeWindow.path,path);assert.equal(a.routeWindow.pattern,'**'+path);assert.equal(a.kind,'OBSERVED-CANCELED-FAVICON-NO-SERVER-WITNESS');assert.equal(a.cancellationCause,'unobserved');assert.equal(a.preNetworkDispatch,'unproved');assert.equal(a.serverWitness,false);assert.equal(a.responseObserved,false);assert.equal(a.observedEOF,false);noAncillaryQualification(a);noAncillaryQualification(r.account);assert.deepEqual(f,before);
+ for(const changed of [path.replace('basis=pixels','basis=encoded'),path.replace('lod=0','lod=1'),path.replace('x=0','x=1'),path+'&extra=1']){const x=structuredClone(f);x.window.path=changed;x.window.pattern='**'+changed;for(const key of ['registration','removing','removed']){x.window[key].path=changed;x.window[key].pattern='**'+changed;}assert.throws(()=>canceled(x),/Exact restored image path/);}
+});

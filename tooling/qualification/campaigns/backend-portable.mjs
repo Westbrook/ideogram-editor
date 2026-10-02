@@ -1,3 +1,4 @@
+import {createWarmOwner,warmInventory,warmDigest,warmCell,retainWarmProof} from './backend-warm-proof.mjs';
 // C10 / I12C use the production writer and PF-1 reader. Fixture preparation and
 // reset are explicit phases; imports consume their own presealed archive.
 import assert from 'node:assert/strict';
@@ -105,7 +106,7 @@ export async function loadFixture(fixture, workload, signal) {
   const archive = resolve(dirname(path), seal.archive.path);
   assert(relative(dirname(path), archive) !== '..' && !relative(dirname(path), archive).startsWith('..' + sep));
   await checkFile(archive, seal.archive, signal);
-  return { root, archive, seal, sealPath: path, sealIdentity: hashText(declaredSeal.sha256) };
+  return { root, archive, seal, sealBytes:bytes.length, sealPath: path, sealIdentity: hashText(declaredSeal.sha256) };
 }
 
 async function cloneRoot(fixture, target, signal) {
@@ -175,6 +176,25 @@ async function stageArchive(writer, archive, identity, auth, signal) {
   return { stagingId, expectedSha256: 'sha256:' + hashText(identity.sha256) };
 }
 
+/** Exact decoded source records and ancestry after full archive validation.
+ * Global capture highWater can advance between copies; segment/ZIP layout and
+ * temporary validation indexes are packaging, not source document ancestry. */
+export function portableInputIdentity(db,manifest,check=()=>{}) {
+  const inputHash=createHash('sha256');
+  inputHash.update(JSON.stringify({formatVersion:manifest.formatVersion,documentSchema:manifest.documentSchema,sourceNamespace:manifest.sourceNamespace,complete:manifest.complete})+'\n');
+  const tables=[
+    ['entities','SELECT kind,id,json,record_hash FROM entities ORDER BY kind,id'],
+    ['events','SELECT seq,tx,json FROM events ORDER BY length(seq),seq'],
+    ['refs','SELECT hash,bytes,media FROM refs ORDER BY hash'],
+    ['transactions','SELECT archive,id,command_id,first_seq,last_seq,json FROM transactions ORDER BY archive,id'],
+    ['records','SELECT hash,kind,id,json FROM records ORDER BY hash'],
+    ['portable_roots','SELECT kind,id,hash FROM portable_roots ORDER BY kind,id'],
+    ['dependency_edges','SELECT owner,kind,id,hash FROM dependency_edges ORDER BY owner,kind,id,hash'],
+  ];
+  for(const [table,query] of tables){inputHash.update(table+'\n');for(const row of db.prepare(query).iterate()){check();inputHash.update(JSON.stringify(row)+'\n');}}
+  return 'sha256:'+inputHash.digest('hex');
+}
+
 export async function verifyArchive(product, path, output, seal, signal, owned = null) {
   const db = product.spool(join(output, `archive-check-${randomUUID()}.sqlite`));
   const zip = new product.ZipIndex(path, db), check = () => checkSignal(signal);
@@ -215,7 +235,7 @@ export async function verifyArchive(product, path, output, seal, signal, owned =
     }
     const { archiveFeatureEvidence } = await import('./fixture-portable.mjs');
     const typed = await archiveFeatureEvidence(db, read, { seal });
-    return { documentId: document.id, events, assets, closureBytes: String(closureBytes), manifestBytes: String(manifestBytes), formatVersion: manifest.formatVersion,
+    return { inputIdentity:portableInputIdentity(db,manifest,check), documentId: document.id, events, assets, closureBytes: String(closureBytes), manifestBytes: String(manifestBytes), formatVersion: manifest.formatVersion,
       archiveEntries: db.prepare('SELECT count(*) n FROM zip_entries').get().n, fullHashesVerified: true, semanticClosureVerified: true,
       ownedClosureHashesVerified: owned !== null, typedFeaturesVerified: typed.typedFeaturesVerified, captionVersions: typed.captionVersions };
   } finally { zip.close(); db.close(); ownedDatabase?.close(); }
@@ -325,7 +345,7 @@ export async function createPortableFixture(context, cell) {
   const selected = structuredClone(cell), identity = decodeCell(selected);
   const base = { ...context, fixture: context.fixture ? structuredClone(context.fixture) : undefined };
   const session = { id: randomUUID(), identity, initialized: false, closed: false, running: false, requiresReset: false,
-    starts: 0, resets: 0, importedDocuments: new Set(), globalBefore: null, globalAfter: null, writer: undefined };
+    starts: 0, resets: 0, importedDocuments: new Set(), globalBefore: null, globalAfter: null, writer: undefined, reset:null, previous:null, observe:null, owner:null, baseline:null };
   const ensureCell = candidate => {
     if (session.closed) throw failure('CLOSED', 'Retained portable fixture is closed');
     if (!sameCell(selected, candidate)) throw failure('PORTABLE_COHORT_CHANGED', 'A retained portable writer belongs to one direction, size and fault cell');
@@ -336,13 +356,14 @@ export async function createPortableFixture(context, cell) {
     const started = performance.now(), evidence = [], observations = [];
     try {
       checkSignal(base.signal);
-      if (!session.initialized) return { status: 'pass', phases: [], assertions: ['No previous portable start requires cleanup'], observations: [], evidence: [], missing: [], sample };
+      session.sample=sample??{};
+      if (!session.initialized) return { status: 'pass', phases: [], assertions: ['No previous portable start requires cleanup'], observations: [], evidence: [], missing: [], sample, warmReset:session.reset={kind:'unopened-first-operation'} };
       if (identity.fault && session.starts) {
         return { status: 'inconclusive', phases: [], assertions: [], observations: [], evidence: [],
           missing: ['Fault cells own one correctness start; repeating mutated or restarted state needs a separately declared recovery cell.'] };
       }
       assert(session.writer?.available, 'Retained writer remains available');
-      const writer = session.writer, epoch = writer.epoch;
+      const writer = session.writer, epoch = writer.epoch, before=await session.observe();
       for (const documentId of [...session.importedDocuments]) {
         const document = await writer.document(documentId);
         if (document) {
@@ -364,7 +385,7 @@ export async function createPortableFixture(context, cell) {
         const deletion = (await writer.deletionView(documentId, session.auth)).receipt;
         assert.equal(await writer.document(documentId), null, 'The previous imported document is absent before the next import');
         evidence.push({ kind: 'public-import-garbage-collection', documentId, receipt: collected, deletion });
-        if (deletion?.status !== 'cleanup-complete') observations.push({ kind: 'retained-cleanup-pending', documentId, deletion });
+        assert.equal(deletion?.status,'cleanup-complete','Imported namespace cleanup must complete before another measured input');
         session.importedDocuments.delete(documentId);
       }
       if (identity.direction === 'copy') assert.deepEqual(await writer.document(session.fixture.seal.documentId), session.sourceDocument, 'Warm copy retains the exact WC source document');
@@ -376,7 +397,7 @@ export async function createPortableFixture(context, cell) {
       const ms = performance.now() - started;
       return { status: 'pass', phases: [{ id: 'portable.public-reset', name: 'portable.public-reset', ms, durationMs: ms, status: 'pass', outcome: 'completed' }],
         assertions: ['Reset uses public commands and retains one writer epoch'], observations, evidence, missing: [],
-        qualification: { status: 'inconclusive', inconclusive: true, reasons: ['Global retained publications and audit records accumulate during this cohort.'] } };
+        warmReset:session.reset={owner:session.owner(writer),baseline:session.baseline,input:session.input,before,after:await session.observe(),cleanupPending:0,publicCleanup:evidence} };
     } finally { session.running = false; }
   }
   return {
@@ -477,10 +498,19 @@ export async function runCell(context, cell) {
       auth = { clientId: 'wc_campaign', sessionHash: createHash('sha256').update(randomUUID()).digest('hex'), now: Date.now(), expires: Date.now() + 3_600_000 };
       writer = await product.openWriter({ root: targetRoot }, { effectCounters: globalThis.__storeNetworkCounters.shared });
       await writer.protocolDefaults(); await writer.rememberClient(auth.sessionHash, auth.clientId, auth.expires);
-      if (retained) Object.assign(retained, { initialized: true, fixture, product, sourceDocument, auth, writer, root: targetRoot,
-        epoch: writer.epoch, globalBefore: retainedInventory(targetRoot) });
+      if (retained) {
+        Object.assign(retained, { initialized: true, fixture, product, sourceDocument, auth, writer, root: targetRoot,epoch:writer.epoch,globalBefore:retainedInventory(targetRoot) });
+        if(!fault){
+          retained.owner=createWarmOwner(writer,targetRoot);
+          const original=await phase('warm-source-full-closure-baseline',()=>verifyArchive(product,fixture.archive,output,fixture.seal,signal));
+          retained.input={sha256:'sha256:'+fixture.sealIdentity,byteLength:String(fixture.sealBytes)};
+          retained.observe=async()=>({sourceHash:warmDigest(await writer.document(fixture.seal.documentId)),importedDocuments:retained.importedDocuments.size,inventory:warmInventory(targetRoot)});
+          retained.baseline={sourceHash:warmDigest(await writer.document(fixture.seal.documentId)),closureIdentity:original.inputIdentity,counts:{events:original.events,assets:original.assets,closureBytes:original.closureBytes,captionVersions:original.captionVersions}};
+        }
+      }
     }
     if (retained) retained.starts++;
+    const warmBefore=retained&&!fault?await retained.observe():null;
     evidence.push({ kind: 'fixture-seal', sha256: fixture.sealIdentity, root: fixture.root, ownedRoot: targetRoot, archive: fixture.seal.archive });
     before = await sourceState(writer, fixture.seal.documentId);
     priorPublications = publicationCounts(targetRoot);
@@ -632,10 +662,14 @@ export async function runCell(context, cell) {
         root: targetRoot, globalBefore: retained.globalBefore, globalAfter: retained.globalAfter,
         restartException: fault === 'interruption' || fault === 'disk-pressure',
         limitation: 'Publications, reviews, staged inputs and audit history remain public retained state; public cleanup cannot restore an identical global byte/count baseline.' });
-      if (retained.starts > 1) result.qualification = { status: 'inconclusive', inconclusive: true,
-        reasons: ['The writer is genuinely retained, but public retained global state accumulates between starts.'] };
+      if(!fault){
+        const sample=retained.sample??{}, packet={kind:'backend-warm-input-proof-1',family:'WC',cell:warmCell(cell),sample:{cache:sample.cache,ordinal:sample.ordinal??null,prime:sample.prime??null},serial:retained.starts,previous:retained.previous?warmDigest(retained.previous):null,
+          owner:retained.owner(writer),baseline:retained.baseline,input:retained.input,before:warmBefore,after:await retained.observe(),networkEffects:globalThis.__storeNetworkCounters.read(),
+          cache:{kind:'retained-writer-connection-and-module-loader-1',decodedResultCache:'not-used-by-selected-operation',derivedResultCache:'per-operation-or-not-used',operatingSystemPageCache:'unobserved'}};
+        result.warmInput=await retainWarmProof(output,packet,{cell,sample,previous:retained.previous,reset:retained.reset,operation:result,fixture:context.fixture});retained.previous=packet;
+      }
     }
-    const path = join(output, 'portable-receipt.json'); await writeFile(path, JSON.stringify(result, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+    const path = join(output, retained?'portable-receipt-'+retained.starts+'.json':'portable-receipt.json'); await writeFile(path, JSON.stringify(result, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
     return result;
   } catch (error) {
     return { status: error.code === 'FIXTURE_REQUIRED' || error.code === 'ENOENT' ? 'inconclusive' : 'fail', phases, assertions, observations, evidence,

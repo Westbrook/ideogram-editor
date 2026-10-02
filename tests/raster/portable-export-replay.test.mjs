@@ -57,3 +57,24 @@ test('foreign JPEG content substitution and malformed bytes remain invalid, neve
     assert.equal(altered.decoded[0], 'retained');
   }
 });
+
+async function comparisonFixture(t){
+ const f=await fixture(t),directory=await mkdtemp(join(f.root,'comparison-')),pixels=f.computed.info.pixels;
+ const computed=await runRaster({type:'export',directory,input:{id:'original_composition',info:f.computed.info,path:join(f.directory,'pixels.rgba')},dependencies:f.computed.manifest.dependencies,options:{format:'png',resize:{width:7,height:3},matte:null,quality:null},replay:{pipeline:foreign.pipeline,encoder:foreign.codecId}},async()=>{},()=>{});
+ computed.manifest.plan={kind:'candidate-lettering-comparison-v1',sourceWidth:7,sourceHeight:3,layers:[{assetId:'original_composition',transform:[1,0,0,1,0,0],opacity:1,mask:null}],comparison:'candidate-alone',kernel:'triangle-area-source-axis-row-norm-v1',edge:'transparent-zero-no-renormalization',preservation:'not-applied'};
+ assert.deepEqual(computed.info.pixels,pixels);return {...f,directory,computed,retained:{manifest:computed.manifest,info:computed.info,blob:computed.png}};
+}
+
+test('comparison PNG replay requires exact descriptors and pixels and never accepts authority fields',async t=>{
+ const f=await comparisonFixture(t);await assertExportRecomputation(f.retained,f.computed,CURRENT_RASTER_PROFILE.codecId,()=>assert.fail('exact bytes need no second decode'));
+ for(const change of [v=>v.manifest.plan.layers[0].opacity=0.25,v=>v.manifest.plan.preservation='applied',v=>v.info.pixels.hash=hash('changed pixels'),v=>v.manifest.pipeline='cp1-f64-triangle-area-v1/'+hash('unknown'),v=>v.info.role='composite',v=>v.blob.mediaType='image/jpeg']){
+  const retained=structuredClone(f.retained);change(retained);await assert.rejects(assertExportRecomputation(retained,f.computed,CURRENT_RASTER_PROFILE.codecId,()=>assert.fail('invalid descriptor must not fall back')),error=>!(error instanceof UnsupportedRaster));
+ }
+});
+
+test('comparison foreign encoded variation is inspection-only only after independent equal-content decode',async t=>{
+ const f=await comparisonFixture(t),retained={...f.retained,blob:{...f.retained.blob,hash:hash('different encoded observation')}},seen=[];
+ await assert.rejects(assertExportRecomputation(retained,f.computed,CURRENT_RASTER_PROFILE.codecId,async which=>{seen.push(which);return f.computed.info;}),error=>error instanceof UnsupportedRaster);assert.deepEqual(seen,['retained','computed']);
+ await assert.rejects(assertExportRecomputation(retained,f.computed,foreign.codecId,()=>assert.fail('same producer mismatch is invalid')),error=>!(error instanceof UnsupportedRaster));
+ await assert.rejects(assertExportRecomputation(retained,f.computed,CURRENT_RASTER_PROFILE.codecId,async which=>which==='retained'?{...f.computed.info,pixels:{...f.computed.info.pixels,hash:hash('substituted content')}}:f.computed.info),error=>!(error instanceof UnsupportedRaster));
+});

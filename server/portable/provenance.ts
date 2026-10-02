@@ -1,9 +1,12 @@
 import { keys, requireValue as ok, blob, id } from '../../src/protocol/validate.js';
 // TP-1 is observation-only. There is deliberately no command, transport URL,
 // credential, scheduler status restoration, or outbox field in this profile.
+// Dots belong only to numeric vN.N version segments, never general route names.
+// Require the actual end of input: JavaScript's $ also permits a final newline.
+const endpointRoute=/^(?:[a-z0-9_-]+|v[0-9]+(?:\.[0-9]+)+)(?:\/(?:[a-z0-9_-]+|v[0-9]+(?:\.[0-9]+)+))*(?![\s\S])/;
 export function providerRecord(v:any){
  keys(v,['class','attemptId','endpoint','requestId','status','assetHashes','requestedPromptRef','submittedPromptRef','returnedPromptRef','seedText','safeTimingsRef','privacyPolicyRef','derivation']);
- ok(v.class==='portable-provider'&&id(v.attemptId)&&typeof v.endpoint==='string'&&/^[a-z0-9_-]+(?:\/[a-z0-9_-]+)*$/.test(v.endpoint)&&v.endpoint.length<=256&&(v.requestId===null||id(v.requestId))&&typeof v.status==='string'&&/^[a-z][a-z0-9_-]{0,63}$/.test(v.status)&&Array.isArray(v.assetHashes)&&v.assetHashes.every((x:unknown)=>typeof x==='string'&&/^sha256:[a-f0-9]{64}$/.test(x))&&(v.seedText===null||typeof v.seedText==='string'&&/^-?[0-9]+$/.test(v.seedText)));
+ ok(v.class==='portable-provider'&&id(v.attemptId)&&typeof v.endpoint==='string'&&v.endpoint.length<=256&&endpointRoute.test(v.endpoint)&&(v.requestId===null||id(v.requestId))&&typeof v.status==='string'&&/^[a-z][a-z0-9_-]{0,63}$/.test(v.status)&&Array.isArray(v.assetHashes)&&v.assetHashes.every((x:unknown)=>typeof x==='string'&&/^sha256:[a-f0-9]{64}$/.test(x))&&(v.seedText===null||typeof v.seedText==='string'&&/^-?[0-9]+$/.test(v.seedText)));
  for(const k of ['requestedPromptRef','submittedPromptRef','returnedPromptRef'])if(v[k]!==null){blob(v[k]);ok(v[k].mediaType==='text/plain');}
  for(const k of ['safeTimingsRef','privacyPolicyRef'])if(v[k]!==null){blob(v[k]);ok(v[k].mediaType==='application/json');}
  ok(v.privacyPolicyRef!==null);keys(v.derivation,['profile','sourceBodyHash','complete']);ok(v.derivation.profile==='TP-1'&&/^sha256:[a-f0-9]{64}$/.test(v.derivation.sourceBodyHash)&&typeof v.derivation.complete==='boolean');

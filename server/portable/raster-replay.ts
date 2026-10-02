@@ -18,13 +18,14 @@ export async function assertExportRecomputation(
   decode: (which: 'retained' | 'computed') => Promise<RasterInfo>,
 ): Promise<void> {
   const { manifest, info, blob } = retained, plan = manifest.plan as Record<string, unknown>;
-  if (!['frozen-image-export-v1', 'frozen-png-export'].includes(String(plan.kind)) || !resolveRasterProfile(manifest.pipeline, plan) ||
+  const profile=resolveRasterProfile(manifest.pipeline,plan),comparison=plan.kind==='candidate-lettering-comparison-v1',encoder=comparison?profile?.codecId:plan.encoder;
+  if (!['frozen-image-export-v1', 'frozen-png-export','candidate-lettering-comparison-v1'].includes(String(plan.kind)) || !profile || comparison&&(info.role!=='export'||blob.mediaType!=='image/png'||computed.png.mediaType!=='image/png') ||
       canonical(computed.manifest) !== canonical(manifest) ||
       canonical(computed.info.pixels) !== canonical(info.pixels) ||
       computed.info.pixelIdentity !== info.pixelIdentity ||
       computed.info.width !== info.width || computed.info.height !== info.height) invalid();
   if (canonical(computed.png) === canonical(blob)) return;
-  if (plan.encoder === currentEncoder || blob.mediaType !== computed.png.mediaType) invalid();
+  if (encoder === currentEncoder || blob.mediaType !== computed.png.mediaType) invalid();
   const original = await decode('retained'), replayed = await decode('computed');
   if (original.width !== info.width || original.height !== info.height ||
       replayed.width !== info.width || replayed.height !== info.height ||

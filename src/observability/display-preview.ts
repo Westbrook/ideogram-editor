@@ -1,8 +1,11 @@
+import {validateAssetProjection} from '../protocol/asset-projection.js';
 import {allocationLedger,StreamReaderCompletion,type AllocationLease} from './allocations.js';
 import {withDisplayRead} from './display-scheduler.js';
 import {DISPLAY_HEADERS,DISPLAY_PROFILE,displayDimensions,displayPath,type DisplayBasis,type DisplayInfo} from '../protocol/display.js';
 import type {Asset} from '../protocol/assets.js';
 import {SHA256} from '../protocol/sha256.js';
+import {ownDisplayControl,DISPLAY_CONTROL_ROOT_BYTES,DISPLAY_SOURCE_CONTROL_BYTES,DISPLAY_PREVIEW_CONTROL_BYTES,DISPLAY_READ_CONTROL_BYTES} from './display-control.js';
+import {modelPayloadBytes,reserveModelBytes} from './model-memory.js';
 
 export type DisplaySource=Readonly<{assetId:string;basis:DisplayBasis;identity:string;width:number;height:number}>;
 type Transport=(path:string,init?:RequestInit)=>Promise<Response>;
@@ -23,10 +26,10 @@ const positive=(value:string|null)=>value!==null&&/^[1-9][0-9]*$/.test(value)&&N
 function check(options:Owner){if(options.signal?.aborted||options.owns&&!options.owns())throw new DOMException('Display loading was superseded.','AbortError');}
 const cleanupFailure=(error:unknown):error is DisplayCleanupError=>error instanceof DisplayCleanupError;
 function ownedRead<T>(options:Owner,work:(owned:Owner)=>Promise<T>):Promise<T>{
- try{check(options);if(reads.size>=256)throw Error('DISPLAY_READ_CAPACITY');}catch(error){return Promise.reject(error);}
- let lease:AllocationLease;try{lease=allocationLedger.reserve({owner:'display-read-owner',kind:'control',handles:2});}catch(error){return Promise.reject(error);}
+ try{check(options);if(typeof options.owner!=='string'||options.owner.length>128)throw Error('DISPLAY_READ_OWNER');if(reads.size>=256)throw Error('DISPLAY_READ_CAPACITY');}catch(error){return Promise.reject(error);}
+ let lease:AllocationLease;try{lease=allocationLedger.reserve({owner:'display-read-owner',kind:'control',cpuBytes:DISPLAY_READ_CONTROL_BYTES,handles:2});}catch(error){return Promise.reject(error);}
  const abort=new AbortController(),forward=()=>abort.abort();options.signal?.addEventListener('abort',forward,{once:true});if(options.signal?.aborted)forward();
- const pending=Promise.resolve().then(()=>work({...options,signal:abort.signal})).finally(()=>{options.signal?.removeEventListener('abort',forward);reads.delete(abort);lease.release();});
+ const pending=Promise.resolve().then(()=>work({owner:options.owner,signal:abort.signal,owns:options.owns})).finally(()=>{options.signal?.removeEventListener('abort',forward);reads.delete(abort);lease.release();});
  reads.set(abort,pending);return pending;
 }
 /** Called only by the document owner; individual controls abort their own signal. */
@@ -66,6 +69,20 @@ export function sourceFromAsset(asset:Asset,basis:DisplayBasis='pixels'):Display
  return Object.freeze({assetId:asset.id,basis,identity:identity!,width:raster.width,height:raster.height});
 }
 
+/** Product callers keep the descriptor through validation and the complete
+ * asynchronous consumer. The legacy bare reader remains a compatibility API. */
+export function withDisplaySource<T>(transport:Transport,assetId:string,options:Owner,consume:(source:DisplaySource)=>Promise<T>):Promise<T>{
+ return ownedRead(options,async owned=>{
+  const payload=reserveModelBytes('display-source-descriptor',DISPLAY_SOURCE_CONTROL_BYTES);
+  try{const source=await readSource(transport,assetId,owned),bytes=DISPLAY_CONTROL_ROOT_BYTES+modelPayloadBytes(source);if(bytes>DISPLAY_SOURCE_CONTROL_BYTES)throw Error('DISPLAY_CONTROL_ALLOWANCE');payload.resize(bytes);check(owned);return await consume(source);}
+  finally{payload.release();}
+ });
+}
+export async function withAssetDisplaySource<T>(asset:Asset,basis:DisplayBasis,consume:(source:DisplaySource)=>Promise<T>):Promise<T>{
+ const source=ownDisplayControl('display-source-descriptor',DISPLAY_SOURCE_CONTROL_BYTES,()=>sourceFromAsset(asset,basis));
+ try{return await consume(source.value);}finally{source.release();}
+}
+
 /** One destination buffer and at most one admitted incoming chunk are booked by
  * the caller. Native transport buffers are not process-memory measurements. */
 async function readBounded(response:Response,bound:number,exact:boolean,options:Owner,lease:AllocationLease):Promise<Uint8Array>{
@@ -95,8 +112,8 @@ async function readSource(transport:Transport,assetId:string,options:Owner):Prom
   const response=await transport('/api/v1/assets/'+encodeURIComponent(assetId),{signal:options.signal});
   if(!response.ok){await cancelBody(response,lease);throw Error('DISPLAY_SOURCE_UNAVAILABLE');}
   const length=response.headers.get('content-length');if(length!==null&&(positive(length)===null||Number(length)>bound)){await cancelBody(response,lease);throw Error('DISPLAY_SOURCE_SIZE');}
-  const bytes=await readBounded(response,bound,false,options,lease),parsed=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)) as {projection?:{value?:Asset}};
-  check(options);if(parsed.projection?.value?.id!==assetId)throw Error('DISPLAY_SOURCE');return sourceFromAsset(parsed.projection.value);
+  const bytes=await readBounded(response,bound,false,options,lease),parsed=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+  check(options);const asset=validateAssetProjection(parsed);if(asset.id!==assetId)throw Error('DISPLAY_SOURCE');return sourceFromAsset(asset);
  }catch(error){cleanupFailed=cleanupFailure(error);throw error;}
  finally{if(!cleanupFailed)lease.release();}
 }
@@ -124,21 +141,33 @@ function validatePNG(bytes:Uint8Array,info:DisplayInfo){
 /** A URL owns its encoded PNG. The temporary verification bitmap is closed
  * before publication; every HTML/SVG consumer separately admits its bounded
  * RGBA CPU/GPU allowance before assigning src/href. */
-export function createDisplayPreviewURL(transport:Transport,source:DisplaySource,options:PreviewOptions):Promise<string>{const frozen=Object.freeze({...source});return ownedRead(options,owned=>createPreview(transport,frozen,{...owned,edge:options.edge}));}
+export function createDisplayPreviewURL(transport:Transport,source:DisplaySource,options:PreviewOptions):Promise<string>{return ownedRead(options,owned=>{
+ // Admit the read control before copying only the bounded canonical fields.
+ if(!/^[A-Za-z0-9_-]{1,128}$/.test(source.assetId))throw Error('DISPLAY_SOURCE');
+ displayDimensions(source.width,source.height,{kind:'preview',basis:source.basis,identity:source.identity,edge:options.edge});
+ const frozen=Object.freeze({assetId:source.assetId,basis:source.basis,identity:source.identity,width:source.width,height:source.height});
+ return createPreview(transport,frozen,{...owned,edge:options.edge});
+});}
 async function createPreview(transport:Transport,source:DisplaySource,options:PreviewOptions):Promise<string>{
  check(options);const request={basis:source.basis,identity:source.identity,kind:'preview' as const,edge:options.edge},dimensions=displayDimensions(source.width,source.height,request),path=displayPath(source.assetId,request);
  return withDisplayRead(options.signal,async()=>{
   check(options);const rgba=dimensions.width*dimensions.height*4;
-  let decoded:AllocationLease|undefined=allocationLedger.reserve({owner:options.owner,kind:'bitmap',cpuBytes:rgba*2,gpuBytes:rgba,previewCacheBytes:rgba*2,handles:3}),encoded:AllocationLease|undefined,bitmap:ImageBitmap|undefined,response:Response|undefined,bodyRead=false,primary:unknown;
+  let decoded:AllocationLease|undefined=allocationLedger.reserve({owner:options.owner,kind:'bitmap',cpuBytes:rgba*2+DISPLAY_CONTROL_ROOT_BYTES,gpuBytes:rgba,previewCacheBytes:rgba*2,handles:3}),encoded:AllocationLease|undefined,bitmap:ImageBitmap|undefined,response:Response|undefined,bodyRead=false,primary:unknown;
   try{
    response=await fetchPreview(transport,path,options);check(options);const info=infoFromResponse(response,source,options.edge),length=Number(info.byteLength);
-   encoded=allocationLedger.reserve({owner:options.owner,kind:'blob',cpuBytes:length*2+384,previewCacheBytes:length,handles:2});bodyRead=true;
+   // The encoded owner also retains its descriptor, source, URL and registry
+   // control through the last actual revoke (including failed cleanup retries).
+   encoded=allocationLedger.reserve({owner:options.owner,kind:'blob',cpuBytes:length*2+DISPLAY_PREVIEW_CONTROL_BYTES,previewCacheBytes:length,handles:2});bodyRead=true;
    let bytes:Uint8Array<ArrayBufferLike>|null=await readBounded(response,length,true,options,encoded);check(options);
    const hash=new SHA256();let sliceStart=performance.now();for(let at=0;at<bytes.length;at+=32768){hash.update(bytes.subarray(at,at+32768));if(performance.now()-sliceStart>=4){await new Promise<void>(resolve=>setTimeout(resolve,0));check(options);sliceStart=performance.now();}}if(hash.digest()!==info.hash)throw Error('DISPLAY_CONTENT_IDENTITY');validatePNG(bytes,info);
-   const blob=new Blob([bytes as Uint8Array<ArrayBuffer>],{type:'image/png'});bytes=null;encoded.resize({cpuBytes:length,handles:1});
+   const blob=new Blob([bytes as Uint8Array<ArrayBuffer>],{type:'image/png'});bytes=null;encoded.resize({cpuBytes:length+DISPLAY_PREVIEW_CONTROL_BYTES,handles:1});
    bitmap=await createImageBitmap(blob);check(options);if(bitmap.width!==info.width||bitmap.height!==info.height)throw Error('DISPLAY_DECODE_DIMENSIONS');bitmap.close();bitmap=undefined;
    decoded.release();decoded=undefined;encoded.resize({handles:2});check(options);
-   const url=URL.createObjectURL(blob);urls.set(url,{info,source:Object.freeze({...source}),encoded,consumers:new Set()});encoded=undefined;return url;
+   const url=URL.createObjectURL(blob);urls.set(url,{info,source,encoded,consumers:new Set()});encoded=undefined;
+   // A browser-generated URL is bounded before it reaches any consumer. If
+   // revocation fails the registered owner remains charged for that failure.
+   if(url.length>2048){revokeDisplayPreviewURL(url);throw Error('DISPLAY_URL_SIZE');}
+   return url;
   }catch(error){
    primary=error;
    if(response&&!bodyRead)try{await cancelBody(response,decoded!);}catch(cleanup){decoded=undefined;if(cleanupFailure(cleanup))throw new DisplayCleanupError(cleanup.resource,new AggregateError([error,cleanup],'Preview and response cleanup failed'));throw cleanup;}

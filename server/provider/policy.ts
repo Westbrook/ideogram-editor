@@ -4,7 +4,8 @@ import type { AppliedPrivacyPolicy, QueueAction, QueueIdentity } from './contrac
 
 export const ENDPOINTS = Object.freeze(['ideogram/v4', 'ideogram/v4/instant', 'ideogram/v4/fast',
   'ideogram/v4/image-to-image', 'ideogram/v4/inpaint', 'ideogram/v4/lora',
-  'ideogram/v4/image-to-image/lora', 'ideogram/v4/inpaint/lora']);
+  'ideogram/v4/image-to-image/lora', 'ideogram/v4/inpaint/lora', 'ideogram/v4.5', 'ideogram/v4.5/edit']);
+export const V45_RESEARCH_ENDPOINTS:readonly string[]=Object.freeze(['ideogram/v4.5','ideogram/v4.5/edit']);
 export const QUEUE_ORIGIN = 'https://queue.fal.run';
 // The disclosed public-ACL fallback permits only this documented CDN v3 host.
 // Private ACLs, uploads, alternate hosts and general minimum retention remain unqualified.
@@ -25,6 +26,7 @@ export type PolicyAcknowledgement = Readonly<{
 }>;
 export function resolvePrivacy(profile: PrivacyProfile, endpoint: string, attemptId: string,
   acknowledgement?: PolicyAcknowledgement): { applied: AppliedPrivacyPolicy; headers: Readonly<Record<string, string>> } {
+  if (profile.mode==='production'&&V45_RESEARCH_ENDPOINTS.includes(endpoint)) refuse('POLICY');
   if (!ENDPOINTS.includes(endpoint) || profile.endpoint !== endpoint || !/^[a-zA-Z0-9_-]{1,128}$/.test(profile.id) ||
       !Number.isSafeInteger(profile.version) || profile.version < 1 || !/^[a-f0-9]{64}$/.test(profile.evidenceDigest) ||
       !['production','fixture'].includes(profile.mode) || !['documented','observed','unknown'].includes(profile.enforcement)) refuse('POLICY');
@@ -67,7 +69,11 @@ export function exactURL(raw: string): URL {
 }
 export function validateQueueURL(raw: string, identity: QueueIdentity, action: QueueAction, origin = QUEUE_ORIGIN, allowResultResponseSuffix = false): URL {
   const u = exactURL(raw);
-  const path=queuePath(identity,action),matches=u.pathname===path||(allowResultResponseSuffix&&action==='result'&&u.pathname===path+'/response');
+  const path=queuePath(identity,action),paths=[path];
+  // V45 edit schema retains /edit; the official client normalizes owner/alias.
+  // Accept only those two documented returned identities, never rewrite a URL.
+  if(identity.endpoint==='ideogram/v4.5/edit'&&action!=='submit')paths.push(path.replace('/ideogram/v4.5/edit/requests/','/ideogram/v4.5/requests/'));
+  const matches=paths.some(expected=>u.pathname===expected||(allowResultResponseSuffix&&action==='result'&&u.pathname===expected+'/response'));
   if (u.origin !== origin || !matches || u.search) refuse('IDENTITY');
   return u;
 }

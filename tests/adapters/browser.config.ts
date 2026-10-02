@@ -2,7 +2,7 @@ import {defineConfig} from '@playwright/test';
 import {resolve} from 'node:path';
 
 export default defineConfig({
- testDir:'.',testMatch:'browser.spec.ts',workers:1,retries:0,maxFailures:1,timeout:90_000,
+ testDir:'.',testMatch:['browser.spec.ts','successor.spec.ts'],workers:1,retries:0,maxFailures:1,timeout:90_000,
  expect:{timeout:10_000},
  outputDir:resolve(process.env.ADAPTER_OUTPUT??'artifacts/p27-browser','chromium','browser'),
  reporter:[['list'],['json',{outputFile:resolve(process.env.ADAPTER_OUTPUT??'artifacts/p27-browser','chromium','results.json')}]],

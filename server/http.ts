@@ -1,3 +1,4 @@
+import {CURRENT_PROJECTION_SCHEMA} from '../src/protocol/projection-schema.js';
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse, Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -43,8 +44,9 @@ function securityHeaders(response: ServerResponse, origin: string, wasmWorker = 
   response.setHeader('X-Frame-Options', 'DENY');
 }
 function json(response: ServerResponse, status: number, body: unknown): void {
-  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
-  response.end(JSON.stringify(body));
+  const text = JSON.stringify(body);
+  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': Buffer.byteLength(text, 'utf8') });
+  response.end(text);
 }
 function checkBoundary(request: IncomingMessage, origin: string): void {
   const headers = request.headersDistinct;
@@ -100,7 +102,7 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
   const developmentNonce = options.development ? randomBytes(24).toString('base64') : undefined;
   const upgraded = new Set<Duplex>();
   const capabilities: CapabilitiesView = {
-    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: 8,
+    protocolVersion: 1, serverVersion: '0.1.0', projectionSchema: CURRENT_PROJECTION_SCHEMA,
     credentialConfigured: options.provider ? options.provider.mode==='fal'&&Boolean(options.provider.key) : options.credentialConfigured ?? false,
     storageState: 'unavailable', connectionState: 'unknown', limits: [],
     profiles: [
@@ -277,7 +279,7 @@ export async function startLocalServer(options: ServerOptions, testing?: { write
   return {
     origin, root: root.path, close,
     // Owning local process maintenance. Never registered as an HTTP route.
-    rasterMaintenance:{state:()=>writer.rasterWorkerState(),restartIdle:(generation:number)=>writer.restartRasterWorker(generation)},
+    rasterMaintenance:{state:()=>writer.rasterWorkerState(),restartIdle:(generation:number)=>writer.restartRasterWorker(generation),readEncodedEvidence:()=>writer.readRasterEncodedEvidence()},
     issuePairingURL(): string {
       if (closed || rootInvalid) throw new ProtocolError('SERVER_UNAVAILABLE');
       return `${origin}/#pairing=${sessions.issuePairing()}`;

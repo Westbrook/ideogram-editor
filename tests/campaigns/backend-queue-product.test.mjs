@@ -6,6 +6,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { randomUUID, createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';
 import { createBackendAdapter } from '../../tooling/qualification/campaigns/backend.mjs';
+import { retainWQStore } from '../../tooling/qualification/campaigns/backend-wq-cache.mjs';
 import { egressAttempts } from '../provider/no-egress.mjs';
 import { fastManifest } from '../../tooling/qualification/campaigns/backend-queue.mjs';
 
@@ -20,13 +21,13 @@ async function smokeFastFixture(output) {
   return { corpus, seal: { path: manifestPath, sha256: hash(manifest) } };
 }
 
-async function execute(t, cell) {
+async function execute(t, cell, sample = { cache: 'cold', ordinal: 1, prime: false }) {
   const output = resolve('artifacts/campaign-product-smoke', randomUUID()); await mkdir(output, { recursive: true, mode: 0o700 });
   const fixture = cell.parameters.caseId === 'WF01' ? await smokeFastFixture(output) : undefined;
   const adapter = createBackendAdapter({ repo: process.cwd(), output, fixture });
   t.after(() => adapter.close());
-  await adapter.prepareCell(cell); await adapter.resetCell(cell, { cache: 'cold', ordinal: 1, prime: false });
-  const outcome = await adapter.execute(cell, { cache: 'cold', ordinal: 1, prime: false });
+  await adapter.prepareCell(cell); await adapter.resetCell(cell, sample);
+  const outcome = await adapter.execute(cell, sample);
   assert.notEqual(outcome.status, 'fail'); assert.deepEqual(egressAttempts(), []);
   return outcome;
 }
@@ -64,3 +65,59 @@ for (const caseId of ['WF07', 'WF08', 'WF09', 'WF10', 'WF11', 'WF12']) {
     assert(outcome.phases.some(span => span.name === 'command.validate'));
   });
 }
+
+test('focused warm WQ samples own fresh roots and execute one scenario submit without an extra prime', async t => {
+  const output = resolve('artifacts/campaign-product-smoke', randomUUID()); await mkdir(output, { recursive: true, mode: 0o700 });
+  const adapter = createBackendAdapter({ repo: process.cwd(), output });
+  t.after(() => adapter.close());
+  const cell = { id: 'smoke/warm-fresh-lost-ack', operation: 'queue.fault', workload: 'WQ', parameters: { scenario: 'lost-ack' } };
+  await adapter.prepareCell(cell);
+  const outcomes = [];
+  for (const ordinal of [1, 2]) {
+    const sample = { cache: 'warm', ordinal, prime: false };
+    await adapter.resetCell(cell, sample);
+    const previous = outcomes.length ? await retainWQStore(outcomes.at(-1).observations.root) : null;
+    const outcome = await adapter.execute(cell, sample);
+    if (previous) assert.deepEqual(await retainWQStore(previous.root), previous, 'The previous closed sample root remains byte-identical');
+    assert.equal(outcome.status, 'inconclusive', 'A focused small journal is not the sealed full WQ workload');
+    assert.equal(outcome.observations.outcome.state, 'submission-uncertain');
+    assert.equal(outcome.observations.effects.filter(effect => effect.method === 'POST').length, 1);
+    assert.equal(outcome.observations.retainedWriter, true);
+    assert.equal(outcome.wqCache, undefined, 'A focused fixture cannot manufacture full WQ proof');
+    assert.deepEqual(outcome.observations.sample, sample);
+    outcomes.push(outcome);
+  }
+  assert.notEqual(outcomes[0].observations.root, outcomes[1].observations.root, 'Each warm sample has a fresh owned journal, not accumulated prior-case history');
+  assert.notEqual(outcomes[0].observations.jobId, outcomes[1].observations.jobId);
+  assert.notEqual(outcomes[0].observations.attemptId, outcomes[1].observations.attemptId);
+  assert.deepEqual(egressAttempts(), []);
+});
+
+
+for (const operation of ['queue.proxy-pair', 'queue.healthy-polling']) test('Actual warm ' + operation + ' preserves its original control observation', async t => {
+  const sample = { cache: 'warm', ordinal: 1, prime: false };
+  const cell = { id: 'smoke/' + operation, operation, workload: 'WQ', handler: 'backend',
+    parameters: operation === 'queue.proxy-pair' ? { pairedDirectAndProxy: true, networkProfile: 'N' } : { durationMs: 10000 } };
+  const outcome = await execute(t, cell, sample);
+  assert.equal(outcome.status, 'inconclusive', 'This small product fixture cannot qualify the full WQ workload');
+  assert.equal(outcome.wqCache, undefined, 'No fabricated final-connection proof for an incomplete fixture');
+  assert.deepEqual(outcome.observations.sample, sample);
+  assert.equal(outcome.observations.retainedWriter, true);
+  assert.equal(outcome.observations.effects.filter(effect => effect.method === 'POST').length, 1);
+  assert.equal(outcome.measurements.R29UnexpectedResubmissionCount.value, 0);
+  if (operation === 'queue.proxy-pair') {
+    const evidence = outcome.measurements.R26ProxyAddedHopMs.evidence;
+    assert.equal(evidence.length, 1); assert.equal(evidence[0].kind, 'same-worker-proxy-pair');
+    assert.equal(evidence[0].pair.direct.sha256, evidence[0].pair.proxy.sha256);
+    assert(outcome.phases.some(span => span.name === 'control.direct' && span.outcome === 'completed'));
+    assert(outcome.phases.some(span => span.name === 'control.proxy' && span.outcome === 'completed'));
+  } else {
+    const span = outcome.phases.find(row => row.name === 'healthy-polling-ten-seconds');
+    assert(span && span.outcome === 'completed' && span.durationMs >= 10000);
+    const evidence = outcome.measurements.R29ForegroundHealthyPollGapMs.evidence[0];
+    assert.equal(evidence.window.complete, true); assert.equal(evidence.window.productObserverOnly, true);
+    assert(evidence.window.completedMs - evidence.window.startedMs >= 10000);
+    assert(evidence.requests.length >= 4);
+  }
+  assert.deepEqual(egressAttempts(), []);
+});

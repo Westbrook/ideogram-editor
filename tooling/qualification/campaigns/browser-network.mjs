@@ -10,6 +10,49 @@ const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIO
 const HOP = new Set(['connection', 'proxy-connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']);
 const ENGINES = new Set(['chromium', 'firefox', 'webkit']);
 const CHALLENGE_PREFIX = '/.well-known/ideogram-campaign-proxy/';
+const OBSERVATION_REQUEST_LIMIT = 4096;
+const ROUTE_ID = '[A-Za-z0-9_-]{1,128}';
+
+/** Classification is evidence, not admission. Never retain a query or decode a
+ * caller-controlled path into an apparent immutable ID. The consumer must bind
+ * each exposed ID to its actual fixture/returned production identity. */
+export function classifyBrowserRequestPath(pathname) {
+  const fixed = {
+    '/': 'document-root', '/favicon.ico': 'favicon',
+    '/api/v1/session': 'session', '/api/v1/session/bootstrap': 'session-bootstrap',
+    '/api/v1/session/renew': 'session-renew', '/api/v1/session/revoke': 'session-revoke',
+    '/api/v1/capabilities': 'capabilities', '/api/v1/adapters': 'adapter-list',
+    '/api/v1/assets/staging': 'asset-staging-create', '/api/v1/assets/staging/recovery': 'asset-staging-recovery',
+    '/api/v1/commands': 'command-submit', '/api/v1/commands/pending': 'command-inventory', '/api/v1/documents': 'document-list',
+    '/api/v1/ui': 'ui-inventory', '/api/v1/queue': 'queue', '/api/v1/provider': 'provider',
+    '/api/v1/events': 'events', '/api/v1/events/stream': 'events-stream',
+  };
+  if (typeof pathname !== 'string' || pathname.length > 16384 || /[\u0000-\u0020\u007f\\?#]/.test(pathname)) return { route: 'unknown', id: null };
+  if (Object.hasOwn(fixed, pathname)) return { route: fixed[pathname], id: null };
+  if (new RegExp('^' + CHALLENGE_PREFIX.replaceAll('.', '\\.') + '[a-f0-9]{64}$').exec(pathname)?.[0] === pathname) return { route: 'proxy-challenge', id: null };
+  const patterns = [
+    ['adapter-deletion-review', '/api/v1/adapters/deletion-reviews/'],
+    ['adapter-updates', '/api/v1/adapters/', '/updates'], ['adapter-view', '/api/v1/adapters/'],
+    ['asset-transfer-review', '/api/v1/assets/staging/transfer-reviews/'],
+    ['asset-staging-finalize', '/api/v1/assets/staging/', '/finalize'], ['asset-staging', '/api/v1/assets/staging/'],
+    ['asset-raster-import-inspection', '/api/v1/assets/raster-import-inspections/'],
+    ['asset-raster-review', '/api/v1/assets/raster-reviews/'],
+    ...['content', 'display', 'display-tile', 'sample', 'raster'].map(suffix => ['asset-' + suffix, '/api/v1/assets/', '/' + suffix]),
+    ['asset-view', '/api/v1/assets/'], ['command-view', '/api/v1/commands/'],
+    ['command-result', '/api/v1/commands/', '/result'], ['command-original', '/api/v1/commands/', '/original'],
+    ['document-view', '/api/v1/documents/'],
+    ...['image', 'history', 'checkpoints', 'save-status', 'closure', 'composition', 'text', 'candidates', 'deletion'].map(suffix => ['document-' + suffix, '/api/v1/documents/', '/' + suffix]),
+    ['ui-view', '/api/v1/ui/'],
+    ...['request', 'request-reviews', 'composition', 'text'].map(suffix => ['ui-' + suffix, '/api/v1/ui/', '/' + suffix]),
+    ['snapshot', '/api/v1/snapshots/'], ['protocol-content', '/api/v1/protocol-content/'],
+    ['namespace-events', '/api/v1/namespace-events/'], ['recovery-release', '/api/v1/recovery/', '/release'],
+  ];
+  for (const [route, prefix, suffix = ''] of patterns) {
+    const match = new RegExp('^' + prefix + '(' + ROUTE_ID + ')' + suffix + '$').exec(pathname);
+    if (match && match[0] === pathname) return { route, id: match[1] };
+  }
+  return { route: 'unknown', id: null };
+}
 
 export function normalizeBrowserOrigins(values) {
   if (!Array.isArray(values) || values.length < 1 || values.length > 8) issue('Browser egress needs one to eight exact product origins');
@@ -98,15 +141,99 @@ export async function createCachePreservingEgress({ engine = 'chromium', allowed
   const startedMs = monotonic(), sockets = new Set(), pending = new Set(), entries = [], counts = { accepted: 0, blocked: 0, upstreamErrors: 0, connections: 0, peakConnections: 0, challengesServed: 0 };
   const routeVerification = { required: true, verified: false, totalAttempts: 0, completed: 0, failed: 0, inProgress: false };
   let closed = false, closePromise, droppedEntries = 0, sequence = 0, callbackErrors = 0, undoFence = null, challenge = null;
+  const proxyInstanceId = randomBytes(16).toString('hex'), observedRequests = new WeakMap(), activeObserved = new Map();
+  let requestOrdinal = 0, observationOrdinal = 0, observation = null, activeRequestCount = 0, originGeneration = 0, lastRouteChallenge = null, observationErrors = 0;
+  const observationError = () => { observationErrors++; if (observation) observation.observerErrors++; };
+  const includeObserved = (row, carriedIn = false) => {
+    if (!observation || observation.requests.has(row.requestId)) return;
+    if (observation.requests.size >= OBSERVATION_REQUEST_LIMIT) { observation.droppedRequests++; return; }
+    observation.requests.set(row.requestId, { row, carriedIn });
+  };
+  const observeTerminal = (row, outcome) => {
+    if (!row || row.terminal) return;
+    row.terminal = { outcome, observedMs: monotonic() };
+    activeObserved.delete(row.requestId); activeRequestCount--;
+  };
+  const observeResponse = (row, status) => {
+    if (!row || row.response) return;
+    if (!Number.isInteger(status) || status < 100 || status > 999) { observationError(); return; }
+    row.response = { status, observedMs: monotonic() };
+  };
+  const observeRequest = (request, response, socket) => {
+    try {
+      const raw = request?.url, urlComplete = typeof raw === 'string' && raw.length <= 16384;
+      let originIndex = -1, classification = { route: 'unknown', id: null };
+      if (urlComplete) {
+        try {
+          const url = new URL(raw);
+          if (url.protocol === 'http:' && url.hostname === '127.0.0.1' && !url.username && !url.password && !url.hash) {
+            originIndex = origins.indexOf('http://127.0.0.1:' + Number(url.port || 80));
+            if (originIndex >= 0) classification = classifyBrowserRequestPath(url.pathname);
+          }
+        } catch { /* Invalid/CONNECT targets remain redacted unknown routes. */ }
+      }
+      const row = { requestId: proxyInstanceId + ':' + ++requestOrdinal,
+        method: typeof request?.method === 'string' && /^[A-Z-]{1,32}$/.test(request.method) ? request.method : 'OTHER',
+        urlSha256: urlComplete ? digest(raw) : null, urlComplete, originIndex, ...classification,
+        requestBytes: null, uploadOffset: null,
+        receivedMs: monotonic(), forwardedMs: null, blocked: null, response: null, terminal: null };
+      // Header declarations witness the original request envelope, not consumed
+      // body bytes. Keep only bounded canonical integers, never other headers.
+      for (const name of ['content-length', 'upload-offset']) {
+        const value = request?.headers?.[name];
+        if (typeof value !== 'string' || value.length < 1 || value.length > 20 || /[^0-9]/.test(value)
+          || value.length > 1 && value[0] === '0' || request.headersDistinct?.[name]?.length !== 1) continue;
+        if (name === 'upload-offset') row.uploadOffset = value;
+        else if (Number.isSafeInteger(Number(value))) row.requestBytes = Number(value);
+      }
+      if (request) observedRequests.set(request, row);
+      activeRequestCount++;
+      if (activeObserved.size < OBSERVATION_REQUEST_LIMIT) activeObserved.set(row.requestId, row);
+      else observationError();
+      includeObserved(row);
+      if (response) {
+        response.once('finish', () => { observeResponse(row, response.statusCode); observeTerminal(row, 'finished'); });
+        response.once('close', () => observeTerminal(row, 'closed'));
+      } else socket?.once('close', () => observeTerminal(row, 'socket-closed'));
+      return row;
+    } catch { observationError(); return null; }
+  };
+  const observationState = () => ({ proxyInstanceId, pid: process.pid, startedMs, originGeneration,
+    allowedOrigins: [...origins], proxyOrigin: origin, closed, routeVerification: { ...routeVerification },
+    routeChallenge: lastRouteChallenge ? { ...lastRouteChallenge } : null,
+    activeRequestCount, activeRequests: [...activeObserved.values()].map(row => structuredClone(row)),
+    activeUpstreamRequests: pending.size, activeConnections: sockets.size,
+    counts: { ...counts }, callbackErrors, observerErrors: observationErrors });
+  const observationSnapshot = (id, ended = false) => {
+    if (!observation || observation.id !== id) issue('Proxy observation requires its exact active window ID');
+    const after = observationState(), rows = [...observation.requests.values()].map(({ row, carriedIn }) => ({ ...structuredClone(row), carriedIn }));
+    const recordingComplete = observation.droppedRequests === 0 && observation.observerErrors === 0 && after.observerErrors === 0
+      && observation.before.activeRequestCount === observation.before.activeRequests.length && after.activeRequestCount === after.activeRequests.length;
+    return { kind: 'browser-proxy-observation-1', id, windowOrdinal: observation.ordinal, ended,
+      startedMs: observation.startedMs, observedMs: monotonic(), requestLimit: OBSERVATION_REQUEST_LIMIT,
+      before: structuredClone(observation.before), after, requests: rows,
+      droppedRequests: observation.droppedRequests, observerErrors: observation.observerErrors,
+      recordingComplete, terminalComplete: recordingComplete && after.activeRequestCount === 0,
+      // Retention completeness is separate from transport binding and from any
+      // consumer's allowlist/zero-fetch verdict. An active SSE never blocks end.
+      routeBindingStable: observation.before.originGeneration === after.originGeneration
+        && observation.before.closed === false && after.closed === false
+        && observation.before.routeVerification.verified && after.routeVerification.verified
+        && observation.before.routeVerification.totalAttempts === after.routeVerification.totalAttempts
+        && !observation.before.routeVerification.inProgress && !after.routeVerification.inProgress,
+      scope: 'HTTP proxy requests observed during this window, including explicit carry-in; not browser cache, browser API attempts, tensor decode, or OS egress' };
+  };
   const append = value => { const event = { sequence: ++sequence, observedMs: monotonic(), ...value }; if (entries.length < 256) entries.push(event); else droppedEntries++; return event; };
-  const blocked = (request, reason) => {
+  const blocked = (request, reason, observed = request ? observedRequests.get(request) : null) => {
     counts.blocked++;
+    if (observed) observed.blocked = { reason, observedMs: monotonic() };
     const event = append({ kind: 'blocked', reason, method: METHODS.has(request?.method) || request?.method === 'CONNECT' ? request.method : 'OTHER', requestHash: digest(String(request?.url ?? '').slice(0, 16384)) });
     try { const result = onBlocked({ ...event }); if (result && typeof result.then === 'function') result.catch(() => { callbackErrors++; }); } catch { callbackErrors++; }
   };
   const refuse = (response, code = 403) => { response.writeHead(code, { 'content-type': 'text/plain', 'cache-control': 'no-store', connection: 'close' }); response.end('Browser campaign transport denied.'); };
   const agent = new http.Agent({ keepAlive: true, maxSockets: 64, maxFreeSockets: 8 });
   const server = http.createServer({ maxHeaderSize: 32768, requestTimeout: 120000, headersTimeout: 30000, keepAliveTimeout: 5000 }, (request, response) => {
+    const observed = observeRequest(request, response);
     if (closed) { request.resume(); return refuse(response, 503); }
     const target = inspectBrowserProxyRequest(request, origins);
     if (!target.allowed) { blocked(request, target.reason); request.resume(); return refuse(response); }
@@ -127,18 +254,20 @@ export async function createCachePreservingEgress({ engine = 'chromium', allowed
     const forward = bytes => {
       if (closed) return refuse(response, 503);
       counts.accepted++;
+      if (observed) observed.forwardedMs = monotonic();
       append({ kind: 'forwarded', method: target.method, originIndex: origins.indexOf(target.origin) });
       const headers = forwardedHeaders(request.headers); headers.host = target.host;
       const upstream = http.request({ hostname: '127.0.0.1', family: 4, port: target.port, method: target.method, path: target.path, headers, agent }, reply => {
+        observeResponse(observed, reply.statusCode ?? 502);
         response.writeHead(reply.statusCode ?? 502, forwardedHeaders(reply.headers));
-        reply.on('error', () => response.destroy());
+        reply.on('error', () => { observeTerminal(observed, 'upstream-response-error'); response.destroy(); });
         reply.pipe(response);
       });
       pending.add(upstream);
       upstream.once('close', () => pending.delete(upstream));
-      upstream.once('error', () => { counts.upstreamErrors++; if (!response.headersSent) refuse(response, 502); else response.destroy(); });
-      request.once('aborted', () => upstream.destroy());
-      request.once('error', () => upstream.destroy());
+      upstream.once('error', () => { counts.upstreamErrors++; observeTerminal(observed, 'upstream-error'); if (!response.headersSent) refuse(response, 502); else response.destroy(); });
+      request.once('aborted', () => { observeTerminal(observed, 'request-aborted'); upstream.destroy(); });
+      request.once('error', () => { observeTerminal(observed, 'request-error'); upstream.destroy(); });
       response.once('close', () => { if (!response.writableFinished) upstream.destroy(); });
       if (bytes) upstream.end(bytes); else request.pipe(upstream);
     };
@@ -157,21 +286,21 @@ export async function createCachePreservingEgress({ engine = 'chromium', allowed
         if (decision.undo) { fence.admitted++; append({ kind: 'undo-fence-admitted', unchangedBytes: true }); }
         forward(bytes);
       });
-      request.once('aborted', () => { chunks.length = 0; fence.reject(new PrerequisiteError('Public Undo request was aborted before forwarding')); });
-      request.once('error', () => { chunks.length = 0; fence.reject(new PrerequisiteError('Public Undo request failed before forwarding')); });
+      request.once('aborted', () => { observeTerminal(observed, 'request-aborted'); chunks.length = 0; fence.reject(new PrerequisiteError('Public Undo request was aborted before forwarding')); });
+      request.once('error', () => { observeTerminal(observed, 'request-error'); chunks.length = 0; fence.reject(new PrerequisiteError('Public Undo request failed before forwarding')); });
     } else forward();
   });
   // HTTPS/wss CONNECT is always denied before opening any upstream socket.
-  server.on('connect', (request, socket) => { blocked(request, 'connect-tunnel-denied'); socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); });
+  server.on('connect', (request, socket) => { const observed = observeRequest(request, null, socket); blocked(request, 'connect-tunnel-denied', observed); observeResponse(observed, 403); socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); });
   // Production campaigns have no HMR. Shared-dev-server WebSocket forwarding
   // needs separate real transport qualification; do not silently tunnel it.
-  server.on('upgrade', (request, socket) => { blocked(request, 'upgrade-denied'); socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); });
+  server.on('upgrade', (request, socket) => { const observed = observeRequest(request, null, socket); blocked(request, 'upgrade-denied', observed); observeResponse(observed, 403); socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); });
   server.on('connection', socket => {
     if (closed || sockets.size >= 256) { socket.destroy(); return; }
     sockets.add(socket); counts.connections++; counts.peakConnections = Math.max(counts.peakConnections, sockets.size);
     socket.once('close', () => sockets.delete(socket));
   });
-  server.on('clientError', (_error, socket) => { blocked(null, 'malformed-http'); socket.destroy(); });
+  server.on('clientError', (_error, socket) => { const observed = observeRequest(null, null, socket); blocked(null, 'malformed-http', observed); socket.destroy(); });
   try {
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => { server.off('error', reject); resolve(); }); });
   } catch (error) { agent.destroy(); for (const socket of sockets) socket.destroy(); throw error; }
@@ -180,6 +309,14 @@ export async function createCachePreservingEgress({ engine = 'chromium', allowed
   const origin = 'http://127.0.0.1:' + address.port, launchOptions = browserProxyLaunchOptions(origin, engine);
   return {
     supported: true, origin, launchOptions,
+    beginObservation(id) {
+      if (closed || observation || typeof id !== 'string' || id.length < 1 || id.length > 128 || /[^A-Za-z0-9_-]/.test(id)) issue('One open proxy observation requires a bounded window ID and live proxy');
+      observation = { id, ordinal: ++observationOrdinal, startedMs: monotonic(), before: observationState(), requests: new Map(), droppedRequests: 0, observerErrors: 0 };
+      for (const row of activeObserved.values()) includeObserved(row, true);
+      return observationSnapshot(id);
+    },
+    snapshotObservation(id) { return observationSnapshot(id); },
+    endObservation(id) { const value = observationSnapshot(id, true); observation = null; return value; },
     cachePolicy: engine === 'chromium'
       ? 'Chromium explicit HTTP proxy with <-loopback>; no Playwright routes, cache-disabling CDP commands, or proxy response cache'
       : engine + ' public explicit HTTP proxy with verified literal-loopback routing; no Playwright routes, cache-disabling commands, or proxy response cache',
@@ -204,6 +341,7 @@ export async function createCachePreservingEgress({ engine = 'chromium', allowed
         if (closed || page.url() !== 'about:blank') issue('Browser proxy challenge did not restore a blank unscored page');
         signal?.throwIfAborted();
         const proof = { kind: 'browser-proxy-route-challenge-1', engine, originIndex: origins.indexOf(productOrigin), observedMs: current.observation.observedMs, requestHash: current.observation.requestHash, responseHash: current.observation.responseHash, cacheDisabled: false, upstreamForwarded: false };
+        lastRouteChallenge = { ...proof };
         routeVerification.completed++; routeVerification.verified = true;
         append({ kind: 'route-challenge-completed', originIndex: proof.originIndex, requestHash: proof.requestHash, responseHash: proof.responseHash, cacheDisabled: false });
         return proof;
@@ -219,6 +357,16 @@ export async function createCachePreservingEgress({ engine = 'chromium', allowed
         if (challenge === current) challenge = null;
         routeVerification.inProgress = false;
       }
+    },
+    replaceOwnedOrigin(previous, next) {
+      if (closed || challenge || undoFence || origins.length !== 1 || origins[0] !== previous) issue('Proxy origin replacement requires exactly the previous owned origin and no active challenge or command fence');
+      const replacement = normalizeBrowserOrigins([next])[0];
+      if (replacement === previous) issue('Backend replacement must establish a fresh exact origin');
+      // Destroy old-origin keepalive requests before admitting the new server.
+      // The process owner has already observed the old backend exit.
+      for (const request of pending) request.destroy();
+      agent.destroy(); origins[0] = replacement; originGeneration++; routeVerification.verified = false; lastRouteChallenge = null;
+      append({ kind: 'owned-origin-replaced', previousHash: digest(previous), nextHash: digest(replacement), allowedOriginCount: 1, cacheDisabled: false });
     },
     async withUndoFence(expected, action) {
       if (closed || undoFence || typeof action !== 'function' || !/^[A-Za-z0-9_-]{1,160}$/.test(expected?.id ?? '') || !/^[0-9]+$/.test(expected?.revision ?? '') || !/^[A-Za-z0-9_-]{1,160}$/.test(expected?.historyHead ?? '')) issue('One live proxy Undo fence requires an exact document revision and history head');

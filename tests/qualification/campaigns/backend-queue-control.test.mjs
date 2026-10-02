@@ -10,6 +10,9 @@ import { once } from 'node:events';
 import { createHash } from 'node:crypto';
 import { FAST_QUEUE_FIXTURE_FAMILIES, prepareQueueWorker, connectQueueWorker, readPrivateJSON, QUEUE_CONFIG_FILE, QUEUE_READY_FILE } from '../../../tooling/qualification/campaigns/backend-queue-control.mjs';
 import { scopeQueueStore, startQueueControl } from '../../../tooling/qualification/campaigns/backend-queue-worker.mjs';
+import { diagnosticMemoryURL, allocationsURL } from '../../owned-preview-module.mjs';
+const { DiagnosticMemory, DiagnosticReads } = await import(diagnosticMemoryURL);
+const { AllocationLedger } = await import(allocationsURL);
 
 test('worker configuration is owner-only, credential-free, and rejects unsafe file aliases', async () => {
   const root = await mkdtemp(join(tmpdir(), 'queue-control-config-'));
@@ -47,17 +50,20 @@ test('an enrolled new retry never selects an older foreign attempt in the same j
 });
 
 function fakeStore(root) {
+  const diagnosticLedger = new AllocationLedger(), diagnosticMemory = new DiagnosticMemory();
+  diagnosticMemory.adopt(value => diagnosticLedger.reserve(value));
+  const diagnosticReads = new DiagnosticReads('queue-control-fixture-read', 1, diagnosticMemory);
   const jobs = new Map([['owned', { id: 'owned', review: { endpoint: 'ideogram/v4' }, attempts: [{ id: 'attempt_owned', state: 'not-started', hold: false, requestId: null }] }],
     ['foreign', { id: 'foreign', review: { endpoint: 'ideogram/v4' }, attempts: [{ id: 'attempt_foreign', state: 'acknowledged', hold: true, requestId: 'foreign_request' }] }]]);
   let high = '1', snapshot = null, maintains = 0;
   const store = {
-    root, epoch: 'worker_epoch_1', jobs,
+    root, epoch: 'worker_epoch_1', jobs, diagnosticReads, diagnosticLedger,
     queue: { view: () => ({ jobs: [...jobs.values()], nextCursor: null }), resultFence: (jobId, attemptId) => ({ jobId, attemptId }),
       controlWork: eligible => [...jobs.values()].flatMap(job => job.attempts.filter(attempt => eligible(job.id, attempt.id)).map(attempt => ({ jobId: job.id, attemptId: attempt.id }))), recoveryWork: () => [] },
     candidates: { due: (_now, eligible) => [...jobs.values()].flatMap(job => job.attempts.filter(attempt => eligible(job.id, attempt.id)).map(attempt => ({ jobId: job.id, attemptId: attempt.id }))), retries: () => [],
       observe: (fence, evidence) => ({ fence, view: { evidence } }) },
     objects: { reservationInventory: () => ({ activeTransfers: 0, reservedBytes: '0' }) },
-    rasters: { diagnostics: () => ({ activeWorkers: 0 }) },
+    rasters: { readDiagnostics: () => diagnosticReads.read(8192, () => ({ activeWorkers: 0 })) },
     recovery: { highWater: () => high, latest: () => snapshot, maintain() { ++maintains; snapshot = { seq: high }; }, async settle(start) { if (start) this.maintain(); } },
     setHigh: value => { high = value; }, get maintains() { return maintains; },
   };
@@ -95,7 +101,7 @@ test('authenticated control stays scoped to owned submissions and serializes com
   try {
     const fastFiles = Array.from({ length: 4 }, (_, index) => ({ id: `wf-1024-jpeg-${index}`, role: 'fast-candidate', path: `image-${index}.jpg`, format: 'jpeg', width: 1024, height: 1024,
       index, byteLength: '1024', sha256: 'sha256:' + String(index).repeat(64) }));
-    await prepareQueueWorker(root, { queueFixtureCell: { operation: 'fast.workflow', parameters: { caseId: 'WF02' } },
+    await prepareQueueWorker(root, { output: root, queueFixtureCell: { operation: 'fast.workflow', parameters: { caseId: 'WF02' } },
       fixture: { root, seal: { sha256: 'sha256:' + 'a'.repeat(64) }, corpus: { files: fastFiles, fast: { validFamilies: FAST_QUEUE_FIXTURE_FAMILIES } } } });
     const config = await readPrivateJSON(join(root, QUEUE_CONFIG_FILE));
     const store = fakeStore(root), record = { active: 0, maxActive: 0, ticks: [], closed: 0 };
@@ -135,7 +141,20 @@ test('authenticated control stays scoped to owned submissions and serializes com
     await assert.rejects(controller.resetFixture(), /document deletion/);
     store.jobs.get('owned').disposition = 'deleted';
     await controller.resetFixture(); assert.deepEqual((await controller.snapshot()).routes, []);
-    assert.deepEqual((await controller.resources()).objects, { activeTransfers: 0, reservedBytes: '0' });
+    const resources = await controller.resources();
+    assert.deepEqual(resources.objects, { activeTransfers: 0, reservedBytes: '0' });
+    assert.equal(resources.raster.kind, 'retained-diagnostic-artifact-1');
+    assert(resources.raster.artifact.path.startsWith(join(root, 'diagnostic-evidence') + '/'));
+    const retained = await readFile(resources.raster.artifact.path);
+    assert.equal(retained.length, resources.raster.artifact.bytes);
+    assert.equal('sha256:' + createHash('sha256').update(retained).digest('hex'), resources.raster.artifact.sha256);
+    assert.deepEqual(JSON.parse(retained), { activeWorkers: 0 });
+    assert.deepEqual(Object.keys(resources.raster).sort(), ['artifact', 'kind'], 'Only the retained artifact crosses the diagnostic read lifetime');
+    assert.equal(store.diagnosticReads.pending, 0); assert.equal(store.diagnosticLedger.snapshot().cpuBytes, 0);
+    // A failure after the actual read is acquired must also return its owner.
+    store.objects.reservationInventory = () => { throw Error('fixture inventory failure'); };
+    await assert.rejects(controller.resources(), /fixture inventory failure/);
+    assert.equal(store.diagnosticReads.pending, 0); assert.equal(store.diagnosticLedger.snapshot().cpuBytes, 0);
     controller.close(); await assert.rejects(controller.resources(), /controller closed/);
   } finally { await close?.(); await rm(root, { recursive: true, force: true }); }
 });

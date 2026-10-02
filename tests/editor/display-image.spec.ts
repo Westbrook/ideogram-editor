@@ -1,7 +1,23 @@
-import {test,expect} from '@playwright/test';
+import {test as base,expect} from '@playwright/test';
+import {createServer,type ViteDevServer} from 'vite';
+import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {deflateSync} from 'node:zlib';
 import type {} from './display-image-app/main.js';
+
+const test=base.extend<{}, {fixtureOrigin:string}>({
+  fixtureOrigin:[async({},use,workerInfo)=>{
+    let server:ViteDevServer|undefined;
+    try{
+      server=await createServer({configFile:fileURLToPath(new URL('./display-image.vite.config.ts',import.meta.url)),cacheDir:resolve(workerInfo.project.outputDir,'vite-cache-'+workerInfo.workerIndex)});
+      await server.listen();
+      const address=server.httpServer?.address();
+      if(!address||typeof address==='string'||address.address!=='127.0.0.1'||!Number.isInteger(address.port)||address.port<=0||address.port>65535)throw new Error('Owned fixture server did not expose a bound loopback TCP port');
+      await use('http://127.0.0.1:'+address.port);
+    }finally{await server?.close();}
+  },{scope:'worker',timeout:30_000}],
+});
 
 const hash=(bytes:Uint8Array)=>'sha256:'+createHash('sha256').update(bytes).digest('hex');
 function crc32(bytes:Uint8Array){let value=0xffffffff;for(const byte of bytes){value^=byte;for(let bit=0;bit<8;bit++)value=(value>>>1)^((value&1)?0xedb88320:0);}return(value^0xffffffff)>>>0;}
@@ -12,15 +28,26 @@ function rgbaPNG(){
   return {bytes:[...bytes],hash:hash(bytes),identity:hash(pixels)};
 }
 
-test('real Lit disconnection restores native decoding and HTML/SVG aliases own independent RGBA allowances',async({page})=>{
+test('real Lit disconnection restores native decoding and HTML/SVG aliases own independent RGBA allowances',async({page,fixtureOrigin})=>{
   const pageErrors:string[]=[];page.on('pageerror',error=>pageErrors.push(error.message));
-  await page.goto('/');await page.waitForFunction(()=>!!window.displayImageFixture);
+  await page.goto(fixtureOrigin);await page.waitForFunction(()=>!!window.displayImageFixture);
   const baseline=await page.evaluate(()=>window.displayImageFixture.snapshot());
   expect(baseline.ownership).toMatchObject({activeReads:0,previewURLs:0,imageConsumers:0,cleanupFailures:0});
   const png=rgbaPNG(),prepared=await page.evaluate(input=>window.displayImageFixture.prepare(input),png);
   expect(prepared.ownership).toMatchObject({activeReads:0,previewURLs:1,imageConsumers:0,cleanupFailures:0});
   expect(prepared.requests).toHaveLength(1);expect(prepared.requests[0]).toContain('/api/v1/assets/fixture-rgba/display?');
-  expect(prepared.ledger.cpuBytes-baseline.ledger.cpuBytes).toBe(png.bytes.length);
+  // The live URL retains its encoded PNG plus a fixed8KiB logical allowance
+  // for the descriptor/source/URL/registry. Both retire only on actual revoke.
+  // Keep this independent oracle explicit rather than importing the producer.
+  const residentCPU=png.bytes.length+8*1024;
+  expect(prepared.ledger.cpuBytes-baseline.ledger.cpuBytes).toBe(residentCPU);
+  expect(prepared.ledger.blob).toEqual({...baseline.ledger.blob,
+    cpuBytes:baseline.ledger.blob.cpuBytes+residentCPU,
+    previewCacheBytes:baseline.ledger.blob.previewCacheBytes+png.bytes.length,
+    handles:baseline.ledger.blob.handles+2});
+  expect(prepared.ledger.previewCacheBytes-baseline.ledger.previewCacheBytes).toBe(png.bytes.length);
+  expect(prepared.ledger.handles-baseline.ledger.handles).toBe(2);
+  expect(prepared.ledger.activeRecords-baseline.ledger.activeRecords).toBe(1);
   expect(prepared.ledger.gpuBytes).toBe(baseline.ledger.gpuBytes);
   expect(prepared.ledger.bitmap).toEqual(baseline.ledger.bitmap);
   const mounted=await page.evaluate(()=>window.displayImageFixture.mount('html'));

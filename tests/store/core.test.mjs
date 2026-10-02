@@ -45,18 +45,16 @@ test('NewDocument and named checkpoint persist exact facts, history and receipt;
   const events = await first.call('events');
   assert.deepEqual(events.events.reduce(reduceDocument, null), document);
   assert.equal(events.highWater, '2');
-  const before = await first.call('diagnostics'); await first.assertNoEffects(); await first.close();
+  const before = await first.call('diagnosticScalar', 'projectionDigest'); await first.assertNoEffects(); await first.close();
   const second = await childFor(t, root);
   assert.deepEqual(await second.call('document', 'document_1'), document);
   assert.deepEqual(await second.call('events'), events);
   assert.deepEqual(await second.call('submit', encode(c)), receipt);
   assert.deepEqual(await second.call('submit', encode(save)), saved);
-  assert.equal((await second.call('diagnostics')).projectionDigest, before.projectionDigest);
-  const details = await second.call('diagnostics');
-  assert.equal(details.settings.journal_mode, 'wal'); assert.equal(details.settings.synchronous, 2);
-  assert.equal(details.settings.foreign_keys, 1); assert.equal(details.settings.busy_timeout, 250);
-  t.diagnostic(JSON.stringify({ runtime: details.node, sqlite: details.sqlite, settings: details.settings, filesystem: details.filesystem,
-    resources: details.resources, observations: details.observations, memory: details.processMemory }));
+  assert.equal(await second.call('diagnosticScalar', 'projectionDigest'), before);
+  assert.equal(await second.call('diagnosticScalar', 'settings.journal_mode'), 'wal'); assert.equal(await second.call('diagnosticScalar', 'settings.synchronous'), 2);
+  assert.equal(await second.call('diagnosticScalar', 'settings.foreign_keys'), 1); assert.equal(await second.call('diagnosticScalar', 'settings.busy_timeout'), 250);
+  t.diagnostic(await second.call('diagnosticJSON', 'core-log'));
   await second.assertNoEffects(); await second.close();
 });
 
@@ -153,8 +151,8 @@ test('missing or corrupt immutable bytes cannot become accepted references and r
   assert.deepEqual(await putExpected(writer), ref);
   await writer.call('submit', encode(command(ref))); const before = await writer.call('document', 'document_1'); await writer.close();
   await unlink(object);
-  const again = await childFor(t, root); const health = await again.call('diagnostics');
-  assert.equal(health.missingCount, 1); assert.equal(health.missing[0].code, 'MISSING_OBJECT');
+  const again = await childFor(t, root);
+  assert.equal(await again.call('diagnosticScalar', 'missingCount'), 1); assert.equal(await again.call('diagnosticScalar', 'missing.0.code'), 'MISSING_OBJECT');
   assert.deepEqual(await again.call('document', 'document_1'), before);
   await assert.rejects(again.call('submit', encode(checkpoint(ref, '1'))), { code: 'CORRUPT_STORE' });
   await again.assertNoEffects(); await again.close();
@@ -169,9 +167,10 @@ test('streamed objects verify actual lengths/hashes, deduplicate bytes, retain o
   await assert.rejects(writer.call('put', bytes, { ...ref, byteLength: String(bytes.length - 1) }), { code: 'MALFORMED_REQUEST' });
   await assert.rejects(writer.call('put', bytes, { ...ref, hash: `sha256:${'a'.repeat(64)}` }), { code: 'CORRUPT_OBJECT' });
   await assert.rejects(writer.call('put', Buffer.alloc(0), { ...ref, byteLength: '999999999999999999999' }), { code: 'CAPACITY' });
-  const info = await writer.call('diagnostics'); assert.equal(info.inventory.orphanCount, '1'); assert.equal(info.inventory.stagingCount, '2');
+  assert.equal(await writer.call('diagnosticScalar', 'inventory.orphanCount'), '1'); assert.equal(await writer.call('diagnosticScalar', 'inventory.stagingCount'), '2');
+  const inventory = await writer.call('diagnosticJSON', 'inventory');
   await writer.close(); const again = await childFor(t, root);
-  assert.deepEqual((await again.call('diagnostics')).inventory, info.inventory); await again.close();
+  assert.equal(await again.call('diagnosticJSON', 'inventory'), inventory); await again.close();
   const limited = await childFor(t, await rootFor(t), { quotaBytes: '67108865' });
   await assert.rejects(putExpected(limited), { code: 'CAPACITY' }); await limited.close();
 });
@@ -212,7 +211,7 @@ test('large event content is rejected without truncation; real snapshots preserv
   assert.equal((await writer.call('events')).highWater, '1');
   for (let revision = 1; revision < 500; revision++) assert.equal((await writer.call('submit', encode(checkpoint(ref, String(revision))))).status, 'accepted');
   const atLimit = await writer.call('submit', encode(checkpoint(ref, '500'))); assert.equal(atLimit.status, 'accepted');
-  const health = await writer.call('diagnostics'); assert.equal(health.observations.snapshot.latest,'500'); assert.equal(health.observations.snapshot.pressure,false);
+  assert.equal(await writer.call('diagnosticScalar', 'observations.snapshot.latest'),'500'); assert.equal(await writer.call('diagnosticScalar', 'observations.snapshot.pressure'),false);
   const view = await writer.call('events', '0', 500); assert.equal(view.events.length, 500); assert.equal(view.highWater, '501');
   assert.equal((await writer.call('document', 'document_1')).revision, '501');
   await writer.close(); const again = await childFor(t, root);

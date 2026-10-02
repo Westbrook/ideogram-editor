@@ -1,4 +1,5 @@
 import {serverPhases} from '../observability/phases.js';
+import {adapterResources} from '../observability/adapter-resources.js';
 import {randomUUID} from 'node:crypto';
 import {setImmediate as tick} from 'node:timers/promises';
 import type {DatabaseSync} from 'node:sqlite';
@@ -9,12 +10,14 @@ import type {Asset} from '../../src/protocol/assets.js';
 import type {Objects} from './objects.js';
 import type {Assets} from './assets.js';
 import type {Rasters} from './raster.js';
-import type {QueueStore} from './queue.js';
+import type {QueueStore,RuntimeWireRef} from './queue.js';
 import type {QueueJob} from '../../src/protocol/queue.js';
 import type {ProtectedBody,AppliedPrivacyPolicy} from '../provider/contracts.js';
 import {ProviderError} from '../provider/contracts.js';
 import type {ProviderBoundary} from '../provider/client.js';
-import {scanEnvelope,deriveProvenance} from '../provider/provenance.js';
+import {scanEnvelope,deriveProvenance,deriveUnavailableV45Provenance} from '../provider/provenance.js';
+import {adaptResponse,type ResponseDescriptor} from '../provider/response-adapter.js';
+import {reviewedResponseProfile} from '../provider/response-profile.js';
 import {r31Reservation} from '../provider/evidence.js';
 import {parseControlJSON} from '../../src/protocol/json.js';
 import {parseCaption,LIMITS} from '../../src/composition/core.js';
@@ -25,14 +28,18 @@ import {StoreError} from './errors.js';
 import {AssetRejection} from './assets.js';
 import {validateRequestSourceCapture,type RequestSourceCapture} from '../../src/protocol/request-edits.js';
 import {requireRequestMaskPlan,requestMaskDependencies} from '../../src/request/core.js';
+import {isV45Request} from '../../src/request/family.js';
 import {requireActualOutput,requireOutputMapping,requirePlanDependencies,requireRequestCoverage,inspectRequestCoverage,createActualOutputMapping,clipRequestCoverage,type RequestRasterPlan,type RequestOutputMapping} from '../../src/request/raster-plan.js';
 
-type Retained={jobId:string;attemptId:string;documentId:string;observation:ObservationState;requestedCount:number;actualCount:number|null;provenance:ResultProvenance|null};
-type PrivateSlot={url:string|null;expectedBytes:number|null;mime:string|null;width:number|null;height:number|null;mediaRecord:string|null;retryRequested:boolean};
+export type CandidateWireEvidence={kind:'candidate-wire-evidence-1';status:RuntimeWireRef|null;result:RuntimeWireRef|null;contradictions:RuntimeWireRef[];overflow:boolean};
+export type CandidateOutputWireEvidence={kind:'candidate-output-wire-1';result:RuntimeWireRef;index:number;image:Record<string,unknown>;safe:boolean};
+type Retained={jobId:string;attemptId:string;documentId:string;observation:ObservationState;requestedCount:number;actualCount:number|null;provenance:ResultProvenance|null;wireEvidence?:CandidateWireEvidence};
+type PrivateSlot={url:string|null;expectedBytes:number|null;mime:string|null;width:number|null;height:number|null;mediaRecord:string|null;mediaEvidence?:RuntimeWireRef;outputEvidence?:CandidateOutputWireEvidence;retryRequested:boolean};
 type AdoptionOptions={expectedVersion?:string;actualOutput?:{width:number;height:number;clipMask:boolean}|null};
 type AdoptionPreparation=Omit<CandidateAdoptionInputs,'kind'|'mode'>&{asset:Asset;proofs:{ref:BlobRef;token:string}[];frozen:CandidateAdoptionInputs;preparation:'deferred'|'prepared-reuse';check:()=>void};
 /** All mutations execute in the sole writer. Public views contain no transport address. */
 export class Candidates {
+ resourceOwnership(){return {transfers:this.transfers.size};}
  private closing=false;private transfers=new Map<string,{documentId:string;controller:AbortController}>();
  constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private rasters:Rasters,readonly queue:QueueStore,
   private check:()=>void,private register:(owner:string,ref:BlobRef,proof?:string)=>void){
@@ -58,6 +65,19 @@ export class Candidates {
    observation:{phase:'queued',nextPollAt:0,failures:0,mode:'healthy',digest:null,resultDigest:null,warning:null}};
  }
  private source(f:ResultFence,source:ProtectedBody){this.queue.assertResult(f);const actual=this.queue.evidence.inspect(source.recordId);if(actual.attemptId!==f.attemptId||actual.direction!=='response'||canonical(actual)!==canonical({...actual,...source}))throw new StoreError('STALE_EPOCH');return actual;}
+ private newWireEvidence():CandidateWireEvidence{return {kind:'candidate-wire-evidence-1',status:null,result:null,contradictions:[],overflow:false};}
+ private wireRef(f:ResultFence,source:ProtectedBody,role:'status'|'result'){
+  const url=this.queue.recovery(f.jobId,f.attemptId).outbox.urls?.[role];
+  return url?this.queue.runtimeWireRef(source.recordId,f.attemptId,'response',role,url):null;
+ }
+ private wireContradiction(r:Retained,source:ProtectedBody){
+  const meta=this.queue.evidence.inspect(source.recordId),ref={recordId:meta.recordId,bodyHash:'sha256:'+meta.sha256,metadataHash:hashBytes(canonical(meta))};
+  const wire=r.wireEvidence??this.newWireEvidence();
+  // This reference can describe a partial/malformed body. Its presence denies
+  // qualification; it is never interpreted as successful wire provenance.
+  if(!wire.contradictions.some(value=>canonical(value)===canonical(ref))){if(wire.contradictions.length<16)wire.contradictions.push(ref);else wire.overflow=true;}
+  r.wireEvidence=wire;
+ }
  private quarantine(attemptId:string){
   for(const row of this.db.prepare("SELECT json FROM candidates WHERE json_extract(json,'$.attemptId')=?").all(attemptId)){
    const c:Candidate=JSON.parse(String(row.json));c.safety='unknown';c.state='withheld';c.warning='Conflicting result evidence requires reconciliation.';c.version=String(BigInt(c.version)+1n);this.save('candidate',c.id,c);
@@ -69,14 +89,15 @@ export class Candidates {
   try{
   const meta=this.source(f,source);let value:any=null;try{if(meta.completeness==='complete'&&BigInt(meta.retainedBytes)<=65536n)value=parseControlJSON(Buffer.concat([...this.queue.evidence.read(meta.recordId)]));}catch{/* Protected original remains available for reconciliation. */}
   const result=this.queue.resultTransaction(f,job=>{
-   const r=this.retained(f),o=r.observation;
+   const r=this.retained(f),o=r.observation,previousPhase=o.phase;
    const phase=value?.request_id===f.requestId?value.status==='CANCELLED'?'cancelled':value.status==='IN_QUEUE'?'queued':value.status==='IN_PROGRESS'?'running':value.status==='COMPLETED'?(value.error||value.error_type?'failed':'completed'):null:null;
    const digest=hashBytes(canonical({requestId:value?.request_id??null,phase}));
    if(!phase||o.phase==='quarantined'||(['completed','failed','cancelled'].includes(o.phase)&&['completed','failed','cancelled'].includes(phase)&&phase!==o.phase)){
-    o.warning='Provider observations conflict or are malformed; reconciliation is required.';o.phase='quarantined';o.nextPollAt=0;this.quarantine(f.attemptId);
+    this.wireContradiction(r,source);o.warning='Provider observations conflict or are malformed; reconciliation is required.';o.phase='quarantined';o.nextPollAt=0;this.quarantine(f.attemptId);
    }else if(!(['completed','failed','cancelled'].includes(o.phase)&&!['completed','failed','cancelled'].includes(phase))&&!(o.phase==='running'&&phase==='queued')){
     if(o.phase!==phase&&['completed','failed','cancelled'].includes(phase))this.queue.resultTerminal(job,f.attemptId,phase as 'completed'|'failed'|'cancelled');
     o.phase=phase;o.digest=digest;o.failures=0;o.mode='healthy';o.nextPollAt=['completed','failed','cancelled'].includes(phase)?0:now+(background?15000:2000);
+    if(phase==='completed'&&previousPhase!=='completed'&&!r.observation.resultDigest){const ref=this.wireRef(f,source,'status');if(ref){const wire=r.wireEvidence??this.newWireEvidence();if(!wire.status)wire.status=ref;r.wireEvidence=wire;}}
    }
    if(!['completed','failed','cancelled','quarantined'].includes(o.phase)){o.nextPollAt=now+(background?15000:2000);o.failures=0;o.mode='healthy';}
    this.save('job',f.attemptId,r);return {view:this.view(job.id,f.attemptId),fence:this.queue.resultFence(job.id,f.attemptId)};
@@ -104,9 +125,13 @@ export class Candidates {
   const stage=this.objects.begin(meta.retainedBytes,mediaType,'sha256:'+meta.sha256);
   try{for(const bytes of this.queue.evidence.read(body.recordId))this.objects.chunk(stage,bytes);return this.objects.finish(stage);}catch(e){this.objects.abort(stage);throw e;}
  }
- receive(f:ResultFence,source:ProtectedBody,policy:AppliedPrivacyPolicy,secrets:readonly string[]){
+ responseProfile(f:ResultFence):ResponseDescriptor{return reviewedResponseProfile(this.queue.assertResult(f).review);}
+ receive(f:ResultFence,source:ProtectedBody,policy:AppliedPrivacyPolicy,secrets:readonly string[],expectedProfile?:ResponseDescriptor){
+  const responseProfile=this.responseProfile(f);
+  if(expectedProfile&&canonical(expectedProfile)!==canonical(responseProfile))throw new StoreError('STALE_EPOCH');
+  if(responseProfile.profile==='ideogram-v45-result-1')return this.receiveV45(f,source,policy,responseProfile);
   const meta=this.source(f,source);const old=this.retained(f);
-  if(old.observation.resultDigest){if(old.observation.resultDigest!==source.sha256)this.queue.resultTransaction(f,()=>{old.observation.phase='quarantined';old.observation.warning='Contradictory completed result retained for reconciliation.';this.quarantine(f.attemptId);this.save('job',f.attemptId,old);});return this.view(f.jobId,f.attemptId);}
+  if(old.observation.resultDigest){if(old.observation.resultDigest!==source.sha256)this.queue.resultTransaction(f,()=>{this.wireContradiction(old,source);old.observation.phase='quarantined';old.observation.warning='Contradictory completed result retained for reconciliation.';this.quarantine(f.attemptId);this.save('job',f.attemptId,old);});return this.view(f.jobId,f.attemptId);}
   let envelope:ReturnType<typeof scanEnvelope>|null=null;try{if(meta.completeness==='complete')envelope=scanEnvelope(this.queue.evidence.read(source.recordId),()=>{});}catch{/* No guessed image ownership after malformed envelope. */}
   const derived=deriveProvenance({store:this.queue.evidence,source,promptSink:this.queue.sink(f.attemptId,'response',policy),endpoint:this.queue.recovery(f.jobId,f.attemptId).endpoint,requestId:f.requestId,status:'completed',policy,knownTransportSecrets:secrets});
   const valid=!!envelope?.imagesArray&&envelope.seed!==null&&envelope.timingsObject&&envelope.timingsValid;
@@ -115,12 +140,18 @@ export class Candidates {
   if(returned&&BigInt(returned.byteLength)<=BigInt(LIMITS.bytes)){this.objects.verify(returned);const raw=this.objects.readRange(returned,'0',Number(returned.byteLength));if(parseCaption(raw).state==='supported')inspection='supported';}
   const policyRef=this.objects.putMetadata(Buffer.from(canonical({...policy,evidenceDigest:policy.evidenceDigest.startsWith('sha256:')?policy.evidenceDigest:'sha256:'+policy.evidenceDigest})));
   return this.queue.resultTransaction(f,job=>{
-   const r=this.retained(f),e=envelope;
+   const r=this.retained(f),e=envelope;let resultWire:RuntimeWireRef|null=null;
+   if(valid){const ref=this.wireRef(f,source,'result');if(ref){const wire=r.wireEvidence??this.newWireEvidence();if(!wire.result){wire.result=ref;resultWire=ref;}r.wireEvidence=wire;}}
+   else this.wireContradiction(r,source);
+   // A result cannot overturn a provider terminal failure/cancellation. Local
+   // cancel intent is a separate job disposition and still permits late success.
+   if(['failed','cancelled'].includes(r.observation.phase))this.wireContradiction(r,source);
+   const reconciled=!['quarantined','failed','cancelled'].includes(r.observation.phase)&&!r.wireEvidence?.contradictions.length&&!r.wireEvidence?.overflow;
    r.observation.resultDigest=source.sha256;r.actualCount=e?.imagesArray?e.images.length:null;
-   r.observation.phase=valid?'completed':'quarantined';r.observation.warning=valid?null:'Malformed completion; result remains quarantined.';
+   r.observation.phase=valid&&reconciled?'completed':'quarantined';r.observation.warning=valid?(reconciled?null:'Conflicting result evidence remains quarantined; reconciliation is required.'):'Malformed completion; result remains quarantined.';
    r.provenance={requestedPrompt:job.review.prompt,submittedPrompt:job.review.prompt,returnedPrompt:returned,returnedBytes:derived.prompt.receivedBytes,complete:derived.record.derivation.complete,quarantined:derived.quarantined,inspection,warning:derived.warning,requestedSeed:job.review.request.settings.seed.kind==='integer'?job.review.request.settings.seed.decimal:null,returnedSeed:e?.seed??null,timings:e?.timings??{},timingUnits:'unknown',sourceBodyHash:'sha256:'+source.sha256,privacyPolicy:policyRef};
    const rooted=new Set<string>();for(const ref of [job.review.prompt,policyRef,...(returned?[returned]:[])])if(!rooted.has(ref.hash)){this.register('candidate-provenance:'+f.attemptId,ref);rooted.add(ref.hash);}
-   const count=Math.max(r.requestedCount,r.actualCount??0),aligned=valid&&e!.safetyArray&&e!.safety.length===e!.images.length&&e!.safety.every(v=>typeof v==='boolean');
+   const count=Math.max(r.requestedCount,r.actualCount??0),aligned=valid&&reconciled&&e!.safetyArray&&e!.safety.length===e!.images.length&&e!.safety.every(v=>typeof v==='boolean');
    for(let i=0;i<count;i++){
     const image=e?.images[i],present=!!image&&typeof image.url==='string';
     const safety=aligned?e!.safety[i]===false?'safe':e!.safety[i]===true?'withheld':'unknown':'unknown';
@@ -129,21 +160,55 @@ export class Candidates {
     this.save('candidate',id,candidate);
     const numeric=(k:string)=>image?.[k]===undefined||image?.[k]===null?null:typeof image[k]==='number'&&Number.isSafeInteger(image[k])&&Number(image[k])>=0?Number(image[k]):-1;
     const privateSlot:PrivateSlot={url:present?String(image!.url):null,expectedBytes:numeric('file_size'),mime:image?.content_type===undefined||image.content_type===null?null:typeof image.content_type==='string'?image.content_type:'invalid',width:numeric('width'),height:numeric('height'),mediaRecord:null,retryRequested:false};
+    // Retain only the scanner's bounded output header, joined to the first
+    // actual result proof. No prompt rescan or legacy backfill is required by
+    // runtime eligibility reads. Unexpected output counts remain retained but
+    // cannot mint this bounded 1–4-output witness.
+    if(resultWire&&present&&e!.images.length>=1&&e!.images.length<=4&&i<e!.images.length)privateSlot.outputEvidence={kind:'candidate-output-wire-1',result:resultWire,index:i,image:structuredClone(image!),safe:aligned&&e!.safety[i]===false};
     this.db.prepare('INSERT INTO candidate_private VALUES (?,?)').run(id,canonical(privateSlot));
    }
    this.save('job',f.attemptId,r);return this.view(job.id,f.attemptId);
   });
  }
+ /** Separate versioned path: legacy receive and its serialized objects stay unchanged. */
+ private receiveV45(f:ResultFence,source:ProtectedBody,policy:AppliedPrivacyPolicy,responseProfile:ResponseDescriptor){
+  const meta=this.source(f,source),old=this.retained(f);
+  if(old.observation.resultDigest){if(old.observation.resultDigest!==source.sha256)this.queue.resultTransaction(f,()=>{old.observation.phase='quarantined';old.observation.warning='Contradictory completed result retained for reconciliation.';this.quarantine(f.attemptId);this.save('job',f.attemptId,old);});return this.view(f.jobId,f.attemptId);}
+  let envelope:ReturnType<typeof scanEnvelope>|null=null;
+  try{if(meta.completeness==='complete')envelope=scanEnvelope(this.queue.evidence.read(source.recordId),()=>{},{profile:'ideogram-v45-result-1'});}catch{/* No guessed output ownership after malformed envelope. */}
+  const job=this.queue.assertResult(f),adapted=adaptResponse(responseProfile,{requestedCount:job.review.request.settings.count,sourceComplete:meta.completeness==='complete',envelope});
+  const policyRef=this.objects.putMetadata(Buffer.from(canonical({...policy,evidenceDigest:policy.evidenceDigest.startsWith('sha256:')?policy.evidenceDigest:'sha256:'+policy.evidenceDigest})));
+  const provenance=deriveUnavailableV45Provenance({store:this.queue.evidence,source,adapted,requestedPrompt:job.review.prompt,submittedPrompt:job.review.prompt,requestedSeed:job.review.request.settings.seed.kind==='integer'?job.review.request.settings.seed.decimal:null,privacyPolicy:policyRef});
+  return this.queue.resultTransaction(f,current=>{
+   const r=this.retained(f);
+   if(['failed','cancelled'].includes(r.observation.phase))this.wireContradiction(r,source);
+   const reconciled=!['quarantined','failed','cancelled'].includes(r.observation.phase)&&!r.wireEvidence?.contradictions.length&&!r.wireEvidence?.overflow;
+   r.observation.resultDigest=source.sha256;r.actualCount=adapted.actualCount;r.observation.phase=reconciled?adapted.observationPhase:'quarantined';
+   r.observation.warning=adapted.envelope.schemaValid?(reconciled?'Provider safety metadata is unavailable; image bytes remain protected and cannot be displayed, decoded, adopted or exported.':'Conflicting result evidence remains quarantined; reconciliation is required.'):'Malformed completion; result remains quarantined.';
+   r.provenance=provenance;
+   const rooted=new Set<string>();for(const ref of [current.review.prompt,policyRef])if(!rooted.has(ref.hash)){this.register('candidate-provenance:'+f.attemptId,ref);rooted.add(ref.hash);}
+   for(const output of adapted.outputs){
+    const i=output.index,image=envelope?.images[i],identity=hashBytes(canonical([f.requestId,i,image??null])),id='c_'+hashBytes(canonical([f.attemptId,i,identity])).slice(7);
+    const candidate:Candidate={id,version:'1',documentId:current.documentId,jobId:current.id,attemptId:f.attemptId,requestId:f.requestId,outputIndex:i,outputIdentity:identity,safety:'unknown',state:output.present?'withheld':'missing',hidden:false,encodedAssetId:null,preparedAssetId:null,warning:output.present?'Provider safety metadata is unavailable; protected original retention does not permit image publication.':'Requested output is missing.'};
+    this.save('candidate',id,candidate);
+    const numeric=(k:string)=>image?.[k]===undefined||image?.[k]===null?null:typeof image[k]==='number'&&Number.isSafeInteger(image[k])&&Number(image[k])>=0?Number(image[k]):-1;
+    const privateSlot:PrivateSlot={url:output.present?String(image!.url):null,expectedBytes:numeric('file_size'),mime:image?.content_type===undefined||image.content_type===null?null:typeof image.content_type==='string'?image.content_type:'invalid',width:null,height:null,mediaRecord:null,retryRequested:false};
+    this.db.prepare('INSERT INTO candidate_private VALUES (?,?)').run(id,canonical(privateSlot));
+   }
+   this.save('job',f.attemptId,r);return this.view(current.id,f.attemptId);
+  });
+ }
  private candidate(id:string):Candidate{if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT json FROM candidates WHERE id=?').get(id);if(!row)throw new StoreError('NOT_FOUND');return JSON.parse(String(row.json));}
  private update(f:ResultFence,id:string,patch:Partial<Candidate>){return this.queue.resultTransaction(f,()=>{const c=this.candidate(id);if(c.attemptId!==f.attemptId)throw new StoreError('STALE_EPOCH');Object.assign(c,patch,{version:String(BigInt(c.version)+1n)});this.save('candidate',id,c);return c;});}
  async transfer(f:ResultFence,id:string,provider:ProviderBoundary,policy:AppliedPrivacyPolicy,signal?:AbortSignal){
-  this.queue.assertResult(f);const initial=this.candidate(id),controller=new AbortController(),abort=()=>controller.abort();signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();this.transfers.set(id,{documentId:initial.documentId,controller});
+  this.queue.assertResult(f);const initial=this.candidate(id),controller=new AbortController(),abort=()=>controller.abort();signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();const releaseCoverage=adapterResources.uncovered('candidate-transfer');this.transfers.set(id,{documentId:initial.documentId,controller});
   try{return await this.transferOwned(f,id,provider,policy,controller.signal);}catch(error){
    if(this.queue.deleted(initial.documentId))return;
    if(error instanceof ProviderError){
     const current=this.queue.resultFence(f.jobId,f.attemptId),candidate=this.candidate(id);
     if(current.epoch!==f.epoch||current.requestId!==f.requestId)throw error;
-    if(candidate.safety==='safe'&&['received','downloaded','transfer-failed','preparation-failed'].includes(candidate.state))this.update(current,id,{state:candidate.encodedAssetId?'preparation-failed':'transfer-failed',warning:current.jobVersion!==f.jobVersion?'Request controls changed during import. Retry keeps this output and never submits a replacement request.':'Image transfer was refused or interrupted. Retry retrieves this same output without generating a replacement.'});
+    if(this.responseProfile(current).profile==='ideogram-v45-result-1')this.update(current,id,{state:'withheld',warning:'Protected original transfer was refused or interrupted. Safety remains unknown; no image publication or ordinary import retry is available.'});
+    else if(candidate.safety==='safe'&&['received','downloaded','transfer-failed','preparation-failed'].includes(candidate.state))this.update(current,id,{state:candidate.encodedAssetId?'preparation-failed':'transfer-failed',warning:current.jobVersion!==f.jobVersion?'Request controls changed during import. Retry keeps this output and never submits a replacement request.':'Image transfer was refused or interrupted. Retry retrieves this same output without generating a replacement.'});
     return;
    }
    if(!(error instanceof StoreError)||error.code!=='STALE_EPOCH')throw error;
@@ -153,18 +218,24 @@ export class Candidates {
    // The old fence remains invalid; only an explicit retry may retrieve or prepare this same output.
    if(!['received','downloaded'].includes(candidate.state))throw error;
    this.update(current,id,{state:candidate.encodedAssetId?'preparation-failed':'transfer-failed',warning:'Request controls changed during import. Retry keeps this output and never submits a replacement request.'});
-  }finally{signal?.removeEventListener('abort',abort);this.transfers.delete(id);}
+  }finally{signal?.removeEventListener('abort',abort);this.transfers.delete(id);releaseCoverage();}
  }
  abortDocument(documentId:string){for(const work of this.transfers.values())if(work.documentId===documentId)work.controller.abort();}
  private async transferOwned(f:ResultFence,id:string,provider:ProviderBoundary,policy:AppliedPrivacyPolicy,signal:AbortSignal){
-  const c=this.candidate(id);this.queue.assertResult(f);if(c.attemptId!==f.attemptId||c.state==='prepared'||c.state==='missing')return;
+  const c=this.candidate(id);this.queue.assertResult(f);const v45=this.responseProfile(f).profile==='ideogram-v45-result-1';
+  if(v45&&(c.safety!=='unknown'||c.preparedAssetId!==null))throw new StoreError('CONTENT_WITHHELD');
+  if(c.attemptId!==f.attemptId||c.state==='prepared'||c.state==='missing')return;
   const raw=this.db.prepare('SELECT json FROM candidate_private WHERE id=?').get(id);if(!raw)throw new StoreError('NOT_FOUND');const p:PrivateSlot=JSON.parse(String(raw.json));if(!p.url)return;
   if(!c.encodedAssetId){
    const sink=this.queue.evidence.begin(f.attemptId,'response',r31Reservation(this.objects,'candidate-fetch:'+id,'provider-media',()=>this.queue.assertResult(f)),policy);
    const fetchPhase=serverPhases.start('result.fetch',{documentId:c.documentId,jobId:f.jobId,attemptId:f.attemptId,providerRequestId:f.requestId,candidateId:id});
    let receipt;try{receipt=await provider.media(p.url,sink,{signal,...(p.expectedBytes!==null&&p.expectedBytes>=0?{expectedBytes:BigInt(p.expectedBytes)}:{})});fetchPhase.end(receipt.outcome==='complete'&&receipt.status===200?'ok':'error',{boundary:'observed'});}catch(error){fetchPhase.end(signal.aborted?'cancelled':'error');throw error;}
-   this.queue.assertResult(f);p.mediaRecord=receipt.evidence.recordId;this.db.prepare('UPDATE candidate_private SET json=? WHERE id=?').run(canonical(p),id);
-   if(receipt.outcome!=='complete'||receipt.status!==200){this.update(f,id,{state:'transfer-failed',warning:'Image transfer failed. Retry retrieves the same output without generating a replacement.'});return;}
+   this.queue.resultTransaction(f,()=>{
+    p.mediaRecord=receipt.evidence.recordId;
+    if(receipt.outcome==='complete'&&receipt.status===200){const wire=this.queue.runtimeWireRef(receipt.evidence.recordId,f.attemptId,'response','media',p.url!);if(wire)p.mediaEvidence=wire;}
+    this.db.prepare('UPDATE candidate_private SET json=? WHERE id=?').run(canonical(p),id);
+   });
+   if(receipt.outcome!=='complete'||receipt.status!==200){this.update(f,id,v45?{state:'withheld',warning:'Protected original transfer failed. Safety remains unknown; no image is available for display, adoption or export.'}:{state:'transfer-failed',warning:'Image transfer failed. Retry retrieves the same output without generating a replacement.'});return;}
    const headers=this.queue.evidence.inspect(receipt.evidence.recordId).headers,mime=headers['content-type'];
    const allowed=['image/png','image/jpeg','image/webp'];const measured=allowed.includes(mime??'')?mime!:'application/octet-stream';
    const storePhase=serverPhases.start('result.store',{documentId:c.documentId,jobId:f.jobId,attemptId:f.attemptId,providerRequestId:f.requestId,candidateId:id});
@@ -176,7 +247,7 @@ export class Candidates {
    if(bad)return;
    }catch(error){storePhase.end('error');throw error;}
   }
-  if(c.safety!=='safe')return;
+  if(v45||c.safety!=='safe')return;
   const slot='candidate-prepare:'+id;this.objects.acquire(slot);
   let prepared:Awaited<ReturnType<Rasters['prepareDocument']>>|undefined;
   const preparePhase=serverPhases.start('result.prepare',{documentId:c.documentId,jobId:f.jobId,attemptId:f.attemptId,providerRequestId:f.requestId,candidateId:id,assetId:c.encodedAssetId??undefined});
@@ -185,7 +256,7 @@ export class Candidates {
    prepared=await this.rasters.prepareDocument({type:'PrepareCandidate',assetId:c.encodedAssetId!},randomUUID(),slot,()=>{this.queue.assertResult(f);if(this.closing)throw new StoreError('CLOSED');if(signal.aborted)throw new ProviderError('ABORTED');},undefined,c.documentId);
    const info=prepared.asset.raster!,conversion=info.conversion!;
    const metadataMismatch=p.width!==null&&p.width!==conversion.encodedWidth||p.height!==null&&p.height!==conversion.encodedHeight;
-   const request=this.queue.assertResult(f).review.request,expected='mask' in request&&request.mask.requestPlan?request.mask.requestPlan.expectedOutput:request.size.kind==='custom'?request.size:request.size.kind==='auto'&&'source' in request?request.source:null;
+   const request=this.queue.assertResult(f).review.request,expected=isV45Request(request)?request.modelRequest.requested:'mask' in request&&request.mask.requestPlan?request.mask.requestPlan.expectedOutput:request.size.kind==='custom'?request.size:request.size.kind==='auto'&&'source' in request?request.source:null;
    const outputMismatch=!!expected&&(info.width!==expected.width||info.height!==expected.height);
    this.queue.resultTransaction(f,()=>{const rooted=new Set<string>();for(const proof of prepared!.proofs){this.objects.proven(proof.ref,proof.token);if(!rooted.has(proof.ref.hash)){this.register('candidate-prepared:'+prepared!.asset.id,proof.ref,proof.token);rooted.add(proof.ref.hash);}}this.save('asset',prepared!.asset.id,prepared!.asset);});
    verifyPhase.end('ok',{outputAssetId:prepared.asset.id,assetHash:prepared.asset.blob.hash,width:info.width,height:info.height,boundary:'prepared-durable'});
@@ -237,6 +308,34 @@ export class Candidates {
  async reviewAdoption(candidateId:string,mode:'safe-region'|'full-candidate',id:string,slot:string,check:()=>void,options:AdoptionOptions={}):Promise<AdoptionPreparation>{
   const input=await this.reviewAdoptionOwned(candidateId,mode,id,slot,check,options);
   try{if(mode==='safe-region')input.preparation=await this.retainedPreservation(input)?'prepared-reuse':'deferred';return input;}catch(error){for(const proof of input.proofs)this.objects.releaseProof(proof.token);throw error;}
+ }
+ /** Explicit review prepares immutable encoded transports. No Q is consulted or
+  * produced here. Raw inputs remain retained for history and ordinary use. */
+ async reviewEncodedAdoption(candidateId:string,mode:'safe-region'|'full-candidate',id:string,slot:string,check:()=>void,options:AdoptionOptions={}):Promise<AdoptionPreparation>{
+  if(mode!=='safe-region')throw new AssetRejection('INCOMPATIBLE','ENCODED_REBUILD_SAFE_REGION_REQUIRED');
+  const input=await this.reviewAdoptionOwned(candidateId,mode,id,slot,check,options);
+  try{
+   input.check();const candidate=this.candidate(candidateId),job=this.queue.assertResult({jobId:input.identity.jobId,attemptId:input.identity.attemptId,requestId:input.identity.requestId,jobVersion:input.identity.jobVersion,epoch:input.identity.writerEpoch}),request=job.review.request;
+   if(!('mask' in request)||!input.plan||!candidate.encodedAssetId)throw new AssetRejection('INCOMPATIBLE','ENCODED_REBUILD_INPUT_REQUIRED');
+   const original=this.assets.asset(candidate.encodedAssetId);if(!original||original.availability!=='available'||canonical(input.asset.raster!.sourceAssetIds)!==canonical([original.id]))throw new AssetRejection('INCOMPATIBLE','ENCODED_REBUILD_INPUT_REQUIRED');
+   const retained=await this.rasters.retainEncodedAdoption(this.adoptionAsset(request.source.assetId),input.asset,original,this.assets.asset(request.mask.assetId)!,input.plan,input.outputMapping,slot,input.check,input.identity.documentId);
+   input.proofs.push(...retained.proofs);input.check();return {...input,preparation:'deferred',frozen:{...input.frozen,encodedRebuild:retained.encoded}};
+  }catch(error){for(const proof of input.proofs)this.objects.releaseProof(proof.token);throw error;}
+ }
+ /** Rebuild acceptance does not invoke reviewAdoptionOwned: coverage review,
+  * clipping and exact R16 transports were frozen before acceptance. It cannot
+  * read a retained canonical input path or discover a previously prepared Q. */
+ async prepareReviewedEncodedAdoption(frozen:CandidateAdoptionInputs,id:string,slot:string,check:()=>void):Promise<AdoptionPreparation>{
+  if(frozen.kind!=='candidate-adoption-inputs-1'||frozen.mode!=='safe-region'||!frozen.encodedRebuild||!frozen.plan||!frozen.sourceCapture)throw new AssetRejection('STALE_REVISION','CANDIDATE_REVIEW_CHANGED');
+  const guard=()=>{check();this.checkAdoption(frozen.identity);};guard();
+  const identity=frozen.identity,candidate=this.candidate(identity.candidateId),request=this.queue.assertResult({jobId:identity.jobId,attemptId:identity.attemptId,requestId:identity.requestId,jobVersion:identity.jobVersion,epoch:identity.writerEpoch}).review.request,encoded=frozen.encodedRebuild;
+  if(!('mask' in request)||encoded.source.assetId!==request.source.assetId||encoded.candidate.assetId!==identity.preparedAssetId||encoded.candidate.encodedAssetId!==candidate.encodedAssetId||encoded.mask.assetId!==request.mask.assetId)throw new AssetRejection('STALE_REVISION','CANDIDATE_REVIEW_CHANGED');
+  const phase=serverPhases.start('result.preserve',{candidateId:identity.candidateId,previewId:id});let prepared:Awaited<ReturnType<Rasters['prepareEncodedPreservation']>>|undefined;
+  try{
+   prepared=await this.rasters.prepareEncodedPreservation(encoded,frozen.plan,frozen.outputMapping,id,slot,guard,identity.documentId);guard();
+   phase.end('incomplete',{documentId:identity.documentId,jobId:identity.jobId,attemptId:identity.attemptId,providerRequestId:identity.requestId,outputAssetId:prepared.asset.id,width:prepared.asset.raster!.width,height:prepared.asset.raster!.height,boundary:'observed'});
+   return {asset:prepared.asset,proofs:prepared.proofs,identity,plan:frozen.plan,sourceCapture:frozen.sourceCapture,outputMapping:frozen.outputMapping,coverage:frozen.coverage,frozen,preparation:'deferred',check:guard};
+  }catch(error){for(const proof of prepared?.proofs??[])this.objects.releaseProof(proof.token);phase.end('error');throw error;}
  }
  /** Explicit acceptance reuses the exact approved mapping and final R16 object. */
  async prepareReviewedAdoption(frozen:CandidateAdoptionInputs,id:string,slot:string,check:()=>void):Promise<AdoptionPreparation>{
@@ -378,9 +477,9 @@ export class Candidates {
  }
  retries(eligible?:(jobId:string,attemptId:string)=>boolean){this.check();const result:Candidate[]=[];for(const row of this.db.prepare("SELECT c.json FROM candidates c JOIN candidate_private p ON c.id=p.id WHERE json_extract(p.json,'$.retryRequested')=1 ORDER BY c.id").iterate()){const candidate=JSON.parse(String(row.json)) as Candidate;if(eligible&&!eligible(candidate.jobId,candidate.attemptId))continue;result.push(candidate);if(result.length===20)break;}return result;}
  clearRetry(id:string){const c=this.candidate(id),f=this.queue.resultFence(c.jobId,c.attemptId);return this.queue.resultTransaction(f,()=>{const r=this.db.prepare('SELECT json FROM candidate_private WHERE id=?').get(id)!;const p:PrivateSlot=JSON.parse(String(r.json));p.retryRequested=false;this.db.prepare('UPDATE candidate_private SET json=? WHERE id=?').run(canonical(p),id);});}
- prompt(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned',offset:string){
+ prompt(jobId:string,attemptId:string,kind:'requested'|'submitted'|'returned'|'text-treatment',offset:string){
   const view=this.view(jobId,attemptId),p=view.provenance;if(p?.quarantined)throw new StoreError('CONTENT_WITHHELD');
-  const ref=kind==='requested'?(p?.requestedPrompt??view.request.prompt):kind==='submitted'?(p?.submittedPrompt??view.request.prompt):p?.returnedPrompt;if(!ref)throw new StoreError('NOT_FOUND');
+  const ref=kind==='text-treatment'?view.request.textTreatment?.plan:kind==='requested'?(p?.requestedPrompt??view.request.prompt):kind==='submitted'?(p?.submittedPrompt??view.request.prompt):p?.returnedPrompt;if(!ref)throw new StoreError('NOT_FOUND');
   if(!/^(0|[1-9][0-9]*)$/.test(offset)||BigInt(offset)>BigInt(ref.byteLength))throw new StoreError('MALFORMED_REQUEST');
   this.objects.verify(ref);const start=Number(offset);let bytes=this.objects.readRange(ref,offset,Math.min(32768,Number(ref.byteLength)-start));
   for(let trim=0;;trim++){try{new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);break;}catch{if(trim===3||start+bytes.length===Number(ref.byteLength))throw new StoreError('CORRUPT_OBJECT');bytes=bytes.subarray(0,bytes.length-1);}}
@@ -401,7 +500,7 @@ export class Candidates {
   }
   this.documentOwner(r.documentId);return {protocolVersion:1,jobId,documentId:r.documentId,request:this.request(jobId),observation:r.observation,requestedCount:r.requestedCount,actualCount:r.actualCount,...this.page(r.attemptId,after,false),provenance:r.provenance,inert:false};
  }
- private request(jobId:string){const r=(JSON.parse(String(this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(jobId)!.json)) as QueueJob).review,request=r.request;return {endpoint:r.endpoint,prompt:r.prompt,seed:request.settings.seed.kind==='integer'?request.settings.seed.decimal:null,...('mask' in request&&request.mask.requestPlan?{raster:{source:request.source,mask:request.mask,plan:request.mask.requestPlan}}:{})};}
+ private request(jobId:string){const r=(JSON.parse(String(this.db.prepare('SELECT json FROM queue_jobs WHERE id=?').get(jobId)!.json)) as QueueJob).review,request=r.request;return {...(r.kind==='request-review-text-1'?{textTreatment:r.textTreatment}:{}),endpoint:r.endpoint,prompt:r.prompt,seed:request.settings.seed.kind==='integer'?request.settings.seed.decimal:null,...('mask' in request&&request.mask.requestPlan?{raster:{source:request.source,mask:request.mask,plan:request.mask.requestPlan}}:{})};}
  private documentOwner(id:string){if(!this.db.prepare('SELECT 1 FROM documents WHERE id=?').get(id)||this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(id))throw new StoreError('NOT_FOUND');}
  private page(attemptId:string,after:string,inert:boolean){
   const rows=inert?this.db.prepare("SELECT id,json FROM portable_rows WHERE kind='candidate-result' AND json_extract(json,'$.attemptId')=? AND id>? ORDER BY id LIMIT 33").all(attemptId,after):this.db.prepare("SELECT id,json FROM candidates WHERE json_extract(json,'$.attemptId')=? AND id>? ORDER BY id LIMIT 33").all(attemptId,after);

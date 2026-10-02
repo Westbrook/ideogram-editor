@@ -8,6 +8,5 @@ export default defineConfig({
   expect:{timeout:10_000},outputDir:resolve(output,'results'),
   reporter:[['list'],['json',{outputFile:resolve(output,'results.json')}]],
   projects:[{name:'chromium',use:{browserName:'chromium'}},{name:'firefox',use:{browserName:'firefox'}},{name:'webkit',use:{browserName:'webkit'}}],
-  use:{baseURL:'http://127.0.0.1:4193',viewport:{width:640,height:480},trace:'retain-on-failure',screenshot:'only-on-failure'},
-  webServer:{command:'node node_modules/vite/bin/vite.js --config tests/editor/display-image.vite.config.ts',cwd:root,url:'http://127.0.0.1:4193',reuseExistingServer:false,timeout:30_000},
+  use:{viewport:{width:640,height:480},trace:'retain-on-failure',screenshot:'only-on-failure'},
 });

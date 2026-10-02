@@ -5,6 +5,8 @@ import {canonical} from '../../dist/local/src/protocol/json.js';
 import {emptyComposition} from '../../dist/local/src/composition/core.js';
 import {retainedMetadataReferences,validateRetainedRequestMetadata,remapRasterRetention,retainedRasterMetadata,validateRetainedRasterMetadata} from '../../dist/local/server/portable/retained.js';
 import {createIdentityRequestPlan} from '../../dist/local/src/request/raster-plan.js';
+import {validateComparisonClosure} from '../../dist/local/server/portable/comparison.js';
+import {CURRENT_RASTER_PROFILE} from '../../dist/local/server/raster/profile-registry.js';
 import {rasterManifest,asset as validateAsset} from '../../dist/local/src/protocol/validate.js';
 
 const hash=value=>'sha256:'+createHash('sha256').update(value).digest('hex');
@@ -169,4 +171,43 @@ test('retained metadata accepts absent optional captures and historical authored
  const f=retainedRequest();delete f.value.source.capture;
  const legacy=structuredClone(f.maskManifest);legacy.plan={kind:'authored-mask-v1',authoring:legacy.plan.authoring,hard:legacy.plan.hard,effective:legacy.plan.effective,statistics:legacy.plan.statistics};legacy.dependencies=[f.hard,f.effective];f.value.mask.plan=f.json(legacy);
  await validateRetainedRequestMetadata(f.value,f.read,true);await validateRetainedRequestMetadata({source:null,mask:null},()=>assert.fail('no optional metadata'),true);
+});
+
+function comparisonFixture(){
+ const f=retainedRasterFixture(),native=f.make('original_encoded');native.pipeline=CURRENT_RASTER_PROFILE.pipeline;native.plan.codec=CURRENT_RASTER_PROFILE.rasterCodecId;
+ const manifest=f.g.json(native),source={...f.asset,id:'source_a',dependencies:[manifest,native.pixels],raster:{...f.asset.raster,pipeline:native.pipeline,manifest,pixelIdentity:hash(canonical({pipeline:native.pipeline,width:1,height:1,tiles:native.tiles}))}};
+ const sources=new Map([[source.id,source],['source_b',{...source,id:'source_b'}]]),layers=[{assetId:'source_a',transform:identity,opacity:1,mask:null},{assetId:'source_b',transform:identity,opacity:0.5,mask:null}];
+ const comparison={...native,dependencies:[manifest,manifest],plan:{kind:'candidate-lettering-comparison-v1',sourceWidth:1,sourceHeight:1,layers,comparison:'native-on',kernel:'triangle-area-source-axis-row-norm-v1',edge:'transparent-zero-no-renormalization',preservation:'not-applied'}};
+ const comparisonRef=f.g.json(comparison),owner={...source,id:'comparison',dependencies:[comparisonRef,comparison.pixels],qualification:'canonical-png',raster:{...source.raster,manifest:comparisonRef,role:'export',sourceAssetIds:['source_a','source_b'],conversion:null}};
+ return {...f,source,sources,comparison,owner,lookup:id=>sources.get(id)};
+}
+
+test('portable comparison closure binds the ordered original graph, including shared-manifest multiplicity',()=>{
+ const f=comparisonFixture();assert.deepEqual(validateComparisonClosure(f.owner,f.comparison,f.lookup),['source_a','source_b']);
+ const needed=retainedMetadataReferences(f.comparison);assert(needed.some(edge=>edge.ref.hash===f.source.raster.manifest.hash&&edge.inspect));
+ const reachable=f.g.walk(f.owner.raster.manifest);for(const ref of [f.owner.raster.manifest,f.source.raster.manifest,f.source.raster.pixels,f.encoded])assert(reachable.retained.has(ref.hash));
+ const next=structuredClone(f.comparison);next.plan.layers=next.plan.layers.map(layer=>({...layer,assetId:'mapped_'+layer.assetId}));
+ const mappedSource=f.g.json({...f.make('mapped_encoded'),pipeline:CURRENT_RASTER_PROFILE.pipeline,plan:{...f.make('mapped_encoded').plan,codec:CURRENT_RASTER_PROFILE.rasterCodecId}});next.dependencies=[mappedSource,mappedSource];
+ const mappedSources=new Map([...f.sources].map(([id,a])=>['mapped_'+id,{...a,id:'mapped_'+id,raster:{...a.raster,manifest:mappedSource}}]));
+ const ref=f.g.json(next),mapped={...f.owner,...remapRasterRetention(f.owner,ref,f.g.json),raster:{...f.owner.raster,manifest:ref,sourceAssetIds:['mapped_source_a','mapped_source_b']}};
+ assert.deepEqual(validateComparisonClosure(mapped,next,id=>mappedSources.get(id)),mapped.raster.sourceAssetIds);assert.equal(mapped.raster.pixelIdentity,f.owner.raster.pixelIdentity);
+ assert(f.g.walk(mapped.retainedMetadata).retained.has(f.owner.raster.manifest.hash));assert.equal(f.g.objects.get(f.owner.raster.manifest.hash).toString(),canonical(f.comparison));
+});
+
+for(const fault of ['role','qualification','safety','source-safety','source-role','missing-source','source-order','missing-dependency','extra-dependency','unowned-layer','preservation','dimension','candidate-alone','authority','unknown-profile'])test('portable comparison rejects '+fault+' without promoting review imagery',()=>{
+ const f=comparisonFixture(),a=structuredClone(f.owner),m=structuredClone(f.comparison);
+ if(fault==='role')a.raster.role='composite';if(fault==='qualification')a.qualification='canonical-raster';if(fault==='safety')a.safety='unknown';
+ if(fault==='source-safety')f.sources.get('source_a').safety='unknown';if(fault==='source-role')f.sources.get('source_a').raster.role='mask';if(fault==='missing-source')f.sources.delete('source_a');
+ if(fault==='source-order')a.raster.sourceAssetIds.reverse();if(fault==='missing-dependency')m.dependencies.pop();if(fault==='extra-dependency')m.dependencies.push(f.encoded);
+ if(fault==='unowned-layer')m.plan.layers[0].assetId='unowned';if(fault==='preservation')m.plan.preservation='applied';if(fault==='dimension')m.plan.sourceWidth=2048;
+ if(fault==='candidate-alone')m.plan.comparison='candidate-alone';if(fault==='authority')m.plan.approvalId='claimed-authority';if(fault==='unknown-profile')m.pipeline='cp1-f64-triangle-area-v1/'+hash('unknown pipeline');
+ assert.throws(()=>validateComparisonClosure(a,m,f.lookup));
+});
+
+test('portable comparison mask mapping binds the exact retained grid and coverage representation',()=>{
+ const f=comparisonFixture(),mask={...f.source,id:'mask',raster:{...f.source.raster,role:'mask'}},m=structuredClone(f.comparison),a=structuredClone(f.owner);f.sources.set('mask',mask);
+ m.plan.layers[0].mask={assetId:'mask',mapping:'retained-r16-v1',inverted:false,offsetX:3,offsetY:-1,width:1,height:1,outside:'zero'};m.dependencies.push(mask.raster.manifest);a.raster.sourceAssetIds=['source_a','mask','source_b'];
+ assert.deepEqual(validateComparisonClosure(a,m,f.lookup),a.raster.sourceAssetIds);
+ mask.raster.width=2;assert.throws(()=>validateComparisonClosure(a,m,f.lookup));mask.raster.width=1;mask.raster.role='composite';assert.throws(()=>validateComparisonClosure(a,m,f.lookup));
+ m.plan.layers[0].mask.mapping='retained-luminance-alpha-v1';assert.deepEqual(validateComparisonClosure(a,m,f.lookup),a.raster.sourceAssetIds);
 });

@@ -53,10 +53,13 @@ export async function readOwnedJSON<T>(transport:Transport,path:string,options:O
   const header=response.headers.get('content-length'),length=header!==null&&/^(0|[1-9][0-9]*)$/.test(header)?Number(header):NaN;
   // Invalid or excessive length enters the reader's pre-body cleanup path with
   // the already-admitted response owner, preserving cancel-failure ownership.
-  const expected=Number.isSafeInteger(length)&&length<=maxBytes?length:NaN;
+  // Fetch may expose a non-null empty stream for204. Observe its zero-byte EOF
+  // through the same owned reader; a status code alone cannot authorize bytes.
+  const expected=response.status===204?0:Number.isSafeInteger(length)&&length<=maxBytes?length:NaN;
   const retained=await readRetainedPrompt(response,expected,()=>!options.owns||options.owns(),options.init?.signal??undefined,admitted);
   try{
     current(options);
+    if(response.status===204)return createOwnedModel<T>(options.owner,0,()=>undefined as T,options.kind);
     // A one-digit numeric scalar needs at most eight logical bytes per two JSON
     // units including separators. Strings/keys need at most two per input unit.
     const result=createOwnedModel<T>(options.owner,retained.text.length*4+8,()=>JSON.parse(retained.text) as T,options.kind);

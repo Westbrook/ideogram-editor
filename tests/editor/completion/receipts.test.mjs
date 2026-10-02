@@ -119,3 +119,17 @@ for(const [label,mutate]of Object.entries({
  'earlier unproved root':es=>es.push({...clone(es.find(e=>e.kind==='start'&&e.operation===4)),operation:5,start:45}),
  'duplicate own publication':es=>es.push({...clone(es.find(e=>e.kind==='publication-writes'&&e.transaction===3)),transaction:5,at:41})
 }))test('actual original reader keeps '+label+' unqualified',async()=>{const r=await boundedReader(mutate),p=r.proofs[0];assert.equal(p.validated,false);assert.equal(originalRecoveryCompletion(failedRecovery(p),[p]),false);});
+
+
+for(const schema of [2,3,4,5,6,7,8,9])test('LP'+schema+' original SSE descriptor and publication retain old exact events',()=>{
+ const f=publicationFixture();f.d.recovery.projectionSchema=schema;f.controls[0].value.recovery.projectionSchema=schema;sseDescriptor(f.d,f.proof);assert.equal(ssePublication(f).validated,true);
+});
+test('original SSE qualification rejects future or mixed recovery versions',()=>{
+ const future=publicationFixture();future.d.recovery.projectionSchema=10;assert.throws(()=>sseDescriptor(future.d,future.proof));assert.throws(()=>ssePublication(future));
+ const mixed=publicationFixture();mixed.d.recovery.projectionSchema=9;mixed.controls[0].value.recovery={...mixed.controls[0].value.recovery,projectionSchema:8};assert.throws(()=>ssePublication(mixed));
+});
+test('original SSE qualification refuses metadata mislabeled LP8 and accepts the same typed payload under LP9',()=>{
+ const f=publicationFixture(),metadata={schemaVersion:1,name:'Café 東京',creationBackground:{kind:'transparent'}};
+ f.values[0].payload.document.metadata=metadata;f.committed[1].records.find(r=>r.key[1]==='document').value.metadata=metadata;
+ assert.throws(()=>ssePublication(f));f.d.recovery.projectionSchema=9;f.controls[0].value.recovery.projectionSchema=9;assert.equal(ssePublication(f).validated,true);
+});

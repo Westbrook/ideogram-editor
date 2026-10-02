@@ -1,3 +1,5 @@
+import {specReceipt} from './receipt-path.js';
+import {pathToFileURL} from 'node:url';
 import {prepareNativePNG} from './export-workflow.js';
 // @ts-ignore Test-only coherent public/native draft boundary.
 import {adoptNativeInput,readNativeState,nativeDescriptor,selectNativeFont,cancelAndReopenNativeFont,readDraftOccurrences} from './completion/font-state.mjs';
@@ -14,6 +16,7 @@ import {recordDOMErrors} from './error-monitor.js';
 import {integrationCancellation} from './integration-network.mjs';
 import {originalFontReader,sealedBrowserFonts} from './original-font-reader.js';
 import {originalRecoveryReader} from './original-recovery-reader.js';
+import {observeDisplayAborts} from './display-aborts.js';
 // @ts-ignore Test-owned pinned Chromium completion observer.
 import {completionMonitor} from './completion/monitor.mjs';
 // @ts-ignore Independent test-owned teardown steps.
@@ -23,14 +26,14 @@ import {acquireOwnedSetup} from './completion/setup-owned.mjs';
 
 // Fresh native origin storage is verified independently of profile isolation.
 // All stores and profiles remain under the caller's explicit TMPDIR.
-export const test=base.extend({context:async({playwright,browserName,contextOptions,viewport},use)=>{
+export const test=base.extend({context:async({playwright,browserName,contextOptions,viewport},use,info)=>{
  const profile=await mkdtemp(join(await realpath(tmpdir()),'p1c6-'+browserName+'-'));
  const executable=process.env.EDITOR_BROWSER_EXECUTABLE??playwright[browserName].executablePath();
  const context=await playwright[browserName].launchPersistentContext(profile,{...contextOptions,viewport,executablePath:executable,env:{...process.env,TMPDIR:process.env.TMPDIR!}});
  const ownedProcesses=execFileSync('/bin/ps',['-axww','-o','pid=','-o','command='],{encoding:'utf8'}).split('\n').map(line=>line.match(/^\s*(\d+)\s+(.*)$/)).filter(Boolean).map(m=>({pid:Number(m![1]),command:m![2]})).filter(p=>p.command.includes(executable)&&p.command.includes(profile));
  expect(ownedProcesses.length,'Running process must identify the selected executable and fresh profile').toBeGreaterThan(0);
  const identity={engine:browserName,version:context.browser()?.version(),executable,executableSHA256:sha(await readFile(executable)),ownedProcesses,profile,temporaryDirectory:process.env.TMPDIR};
- await mkdir(process.env.EDITOR_RECEIPT!,{recursive:true});await writeFile(join(process.env.EDITOR_RECEIPT!,'browser-'+profile.split('/').at(-1)+'.json'),JSON.stringify(identity,null,2));
+ const receipt=specReceipt(pathToFileURL(info.file).href);await mkdir(receipt,{recursive:true});await writeFile(join(receipt,'browser-'+profile.split('/').at(-1)+'.json'),JSON.stringify(identity,null,2));
  await Promise.all(context.pages().map(p=>p.close()));
  try{await use(context);}finally{await context.close();}
 }});
@@ -46,7 +49,7 @@ export function rows(root:string,table:'documents'|'assets'|'history'|'ui_checkp
 }
 export async function state(root:string,id?:string){const document=rows(root,'documents').find(d=>!id||d.id===id);return {document,image:JSON.parse((await object(root,document.image.state)).toString())};}
 export async function fixture(page:Page,context:BrowserContext,engine:string,name:string){
- const out=join(process.env.EDITOR_RECEIPT!,name);await mkdir(out,{recursive:true});const fonts=await sealedBrowserFonts();
+ const out=join(specReceipt(pathToFileURL(test.info().file).href),name);await mkdir(out,{recursive:true});const fonts=await sealedBrowserFonts();
  const directory=await mkdtemp(join(await realpath(tmpdir()),'p1c6-'+name+'-')),root=join(directory,'private');
  let serverIndex=1;const completionLedger=()=>join(out,'completion-server-'+serverIndex+'.jsonl');
  const buildFixture=async(ownedServer:Awaited<ReturnType<typeof serverProcess>>)=>{
@@ -58,6 +61,7 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
  const id=(r:any)=>{if(!ids.has(r))ids.set(r,++sequence);return ids.get(r)!;};
  const fontObserver=await originalFontReader(context,out,fonts,id);
  const recoveryObserver=await originalRecoveryReader(context,out,id);
+ const workflowObserver=await observeDisplayAborts(context,id);
  const guard=await ownedOPFS(context,'p1c6-'+name+'-'+engine),dom=await recordDOMErrors(context);
  const completion=engine==='chromium'?await completionMonitor({page,context,root,out,id,expect,storageProbePath:'/__e1_storage_'+guard.run,fixture:name,mode:name==='busy-actions'?'EMPTY-NATIVE':name==='restored-reads'?'RESTORED-NON-NATIVE':'NATIVE-COMPLETION'}):undefined;
  const instrument=(p:Page)=>{p.on('worker',w=>{workers.add(w);w.once('close',()=>workers.delete(w));});p.on('pageerror',e=>events.push({channel:'pageerror',phase,message:e.message}));p.on('console',m=>{if(m.type()==='error')events.push({channel:'console',phase,message:m.text(),url:m.location().url,page:p.url().replace(/#.*$/,'')});});};
@@ -73,7 +77,7 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
  context.on('requestfinished',r=>{activeRequests.delete(r);events.push({channel:'requestfinished',phase,requestId:id(r),url:r.url(),method:r.method()});});
  context.on('requestfailed',r=>{activeRequests.delete(r);events.push({channel:'requestfailed',phase,requestId:id(r),url:r.url(),method:r.method(),resourceType:r.resourceType(),failure:r.failure(),response:responses.get(r)??null});});
  async function admit(){completion?.begin(server,completionLedger());origins.add(server.origin);await guard.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await completion?.activate();expect(noStaticIcon).toBe(true);expect(await page.locator('link[rel~=icon]').count()).toBe(0);ancillaryOrigins.add(server.origin);}
- async function quiesce(departure:'restart'|'terminal'|'cleanup'){const awaitingResponse=()=>[...activeRequests].filter(r=>!responses.has(r)).map(r=>({requestId:id(r),url:r.url()}));events.push({channel:'await-own-response-headers',active:[...activeRequests].map(r=>({requestId:id(r),url:r.url(),response:responses.get(r)??null}))});try{await expect.poll(awaitingResponse,{message:'Deliver this workflow’s outstanding response headers before explicit restart/navigation; completed-body and error checks remain separate',timeout:15000}).toEqual([]);events.push({channel:'own-response-headers-delivered',stillOpen:[...activeRequests].map(r=>({requestId:id(r),url:r.url()}))});await completion?.closeEpoch();}finally{await fontObserver.flush();await recoveryObserver.flush();try{await completion?.beforeNavigate();}finally{if(completion){await completion.depart(departure);await completion.beforeServerStop();}else for(const p of context.pages())await p.goto('about:blank');await expect.poll(()=>workers.size).toBe(0);}}}
+ async function quiesce(departure:'restart'|'terminal'|'cleanup'){const awaitingResponse=()=>[...activeRequests].filter(r=>!responses.has(r)).map(r=>({requestId:id(r),url:r.url()}));events.push({channel:'await-own-response-headers',active:[...activeRequests].map(r=>({requestId:id(r),url:r.url(),response:responses.get(r)??null}))});try{await expect.poll(awaitingResponse,{message:'Deliver this workflow’s outstanding response headers before explicit restart/navigation; completed-body and error checks remain separate',timeout:15000}).toEqual([]);events.push({channel:'own-response-headers-delivered',stillOpen:[...activeRequests].map(r=>({requestId:id(r),url:r.url()}))});await completion?.closeEpoch();}finally{await fontObserver.flush();await recoveryObserver.flush();try{for(const p of context.pages())await workflowObserver.flush(p);await completion?.beforeNavigate();}finally{if(completion){await completion.depart(departure);await completion.beforeServerStop();}else for(const p of context.pages())await p.goto('about:blank');await expect.poll(()=>workers.size).toBe(0);}}}
  async function zeroEffects(label:string){const value=await server.effects();effects.push({label,pid:server.pid,origin:server.origin,value});expect(Object.keys(value)).toHaveLength(8);expect(Object.values(value)).toEqual(Array(8).fill(0));}
  async function saveDownload(label:string){
   exportRequests.length=0;exportWindow=true;const promise=page.waitForEvent('download');await click(page,'Download prepared file');const download=await promise,path=join(out,label);await download.saveAs(path);exportWindow=false;
@@ -98,6 +102,7 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
    await attempt('recovery-proof',async()=>{const store=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});try{recoveryProofs=await recoveryObserver.seal(id=>{const row=store.prepare('SELECT original,receipt FROM commands WHERE id=?').get(id);if(!row)return null;const command=JSON.parse(String(row.original)).command;return {clientId:command.clientId,sessionId:command.sessionId,receipt:JSON.parse(String(row.receipt)),events:store.prepare('SELECT json FROM events_v2 WHERE command_id=? ORDER BY length(seq),seq').all(id).map(r=>JSON.parse(String(r.json)))};});}finally{store.close();}});
    await attempt('context-close',async()=>{await context.close();cleanup.contextClosed=true;});await attempt('server-close',async()=>{await server.close({cleanupOnly:!!primaryError||cleanupFailures.length>0});cleanup.serverClosed=true;});await attempt('observations',()=>Promise.all(pending));await attempt('completion-proof',async()=>{await completion?.finish(!primaryError&&cleanupFailures.length===0&&cleanup.contextClosed&&cleanup.serverClosed);});if(cleanupFailures.length)cleanupError=cleanupFailures;
    
+   const workflowObservations=workflowObserver.observations(),workflowProofs=workflowObserver();
    const unmatched=events.filter(e=>{
     if(['pageerror','csp'].includes(e.channel))return true;
     if(e.channel==='request'&&/^https?:/.test(e.url))return !origins.has(new URL(e.url).origin);
@@ -106,10 +111,10 @@ export async function fixture(page:Page,context:BrowserContext,engine:string,nam
     if(e.channel==='console')return !events.some(r=>r.channel==='http-error'&&r.url===e.url&&faultResponses.has(r.requestId)&&e.message===`Failed to load resource: the server responded with a status of ${r.status} (${r.status===404?'Not Found':'Internal Server Error'})`);
     if(e.channel!=='requestfailed')return false;
     if(completion?.privateEvent(e))return false;
-    return !(engine==='chromium'&&completion?.qualifies(e))&&![...origins].some(o=>integrationCancellation(e,o,engine,downloads,faults,fontProofs,importedHeads,recoveryProofs));
+    return !(engine==='chromium'&&completion?.qualifies(e))&&![...origins].some(o=>integrationCancellation(e,o,engine,downloads,faults,fontProofs,importedHeads,recoveryProofs,workflowProofs));
    });
-   await writeFile(join(out,'observations.json'),JSON.stringify({engine,root,ancillaryIconProof:{noStaticIcon,origins:[...ancillaryOrigins]},phase,events,commands,downloads,effects,dom,faults,fontProofs,importedHeads,recoveryProofs,wasmReads,fontTransitions,unmatched,cleanupError,primaryError:primaryError instanceof Error?{message:primaryError.message,stack:primaryError.stack}:primaryError},null,2));await writeFile(join(out,'ownership.json'),JSON.stringify({run:guard.run,ledger:guard.ledger,workers:workers.size,...cleanup},null,2));
-   const problems=[primaryError,cleanupError,recoveryProofs.errors.length?Error('Recovery observation errors: '+JSON.stringify(recoveryProofs.errors)):null,wasmReads.some(r=>!r.matchesSealed)?Error('Incomplete same-response WASM proof: '+JSON.stringify(wasmReads)):null,dom.length?Error('DOM errors: '+JSON.stringify(dom)):null,unmatched.length?Error('Unmatched observations: '+JSON.stringify(unmatched)):null].filter(Boolean);if(problems.length)throw new AggregateError(problems,'Integrated workflow and shutdown failures (all preserved)');
+   await writeFile(join(out,'observations.json'),JSON.stringify({engine,root,ancillaryIconProof:{noStaticIcon,origins:[...ancillaryOrigins]},phase,events,commands,downloads,effects,dom,faults,fontProofs,importedHeads,recoveryProofs,workflowProofs,workflowObservations,wasmReads,fontTransitions,unmatched,cleanupError,primaryError:primaryError instanceof Error?{message:primaryError.message,stack:primaryError.stack}:primaryError},null,2));await writeFile(join(out,'ownership.json'),JSON.stringify({run:guard.run,ledger:guard.ledger,workers:workers.size,...cleanup},null,2));
+   const problems=[primaryError,cleanupError,workflowObservations.errors.length?Error('Original workflow observation errors: '+JSON.stringify(workflowObservations.errors)):null,recoveryProofs.errors.length?Error('Recovery observation errors: '+JSON.stringify(recoveryProofs.errors)):null,wasmReads.some(r=>!r.matchesSealed)?Error('Incomplete same-response WASM proof: '+JSON.stringify(wasmReads)):null,dom.length?Error('DOM errors: '+JSON.stringify(dom)):null,unmatched.length?Error('Unmatched observations: '+JSON.stringify(unmatched)):null].filter(Boolean);if(problems.length)throw new AggregateError(problems,'Integrated workflow and shutdown failures (all preserved)');
   }
  };
  };

@@ -1,4 +1,5 @@
 import {compileLegacy} from '../../tooling/qualification/legacy-compiler.mjs';
+import {installSchema18Packet} from '../recovery/schema18-packet.mjs';
 import {tableRows} from '../store/sqlite-snapshot.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -55,7 +56,7 @@ async function rollback(t,root,migration){const out=await rootFor(t);for(const d
 
 for(const approval of [false,true])test('schema7 preserves actual approved schema6 '+(approval?'pending approval':'pending preparation')+' and verified rollback',async t=>{
  const f=await seed(t,approval),before=inspect(f.root),originals=await bytes(f.root),gate=new SharedArrayBuffer(4);assert.equal(before.version,6);
- let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'portable-schema-after-activation',gate,onBarrier:reached});await barrier;
+ await installSchema18Packet(f.root);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'portable-schema-after-activation',gate,onBarrier:reached});await barrier;
  let migration;try{const after=inspect(f.root);assert.equal(after.version,7);sameTables(after,before,['schema_migrations']);assert.deepEqual(after.tables.schema_migrations.slice(0,-1),before.tables.schema_migrations);
  migration=JSON.parse(after.tables.schema_migrations.at(-1).receipt);assert.equal(migration.capability,'portable-copy-v1');assert.equal(migration.rollback.compatibleExecutable,dfa);
  const manifest=JSON.parse(await readFile(join(f.root,migration.manifestFile)));assert.equal(manifest.backupHash,digest(await readFile(join(f.root,migration.backup))));assert.equal(manifest.compatibleExecutable,dfa);
@@ -72,22 +73,22 @@ test('unknown future storage is inspected without mutation and returns explicit 
  await assert.rejects(openWriter({root:f.root}),e=>e.code==='UNSUPPORTED_STORAGE'&&e.detail.issues[0].code==='USE_MATCHING_EXECUTABLE_OR_VERIFIED_BACKUP');assert.deepEqual(inspect(f.root),before);assert.equal(digest(await readFile(join(f.root,'metadata.sqlite'))),databaseHash);await preserved(f.root,originals);
 });
 test('schema7 capacity failure retains schema6 and every request, then retries safely',async t=>{
- const f=await seed(t,true),before=inspect(f.root);await assert.rejects(openWriter({root:f.root,quotaBytes:'1'}),{code:'CAPACITY'});assert.deepEqual(inspect(f.root),before);
- const w=await openWriter({root:f.root});assert.equal((await settled(w,f.command.command.commandId)).receipt.status,'rejected');await w.close();assert.equal(inspect(f.root).version,17);
+ const f=await seed(t,true),before=inspect(f.root);await installSchema18Packet(f.root);await assert.rejects(openWriter({root:f.root,quotaBytes:'1'}),{code:'CAPACITY'});assert.deepEqual(inspect(f.root),before);
+ const w=await openWriter({root:f.root});assert.equal((await settled(w,f.command.command.commandId)).receipt.status,'rejected');await w.close();assert.equal(inspect(f.root).version,19);
 });
 test('backup corruption fails verification before activation, retains evidence, and retries without changing requests',async t=>{
- const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'portable-schema-backup-written',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;
+ const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);await installSchema18Packet(f.root);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'portable-schema-backup-written',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;
  const name=(await readdir(f.root)).find(x=>/^schema6-backup-.*\.sqlite$/.test(x));const db=new DatabaseSync(join(f.root,name));db.prepare("UPDATE meta SET value='999' WHERE key='writerEpoch'").run();db.close();release(gate);await rejected;assert.deepEqual(inspect(f.root),before);
- const failedHash=digest(await readFile(join(f.root,name))),w=await openWriter({root:f.root});await settled(w,f.command.command.commandId);await w.close();assert.equal(digest(await readFile(join(f.root,name))),failedHash);assert.equal(inspect(f.root).version,17);
+ const failedHash=digest(await readFile(join(f.root,name))),w=await openWriter({root:f.root});await settled(w,f.command.command.commandId);await w.close();assert.equal(digest(await readFile(join(f.root,name))),failedHash);assert.equal(inspect(f.root).version,19);
 });
 for(const target of ['database','manifest'])test('activation rechecks the verified '+target+' backup before publishing schema7',async t=>{
- const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'portable-schema-before-activation',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;
+ const f=await seed(t,true),before=inspect(f.root),gate=new SharedArrayBuffer(4);await installSchema18Packet(f.root);let reached;const barrier=new Promise(r=>reached=r),opening=openWriter({root:f.root},{phase:'portable-schema-before-activation',gate,onBarrier:reached});const rejected=assert.rejects(opening,{code:'CORRUPT_STORE'});await barrier;
  const name=(await readdir(f.root)).find(x=>target==='database'?/^schema6-backup-.*\.sqlite$/.test(x):x.endsWith('.manifest.json'));
  if(target==='database'){const db=new DatabaseSync(join(f.root,name));db.prepare("UPDATE meta SET value='999' WHERE key='writerEpoch'").run();db.close();}else await writeFile(join(f.root,name),'{}');
  release(gate);await rejected;assert.deepEqual(inspect(f.root),before);
  const w=await openWriter({root:f.root});assert.equal((await settled(w,f.command.command.commandId)).receipt.status,'rejected');await w.close();
 });
-async function killedMigration(t,root,phase){const dir=await rootFor(t),file=join(dir,'kill.mjs');await writeFile(file,`import{openWriter}from ${JSON.stringify(new URL('../../dist/local/server/storage/writer.js',import.meta.url).href)}; await openWriter({root:process.argv[2]},{phase:process.argv[3],gate:new SharedArrayBuffer(4),onBarrier:phase=>process.send({phase})});`);const child=fork(file,[root,phase],{execArgv:['--import',noEgress],stdio:['ignore','ignore','pipe','ipc']});let errors='';child.stderr.on('data',b=>errors+=b);const ended=once(child,'exit');t.after(async()=>{if(child.exitCode===null&&child.signalCode===null){child.kill('SIGKILL');await ended;}});await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('migration barrier timeout '+errors)),10000);child.once('message',m=>{clearTimeout(timer);assert.equal(m.phase,phase);resolve();});child.once('exit',()=>{clearTimeout(timer);reject(Error('early exit '+errors));});});child.kill('SIGKILL');await ended;}
+async function killedMigration(t,root,phase){await installSchema18Packet(root);const dir=await rootFor(t),file=join(dir,'kill.mjs');await writeFile(file,`import{openWriter}from ${JSON.stringify(new URL('../../dist/local/server/storage/writer.js',import.meta.url).href)}; await openWriter({root:process.argv[2]},{phase:process.argv[3],gate:new SharedArrayBuffer(4),onBarrier:phase=>process.send({phase})});`);const child=fork(file,[root,phase],{execArgv:['--import',noEgress],stdio:['ignore','ignore','pipe','ipc']});let errors='';child.stderr.on('data',b=>errors+=b);const ended=once(child,'exit');t.after(async()=>{if(child.exitCode===null&&child.signalCode===null){child.kill('SIGKILL');await ended;}});await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('migration barrier timeout '+errors)),10000);child.once('message',m=>{clearTimeout(timer);assert.equal(m.phase,phase);resolve();});child.once('exit',()=>{clearTimeout(timer);reject(Error('early exit '+errors));});});child.kill('SIGKILL');await ended;}
 for(const phase of ['portable-schema-before-backup','portable-schema-backup-written','portable-schema-backup-verified','portable-schema-before-activation','portable-schema-after-activation'])test('SIGKILL '+phase+' preserves pending approval and restarts exactly',async t=>{
  const f=await seed(t,true),before=inspect(f.root),originals=await bytes(f.root);await killedMigration(t,f.root,phase);const interrupted=inspect(f.root),activated=phase.endsWith('after-activation');assert.equal(interrupted.version,activated?7:6);sameTables(interrupted,before,activated?['schema_migrations']:[]);await preserved(f.root,originals);
  const saved=Object.fromEntries(await Promise.all((await readdir(f.root)).filter(x=>x.startsWith('schema6-backup-')).map(async n=>[n,digest(await readFile(join(f.root,n)))])));

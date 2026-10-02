@@ -1,3 +1,4 @@
+import { retainDiagnosticEvidence, diagnosticContext, detachedRasterPhase } from './diagnostic-evidence.mjs';
 // Actual product raster, persistence and recovery operations. The caller owns
 // cold-process versus retained-process cohorts. Preparation is never scored.
 import assert from 'node:assert/strict';
@@ -174,13 +175,19 @@ export async function runCell(context, cell) {
       const completed = await phase(phases, 'raster.command-through-durable-output', () => finish(f.writer, request, 'rasterCommand', context.signal));
       const asset = completed.events.find(event => event.type === 'AssetRegistered')?.payload.asset; assert(asset?.raster);
       assert.equal(asset.raster.width, s.p.specification.width); assert.equal(asset.raster.height, s.p.specification.height);
-      const diagnostics = await f.writer.diagnostics();
-      const childPhases = rasterPhaseEvidence(diagnostics, request.command.commandId, cell.operation, observations, missing,
-        cell.operation === 'raster.composite' ? { width: s.document.width, height: s.document.height, layerCount: s.layers.length } : undefined);
-      if (cell.operation === 'raster.decode' && s.p.format === 'webp') for (const child of childPhases) child.name = 'raster.webp-decode';
-      phases.push(...childPhases);
+      const diagnosticRead = await f.writer.readDiagnostics();
+      try {
+        const diagnostics = diagnosticRead.value, rawObservations = {};
+        const childPhases = rasterPhaseEvidence(diagnostics, request.command.commandId, cell.operation, rawObservations, missing,
+          cell.operation === 'raster.composite' ? { width: s.document.width, height: s.document.height, layerCount: s.layers.length } : undefined);
+        if (cell.operation === 'raster.decode' && s.p.format === 'webp') for (const child of childPhases) child.name = 'raster.webp-decode';
+        phases.push(...childPhases.map(detachedRasterPhase));
+        const retained = await retainDiagnosticEvidence(context.output, 'raster-command', diagnostics);
+        observations.workerTelemetry = { ...retained, selector: 'rasters.workerPhases', commandId: request.command.commandId };
+        observations.resource = { ...retained, selector: 'rasters.observations', commandId: request.command.commandId };
+        if (cell.operation === 'raster.composite') observations.activeCompute = { ...retained, selector: 'rasters.workerPhases.activeCompute', commandId: request.command.commandId };
+      } finally { diagnosticRead.release(); }
       observations.output = { id: asset.id, blob: asset.blob, pixelIdentity: asset.raster.pixelIdentity, commandId: request.command.commandId, receipt: completed.receipt };
-      observations.resource = diagnostics.rasters.observations.find(row => row.commandId === request.command.commandId);
       if (cell.operation === 'raster.composite') {
         assert.equal(asset.raster.pixelIdentity, s.composite.raster.pixelIdentity, 'Full transformed/masked visible stack must reproduce the retained canonical document');
       }
@@ -191,10 +198,13 @@ export async function runCell(context, cell) {
     } else if (cell.operation === 'state.replay') {
       await phase(phases, 'writer.open-through-recovered-readiness', () => f.reopen());
       const current = await f.writer.document(f.documentId); assert.deepEqual(current, s.document, 'Recovery must reproduce the complete canonical projection');
-      const diagnostics = await f.writer.diagnostics(), rows = diagnostics.observations.phases.records.filter(row => row.phase === 'document.replay');
-      observations.replayTelemetry = diagnostics.observations.phases;
-      if (rows.length !== 1 || rows[0]?.outcome !== 'ok' || diagnostics.observations.phases.invalid || diagnostics.observations.phases.dropped) missing.push('One complete actual product replay trace required');
-      else { const row = rows[0]; phases.push({ name: s.p.mode === 'full' ? 'document.full-replay' : 'document.replay', startMs: row.startedMs, endMs: row.endedMs, durationMs: row.durationMs, outcome: 'completed', clock: 'server-writer', context: row.context }); }
+      const diagnosticRead = await f.writer.readDiagnostics();
+      try {
+        const diagnostics = diagnosticRead.value, rows = diagnostics.observations.phases.records.filter(row => row.phase === 'document.replay');
+        observations.replayTelemetry = await retainDiagnosticEvidence(context.output, 'document-replay', diagnostics.observations.phases);
+        if (rows.length !== 1 || rows[0]?.outcome !== 'ok' || diagnostics.observations.phases.invalid || diagnostics.observations.phases.dropped) missing.push('One complete actual product replay trace required');
+        else { const row = rows[0]; phases.push({ name: s.p.mode === 'full' ? 'document.full-replay' : 'document.replay', startMs: row.startedMs, endMs: row.endedMs, durationMs: row.durationMs, outcome: 'completed', clock: 'server-writer', context: diagnosticContext(row.context) }); }
+      } finally { diagnosticRead.release(); }
       const capture = await f.writer.capture(); assert.equal(capture.highWater, s.capture.highWater);
       if (s.p.mode === 'full') assert.equal(capture.snapshot, null); else assert.equal(capture.snapshot.seq, s.capture.snapshot.seq);
       observations.replayedEvents = s.p.mode === 'full' ? capture.highWater : String(BigInt(capture.highWater) - BigInt(capture.snapshot.seq));
@@ -220,16 +230,19 @@ export async function runCell(context, cell) {
       const provider = await f.queueWorker.snapshot('ideogram/v4');
       const posts = provider.effects.slice(s.queueBefore.effects.length).filter(effect => effect.method === 'POST'); assert.equal(posts.length, 1);
       const local = provider.submissions?.find(row => row.jobId === event.payload.id) ?? provider.lastSubmit;
-      const diagnostics = await f.writer.diagnostics(), trace = diagnostics.observations.phases;
-      const accepted = trace.records.filter(row => row.context?.commandId === request.command.commandId && row.phase === 'event.append' && row.outcome === 'ok').at(-1);
-      if (local?.jobId === event.payload.id && Number.isFinite(accepted?.endedMs) && Number.isFinite(local.postObservedMs) && local.postObservedMs >= accepted.endedMs) phases.push({ name: 'job.submit.eligible-dispatch', startMs: accepted.endedMs, endMs: local.postObservedMs, durationMs: local.postObservedMs - accepted.endedMs, outcome: 'completed', clock: 'server-writer', boundary: 'Actual durable acceptance with a free dispatch slot through emulator receipt of complete POST body; includes intervening harness/IPC delay and excludes acknowledgement' });
-      else missing.push('Real emulator POST completed, but same-writer-clock durable-acceptance-to-POST observation is unavailable');
-      observations.commandId = request.command.commandId; observations.dispatch = { jobId: event.payload.id, attemptId: attempt.id, payloadHash: attempt.payloadHash, epoch: attempt.writerEpoch }; observations.emulatorPosts = posts; observations.serverTelemetry = trace;
-      for (const name of ['command.validate', 'command.accept', 'event.append']) {
-        const rows = trace.records.filter(row => row.phase === name && row.context.commandId === request.command.commandId && row.outcome === 'ok');
-        if (!rows.length || trace.invalid || trace.dropped) missing.push('Missing complete exact-command ' + name + ' phase');
-        else for (const row of rows) phases.push({ name, startMs: row.startedMs, endMs: row.endedMs, durationMs: row.durationMs, outcome: 'completed', clock: 'server-writer', context: row.context });
-      }
+      const diagnosticRead = await f.writer.readDiagnostics();
+      try {
+        const trace = diagnosticRead.value.observations.phases;
+        const accepted = trace.records.filter(row => row.context?.commandId === request.command.commandId && row.phase === 'event.append' && row.outcome === 'ok').at(-1);
+        if (local?.jobId === event.payload.id && Number.isFinite(accepted?.endedMs) && Number.isFinite(local.postObservedMs) && local.postObservedMs >= accepted.endedMs) phases.push({ name: 'job.submit.eligible-dispatch', startMs: accepted.endedMs, endMs: local.postObservedMs, durationMs: local.postObservedMs - accepted.endedMs, outcome: 'completed', clock: 'server-writer', boundary: 'Actual durable acceptance with a free dispatch slot through emulator receipt of complete POST body; includes intervening harness/IPC delay and excludes acknowledgement' });
+        else missing.push('Real emulator POST completed, but same-writer-clock durable-acceptance-to-POST observation is unavailable');
+        observations.commandId = request.command.commandId; observations.dispatch = { jobId: event.payload.id, attemptId: attempt.id, payloadHash: attempt.payloadHash, epoch: attempt.writerEpoch }; observations.emulatorPosts = posts; observations.serverTelemetry = await retainDiagnosticEvidence(context.output, 'dispatch-command', trace);
+        for (const name of ['command.validate', 'command.accept', 'event.append']) {
+          const rows = trace.records.filter(row => row.phase === name && row.context.commandId === request.command.commandId && row.outcome === 'ok');
+          if (!rows.length || trace.invalid || trace.dropped) missing.push('Missing complete exact-command ' + name + ' phase');
+          else for (const row of rows) phases.push({ name, startMs: row.startedMs, endMs: row.endedMs, durationMs: row.durationMs, outcome: 'completed', clock: 'server-writer', context: diagnosticContext(row.context) });
+        }
+      } finally { diagnosticRead.release(); }
       assertions.push({ name: 'New validated immutable request accepted durably and exactly one actual production dispatcher POST reached the local emulator', passed: true });
       // Real local status reconciliation settles this attempt before the next
       // independent warm command. It does not invent a provider result asset.

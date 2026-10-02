@@ -37,9 +37,11 @@ COPY --chown=10001:10001 . .
 RUN npm run typecheck && npm run test:preflight
 RUN node tooling/qualification/container/inputs.mjs install
 RUN mkdir -p /home/qualification /workspace/artifacts /workspace/dist \
+    && chmod 0700 /workspace/artifacts \
     && chown 10001:10001 /workspace /workspace/artifacts /workspace/dist /home/qualification \
     && chown -R 10001:10001 /workspace/.git \
-    && chmod -R a-w /workspace/.git
+    && chmod -R a-w /workspace/.git \
+    && chmod -R a+rX /opt/playwright
 ENV HOME=/home/qualification
 USER 10001:10001
 ENTRYPOINT ["node", "tooling/qualification/container/run.mjs"]

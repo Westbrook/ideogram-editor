@@ -8,7 +8,7 @@ export type RasterWorkerRequest=
 export type RasterWorkerReply=
  |{type:'ready';protocolVersion:1;generation:number;threadId:number;startedMs:number;clockOriginUnixMs:number}
  |({type:'plan';plan:ResourcePlan}&RasterWorkerKey)
- |({type:'result';result:RasterResult}&RasterWorkerKey)
+ |({type:'result';result:RasterResult;telemetry?:RasterWorkerSnapshot}&RasterWorkerKey)
  |({type:'failure';code:string;resourceFailure?:{outputPeak:number;outputRemaining:number};telemetry?:RasterWorkerSnapshot}&RasterWorkerKey)
  |({type:'idle';completed:true;retainedJobReferences:0}&RasterWorkerKey);
 export type RasterWorkerIdentity={generation:number;threadId:number;startedMs:number;clockOriginUnixMs:number};

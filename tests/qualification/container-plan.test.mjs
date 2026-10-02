@@ -12,6 +12,9 @@ for (const scope of ['base', 'features']) for (const selection of [...engines, '
     assert.deepEqual(plan.requiredBrowsers, engines.filter(browser => selected.includes(browser) || browser === 'chromium'));
     assert.deepEqual(plan.extraBrowsers, selected.includes('chromium') ? [] : ['chromium']);
     assert.deepEqual(plan.prerequisites, ['build-app', 'build-server']);
+    const promptTypechecks = plan.steps.filter(step => step.id === 'typecheck-request-prompt-fixture');
+    assert.equal(promptTypechecks.length, scope === 'features' ? 1 : 0);
+    if (scope === 'features') assert.deepEqual(promptTypechecks[0].args, ['exec', '--', 'tsc', '--project', 'tests/request/prompt-refusal.tsconfig.json']);
     const browserSteps = plan.steps.filter(step => step.browser), ids = new Set();
     assert.equal(new Set(browserSteps.map(step => step.output)).size, browserSteps.length);
     for (const step of plan.steps) {
@@ -33,7 +36,7 @@ for (const scope of ['base', 'features']) for (const selection of [...engines, '
     }
     for (const family of ['consumer', 'shell', 'projection', 'raster', 'history']) assert.equal(browserSteps.filter(s => s.family === family).length, 1);
     for (const browser of selected) {
-      for (const family of ['text', 'editor-authoring', 'editor-export', 'editor-destination', 'editor-destination-cancellation', 'editor-destination-success', 'e1', 'density', 'spectrum', 'spectrum-appearance', 'spectrum-alignment']) assert.ok(ids.has(`${family}-${browser}`));
+      for (const family of ['text', 'editor-authoring', 'editor-export', 'editor-export-destination-commit', 'editor-display-image', 'editor-zoom-tool', 'editor-image-import', 'editor-recovery-copy', 'editor-candidate-comparison', 'editor-document-creation', 'editor-command-search', 'editor-destination', 'editor-destination-cancellation', 'editor-destination-success', 'e1', 'density', 'spectrum', 'spectrum-appearance', 'spectrum-alignment']) assert.ok(ids.has(`${family}-${browser}`));
       assert.equal(browserSteps.filter(s => s.browser === browser && s.contracts.includes('E1')).length, 1);
       const renderer = browserSteps.find(s => s.id === `text-${browser}`);
       assert.equal(renderer.project, browser); assert.equal(renderer.args[renderer.args.indexOf('--project') + 1], browser);
@@ -42,9 +45,38 @@ for (const scope of ['base', 'features']) for (const selection of [...engines, '
       assert.equal(renderer.env.TEXT_RECEIPT, renderer.output);
       const editor = browserSteps.find(s => s.id === `editor-owned-opfs-${browser}`);
       assert.equal(editor.args.includes('--grep-invert'), browser !== 'webkit');
-      for (const family of ['e2', 'e3', 'e4', 'queue', 'request-review', 'request-mapping', 'request-theme', 'a11y', 'axe']) assert.equal(ids.has(`${family}-${browser}`), scope === 'features');
+      for (const family of ['e2', 'e3', 'e4', 'queue', 'request-review', 'request-v45-generation', 'request-v45-edit', 'request-mapping', 'request-theme', 'request-prompt-refusal', 'a11y', 'axe']) assert.equal(ids.has(`${family}-${browser}`), scope === 'features');
+      if (scope === 'features') {
+        for (const [family, config, file] of [
+          ['request-v45-generation', 'tests/request/v45-generation.config.ts', 'tests/request/v45-generation.spec.ts'],
+          ['request-v45-edit', 'tests/request-edits/v45.config.ts', 'tests/request-edits/v45-public.spec.ts'],
+        ]) {
+          const matches = browserSteps.filter(step => step.browser === browser && step.files.includes(file));
+          assert.equal(matches.length, 1, `${file} must execute exactly once on ${browser}`);
+          const step = matches[0];
+          assert.equal(step.family, family); assert.equal(step.config, config);
+          assert.deepEqual(step.files, [file]);
+          assert.equal(step.env.EDITOR_BROWSER, browser); assert.equal(step.env.EDITOR_RECEIPT, step.output);
+          assert.deepEqual(step.prerequisites, [], 'V45 flows use the existing app/server build prerequisites and no provider setup');
+          assert.equal(step.reportFile, join(step.output, 'browser.json'));
+        }
+        const prompts = browserSteps.filter(step => step.browser === browser && step.files.includes('tests/request/prompt-refusal.spec.ts'));
+        assert.equal(prompts.length, 1);
+        const prompt = prompts[0];
+        assert.equal(prompt.config, 'tests/request/prompt-refusal.playwright.config.ts');
+        assert.equal(prompt.project, browser);
+        assert.equal(prompt.args[prompt.args.indexOf('--project') + 1], browser);
+        assert.equal(prompt.env.REQUEST_PROMPT_BROWSER_OUTPUT, prompt.output);
+        assert.equal(prompt.reportFile, join(prompt.output, 'browser.json'));
+        assert.deepEqual(prompt.prerequisites, ['typecheck-request-prompt-fixture']);
+        assert.equal(Object.hasOwn(prompt.env, 'REQUEST_PROMPT_SOURCE_ROOT'), false, 'The Vite fixture must resolve the complete caller checkout, not a captured author staging directory');
+      }
     }
+    const projection = browserSteps.find(step => step.family === 'projection');
+    assert.deepEqual(projection.files, ['tests/recovery/consumer.spec.ts', 'tests/recovery/metadata.spec.ts']);
+    assert.deepEqual(projection.prerequisites, ['build-recovery-consumer']);
     assert.equal(ids.has('adapters-chromium'), scope === 'features');
+    if (scope === 'features') assert.deepEqual(browserSteps.find(step => step.family === 'adapters').files, ['tests/adapters/browser.spec.ts', 'tests/adapters/successor.spec.ts']);
   });
 }
 
@@ -80,6 +112,18 @@ test('full plan runs every text and editor spec on all three pinned browser proj
         assert.equal(step.project, browser);
         assert.equal(step.args[step.args.indexOf('--project') + 1], browser);
         assert.ok(step.prerequisites.includes('build-text-consumer'));
+      } else if (['tests/editor/display-image.spec.ts', 'tests/editor/candidate-comparison.spec.ts'].includes(file)) {
+        const comparison = file.endsWith('/candidate-comparison.spec.ts');
+        assert.equal(step.config, comparison ? 'tests/editor/candidate-comparison.config.ts' : 'tests/editor/display-image.config.ts');
+        assert.equal(step.project, browser);
+        assert.equal(step.args[step.args.indexOf('--project') + 1], browser);
+        assert.equal(step.env[comparison ? 'IE_CANDIDATE_COMPARISON_OUTPUT' : 'IE_DISPLAY_IMAGE_OUTPUT'], step.output);
+        assert.equal(step.reportFile, join(step.output, 'results.json'));
+      } else if (['tests/editor/document-creation.spec.ts', 'tests/editor/command-search.spec.ts'].includes(file)) {
+        assert.equal(step.config, file.replace('.spec.ts', '.config.ts'));
+        assert.equal(step.env.EDITOR_BROWSER, browser);
+        assert.equal(step.env.J1_OUTPUT, step.output);
+        assert.equal(step.reportFile, join(step.output, 'results.json'));
       } else {
         assert.equal(step.env.EDITOR_BROWSER, browser);
         assert.equal(step.env.EDITOR_RECEIPT, step.output);
@@ -87,9 +131,9 @@ test('full plan runs every text and editor spec on all three pinned browser proj
     }
   }
   for (const browser of engines) {
-    const destinations = ['destination', 'destination-success', 'destination-cancellation', 'export'].map(name => browserSteps.find(step => step.id === `editor-${name}-${browser}`));
+    const destinations = ['destination', 'destination-success', 'destination-cancellation', 'export', 'export-destination-commit'].map(name => browserSteps.find(step => step.id === `editor-${name}-${browser}`));
     assert.ok(destinations.every(Boolean));
-    assert.equal(new Set(destinations.map(step => step.output)).size, 4, 'Download success, cancellation, boundaries and export retain independent evidence');
+    assert.equal(new Set(destinations.map(step => step.output)).size, destinations.length, 'Download success, cancellation, commit acknowledgement, boundaries and export retain independent evidence');
   }
 });
 
@@ -126,4 +170,36 @@ test('browser evidence rejects missing files, orphan cases, duplicate identities
   assert.equal(browserReportOutcome({...good,errors:[{message:'cleanup failed'}]},selection).outcome,'FAIL');
   assert.throws(() => browserReportOutcome({stats:{expected:1},errors:[]}), /Incomplete/);
   assert.throws(() => browserReportOutcome({...good,suites:undefined},selection), /discovered suites/);
+});
+
+
+test('workflow fixture reuse keeps managed browser routes and per-attempt evidence separate', () => {
+  const first = createBrowserPlan({selection:'all', scope:'features', output:join(output,'first'), fixtureRoot:join(output,'prepared')});
+  const second = createBrowserPlan({selection:'all', scope:'features', output:join(output,'second'), fixtureRoot:join(output,'prepared')});
+  assert.equal(first.steps.length, 143);
+  assert.equal(first.steps.filter(step => step.config).length, 138);
+  assert.ok(first.steps.slice(0, 5).every(step => !step.config));
+  assert.ok(first.steps.slice(5).every(step => step.config));
+  for (const id of ['projection-chromium', 'history-chromium', 'raster-chromium', 'text-chromium']) {
+    const a = first.steps.find(step => step.id === id), b = second.steps.find(step => step.id === id);
+    for (const key of ['IE_RECOVERY_APP', 'IE_RASTER_APP', 'TEXT_APP']) if (a.env[key]) assert.equal(a.env[key], b.env[key]);
+    assert.notEqual(a.output, b.output); assert.notEqual(a.reportFile, b.reportFile); assert.notEqual(a.caseReportFile, b.caseReportFile);
+  }
+});
+
+test('optional workflow batching preserves every managed file and dedicated browser assembly', () => {
+  const serial = createBrowserPlan({selection:'all', scope:'features', output:join(output,'serial')});
+  const batch = createBrowserPlan({selection:'all', scope:'features', output:join(output,'batch'), batchEditor:true});
+  const cells = plan => plan.steps.flatMap(step => step.files.map(file => `${step.browser}:${file}`)).sort();
+  assert.deepEqual(cells(batch), cells(serial));
+  assert.equal(serial.steps.filter(step => step.config).length - batch.steps.filter(step => step.config).length, 63);
+  for (const browser of engines) {
+    const editor = batch.steps.find(step => step.id === `editor-batch-${browser}`);
+    assert.equal(editor.env.IE_VALIDATION_BATCH, '1'); assert.equal(editor.files.length, 22);
+    for (const family of ['editor-display-image', 'editor-candidate-comparison', 'editor-document-creation', 'editor-command-search']) {
+      const step = batch.steps.find(step => step.id === `${family}-${browser}`);
+      assert.ok(step, `${family} keeps its dedicated configuration`);
+      assert.equal(step.files.some(file => editor.files.includes(file)), false);
+    }
+  }
 });

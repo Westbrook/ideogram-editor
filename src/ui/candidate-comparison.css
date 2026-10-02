@@ -10,3 +10,6 @@
 .candidate-comparison-separate figcaption { padding-block-end: 0.35rem; }
 .candidate-comparison-separate img { display: block; max-width: 100%; height: auto; max-height: 320px; object-fit: contain; }
 @media (max-width: 500px) { .candidate-comparison-controls { grid-template-columns: 1fr; } }
+.candidate-comparison-viewport { min-width: 0; margin: 0; padding: 0.75rem; border: 1px solid currentColor; }
+.candidate-comparison-viewport > * + * { margin-block-start: 0.65rem; }
+.candidate-comparison-pair > figure { min-width: 0; margin: 0; }

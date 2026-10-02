@@ -1,7 +1,7 @@
 import { join, resolve } from 'node:path';
 
 const engines = ['chromium', 'firefox', 'webkit'];
-const editorFiles = ['authoring', 'composition-save', 'composition', 'destination', 'destination-cancellation', 'destination-success', 'error-monitor', 'export', 'export-destination-commit', 'failures', 'integration-reads', 'interactions', 'journey', 'native-text', 'owned-opfs', 'portable', 'recovery', 'tool-rail'].map(name => `tests/editor/${name}.spec.ts`);
+const editorFiles = ['authoring', 'composition-save', 'composition', 'destination', 'destination-cancellation', 'destination-success', 'error-monitor', 'export', 'export-destination-commit', 'failures', 'image-import', 'integration-reads', 'interactions', 'journey', 'native-text', 'owned-opfs', 'portable', 'recovery', 'recovery-copy', 'storage-library', 'tool-rail', 'zoom-tool'].map(name => `tests/editor/${name}.spec.ts`);
 const textFiles = ['tests/text/renderer.spec.ts', 'tests/text/budget-boundary.spec.ts'];
 const webkitBoundary = 'WebKit native profile sharing remains an environment negative and ephemeral OPFS is unavailable';
 function freeze(value) {
@@ -76,6 +76,7 @@ export function createBrowserPlan({ selection = 'chromium', scope = 'features', 
       outputRoot: Object.values(env).find(value => typeof value === 'string' && value.startsWith(root)) ?? destination,
       output: destination, reportFile, caseReportFile, timeoutMs: 1_800_000, contracts, prerequisites, reason });
   }
+  if (scope === 'features') build('typecheck-request-prompt-fixture', ['exec', '--', 'tsc', '--project', 'tests/request/prompt-refusal.tsconfig.json']);
   build('build-consumer', ['run', 'build:consumer']);
   const consumer = join(root, 'consumer-chromium');
   playwright({ family: 'consumer', browser: 'chromium', config: 'tests/consumer/playwright.config.ts', files: ['tests/consumer/registration.spec.ts'], env: { IE_CONSUMER_OUTPUT: consumer }, destination: consumer, report: 'consumer-browser.json', prerequisites: ['build-consumer'], reason: 'Packed public component registration and lazy readiness.' });
@@ -83,25 +84,37 @@ export function createBrowserPlan({ selection = 'chromium', scope = 'features', 
   playwright({ family: 'shell', browser: 'chromium', config: 'tests/browser/playwright.config.ts', files: ['tests/browser/shell.spec.ts'], env: { IE_SHELL_OUTPUT: shell }, destination: shell, report: 'shell-browser.json', reason: 'Complete shell, session, layout, keyboard, report-link and CSP suite.' });
   const recovery = join(fixtures, 'projection-chromium');
   build('build-recovery-consumer', ['exec', '--', 'vite', 'build', '--config', 'tests/recovery/vite.config.ts'], { IE_RECOVERY_OUTPUT: recovery }, join(recovery, 'browser-app'));
-  playwright({ family: 'projection', browser: 'chromium', config: 'tests/recovery/playwright.config.ts', files: ['tests/recovery/consumer.spec.ts', 'tests/recovery/metadata.spec.ts'], env: { IE_RECOVERY_APP: join(recovery,'browser-app'), IE_RECOVERY_OUTPUT: join(root,'projection-chromium') }, destination: join(root, 'projection-chromium'), report: 'recovery-browser.json', prerequisites: ['build-recovery-consumer'], reason: 'Snapshot/tail/SSE projection and multi-tab recovery; deliberate failure harnesses remain in their Node parents.' });
+  playwright({ family: 'projection', browser: 'chromium', config: 'tests/recovery/playwright.config.ts', files: ['tests/recovery/consumer.spec.ts', 'tests/recovery/metadata.spec.ts'], env: { IE_RECOVERY_APP: join(recovery, 'browser-app'), IE_RECOVERY_OUTPUT: join(root, 'projection-chromium') }, destination: join(root, 'projection-chromium'), report: 'recovery-browser.json', prerequisites: ['build-recovery-consumer'], reason: 'Snapshot/tail/SSE projection and multi-tab recovery; deliberate failure harnesses remain in their Node parents.' });
   const history = join(root, 'history-chromium');
-  playwright({ family: 'history', browser: 'chromium', config: 'tests/history/playwright.config.ts', files: ['tests/history/consumer.spec.ts'], env: { IE_HISTORY_OUTPUT: history, IE_RECOVERY_APP: join(recovery,'browser-app') }, destination: history, report: 'history-browser.json', prerequisites: ['build-recovery-consumer'], reason: 'Atomic image/history publication through the built recovery consumer.' });
+  playwright({ family: 'history', browser: 'chromium', config: 'tests/history/playwright.config.ts', files: ['tests/history/consumer.spec.ts'], env: { IE_HISTORY_OUTPUT: history, IE_RECOVERY_APP: join(recovery, 'browser-app') }, destination: history, report: 'history-browser.json', prerequisites: ['build-recovery-consumer'], reason: 'Atomic image/history publication through the built recovery consumer.' });
   const raster = join(fixtures, 'raster-chromium');
   build('build-raster-consumer', ['exec', '--', 'vite', 'build', '--config', 'tests/raster/vite.config.ts'], { IE_RASTER_OUTPUT: raster }, join(raster, 'browser-app'));
-  playwright({ family: 'raster', browser: 'chromium', config: 'tests/raster/playwright.config.ts', files: ['tests/raster/consumer.spec.ts'], env: { IE_RASTER_APP: join(raster,'browser-app'), IE_RASTER_OUTPUT: join(root,'raster-chromium') }, destination: join(root, 'raster-chromium'), report: 'browser-results.json', prerequisites: ['build-raster-consumer'], reason: 'Conversion review, approval, recovery and exact PNG content.' });
+  playwright({ family: 'raster', browser: 'chromium', config: 'tests/raster/playwright.config.ts', files: ['tests/raster/consumer.spec.ts'], env: { IE_RASTER_APP: join(raster, 'browser-app'), IE_RASTER_OUTPUT: join(root, 'raster-chromium') }, destination: join(root, 'raster-chromium'), report: 'browser-results.json', prerequisites: ['build-raster-consumer'], reason: 'Conversion review, approval, recovery and exact PNG content.' });
   const textApp = join(fixtures, 'text-app');
-  build('build-text-consumer', ['exec', '--', 'vite', 'build', '--config', 'tests/text/vite.config.ts'], {TEXT_APP: textApp}, textApp);
+  build('build-text-consumer', ['exec', '--', 'vite', 'build', '--config', 'tests/text/vite.config.ts'], { TEXT_APP: textApp }, textApp);
   for (const browser of selectedBrowsers) {
-    const display = join(root, `display-image-${browser}`);
-    playwright({family: 'display-image', browser, config: 'tests/editor/display-image.config.ts', files: ['tests/editor/display-image.spec.ts'], env: {IE_DISPLAY_IMAGE_OUTPUT: display, EDITOR_BROWSER: browser, EDITOR_RECEIPT: display}, destination: display, report: 'results.json', project: browser, reason: 'Native image decoding and allocation through the dedicated display fixture.'});
+    const displayImage = join(root, `editor-display-image-${browser}`);
+    playwright({ family: 'editor-display-image', browser, config: 'tests/editor/display-image.config.ts', files: ['tests/editor/display-image.spec.ts'],
+      env: { IE_DISPLAY_IMAGE_OUTPUT: displayImage }, destination: displayImage, report: 'results.json', project: browser,
+      reason: 'Real Lit disconnect/reconnect, native HTML/SVG image decoding and independent preview ownership through its dedicated Vite fixture.' });
+    const comparison = join(root, `editor-candidate-comparison-${browser}`);
+    playwright({ family: 'editor-candidate-comparison', browser, config: 'tests/editor/candidate-comparison.config.ts', files: ['tests/editor/candidate-comparison.spec.ts'],
+      env: { IE_CANDIDATE_COMPARISON_OUTPUT: comparison }, destination: comparison, report: 'results.json', project: browser,
+      reason: 'Real shared preview transforms, retained dimensions, focus and bounded image ownership through the comparison Vite fixture.' });
+    for (const name of ['document-creation', 'command-search']) {
+      const out = join(root, `editor-${name}-${browser}`);
+      playwright({ family: `editor-${name}`, browser, config: `tests/editor/${name}.config.ts`, files: [`tests/editor/${name}.spec.ts`],
+        env: { J1_OUTPUT: out, EDITOR_BROWSER: browser }, destination: out, report: 'results.json',
+        reason: 'Public named-document and command-search flows through their owned J1 fixture, explicit engine and retained lifecycle evidence.' });
+    }
     const text = join(root, `text-${browser}`);
     playwright({ family: 'text', browser, config: 'tests/text/playwright.config.ts', files: [...textFiles], env: { TEXT_RECEIPT: text, TEXT_APP: textApp }, destination: text, report: 'results.json', project: browser, prerequisites: ['build-text-consumer'], reason: 'Native shaping/rendering, actual 16 KiB/256-line and 14 KiB single-paragraph budget boundaries, worker admission, retained fonts and lifecycle.' });
     if (batchEditor) {
-      const out=join(root, `editor-batch-${browser}`);
-      playwright({family:'editor-batch',browser,config:'tests/editor/integration-regression.config.ts',files:[...editorSelection],
-        env:{EDITOR_RECEIPT:out,EDITOR_BROWSER:browser,IE_VALIDATION_BATCH:'1'},destination:out,
-        args:browser!=='webkit'?['--grep-invert',webkitBoundary+'$']:[],
-        reason:'Development batch: serial files with per-spec evidence namespaces; persistent-profile and restart boundaries remain intact.'});
+      const out = join(root, `editor-batch-${browser}`);
+      playwright({ family: 'editor-batch', browser, config: 'tests/editor/integration-regression.config.ts', files: [...editorSelection],
+        env: { EDITOR_RECEIPT: out, EDITOR_BROWSER: browser, IE_VALIDATION_BATCH: '1' }, destination: out,
+        args: browser !== 'webkit' ? ['--grep-invert', webkitBoundary + '$'] : [],
+        reason: 'Development batch: serial files with per-spec evidence namespaces; persistent-profile and restart boundaries remain intact.' });
     } else {
     for (const file of editorFiles) {
       const family = 'editor-' + file.split('/').at(-1).replace('.spec.ts', ''), out = join(root, `${family}-${browser}`);
@@ -123,8 +136,15 @@ export function createBrowserPlan({ selection = 'chromium', scope = 'features', 
       playwright({ family, browser, config: 'tests/browser/spectrum.config.ts', files: [`tests/browser/${file}.spec.ts`], env: { SPECTRUM_OUTPUT: out, SPECTRUM_BROWSER: browser, ...extra }, destination: join(out, folder, browser), report: 'results.json', reason: 'Complete public Spectrum control, appearance and layout selections.' });
     }
     if (scope === 'features') {
+      const promptRefusal = join(root, `request-prompt-refusal-${browser}`);
+      playwright({ family: 'request-prompt-refusal', browser, config: 'tests/request/prompt-refusal.playwright.config.ts', files: ['tests/request/prompt-refusal.spec.ts'],
+        env: { REQUEST_PROMPT_BROWSER_OUTPUT: promptRefusal }, destination: promptRefusal, project: browser,
+        prerequisites: ['typecheck-request-prompt-fixture'],
+        reason: 'Native prompt admission/refusal/retry and explicit synthetic composition sequencing through the owned Vite fixture and complete assembled source tree; no physical IME or persistence qualification.' });
       for (const [family, config, file, contracts] of [
         ['request-review', 'tests/request/playwright.config.ts', 'tests/request/review.spec.ts', []],
+        ['request-v45-generation', 'tests/request/v45-generation.config.ts', 'tests/request/v45-generation.spec.ts', []],
+        ['request-v45-edit', 'tests/request-edits/v45.config.ts', 'tests/request-edits/v45-public.spec.ts', []],
         ['queue', 'tests/queue/playwright.config.ts', 'tests/queue/public.spec.ts', []],
         ['e2', 'tests/candidates/playwright.config.ts', 'tests/candidates/public.spec.ts', ['E2']],
         ['e3', 'tests/request-edits/playwright.config.ts', 'tests/request-edits/public.spec.ts', ['E3']],
@@ -146,7 +166,7 @@ export function createBrowserPlan({ selection = 'chromium', scope = 'features', 
   }
   if (scope === 'features') {
     const out = join(root, 'adapters-chromium');
-    playwright({ family: 'adapters', browser: 'chromium', config: 'tests/adapters/browser.config.ts', files: ['tests/adapters/browser.spec.ts'], env: { ADAPTER_OUTPUT: out }, destination: join(out, 'chromium'), report: 'results.json', reason: 'Public adapter library, immutable review and dependency-aware deletion.' });
+    playwright({ family: 'adapters', browser: 'chromium', config: 'tests/adapters/browser.config.ts', files: ['tests/adapters/browser.spec.ts', 'tests/adapters/successor.spec.ts'], env: { ADAPTER_OUTPUT: out }, destination: join(out, 'chromium'), report: 'results.json', reason: 'Public adapter library, immutable review and dependency-aware deletion.' });
   }
   return freeze({ schema: 2, selection, scope, output: root, fixtureRoot: fixtures, selectedBrowsers, requiredBrowsers, extraBrowsers, extraBrowserReasons, steps: [...steps.filter(step => !step.config), ...steps.filter(step => step.config)],
     prerequisites: ['build-app', 'build-server'], exclusions: browserHarnessExclusions,

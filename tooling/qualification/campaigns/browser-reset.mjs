@@ -283,6 +283,10 @@ async function queueReady(page, controls, freshJobRequired = true) {
 async function resetQueue({ page, previousResult, controls, signal, rejection }) {
   const previous = previousResult?.observations ?? previousResult;
   if (rejection) {
+    if (rejection.kind === 'capacity-admission') {
+      if (previous?.scenario !== 'disk-full-admission' || previous.rejection?.valid !== true || previous.rejection?.code !== 'CAPACITY' || previous.document?.unchanged !== true || previous.storagePressure?.active !== false || previous.storagePressure?.actualAdmissionRecovered !== true || previous.effects?.enqueueCommands !== 1 || ['queuedJobsAdded', 'attemptsAdded', 'submissions'].some(key => previous.effects?.[key] !== 0)) issue('Capacity rejection reset requires exact preserved draft/job evidence and released real storage reservation');
+      return { rejectionCase: 'disk-full-admission', expectedNoSubmission: true, ...await queueReady(page, controls, false) };
+    }
     if (previous?.caseId !== rejection.caseId || previous.scenario !== rejection.scenario || previous.rejection?.valid !== true || previous.document?.unchanged !== true || ['queuedJobsAdded', 'attemptsAdded', 'enqueueCommands', 'submissions'].some(key => previous.effects?.[key] !== 0)) issue('Fast negative reset lacks its exact prior rejection and zero-job, zero-attempt, zero-submission evidence');
     return { rejectionCase: rejection.caseId, expectedNoSubmission: true, ...await queueReady(page, controls, false) };
   }
@@ -312,7 +316,7 @@ async function resetQueue({ page, previousResult, controls, signal, rejection })
 export async function resetBrowserCell({ page, cell, fixture, sample = {}, previousResult, baseline, controls, server: _server, networkGuard, signal }) {
   try {
     signal?.throwIfAborted(); const p = cell.parameters ?? cell.options ?? cell;
-    const rejection = cell.operation === 'fast.workflow' && /^WF(?:0[789]|1[012])$/.test(p.caseId ?? '') ? (await import('./browser-fast-rejections.mjs')).fastRejectionCase(cell) : null;
+    const rejection = cell.operation === 'queue.fault' && p.scenario === 'disk-full-admission' ? { kind: 'capacity-admission' } : cell.operation === 'fast.workflow' && /^WF(?:0[789]|1[012])$/.test(p.caseId ?? '') ? (await import('./browser-fast-rejections.mjs')).fastRejectionCase(cell) : null;
     if (p.readiness || p.decodedCache || p.mode && p.mode !== 'native') issue('Exact encoded, decoded or fallback readiness needs its separate verified product controller; restoring history does not prove readiness A/B/C');
     if (previousResult && sample.cache === 'cold') issue('A cold sample requires fresh browser and backend processes');
     if (navigation.has(cell.operation)) return { status: 'PASS', cache: sample.cache, navigationInsideAction: true, checkpointsRetained: true, missing: [] };

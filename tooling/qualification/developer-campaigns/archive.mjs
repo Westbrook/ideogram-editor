@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { startEvidenceMonitor, retainEvidenceAudit } from '../evidence-volume.mjs';
+import { randomUUID as evidenceUUID } from 'node:crypto';
 /** PERF I2 / D09. Plans are inert. Execution installs only in retained, isolated
  * snapshots; it never rewrites the selected checkout or a published archive. */
 import {createHash} from 'node:crypto';
@@ -410,7 +412,22 @@ export async function runArchiveSample(options) {
   return runArchiveCampaign({...options, sample});
 }
 
-export async function runArchiveCampaign({sourceRoot = root, output, recipePath, install = false, registry = 'https://registry.npmjs.org/', abortSignal, sample: sampleOption, timingLease} = {}) {
+export async function runArchiveCampaign(options = {}) {
+  if (options.evidenceStorage) return runArchiveCampaignObserved(options);
+  if (!options.output) throw Error('An executed evidence-accounted I2 campaign requires explicit output');
+  const output = resolve(options.output), monitor = await startEvidenceMonitor({ output, campaignId: 'I2-' + evidenceUUID(), onAlarm: alarm => console.error(JSON.stringify({ evidenceStorageAlarm: alarm })) });
+  let outcome = 'FAIL';
+  try { const receipt = await runArchiveCampaignObserved({ ...options, evidenceStorage: monitor.reference }); outcome = receipt.status; return receipt; }
+  finally {
+    const candidate = join(output, 'receipt.json');
+    const receiptPath = await lstat(candidate).then(value => value.isFile() ? candidate : null, () => null);
+    const audit = await monitor.finish({ receiptPath, outcome });
+    if (receiptPath) await retainEvidenceAudit(monitor.reference, output);
+    if (audit.status !== 'PASS') { if (process.exitCode !== 1) process.exitCode = audit.status === 'FAIL' ? 1 : 2; throw Object.assign(Error('Evidence volume audit ' + audit.status), { code: 'EVIDENCE_' + audit.status }); }
+  }
+}
+
+async function runArchiveCampaignObserved({sourceRoot = root, output, recipePath, install = false, registry = 'https://registry.npmjs.org/', abortSignal, sample: sampleOption, timingLease, evidenceStorage = null} = {}) {
   const sample = sampleOption ? validateArchiveSample(sampleOption) : null;
   if (!install || !recipePath) fail('Archive execution requires --install and --recipe; it installs only in owned snapshots');
   sourceRoot = await realpath(sourceRoot);
@@ -419,7 +436,7 @@ export async function runArchiveCampaign({sourceRoot = root, output, recipePath,
   let recipeBytes, recipe, selectedToolchain, frozen, manifest, packages, packagesBytes;
   const receipt = {schema: 1, kind: sample ? 'archive-upgrade-sample-1' : 'archive-upgrade-campaign-1', status: 'running', budget: 'I2', row: 'D09', startedAt: new Date().toISOString(), monotonicStartedAt: invocationStart,
     recipe: {path: resolve(recipePath)}, plan: archivePlan(), host: observedEnvironment(), sample,
-    registry, workspace: run.workspace, directory: run.directory, runs: [], commands: [], qualification: false};
+    ...(evidenceStorage ? {evidenceStorage} : {}), registry, workspace: run.workspace, directory: run.directory, runs: [], commands: [], qualification: false};
   const markInterrupted = () => {
     receipt.interrupted = true; receipt.status = 'failed'; receipt.failure = 'Campaign interrupted';
     receipt.summary = {...summarizeArchiveCampaign(receipt.runs), outcome: 'FAIL', terminalFailure: receipt.failure};

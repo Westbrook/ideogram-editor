@@ -44,9 +44,12 @@ test('legacy format1 retains inspection and explicitly refuses editable publicat
 test('unchanged independent d4 hostile archives never become editable or publish a namespace',async t=>{
  const {readFile}=await import('node:fs/promises');
  for(const name of ['drop-transaction-prefix.zip','hostile-duplicate-event-id.zip','hostile-split-one-command.zip']){
-  const f=await setup(t),bytes=await readFile(new URL('../../evidence/p1b6-correction/original-review/'+name,import.meta.url)),s=await upload(f,bytes),c=f.command({documentId:null,expectedDocumentRevision:null,body:{type:'PreviewBundleImport',stagingId:s.stagingId,expectedSha256:s.sha256}}),r=await terminal(f,c);
+  const f=await setup(t);
+  try {
+   const bytes=await readFile(new URL('../../evidence/p1b6-correction/original-review/'+name,import.meta.url)),s=await upload(f,bytes),c=f.command({documentId:null,expectedDocumentRevision:null,body:{type:'PreviewBundleImport',stagingId:s.stagingId,expectedSha256:s.sha256}}),r=await terminal(f,c);
   if(name==='drop-transaction-prefix.zip'){
    assert.equal(r.json.receipt.status,'accepted');const e=(await f.read('/api/v1/events?after='+String(BigInt(r.json.receipt.fromSeq)-1n))).json.batches[0].events[0],review=(await f.read('/api/v1/bundle-reviews/'+e.payload.reviewId)).json;assert.equal(review.editable,false);assert.equal(review.reason,'LEGACY_TRANSACTION_BOUNDS_UNAVAILABLE');const imported=await terminal(f,f.command({documentId:null,expectedDocumentRevision:null,body:{type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash}}));assert.equal(imported.json.receipt.status,'rejected');
   }else assert.equal(r.json.receipt.status,'rejected');assert.deepEqual(retained(f.root).namespaces,[]);t.diagnostic(JSON.stringify({finding:'I-PF01',unchangedReviewerArtifact:name,sha256:digest(bytes),receipt:r.json.receipt,noEditableNamespace:true}));
+  } finally { await f.server.close(); }
  }
 });

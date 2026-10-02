@@ -16,8 +16,9 @@ export type ImageState = { schemaVersion: 1 | 2 | 3 | 4 | 5; composition?:Compos
 export type ImageVersion = { state: BlobRef; semanticDigest: string; compositeAssetId: string | null };
 export type CompositionCommand = 'CommitCompositionVersion'|'AddSemanticElement'|'RemoveSemanticElement'|'ReorderSemanticElement'|'SetSemanticBinding'|'DetachSemanticBinding'|'ApprovePromptProjection';
 export const compositionCommands = ['CommitCompositionVersion','AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding','ApprovePromptProjection'] as const;
-export type CandidatePlacement = { candidateId:string; mode:'safe-region'|'full-candidate'; placement:'current-document'|'new-document'; newDocumentId:string|null; actualOutput:{width:number;height:number;clipMask:boolean}|null; newLayerId:string; name:string; replacement?:{layerId:string;layerVersion:string} };
+export type CandidatePlacement = { candidateId:string; mode:'safe-region'|'full-candidate'; placement:'current-document'|'new-document'; newDocumentId:string|null; actualOutput:{width:number;height:number;clipMask:boolean}|null; newLayerId:string; name:string; replacement?:{layerId:string;layerVersion:string};textTreatment?:{kind:'candidate-text-treatment-1';plan:import('../request/text-treatment.js').RequestTextTreatmentEnvelope;choice:import('../request/text-treatment.js').TreatmentAdoptionChoice} };
 export type HistoryBody = TextBody
+  | {type:'CreateDocument';name:string;width:number;height:number;background:import('./store.js').DocumentCreationBackground}
   | {type:CompositionCommand;composition:CompositionRef;draft:DraftFence|null}
   | {type:'SetLayerAppearance';layerId:string;layerVersion:string;description:string;draft:DraftFence|null}
   | { type: 'ImportAsset'; assetId: string; layerId: string; name: string; draft: DraftFence | null }
@@ -34,7 +35,7 @@ export type HistoryBody = TextBody
   | { type: 'SaveCheckpoint'; name: string }
   | { type: 'PrepareRequestSource'; scope: 'single-layer' | 'visible-document' | 'selected-layers'; layerIds: string[] }
   | ({type:'PrepareCandidateAdoption'} & CandidatePlacement)
-  | ({type:'ReviewCandidatePlacement'} & CandidatePlacement)
+  | ({type:'ReviewCandidatePlacement';preparation?:'encoded-rebuild'} & CandidatePlacement)
   | {type:'AdoptReviewedCandidate';reviewId:string;reviewHash:string;draft:null}
   | { type: 'PrepareImageResample'; layerId: string; layerVersion: string; width: number; height: number }
   | { type: 'PrepareFlattenedCopy'; layerIds: string[]; includeHidden: boolean; hideOriginals: boolean; newLayerId: string; name: string }
@@ -45,10 +46,13 @@ export type ImageEditPreview = {
   previewId: string; documentId: string; documentRevision: string;
   kind: 'resample-image' | 'flattened-copy' | 'candidate-adoption'; plan: BlobRef; source: ImageVersion;
   preparedAssetId: string; after: ImageVersion;
-  candidate?: {candidateId:string;mode:'safe-region'|'full-candidate';placement:'current-document'|'new-document';newDocumentId:string|null;replacement?:{layerId:string;layerVersion:string};coverage:{originalEffectivePixels:number;effectivePixels:number;lostPixels:number}|null;outputMapping:import('../request/raster-plan.js').RequestOutputMapping|null};
+  candidate?: {candidateId:string;mode:'safe-region'|'full-candidate';placement:'current-document'|'new-document';newDocumentId:string|null;textTreatment?:{kind:'candidate-text-treatment-preview-1';plan:import('../request/text-treatment.js').RequestTextTreatmentEnvelope;choice:import('../request/text-treatment.js').TreatmentAdoptionChoice;nativeOffAssetId:string;nativeOnAssetId:string};replacement?:{layerId:string;layerVersion:string};coverage:{originalEffectivePixels:number;effectivePixels:number;lostPixels:number}|null;outputMapping:import('../request/raster-plan.js').RequestOutputMapping|null};
 };
 export type ImageEditReview = { protocolVersion: 1; reviewId: string; preview: ImageEditPreview; targetClientId: string; expiresAt: string; reviewHash: string };
-export type CandidatePlacementReview = {protocolVersion:1;kind:'candidate-placement-review-1';reviewId:string;reviewHash:string;targetClientId:string;expiresAt:string;documentId:string;documentRevision:string;source:ImageVersion;placement:CandidatePlacement;inputs:import('./candidates.js').CandidateAdoptionInputs;preparation:'deferred'|'prepared-reuse';width:number;height:number};
+export type CandidateLetteringComparison={kind:'candidate-lettering-comparison-1';plan:import('../request/text-treatment.js').RequestTextTreatmentEnvelope;choice:import('../request/text-treatment.js').TreatmentAdoptionChoice;intent:BlobRef;intentHash:string;manifest:BlobRef;grid:{width:number;height:number};candidateAloneAssetId:string;nativeOffAssetId:string;nativeOnAssetId:string};
+/** Metadata intent only. It never claims prepared output pixels or preservation. */
+export type CandidateLetteringIntent={kind:'candidate-lettering-intent-1';documentId:string;documentRevision:string;source:ImageVersion;placement:CandidatePlacement;identity:import('./candidates.js').CandidateAdoptionIdentity;requestPlan:import('../request/raster-plan.js').RequestRasterPlan|null;decision:import('../request/text-treatment.js').TextTreatmentPlacementIntent;after:ImageState};
+export type CandidatePlacementReview = {protocolVersion:1;kind:'candidate-placement-review-1';reviewId:string;reviewHash:string;targetClientId:string;expiresAt:string;documentId:string;documentRevision:string;source:ImageVersion;placement:CandidatePlacement;inputs:import('./candidates.js').CandidateAdoptionInputs;preparation:'deferred'|'prepared-reuse';width:number;height:number;lettering?:CandidateLetteringComparison;encodedComposition?:import('./encoded-rebuild.js').EncodedCompositionInputs;encodedCompositionRef?:BlobRef};
 export type ImageHistoryNode = {
   id: string; documentId: string; branchId: string; parent: string; revision: string;
   kind: 'image-edit'; operation: HistoryBody['type'];
@@ -68,5 +72,5 @@ export type HistoryFact =
   | { type: 'ImageEditReviewPrepared'; payload: { reviewId: string; reviewHash: string } }
   | {type:'CandidatePlacementReviewPrepared';payload:{reviewId:string;reviewHash:string}}
   | { type: 'HistoryNavigated'; payload: { document: Document; previousHead: string; action: 'Undo' | 'Redo' | 'SwitchBranch' } };
-export const historyCommands = [...compositionCommands,'SetLayerAppearance','ImportFont','CreateTextLayer','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative','ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','Undo','Redo','SwitchBranch','ExportDocument','SaveCheckpoint','PrepareRequestSource','PrepareCandidateAdoption','AdoptCandidate','ReviewCandidatePlacement','AdoptReviewedCandidate','PrepareImageResample','PrepareFlattenedCopy','ReviewImageEdit','ResampleImage','CreateFlattenedCopy'] as const;
+export const historyCommands = [...compositionCommands,'CreateDocument','SetLayerAppearance','ImportFont','CreateTextLayer','CreateTextFromReturnedDescription','CommitTextEdit','ReplaceTextFont','RasterizeTextDerivative','ImportAsset','ApplyTransform','SetLayerProperties','DeleteLayer','DuplicateLayer','MoveLayers','CropDocument','ResizeCanvas','Undo','Redo','SwitchBranch','ExportDocument','SaveCheckpoint','PrepareRequestSource','PrepareCandidateAdoption','AdoptCandidate','ReviewCandidatePlacement','AdoptReviewedCandidate','PrepareImageResample','PrepareFlattenedCopy','ReviewImageEdit','ResampleImage','CreateFlattenedCopy'] as const;
 export const isHistoryCommand = (type: string): boolean => (historyCommands as readonly string[]).includes(type);

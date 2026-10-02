@@ -1,4 +1,6 @@
-import {resolve} from 'node:path';
+import { startEvidenceMonitor, retainEvidenceAudit } from '../evidence-volume.mjs';
+import { lstat } from 'node:fs/promises';
+import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {developerCommandPlan, runDeveloperCommandCampaign} from './commands.mjs';
 import {archivePlan, prepareArchiveRecipe, runArchiveCampaign} from './archive.mjs';
@@ -58,14 +60,19 @@ export async function mainCampaign(args) {
   if (options.plan) { console.log(json(campaignPlan(options.campaign))); return; }
   const controller = new AbortController(), interrupt = () => controller.abort('SIGINT'), terminate = () => controller.abort('SIGTERM');
   process.on('SIGINT', interrupt); process.on('SIGTERM', terminate);
+  let evidenceMonitor = null, retainedReceiptPath = null;
   try {
+    if (options.run && options.campaign !== 'I0') {
+      if (!options.output) throw Error('Evidence-accounted campaign requires explicit --output');
+      evidenceMonitor = await startEvidenceMonitor({ output: resolve(options.output), campaignId: 'developer-' + options.campaign + '-' + Date.now(), onAlarm: alarm => console.error(JSON.stringify({ evidenceStorageAlarm: alarm })) });
+    }
     if (options.campaign === 'I0') {
       const {runCiExecution} = await import('../ci/execute.mjs');
       const arguments_ = [options.run ? 'stage' : 'verify', '--plan', options.ciPlan, '--received', options.received, '--output', options.output];
       if (options.run) arguments_.push('--stage', options.stage, '--workspace', options.workspace);
       await runCiExecution(arguments_, controller.signal);
     } else if (options.campaign === 'I1') {
-      const receipt = await runDeveloperCommandCampaign({...options, abortSignal: controller.signal});
+      const receipt = await runDeveloperCommandCampaign({...options, abortSignal: controller.signal, evidenceStorage: evidenceMonitor?.reference});
       console.log(json({status: receipt.status, qualification: receipt.qualification, groups: receipt.groups.length, missing: receipt.missingQualification, failure: receipt.failure}));
       if (receipt.status !== 'PASS') process.exitCode = 1;
     } else if (options.prepare) {
@@ -73,13 +80,26 @@ export async function mainCampaign(args) {
       console.log(json({status: receipt.status, recipe: receipt.recipe, directory: receipt.directory, failure: receipt.failure}));
       if (receipt.status !== 'passed') process.exitCode = 1;
     } else {
-      const receipt = await runArchiveCampaign({...options, abortSignal: controller.signal});
+      const receipt = await runArchiveCampaign({...options, abortSignal: controller.signal, evidenceStorage: evidenceMonitor?.reference});
       console.log(json({status: receipt.status, directory: receipt.directory, summary: receipt.summary}));
       if (receipt.status !== 'passed-local-campaign') process.exitCode = 1;
     }
   } finally {
+    try {
+      if (evidenceMonitor) {
+        for (const name of ['receipt.json', 'campaign.json', 'failure.json']) {
+          const path = join(resolve(options.output), name);
+          try { if ((await lstat(path)).isFile()) { retainedReceiptPath = path; break; } } catch (error) { if (error.code !== 'ENOENT') throw error; }
+        }
+        const audit = await evidenceMonitor.finish({ receiptPath: retainedReceiptPath, outcome: process.exitCode ? 'FAIL' : 'UNKNOWN' });
+        if (retainedReceiptPath) await retainEvidenceAudit(evidenceMonitor.reference, resolve(options.output));
+        console.log(json({ evidenceStorage: { status: audit.status, auditId: audit.auditId } }));
+        if (audit.status !== 'PASS' && process.exitCode !== 1) process.exitCode = audit.status === 'FAIL' ? 1 : 2;
+      }
+    } finally {
     process.off('SIGINT', interrupt); process.off('SIGTERM', terminate);
     if (controller.signal.aborted) process.exitCode = controller.signal.reason === 'SIGINT' ? 130 : 143;
+    }
   }
 }
 

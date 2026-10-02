@@ -1,0 +1,493 @@
+{
+  "adapterVersion": "text-worker-1",
+  "layoutVersion": "layout-1",
+  "rasterProfile": "ck040-custom3-cpu-rgba8888-unpremul-srgb-transparent-zero-1",
+  "engine": {
+    "package": "canvaskit-wasm",
+    "version": "0.40.0-ideogram.3",
+    "distribution": "local reproducible CPU Paragraph build from official source; not npm-byte-equivalent",
+    "tarball": {
+      "bytes": 2088133,
+      "sha256": "3528e0ce6183998fc34a6a2a3963b3c2518d0df8ca9d3f8c89fa4b20cd2ef538",
+      "gzipBytes": 2087691
+    },
+    "js": {
+      "bytes": 73594,
+      "sha256": "867b8ff817783c7554485dcf5b11b6f9de878178a14236b0e81305418fb1189f",
+      "gzipBytes": 23969
+    },
+    "wasm": {
+      "bytes": 4979358,
+      "sha256": "26389aa33388a205d355b04b48d3c00965db73d6781ae297f6e2f27e8631bb19",
+      "gzipBytes": 2021768
+    },
+    "sourceRevision": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+    "sourceAttribution": "Locally built official source archive and exact DEPS; explicit source patch and pinned tools",
+    "paperAnchor": "ae33954b4932e71f2bdfbe58ad3d1cde7980db7c",
+    "license": "BSD-3-Clause",
+    "customBuild": {
+      "source": "5f262bd2cbb40f78659ec32547163fe83117a38d",
+      "emscripten": "3.1.44",
+      "llvm": "a8cbd27d1f238e104a5d5ca345d93bc1f4d4ab1f",
+      "recipe": "tooling/text/configure-source.py",
+      "patch": "tooling/text/canvaskit-source.patch",
+      "initialBytes": 16777216,
+      "maximumBytes": 33554432,
+      "icuDataSha256": "c12537022ef818991a7bfed41a76d8d6ae962ffbc0e6511ac762a5d0845e7f7c"
+    }
+  },
+  "unicode": {
+    "policy": "first-strong-per-LF-paragraph-isolate-aware-15.1.0",
+    "bidiData": {
+      "bytes": 166678,
+      "sha256": "b57884c59a3a5348d86faed39965bbddb4e4493d3c16c1ec378ec26bfb5821be",
+      "gzipBytes": 41877
+    },
+    "shaper": "ICU compiled into sealed WASM; default non-client build",
+    "sourceUnicodeVersion": "15.1",
+    "sourceICURevision": "364118a1d9da24bb5b770ac3d762ac144d6da5a4",
+    "unicodeDataHash": "sha256:c12537022ef818991a7bfed41a76d8d6ae962ffbc0e6511ac762a5d0845e7f7c",
+    "unicodeDataHashScope": "actual pinned ICU flutter/icudtl.dat compiled into custom WASM"
+  },
+  "fonts": [
+    {
+      "id": "NotoSans",
+      "file": "fonts/NotoSans-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+      "bytes": 569208,
+      "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "gzipBytes": 283990,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-OFL.txt",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    },
+    {
+      "id": "NotoSansArabic",
+      "file": "fonts/NotoSansArabic-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf",
+      "bytes": 240456,
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b",
+      "gzipBytes": 105678,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-OFL.txt",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    },
+    {
+      "id": "NotoSansSymbols2",
+      "file": "fonts/NotoSansSymbols2-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansSymbols2/NotoSansSymbols2-Regular.ttf",
+      "bytes": 656852,
+      "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "gzipBytes": 297016,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-OFL.txt",
+      "licenseHash": "sha256:0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    },
+    {
+      "id": "NotoSansCJKsc",
+      "file": "fonts/NotoSansCJKsc-Regular.otf",
+      "url": "https://raw.githubusercontent.com/notofonts/noto-cjk/f8d157532fbfaeda587e826d4cd5b21a49186f7c/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+      "bytes": 16437364,
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+      "gzipBytes": 13585906,
+      "faceIndex": 0,
+      "licenseFile": "notices/Noto-CJK-OFL.txt",
+      "licenseHash": "sha256:6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+      "embedding": "permitted",
+      "license": "OFL-1.1",
+      "unmodified": true
+    }
+  ],
+  "limits": {
+    "wasmHeapBytes": 134217728,
+    "faceBytes": 16777216,
+    "faces": 16,
+    "fontBytes": 67108864,
+    "textBytes": 16384,
+    "logicalLines": 256,
+    "pixels": 25000000,
+    "layoutBytes": 8388608
+  },
+  "fontProfile": "static regular upright normal-width TTF/CFF1 OTF; complete unmodified files; face index0",
+  "lineHeightPolicy": "largest supplied font metric span times multiplier; symmetric leading; native rounded baselines",
+  "memory": {
+    "wasmDeclaredInitialBytes": 16777216,
+    "wasmDeclaredMaximumBytes": 33554432,
+    "aggregateFontShapingCeilingQualified": false,
+    "admission": "shared realm preallocation R35 128MiB within R18 512MiB; MEMORY.txt exact model",
+    "ownership": "booked reusable worker; <=16 retained exact native faces; bounded latest queue and one cold cache-capacity retry; successful terminate releases private leases once, caller/prepared leases remain; actual API failure retains uncertain capacity",
+    "integration": "durable-state-v1: one realm envelope shared with sole writer font/raster admission; exact output consumption and release",
+    "limitation": "logical owned-allocation reservations and process admission guards; no RSS/P3 qualification"
+  },
+  "notices": [
+    {
+      "path": "vendor/text/notices/Brotli-LICENSE",
+      "bytes": 1084,
+      "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+    },
+    {
+      "path": "vendor/text/notices/CanvasKit-LICENSE",
+      "bytes": 1635,
+      "sha256": "d27678cba0d529e77201e2d2a053628143e986aad8f1e77f7039ad4366c8f978"
+    },
+    {
+      "path": "vendor/text/notices/Emscripten-LICENSE",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "vendor/text/notices/Expat-COPYING",
+      "bytes": 1144,
+      "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534"
+    },
+    {
+      "path": "vendor/text/notices/FreeType-FTL.TXT",
+      "bytes": 6743,
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+    },
+    {
+      "path": "vendor/text/notices/HarfBuzz-COPYING",
+      "bytes": 1971,
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "path": "vendor/text/notices/Noto-CJK-OFL.txt",
+      "bytes": 4301,
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    },
+    {
+      "path": "vendor/text/notices/Noto-OFL.txt",
+      "bytes": 4377,
+      "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "path": "vendor/text/notices/Unicode-LICENSE.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    {
+      "path": "vendor/text/notices/Wuffs-LICENSE",
+      "bytes": 10174,
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    {
+      "path": "vendor/text/notices/custom-emscripten-LICENSE.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "vendor/text/notices/custom-freetype-LICENSE.txt",
+      "bytes": 6743,
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1"
+    },
+    {
+      "path": "vendor/text/notices/custom-harfbuzz-LICENSE.txt",
+      "bytes": 1971,
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+    },
+    {
+      "path": "vendor/text/notices/custom-icu-LICENSE.txt",
+      "bytes": 25185,
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+    },
+    {
+      "path": "vendor/text/notices/custom-libpng-LICENSE.txt",
+      "bytes": 5345,
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+    },
+    {
+      "path": "vendor/text/notices/custom-skia-LICENSE.txt",
+      "bytes": 1507,
+      "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd"
+    },
+    {
+      "path": "vendor/text/notices/custom-wuffs-LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "vendor/text/notices/custom-zlib-LICENSE.txt",
+      "bytes": 910,
+      "sha256": "e1cfcc55c325b3f78cf55df9664abaa066e2271dffe8213347d9fccdfbac8f2c"
+    },
+    {
+      "path": "vendor/text/notices/icu-LICENSE",
+      "bytes": 25185,
+      "sha256": "17510cf7a58b4879b887ec05a45d72cf1b73544dd9ec7e72f20110ed104229ee"
+    },
+    {
+      "path": "vendor/text/notices/libjpeg-turbo-LICENSE",
+      "bytes": 5213,
+      "sha256": "60c756742db3ad1913304e8b13f0e86e22e51adb50cc0b3333c163f7e45ceec1"
+    },
+    {
+      "path": "vendor/text/notices/libpng-LICENSE",
+      "bytes": 5345,
+      "sha256": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+    },
+    {
+      "path": "vendor/text/notices/libwebp-COPYING",
+      "bytes": 1496,
+      "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+    },
+    {
+      "path": "vendor/text/notices/zlib-LICENSE",
+      "bytes": 1002,
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+    }
+  ],
+  "adapterSources": [
+    {
+      "path": "src/text/admission.ts",
+      "bytes": 4357,
+      "sha256": "be0ae31c17e9d0497a27a49d0b15f1be7672c20c5752e8423ad71f0f06fc5e1a"
+    },
+    {
+      "path": "src/text/bidi-data.json",
+      "bytes": 19070,
+      "sha256": "df36e677252814e1d84009c9ab735c12ac67deb7460695d64b477beee00b955a"
+    },
+    {
+      "path": "src/text/bidi.ts",
+      "bytes": 632,
+      "sha256": "9fbc954b46188247d44c829ce82bba259de40dbcbb0100380c43aa8e7b961350"
+    },
+    {
+      "path": "src/text/bundled-fonts.ts",
+      "bytes": 1857,
+      "sha256": "14772cc968adf2512319ee2be18062db6b8ab32a591e1c0bdc3efe0305494c84"
+    },
+    {
+      "path": "src/text/client.ts",
+      "bytes": 10443,
+      "sha256": "797c8a655b93bc9991b33d9f11c8ab694f868ea7a5c83625f6a1e5472ed297d4"
+    },
+    {
+      "path": "src/text/contracts.ts",
+      "bytes": 8854,
+      "sha256": "96aa65d78cf834c14def464df88d3b94982193cfeabc8f70b1eaba3d86fae6ec"
+    },
+    {
+      "path": "src/text/core.ts",
+      "bytes": 19594,
+      "sha256": "d27d8403c9625d42291a7955585c9db999f81d76d506f29e6269351a5f33ab6c"
+    },
+    {
+      "path": "src/text/durable.ts",
+      "bytes": 6365,
+      "sha256": "a5bce2aa7dad1678b3af6df93f8cdbc7c841dddca507eb176673011b699cd3e5"
+    },
+    {
+      "path": "src/text/engine.ts",
+      "bytes": 1476,
+      "sha256": "c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830"
+    },
+    {
+      "path": "src/text/font.ts",
+      "bytes": 4272,
+      "sha256": "76a715d1e84212ae66dcbe34c55ae8a879e473bfea299987018a7d7bd9380b01"
+    },
+    {
+      "path": "src/text/layout-writer.ts",
+      "bytes": 5701,
+      "sha256": "2edb8376e51f8988af0dbb3fdce5789b0c22a2d236835e5e651ca918255477ea"
+    },
+    {
+      "path": "src/text/memory.ts",
+      "bytes": 7716,
+      "sha256": "79278a0c714867e6852fe6f46d422f456a04e9ed9cff7e903fa19972ac4fa406"
+    },
+    {
+      "path": "src/text/returned-description.ts",
+      "bytes": 8160,
+      "sha256": "91bc43222ab686b874576d538c0fb4909d8aa4fda000a56c25421d9f8c1c2c08"
+    },
+    {
+      "path": "src/text/worker.ts",
+      "bytes": 2089,
+      "sha256": "7f60b4d87d0557bbe79e3472d643c6fb233ddbfe4923e7738e823fde86fe38be"
+    }
+  ],
+  "typeCompatibility": {
+    "path": "vendor/text/canvaskit.d.ts",
+    "sha256": "b77844bc1c2c9b12960bcecb5299c6b4e5dc5a07aa2ccf026124287a1b3f50f4",
+    "change": "Only upstream triple-slash WebGPU reference replaced by comment; TypeScript7 lib.dom already supplies WebGPU declarations. Common upstream declarations unchanged; custom APIs are explicitly typed in the adapter."
+  },
+  "sourceRecipe": [
+    {
+      "path": "src/text/retained-profiles/4fd6f6a1.json",
+      "bytes": 16958,
+      "sha256": "3b5159888dd22ea25a4a660bc36f788e13eb526db558bb72e6bab44aedee7dcd"
+    },
+    {
+      "path": "src/text/retained-profiles/68efa85f.json",
+      "bytes": 17134,
+      "sha256": "ea257991e81f2a1ebe4f2c3172c6071628b1a30b4230a5ec7c9b92d35db6c99e"
+    },
+    {
+      "path": "src/text/retained-profiles/6d77f925.json",
+      "bytes": 17478,
+      "sha256": "a00135bd564fa7926b97752024a1a00ec7c23ba520f4aecca63b74ad1cd2e599"
+    },
+    {
+      "path": "src/text/retained-profiles/c6ca02c2.json",
+      "bytes": 17655,
+      "sha256": "d3ef40a7cbf8b4119627dc2f4ce1a11cb1bb1c9eedfb6b9d8321e04afeb249dd"
+    },
+    {
+      "path": "src/text/retained-profiles/1c399d52.json",
+      "bytes": 18008,
+      "sha256": "140b72169cfae3e5fe727f58a0395b3a21ec7da6cf36283e87c9320a6a6c6ee8"
+    },
+    {
+      "path": "tooling/text/source-closure.json",
+      "bytes": 7326,
+      "sha256": "c7cb9b9febbf9464800aaa46d4044243629400e8e3d836771f99c2d01dc4c993"
+    },
+    {
+      "path": "tooling/text/configure-source.py",
+      "bytes": 3535,
+      "sha256": "b1f04570cd6a854312b58017e95f75a59155ffdb1ed6e71792ca5b2653dd768c"
+    },
+    {
+      "path": "tooling/text/canvaskit-source.patch",
+      "bytes": 3975,
+      "sha256": "aef6f9481e8bf71bb942b24dd58dc5dd6849dec6122d571094e0ab658509c5a6"
+    },
+    {
+      "path": "tooling/text/rebuild.py",
+      "bytes": 3463,
+      "sha256": "18f8afb2cc9341aedc30f2712fa21727250543dd91f7c966bd105171d689b33d"
+    },
+    {
+      "path": "tooling/text/MEMORY.txt",
+      "bytes": 8845,
+      "sha256": "c1eec2d5fa800125b469afd1cd191bf7cf6976fac9fc18e19b79a50e8ca72fbb"
+    },
+    {
+      "path": "server/static.ts",
+      "bytes": 5187,
+      "sha256": "8faac262524f413c0488ff9055d5ffef0c8e5100d2a1d9ac67f38af8085ea6ad"
+    },
+    {
+      "path": "server/http.ts",
+      "bytes": 19868,
+      "sha256": "45c1df22c51814e33056943b9be2f17c54defecbafe8763cdcfde007cbacf8d5"
+    },
+    {
+      "path": "server/storage/text.ts",
+      "bytes": 16715,
+      "sha256": "cfc66ea2bf67b7c3dfce15c91e0db13daa818af04c9b236d87120abd596736ba"
+    },
+    {
+      "path": "server/text/font.ts",
+      "bytes": 4425,
+      "sha256": "0093e9341c3b39e93065fa4ab4736fb0ae46f39314b5fb4af227d5e22d239ade"
+    },
+    {
+      "path": "server/text/worker.ts",
+      "bytes": 561,
+      "sha256": "bff44a473836e51538e93a1c56363f009a17c48fa18bbe487596576d41d8848f"
+    },
+    {
+      "path": "server/text/supervisor.ts",
+      "bytes": 1838,
+      "sha256": "87b61293d90f0e898b4137043fe2e7e4595f92fe42d3c5a9b3ab207ed5a1c130"
+    },
+    {
+      "path": "server/observability/adapter-resources.ts",
+      "bytes": 23616,
+      "sha256": "d32317ba17ef7c9fd9e6c7f2b2c710b9a9d865fb41dbaa553b040dd2329349b6"
+    },
+    {
+      "path": "server/text/validation.ts",
+      "bytes": 15343,
+      "sha256": "0948f6c8668b97ee0d05cfef81af10eee76b5da872151ab5eaff0a1686d3bc8c"
+    },
+    {
+      "path": "server/text/render-worker.mjs",
+      "bytes": 7122,
+      "sha256": "4fa4262d569ef3f771af51bde70d18f071e7ad94b7c69c53c8dc611cb9346b71"
+    },
+    {
+      "path": "tests/text-state/verifier.vite.config.ts",
+      "bytes": 330,
+      "sha256": "e1f41d22e2b89b621c9ac1960bc932ef8fd3a646fb350446f2aba614b6ef38a7"
+    },
+    {
+      "path": "tooling/text/verifier.vite.config.ts",
+      "bytes": 318,
+      "sha256": "01a84de54aac11eddbe4bb9ba1aa2c986060e67774f861e65f03a7bce4aa387c"
+    },
+    {
+      "path": "src/protocol/text-budget.ts",
+      "bytes": 5124,
+      "sha256": "2c5ee01e9fd0f297c12e84846b87d6ddd0839e9a5c17bf62ee40301d7625fe10"
+    },
+    {
+      "path": "src/observability/phases.ts",
+      "bytes": 10214,
+      "sha256": "b50dcdadc22f9fbdbbbf6a19d9f453b60a5af94a3dfc17da9990503a81bb265b"
+    },
+    {
+      "path": "src/observability/browser-worker-observations.ts",
+      "bytes": 3117,
+      "sha256": "00cd9c0b7e19f8a72878d92d31dd79b3578a49df24023b25b2acb343bb8300d2"
+    },
+    {
+      "path": "src/text/retained-profiles/b89503d3.json",
+      "bytes": 14238,
+      "sha256": "39b0190db275a08547f01494eb3f2725cdb7d2d3cb7a8e92abe42bbae6c5dee8"
+    },
+    {
+      "path": "src/protocol/text.ts",
+      "bytes": 9336,
+      "sha256": "aff4bee3074dfb3b03c9663be0b4d4a8cc33540e3e63762fc73fc59657bacadc"
+    },
+    {
+      "path": "src/text/retained-profiles/c19791ae.json",
+      "bytes": 12986,
+      "sha256": "80d5dfb1f0f89548969c97348b57d0ddc6e8098f719de97dfb9feb9839734d2b"
+    },
+    {
+      "path": "src/text/retained-profiles/6e8a481e.json",
+      "bytes": 15396,
+      "sha256": "15634d19418bc21841fa8093de2ae7598b752c2f158be90f6e7e06216d79d6da"
+    },
+    {
+      "path": "src/text/retained-profiles/d047f5be.json",
+      "bytes": 15572,
+      "sha256": "d2cd5204fa8822a0ae17f610ada9add6b083ab90097d16b14397193522f54b1e"
+    },
+    {
+      "path": "src/text/retained-profiles/304528c9.json",
+      "bytes": 15748,
+      "sha256": "13f8dc3e3cbe8b7f572b2c624068a7cbdf683a04bb91a3de87a021621e030033"
+    },
+    {
+      "path": "src/text/retained-profiles/ff24a513.json",
+      "bytes": 15924,
+      "sha256": "82bbff0efe60f4633875efe51917e9526464a2ddc54ab28c2dc048d44267ef36"
+    },
+    {
+      "path": "src/text/retained-profiles/f5e8bd34.json",
+      "bytes": 16101,
+      "sha256": "2b874883288b0e197153220b4e44ff1dcb751d34c164a3f558668b40733e7d3b"
+    },
+    {
+      "path": "src/text/retained-profiles/7a4dbc6c.json",
+      "bytes": 16782,
+      "sha256": "808650b42cc817012dd5d68df0124171ac78679ce497acd6a6c031409886052d"
+    }
+  ],
+  "id": "sha256:e648eede47148f93c4ffaa4c053991210fc40f62785974ba7b182087a19904a1"
+}

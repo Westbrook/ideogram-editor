@@ -10,8 +10,15 @@ After all app source edits settle, run the authorized build:
 
   npm run build:app
 
-For a normal source-sealed qualification run, call the exported
-prepareCompletionIssuers(freshOutput, root) after the app build. Pass its env
+For a normal source-sealed qualification run with a live evidence monitor, call
+prepareCompletionIssuersChild(freshOutput, root, {env, abortSignal, timeoutMs})
+from prepare-child.mjs after the app build. This uses the unchanged non-adopting
+producer CLI in one bounded child so synchronous source/AST work cannot block the
+parent observer. It retains the child log/outcome, checks its exact output receipt,
+and rejects failure, timeout or interruption before publishing paths. Existing
+campaign/container command owners may run the same CLI under their bounded child
+and validate the prepared outputs. No evidence window, gap or capacity changes.
+Pass the returned env
 object (COMPLETION_APPLICATION_IDENTITY and COMPLETION_ISSUER_MANIFEST) to the
 completion-input capture and every completion Node/browser subprocess. This
 prepares exact per-run files in the ignored output only, without source mutation.
@@ -24,7 +31,7 @@ explicitly adopt its reviewed source contract:
 
 The command checks the build-start source seal against current bytes, the pinned
 toolchain, exact generated-output hashes, the sealed CanvasKit profile, and the
-unchanged independently reviewed direct-network source boundaries. It walks the
+independently reviewed network and response-ownership source boundaries. It walks the
 current test import closure, inventories every emitted file, resolves HTML/CSS
 and module edges, and partitions every direct networking call. Unknown calls,
 changed network boundaries, new bodyful or keepalive sites, unclosed assets and
@@ -57,3 +64,25 @@ These are retained as historical evidence only. Their old hashes, counts and
 claims are never substituted for current source or output. The new receipt
 seals the adapted producer, current identity/manifest, source network review
 boundaries and current classifications. It does not inherit prior pass results.
+
+Final assembled source review
+-----------------------------
+
+Before changing NETWORK_BOUNDARIES, independently compare the final assembled
+source against its prior reviewed bytes. Include the session fetch adapter and
+its method/header/body/signal setup, local command and draft deliveries, recovery
+release URLs, CSRF, original response readers, and native cleanup failure owners.
+The session adapter accepts exactly an identifier URL and an identifier init
+spread first, followed by fixed same-origin, no-store and redirect-error policy.
+Its source-pinned ownership helpers establish the delegated request and reader
+contract. The obsolete direct session shape is not a second accepted variant.
+
+Retain an immutable source-review receipt with exact original/final inputs and
+reviewed diffs. Update the classifier's fixed boundary assertion with those
+reviewed final bytes, retaining unchanged pins. Prepare a fresh enclosing issuer
+manifest after the current typecheck/build, including the current imported
+original-recovery-reader.ts and completion/sse-publication.mjs helpers. A changed
+helper or source input needs a fresh receipt; do not relabel historical issuer
+manifests, prior gate receipts, or native/browser artifacts as current evidence.
+The eight-fetch/three-XHR partition remains a strict emitted-build assertion;
+source review alone does not establish that the final build meets it.

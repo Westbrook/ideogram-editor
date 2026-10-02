@@ -17,6 +17,7 @@ export type Asset = { id: string; version: Seq; purpose: StagingPurpose; blob: B
   safety: 'safe' | 'unknown' | 'withheld' | 'quarantined'; availability: 'available' | 'missing' | 'corrupt';
   qualification: 'opaque-text' | 'pending-decoder' | 'raster-preview' | 'canonical-raster' | 'canonical-png' | 'canonical-jpeg' | 'pending-text' | 'font' | 'pending-adapter' | 'adapter-version' | 'adapter-deletion'; measuredMediaType: 'text/plain' | 'image/png' | 'image/jpeg' | 'image/webp' | 'application/octet-stream'; font?: import('./text.js').FontVersion; adapter?: import('./adapters.js').AdapterVersion; adapterDeletion?: import('./adapters.js').AdapterDeletionRecord; raster?: RasterInfo };
 export type AssetFact =
+  | { type: 'RasterImportInspectionPrepared'; payload: { inspectionId: string; inspectionHash: string } }
   | { type: 'AssetRegistered'; payload: { asset: Asset } }
   | { type: 'RasterReviewPrepared'; payload: { reviewId: string; reviewHash: string } }
   | { type: 'StagingTransferReviewPrepared'; payload: { reviewId: string; reviewHash: string } }

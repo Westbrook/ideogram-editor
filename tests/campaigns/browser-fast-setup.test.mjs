@@ -52,7 +52,7 @@ function readonlyPage(options = {}) {
       },
       async click() {
         if (name instanceof RegExp) {
-          assert.equal(role, 'button'); assert.equal(scope, 'Open document'); assert(name.test('owned_document · 512 × 512'));
+          assert.equal(role, 'button'); assert.equal(scope, 'Open document'); assert(name.test('Untitled document · owned_document · 512 × 512 · revision '+state.document.revision));assert(!name.test('Contains owned_document · foreign_document · 512 × 512 · revision '+state.document.revision),'Authored title cannot impersonate the document identity');
           state.clicks.push('Select owned document');
           if (options.afterReopen) state.document = copy(options.afterReopen);
           return;

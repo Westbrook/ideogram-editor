@@ -1,8 +1,8 @@
 {
   "kind": "validation-integration-adoption-evidence-1",
   "recordedAt": "2026-10-01T04:57:51.349979+00:00",
-  "status": "local-complete-publication-blocked",
-  "scope": "Full validation efficiency plan and coherent existing project integration; source checkpoints and focused repairs are distinct, not one final-HEAD all-suite run. Original failures retained. Runtime counts overlap and must not be summed as unique cases.",
+  "status": "retained-original-checkout-completion",
+  "scope": "Historical original-checkout evidence committed at f066b70cd47140a6b06e7a0d425974b5160df38e. No managed-source completion or qualification follows from this retained index. Full validation efficiency plan and coherent existing project integration; source checkpoints and focused repairs are distinct, not one final-HEAD all-suite run. Original failures retained. Runtime counts overlap and must not be summed as unique cases.",
   "runs": [
     {
       "receipt": {
@@ -23177,7 +23177,7 @@
                   "I1 requires complete matching D11 evidence and rejects changed retained measurements",
                   "I1 has ten independent cold/warm groups and never recursively schedules I0",
                   "five-per-cache medians/maxima and D10 ratios retain missing, failed and slow samples",
-                  "focused fixture selects existing risk cases with exact 100/10/5 and E1\u2013E4 aliases",
+                  "focused fixture selects existing risk cases with exact 100/10/5 and E1–E4 aliases",
                   "focused report admits only selected successes while retaining deliberately filtered siblings",
                   "browser evidence rejects dropped discovery, duplicate completion, skipped and changed IDs",
                   "exact Node patterns escape operators and stable method IDs cannot cross namespaces",
@@ -23665,7 +23665,7 @@
                   "I1 requires complete matching D11 evidence and rejects changed retained measurements",
                   "I1 has ten independent cold/warm groups and never recursively schedules I0",
                   "five-per-cache medians/maxima and D10 ratios retain missing, failed and slow samples",
-                  "focused fixture selects existing risk cases with exact 100/10/5 and E1\u2013E4 aliases",
+                  "focused fixture selects existing risk cases with exact 100/10/5 and E1–E4 aliases",
                   "focused report admits only selected successes while retaining deliberately filtered siblings",
                   "browser evidence rejects dropped discovery, duplicate completion, skipped and changed IDs",
                   "exact Node patterns escape operators and stable method IDs cannot cross namespaces",
@@ -28197,5 +28197,22 @@
       "A-R01 and prescribed native/resource/manual/P-Q3 qualification remain independent; these development receipts provide no such credit."
     ],
     "adoption": "Verified prerequisite reuse enabled; two-worker harness execution and browser batching remain opt-in with serial/fresh fallbacks. Cross-layer edit measurements did not demonstrate a speedup."
+  },
+  "retainedEvidenceContext": {
+    "kind": "original-checkout-evidence-provenance-1",
+    "commit": "f066b70cd47140a6b06e7a0d425974b5160df38e",
+    "repositoryRoot": "/Users/westbrook/Documents/repos/ideogram-edit",
+    "originalDocument": {
+      "repositoryPath": "docs/testing/integration-verification.json",
+      "bytes": 1085156,
+      "sha256": "49c76e311b5bd89392cd14ffafbd3481a36a1bd9fccf9e79f8f7f4764aedc1a0"
+    },
+    "originalStatus": "local-complete-publication-blocked",
+    "originalScope": "Full validation efficiency plan and coherent existing project integration; source checkpoints and focused repairs are distinct, not one final-HEAD all-suite run. Original failures retained. Runtime counts overlap and must not be summed as unique cases.",
+    "relativeArtifactPaths": "Resolve within the original repositoryRoot, not the managed worktree.",
+    "managedCompletion": false,
+    "managedQualification": false,
+    "underlyingRuntimeArtifactsReverifiedByThisReconciliation": false,
+    "preservation": "All donor fields except status/scope and this added provenance record are retained unchanged. Previous run content survives; added browser details and new runs remain original-checkout evidence."
   }
 }

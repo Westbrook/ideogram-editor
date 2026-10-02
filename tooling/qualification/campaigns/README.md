@@ -63,7 +63,15 @@ claims that the whole P or Q3 graph has completed.
 
 Cold starts have separate child processes. Each warm cell has one additional
 process that retains its declared product/browser owner through unscored primes
-and scored operations. Reset work is explicit and retained. Editor memory
+and scored operations. Reset work is explicit and retained. For WJ/WC the
+warm-input proof binds every actual scheduled attempt, including primes, to the
+same live owner and exact operation input. Zero-prime correctness cases retain
+that declared schedule; they claim initialized connection/module state, not an
+unobserved earlier operation or decoded-cache hit. Caption parsing/projection,
+native source validation and portable hashing remain real per-operation work;
+these paths do not substitute a persistent decoded/derived result cache. OS
+page-cache state remains unobserved. Earlier immutable outputs are disclosed
+rather than erased to manufacture a fresh global store. Editor memory
 lifecycles keep the same main processes through B0 and all cycles, with actual
 30-second idles, scheduled worker restarts and five real 30-minute windows for
 100-cycle campaigns. There is no forced GC or timer substitution.
@@ -154,3 +162,150 @@ tests are under `tests/campaigns/`; the protocol
 evaluators also have tests under `tests/qualification/campaigns/`. Large fixture,
 native browser, transfer and soak tests require their documented explicit setup
 and must not run concurrently with timed campaigns.
+
+## Actual native IME admission
+
+The two existing I10H `text.native-ime` cold cells have an optional live admission
+route. It preserves the exact 60-second Japanese/WXn and Simplified-Chinese/WXs
+sessions: ten compositions, eight commits, two cancels, six presentation requests.
+It does not change IText's synthetic 106-action plan or supply physical paint,
+scanout, complete R07, canonical INP, or a language-distribution claim. Those
+missing authorities still keep the corresponding metrics inconclusive.
+
+Use the existing pinned campaign runner, sealed native fixture catalog, prepared
+browser/build identity and real headed browser. Add only this browser setting to
+the consumed campaign configuration (paths identify externally authored files):
+
+```json
+{
+  "nativeIme": {
+    "kind": "native-ime-selection-1",
+    "operatorPaths": {
+      "WXn": "/absolute/original/japanese-operator.json",
+      "WXs": "/absolute/original/chinese-operator.json"
+    },
+    "armTimeoutMs": 30000,
+    "reviewTimeoutMs": 120000
+  }
+}
+```
+
+Each operator file is `native-ime-operator-1` with `actualNative: true`, an
+`operatorId`, `method: {kind: "human" | "os-automation", description}`, actual
+`os: {name, version, build}`, `inputSource: {language, id, build}` (language is
+`japanese` or `simplified-chinese`), and nonempty `dictionary`, `settings` and
+`evidence`. Every evidence entry has an original absolute ordinary-file `path`,
+exact positive `bytes`, prefixed SHA-256 `sha256`, and a `role`; at least one must
+have role `os-input-settings`. Metadata and original evidence must describe the
+real selected OS/input source. The collector never creates this attestation or
+changes OS settings. Review beforehand that the operator can finish the declared
+sequences in 60 seconds. A true OS automation method must use the actual input
+source; browser synthetic dispatch or `isTrusted` flags alone cannot establish it.
+
+The browser owner opens the retained native text layer and verifies its fonts
+before arming. Wait for `native-ime-ready` in the existing worker journal and its
+private `native-ime-<nonce>/ready.json`. The armed observer is passive: it does
+not type, set a value/range, transfer focus, or dispatch input. The first trusted
+editor input starts the exact 60-second window. The nonce directory contains the
+sealed plan, source/build/browser/worker/fixture binding, and instructions. Use
+the existing corpus fragment at index 10 (`日本語`) for Japanese or index 3
+(`中文`) for Chinese. Native preedit is permitted; only the requested final
+fragment earns a commit. Retain actual source settings and native-session review
+evidence separately; avoid private user text in screenshots or recordings.
+
+Perform plan sequences 0–9 in order. Sequences 0–6 and 8 commit; 7 cancels the
+composition and restores its starting text; 9 cancels the editor session through
+its existing **Cancel text edit** control while composition is active, then ends
+native composition. Before sequences 0, 1 and 2, request the public presentation
+switch with a forward, backward and collapsed native selection respectively.
+During sequence 8, finish the intended preedit text, then request two switches;
+the latest must settle only after native end. Do not change the candidate text
+between those requests and commit. During sequence 9, request one switch before
+explicit Cancel; its token must be rejected at the actual Cancel/native-end
+boundary. Keep the same textarea connected and focused throughout composition.
+Use native selection to replace sufficient existing text if the fixture is near
+its text-byte cap; the oracle derives the expected result from the actual range.
+Do not Apply, start another composition, or change accepted document/layer state.
+
+After capture, the collector first retains bounded `raw.json`, then seals its
+identity in `raw-seal.json`. An independent real reviewer must atomically place
+`review.json` in that fresh directory within the configured review wait. The
+review must contain `kind: "native-ime-review-1"`, `complete: true`,
+`actualNative: true`, `synthetic: false`, `collectorGenerated: false`, a distinct
+`reviewerId`, actual review `method` and `observations`, `reviewedAt` ISO time,
+matching `inputSource` and `nonce`, and exact `binding`, `raw`, `plan` identity
+objects copied from the sealed request. Its original `evidence` entries use the
+same bounded pin schema and include role `native-session-observation`. The
+reviewer must actually inspect the native session and OS/source evidence; copying
+these flags is not a substitute. The collector produces no passing template and
+cannot self-review. Evidence copies are private, at most four files of 1 MiB per
+operator/review; structured authority files are limited to 64 KiB and raw events
+to 8 MiB. Original files must be nonsymlink ordinary files with matching pins.
+
+The review wait is outside the measured 60 seconds but remains inside the
+original attempt, controller timing and existing job ceiling. Missing, late,
+incomplete, synthetic or invalid review is INCONCLUSIVE. No receipt is rewritten
+or promoted later: an independent retrospective note cannot turn an old capture
+into a fresh campaign attempt. The existing receipt verifier replays the retained
+bytes and joins the current worker journal, exact source/build and owned browser,
+fixture, accepted-state invariant, operator/source evidence and independent
+review before issuing its private process-local compatibility token. Serialized
+booleans or copied tokens cannot confer that authority. Pure test fixtures are
+explicitly synthetic and never constitute physical/operator qualification.
+
+Browser epoch timestamps must also fall inside the fresh worker capture/ready/seal
+UTC brackets. This identity check permits at most 100 ms of conservative epoch
+rounding; it is not observed clock precision or a latency/physical-presentation
+bound. The raw interval and event windows remain exactly 60 seconds. A shifted
+trace or clock movement outside this admission tolerance cannot be qualified.
+
+
+### Ordinary text application observations
+
+The owned browser driver observes the existing Preview, Apply and reload actions
+for `text.font-set`, `text.active-layout`, `text.apply` and `text.mixed-ready`.
+It adds no user action, mutation or presentation request, changes no scheduler
+order, and retains a per-attempt nonce, fixture/source/build/browser/process
+binding and bounded raw observation. The receipt verifier replays those sealed
+bytes and joins the existing worker journal and consumed developer runtime state
+before issuing a process-local proof. Serialized tokens or result rows cannot
+establish that proof.
+
+After the original action, read-only public protocol collection verifies the
+complete current document image root, every current text layer (including hidden
+layers), typed font/source identities, and each distinct font file's actual bytes.
+Only `R35CurrentFontFaces`, `R35SingleFontBytes` and `R35CurrentFontSetBytes` may be
+filled by this path. A visible native draft additionally requires the exact
+independently admitted unchanged Preview lineage and current native text hash.
+Reads are sequential, abort-owned and bounded: 100 layers, 16 distinct font files,
+16 MiB per file and 64 MiB per current union. These are current-state counts, not
+CPU/GPU peaks, zero substitution violations, or a complete R07 memory ledger.
+
+The phase rows retain their actual meanings. `text.font-ready.worker` measures
+only the worker's font-ready span and excludes engine startup.
+`text.preview.render-submitted` ends after preparation and canvas submission;
+`text.apply.authority-durable` ends at the actual accepted authority response.
+The new navigation observation binds the current session, document generation,
+validated recovery publication, document/image/composite root and browser time
+origin. It separately records stored authoritative model availability, exact
+canonical canvas submission (or observed existing residency), and committed
+public document edit controls. Navigation values are current-episode upper
+bounds, with `durationMs: null`; they cannot prove a ceiling failure or fresh
+all-text shaping. Recovery normally uses accepted retained layouts and an
+accepted composite, so no extra shaping is requested to manufacture a metric.
+
+These observations do not establish first presented pixels, physical scanout,
+refresh-slot/missed-frame attribution, canonical input latency or full R07.
+Missing physical authorities remain INCONCLUSIVE and the existing scheduler
+still stops at its first non-PASS cell. The phase reducer also refuses dropped
+or invalid diagnostic traces: the existing 32-worker-trace ring may lose child
+timing admission in a long warm group. No counter is reset and no sealed
+renderer profile input is changed to conceal that bounded limitation.
+
+The ordinary raw artifact is limited to 4 MiB, its binding to 128 KiB, and each
+public JSON read to 256 KiB (the full font collector separately bounds its image
+projection). Native text is hashed with a 16 KiB ceiling and is never retained;
+preview readback is limited to 1,048,576 pixels. The new navigation state uses
+the existing diagnostic allocator with a fixed 32 KiB allowance. Synthetic
+protocol/replay and actual-controller unit tests validate refusal and ownership
+logic; they do not provide a physical or native-IME qualification receipt.

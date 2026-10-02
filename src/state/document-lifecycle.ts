@@ -24,6 +24,7 @@ export class DocumentResources {
     })().finally(()=>{this.pending=undefined;});
     return this.pending;
   }
+  get releasing(){return !!this.pending;}
   get snapshot(){return {releasing:!!this.pending,failed:this.failed,releases:this.releases,lastReleaseMilliseconds:this.lastReleaseMilliseconds,
     consumers:Object.fromEntries([...this.resources].map(([name,resource])=>[name,resource.inspect()]))};}
 }

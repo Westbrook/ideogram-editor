@@ -1,3 +1,5 @@
+import {validateReturnedTextOrigin,returnedTextOriginRefs} from '../../src/text/returned-description.js';
+import {requestPrompt} from '../../src/request/family.js';
 import type {BlobRef} from '../../src/protocol/store.js';
 import {rasterManifest,contributionStack,blob,keys,requireValue as ok} from '../../src/protocol/validate.js';
 import type {RasterInfo} from '../../src/protocol/raster.js';
@@ -28,7 +30,9 @@ export function remapRasterRetention(asset:{raster:{manifest:BlobRef};dependenci
 export async function validateRetainedRasterMetadata(root:BlobRef,raster:RasterInfo,read:(ref:BlobRef)=>Promise<any>,check:()=>void=()=>{}):Promise<void>{
  const visited=new Set<string>();let ref:BlobRef|null=root;
  while(ref){check();metadataRef(ref);ok(visited.size<4096&&!visited.has(ref.hash));visited.add(ref.hash);
-  const value=await read(ref);retainedRasterMetadata(value);const manifest=await read(value.manifest);rasterManifest(manifest);
+  const value=await read(ref);
+  if(value?.kind==='created-text-description-1'){validateReturnedTextOrigin(value);validateSource(await read(value.createdSource));return;}
+  retainedRasterMetadata(value);const manifest=await read(value.manifest);rasterManifest(manifest);
   ok(manifest.pipeline===raster.pipeline&&manifest.width===raster.width&&manifest.height===raster.height&&canonical(manifest.pixels)===canonical(raster.pixels)&&hashBytes(canonical({pipeline:manifest.pipeline,width:manifest.width,height:manifest.height,tiles:manifest.tiles}))===raster.pixelIdentity);
   ref=value.previous;
  }
@@ -38,10 +42,11 @@ export async function validateRetainedRasterMetadata(root:BlobRef,raster:RasterI
  * Authored raw JSON, prompts, profiles and layouts remain opaque leaf bytes. */
 export function retainedMetadataReferences(v:any):RetainedReference[]{
  const out=new Map<string,RetainedReference>(),lengths=new Map<string,string>();const add=(ref:BlobRef,inspect=false)=>{blob(ref);const length=lengths.get(ref.hash);ok(length===undefined||length===ref.byteLength);lengths.set(ref.hash,ref.byteLength);const key=ref.hash+':'+ref.mediaType,old=out.get(key);out.set(key,{ref,inspect:inspect||!!old?.inspect});};
- if(v?.kind==='retained-raster-metadata-1'){retainedRasterMetadata(v);add(v.manifest,true);if(v.previous)add(v.previous,true);}
+ if(v?.kind==='created-text-description-1'){validateReturnedTextOrigin(v);for(const ref of returnedTextOriginRefs(v))add(ref,ref===v.createdSource);}
+ else if(v?.kind==='retained-raster-metadata-1'){retainedRasterMetadata(v);add(v.manifest,true);if(v.previous)add(v.previous,true);}
  else if(v?.format==='straight-srgb-rgba8'&&v.plan){rasterManifest(v);references(v,r=>add(r,r.mediaType==='application/json'));}
  else if(v?.kind==='cp1-contribution-stack-v1'){contributionStack(v);for(const c of v.contributions){add(c.manifest,true);add(c.pixels);}}
- else if(v?.kind==='adopted-candidate-lineage-1'){lineageRecord(v);for(const ref of lineageReferences(v))add(ref);const r=v.result.request.specification,p=r.settings.prompt;if(p.composition)add(p.composition.value,true);if('source'in r&&r.source.capture)add(r.source.capture,true);if('mask'in r)add(r.mask.plan,true);}
+ else if(v?.kind==='adopted-candidate-lineage-1'){lineageRecord(v);for(const ref of lineageReferences(v))add(ref);const r=v.result.request.specification,p=requestPrompt(r);if(p.composition)add(p.composition.value,true);if('source'in r&&r.source.capture)add(r.source.capture,true);if('mask'in r)add(r.mask.plan,true);}
  else if(v?.kind==='composition-version-1'){validateComposition(v);for(const ref of compositionRefs(v))add(ref);}
  else if(v?.text&&v.render){const source=validateSource(v);for(const ref of dependencies(source))add(ref);}
  else if(v?.schemaVersion&&Array.isArray(v.layers)&&Number.isSafeInteger(v.width)&&Number.isSafeInteger(v.height)){imageState(v);if(v.composition)add(v.composition.value,true);for(const l of v.layers)if(l.kind==='text')add(l.source,true);}

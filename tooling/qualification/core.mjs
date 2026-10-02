@@ -1,15 +1,23 @@
+import {summarizeLogBytes} from './gate-log-reader.mjs';
 import { createHash } from 'node:crypto';
+import {completionPrerequisitesFor} from './suite-prerequisites.mjs';
 import { readFileSync, lstatSync } from 'node:fs';
 import { resolve, isAbsolute } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileIdentity } from './evidence-volume.mjs';
 
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 export const digestJSON = value => sha256(JSON.stringify(value));
 
+function sourcePaths(stdout) {
+  return [...new Set(stdout.split('\0').filter(path => /^(src\/|server\/|tooling\/|tests\/|docs\/spec\/|vendor\/|\.github\/workflows\/|\.npmrc$|\.progress-report\/project\.json$|index\.html$|package(?:-lock)?\.json$|tsconfig[^/]*\.json$|vite[^/]*\.ts$|AGENTS\.md$)/.test(path)))].sort();
+}
+
 export function sourceIdentity(root) {
   const result = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8' });
   if (result.status !== 0) throw Error('Cannot enumerate source identity');
-  const paths = [...new Set(result.stdout.split('\0').filter(path => /^(src\/|server\/|tooling\/|tests\/|docs\/spec\/|vendor\/|\.github\/workflows\/|\.npmrc$|\.progress-report\/project\.json$|index\.html$|package(?:-lock)?\.json$|tsconfig[^/]*\.json$|vite[^/]*\.ts$|AGENTS\.md$)/.test(path)))].sort();
+  const paths = sourcePaths(result.stdout);
   const files = paths.map(path => {
     try {
       const absolute = resolve(root, path);
@@ -26,10 +34,29 @@ export function sourceIdentity(root) {
   return { head: head.stdout.trim(), digest: digestJSON(files), files };
 }
 
+
+// The monitored development controller must let its evidence timer run while
+// enumerating and hashing. Keep the synchronous API for existing callers.
+const gitAsync = promisify(execFile);
+export async function sourceIdentityAsync(root) {
+  let result;
+  try { result = await gitAsync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8' }); }
+  catch { throw Error('Cannot enumerate source identity'); }
+  const files = [];
+  for (const path of sourcePaths(result.stdout)) {
+    try { files.push({ path, ...await fileIdentity(resolve(root, path)) }); }
+    catch (error) { if (error.code === 'ENOENT') files.push({ path, deleted: true }); else throw error; }
+  }
+  let head;
+  try { head = await gitAsync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }); }
+  catch { throw Error('Cannot identify Git revision'); }
+  return { head: head.stdout.trim(), digest: digestJSON(files), files };
+}
+
 // Deliberately construct rather than copy the ambient provider/proxy environment.
 // Credentials and NODE_OPTIONS never enter a selected child process.
 export function executionEnvironment(environment, pinnedBin, receiptDirectory) {
-  const allowed = ['HOME', 'TMPDIR', 'TMP', 'TEMP', 'SystemRoot', 'WINDIR', 'COMSPEC', 'PATHEXT', 'LANG', 'LC_ALL', 'DISPLAY', 'XAUTHORITY', 'WAYLAND_DISPLAY', 'XDG_RUNTIME_DIR', 'PLAYWRIGHT_BROWSERS_PATH'];
+  const allowed = ['HOME', 'TMPDIR', 'TMP', 'TEMP', 'SystemRoot', 'WINDIR', 'COMSPEC', 'PATHEXT', 'LANG', 'LC_ALL', 'DISPLAY', 'XAUTHORITY', 'WAYLAND_DISPLAY', 'XDG_RUNTIME_DIR', 'PLAYWRIGHT_BROWSERS_PATH', 'IE_EVIDENCE_ALLOCATION', 'IE_SCHEMA18_EXECUTABLE_PACKET', 'IE_PORTABLE_MAX12_RECEIPT', 'IE_PORTABLE_MAX12_RECEIPT_SHA256', 'IE_PORTABLE_MAX12_FINALIZATION', 'IE_PORTABLE_MAX12_FINALIZATION_SHA256', 'IE_D11_NPM_CACHE'];
   const clean = Object.fromEntries(allowed.filter(key => environment[key] !== undefined).map(key => [key, environment[key]]));
   return { ...clean, PATH: `${pinnedBin}:${environment.PATH ?? '/usr/bin:/bin'}`, NO_COLOR: '1', CI: '1', QUEUE_EVIDENCE: `${receiptDirectory}/queue`, CANDIDATE_EVIDENCE: `${receiptDirectory}/candidates`, ADAPTER_EVIDENCE: `${receiptDirectory}/adapters`, TEXT_STATE_EVIDENCE: `${receiptDirectory}/text-state`, EDITOR_RECEIPT: `${receiptDirectory}/editor`, IE_RASTER_OUTPUT: `${receiptDirectory}/raster`, IE_HISTORY_OUTPUT: `${receiptDirectory}/history`, IE_RECOVERY_OUTPUT: `${receiptDirectory}/recovery`, TEXT_RECEIPT: `${receiptDirectory}/text`, SPECTRUM_OUTPUT: `${receiptDirectory}/spectrum`, QUALIFICATION_OUTPUT: receiptDirectory };
 }
@@ -43,15 +70,16 @@ export function tapCounts(log) {
   return result;
 }
 
-export function gateOutcome({ exitCode, signal, timedOut, interrupted, counts }, requireTests) {
-  if (timedOut || interrupted || signal || exitCode !== 0 || (counts.fail ?? 0) > 0 || (counts.cancelled ?? 0) > 0) return 'FAIL';
+export function gateOutcome({ exitCode, signal, timedOut, interrupted, counts, logError }, requireTests) {
+  if (logError || timedOut || interrupted || signal || exitCode !== 0 || (counts.fail ?? 0) > 0 || (counts.cancelled ?? 0) > 0) return 'FAIL';
   if (requireTests && (!Number.isInteger(counts.tests) || counts.tests <= 0 || !Number.isInteger(counts.pass))) return 'INCONCLUSIVE';
   if ((counts.skipped ?? 0) > 0 || (counts.todo ?? 0) > 0) return 'INCONCLUSIVE';
   if (requireTests && counts.pass !== counts.tests) return 'INCONCLUSIVE';
   return 'PASS';
 }
 
-export function receiptOutcome(gates, expectedIds, sourceBefore, sourceAfter) {
+export function receiptOutcome(gates, expectedIds, sourceBefore, sourceAfter, interrupted = false) {
+  if (interrupted) return 'FAIL';
   if (gates.some(gate => gate.outcome === 'FAIL')) return 'FAIL';
   if (sourceBefore !== sourceAfter || gates.some(gate => gate.outcome !== 'PASS') || gates.length !== expectedIds.length || gates.some((gate, index) => gate.id !== expectedIds[index])) return 'INCONCLUSIVE';
   return 'PASS';
@@ -71,7 +99,7 @@ function verifyOutputTree(tree, readBytes, label) {
   }
 }
 
-export function verifyReceipt(receipt, readBytes) {
+export function verifyReceipt(receipt, readBytes, readLog = path => summarizeLogBytes(readBytes(path))) {
   if (receipt.kind !== 'qualification-functional-run-1' || !Array.isArray(receipt.gates) || !Array.isArray(receipt.selected) || !receipt.selected.length || !Array.isArray(receipt.plan?.gates) || !receipt.plan.gates.length) throw Error('Unsupported or empty qualification receipt');
   if (new Set(receipt.selected).size !== receipt.selected.length) throw Error('Duplicate selected gate in receipt');
   if (digestJSON(receipt.plan.gates.map(gate => gate.id)) !== digestJSON(receipt.selected)) throw Error('Receipt selection differs from planned gates');
@@ -79,23 +107,28 @@ export function verifyReceipt(receipt, readBytes) {
   for (const [index, gate] of receipt.gates.entries()) {
     if (gate.id !== receipt.selected[index] || digestJSON(gate.command) !== digestJSON(receipt.plan.gates[index]?.command)) throw Error('Executed command differs from planned gate');
     if (digestJSON(gate.requiredEnvironment ?? {}) !== digestJSON(receipt.plan.gates[index]?.requiredEnvironment ?? {})) throw Error('Executed environment differs from planned gate');
-    const bytes = readBytes(gate.log.path);
-    if (bytes.length !== gate.log.bytes || sha256(bytes) !== gate.log.sha256) throw Error(`Log digest mismatch for ${gate.id}`);
-    const counts = tapCounts(bytes.toString('utf8'));
+    const summary = readLog(gate.log.path);
+    if (!summary || summary.bytes !== gate.log.bytes || summary.sha256 !== gate.log.sha256) throw Error(`Log digest mismatch for ${gate.id}`);
+    if ((summary.error ?? null) !== (gate.logError ?? null)) throw Error(`Log observation error mismatch for ${gate.id}`);
+    const counts = summary.counts;
     if (digestJSON(counts) !== digestJSON(gate.counts)) throw Error(`Counts mismatch for ${gate.id}`);
     if (gateOutcome({ ...gate, counts }, gate.id.startsWith('node:')) !== gate.outcome) throw Error(`Outcome mismatch for ${gate.id}`);
     for (const fixture of gate.fixturePrerequisites ?? []) {
       const bytes = readBytes(fixture.path);
       if (bytes.length !== fixture.bytes || sha256(bytes) !== fixture.sha256) throw Error(`Fixture prerequisite digest mismatch for ${gate.id}:${fixture.name}`);
     }
-    if (gate.outcome === 'PASS' && receipt.plan.gates[index]?.completionPrerequisites) {
-      const names = ['COMPLETION_APPLICATION_IDENTITY', 'COMPLETION_ISSUER_MANIFEST', 'PROTOCOL_OLD_MONITOR', 'HOST_HANDLER_CAPTURE'];
-      if (digestJSON((gate.fixturePrerequisites ?? []).map(value => value.name).sort()) !== digestJSON(names.sort()) || gate.fixturePreparations?.length !== 2) throw Error(`Missing completion prerequisite closure for ${gate.id}`);
-      for (const [role, required] of [['completion-issuers', ['application-identity.json', 'host-final-issuers.json', 'receipt.json']], ['completion-inputs', ['PROTOCOL_OLD_MONITOR.mjs', 'preparation.json', 'capture.log', 'handler-capture/result.json', 'handler-capture/first/result.json', 'handler-capture/independent/result.json']]]) {
+    const plannedCompletion = receipt.plan.gates[index]?.completionPrerequisites;
+    if (receipt.plan.gates[index]?.files && digestJSON(plannedCompletion ?? null) !== digestJSON(completionPrerequisitesFor(receipt.plan.gates[index].files) ?? null)) throw Error(`Completion prerequisites differ from selected files for ${gate.id}`);
+    if (gate.outcome === 'PASS' && plannedCompletion) {
+      if (!['current-issuers-1', 'current-issuers-original-monitor-independent-capture-1'].includes(plannedCompletion.kind)) throw Error(`Unsupported completion prerequisites for ${gate.id}`);
+      const fullCapture = plannedCompletion.kind === 'current-issuers-original-monitor-independent-capture-1';
+      const names = ['COMPLETION_APPLICATION_IDENTITY', 'COMPLETION_ISSUER_MANIFEST', ...(fullCapture ? ['PROTOCOL_OLD_MONITOR', 'HOST_HANDLER_CAPTURE'] : [])];
+      if (digestJSON((gate.fixturePrerequisites ?? []).map(value => value.name).sort()) !== digestJSON(names.sort()) || gate.fixturePreparations?.length !== (fullCapture ? 2 : 1)) throw Error(`Missing completion prerequisite closure for ${gate.id}`);
+      for (const [role, required] of [['completion-issuers', ['application-identity.json', 'host-final-issuers.json', 'receipt.json']], ...(fullCapture ? [['completion-inputs', ['PROTOCOL_OLD_MONITOR.mjs', 'preparation.json', 'capture.log', 'handler-capture/result.json', 'handler-capture/first/result.json', 'handler-capture/independent/result.json']]] : [])]) {
         const trees = gate.fixturePreparations.filter(tree => tree.role === role);
         if (trees.length !== 1 || trees[0].output !== `${gate.id.replaceAll(':', '-')}-${role}` || required.some(path => !trees[0].files?.some(file => file.path === path))) throw Error(`Missing independent completion preparation for ${gate.id}:${role}`);
       }
-      for (const [name, role, path] of [['COMPLETION_APPLICATION_IDENTITY', 'completion-issuers', 'application-identity.json'], ['COMPLETION_ISSUER_MANIFEST', 'completion-issuers', 'host-final-issuers.json'], ['PROTOCOL_OLD_MONITOR', 'completion-inputs', 'PROTOCOL_OLD_MONITOR.mjs'], ['HOST_HANDLER_CAPTURE', 'completion-inputs', 'handler-capture/first/result.json']]) {
+      for (const [name, role, path] of [['COMPLETION_APPLICATION_IDENTITY', 'completion-issuers', 'application-identity.json'], ['COMPLETION_ISSUER_MANIFEST', 'completion-issuers', 'host-final-issuers.json'], ...(fullCapture ? [['PROTOCOL_OLD_MONITOR', 'completion-inputs', 'PROTOCOL_OLD_MONITOR.mjs'], ['HOST_HANDLER_CAPTURE', 'completion-inputs', 'handler-capture/first/result.json']] : [])]) {
         const input = gate.fixturePrerequisites.find(value => value.name === name), tree = gate.fixturePreparations.find(value => value.role === role), file = tree.files.find(value => value.path === path);
         if (input.path !== `${tree.output}/${path}` || input.bytes !== file.bytes || input.sha256 !== file.sha256) throw Error(`Completion input differs from sealed preparation for ${gate.id}:${name}`);
       }
@@ -114,7 +147,7 @@ export function verifyReceipt(receipt, readBytes) {
       if (gate.fixtureBuild.files?.length) verifyOutputTree(gate.fixtureBuild, readBytes, gate.id);
     }
   }
-  const outcome = receiptOutcome(receipt.gates, receipt.selected, receipt.identity.before.digest, receipt.identity.after.digest);
+  const outcome = receiptOutcome(receipt.gates, receipt.selected, receipt.identity.before.digest, receipt.identity.after.digest, receipt.interrupted);
   if (outcome !== receipt.outcome) throw Error('Receipt outcome mismatch');
   return { outcome, gates: receipt.gates.length, selected: receipt.selected.length, qualification: false, scope: receipt.scope };
 }

@@ -40,7 +40,7 @@ for (const [purpose, url] of [
   docs.push({ purpose, url, sha256: sha256(bytes), bytes: bytes.length, retrievedAt: new Date().toISOString() });
 }
 const root = await mkdtemp(join(await realpath(tmpdir()), 'ideogram-qualify-writer-'));
-let writer;
+let writer,liveDiagnostics,restartedDiagnostics;
 try {
   writer = await openWriter({ root });
   const bytes = Buffer.from(canonical({ schemaVersion: 1, entities: [] }));
@@ -53,8 +53,8 @@ try {
   const receipt = await writer.submit(commandBytes, writer.epoch);
   const publicSubmitRoundTripMs = performance.now() - submitStart;
   const eventBytes = (await writer.events()).events.map(event => Buffer.byteLength(canonical(event)));
-  const live = await writer.diagnostics(); await writer.close();
-  writer = await openWriter({ root }); const restarted = await writer.diagnostics();
+  liveDiagnostics = await writer.readDiagnostics(); const live = liveDiagnostics.value; await writer.close();
+  writer = await openWriter({ root }); restartedDiagnostics = await writer.readDiagnostics(); const restarted = restartedDiagnostics.value;
   if (live.projectionDigest !== restarted.projectionDigest) throw new Error('Reopen mismatch');
   const metadata = JSON.parse(await readFile('.toolchain/npm-12.1.0/package/node_modules/node-gyp/package.json'));
   const result = { recordedAt: new Date().toISOString(), node: process.versions, platform: { platform: platform(), arch: arch(), release: release() },
@@ -73,4 +73,7 @@ try {
       '64MiB metadata headroom is admission accounting, not a physically preallocated emergency reserve.'] };
   await mkdir('artifacts', { recursive: true }); await writeFile('artifacts/store-qualification.json', JSON.stringify(result, null, 2) + '\n');
   console.log('Isolated writer qualification recorded in artifacts/store-qualification.json');
-} finally { await writer?.close(); await rm(root, { recursive: true, force: true }); }
+} finally {
+  try { await writer?.close(); await rm(root, { recursive: true, force: true }); }
+  finally { restartedDiagnostics?.release(); liveDiagnostics?.release(); }
+}

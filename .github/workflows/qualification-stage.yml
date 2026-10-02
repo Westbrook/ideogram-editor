@@ -25,6 +25,7 @@ jobs:
     env:
       QUALIFICATION_STAGE: ${{ inputs.stage }}
       QUALIFICATION_RUN: ${{ inputs.run_key }}
+      IE_EVIDENCE_ALLOCATION: ${{ vars.QUALIFICATION_EVIDENCE_ALLOCATION }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -47,18 +48,21 @@ jobs:
           [[ "$QUALIFICATION_RUN" =~ ^[0-9]+-[0-9]+$ ]]
           python3 tooling/bootstrap-toolchain.py
           .toolchain/bin/node tooling/qualification/ci/execute.mjs fetch-inputs --plan artifacts/qualification-plan/plan.json
-          mkdir -p artifacts/qualification-stage artifacts/qualification-received
+          EVIDENCE_ROOT="$(.toolchain/bin/node tooling/qualification/evidence-lifecycle.mjs root)"
+          EVIDENCE_STAGE_OUTPUT="$EVIDENCE_ROOT/stages/$QUALIFICATION_RUN/$QUALIFICATION_STAGE"
+          printf 'EVIDENCE_STAGE_OUTPUT=%s\n' "$EVIDENCE_STAGE_OUTPUT" >> "$GITHUB_ENV"
+          mkdir -p "$EVIDENCE_ROOT/stages/$QUALIFICATION_RUN" artifacts/qualification-received
           .toolchain/bin/node tooling/qualification/ci/execute.mjs stage \
             --plan artifacts/qualification-plan/plan.json --stage "$QUALIFICATION_STAGE" \
             --received artifacts/qualification-received \
-            --workspace "$RUNNER_TEMP/ideogram-ci-$QUALIFICATION_RUN" \
-            --output "$PWD/artifacts/qualification-stage/$QUALIFICATION_STAGE"
+            --workspace "$EVIDENCE_ROOT/workspaces/ideogram-ci-$QUALIFICATION_RUN" \
+            --output "$EVIDENCE_STAGE_OUTPUT"
       - name: Retain success, failure and partial evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: stage-${{ inputs.stage }}
-          path: artifacts/qualification-stage/${{ inputs.stage }}
+          path: ${{ env.EVIDENCE_STAGE_OUTPUT }}
           if-no-files-found: error
           retention-days: 90
           include-hidden-files: false

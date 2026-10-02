@@ -2,8 +2,8 @@ import {sseQualification} from './completion/sse-publication.mjs';
 import {createHash} from 'node:crypto';
 import {expectedCompositionCancellation} from './composition-network.mjs';
 const literals={chromium:'net::ERR_ABORTED',firefox:'NS_BINDING_ABORTED',webkit:'cancelled'};
-export function integrationCancellation(e,origin,engine,downloads=[],faults=[],fontProofs=[],importedHeads=[],recovery={proofs:[],sse:[]}){
- const prior=expectedCompositionCancellation(e,origin,engine,downloads);if(prior)return prior;
+export function integrationCancellation(e,origin,engine,downloads=[],faults=[],fontProofs=[],importedHeads=[],recovery={proofs:[],sse:[]},workflowProofs=[]){
+ const prior=expectedCompositionCancellation(e,origin,engine,downloads,workflowProofs);if(prior)return prior;
  if(originalSSECancellation(e,origin,engine,recovery.sse??[]))return 'own-original-signal-sse-cancellation';
  const r=e.response;
  if(e.channel!=='requestfailed'||e.failure?.errorText!==literals[engine]||e.resourceType!=='fetch'||!r||r.requestId!==e.requestId||r.url!==e.url||r.method!==e.method)return false;

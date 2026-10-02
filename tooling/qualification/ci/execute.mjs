@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { startEvidenceMonitor, retainEvidenceAudit, verifyEvidenceAudit } from '../evidence-volume.mjs';
 import {spawnSync} from 'node:child_process';
 import {openSync,writeSync,closeSync} from 'node:fs';
 import {readFile, writeFile, mkdir, readdir, lstat, realpath, copyFile} from 'node:fs/promises';
@@ -8,6 +9,7 @@ import {validateCiPlan, workflowExport, executionState, digest, sha256} from './
 import {verifyInputs, verifyImmutablePlan} from './run.mjs';
 import {evaluatePaired} from './regression.mjs';
 import {loadApprovedMain,createBaselinePacket} from './baseline.mjs';
+import {fetchImmutableInputs} from './source-fetch.mjs';
 import {sanitize} from '../campaigns/common.mjs';
 import {sourceIdentity, executionEnvironment} from '../core.mjs';
 import {verifyCampaignReceipt} from '../campaigns/run.mjs';
@@ -224,6 +226,8 @@ export async function verifyStages(plan,received,{configurations=null}={}) {
     try {
       const record=await readJSON(path);assert(record.planDigest===plan.digest&&record.stage===stage.key,'Wrong stage artifact');records.push(record);
       assert(['PASS','FAIL','INTERRUPTED','running'].includes(record.status),'Unknown outer stage status');
+      const storage=await verifyEvidenceAudit(record.evidenceStorage,path);
+      if(storage.status==='FAIL')outerFailed=true;else if(storage.status!=='PASS')outerIncomplete=true;
       if(record.status==='FAIL'||record.status==='INTERRUPTED')outerFailed=true;
       else if(record.status!=='PASS')outerIncomplete=true;
       assert(Array.isArray(record.nodes)&&record.nodes.length<=stage.nodeIds.length&&record.nodes.every((entry,index)=>entry.nodeId===stage.nodeIds[index]),'Stage node membership/order differs');
@@ -274,7 +278,7 @@ export function pipelineComparisonSamples(plan,records,finalClock) {
       begin:sample.begin??null,end:sample.end??null,physicalHostId:plan.spec.inputs.C.physicalHostId,source:plan.spec[definition.role]};
   });
 }
-async function runStage(plan,stageKey,received,workspace,output,signal) {
+async function runStage(plan,stageKey,received,workspace,output,signal,evidenceStorage=null) {
   const stage=workflowExport(plan).stages[stageKey]; assert(stage,'Unknown stage');
   await verifyInputs(plan.spec.inputs);
   const prior=await verifyStages(plan,received), observed=await observeHost();
@@ -282,7 +286,7 @@ async function runStage(plan,stageKey,received,workspace,output,signal) {
   assert(observed.hostnameHash===stage.physicalHostId,'Stage is not on its assigned physical runner');
   for(const id of plan.nodes.find(node=>node.id===stage.nodeIds[0]).dependencies) assert(prior.observations.some(value=>value.nodeId===id&&value.outcome==='PASS'),'Missing successful stage predecessor');
   await mkdir(output,{recursive:false,mode:0o700}); await mkdir(workspace,{recursive:true,mode:0o700});
-  const record={kind:'ci-qualification-stage-1',planDigest:plan.digest,stage:stageKey,clock:await clockPoint(stage.side),startedAt:new Date().toISOString(),status:'running',nodes:[]};
+  const record={kind:'ci-qualification-stage-1',...(evidenceStorage?{evidenceStorage}:{}),planDigest:plan.digest,stage:stageKey,clock:await clockPoint(stage.side),startedAt:new Date().toISOString(),status:'running',nodes:[]};
   const persist=()=>writeFile(join(output,'stage.json'),json(record));
   await persist();
   try {
@@ -308,6 +312,7 @@ async function runStage(plan,stageKey,received,workspace,output,signal) {
       const retained=join(output,'nodes',id); await mkdir(retained,{recursive:true,mode:0o700});
       for(const file of receipt.evidence) {assert(safePath(file.path),'Unsafe evidence path'); await copySealed(join(actualOutput,file.path),join(retained,file.path),{bytes:file.bytes,sha256:file.sha256.replace(/^sha256:/,'')});}
       await copySealed(join(actualOutput,'receipt.json'),join(retained,'receipt.json'),await hashFile(join(actualOutput,'receipt.json')));
+      if(receipt.evidenceStorage?.auditPath)await retainEvidenceAudit(receipt.evidenceStorage,retained,join(actualOutput,'evidence-storage'));
       entry.outcome=(await retainedNode(plan,node,entry,output,received,prior.childReceiptsByNodeId)).outcome; await persist();
       assert(execution.code===0&&entry.outcome==='PASS','Required node failed or is inconclusive: '+id);
       if(node.job==='C2') await packC2(plan,node,configuration,output,prior.childReceiptsByNodeId[node.id]);
@@ -324,9 +329,10 @@ export async function runCiExecution(args,signal) {
   const plan=validateCiPlan(await readJSON(resolve(options.plan)));
   const control=sourceIdentity(root);assert(control.head===plan.spec.control.commit&&control.digest===plan.spec.control.digest,'Executing control harness differs from protected immutable plan');
   if(mode==='fetch-inputs') {
-    const revisions=[plan.spec.control.commit,plan.spec.candidate.commit,plan.spec.base?.commit,plan.spec.approvedMain?.source.commit].filter(Boolean);
-    for(const revision of new Set(revisions)){signal?.throwIfAborted();const result=await loggedChild('git',['fetch','--no-tags','origin',revision],{cwd:root,env:{PATH:process.env.PATH,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null'},timeoutMs:600000,abortSignal:signal},join(dirname(resolve(options.plan)),'source-fetch'),revision);assert(result.code===0&&!result.timedOut&&!result.interrupted&&!result.signal,'Cannot fetch selected immutable revision: '+revision);}
-    verifyImmutablePlan(root,plan);return;
+    await fetchImmutableInputs(plan,{repository:root,signal,fetchRevision:async revision=>{
+      const result=await loggedChild('git',['fetch','--no-tags','origin',revision],{cwd:root,env:{PATH:process.env.PATH,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null'},timeoutMs:600000,abortSignal:signal},join(dirname(resolve(options.plan)),'source-fetch'),revision);
+      assert(result.code===0&&!result.timedOut&&!result.interrupted&&!result.signal,'Cannot fetch selected immutable revision: '+revision);
+    }});return;
   }
   verifyImmutablePlan(root,plan);
   if(mode==='pack-baseline'){console.log(json(await createBaselinePacket({plan,received:resolve(options.received),dispositionPath:resolve(options.disposition),output:resolve(options.output),repository:root,verifyStages,pipelineBoundaries,pipelineComparisonSamples})));return;}
@@ -336,7 +342,18 @@ export async function runCiExecution(args,signal) {
     for(let i=0;i<24;i++) lines.push(`layer${String(i).padStart(2,'0')}=`+JSON.stringify({include:(workflow.layers[i]??[]).map(key=>({stage:key,runnerLabels:workflow.stages[key].runnerLabels}))}));
     await writeFile(process.env.GITHUB_OUTPUT,lines.join('\n')+'\n',{flag:'a'}); return;
   }
-  if(mode==='stage') return runStage(plan,options.stage,resolve(options.received),resolve(options.workspace),resolve(options.output),signal);
+  if(mode==='stage') {
+    const output=resolve(options.output), monitor=await startEvidenceMonitor({output,campaignId:'ci-'+options.stage+'-'+Date.now(),onAlarm:alarm=>console.error(JSON.stringify({evidenceStorageAlarm:alarm}))});
+    let outcome='FAIL', finished=false;
+    try {await runStage(plan,options.stage,resolve(options.received),resolve(options.workspace),output,signal,monitor.reference);outcome='PASS';finished=true;}
+    finally {
+      // stage.json is written in runStage's finally after any attempted node.
+      let receiptPath=null;try{await readJSON(join(output,'stage.json'));receiptPath=join(output,'stage.json');}catch{}
+      const audit=await monitor.finish({receiptPath,outcome});if(receiptPath)await retainEvidenceAudit(monitor.reference,output);
+      if(audit.status!=='PASS') {if(process.exitCode!==1)process.exitCode=audit.status==='FAIL'?1:2;if(finished)throw Error('Evidence volume audit '+audit.status);}
+    }
+    return;
+  }
   await verifyInputs(plan.spec.inputs);
   const result=await verifyStages(plan,resolve(options.received)), host=await observeHost();
   assert(host.hostnameHash===plan.spec.inputs.C.physicalHostId,'Final boundary acknowledgement requires the same C host');

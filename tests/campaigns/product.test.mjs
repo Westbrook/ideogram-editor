@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { digest, fileIdentity } from '../../tooling/qualification/campaigns/common.mjs';
@@ -8,7 +8,7 @@ import { verifyPreparedSource } from '../../tooling/qualification/campaigns/prod
 
 const seal = files => ({ files, sha256: digest(JSON.stringify(files, null, 2) + '\n') });
 async function fixture(t) {
-  const root = await mkdtemp(join(tmpdir(), 'campaign-prepared-source-'));
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'campaign-prepared-source-')));
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(join(root, 'src'));
   await writeFile(join(root, 'src/a.js'), 'export const a = 1;\n');

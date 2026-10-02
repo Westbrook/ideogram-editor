@@ -1,3 +1,5 @@
+import {allocationsURL,promptMemoryURL} from '../owned-preview-module.mjs';
+import {assetProjectionURL,assetProjection,canonicalDisplayAsset} from '../asset-projection-module.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -6,12 +8,13 @@ import {transformWithOxc} from 'vite';
 
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 async function moduleURL(path,replacements={}){let code=(await transformWithOxc(await readFile(path,'utf8'),path)).code;for(const [name,url] of Object.entries(replacements))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));return data(code);}
-const allocationsURL=await moduleURL('src/observability/allocations.ts'),protocolURL=await moduleURL('src/protocol/display.ts'),shaURL=await moduleURL('src/protocol/sha256.ts'),schedulerURL=await moduleURL('src/observability/display-scheduler.ts');
+const protocolURL=await moduleURL('src/protocol/display.ts'),shaURL=await moduleURL('src/protocol/sha256.ts'),schedulerURL=await moduleURL('src/observability/display-scheduler.ts',{'./allocations.js':allocationsURL});
+const modelURL=await moduleURL('src/observability/model-memory.ts',{'./allocations.js':allocationsURL,'./prompt-memory.js':promptMemoryURL}),controlURL=await moduleURL('src/observability/display-control.ts',{'./model-memory.js':modelURL});
 const ownedURL=await moduleURL('src/observability/owned-preview.ts',{'./allocations.js':allocationsURL});
-const tilesURL=await moduleURL('src/ui/display-tiles.ts',{'../observability/allocations.js':allocationsURL,'../observability/owned-preview.js':ownedURL,'../observability/display-scheduler.js':schedulerURL,'../protocol/display.js':protocolURL,'../protocol/sha256.js':shaURL});
-const {visibleTiles,viewportBacking,DisplayTileCache,readDisplaySource}=await import(tilesURL);
+const tilesURL=await moduleURL('src/ui/display-tiles.ts',{'../observability/allocations.js':allocationsURL,'../observability/display-control.js':controlURL,'../observability/owned-preview.js':ownedURL,'../observability/display-scheduler.js':schedulerURL,'../protocol/display.js':protocolURL,'../protocol/sha256.js':shaURL,'../protocol/asset-projection.js':assetProjectionURL});
+const {visibleTiles,ownedVisibleTiles,viewportBacking,DisplayTileCache,readDisplaySource,readOwnedDisplaySource}=await import(tilesURL);
 const {withDisplayRead,displayReadOwnership,waitForDisplayReads}=await import(schedulerURL);
-const {allocationLedger}=await import(allocationsURL);
+const {allocationLedger,ALLOCATION_LIMITS}=await import(allocationsURL);
 const identity='sha256:'+'a'.repeat(64),source=(width=5000,height=5000)=>({assetId:'retained',identity,width,height});
 const view=(patch={})=>({width:800,height:600,zoom:1,x:0,y:0,ratio:1,...patch});
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {resolve,reject,promise};};
@@ -33,9 +36,9 @@ test('very large viewport backing and required cache remain bounded',()=>{
   assert.throws(()=>visibleTiles(source(),view({zoom:Infinity})),/DISPLAY_VIEWPORT/);
 });
 test('source metadata must match immutable safe asset and declared dimensions',async()=>{
-  const value={projection:{value:{id:'retained',safety:'safe',availability:'available',raster:{width:5000,height:5000,pixelIdentity:identity}}}},abort=new AbortController(),baseline=allocationLedger.snapshot().cpuBytes;
+  const value=assetProjection(canonicalDisplayAsset({width:5000,height:5000,pixelIdentity:identity})),abort=new AbortController(),baseline=allocationLedger.snapshot().cpuBytes;
   assert.deepEqual(await readDisplaySource(async()=>Response.json(value),'retained',5000,5000,abort.signal),source());
-  await assert.rejects(readDisplaySource(async()=>Response.json(value),'retained',4999,5000,abort.signal),/DISPLAY_SOURCE_CHANGED/);assert.equal(allocationLedger.snapshot().cpuBytes,baseline);
+  await assert.rejects(readDisplaySource(async()=>Response.json(value),'retained',4999,5000,abort.signal),/DISPLAY_SOURCE_CHANGED/);await assert.rejects(readDisplaySource(async()=>Response.json({...value,projectionSchema:99}),'retained',5000,5000,abort.signal),/Unsupported asset projection/);assert.equal(allocationLedger.snapshot().cpuBytes,baseline);
 });
 test('tile body identity is checked before bounded native allocation and reuse',async()=>{
   const fixture=bitmapFixture(),spec=visibleTiles(source(),view({width:20,height:20}))[0],paths=[],abort=new AbortController(),baseline=allocationLedger.snapshot();
@@ -73,4 +76,33 @@ test('tile cancellation during busy backoff prevents another transfer',async()=>
   const cache=new DisplayTileCache(async()=>{attempts++;const busy=Response.json({error:{code:'LOCAL_BUSY',retry:'read-or-transfer'}},{status:429}),getReader=busy.body.getReader.bind(busy.body);busy.body.getReader=()=>{const reader=getReader(),release=reader.releaseLock.bind(reader);reader.releaseLock=()=>{release();drained.resolve();};return reader;};return busy;});
   const pending=cache.load(source(),spec,abort.signal,()=>true);void pending.catch(()=>{});
   try{await drained.promise;abort.abort();await assert.rejects(pending,error=>error.name==='AbortError');assert.equal(attempts,1);assert.equal(fixture.images.length,0);assert.equal(cache.ownership.pendingCleanup,0);assert.equal(allocationLedger.snapshot().cpuBytes,baseline.cpuBytes);assert.equal(allocationLedger.snapshot().handles,baseline.handles);}finally{cache.clear();fixture.restore();}
+});
+
+test('tile batches retain an older viewport until its actual asynchronous pin retires',()=>{
+ const baseline=allocationLedger.snapshot().cpuBytes,first=ownedVisibleTiles(source(),view({width:20,height:20})),firstBytes=allocationLedger.snapshot().cpuBytes-baseline,unpin=first.pin();
+ const next=ownedVisibleTiles(source(),view({width:20,height:20,x:1000}));first.release();next.release();
+ assert.equal(allocationLedger.snapshot().cpuBytes-baseline,firstBytes);assert(Object.isFrozen(first.value));assert(Object.isFrozen(first.value[0]));
+ unpin();unpin();assert.equal(allocationLedger.snapshot().cpuBytes,baseline);assert.throws(()=>first.pin(),/MODEL_MEMORY_RELEASED/);
+});
+test('tile descriptor admission precedes construction and preserves the legal LOD result',()=>{
+ const baseline=allocationLedger.snapshot().cpuBytes,pressure=allocationLedger.reserve({owner:'display-control-pressure',kind:'scratch',cpuBytes:ALLOCATION_LIMITS.cpuBytes-ALLOCATION_LIMITS.textPartitionBytes-baseline-100});let read=false;
+ try{const input={...source(),get width(){read=true;return 5000;}};assert.throws(()=>ownedVisibleTiles(input,view()),/ALLOCATION_BUDGET/);assert.equal(read,false);}finally{pressure.release();}
+ for(const [width,height]of [[5000,3328],[5000,5000],[8192,3051]]){const viewport=view({width:width*2,height:height*2}),owned=ownedVisibleTiles(source(width,height),viewport);try{assert.deepEqual(owned.value,visibleTiles(source(width,height),viewport));}finally{owned.release();}}
+ assert.equal(allocationLedger.snapshot().cpuBytes,baseline);
+});
+test('a source descriptor survives parse cleanup and producer retirement while pinned',async()=>{
+ const baseline=allocationLedger.snapshot().cpuBytes,value=assetProjection(canonicalDisplayAsset({width:5000,height:5000,pixelIdentity:identity})),owned=await readOwnedDisplaySource(async()=>Response.json(value),'retained',5000,5000,new AbortController().signal);
+ const bytes=allocationLedger.snapshot().cpuBytes-baseline,unpin=owned.pin();assert(bytes>0&&bytes<=2048);assert.deepEqual(owned.value,source());owned.release();assert.equal(allocationLedger.snapshot().cpuBytes-baseline,bytes);unpin();assert.equal(allocationLedger.snapshot().cpuBytes,baseline);
+});
+test('a late cancelled source refunds its control owner without publishing a descriptor',async()=>{
+ const baseline=allocationLedger.snapshot().cpuBytes,entered=deferred(),gate=deferred(),abort=new AbortController(),value=assetProjection(canonicalDisplayAsset({width:5000,height:5000,pixelIdentity:identity}));
+ const pending=readOwnedDisplaySource(async()=>{entered.resolve();return gate.promise;},'retained',5000,5000,abort.signal);void pending.catch(()=>{});await entered.promise;abort.abort();assert(allocationLedger.snapshot().cpuBytes>baseline);gate.resolve(Response.json(value));await assert.rejects(pending,error=>error.name==='AbortError');assert.equal(allocationLedger.snapshot().cpuBytes,baseline);
+});
+test('resident tile metadata survives a failed bitmap close and draw index retires on throw',async()=>{
+ const fixture=bitmapFixture(),spec=visibleTiles(source(),view({width:20,height:20}))[0],baseline=allocationLedger.snapshot().cpuBytes,cache=new DisplayTileCache(async()=>response(spec));let fail=true;
+ globalThis.createImageBitmap=async input=>({width:input.width,height:input.height,close(){if(fail)throw Error('close blocked');}});
+ try{await cache.load(source(),spec,new AbortController().signal,()=>true);const resident=allocationLedger.snapshot().cpuBytes;assert.equal(resident-baseline,spec.width*spec.height*4+512);
+  assert.throws(()=>cache.withTiles(tiles=>{assert.equal(tiles.length,1);assert(allocationLedger.snapshot().cpuBytes>resident);throw Error('draw refused');}),/draw refused/);assert.equal(allocationLedger.snapshot().cpuBytes,resident);
+  assert.throws(()=>cache.clear(),/DISPLAY_RELEASE_FAILED/);assert.equal(allocationLedger.snapshot().cpuBytes,resident);fail=false;await cache.retryCleanup();assert.equal(allocationLedger.snapshot().cpuBytes,baseline);
+ }finally{fail=false;cache.clear();fixture.restore();}
 });

@@ -1,4 +1,5 @@
 import {compileLegacy} from '../../tooling/qualification/legacy-compiler.mjs';
+import {installSchema18Packet} from '../recovery/schema18-packet.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
@@ -40,7 +41,7 @@ test('R23 corrupt latest snapshot falls back to prior snapshot, then full log; f
   const pressureRoot=await rootFor(t);writer=await openWriter({root:pressureRoot});await writer.putObject([expectedBytes],refFor(expectedBytes),writer.epoch);await writer.submit(encode(command(ref)),writer.epoch);await writer.close();
   db=new DatabaseSync(join(pressureRoot,'metadata.sqlite'));db.exec("CREATE TRIGGER fail_snapshot BEFORE INSERT ON snapshots BEGIN SELECT RAISE(ABORT,'injected snapshot storage failure'); END");db.close();
   writer=await openWriter({root:pressureRoot});for(let i=1;i<500;i++)assert.equal((await writer.submit(encode(checkpoint(ref,String(i))),writer.epoch)).status,'accepted');
-  const rejected=await writer.submit(encode(checkpoint(ref,'500')),writer.epoch);assert.equal(rejected.code,'CAPACITY');assert.match(Buffer.from(await writer.readMetadata(rejected.details)).toString(),/SNAPSHOT_REQUIRED/);assert.equal((await writer.diagnostics()).observations.snapshot.pressure,true);await writer.close();
+  const rejected=await writer.submit(encode(checkpoint(ref,'500')),writer.epoch);assert.equal(rejected.code,'CAPACITY');assert.match(Buffer.from(await writer.readMetadata(rejected.details)).toString(),/SNAPSHOT_REQUIRED/);{const diagnosticRead=await writer.readDiagnostics();try{assert.equal(diagnosticRead.value.observations.snapshot.pressure,true);}finally{diagnosticRead.release();}}await writer.close();
   db=new DatabaseSync(join(pressureRoot,'metadata.sqlite'));assert.equal(db.prepare('SELECT count(*) n FROM events_v2').get().n,500);db.exec('DROP TRIGGER fail_snapshot');db.close();
   writer=await openWriter({root:pressureRoot});assert.equal((await writer.submit(encode(checkpoint(ref,'500')),writer.epoch)).status,'accepted');assert.equal((await writer.capture()).snapshot.seq,'500');
 });
@@ -49,9 +50,9 @@ test('schema2 migration opens a real e1a0092 fixture with verified backup, uncha
   const root=await rootFor(t);const source=await rootFor(t);compileLegacy(source,'e1a0092eeb0022c445bb348d0602fa0a727c3aee');
   const script=`import {openWriter} from './dist/local/server/storage/writer.js';import {writeFile} from 'node:fs/promises';\nconst w=await openWriter({root:process.argv[2]});const bytes=Buffer.from('${expectedBytes.toString()}');const ref=await w.putObject([bytes],{byteLength:String(bytes.length),mediaType:'application/json'},w.epoch);const command=${JSON.stringify(command(refFor(expectedBytes)))};const receipt=await w.submit(Buffer.from(JSON.stringify(command)),w.epoch);const document=await w.document('document_1');const history=await w.history(document.historyHead);await writeFile(process.argv[3],JSON.stringify({command,receipt,document,history}),{mode:0o600});await w.close();`;
   await writeFile(join(source,'seed.mjs'),script,{mode:0o600});execFileSync(process.execPath,[join(source,'seed.mjs'),root,join(source,'fixture.json')],{env:{PATH:process.env.PATH}});
-  const fixture=JSON.parse(await readFile(join(source,'fixture.json'),'utf8'));const writer=await openWriter({root});t.after(()=>writer.close());
+  const fixture=JSON.parse(await readFile(join(source,'fixture.json'),'utf8'));await installSchema18Packet(root);const writer=await openWriter({root});t.after(()=>writer.close());
   assert.deepEqual(await writer.document('document_1'),fixture.document);assert.deepEqual(await writer.history(fixture.document.historyHead),fixture.history);assert.deepEqual(await writer.submit(encode(fixture.command),writer.epoch),fixture.receipt);await writer.close();
-  const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('PRAGMA user_version').get().user_version,17);
+  const db=new DatabaseSync(join(root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('PRAGMA user_version').get().user_version,19);
   const migration=JSON.parse(db.prepare('SELECT receipt FROM schema_migrations WHERE version=2').get().receipt);assert.equal(migration.from,1);assert.equal(migration.manifest.events.count,'1');
   assert.deepEqual(db.prepare('SELECT * FROM events').all(),db.prepare('SELECT * FROM events_v2').all());const backup=new DatabaseSync(join(root,migration.backup),{readOnly:true});assert.equal(backup.prepare('PRAGMA integrity_check').get().integrity_check,'ok');assert.equal(backup.prepare('PRAGMA user_version').get().user_version,1);assert.deepEqual(backup.prepare('SELECT * FROM commands').all(),db.prepare('SELECT * FROM commands').all());backup.close();db.close();
 });
@@ -68,6 +69,7 @@ test('I-P01 warm snapshot admission detects changed bytes and external root meta
   assert.equal((await w.submit(encode(checkpoint(ref,'251')),w.epoch)).status,'accepted');
   const third=(await w.capture()).snapshot;assert.equal(third.seq,'251');assert.notEqual(third.id,second.id);await assert.rejects(w.snapshotContent(second.id));
   assert.equal((await w.document('document_1')).revision,'252');
-  const diagnostics=await w.diagnostics();assert.equal(diagnostics.highWater,'252');assert.equal(diagnostics.observations.snapshot.pressure,false);
+  const diagnosticRead=await w.readDiagnostics();try{const diagnostics=diagnosticRead.value;assert.equal(diagnostics.highWater,'252');assert.equal(diagnostics.observations.snapshot.pressure,false);
   assert.ok(diagnostics.observations.snapshot.buildMs>0);assert.ok(diagnostics.observations.snapshot.sliceMaxMs>0);
+  }finally{diagnosticRead.release();}
 });

@@ -80,6 +80,26 @@ test('selected export can recover complete selected bytes while excluded hidden 
   try{const result=await edit(f,{type:'ExportDocument',historyHead:before.historyHead,options:options(scope(['top']))});assert.deepEqual(await rgba(f,lastAsset(result).id),expected([1,1,[255,255,255,26]]));assert.deepEqual(await doc(f),before);}finally{await writeFile(missing,retained,{mode:0o600});}
  });
 
+test('visible export uses the frozen composite without source pixels but rejects missing rendered pixels',async t=>{
+  const f=await scene(t),before=await doc(f),beforeState=await state(f);
+  const response=await f.read('/api/v1/assets/'+before.image.compositeAssetId);assert.equal(response.status,200,response.text);
+  const composite=response.json.projection.value,sourcePath=objectPath(f.root,f.black.raster.pixels),source=await readFile(sourcePath);
+  assert.notEqual(composite.raster.pixels.hash,f.black.raster.pixels.hash);await unlink(sourcePath);
+  try{
+    for(const exportOptions of [undefined,options()]){
+      const result=await edit(f,{type:'ExportDocument',historyHead:before.historyHead,...(exportOptions?{options:exportOptions}:{})});
+      assert.deepEqual(await rgba(f,lastAsset(result).id),expected([1,1,[90,90,90,255]]));
+      assert.deepEqual(await doc(f),before);assert.deepEqual(await state(f),beforeState);
+    }
+  }finally{await writeFile(sourcePath,source,{mode:0o600});}
+  const renderedPath=objectPath(f.root,composite.raster.pixels),rendered=await readFile(renderedPath);await unlink(renderedPath);
+  try{
+    const result=await run(f,{type:'ExportDocument',historyHead:before.historyHead,options:options()});
+    assert.equal(result.receipt.status,'rejected');assert.equal(result.receipt.code,'MISSING_ASSET');
+    assert.deepEqual(await doc(f),before);assert.deepEqual(await state(f),beforeState);
+  }finally{await writeFile(renderedPath,rendered,{mode:0o600});}
+});
+
 test('selected export freezes exact layer set and source revision while an earlier queued delete commits, then replay retains bytes',async t=>{
   const f=await scene(t),frozen=await doc(f),frozenState=await state(f),top=frozenState.layers.find(l=>l.id==='top');await f.server.close();let w=await openWriter({root:f.root});f.cleanup(()=>w.close());
   const auth={clientId:f.paired.json.clientId,sessionHash:'e'.repeat(64),now:Date.now(),expires:Date.now()+1800000};

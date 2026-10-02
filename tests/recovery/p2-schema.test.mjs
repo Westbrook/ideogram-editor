@@ -1,5 +1,6 @@
-import test from 'node:test';
 import {ownTestRoot} from '../../tooling/qualification/owned-test-roots.mjs';
+import {installSchema18Packet} from './schema18-packet.mjs';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {fork} from 'node:child_process';
@@ -17,7 +18,29 @@ const priorCommit = '5650326b623d4aa2080772307708aa9f1854aa52';
 const capability = 'p2-request-adoption-adapters-v1';
 const retainedDirectories = ['objects', 'staging', 'uploads', 'portable', 'backend-transport', 'raster-work'];
 const phasePrefix = 'p2-semantic-schema-';
-const addedTables = ['candidate_adoption_evidence', 'candidate_asset_evidence'];
+// Exact permitted declarations at each activation boundary. Unknown indexes,
+// triggers, tables, or changes to any original declaration remain failures.
+const p2SchemaAdditions = [
+  {type:'table',name:'candidate_adoption_evidence',tbl_name:'candidate_adoption_evidence',sql:'CREATE TABLE candidate_adoption_evidence (document_id TEXT NOT NULL, attempt_id TEXT NOT NULL, PRIMARY KEY(document_id,attempt_id)) STRICT'},
+  {type:'index',name:'sqlite_autoindex_candidate_adoption_evidence_1',tbl_name:'candidate_adoption_evidence',sql:null},
+  {type:'table',name:'candidate_asset_evidence',tbl_name:'candidate_asset_evidence',sql:'CREATE TABLE candidate_asset_evidence (asset_id TEXT NOT NULL, manifest_hash TEXT NOT NULL, attempt_id TEXT NOT NULL, PRIMARY KEY(asset_id,attempt_id)) STRICT'},
+  {type:'index',name:'sqlite_autoindex_candidate_asset_evidence_1',tbl_name:'candidate_asset_evidence',sql:null},
+  {type:'index',name:'roots_hash',tbl_name:'roots',sql:'CREATE INDEX roots_hash ON roots(hash)'},
+  {type:'index',name:'assets_preservation_inputs',tbl_name:'assets',sql:`CREATE INDEX assets_preservation_inputs ON assets (
+    json_extract(json,'$.raster.pipeline'),json_extract(json,'$.raster.sourceAssetIds'),id
+  ) WHERE json_extract(json,'$.qualification')='canonical-raster'
+    AND json_extract(json,'$.safety')='safe' AND json_extract(json,'$.availability')='available'
+    AND json_extract(json,'$.raster.role')='composite'`},
+];
+const schema18Additions = [
+  {type:'table',name:'raster_import_inspections',tbl_name:'raster_import_inspections',sql:'CREATE TABLE raster_import_inspections (id TEXT PRIMARY KEY,json TEXT NOT NULL,session_hash TEXT NOT NULL,epoch TEXT NOT NULL) STRICT'},
+  {type:'index',name:'sqlite_autoindex_raster_import_inspections_1',tbl_name:'raster_import_inspections',sql:null},
+  {type:'index',name:'queue_jobs_order_position',tbl_name:'queue_jobs',sql:"CREATE INDEX queue_jobs_order_position ON queue_jobs(length(json_extract(json,'$.order.position')),json_extract(json,'$.order.position'),id)"},
+  {type:'index',name:'queue_journal_job_creation',tbl_name:'queue_journal',sql:"CREATE INDEX queue_journal_job_creation ON queue_journal(seq) WHERE json_extract(json,'$.family')='job' AND json_extract(json,'$.event')='JobQueued'"},
+  {type:'index',name:'queue_journal_order_epoch',tbl_name:'queue_journal',sql:"CREATE INDEX queue_journal_order_epoch ON queue_journal(seq) WHERE json_extract(json,'$.event') IN ('QueueOrderInitialized','LocalQueueReordered')"},
+  {type:'index',name:'queue_accepted_creation',tbl_name:'events_v2',sql:"CREATE INDEX queue_accepted_creation ON events_v2(length(seq),seq) WHERE json_extract(json,'$.type')='JobQueued'"},
+  {type:'index',name:'queue_jobs_unordered',tbl_name:'queue_jobs',sql:"CREATE INDEX queue_jobs_unordered ON queue_jobs(id) WHERE json_type(json,'$.order') IS NULL"},
+];
 const digest = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const captionLookalike = '{"kind":"request-draft-1","requestMaskDraft":{"label":"ordinary caption JSON"}}';
 let old, queue, TransportEvidenceStore, policy;
@@ -57,17 +80,15 @@ const inspectRoot = root => inspect(join(root, 'metadata.sqlite'));
 
 function assertOriginalRows(after, before) {
   assert.equal(after.integrity, 'ok');
-  const addedIndexes = after.version === 17 ? ['assets_preservation_inputs', 'roots_hash'] : [];
-  if (after.version === 17) {
-    const expected = [
-      {type:'index',name:'assets_preservation_inputs',tbl_name:'assets',sql:"CREATE INDEX assets_preservation_inputs ON assets ( json_extract(json,'$.raster.pipeline'),json_extract(json,'$.raster.sourceAssetIds'),id ) WHERE json_extract(json,'$.qualification')='canonical-raster' AND json_extract(json,'$.safety')='safe' AND json_extract(json,'$.availability')='available' AND json_extract(json,'$.raster.role')='composite'"},
-      {type:'index',name:'roots_hash',tbl_name:'roots',sql:'CREATE INDEX roots_hash ON roots(hash)'},
-    ];
-    assert.deepEqual(after.schema.filter(row=>addedIndexes.includes(row.name)).map(row=>({...row,sql:row.sql.replace(/\s+/g,' ').trim()})),expected,'Exact successor indexes; no broader schema exemption');
-  }
-  assert.deepEqual(after.schema.filter(row => !addedTables.includes(row.tbl_name) && !addedIndexes.includes(row.name)), before.schema);
+  assert([16,17,18].includes(after.version), 'Only the original16 or exact17/18 activation states are supported');
+  const additions = after.version === 16 ? [] : [...p2SchemaAdditions, ...(after.version === 18 ? schema18Additions : [])];
+  const names = new Set(additions.map(row => row.name)), addedTables = additions.filter(row => row.type === 'table').map(row => row.name);
+  const declarations = rows => rows.map(row => ({...row,sql:row.sql === null ? null : row.sql.replace(/\s+/g,' ').trim()})).sort((a,b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+  assert.deepEqual(declarations(after.schema.filter(row => names.has(row.name))), declarations(additions), 'Only exact known migration declarations are added');
+  assert.deepEqual(after.schema.filter(row => !names.has(row.name)), before.schema, 'Every original schema declaration is byte-exact');
   assert.deepEqual(Object.keys(after.tables).filter(name => !addedTables.includes(name)), Object.keys(before.tables));
-  if (after.version === 17) for (const table of addedTables) assert.deepEqual(after.tables[table], [], table);
+  for (const table of addedTables) assert.deepEqual(after.tables[table], [], table);
+  assert.deepEqual(after.tables.schema_migrations.filter(row => row.version > 16).map(row => row.version).sort((a,b) => a-b), after.version === 16 ? [] : after.version === 17 ? [17] : [17,18]);
   for (const [name, rows] of Object.entries(before.tables)) {
     if (name === 'schema_migrations') {
       assert.deepEqual(after.tables[name].filter(row => row.version <= 16), rows, name);
@@ -198,7 +219,13 @@ async function resumeCurrent(fixture) {
   const writer = await openWriter({root: fixture.root});
   try {
     await terminalRecord(writer, fixture.pendingCommand, fixture.before.tables.portable_preparations[0].hash);
-    assert.deepEqual((await writer.queueView()).jobs, [fixture.queued.job]);
+    // Activation barriers retain the legacy rows. The completed current writer
+    // then records the single accepted job's durable order, without dispatching.
+    assert.equal(fixture.queued.job.version, '1');
+    assert.deepEqual((await writer.queueView()).jobs, [{...fixture.queued.job,
+      version: '2', order: {position: '1', insertionOrdinal: '1', origin: 'accepted-event'},
+      ownerClientId: fixture.queued.request.command.clientId,
+    }]);
   } finally { await writer.close(); }
 }
 
@@ -261,12 +288,13 @@ function assertPins(root, state, before, files) {
 
 test('schema17 fences actual accepted 5650326 without root writes and restores schema16 pending work with that executable', async t => {
   const fixture = await seed(t), {root, before, files, pendingCommand, queued, partial, unlinkedCaption} = fixture;
+  await installSchema18Packet(root);
   const paused = pausedOpen(root, 'after-activation');
   let migration, manifest;
   try {
     await paused.reached;
     const after = inspectRoot(root);
-    assert.equal(after.version, 17);
+    assert.equal(after.version, 18);
     assertOriginalRows(after, before);
     assertPins(root, after, before, files);
     migration = JSON.parse(after.tables.schema_migrations.find(row => row.version === 17).receipt);
@@ -327,7 +355,7 @@ test('fresh schema17 root records its semantic capability without a fictitious r
   const root = await rootFor(t);
   await closeCurrent(root);
   const state = inspectRoot(root), migration = JSON.parse(state.tables.schema_migrations.find(row => row.version === 17).receipt);
-  assert.equal(state.version, 17);
+  assert.equal(state.version, 19);
   assert.equal(migration.capability, capability);
   for (const field of ['backup', 'backupHash', 'manifestFile', 'rollback']) assert.equal(migration[field], null, field);
   assert(!(await readdir(root)).some(name => name.startsWith('schema16-backup-')));
@@ -385,6 +413,7 @@ test('schema17 preserves schema16 deletion at ' + interruption + ' and the actua
   }
   assert.deepEqual(await readFile(file), bytes);
 
+  await installSchema18Packet(root);
   const paused = pausedOpen(root, 'after-activation');
   let migration, manifest;
   try {
@@ -442,12 +471,13 @@ test('schema17 preserves schema16 deletion at ' + interruption + ' and the actua
 
 test('schema17 capacity refusal preserves schema16 pending requests and retained bytes', async t => {
   const fixture = await seed(t), {root, before, files} = fixture;
+  await installSchema18Packet(root);
   await assert.rejects(openWriter({root, quotaBytes: '1'}), {code: 'CAPACITY'});
   assert.deepEqual(inspectRoot(root), before);
   await assertPreserved(root, files);
   assert(!(await readdir(root)).some(name => name.startsWith('schema16-backup-')));
   await resumeCurrent(fixture);
-  assert.equal(inspectRoot(root).version, 17);
+  assert.equal(inspectRoot(root).version, 19);
   await assertPreserved(root, files);
 });
 
@@ -504,6 +534,7 @@ for (const marker of ['pending-command', 'adapter-staging', 'referenced-raster-p
 for (const target of ['backup-written', 'database', 'manifest', 'retained-file']) {
   test('schema17 refuses tampered ' + target + ' before activation and retains the failed proof', async t => {
     const fixture = await seed(t), {root, before, files} = fixture;
+    await installSchema18Packet(root);
     const paused = pausedOpen(root, target === 'backup-written' ? 'backup-written' : 'before-activation');
     const rejected = assert.rejects(paused.opening, {code: 'CORRUPT_STORE'});
     let path, failure;
@@ -535,7 +566,7 @@ for (const target of ['backup-written', 'database', 'manifest', 'retained-file']
     await assertPreserved(root, files);
     const changed = digest(await readFile(path));
     await resumeCurrent(fixture);
-    assert.equal(inspectRoot(root).version, 17);
+    assert.equal(inspectRoot(root).version, 19);
     assert.equal(digest(await readFile(path)), changed, 'A retry does not overwrite the rejected backup evidence');
     await assertPreserved(root, files);
   });
@@ -546,17 +577,18 @@ for (const phase of ['before-backup', 'backup-written', 'backup-verified', 'befo
     const fixture = await seed(t), {root, before, files} = fixture;
     await killAt(t, root, phasePrefix + phase);
     const after = inspectRoot(root);
-    assert.equal(after.version, phase === 'after-activation' ? 17 : 16);
+    assert.equal(after.version, phase === 'after-activation' ? 18 : 16);
     assertOriginalRows(after, before);
     if (phase === 'after-activation') assertPins(root, after, before, files);
     await assertPreserved(root, files);
     await resumeCurrent(fixture);
-    assert.equal(inspectRoot(root).version, 17);
+    assert.equal(inspectRoot(root).version, 19);
     await assertPreserved(root, files);
   });
 }
 
 async function killAt(t, root, phase) {
+  await installSchema18Packet(root);
   const directory = await rootFor(t), script = join(directory, 'p2-schema-kill.mjs');
   await writeFile(script, `import {openWriter} from ${JSON.stringify(new URL('../../dist/local/server/storage/writer.js', import.meta.url).href)};
 await openWriter({root: process.argv[2]}, {phase: process.argv[3], gate: new SharedArrayBuffer(4), onBarrier: phase => process.send({phase})});

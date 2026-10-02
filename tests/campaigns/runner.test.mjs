@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createJournal, readJournal, digest, sanitize, createOutput, PrerequisiteError } from '../../tooling/qualification/campaigns/common.mjs';
 import { evaluateHost } from '../../tooling/qualification/campaigns/host.mjs';
-import { executionGroups, summarize, runPlan, recoverAttempts, optionsFromArgs, evaluateInteractionCohort } from '../../tooling/qualification/campaigns/run.mjs';
+import { executionGroups, summarize, runPlan, recoverAttempts, optionsFromArgs, evaluateInteractionCohort, summarizeRetainedCampaign } from '../../tooling/qualification/campaigns/run.mjs';
 import { normalizeResult, runLifecycle } from '../../tooling/qualification/campaigns/worker.mjs';
 
 function fixturePlan() {
@@ -158,4 +158,21 @@ test('late resource sampler errors retain the complete observed lifecycle and fi
     assert.equal(events.filter(event => event.event === 'lifecycle-cycle-end').length, 2);
     assert.equal(events.at(-1).event, 'lifecycle-sampling');
   }
+});
+
+
+test('live H-WA publication actually replays retained bytes before classifying asserted claims', async t => {
+  const output = await realpath(await mkdtemp(join(tmpdir(), 'wa-live-replay-'))); t.after(() => rm(output, {recursive: true, force: true}));
+  const evidencePath = join(output, 'wa-observation.json'); await writeFile(evidencePath, 'actual observed bytes');
+  const cell = {id: 'AH2/WA-lifecycle', operation: 'adapter.lifecycle', workload: 'WA', handler: 'browser', host: 'H', kind: 'lifecycle', cold: 1, warm: 0, primes: 0, requirements: {}, phaseBudgets: [], metricBudgets: []};
+  const plan = {campaign: 'P', features: 'adapters', jobs: [{id: 'AH2', cells: [cell]}]}, groups = completeGroups(plan);
+  groups[0].attempts[0].result = {kind: 'lifecycle-observation-1', profile: 'P-A', cycles: [], forcedGC: false, processRestarted: false};
+  const receipt = {plan, groups, inputIdentities: {}, identity: {}, evidence: [{path: 'wa-observation.json', bytes: 21, sha256: digest('forged bytes')}], runError: null};
+  const summary = await summarizeRetainedCampaign(receipt, output, {hostEligible: true, sourceStable: true});
+  assert.match(receipt.nativeReplayError.message, /Evidence changed/);
+  assert.equal(receipt.runError, receipt.nativeReplayError); assert.equal(receipt.summary, summary);
+  assert.equal(summary.status, 'INCONCLUSIVE'); assert.equal(summary.qualification, false);
+  // A definite product failure keeps precedence over unavailable replay.
+  groups[0].attempts[0].status = 'FAIL'; groups[0].status = 'FAIL';
+  assert.equal((await summarizeRetainedCampaign(receipt, output, {hostEligible: true, sourceStable: true})).status, 'FAIL');
 });

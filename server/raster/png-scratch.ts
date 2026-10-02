@@ -29,10 +29,11 @@ export async function encodeScratchPNG(source: number, output: string, width: nu
     await put(header); await put(bytes); await put(trailer);
   };
   const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(width); ihdr.writeUInt32BE(height, 4); ihdr[8] = 8; ihdr[9] = 6;
-  let zip: ReturnType<typeof createDeflate> | undefined, producing: Promise<void> | undefined;
+  let zip: ReturnType<typeof createDeflate> | undefined, producing: Promise<void> | undefined, compressorClosed: Promise<void> | undefined;
   try {
     await put(SIGNATURE); await chunk('IHDR', ihdr); await chunk('sRGB', Buffer.from([0]));
     zip = createDeflate({ level: 6, chunkSize: 65536 });
+    compressorClosed = new Promise<void>(resolve => zip!.once('close', resolve));
     const compressor = zip;
     producing = (async () => {
       for (let y = 0; y < height; y++) {
@@ -55,5 +56,9 @@ export async function encodeScratchPNG(source: number, output: string, width: nu
     await chunk('IEND', Buffer.alloc(0)); target.end(); await closed; if (targetError) throw targetError;
   } catch (error) {
     target.destroy(); zip?.destroy(); if (producing) await Promise.allSettled([producing]); await closed; throw error;
+  } finally {
+    // The row producer and output stream can settle before zlib finishes its
+    // asynchronous native cleanup. Preserve the original result until close.
+    if (compressorClosed) await compressorClosed;
   }
 }

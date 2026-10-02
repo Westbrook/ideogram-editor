@@ -3,14 +3,12 @@ import { spawnSync } from 'node:child_process';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir, platform, arch, release } from 'node:os';
-
-import {consumerInputs} from './consumer-inputs.mjs';
+import { copyConsumerInputs } from './consumer-inputs.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const config = JSON.parse(await readFile(join(root, 'tooling/toolchain.json')));
 if (process.versions.node !== config.node) throw new Error(`Use Node ${config.node}`);
 const npmCli = join(root, '.toolchain', `npm-${config.npm}`, 'package/bin/npm-cli.js');
-const inputClosure = await consumerInputs(root);
 const fixture = await mkdtemp(join(tmpdir(), 'ideogram-consumer-'));
 await mkdir(join(root, 'artifacts'), { recursive: true });
 const receiptDirectory = await mkdtemp(join(root, 'artifacts/consumer-'));
@@ -37,9 +35,7 @@ function run(executable, args) {
 }
 const npm = (...args) => run(process.execPath, [npmCli, ...args]);
 try {
-  for (const file of inputClosure.paths) {
-    await cp(join(root, file), join(fixture, file), { recursive: true });
-  }
+  receipt.copiedInputs = await copyConsumerInputs(root, fixture);
   await mkdir(env.HOME);
   await mkdir(join(fixture, 'artifacts'));
   if (npm('--version').trim() !== config.npm) throw new Error('Wrong npm version');

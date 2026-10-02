@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { openDocument, publicRead, runBrowserAction } from './browser-driver.mjs';
+import { openDocument, publicRead, runBrowserAction, prepareEncodedAdoptionReview } from './browser-driver.mjs';
 import { intervalWait, monotonic, PrerequisiteError } from './common.mjs';
+import { verifyEncodedReview, verifyRetainedEncodedExecution, encodedInterpretationMissing } from './browser-encoded.mjs';
 
 const button = (page, id) => page.locator('#' + id).getByRole('button');
 const opaque = value => typeof value === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value);
@@ -28,15 +29,18 @@ export async function readRenderReadiness(page) {
 export function verifyReadinessSnapshot(value, prepared, readiness) {
   if (!['A', 'B'].includes(readiness) || !opaque(prepared?.assetId) || !opaque(prepared?.reviewId)) throw new PrerequisiteError('Exact prepared review identity is required');
   const owner = value?.viewport;
-  if (value?.schemaVersion !== 1 || !owner || owner.contextLost || owner.contextRestoring || owner.recoveryError || owner.pendingReads !== 0 || !Number.isSafeInteger(owner.generation)) throw new PrerequisiteError('Canvas decode/recovery has not settled');
+  if (value?.schemaVersion !== 1 || !owner || owner.contextLost || owner.contextRestoring || owner.recoveryError || owner.pendingReads !== 0 || owner.pendingCleanup > 0 || !Number.isSafeInteger(owner.generation)) throw new PrerequisiteError('Canvas decode/recovery has not settled');
   if (readiness === 'A') {
-    if (owner.decodedAssetId !== prepared.assetId || owner.decodedBitmaps !== 1 || !Number.isSafeInteger(owner.bitmapSerial) || value.review?.reviewId !== prepared.reviewId || value.review?.previewId !== prepared.previewId || value.review?.assetId !== prepared.assetId) throw new PrerequisiteError('Prepared reviewed composite is not resident in the actual decoded viewport owner');
+    const resident = owner.representation === 'viewport-tiles'
+      ? owner.visibleComplete === true && Number.isSafeInteger(owner.requiredTiles) && owner.requiredTiles > 0 && owner.residentRequiredTiles === owner.requiredTiles && Number.isSafeInteger(owner.decodedBitmaps) && owner.decodedBitmaps >= owner.requiredTiles && owner.pendingCleanup === 0
+      : (owner.representation === undefined || owner.representation === 'single-bitmap') && owner.decodedBitmaps === 1;
+    if (owner.decodedAssetId !== prepared.assetId || !resident || !Number.isSafeInteger(owner.bitmapSerial) || owner.bitmapSerial <= 0 || value.review?.reviewId !== prepared.reviewId || value.review?.previewId !== prepared.previewId || value.review?.assetId !== prepared.assetId) throw new PrerequisiteError('Prepared reviewed composite is not resident in the actual decoded viewport owner');
   } else {
     if (owner.decodedAssetId === prepared.assetId || value.review !== null) throw new PrerequisiteError('Prepared viewport remains usable; readiness B was not established');
     const evicted = prepared.resident?.viewport;
-    if (!evicted || evicted.decodedAssetId !== prepared.assetId || owner.generation <= evicted.generation || owner.releasedBitmaps <= evicted.releasedBitmaps || owner.bitmapSerial === evicted.bitmapSerial) throw new PrerequisiteError('Readiness B requires an observed real release of the previously resident prepared viewport');
+    if (!evicted || evicted.decodedAssetId !== prepared.assetId || !Number.isSafeInteger(evicted.decodedBitmaps) || evicted.decodedBitmaps < 1 || !Number.isSafeInteger(evicted.releasedBitmaps) || !Number.isSafeInteger(owner.releasedBitmaps) || owner.releasedBitmaps - evicted.releasedBitmaps < evicted.decodedBitmaps || owner.generation <= evicted.generation || owner.bitmapSerial === evicted.bitmapSerial) throw new PrerequisiteError('Readiness B requires an observed real release of the previously resident prepared viewport');
   }
-  return { readiness, assetId: prepared.assetId, reviewId: prepared.reviewId, previewId: prepared.previewId, ownerGeneration: owner.generation, bitmapSerial: owner.bitmapSerial, decodedAssetId: owner.decodedAssetId, observedMs: value.observedMs, timeOrigin: value.timeOrigin, releasedBitmaps: owner.releasedBitmaps, decodeStarts: owner.decodeStarts, representation: 'actual-product-decoded-asset-owner', presentationClaim: false };
+  return { readiness, assetId: prepared.assetId, reviewId: prepared.reviewId, previewId: prepared.previewId, ownerGeneration: owner.generation, bitmapSerial: owner.bitmapSerial, decodedAssetId: owner.decodedAssetId, observedMs: value.observedMs, timeOrigin: value.timeOrigin, releasedBitmaps: owner.releasedBitmaps, decodeStarts: owner.decodeStarts, representation: owner.representation ?? 'single-bitmap', requiredTiles: owner.requiredTiles ?? null, residentRequiredTiles: owner.residentRequiredTiles ?? null, visibleComplete: owner.visibleComplete ?? null, presentationClaim: false };
 }
 
 export function verifyPreparedReview(review, snapshot, candidate, document) {
@@ -55,8 +59,41 @@ export function contextRecoveryOutcome(before, after, gpu) {
   return { status: missing.length ? 'INCONCLUSIVE' : 'PASS', actionAllowed: true, missing, before, after, gpu, recoveryScope: 'trusted native canvas events and actual retained asset replay; no physical presentation claim' };
 }
 
-export function createBrowserReadinessController({ page, browser, engine, fixture, signal }) {
-  let prepared = null;
+export function createBrowserReadinessController({ page, browser, engine, fixture, signal, diagnosticOutput, readEncodedEvidence }) {
+  let prepared = null, encodedPrepared = null;
+  async function prepareEncodedAdoption(cell) {
+    const p = cell.parameters ?? cell.options ?? {}, item = p.candidate ?? fixture.candidate;
+    if (!item) throw new PrerequisiteError('The sealed retained candidate is unavailable');
+    const document = (await publicRead(page, '/api/v1/documents/' + fixture.documentId)).projection.value;
+    const value = await prepareEncodedAdoptionReview({ page, cell, fixture, signal });
+    encodedPrepared = verifyEncodedReview(value.review, document, item, value.placement);
+    await page.waitForFunction(() => document.querySelector('ie-shell')?.renderReadiness?.viewport?.pendingReads === 0);
+    const owner = await readRenderReadiness(page);
+    return { status: 'PASS', qualification: 'INCONCLUSIVE', actionAllowed: true, missing: [encodedInterpretationMissing], kind: 'public-encoded-rebuild-precondition-1', preparationOutsideAcceptance: true, preparation: value.receipt, prepared: encodedPrepared, owner, durableDeletion: false, decodedInputEvictionClaim: false };
+  }
+  async function verifyEncodedReadiness(item) {
+    if (!encodedPrepared || encodedPrepared.candidateId !== item.id) throw new PrerequisiteError('No matching public encoded review exists');
+    const document = (await publicRead(page, '/api/v1/documents/' + encodedPrepared.documentId)).projection.value;
+    const review = await publicRead(page, '/api/v1/image-edit-reviews/' + encodedPrepared.reviewId);
+    const verified = verifyEncodedReview(review, document, item, encodedPrepared.placement);
+    if (verified.reviewHash !== encodedPrepared.reviewHash || verified.revision !== encodedPrepared.revision) throw new PrerequisiteError('The frozen encoded review changed before acceptance');
+    const owner = await readRenderReadiness(page);
+    if (owner.review || owner.viewport.pendingReads !== 0 || owner.viewport.contextLost || owner.viewport.contextRestoring) throw new PrerequisiteError('Canvas review or recovery remains active before encoded acceptance');
+    return { ...verified, owner, inputRepresentation: 'encoded capabilities; canonical history remains retained' };
+  }
+  async function observeEncodedAdoption(item, receipt, preClick) {
+    if (!encodedPrepared || item.id !== encodedPrepared.candidateId || receipt.documentId !== encodedPrepared.targetDocumentId) throw new PrerequisiteError('Encoded adoption differs from its frozen target document');
+    const document = (await publicRead(page, '/api/v1/documents/' + receipt.documentId)).projection.value;
+    const assetId = document.image?.compositeAssetId;
+    if (!opaque(assetId)) throw new PrerequisiteError('Encoded acceptance produced no retained composite');
+    await page.waitForFunction(asset => {
+      const state = document.querySelector('ie-shell')?.renderReadiness;
+      return state?.review === null && state.viewport?.pendingReads === 0 && state.viewport.decodedAssetId === asset;
+    }, assetId);
+    if (!readEncodedEvidence) throw new PrerequisiteError('Owned writer encoded execution evidence is unavailable');
+    const execution = await verifyRetainedEncodedExecution(await readEncodedEvidence(), preClick, receipt.commandId, assetId, diagnosticOutput);
+    return { after: await readRenderReadiness(page), execution, exactRetainedComposite: true, missing: execution.missing };
+  }
   async function prepareAdoption(cell) {
     const p = cell.parameters ?? cell.options ?? {}, item = p.candidate ?? fixture.candidate;
     if (!item) throw new PrerequisiteError('The sealed retained candidate is unavailable');
@@ -125,6 +162,7 @@ export function createBrowserReadinessController({ page, browser, engine, fixtur
   async function resetProductState(cell) {
     const p = cell.parameters ?? cell.options ?? {}, mode = p.mode ?? 'native';
     if (cell.operation === 'raster.adopt' && ['A', 'B'].includes(p.readiness)) return prepareAdoption(cell);
+    if (cell.operation === 'raster.adopt' && p.readiness === 'C') return prepareEncodedAdoption(cell);
     if (p.readiness || p.decodedCache) return { status: 'INCONCLUSIVE', actionAllowed: true, missing: ['The public deferred/prepare workflow retains canonical source inputs; strict encoded-only readiness and absence of reusable durable preparation are not established'] };
     if (mode === 'worker-offscreen-disabled') {
       const capabilities = await page.evaluate(() => ({ Worker: typeof Worker, OffscreenCanvas: typeof OffscreenCanvas }));
@@ -136,10 +174,10 @@ export function createBrowserReadinessController({ page, browser, engine, fixtur
     if (mode !== 'native') throw new PrerequisiteError('Unsupported browser raster mode');
     return { status: 'PASS', actionAllowed: true, missing: [] };
   }
-  return { resetProductState, verifyDecodedReadiness, observeAdoption, prepareAdoption, async returnToAccepted() {
+  return { resetProductState, verifyDecodedReadiness, observeAdoption, prepareAdoption, verifyEncodedReadiness, observeEncodedAdoption, async returnToAccepted() {
     const state = await readRenderReadiness(page);
     if (state.review && prepared) await button(page, 'request-candidate-canvas-return-' + prepared.candidateId).click();
     await openDocument(page, fixture);
-    prepared = null;
+    prepared = null; encodedPrepared = null;
   } };
 }

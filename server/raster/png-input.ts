@@ -4,6 +4,7 @@ import { finished } from 'node:stream/promises';
 import { CODECS } from './codec-platform.js';
 import { PNG_SIGNATURE } from './png.js';
 import { extent } from '../../src/raster/core.js';
+import { encodedExtent } from '../../src/protocol/raster-import.js';
 
 type Reader = (at: number, length: number) => Buffer;
 const digest = (b: Uint8Array) => 'sha256:' + createHash('sha256').update(b).digest('hex');
@@ -33,7 +34,7 @@ function unpack(data: Buffer, metadata: (n:number)=>void): Buffer {
 
 // PNG3 chunk ordering and payload validation precedes native metadata parsing.
 // CRC reads and image inflation use 64 KiB blocks; no encoded/full-image copy.
-export async function inspectPNG(read:Reader,length:number,metadata:(n:number)=>void,check:()=>void) {
+export async function inspectPNG(read:Reader,length:number,metadata:(n:number)=>void,check:()=>void, originalMetadata=false) {
   if (!read(0,8).equals(PNG_SIGNATURE)) bad();
   const seen=new Set<string>(), palettes=new Set<string>();
   let at=8,width=0,height=0,depth=0,color=0,interlace=0,paletteEntries=0;
@@ -53,7 +54,7 @@ export async function inspectPNG(read:Reader,length:number,metadata:(n:number)=>
     if(crc!==read(at+8+n,4).readUInt32BE()) bad('RASTER_CRC');
     const data=()=>read(at+8,n);
     if(type==='IHDR'){
-      if(n!==13)bad();const b=data();width=b.readUInt32BE();height=b.readUInt32BE(4);extent(width,height);
+      if(n!==13)bad();const b=data();width=b.readUInt32BE();height=b.readUInt32BE(4);(originalMetadata?encodedExtent:extent)(width,height);
       depth=b[8];color=b[9];interlace=b[12];
       if(![0,2,3,4,6].includes(color)||!(color===0||color===3?[1,2,4,8]:[8]).includes(depth)||b[10]||b[11]||interlace>1)bad('RASTER_DEPTH');
     }else if(type==='PLTE'){
@@ -113,8 +114,8 @@ export async function inspectPNG(read:Reader,length:number,metadata:(n:number)=>
     if(single.has(type))seen.add(type);at+=n+12;
   }
   if(!seen.has('IEND'))bad();
-  await imageStream(read,firstIDAT,lastIDAT,width,height,depth,color,interlace,paletteEntries,check);
-  return {width,height,iccHash,exifHash};
+  if(!originalMetadata)await imageStream(read,firstIDAT,lastIDAT,width,height,depth,color,interlace,paletteEntries,check);
+  return {width,height,iccHash,exifHash,depth,color,interlace,firstIDAT,lastIDAT,samplesValidated:!originalMetadata};
 }
 
 async function imageStream(read:Reader,start:number,end:number,width:number,height:number,depth:number,color:number,interlace:number,palette:number,check:()=>void){

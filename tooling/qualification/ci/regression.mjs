@@ -3,7 +3,7 @@ import {validateCiPlan, digest} from './plan.mjs';
 import {makeCampaignPlan} from '../campaigns/inventory.mjs';
 import {digest as campaignDigest} from '../campaigns/common.mjs';
 import {summarize} from '../campaigns/run.mjs';
-import {evaluateSession, evaluateVisits} from '../campaigns/metrics.mjs';
+import {deriveLifecycleMeasurements, evaluateSession, evaluateVisits} from '../campaigns/metrics.mjs';
 import {observeD11Build} from '../developer-campaigns/commands.mjs';
 import {evaluateRegression, nearestRank} from '../statistics.mjs';
 
@@ -102,6 +102,13 @@ export function collectCellRows(cell, cache, attempts, campaign, {byteAuditAttem
     }
     if (['developer.command', 'developer.command-group', 'developer.archive-update'].includes(cell.operation) && !names.length) missing.push('Measured developer row phases unavailable');
   }
+  // Derive lifecycle rows from the verified planned cell and actual retained
+  // trace, just as the controller does. Top-level aliases cannot fill gaps.
+  const lifecycleRows = new Map();
+  if (cell.kind === 'lifecycle') for (const attempt of samples) {
+    const raw = attempt.result?.lifecycle ?? (attempt.result?.kind === 'lifecycle-observation-1' ? attempt.result : null);
+    lifecycleRows.set(attempt, raw ? deriveLifecycleMeasurements(raw, {cell}) : {measurements: []});
+  }
   for (const rule of cell.requiredMeasurements ?? []) {
     if (rule.cache && rule.cache !== cache) continue;
     if (rule.budgetId === 'D11' || rule.name?.startsWith('D11')) continue; // Independent instrumented byte cohorts only.
@@ -132,8 +139,11 @@ export function collectCellRows(cell, cache, attempts, campaign, {byteAuditAttem
       });
     } else {
       values = samples.map(attempt => {
-        const value = metric(attempt.result, rule.name);
+        const derived = lifecycleRows.get(attempt), value = metric(derived ?? attempt.result, rule.name);
         if (!value || !finite(value.value) || value.unit !== rule.unit || typeof value.method !== 'string' || !value.method || value.evidence === undefined) { issue = 'Required value/unit/method/evidence unavailable'; return null; }
+        if (value.complete === false || derived && value.complete !== true || Object.hasOwn(value, 'lowerBound') || Object.hasOwn(value, 'upperBound')) {
+          issue = 'Incomplete or censored measurement cannot establish an exact regression value'; return null;
+        }
         methods.push(value.method); return value.value;
       });
     }

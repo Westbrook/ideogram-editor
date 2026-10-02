@@ -1,8 +1,22 @@
-Current development validation workflow (2026-09-30)
+Current development validation workflow (managed/main reconciliation)
 
 Use docs/testing/VALIDATION.md and AGENTS.md for current affected-suite scheduling,
 verified build reuse, browser batching and receipts. Generate the exact gate map
 with npm run validate -- plan --groups all --browsers all. Run types early.
+The shared plan verifies vendor, complete text/profile inputs and imports before
+dependent builds. Qualification helper tests retain their real server build.
+Execution needs IE_EVIDENCE_ALLOCATION and a fresh --output within its assigned
+root; raw PASS plus an incomplete storage audit is not effective PASS. Authentic
+schema18 migration fixtures additionally require the verified absolute
+IE_SCHEMA18_EXECUTABLE_PACKET; the runner passes it to independently checked
+private fixture installation. No planned packet path establishes admission.
+
+The integrated source retains 23 Node groups and 56 browser inventory files: 54 direct
+specs and two negative harness specs owned by Node parents, with 143 all-engine
+serial steps. Committed-main pilot results remain historical; source review is
+not a combined-run result. Use the shared runner after source/profile activation,
+not the historical custom browser driver. Physical/native/resource/P-Q3, cold
+consumer and container qualification remain separate and fresh.
 The P1a.1 sequence below is a historical clean-consumer qualification recipe,
 not a ladder to repeat after every edit. Fresh qualification remains fresh.
 

@@ -1,12 +1,18 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {fixture,recover,cancel,until,turn,deferred} from './queue-controls.mjs';
 async function edit(f,kind){
- if(kind==='prompt'){const host={value:'Edited while pending',isConnected:true};f.render().fields.find(x=>x.id==='prompt').input({currentTarget:host,composedPath:()=>[host],defaultPrevented:false});await turn();}
+ if(kind==='prompt'){const host=f.nativePrompt('Edited while pending');f.render().fields.find(x=>x.id==='prompt').input({currentTarget:host,composedPath:()=>[host],defaultPrevented:false});await turn();}
  if(kind==='operation')f.flow.operationChanged('Generate with Fast');
  if(kind==='revision'){f.editor.view.document.revision='2';await f.flow.sync();}
 }
 for(const name of [recover,cancel])for(const change of ['prompt','operation','revision'])for(const outcome of ['resolve','reject'])test('F4 '+name+' '+outcome+' after '+change+' releases its continuing owner busy state',async t=>{
- const f=await fixture(t);f.click(name);await until(()=>f.commands.length===1);assert.equal(f.render().busy,'true');await edit(f,change);f[name===recover?'recovery':'cancellation'][outcome](outcome==='reject'?Error('held command rejected'):undefined);await turn();await turn();assert.equal(f.render().busy,'false');assert.equal(f.button(recover).disabled,false);assert.equal(f.button(cancel).disabled,false);assert.equal(f.commands.length,1);assert(!/Saving cancellation request|Checking the existing request/.test(f.render().text));
+ const f=await fixture(t);f.click(name);await until(()=>f.commands.length===1);assert.equal(f.render().busy,'true');assert.equal(f.render().announcement,name===cancel?'Saving cancellation request…':'Checking the existing request…');await edit(f,change);f[name===recover?'recovery':'cancellation'][outcome](outcome==='reject'?Error('held command rejected'):undefined);await turn();await turn();assert.equal(f.render().busy,'false');assert.equal(f.button(recover).disabled,false);assert.equal(f.button(cancel).disabled,false);assert.equal(f.commands.length,1);assert.equal(f.render().announcement,'Queue action settled. Refresh the durable queue to inspect its outcome.');assert(!/Saving cancellation request|Checking the existing request/.test(f.render().text));
+});
+for(const name of [recover,cancel])for(const outcome of ['resolve','reject'])test('F4 '+name+' '+outcome+' preserves a newer completion announcement after draft edit',async t=>{
+ const f=await fixture(t);f.click(name);await until(()=>f.commands.length===1);await edit(f,'prompt');
+ const latest=f.getQueue();latest.jobs[0].attempts[0].terminal='completed';latest.jobs[0].attempts[0].recoveryRequired=false;f.setQueue(latest);f.click('Refresh durable queue');await until(()=>/completed/.test(f.render().announcement??''));
+ const announcement=f.render().announcement;assert.match(announcement,/completed/);assert.equal(f.render().busy,'true');f[name===recover?'recovery':'cancellation'][outcome](outcome==='reject'?Error('held command rejected'):undefined);await until(()=>f.render().busy==='false');await turn();
+ assert.equal(f.render().announcement,announcement);assert.equal(f.button(recover).disabled,false);assert.equal(f.button(cancel).disabled,false);assert.equal(f.commands.length,1);assert(!/Saving cancellation request|Checking the existing request/.test(f.render().text));
 });
 for(const replacement of ['owner','session','identity'])for(const outcome of ['resolve','reject'])test('F4 follow-up refresh '+outcome+' cannot publish into replacement '+replacement,async t=>{
  const f=await fixture(t),read=deferred(),json=f.editor.json;let entered=false;

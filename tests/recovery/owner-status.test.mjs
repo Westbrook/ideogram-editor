@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture,rendered,deferred,until} from './deletion-controls.mjs';
 const review='Review possible overlap for deleted request',ack='Acknowledge overlap and release deleted request hold';
-const names={preview:'Review document deletion',confirm:'Confirm permanent document deletion',collect:'Check and reclaim eligible bytes',recover:'Check existing deleted request job',override:ack,copy:'Save a complete copy first',list:'Review pending document cleanup',inspect:'Refresh deleted request state'};
+const names={preview:'Review document deletion',confirm:'Confirm permanent document deletion',collect:'Check and reclaim eligible bytes',recover:'Check deleted request job, attempt attempt (submission-uncertain)',override:ack,copy:'Save a complete copy first',list:'Review pending document cleanup',inspect:'Refresh deleted request state'};
 // Cross the adapter's deferred dispatch task before inspecting completion.
 const drain=async()=>{await new Promise(r=>setTimeout(r,0));await new Promise(setImmediate);};
 const status=f=>rendered(f.flow).text;

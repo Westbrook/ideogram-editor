@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {transformWithOxc} from 'vite';
+import {isolatedDiagnosticModules} from '../owned-preview-module.mjs';
 
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 async function source(path,imports={}){
@@ -12,10 +13,11 @@ async function source(path,imports={}){
  return data(code);
 }
 const prefix=process.env.COMPOSITION_STAGED_ROOT??'.';
-const allocationURL=await source('src/observability/allocations.ts');
+const {allocationsURL:allocationURL,compositionObservationsURL:observationURL}=await isolatedDiagnosticModules();
 const promptURL=await source(prefix+'/src/observability/prompt-memory.ts',{'./allocations.js':allocationURL});
 const coreURL=await source(prefix+'/src/composition/core.ts');
-const memoryURL=await source(prefix+'/src/composition/memory.ts',{'../observability/allocations.js':allocationURL,'../observability/prompt-memory.js':promptURL,'./core.js':coreURL});
+const compositionViewURL=await source(prefix+'/src/composition/view.ts');
+const memoryURL=await source(prefix+'/src/composition/memory.ts',{'../observability/allocations.js':allocationURL,'../observability/prompt-memory.js':promptURL,'../observability/composition-observations.js':observationURL,'./view.js':compositionViewURL,'./core.js':coreURL});
 const {allocationLedger,ALLOCATION_LIMITS}=await import(allocationURL);
 const {reservePromptPayload,readRetainedPrompt,PromptReaderCleanupError}=await import(promptURL);
 const {createCompositionValue,cloneCompositionValue,readCompositionBytes,CompositionReadCleanupError}=await import(memoryURL);

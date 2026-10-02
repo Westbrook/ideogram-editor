@@ -1,9 +1,10 @@
+import {supportsProjectionSchema,projectionEntity,projectionEvent} from '../protocol/projection-schema.js';
 import {RecoveryWorkspace,RecoveryEntityBuffer,RecoveryCleanupError} from '../observability/recovery-memory.js';
 import type { Document, DomainEvent } from '../protocol/store.js';
 import type { EventPage, ProtocolContentRef, RecoveryContext, SnapshotDescriptor, TransactionReference, EventBatch, StreamEnvelope } from '../protocol/recovery.js';
 import { canonical, parseControlJSON } from '../protocol/json.js';
 import { SHA256 } from '../protocol/sha256.js';
-import { event as validateEvent, entity, id, seq, keys, requireValue as ok } from '../protocol/validate.js';
+import { id, seq, keys, requireValue as ok } from '../protocol/validate.js';
 import { RecoveryCache } from './recovery-cache.js';
 import type { Published } from './recovery-cache.js';
 const encode = new TextEncoder();
@@ -11,7 +12,7 @@ const decode = (bytes: Uint8Array) => new TextDecoder('utf-8',{fatal:true}).deco
 type Transport = (path: string, init?: RequestInit) => Promise<Response>;
 function context(value: any): asserts value is RecoveryContext {
   keys(value,['recoveryId','writerEpoch','projectionSchema','highWater','expiresAt']);
-  ok(id(value.recoveryId)&&seq(value.writerEpoch)&&seq(value.highWater)&&[2,3,4,5,6,7,8].includes(value.projectionSchema)&&Number.isFinite(Date.parse(value.expiresAt)));
+  ok(id(value.recoveryId)&&seq(value.writerEpoch)&&seq(value.highWater)&&supportsProjectionSchema(value.projectionSchema)&&Number.isFinite(Date.parse(value.expiresAt)));
 }
 function sameContext(a: RecoveryContext,b: RecoveryContext) {
   context(a);context(b);ok(a.recoveryId===b.recoveryId&&a.writerEpoch===b.writerEpoch&&a.highWater===b.highWater&&a.projectionSchema===b.projectionSchema,'Recovery context changed');
@@ -65,7 +66,7 @@ export class RecoveryConsumer {
     this.workspace!.check();
     ok(id(batch.transactionId)&&seq(batch.fromSeq)&&seq(batch.toSeq)&&BigInt(batch.fromSeq)===BigInt(cursor)+1n&&BigInt(batch.toSeq)>=BigInt(batch.fromSeq)&&BigInt(batch.toSeq)<=BigInt(recovery.highWater));
     let count=0n;let commandId:string|undefined;const stage=crypto.randomUUID();
-    const accept=async(v:any)=>{this.workspace!.check();validateEvent(v);ok(v.transactionId===batch.transactionId&&BigInt(v.workspaceSeq)===BigInt(batch.fromSeq)+count);
+    const accept=async(v:any)=>{this.workspace!.check();projectionEvent(recovery.projectionSchema,v);ok(v.transactionId===batch.transactionId&&BigInt(v.workspaceSeq)===BigInt(batch.fromSeq)+count);
       if(commandId===undefined)commandId=v.commandId;ok(v.commandId===commandId);await this.cache.put(stage,'staged',String(count++),v);};
     try {
       if(batch.kind==='inline') {keys(batch,['kind','transactionId','fromSeq','toSeq','events']);ok(Array.isArray(batch.events));for(const event of batch.events)await accept(event);}
@@ -99,7 +100,7 @@ export class RecoveryConsumer {
       ok(next===key&&parts===row.partCount&&part===row.partIndex&&version===row.entityVersion);
       assembled.append(row.utf8Base64);
       if(++part===parts){
-        const value=parseControlJSON(assembled.value()) as any;ok(canonical(value)===assembled.text()&&value.id===row.entityId&&entity(row.entityType,value)===version);
+        const value=parseControlJSON(assembled.value()) as any;ok(canonical(value)===assembled.text()&&value.id===row.entityId&&projectionEntity(recovery.projectionSchema,row.entityType,value)===version);
         ok(!await this.cache.value(generation,row.entityType,row.entityId),'Namespace row collision');
         if(row.entityType==='document'){ok(canonical(value)===canonical(event.payload.document));documents++;}
         else if(row.entityType==='history'||row.entityType==='checkpoint')ok(value.documentId===event.documentId);
@@ -157,9 +158,9 @@ export class RecoveryConsumer {
     ok(descriptor.protocolVersion===1&&id(descriptor.snapshotId)&&seq(descriptor.snapshotSeq)&&BigInt(descriptor.snapshotSeq)<=BigInt(descriptor.recovery.highWater)&&descriptor.metadataUrl===`/api/v1/snapshots/${descriptor.snapshotId}?recoveryId=${descriptor.recovery.recoveryId}`);
     const metadata=await this.request(descriptor.metadataUrl);ok(metadata.status===200);const actual=await this.control(metadata);
     sameContext(descriptor.recovery,actual.recovery);ok(actual.snapshotId===descriptor.snapshotId&&actual.snapshotSeq===descriptor.snapshotSeq&&canonical(actual.content.blob)===canonical(descriptor.content.blob)&&actual.content.recordCount===descriptor.content.recordCount);
-    let count=0n;let expected='';let key='';let previous='';let part=0;let parts=0;let version='';const assembled=new RecoveryEntityBuffer();
+    let projectionSchema=0;let count=0n;let expected='';let key='';let previous='';let part=0;let parts=0;let version='';const assembled=new RecoveryEntityBuffer();
     await this.rows(descriptor.content,descriptor.recovery,'lp1-snapshot-jsonl',async(row,index)=>{
-      if(index===0n){keys(row,['kind','snapshotId','snapshotSeq','projectionSchema','entityCount']);ok(row.kind==='header'&&row.snapshotId===descriptor.snapshotId&&row.snapshotSeq===descriptor.snapshotSeq&&[2,3,4,5,6,7,8].includes(row.projectionSchema)&&seq(row.entityCount));expected=row.entityCount;return;}
+      if(index===0n){keys(row,['kind','snapshotId','snapshotSeq','projectionSchema','entityCount']);ok(row.kind==='header'&&row.snapshotId===descriptor.snapshotId&&row.snapshotSeq===descriptor.snapshotSeq&&supportsProjectionSchema(row.projectionSchema)&&(row.projectionSchema<9||descriptor.recovery.projectionSchema===9)&&seq(row.entityCount));projectionSchema=row.projectionSchema;expected=row.entityCount;return;}
       keys(row,['kind','entityType','entityId','entityVersion','partIndex','partCount','utf8Base64']);
       ok(row.kind==='projection-part'&&['asset','document','history','checkpoint'].includes(row.entityType)&&id(row.entityId)&&seq(row.entityVersion)&&Number.isSafeInteger(row.partIndex)&&Number.isSafeInteger(row.partCount)&&row.partCount>0&&typeof row.utf8Base64==='string');
       const next=row.entityType+':'+row.entityId;
@@ -167,7 +168,7 @@ export class RecoveryConsumer {
       ok(next===key&&parts===row.partCount&&part===row.partIndex&&version===row.entityVersion);
       assembled.append(row.utf8Base64);
       // Current entities fit64KiB; reject before joining an oversized projection.
-      if(++part===parts){const value=parseControlJSON(assembled.value());ok(canonical(value)===assembled.text()&&value.id===row.entityId&&entity(row.entityType,value)===version);
+      if(++part===parts){const value=parseControlJSON(assembled.value());ok(canonical(value)===assembled.text()&&value.id===row.entityId&&projectionEntity(projectionSchema,row.entityType,value)===version);
         await this.cache.put(generation,row.entityType,row.entityId,value);count++;previous=key;part=0;assembled.clear();}
     });ok(part===0&&String(count)===expected,'Incomplete snapshot');return descriptor.snapshotSeq;
   }
@@ -199,7 +200,7 @@ export class RecoveryConsumer {
   }
   private async consumeStreamOwned() {
     let old=await this.cache.published();let stage:string|undefined;let generation:string|undefined;
-    let transaction:{id:string;from:string;to:string;parts:number;next:number;count:bigint;command?:string}|undefined;
+    let transaction:{id:string;from:string;to:string;parts:number;next:number;count:bigint;schema:number;command?:string}|undefined;
     try {
       const response=await this.request('/api/v1/events/stream?after='+old.cursor);ok(response.status===200&&response.headers.get('content-type')?.startsWith('text/event-stream')&&response.body);
       let pending='';const decoder=new TextDecoder('utf-8',{fatal:true});
@@ -209,22 +210,29 @@ export class RecoveryConsumer {
         const offered=lines.find(l=>l.startsWith('id: '))?.slice(4);ok(body.protocolVersion===1);
         if(body.kind==='checkpoint'){keys(body,['protocolVersion','kind','highWater']);ok(!transaction&&!offered&&body.highWater===old.cursor);return;}
         if(body.kind==='error'||body.kind==='gap')throw new Error('Stream requires read recovery');
-        const to=body.kind==='transaction-ref'?body.reference.toSeq:body.toSeq;
-        if(BigInt(to)<=BigInt(old.cursor)){ok(!transaction);return;}
-        generation??=crypto.randomUUID();await this.cache.clone(old.generation,generation);
         if(body.kind==='transaction-ref'){
-          keys(body,['protocolVersion','kind','reference']);ok(!transaction&&offered===to);const r=body.reference;context(r.recovery);
+          keys(body,['protocolVersion','kind','reference']);const r=body.reference;context(r.recovery);ok(seq(r.toSeq));const to=r.toSeq;ok(!transaction&&offered===to);
+          if(BigInt(to)<=BigInt(old.cursor))return;
+          generation??=crypto.randomUUID();await this.cache.clone(old.generation,generation);
           await this.batch(generation,r,old.cursor,r.recovery);
           const proof=await this.request('/api/v1/events?after='+to+'&recoveryId='+r.recovery.recoveryId);ok(proof.status===200);const page=await this.control(proof);sameContext(r.recovery,page.recovery);
-          this.workspace!.check();await this.cache.publish({generation,cursor:to,epoch:r.recovery.writerEpoch},old);old=await this.cache.published();generation=undefined;
+          this.workspace!.check();await this.cache.publish({generation,cursor:to,epoch:r.recovery.writerEpoch},old);
+          // Publication transfers ownership before any fallible follow-up work.
+          generation=undefined;old=await this.cache.published();
         }else{
-          keys(body,['protocolVersion','kind','transactionId','fromSeq','toSeq','partIndex','partCount','events']);
+          ok(body.kind==='batch-part');
+          keys(body,['protocolVersion','kind','transactionId','fromSeq','toSeq','partIndex','partCount','events',...(Object.hasOwn(body,'projectionSchema')?['projectionSchema']:[])]);
+          const projectionSchema=Object.hasOwn(body,'projectionSchema')?body.projectionSchema:8;ok(supportsProjectionSchema(projectionSchema),'Unsupported projection schema');
           ok(id(body.transactionId)&&seq(body.fromSeq)&&seq(body.toSeq)&&Number.isSafeInteger(body.partCount)&&body.partCount>0&&Number.isSafeInteger(body.partIndex)&&Array.isArray(body.events));
-          if(!transaction){ok(body.partIndex===0&&BigInt(body.fromSeq)===BigInt(old.cursor)+1n);stage=crypto.randomUUID();transaction={id:body.transactionId,from:body.fromSeq,to:body.toSeq,parts:body.partCount,next:0,count:0n};}
-          const tx=transaction;ok(tx.id===body.transactionId&&tx.from===body.fromSeq&&tx.to===body.toSeq&&tx.parts===body.partCount&&tx.next++===body.partIndex);
-          for(const e of body.events){this.workspace!.check();validateEvent(e);ok(e.transactionId===tx.id&&BigInt(e.workspaceSeq)===BigInt(tx.from)+tx.count);tx.command??=e.commandId;ok(e.commandId===tx.command);await this.cache.put(stage!,'staged',String(tx.count++),e);}
+          for(const e of body.events)projectionEvent(projectionSchema,e);
+          const to=body.toSeq;if(BigInt(to)<=BigInt(old.cursor)){ok(!transaction);return;}
+          if(!transaction){ok(body.partIndex===0&&BigInt(body.fromSeq)===BigInt(old.cursor)+1n);stage=crypto.randomUUID();transaction={id:body.transactionId,from:body.fromSeq,to:body.toSeq,parts:body.partCount,next:0,count:0n,schema:projectionSchema};}
+          const tx=transaction;ok(tx.id===body.transactionId&&tx.from===body.fromSeq&&tx.to===body.toSeq&&tx.parts===body.partCount&&tx.schema===projectionSchema&&tx.next++===body.partIndex);
+          generation??=crypto.randomUUID();await this.cache.clone(old.generation,generation);
+          for(const e of body.events){this.workspace!.check();ok(e.transactionId===tx.id&&BigInt(e.workspaceSeq)===BigInt(tx.from)+tx.count);tx.command??=e.commandId;ok(e.commandId===tx.command);await this.cache.put(stage!,'staged',String(tx.count++),e);}
           if(tx.next===tx.parts){ok(offered===tx.to&&tx.count===BigInt(tx.to)-BigInt(tx.from)+1n);await this.cache.applyEvents(generation,stage!,tx.count);
-            this.workspace!.check();await this.cache.publish({generation,cursor:tx.to,epoch:old.epoch},old);old=await this.cache.published();await this.cache.discard(stage!);stage=undefined;generation=undefined;transaction=undefined;
+            this.workspace!.check();await this.cache.publish({generation,cursor:tx.to,epoch:old.epoch},old);
+            generation=undefined;old=await this.cache.published();await this.cache.discard(stage!);stage=undefined;transaction=undefined;
           }else ok(offered===undefined);
         }
       };
@@ -232,6 +240,6 @@ export class RecoveryConsumer {
         for(let at=0;at<value.length;at+=16384){pending+=decoder.decode(value.subarray(at,at+16384),{stream:true});let end:number;
           while((end=pending.indexOf('\n\n'))!==-1){const text=pending.slice(0,end);ok(encode.encode(text).length<=65664);pending=pending.slice(end+2);await frame(text);this.workspace!.check();}ok(encode.encode(pending).length<=65664);}
       }pending+=decoder.decode();ok(!pending&&!transaction,'Partial stream transaction');
-    }finally{if(stage)await this.cache.discard(stage);if(generation)await this.cache.discard(generation);}
+    }finally{try{if(stage)await this.cache.discard(stage);}finally{if(generation)await this.cache.discard(generation);}}
   }
 }

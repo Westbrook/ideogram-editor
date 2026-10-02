@@ -58,3 +58,26 @@ test('missing leader with a live group remains unresolved and cannot trigger rec
     kill: () => assert.fail('no current leader identity authorizes termination'), pause: async () => {},
   }), /exit could not be confirmed/);
 });
+
+test('the registered native WindowServer process group is drained after its worker exits', async t => {
+  const {output, owned} = await registration(t, {kind: 'windowserver'}), signals = []; let calls = 0;
+  const rows = await cleanupOwnedProcesses(output, 900000, {
+    observe: async () => ++calls === 1 ? owned : null, groupAlive: async () => false,
+    kill: (...args) => signals.push(args), pause: async () => {},
+  });
+  assert.deepEqual(signals, [[-owned.pgid, 'SIGKILL']]);
+  assert.equal(rows[0].status, 'exit-confirmed');
+});
+
+test('native process PID reuse and an unexpected detached group never authorize a signal', async t => {
+  const changed = await registration(t, {kind: 'windowserver'});
+  const rows = await cleanupOwnedProcesses(changed.output, 900000, {
+    observe: async () => ({...changed.owned, startedAtIdentity: 'another-process'}),
+    kill: () => assert.fail('reused native PID is not owned'),
+  });
+  assert.equal(rows[0].status, 'identity-changed-not-touched');
+  const foreignGroup = await registration(t, {kind: 'windowserver', pgid: 900002});
+  await assert.rejects(cleanupOwnedProcesses(foreignGroup.output, 900000, {
+    observe: async () => foreignGroup.owned, kill: () => assert.fail('foreign group is not owned'),
+  }), /Unexpected detached/);
+});

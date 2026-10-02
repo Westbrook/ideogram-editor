@@ -67,7 +67,7 @@ export async function toolchain(root) {
   if (result.status !== 0 || result.stdout.trim() !== config.npm) throw Error('Pinned npm CLI unavailable');
   return {node: config.node, npm: config.npm, npmCli, executable: process.execPath, executableIdentity: await hashFile(process.execPath)};
 }
-export async function cleanEnvironment({workspace, npmCache, browserCache, registry, browserDownloadHost, extra = {}}) {
+export async function cleanEnvironment({workspace, npmCache, browserCache, registry, browserDownloadHost, extra = {}, env = process.env}) {
   for (const key of Object.keys(extra)) if (!/^(?:QUALIFICATION_|IE_|TEXT_|SPECTRUM_|ADAPTER_|REQUEST_|QUEUE_|EDITOR_)/.test(key) && !(key === 'EN_SETUP_CACHE' && extra[key] === 'off') && !(key === 'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD' && extra[key] === '1')) throw Error(`Disallowed campaign environment field: ${key}`);
   const home = join(workspace, 'home'); await mkdir(home, {recursive: true});
   const npmrc = join(workspace, 'npmrc'); await writeFile(npmrc, '', {flag: 'wx'});
@@ -82,6 +82,9 @@ export async function cleanEnvironment({workspace, npmCache, browserCache, regis
   return {PATH: `${dirname(process.execPath)}:/usr/bin:/bin:/usr/sbin:/sbin`, HOME: home, TMPDIR: await realpath(tmpdir()),
     CI: '1', LANG: 'en_US.UTF-8', NO_COLOR: '1', npm_config_cache: npmCache, npm_config_userconfig: npmrc,
     npm_config_audit: 'false', npm_config_fund: 'false', npm_config_engine_strict: 'true', npm_config_nodedir: resolve(dirname(process.execPath), '..'),
+    // The D11 reader validates this explicitly selected cache itself. Do not
+    // substitute the install cache or infer the user's default npm cache.
+    ...(env.IE_D11_NPM_CACHE !== undefined ? {IE_D11_NPM_CACHE: env.IE_D11_NPM_CACHE} : {}),
     ...(registry ? {npm_config_registry: registry} : {}), ...(browserDownloadHost ? {PLAYWRIGHT_DOWNLOAD_HOST: browserDownloadHost} : {}), PLAYWRIGHT_BROWSERS_PATH: browserCache, ...extra};
 }
 export async function execute({id, command, cwd, env, directory, timeoutMs = 300000, abortSignal}) {

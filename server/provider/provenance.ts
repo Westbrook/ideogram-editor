@@ -2,6 +2,9 @@ import { IO_CHUNK, refuse } from './contracts.js';
 import type { AppliedPrivacyPolicy, ProtectedBody, TransferSink } from './contracts.js';
 import { ENDPOINTS } from './policy.js';
 import type { TransportEvidenceStore } from './evidence.js';
+import type {AdaptedResponse} from './response-adapter.js';
+import type {BlobRef} from '../../src/protocol/store.js';
+import type {ResultProvenanceV45} from '../../src/protocol/candidates.js';
 
 export type PortablePrompt = Readonly<{hash:string;byteLength:string;mediaType:'text/plain;charset=utf-8'}>;
 export type PortableProviderRecord = Readonly<{
@@ -16,7 +19,7 @@ export type DerivedProvenance = Readonly<{
 }>;
 
 /** Bounded envelope scanner. Large prompt strings are decoded in 32KiB pages, never JSON.parse'd. */
-export function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=>void) {
+export function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=>void, options?:{profile:'ideogram-v45-result-1'}) {
   function* characters(){const decoder=new TextDecoder('utf-8',{fatal:true});for(const chunk of chunks){if(chunk.byteLength>IO_CHUNK)refuse('PROVENANCE');yield* decoder.decode(chunk,{stream:true});}yield* decoder.decode();}
   const iterator=characters();let c=iterator.next().value as string|undefined;
   const next=()=>{c=iterator.next().value as string|undefined;};
@@ -24,9 +27,12 @@ export function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=
   let tokens=0,foundPrompt=false,seed:string|null=null;const timings:Record<string,number>={};
   const urls:string[]=[];
   const images:Record<string,unknown>[]=[]; const safety:unknown[]=[];
+  // Legacy outputIdentity hashes include these exact image records. Extra V45
+  // fields are therefore opt-in rather than changing historic V4 identities.
+  const imageFields=options?.profile==='ideogram-v45-result-1'?['url','content_type','file_name','file_size','width','height']:['url','content_type','file_size','width','height'];
   let imagesArray=false,safetyArray=false,timingsObject=false,timingsValid=true;
   const capture=(path:string[],v:unknown)=>{
-    if(path.length===3&&path[0]==='images'&&['url','content_type','file_size','width','height'].includes(path[2]!)){
+    if(path.length===3&&path[0]==='images'&&imageFields.includes(path[2]!)){
       const i=Number(path[1]);if(i>=1000)refuse('PROVENANCE');(images[i]??={})[path[2]!]=v;
     }
     if(path.length===2&&path[0]==='has_nsfw_concepts'){if(Number(path[1])>=1000)refuse('PROVENANCE');safety[Number(path[1])]=v;}
@@ -61,10 +67,10 @@ export function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=
     if(path.length===2&&path[0]==='images'){if(Number(path[1])>=1000)refuse('PROVENANCE');images[Number(path[1])]??={};}
     if(path.length===2&&path[0]==='has_nsfw_concepts'){if(Number(path[1])>=1000)refuse('PROVENANCE');safety[Number(path[1])]=null;}
     if(path.length===2&&path[0]==='timings'&&(c==='"'||c==='{'||c==='['))timingsValid=false;
-    if(path.length===3&&path[0]==='images'&&['url','content_type','file_size','width','height'].includes(path[2]!)&&(c==='{'||c==='['))capture(path,'invalid');
+    if(path.length===3&&path[0]==='images'&&imageFields.includes(path[2]!)&&(c==='{'||c==='['))capture(path,options?.profile==='ideogram-v45-result-1'?{invalid:true}:'invalid');
     if(c==='"'){
       if(path.length===1&&path[0]==='prompt'){foundPrompt=true;string(s=>prompt(Buffer.from(s,'utf8')));}
-      else if(path.length===3&&path[0]==='images'&&['url','content_type'].includes(path[2]!)){const u=smallString(16384);if(path[2]==='url')urls.push(u);capture(path,u);}
+      else if(path.length===3&&path[0]==='images'&&(['url','content_type'].includes(path[2]!)||options?.profile==='ideogram-v45-result-1'&&path[2]==='file_name')){const u=smallString(16384);if(path[2]==='url')urls.push(u);capture(path,u);}
       else if(path.length===3&&path[0]==='images'&&['file_size','width','height'].includes(path[2]!)){string();capture(path,'invalid');}else string();
     }else if(c==='{'){
       if(path.length===1&&path[0]==='timings')timingsObject=true;
@@ -77,7 +83,10 @@ export function scanEnvelope(chunks:Iterable<Uint8Array>, prompt:(chunk:Buffer)=
       next();whitespace();if(String(c)===']'){next();return;}let i=0;
       for(;;){value([...path,String(i++)],depth+1);whitespace();if(String(c)===']'){next();break;}if(String(c)!==',')refuse('PROVENANCE');next();}
     }else{
-      let raw='';while(c!==undefined&&!/[\s,\]}]/.test(c)){if(raw.length>256)refuse('PROVENANCE');raw+=c;next();}
+      // Exact V45 seed text uses the same bounded representation as a request.
+      // Every other numeric token retains the legacy scanner's existing cap.
+      const v45Seed=options?.profile==='ideogram-v45-result-1'&&path.length===1&&path[0]==='seed';
+      let raw='';while(c!==undefined&&!/[\s,\]}]/.test(c)){if(v45Seed?raw.length>=16384:raw.length>256)refuse('PROVENANCE');raw+=c;next();}
       if(!['true','false','null'].includes(raw)&&!/-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/.test(raw))refuse('PROVENANCE');
       // Anchor separately: a malformed suffix cannot pass by containing a valid number.
       if(!['true','false','null'].includes(raw)&&! /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/.test(raw))refuse('PROVENANCE');
@@ -134,4 +143,17 @@ export function redactedRecoveryRecord(derived:DerivedProvenance,acknowledgement
   if(!acknowledgementId||acknowledgementId.length>128)refuse('PROVENANCE');
   return Object.freeze({complete:false,sanitized:true,label:'Incomplete sanitized recovery copy',acknowledgementId,
     record:{...derived.record,returnedPromptRef:null,derivation:{...derived.record.derivation,complete:false}}});
+}
+
+/** V45-A1 absent fields stay absent. No TP-1 prompt derivative or safety grant. */
+export function deriveUnavailableV45Provenance(input:{store:TransportEvidenceStore;source:ProtectedBody;adapted:AdaptedResponse;requestedPrompt:BlobRef;submittedPrompt:BlobRef;requestedSeed:string|null;privacyPolicy:BlobRef}):ResultProvenanceV45 {
+  if(input.adapted.profile!=='ideogram-v45-result-1'||!['ideogram/v4.5','ideogram/v4.5/edit'].includes(input.adapted.endpoint))refuse('IDENTITY');
+  const actual=input.store.inspect(input.source.recordId);
+  if(actual.direction!=='response'||actual.sha256!==input.source.sha256||actual.attemptId!==input.source.attemptId||actual.completeness!==input.source.completeness)refuse('PROVENANCE');
+  const valid=input.source.completeness==='complete'&&input.adapted.envelope.schemaValid;
+  return {
+    schemaVersion:2,responseProfile:'ideogram-v45-result-1',
+    availability:{returnedPrompt:'unavailable-by-contract',timings:'unavailable-by-contract',safety:'unavailable-by-contract',providerDimensions:'unavailable-by-contract',measuredImageMetadata:'unavailable-while-withheld',provenance:'partial-metadata-unavailable',resultContract:valid?'valid':'invalid'},
+    requestedPrompt:input.requestedPrompt,submittedPrompt:input.submittedPrompt,returnedPrompt:null,returnedBytes:'0',complete:false,quarantined:!valid,inspection:'unavailable',warning:valid?'provider-metadata-unavailable':'malformed-envelope',requestedSeed:input.requestedSeed,returnedSeed:input.adapted.returnedSeed,timings:null,timingUnits:null,sourceBodyHash:'sha256:'+input.source.sha256,privacyPolicy:input.privacyPolicy,
+  };
 }

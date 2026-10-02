@@ -64,17 +64,28 @@ async function executeAt(ctx, documentId, body, method, scoped = false) {
   return { receipt, events, commandId: request.command.commandId };
 }
 
-async function layerValues(ctx, state) {
-  const storage = await product(ctx, 'server/storage/composition.js'), bytes = new Map(), assets = new Map();
-  for (const layer of state.layers) {
-    assets.set(layer.assetId, (await ctx.writer.assetProjection(layer.assetId)).asset);
-    if (layer.kind === 'text') {
-      const sourceBytes = await ctx.writer.readMetadata(layer.source); bytes.set(layer.source.hash, sourceBytes);
-      const source = JSON.parse(Buffer.from(sourceBytes).toString('utf8'));
-      bytes.set(source.text.textUtf8.hash, await ctx.writer.readMetadata(source.text.textUtf8));
-    }
-  }
-  return storage.layerValues(state, ref => { assert(bytes.has(ref.hash)); return bytes.get(ref.hash); }, id => assets.get(id));
+async function withLayerValues(ctx, state, admissionId, consume) {
+  assert.equal(typeof admissionId, 'string'); const priorWriter = ctx.writer;
+  let failed = false, failure;
+  try {
+    await ctx.withClosedWriter(async ({ root }) => {
+      const [{ acquireRoot }, { StoreDatabase }, storage] = await Promise.all([product(ctx, 'server/storage/ownership.js'), product(ctx, 'server/storage/database.js'), product(ctx, 'server/storage/composition.js')]);
+      const owner = await acquireRoot(root); let store;
+      try {
+        store = new StoreDatabase(root, () => {});
+        assert.deepEqual(store.histories.state(ctx.documentId), state, 'Exclusive native fixture read preserves the selected document state');
+        storage.withLayerValues(state, ref => store.objects.verify(ref, true), id => store.assets.asset(id), store.rasters.compositionMemory, consume);
+      } finally {
+        try { if (store) { await store.candidates.close(); await store.queue.close(); await store.portables.close(); await store.histories.close(); await store.rasters.close(); await store.assets.close(); await store.recovery.settle(); store.close(); } }
+        finally { owner.close(); }
+      }
+    });
+  } catch (error) { failed = true; failure = error; }
+  // The live renderer realm remains booked across this preparation-only
+  // restart. Renew that same admission's epoch; never release or replace it.
+  try { if (ctx.writer !== priorWriter) await ctx.writer.textAdmission(admissionId, ctx.auth()); }
+  catch (error) { if (failed) throw new AggregateError([failure, error], 'Native fixture read and admission renewal failed'); throw error; }
+  if (failed) throw failure;
 }
 
 async function verifyClosure(ctx, documentId, refs) {
@@ -128,7 +139,7 @@ export async function buildCompositionFixture(ctx, plan) {
   const auxiliaryDocumentId = 'wj_boundary_' + randomUUID();
   await executeAt(ctx, auxiliaryDocumentId, { type: 'NewDocument', ...plan.document, color: 'sRGB', depth: 8 }, 'submit', true);
   const renderer = await openNativeRenderer(ctx, plan, ctx.signal);
-  let oldLayer, editedLayer, compositionRef, witness;
+  let oldLayer, editedLayer, compositionRef, witness, currentAdmissionId;
   async function prepare(documentId, layerId, text, edit = null, hidden = false) {
     abort(ctx); const revision = await ctx.writer.documentRevision(documentId), draftId = 'wj_draft_' + randomUUID(), generation = '1', placement = { x: 20, y: 20 };
     const textAsset = await ctx.stage(Buffer.from(text), 'caption', 'text/plain');
@@ -136,6 +147,7 @@ export async function buildCompositionFixture(ctx, plan) {
     const draftAsset = await ctx.stage(Buffer.from(canonical(draft)), 'caption', 'text/plain');
     await ctx.ui({ type: 'SaveDraft', draft: { id: draftId, generation, kind: 'text', documentId, targetLayerId: edit ? layerId : null, expectedDocumentRevision: revision, assetId: draftAsset.id, composing: false } });
     const prepared = await renderer.prepare({ text, fonts, style, token: { documentId, documentRevision: revision, layerId, layerVersion: edit?.version ?? '0', sessionId: ctx.sessionId, generation: 1 } });
+    currentAdmissionId = prepared.admissionId;
     const candidate = JSON.parse(Buffer.from(await ctx.writer.readMetadata(prepared.candidate)).toString('utf8'));
     assert.equal(candidate.source.text.textUtf8.hash, hash(Buffer.from(text))); assert.equal(candidate.source.render.rendererProfile.id, profile.id);
     const command = await executeAt(ctx, documentId, { type: edit ? 'CommitTextEdit' : 'CreateTextLayer', layerId,
@@ -163,18 +175,23 @@ export async function buildCompositionFixture(ctx, plan) {
     await prepare(auxiliaryDocumentId, 'wj_boundary_one_byte', 'a');
     await prepare(auxiliaryDocumentId, 'wj_boundary_frame_bytes', specimens.WJ29.texts[0], null, true);
     await prepare(auxiliaryDocumentId, 'wj_boundary_lines', specimens.WJ29.texts[1], null, true);
-    const core = await product(ctx, 'src/composition/core.js'), state = await ctx.writer.imageState(ctx.documentId), values = await layerValues(ctx, state);
-    const value = values.find(layer => layer.id === oldLayer.id); assert.equal(value.text, 'b' + mainTexts[0].slice(1));
+    const core = await product(ctx, 'src/composition/core.js'), state = await ctx.writer.imageState(ctx.documentId);
     const graph = core.emptyComposition(state.width, state.height, randomUUID());
     graph.scene = 'Native text edited before a late partial provider response';
-    graph.elements = [{ ...core.emptyElement('text', 'wj_retained_text_binding'), text: core.linkField('text-content', value) }];
+    await withLayerValues(ctx, state, currentAdmissionId, values => {
+      const value = values.find(layer => layer.id === oldLayer.id); assert.equal(value.text, 'b' + mainTexts[0].slice(1));
+      graph.elements = [{ ...core.emptyElement('text', 'wj_retained_text_binding'), text: core.linkField('text-content', value) }];
+    });
     const bindings = { [oldLayer.id]: oldLayer.id }, graphAsset = await ctx.stage(Buffer.from(canonical(graph)), 'text', 'application/octet-stream');
     compositionRef = { id: graph.id, value: { ...graphAsset.blob, mediaType: 'application/json' }, bindings };
     await ctx.execute({ type: 'CommitCompositionVersion', composition: compositionRef, draft: null }, 'historyCommand', true); rootRefs.push(compositionRef.value);
     const edited = await prepare(ctx.documentId, oldLayer.id, mainTexts[0], oldLayer); editedLayer = edited.layer; facts[0] = edited.fact;
-    const after = await ctx.writer.imageState(ctx.documentId), actualValues = await layerValues(ctx, after);
-    assert.deepEqual(after.composition, compositionRef); assert.equal(core.fieldStatus(graph.elements[0].text, actualValues, bindings), 'stale');
-    assert.throws(() => core.serialize(graph, actualValues, bindings), error => error.issues?.some(issue => issue.code === 'STALE_LINK'));
+    const after = await ctx.writer.imageState(ctx.documentId);
+    assert.deepEqual(after.composition, compositionRef);
+    await withLayerValues(ctx, after, currentAdmissionId, actualValues => {
+      assert.equal(core.fieldStatus(graph.elements[0].text, actualValues, bindings), 'stale');
+      assert.throws(() => core.serialize(graph, actualValues, bindings), error => error.issues?.some(issue => issue.code === 'STALE_LINK'));
+    });
     assert(BigInt(editedLayer.version) > BigInt(oldLayer.version)); assert.notEqual(editedLayer.source.hash, oldLayer.source.hash);
     witness = { documentId: ctx.documentId, layerId: oldLayer.id, compositionId: graph.id, binding: graph.elements[0].text,
       previousVersion: oldLayer.version, previousSource: oldLayer.source, currentVersion: editedLayer.version, currentSource: editedLayer.source,

@@ -1,0 +1,37 @@
+Ideogram v4.5 capability — admission remains blocked
+=================================================
+
+This source contract is part of V45-A1. Until the staged change is promoted and
+verified, it does not change the running application.
+
+The staged server selector IDEOGRAM_PROVIDER_MODEL=ideogram/v4.5 identifies the
+new model deliberately. In either disabled or fal provider mode, configuration
+returns a blocked capability before reading any approval or key file. The
+browser receives ready=false, admission-blocked, no live configuration identity
+or request allowance, and credentialConfigured=false. No provider boundary,
+authorization hook, automatic polling timer or submission is constructed.
+
+The current v4.5 output schema has no per-image safety evidence. Unknown safety
+remains withheld from ordinary display, preparation, adoption and export.
+Protected encoded result retention follows the existing policy. A successful
+provider request, generic blocked-input error or absent flag is not a safe
+output verdict. Returned prompt and timings are unavailable by this contract.
+
+The model's Partner relationship, upstream retention and the v3.fal.media output
+example versus documented v3b.fal.media ACL scope also require a distinct
+production privacy/media decision. v45-profile.ts deliberately describes facts
+and blockers; it cannot serve as a live PrivacyProfile or register media hosts.
+
+Local immutable reviews and fixture-only protocol development are independent
+of live admission. The first proposed generation is one medium square_hd image
+at a published estimate of USD0.06, with an explicit expansion choice. This is
+not a live approval or monetary guarantee. Output format is provider-controlled.
+
+The existing v4 provider configuration remains the separate compatibility path.
+IDEOGRAM_PROVIDER_MODEL=ideogram/v4 selects it explicitly; its existing private
+approval manifest, key-file checks, limits and per-attempt acknowledgement remain
+required. Existing V4 reviews and authorizations are never rerouted to v4.5.
+
+A new model-specific safety decision, production profile, immutable review and
+bounded live authorization are required before changing the blocked capability.
+Do not use a key, config label, timeout or old V4 acknowledgement as that decision.

@@ -6,10 +6,10 @@ import {newDraft,resolve,bodyTemplate,hash} from '../../dist/local/src/request/c
 const ref=(digit,mediaType='application/octet-stream')=>({hash:'sha256:'+digit.repeat(64),byteLength:'64',mediaType});
 function fixture(){
  const prompt='Literal "loras" inside a prompt must remain a prompt.';
- const d=newDraft({hash:hash(prompt),byteLength:String(Buffer.byteLength(prompt)),mediaType:'text/plain'});d.operation='generate-adapters';d.fields.seed='9007199254740993';
+ const d=newDraft({hash:hash(prompt),byteLength:String(Buffer.byteLength(prompt,'utf8')),mediaType:'text/plain'});d.operation='generate-adapters';d.fields.seed='9007199254740993';
  d.adapters=[{version:'one',hash:ref('b').hash,scale:'0',runtimeAcknowledged:true},{version:'two',hash:ref('b').hash,scale:'4',runtimeAcknowledged:true},{version:'three',hash:ref('c').hash,scale:'1',runtimeAcknowledged:true}];
  const eligible={adapters:new Map(d.adapters.map(a=>[a.version,{hash:a.hash,available:true,profile:'v4-safe-1',runtimeVerified:false}]))};
- const request=resolve(d,'Literal "loras" inside a prompt must remain a prompt.',eligible),template=bodyTemplate(request,'Literal "loras" inside a prompt must remain a prompt.');
+ const request=resolve(d,prompt,eligible),template=bodyTemplate(request,prompt);
  const stages=d.adapters.map((a,index)=>({role:`adapter:${index}`,versionId:a.version,original:ref(index===2?'c':'b'),transport:ref(index===2?'c':'b')}));
  return {request,template,stages,mapping:{'adapter:0':'https://media.example/one','adapter:1':'https://media.example/two','adapter:2':'https://media.example/three'}};
 }

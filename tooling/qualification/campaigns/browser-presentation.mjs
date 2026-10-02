@@ -277,7 +277,9 @@ export function analyzePresentation({trace, requests = [], nativeEvidence, runti
       const latencyId = identifier(request.latencyId);
       const matching = latencyId === null ? [] : joinsById.get(latencyId) ?? [];
       if (matching.length === 1 && matching[0].status === 'diagnostic-id-join') {
-        diagnosticJoin = matching[0]; start = {status: 'measured-native-input', clock: 'chromium-monotonic-microseconds', earliestUs: diagnosticJoin.inputTsUs, latestUs: diagnosticJoin.inputTsUs, exact: true};
+        // A caller-selected latency ID identifies a trace record, not the
+        // requested action's actual native input or its coalesced samples.
+        diagnosticJoin = matching[0]; start = {status: 'diagnostic-trace-input-start', clock: 'chromium-monotonic-microseconds', earliestUs: diagnosticJoin.inputTsUs, latestUs: diagnosticJoin.inputTsUs, exact: false, actualInputBound: false};
       }
     }
     if (start.status === 'unavailable') missing.push(start.reason);

@@ -71,7 +71,9 @@ export async function runLifecycle(cell, adapter, context) {
     if (processIdentity !== currentProcessIdentity) { result.processRestarted = true; result.status = 'FAIL'; }
     result.cycles.push(cycle);
     await context.trace({ event: 'lifecycle-cycle-start', ordinal });
+    let resourceWindow = null;
     try {
+      if (typeof adapter.beginResourceWindow === 'function' && typeof adapter.endResourceWindow === 'function') resourceWindow = await adapter.beginResourceWindow({ cycleOrdinal: ordinal });
       const start = monotonic();
       cycle.action = normalizeResult(await adapter.lifecycleCycle(cell, { cycle: ordinal, signal: context.signal }), start, monotonic());
       if (cycle.action.status === 'FAIL') result.status = 'FAIL';
@@ -92,7 +94,8 @@ export async function runLifecycle(cell, adapter, context) {
       const observation = await resourceObservation(adapter); cycle.resources = observation.resources; cycle.resourceObservation = observation;
       cycle.observation = observation.observation;
       cycle.releaseMs = cycle.action.releaseMs ?? null;
-      cycle.resourceSamples = cycle.action.resourceSamples ?? [];
+      if (resourceWindow) { cycle.resourceWindow = await adapter.endResourceWindow(resourceWindow); resourceWindow = null; }
+      cycle.resourceSamples = cycle.resourceWindow?.samples ?? cycle.action.resourceSamples ?? [];
       cycle.endMs = monotonic(); cycle.elapsedMs = cycle.endMs - cycle.startMs;
       if (!adapterLifecycle && cycle.elapsedMs > cycleBudgetMs) { result.status = 'FAIL'; cycle.cycleBudgetExceeded = true; }
       if (cycles === 100) {
@@ -102,6 +105,11 @@ export async function runLifecycle(cell, adapter, context) {
         if (monotonic() < nextSlot) cycle.windowPadding = await context.wait(nextSlot - monotonic(), context.signal);
       }
     } catch (error) {
+      if (resourceWindow) {
+        try { cycle.resourceWindow = await adapter.endResourceWindow(resourceWindow); cycle.resourceSamples = cycle.resourceWindow?.samples ?? []; }
+        catch (windowError) { cycle.resourceWindowError = errorRecord(windowError); }
+      }
+      if (error?.lifecycleCounterEvidence && typeof error.lifecycleCounterEvidence === 'object') cycle.failedActionEvidence = sanitize(error.lifecycleCounterEvidence);
       cycle.error = errorRecord(error); cycle.endMs = monotonic();
       if (error?.code === 'CAMPAIGN_PREREQUISITE') { if (result.status !== 'FAIL') result.status = 'INCONCLUSIVE'; result.missing.push(error.message); }
       else result.status = 'FAIL';
@@ -150,7 +158,7 @@ export async function runWorker(spec, injectedFactory = null) {
   if (!spec?.cell || !['cold', 'warm', 'single'].includes(spec.cache) || !Array.isArray(spec.attempts) || !spec.attempts.length) throw Error('Malformed campaign worker specification');
   const journal = await createJournal(join(spec.output, 'events.jsonl')), controller = new AbortController();
   const receipt = { kind: spec.kind === 'perf-byte-audit-group-1' ? 'perf-byte-audit-group-1' : 'perf-campaign-process-1', schemaVersion: 1, cell: spec.cell, cache: spec.cache, processIdentity: { pid: process.pid, startedAt: new Date().toISOString(), node: process.version }, startedAt: new Date().toISOString(), status: 'INCONCLUSIVE', preparation: null, attempts: [], cleanup: null };
-  const context = { repo: spec.repo ?? REPO, subjectRepo: spec.subjectRepo ?? spec.repo ?? REPO, browserCache: spec.browserCache ?? null, timingLease: spec.timingLease ?? null, rendererIdentity: spec.rendererIdentity ?? null, output: spec.output, fixture: spec.fixture ?? null, configuration: spec.configuration ?? {}, signal: controller.signal, trace: event => journal.append(event), processIdentity: receipt.processIdentity, wait: intervalWait };
+  const context = { repo: spec.repo ?? REPO, subjectRepo: spec.subjectRepo ?? spec.repo ?? REPO, browserCache: spec.browserCache ?? null, timingLease: spec.timingLease ?? null, rendererIdentity: spec.rendererIdentity ?? null, nativeImeEnvironment: spec.nativeImeEnvironment ?? null, ordinaryTextEnvironment: spec.ordinaryTextEnvironment ?? null, ordinaryCompositionEnvironment: spec.ordinaryCompositionEnvironment ?? null, navigationEnvironment: spec.navigationEnvironment ?? null, output: spec.output, fixture: spec.fixture ?? null, configuration: spec.configuration ?? {}, signal: controller.signal, trace: event => journal.append(event), processIdentity: receipt.processIdentity, wait: intervalWait };
   let adapter;
   const abort = () => controller.abort(Error('Campaign interrupted'));
   process.once('SIGTERM', abort); process.once('SIGINT', abort);

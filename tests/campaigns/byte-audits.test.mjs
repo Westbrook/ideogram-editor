@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { digest } from '../../tooling/qualification/campaigns/common.mjs';
 import { makeCampaignPlan } from '../../tooling/qualification/campaigns/inventory.mjs';
 import { executionGroups, summarize } from '../../tooling/qualification/campaigns/run.mjs';
-import { declareByteAuditCohorts, byteAuditExecutionGroups, byteAuditConfiguration, runByteAuditSchedule, evaluateByteAuditCohorts, evaluateJobExecutions } from '../../tooling/qualification/campaigns/byte-audits.mjs';
+import { declareByteAuditCohorts, byteAuditExecutionGroups, byteAuditConfiguration, runByteAuditSchedule, evaluateByteAuditCohorts, evaluateJobExecutions, byteAuditFeatureActions, evaluateByteAuditFeatureActions } from '../../tooling/qualification/campaigns/byte-audits.mjs';
 
 const identity = { sourceDigest: 'a'.repeat(64), buildDigest: digest('build'), toolsDigest: digest('tools') };
 const rule = { budgetId: 'D11', name: 'D11TextEngineRawBytes', source: 'separate-byte-audit', scope: 'text-engine', unit: 'bytes', target: 500, ceiling: 1000 };
@@ -37,13 +37,66 @@ test('immutable production plans predeclare every D11 audit start and prime with
   assert.equal(expected.length, 8); assert.equal(audits.length, 8);
   assert.equal(audits.reduce((n, group) => n + group.attempts.length, 0), 14);
   assert.equal(audits.reduce((n, group) => n + group.attempts.filter(attempt => attempt.prime).length, 0), 2);
+  for (const cohort of plan.extraAuditCohorts) assert.deepEqual(cohort.actionsPerStart,
+    ['navigation.ready', 'export.startup-absence', ...(cohort.workload === 'W1' ? ['export.first-use-ready'] : [])]);
   for (const [index, group] of audits.entries()) {
     assert.equal(group.id, 'byte-audit/' + expected[index].id);
     assert.deepEqual(group.cell, expected[index].cell); assert.deepEqual(group.attempts, expected[index].attempts);
     assert.equal(group.byteAudit.timingSamplesReusable, false);
+    assert.deepEqual(group.byteAudit.actionsPerStart, plan.extraAuditCohorts.find(cohort => cohort.cellId === group.cell.id).actionsPerStart);
   }
   const changed = structuredClone(plan); changed.extraAuditCohorts[0].warm = 1;
   assert.throws(() => byteAuditExecutionGroups(changed, expected, identity), /immutable cells/);
+  const omittedAction = structuredClone(plan); omittedAction.extraAuditCohorts.find(cohort => cohort.workload === 'W1').actionsPerStart.pop();
+  assert.throws(() => byteAuditExecutionGroups(omittedAction, expected, identity), /immutable cells/);
+});
+
+// These are receipt-shape adversarial cases. Actual resource/coverage evidence
+// is independently replayed by the retained feature-boundary verifier tests.
+function featureAttempt(workload = 'W1') {
+  const id = `H1/${workload}/warm/prime/0`, buildSha256 = digest('feature-build'), featureId = 'proved-feature-source', artifact = { path: '/startup.json', sha256: digest('startup'), byteLength: '100' };
+  const boundary = { complete: true, featureId }, fields = { workload, cache: 'warm', buildSha256, fixtureSeal: digest('fixture'), collectorSessionId: 'collector-1', documentNavigationId: 2,
+    timingSamplesReusable: false, supplemental: true, boundary, status: 'PASS', missing: [], failures: [] };
+  const core = { kind: 'd11-byte-observation-1', scope: 'startup', cache: 'warm', status: 'PASS', instrumentation: 'precise-coverage-byte-audit', timingSamplesReusable: false, buildSha256, artifact, missing: [], failures: [] };
+  return { id, result: { d11: core, featureAbsence: { ...fields, kind: 'd11-feature-absence-1', observationId: id }, featureAudits: workload === 'W1' ? [{
+    status: 'PASS', timingSamplesReusable: false, action: { kind: 'export', completed: true }, baselineReference: { artifactPath: artifact.path, artifactSha256: artifact.sha256 },
+    evidence: { ...fields, kind: 'd11-feature-first-use-1', observationId: id + '/export-first-use', baselineObservationId: id, baselineArtifactSha256: artifact.sha256, baselineStatus: 'PASS' },
+    d11: { ...core, scope: 'lazy-feature', featureIds: [featureId], artifact: { path: '/first-use.json', sha256: digest('first-use'), byteLength: '101' } },
+  }] : [] } };
+}
+
+test('W0 requires only startup absence while every W1 attempt also requires a separate first-use join', () => {
+  for (const workload of ['W0', 'W1']) {
+    const cell = { operation: 'navigation.ready', workload }, attempt = featureAttempt(workload);
+    assert.deepEqual(byteAuditFeatureActions(cell), ['export.startup-absence', ...(workload === 'W1' ? ['export.first-use-ready'] : [])]);
+    assert.equal(evaluateByteAuditFeatureActions(cell, attempt, 'warm').status, 'PASS');
+    const missing = structuredClone(attempt); delete missing.result.featureAbsence;
+    assert.equal(evaluateByteAuditFeatureActions(cell, missing, 'warm').status, 'INCONCLUSIVE');
+  }
+  assert.deepEqual(byteAuditFeatureActions({ operation: 'text.mixed-ready', workload: 'WXn' }), []);
+  const extra = featureAttempt('W0'); extra.result.featureAudits.push(featureAttempt().result.featureAudits[0]);
+  assert.equal(evaluateByteAuditFeatureActions({ operation: 'navigation.ready', workload: 'W0' }, extra, 'warm').status, 'INCONCLUSIVE');
+});
+
+test('feature proof rejects missing primes, reused startup bytes, incomplete action, and mismatched source joins', () => {
+  const cell = { operation: 'navigation.ready', workload: 'W1' };
+  for (const change of [
+    value => { value.result.featureAudits = []; },
+    value => { value.result.featureAudits[0].action.completed = false; },
+    value => { value.result.featureAudits[0].d11.artifact = value.result.d11.artifact; },
+    value => { value.result.featureAudits[0].baselineReference.artifactSha256 = digest('other'); },
+    value => { value.result.featureAudits[0].evidence.collectorSessionId = 'other'; },
+    value => { value.result.featureAudits[0].evidence.documentNavigationId++; },
+    value => { value.result.featureAudits[0].evidence.boundary = { complete: true, featureId: 'other' }; },
+    value => { value.result.featureAbsence.cache = 'cold'; },
+    value => { value.result.featureAbsence.observationId = value.id.replace('/prime/', '/scored/'); },
+    value => { value.result.featureAudits[0].timingSamplesReusable = true; },
+  ]) {
+    const value = featureAttempt(); change(value);
+    assert.notEqual(evaluateByteAuditFeatureActions(cell, value, 'warm').status, 'PASS');
+  }
+  const failed = featureAttempt(); failed.result.featureAbsence.status = 'FAIL'; failed.result.featureAbsence.failures.push('exclusive artifact requested');
+  assert.equal(evaluateByteAuditFeatureActions(cell, failed, 'warm').status, 'FAIL');
 });
 
 test('schedule uses fresh audit launches after every scored group in the same job, before the next job', async () => {

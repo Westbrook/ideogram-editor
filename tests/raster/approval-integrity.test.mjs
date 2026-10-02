@@ -58,14 +58,14 @@ test('queued approval authorities are bounded and released when a retry rejects 
  const value=(await w.events(String(BigInt(r.fromSeq)-1n))).events[0].payload,holds=[];
  for(let i=0;i<2;i++){const id=randomUUID();await w.assetCreate({protocolVersion:1,stagingId:id,purpose:'caption',expectedBytes:'1',sha256:digest('x'),mediaType:'text/plain'},auth);holds.push(await w.assetBeginChunk(id,'0',1,auth));}
  const queued=[];for(let i=0;i<8;i++){const c=make({type:'ApproveRaster',assetId:image.preview.id,reviewId:value.reviewId,reviewHash:value.reviewHash});assert.equal(await w.rasterCommand(Buffer.from(JSON.stringify(c)),auth),null);queued.push(c);}
- assert.equal((await w.diagnostics()).rasters.approvalAuthorities,8);
+ {const diagnosticRead=await w.readDiagnostics();try{assert.equal(diagnosticRead.value.rasters.approvalAuthorities,8);}finally{diagnosticRead.release();}}
  // Both shared IO slots also block diagnostic-object publication. The invalid
  // session must release its live authority even if its receipt cannot commit yet.
  for(const c of queued)await assert.rejects(w.rasterCommand(Buffer.from(JSON.stringify(c)),{...auth,sessionHash:'c'.repeat(64)}),{code:'CAPACITY'});
- const d=(await w.diagnostics()).rasters;assert.equal(d.preparations,8);assert.equal(d.approvalAuthorities,0);assert.equal(d.activeWorkers,0);
+ {const diagnosticRead=await w.readDiagnostics();try{const d=diagnosticRead.value.rasters;assert.equal(d.preparations,8);assert.equal(d.approvalAuthorities,0);assert.equal(d.activeWorkers,0);}finally{diagnosticRead.release();}}
  for(const hold of holds)await w.assetAbortChunk(hold);
  for(const c of queued){const receipt=await w.rasterCommand(Buffer.from(JSON.stringify(c)),{...auth,sessionHash:'c'.repeat(64)});assert.equal(receipt.status,'rejected');assert.equal(receipt.code,'INVALID_INPUT');}
- assert.equal((await w.diagnostics()).rasters.approvalAuthorities,0);
+ {const diagnosticRead=await w.readDiagnostics();try{assert.equal(diagnosticRead.value.rasters.approvalAuthorities,0);}finally{diagnosticRead.release();}}
 });
 for(const target of ['pixels','manifest','png','original','exif','icc'])for(const mutation of ['missing','corrupt','substituted']){
  test(`approval rejects ${mutation} ${target} dependency without a usable canonical asset`,async t=>{

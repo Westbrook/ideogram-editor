@@ -92,7 +92,7 @@ test('incremental digest matches platform SHA256 across padding and arbitrary ch
 test('PROTO02 real journal capacity failure returns507 without a receipt; same original command succeeds after recovery',async t=>{
   const {openWriter}=await import('../../dist/local/server/storage/writer.js');
   const {rootFor,expectedBytes,refFor,command,encode}=await import('../store/helpers.mjs');
-  const root=await rootFor(t);const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);const pages=(await w.diagnostics()).settings.page_count;await w.close();
+  const root=await rootFor(t);const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);let pages;{const diagnosticRead=await w.readDiagnostics();try{pages=diagnosticRead.value.settings.page_count;}finally{diagnosticRead.release();}}await w.close();
   const full=await startLocalServer({root},{writer:{maxPageCount:pages+1}});t.after(()=>full.close());const paired=await pair(full);assert.equal(paired.status,200);
   const c=command(ref,{clientId:paired.json.clientId,expectedDocumentRevision:'1',body:{type:'SaveCheckpoint',name:'Retained user draft '.repeat(400)}});
   const response=await call(full.origin,'/api/v1/commands',{method:'POST',headers:mutationHeaders(full,paired),body:c});assert.equal(response.status,507);assert.equal(response.json.error.retry,'same-command');

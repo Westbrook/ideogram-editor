@@ -12,7 +12,7 @@ import {openWriter} from '../../dist/local/server/storage/writer.js';
 
 async function settled(w,c){
  for(let i=0;i<1500;i++){const result=await w.commandState(c.command.commandId);if(result.record)return result.record;await new Promise(r=>setTimeout(r,5));}
- assert.fail('Preparation did not settle: '+JSON.stringify(await w.diagnostics()));
+ const diagnosticRead=await w.readDiagnostics();try{assert.fail('Preparation did not settle: '+JSON.stringify(diagnosticRead.value));}finally{diagnosticRead.release();}
 }
 for(const mode of ['baseline-matching','baseline-record','decode-original','import-image','import-original','compose-image','compose-mask','export-input','approval-preview','approval-original'])test('final raster acceptance binds consulted input records: '+mode,async t=>{
  const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));

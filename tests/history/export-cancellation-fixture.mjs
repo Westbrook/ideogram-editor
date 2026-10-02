@@ -18,10 +18,15 @@ export async function setup(store) {
     return result;
   };
   Worker.prototype.postMessage=function(message,...args){
-    if(!used&&config.phase==='worker-admission'&&message?.type==='admit'&&this.threadId===store.rasters.rasterWorkerState().identity?.threadId&&message.generation===store.rasters.rasterWorkerState().generation&&store.rasters.rasterWorkerState().slot==='history:'+config.commandId){
-      used=true;const worker=this;let exited=false;worker.once('exit',()=>{exited=true;});
-      void mark({phase:'worker-admission',commandId:config.commandId,threadId:worker.threadId}).then(()=>wait(()=>exited)).then(()=>{if(!closed&&!exited)postMessage.call(worker,message,...args);}).catch(()=>{if(!exited)void worker.terminate();});
-      return;
+    if(!used&&config.phase==='worker-admission'&&message?.type==='admit'){
+      // Bind the real admission to the current owner service; the old Rasters
+      // worker/workerSlot fields no longer exist with persistent worker reuse.
+      const state=store.rasters.rasterWorkerState();
+      if(state.activeJobs===1&&state.slot==='history:'+config.commandId&&state.identity?.threadId===this.threadId&&state.identity?.generation===message.generation&&Number.isSafeInteger(message.jobId)&&message.jobId>0){
+        used=true;const worker=this;let exited=false;worker.once('exit',()=>{exited=true;});
+        void mark({phase:'worker-admission',commandId:config.commandId,slot:state.slot,generation:message.generation,jobId:message.jobId,threadId:worker.threadId}).then(()=>wait(()=>exited)).then(()=>{if(!closed&&!exited)postMessage.call(worker,message,...args);}).catch(()=>{if(!exited)void worker.terminate();});
+        return;
+      }
     }
     return postMessage.call(this,message,...args);
   };

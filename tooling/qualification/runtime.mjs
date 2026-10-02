@@ -1,3 +1,5 @@
+import { retainDiagnosticEvidence } from './campaigns/diagnostic-evidence.mjs';
+import { startEvidenceMonitor, retainEvidenceAudit } from './evidence-volume.mjs';
 // Exploratory real raster/storage observations. This is NOT a PERF P/Q3 campaign.
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
@@ -219,7 +221,7 @@ export async function runWorker(spec) {
           entry.elapsedMs = performance.now() - entry.startMonotonicMs; entry.rssAfter = process.memoryUsage().rss; sampleRSS();
           entry.processCumulativeHighWaterRSS = process.resourceUsage().maxRSS * 1024;
           try {
-            try { entry.rasterDiagnostics = (await writer.diagnostics()).rasters; } catch (error) { entry.diagnosticsError = serializableError(error); }
+            try { const read = await writer.readDiagnostics(); try { entry.rasterDiagnostics = await retainDiagnosticEvidence(dirname(spec.receipt), 'phase-' + sample.sequence + '-' + sample.phases.length, read.value.rasters); } finally { read.release(); } } catch (error) { entry.diagnosticsError = serializableError(error); throw error; }
             await trace({ event: 'phase-end', sequence: sample.sequence, phase: entry });
           } finally { clearTimeout(watchdog); }
         }
@@ -294,7 +296,7 @@ export async function runWorker(spec) {
     facts.outcome = facts.samples.some(s => ['failed', 'timed-out'].includes(s.outcome)) ? 'failed' : facts.samples.length === spec.count && facts.samples.every(s => s.outcome === 'completed') ? 'completed' : 'incomplete';
   } catch (error) { facts.outcome = 'failed'; facts.error = serializableError(error); }
   finally {
-    try { if (writer) facts.finalDiagnostics = await writer.diagnostics(); } catch (error) { facts.diagnosticsError = serializableError(error); facts.outcome = 'failed'; }
+    try { if (writer) { const read = await writer.readDiagnostics(); try { facts.finalDiagnostics = await retainDiagnosticEvidence(dirname(spec.receipt), 'final', read.value); } finally { read.release(); } } } catch (error) { facts.diagnosticsError = serializableError(error); facts.outcome = 'failed'; }
     try { await writer?.close(); facts.writerClosed = true; } catch (error) { facts.closeError = serializableError(error); facts.outcome = 'failed'; }
     clearInterval(sampling); sampleRSS();
     facts.parentWriterNetworkCounters = globalThis.__storeNetworkCounters.read();
@@ -395,15 +397,24 @@ async function main(args) {
     const before = await codeIdentity(), disk = await statfs(REPO, { bigint: true });
     if (disk.bavail * disk.bsize < BigInt(plan.estimatedDiskAdmissionBytes)) throw Error('Insufficient free disk for this retained exploratory campaign plus 1GiB margin');
     const output = await createOutput(options.output), startedAt = new Date().toISOString();
+    const evidenceMonitor = await startEvidenceMonitor({ output, campaignId: 'exploratory-' + randomUUID(), allowUnavailable: true, onAlarm: alarm => console.error(JSON.stringify({ evidenceStorageAlarm: alarm })) });
+    let retainedReceiptPath = null, storageOutcome = 'FAIL';
+    try {
     await json(join(output, 'plan.json'), plan); await json(join(output, 'source-before.json'), before);
     const result = await runCampaign(plan, output);
     const after = await codeIdentity(); await json(join(output, 'source-after.json'), after);
     result.sourceStable = before.hash === after.hash;
     if (!result.sourceStable && result.summary.outcome !== 'failed') result.summary.outcome = 'incomplete-source-changed';
-    const receipt = { schemaVersion: 1, kind: 'exploratory-runtime-campaign', qualification: false, startedAt, finishedAt: new Date().toISOString(), environment: environment(), timingLock, nodeExecutable: { path: process.execPath, ...await fileIdentity(process.execPath) }, argv: process.argv, plan, ...result, limits: LIMITS };
-    await json(join(output, 'receipt.json'), receipt);
+    const receipt = { schemaVersion: 1, kind: 'exploratory-runtime-campaign', qualification: false, evidenceStorage: evidenceMonitor.reference, startedAt, finishedAt: new Date().toISOString(), environment: environment(), timingLock, nodeExecutable: { path: process.execPath, ...await fileIdentity(process.execPath) }, argv: process.argv, plan, ...result, limits: LIMITS };
+    await json(join(output, 'receipt.json'), receipt); retainedReceiptPath = join(output, 'receipt.json'); storageOutcome = receipt.summary.outcome;
     console.log(JSON.stringify({ output, ...receipt.summary, sourceStable: receipt.sourceStable }));
     process.exitCode = receipt.summary.outcome === 'completed-exploratory' ? 0 : receipt.summary.outcome === 'failed' ? 1 : 2;
+    } finally {
+      const audit = await evidenceMonitor.finish({ receiptPath: retainedReceiptPath, outcome: storageOutcome });
+      if (retainedReceiptPath) await retainEvidenceAudit(evidenceMonitor.reference, output);
+      console.log(JSON.stringify({ evidenceStorage: { status: audit.status, qualification: audit.qualification } }));
+      if (audit.status !== 'PASS' && process.exitCode !== 1) process.exitCode = audit.status === 'FAIL' ? 1 : 2;
+    }
   });
 }
 

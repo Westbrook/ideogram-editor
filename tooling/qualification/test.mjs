@@ -1,8 +1,9 @@
+import {createTapCounter} from './gate-log-reader.mjs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { functionalGates, versions } from './manifest.mjs';
 import { boundedChild } from './container/bounded-child.mjs';
-import { gateOutcome, tapCounts } from './core.mjs';
+import { gateOutcome } from './core.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export function qualificationTestPlan(repository = root) {
@@ -18,11 +19,12 @@ async function main(args) {
   if (process.versions.node !== versions.node) throw Error(`Use pinned Node ${versions.node}`);
   const controller = new AbortController(), interrupt = () => controller.abort('SIGINT'), terminate = () => controller.abort('SIGTERM');
   process.on('SIGINT', interrupt); process.on('SIGTERM', terminate);
-  let log = '';
+  const counter = createTapCounter();
   try {
     const result = await boundedChild(process.execPath, plan.command.slice(1), { cwd: root, env: process.env, timeoutMs: plan.timeoutMs, abortSignal: controller.signal,
-      onStdout: bytes => { process.stdout.write(bytes); log += bytes.toString(); }, onStderr: bytes => { process.stderr.write(bytes); log += bytes.toString(); } });
-    const outcome = gateOutcome({ ...result, exitCode: result.code, counts: tapCounts(log) }, true);
+      onStdout: bytes => { process.stdout.write(bytes); counter.append(bytes); }, onStderr: bytes => { process.stderr.write(bytes); counter.append(bytes); } });
+    const summary = counter.finish();
+    const outcome = gateOutcome({ ...result, exitCode: result.code, counts: summary.counts, logError: summary.error }, true);
     if (outcome !== 'PASS') process.exitCode = result.interrupted ? result.reason === 'SIGINT' ? 130 : 143 : result.code || 1;
   } finally { process.off('SIGINT', interrupt); process.off('SIGTERM', terminate); }
 }

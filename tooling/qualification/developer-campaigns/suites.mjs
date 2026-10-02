@@ -7,12 +7,13 @@ import {requiredSuiteEnvironment} from '../suite-prerequisites.mjs';
 const records = bytes => bytes.toString('utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
 const issuerPreparations = new Map();
 
-async function completionIssuers(source, directory) {
+async function completionIssuers(source, directory, command, pinned) {
   const key = source + '\0' + directory;
   if (!issuerPreparations.has(key)) issuerPreparations.set(key, (async () => {
-    const {prepareCompletionIssuers} = await import('../completion-issuers/index.mjs');
+    const {completionIssuerArguments,readPreparedCompletionIssuers} = await import('../completion-issuers/prepare-child.mjs');
     const output = join(directory, 'completion-issuers');
-    const prepared = await prepareCompletionIssuers(output, source);
+    await command('completion-issuers', completionIssuerArguments(output), {}, pinned.executable, 300000);
+    const prepared = await readPreparedCompletionIssuers(output);
     return {env: prepared.env, evidence: {output, files: await fileManifest(output)}};
   })());
   return issuerPreparations.get(key);
@@ -39,7 +40,7 @@ export async function runNodeSelection({source, directory, group, mode, focused,
           completionInputs = {IE_ADAPTER_PROFILE_FIXTURE: adapterFixture.before.path, IE_ADAPTER_FIXTURE: adapterFixture.before.path};
         }
         if (selected.some(item => item.file.startsWith('tests/editor/completion/'))) {
-          const prepared = await completionIssuers(source, directory);
+          const prepared = await completionIssuers(source, directory, command, pinned);
           completionInputs = {...completionInputs, ...prepared.env}; issuerPrerequisite = prepared.evidence;
         }
         if (selected.some(item => /tests\/editor\/completion\/(?:protocol-membership|handler-source)\.test\.mjs$/.test(item.file))) {
@@ -67,7 +68,7 @@ export async function runNodeSelection({source, directory, group, mode, focused,
 
 export async function runBrowserSelection({source, directory, mode, focused, plan, command, pinned}) {
         const steps = mode === 'focused' ? focused.browser.map((item, i) => ({id: `focused-${i + 1}`, config: item.config, expected: item, env: {}, files: [item.file]})) : plan.steps.filter(step => step.config);
-        const summaries = [], issuers = await completionIssuers(source, directory);
+        const summaries = [], issuers = await completionIssuers(source, directory, command, pinned);
         for (const step of steps) {
           const output = join(directory, `${mode}-browser`, step.id); await mkdir(output, {recursive: true});
           const report = join(output, 'cases.ndjson');

@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { basename } from 'node:path';
 import { intervalWait, monotonic, PrerequisiteError, fileIdentity } from './common.mjs';
 import { readGestureState, eligibleGestureLayers, chooseInteractionZoomPercentages, planStrokeCoordinates, installGestureObserver, validateNativeDiscrete, validateRecordedStroke } from './browser-gesture-state.mjs';
+import { createDiscreteActionRecorder, installDiscreteInputObserver } from './browser-discrete-input.mjs';
+import { genericPointerDescriptor, runGenericPointerDispatch, readGenericPublicState } from './browser-generic-input.mjs';
 
 export const browserOperationCoverage = Object.freeze([
   'navigation.ready', 'interaction.brush', 'interaction.first-use', 'raster.stroke-finalize',
@@ -53,11 +57,29 @@ export async function acceptedCommand(page, type, action, signal) {
   return { commandId, documentId, status: state.receipt.status, observedDurableReceiptMs: monotonic() };
 }
 
+export async function prepareEncodedAdoptionReview({ page, cell, fixture, signal }) {
+  const p = cell.parameters ?? cell.options ?? {}, item = candidate(fixture, p);
+  const placement = p.placement ?? item.recommendedPlacement ?? fixture.extensions?.candidates?.recommendedPlacement ?? 'current-document';
+  if (!['current-document', 'new-document'].includes(placement) || p.replaceSelectedImage || p.treatment && p.treatment !== 'safe-region') throw new PrerequisiteError('Encoded rebuilding requires explicit supported safe-region placement');
+  await inspectCandidate(page, item);
+  await idButton(page, 'request-candidate-prepare-' + item.id).click();
+  await page.getByRole('combobox', { name: 'Candidate treatment', exact: true }).selectOption('safe-region');
+  const control = (placement === 'new-document' ? 'request-candidate-review-encoded-new-' : 'request-candidate-review-encoded-current-') + item.id;
+  const receipt = await acceptedCommand(page, 'ReviewCandidatePlacement', () => idButton(page, control).click(), signal);
+  const card = page.locator('#request-candidate-deferred-review-' + item.id);
+  await card.waitFor({ state: 'visible' });
+  const reviewId = await card.getAttribute('data-review-id'), reviewHash = await card.getAttribute('data-review-hash');
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(reviewId ?? '') || !/^sha256:[a-f0-9]{64}$/.test(reviewHash ?? '') || await card.getAttribute('data-preparation') !== 'encoded-rebuild') throw new PrerequisiteError('Public encoded placement review identity is unavailable');
+  const review = await publicRead(page, '/api/v1/image-edit-reviews/' + reviewId);
+  if (review.reviewHash !== reviewHash) throw new PrerequisiteError('Public encoded review differs from its visible immutable identity');
+  return { candidateId: item.id, placement, receipt, review };
+}
+
 export async function openDocument(page, fixture) {
   if (!fixture?.documentId) throw new PrerequisiteError('A sealed document identity is required');
   await click(page, 'Open');
   const dialog = page.getByRole('dialog', { name: 'Open document', exact: true });
-  await dialog.getByRole('button', { name: new RegExp('^' + fixture.documentId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' · ') }).click();
+  await dialog.getByRole('button', { name: new RegExp(' · ' + fixture.documentId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' · [0-9]+ × [0-9]+ · revision [0-9]+$') }).click();
   await dialog.waitFor({ state: 'hidden' });
   const document = (await publicRead(page, '/api/v1/documents/' + fixture.documentId)).projection.value;
   await page.locator('.document-name').filter({ hasText: `${document.width} × ${document.height} · revision ${document.revision}` }).waitFor({ state: 'visible' });
@@ -92,8 +114,8 @@ export async function selectVisibleImageLayer(page, fixture, layerId) {
   return { id: target.id, version: target.version };
 }
 
-async function dispatchStrokePointers(page, points, signal, beforeDown) {
-  const observations = [], scheduled = [];
+async function dispatchStrokePointers(page, points, signal, beforeDown, generic) {
+  const observations = [], scheduled = [], pointerDispatches = [];
   await page.mouse.move(points[0].x, points[0].y);
   // Hover is preparation, not one of the 120 consumed stroke samples. The
   // optional observer is armed only after it has settled.
@@ -103,8 +125,17 @@ async function dispatchStrokePointers(page, points, signal, beforeDown) {
     const scheduledMs = startMs + index * 1000 / 60;
     for (let now = monotonic(); now < scheduledMs; now = monotonic()) await intervalWait(scheduledMs - now, signal);
     signal?.throwIfAborted();
-    const dispatchStartedMs = monotonic(); await action(); const dispatchCompletedMs = monotonic();
-    scheduled.push({ index, scheduledMs, dispatchStartedMs, dispatchCompletedMs });
+    const hookStartedMs = monotonic();
+    let dispatchStartedMs, dispatchCompletedMs;
+    if (generic) {
+      const descriptor = genericPointerDescriptor({schemaVersion: 1, sessionId: generic.sessionId, actionSequence: generic.actionSequence,
+        family: 'stroke', specimenId: generic.specimenId, sampleIndex: index,
+        type: index === 0 ? 'pointerdown' : index === 119 ? 'pointerup' : 'pointermove', x: points[index].x, y: points[index].y});
+      const receipt = await runGenericPointerDispatch({descriptor, dispatch: () => {signal?.throwIfAborted(); return action();}, hook: generic.hook, retain: value => pointerDispatches.push(value)});
+      ({dispatchStartedMs, dispatchCompletedMs} = receipt);
+    } else {dispatchStartedMs = monotonic(); await action(); dispatchCompletedMs = monotonic();}
+    scheduled.push({ index, scheduledMs, dispatchStartedMs, dispatchCompletedMs,
+      ...(generic ? {hookStartedMs, hookCompletedMs: monotonic(), latenessMs: dispatchStartedMs - scheduledMs} : {}) });
     observations.push({ index, inputMs: dispatchCompletedMs, presentedMs: null });
   };
   try {
@@ -114,10 +145,12 @@ async function dispatchStrokePointers(page, points, signal, beforeDown) {
     }
     await dispatch(119, () => page.mouse.up());
   } catch (error) {
-    error.pointerDispatch = { startMs, observations, pointerSchedule: { clock: 'runner-monotonic', frequencyHz: 60, samples: scheduled } };
+    const retained = { startMs, observations, pointerDispatches, pointerSchedule: { clock: 'runner-monotonic', frequencyHz: 60, samples: scheduled } };
+    try {generic?.retain?.(retained);} catch {}
+    try {error.pointerDispatch = retained;} catch {}
     await page.mouse.up().catch(() => {}); throw error;
   }
-  return { startMs, observations, pointerSchedule: { clock: 'runner-monotonic', frequencyHz: 60, samples: scheduled } };
+  return { startMs, observations, ...(generic ? {pointerDispatches} : {}), pointerSchedule: { clock: 'runner-monotonic', frequencyHz: 60, samples: scheduled } };
 }
 
 export async function stroke(page, { signal, commit = false, fixture, gestures, strokeIndex = 0 } = {}) {
@@ -160,14 +193,19 @@ async function maskDraftOperationCount(page) {
   });
 }
 
-export async function runDiscreteInteraction(page, action, protocol) {
+export async function runDiscreteInteraction(page, action, protocol, { discreteObserver, sessionId = 'input-' + randomUUID(), hook, retain, signal } = {}) {
+  const recorder = createDiscreteActionRecorder({ observer: discreteObserver, sessionId, actionId: 'action-' + action.index, family: action.kind, hook });
+  const dispatch = (stepId, target, targetIdentity, input, run) => recorder.step({ stepId, target, targetIdentity, input, dispatch: () => {signal?.throwIfAborted(); return run();} });
+  const finish = value => ({ ...value, discreteInput: recorder.snapshot() });
   const variant = action.variant;
+  try {
   if (action.kind === 'undo') {
     const completion = protocol.priorCompletion?.detail, undo = button(page, 'Undo mask stroke');
     assert(completion?.operationCount === 1, 'The counted Undo must own the immediately preceding one-stroke draft');
     await page.getByText(/, revision [0-9]+\. 1 draft operations\./).waitFor({ state: 'visible' });
     const beforeOperationCount = await maskDraftOperationCount(page);
-    assert.equal(beforeOperationCount, 1); assert(await undo.isEnabled()); await undo.click();
+    assert.equal(beforeOperationCount, 1); assert(await undo.isEnabled());
+    await dispatch('activate', undo, { control: 'mask-undo' }, { kind: 'click' }, () => undo.click());
     const started = monotonic(); let afterOperationCount, buttonDisabled;
     do {
       afterOperationCount = await maskDraftOperationCount(page); buttonDisabled = !await undo.isEnabled();
@@ -175,9 +213,9 @@ export async function runDiscreteInteraction(page, action, protocol) {
       if (monotonic() - started > 5000) throw Error('The counted Undo did not restore the empty mask draft');
       await intervalWait(10);
     } while (true);
-    return { kind: 'public-undo-mask-stroke', draftId: completion.draftId, gestureOrdinal: completion.gestureOrdinal,
+    return finish({ kind: 'public-undo-mask-stroke', draftId: completion.draftId, gestureOrdinal: completion.gestureOrdinal,
       beforeOperationCount, afterOperationCount, buttonDisabled, observedMs: await page.evaluate(() => performance.now()),
-      clock: 'browser-performance', source: 'public-draft-count-and-disabled-undo' };
+      clock: 'browser-performance', source: 'public-draft-count-and-disabled-undo' });
   }
   else if (action.kind === 'layer') {
     const state = await readGestureState(page), layers = protocol.eligibleLayers;
@@ -185,21 +223,26 @@ export async function runDiscreteInteraction(page, action, protocol) {
     const selected = layers.findIndex(layer => layer.id === state.editor?.selected?.[0]);
     if (selected < 0) throw new PrerequisiteError('Layer gesture lost its eligible selected image');
     const target = layers[(selected + 1) % layers.length];
-    await page.locator('#layer-tree').getByRole('treeitem').nth(target.rowIndex).click();
+    const row = page.locator('#layer-tree').getByRole('treeitem').nth(target.rowIndex);
+    await dispatch('activate', row, { control: 'layer-row', rowIndex: target.rowIndex, layerId: target.id }, { kind: 'click' }, () => row.click());
     await page.waitForFunction(id => performance.getEntriesByName('ie.editor.updated').at(-1)?.detail?.selected?.[0] === id, target.id);
-    return { before: layers[selected].id, after: target.id, source: 'public-layer-selection' };
+    return finish({ before: layers[selected].id, after: target.id, source: 'public-layer-selection' });
   }
   else if (action.kind === 'zoom') {
     const value = protocol.zoomPercentages[variant], field = page.getByRole('spinbutton', { name: 'Zoom percentage', exact: true });
-    await field.focus(); await field.press('ControlOrMeta+A'); await field.pressSequentially(String(value)); await field.press('Tab');
+    await field.focus();
+    await dispatch('select-all', field, { control: 'zoom-percentage' }, { kind: 'press', key: 'ControlOrMeta+A' }, () => field.press('ControlOrMeta+A'));
+    await dispatch('enter-value', field, { control: 'zoom-percentage' }, { kind: 'press-sequentially', text: String(value) }, () => field.pressSequentially(String(value)));
+    await dispatch('commit', field, { control: 'zoom-percentage' }, { kind: 'press', key: 'Tab' }, () => field.press('Tab'));
     await page.waitForFunction(zoom => performance.getEntriesByName('ie.viewport.drawn').at(-1)?.detail?.zoom === zoom, value / 100);
-    return { zoom: value / 100, source: 'public-exact-viewport-mark' };
+    return finish({ zoom: value / 100, source: 'public-exact-viewport-mark' });
   }
   else if (action.kind === 'split') {
     const handle = page.getByRole('separator', { name: 'Request panel width', exact: true });
     const initial = await handle.getAttribute('aria-valuenow'), before = initial === null ? NaN : Number(initial), direction = variant ? -1 : 1;
     if (!Number.isFinite(before)) throw new PrerequisiteError('The splitter has no public numeric position');
-    await handle.focus(); await handle.press(variant ? 'ArrowLeft' : 'ArrowRight');
+    await handle.focus();
+    await dispatch('resize', handle, { control: 'request-panel-width' }, { kind: 'press', key: variant ? 'ArrowLeft' : 'ArrowRight' }, () => handle.press(variant ? 'ArrowLeft' : 'ArrowRight'));
     const started = monotonic(); let after;
     do {
       const value = await handle.getAttribute('aria-valuenow'); after = value === null ? NaN : Number(value);
@@ -207,13 +250,14 @@ export async function runDiscreteInteraction(page, action, protocol) {
       if (monotonic() - started > 2000) throw Error('Split gesture did not move the public splitter in the intended direction');
       await intervalWait(10);
     } while (true);
-    return { before, after, direction, source: 'public-splitter-value' };
+    return finish({ before, after, direction, source: 'public-splitter-value' });
   }
   else if (action.kind === 'pan') {
     const before = await readGestureState(page), targetX = before.viewport.x + (variant ? -10 : 10);
-    const canvas = page.locator('#canvas'); await canvas.focus(); await canvas.press(variant ? 'ArrowLeft' : 'ArrowRight');
+    const canvas = page.locator('#canvas'); await canvas.focus();
+    await dispatch('pan', canvas, { control: 'document-canvas' }, { kind: 'press', key: variant ? 'ArrowLeft' : 'ArrowRight' }, () => canvas.press(variant ? 'ArrowLeft' : 'ArrowRight'));
     await page.waitForFunction(x => performance.getEntriesByName('ie.viewport.drawn').at(-1)?.detail?.x === x, targetX);
-    return { before: before.viewport.x, after: targetX, source: 'public-exact-viewport-mark' };
+    return finish({ before: before.viewport.x, after: targetX, source: 'public-exact-viewport-mark' });
   } else {
     const name = action.kind === 'theme' ? 'Appearance' : 'Density';
     const field = page.getByRole('combobox', { name, exact: true });
@@ -222,12 +266,19 @@ export async function runDiscreteInteraction(page, action, protocol) {
     // Keyboard events provide the actual native intent timestamp. selectOption
     // would directly dispatch synthetic change events instead.
     const target = action.kind === 'theme' ? (before === 'dark' ? 'light' : 'dark') : (before === 'spacious' ? 'comfortable' : 'spacious');
-    await field.focus(); await field.press(target === 'dark' || target === 'spacious' ? 'End' : 'Home');
-    if (target === 'light') await field.press('ArrowDown');
-    await field.press('Tab');
+    await field.focus();
+    const targetIdentity = { control: action.kind === 'theme' ? 'appearance' : 'density' }, edgeKey = target === 'dark' || target === 'spacious' ? 'End' : 'Home';
+    await dispatch('select-edge', field, targetIdentity, { kind: 'press', key: edgeKey }, () => field.press(edgeKey));
+    if (target === 'light') await dispatch('select-light', field, targetIdentity, { kind: 'press', key: 'ArrowDown' }, () => field.press('ArrowDown'));
+    await dispatch('commit', field, targetIdentity, { kind: 'press', key: 'Tab' }, () => field.press('Tab'));
     assert.equal(await field.inputValue(), target, 'Native keyboard gesture must select the intended appearance/density value');
     assert.notEqual(await field.inputValue(), before, 'Discrete appearance/density gesture must change state');
-    return { before, after: target, source: 'public-' + name.toLowerCase() + '-control' };
+    return finish({ before, after: target, source: 'public-' + name.toLowerCase() + '-control' });
+  }
+  } finally {
+    // Retain observations even for primitive/frozen product exceptions. This
+    // callback stores diagnostics only; it must never replace the action.
+    try { retain?.(recorder.snapshot()); } catch {}
   }
 }
 
@@ -268,14 +319,18 @@ async function recordedStroke(page) {
   });
 }
 
-async function scoredStroke(page, { observer, protocol, specimen, signal }) {
+async function scoredStroke(page, { observer, protocol, specimen, signal, generic }) {
   const state = await readGestureState(page), plan = planStrokeCoordinates(specimen, state, protocol);
   const beforeMark = await recordedStroke(page), priorCompletion = protocol.priorCompletion ?? null;
   let native, dispatch, completion, armed = false;
   try {
+    let dispatchFailure, dispatchFailed = false;
     try {
-      dispatch = await dispatchStrokePointers(page, plan.points, signal, async () => { await observer.begin(specimen.id); armed = true; });
-    } finally { if (armed) native = await observer.end(); }
+      dispatch = await dispatchStrokePointers(page, plan.points, signal, async () => { await observer.begin(specimen.id); armed = true; },
+        generic ? {...generic, specimenId: specimen.id, retain: value => {dispatch = value;}} : undefined);
+    } catch (error) {dispatchFailure = error; dispatchFailed = true;}
+    finally {if (armed) try {native = await observer.end();} catch (error) {if (!dispatchFailed) throw error;}}
+    if (dispatchFailed) throw dispatchFailure;
     const up = native.events.findLast(event => event.type === 'pointerup');
     if (up) await page.waitForFunction(({ after, inputUpMs }) => {
       const entry = performance.getEntriesByName('ie.mask.stroke.recorded').at(-1);
@@ -288,58 +343,93 @@ async function scoredStroke(page, { observer, protocol, specimen, signal }) {
       inputMs: native.firstInputMs, pointerUpMs: up?.inputMs ?? null, samples: validation.samples,
       plan, native, validation, completion, productCompletion: completion?.detail ?? null,
       observedMs: completion?.startMs ?? native.stoppedMs, dispatchObservations: dispatch?.observations ?? [], pointerSchedule: dispatch?.pointerSchedule ?? null,
+      ...(generic ? {pointerDispatches: dispatch?.pointerDispatches ?? []} : {}),
       dispatchClock: 'runner-monotonic', inputClock: 'browser-performance', meaningful: true,
       outcome: validation.status === 'FAIL' ? 'failed' : 'completed',
       setupActions: 0, retainedViewState: state, actualPresentation: 'unavailable' };
   } catch (error) {
-    dispatch ??= error.pointerDispatch;
-    completion ??= await recordedStroke(page);
-    error.actionObservation = { kind: 'stroke', specimenId: specimen.id, selectedLayerId: plan.selectedLayerId,
+    dispatch ??= error?.pointerDispatch;
+    try {completion ??= await recordedStroke(page);} catch {}
+    const retained = { kind: 'stroke', specimenId: specimen.id, selectedLayerId: plan.selectedLayerId, plan,
       inputMs: native?.firstInputMs ?? null, native: native ?? null, completion, productCompletion: completion?.detail ?? null,
       samples: native?.events?.map((event, index) => ({ index, ...event, presentedMs: null })) ?? [],
       dispatchObservations: dispatch?.observations ?? [], pointerSchedule: dispatch?.pointerSchedule ?? null,
+      ...(generic ? {pointerDispatches: dispatch?.pointerDispatches ?? []} : {}),
       inputClock: 'browser-performance', outcome: 'failed', presentedMs: null };
+    try {generic?.retainFailure?.(retained);} catch {}
+    try {error.actionObservation = retained;} catch {}
     throw error;
   }
 }
 
-async function interaction(page, cell, fixture, gestures, signal) {
+async function interaction(page, cell, fixture, gestures, signal, services = {}) {
   const parameters = cell.parameters ?? cell.options ?? cell;
   if (parameters.mode && parameters.mode !== 'native') throw new PrerequisiteError('Fallback needs a verified product worker/context-loss recovery controller');
   const protocol = await prepareInteraction(page, fixture, signal), observer = await installGestureObserver(page);
+  const sessionId = services.discreteInputSessionId ?? 'input-' + randomUUID();
+  let discreteObserver;
+  try { discreteObserver = await installDiscreteInputObserver(page, { sessionId }); } catch { /* Input still runs; each step retains missing observer evidence. */ }
+  let nativeSessionStart = null;
+  if (services.genericSessionStart) try {nativeSessionStart = await services.genericSessionStart();}
+  catch {nativeSessionStart = {status: 'unavailable', reason: 'generic-native-session-start-failed'};}
   const boundary = await observer.now(), startMs = boundary.nowMs, actions = [];
   const observations = captureStoppedMs => ({ startMs, endMs: startMs + 60000, captureStoppedMs,
     timeOrigin: boundary.timeOrigin, clock: 'browser-performance', gestures: actions.length,
     strokes: actions.filter(x => x.kind === 'stroke').length, actions,
-    unscoredPreparation: protocol.unscoredPreparation, actualPresentation: 'unavailable' });
+    unscoredPreparation: protocol.unscoredPreparation, ...(services.genericInputEnabled ? {sessionId, nativeSessionStart,
+      inputProtocol: {document: {id: protocol.document.id, revision: protocol.document.revision, width: protocol.document.width, height: protocol.document.height},
+        eligibleLayers: protocol.eligibleLayers.map(layer => ({id: layer.id, version: layer.version, rowIndex: layer.rowIndex})), zoomPercentages: protocol.zoomPercentages}} : {}), actualPresentation: 'unavailable' });
+  let failedStroke;
+  const publicState = async () => {try {return await readGenericPublicState(page);} catch {return null;}};
   try {
-    for (const action of interactionPlan()) {
+    for (const [actionSequence, action] of interactionPlan().entries()) {
       signal?.throwIfAborted();
-      if (action.kind === 'stroke') actions.push({ ...action, ...await scoredStroke(page, { observer, protocol, specimen: gestures[action.index], signal }), presentedMs: null });
+      const nativeState = services.genericInputEnabled ? {before: await publicState(), after: null} : null;
+      if (action.kind === 'stroke') actions.push({ ...action, ...await scoredStroke(page, { observer, protocol, specimen: gestures[action.index], signal,
+        ...(services.genericInputEnabled ? {generic: {sessionId, actionSequence, hook: services.genericPointerHook,
+          retainFailure: value => {failedStroke = {...action, ...value, nativeState};}}} : {}) }), presentedMs: null });
       else {
         await observer.begin('discrete-' + action.index, { kind: 'discrete' });
-        let native, failure, semantic;
-        try { semantic = await runDiscreteInteraction(page, action, protocol); } catch (error) { failure = error; }
-        finally { native = await observer.end(); }
-        const valid = validateNativeDiscrete(native, { timeOrigin: boundary.timeOrigin });
+        let native, failure, failed = false, nativeFailure, nativeFailed = false, semantic, discreteInput;
+        try { semantic = await runDiscreteInteraction(page, action, protocol, { discreteObserver, sessionId, signal,
+          hook: services.discreteInputHook, retain: value => { discreteInput = value; } }); }
+        catch (error) { failure = error; failed = true; }
+        finally { try { native = await observer.end(); } catch (error) { nativeFailure = error; nativeFailed = true; } }
+        const valid = native ? validateNativeDiscrete(native, { timeOrigin: boundary.timeOrigin }) : {
+          status: 'INCONCLUSIVE', scope: 'native-discrete-input-only', clock: 'browser-performance', timeOrigin: null,
+          inputMs: null, events: [], failures: [], missing: ['legacy-input-observer-drain-failed'], physicalPresentationQualified: false };
         if (action.kind === 'undo' && semantic) protocol.priorUndo = { ...semantic, native, inputMs: valid.inputMs, nativeTrusted: valid.status === 'PASS' };
-        actions.push({ ...action, inputMs: valid.inputMs, observedMs: native.stoppedMs, native, semantic, validation: valid,
-          meaningful: true, outcome: failure || valid.status === 'FAIL' ? 'failed' : 'completed', presentedMs: null });
-        if (failure) throw failure;
+        actions.push({ ...action, ...(nativeState ? {nativeState} : {}), inputMs: discreteInput?.inputMs ?? null, inputClock: 'browser-performance', observedMs: native?.stoppedMs ?? null,
+          native: native ?? null, discreteInput, semantic, validation: valid,
+          meaningful: true, outcome: failed || valid.status === 'FAIL' || discreteInput?.status === 'FAIL' ? 'failed' : 'completed', presentedMs: null });
+        if (failed) throw failure;
+        if (nativeFailed) throw nativeFailure;
       }
+      if (nativeState) {nativeState.after = await publicState(); actions.at(-1).nativeState = nativeState;}
       const now = await observer.now();
       if (now.nowMs > startMs + 60000) throw Object.assign(Error('The fixed 100-gesture interaction could not finish in 60 seconds'), { code: 'INTERACTION_DEADLINE' });
     }
     let captured = await observer.now();
     while (captured.nowMs < startMs + 60000) { await intervalWait(startMs + 60000 - captured.nowMs, signal); captured = await observer.now(); }
-    const failed = actions.some(action => action.validation?.status === 'FAIL');
-    const missing = actions.flatMap(action => action.validation?.missing ?? []);
-    return { ...observations(captured.nowMs), status: failed ? 'FAIL' : missing.length ? 'INCONCLUSIVE' : 'PASS', missing: [...new Set(missing)] };
+    const completed = observations(captured.nowMs);
+    let nativeSessionEnd = null;
+    if (services.genericSessionEnd) try {nativeSessionEnd = await services.genericSessionEnd(completed);}
+    catch {nativeSessionEnd = {status: 'unavailable', reason: 'generic-native-session-end-failed'};}
+    const failed = actions.some(action => action.validation?.status === 'FAIL' || action.discreteInput?.status === 'FAIL');
+    const missing = actions.flatMap(action => [...(action.validation?.missing ?? []), ...(action.discreteInput?.missing ?? [])]);
+    return { ...completed, ...(services.genericInputEnabled ? {nativeSessionEnd} : {}), status: failed ? 'FAIL' : missing.length ? 'INCONCLUSIVE' : 'PASS', missing: [...new Set(missing)] };
   } catch (error) {
-    const captured = await observer.now();
-    if (error.actionObservation) actions.push(error.actionObservation);
-    error.observations = observations(captured.nowMs); throw error;
-  } finally { await observer.close(); }
+    let capturedMs = null;
+    try { capturedMs = (await observer.now()).nowMs; } catch {}
+    if (failedStroke ?? error?.actionObservation) actions.push(failedStroke ?? error.actionObservation);
+    const retained = observations(capturedMs);
+    try { services.retainDiscreteInputFailure?.(retained); } catch {}
+    try { error.observations = retained; } catch {}
+    throw error;
+  } finally {
+    try { await discreteObserver?.close(); } catch { /* Evidence has already been retained; cleanup cannot replay input. */ }
+    try { await observer.close(); } catch { /* Legacy observer cleanup cannot replace a retained product failure. */ }
+  }
 }
 
 function candidate(fixture, parameters) {
@@ -383,6 +473,77 @@ export async function runBrowserAction({ page, cell, fixture, signal, pair, serv
   const operation = cell.operation, p = cell.parameters ?? cell.options ?? cell;
   signal?.throwIfAborted();
   if (operation === 'navigation.ready' || operation === 'portable.reopen') {
+    if (operation === 'navigation.ready' && services.nativeNavigation) {
+      const native = services.nativeNavigation;
+      if (!fixture.documentId || !['W0', 'W1'].includes(cell.workload)) throw new PrerequisiteError('Native navigation requires its real sealed W0/W1 document');
+      const url = await pair();
+      const previousTimeOrigin = await page.evaluate(() => performance.timeOrigin);
+      await native.navigationStart({run: () => page.goto(url)});
+      const navigation = await page.evaluate(({nonce, previousTimeOrigin}) => {
+        const entries = performance.getEntriesByType('navigation'), entry = entries.length === 1 ? entries[0] : null;
+        if (!entry || entry.type !== 'navigate' || entry.startTime !== 0 || performance.timeOrigin === previousTimeOrigin || window.top !== window || document.visibilityState !== 'visible') throw Error('Fresh visible navigation realm unavailable');
+        const location = new URL(entry.name);
+        return {nonce, previousTimeOrigin, timeOrigin: performance.timeOrigin, entry: {startTime: 0, type: entry.type, name: location.origin + location.pathname}, visibility: document.visibilityState, topLevel: true};
+      }, {nonce: native.navigationNonce, previousTimeOrigin});
+      await ready(page);
+      const controls = [];
+      for (const name of ['New', 'Open']) {
+        const control = button(page, name); await visible(control);
+        const visibleNow = await control.isVisible(), enabled = await control.isEnabled();
+        assert(visibleNow && enabled, 'Native shell controls must be usable');
+        controls.push({name, visible: visibleNow, enabled});
+      }
+      const viewport = await page.evaluate(() => ({width: innerWidth, height: innerHeight, deviceScaleFactor: devicePixelRatio}));
+      const shell = {navigation, readyMs: monotonic(), recoveryText: 'Local recovery complete. Accepted edits are saved locally.', controls, viewport};
+      await native.shellReady(shell);
+      await openDocument(page, fixture);
+      const canvas = page.locator('canvas[aria-label="Document raster preview"]'); await visible(canvas);
+      const before = (await publicRead(page, '/api/v1/documents/' + fixture.documentId)).projection.value;
+      assert.equal(before.id, fixture.documentId); assert(Array.isArray(before.orderedLayerIds));
+      if (before.image?.compositeAssetId) assert.equal(await canvas.getAttribute('data-asset'), before.image.compositeAssetId);
+      const command = await acceptedCommand(page, 'SaveCheckpoint', () => click(page, 'Save checkpoint'), signal);
+      await accepted(page, 'SaveCheckpoint');
+      const receipt = (await publicRead(page, '/api/v1/commands/' + command.commandId)).receipt;
+      assert.equal(receipt?.status, 'accepted'); assert.equal(receipt.commandId, command.commandId); assert.equal(command.documentId, fixture.documentId);
+      const current = (await publicRead(page, '/api/v1/documents/' + fixture.documentId)).projection.value;
+      assert.equal(current.id, fixture.documentId); assert.equal(receipt.documentRevision, current.revision);
+      assert.deepEqual(current.image, before.image, 'The original checkpoint must preserve canonical pixels');
+      assert.deepEqual(current.orderedLayerIds, before.orderedLayerIds);
+      let assetHash = null;
+      const assetId = current.image?.compositeAssetId ?? null;
+      if (assetId) {
+        const asset = (await publicRead(page, '/api/v1/assets/' + assetId)).projection.value;
+        assert.equal(asset.id, assetId); assert.equal(asset.purpose, 'image'); assert.equal(asset.qualification, 'canonical-raster');
+        assert.equal(asset.safety, 'safe'); assert.equal(asset.availability, 'available');
+        assert.equal(asset.raster?.width, current.width); assert.equal(asset.raster?.height, current.height);
+        assert.match(asset.raster?.pixelIdentity ?? '', /^sha256:[a-f0-9]{64}$/); assetHash = asset.raster.pixelIdentity;
+      } else assert.equal(current.orderedLayerIds.length, 0, 'Only the actual empty document may lack canonical pixels');
+      const toolbar = [];
+      for (const name of ['New', 'Open', 'Import image', 'Close document', 'Export image']) {
+        const control = button(page, name); await visible(control);
+        const visibleNow = await control.isVisible(), enabled = await control.isEnabled();
+        assert(visibleNow && enabled, 'Navigation toolbar must be usable');
+        toolbar.push({name, visible: visibleNow, enabled});
+      }
+      const bounds = await canvas.boundingBox(); assert(bounds && bounds.width > 0 && bounds.height > 0);
+      const canvasAttribute = await canvas.getAttribute('data-asset');
+      const canvasAsset = canvasAttribute === '' ? null : canvasAttribute; assert.equal(canvasAsset, assetId);
+      const stable = (await publicRead(page, '/api/v1/documents/' + fixture.documentId)).projection.value;
+      assert.equal(stable.id, current.id); assert.equal(stable.width, current.width); assert.equal(stable.height, current.height);
+      assert.equal(stable.revision, current.revision); assert.deepEqual(stable.image, current.image); assert.deepEqual(stable.orderedLayerIds, current.orderedLayerIds);
+      await page.locator('.document-name').filter({hasText: `${current.width} × ${current.height} · revision ${current.revision}`}).waitFor({state: 'visible'});
+      const currentRealm = await page.evaluate(() => ({timeOrigin: performance.timeOrigin, visibility: document.visibilityState}));
+      assert.equal(currentRealm.timeOrigin, navigation.timeOrigin); assert.equal(currentRealm.visibility, 'visible');
+      const canvasVisible = await canvas.isVisible(); assert(canvasVisible, 'Canonical canvas must remain visible at readiness');
+      const canvasReady = {navigation, readyMs: monotonic(), canonical: {documentId: current.id, revision: current.revision, width: current.width, height: current.height,
+        layerCount: current.orderedLayerIds.length, assetId, assetHash}, viewport: {asset: canvasAsset, visible: canvasVisible, ...bounds}, toolbar,
+        acceptedEdit: {commandId: receipt.commandId, documentId: fixture.documentId, status: receipt.status, documentRevision: receipt.documentRevision, transactionId: receipt.transactionId}, stableRevision: true};
+      await native.canvasReady(canvasReady);
+      return {documentId: fixture.documentId, acceptedTestEdit: true, startupBoundary: 'document-ready-via-Open', publicOpenCompleted: true,
+        viewportAsset: canvasAsset, authoritativeDOMReadyMs: canvasReady.readyMs, navigation, nativeReadiness: {shell, canvas: canvasReady},
+        presentation: 'awaiting owned native raw replay; public readiness is not physical presentation'};
+    }
+    const action = async () => {
     await page.goto(await pair()); await ready(page);
     if (fixture.documentId) await openDocument(page, fixture);
     await button(page, 'New').waitFor({ state: 'visible' });
@@ -396,20 +557,44 @@ export async function runBrowserAction({ page, cell, fixture, signal, pair, serv
     return { documentId: fixture.documentId ?? null, acceptedTestEdit: !!fixture.documentId,
       startupBoundary: fixture.documentId ? 'document-ready-via-Open' : 'shell-ready-no-document', publicOpenCompleted: !!fixture.documentId,
       viewportAsset: await canvas.getAttribute('data-asset'), authoritativeDOMReadyMs: monotonic(), presentation: 'awaiting independent trace correlation' };
+    };
+    return services.compositionObservation ? services.compositionObservation.navigation(action) : action();
   }
   if (operation === 'raster.stroke-finalize') return stroke(page, { signal, commit: false, fixture, gestures: services.gestures });
-  if (operation === 'interaction.brush') return interaction(page, cell, fixture, services.gestures, signal);
+  if (operation === 'interaction.brush') return interaction(page, cell, fixture, services.gestures, signal, services);
   if (operation === 'interaction.first-use') {
     const name = p.feature === 'adapter' ? 'Adapter library' : 'Mask';
-    const startMs = monotonic(), inputMs = monotonic();
-    await click(page, name);
+    const sessionId = services.discreteInputSessionId ?? 'input-' + randomUUID();
+    let discreteObserver;
+    try { discreteObserver = await installDiscreteInputObserver(page, { sessionId }); } catch { /* Preserve the requested first-use action. */ }
+    const recorder = createDiscreteActionRecorder({ observer: discreteObserver, sessionId, actionId: 'first-use', family: 'first-use', hook: services.discreteInputHook });
+    const startMs = monotonic();
+    try {
+    const target = button(page, name);
+    await recorder.step({ stepId: 'open-panel', target, targetIdentity: { control: name === 'Mask' ? 'mask-tool' : 'adapter-library' }, input: { kind: 'click' }, dispatch: () => { signal?.throwIfAborted(); return target.click(); } });
     if (name === 'Mask') {
       const control = page.getByRole('spinbutton', { name: 'Brush diameter (document px)', exact: true });
       await control.waitFor({ state: 'visible', timeout: 1000 }); assert(await control.isEnabled(), 'First-use mask controls must be operable');
     } else await page.getByRole('region', { name: 'Local adapter library', exact: true }).waitFor({ state: 'visible', timeout: 1000 });
     const readyMs = monotonic();
+    let nativeReadiness;
+    if (services.discreteFirstUseReady) {
+      try { nativeReadiness = await services.discreteFirstUseReady({ descriptor: recorder.snapshot().steps[0]?.inputEvidence.descriptor,
+        readyMs, startMs, endMs: startMs + 1000, clock: 'runner-monotonic' }); }
+      catch { nativeReadiness = { kind: 'first-use-native-ready-1', status: 'unavailable', reason: 'native-ready-hook-failed' }; }
+    }
     for (let now = monotonic(); now < startMs + 1000; now = monotonic()) await intervalWait(startMs + 1000 - now, signal);
-    return { feature: name, startMs, inputMs, readyMs, endMs: startMs + 1000, captureStoppedMs: monotonic(), observationWindowMs: 1000, meaningful: true, presentedMs: null };
+    const discreteInput = recorder.snapshot();
+    return { feature: name, startMs, inputMs: discreteInput.inputMs, inputClock: discreteInput.clock, inputTimeOrigin: discreteInput.timeOrigin,
+      discreteInput, status: discreteInput.status, missing: discreteInput.missing,
+      readyMs, readyClock: 'runner-monotonic', ...(nativeReadiness ? { nativeReadiness } : {}), windowClock: 'runner-monotonic', endMs: startMs + 1000,
+      captureStoppedMs: monotonic(), observationWindowMs: 1000, meaningful: true, presentedMs: null };
+    } catch (error) {
+      const retained = { feature: name, startMs, captureStoppedMs: monotonic(), windowClock: 'runner-monotonic', discreteInput: recorder.snapshot(), presentedMs: null };
+      try { services.retainDiscreteInputFailure?.(retained); } catch {}
+      try { error.observations = retained; } catch {}
+      throw error;
+    } finally { try { await discreteObserver?.close(); } catch {} }
   }
   if (operation === 'state.snapshot-create') { await click(page, 'Save checkpoint'); await accepted(page, 'SaveCheckpoint'); return { command: 'SaveCheckpoint', snapshotBytes: 'requires backend snapshot phase evidence' }; }
   if (operation === 'raster.resize-preview' || operation === 'raster.resample') {
@@ -421,9 +606,11 @@ export async function runBrowserAction({ page, cell, fixture, signal, pair, serv
   }
   if (operation === 'raster.import') {
     const path = await verifiedCorpusFile(fixture, p.format === 'webp' ? 'raster-codec' : 'raster-original', file => file.format === p.format && (!p.codec || file.codec === p.codec));
-    await click(page, 'Import image'); await page.getByLabel('Image file', { exact: true }).setInputFiles(path);
-    await visible(page.getByRole('dialog', { name: 'Review image conversion', exact: true }));
-    const receipt = await acceptedCommand(page, 'ImportAsset', () => click(page, 'Apply reviewed result'), signal);
+    const { confirmImageImports } = await import('../../../tests/editor/image-import-flow.ts');
+    await click(page, 'Import image');
+    const dialog = page.getByRole('dialog', { name: 'Import image', exact: true });
+    await dialog.locator('en-file-upload input[type=file]').setInputFiles(path);
+    const receipt = await acceptedCommand(page, 'ImportAsset', () => confirmImageImports(page, { names: [basename(path)], destination: 'current' }), signal);
     return { format: p.format, codec: p.codec ?? null, receipt, originalRetained: true };
   }
   if (operation === 'raster.export') {
@@ -471,6 +658,13 @@ export async function runBrowserAction({ page, cell, fixture, signal, pair, serv
       if (!adopted) await visible(page.getByText(/candidate adopted (?:in one saved history edit|into a new document)/i));
       return { candidateId: item.id, placement, readiness: p.readiness, receipt, preClick, adopted, missing: adopted?.missing ?? [], preparationOutsideAcceptance: true, durableAndVisibleCompletion: 'requires exact phase and presentation join' };
     }
+    if (operation === 'raster.adopt' && p.readiness === 'C') {
+      if (!services.verifyEncodedReadiness || !services.observeEncodedAdoption) throw new PrerequisiteError('Encoded acceptance requires a verified public review and actual owned-worker decode evidence');
+      const preClick = await services.verifyEncodedReadiness(item);
+      const receipt = await acceptedCommand(page, 'AdoptReviewedCandidate', () => idButton(page, 'request-candidate-accept-prepare-' + item.id).click(), signal);
+      const adopted = await services.observeEncodedAdoption(item, receipt, preClick);
+      return { candidateId: item.id, placement, readiness: 'encoded-rebuild-capability', requestedReadiness: 'C', receipt, preClick, adopted, missing: adopted.missing, preparationOutsideAcceptance: true, durableAndVisibleCompletion: 'requires exact phase and presentation join' };
+    }
     await inspectCandidate(page, item);
     const placeId = (p.replaceSelectedImage ? 'request-candidate-replace-' : placement === 'new-document' ? 'request-candidate-new-document-' : 'request-candidate-place-') + item.id;
     if (p.treatment && !['safe-region', 'full-candidate'].includes(p.treatment)) throw new PrerequisiteError('Exact public candidate treatment is required');
@@ -481,15 +675,7 @@ export async function runBrowserAction({ page, cell, fixture, signal, pair, serv
       await visible(idButton(page, 'request-candidate-adopt-' + item.id)); return { candidateId: item.id, receipt };
     }
     if (p.readiness === 'A' && !services.verifyDecodedReadiness) throw new PrerequisiteError('A adoption needs verified prepared composite and resident decoded viewport');
-    if (p.readiness === 'C') {
-      await idButton(page, 'request-candidate-prepare-' + item.id).click();
-      if (p.treatment) await page.getByRole('combobox', { name: 'Candidate treatment', exact: true }).selectOption(p.treatment);
-      const review = await acceptedCommand(page, 'ReviewCandidatePlacement', () => idButton(page, (p.replaceSelectedImage ? 'request-candidate-review-replace-' : placement === 'new-document' ? 'request-candidate-review-new-' : 'request-candidate-review-current-') + item.id).click(), signal);
-      await page.locator('#request-candidate-deferred-review-' + item.id).getByText(/The final result will be prepared after acceptance\./).waitFor({ state: 'visible' });
-      const receipt = await acceptedCommand(page, 'AdoptReviewedCandidate', () => idButton(page, 'request-candidate-accept-prepare-' + item.id).click(), signal);
-      await visible(page.getByText(/candidate adopted (?:in one saved history edit|into a new document)/i));
-      return { candidateId: item.id, placement, readiness: 'deferred-preparation-public-workflow', requestedReadiness: 'C', review, receipt, missing: ['Public deferred review retains input previews; exact encoded-only C readiness needs its separately verified contract and cache witness'], durableAndVisibleCompletion: 'requires exact phase and presentation join' };
-    }
+
     await idButton(page, 'request-candidate-prepare-' + item.id).click();
     if (p.treatment) await page.getByRole('combobox', { name: 'Candidate treatment', exact: true }).selectOption(p.treatment);
     await idButton(page, placeId).click();

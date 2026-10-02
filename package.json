@@ -10,7 +10,7 @@
   "packageManager": "npm@12.1.0",
   "scripts": {
     "qualify": "node tooling/qualification/run.mjs",
-    "test:qualification": "node tooling/qualification/test.mjs",
+    "test:qualification": "node tooling/qualification/development.mjs run --groups qualification",
     "perf:runtime": "node --import ./tests/store/no-network.mjs tooling/qualification/runtime.mjs",
     "perf:dev": "node tooling/qualification/dev.mjs",
     "test:adapters": "node tooling/qualification/development.mjs run --groups adapters",

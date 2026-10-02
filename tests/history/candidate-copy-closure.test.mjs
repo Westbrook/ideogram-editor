@@ -10,13 +10,14 @@ import {importRaster,operate,terminal} from '../raster/helpers.mjs';
 import {upload,copy,preview,workspace,edit,doc} from '../portable/helpers.mjs';
 import {unpack,records} from '../portable/archive-fixture.mjs';
 import {child} from '../portable/process-helpers.mjs';
-import {startLocalServer} from '../../dist/local/server/http.js';
+import {providerChild} from './candidate-copy-process-helpers.mjs';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 import {canonical} from '../../dist/local/server/storage/canonical.js';
 import {verificationBudget} from '../../dist/local/src/protocol/text-budget.js';
 import {newDraft,bindRequestMask,confirmRequestMask} from '../../dist/local/src/request/core.js';
 import {emptyComposition,emptyElement,serialize,compositionRefs} from '../../dist/local/src/composition/core.js';
 import {returnedPrompt} from './candidate-copy-observer-fixture.mjs';
+import {queueWithDiagnostics,assertCandidatePrepared} from './queue-failure-diagnostics.mjs';
 
 const REQUESTED_PROMPT='Requested exact Café / e\u0301 / 🦋\nhttps://authored.invalid/?signature=literal\n';
 const NATIVE_TEXT='Native Café\nretained source';
@@ -53,12 +54,12 @@ async function fixture(t){
   // Node runs after hooks in registration order. Stop every writer before
   // rootFor's cleanup removes the provider fixture's final diagnostic target.
   const closers=[];t.after(async()=>{for(const close of closers.toReversed())await close();});
-  const root=await rootFor(t),server=await startLocalServer({root},{writer:{setupModule:new URL('./candidate-copy-observer-fixture.mjs',import.meta.url).href}});closers.push(()=>server.close());
+  const root=await rootFor(t),server=await providerChild(root,close=>closers.push(close));
   const paired=await pair(server);assert.equal(paired.status,200,paired.text);
   return withLeases({root,server,paired,closeBeforeCleanup:close=>closers.push(close),read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body)});
 }
 async function providerRestart(f){
-  const server=await startLocalServer({root:f.root},{writer:{setupModule:new URL('./candidate-copy-observer-fixture.mjs',import.meta.url).href}});f.closeBeforeCleanup(()=>server.close());
+  const server=await providerChild(f.root,f.closeBeforeCleanup);
   const paired=await pair(server);assert.equal(paired.status,200,paired.text);
   return withLeases({root:f.root,server,paired,read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),post:(path,body)=>call(server.origin,path,{method:'POST',body,headers:mutationHeaders(server,paired)}),command:(patch={},body={})=>command(EMPTY_EXPECTED_VERSIONS,{clientId:paired.json.clientId,...patch},body)});
 }
@@ -132,10 +133,16 @@ async function importedAssetRefs(f,id){
   }
   assert(retainedVersions>0,'Imported source must exercise retained original raster metadata');return refs;
 }
+// Valid semantic workspace data can exceed the generic 64 KiB control limit
+// without making the provider prompt large: excluded elements stay retained.
+function largeComposition(value){
+  for(let index=0;index<40;index++){const element=emptyElement('obj','retained_excluded_'+index);element.excluded=true;element.desc.value='Exact retained semantic content '+index+' '+('x'.repeat(2048));value.elements.push(element);}
+  const length=Buffer.byteLength(canonical(value));assert(length>65536&&length<=1048576);return value;
+}
 async function requestCandidate(f,documentId='document_1',layerIds=['picture','native_text']){
   const commitComposition=async(value,type)=>{const staged=await stage(f,Buffer.from(canonical(value)),'text','application/octet-stream'),composition={id:value.id,value:{...staged.blob,mediaType:'application/json'},bindings:{}};await edit(f,{type,composition,draft:null},documentId);return composition;};
   const earlier=emptyComposition(512,512,randomUUID());earlier.scene='C1 captured composition '+documentId;earlier.raw=[(await stage(f,Buffer.from('C1 original raw semantic bytes '+documentId),'text','application/octet-stream')).blob];
-  const capturedComposition=await commitComposition(earlier,'CommitCompositionVersion');
+  largeComposition(earlier);const capturedComposition=await commitComposition(earlier,'CommitCompositionVersion');
   const capture=(await edit(f,{type:'PrepareRequestSource',scope:'selected-layers',layerIds},documentId)).event.payload.asset;
   const source={assetId:capture.id,version:capture.version,blob:capture.blob,pixels:capture.raster.pixels,width:512,height:512,scope:'selected-layers',documentRevision:(await doc(f,documentId)).revision,capture:capture.raster.manifest};
   const mask=(await operate(f,{type:'PrepareRequestMask',sourceAssetId:source.assetId,plan:{width:512,height:512,feather:3,operations:[{kind:'shape',shape:{kind:'rectangle',x:4,y:4,width:12,height:12},mode:'replace'}]},clip:null})).event.payload.asset;
@@ -144,19 +151,19 @@ async function requestCandidate(f,documentId='document_1',layerIds=['picture','n
   const compositionValue=emptyComposition(512,512,randomUUID());compositionValue.scene=REQUESTED_PROMPT+'Origin '+documentId;compositionValue.request.operation='Edit masked region';
   const lettering=emptyElement('text','c2_lettering');lettering.text.value='C2 exact lettering: Café / 東京';lettering.desc.value='C2 description absent from the older source capture';compositionValue.elements=[lettering];
   compositionValue.raw=[(await stage(f,Buffer.from('{"C2":"opaque original '+documentId+'","C2":"東京 / e\u0301"}\n\u0000'),'text','application/octet-stream')).blob];
-  const projected=serialize(compositionValue,[],{}),prompt=await stage(f,Buffer.from(projected.prompt));
+  largeComposition(compositionValue);const projected=serialize(compositionValue,[],{});assert(Buffer.byteLength(projected.prompt)<65536,'Excluded semantic content must not inflate the provider prompt');const prompt=await stage(f,Buffer.from(projected.prompt));
   compositionValue.review={serializer:'caption-json-1',sourceId:compositionValue.id,frame:compositionValue.frame,request:compositionValue.request,dependencies:projected.dependencies,boxes:projected.boxes,prompt:prompt.blob};
-  const composition=await commitComposition(compositionValue,'ApprovePromptProjection'),manifest=(await f.read('/api/v1/assets/'+mask.id+'/raster')).json,draft=newDraft(prompt.blob);
+  assert(Buffer.byteLength(canonical(compositionValue))>65536&&Buffer.byteLength(canonical(compositionValue))<=1048576);const composition=await commitComposition(compositionValue,'ApprovePromptProjection'),manifest=(await f.read('/api/v1/assets/'+mask.id+'/raster')).json,draft=newDraft(prompt.blob);
   const bound={assetId:mask.id,version:mask.version,blob:mask.blob,pixels:mask.raster.pixels,width:512,height:512,sourceHash:source.pixels.hash,polarity:'white-edit',fullAcknowledged:false,empty:false,full:false,plan:mask.raster.manifest,binding:bindRequestMask(source)};
   bound.requestPlan=confirmRequestMask(source,bound,manifest.plan.hard,manifest.plan.effective,randomUUID());draft.operation='inpaint';Object.assign(draft.fields,{width:'512',height:'512',size:'auto',strength:'1'});draft.source=source;draft.mask=bound;
   draft.prompt={mode:'composition',text:prompt.blob,projection:compositionValue.review,composition};draft.fields.expansion=compositionValue.request.expansion;draft.rewriteAcknowledged=compositionValue.request.rewriteAcknowledged;
   const saved=await stage(f,Buffer.from(JSON.stringify(draft)));
   const draftId='request_'+documentId;await ui(f,{type:'SaveDraft',draft:{id:draftId,generation:'1',kind:'request',documentId,targetLayerId:null,expectedDocumentRevision:(await doc(f,documentId)).revision,assetId:saved.id,composing:false}});
   const review=(await ui(f,{type:'PrepareRequestReview',draftId,generation:'1'})).value.review,acceptance=await ui(f,{type:'AcceptRequestReview',reviewId:review.id,token:review.token});
-  const queued=await operate(f,{type:'QueueInference',reviewId:review.id,token:review.token,acceptanceId:acceptance.request.requestId}),jobId=queued.event.payload.id;
+  const queued=await queueWithDiagnostics(f,{type:'QueueInference',reviewId:review.id,token:review.token,acceptanceId:acceptance.request.requestId},{sourceDocumentId:documentId}),jobId=queued.event.payload.id;
   let view;const deadline=Date.now()+20000;
   do{view=(await f.read('/api/v1/jobs/'+jobId+'/candidates')).json;if(view.items[0]?.state==='prepared')break;await new Promise(resolve=>setTimeout(resolve,25));}while(Date.now()<deadline);
-  assert.equal(view.items[0]?.state,'prepared',JSON.stringify(view));assert.equal(view.provenance.inspection,'opaque');assert.notEqual(view.provenance.requestedPrompt.hash,view.provenance.returnedPrompt.hash);
+  await assertCandidatePrepared(f,view,{sourceDocumentId:documentId,queueCommandId:queued.command.command.commandId});assert.equal(view.provenance.inspection,'opaque');assert.notEqual(view.provenance.requestedPrompt.hash,view.provenance.returnedPrompt.hash);
   const outputs=await Promise.all([view.items[0].encodedAssetId,view.items[0].preparedAssetId].map(async id=>(await f.read('/api/v1/assets/'+id)).json.projection.value));
   return {candidate:view.items[0],view,refs:[source.capture,source.blob,source.pixels,...await capturedContributions(f,capture),mask.blob,mask.raster.manifest,bound.requestPlan.authoredMask,bound.requestPlan.effectiveMask,capturedComposition.value,...compositionRefs(earlier),composition.value,...compositionRefs(compositionValue),...outputs.flatMap(asset=>[asset.blob,...asset.raster?[asset.raster.pixels,asset.raster.manifest]:[]]),...['requestedPrompt','submittedPrompt','returnedPrompt'].map(key=>view.provenance[key])],source,prompt:projected.prompt,composition,capturedComposition};
 }

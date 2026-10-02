@@ -13,5 +13,5 @@ test('an inspection completed for a previous owner cannot publish replacement jo
  await f.settled();
  assert.equal(rendered(f.flow).busy,'false');
  assert.equal(f.commands.length,0);
- assert.ok(!rendered(f.flow).buttons.some(b=>b.name==='Check existing deleted request old_owner_job'),'An old-owner read must not publish enabled request controls under the replacement owner');
+ assert.ok(!rendered(f.flow).buttons.some(b=>b.name==='Check deleted request old_owner_job, attempt old_attempt (submission-uncertain)'),'An old-owner read must not publish enabled request controls under the replacement owner');
 });

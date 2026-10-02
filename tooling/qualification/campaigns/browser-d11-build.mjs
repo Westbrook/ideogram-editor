@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { deriveD11Roles } from './browser-d11-roles.mjs';
 import { D11_ROLE_CONTEXT, prepareD11RegistrationContract } from './browser-d11-registration.mjs';
+import { D11_INVOCATION_DEPENDENCY_PATHS, createD11NpmArchiveReader, prepareD11InvocationContract, verifyD11CompilationCapture } from './browser-d11-invocation-contract.mjs';
 
 const JSON_LIMIT = 16 * 1024 * 1024;
 const FILE_LIMIT = 64 * 1024 * 1024;
@@ -87,8 +88,9 @@ export function deriveD11StaticDocument(input) {
 }
 
 /** Read and seal a finalized production artifact. This does not classify an
- * asset as fetched/evaluated, prove a lazy boundary, or make a timing claim. */
-export async function loadD11Build({ repo } = {}) {
+ * asset as fetched/evaluated, prove a lazy boundary, or make a timing claim.
+ * Registry archives are read only from an explicitly configured local cache. */
+export async function loadD11Build({ repo, cacheDirectory } = {}) {
   if (process.versions.node !== '26.10.0') throw Error('D11 build inventory requires the pinned Node 26.10.0 runtime before byte/gzip work');
   if (!isAbsolute(repo ?? '') || resolve(repo) !== repo || await realpath(repo) !== repo || !(await lstat(repo)).isDirectory()) throw Error('D11 repo must be an existing canonical directory without symlinks');
   const reads = new Map(), available = new Map(), directories = new Map(); let totalBytes = 0;
@@ -158,6 +160,19 @@ export async function loadD11Build({ repo } = {}) {
     sourceInputs.push({ path: source.path, rawBytes: actual.bytes.length, sha256: actual.sha256 });
   }
   if (JSON.stringify(sorted(sourceNames)) !== JSON.stringify(expectedSources)) throw Error('D11 finalized source inventory is incomplete or has changed');
+
+  const capturesInvocationDependencies = Object.hasOwn(build, 'dependencyInputs');
+  const dependencyInputs = [], dependencyNames = new Set();
+  if (capturesInvocationDependencies) {
+    if (!Array.isArray(build.dependencyInputs) || build.dependencyInputs.length !== D11_INVOCATION_DEPENDENCY_PATHS.length) throw Error('D11 finalized invocation dependency inventory is incomplete or has changed');
+    for (const input of build.dependencyInputs) {
+      if (!object(input) || Object.keys(input).sort().join(',') !== 'bytes,path,sha256' || !D11_INVOCATION_DEPENDENCY_PATHS.includes(input.path) || dependencyNames.has(input.path) || !integer(input.bytes) || input.bytes > 64 * 1024 || !HASH.test(input.sha256 ?? '')) throw Error('Invalid or duplicate D11 invocation dependency input');
+      dependencyNames.add(input.path); const actual = await read(input.path, 64 * 1024);
+      if (actual.bytes.length !== input.bytes || actual.sha256 !== 'sha256:' + input.sha256) throw Error('D11 invocation dependency changed since the finalized build: ' + input.path);
+      dependencyInputs.push({ path: input.path, rawBytes: actual.bytes.length, sha256: actual.sha256 });
+    }
+    if (JSON.stringify(sorted(dependencyNames)) !== JSON.stringify(D11_INVOCATION_DEPENDENCY_PATHS)) throw Error('D11 finalized invocation dependency inventory is incomplete or has changed');
+  }
 
   const sourceByFile = new Map(), entries = Object.entries(manifest);
   for (const [key, entry] of entries) {
@@ -239,7 +254,7 @@ export async function loadD11Build({ repo } = {}) {
   const served = (await actualStatic.loadStatic(join(repo, 'dist/app'))).get('/');
   if (!served || !Buffer.isBuffer(served.bytes) || !served.bytes.equals(Buffer.from(expectedStatic.html))) throw Error('D11 actual product static document differs from retained derivation');
   files.push(derived.bootstrap);
-  const sourceTextByPath = Object.fromEntries(sourceInputs.filter(input => /\.(?:[cm]?[jt]sx?|css|json)$/.test(input.path)).map(input => [input.path, decode(reads.get(input.path))]));
+  const sourceTextByPath = Object.fromEntries(sourceInputs.filter(input => /\.(?:[cm]?[jt]sx?|css|json)$/.test(input.path) || capturesInvocationDependencies && input.path === 'index.html').map(input => [input.path, decode(reads.get(input.path))]));
   const outputTextByFile = Object.fromEntries(files.filter(file => file.kind === 'js' || file.kind === 'css').map(file => [file.file, file.file === 'inline:bootstrap' ? expectedStatic.prelude : decode(reads.get('dist/app/' + file.file))]));
   const parserVersion = lock.packages['node_modules/rolldown']?.version;
   const parserPackage = await json('node_modules/rolldown/package.json');
@@ -253,9 +268,29 @@ export async function loadD11Build({ repo } = {}) {
   const { VERSION } = await import(pathToFileURL(parserPaths[0]).href), { parseSync } = await import(pathToFileURL(parserPaths[1]).href);
   if (VERSION !== parserVersion || typeof parseSync !== 'function') throw Error('D11 loaded AST parser differs from its pinned identity');
   const registrationContract = await prepareD11RegistrationContract({ repo, read });
+  if (capturesInvocationDependencies) verifyD11CompilationCapture(build.compilation, { sourceTextByPath });
+  else if (Object.hasOwn(build, 'compilation')) throw Error('D11 legacy finalized evidence cannot acquire invocation compilation metadata');
+  const emittedModules = sorted(files.flatMap(file => file.modules));
+  let invocationContract = null;
+  if (capturesInvocationDependencies && cacheDirectory !== undefined) {
+    const cachedArchive = createD11NpmArchiveReader({ cacheDirectory }), unavailable = Symbol('D11 invocation archive unavailable');
+    const readArchive = async input => {
+      try { return await cachedArchive(input); }
+      catch (error) {
+        // Only absence reported by this explicit external cache reader makes
+        // the optional contract unavailable. Repo/member/provenance failures
+        // still reject the inventory instead of becoming an absence claim.
+        if (error?.code === 'ENOENT' || error?.code === 'ENOTDIR') throw unavailable;
+        throw error;
+      }
+    };
+    try { invocationContract = await prepareD11InvocationContract({ read, readArchive, dependencyInputs, emittedModules, compilation: build.compilation, sourceTextByPath, sourceInputs, outputTextByFile }); }
+    catch (error) { if (error !== unavailable) throw error; }
+  }
   const roleContext = D11_ROLE_CONTEXT;
-  const roleInputs = { sourceTextByPath, outputTextByFile, parser: { name: 'rolldown', version: parserVersion }, registrationContract };
-  const roles = deriveD11Roles({ manifest, files, ...roleInputs, roleContext, parser: { ...roleInputs.parser, parseSync } });
+  const roleInputs = { sourceTextByPath, outputTextByFile, parser: { name: 'rolldown', version: parserVersion }, registrationContract,
+    ...(capturesInvocationDependencies ? { invocationContract } : {}) };
+  const roles = deriveD11Roles({ manifest, files, ...roleInputs, roleContext, ...(capturesInvocationDependencies ? { dependencyInputs, compilation: build.compilation, sourceInputs } : {}), lock, parser: { ...roleInputs.parser, parseSync } });
   // Recheck every read and directory at the final boundary. No browser timing
   // should begin until this immutable inventory has finished successfully.
   for (const [path, value] of reads) { const actual = await regular(path); if (!same(value.stat, actual.stat)) throw Error('D11 input changed before final sealing: ' + path); }
@@ -269,6 +304,7 @@ export async function loadD11Build({ repo } = {}) {
     retainedInputs, ...derived, roles, roleInputs, roleContext,
     toolchain: { node: process.versions.node, npm: build.toolchain.npm, zlib: process.versions.zlib, built: { node: build.toolchain.node, npm: build.toolchain.npm } },
     sourceInputs: sourceInputs.sort((a, b) => a.path.localeCompare(b.path)),
+    ...(capturesInvocationDependencies ? { dependencyInputs: dependencyInputs.sort((a, b) => a.path.localeCompare(b.path)), compilation: build.compilation } : {}),
     sourceAttribution: 'Recorded chunk modules and manifest asset sources; virtual modules and worker assets may lack source-module detail. Disk source availability is checked; emitted bytes and recorded application inputs are hash-verified.' };
   return freeze({ ...result, sha256: digest(canonical(result)) });
 }

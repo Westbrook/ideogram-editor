@@ -1,10 +1,12 @@
-import { constants, openSync, closeSync, writeSync, readSync, fstatSync, fsyncSync, renameSync, readFileSync, readdirSync } from 'node:fs';
+import { constants, openSync, closeSync, writeSync, readSync, fstatSync, lstatSync, fsyncSync, renameSync, readFileSync, readdirSync } from 'node:fs';
+import type {BigIntStats} from 'node:fs';
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { assertComponents, assertPrivate, privateDirectory, sameFile, syncDirectory } from '../storage/files.js';
 import type { Objects } from '../storage/objects.js';
-import { IO_CHUNK, ProviderError, refuse } from './contracts.js';
-import type { AppliedPrivacyPolicy, ProtectedBody, TransferReservation, TransferSink, TransferIdentity } from './contracts.js';
+import { IO_CHUNK, ProviderError, refuse, validateWireExecution } from './contracts.js';
+import {consumeWireExecution} from './transport.js';
+import type { AppliedPrivacyPolicy, ProtectedBody, TransferReservation, TransferSink, TransferIdentity, ProviderWireExecution, ProviderWireBodyIdentity } from './contracts.js';
 
 export function r31Reservation(objects: Objects, id: string, purpose: TransferReservation['purpose'], check: () => void): TransferReservation {
   let committed = 0n, reservedThrough = 0n, released = false;
@@ -59,6 +61,18 @@ export function sanitizedHeaders(headers: Record<string, unknown>): Readonly<Rec
 }
 type Metadata = ProtectedBody & { retainedBytes: string; identity: TransferIdentity|null; headers: Readonly<Record<string,string>>; policy: AppliedPrivacyPolicy };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const stampKeys=['kind','dev','ino','size','mtimeNs','ctimeNs'] as const;
+function bodyStamp(stat:BigIntStats):ProviderWireBodyIdentity {
+  if(!stat.isFile()||stat.isSymbolicLink()||stat.uid!==BigInt(process.getuid!())||(stat.mode&0o777n)!==0o600n||stat.nlink!==1n)refuse('PROVENANCE');
+  return Object.freeze({kind:'provider-wire-body-identity-1',dev:String(stat.dev),ino:String(stat.ino),size:String(stat.size),mtimeNs:String(stat.mtimeNs),ctimeNs:String(stat.ctimeNs)});
+}
+function assertBodyStamp(value:unknown,path:string,bytes:string):asserts value is ProviderWireBodyIdentity {
+  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!==[...stampKeys].sort().join(','))refuse('PROVENANCE');
+  const stamp=value as ProviderWireBodyIdentity;
+  if(stamp.kind!=='provider-wire-body-identity-1'||stamp.size!==bytes||stampKeys.slice(1).some(key=>typeof stamp[key]!=='string'||!/^(0|[1-9][0-9]{0,39})$/.test(stamp[key])))refuse('PROVENANCE');
+  let actual:ProviderWireBodyIdentity;try{actual=bodyStamp(lstatSync(path,{bigint:true}));}catch{return refuse('PROVENANCE');}
+  if(stampKeys.some(key=>actual[key]!==stamp[key]))refuse('PROVENANCE');
+}
 /** Not an Objects store: bodies have no domain BlobRef and no generic /assets route. */
 export class TransportEvidenceStore {
   readonly directory: string;
@@ -82,6 +96,10 @@ export class TransportEvidenceStore {
     const file=join(this.directory,recordId+'.json');assertPrivate(file,false);
     const value=JSON.parse(readFileSync(file,'utf8')) as Metadata;
     if(value.recordId!==recordId || value.class!=='backend-transport') refuse('PROVENANCE');
+    if(Object.hasOwn(value,'wireExecution')||Object.hasOwn(value,'wireBodyIdentity')){
+      validateWireExecution(value.wireExecution,value);if(value.receivedBytes!==value.retainedBytes)refuse('PROVENANCE');
+      assertBodyStamp(value.wireBodyIdentity,join(this.directory,recordId+'.body'),value.retainedBytes);Object.freeze(value.wireExecution);Object.freeze(value.wireBodyIdentity);
+    }
     return value;
   }
   records(attemptId:string):string[] {
@@ -106,12 +124,23 @@ export class TransportEvidenceStore {
     const path=join(this.directory,recordId+'.body');
     const fd=openSync(path,constants.O_RDWR|constants.O_NOFOLLOW|(resume?0:constants.O_CREAT|constants.O_EXCL),0o600);
     let bytes=0n, closed=false, completed=false, identity:TransferIdentity|null=resume?this.inspect(recordId).identity:null;const hash=createHash('sha256');
-    if(resume) { try {for(const chunk of this.read(recordId)){hash.update(chunk);bytes+=BigInt(chunk.byteLength);}}catch(e){closeSync(fd);reservation.release();throw e;} }
-    const initial=bytes, directory=this.directory;
+    let ownedIdentity:ProviderWireBodyIdentity;
+    try{ownedIdentity=bodyStamp(fstatSync(fd,{bigint:true}));if(resume){for(const chunk of this.read(recordId)){hash.update(chunk);bytes+=BigInt(chunk.byteLength);}}assertBodyStamp(ownedIdentity,path,String(bytes));}
+    catch(e){closeSync(fd);reservation.release();throw e;}
+    const initial=bytes, directory=this.directory;let wireExecution:ProviderWireExecution|undefined,completedIdentity:ProviderWireBodyIdentity|undefined;
     const persist=(complete:boolean,observed=bytes): ProtectedBody => {
-      const value: Metadata={class:'backend-transport',recordId,attemptId,direction,sha256:hash.copy().digest('hex'),
-        receivedBytes:String(observed),retainedBytes:String(bytes),identity,completeness:complete?'complete':'partial',access:'backend-only',export:'never',headers,policy};
+      if(!complete)wireExecution=undefined;
+      if(complete)assertBodyStamp(ownedIdentity,path,String(bytes));
       if(!closed)fsyncSync(fd);
+      if(complete){
+        assertComponents(directory);assertPrivate(directory,true);
+        // Only this writer's own writes may advance the expected stamp. Taking
+        // a fresh stamp here would bless an intervening same-length mutation.
+        if(!closed){const durable=bodyStamp(fstatSync(fd,{bigint:true}));if(stampKeys.some(key=>durable[key]!==ownedIdentity[key]))refuse('PROVENANCE');completedIdentity=durable;}
+        assertBodyStamp(completedIdentity,path,String(bytes));
+      }
+      const value: Metadata={class:'backend-transport',recordId,attemptId,direction,sha256:hash.copy().digest('hex'),
+        receivedBytes:String(observed),retainedBytes:String(bytes),identity,completeness:complete?'complete':'partial',access:'backend-only',export:'never',headers,policy,...(wireExecution?{wireExecution,wireBodyIdentity:completedIdentity!}:{})};
       const tmp=join(this.directory,recordId+'.'+randomUUID()+'.tmp');
       const metaFD=openSync(tmp,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);
       try {const content=Buffer.from(JSON.stringify(value));let at=0;while(at<content.length){const n=writeSync(metaFD,content,at);if(!n)refuse('CAPACITY');at+=n;}fsyncSync(metaFD);}finally{closeSync(metaFD);}
@@ -119,8 +148,8 @@ export class TransportEvidenceStore {
       return Object.freeze(value);
     };
     try {persist(false);} catch(e){closeSync(fd);reservation.release();throw e;}
-    return {
-      owner:Object.freeze({attemptId,direction}),
+    const sink:TransferSink={
+      owner:Object.freeze({attemptId,direction,recordId}),
       get bytes(){return bytes;},
       get identity(){return identity;},
       bindPolicy(value){if(bytes!==initial&&JSON.stringify(policy)!==JSON.stringify(value))refuse('POLICY');policy=Object.freeze({...value});persist(false);},
@@ -130,17 +159,21 @@ export class TransportEvidenceStore {
       append(chunk){
         if(closed||chunk.byteLength>IO_CHUNK)refuse('CAPACITY');
         assertComponents(directory);if(!sameFile(fstatSync(fd),assertPrivate(path,false)))refuse('PROVENANCE');
+        assertBodyStamp(ownedIdentity,path,String(bytes));
         reservation.ensure(bytes-initial+BigInt(chunk.byteLength));
+        assertBodyStamp(ownedIdentity,path,String(bytes));
         let at=0;
         try {while(at<chunk.byteLength){const n=writeSync(fd,chunk,at,chunk.byteLength-at,Number(bytes));if(!n)refuse('CAPACITY');hash.update(chunk.subarray(at,at+n));bytes+=BigInt(n);at+=n;}}
-        finally {reservation.committed(bytes-initial);persist(false);}
+        finally {ownedIdentity=bodyStamp(fstatSync(fd,{bigint:true}));reservation.committed(bytes-initial);persist(false);}
       },
       digest(){return hash.copy().digest('hex');},
-      finish(complete,observed){
+      finish(complete,observed,wireCapability){
         if(closed&&complete&&!completed)refuse('PROVENANCE');
-        try{if(complete&&!closed)reservation.ensure(bytes-initial);const result=persist(complete,observed);completed=complete;return result;}
+        try{if(wireCapability!==undefined){if(!complete)refuse('PROVENANCE');wireExecution=consumeWireExecution(wireCapability,sink,{recordId,attemptId,direction,completeness:'complete',sha256:hash.copy().digest('hex'),receivedBytes:String(observed??bytes)});}
+          if(wireExecution&&complete&&(observed??bytes)!==bytes)refuse('PROVENANCE');
+          if(complete&&!closed)reservation.ensure(bytes-initial);const result=persist(complete,observed);completed=complete;return result;}
         finally{if(!closed){closeSync(fd);closed=true;reservation.release();}}
       }
-    };
+    };return sink;
   }
 }

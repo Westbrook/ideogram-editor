@@ -2,9 +2,12 @@ import {createHash} from 'node:crypto';
 import {mkdir, writeFile} from 'node:fs/promises';
 import {isAbsolute, join} from 'node:path';
 import {analyzePresentation, PRESENTATION_TRACE_CATEGORIES, sanitizePresentationTraceEvent} from './browser-presentation.mjs';
+import {createRawBrowserTrace} from './browser-trace-raw.mjs';
 
 // CDP Tracing ReportEvents, pinned by the installed Playwright protocol types.
-// No screenshots, network category, stack sampling, or raw arguments are saved.
+// The default ReportEvents route saves no screenshots, network category,
+// stack sampling or raw arguments. Explicit rawFeedback selection below uses
+// one private raw capture and derives this same sanitized diagnostic schema.
 // PERF §3/§8: a renderer Paint, DrawFrame, DOM update, or rAF is NOT evidence of
 // physical presentation. The presentation decoder retains exact diagnostic IDs;
 // unsupported native feedback/content-frame provenance remains unavailable.
@@ -174,6 +177,11 @@ export function createBrowserTrace(page, options = {}) {
   positiveInteger(maxEvents, 'trace event limit', 1, 1_000_000);
   positiveInteger(maxBytes, 'trace byte limit', 4096, 64 * 1024 * 1024);
   positiveInteger(completionTimeoutMs, 'trace completion timeout', 1, 60_000);
+  if (options.rawFeedback !== undefined) return createRawBrowserTrace(page, {
+    ...options, artifactDirectory, artifactName, maxEvents, maxBytes, completionTimeoutMs,
+    sanitize: sanitizeTraceEvent, analyze: analyzeTrace, present: analyzePresentation,
+    isWorkEvent: event => WORK.has(event?.name) && ['X', 'B', 'E'].includes(event?.ph),
+  });
   const events = []; const reasons = new Set();
   let state = 'new'; let session; let received = 0; let bytesRetained = 0; let completionReceived = false; let finish; let stopPromise; let endPromise;
   const completed = new Promise(resolve => {finish = resolve;});

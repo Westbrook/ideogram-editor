@@ -1,9 +1,12 @@
-import {RequestReviews} from './request-review.js';
+import {RequestReviews,readRequestBytes} from './request-review.js';
+import {compositionTextOriginRefs} from './composition-text.js';
+import type {Rasters} from './raster.js';
 import {adapterReferences} from './adapters.js';
-import {draftShape as requestDraft,refs as requestRefs,RequestError} from '../../src/request/core.js';
+import {draftShape as requestDraft,refs as requestRefs,adapters as requestAdaptersOf,isV45Draft,RequestError} from '../../src/request/family.js';
 import type {Adapter} from '../../src/request/core.js';
+import type {Draft as RequestDraft} from '../../src/request/family.js';
 import type {RequestReview} from '../../src/request/review.js';
-import {compositionDraft,compositionDraftRefs,compositionDraftGraph} from '../../src/composition/draft.js';
+import {compositionDraft,compositionDraftRefs} from '../../src/composition/draft.js';
 import {maskDraftValue,maskImports,maskSource} from '../../src/raster/mask.js';
 import {textDraft,draftRefs} from '../../src/protocol/text.js';
 import type { DatabaseSync } from 'node:sqlite';
@@ -18,7 +21,6 @@ import { StoreError } from './errors.js';
 import type { Objects, Barrier } from './objects.js';
 import type { BlobRef } from '../../src/protocol/store.js';
 import { parseControlJSON } from '../control-json.js';
-import { parseControlJSON as parseDraftJSON } from '../../src/protocol/json.js';
 
 const initial = (sessionId:string):UICheckpoint => ({sessionId,uiSeq:'0',preferences:{documentId:null,tool:'select',viewport:{x:0,y:0,zoom:1},panels:{left:280,right:280,active:'layers'},selectedLayerIds:[]},drafts:[],reconciledLayerIds:[]});
 function preferences(p:any):asserts p is Preferences {
@@ -29,7 +31,11 @@ function preferences(p:any):asserts p is Preferences {
 }
 export class UIStore {
   constructor(private db:DatabaseSync,private objects:Objects,private assets:Assets,private check:()=>void,private barrier:Barrier,
-    private readState:(id:string)=>ImageState,private register:(owner:string,ref:BlobRef,proof?:string)=>void){}
+    private readState:(id:string)=>ImageState,private register:(owner:string,ref:BlobRef,proof?:string)=>void,private rasters:Rasters){}
+  private requestReferences(draft:RequestDraft){
+    const inputRead=isV45Draft(draft)&&draft.operation!=='generate-v45'&&draft.preparedInputs?this.rasters.v45EditInputReferences(draft.preparedInputs.assetId):undefined;
+    try{let value:BlobRef[]|undefined=[...requestRefs(draft),...compositionTextOriginRefs(draft,ref=>readRequestBytes(this.objects,ref,1048576)),...(inputRead?.value??[])];return {get value(){if(!value)throw new StoreError('CLOSED');return value;},release(){value=undefined;inputRead?.release();}};}catch(error){inputRead?.release();throw error;}
+  }
   read(sessionId:string,auth:AssetAuth):UICheckpoint {
     this.check();if(!isId(sessionId))throw new StoreError('MALFORMED_REQUEST');
     const row=this.db.prepare('SELECT json FROM ui_checkpoints WHERE client_id=? AND session_id=?').get(auth.clientId,sessionId);
@@ -54,6 +60,32 @@ export class UIStore {
     const state=JSON.parse(String(row.json)) as UICheckpoint;
     const draft=state.drafts.find(d=>d.id===fence.draftId)!;draft.status='applied';
     this.save(clientId,state,{type:'DraftApplied',draftId:draft.id,generation:draft.generation},now);
+  }
+  /** Prepare exact authored bytes; no UI or queue authority changes before commit. */
+  async prepareQueueReplacement(review:RequestReview,body:Extract<import('../../src/protocol/queue.js').QueueBody,{type:'EditQueuedJob'}>,auth:AssetAuth){
+    this.check();const asset=this.assets.asset(review.draftAsset);
+    if(!asset||asset.qualification!=='opaque-text'||asset.safety!=='safe'||asset.availability!=='available')throw new StoreError('MISSING_OBJECT');
+    const proofs:{ref:BlobRef;proof:string}[]=[];
+    try{proofs.push({ref:asset.blob,proof:await this.objects.prove(asset.blob,this.check)});const draft=parseControlJSON(this.objects.verify(asset.blob,true)!);requestDraft(draft);
+      const referenceRead=this.requestReferences(draft);try{const references=[...referenceRead.value,...adapterReferences(this.assets,requestAdaptersOf(draft))];for(const ref of references)proofs.push({ref,proof:await this.objects.prove(ref,this.check)});
+        return {assetId:asset.id,blob:asset.blob,proofs,references:hashBytes(canonical(references))};
+      }finally{referenceRead.release();}
+    }catch(error){for(const p of proofs)this.objects.releaseProof(p.proof);throw error;}
+  }
+  /** Sole writer acceptance transaction owns cancellation and this checkpoint together. */
+  commitQueueReplacement(review:RequestReview,body:Extract<import('../../src/protocol/queue.js').QueueBody,{type:'EditQueuedJob'}>,auth:AssetAuth,prepared:Awaited<ReturnType<UIStore['prepareQueueReplacement']>>){
+    this.check();if(!this.db.isTransaction)throw new StoreError('CORRUPT_STORE');
+    const state=this.read(body.sessionId,auth);if(state.uiSeq!==body.expectedUISeq)throw new AssetRejection('STALE_REVISION','STALE_UI_SEQUENCE');
+    if(state.drafts.some(d=>d.id===body.replacementDraftId))throw new AssetRejection('STALE_REVISION','REPLACEMENT_DRAFT_ID_EXISTS');
+    if(state.drafts.length>=64)throw new AssetRejection('CAPACITY','DRAFT_LIMIT');
+    const asset=this.assets.asset(review.draftAsset);if(!asset||asset.id!==prepared.assetId||asset.qualification!=='opaque-text'||asset.safety!=='safe'||asset.availability!=='available'||canonical(asset.blob)!==canonical(prepared.blob))throw new AssetRejection('MISSING_ASSET','REPLACEMENT_DRAFT_UNAVAILABLE');
+    for(const p of prepared.proofs)this.objects.proven(p.ref,p.proof);
+    const value=parseControlJSON(this.objects.verify(asset.blob,true)!);requestDraft(value);const referenceRead=this.requestReferences(value);try{if(hashBytes(canonical([...referenceRead.value,...adapterReferences(this.assets,requestAdaptersOf(value))]))!==prepared.references)throw new AssetRejection('STALE_REVISION','REPLACEMENT_DEPENDENCIES_CHANGED');}finally{referenceRead.release();}
+    const document=this.db.prepare('SELECT json FROM documents WHERE id=?').get(review.documentId);if(!document||this.db.prepare('SELECT 1 FROM candidate_document_tombstones WHERE document_id=?').get(review.documentId))throw new AssetRejection('STALE_REVISION','DOCUMENT_DELETED');
+    const draft:import('../../src/protocol/ui.js').Draft={id:body.replacementDraftId,generation:'1',kind:'request',documentId:review.documentId,targetLayerId:null,expectedDocumentRevision:review.documentRevision,assetId:asset.id,composing:false,status:'saved-unapplied'};
+    state.drafts.push(draft);if(Buffer.byteLength(canonical({...state,uiSeq:String(BigInt(state.uiSeq)+1n)}))>65536)throw new AssetRejection('CAPACITY','UI_CHECKPOINT_LIMIT');
+    const owner='ui:'+auth.clientId+':'+body.sessionId+':'+draft.id+':1';for(const p of prepared.proofs)this.register(owner,p.ref,p.proof);
+    this.save(auth.clientId,state,{type:'QueueDraftReplacementSaved',sourceReviewId:review.id,sourceDraft:review.draft,draftId:draft.id,generation:'1'},new Date(auth.now).toISOString());
   }
   private save(clientId:string,state:UICheckpoint,body:unknown,now:string) {
     state.uiSeq=String(BigInt(state.uiSeq)+1n);
@@ -80,7 +112,7 @@ export class UIStore {
     else if(b?.type==='SaveDraft'){
       keys(b,['type','draft']);const d=b.draft;keys(d,['id','generation','kind','documentId','targetLayerId','expectedDocumentRevision','assetId','composing']);
       if(![d.id,d.documentId,d.assetId].every(isId)||!isSeq(d.generation)||!isSeq(d.expectedDocumentRevision)||!(d.targetLayerId===null||isId(d.targetLayerId))||!['prompt','inspector','text','mask','composition','request'].includes(d.kind)||typeof d.composing!=='boolean')throw new StoreError('MALFORMED_REQUEST');
-    }else if(b?.type==='PrepareRequestReview'){keys(b,['type','draftId','generation']);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
+    }else if(b?.type==='PrepareRequestReview'){keys(b,['type','draftId','generation',...('textTreatment'in b?['textTreatment']:[])]);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else if(b?.type==='AcceptRequestReview'){keys(b,['type','reviewId','token']);if(!isId(b.reviewId)||!/^sha256:[a-f0-9]{64}$/.test(b.token))throw new StoreError('MALFORMED_REQUEST');}
     else if(b?.type==='ClearDraft'){keys(b,['type','draftId','generation']);if(!isId(b.draftId)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
     else if(b?.type==='FocusRequested'){keys(b,['type','target','generation']);if(!['canvas','inspector','history'].includes(b.target)||!isSeq(b.generation))throw new StoreError('MALFORMED_REQUEST');}
@@ -90,7 +122,7 @@ export class UIStore {
     let old=previous();if(old){if(old.hash!==hash)throw new StoreError('COMMAND_ID_REUSE');return JSON.parse(String(old.json));}
     let bindings:Record<string,string>|undefined;let proof:string|undefined,ref:BlobRef|undefined;const extra:{ref:BlobRef;proof:string}[]=[];
     let requestAdapters:Adapter[]|undefined;let requestAdapterRefs:BlobRef[]=[];
-    let review:RequestReview|undefined,acceptedReview:string|undefined,prepareError:RequestError|undefined;const reviews=new RequestReviews(this.db,this.objects,this.assets,this.readState);
+    let review:RequestReview|undefined,acceptedReview:string|undefined,prepareError:RequestError|undefined;const reviews=new RequestReviews(this.db,this.objects,this.assets,this.readState,this.rasters);
     const slot='ui:'+auth.clientId+':'+request.requestId;this.objects.acquire(slot);
     try{
       if(b.type==='SaveDraft'){
@@ -98,19 +130,19 @@ export class UIStore {
         if(!a||a.qualification!=='opaque-text'||a.safety!=='safe'||a.availability!=='available')throw new StoreError('MISSING_OBJECT');
         ref=a.blob;proof=await this.objects.prove(ref,()=>this.check());
         if(b.draft.kind==='mask'){const value=parseControlJSON(this.objects.verify(ref,true)!);maskDraftValue(value);bindings={};for(const id of maskImports(value.plan)){const source=this.assets.asset(id);if(!source?.raster||source.qualification!=='canonical-raster'||source.safety!=='safe'||source.availability!=='available')throw new StoreError('MISSING_OBJECT');try{const manifest=parseControlJSON(this.objects.verify(source.raster.manifest,true)!) as {plan:{hard?:BlobRef}};maskSource(value.plan,id,source.raster,manifest.plan.hard);}catch{throw new StoreError('MISSING_OBJECT');}bindings[id]=id;for(const dep of [source.blob,...source.dependencies])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}}
-        if(b.draft.kind==='composition'){const value=parseControlJSON(this.objects.verify(ref,true)!);compositionDraft(value);compositionDraftGraph(parseDraftJSON(this.objects.verify(value.graph,true)!,8388608),value);bindings=value.bindings;for(const dep of compositionDraftRefs(value))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
-        if(b.draft.kind==='request'){const d=parseControlJSON(this.objects.verify(ref,true)!);try{requestDraft(d);}catch{throw new StoreError('MALFORMED_REQUEST');}requestAdapters=structuredClone(d.adapters);requestAdapterRefs=adapterReferences(this.assets,requestAdapters);for(const dep of [...requestRefs(d),...requestAdapterRefs])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
+        if(b.draft.kind==='composition'){const value=parseControlJSON(this.objects.verify(ref,true)!);compositionDraft(value);this.rasters.compositionMemory.draft(this.objects,value,()=>{});bindings=value.bindings;for(const dep of compositionDraftRefs(value))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}
+        if(b.draft.kind==='request'){const d=parseControlJSON(this.objects.verify(ref,true)!);try{requestDraft(d);}catch{throw new StoreError('MALFORMED_REQUEST');}requestAdapters=structuredClone(requestAdaptersOf(d));requestAdapterRefs=adapterReferences(this.assets,requestAdapters);const referenceRead=this.requestReferences(d);try{for(const dep of [...referenceRead.value,...requestAdapterRefs])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}finally{referenceRead.release();}}
         if(b.draft.kind==='text'){const v=parseControlJSON(this.objects.verify(ref,true)!);textDraft(v);if(v.kind==='text-draft-2'&&b.draft.targetLayerId!==null)throw new StoreError('MALFORMED_REQUEST');for(const dep of draftRefs(v)){try{extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(dep===v.textUtf8||!(e instanceof StoreError)||!['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code))throw e;}}}
       }
       if(b.type==='PrepareRequestReview'){
         const saved=this.read(request.sessionId,auth).drafts.find(d=>d.id===b.draftId&&d.generation===b.generation);
-        if(saved){try{review=reviews.prepare(saved,request.sessionId,request.requestId,auth);const draft=reviews.draft(saved);for(const dep of [review.template,...requestRefs(draft),...adapterReferences(this.assets,draft.adapters)])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}catch(e){if(!(e instanceof RequestError))throw e;prepareError=e;}}
+        if(saved){try{review=reviews.prepare(saved,request.sessionId,request.requestId,auth,b.textTreatment);const draft=reviews.draft(saved);const referenceRead=this.requestReferences(draft);try{for(const dep of [review.template,...reviews.treatmentRefs(review),...referenceRead.value,...adapterReferences(this.assets,requestAdaptersOf(draft))])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});}finally{referenceRead.release();}}catch(e){if(!(e instanceof RequestError))throw e;prepareError=e;}}
       }
       if(b.type==='AcceptRequestReview'){
         const row=this.db.prepare('SELECT json FROM ui_receipts WHERE client_id=? AND id=?').get(auth.clientId,b.reviewId),prior=row?JSON.parse(String(row.json)):null;
         const candidate:RequestReview|undefined=prior?.status==='accepted'?prior.review:undefined;
         const saved=candidate&&candidate.token===b.token&&candidate.draft.sessionId===request.sessionId?this.read(request.sessionId,auth).drafts.find(d=>d.id===candidate.draft.draftId&&d.generation===candidate.draft.generation):undefined;
-        if(saved)for(const dep of adapterReferences(this.assets,reviews.draft(saved).adapters))extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});
+        if(saved)for(const dep of [...reviews.treatmentRefs(candidate!),...adapterReferences(this.assets,requestAdaptersOf(reviews.draft(saved)))])extra.push({ref:dep,proof:await this.objects.prove(dep,()=>this.check())});
       }
       this.db.exec('BEGIN IMMEDIATE');
       try{

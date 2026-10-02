@@ -64,7 +64,7 @@ test('HTTP export cancellation requires owner and CSRF, rejects unknown/wrong co
 
 test('cancel before compute is terminal, exact retries and restart cannot resurrect it, and held readers remain valid',async t=>{
  const f=await seed(t),source=await readFile(pathFor(f.root,f.imported.asset.raster.pixels));await f.server.close();let w=await writer(f);
- const first=await reader(f,w),second=await reader(f,w),c=make(f,'cancel_before_compute');await w.historyCommand(encode(c),f.auth);assert.equal((await w.diagnostics()).rasters.activeWorkers,0);assert.equal((await w.commandState(c.command.commandId)).pending.phase,'preparing');
+ const first=await reader(f,w),second=await reader(f,w),c=make(f,'cancel_before_compute');await w.historyCommand(encode(c),f.auth);{const diagnosticRead=await w.readDiagnostics();try{assert.equal(diagnosticRead.value.rasters.activeWorkers,0);}finally{diagnosticRead.release();}}assert.equal((await w.commandState(c.command.commandId)).pending.phase,'preparing');
  await assert.rejects(w.cancelExport(c.command.commandId,{...f.auth,clientId:'foreign_client'}),{code:'OWNER_REQUIRED'});assert.equal((await w.lookup(c.command.commandId)),null);
  const result=await w.cancelExport(c.command.commandId,f.auth);await canceled(f,w,c,result);assert.deepEqual(await w.cancelExport(c.command.commandId,f.auth),result);assert.deepEqual(await w.historyCommand(encode(c),f.auth),result.receipt);assert.deepEqual(await workNames(f,c.command.commandId),[]);
  await assert.rejects(w.historyCommand(encode({...c,command:{...c.command,body:{...c.command.body,options:{...encoder,matte:'#000000'}}}}),f.auth),{code:'COMMAND_ID_REUSE'});
@@ -77,13 +77,13 @@ test('cancel before compute is terminal, exact retries and restart cannot resurr
 test('resource-paused export can be canceled without retrying admission or changing source/checkpoint state',async t=>{
  const f=await seed(t);await f.server.close();const w=await writer(f,{quotaBytes:'1073741824'});const c=make(f,'cancel_waiting_resources');await w.historyCommand(encode(c),f.auth);
  await eventually(async()=>(await w.commandState(c.command.commandId)).pending?.phase==='waiting-for-resources','Export did not pause at real disk admission');
- const result=await w.cancelExport(c.command.commandId,f.auth);await canceled(f,w,c,result);assert.deepEqual(await workNames(f,c.command.commandId),[]);assert.equal((await w.diagnostics()).rasters.activeWorkers,0);
+ const result=await w.cancelExport(c.command.commandId,f.auth);await canceled(f,w,c,result);assert.deepEqual(await workNames(f,c.command.commandId),[]);{const diagnosticRead=await w.readDiagnostics();try{assert.equal(diagnosticRead.value.rasters.activeWorkers,0);}finally{diagnosticRead.release();}}
 });
 
 test('cancel at real raster worker admission terminates only its worker and removes its work after drain',async t=>{
  const f=await seed(t),c=make(f,'cancel_running_worker'),source=await readFile(pathFor(f.root,f.imported.asset.raster.pixels));await f.server.close();await arm(f,'worker-admission',c.command.commandId);const w=await writer(f,{}, {setupModule:fixture},()=>release(f));
- await w.historyCommand(encode(c),f.auth);const marker=await reached(f);assert.equal(marker.phase,'worker-admission');assert.ok(marker.threadId>0);assert.equal((await w.diagnostics()).rasters.activeWorkers,1);assert.ok((await workNames(f,c.command.commandId)).length>0);
- const result=await w.cancelExport(c.command.commandId,f.auth);await canceled(f,w,c,result);assert.equal((await w.diagnostics()).rasters.activeWorkers,0);assert.deepEqual(await workNames(f,c.command.commandId),[]);assert.deepEqual(await readFile(pathFor(f.root,f.imported.asset.raster.pixels)),source);
+ await w.historyCommand(encode(c),f.auth);const marker=await reached(f);assert.equal(marker.phase,'worker-admission');assert.equal(marker.slot,'history:'+c.command.commandId);assert.ok(marker.threadId>0);assert.ok(Number.isSafeInteger(marker.jobId)&&marker.jobId>0);{const diagnosticRead=await w.readDiagnostics();try{const raster=diagnosticRead.value.rasters;assert.equal(raster.activeWorkers,1);assert.equal(raster.workerService.slot,marker.slot);assert.equal(raster.workerService.identity.threadId,marker.threadId);assert.equal(raster.workerService.identity.generation,marker.generation);}finally{diagnosticRead.release();}}assert.ok((await workNames(f,c.command.commandId)).length>0);
+ const result=await w.cancelExport(c.command.commandId,f.auth);await canceled(f,w,c,result);{const diagnosticRead=await w.readDiagnostics();try{assert.equal(diagnosticRead.value.rasters.activeWorkers,0);}finally{diagnosticRead.release();}}assert.deepEqual(await workNames(f,c.command.commandId),[]);assert.deepEqual(await readFile(pathFor(f.root,f.imported.asset.raster.pixels)),source);
 });
 
 test('cancellation publishes its receipt before proof drain, then releases only its temporary directory',async t=>{
@@ -96,8 +96,8 @@ test('cancellation publishes its receipt before proof drain, then releases only 
 
 test('canceling another queued export does not terminate an unrelated live worker or remove its files',async t=>{
  const f=await seed(t),running=make(f,'a_export_kept_running'),canceledCommand=make(f,'z_export_cancel_queued');await f.server.close();await arm(f,'worker-admission',running.command.commandId);const w=await writer(f,{}, {setupModule:fixture},()=>release(f));
- await w.historyCommand(encode(running),f.auth);await reached(f);const runningNames=await workNames(f,running.command.commandId);assert.ok(runningNames.length>0);await w.historyCommand(encode(canceledCommand),f.auth);
- const result=await w.cancelExport(canceledCommand.command.commandId,f.auth);await canceled(f,w,canceledCommand,result);assert.equal((await w.diagnostics()).rasters.activeWorkers,1);assert.deepEqual(await workNames(f,running.command.commandId),runningNames);assert.equal((await w.commandState(running.command.commandId)).record,null);
+ await w.historyCommand(encode(running),f.auth);const marker=await reached(f);assert.equal(marker.slot,'history:'+running.command.commandId);assert.ok(Number.isSafeInteger(marker.jobId)&&marker.jobId>0);const runningNames=await workNames(f,running.command.commandId);assert.ok(runningNames.length>0);await w.historyCommand(encode(canceledCommand),f.auth);
+ const result=await w.cancelExport(canceledCommand.command.commandId,f.auth);await canceled(f,w,canceledCommand,result);{const diagnosticRead=await w.readDiagnostics();try{const raster=diagnosticRead.value.rasters;assert.equal(raster.activeWorkers,1);assert.equal(raster.workerService.slot,marker.slot);assert.equal(raster.workerService.identity.threadId,marker.threadId);assert.equal(raster.workerService.identity.generation,marker.generation);}finally{diagnosticRead.release();}}assert.deepEqual(await workNames(f,running.command.commandId),runningNames);assert.equal((await w.commandState(running.command.commandId)).record,null);
  await release(f);const accepted=(await record(w,running.command.commandId)).receipt;assert.equal(accepted.status,'accepted');assert.equal(countEvents(f.root,running.command.commandId),1);assert.equal((await w.cancelExport(running.command.commandId,f.auth)).status,'completed');assert.deepEqual(await w.document('document_1'),f.document);
 });
 

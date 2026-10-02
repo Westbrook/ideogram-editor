@@ -1,8 +1,13 @@
 import test from 'node:test';
+import { appOwnedCpuCandidate } from '../../../tooling/qualification/campaigns/resource-sampling-verification.mjs';
+import { appOwnershipSpecimen } from '../../campaigns/app-ownership-specimen.mjs';
+import { selectedAdapterIdentity } from '../../../tooling/qualification/campaigns/adapter-lifecycle.mjs';
 import assert from 'node:assert/strict';
-import { unionWork, evaluateSession, evaluateFirstUse, evaluateHotEdit, evaluateInteraction, evaluateLifecycle, evaluateAdapterLifecycle, evaluateVisits } from '../../../tooling/qualification/campaigns/metrics.mjs';
+import { unionWork, evaluateSession, evaluateFirstUse, evaluateHotEdit, evaluateInteraction, evaluateLifecycle, evaluateAdapterLifecycle, deriveLifecycleMeasurements, evaluateVisits } from '../../../tooling/qualification/campaigns/metrics.mjs';
 
 const evidence = { kind: 'browser-presentation-trace', sha256: 'a'.repeat(64), attributionComplete: true };
+const textRejection = () => ({ kind: 'deferred-presentation-rejection-1', requestSequence: 6, reason: 'stale-generation', requestEpoch: 1, currentEpoch: 1, requestGeneration: 2, currentGeneration: 3,
+  presentationUnchanged: true, requestNotSettled: true, nativeBoundary: 'existing-final-composition-cancel', extraMutationOrRequest: false, witnessedGuards: ['stale-generation'], unobservedGuards: ['stale-session', 'stale-version'] });
 function session(protocol = 'I', cache = 'warm', ordinal = 1) {
   const actions = [];
   if (protocol === 'I') {
@@ -16,7 +21,7 @@ function session(protocol = 'I', cache = 'warm', ordinal = 1) {
   }
   return { id: `${cache}-${ordinal}`, cache, ordinal, cohortKey: 'fixture-H-chromium-warm', startMs: 0, endMs: 60000, visibility: 'visible', refreshHz: 60,
     trace: evidence, actions, activeSegments: [{ startMs: 0, endMs: 60000, mainThreadIntervals: Array.from({ length: 3600 }, (_, index) => ({ startMs: index * 1000 / 60, endMs: index * 1000 / 60 + 1 })), slots: Array.from({ length: 3600 }, (_, index) => ({ index, presented: true })) }],
-    textPresentation: Object.fromEntries(['sameConnectedNode', 'forwardRangePreserved', 'backwardRangePreserved', 'collapsedRangePreserved', 'latestDeferredOnlyAfterNativeEnd', 'cancelDropsDeferred', 'staleSessionGenerationVersionRejected'].map(key => [key, true])) };
+    textPresentation: { ...Object.fromEntries(['sameConnectedNode', 'forwardRangePreserved', 'backwardRangePreserved', 'collapsedRangePreserved', 'latestDeferredOnlyAfterNativeEnd', 'cancelDropsDeferred', 'staleDeferredRequestRejected'].map(key => [key, true])), deferredRequestRejection: textRejection() } };
 }
 
 test('frame work clips cross-slot intervals and counts overlapping nested work once', () => {
@@ -29,11 +34,68 @@ test('I uses 100 actions and all2400 actual pointer samples; IText uses106 indep
   const ordinary = evaluateSession(session());
   assert.equal(ordinary.outcome, 'PASS'); assert.equal(ordinary.actions, 100); assert.equal(ordinary.pointer.n, 2400); assert.equal(ordinary.frameWork.n, 3600);
   const text = evaluateSession(session('IText'), 'IText');
-  assert.equal(text.outcome, 'PASS'); assert.equal(text.actions, 106); assert.equal(text.pointer.n, 0);
+  assert.equal(text.outcome, 'INCONCLUSIVE'); assert.equal(text.actions, 106); assert.equal(text.pointer.n, 0);
+  assert.deepEqual(text.missing, ['IText:actual-cancel-native-end-draft-guard-tuple', 'IText:stale-session-rejection-unobserved', 'IText:stale-version-rejection-unobserved']);
   const missing = session('IText'); missing.actions.pop();
   assert.equal(evaluateSession(missing, 'IText').outcome, 'INCONCLUSIVE');
-  const stale = session('IText'); stale.textPresentation.staleSessionGenerationVersionRejected = false;
+  const stale = session('IText'); stale.textPresentation.staleDeferredRequestRejected = false;
   assert.equal(evaluateSession(stale, 'IText').outcome, 'FAIL');
+});
+
+test('IText records the actual generation rejection without claiming unobserved session and version branches', () => {
+  const value = session('IText'), observed = evaluateSession(value, 'IText');
+  assert.deepEqual(observed.textGuardCoverage.witnessedGuards, ['stale-generation']);
+  assert.deepEqual(observed.textGuardCoverage.unobservedGuards, ['stale-session', 'stale-version']);
+  assert.equal(observed.textGuardCoverage.modelSettlementIsPhysicalPresentation, false);
+  const legacy = session('IText'); delete legacy.textPresentation.deferredRequestRejection; delete legacy.textPresentation.staleDeferredRequestRejected;
+  legacy.textPresentation.staleSessionGenerationVersionRejected = true;
+  const old = evaluateSession(legacy, 'IText'); assert.equal(old.outcome, 'INCONCLUSIVE');
+  assert.deepEqual(old.textGuardCoverage.witnessedGuards, []); assert.ok(old.missing.includes('IText:actual-cancel-native-end-draft-guard-tuple'));
+  for (const patch of [{ currentGeneration: 2 }, { currentEpoch: 2 }, { reason: 'cancelled' }, { requestSequence: 0 }, { requestEpoch: null }, { witnessedGuards: ['stale-session', 'stale-generation', 'stale-version'], unobservedGuards: [] }]) {
+    const invalid = session('IText'); Object.assign(invalid.textPresentation.deferredRequestRejection, patch);
+    const result = evaluateSession(invalid, 'IText'); assert.deepEqual(result.textGuardCoverage.witnessedGuards, []); assert.ok(result.missing.includes('IText:actual-cancel-native-end-draft-guard-tuple'));
+  }
+});
+
+test('IText admits one compound actual Cancel tuple with draft-version meaning and unchanged accepted versions', () => {
+  const value = session('IText');
+  value.textPresentation.deferredRequestRejection = {kind: 'deferred-presentation-rejection-2', requestSequence: 6, reason: 'cancelled',
+    requestEpoch: 1, currentEpoch: 2, requestGeneration: 10, currentGeneration: 11, requestTextVersion: 3, currentTextVersion: 4,
+    capturedState: {epoch: 1, generation: 10, textVersion: 3}, currentState: {epoch: 2, generation: 11, textVersion: 4},
+    presentationUnchanged: true, requestNotSettled: true, nativeBoundary: 'cancel-native-end', guardMask: 7, versionMeaning: 'draft-text-version',
+    extraMutationOrRequest: false, witnessedGuards: ['stale-session', 'stale-generation', 'stale-version'], unobservedGuards: [],
+    acceptedVersion: {scope: 'accepted-document-layer-version', invariantUnchanged: true, rejectionObserved: false}};
+  // This complete arithmetic fixture is not a retained native session. The
+  // three observations are one compound Cancel retirement, not isolated branches.
+  const observed = evaluateSession(value, 'IText');
+  assert.equal(observed.outcome, 'PASS'); assert.deepEqual(observed.missing, []);
+  assert.deepEqual(observed.textGuardCoverage.witnessedGuards, ['stale-session', 'stale-generation', 'stale-version']);
+  assert.deepEqual(observed.textGuardCoverage.unobservedGuards, []); assert.equal(observed.textGuardCoverage.versionMeaning, 'draft-text-version');
+  assert.deepEqual(observed.textGuardCoverage.acceptedVersion, {scope: 'accepted-document-layer-version', invariantUnchanged: true, rejectionObserved: false});
+  assert.equal(observed.textGuardCoverage.modelSettlementIsPhysicalPresentation, false);
+  for (const mutate of [r => {r.guardMask = 3;}, r => {r.nativeBoundary = 'restore-input';}, r => {r.currentEpoch = r.requestEpoch;},
+    r => {r.currentGeneration = r.requestGeneration;}, r => {r.currentTextVersion = r.requestTextVersion;},
+    r => {r.capturedState.textVersion++;}, r => {r.currentState.generation++;}, r => {r.versionMeaning = 'accepted-layer-version';},
+    r => {r.acceptedVersion.rejectionObserved = true;}, r => {delete r.currentTextVersion;}, r => {r.requestTextVersion = true;}]) {
+    const invalid = structuredClone(value); mutate(invalid.textPresentation.deferredRequestRejection);
+    const result = evaluateSession(invalid, 'IText'); assert.equal(result.outcome, 'INCONCLUSIVE');
+    assert.ok(result.missing.includes('IText:actual-cancel-native-end-draft-guard-tuple'));
+    assert.deepEqual(result.textGuardCoverage.witnessedGuards, []);
+  }
+  for (const mutate of [r => {r.guardMask = 15;}, r => {r.acceptedVersion.invariantUnchanged = false;}]) {
+    const invalid = structuredClone(value); mutate(invalid.textPresentation.deferredRequestRejection);
+    const result = evaluateSession(invalid, 'IText'); assert.equal(result.outcome, 'FAIL');
+    assert.ok(result.failures.includes('IText:accepted-version-changed-in-fixed-specimen'));
+  }
+});
+
+test('IText cancelled request state changes and extra actions fail while model settlement cannot supply paint', () => {
+  for (const patch of [{ presentationUnchanged: false }, { requestNotSettled: false }, { extraMutationOrRequest: true }]) {
+    const value = session('IText'); Object.assign(value.textPresentation.deferredRequestRejection, patch);
+    assert.equal(evaluateSession(value, 'IText').outcome, 'FAIL');
+  }
+  const value = session('IText'); for (const action of value.actions.filter(action => action.kind === 'presentation')) { action.presentedMs = null; action.modelSettledMs = action.inputMs + 1; }
+  const observed = evaluateSession(value, 'IText'); assert.equal(observed.outcome, 'INCONCLUSIVE'); assert.ok(observed.missing.includes('meaningful-presented-acknowledgement'));
 });
 
 test('scheduled sixty-Hz input stays separate from actual native jitter and presentation latency', () => {
@@ -264,27 +326,479 @@ test('post-idle resource sampling latency stays inside the real ninety-second cy
   assert.equal(evaluateLifecycle(emptyIdentity).outcome, 'INCONCLUSIVE');
 });
 
+function adapterCell(side = 'H', profile = 'P-A') {
+  const id = profile === 'P-A' ? side === 'C' ? 'AC2' : 'AH2' : side === 'C' ? 'I8C' : 'I8H';
+  return { id: `${id}/WA-lifecycle`, host: side, handler: side === 'C' ? 'adapters' : 'browser', operation: 'adapter.lifecycle', workload: 'WA', kind: 'lifecycle', parameters: { cycles: 2, idleMs: 30000, baselineIdleMs: 30000, bytes: 256 * 1024 ** 2, configBytesMax: 1024 ** 2 } };
+}
+const evaluateWA = (value, { cell = adapterCell('H', value.profile) } = {}) => evaluateAdapterLifecycle(value, { cell });
+
 function adapterLifecycle() {
-  const value = lifecycle(); value.profile = 'P-A'; value.weightsIdentity = 'd'.repeat(64); value.configIdentity = 'e'.repeat(64);
+  const value = lifecycle(); value.profile = 'P-A'; value.weightsIdentity = 'sha256:' + 'd'.repeat(64); value.configIdentity = 'sha256:' + 'e'.repeat(64);
   value.cycles.forEach(cycle => {
     cycle.weightsIdentity = value.weightsIdentity; cycle.configIdentity = value.configIdentity; cycle.restart = null;
     cycle.action = { phases: ['import', 'select', 'unselect', 'close', 'release'].map((name, index) => ({ name, startMs: cycle.startMs + index * 100, endMs: cycle.startMs + index * 100 + 50, outcome: 'expected' })),
-      selectedIdentities: [value.weightsIdentity], assertions: Object.fromEntries(['fixedArtifactsImported', 'selectionRestored', 'durableFixturePreserved', 'noBrowserTensorDecode', 'zeroUnexpectedFetches'].map(key => [key, true])) };
+      selectedArtifacts: [selectedAdapterIdentity({ versionId: `version-${cycle.ordinal}`, adapterId: 'adapter', version: String(cycle.ordinal), weights: { hash: value.weightsIdentity, byteLength: String(256 * 1024 ** 2), mediaType: 'application/octet-stream' }, config: { hash: value.configIdentity, byteLength: '128', mediaType: 'application/json' } })], assertions: Object.fromEntries(['fixedArtifactsImported', 'selectionRestored', 'durableFixturePreserved', 'noBrowserTensorDecode', 'zeroUnexpectedFetches'].map(key => [key, true])) };
+    cycle.action.selectedIdentities = cycle.action.selectedArtifacts.map(artifact => artifact.identity);
+    cycle.action.observations = { importedBinding: { ...cycle.action.selectedArtifacts[0].value, kind: 'wa-imported-adapter-binding-1', locallyEligible: true }, selectedImportedIdentity: true };
   });
   return value;
 }
 
-test('WA has two independent real import lifecycles and caps without inventing editor growth claims', () => {
+test('WA retains two-cycle resource checks while unverified H semantics remain unknown', () => {
   const value = adapterLifecycle(); value.cycles[1].resources.settledBytes += 64 * 1024 ** 2;
-  const result = evaluateAdapterLifecycle(value); assert.equal(result.outcome, 'PASS'); assert.equal(result.growthClaim, false); assert.equal(result.growth, undefined);
+  const result = evaluateWA(value); assert.equal(result.outcome, 'INCONCLUSIVE'); assert.equal(result.growthClaim, false); assert.equal(result.growth, undefined);
+  assert.deepEqual(result.missing, ['WA:noBrowserTensorDecode', 'WA:zeroUnexpectedFetches']);
   value.cycles[0].action.phases[0].name = 'metadata-selection';
-  assert.equal(evaluateAdapterLifecycle(value).outcome, 'INCONCLUSIVE');
+  assert.equal(evaluateWA(value).outcome, 'INCONCLUSIVE');
+  assert.ok(evaluateWA(value).missing.includes('actual-complete-WA-import-select-unselect-close-release'));
   const different = adapterLifecycle(); different.cycles[1].weightsIdentity = 'f'.repeat(64);
-  assert.equal(evaluateAdapterLifecycle(different).outcome, 'INCONCLUSIVE');
+  assert.equal(evaluateWA(different).outcome, 'INCONCLUSIVE');
+  assert.ok(evaluateWA(different).missing.includes('same-WA-process-and-fixed-artifacts-through-cycles'));
   const cap = adapterLifecycle(); cap.cycles[1].resourceSamples[0].backendRssBytes = 512 * 1024 ** 2 + 1;
-  assert.equal(evaluateAdapterLifecycle(cap).outcome, 'FAIL');
+  assert.equal(evaluateWA(cap).outcome, 'FAIL');
   const destructive = adapterLifecycle(); destructive.cycles[0].action.assertions.durableFixturePreserved = false;
-  assert.equal(evaluateAdapterLifecycle(destructive).outcome, 'FAIL');
+  assert.equal(evaluateWA(destructive).outcome, 'FAIL');
+});
+
+test('WA selected versions must recompute to exactly the fixed imported weights and config', () => {
+  const value = adapterLifecycle();
+  assert.equal(evaluateWA(value).outcome, 'INCONCLUSIVE');
+  assert.deepEqual(evaluateWA(value).missing, ['WA:noBrowserTensorDecode', 'WA:zeroUnexpectedFetches']);
+  const substituted = adapterLifecycle(), artifact = substituted.cycles[0].action.selectedArtifacts[0];
+  const replacement = selectedAdapterIdentity({ ...artifact.value, weights: { ...artifact.value.weights, hash: 'sha256:' + 'f'.repeat(64), byteLength: '85299896' } });
+  substituted.cycles[0].action.selectedArtifacts = [replacement]; substituted.cycles[0].action.selectedIdentities = [replacement.identity];
+  assert.equal(evaluateWA(substituted).outcome, 'FAIL');
+  const wrongConfig = adapterLifecycle(); wrongConfig.cycles[0].action.selectedArtifacts[0].value.config.hash = 'sha256:' + 'f'.repeat(64);
+  assert.equal(evaluateWA(wrongConfig).outcome, 'FAIL');
+  const missing = adapterLifecycle(); delete missing.cycles[0].action.selectedArtifacts;
+  assert.equal(evaluateWA(missing).outcome, 'INCONCLUSIVE');
+  assert.ok(evaluateWA(missing).missing.includes('WA-exact-imported-selection-artifact-records'));
+  const forged = adapterLifecycle(); forged.cycles[0].action.selectedArtifacts[0].identity = 'sha256:' + 'a'.repeat(64);
+  assert.equal(evaluateWA(forged).outcome, 'FAIL');
+  const oldVersion = adapterLifecycle(); oldVersion.cycles[0].action.observations.importedBinding.versionId = 'newly-imported-version';
+  assert.equal(evaluateWA(oldVersion).outcome, 'FAIL');
+  const noBinding = adapterLifecycle(); delete noBinding.cycles[0].action.observations.importedBinding;
+  assert.equal(evaluateWA(noBinding).outcome, 'INCONCLUSIVE');
+  assert.ok(evaluateWA(noBinding).missing.includes('WA-actual-eligible-imported-version-binding'));
+});
+
+test('H WA caller flags and serialized approvals cannot replace retained replay authority in either profile', () => {
+  for (const profile of ['P-A', 'Q3-A']) {
+    const value = adapterLifecycle(); value.profile = profile;
+    for (const cycle of value.cycles) cycle.action.observations.browserWA = {
+      kind: 'retained-wa-browser-observation-1', verified: true, approved: true,
+      analysis: {complete: true, assertions: {noBrowserTensorDecode: true, zeroUnexpectedFetches: true}, missing: [], failures: []},
+    };
+    const result = evaluateWA(value);
+    assert.equal(result.outcome, 'INCONCLUSIVE');
+    assert.deepEqual(result.missing, ['WA:noBrowserTensorDecode', 'WA:zeroUnexpectedFetches']);
+    assert.deepEqual(evaluateWA(structuredClone(value)).missing, result.missing);
+    for (const key of ['noBrowserTensorDecode', 'zeroUnexpectedFetches']) {
+      const violated = structuredClone(value); violated.cycles[0].action.assertions[key] = false;
+      const unverified = evaluateWA(violated); assert.equal(unverified.outcome, 'INCONCLUSIVE');
+      assert.deepEqual(unverified.missing, ['WA:noBrowserTensorDecode', 'WA:zeroUnexpectedFetches']); assert.deepEqual(unverified.failures, []);
+    }
+  }
+});
+
+function backendAdapterLifecycle() {
+  const value = adapterLifecycle(); value.sampling.kind = 'attributed-backend-process-and-allocation-ledger';
+  const backend = () => ({ resourceScope: 'wa-backend-process-workers-allocations-1', backendRssBytes: 100 * 1024 ** 2, cpuBytes: 10 * 1024 ** 2, unusedHandles: 0,
+    browserRssBytes: null, gpuBytes: null, previewCacheBytes: null, textureSide: null, deviceTextureLimit: null, settledBytes: null,
+    backendOwnership: { kind: 'wa-backend-owner-evidence-1', processIdentity: value.processIdentity,
+      coverage: Object.fromEntries(['processTree', 'workerThreads', 'stagingBuffers', 'hashBuffers', 'headerBuffers', 'configBuffers', 'ioCopies', 'metadataConsumers', 'assetReadHandles', 'proofHandles', 'streamHandles'].map(key => [key, true])),
+      evidence: { path: 'backend-owner.json', bytes: 1024, sha256: 'a'.repeat(64) } } });
+  value.B0.resources = backend();
+  for (const cycle of value.cycles) { cycle.resources = backend(); cycle.resourceSamples = [backend()]; }
+  return value;
+}
+
+test('C WA applicability comes from the verified backend cell and preserves real CPU/RSS/handle requirements', () => {
+  const value = backendAdapterLifecycle(), context = { cell: adapterCell('C') };
+  assert.equal(evaluateWA(value, context).outcome, 'PASS');
+  assert.deepEqual(evaluateWA(value, context).notApplicableResourceFields, ['browserRssBytes', 'gpuBytes', 'previewCacheBytes', 'textureSide', 'deviceTextureLimit']);
+  assert.equal(evaluateWA(value).outcome, 'INCONCLUSIVE');
+  assert.ok(evaluateWA(value).missing.includes('complete-resource-ledger-and-process-tree-RSS'));
+  assert.equal(evaluateAdapterLifecycle(value).outcome, 'INCONCLUSIVE');
+  const wrongHandler = { cell: { ...context.cell, handler: 'browser' } };
+  assert.equal(evaluateWA(value, wrongHandler).outcome, 'INCONCLUSIVE');
+  const unknown = backendAdapterLifecycle(); unknown.B0.resources.cpuBytes = null; unknown.B0.resources.backendOwnership.coverage.hashBuffers = false;
+  assert.equal(evaluateWA(unknown, context).outcome, 'INCONCLUSIVE');
+  const fakeZero = backendAdapterLifecycle(); fakeZero.B0.resources.browserRssBytes = 0;
+  assert.equal(evaluateWA(fakeZero, context).outcome, 'INCONCLUSIVE');
+  const borrowed = backendAdapterLifecycle(); borrowed.B0.resources.backendOwnership.processIdentity = 'other-process';
+  assert.equal(evaluateWA(borrowed, context).outcome, 'INCONCLUSIVE');
+  const rss = backendAdapterLifecycle(); rss.cycles[0].resourceSamples[0].backendRssBytes = 512 * 1024 ** 2 + 1;
+  assert.equal(evaluateWA(rss, context).outcome, 'FAIL');
+  const cpu = backendAdapterLifecycle(); cpu.cycles[0].resourceSamples[0].cpuBytes = 512 * 1024 ** 2 + 1;
+  assert.equal(evaluateWA(cpu, context).outcome, 'FAIL');
+  const leaked = backendAdapterLifecycle(); leaked.cycles[0].resources.unusedHandles = 1;
+  assert.equal(evaluateWA(leaked, context).outcome, 'FAIL');
+});
+
+const measurementRule = (name, budgetId, unit, ceiling) => ({ name, budgetId, unit, target: ceiling, ceiling });
+function measurementCell(value) {
+  return { id: `H2/${value.workload}-lifecycle`, host: 'H', handler: 'browser', operation: 'lifecycle.editor', workload: value.workload, kind: 'lifecycle',
+    parameters: { cycles: value.profile === 'M' ? 100 : 2, baselineIdleMs: 30000, idleMs: 30000 }, requiredMeasurements: [
+      measurementRule('R17BrowserProcessTreeRssBytes', 'R17', 'bytes', 1.5 * 1024 ** 3),
+      measurementRule('R17BackendRssBytes', 'R17', 'bytes', 512 * 1024 ** 2),
+      measurementRule('R18CpuAllocationBytes', 'R18', 'bytes', 512 * 1024 ** 2),
+      measurementRule('R18TextureDeviceOr2048BoundViolations', 'R18', 'violations', 0),
+      measurementRule('R19FinalSettledGrowthBytes', 'R19', 'bytes', 8 * 1024 ** 2),
+      measurementRule('R19WorstSettledGrowthBytes', 'R19', 'bytes', 8 * 1024 ** 2),
+    ] };
+}
+function sealSampling(value) {
+  const samples = [value.B0.resources, ...value.cycles.flatMap(cycle => [...cycle.resourceSamples, cycle.resources])];
+  samples.forEach((item, index) => Object.assign(item, { ordinal: index + 1, processIdentity: value.processIdentity }));
+  value.B0.resources.observation = { ...value.B0.observation };
+  for (const cycle of value.cycles) { cycle.resources.observation = { ...cycle.observation }; cycle.resourceSamples.forEach((item, index) => { item.observation = { startMs: cycle.startMs + index + 1, endMs: cycle.startMs + index + 2 }; }); }
+  const keys = ['browserRssBytes', 'backendRssBytes', 'cpuBytes', 'gpuBytes', 'previewCacheBytes'];
+  value.sampling = { ...value.sampling, processIdentity: value.processIdentity, counts: { samples: samples.length }, artifact: { path: 'resource-samples.json', bytes: 4096, sha256: value.sampling.sha256 },
+    peaks: Object.fromEntries(keys.map(key => [key, samples.every(item => typeof item[key] === 'number') ? Math.max(...samples.map(item => item[key])) : null])),
+    peakSamples: Object.fromEntries(keys.map(key => [key, structuredClone(samples.reduce((a, b) => a[key] >= b[key] ? a : b))])),
+    textureLimits: { complete: true, observedSamples: samples.length, violations: samples.filter(item => item.textureSide > Math.min(2048, item.deviceTextureLimit)).length, notApplicableSamples: 0 } };
+  return value;
+}
+function sealBackendCpuWindow(value) {
+  value.sampling.observationWindow = { id: 'actual-window', scope: 'independent-B0-lifecycle-window', processIdentity: value.processIdentity,
+    startObservation: { ...value.B0.observation }, endObservation: { startMs: value.endMs, endMs: value.endMs } };
+  value.sampling.allocationPeaks = { cpuBytes: { kind: 'owned-allocation-continuous-peak-1', value: value.sampling.peaks.cpuBytes,
+    scope: 'independent-B0-lifecycle-window', processIdentity: value.processIdentity, sharedIdentity: 'actual-shared-atomic-ledger', sequence: 5,
+    sourceOrdinal: value.sampling.counts.samples, observation: { startMs: value.endMs, endMs: value.endMs }, windowId: 'actual-window',
+    window: { startMonotonicNs: '30000000000', endMonotonicNs: String(value.endMs * 1000000), sealed: true, integrityComplete: true },
+    artifact: { ...value.sampling.artifact }, complete: true } };
+  return value;
+}
+const browserCpuGaps = ['app-payload-ownership-incomplete', 'native-image-and-canvas-implementation-overhead', 'native-blob-residency', 'engine-and-dom-allocations', 'renderer-ownership-proof-required'];
+function sealBrowserCpuWindow(value, peakBytes = 300 * 1024 ** 2) {
+  const sampling = value.sampling, ledgerInstanceId = 'c684aa02-ec45-4ee9-b9c7-1ff624bf65aa';
+  const window = { kind: 'combined-cpu-window-1', schemaVersion: 1, ledgerInstanceId, id: 'real-browser-window', ordinal: 1,
+    clock: 'browser-performance', clockOriginMs: 1790000000000, startMs: 100, endMs: 90000, peakAtMs: 110,
+    startSequence: 10, endSequence: 30, peakSequence: 12, currentBytes: 0, peakBytes,
+    ledgerBytesAtPeak: peakBytes - 1024, textBytesAtPeak: 1024, textStartSequence: 2, textEndSequence: 9,
+    sealed: true, observationComplete: true, ownerCoverageComplete: false, failures: [], missing: [...browserCpuGaps] };
+  const ack = boundary => ({ kind: 'combined-cpu-window-ack-1', schemaVersion: 1, ledgerInstanceId, id: window.id, ordinal: window.ordinal,
+    boundary, sequence: boundary === 'begin' ? window.startSequence : window.endSequence, atMs: boundary === 'begin' ? window.startMs : window.endMs,
+    clock: window.clock, clockOriginMs: window.clockOriginMs, sealed: boundary === 'end' });
+  const beginAck = ack('begin'), endAck = ack('end'), endObservation = { startMs: value.endMs, endMs: value.endMs };
+  value.B0.resources.cpuWindowBoundary = 'begin'; value.B0.resources.cpuWindowAck = structuredClone(beginAck);
+  sampling.counts.samples++;
+  sampling.observationWindow = { scope: 'independent-B0-browser-cpu-window', id: window.id, processIdentity: value.processIdentity, ledgerInstanceId,
+    startSourceOrdinal: value.B0.resources.ordinal, endSourceOrdinal: sampling.counts.samples, startObservation: { ...value.B0.resources.observation }, endObservation, beginAck, endAck };
+  sampling.allocationPeaks = { cpuBytes: { kind: 'owned-allocation-continuous-peak-1', scope: sampling.observationWindow.scope, value: peakBytes,
+    processIdentity: value.processIdentity, sharedIdentity: ledgerInstanceId, sequence: window.endSequence, sourceOrdinal: sampling.counts.samples,
+    observation: { ...endObservation }, windowId: window.id, window, ownerCoverageComplete: false, complete: false, artifact: { ...sampling.artifact } } };
+  return value;
+}
+const browserCpuRow = value => deriveLifecycleMeasurements(value, { cell: { ...measurementCell(value), requiredMeasurements: [measurementRule('R18CpuAllocationBytes', 'R18', 'bytes', 512 * 1024 ** 2)] } });
+
+function collectorRow(value, cell, cycle, name, unit, measured) {
+  return { name, value: measured, unit, complete: true, method: 'Actual retained collector comparison', evidence: {
+    kind: 'lifecycle-measurement-evidence-1', cellId: cell.id, cycleOrdinal: cycle.ordinal, processIdentity: value.processIdentity, fixtureIdentity: value.fixtureIdentity,
+    coverage: 'complete-cycle-actions', artifact: { path: `cycle-${cycle.ordinal}-collector.json`, bytes: 512, sha256: 'f'.repeat(64) } } };
+}
+
+test('lifecycle registry translation preserves sampled RSS and growth while CPU requires continuous ownership coverage', () => {
+  const value = lifecycle(); value.cycles[0].resourceSamples[0].cpuBytes = 200 * 1024 ** 2; value.cycles[0].resources.settledBytes += 2 * 1024 ** 2;
+  sealSampling(value); const translated = deriveLifecycleMeasurements(value, { cell: measurementCell(value) });
+  assert.deepEqual(translated.unavailable.map(item => item.name), ['R18CpuAllocationBytes']); assert.equal(translated.measurements.length, 5);
+  const rows = Object.fromEntries(translated.measurements.map(item => [item.name, item]));
+  assert.equal(rows.R18CpuAllocationBytes, undefined); assert.equal(translated.unavailable[0].observedLowerBound, 200 * 1024 ** 2);
+  assert.equal(rows.R19WorstSettledGrowthBytes.value, 2 * 1024 ** 2); assert.equal(rows.R19FinalSettledGrowthBytes.value, 0);
+  assert.equal(rows.R18TextureDeviceOr2048BoundViolations.value, 0); assert.ok(translated.measurements.every(item => item.complete));
+});
+
+test('missing lifecycle peak coverage never passes from a subset but known ceiling failures remain visible', () => {
+  const value = sealSampling(lifecycle()), cell = measurementCell(value);
+  delete value.sampling.peakSamples.cpuBytes;
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.some(item => item.name === 'R18CpuAllocationBytes'), false);
+  value.cycles[0].resourceSamples[0].cpuBytes = 512 * 1024 ** 2 + 1; value.sampling.complete = false;
+  const failed = deriveLifecycleMeasurements(value, { cell }).measurements.find(item => item.name === 'R18CpuAllocationBytes');
+  assert.equal(failed.value, 512 * 1024 ** 2 + 1); assert.equal(failed.lowerBound, true); assert.equal(failed.complete, false);
+  const unknown = sealSampling(lifecycle()); unknown.cycles[0].resources.cpuBytes = null;
+  assert.equal(deriveLifecycleMeasurements(unknown, { cell }).measurements.some(item => item.name === 'R18CpuAllocationBytes'), false);
+  const composite = sealSampling(lifecycle()); composite.sampling.peaks.cpuBytes++;
+  assert.equal(deriveLifecycleMeasurements(composite, { cell }).measurements.some(item => item.name === 'R18CpuAllocationBytes'), false);
+});
+
+test('clean browser CPU windows retain transient covered peaks without claiming complete ownership', () => {
+  const value = sealBrowserCpuWindow(sealSampling(lifecycle()));
+  const result = browserCpuRow(value);
+  assert.deepEqual(result.measurements, []);
+  assert.equal(result.unavailable[0].observedLowerBound, 300 * 1024 ** 2);
+  assert.match(result.unavailable[0].reason, /scoped lower bound/);
+  assert.equal(value.sampling.allocationPeaks.cpuBytes.window.ownerCoverageComplete, false);
+  assert.deepEqual(value.sampling.allocationPeaks.cpuBytes.window.missing, browserCpuGaps);
+});
+
+test('a transient continuous browser CPU breach remains a lower-bound failure between ordinary samples', () => {
+  const value = sealBrowserCpuWindow(sealSampling(lifecycle()), 512 * 1024 ** 2 + 1);
+  value.sampling.complete = false;
+  const row = browserCpuRow(value).measurements[0];
+  assert.equal(row.value, 512 * 1024 ** 2 + 1); assert.equal(row.lowerBound, true); assert.equal(row.complete, false);
+  assert.equal(row.evidence.continuousCpuWindow.sourceOrdinal, value.sampling.counts.samples);
+  assert.equal(row.evidence.sampledPeak.cpuBytes, value.sampling.peaks.cpuBytes);
+  assert.ok(row.evidence.sampledPeak.cpuBytes < row.value); assert.equal(row.evidence.lifetimePeakIsScored, false);
+});
+
+test('browser continuous CPU joins the worker serialized lifecycle identity to the original sampler identity', () => {
+  const value = sealBrowserCpuWindow(sealSampling(lifecycle()), 512 * 1024 ** 2 + 1);
+  value.processIdentity = JSON.stringify(value.sampling.processIdentity);
+  for (const cycle of value.cycles) cycle.processIdentity = value.processIdentity;
+  const row = browserCpuRow(value).measurements[0];
+  assert.equal(row.value, 512 * 1024 ** 2 + 1); assert.equal(row.lowerBound, true);
+  assert.equal(row.evidence.continuousCpuWindow.processIdentity, value.sampling.processIdentity);
+});
+
+test('browser CPU peaks reject borrowed identities, malformed sums, missing coverage disclosure and claimed global completeness', () => {
+  for (const change of [
+    v => { v.sampling.allocationPeaks.cpuBytes.scope = 'fresh-worker-process-lifetime-including-preparation'; },
+    v => { v.sampling.allocationPeaks.cpuBytes.windowId = 'borrowed'; },
+    v => { v.sampling.allocationPeaks.cpuBytes.sharedIdentity = 'borrowed'; },
+    v => { v.sampling.observationWindow.processIdentity = 'borrowed'; },
+    v => { v.B0.resources.processIdentity = 'borrowed'; },
+    v => { v.sampling.kind = 'attributed-backend-process-and-allocation-ledger'; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.ledgerBytesAtPeak++; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.missing = []; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.ownerCoverageComplete = true; },
+    v => { v.sampling.allocationPeaks.cpuBytes.ownerCoverageComplete = true; },
+    v => { v.sampling.allocationPeaks.cpuBytes.complete = true; },
+    v => { v.sampling.allocationPeaks.cpuBytes.artifact.sha256 = 'f'.repeat(64); },
+    v => { v.sampling.allocationPeaks.cpuBytes.sourceOrdinal--; },
+    v => { v.sampling.observationWindow.endSourceOrdinal++; },
+  ]) {
+    const value = sealBrowserCpuWindow(sealSampling(lifecycle()), 512 * 1024 ** 2 + 1); change(value);
+    assert.deepEqual(browserCpuRow(value).measurements, []);
+  }
+});
+
+test('browser CPU windows require exact ACK clocks, sequence continuity and actual B0/end runner brackets', () => {
+  for (const change of [
+    v => { v.sampling.observationWindow.beginAck.sequence++; },
+    v => { v.sampling.observationWindow.endAck.clockOriginMs++; },
+    v => { v.sampling.observationWindow.endAck.atMs++; },
+    v => { v.sampling.observationWindow.endAck.sealed = false; },
+    v => { v.B0.resources.cpuWindowAck.id = 'borrowed'; },
+    v => { v.B0.resources.cpuWindowBoundary = null; },
+    v => { v.sampling.observationWindow.startObservation.startMs--; },
+    v => { v.sampling.observationWindow.endObservation.startMs = v.cycles.at(-1).startMs; },
+    v => { v.sampling.observationWindow.endObservation.endMs = v.endMs + 1; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.peakAtMs = 99; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.peakSequence = 31; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.textEndSequence = 1; },
+  ]) {
+    const value = sealBrowserCpuWindow(sealSampling(lifecycle()), 512 * 1024 ** 2 + 1); change(value);
+    assert.deepEqual(browserCpuRow(value).measurements, []);
+  }
+});
+
+test('missing or fault-disclosed browser CPU endpoints cannot promote a continuous peak', () => {
+  for (const change of [
+    v => { delete v.sampling.allocationPeaks; },
+    v => { v.sampling.observationWindow.endObservation = null; v.sampling.observationWindow.endAck = null; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.sealed = false; },
+    v => { v.sampling.observationWindow.endObservation = { startMs: 0, endMs: 0 }; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.observationComplete = false; },
+    v => { v.sampling.allocationPeaks.cpuBytes.window.failures = ['text-sequence-discontinuity']; },
+  ]) {
+    const value = sealBrowserCpuWindow(sealSampling(lifecycle()), 512 * 1024 ** 2 + 1); change(value);
+    assert.deepEqual(browserCpuRow(value).measurements, []);
+    value.cycles[0].resourceSamples[0].cpuBytes = 512 * 1024 ** 2 + 2;
+    const row = browserCpuRow(value).measurements[0]; assert.equal(row.value, 512 * 1024 ** 2 + 2); assert.equal(row.lowerBound, true);
+  }
+});
+
+test('browser preparation peaks remain diagnostic and absent RSS is never replaced by CPU coverage', () => {
+  const value = sealBrowserCpuWindow(sealSampling(lifecycle()));
+  const beforeB0 = { ...structuredClone(value.sampling.peakSamples.cpuBytes), observation: { startMs: value.B0.observation.startMs - 2, endMs: value.B0.observation.startMs - 1 }, cpuBytes: 1024 ** 3 };
+  value.sampling.peakSamples.cpuBytes = beforeB0; value.sampling.peaks.cpuBytes = beforeB0.cpuBytes;
+  assert.deepEqual(browserCpuRow(value).measurements, []);
+  for (const sample of [value.B0.resources, ...value.cycles.flatMap(cycle => [...cycle.resourceSamples, cycle.resources])]) sample.browserRssBytes = null;
+  value.sampling.peakSamples.browserRssBytes = null; value.sampling.peaks.browserRssBytes = null;
+  const rows = deriveLifecycleMeasurements(value, { cell: measurementCell(value) });
+  assert.equal(rows.measurements.some(row => row.name === 'R17BrowserProcessTreeRssBytes'), false);
+  assert.equal(rows.unavailable.find(row => row.name === 'R17BrowserProcessTreeRssBytes').observedLowerBound, undefined);
+});
+
+test('lifecycle growth never relabels an incomplete prefix as final or borrows a different scope', () => {
+  const value = sealSampling(lifecycle()), cell = measurementCell(value);
+  value.cycles[0].resources.settledBytes += 9 * 1024 ** 2; value.cycles.pop();
+  const result = deriveLifecycleMeasurements(value, { cell });
+  assert.equal(result.measurements.some(item => item.name === 'R19FinalSettledGrowthBytes'), false);
+  assert.equal(result.measurements.find(item => item.name === 'R19WorstSettledGrowthBytes').lowerBound, true);
+  assert.equal(deriveLifecycleMeasurements(value, { cell: { ...cell, host: 'C' } }).measurements.length, 0);
+});
+
+test('texture violations require actual per-observation counters and cannot combine unrelated maxima', () => {
+  const value = sealSampling(lifecycle()), cell = measurementCell(value);
+  delete value.sampling.textureLimits;
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.some(item => item.name === 'R18TextureDeviceOr2048BoundViolations'), false);
+  value.cycles[0].resourceSamples[0].textureSide = 1024; value.cycles[0].resourceSamples[0].deviceTextureLimit = 512;
+  const row = deriveLifecycleMeasurements(value, { cell }).measurements.find(item => item.name === 'R18TextureDeviceOr2048BoundViolations');
+  assert.equal(row.value, 1); assert.equal(row.lowerBound, true);
+});
+
+test('WA backend registry translation derives only applicable observed allocations without fabricated browser rows', () => {
+  const value = sealBackendCpuWindow(sealSampling(backendAdapterLifecycle())), cell = adapterCell('C');
+  cell.requiredMeasurements = [measurementRule('R17BackendRssBytes', 'R17', 'bytes', 512 * 1024 ** 2), measurementRule('R18CpuAllocationBytes', 'R18', 'bytes', 512 * 1024 ** 2), measurementRule('R18GpuAllocationBytes', 'R18', 'bytes', 384 * 1024 ** 2)];
+  const result = deriveLifecycleMeasurements(value, { cell });
+  assert.deepEqual(result.measurements.map(item => item.name), ['R17BackendRssBytes', 'R18CpuAllocationBytes']);
+  assert.deepEqual(result.unavailable.map(item => item.name), ['R18GpuAllocationBytes']);
+  value.B0.resources.backendOwnership.coverage.ioCopies = false;
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.length, 0);
+});
+
+test('C CPU uses an exact sealed B0 observation window and never treats a preparation lifetime peak as scored', () => {
+  const value = sealBackendCpuWindow(sealSampling(backendAdapterLifecycle())), cell = adapterCell('C');
+  cell.requiredMeasurements = [measurementRule('R18CpuAllocationBytes', 'R18', 'bytes', 512 * 1024 ** 2)];
+  value.sampling.allocationPeaks.cpuBytes.value = 20 * 1024 ** 2;
+  const measured = deriveLifecycleMeasurements(value, { cell }).measurements[0];
+  assert.equal(measured.value, 20 * 1024 ** 2); assert.equal(measured.complete, true);
+  assert.equal(value.cycles[0].resources.cpuBytes, 10 * 1024 ** 2);
+  for (const edit of [item => { item.scope = 'fresh-worker-process-lifetime-including-preparation'; }, item => { item.windowId = 'different-window'; }, item => { item.window.sealed = false; }, item => { item.artifact.sha256 = 'f'.repeat(64); }, item => { item.sourceOrdinal = 999; }]) {
+    const invalid = structuredClone(value); edit(invalid.sampling.allocationPeaks.cpuBytes);
+    invalid.sampling.allocationPeaks.cpuBytes.value = 1024 ** 3;
+    assert.equal(deriveLifecycleMeasurements(invalid, { cell }).measurements.length, 0);
+  }
+  const noWindow = structuredClone(value); delete noWindow.sampling.observationWindow;
+  assert.equal(deriveLifecycleMeasurements(noWindow, { cell }).measurements.length, 0);
+  noWindow.cycles[0].resourceSamples[0].cpuBytes = 512 * 1024 ** 2 + 1;
+  const failure = deriveLifecycleMeasurements(noWindow, { cell }).measurements[0];
+  assert.equal(failure.lowerBound, true); assert.equal(failure.value, 512 * 1024 ** 2 + 1);
+});
+
+function markActiveOwnedHandles(value) {
+  value.unusedHandles = null;
+  value.producer = { kind: 'adapter-resource-observation-1', coverage: { handles: false }, handleClassification: {
+    kind: 'scoped-handle-classification-1', complete: false, settled: false, retainedHandles: null,
+    activeOwners: { mainHandles: 1, workerMethods: 1, assetPreparations: 0, preparationPromises: 0, assetChunkLeases: 1, assetContentReaders: 0 },
+    serviceHandles: { main: 1, worker: 0 } } };
+  return value;
+}
+function activeBackendLifecycle() {
+  const value = backendAdapterLifecycle();
+  for (const cycle of value.cycles) { markActiveOwnedHandles(cycle.resourceSamples[0]); cycle.resourceSamples[0].cpuBytes = 200 * 1024 ** 2; }
+  return sealBackendCpuWindow(sealSampling(value));
+}
+const cpuOnlyCell = () => ({ ...adapterCell('C'), requiredMeasurements: [measurementRule('R18CpuAllocationBytes', 'R18', 'bytes', 512 * 1024 ** 2)] });
+
+test('C active owned handles stay explicitly unknown while complete CPU peaks and settled endpoints remain measurable', () => {
+  const value = activeBackendLifecycle(), cell = cpuOnlyCell();
+  assert.equal(evaluateWA(value, { cell }).outcome, 'PASS');
+  const row = deriveLifecycleMeasurements(value, { cell }).measurements[0];
+  assert.equal(row.value, 200 * 1024 ** 2); assert.equal(row.complete, true);
+  assert.equal(row.evidence.sampledPeak.unusedHandles, null);
+  assert.ok(value.cycles.every(cycle => cycle.resourceSamples[0].unusedHandles === null && cycle.resources.unusedHandles === 0));
+  assert.equal(value.B0.resources.unusedHandles, 0);
+});
+
+test('unknown active handles require explicit intact active-owner classification rather than an absent field or fake zero', () => {
+  for (const mutate of [
+    value => { delete value.producer; }, value => { value.unusedHandles = undefined; },
+    value => { value.producer.coverage.handles = true; }, value => { value.producer.handleClassification.settled = true; },
+    value => { value.producer.handleClassification.complete = true; }, value => { value.producer.handleClassification.retainedHandles = 0; },
+    value => { value.producer.handleClassification.activeOwners = Object.fromEntries(Object.keys(value.producer.handleClassification.activeOwners).map(key => [key, 0])); },
+    value => { value.producer.handleClassification.activeOwners.mainHandles = -1; }, value => { value.producer.handleClassification.serviceHandles.worker = null; },
+    value => { value.backendOwnership.coverage.proofHandles = false; }, value => { value.cpuBytes = null; },
+  ]) {
+    const value = activeBackendLifecycle(), cell = cpuOnlyCell(); mutate(value.cycles[0].resourceSamples[0]);
+    assert.equal(evaluateWA(value, { cell }).outcome, 'INCONCLUSIVE');
+    assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.length, 0);
+  }
+});
+
+test('active classification cannot replace B0 or post-release unused-handle checks or hide a measured breach', () => {
+  for (const endpoint of ['baseline', 'settled']) {
+    const value = activeBackendLifecycle(), cell = cpuOnlyCell();
+    markActiveOwnedHandles(endpoint === 'baseline' ? value.B0.resources : value.cycles[0].resources);
+    assert.equal(evaluateWA(value, { cell }).outcome, 'INCONCLUSIVE'); assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.length, 0);
+  }
+  const leaked = activeBackendLifecycle(); leaked.cycles[0].resources.unusedHandles = 1;
+  assert.equal(evaluateWA(leaked, { cell: cpuOnlyCell() }).outcome, 'FAIL');
+  const cap = activeBackendLifecycle(); cap.cycles[0].resourceSamples[0].cpuBytes = 512 * 1024 ** 2 + 1;
+  assert.equal(evaluateWA(cap, { cell: cpuOnlyCell() }).outcome, 'FAIL');
+  assert.equal(deriveLifecycleMeasurements(cap, { cell: cpuOnlyCell() }).measurements[0].lowerBound, true);
+  const known = activeBackendLifecycle(), transient = known.cycles[0].resourceSamples[0]; transient.unusedHandles = 3;
+  transient.producer.coverage.handles = true; transient.producer.handleClassification.complete = true; transient.producer.handleClassification.settled = true;
+  transient.producer.handleClassification.activeOwners = Object.fromEntries(Object.keys(transient.producer.handleClassification.activeOwners).map(key => [key, 0]));
+  transient.producer.handleClassification.retainedHandles = 3;
+  assert.equal(evaluateWA(known, { cell: cpuOnlyCell() }).outcome, 'PASS', 'An intermediate count is released by the actual end observation and measured deadline');
+  assert.equal(transient.unusedHandles, 3, 'The evaluator preserves the known intermediate count instead of rewriting it as zero');
+});
+
+test('H browser resource requirements do not inherit the C active-handle applicability exception', () => {
+  const value = sealSampling(adapterLifecycle()); markActiveOwnedHandles(value.cycles[0].resourceSamples[0]);
+  assert.equal(evaluateWA(value, { cell: adapterCell('H') }).outcome, 'INCONCLUSIVE');
+  assert.ok(evaluateWA(value, { cell: adapterCell('H') }).missing.includes('complete-resource-ledger-and-process-tree-RSS'));
+  const cell = { ...adapterCell('H'), requiredMeasurements: cpuOnlyCell().requiredMeasurements };
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.length, 0);
+});
+
+test('metric-specific lifecycle collector rows need every exact cycle and never infer zeros from assertions', () => {
+  const value = sealSampling(adapterLifecycle()), cell = adapterCell('H');
+  cell.requiredMeasurements = [measurementRule('T05IncompleteOrUnverifiedIdentityAcceptanceCount', 'T05', 'violations', 0), measurementRule('T06UnchangedOwnedAssetFetches', 'T06', 'count', 0)];
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.length, 0);
+  for (const cycle of value.cycles) cycle.action.measurements = cell.requiredMeasurements.map(rule => collectorRow(value, cell, cycle, rule.name, rule.unit, 0));
+  const unverified = deriveLifecycleMeasurements(value, { cell });
+  assert.deepEqual(unverified.measurements.map(item => item.name), ['T05IncompleteOrUnverifiedIdentityAcceptanceCount']);
+  assert.ok(unverified.unavailable.some(item => item.name === 'T06UnchangedOwnedAssetFetches'));
+  value.cycles[1].action.measurements[0].evidence.cellId = 'different-cell';
+  assert.deepEqual(deriveLifecycleMeasurements(value, { cell }).measurements, []);
+  value.cycles[0].action.measurements[0].value = 1;
+  const failed = deriveLifecycleMeasurements(value, { cell }).measurements.find(item => item.name.startsWith('T05'));
+  assert.equal(failed.value, 1); assert.equal(failed.lowerBound, true);
+  value.cycles[0].action.measurements[1].value = 1;
+  const partialFetch = deriveLifecycleMeasurements(value, { cell });
+  assert.equal(partialFetch.measurements.some(item => item.name.startsWith('T06')), false);
+  assert.deepEqual(partialFetch.unavailable.find(item => item.name === 'T06UnchangedOwnedAssetFetches'), {
+    name: 'T06UnchangedOwnedAssetFetches', reason: 'Every planned cycle needs a unique complete metric-specific row with exact cell/process/fixture binding and retained collector proof',
+  });
+  const duplicate = value.cycles[0].action.measurements[1]; value.cycles[0].action.measurements.push(structuredClone(duplicate));
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.some(item => item.name.startsWith('T06')), false);
+});
+
+test('H WA network zeros and positive counts cannot borrow serialized approval from another cohort', () => {
+  for (const profile of ['P-A', 'Q3-A']) for (const measured of [0, 1]) for (const complete of [true, false]) {
+    const value = sealSampling(adapterLifecycle()); value.profile = profile; const cell = adapterCell('H', profile);
+    cell.requiredMeasurements = [measurementRule('T06UnchangedOwnedAssetFetches', 'T06', 'count', 0), measurementRule('R32UnchangedOwnedAssetFetches', 'R32', 'count', 0), measurementRule('R32CacheIdentityMismatchCount', 'R32', 'violations', 0)];
+    for (const cycle of value.cycles) {
+      cycle.action.measurements = cell.requiredMeasurements.map(rule => {
+        const row = collectorRow(value, cell, cycle, rule.name, rule.unit, measured); row.complete = complete;
+        row.evidence.coverage = complete ? 'complete-cycle-actions' : 'observed-partial-cycle-actions'; return row;
+      });
+      // Collector rows have the current cohort's structural binding. The
+      // fabricated public approval belongs to another cohort and supplies no
+      // private retained replay, even when its claimed count exceeds a cap.
+      cycle.action.observations.browserWA = { kind: 'retained-wa-browser-observation-1', verified: true, approved: true,
+        scope: 'reviewed-selected-file-opaque-upload-and-owned-application-http-1', artifact: {path: 'borrowed-other-cohort.json', bytes: 1024, sha256: 'sha256:' + 'a'.repeat(64)},
+        binding: {cellId: cell.id + '-other-cohort', cycle: cycle.ordinal, processIdentity: 'other-process', fixtureIdentity: 'other-fixture'},
+        analysis: {authenticated: true, complete, assertions: {noBrowserTensorDecode: measured === 0, zeroUnexpectedFetches: measured === 0}, missing: [], failures: measured ? ['unexpected-owned-asset-fetch'] : [],
+          measurements: cycle.action.measurements.map(({name, value, unit, complete}) => ({name, value, unit, complete}))} };
+    }
+    for (const input of [value, structuredClone(value)]) {
+      const evaluated = evaluateWA(input, {cell}); assert.equal(evaluated.outcome, 'INCONCLUSIVE'); assert.deepEqual(evaluated.failures, []);
+      assert.deepEqual(evaluated.missing, ['WA:noBrowserTensorDecode', 'WA:zeroUnexpectedFetches']);
+      const derived = deriveLifecycleMeasurements(input, {cell}); assert.deepEqual(derived.measurements, []);
+      assert.deepEqual(derived.unavailable, cell.requiredMeasurements.map(({name}) => ({name,
+        reason: 'Every planned cycle needs a unique complete metric-specific row with exact cell/process/fixture binding and retained collector proof'})));
+    }
+  }
+});
+
+test('partial lifecycle collectors retain witnessed ceiling breaches without turning partial zero into a pass', () => {
+  const value = sealSampling(lifecycle()), cell = measurementCell(value);
+  cell.requiredMeasurements = [measurementRule('R21CommandUtf8Bytes', 'R21', 'bytes', 64 * 1024)];
+  for (const cycle of value.cycles) {
+    const row = collectorRow(value, cell, cycle, 'R21CommandUtf8Bytes', 'bytes', 0);
+    row.complete = false; row.evidence.coverage = 'observed-partial-cycle-actions'; cycle.action.measurements = [row];
+  }
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.length, 0);
+  value.cycles[0].action.measurements[0].value = 64 * 1024 + 1;
+  const row = deriveLifecycleMeasurements(value, { cell }).measurements[0];
+  assert.equal(row.value, 64 * 1024 + 1); assert.equal(row.lowerBound, true); assert.equal(row.complete, false);
+  value.cycles[0].action.measurements[0].complete = true;
+  assert.equal(deriveLifecycleMeasurements(value, { cell }).measurements.length, 0);
 });
 
 function visits(metric = 'INP') {
@@ -336,4 +850,109 @@ test('CW measured ceilings retain failure precedence with unavailable visits', (
 test('optional field results require real visits and full28day coverage, not localhost lab relabeling', () => {
   const field = visits(); field.profile = 'FIELD'; field.fieldWindow = { realUserVisits: false, startMs: 0, endMs: 28 * 86400_000 };
   assert.equal(evaluateVisits(field).outcome, 'INCONCLUSIVE');
+});
+
+function sealAppOwnedWindow({ cpuPeak = 300 * 1024 ** 2, gpuPeak = 100 * 1024 ** 2, previewPeak = 10 * 1024 ** 2 } = {}) {
+  const value = sealBrowserCpuWindow(sealSampling(lifecycle()), cpuPeak), sampling = value.sampling;
+  const endWindow = sampling.allocationPeaks.cpuBytes.window;
+  endWindow.currentBytes = 4;
+  const beginWindow = { ...structuredClone(endWindow), endMs: null, endSequence: null, textEndSequence: null, sealed: false,
+    currentBytes: value.B0.resources.cpuBytes, peakBytes: value.B0.resources.cpuBytes, ledgerBytesAtPeak: value.B0.resources.cpuBytes - 4,
+    textBytesAtPeak: 4, peakAtMs: endWindow.startMs + 1, peakSequence: endWindow.startSequence + 1 };
+  const combined = window => ({ kind: 'combined-cpu-observation-1', schemaVersion: 1, scope: 'browser-ledger-plus-text-reservations',
+    ledgerInstanceId: window.ledgerInstanceId, sequence: window.endSequence ?? window.peakSequence, currentBytes: window.currentBytes,
+    observedPeakBytes: 2 * 1024 ** 3, observationComplete: false, ownerCoverageComplete: false, missing: [...browserCpuGaps], window });
+  const begin = value.B0.resources;
+  begin.kind = 'manual'; begin.combinedCpu = combined(beginWindow); begin.rendererOwnershipProof = null;
+  const initialCpuBytes = begin.cpuBytes - 16;
+  begin.appOwnership = appOwnershipSpecimen(begin.combinedCpu, { initialCpuBytes, transitionCount: 1,
+    gpuBytes: begin.gpuBytes, previewCacheBytes: begin.previewCacheBytes });
+  const end = { kind: 'final', ordinal: sampling.counts.samples, processIdentity: sampling.processIdentity,
+    observation: sampling.observationWindow.endObservation, combinedCpu: combined(structuredClone(endWindow)),
+    rendererOwnershipProof: null, cpuWindowBoundary: 'end', cpuWindowAck: sampling.observationWindow.endAck };
+  end.appOwnership = appOwnershipSpecimen(end.combinedCpu, { initialCpuBytes, transitionCount: 3,
+    gpuBytes: begin.gpuBytes, previewCacheBytes: begin.previewCacheBytes, gpuPeak, previewPeak });
+  const candidate = appOwnedCpuCandidate(begin, end, sampling.processIdentity, sampling.observationWindow);
+  assert(candidate, 'The fabricated fixture must satisfy the structural join, without approving it');
+  sampling.appOwnedCpu = { ...structuredClone(candidate), artifact: { ...sampling.artifact } };
+  sampling.complete = false;
+  return value;
+}
+const appOwnedRows = value => deriveLifecycleMeasurements(value, { cell: { ...measurementCell(value), requiredMeasurements: [
+  measurementRule('R18CpuAllocationBytes', 'R18', 'bytes', 512 * 1024 ** 2),
+  measurementRule('R18GpuAllocationBytes', 'R18', 'bytes', 384 * 1024 ** 2),
+  measurementRule('R18PreviewCacheBytes', 'R18', 'bytes', 128 * 1024 ** 2),
+] } });
+
+test('unsigned app-owned CPU/GPU/cache windows stay inconclusive without global or RSS promotion', () => {
+  const value = sealAppOwnedWindow(), result = appOwnedRows(value);
+  assert.deepEqual(result.measurements, []);
+  assert.deepEqual(result.unavailable.map(row => row.name), ['R18CpuAllocationBytes', 'R18GpuAllocationBytes', 'R18PreviewCacheBytes']);
+  assert.equal(value.sampling.appOwnedCpu.complete, false); assert.equal(value.sampling.complete, false);
+  assert.equal(value.sampling.appOwnedCpu.end.appOwnership.window.globalCoverageComplete, false);
+  const rss = deriveLifecycleMeasurements(value, { cell: measurementCell(value) });
+  assert.equal(rss.measurements.some(row => row.name === 'R17BrowserProcessTreeRssBytes'), false);
+});
+
+test('exact R18 ceilings remain incomplete while genuine observed plus-one breaches remain failures', () => {
+  const caps = { cpuPeak: 512 * 1024 ** 2, gpuPeak: 384 * 1024 ** 2, previewPeak: 128 * 1024 ** 2 };
+  assert.deepEqual(appOwnedRows(sealAppOwnedWindow(caps)).measurements, []);
+  for (const [key, name] of [['cpuPeak', 'R18CpuAllocationBytes'], ['gpuPeak', 'R18GpuAllocationBytes'], ['previewPeak', 'R18PreviewCacheBytes']]) {
+    const result = appOwnedRows(sealAppOwnedWindow({ ...caps, [key]: caps[key] + 1 }));
+    assert.deepEqual(result.measurements.map(row => row.name), [name]);
+    assert.equal(result.measurements[0].value, caps[key] + 1);
+    assert.equal(result.measurements[0].complete, false); assert.equal(result.measurements[0].lowerBound, true);
+  }
+});
+
+test('caller approval flags, unknown proof and altered app seals cannot approve under-cap rows', () => {
+  for (const mutate of [
+    value => { value.sampling.appOwnedCpu.complete = true; },
+    value => { value.sampling.appOwnedCpu.artifact.sha256 = 'e'.repeat(64); },
+    value => { value.sampling.appOwnedCpu.rendererOwnershipProof = { kind: 'renderer-ownership-proof-2', reviewId: 'not-a-fixed-review' }; },
+    value => { value.sampling.appOwnedCpu.end.appOwnership.window.kinds[0].kind = 'unreviewed-kind'; },
+    value => { value.sampling.appOwnedCpu.startSourceOrdinal++; },
+  ]) {
+    const value = sealAppOwnedWindow(); mutate(value);
+    assert.deepEqual(appOwnedRows(value).measurements, []);
+  }
+});
+
+test('invalid app-owned closure cannot erase the existing genuine continuous CPU breach', () => {
+  const value = sealAppOwnedWindow({ cpuPeak: 600 * 1024 ** 2 });
+  value.sampling.appOwnedCpu.end.appOwnership.point.totals.cpuBytes++;
+  const row = appOwnedRows(value).measurements.find(item => item.name === 'R18CpuAllocationBytes');
+  assert.equal(row.value, 600 * 1024 ** 2); assert.equal(row.lowerBound, true); assert.equal(row.complete, false);
+});
+
+test('a failed final planned cycle cannot turn a full ordinal count into complete app observations', () => {
+  const value = sealAppOwnedWindow({ cpuPeak: 600 * 1024 ** 2 }), last = value.cycles.at(-1);
+  last.error = { name: 'Error', message: 'Actual final cycle interrupted before its observation' };
+  last.resources = null; last.resourceSamples = [];
+  const row = appOwnedRows(value).measurements.find(item => item.name === 'R18CpuAllocationBytes');
+  assert.equal(value.cycles.length, 2);
+  assert.equal(row.value, 600 * 1024 ** 2); assert.equal(row.lowerBound, true); assert.equal(row.complete, false);
+});
+
+test('GPU/cache preparation maxima remain diagnostic while actual in-window breaches still fail', () => {
+  for (const [key, name, cap] of [['gpuBytes', 'R18GpuAllocationBytes', 384 * 1024 ** 2], ['previewCacheBytes', 'R18PreviewCacheBytes', 128 * 1024 ** 2]]) {
+    const value = sealAppOwnedWindow();
+    value.sampling.peakSamples[key] = { ...structuredClone(value.B0.resources), [key]: cap + 1,
+      observation: { startMs: value.B0.observation.startMs - 2, endMs: value.B0.observation.startMs - 1 } };
+    value.sampling.peaks[key] = cap + 1;
+    assert.equal(appOwnedRows(value).measurements.some(row => row.name === name), false);
+    value.cycles[0].resourceSamples[0][key] = cap + 2;
+    const row = appOwnedRows(value).measurements.find(row => row.name === name);
+    assert.equal(row.value, cap + 2); assert.equal(row.lowerBound, true); assert.equal(row.complete, false);
+  }
+});
+
+test('final live-point allocations after sealing do not replace the scoped continuous maximum', () => {
+  for (const [key, name, cap] of [['cpuBytes', 'R18CpuAllocationBytes', 512 * 1024 ** 2], ['gpuBytes', 'R18GpuAllocationBytes', 384 * 1024 ** 2], ['previewCacheBytes', 'R18PreviewCacheBytes', 128 * 1024 ** 2]]) {
+    const value = sealAppOwnedWindow(), end = value.sampling.appOwnedCpu;
+    value.sampling.peakSamples[key] = { ...structuredClone(value.B0.resources), ordinal: end.endSourceOrdinal,
+      observation: structuredClone(end.endObservation), [key]: cap + 1 };
+    value.sampling.peaks[key] = cap + 1;
+    assert.equal(appOwnedRows(value).measurements.some(row => row.name === name), false);
+  }
 });

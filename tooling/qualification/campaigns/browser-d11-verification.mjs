@@ -7,6 +7,7 @@ import { analyzeD11Observation } from './browser-d11.mjs';
 import { deriveD11StaticDocument } from './browser-d11-build.mjs';
 import { deriveD11Roles } from './browser-d11-roles.mjs';
 import { D11_ROLE_CONTEXT, verifyD11RegistrationContract } from './browser-d11-registration.mjs';
+import { D11_INVOCATION_DEPENDENCY_PATHS, verifyD11CompilationCapture, verifyD11InvocationContract } from './browser-d11-invocation-contract.mjs';
 
 const HASH = /^sha256:[a-f0-9]{64}$/;
 const BARE_HASH = /^[a-f0-9]{64}$/;
@@ -119,6 +120,18 @@ function reproduceBuildMetadata(build) {
     return { path: pathName(input.path), rawBytes: input.bytes, sha256: 'sha256:' + input.sha256 };
   }).sort((a, b) => a.path.localeCompare(b.path));
   equal(build.sourceInputs, sourceInputs, 'D11 source inputs differ from finalized build evidence');
+  if (Object.hasOwn(evidence, 'dependencyInputs')) {
+    const dependencyInputs = array(evidence.dependencyInputs, 'retained finalized dependency inputs', { nonempty: true }).map(input => {
+      if (!object(input) || !integer(input.bytes) || input.bytes > 64 * 1024 || !BARE_HASH.test(input.sha256 ?? '')) throw Error('Invalid retained D11 dependency input');
+      equal(Object.keys(input).sort(), ['bytes', 'path', 'sha256'], 'D11 finalized dependency input fields differ');
+      return { path: pathName(input.path), rawBytes: input.bytes, sha256: 'sha256:' + input.sha256 };
+    }).sort((a, b) => a.path.localeCompare(b.path));
+    equal(dependencyInputs.map(input => input.path).sort(), D11_INVOCATION_DEPENDENCY_PATHS, 'D11 finalized dependency inventory differs from the reviewed profile');
+    equal(build.dependencyInputs, dependencyInputs, 'D11 dependency inputs differ from finalized build evidence');
+    equal(build.compilation, evidence.compilation, 'D11 compilation capture differs from finalized build evidence');
+  } else if (Object.hasOwn(build, 'dependencyInputs') || Object.hasOwn(build, 'compilation') || Object.hasOwn(evidence, 'compilation')) {
+    throw Error('D11 legacy build cannot acquire dependency provenance absent from finalized evidence');
+  }
 
   const entries = Object.entries(manifest), sourceByFile = new Map();
   for (const [, entry] of entries) {
@@ -189,8 +202,10 @@ function reproduceBuildMetadata(build) {
 function reproduceRoles(build, retained, sources) {
   const inputs = build.roleInputs;
   if (!object(inputs) || !object(inputs.sourceTextByPath) || !object(inputs.outputTextByFile)) throw Error('D11 retained role input bytes are absent');
-  equal(Object.keys(inputs).sort(), ['outputTextByFile', 'parser', 'registrationContract', 'sourceTextByPath'], 'D11 retained role input fields differ');
+  const hasInvocationCapture = Object.hasOwn(retained.buildEvidence, 'dependencyInputs');
+  equal(Object.keys(inputs).sort(), ['outputTextByFile', 'parser', 'registrationContract', 'sourceTextByPath', ...(hasInvocationCapture ? ['invocationContract'] : [])].sort(), 'D11 retained role input fields differ');
   equal(build.roleContext, D11_ROLE_CONTEXT, 'D11 startup role context differs from the fixed campaign boundary');
+  if (hasInvocationCapture) verifyD11CompilationCapture(build.compilation, { sourceTextByPath: inputs.sourceTextByPath });
   const registration = verifyD11RegistrationContract(inputs.registrationContract, { lock: retained.lock });
   const registrationPaths = new Set();
   for (const input of array(registration.inputs, 'registration input identities', { nonempty: true })) {
@@ -198,10 +213,19 @@ function reproduceRoles(build, retained, sources) {
     if (registrationPaths.has(path)) throw Error('Duplicate D11 registration input identity');
     registrationPaths.add(path);
   }
+  if (hasInvocationCapture && inputs.invocationContract !== null) {
+    // Registry archive identity is rooted in the retained lock SRI. Local
+    // En Reve archives additionally belong to the external source receipt;
+    // ignored node_modules files are never invented as source-receipt entries.
+    const invocation = verifyD11InvocationContract(inputs.invocationContract, { lock: retained.lock,
+      dependencyInputs: build.dependencyInputs, emittedModules: [...new Set(build.files.flatMap(file => file.modules))],
+      compilation: build.compilation, sourceTextByPath: inputs.sourceTextByPath, sourceInputs: build.sourceInputs, outputTextByFile: inputs.outputTextByFile });
+    for (const input of invocation.localArchiveInputs) bindIdentity(input, sources, 'invocation local archive');
+  }
   const version = retained.lock.packages['node_modules/rolldown']?.version;
   if (typeof version !== 'string' || version !== rolldownVersion) throw Error('D11 role replay parser differs from retained package lock');
   equal(inputs.parser, { name: 'rolldown', version }, 'D11 role parser identity differs from retained package lock');
-  const sourceInputs = build.sourceInputs.filter(input => /\.(?:[cm]?[jt]sx?|css|json)$/.test(input.path));
+  const sourceInputs = build.sourceInputs.filter(input => /\.(?:[cm]?[jt]sx?|css|json)$/.test(input.path) || hasInvocationCapture && input.path === 'index.html');
   equal(Object.keys(inputs.sourceTextByPath).sort(), sourceInputs.map(input => input.path).sort(), 'D11 retained role source inventory differs');
   const outputInputs = build.files.filter(file => ['js', 'css'].includes(file.kind));
   equal(Object.keys(inputs.outputTextByFile).sort(), outputInputs.map(file => file.file).sort(), 'D11 retained role output inventory differs');
@@ -218,7 +242,8 @@ function reproduceRoles(build, retained, sources) {
   }
   const roles = deriveD11Roles({ manifest: retained.manifest, files: build.files, sourceTextByPath: inputs.sourceTextByPath,
     outputTextByFile: inputs.outputTextByFile, parser: { name: 'rolldown', version, parseSync },
-    registrationContract: inputs.registrationContract, roleContext: build.roleContext });
+    registrationContract: inputs.registrationContract, roleContext: build.roleContext, lock: retained.lock,
+    ...(hasInvocationCapture ? { invocationContract: inputs.invocationContract, dependencyInputs: build.dependencyInputs, compilation: build.compilation, sourceInputs: build.sourceInputs } : {}) });
   equal(build.roles, roles, 'D11 roles differ from retained source and output bytes');
 }
 

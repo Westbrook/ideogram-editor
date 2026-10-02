@@ -1,6 +1,8 @@
+import {diagnosticMemory,DiagnosticReads,diagnosticPayloadBytes,type DiagnosticMemory,type DiagnosticLease} from '../../src/observability/diagnostic-memory.js';
 import {sanitizePhaseContext,type PhaseContext,type PhaseSnapshot} from '../../src/observability/phases.js';
 
-export const ACTIVE_COMPUTE_RESERVATION_BYTES=65536;
+import {ACTIVE_COMPUTE_RESERVATION_BYTES} from './resource-plan.js';
+export {ACTIVE_COMPUTE_RESERVATION_BYTES} from './resource-plan.js';
 export const ACTIVE_COMPUTE_INTERVAL_CAPACITY=128;
 const kernels=['accumulator','contribution','fold','finish','preserve','resample','matte','coverage-scan'] as const;
 export type RasterKernel=typeof kernels[number];
@@ -18,17 +20,21 @@ export type RasterWorkerSnapshot=PhaseSnapshot&{activeCompute?:ActiveComputeSnap
  * contributes to the scalar total. This is elapsed kernel time, not CPU time:
  * GC and OS descheduling remain included. No cross-lane subtraction occurs. */
 export class ActiveCompute {
-  private readonly now:()=>number;private readonly capacity:number;private readonly origin:number;private readonly context:PhaseContext;
+  private readonly now:()=>number;private readonly capacity:number;private readonly origin:number;private context:PhaseContext;private readonly lease:DiagnosticLease;private readonly reads:DiagnosticReads;private disposed=false;
   private depth=0;private suspended=0;private activeStart:number|null=null;private first:number|null=null;private lastEnd:number|null=null;
   private lastClock=0;private invalid=0;private total=0;private compensation=0;private count=0;private failed=false;
   private readonly intervals:{startMs:number;endMs:number}[]=[];
-  private readonly operations=Object.fromEntries(kernels.map(kind=>[kind,0])) as Record<RasterKernel,number>;
+  private readonly operations:Record<RasterKernel,number>;
   private outcome:'completed'|'failed'|'incomplete'|undefined;
-  constructor(options:{now?:()=>number;wallNow?:()=>number;capacity?:number;context?:PhaseContext}={}){
+  constructor(options:{now?:()=>number;wallNow?:()=>number;capacity?:number;context?:PhaseContext;memory?:DiagnosticMemory}={}){
     this.now=options.now??(()=>performance.now());this.capacity=options.capacity??ACTIVE_COMPUTE_INTERVAL_CAPACITY;
     if(!Number.isSafeInteger(this.capacity)||this.capacity<1||this.capacity>ACTIVE_COMPUTE_INTERVAL_CAPACITY)throw Error('ACTIVE_COMPUTE_CAPACITY');
-    this.context=sanitizePhaseContext(options.context??{});const at=this.clock(),origin=(options.wallNow??Date.now)()-at;
-    if(!Number.isFinite(origin)){this.invalid++;this.origin=0;}else this.origin=origin;
+    const memory=options.memory??diagnosticMemory;this.lease=memory.reserve('diagnostic-active-compute',2*ACTIVE_COMPUTE_RESERVATION_BYTES);
+    this.reads=new DiagnosticReads('diagnostic-active-read',4,memory);
+    try{this.operations=Object.fromEntries(kernels.map(kind=>[kind,0])) as Record<RasterKernel,number>;
+      this.context=sanitizePhaseContext(options.context??{});const at=this.clock(),origin=(options.wallNow??Date.now)()-at;
+      if(!Number.isFinite(origin)){this.invalid++;this.origin=0;}else this.origin=origin;
+    }catch(error){this.lease.release();throw error;}
   }
   private clock(){const value=this.now();if(!Number.isFinite(value)||value<0||value<this.lastClock){this.invalid++;return this.lastClock;}this.lastClock=value;return value;}
   private resume(){if(this.outcome===undefined&&this.depth&&this.suspended===0&&this.activeStart===null){this.activeStart=this.clock();this.first??=this.activeStart;}}
@@ -39,21 +45,23 @@ export class ActiveCompute {
   }
   private synchronous<T>(work:()=>T):T {const value=work();if(value!==null&&(typeof value==='object'||typeof value==='function')&&'then' in value)throw Error('ACTIVE_COMPUTE_ASYNC');return value;}
   run<T>(kind:RasterKernel,work:()=>T):T {
-    if(this.outcome!==undefined)throw Error('ACTIVE_COMPUTE_FINISHED');if(!kernels.includes(kind))throw Error('ACTIVE_COMPUTE_KERNEL');
+    if(this.disposed)throw Error('ACTIVE_COMPUTE_DISPOSED');if(this.outcome!==undefined)throw Error('ACTIVE_COMPUTE_FINISHED');if(!kernels.includes(kind))throw Error('ACTIVE_COMPUTE_KERNEL');
     this.operations[kind]++;this.depth++;this.resume();
     try{return this.synchronous(work);}catch(error){this.failed=true;throw error;}
     finally{if(--this.depth===0)this.pause();}
   }
   /** Used only around the actual synchronous read syscall on a lazy row miss. */
   exclude<T>(work:()=>T):T {
-    if(this.outcome!==undefined)throw Error('ACTIVE_COMPUTE_FINISHED');this.pause();this.suspended++;
+    if(this.disposed)throw Error('ACTIVE_COMPUTE_DISPOSED');if(this.outcome!==undefined)throw Error('ACTIVE_COMPUTE_FINISHED');this.pause();this.suspended++;
     try{return this.synchronous(work);}catch(error){if(this.depth)this.failed=true;throw error;}
     finally{this.suspended--;this.resume();}
   }
   finish(outcome:'completed'|'failed'|'incomplete'='completed'){
-    if(this.outcome===undefined){if(!['completed','failed','incomplete'].includes(outcome)){this.invalid++;outcome='incomplete';}if(this.depth||this.suspended){this.invalid++;this.pause();}this.outcome=this.failed||outcome==='failed'?'failed':outcome;}
-    return this.snapshot();
+    if(this.disposed)throw Error('ACTIVE_COMPUTE_DISPOSED');if(this.outcome===undefined){if(!['completed','failed','incomplete'].includes(outcome)){this.invalid++;outcome='incomplete';}if(this.depth||this.suspended){this.invalid++;this.pause();}this.outcome=this.failed||outcome==='failed'?'failed':outcome;}
+    return this.outcome;
   }
-  snapshot():ActiveComputeSnapshot{return {schemaVersion:1,kind:'raster-active-compute-1',lane:'raster-worker',clockOriginUnixMs:this.origin,clockUncertaintyMs:null,context:{...this.context},boundary:'synchronous-kernel-elapsed-excluding-io',outcome:this.outcome??(this.failed?'failed':'incomplete'),complete:this.outcome==='completed'&&!this.failed&&!this.invalid&&!this.depth&&!this.suspended,
+  readSnapshot(){if(this.disposed)throw Error('ACTIVE_COMPUTE_DISPOSED');return this.reads.read(4096+diagnosticPayloadBytes(this.context)+diagnosticPayloadBytes(this.intervals),()=>this.copySnapshot());}
+  dispose(){if(this.disposed)return;this.intervals.length=0;this.context={};this.reads.close();this.lease.release();this.disposed=true;}
+  private copySnapshot():ActiveComputeSnapshot{return {schemaVersion:1,kind:'raster-active-compute-1',lane:'raster-worker',clockOriginUnixMs:this.origin,clockUncertaintyMs:null,context:{...this.context},boundary:'synchronous-kernel-elapsed-excluding-io',outcome:this.outcome??(this.failed?'failed':'incomplete'),complete:this.outcome==='completed'&&!this.failed&&!this.invalid&&!this.depth&&!this.suspended,
     startedMs:this.first,endedMs:this.lastEnd,unionMs:this.total,totalMs:this.total,intervalCount:this.count,intervals:this.intervals.map(interval=>({...interval})),omittedIntervals:this.count-this.intervals.length,invalid:this.invalid,operations:{...this.operations}};}
 }

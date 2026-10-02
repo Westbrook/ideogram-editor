@@ -6,7 +6,8 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { validateSeal, safeRelative, fileIdentity, loadFixture, runCell, createPortableFixture, PORTABLE_FAULTS } from '../../tooling/qualification/campaigns/backend-portable.mjs';
+import { DatabaseSync } from 'node:sqlite';
+import { validateSeal, safeRelative, fileIdentity, loadFixture, runCell, createPortableFixture, portableInputIdentity, PORTABLE_FAULTS } from '../../tooling/qualification/campaigns/backend-portable.mjs';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
 const identity = value => ({ sha256: sha(value), byteLength: String(Buffer.byteLength(value)) });
@@ -143,4 +144,58 @@ test('retained cohort captures its cell identity before the caller mutates its m
   await assert.rejects(fixture.resetCell(cell), { code: 'PORTABLE_COHORT_CHANGED' });
   assert.equal((await fixture.resetCell()).status, 'pass');
   await fixture.close();
+});
+
+test('WC source digest includes transaction, record and root ancestry beyond equal payloads and counts', () => {
+  // Real SQLite rows exercise the source-digest function. This small index is
+  // not a valid WC archive and is never evidence of full workload execution.
+  const db = new DatabaseSync(':memory:');
+  try {
+    db.exec(`
+      CREATE TABLE entities(kind TEXT,id TEXT,json TEXT,record_hash TEXT,PRIMARY KEY(kind,id)) STRICT;
+      CREATE TABLE events(seq TEXT PRIMARY KEY,tx TEXT,json TEXT) STRICT;
+      CREATE TABLE refs(hash TEXT PRIMARY KEY,bytes TEXT,media TEXT) STRICT;
+      CREATE TABLE transactions(archive TEXT,id TEXT,command_id TEXT,first_seq TEXT,last_seq TEXT,json TEXT,PRIMARY KEY(archive,id)) STRICT;
+      CREATE TABLE records(hash TEXT PRIMARY KEY,kind TEXT,id TEXT,json TEXT) STRICT;
+      CREATE TABLE portable_roots(kind TEXT,id TEXT,hash TEXT,PRIMARY KEY(kind,id)) STRICT;
+      CREATE TABLE dependency_edges(owner TEXT,kind TEXT,id TEXT,hash TEXT,PRIMARY KEY(owner,kind,id,hash)) STRICT;
+    `);
+    const blobHash='sha256:'+sha('unchanged object bytes'),recordHash='sha256:'+sha('original entity record'),dependencyHash='sha256:'+sha('original dependency'),otherHash='sha256:'+sha('changed ancestry');
+    db.prepare('INSERT INTO entities VALUES (?,?,?,?)').run('document','doc',JSON.stringify({id:'doc',revision:'1'}),recordHash);
+    db.prepare('INSERT INTO events VALUES (?,?,?)').run('1','tx',JSON.stringify({eventId:'event',transactionId:'tx',workspaceSeq:'1'}));
+    db.prepare('INSERT INTO refs VALUES (?,?,?)').run(blobHash,'22','application/octet-stream');
+    const transaction={schemaVersion:1,kind:'transaction',sourceArchive:null,receipt:{status:'accepted',commandId:'command',fromSeq:'1',toSeq:'1',documentRevision:'1',transactionId:'tx'},eventCount:'1',eventsHash:'sha256:'+sha('event')};
+    db.prepare('INSERT INTO transactions VALUES (?,?,?,?,?,?)').run('','tx','command','1','1',JSON.stringify(transaction));
+    db.prepare('INSERT INTO records VALUES (?,?,?,?)').run(recordHash,'document','doc',JSON.stringify({kind:'entity',logicalId:'doc',dependencies:[]}));
+    db.prepare('INSERT INTO portable_roots VALUES (?,?,?)').run('document','doc',recordHash);
+    db.prepare('INSERT INTO dependency_edges VALUES (?,?,?,?)').run(recordHash,'asset','original-asset',dependencyHash);
+    const manifest={formatVersion:13,documentSchema:13,sourceNamespace:'source-namespace',complete:true,capturedHighWater:'1',segments:[{path:'records/0.jsonl'}]};
+    const payloadRows=()=>({entities:db.prepare('SELECT kind,id,json FROM entities ORDER BY kind,id').all(),events:db.prepare('SELECT * FROM events ORDER BY seq').all(),refs:db.prepare('SELECT * FROM refs ORDER BY hash').all()});
+    const originalRows=payloadRows(),originalDigest=portableInputIdentity(db,manifest);
+    const mutations=[
+      ['transaction provenance',()=>db.prepare('UPDATE transactions SET archive=?,json=?').run(otherHash,JSON.stringify({...transaction,sourceArchive:otherHash}))],
+      ['entity record identity',()=>db.prepare('UPDATE entities SET record_hash=?').run(otherHash)],
+      ['record dependency envelope',()=>db.prepare('UPDATE records SET json=?').run(JSON.stringify({kind:'entity',logicalId:'doc',dependencies:[{kind:'asset',logicalId:'original-asset',recordHash:dependencyHash}]}))],
+      ['declared root identity',()=>db.prepare('UPDATE portable_roots SET hash=?').run(otherHash)],
+      ['dependency ancestry',()=>db.prepare('UPDATE dependency_edges SET hash=?').run(otherHash)],
+    ];
+    for(const [name,mutate] of mutations){
+      db.exec('SAVEPOINT changed_ancestry');
+      try {
+        mutate();
+        assert.deepEqual(payloadRows(),originalRows,`${name}: entity payloads, events, references and their counts stayed equal`);
+        assert.notEqual(portableInputIdentity(db,manifest),originalDigest,`${name} must change exact source identity`);
+      } finally {db.exec('ROLLBACK TO changed_ancestry');db.exec('RELEASE changed_ancestry');}
+      assert.equal(portableInputIdentity(db,manifest),originalDigest,'Rollback restores the exact baseline identity');
+    }
+    for(const field of ['formatVersion','documentSchema','sourceNamespace','complete']) {
+      const changed={...manifest,[field]:field==='complete'?false:typeof manifest[field]==='number'?manifest[field]-1:'another-namespace'};
+      assert.notEqual(portableInputIdentity(db,changed),originalDigest,`${field} is source identity`);
+    }
+    assert.equal(portableInputIdentity(db,{...manifest,capturedHighWater:'999',segments:[{path:'records/repacked.jsonl'}]}),originalDigest,
+      'Declared global high-water and segment packaging exclusions do not erase source ancestry checks');
+    const canceled=new Error('cancel source walk');let calls=0;
+    assert.throws(()=>portableInputIdentity(db,manifest,()=>{calls++;throw canceled;}),error=>error===canceled);
+    assert.equal(calls,1,'The actual row walk observes cancellation');
+  } finally {db.close();}
 });

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { constants } from 'node:fs';
 import { open, rename, unlink } from 'node:fs/promises';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 export const QUEUE_WORKER_MODULE = new URL('./backend-queue-worker.mjs', import.meta.url).href;
 export const QUEUE_CONFIG_FILE = 'qualification-queue-config.json';
@@ -83,6 +83,7 @@ export async function prepareQueueWorker(root, context = {}) {
   const selected = context.fixture?.corpus?.files?.find(file => ['candidate-result', 'candidate', 'fast-fault-candidate'].includes(file.role) && Number(file.byteLength) === 8 * 1024 * 1024);
   const config = {
     schema: 'qualification-queue-worker-1', root: resolve(root), repo: resolve(context.repo ?? process.cwd()),
+    diagnosticOutput: resolve(context.output ?? dirname(root)),
     nonce: randomBytes(32).toString('hex'),
     fixture: selected ? { corpus: { files: [{ role: selected.role, path: resolve(context.fixture.root ?? context.repo ?? process.cwd(), selected.path), byteLength: String(selected.byteLength), sha256: selected.sha256, width: selected.width, height: selected.height }] } } : null,
     resultFiles: resultFixture?.files ?? null, resultFixture,
@@ -127,6 +128,7 @@ export async function connectQueueWorker(root, { signal } = {}) {
     proxyPair: (jobId, attemptId) => command('proxyPair', { jobId, attemptId }),
     tick: endpoint => command('tick', { endpoint }),
     snapshot: endpoint => command('snapshot', { endpoint }),
+    cacheOwner: () => command('cacheOwner'),
     resources: () => command('resources'),
     closeNamespace: endpoint => command('closeNamespace', { endpoint }),
     setSnapshotBoundary: boundary => command('setSnapshotBoundary', { boundary }),

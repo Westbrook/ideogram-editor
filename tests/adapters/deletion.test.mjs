@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { AdapterDeletions } from '../../dist/local/server/storage/adapter-deletion.js';
 import { canonical } from '../../dist/local/src/protocol/json.js';
 import { EMPTY_EXPECTED_VERSIONS } from '../../dist/local/src/protocol/store.js';
-import { command, encode, rootFor, expectedBytes } from '../store/helpers.mjs';
+import { command, encode, rootFor } from '../store/helpers.mjs';
 import { openWriter } from '../../dist/local/server/storage/writer.js';
 import { readFile, mkdir, chmod } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -30,7 +30,7 @@ function fixture(t, root = null) {
     CREATE TABLE history_preparations(id TEXT PRIMARY KEY,canonical TEXT,frozen TEXT);
     CREATE TABLE portable_preparations(id TEXT PRIMARY KEY,canonical TEXT,frozen TEXT);`);
   const a = auth(); db.prepare('INSERT INTO client_bindings VALUES(?,?,?)').run(a.sessionHash, a.clientId, String(a.expires));
-  const buffers = new Map([[EMPTY_EXPECTED_VERSIONS.hash, expectedBytes]]), roots = new Map(), receipts = new Map(); let event;
+  const buffers = new Map(), roots = new Map(), receipts = new Map(); let event;
   const objects = {
     putMetadata(bytes) { const ref = { hash: sha(bytes), byteLength: String(bytes.length), mediaType: 'application/json' }; buffers.set(ref.hash, Buffer.from(bytes)); return ref; },
     verify(ref) { const bytes = buffers.get(ref.hash); if (!bytes || sha(bytes) !== ref.hash) throw Error('missing object'); return bytes; },
@@ -178,12 +178,14 @@ test('source-only saved request drafts retain candidate ancestry after source do
 
 test('pending SaveCopy inspects the sealed captured asset closure after current drafts are cleared', async t => {
   const root = await rootFor(t), f = fixture(t, root), directory = join(root, 'portable', 'capture_1');
+  // The persisted SaveCopy command also retains its typed precondition manifest.
+  assert.deepEqual(f.metadata({ entities: [], schemaVersion: 1 }), EMPTY_EXPECTED_VERSIONS);
   await mkdir(directory, { recursive: true, mode: 0o700 });
   const path = join(directory, 'capture.sqlite'), capture = new DatabaseSync(path);
   capture.exec('CREATE TABLE entities(kind TEXT,id TEXT,json TEXT)'); capture.prepare('INSERT INTO entities VALUES(?,?,?)').run('asset', f.asset.id, canonical(f.asset)); capture.close(); await chmod(path, 0o600);
   const frozen = { capture: 'capture_1', captureHash: sha(await readFile(path)), document: { id: 'document_1' } }, copy = command(EMPTY_EXPECTED_VERSIONS, { body: { type: 'SaveCopy' } });
   f.db.prepare('INSERT INTO portable_preparations VALUES(?,?,?)').run('copy_command', canonical(copy), canonical(frozen));
-  let plan = f.preview(); assert.equal(plan.canDelete, false); assert.equal(plan.dependencies[0].kind, 'provenance'); assert.match(plan.dependencies[0].detail, /pending SaveCopy capture/);
+  let plan = f.preview(); assert.equal(plan.canDelete, false); assert.equal(plan.dependencies[0].kind, 'provenance'); assert.match(plan.dependencies[0].detail, /pending SaveCopy capture/); assert.equal(plan.dependencyCount, 1, 'complete command metadata leaves only the captured adapter dependency');
   const without = new DatabaseSync(path); without.prepare('DELETE FROM entities').run(); without.close();
   plan = f.preview(); assert.equal(plan.canDelete, false); assert.equal(plan.dependencies[0].kind, 'unavailable', 'changed captured file must not grant deletion');
   frozen.captureHash = sha(await readFile(path)); f.db.prepare('UPDATE portable_preparations SET frozen=?').run(canonical(frozen));

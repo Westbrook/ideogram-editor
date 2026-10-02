@@ -1,18 +1,21 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { assetProjectionSchema } from '../src/protocol/asset-projection.js';
 import { randomUUID } from 'node:crypto';
 import { DISPLAY_HEADERS, validDisplayRequest, type DisplayRequest } from '../src/protocol/display.js';
 import type { Session } from './sessions.js';
 import type { Writer } from './storage/writer.js';
 import { isId, isSeq } from './storage/canonical.js';
 import { ProtocolError } from './errors.js';
-import { parseControlJSON, readControlBytes } from './control-json.js';
-import { sendJSON } from './protocol.js';
+import { parseControlJSON, consumeControlBytes } from './control-json.js';
+import { observeProtocolStream, sendJSON, writeProtocolBytes } from './protocol.js';
 import type { AssetAuth } from './storage/assets.js';
+import { adapterResources } from './observability/adapter-resources.js';
 export type AssetRoute={allow:string[];kind:string;id?:string;query:string[]};
 export class AssetRoutes {
   private streams=0;
   constructor(private writer:Writer,private now:()=>number){}
-  auth(s:Session):AssetAuth{return {clientId:s.clientId,sessionHash:s.cookieHash,expires:Math.min(s.expires,s.idle),now:this.now()};}
+  // Storage authority uses whole milliseconds; flooring the deadline never extends it.
+  auth(s:Session):AssetAuth{return {clientId:s.clientId,sessionHash:s.cookieHash,expires:Math.floor(Math.min(s.expires,s.idle)),now:Math.floor(this.now())};}
   match(path:string):AssetRoute|null {
     const display=/^\/api\/v1\/assets\/([^/]+)\/(display|display-tile)$/.exec(path);
     if(display){if(!isId(display[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:display[2]==='display'?'asset-display':'asset-display-tile',id:display[1],query:display[2]==='display'?['identity','basis','edge']:['identity','basis','lod','x','y']};}
@@ -20,6 +23,8 @@ export class AssetRoutes {
     if(path==='/api/v1/assets/staging/recovery')return {allow:['GET'],kind:'asset-inventory',query:['cursor']};
     const sample=/^\/api\/v1\/assets\/([^/]+)\/sample$/.exec(path);
     if(sample){if(!isId(sample[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-sample',id:sample[1],query:['x','y']};}
+    const inspection=/^\/api\/v1\/assets\/raster-import-inspections\/([^/]+)$/.exec(path);
+    if(inspection){if(!isId(inspection[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-raster-import-inspection',id:inspection[1],query:[]};}
     let raster=/^\/api\/v1\/assets\/raster-reviews\/([^/]+)$/.exec(path);
     if(raster){if(!isId(raster[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:'asset-raster-review',id:raster[1],query:[]};}
     raster=/^\/api\/v1\/assets\/([^/]+)\/raster$/.exec(path);
@@ -33,6 +38,7 @@ export class AssetRoutes {
     return null;
   }
   async handle(req:IncomingMessage,res:ServerResponse,route:AssetRoute,params:URLSearchParams,authenticate:()=>Session,assertRoot:()=>Promise<void>){
+    return adapterResources.scope('asset-http',async()=>{
     const auth=()=>this.auth(authenticate());const id=route.id!;
     if(route.kind==='asset-display'||route.kind==='asset-display-tile'){
       const number=(key:string)=>{const value=params.get(key);if(value===null||!isSeq(value)||!Number.isSafeInteger(Number(value)))throw new ProtocolError('MALFORMED_REQUEST');return Number(value);};
@@ -41,9 +47,10 @@ export class AssetRoutes {
       if(!validDisplayRequest(request))throw new ProtocolError('MALFORMED_REQUEST');
       await this.display(req,res,id,request,authenticate,assertRoot);return;
     }
-    if(route.kind==='asset-create'){const value=parseControlJSON(await readControlBytes(req));await assertRoot();const result=await this.writer.assetCreate(value,auth());authenticate();sendJSON(res,result.created?201:200,result.record);}
+    if(route.kind==='asset-create'){const value=await consumeControlBytes(req,bytes=>parseControlJSON(bytes));await assertRoot();const result=await this.writer.assetCreate(value,auth());authenticate();sendJSON(res,result.created?201:200,result.record);}
     else if(route.kind==='asset-inventory'){const cursor=params.get('cursor');if(cursor!==null&&!isId(cursor))throw new ProtocolError('MALFORMED_REQUEST');const result=await this.writer.assetInventory(cursor,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-review'){const result=await this.writer.assetReview(id,auth());authenticate();sendJSON(res,200,result);}
+    else if(route.kind==='asset-raster-import-inspection'){const result=await this.writer.rasterImportInspection(id,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-raster-review'){const result=await this.writer.rasterReview(id,auth());authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-sample'){const x=params.get('x'),y=params.get('y');if(x===null||y===null||!isSeq(x)||!isSeq(y))throw new ProtocolError('MALFORMED_REQUEST');const result=await this.writer.rasterSample(id,Number(x),Number(y));authenticate();sendJSON(res,200,result);}
     else if(route.kind==='asset-raster-manifest'){const result=await this.writer.rasterManifest(id);authenticate();sendJSON(res,200,result);}
@@ -55,15 +62,18 @@ export class AssetRoutes {
       if(BigInt(length)>1048576n)throw new ProtocolError('PAYLOAD_TOO_LARGE');
       const token=await this.writer.assetBeginChunk(id,offset,Number(length),auth());
       try{
-        const bytes=Buffer.alloc(Number(length));let at=0;let checkedAt=this.now();req.setTimeout(30000,()=>req.destroy());
-        for await(const chunk of req){authenticate();if(this.now()-checkedAt>=30000){await assertRoot();await this.writer.assetCheckChunk(token,auth());checkedAt=this.now();}if(at+chunk.length>bytes.length)throw new ProtocolError('PAYLOAD_TOO_LARGE');bytes.set(chunk,at);at+=chunk.length;}
+        const bytes=adapterResources.retain('asset-http','upload-copy',Buffer.alloc(Number(length)));let at=0;let checkedAt=this.now();req.setTimeout(30000,()=>req.destroy());
+        const releaseStream=adapterResources.handle('asset-http','upload-stream');
+        try{for await(const chunk of req){const releaseChunk=chunk instanceof Uint8Array?adapterResources.buffer('asset-http','incoming-chunk',chunk):()=>{};try{authenticate();if(this.now()-checkedAt>=30000){await assertRoot();await this.writer.assetCheckChunk(token,auth());checkedAt=this.now();}if(at+chunk.length>bytes.length)throw new ProtocolError('PAYLOAD_TOO_LARGE');bytes.set(chunk,at);at+=chunk.length;}finally{releaseChunk();}}}finally{releaseStream();}
         if(at!==bytes.length)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const result=await this.writer.assetChunk(token,bytes,auth());authenticate();sendJSON(res,200,result);
       }finally{await this.writer.assetAbortChunk(token);}
-    }else if(route.kind==='asset-view'){const view=await this.writer.assetProjection(id);if(!view.asset)throw new ProtocolError('NOT_FOUND');authenticate();sendJSON(res,200,{protocolVersion:1,entityVersion:view.asset.version,projectionSchema:2,highWater:view.highWater,projection:{kind:'inline',value:view.asset}});}
+    }else if(route.kind==='asset-view'){const view=await this.writer.assetProjection(id);if(!view.asset)throw new ProtocolError('NOT_FOUND');authenticate();sendJSON(res,200,{protocolVersion:1,entityVersion:view.asset.version,projectionSchema:assetProjectionSchema(view.asset),highWater:view.highWater,projection:{kind:'inline',value:view.asset}});}
     else if(route.kind==='asset-content')await this.content(req,res,id,authenticate,assertRoot);
+    });
   }
   private async display(req:IncomingMessage,res:ServerResponse,id:string,request:DisplayRequest,authenticate:()=>Session,assertRoot:()=>Promise<void>){
     if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
+    const releaseStream=observeProtocolStream(res,'content-stream');
     const handle=randomUUID();let ended=false,canceled=false,cancellation:Promise<void>|undefined,sessionError:unknown;
     const cancel=()=>{if(!ended){canceled=true;cancellation??=this.writer.displayRelease(handle);void cancellation.catch(()=>{});}};
     req.once('aborted',cancel);res.once('close',cancel);
@@ -75,15 +85,16 @@ export class AssetRoutes {
       const headers:Record<string,string>={'Content-Type':info.mediaType,'Content-Length':info.byteLength,ETag:'"'+info.hash+'"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"};
       for(const [field,header] of Object.entries(DISPLAY_HEADERS))headers[header]=String(info[field as keyof typeof DISPLAY_HEADERS]);
       res.writeHead(200,headers);
-      for(let at=0;at<Number(info.byteLength);){await assertRoot();authenticate();if(res.destroyed||req.aborted)return;const n=Math.min(32768,Number(info.byteLength)-at),bytes=await this.writer.displayRead(handle,String(at),n);authenticate();if(res.destroyed)return;await new Promise<void>((resolve,reject)=>res.write(bytes,error=>error?reject(error):resolve()));at+=n;}
+      for(let at=0;at<Number(info.byteLength);){await assertRoot();authenticate();if(res.destroyed||req.aborted)return;const n=Math.min(32768,Number(info.byteLength)-at),bytes=await this.writer.displayRead(handle,String(at),n),releaseBytes=adapterResources.buffer('asset-http','display-copy',bytes);try{authenticate();if(res.destroyed)return;await writeProtocolBytes(res,bytes);at+=n;}finally{this.writer.releaseResourceBytes(bytes);releaseBytes();}}
       res.end();
-    }finally{
+    }catch(error){releaseStream();throw error;}finally{
       ended=true;clearInterval(timer);req.off('aborted',cancel);res.off('close',cancel);
       try{await cancellation;}finally{try{await this.writer.displayRelease(handle);}finally{this.streams--;}}
     }
   }
   private async content(req:IncomingMessage,res:ServerResponse,id:string,authenticate:()=>Session,assertRoot:()=>Promise<void>){
     if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
+    const releaseStream=observeProtocolStream(res,'content-stream');
     let handle:string|undefined;
     try {
       authenticate();const verified=await this.writer.assetVerify(id);handle=verified.handle;const asset=verified.asset;authenticate();const ref=asset.blob;const total=BigInt(ref.byteLength);let start=0n;let end=total-1n;let status=200;const etag='"'+ref.hash+'"';
@@ -97,7 +108,7 @@ export class AssetRoutes {
       }
       res.writeHead(status,{'Content-Type':asset.measuredMediaType,'Content-Disposition':asset.measuredMediaType==='image/png'?'attachment; filename="image.png"':asset.measuredMediaType==='image/jpeg'?'attachment; filename="image.jpg"':'attachment; filename="asset.txt"','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",'X-Content-Type-Options':'nosniff','Cache-Control':'no-store',ETag:etag,'Accept-Ranges':'bytes','Content-Length':String(end-start+1n),...(status===206?{'Content-Range':`bytes ${start}-${end}/${total}`}:{})});
       if(req.method==='HEAD'){res.end();return;}
-      for(let at=start;at<=end;){await assertRoot();authenticate();const n=Number(end-at+1n>32768n?32768n:end-at+1n);const bytes=await this.writer.assetContent(id,handle,String(at),n);authenticate();if(res.destroyed)return;await new Promise<void>((resolve,reject)=>res.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}res.end();
-    }finally{if(handle)await this.writer.assetRelease(handle);this.streams--;}
+      for(let at=start;at<=end;){await assertRoot();authenticate();const n=Number(end-at+1n>32768n?32768n:end-at+1n);const bytes=await this.writer.assetContent(id,handle,String(at),n),releaseBytes=adapterResources.buffer('asset-http','content-copy',bytes);try{authenticate();if(res.destroyed)return;await writeProtocolBytes(res,bytes);at+=BigInt(n);}finally{this.writer.releaseResourceBytes(bytes);releaseBytes();}}res.end();
+    }catch(error){releaseStream();throw error;}finally{try{if(handle)await this.writer.assetRelease(handle);}finally{this.streams--;}}
   }
 }

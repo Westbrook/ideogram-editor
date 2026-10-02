@@ -65,16 +65,18 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     await click(page,'Edit text');await expect(text).toHaveValue('Retained exact font\nAccepted appearance survives.');
     await expect(page.getByText('Missing exact font bytes. Frozen appearance is retained when available. Relink or preview a substitution before reflow.',{exact:true})).toBeVisible();
     await evidence.scan('missing-exact-font');
-    await click(page,'Preview text');await expect(page.getByRole('region',{name:'Text editing',exact:true}).getByText('Missing exact font bytes. Accepted appearance is retained; relink or preview a substitution.',{exact:true})).toBeVisible();
+    const fontFailure='Text: Missing exact font bytes. Draft and accepted appearance are retained; relink the exact font or preview a substitution.';
+    await click(page,'Preview text');await expect(page.locator('#native-text-error')).toHaveText(fontFailure);await expect(page.getByRole('region',{name:'Operation status',exact:true}).getByText(fontFailure,{exact:true})).toBeVisible();
     await expect(text).toHaveAttribute('aria-invalid','true');await expect(text).toHaveAttribute('aria-errormessage','native-text-error');
-    await expect(text).toHaveAccessibleDescription(/Missing exact font bytes/);
+    await expect(text).toHaveAccessibleDescription(/Text: Missing exact font bytes.*relink the exact font or preview a substitution/);
     await expect(text).toHaveValue('Retained exact font\nAccepted appearance survives.');
     await evidence.scan('missing-font-preview-error');await click(page,'Cancel text edit');
     phase='copy-with-missing-exact-dependency';await click(page,'Save copy');await click(page,'Prepare complete copy');
-    const copyDialog=page.getByRole('dialog',{name:'Full-history portable copy',exact:true});await expect(copyDialog).toBeVisible();
-    await expect(copyDialog.getByRole('region',{name:'Action needs attention',exact:true})).toBeVisible();
-    await expect(copyDialog.getByRole('region',{name:'Action needs attention',exact:true})).toBeFocused();
-    await expect(copyDialog).toContainText('Content unavailable or missing. Accepted records are retained; restore the exact resource, then reconnect.');
+    const copyDialog=page.getByRole('dialog',{name:'Save project copy',exact:true});await expect(copyDialog).toBeVisible();
+    const copyContent=page.locator('#editor-dialog');
+    await expect(copyContent.getByRole('region',{name:'Action needs attention',exact:true})).toBeVisible();
+    await expect(copyContent.getByRole('region',{name:'Action needs attention',exact:true})).toBeFocused();
+    await expect(copyContent).toContainText('Content unavailable or missing. Accepted records are retained; restore the exact resource, then reconnect.');
     await expect(page.getByRole('region',{name:'Prepared file',exact:true})).toHaveCount(0);
     await evidence.scan('copy-missing-dependency');await page.keyboard.press('Escape');
     // Relink through the real font upload/finalize/import path. Merely moving
@@ -86,7 +88,7 @@ test('AX01 real missing-font and full-history copy failure recover through exact
     await expect.poll(async()=>createHash('sha256').update(await readFile(original!)).digest('hex')).toBe(font.sha256);
     faultActive=false;
     await expect(text).toHaveValue('Retained exact font\nAccepted appearance survives.');await evidence.scan('exact-font-relinked');
-    await click(page,'Preview text');await expect(page.getByText('Text preview ready. Accepted appearance is unchanged.',{exact:true})).toBeVisible();await click(page,'Cancel text edit');
+    await click(page,'Preview text');await expect(page.getByText('Text preview ready. Accepted appearance is unchanged.',{exact:true})).toBeVisible();await expect(page.locator('#native-text-error')).toHaveCount(0);await expect(text).toHaveAttribute('aria-invalid','false');await expect(text).not.toHaveAttribute('aria-errormessage');await expect(text).toHaveAttribute('aria-describedby','native-text-policy');await click(page,'Cancel text edit');
     phase='copy-after-exact-recovery';await click(page,'Save copy');await click(page,'Prepare complete copy');
     await expect(page.getByRole('region',{name:'Prepared file',exact:true})).toContainText('Full-history copy');await expect(copyDialog).toBeHidden();
     await evidence.scan('copy-after-exact-recovery');await evidence.finish();

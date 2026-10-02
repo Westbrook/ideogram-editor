@@ -1,5 +1,5 @@
 import {randomUUID,createHash} from 'node:crypto';
-import {unlinkSync,readdirSync,lstatSync,openSync,readSync,closeSync,rmdirSync,constants} from 'node:fs';
+import {unlinkSync,readdirSync,lstatSync,openSync,readSync,closeSync,rmdirSync,fstatSync,constants} from 'node:fs';
 import {dirname,join} from 'node:path';
 import type {DatabaseSync} from 'node:sqlite';
 import type {BlobRef,Receipt} from '../../src/protocol/store.js';
@@ -11,7 +11,7 @@ import type {AssetAuth} from './assets.js';
 import {AssetRejection} from './assets.js';
 import {canonical,hashBytes,parseCommand,isId} from './canonical.js';
 import {StoreError} from './errors.js';
-import {syncDirectory,assertPrivate,assertComponents} from './files.js';
+import {syncDirectory,assertPrivate,assertComponents,sameFile} from './files.js';
 
 type Root={owner:string;hash:string;media_type:string;byte_length:string};
 const deletionTypes=['PreviewDocumentDeletion','DeleteDocument','CollectDocumentGarbage'];
@@ -75,11 +75,48 @@ export class Deletions {
    LEFT JOIN candidate_document_tombstones t ON t.document_id=e.document_id
    WHERE e.attempt_id=? AND e.document_id!=? AND t.document_id IS NULL LIMIT 1`).get(meta.attemptId,documentId);
  }
+ /** Only GC may read a strictly inspected record after its own durable body unlink.
+  * The paired intents were captured atomically before collection. They remain the
+  * authority after a crash; ordinary evidence inspection still requires the body. */
+ private evidenceMetadata(recordId:string):{recordId:string;attemptId:string;direction:string;retainedBytes:string}{
+  try{return this.queue.evidence.inspect(recordId);}catch(error){
+   if((error as {code?:string})?.code!=='PROVENANCE')throw error;
+   const bodyPath=join(this.queue.evidence.directory,recordId+'.body'),metadataPath=join(this.queue.evidence.directory,recordId+'.json');
+   try{lstatSync(bodyPath);throw error;}catch(missing){if((missing as NodeJS.ErrnoException).code!=='ENOENT')throw missing;}
+   // Discovery scans other deleted documents too. Resolve the actual pair owner,
+   // rather than granting authority from whichever document initiated this scan.
+   const intent=this.db.prepare(`SELECT body.bytes AS body_bytes,body.hash AS body_hash,metadata.bytes,metadata.hash
+    FROM deletion_files body JOIN deletion_files metadata ON metadata.document_id=body.document_id AND metadata.path=?
+    JOIN deletion_receipts receipt ON receipt.document_id=body.document_id
+    JOIN candidate_document_tombstones tombstone ON tombstone.document_id=body.document_id
+    WHERE body.path=? AND body.state IN ('unlinking','freed') AND metadata.state IN ('quarantined','unlinking','rescued')
+     AND json_extract(receipt.json,'$.accepted')=1 AND json_extract(receipt.json,'$.documentId')=body.document_id
+     AND json_extract(receipt.json,'$.generation')=tombstone.generation ORDER BY body.document_id LIMIT 1`).get(metadataPath,bodyPath);
+   if(!intent)throw error;
+   const bytes=Number(intent.bytes);
+   if(!/^(0|[1-9][0-9]{0,4})$/.test(String(intent.bytes))||!Number.isSafeInteger(bytes)||bytes<1||bytes>65536)throw new StoreError('CORRUPT_OBJECT');
+   assertComponents(this.queue.evidence.directory);const before=assertPrivate(metadataPath,false);
+   if(before.size!==bytes)throw new StoreError('CORRUPT_OBJECT');
+   const fd=openSync(metadataPath,constants.O_RDONLY|constants.O_NOFOLLOW);
+   try{
+    if(!sameFile(before,fstatSync(fd)))throw new StoreError('CORRUPT_OBJECT');
+    const content=Buffer.alloc(bytes);let at=0;
+    while(at<bytes){const count=readSync(fd,content,at,bytes-at,at);if(!count)throw new StoreError('CORRUPT_OBJECT');at+=count;}
+    const after=fstatSync(fd),current=assertPrivate(metadataPath,false);
+    if(!sameFile(before,after)||!sameFile(after,current)||after.size!==bytes||current.size!==bytes||after.mtimeMs!==before.mtimeMs||after.ctimeMs!==before.ctimeMs||current.mtimeMs!==after.mtimeMs||current.ctimeMs!==after.ctimeMs||createHash('sha256').update(content).digest('hex')!==intent.hash)throw new StoreError('CORRUPT_OBJECT');
+    const value:unknown=JSON.parse(content.toString('utf8'));
+    if(!value||typeof value!=='object'||Array.isArray(value))throw new StoreError('CORRUPT_OBJECT');
+    const meta=value as Record<string,unknown>;
+    if(meta.recordId!==recordId||meta.class!=='backend-transport'||typeof meta.attemptId!=='string'||!/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/.test(meta.attemptId)||(meta.direction!=='request'&&meta.direction!=='response')||meta.retainedBytes!==intent.body_bytes||meta.sha256!==intent.body_hash)throw new StoreError('CORRUPT_OBJECT');
+    return {recordId,attemptId:meta.attemptId,direction:meta.direction,retainedBytes:String(meta.retainedBytes)};
+   }finally{closeSync(fd);}
+  }
+ }
  private fileProtected(path:string,documentId:string){
   if(this.backupFile(path))return true;
   const prefix=this.queue.evidence.directory+'/';if(!path.startsWith(prefix))return false;
   const match=/^([0-9a-f-]{36})\.(?:body|json)$/.exec(path.slice(prefix.length));if(!match)throw new StoreError('CORRUPT_STORE');
-  try{return this.backupFile(join(this.queue.evidence.directory,match[1]+'.json'))||this.evidenceProtected(this.queue.evidence.inspect(match[1]),documentId);}
+  try{return this.backupFile(join(this.queue.evidence.directory,match[1]+'.json'))||this.evidenceProtected(this.evidenceMetadata(match[1]),documentId);}
   catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;try{assertPrivate(path,false);}catch(missing){if((missing as NodeJS.ErrnoException).code==='ENOENT')return false;throw missing;}throw new StoreError('CORRUPT_OBJECT');}
  }
  private work(documentId:string){
@@ -92,7 +129,7 @@ export class Deletions {
   }
   const jobs=this.db.prepare("SELECT json FROM queue_jobs WHERE json_extract(json,'$.documentId')=?").all(documentId).map(r=>JSON.parse(String(r.json))),attempts=new Set<string>();for(const j of jobs)for(const a of j.attempts)attempts.add(a.id);
   for(const row of this.db.prepare('SELECT attempt_id FROM candidate_adoption_evidence WHERE document_id=?').all(documentId))attempts.add(String(row.attempt_id));
-  for(const name of readdirSync(this.queue.evidence.directory).filter(n=>n.endsWith('.json'))){const meta=this.queue.evidence.inspect(name.slice(0,-5));if(!attempts.has(meta.attemptId))continue;
+  for(const name of readdirSync(this.queue.evidence.directory).filter(n=>n.endsWith('.json'))){const meta=this.evidenceMetadata(name.slice(0,-5));if(!attempts.has(meta.attemptId))continue;
    if(this.evidenceProtected(meta,documentId)||this.backupFile(join(this.queue.evidence.directory,name))){for(const suffix of ['.body','.json'])try{retainFile(join(this.queue.evidence.directory,meta.recordId+suffix));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}continue;}
    for(const suffix of ['.body','.json']){const path=join(this.queue.evidence.directory,meta.recordId+suffix);try{visit(path);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
   }

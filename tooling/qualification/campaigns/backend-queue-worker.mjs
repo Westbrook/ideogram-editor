@@ -1,7 +1,9 @@
 // Loaded exclusively through openWriter's internal setupModule test hook.
 import assert from 'node:assert/strict';
+import {queueCacheOwner} from './backend-wq-cache.mjs';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
+import { retainDiagnosticEvidence } from './diagnostic-evidence.mjs';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { threadId } from 'node:worker_threads';
@@ -10,6 +12,7 @@ import { readPrivateJSON, writePrivateJSON, QUEUE_CONFIG_FILE, QUEUE_READY_FILE 
 
 const ENDPOINTS = new Set(['ideogram/v4', 'ideogram/v4/fast', 'ideogram/v4/instant']);
 const STATUSES = new Set(['IN_QUEUE', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'FAILED']);
+const DIAGNOSTIC_RESPONSE = Symbol('owned-qualification-diagnostic-response');
 const DEFAULT_CONTROLS = Object.freeze({ status: 'IN_QUEUE', dropAcknowledgement: false, mediaStatus: 200, offline: false });
 
 function object(value) { assert(value && typeof value === 'object' && !Array.isArray(value), 'Control object required'); return value; }
@@ -106,6 +109,7 @@ export async function startQueueControl(store, config, { startProvider = startFi
   async function operation(name, args) {
     object(args);
     switch (name) {
+      case 'cacheOwner': return queueCacheOwner(store, config.repo);
       case 'configure': {
         const selected = await routeFor(args.endpoint), options = controls(args.options ?? {});
         for (const id of options.jobIds ?? []) enroll(selected, id);
@@ -161,7 +165,11 @@ export async function startQueueControl(store, config, { startProvider = startFi
         return snapshot(route);
       }
       case 'snapshot': { if (args.endpoint === undefined) return { routes: [...routes.values()].map(snapshot), worker }; const route = routes.get(endpoint(args.endpoint)); assert(route, 'Fixture route is not configured'); return snapshot(route); }
-      case 'resources': return { objects: store.objects.reservationInventory(), raster: store.rasters.diagnostics(), ...worker };
+      case 'resources': {
+        const read = store.rasters.readDiagnostics();
+        try { return { [DIAGNOSTIC_RESPONSE]: read, objects: store.objects.reservationInventory(), ...worker }; }
+        catch (error) { read.release(); throw error; }
+      }
       case 'closeNamespace': {
         const route = routes.get(endpoint(args.endpoint)); assert(route, 'Fixture route is not configured');
         if (!route.closed) { await route.fixture.close(); route.closed = true; }
@@ -206,20 +214,37 @@ export async function startQueueControl(store, config, { startProvider = startFi
   }
   const server = createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store');
-    const respond = (status, value) => { res.statusCode = status; res.end(JSON.stringify(value)); };
-    if (closing || req.method !== 'POST' || req.url !== '/control' || !authorized(req) || req.headers['content-type'] !== 'application/json') { req.resume(); respond(403, { ok: false, error: { code: 'FIXTURE_CONTROL', message: 'Private fixture control required' } }); return; }
-    if (pending >= 8) { req.resume(); respond(429, { ok: false, error: { code: 'FIXTURE_CONTROL_BUSY', message: 'Fixture command queue full' } }); return; }
-    ++pending;
+    const respond = (status, value) => new Promise((resolveResponse, rejectResponse) => {
+      const cleanup = () => { res.off('finish', finished); res.off('close', closedResponse); res.off('error', failed); };
+      const finished = () => { cleanup(); resolveResponse(); };
+      const failed = error => { cleanup(); rejectResponse(error); };
+      const closedResponse = () => { if (res.writableFinished) finished(); else failed(Error('DIAGNOSTIC_RESPONSE_CLOSED')); };
+      res.once('finish', finished); res.once('close', closedResponse); res.once('error', failed);
+      try { if (res.destroyed) throw Error('DIAGNOSTIC_RESPONSE_CLOSED'); res.statusCode = status; res.end(JSON.stringify(value)); }
+      catch (error) { failed(error); }
+    });
+    if (closing || req.method !== 'POST' || req.url !== '/control' || !authorized(req) || req.headers['content-type'] !== 'application/json') { req.resume(); await respond(403, { ok: false, error: { code: 'FIXTURE_CONTROL', message: 'Private fixture control required' } }).catch(() => {}); return; }
+    if (pending >= 8) { req.resume(); await respond(429, { ok: false, error: { code: 'FIXTURE_CONTROL_BUSY', message: 'Fixture command queue full' } }).catch(() => {}); return; }
+    ++pending; let diagnosticRead, responseBody;
     try {
       let length = 0; const chunks = [];
       for await (const chunk of req) { length += chunk.length; assert(length <= 65536, 'Fixture command too large'); chunks.push(chunk); }
       const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
       assert.equal(value.schema, 'qualification-queue-command-1'); assert.equal(value.epoch, store.epoch, 'Stale fixture worker epoch');
       const next = tail.then(() => { assert(!closing, 'Fixture is closing'); return operation(value.operation, value.args); });
-      tail = next.catch(() => {});
-      const result = await next; respond(200, { ok: true, result: result ?? null });
-    } catch (error) { respond(400, { ok: false, error: { name: error.name, code: error.code ?? 'FIXTURE_CONTROL', message: error.message } }); }
-    finally { --pending; }
+      // The serial tail must not retain a resolved diagnostic response graph.
+      tail = next.then(() => undefined, () => undefined);
+      const result = await next; diagnosticRead = result?.[DIAGNOSTIC_RESPONSE];
+      if (diagnosticRead) {
+        const raster = await retainDiagnosticEvidence(config.diagnosticOutput, 'queue-raster-resources', diagnosticRead.value);
+        responseBody = { objects: { reservedBytes: result.objects.reservedBytes, activeTransfers: result.objects.activeTransfers }, raster, threadId: result.threadId, epoch: result.epoch };
+        // The receiver needs the actual worker/object scalars and the complete
+        // retained raster artifact, not a parsed native diagnostic graph.
+        diagnosticRead.release(); diagnosticRead = undefined;
+      } else responseBody = result ?? null;
+      await respond(200, { ok: true, result: responseBody });
+    } catch (error) { if (!res.destroyed && !res.writableEnded) await respond(400, { ok: false, error: { name: error?.name ?? 'Error', code: error?.code ?? 'FIXTURE_CONTROL', message: error?.message ?? String(error) } }).catch(() => {}); }
+    finally { responseBody = undefined; try { diagnosticRead?.release(); } finally { --pending; } }
   });
   server.requestTimeout = 125000; server.headersTimeout = 10000;
   server.on('connection', socket => { sockets.add(socket); socket.once('close', () => sockets.delete(socket)); });

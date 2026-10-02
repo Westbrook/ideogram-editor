@@ -8,7 +8,7 @@ import {createHash} from 'node:crypto';
 import {commandSchedule, commandBudgets, developerCommandPlan, summarizeCommands, observeD11Build} from '../../tooling/qualification/developer-campaigns/commands.mjs';
 import {caseIdentity, classifySuite, validateBrowserSelection, validateFocused, nodeClassification, exactPattern, nativeNodeBrowserFiles, contractsForCase} from '../../tooling/qualification/developer-campaigns/selectors.mjs';
 import BrowserReporter from '../../tooling/qualification/developer-campaigns/browser-reporter.mjs';
-import {execute, json} from '../../tooling/qualification/developer-campaigns/common.mjs';
+import {cleanEnvironment, execute, json} from '../../tooling/qualification/developer-campaigns/common.mjs';
 import {browserCacheIdentity} from '../../tooling/qualification/developer-campaigns/verify-browsers.mjs';
 import {campaignPlan, parseCampaignOptions} from '../../tooling/qualification/developer-campaigns/run.mjs';
 
@@ -170,7 +170,12 @@ test('exact Node patterns escape operators and stable method IDs cannot cross na
   assert.throws(() => caseIdentity('U', '../elsewhere', 'same'), /Unsafe/);
   assert.equal(nodeClassification('tests/store/core.test.mjs').guard, 'tests/store/no-network.mjs');
   assert.equal(nodeClassification('tests/provider/runtime.test.mjs').guard, 'tests/provider/no-egress.mjs');
-  assert.equal(nativeNodeBrowserFiles.length, 5);
+  assert.equal(nativeNodeBrowserFiles.length, 7);
+  assert(nativeNodeBrowserFiles.includes('tests/browser/wa-observation.test.mjs'));
+  assert.deepEqual(nodeClassification('tests/browser/wa-observation.test.mjs'), {method: 'B', guard: 'tests/session/no-egress.mjs', contracts: ['B-controls']});
+  assert.equal(nodeClassification('tests/campaigns/browser-wa-requests.test.mjs').method, 'U');
+  assert(nativeNodeBrowserFiles.includes('tests/editor/model-memory-browser.test.mjs'));
+  assert.deepEqual(nodeClassification('tests/editor/model-memory-browser.test.mjs'), {method: 'B', guard: 'tests/session/no-egress.mjs', contracts: ['B-controls']});
   for (const file of nativeNodeBrowserFiles) assert.equal(nodeClassification(file).method, 'B');
 });
 test('reporter retains framework identity and full title without changing stable leaf name', () => {
@@ -204,4 +209,27 @@ test('browser cache seals auxiliary headless/resources and refuses links outside
   assert.equal((await browserCacheIdentity(cache)).sha256, before.sha256);
   await writeFile(join(cache, 'chromium', 'headless-shell'), 'changed'); assert.notEqual((await browserCacheIdentity(cache)).sha256, before.sha256);
   await writeFile(join(directory, 'outside'), 'private'); await symlink('../outside', join(cache, 'escape')); await assert.rejects(browserCacheIdentity(cache), /leaves its sealed cache/);
+});
+
+test('campaign clean environment preserves only the explicitly configured D11 archive cache', async t => {
+  const directory = await mkdtemp(join(await realpath(tmpdir()), 'developer-d11-environment-'));
+  t.after(() => rm(directory, {recursive: true, force: true}));
+  const npmCache = join(directory, 'owned-install-cache'), browserCache = join(directory, 'browsers');
+  const explicit = join(directory, 'selected archive cache');
+  const configured = await cleanEnvironment({workspace: join(directory, 'configured'), npmCache, browserCache,
+    env: {IE_D11_NPM_CACHE: explicit, npm_config_cache: '/unselected', NODE_OPTIONS: '--import untrusted.mjs'}});
+  assert.equal(configured.IE_D11_NPM_CACHE, explicit);
+  assert.equal(configured.npm_config_cache, npmCache);
+  assert.equal(Object.hasOwn(configured, 'NODE_OPTIONS'), false);
+  for (const [name, env] of [['absent', {}], ['install-only', {npm_config_cache: explicit}]]) {
+    const clean = await cleanEnvironment({workspace: join(directory, name), npmCache, browserCache, env});
+    assert.equal(Object.hasOwn(clean, 'IE_D11_NPM_CACHE'), false);
+    assert.equal(clean.npm_config_cache, npmCache);
+  }
+  // Preserve invalid explicit configuration for the strict reader to reject;
+  // environmental cleanup must not silently replace it with a usable cache.
+  for (const [name, value] of [['empty', ''], ['relative', 'relative-cache']]) {
+    const clean = await cleanEnvironment({workspace: join(directory, name), npmCache, browserCache, env: {IE_D11_NPM_CACHE: value}});
+    assert.equal(clean.IE_D11_NPM_CACHE, value);
+  }
 });

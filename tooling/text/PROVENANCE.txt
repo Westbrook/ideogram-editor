@@ -73,3 +73,80 @@ Memory admission and lifetime policy: MEMORY.txt. A hard32MiB native maximum plu
 bounded external allocations permits representative Latin/Arabic/CJK work inside
 the shared reservation ceilings. This is logical preallocation accounting, not
 measured RSS, a full envelope promise or P3 timing/platform/resource qualification.
+
+Application-source profile adoption
+
+After reviewed application-source changes, retain the exact previous
+src/text/profile.json bytes under src/text/retained-profiles/<id-prefix>.json
+and add that explicit ID to the appropriate existing renderer/verification
+compatibility branches before resealing. A stable streamed predecessor must
+retain streaming admission and exact layout-byte verification; it must not
+fall back to historical canonical-reordering limits. Current draft acceptance
+continues to require the new current profile. Historical source and dependency
+hashes are never rewritten.
+
+From the final integrated checkout, with the pinned Node toolchain, run:
+  node tooling/text/seal-profile.mjs
+  npm run verify:text
+
+The established producer regenerates src/text/profile.json,
+vendor/text/manifest.json and vendor/text/FILES.json from the actual final
+application inputs. These are generated metadata, not native engine binaries.
+Preserve all WASM, glue, tarball, font, license and package-lock bytes. Rebuild
+app/server outputs after the generated profile changes and run the affected
+layout/retained-profile tests plus the required real native-text gates. The
+producer and verifier establish sealed inputs and ABI only; neither qualifies
+native platform behavior, measured memory, rendering equivalence or timing.
+
+The integrated source adoption retains the prior 68efa85f profile verbatim.
+Its normalized-frame layout and streaming budget remain explicit compatibility
+contracts. The older 7a4dbc6c insertion-order restoration stays unchanged.
+
+The combined CPU observer source adoption retains the exact 6d77f925 profile
+verbatim. Its normalized-frame layout, streamed admission and exact layout hash
+verification remain explicit. The reservation observer changes sealed adapter
+source identity; it does not issue a native engine, font or pixel qualification.
+Generate the successor only after all coordinated source changes are installed.
+
+The complete adapter ownership source adoption retains the exact c6ca02c2
+profile verbatim. This predecessor keeps normalized frame bytes, streaming
+admission and exact layout hash verification. The source recipe includes the
+new server/observability/adapter-resources.ts dependency used by the text host;
+that observer has only Node built-in imports. It changes observation source
+identity, not the native engine, font, safety or rendering contract. Generate
+the successor from the final integrated sources using the established producer.
+
+The local JSON response framing source adoption retains the exact 1c399d52
+profile verbatim before resealing server/http.ts, an existing source-recipe
+input. It remains a stable streamed predecessor with normalized frame bytes
+and exact layout hash verification. HTTP framing changes neither the native
+engine nor the text rendering contract. Apply the reviewed HTTP and retention
+sources together before the official producer generates the new current ID.
+
+The deferred exact-profile manifest source adoption retains the exact e648eede
+profile verbatim before resealing src/text/durable.ts, an existing adapter-source
+input. This predecessor keeps normalized frame bytes, streaming admission and
+exact layout hash verification. Deferring manifest loading changes no native
+engine, font or rendering contract. Apply the reviewed manifest-loading and
+retention sources together before the official producer generates the current ID.
+
+The startup profile projection source adoption retains the exact 891a4688
+profile verbatim before resealing the reviewed durable and memory adapter
+sources. This predecessor keeps normalized frame bytes, streaming admission
+and exact layout hash verification. Selecting the required profile fields
+changes no native engine, font or rendering contract. Apply the reviewed
+projection, compatibility and fixture sources together before the established
+producer generates the successor profile and metadata; preserve all native
+engine, tarball, font, license and package-lock bytes.
+
+The text resource observation source adoption retains the exact b96236b0
+profile verbatim before resealing memory.ts and its synchronous realm-local
+diagnostic-memory source bridge. The browser ledger binds the real text pool
+before font/parser/worker/output bookings; worker realms retain their separate
+borrowed diagnostic owner. The predecessor keeps normalized frame bytes,
+streaming admission and exact layout hash verification. Resource journal code
+and a sealed profile are not memory, timing or native rendering qualification.
+Apply the reviewed ownership and retained compatibility sources together before
+running seal-profile.mjs and verify:text. Preserve every native engine, tarball,
+font, license, package-lock and older retained-profile byte. Only the established
+producer may write the three generated metadata outputs from final sources.

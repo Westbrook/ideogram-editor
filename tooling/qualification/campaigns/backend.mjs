@@ -2,6 +2,8 @@ import { access } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createProductFixture, phase, result } from './backend-common.mjs';
 import { normalizeBackendMeasurements } from './backend-measurements.mjs';
+import {isWQCacheCell, prepareWQCache, retainWQStore} from './backend-wq-cache.mjs';
+import {isFastWarmCell, prepareFastWarmProof} from './backend-fast-warm-proof.mjs';
 
 export const supportedOperations = Object.freeze([
   'queue.fault', 'queue.proxy-pair', 'queue.healthy-polling', 'fast.workflow',
@@ -30,7 +32,7 @@ export function routeCell(cell) {
 /** A group owns one adapter; the controller owns cold-process and warm-prime
  * policy. Each reset is retained independently from the measured operation. */
 export function createBackendAdapter(context) {
-  let active = null, stopped = false, resetReceipt = null, hasExecuted = false, activeCellKey = null;
+  let active = null, stopped = false, resetReceipt = null, hasExecuted = false, activeCellKey = null, wqCache = null, fastWarmSession = null, previousFastWarmPacket = null;
   async function closeActive() { if (active) { const previous = active; active = null; await previous.close(); } }
   const adapter = {
     supportedCells,
@@ -45,6 +47,7 @@ export function createBackendAdapter(context) {
       const cellKey = JSON.stringify([cell.operation, cell.workload, cell.parameters ?? {}]);
       if (activeCellKey !== null && activeCellKey !== cellKey) throw Error('A backend adapter owns one logical cell; different fixture families need separate adapters');
       activeCellKey = cellKey;
+      fastWarmSession = null;
       if (cell.operation.startsWith('portable.')) {
         if (!active) {
           const { createPortableFixture } = await import('./backend-portable.mjs');
@@ -77,35 +80,46 @@ export function createBackendAdapter(context) {
         resetReceipt = await active.resetCell(cell, sample);
         return resetReceipt;
       }
-      if (active?.queueWorker && hasExecuted && sample.cache === 'warm') {
+      if (active?.queueWorker && hasExecuted && sample.cache === 'warm' && !isWQCacheCell(cell)) {
         const { resetWarmProductFixture } = await import('./backend-reset.mjs');
         resetReceipt = await resetWarmProductFixture(active, context, cell, sample);
+        if (isFastWarmCell(cell, sample)) fastWarmSession = await prepareFastWarmProof(active, context, cell, sample, { reset: resetReceipt, previous: previousFastWarmPacket });
         return resetReceipt;
       }
+      const previousWQRoot=isWQCacheCell(cell)?active?.root:null;
       await phase(phases, 'previous-owned-writer-close', closeActive);
+      const wqPreviousStore=previousWQRoot?await phase(phases,'wq-cache.retain-previous-store',()=>retainWQStore(previousWQRoot)):null;
+      wqCache = null;
       // Queue cells need an independently reset journal before the submit clock.
       // Pure CP checks own no writer. Portable cells have stronger sealed-copy
       // verification and preserve their complete reset phases in their result.
       if (['queue.fault', 'queue.proxy-pair', 'queue.healthy-polling', 'fast.workflow'].includes(cell.operation)) {
         const restartRequired = cell.operation === 'queue.fault' && ['backend-restart', 'disk-full-admission'].includes(cell.parameters?.scenario);
-        active = await phase(phases, 'new-private-journal-and-writer', () => createProductFixture({ ...context, queueFixture: !restartRequired, queueFixtureCell: cell }));
+        active = await phase(phases, 'new-private-journal-and-writer', () => createProductFixture({ ...context, queueFixture: isWQCacheCell(cell) || !restartRequired, queueFixtureCell: cell }));
       }
+      if (isWQCacheCell(cell)) wqCache = await prepareWQCache(active, {...context,wqPreviousStore}, cell, sample, phases);
       resetReceipt = result(cell, phases, { ...sample, root: active?.root ?? null, reset: 'Fresh private journal namespace; previous root retained', harnessPid: process.pid, writerWorkerRestarted: !!active, operatingSystemPageCache: 'not purged or inferred', providerAttemptsReused: false });
+      if (isFastWarmCell(cell, sample)) fastWarmSession = await prepareFastWarmProof(active, context, cell, sample, { reset: resetReceipt, previous: previousFastWarmPacket });
       return resetReceipt;
     },
     async execute(cell, sample = {}) {
       if (stopped) throw Error('Backend adapter is closed');
       context.signal?.throwIfAborted(); const route = routeCell(cell), module = await import(route.module);
       try {
-        const runContext = { ...context, ...(active ? { productFixture: active } : {}), sample };
+        const runContext = { ...context, ...(active ? { productFixture: active } : {}), sample, warmCell:cell, wqCacheSession:wqCache, ...fastWarmSession?.runContext };
+        await fastWarmSession?.enter();
         const outcome = await (active?.portable ? active.runCell(runContext, route.cell) : module.runCell(runContext, route.cell));
+        if (fastWarmSession) previousFastWarmPacket = await fastWarmSession.finish(outcome);
+        else if (isFastWarmCell(cell, sample)) { outcome.status = outcome.status === 'fail' ? 'fail' : 'inconclusive'; outcome.missing.push('Exact Fast input, retained writer and per-sample preparation proof are required'); }
+        if (wqCache) await wqCache.finish(outcome);
+        else if (isWQCacheCell(cell)) { outcome.status = outcome.status === 'fail' ? 'fail' : 'inconclusive'; outcome.missing.push('Exact restarted WQ seed and final-connection cache preparation proof are required'); }
         hasExecuted = true;
         outcome.observations = { ...outcome.observations, resetReceipt, sample, productRepository: context.repo };
         if (resetReceipt?.qualification?.status === 'inconclusive') {
           outcome.status = outcome.status === 'fail' ? 'fail' : 'inconclusive';
           outcome.missing.push(...(resetReceipt.qualification.missing ?? resetReceipt.qualification.reasons ?? ['Warm reset qualification is incomplete']));
         }
-        if (sample.cache === 'warm' && active && !active.rasterState && !active.queueWorker && !active.transfer && !active.portable && !active.compositionState) {
+        if (sample.cache === 'warm' && active && !wqCache && !active.rasterState && !active.queueWorker && !active.transfer && !active.portable && !active.compositionState) {
           outcome.status = outcome.status === 'fail' ? 'fail' : 'inconclusive';
           outcome.missing.push('Warm harness process is retained, but this reset restarts the product writer worker; a qualified retained-writer warm reset is required');
         }

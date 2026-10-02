@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {canonical} from '../../../dist/local/src/protocol/json.js';
-import {event as validateEvent,entity,id,seq,keys} from '../../../dist/local/src/protocol/validate.js';
+import {id,seq,keys} from '../../../dist/local/src/protocol/validate.js';
+import {supportsProjectionSchema,projectionEvent,projectionEntity} from '../../../dist/local/src/protocol/projection-schema.js';
 const one=(rows,label)=>{assert.equal(rows.length,1,label);return rows[0];};
 const same=(a,b)=>canonical(a)===canonical(b);
 const contextKeys=['recoveryId','writerEpoch','highWater','projectionSchema'];
@@ -23,7 +24,7 @@ function referenceBoundary(e,c,starts,owner){
  if(p.association!=='unique-frame-time-window'||p.eligibleRequests?.length!==1||p.eligibleRequests[0]!==p.requestId||!Number.isInteger(p.requestId)||p.requestId<=0||p.concurrentOperations?.length!==0||p.requestFrame!==x.frameId||!owned(p,x)||p.operation!==x.operation||p.url!==x.url||p.responseURL!==x.url||p.browserResponseURL!==x.url||p.kind!=='response'||p.method!=='GET'||p.start!==x.start||p.redirectedFrom!==null||p.redirected||p.fromServiceWorker||!Number.isFinite(p.responseAt)||p.responseAt<x.start||!Number.isFinite(p.requestStart)||p.requestStart<x.start-2||p.requestStart>p.responseAt+2||!same(p.owners,x.owners))return null;
  return x;
 }
-function recoveryContext(v){keys(v,['recoveryId','writerEpoch','projectionSchema','highWater','expiresAt']);assert(id(v.recoveryId)&&seq(v.writerEpoch)&&seq(v.highWater)&&[2,3,4,5,6,7,8].includes(v.projectionSchema)&&Number.isFinite(Date.parse(v.expiresAt)));}
+function recoveryContext(v){keys(v,['recoveryId','writerEpoch','projectionSchema','highWater','expiresAt']);assert(id(v.recoveryId)&&seq(v.writerEpoch)&&seq(v.highWater)&&supportsProjectionSchema(v.projectionSchema)&&Number.isFinite(Date.parse(v.expiresAt)));}
 export function sseDescriptor(d,proof){
  const c=d.control;assert.equal(c.kind,'sse-frame');assert(c.completeFrame&&c.frameOrdinal>0&&c.byteStart>=0&&c.byteEnd>c.byteStart&&c.byteEnd<=c.deliveredCount&&c.deliveredByRead>0);assert.deepEqual(c.parserFailures,[]);
  assert.equal(c.readerNumber,1);assert.equal(proof.readerCount,1);assert.equal(proof.association,'unique-frame-time-window');assert.equal(proof.responseStatus,200);assert.equal(proof.status,200);assert.equal(proof.redirectedFrom,null);assert(!proof.redirected&&!proof.fromServiceWorker&&!proof.cloned&&!proof.teed);assert(proof.headers.type?.startsWith('text/event-stream'));assert.equal(proof.url,proof.browserResponseURL);
@@ -36,7 +37,7 @@ export function sseDescriptor(d,proof){
 // revalidation batch is permitted; publication of this reference is exactly toSeq.
 export function ssePublication({e,d,values,controls,committed,aborted,events,cachePrefix,rootStarts=/** @type {any[]} */([])}) {
  const c=d.control,owners=pair(e,c);assert.equal(owners.length,1,'Exact client/session owner');const owner=owners[0];assert(owner.clientId&&owner.sessionId);const db=cachePrefix+owner.clientId,target=d.owner.toSeq;
- for(const v of values)validateEvent(v);
+ for(const v of values)projectionEvent(d.recovery.projectionSchema,v);
  const finals=controls.filter(x=>owned(x,e)&&x.end>=e.end&&new URL(x.url).pathname==='/api/v1/events'&&new URL(x.url).searchParams.get('after')===target&&new URL(x.url).searchParams.get('recoveryId')===d.recovery.recoveryId);
  const final=one(finals,'One own SSE reference revalidation');assert.equal(new URL(final.url).searchParams.size,2);recoveryContext(final.value.recovery);assert(sameContext(final.value.recovery,d.recovery));assert(pair(final,e).some(o=>same(o,owner)));
  const fp=final.originalProof;assert.equal(fp?.association,'unique-frame-time-window');assert.equal(fp.responseStatus,200);assert.equal(fp.redirectedFrom,null);assert(!fp.redirected&&!fp.fromServiceWorker&&!fp.cloned&&!fp.teed&&!fp.earlyCancel&&!fp.readError&&!fp.overflow);assert.equal(fp.readerCount,1);
@@ -49,7 +50,7 @@ export function ssePublication({e,d,values,controls,committed,aborted,events,cac
  const writes=committed.filter(x=>owned(x,e)&&x.db===db&&x.at>=e.start&&x.at<=pub.completedAt).flatMap(x=>x.records.filter(r=>r.store==='rows'&&r.key?.[0]===pub.value.generation).map(r=>({...r,completedAt:x.at,transaction:x.transaction})));
  assert(!aborted.some(x=>owned(x,e)&&x.db===db&&x.records.some(r=>r.key?.[0]===pub.value.generation||r.store==='meta'&&r.value?.generation===pub.value.generation)),'Aborted generation cannot qualify');
  const eventWrites=[];for(const v of values){const marker=one(writes.filter(w=>w.key[1]==='event'&&w.key[2]===v.eventId),'One committed original event marker');assert.equal(marker.value,v.workspaceSeq);assert(Number.isInteger(marker.transaction)&&marker.transaction>0);const docs=v.payload?.document;
-  if(v.documentId){const written=one(writes.filter(w=>w.key[1]==='document'&&w.key[2]===v.documentId&&w.transaction===marker.transaction),'Corresponding committed document write');assert.equal(entity('document',written.value),v.resultingDocumentRevision);if(docs)assert(same(written.value,docs));else {assert.equal(v.type,'CheckpointSaved');assert.equal(written.value.checkpoint,v.payload.checkpoint.id);assert.equal(written.value.historyHead,v.payload.checkpoint.historyHead);}}
+  if(v.documentId){const written=one(writes.filter(w=>w.key[1]==='document'&&w.key[2]===v.documentId&&w.transaction===marker.transaction),'Corresponding committed document write');assert.equal(projectionEntity(d.recovery.projectionSchema,'document',written.value),v.resultingDocumentRevision);if(docs)assert(same(written.value,docs));else {assert.equal(v.type,'CheckpointSaved');assert.equal(written.value.checkpoint,v.payload.checkpoint.id);assert.equal(written.value.historyHead,v.payload.checkpoint.historyHead);}}
   if(v.type==='BundleImported')assert(writes.some(w=>w.key[1]==='namespace'&&w.key[2]===v.payload.namespaceId&&w.value.eventId===v.eventId&&w.value.namespaceHash===v.payload.namespaceHash&&w.completedAt<=marker.completedAt),'Corresponding committed namespace write');eventWrites.push({eventId:v.eventId,workspaceSeq:v.workspaceSeq,transaction:marker.transaction,generation:marker.key[0]});
  }
  const otherPubs=committed.filter(x=>owned(x,e)&&x.db===db&&x.at>=e.start&&x.at<=pub.completedAt).flatMap(x=>x.records.filter(r=>r.store==='meta'&&r.key==='published'));

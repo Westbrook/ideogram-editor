@@ -1,0 +1,4 @@
+{
+ "compilerOptions":{"target":"ES2023","lib":["ES2023","DOM","DOM.Iterable"],"module":"ESNext","moduleResolution":"Bundler","strict":true,"noEmit":true,"skipLibCheck":true,"types":["node","vite/client"]},
+ "include":["prompt-refusal.spec.ts","prompt-refusal.playwright.config.ts","prompt-refusal.vite.config.ts","prompt-refusal-fixture/**/*.ts"]
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "kind": "png-import-issuer-source-v1",
+  "sourceHash": "sha256:e78df00f589d6a0fea11f9020e2462ae344ce4c46f9c8fa6f3fbcee41c2f4d05",
+  "files": [
+    {
+      "path": "tooling/raster/import-issuance/issue-png-profile.mjs",
+      "bytes": 5996,
+      "hash": "sha256:8b0250048ebd33a1265d7939d417ba5cd2f9b4dffd1fa4911793c2bb8bf76464"
+    },
+    {
+      "path": "tooling/raster/import-issuance/png-contract.mjs",
+      "bytes": 17383,
+      "hash": "sha256:cba9f81154e76585890e03df24520bf40610cd244a780f7e70f5af1967f5ac78"
+    },
+    {
+      "path": "tooling/raster/import-issuance/png-evidence.mjs",
+      "bytes": 2809,
+      "hash": "sha256:3755c4320179ea25d9c132171c69c4d3114c779372da578575d56de3cc9deee7"
+    },
+    {
+      "path": "tooling/raster/import-seals/authority.mjs",
+      "bytes": 1501,
+      "hash": "sha256:885d3262f5d0b346b4e7e99c500a06ec3380dcd3b19a11c5e3c34d7d9ebf21ce"
+    },
+    {
+      "path": "tooling/raster/import-seals/files.mjs",
+      "bytes": 5183,
+      "hash": "sha256:78d7ddf74a9fc588f0eb06ee7c55d81ba624fe2887817a40a731a94d58ca9d3c"
+    },
+    {
+      "path": "tooling/raster/import-seals/pinned-canonical-source.mjs",
+      "bytes": 1781,
+      "hash": "sha256:d4cf180d9c133e82d1f5f0f0d1503ff5adba7fada0d5f1a404a2f9e9098b188c"
+    }
+  ]
+}

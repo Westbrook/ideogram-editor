@@ -1,3 +1,4 @@
+import {ActiveCompute} from '../../dist/local/server/raster/active-compute.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,writeFile} from 'node:fs/promises';
@@ -24,10 +25,11 @@ async function retained(root,id,width,height,values,coverage){
  return {input,directory,effective,hard:effective};
 }
 async function raster(root,id,job){
- const directory=await mkdtemp(join(root,id+'-')),result=await runRaster({...job,directory},async()=>{},()=>{});
- if(job.type==='preserve-request'){const active=result.activeCompute;assert.equal(active.complete,true);assert.equal(active.invalid,0);assert.equal(active.operations.preserve,job.plan.document.height);assert.ok(active.intervalCount>=active.operations.preserve);assert.ok(active.intervals.length<=128);assert.equal(active.omittedIntervals,active.intervalCount-active.intervals.length);assert.equal(active.unionMs,active.totalMs);assert.ok(active.unionMs<=result.metrics.elapsedMs);}
+ const directory=await mkdtemp(join(root,id+'-')),compute=new ActiveCompute();let activeRead;try{const result=await runRaster({...job,directory},async()=>{},()=>{},undefined,compute);
+ if(job.type==='preserve-request'){activeRead=compute.readSnapshot();const active=activeRead.value;assert.equal(active.complete,true);assert.equal(active.invalid,0);assert.equal(active.operations.preserve,job.plan.document.height);assert.ok(active.intervalCount>=active.operations.preserve);assert.ok(active.intervals.length<=128);assert.equal(active.omittedIntervals,active.intervalCount-active.intervals.length);assert.equal(active.unionMs,active.totalMs);assert.ok(active.unionMs<=result.metrics.elapsedMs);}
  rasterManifest(result.manifest);
  return {result,directory,input:{id,info:result.info,path:join(directory,'pixels.rgba'),...(result.info.role==='mask'?{coveragePath:join(directory,'effective.r16'),hardPath:join(directory,'hard.r16')}:{})}};
+ }finally{activeRead?.release();compute.dispose();}
 }
 const bytes=async fixture=>[...await readFile(join(fixture.directory,'pixels.rgba'))];
 const common=(source,mask)=>({document:{width:source.input.info.width,height:source.input.info.height},sourcePixels:source.input.info.pixels,authoredMask:mask.hard,effectiveMask:mask.effective,dependenciesHash:'sha256:'+'a'.repeat(64),resolution:'already-contained',approvalId:'fixture-approval'});

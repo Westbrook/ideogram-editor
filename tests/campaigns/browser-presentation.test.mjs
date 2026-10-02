@@ -52,6 +52,31 @@ test('complete exact EventLatency join is diagnostic and includes input queueing
   assert.equal(result.droppedDisplaySlots.status, 'unavailable');
 });
 
+test('caller-selected latency IDs preserve trace facts without claiming actual input ownership', () => {
+  const result = analyzePresentation({trace: trace([latency(), endpoint()]), requests: [
+    {id: 1, latencyId: '700'},
+    {id: 2, latencyId: '700', actualInputBound: true, nativeInput: true, exact: true},
+  ]});
+  assert.equal(result.outcome, 'INCONCLUSIVE'); assert.equal(result.qualification, false);
+  assert.equal(result.diagnosticJoins.length, 1);
+  assert.equal(result.diagnosticJoins[0].latencyId, '700');
+  assert.equal(result.diagnosticJoins[0].inputTsUs, 1000);
+  assert.equal(result.diagnosticJoins[0].surfaceFrameTraceId, '800');
+  assert.equal(result.diagnosticJoins[0].displayTraceId, '900');
+  assert.equal(result.diagnosticJoins[0].reportedPresentationUs, 16000);
+  assert.equal(result.diagnosticJoins[0].diagnosticInputToReportedPresentationMs, 15);
+  for (const observation of result.observations) {
+    assert.deepEqual(observation.start, {status: 'diagnostic-trace-input-start', clock: 'chromium-monotonic-microseconds',
+      earliestUs: 1000, latestUs: 1000, exact: false, actualInputBound: false});
+    assert.equal(observation.diagnosticJoin, result.diagnosticJoins[0]);
+    assert.equal(observation.outcome, 'INCONCLUSIVE'); assert.equal(observation.qualification, false);
+    assert.equal(observation.presentedUs, null); assert.equal(observation.durationMs, null);
+    assert.deepEqual(observation.missing, ['physical-presentation-unavailable', 'correct-content-frame-binding-unavailable']);
+  }
+  assert.equal(result.physicalPresentation.status, 'unavailable');
+  assert.equal(result.droppedDisplaySlots.status, 'unavailable');
+});
+
 test('explicit pipeline relationships can recover omitted surface/display IDs', () => {
   const input = latency('700', {args: {event_latency: {event_latency_id: '700', event_type: 'KEY_PRESSED'}}});
   const result = analyzePresentation({trace: trace([input, endpoint(),

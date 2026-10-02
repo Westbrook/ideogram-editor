@@ -1,9 +1,14 @@
+import {validateAssetProjection} from '../protocol/asset-projection.js';
 import {allocationLedger,StreamReaderCompletion,type AllocationLease} from '../observability/allocations.js';
 import {withDisplayRead} from '../observability/display-scheduler.js';
 import {DISPLAY_HEADERS,DISPLAY_PROFILE,DISPLAY_TILE_SIZE,DISPLAY_MAX_LOD,displayPath} from '../protocol/display.js';
 import {SHA256} from '../protocol/sha256.js';
+import {ownDisplayControl,readOwnedDisplayControl,DISPLAY_CONTROL_ROOT_BYTES,DISPLAY_SOURCE_CONTROL_BYTES,DISPLAY_TILE_CONTROL_BYTES} from '../observability/display-control.js';
+import type {OwnedModel} from '../observability/model-memory.js';
 
 export const DISPLAY_CACHE_TARGET=64*1024**2,DISPLAY_CACHE_LIMIT=128*1024**2;
+// Covers even the finest intermediate LOD before the pixel-budget fallback.
+const DISPLAY_MAX_TILE_SPECS=Math.ceil(8192/DISPLAY_TILE_SIZE)**2;
 export type DisplaySource={assetId:string;identity:string;width:number;height:number};
 export type DisplayViewport={width:number;height:number;zoom:number;x:number;y:number;ratio:number};
 export type TileSpec={key:string;lod:number;x:number;y:number;width:number;height:number;sourceX:number;sourceY:number;sourceWidth:number;sourceHeight:number};
@@ -42,6 +47,15 @@ export function visibleTiles(source:DisplaySource,view:DisplayViewport):TileSpec
     }
     if(bytes<=DISPLAY_CACHE_TARGET||lod===DISPLAY_MAX_LOD)return tiles;
   }
+}
+
+/** The current required set and every still-running older viewport each keep
+ * their own reference. Admission precedes every intermediate LOD array. */
+export function ownedVisibleTiles(source:DisplaySource,view:DisplayViewport):OwnedModel<readonly TileSpec[]>{
+ return ownDisplayControl('display-visible-tiles',DISPLAY_CONTROL_ROOT_BYTES+DISPLAY_MAX_TILE_SPECS*DISPLAY_TILE_CONTROL_BYTES,()=>{
+  const tiles=visibleTiles(source,view);if(tiles.length>DISPLAY_MAX_TILE_SPECS)throw Error('DISPLAY_TILE_COUNT');
+  for(const tile of tiles)Object.freeze(tile);return Object.freeze(tiles);
+ });
 }
 
 export function isDisplayAbort(error:unknown){return error instanceof Error&&error.name==='AbortError';}
@@ -108,7 +122,7 @@ async function fetchDisplayTile(transport:Transport,path:string,signal:AbortSign
     const workspace=allocationLedger.reserve({owner:'display-tile-busy',kind:'control',cpuBytes:6144,handles:2});
     let responseLease:AllocationLease|undefined;
     try{
-      responseLease=allocationLedger.reserve({owner:'display-tile-response',kind:'staging',handles:1});
+      responseLease=allocationLedger.reserve({owner:'display-tile-response',kind:'staging',cpuBytes:DISPLAY_CONTROL_ROOT_BYTES,handles:1});
       const response=await transport(path,{signal});
       if(response.status!==429){const lease=responseLease;responseLease=undefined;return {response,lease};}
       const owned=responseLease;responseLease=undefined;
@@ -134,11 +148,11 @@ export async function readDisplaySource(transport:Transport,assetId:string,width
   return withDisplayRead(signal,async()=>{
     const bound=65536,workspace=allocationLedger.reserve({owner:'display-source-json',kind:'control',cpuBytes:bound*6,handles:3});let response:Response|undefined,bodyRead=false,responseLease:AllocationLease|undefined;
     try{
-      check(signal);responseLease=allocationLedger.reserve({owner:'display-source-response',kind:'staging',handles:1});response=await transport('/api/v1/assets/'+encodeURIComponent(assetId),{signal});check(signal);
+      check(signal);responseLease=allocationLedger.reserve({owner:'display-source-response',kind:'staging',cpuBytes:DISPLAY_CONTROL_ROOT_BYTES,handles:1});response=await transport('/api/v1/assets/'+encodeURIComponent(assetId),{signal});check(signal);
       if(!response.ok)throw Error('DISPLAY_SOURCE_UNAVAILABLE');
       const length=response.headers.get('content-length');if(length!==null&&(!/^(0|[1-9][0-9]*)$/.test(length)||Number(length)>bound))throw Error('DISPLAY_SOURCE_SIZE');
       bodyRead=true;const owned=responseLease!;responseLease=undefined;const bytes=await displayBytes(response,bound,false,signal,()=>true,cleanup,owned);
-      const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));check(signal);const asset=value?.projection?.value;
+      const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));check(signal);const asset=validateAssetProjection(value);
       if(asset?.id!==assetId||asset.safety!=='safe'||asset.availability!=='available'||!asset.raster||asset.raster.width!==width||asset.raster.height!==height||!hash.test(asset.raster.pixelIdentity))throw Error('DISPLAY_SOURCE_CHANGED');
       return {assetId,identity:asset.raster.pixelIdentity,width,height};
     }catch(error){if(response&&!bodyRead){const owned=responseLease!;responseLease=undefined;try{await cancelDisplayBody(response,owned,cleanup);}catch(failure){throw new AggregateError([error,failure],'DISPLAY_READER_RELEASE_FAILED');}}throw error;}
@@ -146,11 +160,17 @@ export async function readDisplaySource(transport:Transport,assetId:string,width
   });
 }
 
+/** Product source descriptors retain their own lease after parse workspace
+ * retirement. The old bare export is for callers with independent ownership. */
+export function readOwnedDisplaySource(transport:Transport,assetId:string,width:number,height:number,signal:AbortSignal,cleanup:DisplayCleanupRegistry=sourceCleanup):Promise<OwnedModel<DisplaySource>>{
+ return readOwnedDisplayControl('display-canvas-source',DISPLAY_SOURCE_CONTROL_BYTES,async()=>Object.freeze(await readDisplaySource(transport,assetId,width,height,signal,cleanup)));
+}
+
 /** One owner per CanvasView. Tiles from another immutable source never remain
  * resident after that source is retired. Only the required set is pinned;
  * unused tiles leave in LRU order before new allocation admission. */
 export class DisplayTileCache {
-  private entries=new Map<string,DisplayTile>();private bytes=0;private pinned=new Set<string>();private unusable=new Set<string>();private serial=0;
+  private entries=new Map<string,DisplayTile>();private bytes=0;private pinned=new Set<string>();private pinLease:AllocationLease|undefined;private unusable=new Set<string>();private serial=0;
   private created=0;private released=0;private reused=0;private starts=0;
   readonly cleanup=new DisplayCleanupRegistry();
   constructor(private transport:Transport){}
@@ -158,12 +178,19 @@ export class DisplayTileCache {
   get(key:string){if(this.unusable.has(key))return undefined;const tile=this.entries.get(key);if(tile){this.entries.delete(key);this.entries.set(key,tile);}return tile;}
   contains(key:string){return this.entries.has(key)&&!this.unusable.has(key);}
   tiles(){return [...this.entries.values()].filter(tile=>!this.unusable.has(tile.key));}
-  pin(specs:readonly TileSpec[]){this.pinned=new Set(specs.map(tile=>tile.key));this.evict(0);}
+  /** Synchronous draw borrows bitmap owners and books only the temporary index. */
+  withTiles(draw:(tiles:DisplayTile[])=>void){const lease=allocationLedger.reserve({owner:'display-draw-index',kind:'control',cpuBytes:DISPLAY_CONTROL_ROOT_BYTES+this.entries.size*16,handles:1});try{draw(this.tiles());}finally{lease.release();}}
+  pin(specs:readonly TileSpec[]){
+    if(specs.length>DISPLAY_MAX_TILE_SPECS||specs.some(spec=>typeof spec.key!=='string'||spec.key.length>64))throw Error('DISPLAY_TILE_COUNT');
+    const lease=allocationLedger.reserve({owner:'display-pinned-index',kind:'control',cpuBytes:DISPLAY_CONTROL_ROOT_BYTES+specs.reduce((bytes,spec)=>bytes+spec.key.length*2+16,0),handles:1});
+    let next:Set<string>;try{next=new Set(specs.map(tile=>tile.key));}catch(error){lease.release();throw error;}
+    const prior=this.pinLease;this.pinned=next;this.pinLease=lease;prior?.release();this.evict(0);
+  }
   has(specs:readonly TileSpec[]){return specs.every(spec=>this.contains(spec.key));}
   reuse(specs:readonly TileSpec[]){for(const spec of specs)if(this.contains(spec.key))this.reused++;}
   private drop(key:string){const tile=this.entries.get(key);if(!tile)return;this.unusable.add(key);try{tile.bitmap.close();}catch(error){tile.lease.markUnused();throw error;}this.entries.delete(key);this.unusable.delete(key);this.bytes-=tile.bytes;this.released++;tile.lease.release();}
   private evict(additional:number){for(const key of this.entries.keys()){if(this.bytes+additional<=DISPLAY_CACHE_TARGET&&!this.unusable.has(key))continue;if(!this.pinned.has(key)||this.unusable.has(key))this.drop(key);}if(this.bytes+additional>DISPLAY_CACHE_LIMIT)throw Error('DISPLAY_CACHE_CAPACITY');}
-  clear(){this.pinned.clear();const failures:unknown[]=[];for(const key of this.entries.keys())try{this.drop(key);}catch(error){failures.push(error);}if(failures.length)throw new AggregateError(failures,'DISPLAY_RELEASE_FAILED');}
+  clear(){this.pinned.clear();this.pinLease?.release();this.pinLease=undefined;const failures:unknown[]=[];for(const key of this.entries.keys())try{this.drop(key);}catch(error){failures.push(error);}if(failures.length)throw new AggregateError(failures,'DISPLAY_RELEASE_FAILED');}
   async retryCleanup(){const failures:unknown[]=[];try{await this.cleanup.retry();}catch(error){failures.push(error);}for(const key of this.unusable)try{this.drop(key);}catch(error){failures.push(error);}if(failures.length)throw new AggregateError(failures,'DISPLAY_CLEANUP_INCOMPLETE');}
   async load(source:DisplaySource,spec:TileSpec,signal:AbortSignal,owns:()=>boolean):Promise<void>{
     check(signal);if(!owns())return;if(this.contains(spec.key)){this.reused++;return;}
@@ -181,11 +208,13 @@ export class DisplayTileCache {
         bodyRead=true;const owned=responseLease!;responseLease=undefined;const rgba=await displayBytes(response,bytes,true,signal,owns,this.cleanup,owned),digest=new SHA256();let deadline=performance.now()+4;
         for(let at=0;at<rgba.length;at+=32768){digest.update(rgba.subarray(at,at+32768));if(performance.now()>=deadline){await nextTask();check(signal);if(!owns())return;deadline=performance.now()+4;}}
         if(digest.digest()!==etag.slice(1,-1))throw Error('DISPLAY_TILE_HASH');check(signal);if(!owns())return;
-        lease=allocationLedger.reserve({owner:'display-tile',kind:'bitmap',cpuBytes:bytes,gpuBytes:bytes,previewCacheBytes:bytes,handles:1});
+        // The same owner retains the copied spec and resident/index bookkeeping
+        // until the bitmap really closes, including unsuccessful close retries.
+        lease=allocationLedger.reserve({owner:'display-tile',kind:'bitmap',cpuBytes:bytes+DISPLAY_TILE_CONTROL_BYTES,gpuBytes:bytes,previewCacheBytes:bytes,handles:1});
         this.starts++;bitmap=await createImageBitmap(new ImageData(new Uint8ClampedArray(rgba.buffer,rgba.byteOffset,rgba.byteLength),spec.width,spec.height,{colorSpace:'srgb'}),{premultiplyAlpha:'none',colorSpaceConversion:'none'});const serial=++this.serial;this.created++;
         check(signal);if(!owns())return;if(bitmap.width!==spec.width||bitmap.height!==spec.height)throw Error('DISPLAY_TILE_DIMENSIONS');
         if(this.contains(spec.key))return;
-        this.entries.set(spec.key,{...spec,bitmap,serial,bytes,lease});this.bytes+=bytes;bitmap=undefined;lease=undefined;
+        this.entries.set(spec.key,{key:spec.key,lod:spec.lod,x:spec.x,y:spec.y,width:spec.width,height:spec.height,sourceX:spec.sourceX,sourceY:spec.sourceY,sourceWidth:spec.sourceWidth,sourceHeight:spec.sourceHeight,bitmap,serial,bytes,lease});this.bytes+=bytes;bitmap=undefined;lease=undefined;
       }catch(error){primary=error;failed=true;
         if(response&&!bodyRead){const owned=responseLease!;responseLease=undefined;try{await cancelDisplayBody(response,owned,this.cleanup);}catch(failure){throw new AggregateError([error,failure],'DISPLAY_READER_RELEASE_FAILED');}}throw error;
       }finally{

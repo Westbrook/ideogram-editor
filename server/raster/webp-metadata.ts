@@ -2,6 +2,7 @@ import { closeSync, constants, fstatSync, lstatSync, openSync, readSync } from '
 import type { BigIntStats } from 'node:fs';
 import { dirname } from 'node:path';
 import { extent } from '../../src/raster/core.js';
+import { encodedExtent } from '../../src/protocol/raster-import.js';
 import { assertComponents, assertPrivate } from '../storage/files.js';
 
 export const WEBP_METADATA_BYTES = 4 * 1024 * 1024;
@@ -86,8 +87,8 @@ export function webpExifOrientation(exif: Buffer): number {
 // Call after resource admission. The descriptor comes from a bounded RIFF
 // walk, not client input. No encoded-image mapping, native parser, pixel
 // accumulator, metadata decompression, or unrelated EXIF graph is involved.
-export function readWebPMetadata(path: string, descriptor: WebPMetadataDescriptor, check: () => void = () => {}): WebPMetadata {
-  extent(descriptor.width, descriptor.height);
+export function readWebPMetadata(path: string, descriptor: WebPMetadataDescriptor, check: () => void = () => {}, originalMetadata = false): WebPMetadata {
+  (originalMetadata ? encodedExtent : extent)(descriptor.width, descriptor.height);
   if (!Number.isSafeInteger(descriptor.encodedBytes) || descriptor.encodedBytes < 12 ||
       typeof descriptor.bitstreamHasAlpha !== 'boolean' || (descriptor.flags !== null &&
       (!Number.isInteger(descriptor.flags) || descriptor.flags < 0 || descriptor.flags > 255))) metadataError();

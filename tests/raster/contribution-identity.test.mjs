@@ -1,9 +1,11 @@
+import {ActiveCompute} from '../../dist/local/server/raster/active-compute.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {rootFor} from '../store/helpers.mjs';
 import {runRaster,hash,PIPELINE} from '../../dist/local/server/raster/engine.js';
+import {compositionResourcePlan} from '../../dist/local/server/raster/resource-plan.js';
 import {canonical} from '../../dist/local/src/protocol/json.js';
 import {rasterManifest,contributionStack} from '../../dist/local/src/protocol/validate.js';
 
@@ -23,8 +25,10 @@ async function compose(root,width,height,layers,inputs,capture=true){
  const directory=await mkdtemp(join(root,'compose-')),state=ref(Buffer.from('{"captured":"state"}'),'application/json');
  const requestSource={schemaVersion:1,documentId:'document_capture',documentRevision:'7',image:{state,semanticDigest:'sha256:'+'b'.repeat(64),compositeAssetId:null},scope:layers.length===1?'single-layer':'selected-layers',layerIds:layers.map((_,i)=>'layer_'+i)};
  let admission;
- const result=await runRaster({type:'compose',directory,width,height,layers,inputs,dependencies:[...inputs.map(i=>i.info.manifest),...(capture?[state]:[])],...(capture?{requestSource}:{})},async p=>{admission=structuredClone(p);},()=>{});
- const active=result.activeCompute;assert.equal(active.kind,'raster-active-compute-1');assert.equal(active.complete,true);assert.equal(active.outcome,'completed');assert.equal(active.invalid,0);assert.ok(active.operations.contribution>0);assert.ok(active.unionMs>=0&&active.unionMs<=result.metrics.computeMs);assert.equal(active.totalMs,active.unionMs);assert.ok(active.intervals.length<=128);assert.equal(active.omittedIntervals,active.intervalCount-active.intervals.length);assert.equal(admission.allocations.activeKernelTelemetry,65536);
+ const compute=new ActiveCompute();let activeRead;try{
+ const result=await runRaster({type:'compose',directory,width,height,layers,inputs,dependencies:[...inputs.map(i=>i.info.manifest),...(capture?[state]:[])],...(capture?{requestSource}:{})},async p=>{admission=structuredClone(p);},()=>{},undefined,compute);
+ assert.deepEqual(admission,compositionResourcePlan(width,height,layers,inputs,capture));assert.deepEqual(result.plan,admission);
+ activeRead=compute.readSnapshot();const active=activeRead.value;assert.equal(active.kind,'raster-active-compute-1');assert.equal(active.complete,true);assert.equal(active.outcome,'completed');assert.equal(active.invalid,0);assert.ok(active.operations.contribution>0);assert.ok(active.unionMs>=0&&active.unionMs<=result.metrics.computeMs);assert.equal(active.totalMs,active.unionMs);assert.ok(active.intervals.length<=128);assert.equal(active.omittedIntervals,active.intervalCount-active.intervals.length);assert.equal(admission.allocations.activeKernelTelemetry,65536);
  let prior=-Infinity,sampled=0;for(const interval of active.intervals){assert.ok(interval.startMs>=prior&&interval.endMs>=interval.startMs);sampled+=interval.endMs-interval.startMs;prior=interval.endMs;}assert.ok(sampled<=active.unionMs+1e-7);
  rasterManifest(result.manifest);
  const files=new Map(result.files.map(f=>[f.ref.hash,join(directory,f.name)]));for(const i of inputs)files.set(i.info.pixels.hash,i.path);
@@ -33,6 +37,7 @@ async function compose(root,width,height,layers,inputs,capture=true){
  if(stack)contributionStack(stack);
  const contributions=[];for(const entry of stack?.contributions??[]){const manifest=JSON.parse((await read(entry.manifest)).toString());rasterManifest(manifest);assert.equal(entry.pixelIdentity,pixelIdentity(width,height,manifest.tiles));assert.deepEqual(entry.pixels,manifest.pixels);contributions.push({entry,manifest,bytes:await read(entry.pixels)});}
  return {directory,result,admission,stack,contributions,bytes:await read(result.info.pixels)};
+ }finally{activeRead?.release();compute.dispose();}
 }
 
 test('captured ordered Ks retain the exact CP1 opacity boundary used by ordinary composition',async t=>{

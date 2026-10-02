@@ -1,5 +1,5 @@
 import { SHA256 } from '../protocol/sha256.js';
-import { allocationLedger, type AllocationLease } from '../observability/allocations.js';
+import { allocationLedger, StreamReaderCompletion, type AllocationLease } from '../observability/allocations.js';
 import type { Download } from './editor-client.js';
 type Sink={write(data:ArrayBuffer):Promise<void>;close():Promise<void>;abort():Promise<void>};
 type Destination={createWritable():Promise<Sink>};
@@ -149,13 +149,13 @@ export async function writeDestination(download:Pick<Download,'path'|'name'|'has
   let sink:Sink|undefined;let temporary:FileSystemFileHandle|undefined;
   let response:Response|undefined;
   let temporaryRoot:FileSystemDirectoryHandle|undefined,temporaryName:string|undefined;let handedOff=false;
-  let reader:ReadableStreamDefaultReader<Uint8Array>|undefined,readerCancellation:Promise<void>|undefined,sinkAbortion:Promise<void>|undefined;
+  let reader:ReadableStreamDefaultReader<Uint8Array>|undefined,readerCompletion:StreamReaderCompletion|undefined,readerCancellation:Promise<void>|undefined,sinkAbortion:Promise<void>|undefined;
   let readerLease:AllocationLease|undefined,sinkLease:AllocationLease|undefined,temporaryLease:AllocationLease|undefined,blob:OwnedBlob|undefined;
   const unsettledWrites=new Set<AllocationLease>();
   const releaseSink=()=>{sinkLease?.release();for(const lease of unsettledWrites)lease.release();unsettledWrites.clear();};
   let streamCleanupFailed=false,streamCleanupFailure:unknown;
   let fallbackOwned=false;
-  const cancelReader=()=>{if(!reader)return Promise.resolve();return readerCancellation??=Promise.resolve().then(()=>reader!.cancel()).catch(error=>{streamCleanupFailed=true;streamCleanupFailure=error;throw error;});};
+  const cancelReader=()=>{if(!readerCompletion)return Promise.resolve();return readerCancellation??=Promise.resolve().then(()=>readerCompletion!.cancel()).catch(error=>{streamCleanupFailed=true;streamCleanupFailure=error;throw error;});};
   const releaseReader=()=>{try{reader?.releaseLock();readerLease?.release();}catch(error){readerLease?.markUnused();const cause=signal?.aborted?signal.reason??new DOMException('Destination write canceled','AbortError'):error;throw new AggregateError(cause===error?[error]:[cause,error],'Download reader cleanup incomplete',{cause});}};
   const abortSink=()=>{if(!sink)return Promise.resolve();const owned=sink;return sinkAbortion??=Promise.resolve().then(()=>owned.abort()).then(releaseSink);};
   const writable=async(destination:Destination)=>{const lease=allocationLedger.reserve({owner:'download-native-writer',kind:'staging',handles:1});try{const value=await destination.createWritable();sinkLease=lease;return value;}catch(error){lease.release();throw error;}};
@@ -190,8 +190,9 @@ export async function writeDestination(download:Pick<Download,'path'|'name'|'has
     if(!response.ok||!response.body||response.headers.get('etag')!=='"'+download.hash+'"'||response.headers.get('content-length')!==download.bytes)throw Error('DOWNLOAD_UNAVAILABLE');
     readerLease=allocationLedger.reserve({owner:'download-response-reader',kind:'staging',handles:1});
     try{reader=response.body.getReader();}catch(error){readerLease.release();throw error;}
+    readerCompletion=new StreamReaderCompletion(reader);
     const hash=new SHA256();let length=0n;
-    try{for(;;){checkCancellation(signal);const {done,value}=await reader.read();checkCancellation(signal);if(done)break;
+    try{for(;;){checkCancellation(signal);const {done,value}=await readerCompletion.read();checkCancellation(signal);if(done)break;
       const incoming=allocationLedger.reserve({owner:'download-received-chunk',kind:'staging',cpuBytes:value.byteLength,handles:1});
       try{length+=BigInt(value.length);if(length>BigInt(download.bytes))throw Error('DOWNLOAD_CHANGED');
        for(let i=0;i<value.length;i+=32768){checkCancellation(signal);const part=value.subarray(i,i+32768);hash.update(part);
@@ -229,9 +230,10 @@ export async function writeDestination(download:Pick<Download,'path'|'name'|'has
     // Validation or allocation admission may refuse before a reader exists.
     // This response still belongs to the attempt and must be drained/canceled.
     if(response?.body&&!reader)try{await response.body.cancel();}catch(failure){if(failure!==error)cleanupErrors.push(failure);}
-    // A fetch body already errored by this abort rejects cancel() with that
-    // same reason; it is not a second cleanup failure.
-    if(signal?.aborted&&streamCleanupFailed&&streamCleanupFailure!==error)cleanupErrors.push(streamCleanupFailure);
+    // StreamReaderCompletion already distinguishes the original stored stream
+    // error from a genuine cancel rejection. Preserve every remaining failure,
+    // even when the underlying source rejected with the user's abort reason.
+    if(signal?.aborted&&streamCleanupFailed)cleanupErrors.push(streamCleanupFailure);
     // Settle the writer before unlinking. An uncertain writer leaves the entry
     // intact and reports incomplete cleanup alongside the original failure.
     if(sink){const ownedSink=sink;try{await abortSink();sink=undefined;}catch(failure){

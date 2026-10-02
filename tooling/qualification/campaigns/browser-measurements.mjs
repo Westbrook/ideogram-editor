@@ -1,4 +1,9 @@
+import {ORDINARY_COMPOSITION_NAMES, ordinaryCompositionMeasurement} from './browser-ordinary-composition.mjs';
+import {navigationWindowServerMeasurement} from './windowserver-navigation-verification.mjs';
+import {textResourceMeasurement} from './browser-text-resources.mjs';
+import {ordinaryTextMeasurement} from './browser-ordinary-text.mjs';
 import { CAMPAIGN_VITALS_SOURCE } from './identity.mjs';
+import { rejectedDraftMeasurement } from './browser-queue-measurements.mjs';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const finite = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER;
@@ -77,7 +82,7 @@ function unavailableReason(rule) {
  * Raw phases, renderer traces and partial resource ledgers remain diagnostics.
  * Emit only requested rows with their actual narrow source; never fill gaps
  * with elapsed wall time, a fixture declaration or an invented zero. */
-export function extractBrowserMeasurements({ cell, sample = {}, visits, result, evidence, trace, resources } = {}) {
+export function extractBrowserMeasurements({ cell, sample = {}, visits, result, evidence, trace, resources, ordinaryTextProof, ordinaryCompositionProof, navigationProof, navigationObservation, textResourceProof } = {}) {
   sample = object(sample) ? sample : {};
   const measurements = [], unavailable = [], rules = Array.isArray(cell?.requiredMeasurements) ? cell.requiredMeasurements : [];
   const counts = new Map();
@@ -94,6 +99,18 @@ export function extractBrowserMeasurements({ cell, sample = {}, visits, result, 
     else if (Object.hasOwn(VITALS, rule.name)) {
       canonical ??= visitSnapshot(cell, sample, visits);
       translated = canonicalMeasurement(cell, sample, rule, canonical);
+    } else if (cell?.operation === 'navigation.ready' && ['R05UsableCanvasColdMs', 'R05UsableCanvasWarmMs', 'R04FalsePendingOrCompletionCount'].includes(rule.name)) {
+      translated = navigationWindowServerMeasurement({cell, sample, rule, observation: navigationObservation, proof: navigationProof});
+    } else if (rule.name === 'R25RejectedDraftLossCount') {
+      translated = rule.unit === 'violations' && rule.budgetId === 'R25'
+        ? rejectedDraftMeasurement({ cell, proof: result?.observations?.rejectedDraftProof })
+        : { reason: 'Rejected draft registry identity or unit is invalid' };
+    } else if (['R35CurrentFontFaces', 'R35SingleFontBytes', 'R35CurrentFontSetBytes'].includes(rule.name)) {
+      translated = ordinaryTextMeasurement({cell, sample, rule, proof: ordinaryTextProof});
+    } else if (ORDINARY_COMPOSITION_NAMES.includes(rule.name)) {
+      translated = ordinaryCompositionMeasurement({cell, sample, rule, proof: ordinaryCompositionProof});
+    } else if (['R35FontShapingCpuBytes', 'R35GlyphGpuBytes'].includes(rule.name)) {
+      translated = textResourceMeasurement({cell, sample, rule, proof: textResourceProof});
     } else translated = { reason: unavailableReason(rule) };
     if (translated.measurement) measurements.push(translated.measurement);
     else unavailable.push({ name: rule.name, budgetId: rule.budgetId, unit: rule.unit, ...(rule.source ? { source: rule.source } : {}), reason: translated.reason });

@@ -1,13 +1,13 @@
 # Proposed AGENTS.md validation workflow
 
-Historical planning proposal. The implemented workflow now lives in `../../AGENTS.md` and `VALIDATION.md`; use those for runnable commands and rollout limits. Broader pilot/qualification requirements below remain acceptance criteria where not yet verified.
+Historical planning proposal from committed main29e5, retained during managed reconciliation. The current workflow lives in `../../AGENTS.md` and `VALIDATION.md`; use those for supported commands, actual compiled/packet prerequisites, explicit evidence allocation and rollout limits. The implementation retains 23 Node groups and 56 browser inventory files (54 direct specs, two negative harness specs owned by Node parents, and 143 all-engine serial steps), the complete text-inputs gate and schema19 fixtures backed by genuine schema18 packets. Source integration is not runtime validation. Broader pilot/qualification requirements below remain acceptance criteria where not yet verified; donor pilot results are historical.
 
 ## Repository workflow
 
 - Use Node **26.10.0**, npm **12.1.0**, and npm only. Select the pinned toolchain using `tooling/README.txt`. Reuse the owned checkout's verified compatible installation. Run vendor verification before `npm ci` when installation is needed; do not reinstall for every test invocation. Clean-install qualification retains its required fresh environment/cache state.
 - Before work, read the current handoff, unresolved failures and relevant run receipts. Identify affected code/contracts and review the resolved validation plan, selected cases, prerequisites and resource requirements. Do not repeat successful unchanged checks merely because work moved to another chat or reviewer.
 - Run cheap feedback early during implementation. Start with affected types as soon as a coherent change is available; run full relevant `typecheck` before integration/browser validation. Run build-free selector/configuration/schema/runner checks early. A watcher is useful during editing but does not replace the final relevant check.
-- Validate import/vendor/profile/fixture requirements before their dependent work. Both `verify:vendor` and `verify:imports` must have a valid passing result for the current required inputs. Preserve the stricter fresh-run requirements of named qualification campaigns.
+- Validate import/vendor/profile/fixture requirements before their dependent work. `verify:vendor`, `verify:text` and `verify:imports` must have valid passing results for the current required inputs. Preserve the stricter fresh-run requirements of named qualification campaigns.
 - Use the shared manifest-driven scheduler for multi-suite work. It must build each required target once per matching input graph and report verified reuse explicitly. Standalone public commands remain safe on a clean checkout. Never bypass prerequisites with stale `dist`; the session launcher requires the current app build.
 - Run pure/control-plane checks before real local integrations, and integrations before browser work. Classify by actual prerequisites: a Node-hosted test that launches Chromium belongs to a browser-requiring lane. Keep compatible test groups contiguous rather than alternating repeatedly between Node, browser, build and volume work.
 - Stop dispatching dependent or expensive work on the first blocking failure. Preserve the original output, diagnose, fix and rerun the failed gate and invalidated dependents. Reuse successful unrelated results only when their complete relevant inputs still match. Interrupted, skipped, incomplete or source-drifted evidence is not a pass.
@@ -23,6 +23,6 @@ Historical planning proposal. The implemented workflow now lives in `../../AGENT
 
 ## Generated gate map
 
-Generate this section from the canonical inventory once implemented. Include all active Node, tooling, Python/native and browser groups, actual build/prerequisite ownership, network guards, platforms, reset/parallelism constraints and selector aliases. Make discovery fail if a required test is unassigned or accidentally selected through more than one owner.
+Generate this section from the canonical inventory; do not maintain a second hand-written file list. Include all active Node, tooling, Python/native and browser groups, actual build/prerequisite ownership, network guards, platforms, reset/parallelism constraints and selector aliases. Make discovery fail if a required test is unassigned or accidentally selected through more than one owner.
 
 The development plan/resume interfaces are now implemented. Generate the current map with `npm run validate -- plan --groups all --browsers all`; read `VALIDATION.md` for exact supported options and outstanding adoption gates.

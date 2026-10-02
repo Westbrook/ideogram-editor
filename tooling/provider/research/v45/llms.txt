@@ -1,0 +1,209 @@
+# Ideogram V4.5 Text to Image
+
+> Generate high-quality images, posters, and logos with Ideogram 4.5, with accurate text rendering and low, medium, or high quality tiers.
+
+
+## Overview
+
+- **Endpoint**: `https://fal.run/ideogram/v4.5`
+- **Model ID**: `ideogram/v4.5`
+- **Category**: text-to-image
+- **Kind**: inference
+**Description**: Ideogram 4.5 text-to-image. Generate posters, logos, and designs with accurate typography. Quality: low, medium (default), or high; price does not depend on size. Output sizes: fal presets (square_hd by default, 4:3, 16:9) or one of 36 supported exact sizes. Up to 8 images per request. Prompt expansion is on by default.
+
+**Tags**: realism, typography, stylized
+
+
+
+## Pricing
+
+Your request will cost **$0.03** per image with Low, **$0.06** with Medium, and **$0.22** with High quality. The image size does not change the price.
+
+For more details, see [fal.ai pricing](https://fal.ai/pricing).
+
+## API Information
+
+This model can be used via our HTTP API or more conveniently via our client libraries.
+See the input and output schema below, as well as the usage examples.
+
+
+### Input Schema
+
+The API accepts the following input parameters:
+
+
+- **`prompt`** (`string`, _required_):
+  The generation or editing prompt.
+  - Examples: "A colorful storefront with a sign reading hello"
+
+- **`image_size`** (`ImageSize | Enum`, _optional_):
+  Output size. square is promoted to square_hd (1024x1024). 4:3 presets use 1152x864 or 864x1152; 16:9 presets use 1280x720 or 720x1280. Explicit dimensions must match a supported size: 1024x1024, 1024x3072, 1120x896, 1152x2944, 1152x864, 1248x3328, 1248x832, 1280x3072, 1280x720, 1280x800, 1296x3168, 1440x2560, 1440x2880, 1440x720, 1600x2560, 1664x2496, 1728x2304, 1792x2240, 2048x2048, 2240x1792, 2304x1728, 2496x1664, 2560x1440, 2560x1600, 2880x1440, 2944x1152, 3072x1024, 3072x1280, 3168x1296, 3328x1248, 720x1280, 720x1440, 800x1280, 832x1248, 864x1152, 896x1120 Default value: `square_hd`
+  - Default: `"square_hd"`
+  - One of: ImageSize | Enum
+
+- **`quality`** (`QualityEnum`, _optional_):
+  Text-to-image quality. Default value: `"medium"`
+  - Default: `"medium"`
+  - Options: `"low"`, `"medium"`, `"high"`
+
+- **`enable_prompt_expansion`** (`boolean`, _optional_):
+  Enable partner prompt expansion. Default value: `true`
+  - Default: `true`
+
+- **`num_images`** (`integer`, _optional_):
+  Number of images to generate. Default value: `1`
+  - Default: `1`
+  - Range: `1` to `8`
+
+- **`seed`** (`integer`, _optional_):
+  Random seed. Omit to choose automatically.
+
+- **`sync_mode`** (`boolean`, _optional_):
+  Return image data directly in the response.
+  - Default: `false`
+
+
+
+**Required Parameters Example**:
+
+```json
+{
+  "prompt": "A colorful storefront with a sign reading hello"
+}
+```
+
+**Full Example**:
+
+```json
+{
+  "prompt": "A colorful storefront with a sign reading hello",
+  "image_size": "square_hd",
+  "quality": "medium",
+  "enable_prompt_expansion": true,
+  "num_images": 1
+}
+```
+
+
+### Output Schema
+
+The API returns the following output format:
+
+- **`images`** (`list<File>`, _required_)
+  - Array of File
+  - Examples: [{"url":"https://v3.fal.media/files/penguin/lHdRabS80guysb8Zw1kul_image.png"}]
+
+- **`seed`** (`integer`, _required_):
+  Seed used for the random number generator
+  - Examples: 123456
+
+
+
+**Example Response**:
+
+```json
+{
+  "images": [
+    {
+      "url": "https://v3.fal.media/files/penguin/lHdRabS80guysb8Zw1kul_image.png"
+    }
+  ],
+  "seed": 123456
+}
+```
+
+
+## Usage Examples
+
+### cURL
+
+```bash
+curl --request POST \
+  --url https://fal.run/ideogram/v4.5 \
+  --header "Authorization: Key $FAL_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+     "prompt": "A colorful storefront with a sign reading hello"
+   }'
+```
+
+### Python
+
+Ensure you have the Python client installed:
+
+```bash
+pip install fal-client
+```
+
+Then use the API client to make requests:
+
+```python
+import fal_client
+
+def on_queue_update(update):
+    if isinstance(update, fal_client.InProgress):
+        for log in update.logs:
+           print(log["message"])
+
+result = fal_client.subscribe(
+    "ideogram/v4.5",
+    arguments={
+        "prompt": "A colorful storefront with a sign reading hello"
+    },
+    with_logs=True,
+    on_queue_update=on_queue_update,
+)
+print(result)
+```
+
+### JavaScript
+
+Ensure you have the JavaScript client installed:
+
+```bash
+npm install --save @fal-ai/client
+```
+
+Then use the API client to make requests:
+
+```javascript
+import { fal } from "@fal-ai/client";
+
+const result = await fal.subscribe("ideogram/v4.5", {
+  input: {
+    prompt: "A colorful storefront with a sign reading hello"
+  },
+  logs: true,
+  onQueueUpdate: (update) => {
+    if (update.status === "IN_PROGRESS") {
+      update.logs.map((log) => log.message).forEach(console.log);
+    }
+  },
+});
+console.log(result.data);
+console.log(result.requestId);
+```
+
+
+## Additional Resources
+
+### Documentation
+
+- [Model Playground](https://fal.ai/models/ideogram/v4.5)
+- [API Documentation](https://fal.ai/models/ideogram/v4.5/api)
+- [OpenAPI Schema](https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=ideogram/v4.5)
+
+### fal.ai Platform
+
+- [Platform Documentation](https://fal.ai/docs/documentation)
+- [Python Client](https://fal.ai/docs/api-reference/client-libraries/python)
+- [JavaScript Client](https://fal.ai/docs/api-reference/client-libraries/javascript)
+
+### Other agent-readable surfaces
+
+This file covers one model. To find anything else:
+
+- [Platform overview](https://fal.ai/llms.txt): Entry points and representative endpoint IDs
+- [Documentation index](https://fal.ai/docs/llms.txt): Every documentation page
+- [Full documentation text](https://fal.ai/docs/llms-full.txt): The whole documentation inlined
+- Any other model: `https://fal.ai/models/<endpoint-id>/llms.txt`

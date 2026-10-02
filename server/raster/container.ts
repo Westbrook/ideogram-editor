@@ -1,21 +1,22 @@
 import { closeSync, openSync, readSync, fstatSync, constants } from 'node:fs';
 import { setImmediate as tick } from 'node:timers/promises';
 import { extent } from '../../src/raster/core.js';
+import { encodedExtent } from '../../src/protocol/raster-import.js';
 import { inspectPNG } from './png-input.js';
 import { WEBP_MAX_CHUNKS, webpSourceStamp, type WebPMetadataDescriptor } from './webp-metadata.js';
 // Bound metadata before invoking the native parser. Encoded data is streamed;
 // these are work reservations, not a replacement for the document envelope.
-export async function inspectContainer(path: string, mime: string, check:()=>void=()=>{}) {
+export async function inspectContainer(path: string, mime: string, check:()=>void=()=>{}, originalMetadata=false) {
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW), sourceStat = fstatSync(fd,{bigint:true}), length = Number(sourceStat.size);
   let metadataBytes = 0, width=0, height=0;
   let pngMetadata:{iccHash:string|null;exifHash:string|null}|undefined;
   let webpMetadata:WebPMetadataDescriptor|undefined;
-  const dimensions=(w:number,h:number)=>{extent(w,h);if(width&&(width!==w||height!==h))throw new Error('RASTER_FORMAT');width=w;height=h;};
+  const dimensions=(w:number,h:number)=>{(originalMetadata?encodedExtent:extent)(w,h);if(width&&(width!==w||height!==h))throw new Error('RASTER_FORMAT');width=w;height=h;};
   const read = (at: number, n: number) => { if (at < 0 || n < 0 || at + n > length) throw new Error('RASTER_TRUNCATED'); const b = Buffer.alloc(n); if (readSync(fd, b, 0, n, at) !== n) throw new Error('RASTER_TRUNCATED'); return b; };
   const metadata = (n: number) => { metadataBytes += n; if (metadataBytes > 4 * 1024 * 1024) throw new Error('RASTER_RESOURCES'); };
   try {
     if (mime === 'image/png') {
-      const png=await inspectPNG(read,length,metadata,check);
+      const png=await inspectPNG(read,length,metadata,check,originalMetadata);
       dimensions(png.width,png.height);pngMetadata={iccHash:png.iccHash,exifHash:png.exifHash};
     } else if (mime === 'image/webp') {
       const h=read(0,12);if(h.toString('latin1',0,4)!=='RIFF'||h.toString('latin1',8)!=='WEBP'||h.readUInt32LE(4)+8!==length)throw new Error('RASTER_TRUNCATED');
@@ -69,6 +70,6 @@ export async function inspectContainer(path: string, mime: string, check:()=>voi
       }if(!ended||!scans)throw new Error('RASTER_TRUNCATED');
     } else throw new Error('RASTER_FORMAT');
     if(!width||!height)throw new Error('RASTER_FORMAT');
-    return { metadataBytes, encodedBytes: length, width, height, pngMetadata, webpMetadata };
+    return { metadataBytes, encodedBytes: length, width, height, pngMetadata, webpMetadata, samplesValidated:!originalMetadata && mime==='image/png' };
   } finally { closeSync(fd); }
 }

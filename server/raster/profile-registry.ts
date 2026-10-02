@@ -6,6 +6,8 @@ import { BOUNDED_WEBP_PROFILES } from './webp-platform.js';
 import { WEBP_OUTPUT_PROFILES } from './webp-output-platform.js';
 import { LINUX_COLOR_ARM64 } from './linux-color-arm64-identity.js';
 import { LINUX_COLOR_X64 } from './linux-color-x64-identity.js';
+import {ISSUED_IMPORT_PROFILES,importProfileIdentity,resolveImportProfile} from './import-profile.js';
+import type {ImportProducer,ImportRasterProfile} from './import-profile.js';
 
 export type RasterProfile = Readonly<{
   pipeline: string;
@@ -15,7 +17,7 @@ export type RasterProfile = Readonly<{
   arch: string;
   decoderBuild: string | null;
   outputBuild: string | null;
-  decodeTransport: 'webp-bounded-v1' | 'webp-file-v1' | null;
+  decodeTransport: 'webp-bounded-v1' | 'webp-file-v1' | ImportProducer['transport'] | null;
   legacy: boolean;
   current: boolean;
 }>;
@@ -65,8 +67,22 @@ export const RASTER_PROFILES: readonly RasterProfile[] = Object.freeze([
   }),
 ]);
 
+function retainedImportProfile(profile:ImportRasterProfile):RasterProfile|undefined {
+  const {codec,pipeline,...definition}=profile,identity=importProfileIdentity(definition);
+  // This entry already came from the sealed issued inventory. Historical
+  // identity remains readable after its executable base is retired; admission
+  // separately requires an active profile and the exact current base codec.
+  if(!/^sha256:[a-f0-9]{64}$/.test(profile.baseCodec)||identity.codec!==codec||identity.pipeline!==pipeline)return undefined;
+  return Object.freeze({pipeline,rasterCodecId:codec,codecId:profile.baseCodec,platform:profile.platform,arch:profile.arch,
+    decoderBuild:profile.producer.artifactHash,outputBuild:null,decodeTransport:profile.producer.transport,legacy:false,current:false});
+}
+
 export function findRasterProfile(pipeline: unknown): RasterProfile | undefined {
-  return typeof pipeline === 'string' ? RASTER_PROFILES.find(profile => profile.pipeline === pipeline) : undefined;
+  if(typeof pipeline!=='string')return undefined;
+  const ordinary=RASTER_PROFILES.find(profile=>profile.pipeline===pipeline);
+  if(ordinary)return ordinary;
+  const imported=ISSUED_IMPORT_PROFILES.find(profile=>profile.pipeline===pipeline);
+  return imported?retainedImportProfile(imported):undefined;
 }
 
 export function findCurrentRasterProfile(platform: string, arch: string): RasterProfile | undefined {
@@ -88,6 +104,7 @@ const retainedPlans = new Set([
   'authored-mask-v1', 'authored-mask-v2', 'authored-request-mask-v1',
   'request-mask-binary-v1', 'request-source-transport-v1', 'request-preservation-v1',
   'request-mask-resize', 'retained-candidate-v1', 'retained-text',
+  'v45-edit-inputs-1', 'v45-edit-mask-v1', 'solid-background-v1', 'candidate-lettering-comparison-v1',
 ]);
 
 /** Resolve producer bindings after the independent structural manifest check. */
@@ -95,7 +112,14 @@ export function resolveRasterProfile(pipeline: unknown, value: unknown): RasterP
   const profile = findRasterProfile(pipeline);
   if (!profile || !value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const plan = value as Record<string, unknown>;
+  if(plan.kind==='decoded-derived-v1'){
+    const imported=resolveImportProfile(pipeline,plan);
+    return imported?retainedImportProfile(imported):undefined;
+  }
   if (plan.kind === 'decoded-native') {
+    // An issued derivation pipeline never grants the unrelated native decoder
+    // semantics merely because the aggregate identity is readable for exports.
+    if(ISSUED_IMPORT_PROFILES.some(imported=>imported.pipeline===pipeline))return undefined;
     if (plan.codec !== profile.rasterCodecId) return undefined;
     if (plan.decodeTransport === 'webp-file-v1') return profile.decodeTransport === 'webp-file-v1' && plan.decoderBuild === profile.decoderBuild && plan.outputBuild === profile.outputBuild ? profile : undefined;
     if (plan.outputBuild !== undefined) return undefined;

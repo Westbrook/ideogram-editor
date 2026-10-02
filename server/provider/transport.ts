@@ -4,9 +4,11 @@ import tls from 'node:tls';
 import http from 'node:http';
 import https from 'node:https';
 import { createHash } from 'node:crypto';
-import { CONNECT_DEADLINE_MS, READ_DEADLINE_MS, IO_CHUNK, ProviderError, refuse } from './contracts.js';
-import type { TransferReceipt, TransferSink, FailureCode } from './contracts.js';
-import { sameAddress, validateAnswers } from './policy.js';
+import { CONNECT_DEADLINE_MS, READ_DEADLINE_MS, IO_CHUNK, ProviderError, refuse, validateWireExecution } from './contracts.js';
+import type { TransferReceipt, TransferSink, FailureCode, ProtectedBody, ProviderWireExecution, CredentialProvider } from './contracts.js';
+import { sameAddress, validateAnswers, QUEUE_ORIGIN, PRODUCTION_MEDIA_HOSTS } from './policy.js';
+import {PRODUCTION_PROFILE} from './production-profile.js';
+import {providerBoundary} from './client.js';
 
 type Answer = { address: string; family: number };
 /** Internal transport construction. Production callers only get the sealed factory in index.ts. */
@@ -29,6 +31,7 @@ export type WireRequest = Readonly<{
   expectedHash?: string; expectedBytes?: bigint;
   resume?: Readonly<{ offset: bigint; etag: string; total: bigint }>;
   signal?: AbortSignal;
+  role?: ProviderWireExecution['role'];
 }>;
 function safeCode(error: unknown): FailureCode {
   return error instanceof ProviderError ? error.code : 'INTERRUPTED';
@@ -80,17 +83,34 @@ export async function connectBound(url: URL, policy: ConnectionPolicy, signal: A
   } catch(e) { socket.destroy(); throw e; }
   finally { signal.removeEventListener('abort', abort); }
 }
-export function createWireTransport(policy: ConnectionPolicy) {
+type WireBinding=Pick<ProtectedBody,'recordId'|'attemptId'|'direction'|'completeness'|'sha256'|'receivedBytes'>;
+const wireCapabilities=new WeakMap<object,{sink:TransferSink;claim:ProviderWireExecution;sha256:string;bytes:string}>();
+/** Consume only: no public caller can create an accepted capability. */
+export function consumeWireExecution(capability:unknown,sink:TransferSink,body:WireBinding):ProviderWireExecution {
+  if(!capability||typeof capability!=='object')refuse('PROVENANCE');
+  const issued=wireCapabilities.get(capability);wireCapabilities.delete(capability);
+  if(!issued||issued.sink!==sink||issued.sha256!==body.sha256||issued.bytes!==body.receivedBytes||issued.bytes!==String(sink.bytes))refuse('PROVENANCE');
+  validateWireExecution(issued.claim,body);return issued.claim;
+}
+function executionCapability(sink:TransferSink,boundary:ProviderWireExecution['boundary'],role:ProviderWireExecution['role'],url:URL,method:WireRequest['method'],status:number,request:TransferSink|undefined,sentDigest:string):object|undefined {
+  if(!sink.owner.recordId)return undefined;
+  const claim:ProviderWireExecution=Object.freeze({kind:'provider-wire-provenance-1',boundary,role,method,origin:url.origin,pathname:url.pathname,urlHash:'sha256:'+createHash('sha256').update(url.href).digest('hex'),httpStatus:status,attemptId:sink.owner.attemptId,direction:sink.owner.direction,recordId:sink.owner.recordId,completed:true,requestRecordId:request?.owner.recordId??null,requestSha256:request?.owner.recordId?'sha256:'+sentDigest:null});
+  validateWireExecution(claim,{...sink.owner,recordId:sink.owner.recordId,completeness:'complete'});
+  const token=Object.freeze({});wireCapabilities.set(token,{sink,claim,sha256:sink.digest(),bytes:String(sink.bytes)});return token;
+}
+/** Low-level construction can never confer sealed production authority. */
+export function createWireTransport(policy:ConnectionPolicy){return wireTransport(policy,policy.mode==='fixture'?'loopback-fixture-1':undefined);}
+function wireTransport(policy: ConnectionPolicy,boundary:ProviderWireExecution['boundary']|undefined) {
   const connectMs = policy.mode === 'fixture' ? policy.connectMs ?? CONNECT_DEADLINE_MS : CONNECT_DEADLINE_MS;
   const readMs = policy.mode === 'fixture' ? policy.readMs ?? READ_DEADLINE_MS : READ_DEADLINE_MS;
   if (![connectMs,readMs].every(n => Number.isSafeInteger(n) && n > 0)) refuse('POLICY');
   return async function transfer(input: WireRequest): Promise<TransferReceipt> {
-    const controller = new AbortController();
+    const controller = new AbortController(),wireURL=new URL(input.url.href);
     let failure: FailureCode | null = null, status: number | null = null, declared: bigint | null = null;
     let etag: string | null = null, received = 0n, socket: net.Socket | undefined;
     let agent: http.Agent | undefined, req: http.ClientRequest | undefined, requestError: unknown;
-    let sent=0n,requestComplete=false;
-    const initial = input.sink.bytes, hash = createHash('sha256');
+    let sent=0n,requestComplete=false,requestWireProofAttempted=false;
+    const initial = input.sink.bytes, hash = createHash('sha256'),sentHash=createHash('sha256');
     const abort = () => { failure ??= 'ABORTED'; controller.abort(); req?.destroy(new ProviderError(failure)); };
     input.signal?.addEventListener('abort',abort,{once:true});
     if (input.signal?.aborted) abort();
@@ -109,17 +129,17 @@ export function createWireTransport(policy: ConnectionPolicy) {
       if (input.resume && (input.method !== 'GET' || input.resume.offset <= 0n || input.resume.offset !== initial ||
           input.resume.total <= initial || !/^"[^"\r\n]+"$/.test(input.resume.etag))) refuse('IDENTITY');
       if (!input.resume && initial !== 0n) refuse('IDENTITY');
-      const urlHash=createHash('sha256').update(input.url.href).digest('hex');
+      const urlHash=createHash('sha256').update(wireURL.href).digest('hex');
       if(input.resume && (!input.sink.identity || input.sink.identity.urlHash!==urlHash ||
         input.sink.identity.etag!==input.resume.etag || input.sink.identity.totalBytes!==String(input.resume.total))) refuse('IDENTITY');
       arm(connectMs,'CONNECT_TIMEOUT');
       // Race includes DNS. A late resolver cannot create a socket after abort.
-      socket = await Promise.race([connectBound(input.url,policy,controller.signal), new Promise<never>((_,reject) => {
+      socket = await Promise.race([connectBound(wireURL,policy,controller.signal), new Promise<never>((_,reject) => {
         controller.signal.addEventListener('abort',()=>reject(new ProviderError(failure ?? 'ABORTED')),{once:true});
       })]);
       if (controller.signal.aborted) refuse(failure ?? 'ABORTED');
       clearTimeout(timer);
-      const secure = input.url.protocol === 'https:';
+      const secure = wireURL.protocol === 'https:';
       agent = secure ? new https.Agent({keepAlive:false}) : new http.Agent({keepAlive:false});
       const connected = socket;
       agent.createConnection = (_options, callback) => { callback?.(null, connected); return connected; };
@@ -128,8 +148,8 @@ export function createWireTransport(policy: ConnectionPolicy) {
       if (input.resume) { headers.Range = `bytes=${input.resume.offset}-`; headers['If-Range'] = input.resume.etag; }
       arm(readMs,'READ_TIMEOUT');
       const responseReady = new Promise<http.IncomingMessage>((resolve,reject) => {
-        req = (secure ? https : http).request({ protocol:input.url.protocol, hostname:input.url.hostname,
-          port:input.url.port || (secure ? 443 : 80), path:input.url.pathname+input.url.search,
+        req = (secure ? https : http).request({ protocol:wireURL.protocol, hostname:wireURL.hostname,
+          port:wireURL.port || (secure ? 443 : 80), path:wireURL.pathname+wireURL.search,
           method:input.method, headers, agent, setHost:true },resolve);
         req.once('error',error=>{requestError=error;failure??=safeCode(error);controller.abort();reject(error);});
       });
@@ -149,7 +169,7 @@ export function createWireTransport(policy: ConnectionPolicy) {
               // backing buffer only after this write has drained. Evidence records
               // the exact local write, never claiming remote receipt on failure.
               const bytes=Buffer.from(next.value);
-              input.requestEvidence?.append(bytes);
+              input.requestEvidence?.append(bytes);sentHash.update(bytes);
               await whileActive(new Promise<void>((resolve,reject)=>{
                 req!.write(bytes,error=>error?reject(error):resolve());sent+=BigInt(bytes.byteLength);
               }),controller.signal);
@@ -164,6 +184,7 @@ export function createWireTransport(policy: ConnectionPolicy) {
           }
           await whileActive(new Promise<void>(resolve=>req!.end(resolve)),controller.signal);
         }else{
+          if(input.body instanceof Uint8Array)sentHash.update(input.body);
           await whileActive(new Promise<void>(resolve=>req!.end(input.body,resolve)),controller.signal);
           sent=BigInt(input.body?.byteLength??0);
         }
@@ -207,14 +228,27 @@ export function createWireTransport(policy: ConnectionPolicy) {
       const digest = hash.digest('hex');
       if (input.expectedHash && !input.resume && digest !== input.expectedHash) refuse('HASH');
       if (input.expectedHash && input.sink.digest() !== input.expectedHash) refuse('HASH');
-      const evidence = input.sink.finish(true, initial+received);
+      const sentDigest=sentHash.digest('hex');
+      // A captured request may already be locally complete. Only actual writes
+      // followed by a complete response can add execution evidence to it.
+      if(input.requestEvidence&&(input.requestEvidence.bytes!==sent||input.requestEvidence.digest()!==sentDigest))refuse('PROVENANCE');
+      if(boundary&&input.role&&!input.resume&&status!==null){
+        if(input.sink.bytes!==received||input.sink.digest()!==digest)refuse('PROVENANCE');
+        if(input.sink.owner.direction!=='response')refuse('IDENTITY');
+        const request=input.requestEvidence;
+        if(request){const capability=executionCapability(request,boundary,input.role,wireURL,input.method,status,request,sentDigest);requestWireProofAttempted=capability!==undefined;request.finish(true,sent,capability);}
+      }
+      // A resumed stream includes bytes from an earlier incomplete exchange.
+      // Keep its usable transfer receipt, without claiming one complete wire run.
+      const capability=boundary&&input.role&&!input.resume&&status!==null?executionCapability(input.sink,boundary,input.role,wireURL,input.method,status,input.requestEvidence,sentDigest):undefined;
+      const evidence = input.sink.finish(true, initial+received,capability);
       return Object.freeze({outcome:'complete',failure:null,status,receivedBytes:String(received),storedBytes:String(input.sink.bytes-initial),
         etag,declaredBytes:declared === null ? null : String(declared),sha256:evidence.sha256,evidence,providerCancelled:false});
     } catch(error) {
       failure ??= safeCode(error);
       controller.abort();req?.destroy();
       let evidence:TransferReceipt['evidence'];
-      try{if(!requestComplete)input.requestEvidence?.finish(false,sent);}
+      try{if(!requestComplete||requestWireProofAttempted)input.requestEvidence?.finish(false,sent);}
       finally{evidence=input.sink.finish(false,initial+received);}
       return Object.freeze({outcome:'interrupted',failure,status,receivedBytes:String(received),storedBytes:String(input.sink.bytes-initial),
         etag,declaredBytes:declared === null ? null : String(declared),sha256:evidence.sha256,evidence,providerCancelled:false});
@@ -223,4 +257,19 @@ export function createWireTransport(policy: ConnectionPolicy) {
       req?.destroy(); socket?.destroy(); agent?.destroy();
     }
   };
+}
+
+/** Production has no emulator selection, alternate origin, TLS override or caller-supplied Q09 profiles. */
+export function assertProductionConfiguration(config:Record<string,unknown>): void {
+  if(Object.keys(config).some(k=>/emulat|fixture|proxy|endpoint|origin|tls|profile/i.test(k)))refuse('POLICY');
+}
+export function assertProductionEnvironment(environment:NodeJS.ProcessEnv):void {
+  if(Object.keys(environment).some(k=>/^(IDEOGRAM_|FAL_|PROVIDER_).*(EMULATOR|FIXTURE)/i.test(k)))refuse('POLICY');
+}
+export function createProductionProvider(credential:CredentialProvider, config:Record<string,unknown>={}) {
+  assertProductionEnvironment(process.env);
+  assertProductionConfiguration(config);
+  if(Object.keys(config).length)refuse('POLICY');
+  return providerBoundary({mode:'production',queueOrigin:QUEUE_ORIGIN,mediaOrigins:PRODUCTION_MEDIA_HOSTS.map(host=>'https://'+host),profiles:[PRODUCTION_PROFILE],credential,allowResultResponseSuffix:true,
+    connection:{mode:'production'}},wireTransport({mode:'production'},'sealed-fal-production-1'));
 }

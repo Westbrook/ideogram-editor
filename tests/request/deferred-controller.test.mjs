@@ -1,3 +1,5 @@
+import {ownFixtureCommands} from '../owned-command-fixture.mjs';
+import {modelMemoryURL,uiModelOwnerURL,promptMemoryURL,ownFixtureJSON} from '../ui-model-module.mjs';
 import {displayPreviewURL,displayProtocolURL,displaySchedulerURL} from '../display-module.mjs';
 import {allocationsURL,ownedPreviewURL} from '../owned-preview-module.mjs';
 import test from 'node:test';
@@ -15,9 +17,12 @@ const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base
 const lit=data('export const nothing=null;export function html(strings,...values){return {strings,values};}export const svg=html;');
 const controls=data((await transformWithOxc(await readFile('src/ui/adapters.ts','utf8'),'adapters.ts')).code);
 // Template controller tests retain URL bindings; native element admission is covered by display-image tests.
-const imports={'./display-image.js':data('export const displayImage=value=>value;'),'../observability/display-preview.js':displayPreviewURL,'../observability/owned-preview.js':ownedPreviewURL,'../observability/allocations.js':allocationsURL,'lit':lit,'./adapters.js':controls,...Object.fromEntries(['request/core','request/raster-plan','raster/mask','raster/mapping'].map(name=>['../'+name+'.js',pathToFileURL(resolve('dist/local/src/'+name+'.js')).href]))};
+const imports={'../observability/model-memory.js':modelMemoryURL,'../observability/prompt-memory.js':promptMemoryURL,'./model-owner.js':uiModelOwnerURL,'../protocol/asset-projection.js':pathToFileURL(resolve('dist/local/src/protocol/asset-projection.js')).href,'./display-image.js':data('export const displayImage=value=>value;'),'../observability/display-preview.js':displayPreviewURL,'../observability/owned-preview.js':ownedPreviewURL,'../observability/allocations.js':allocationsURL,'lit':lit,'./adapters.js':controls,...Object.fromEntries(['protocol/json','protocol/sha256','request/text-treatment','request/core','request/raster-plan','raster/mask','raster/mapping'].map(name=>['../'+name+'.js',pathToFileURL(resolve('dist/local/src/'+name+'.js')).href]))};
 async function moduleURL(name,extra={}){let code=(await transformWithOxc(await readFile('src/ui/'+name+'.ts','utf8'),name+'.ts')).code;code=code.replace(/import\s+["']\.\/(?:request-edits|candidate-comparison)\.css["'];?/g,'');for(const [name,url]of Object.entries({...imports,...extra}))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));return data(code);}
-const comparison=await moduleURL('candidate-comparison'),{RequestEdits}=await import(await moduleURL('request-edits',{'./candidate-comparison.js':comparison}));
+const comparisonExtras={};if((await readFile('src/ui/candidate-comparison.ts','utf8')).includes('./comparison-view.js')){const viewport=await moduleURL('comparison-viewport'),view=await moduleURL('comparison-view',{'./comparison-viewport.js':viewport});Object.assign(comparisonExtras,{'./comparison-viewport.js':viewport,'./comparison-view.js':view});}
+const comparison=await moduleURL('candidate-comparison',comparisonExtras),maskMemory=await moduleURL('request-mask-memory'),editModels=await moduleURL('request-edit-models'),selectionExtras={};if((await readFile('src/ui/request-edits.ts','utf8')).includes('./candidate-selection.js'))selectionExtras['./candidate-selection.js']=await moduleURL('candidate-selection');
+const treatmentExtras={};if((await readFile('src/ui/request-edits.ts','utf8')).includes('./candidate-text-treatment.js'))treatmentExtras['./candidate-text-treatment.js']=await moduleURL('candidate-text-treatment');
+const {RequestEdits}=await import(await moduleURL('request-edits',{...selectionExtras,...treatmentExtras,'./candidate-comparison.js':comparison,'./request-mask-memory.js':maskMemory,'./request-edit-models.js':editModels}));
 const {displayReadOwnership}=await import(displaySchedulerURL);
 const {displayPreviewInfo}=await import(displayPreviewURL),{displayPath,displayDimensions,DISPLAY_HEADERS,DISPLAY_PROFILE}=await import(displayProtocolURL);
 const ref=(label,byteLength='64',mediaType='application/x-ideogram-rgba8')=>({hash:hash(label),byteLength,mediaType});
@@ -31,7 +36,7 @@ function rendered(template){
  const markup=expand(template),text=value=>value.replace(/__slot(\d+)__/g,(_,i)=>String(slots[Number(i)]));
  const binding=(attrs,name)=>{const match=new RegExp(name+'=__slot(\\d+)__').exec(attrs);return match?slots[Number(match[1])]:undefined;};
  const attr=(attrs,name)=>{const match=new RegExp('(?:^|\\s)'+name+'=(?:"([^"]*)"|([^ >]+))').exec(attrs);return match?text(match[1]??match[2]):null;};
- return {markup,text:text(markup.replace(/<[^>]+>/g,'')),buttons:[...markup.matchAll(/<en-button\b([^>]*)>([\s\S]*?)<\/en-button>/g)].map(([,attrs,label])=>({id:attr(attrs,'id'),label:text(label),disabled:!!binding(attrs,'\\?disabled'),click:binding(attrs,'@click')})),images:[...markup.matchAll(/<img\b([^>]*)>/g)].map(([,attrs])=>{const src=attr(attrs,'src'),info=displayPreviewInfo(src);return {src,alt:attr(attrs,'alt'),load:binding(attrs,'@load'),naturalWidth:info?.width,naturalHeight:info?.height};})};
+ return {markup,text:text(markup.replace(/<[^>]+>/g,'')),buttons:[...markup.matchAll(/<en-button\b([^>]*)>([\s\S]*?)<\/en-button>/g)].map(([,attrs,label])=>({id:attr(attrs,'id'),label:text(label),disabled:!!binding(attrs,'\\?disabled'),click:binding(attrs,'@click')})),images:[...markup.matchAll(/<img\b([^>]*)>/g)].map(([,attrs])=>{const src=attr(attrs,'src'),info=displayPreviewInfo(src);return {src,alt:attr(attrs,'alt'),load:binding(attrs,'@load'),error:binding(attrs,'@error'),displayError:binding(attrs,'@ie-display-error'),naturalWidth:info?.width,naturalHeight:info?.height};})};
 }
 async function fixture(t,{actualWidth=4,actualHeight=4,blank=false}={}){
  installPNGDecoder(t);
@@ -44,10 +49,10 @@ async function fixture(t,{actualWidth=4,actualHeight=4,blank=false}={}){
  const capture={schemaVersion:1,documentId:document.id,documentRevision:document.revision,image,scope:'single-layer',layerIds:['picture']};
  const asset={id:'returned',version:'1',availability:'available',safety:'safe',blob:ref('returned-png','24','image/png'),raster:{width:actualWidth,height:actualHeight,pixelIdentity:hash('returned-canonical-pixel-identity'),pixels:ref('returned-pixels',String(actualWidth*actualHeight*4)),manifest:metadata('returned-manifest')}};
  const view={protocolVersion:1,jobId:'job',documentId:'document',request:{endpoint:'ideogram/v4/inpaint',prompt:ref('prompt','6','text/plain'),seed:null,raster:{source,mask,plan:mask.requestPlan}},items:[candidate],requestedCount:1,actualCount:1,observation:{phase:'completed'},provenance:null,inert:false,nextCursor:null};
- const draft=newDraft(ref('prompt','6','text/plain')),commands=[],reads=[],transfers=[],errors=[],starts=[],failures=[],opened=[];let identity='client',latestReview,commandOverride=null,jsonOverride=null,controller,template;
+ let draft=newDraft(ref('prompt','6','text/plain'));const commands=[],reads=[],transfers=[],errors=[],starts=[],failures=[],opened=[];let identity='client',latestReview,commandOverride=null,jsonOverride=null,controller,template;
  const displayAssets=new Map([['returned',asset],['source',{...displayAsset('source'),version:source.version,blob:source.blob,raster:{...displayAsset('source').raster,width:source.width,height:source.height,pixels:source.pixels,manifest:source.capture}}],['mask',{...displayAsset('mask'),version:mask.version,blob:mask.blob,raster:{...displayAsset('mask').raster,width:mask.width,height:mask.height,pixels:mask.pixels,manifest:mask.plan}}]]),descriptor=id=>displayAssets.get(id)??displayAsset(id);
  const editor={view:{ready:true,document,selected:['picture']},draftOwner:{drafts:new Map()},sessionId:'session',session:{identity:()=>identity,async transport(path){transfers.push(path);return displayRoute(path,descriptor);}},
-  async json(path){reads.push(path);if(jsonOverride)return jsonOverride(path);if(path==='/api/v1/assets/returned')return {projection:{value:structuredClone(asset)}};if(path.startsWith('/api/v1/jobs/job/candidates'))return structuredClone(view);if(path.startsWith('/api/v1/image-edit-reviews/'))return structuredClone(latestReview);throw Error('Unexpected metadata read '+path);},
+  async json(path){reads.push(path);if(jsonOverride)return jsonOverride(path);if(path==='/api/v1/assets/returned')return projection(structuredClone(asset));if(path.startsWith('/api/v1/jobs/job/candidates'))return structuredClone(view);if(path.startsWith('/api/v1/image-edit-reviews/'))return structuredClone(latestReview);throw Error('Unexpected metadata read '+path);},
   async command(body,target,newDocumentId){commands.push({body:structuredClone(body),target:structuredClone(target),newDocumentId});if(commandOverride)return commandOverride(body,target,newDocumentId);
    if(body.type==='ReviewCandidatePlacement'){
     const {type,...placement}=body,outputMapping=body.actualOutput?createActualOutputMapping(mask.requestPlan,{actualOutput:{width:actualWidth,height:actualHeight},effectiveMask:body.actualOutput.clipMask?ref('clipped-effective','32','application/x-ideogram-r16le'):mask.requestPlan.effectiveMask,resolution:body.actualOutput.clipMask?'clipped-and-approved':'already-contained',approvalId:'actual-grid-review'}):null;
@@ -57,13 +62,14 @@ async function fixture(t,{actualWidth=4,actualHeight=4,blank=false}={}){
    if(body.type==='AdoptReviewedCandidate')return latestReview.placement.placement==='new-document'?[{type:'DocumentCreated',payload:{document:{...document,id:latestReview.placement.newDocumentId}}}]:[{type:'ImageEdited',payload:{}}];
    throw Error('Unexpected preparation or mutation '+body.type);
   },beginFeedback(){},beginAdoption(...args){starts.push(args);},adoptionFailed(id){failures.push(id);},async open(id){opened.push(id);}};
+ ownFixtureCommands(ownFixtureJSON(editor));editor.pinViewModels=()=>()=>{};
  const host={requestUpdate(){this.updateComplete=Promise.resolve().then(()=>{template=controller.renderCandidate(candidate,false);});},updateComplete:Promise.resolve(),querySelector(){return {focus(){}};}};
  const owns=()=>{const owner=editor.draftOwner,session=editor.session,client=session.identity(),sessionId=editor.sessionId,id=editor.view.document.id,revision=editor.view.document.revision;return ()=>owner===editor.draftOwner&&session===editor.session&&client===session.identity()&&sessionId===editor.sessionId&&id===editor.view.document.id&&revision===editor.view.document.revision;};
- controller=new RequestEdits(host,editor,{draft:()=>draft,changed:()=>host.requestUpdate(),owns,error:error=>errors.push(error)});t.after(()=>controller.dispose());await controller.sync();host.requestUpdate();await flush();
+ controller=new RequestEdits(host,editor,{draft:()=>draft,entryKey:()=> 'entry',hold:()=>()=>{},mutate:(expected,_growth,change)=>{assert.equal(expected,draft);const next=structuredClone(draft);change(next);draft=next;return next;},changed:()=>host.requestUpdate(),owns,error:error=>errors.push(error)});t.after(()=>controller.dispose());await controller.sync();controller.retainCandidates([candidate]);host.requestUpdate();await flush();
  const render=()=>rendered(template),button=id=>{const value=render().buttons.find(button=>button.id===id);assert(value,'Rendered '+id);return value;};
  const click=async(id,{force=false}={})=>{const control=button(id);if(!force)assert.equal(control.disabled,false,'Enabled '+id);const e=event();control.click(e);await flush();await turn();await flush();return e;};
  const load=async image=>{assert.equal(typeof image.load,'function','Image load acknowledgement for '+image.alt);image.load({currentTarget:{src:image.src,currentSrc:image.src,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight}});await flush();};
- return {controller,editor,displayAssets,descriptor,source,mask,candidate,view,asset,draft,commands,reads,transfers,errors,starts,failures,opened,render,button,click,load,owns,identity:value=>identity=value,setCommand:fn=>commandOverride=fn,setJSON:fn=>jsonOverride=fn,review:()=>latestReview};
+ return {controller,editor,displayAssets,descriptor,source,mask,candidate,view,asset,get draft(){return draft;},commands,reads,transfers,errors,starts,failures,opened,render,button,click,load,owns,identity:value=>identity=value,setCommand:fn=>commandOverride=fn,setJSON:fn=>jsonOverride=fn,review:()=>latestReview};
 }
 
 const inspectId='request-candidate-prepare-candidate',reviewId='request-candidate-review-current-candidate',newReviewId='request-candidate-review-new-candidate',acceptId='request-candidate-accept-prepare-candidate';
@@ -121,6 +127,32 @@ test('old image loads and old acceptance handlers cannot authorize a replacement
  await loadReview(f);assert.equal(f.button(acceptId).disabled,false);
 });
 
+test('replacement placement reviews reuse only exact validated input decodes without replaying native load events',async t=>{
+ const f=await fixture(t);await inspect(f);await review(f);await loadReview(f);const first=deferredImages(f),stable=first.slice(1).map(image=>image.src);
+ for(const target of [newReviewId,reviewId]){
+  await review(f,target);const images=deferredImages(f);assert.deepEqual(images.slice(1).map(image=>image.src),stable,'Lit retains these exact input src values');assert.notEqual(images[0].src,first[0].src,'The review target has a fresh owned URL');assert.equal(f.button(acceptId).disabled,true,'Fresh target still needs a successful decode');
+  // Unchanged src attributes do not produce another browser load event.
+  await f.load(images[0]);assert.equal(f.button(acceptId).disabled,false,'Validated retained input decodes survive this re-review');
+ }
+ await f.click(acceptId);assert.deepEqual(f.commands.map(c=>c.body.type),['ReviewCandidatePlacement','ReviewCandidatePlacement','ReviewCandidatePlacement','AdoptReviewedCandidate']);assert.deepEqual(f.errors,[]);
+});
+
+test('a replaced inspection cannot inherit prior input acknowledgements or accept old image callbacks',async t=>{
+ const f=await fixture(t);await inspect(f);await review(f);await loadReview(f);const oldImages=deferredImages(f),oldInspection=f.controller.inspections.get('candidate');
+ await inspect(f);await review(f);const current=f.controller.inspections.get('candidate'),images=deferredImages(f);assert.notEqual(current,oldInspection);assert.deepEqual(current.decoded,{source:false,candidate:false,mask:false});assert.notDeepEqual(images.slice(1).map(image=>image.src),oldImages.slice(1).map(image=>image.src));
+ for(const image of oldImages)await f.load(image);assert.deepEqual(current.decoded,{source:false,candidate:false,mask:false});await f.load(images[0]);assert.equal(f.button(acceptId).disabled,true,'New input URLs require their own validated decodes');
+ for(const image of images.slice(1))await f.load(image);assert.equal(f.button(acceptId).disabled,false);assert.deepEqual(current.decoded,{source:true,candidate:true,mask:true});
+});
+
+test('native errors and failed dimension validation invalidate reusable input acknowledgements',async t=>{
+ const f=await fixture(t);await inspect(f);await review(f);await loadReview(f);const inspection=f.controller.inspections.get('candidate');
+ for(const kind of ['error','displayError']){const candidate=deferredImages(f)[2];assert.equal(typeof candidate[kind],'function');candidate[kind]();await flush();assert.equal(inspection.decoded.candidate,false);assert.equal(f.button(acceptId).disabled,true);
+  await review(f);const images=deferredImages(f);await f.load(images[0]);assert.equal(f.button(acceptId).disabled,true,'A native or display-consumer error cannot authorize the next review');await f.load(images[2]);assert.equal(f.button(acceptId).disabled,false);
+ }
+ const candidate=deferredImages(f)[2];candidate.load({currentTarget:{src:candidate.src,currentSrc:candidate.src,naturalWidth:candidate.naturalWidth+1,naturalHeight:candidate.naturalHeight}});await flush();assert.equal(inspection.decoded.candidate,false);assert.equal(f.button(acceptId).disabled,true);assert.equal(f.errors.length,1);
+ await f.click(reviewId);const images=deferredImages(f);await f.load(images[0]);assert.equal(f.button(acceptId).disabled,true,'Invalidated dimensions cannot seed readiness');await f.load(images[2]);assert.equal(f.button(acceptId).disabled,false);
+});
+
 for(const expiry of ['expired','invalid'])test(expiry+' placement review cannot prepare even through a retained click handler',async t=>{
  const f=await fixture(t);await inspect(f);f.setJSON(()=>({...structuredClone(f.review()),expiresAt:expiry==='expired'?new Date(Date.now()-1).toISOString():'invalid-date'}));await review(f);await loadReview(f);
  assert.equal(f.button(acceptId).disabled,true);assert.match(f.render().text,/placement review expired/);await f.click(acceptId,{force:true});assert.equal(f.commands.length,1);assert.equal(f.errors.length,1);assert.deepEqual(f.starts,[]);assert.equal(hasReview(f),true);
@@ -161,6 +193,65 @@ for(const clip of [false,true])test('mismatched actual output needs explicit '+(
  assert.match(f.render().markup,/aria-label="Final coverage for deferred preparation"/);assert.equal(f.button(acceptId).disabled,true);await loadReview(f);await f.click(acceptId);assert.deepEqual(f.commands.map(c=>c.body.type),['ReviewCandidatePlacement','AdoptReviewedCandidate']);assert.deepEqual(f.mask.requestPlan,original);assert.deepEqual(f.errors,[]);
 });
 
+const prepareId='request-candidate-place-candidate',newPrepareId='request-candidate-new-document-candidate',adoptId='request-candidate-adopt-candidate';
+const preparedAlts=['Current document before adoption','Prepared full-grid replacement','Document after proposed placement','Original retained coverage'];
+const preparedImages=f=>f.render().images.filter(image=>preparedAlts.includes(image.alt));
+const preparedMask=f=>{const image=preparedImages(f).find(image=>image.alt==='Original retained coverage');assert(image,'Prepared actual-output review includes its retained mask');return image;};
+async function preparedFixture(t){
+ const f=await fixture(t,{actualWidth:2,actualHeight:2});let latestReview,sequence=0;
+ await inspect(f);await f.click('request-candidate-actual-candidate');
+ f.setCommand(body=>{
+  if(body.type==='PrepareCandidateAdoption'){
+   const suffix=String(++sequence),outputMapping=createActualOutputMapping(f.mask.requestPlan,{actualOutput:{width:2,height:2},effectiveMask:f.mask.requestPlan.effectiveMask,resolution:'already-contained',approvalId:'actual-grid-review'});
+   assert.deepEqual(body.actualOutput,{width:2,height:2,clipMask:false});
+   latestReview={protocolVersion:1,reviewId:'prepared-review-'+suffix,reviewHash:hash('prepared-review-'+suffix),targetClientId:'client',expiresAt:new Date(Date.now()+60000).toISOString(),preview:{previewId:'prepared-preview-'+suffix,kind:'candidate-adoption',documentId:f.editor.view.document.id,documentRevision:f.editor.view.document.revision,source:f.editor.view.document.image,plan:metadata('prepared-plan-'+suffix),preparedAssetId:'replacement',after:{...f.editor.view.document.image,compositeAssetId:'after'},candidate:{candidateId:f.candidate.id,mode:body.mode,placement:body.placement,newDocumentId:body.newDocumentId,coverage:{originalEffectivePixels:4,effectivePixels:4,lostPixels:0},outputMapping}}};
+   return [{type:'ImageEditPreviewPrepared',payload:{preview:{previewId:latestReview.preview.previewId}}}];
+  }
+  if(body.type==='ReviewImageEdit')return [{type:'ImageEditReviewPrepared',payload:{reviewId:latestReview.reviewId,reviewHash:latestReview.reviewHash}}];
+  if(body.type==='AdoptCandidate')return latestReview.preview.candidate.placement==='new-document'?[{type:'DocumentCreated',payload:{document:{...f.editor.view.document,id:latestReview.preview.candidate.newDocumentId}}}]:[{type:'ImageEdited',payload:{}}];
+  assert.fail('Unexpected prepared candidate command '+body.type);
+ });
+ f.setJSON(path=>{if(path==='/api/v1/assets/returned')return projection(structuredClone(f.asset));if(path.startsWith('/api/v1/jobs/job/candidates'))return structuredClone(f.view);assert.equal(path,'/api/v1/image-edit-reviews/'+latestReview.reviewId);return structuredClone(latestReview);});
+ return Object.assign(f,{preparedReview:()=>latestReview});
+}
+async function prepare(f,target=prepareId){await f.click(target);assert.deepEqual(f.errors,[]);assert.deepEqual(preparedImages(f).map(image=>image.alt),preparedAlts);}
+async function loadPreparedResults(f){for(const image of preparedImages(f).filter(image=>image.alt!=='Original retained coverage'))await f.load(image);}
+
+test('prepared actual-output re-review reuses only the same validated mask without another native load',async t=>{
+ const f=await preparedFixture(t),original=structuredClone({document:f.editor.view.document,plan:f.mask.requestPlan});await prepare(f);const inspection=f.controller.inspections.get('candidate'),mask=preparedMask(f);
+ await loadPreparedResults(f);assert.equal(f.button(adoptId).disabled,true,'A mask URL alone is not a successful decode');await f.load(mask);assert.equal(inspection.decoded.mask,true);assert.equal(f.button(adoptId).disabled,false);
+ for(const target of [newPrepareId,prepareId]){
+  const prior=preparedImages(f).slice(0,3).map(image=>image.src);await prepare(f,target);const images=preparedImages(f);assert.equal(preparedMask(f).src,mask.src,'The exact retained mask src is unchanged');assert.notDeepEqual(images.slice(0,3).map(image=>image.src),prior,'New result URLs still require validation');assert.equal(f.button(adoptId).disabled,true);
+  // Lit keeps this mask element/src: deliberately do not replay its load event.
+  await loadPreparedResults(f);assert.equal(f.button(adoptId).disabled,false,'Only the retained successful mask acknowledgement is reused');
+ }
+ await f.click(adoptId);assert.equal(f.commands.filter(command=>command.body.type==='AdoptCandidate').length,1);assert.deepEqual({document:f.editor.view.document,plan:f.mask.requestPlan},original);assert.deepEqual(f.errors,[]);
+});
+
+for(const failure of ['error','displayError','dimensions'])test('prepared mask '+failure+' revokes acknowledgement before re-review',async t=>{
+ const f=await preparedFixture(t);await prepare(f);await loadPreparedResults(f);await f.load(preparedMask(f));const inspection=f.controller.inspections.get('candidate'),mask=preparedMask(f);assert.equal(f.button(adoptId).disabled,false);
+ if(failure==='dimensions')mask.load({currentTarget:{src:mask.src,currentSrc:mask.src,naturalWidth:mask.naturalWidth+1,naturalHeight:mask.naturalHeight}});else{assert.equal(typeof mask[failure],'function');mask[failure]();}await flush();
+ assert.equal(inspection.decoded.mask,false);assert.equal(f.button(adoptId).disabled,true);assert.equal(f.errors.length,failure==='dimensions'?1:0);f.errors.length=0;
+ await prepare(f);await loadPreparedResults(f);assert.equal(preparedMask(f).src,mask.src);assert.equal(f.button(adoptId).disabled,true,'An invalidated decode cannot seed the replacement review');await f.load(preparedMask(f));assert.equal(f.button(adoptId).disabled,false);assert.deepEqual(f.commands.filter(command=>command.body.type==='AdoptCandidate'),[]);
+});
+
+test('old prepared mask callbacks cannot acknowledge or invalidate a replacement preview',async t=>{
+ const f=await preparedFixture(t);await prepare(f);const oldMask=preparedMask(f);await prepare(f);await loadPreparedResults(f);const currentMask=preparedMask(f),inspection=f.controller.inspections.get('candidate');assert.equal(currentMask.src,oldMask.src);
+ await f.load(oldMask);assert.equal(inspection.decoded.mask,false);assert.equal(f.button(adoptId).disabled,true,'An old preview callback cannot acknowledge a shared mask URL');await f.load(currentMask);assert.equal(f.button(adoptId).disabled,false);
+ oldMask.error();oldMask.displayError();await flush();assert.equal(inspection.decoded.mask,true);assert.equal(f.button(adoptId).disabled,false,'Old native failures cannot invalidate the current preview');assert.deepEqual(f.errors,[]);
+});
+
+for(const replacement of ['reinspect','candidate-version'])test('prepared mask readiness does not cross '+replacement+' replacement',async t=>{
+ const f=await preparedFixture(t);await prepare(f);await loadPreparedResults(f);const oldMask=preparedMask(f),oldInspection=f.controller.inspections.get('candidate');await f.load(oldMask);assert.equal(f.button(adoptId).disabled,false);
+ if(replacement==='candidate-version'){f.candidate.version='3';f.controller.retainCandidates([f.candidate]);await flush();}
+ await inspect(f);const inspection=f.controller.inspections.get('candidate');assert.notEqual(inspection,oldInspection);assert.equal(inspection.decoded.mask,false);
+ if(replacement==='reinspect'){
+  assert.equal(f.button(adoptId).disabled,true,'A retained preview is stale as soon as its inspection changes');const stale=preparedMask(f);await f.load(stale);assert.equal(inspection.decoded.mask,false,'A newly rendered image cannot approve an old preview for a different inspection');
+ }
+ await f.click('request-candidate-actual-candidate');await prepare(f);await loadPreparedResults(f);assert.notEqual(preparedMask(f).src,oldMask.src);await f.load(oldMask);oldMask.error();oldMask.displayError();await flush();assert.equal(inspection.decoded.mask,false);assert.equal(f.button(adoptId).disabled,true);
+ await f.load(preparedMask(f));assert.equal(inspection.decoded.mask,true);assert.equal(f.button(adoptId).disabled,false);assert.deepEqual(f.errors,[]);
+});
+
 function previewURLLedger(t){const created=[],revoked=[];t.mock.method(URL,'createObjectURL',blob=>{const url='blob:preview-test-'+(created.length+1);created.push({url,blob});return url;});t.mock.method(URL,'revokeObjectURL',url=>revoked.push(url));return {created,revoked,urls:()=>created.map(item=>item.url),assertReleasedOnce(urls){for(const url of urls)assert.equal(revoked.filter(value=>value===url).length,1,'Exactly one release for '+url);},assertRetained(urls){for(const url of urls)assert.equal(revoked.includes(url),false,'Still retained '+url);}};}
 function observePromise(promise){let result;const settled=promise.then(value=>result={status:'fulfilled',value},reason=>result={status:'rejected',reason});return {settled,result:()=>result};}
 // Real PNG structure, compressed RGBA8 scanlines and hashes exercise descriptor
@@ -172,7 +263,8 @@ function pngPixels(width,height){const ihdr=Buffer.alloc(13);ihdr.writeUInt32BE(
 function displayAsset(id,width=4,height=4){return {id,version:'1',availability:'available',safety:'safe',blob:ref(id+'-encoded','24','image/png'),raster:{width,height,pixelIdentity:hash(id+'-canonical-pixel-identity'),pixels:ref(id+'-full-retained-pixels',String(width*height*4)),manifest:metadata(id+'-manifest')}};}
 function previewRequest(asset){return {kind:'preview',basis:'pixels',identity:asset.raster.pixelIdentity,edge:1024};}
 function previewPath(asset){return displayPath(asset.id,previewRequest(asset));}
-function descriptorResponse(asset){const json=JSON.stringify({projection:{value:asset}});return new Response(json,{headers:{'content-type':'application/json','content-length':String(Buffer.byteLength(json))}});}
+function projection(asset){const value={purpose:'image',dependencies:[asset.raster.manifest,asset.raster.pixels],qualification:'canonical-raster',measuredMediaType:asset.blob.mediaType,...asset,raster:{schemaVersion:1,pipeline:'cp1-f64-triangle-area-v1/'+hash('fixture-pipeline'),role:'composite',sourceAssetIds:[],conversion:null,...asset.raster}};return {protocolVersion:1,entityVersion:value.version,projectionSchema:2,highWater:'1',projection:{kind:'inline',value}};}
+function descriptorResponse(asset){const json=JSON.stringify(projection(asset));return new Response(json,{headers:{'content-type':'application/json','content-length':String(Buffer.byteLength(json))}});}
 function responseFor(asset){if(typeof asset==='string')asset=displayAsset(asset);const request=previewRequest(asset),size=displayDimensions(asset.raster.width,asset.raster.height,request),bytes=pngPixels(size.width,size.height);return new Response(bytes,{headers:{'content-type':'image/png','content-length':String(bytes.length),etag:'"'+bytesHash(bytes)+'"',[DISPLAY_HEADERS.profile]:DISPLAY_PROFILE,[DISPLAY_HEADERS.source]:asset.raster.pixelIdentity,[DISPLAY_HEADERS.basis]:'pixels',[DISPLAY_HEADERS.width]:String(size.width),[DISPLAY_HEADERS.height]:String(size.height),[DISPLAY_HEADERS.sourceWidth]:String(asset.raster.width),[DISPLAY_HEADERS.sourceHeight]:String(asset.raster.height),[DISPLAY_HEADERS.lod]:'0'}});}
 function displayRoute(path,descriptor=displayAsset){const url=new URL(path,'http://127.0.0.1'),match=/^\/api\/v1\/assets\/([A-Za-z0-9_-]+)(\/display)?$/.exec(url.pathname);assert(match,'Only a bounded descriptor or display route is permitted: '+path);const asset=descriptor(match[1]);if(!match[2]){assert.equal(url.search,'');return descriptorResponse(asset);}assert.equal(path,previewPath(asset),'The rendition is bound to canonical pixel identity and edge 1024');return responseFor(asset);}
 function assertDisplayReads(f,ids){assert.equal(f.transfers.length,ids.length*2,'One descriptor and one bounded rendition per retained image');assert.deepEqual(f.transfers.filter(path=>!path.includes('/display?')).sort(),ids.map(id=>'/api/v1/assets/'+id).sort());assert.deepEqual(f.transfers.filter(path=>path.includes('/display?')).sort(),ids.map(id=>previewPath(f.descriptor(id))).sort());for(const id of ids)assert(f.transfers.indexOf('/api/v1/assets/'+id)<f.transfers.indexOf(previewPath(f.descriptor(id))),'Descriptor precedes rendition for '+id);assert(f.transfers.every(path=>!path.includes('/content')),'Original encoded image content is never fetched for display');}
@@ -182,11 +274,11 @@ function requestMaskManifest(f){return {plan:{authoring:{width:4,height:4,feathe
 async function previewURLCase(t,kind){
  const ledger=previewURLLedger(t),f=await fixture(t),manifest=requestMaskManifest(f),maskAsset=structuredClone(f.descriptor('mask')),replacement=structuredClone(f.descriptor('replacement-mask'));let old;
  if(kind==='mask-restore'||kind==='mask-create'){
-  f.draft.source=f.source;f.setJSON(path=>path.endsWith('/raster')?manifest:{projection:{value:maskAsset}});if(kind==='mask-create')f.draft.mask=f.mask;await f.controller.sync();old=f.controller.built;
+  f.draft.source=f.source;f.setJSON(path=>path.endsWith('/raster')?manifest:projection(maskAsset));if(kind==='mask-create')f.draft.mask=f.mask;await f.controller.sync();old=f.controller.built;
  }else{await inspect(f);old=f.controller.inspections.get(f.candidate.id);}
  const retained=ledger.urls(),entries=[],urlEntry=assetId=>{const entry={type:'url',assetId,...deferred(),seen:false,value:responseFor(f.descriptor(assetId))};entries.push(entry);return entry;},metadataEntry=(path,value)=>{const entry={type:'metadata',path,...deferred(),seen:false,value};entries.push(entry);return entry;};let start;
  if(kind==='mask-restore'){
-  metadataEntry('/api/v1/assets/mask/raster',manifest);urlEntry('mask');metadataEntry('/api/v1/assets/mask',{projection:{value:maskAsset}});f.draft.mask=f.mask;start=()=>f.controller.sync();
+  metadataEntry('/api/v1/assets/mask/raster',manifest);urlEntry('mask');metadataEntry('/api/v1/assets/mask',projection(maskAsset));f.draft.mask=f.mask;start=()=>f.controller.sync();
  }else if(kind==='mask-create'){
   metadataEntry('/api/v1/assets/replacement-mask/raster',manifest);urlEntry('replacement-mask');f.setCommand(body=>{assert.equal(body.type,'PrepareRequestMask');return [{type:'AssetRegistered',payload:{asset:replacement}}];});start=()=>f.controller.build(f.owns(),{kind:'fill'});
  }else if(kind==='inspection'){
@@ -231,9 +323,9 @@ test('a sibling response stream is canceled after inspection failure and cannot 
 
 async function mappingURLFixture(t){
  const ledger=previewURLLedger(t),f=await fixture(t),originalManifest=requestMaskManifest(f),temporary=new Map();originalManifest.plan.clip={x:1,y:1,width:2,height:2};const maskAsset=structuredClone(f.descriptor('mask'));let prepared=0,onPrepare=null;
- f.draft.source=f.source;f.draft.mask=f.mask;f.draft.fields.size='auto';f.setJSON(path=>path.endsWith('/raster')?originalManifest:{projection:{value:maskAsset}});await f.controller.sync();const retained=ledger.urls(),built=f.controller.built;
+ f.draft.source=f.source;f.draft.mask=f.mask;f.draft.fields.size='auto';f.setJSON(path=>path.endsWith('/raster')?originalManifest:projection(maskAsset));await f.controller.sync();const retained=ledger.urls(),built=f.controller.built;
  f.setCommand(body=>{assert.equal(body.type,'PrepareRequestMask');const asset=displayAsset('temporary-mask-'+ ++prepared),manifest=structuredClone(originalManifest);manifest.plan.clip=body.clip;temporary.set(asset.id,{asset,manifest});if(onPrepare)onPrepare(prepared);return [{type:'AssetRegistered',payload:{asset}}];});
- f.setJSON(path=>{const id=path.split('/')[4],entry=temporary.get(id);assert(entry,'Temporary mask metadata '+path);return path.endsWith('/raster')?entry.manifest:{projection:{value:entry.asset}};});
+ f.setJSON(path=>{const id=path.split('/')[4],entry=temporary.get(id);assert(entry,'Temporary mask metadata '+path);return path.endsWith('/raster')?entry.manifest:projection(entry.asset);});
  f.editor.session.transport=async path=>displayRoute(path,f.descriptor);
  const unchanged=()=>{assert.equal(f.controller.built,built);assert.equal(f.controller.mapping,null);ledger.assertRetained(retained);};
  return {f,ledger,retained,built,temporary,unchanged,newURLs:()=>ledger.urls().filter(url=>!retained.includes(url)),onPrepare:fn=>onPrepare=fn};
@@ -271,7 +363,7 @@ for(const failure of ['before-transfer','after-transfer'])test('expansion releas
 
 for(const replacement of ['source','mask'])test('synchronizing a replacement '+replacement+' releases the old mapping before replacing retained URLs',async t=>{
  const c=await mappingURLFixture(t),oldSource=c.f.controller.sourceURL,oldBuilt=c.built.url;await c.f.controller.previewMapping(c.f.owns(),true);const mapping=c.f.controller.mapping,owned=[mapping.sourceURL,mapping.baseline.url,mapping.mask.url];c.ledger.assertRetained(c.ledger.urls());
- if(replacement==='source')c.f.draft.source={...c.f.source,assetId:'replacement-source'};else{c.f.draft.mask={...c.f.mask,assetId:'replacement-mask'};const manifest=structuredClone(c.built.manifest),asset=structuredClone(c.f.descriptor('replacement-mask'));c.f.setJSON(path=>{assert(path.startsWith('/api/v1/assets/replacement-mask'));return path.endsWith('/raster')?manifest:{projection:{value:asset}};});}
+ if(replacement==='source')c.f.draft.source={...c.f.source,assetId:'replacement-source'};else{c.f.draft.mask={...c.f.mask,assetId:'replacement-mask'};const manifest=structuredClone(c.built.manifest),asset=structuredClone(c.f.descriptor('replacement-mask'));c.f.setJSON(path=>{assert(path.startsWith('/api/v1/assets/replacement-mask'));return path.endsWith('/raster')?manifest:projection(asset);});}
  await c.f.controller.sync();assert.equal(c.f.controller.mapping,null);c.ledger.assertReleasedOnce(owned);
  if(replacement==='source'){assert.equal(c.f.controller.built,c.built);c.ledger.assertRetained([oldBuilt,c.f.controller.sourceURL]);c.ledger.assertReleasedOnce([oldSource]);assert.equal(c.f.controller.sourceKey,'replacement-source');}else{assert.notEqual(c.f.controller.built,c.built);assert.equal(c.f.controller.built.asset.id,'replacement-mask');c.ledger.assertRetained([oldSource,c.f.controller.built.url]);c.ledger.assertReleasedOnce([oldBuilt]);}
  c.f.controller.dispose();c.ledger.assertReleasedOnce(c.ledger.urls());
@@ -293,3 +385,5 @@ test('bounded candidate display keeps full retained dimensions and identity thro
  await f.click('request-candidate-actual-candidate');await review(f);assert.deepEqual(f.commands[0].body.actualOutput,{width:4096,height:2048,clipMask:false});assert.equal(f.review().inputs.identity.preparedAssetId,retained.id);assert.equal(f.review().inputs.identity.preparedAssetHash,retained.blob.hash);assert.deepEqual(f.review().inputs.plan,acceptedPlan);assert.deepEqual(f.review().inputs.outputMapping.actualOutput,{width:4096,height:2048});
  await loadReview(f);await f.click(acceptId);assert.deepEqual(f.commands.map(command=>command.body.type),['ReviewCandidatePlacement','AdoptReviewedCandidate']);assert.deepEqual(f.asset,retained);assert.deepEqual(f.mask.requestPlan,acceptedPlan);assert.deepEqual(f.errors,[]);assertDisplayReads(f,['returned','source','mask','before']);
 });
+
+for(const schema of [1,3,99])test('asset projection schema '+schema+' cannot replace the retained candidate inspection',async t=>{const f=await fixture(t);await inspect(f);const prior=f.controller.inspections.get(f.candidate.id),priorURLs=[prior.candidateURL,prior.sourceURL,prior.maskURL];f.setJSON(path=>{if(path==='/api/v1/assets/returned')return {...projection(f.asset),projectionSchema:schema};if(path.startsWith('/api/v1/jobs/job/candidates'))return structuredClone(f.view);throw Error('Unexpected read '+path);});await f.click(inspectId);assert.equal(f.errors.length,1);assert.equal(f.controller.inspections.get(f.candidate.id),prior);assert.deepEqual([prior.candidateURL,prior.sourceURL,prior.maskURL],priorURLs);for(const url of priorURLs)assert(displayPreviewInfo(url),'Prior complete inspection preview stays admitted');});

@@ -113,7 +113,7 @@ Playwright reporter events supply case ledgers. Missing files/cases, skips,
 retries, duplicate identities or mismatched focused counts block completion.
 WD 2000/100/30 full counts are sizing envelopes: additional implemented cases
 are executed and reported as a PERF-A08 scope amendment, never removed to fit.
-Five existing Node-hosted native browser files are explicitly classified B and
+Registered Node-hosted native browser files are explicitly classified B and
 execute after browser provisioning, with their real fixture build and preserved
 network guard. Their discovered Node test IDs must match completed B cases.
 

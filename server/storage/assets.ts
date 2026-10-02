@@ -1,3 +1,4 @@
+import {withDiagnosticDirectory} from '../observability/diagnostic-memory.js';
 import { createHash, randomUUID } from 'node:crypto';
 import { constants, closeSync, fsyncSync, fstatSync, ftruncateSync, lstatSync, openSync, readSync, readdirSync, renameSync, writeSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -8,13 +9,14 @@ import { canonical, hashBytes, isId, isSeq, keys, parseCommand } from './canonic
 import { StoreError, safeError } from './errors.js';
 import { assertComponents, assertPrivate, privateDirectory, sameFile, syncDirectory } from './files.js';
 import { IO_CHUNK, type Objects, type Barrier } from './objects.js';
+import { adapterResources } from '../observability/adapter-resources.js';
 
 export type AssetAuth = { clientId: string; sessionHash: string; expires: number; now: number };
 export class AssetRejection extends Error {
   constructor(readonly code: RejectionCode, readonly reason: string, readonly currentRevision: string | null = null, readonly field = 'command.body') {super(reason);}
 }
 type StoredStage = { record: StagingRecord; createdAt: string; filename: string };
-type Lease = { id: string; owner: string; version: string; offset: string; length: number; at: number };
+type Lease = { id: string; owner: string; version: string; offset: string; length: number; at: number; releaseObserved:()=>void };
 type Commit = (bytes: Uint8Array, build: () => AssetFact, failure?: () => void) => Receipt;
 const hashPattern=/^sha256:[a-f0-9]{64}$/;
 export class Assets {
@@ -98,10 +100,10 @@ export class Assets {
     if(r.state!=='receiving'||this.db.prepare('SELECT id FROM asset_preparations WHERE staging_id=?').get(id))throw new StoreError('CONTENT_WITHHELD');
     for(const lease of this.leases.values())if(lease.id===id)throw new StoreError('QUEUE_FULL');
     this.objects.reserve('upload:'+id,BigInt(r.expectedBytes)-BigInt(offset));
-    const token=randomUUID();this.objects.acquire(token);this.leases.set(token,{id,owner:auth.clientId,version:r.version,offset,length,at:Date.now()});return token;
+    const token=randomUUID();this.objects.acquire(token);this.leases.set(token,{id,owner:auth.clientId,version:r.version,offset,length,at:Date.now(),releaseObserved:adapterResources.handle('assets','chunk-lease')});return token;
   }
   checkChunk(token:string,auth:AssetAuth){const lease=this.leases.get(token);if(!lease)throw new StoreError('OWNER_REQUIRED');const s=this.stage(lease.id);this.owner(s,auth.clientId);if(lease.owner!==auth.clientId||lease.version!==s.record.version)throw new StoreError('OWNER_REQUIRED');this.objects.capacity(0n);}
-  abortChunk(token:string){this.leases.delete(token);this.objects.release(token);}
+  abortChunk(token:string){this.leases.get(token)?.releaseObserved();this.leases.delete(token);this.objects.release(token);}
   chunk(token:string,bytes:Uint8Array,auth:AssetAuth){
     const lease=this.leases.get(token);if(!lease)throw new StoreError('OWNER_REQUIRED');
     try{
@@ -110,11 +112,12 @@ export class Assets {
       if(bytes.length!==lease.length)throw new StoreError('MALFORMED_REQUEST');
       this.objects.reserve('upload:'+r.stagingId,BigInt(r.expectedBytes)-BigInt(r.committedOffset));
       const fd=this.open(s);
+      const releaseFD=adapterResources.handle('assets','chunk-fd');
       try {
         ftruncateSync(fd,Number(BigInt(r.committedOffset)));this.barrier('upload-before-write');
         for(let n=0;n<bytes.length;){const written=writeSync(fd,bytes,n,bytes.length-n,Number(BigInt(r.committedOffset))+n);if(!written)throw new StoreError('STORAGE_FAILURE');n+=written;}
         this.barrier('upload-before-flush');fsyncSync(fd);this.barrier('upload-after-flush');
-      }finally{closeSync(fd);}
+      }finally{closeSync(fd);releaseFD();}
       this.transaction(()=>{this.owner(this.stage(r.stagingId),auth.clientId);r.committedOffset=String(BigInt(r.committedOffset)+BigInt(bytes.length));r.version=String(BigInt(r.version)+1n);r.state=r.committedOffset===r.expectedBytes?'complete':'receiving';this.save(s);this.barrier('upload-before-offset-commit');});
       this.barrier('upload-after-offset-commit');this.objects.reserve('upload:'+r.stagingId,BigInt(r.expectedBytes)-BigInt(r.committedOffset),false);return r;
     }finally{this.abortChunk(token);}
@@ -139,7 +142,7 @@ export class Assets {
       if(s.record.state!=='complete'||body.expectedSha256!==s.record.sha256)return this.commit(bytes,()=>{throw new AssetRejection(s.record.state==='finalized'?'INCOMPATIBLE':'INVALID_INPUT','STAGING_NOT_MATCHING_COMPLETE');});
       if(this.db.prepare('SELECT id FROM asset_preparations WHERE staging_id=?').get(s.record.stagingId))return this.commit(bytes,()=>{throw new AssetRejection('CAPACITY','STAGING_PREPARATION_ACTIVE');});
       if(Number(this.db.prepare('SELECT (SELECT count(*) FROM asset_preparations)+(SELECT count(*) FROM raster_preparations)+(SELECT count(*) FROM history_preparations)+(SELECT count(*) FROM portable_preparations) AS n').get()!.n)>=64)throw new StoreError('QUEUE_FULL');
-      this.transaction(()=>{this.db.prepare('INSERT INTO asset_preparations VALUES (?,?,?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes).toString('utf8'),canonical({protocolVersion:1,command:c}),randomUUID(),s.record.stagingId,s.record.version,'preparing');this.barrier('preparation-before-commit');});
+      this.transaction(()=>{this.db.prepare('INSERT INTO asset_preparations VALUES (?,?,?,?,?,?,?,?)').run(c.commandId,hash,Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength).toString('utf8'),canonical({protocolVersion:1,command:c}),randomUUID(),s.record.stagingId,s.record.version,'preparing');this.barrier('preparation-before-commit');});
       this.barrier('preparation-after-commit');this.schedule(true);return null;
     }
     const receipt=this.commit(bytes,()=>{
@@ -167,27 +170,32 @@ export class Assets {
   }
   pending(id:string){
     if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT * FROM asset_preparations WHERE id=?').get(id);if(!row)return null;
-    try{const request=parseCommand(Buffer.from(String(row.original)));const c=request.command;
+    const bytes=Buffer.from(String(row.original)),releaseBytes=adapterResources.buffer('assets','pending-command',bytes);
+    try{const request=parseCommand(bytes);const c=request.command;
       if(c.commandId!==id||canonical(request)!==row.canonical||hashBytes(String(row.canonical))!==row.hash||c.body.type!=='FinalizeStaging'||c.body.stagingId!==row.staging_id||!isId(row.operation_id)||!isSeq(row.staging_version)||!['preparing','waiting-for-resources'].includes(String(row.phase)))throw new Error();
       return {hash:String(row.hash),command:c,operationId:String(row.operation_id),phase:String(row.phase) as 'preparing'|'waiting-for-resources'};
-    }catch{throw new StoreError('CORRUPT_STORE');}
+    }catch{throw new StoreError('CORRUPT_STORE');}finally{releaseBytes();}
   }
   schedule(retryWaiting=false){if(this.closing)return;setImmediate(()=>{if(this.closing)return;for(const row of this.db.prepare("SELECT id FROM asset_preparations WHERE phase='preparing' OR ? ORDER BY id LIMIT 64").all(retryWaiting?1:0)){
     const id=String(row.id);if(this.running.has(id)||this.paused.has(id))continue;try{this.objects.acquire('prepare:'+id);}catch{break;}
-    this.running.add(id);const work=this.prepare(id).catch(()=>{this.paused.add(id);try{this.transaction(()=>this.db.prepare("UPDATE asset_preparations SET phase='waiting-for-resources' WHERE id=?").run(id));}catch{/* Retain the last durable preparation when the journal itself cannot advance. */}}).finally(()=>{this.objects.release('prepare:'+id);this.running.delete(id);this.work.delete(work);this.schedule();});this.work.add(work);
+    this.running.add(id);const work=adapterResources.scope('asset-prepare',()=>this.prepare(id)).catch(()=>{this.paused.add(id);try{this.transaction(()=>this.db.prepare("UPDATE asset_preparations SET phase='waiting-for-resources' WHERE id=?").run(id));}catch{/* Retain the last durable preparation when the journal itself cannot advance. */}}).finally(()=>{this.objects.release('prepare:'+id);this.running.delete(id);this.work.delete(work);this.schedule();});this.work.add(work);
   }});}
   private async prepare(id:string){
     const started=performance.now();const pending=this.pending(id);if(!pending)return;
     const c=pending.command;const row=this.db.prepare('SELECT * FROM asset_preparations WHERE id=?').get(id)!;
-    const bytes=Buffer.from(String(row.original));const stage=this.stage(String(row.staging_id));const r=stage.record;
+    const bytes=adapterResources.retain('assets','preparation-command',Buffer.from(String(row.original)));const stage=this.stage(String(row.staging_id));const r=stage.record;
+    const releaseUncovered=['adapter','caption'].includes(r.purpose)?()=>{}:adapterResources.uncovered('asset-other-preparation');
     try{
       if(r.ownerClientId!==c.clientId||r.version!==row.staging_version||r.state!=='complete')throw new AssetRejection('STALE_REVISION','STAGING_CHANGED',r.version);
       this.objects.reserve('upload:'+r.stagingId,0n);const ref:BlobRef={hash:r.sha256,byteLength:r.expectedBytes,mediaType:r.mediaType};
       let fd:number;let source=this.path(stage);let renamed=false;
       try{fd=this.open(stage);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;source=this.objects.path(ref);assertComponents(dirname(source));const identity=assertPrivate(source,false);fd=openSync(source,constants.O_RDONLY|constants.O_NOFOLLOW);if(!sameFile(identity,fstatSync(fd))){closeSync(fd);throw new StoreError('ROOT_UNSAFE');}renamed=true;}
       let measured:Asset['measuredMediaType']=['font','text','adapter'].includes(r.purpose)?'application/octet-stream':'text/plain';
+      const releaseFD=adapterResources.handle('assets','preparation-fd'),releases:(()=>void)[]=[];
       try{
         const buffer=Buffer.alloc(IO_CHUNK);const hash=createHash('sha256');let at=0n;let checkedAt=Date.now();const decoder=r.purpose==='caption'?new TextDecoder('utf-8',{fatal:true}):null;
+        releases.push(adapterResources.buffer('assets','preparation-buffer',buffer),adapterResources.handle('assets','preparation-hash'));
+        if(decoder)releases.push(adapterResources.handle('assets','caption-decoder'));
         for(;;){this.check();if(this.closing)throw new StoreError('CLOSED');if(Date.now()-checkedAt>=30000){this.objects.capacity(0n);checkedAt=Date.now();}
           const n=readSync(fd,buffer);if(!n)break;hash.update(buffer.subarray(0,n));if(at===0n)measured=this.signature(buffer.subarray(0,n),r);
           if(decoder)try{decoder.decode(buffer.subarray(0,n),{stream:true});}catch{throw new AssetRejection('INVALID_INPUT','INVALID_UTF8');}
@@ -197,7 +205,7 @@ export class Assets {
         if(at!==BigInt(r.expectedBytes)||'sha256:'+hash.digest('hex')!==r.sha256)throw new AssetRejection('INVALID_INPUT','LENGTH_OR_HASH_MISMATCH');
         if(!['caption','text','adapter'].includes(r.purpose)&&at===0n)throw new AssetRejection('INVALID_INPUT','IMAGE_SIGNATURE_REQUIRED');
         this.barrier('finalize-before-flush');fsyncSync(fd);this.barrier('finalize-after-flush');
-      }finally{closeSync(fd);}
+      }finally{try{closeSync(fd);releaseFD();}finally{for(const release of releases)release();}}
       if(!renamed){const target=this.objects.path(ref);privateDirectory(dirname(target));this.barrier('finalize-before-rename');
         try{lstatSync(target);const proof=await this.objects.prove(ref,()=>this.check());this.objects.releaseProof(proof);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;renameSync(source,target);}
         this.barrier('finalize-after-rename');syncDirectory(dirname(target));syncDirectory(this.directory);this.barrier('finalize-after-directory-sync');}
@@ -217,7 +225,7 @@ export class Assets {
     }catch(error){
       if(error instanceof AssetRejection){this.commit(bytes,()=>{throw error;},()=>{const current=this.stage(r.stagingId);current.record.state='failed';current.record.version=String(BigInt(current.record.version)+1n);this.save(current);this.db.prepare('DELETE FROM asset_preparations WHERE id=?').run(id);});this.objects.unreserve('upload:'+r.stagingId);}
       else {const failure=safeError(error);if(failure.code!=='CLOSED')this.transaction(()=>this.db.prepare("UPDATE asset_preparations SET phase='waiting-for-resources' WHERE id=?").run(id));}
-    }
+    }finally{releaseUncovered();}
   }
   private signature(bytes:Uint8Array,r:StagingRecord):Asset['measuredMediaType'] {
     const b=Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength);if(r.purpose==='caption')return 'text/plain';if(['font','text','adapter'].includes(r.purpose))return 'application/octet-stream';
@@ -231,13 +239,16 @@ export class Assets {
   asset(id:string):Asset|null{this.check();if(!isId(id))throw new StoreError('MALFORMED_REQUEST');const row=this.db.prepare('SELECT json FROM assets WHERE id=?').get(id);return row?JSON.parse(String(row.json)):null;}
   adapterDeleted(id:string):boolean{this.check();if(!isId(id))throw new StoreError('MALFORMED_REQUEST');return !!this.db.prepare("SELECT 1 FROM assets WHERE json_extract(json,'$.qualification')='adapter-deletion' AND json_extract(json,'$.adapterDeletion.kind')='deleted' AND json_extract(json,'$.adapterDeletion.versionId')=? LIMIT 1").get(id);}
   safeAsset(id:string){const a=this.asset(id);if(!a)throw new StoreError('NOT_FOUND');if(a.safety!=='safe'||!['opaque-text','raster-preview','canonical-raster','canonical-png','canonical-jpeg','font'].includes(a.qualification))throw new StoreError('CONTENT_WITHHELD');if(a.availability!=='available')throw new StoreError('NOT_FOUND');return a;}
-  private readers=new Map<string,string>();
-  async verify(id:string){const a=this.safeAsset(id);const slot=randomUUID();this.objects.acquire(slot);try{const handle=await this.objects.prove(a.blob,()=>{this.safeAsset(id);if(this.closing)throw new StoreError('CLOSED');});this.readers.set(handle,slot);return {asset:a,handle};}catch(e){this.objects.release(slot);if((e as NodeJS.ErrnoException).code==='ENOENT'||(e instanceof StoreError&&['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code)))throw new StoreError('NOT_FOUND');throw e;}}
+  private readers=new Map<string,{slot:string;release:()=>void}>();
+  resourceOwnership(){return {chunkLeases:this.leases.size,runningPreparations:this.running.size,preparationPromises:this.work.size,contentReaders:this.readers.size,recoveryCursors:this.cursors.size,pausedPreparations:this.paused.size};}
+  async verify(id:string){const a=this.safeAsset(id);const slot=randomUUID();this.objects.acquire(slot);try{const handle=await this.objects.prove(a.blob,()=>{this.safeAsset(id);if(this.closing)throw new StoreError('CLOSED');});this.readers.set(handle,{slot,release:adapterResources.handle('assets','content-reader')});return {asset:a,handle};}catch(e){this.objects.release(slot);if((e as NodeJS.ErrnoException).code==='ENOENT'||(e instanceof StoreError&&['MISSING_OBJECT','CORRUPT_OBJECT'].includes(e.code)))throw new StoreError('NOT_FOUND');throw e;}}
   content(id:string,handle:string,offset:string,length:number){const a=this.safeAsset(id);this.objects.proven(a.blob,handle);const bytes=this.objects.readRange(a.blob,offset,length);this.objects.proven(a.blob,handle);return bytes;}
-  releaseContent(handle:string){const slot=this.readers.get(handle);if(slot)this.objects.release(slot);this.readers.delete(handle);this.objects.releaseProof(handle);}
+  releaseContent(handle:string){const reader=this.readers.get(handle);if(reader){this.objects.release(reader.slot);reader.release();}this.readers.delete(handle);this.objects.releaseProof(handle);}
   diagnostics(){
     let orphanUploadCount=0n,orphanUploadBytes=0n,committedBytes=0n,failedCount=0n;
-    for(const filename of readdirSync(this.directory)){const stat=assertPrivate(join(this.directory,filename),false);if(!this.db.prepare('SELECT id FROM staged_assets WHERE filename=?').get(filename)){orphanUploadCount++;orphanUploadBytes+=BigInt(stat.size);}}
+    const registered=this.db.prepare('SELECT id FROM staged_assets WHERE filename=?');
+    withDiagnosticDirectory(this.directory,directory=>{for(let entry=directory.readSync();entry;entry=directory.readSync()){const stat=assertPrivate(join(this.directory,entry.name),false);if(!registered.get(entry.name)){orphanUploadCount++;orphanUploadBytes+=BigInt(stat.size);}}});
+    if(this.db.prepare('SELECT 1 FROM staged_assets WHERE length(CAST(json AS BLOB))>65536 LIMIT 1').get())throw new StoreError('CAPACITY');
     for(const row of this.db.prepare('SELECT json FROM staged_assets').iterate()){const s=JSON.parse(String(row.json)) as StagingRecord;committedBytes+=BigInt(s.committedOffset);if(s.state==='failed')failedCount++;}
     return {orphanUploadCount:String(orphanUploadCount),orphanUploadBytes:String(orphanUploadBytes),committedBytes:String(committedBytes),failedCount:String(failedCount),preparations:String(this.db.prepare('SELECT count(*) AS n FROM asset_preparations').get()!.n),stages:String(this.db.prepare('SELECT count(*) AS n FROM staged_assets').get()!.n),...this.objects.reservationInventory(),preparationMs:this.preparationMs};}
   pressure(){return this.paused.size>0||!!this.db.prepare("SELECT id FROM asset_preparations WHERE phase='waiting-for-resources' LIMIT 1").get();}

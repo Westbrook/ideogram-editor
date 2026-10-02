@@ -1,3 +1,5 @@
+import {allocationLedger,type AllocationLease} from '../observability/allocations.js';
+import {TEXT_WORKER_DIAGNOSTIC_BYTES} from '../observability/diagnostic-memory.js';
 import { frozen, LIMITS, TextFailure } from './contracts';
 import type { PreparedText, TextRequest } from './contracts';
 import { engineReservationBytes, engineResidentBytes, planText, retainPrepared, textMemory, unownedFontBytes } from './memory';
@@ -19,6 +21,7 @@ export class TextRenderer {
   #worker?: Worker;
   #ready = false;
   #engineLease?: Reservation;
+  #diagnosticLease?: AllocationLease;
   #pending?: Pending;
   #scheduled = false;
   #active?: { serial: number; reject: (error: unknown) => void; timer: ReturnType<typeof setTimeout>; lease: Reservation };
@@ -32,9 +35,10 @@ export class TextRenderer {
     // A thrown termination retains the actual retry handle and every private
     // reservation. Repeated attempts neither mint capacity nor count it twice.
     try { worker.terminate(); }
-    catch { this.#terminationFailed = true; return false; }
+    catch { this.#terminationFailed = true; this.#diagnosticLease?.markUnused();return false; }
     this.#worker = undefined; this.#terminations++; this.#terminationFailed = false;
     this.#engineLease?.release(); this.#engineLease = undefined;
+    this.#diagnosticLease?.release(); this.#diagnosticLease = undefined;
     for (const lease of this.#uncertainLeases) lease.release(); this.#uncertainLeases.clear();
     return true;
   }
@@ -88,15 +92,16 @@ export class TextRenderer {
   }
   #start(pending: Pending) {
     const { serial, request, plan, resolve, reject } = pending;
-    let lease = pending.lease, newEngine: Reservation | undefined;
+    let lease = pending.lease, newEngine: Reservation | undefined,newDiagnostics:AllocationLease|undefined;
     try {
       if (!this.#worker) newEngine = textMemory.reserve(engineReservationBytes);
-      if (this.#ready) { lease.release(); lease = textMemory.reserve(plan.bytes); }
+      if (this.#ready) lease = textMemory.replace(lease, plan.bytes);
       if (!this.#worker) {
+        newDiagnostics=allocationLedger.reserve({owner:'diagnostic-text-worker',kind:'control',cpuBytes:TEXT_WORKER_DIAGNOSTIC_BYTES,handles:1});
         this.#worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module', name: 'ideogram-text-' + serial });
-        this.#engineLease = newEngine;
+        this.#engineLease = newEngine;this.#diagnosticLease=newDiagnostics;
       }
-    } catch (error) { lease.release(); newEngine?.release(); reject(error); return; }
+    } catch (error) { lease.release(); newEngine?.release();newDiagnostics?.release(); reject(error); return; }
     const worker = this.#worker;
     const remaining = pending.deadline - performance.now();
     if (remaining <= 0) { lease.release(); this.#terminate(); reject(new TextFailure('TEXT_DEADLINE')); return; }
@@ -107,40 +112,48 @@ export class TextRenderer {
       if (this.#active?.serial !== serial || serial !== this.#serial) return;
       const message = event.data;
       if (message.ready) {
-        this.#engineLease!.release(); this.#engineLease = textMemory.reserve(engineResidentBytes); this.#ready = true;
-        lease.release();
-        try { lease = textMemory.reserve(plan.bytes); this.#active.lease = lease; worker.postMessage(request); }
+        const startupEngine = this.#engineLease!;
+        this.#engineLease = textMemory.split(startupEngine, engineResidentBytes);
+        startupEngine.release(); this.#ready = true;
+        try { lease = textMemory.replace(lease, plan.bytes); this.#active.lease = lease; worker.postMessage(request); }
         catch (error) { clearTimeout(timer); this.#active = undefined; worker.onmessage = null; lease.release(); reject(error); }
         return;
       }
       this.#active = undefined; clearTimeout(timer);
       worker.onmessage = null; worker.onerror = null;
-      if(message.phases)retainWorkerPhases(message.phases);
+      // Native message bytes are already covered by this worker delegation.
+      // Adoption copies them into the separately admitted bounded history ring.
+      retainWorkerPhases(message.phases);
       if (!message.ok && !pending.recycled && ['FONT_CACHE_CAPACITY','TEXT_NATIVE_CAPACITY'].includes(message.code)) {
         if (!this.#terminate()) { this.#uncertainLeases.add(lease); reject(new TextFailure('TEXT_TERMINATION_FAILED')); return; }
-        lease.release();
         try {
-          textMemory.check(plan.bytes + engineResidentBytes);
-          this.#start({ ...pending, recycled: true, lease: textMemory.reserve(plan.startup) });
-        } catch (error) { reject(error); }
+          // The retained job already covers plan.bytes. Check only the new
+          // engine allowance, then keep request ownership across the retry.
+          textMemory.check(engineResidentBytes);
+          lease = textMemory.replace(lease, plan.startup);
+          this.#start({ ...pending, recycled: true, lease });
+        } catch (error) { lease.release(); reject(error); }
         return;
       }
-      if (!message.fatal || this.#terminate()) lease.release();
-      else { this.#uncertainLeases.add(lease); reject(new TextFailure('TEXT_TERMINATION_FAILED')); return; }
-      if (!message.ok) { reject(new TextFailure(message.code, message.details)); return; }
+      if (message.fatal && !this.#terminate()) { this.#uncertainLeases.add(lease); reject(new TextFailure('TEXT_TERMINATION_FAILED')); return; }
+      if (!message.ok) { lease.release(); reject(new TextFailure(message.code, message.details)); return; }
       const result = message.value as PreparedText;
       try {
         this.#validateResult(result, request, plan);
-        const value = { ...result, dependencies: result.dependencies.map(d => ({ ...d, bytes: request.fonts.find(f => f.hash === d.hash)!.bytes })) };
-        retainPrepared(value, result.rgba.size + result.layout.size + result.textUtf8.size + unownedFontBytes(request));
-        resolve(frozen(value));
+        const value = frozen({ ...result, dependencies: result.dependencies.map(d => ({ ...d, bytes: request.fonts.find(f => f.hash === d.hash)!.bytes })) });
+        // Result Blobs remain covered by the job while validation/freezing run.
+        // Split their exact retained backing before releasing the job remainder.
+        retainPrepared(value, result.rgba.size + result.layout.size + result.textUtf8.size + unownedFontBytes(request), lease);
+        resolve(value);
       } catch (error) { reject(error); }
+      finally { lease.release(); }
     };
     try { if (this.#ready) worker.postMessage(request); } catch { this.#stop('TEXT_WORKER_FAILURE'); }
   }
   #validateResult(result: PreparedText, request: TextRequest, plan: TextPlan) {
     if (JSON.stringify(result.token) !== JSON.stringify(request.token)) throw new TextFailure('TEXT_STALE');
-    if (!(result.rgba instanceof Blob) || result.rgba.size !== plan.raster || !(result.layout instanceof Blob) || result.layout.size > plan.layout ||
+    if (result.width !== Math.ceil(request.frame.width) || result.height !== Math.ceil(request.frame.height) ||
+        !(result.rgba instanceof Blob) || result.rgba.size !== plan.raster || !(result.layout instanceof Blob) || result.layout.size > plan.layout ||
         !(result.textUtf8 instanceof Blob) || result.textUtf8.size > LIMITS.textBytes || result.dependencies.length !== request.fonts.length ||
         result.dependencies.some(d => !request.fonts.some(f => f.hash === d.hash && f.bytes.size === d.bytes.size))) throw new TextFailure('TEXT_RESULT_BUDGET');
   }

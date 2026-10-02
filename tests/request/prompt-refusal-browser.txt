@@ -1,0 +1,37 @@
+Source-only authored browser cases. No runtime qualification is claimed until
+the root-owned gates execute the complete assembled source tree.
+
+Use the repository-pinned Node 26.10.0, npm 12.1.0, Playwright 1.63.0 and its
+matching Chromium, Firefox and WebKit installations. Do not install a different
+browser revision to make a gate pass. All output defaults to ignored artifacts.
+
+From the repository root, after assembling this packet with its prerequisites:
+
+  export REQUEST_PROMPT_SOURCE_ROOT=/absolute/path/to/complete/assembled/tree
+  export REQUEST_PROMPT_BROWSER_OUTPUT=artifacts/request-prompt-refusal-browser
+  .toolchain/bin/node node_modules/typescript/bin/tsc -p artifacts/allocation-followup-staging/request-prompt-refusal/tests/request/prompt-refusal.tsconfig.json
+  .toolchain/bin/node node_modules/@playwright/test/cli.js test --config artifacts/allocation-followup-staging/request-prompt-refusal/tests/request/prompt-refusal.playwright.config.ts
+
+The config starts an owned Vite server on literal IPv4 127.0.0.1:4187 with
+strictPort and reuseExistingServer=false. The selected source root must contain
+the complete effective src graph, including request-prompt-memory.ts. It is not
+a correction overlay; every product import and the fixture ledger use that one
+tree. The repository's installed frozen public En Reve packages are unchanged.
+
+Five cases run in each browser. They use the actual RequestEditing and child
+controllers, real allocationLedger reservations, and public scoped/global En
+Reve registration. Native controls are located by accessible role and label.
+Assertions inspect standard HTMLTextAreaElement properties, public events,
+fixture persistence observations, and exact owner cleanup.
+
+The editor's session/persistence/command boundary is a deterministic fake. It
+tracks registered draft identity, accepted wire snapshots and refused saves,
+without writing a server or making provider calls. Pressure and observations
+exist only in the test entry. This suite is not durability, network security,
+whole-product accessibility, native undo memory, JS heap or process RSS proof.
+
+The final case explicitly uses synthetic compositionstart/beforeinput/input/
+compositionend sequencing and a direct native value write to model an admitted
+exception: a noncancelable edit exceeding the prospective input reservation.
+It proves guard/retention/retry behavior in real native DOM; it does not qualify
+physical IME, dictation, autofill, or assistive-technology editing workflows.

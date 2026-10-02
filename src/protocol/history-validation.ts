@@ -1,3 +1,5 @@
+import {documentCreationBody} from './document-creation.js';
+import {validateRequestTextTreatmentEnvelope,validateTextTreatmentAdoptionChoice} from '../request/text-treatment.js';
 import {validateCompositionRef,validString} from '../composition/core.js';
 import {validateMaskMapping,retainedMask} from '../raster/mapping.js';
 import { blob } from './validate.js';
@@ -40,6 +42,7 @@ function properties(v: any) {
   }
 }
 export function historyBody(b: any) {
+  if(b.type==='CreateDocument'){documentCreationBody(b);return;}
   if(isTextCommand(b.type)){textBody(b);return;}
   const fields: Record<string,string[]> = {
     SetLayerAppearance:['layerId','layerVersion','description','draft'],
@@ -52,13 +55,15 @@ export function historyBody(b: any) {
   };
   for(const type of ['CommitCompositionVersion','AddSemanticElement','RemoveSemanticElement','ReorderSemanticElement','SetSemanticBinding','DetachSemanticBinding','ApprovePromptProjection'])fields[type]=['composition','draft'];
   if('composition'in b)validateCompositionRef(b.composition);if('description'in b)ok(validString(b.description));
-  ok(Object.hasOwn(fields,b.type)); keys(b,['type',...fields[b.type],...(b.type==='ExportDocument'&&Object.hasOwn(b,'options')?['options']:[]),...(['PrepareCandidateAdoption','ReviewCandidatePlacement'].includes(b.type)&&Object.hasOwn(b,'replacement')?['replacement']:[])]);
+  ok(Object.hasOwn(fields,b.type)); keys(b,['type',...fields[b.type],...(['PrepareCandidateAdoption','ReviewCandidatePlacement'].includes(b.type)&&Object.hasOwn(b,'textTreatment')?['textTreatment']:[]),...(b.type==='ExportDocument'&&Object.hasOwn(b,'options')?['options']:[]),...(['PrepareCandidateAdoption','ReviewCandidatePlacement'].includes(b.type)&&Object.hasOwn(b,'replacement')?['replacement']:[]),...(b.type==='ReviewCandidatePlacement'&&Object.hasOwn(b,'preparation')?['preparation']:[])]);
+  if(b.type==='ReviewCandidatePlacement'&&Object.hasOwn(b,'preparation'))ok(b.preparation==='encoded-rebuild');
   if(b.type==='ExportDocument'&&Object.hasOwn(b,'options'))exportOptions(b.options,true);
   for (const k of ['candidateId','assetId','layerId','newLayerId','historyHead','historyNode','branchId','previewId','reviewId']) if (k in b) ok(id(b[k]));
   if('reviewHash' in b)ok(/^sha256:[a-f0-9]{64}$/.test(b.reviewHash));
   if('layerIds' in b)ok(Array.isArray(b.layerIds)&&(b.layerIds.length>0||b.type==='PrepareRequestSource'&&b.scope==='visible-document')&&b.layerIds.length<=100&&b.layerIds.every(id)&&new Set(b.layerIds).size===b.layerIds.length&&(b.type==='PrepareRequestSource'||typeof b.includeHidden==='boolean'&&typeof b.hideOriginals==='boolean'));
   if(b.type==='PrepareRequestSource')ok(['single-layer','visible-document','selected-layers'].includes(b.scope)&&(b.scope==='visible-document'?b.layerIds.length===0:b.scope==='single-layer'?b.layerIds.length===1:b.layerIds.length>0));
   if(b.type==='PrepareCandidateAdoption'||b.type==='ReviewCandidatePlacement'){ok(['safe-region','full-candidate'].includes(b.mode)&&['current-document','new-document'].includes(b.placement)&&(b.placement==='new-document'?id(b.newDocumentId):b.newDocumentId===null));if(b.actualOutput!==null){keys(b.actualOutput,['width','height','clipMask']);extent(b.actualOutput.width,b.actualOutput.height);ok(typeof b.actualOutput.clipMask==='boolean');}if(Object.hasOwn(b,'replacement')){keys(b.replacement,['layerId','layerVersion']);ok(b.mode==='full-candidate'&&b.placement==='current-document'&&id(b.replacement.layerId)&&seq(b.replacement.layerVersion)&&b.newLayerId===b.replacement.layerId);}}
+  if('textTreatment'in b){keys(b.textTreatment,['kind','plan','choice']);ok(b.textTreatment.kind==='candidate-text-treatment-1'&&!b.replacement);validateRequestTextTreatmentEnvelope(b.textTreatment.plan);validateTextTreatmentAdoptionChoice(b.textTreatment.choice);ok(b.newLayerId===b.textTreatment.choice.newLayerId&&(b.placement==='new-document')===(b.textTreatment.choice.action==='new-document'));}
   if(b.type==='AdoptReviewedCandidate')ok(b.draft===null);
   if ('layerVersion' in b) ok(seq(b.layerVersion));
   if ('name' in b) {if(b.type==='SaveCheckpoint')ok(typeof b.name==='string');else properties({name:b.name});}

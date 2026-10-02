@@ -35,7 +35,8 @@ export class ResultObserver {
    if(result.outcome!=='complete'||result.status!==200){this.candidates.backoff(ready,now);continue;}
    const endpoint=this.candidates.queue.recovery(f.jobId,f.attemptId).endpoint;
    const policy=this.provider.policy({attemptId:f.attemptId,identity:{endpoint,requestId:f.requestId},profileId:this.profileId,acknowledgement:this.acknowledgement?.(f.jobId,f.attemptId)}).applied;
-   this.candidates.receive(ready,result.evidence,policy,this.secrets);
+   const responseProfile=this.candidates.responseProfile(ready);
+   this.candidates.receive(ready,result.evidence,policy,this.secrets,responseProfile);
    for(const candidate of this.candidates.outputs(f.attemptId)){if(this.closed)break;const next=this.current(ready);if(!next)break;await this.candidates.transfer(next,String(candidate.id),this.provider,policy,this.controller.signal);}
   }
    for(const c of this.candidates.retries()){

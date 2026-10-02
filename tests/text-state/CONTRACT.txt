@@ -122,7 +122,11 @@ releases retained browser data. This is logical ownership, not P3 qualification.
 Phase admission correction authorized after partial f8f936d:
 New text admission books current process RSS, the actual browser128MiB and
 active backend owners. It does not prebook an unused future CP-1 worker.
-CP-1 still reserves128MiB before construction; at resource-plan arrival it
+CP-1 still reserves128MiB before construction. RetainText on an already ready
+idle native generation uses the unchanged complete112MiB+64KiB text plan; that
+run is pinned to the same actual generation and rejects if it is lost, with no
+cold replacement. This preserves every worker/backend/IO allowance, not a
+physical-memory or allocator-release claim. At resource-plan arrival it
 rechecks current process RSS and external owners and atomically replaces its
 own preflight reservation. It does not add that reservation twice or leave it
 unbooked. Bounded internal diagnostics retain actual operands/phase IDs.

@@ -1,6 +1,9 @@
 import {allocationLedger,StreamReaderCompletion,type AllocationLease} from '../observability/allocations.js';
-import {jsonPayloadUnits,readRetainedPrompt,reservePromptPayload,PromptReaderCleanupError} from '../observability/prompt-memory.js';
+import {jsonPayloadUnits,reservePromptPayload,PromptReaderCleanupError} from '../observability/prompt-memory.js';
 import {LIMITS,bytes,parseCaption,serialize,projectBounds} from './core.js';
+import {compositionObservations} from '../observability/composition-observations.js';
+import {CompositionError} from './core.js';
+import {COMPOSITION_DRAFT_VIEW_BYTES,COMPOSITION_VIEW_BYTES} from './view.js';
 import type {Composition,LayerValue,ParseResult} from './core.js';
 
 // Logical payload allowances: UTF-16 strings and keys, numeric scalar payloads,
@@ -36,25 +39,36 @@ export function createCompositionValue<T>(label:string,bytes:number,create:()=>T
 }
 export function cloneCompositionValue<T>(value:T){return createCompositionValue('composition-clone',compositionPayloadBytes(value),()=>structuredClone(value));}
 
-export async function readCompositionJSON<T>(response:Response,owns:()=>boolean,signal:AbortSignal,admitted?:AllocationLease):Promise<OwnedCompositionValue<T>>{
- const header=response.headers.get('content-length');
- const length=header!==null&&/^(0|[1-9][0-9]*)$/.test(header)?Number(header):NaN;
- // This protocol emits an exact Content-Length; the shared reader bounds and
- // coalesces input before decoding. It owns cancel/unlock through native drain.
- const retained=await readRetainedPrompt(response,length,owns,signal,admitted);
+// Typed Composition views share CONTROL admission with other application
+// models. Raw captions and local authoring algorithms retain their existing
+// prompt partition; this does not enlarge either central allocation ceiling.
+export function compositionRenderAllowance(bytes:number){return new CompositionPayload(allocationLedger.reserve({owner:'composition-render-payload',kind:'control',cpuBytes:bytes,handles:1}),bytes);}
+export function reserveCompositionRead(){return allocationLedger.reserve({owner:'composition-read-operation',kind:'control',handles:1});}
+export async function readCompositionJSON<T>(response:Response,owns:()=>boolean,signal:AbortSignal,view:'accepted'|'draft',admitted:AllocationLease):Promise<OwnedCompositionValue<T>>{
+ const limit=response.ok?(view==='draft'?COMPOSITION_DRAFT_VIEW_BYTES:COMPOSITION_VIEW_BYTES):65536;
+ // The existing exact-length reader admits its byte buffer before allocation,
+ // and owns native cancel/unlock through drain, including retained failures.
+ const raw=await readCompositionBytes(response,limit,owns,signal,admitted,false);
+ let owner:CompositionPayload|undefined;
  try{
-  // A JSON scalar numeric payload is at most eight bytes for each two source
-  // code units including separators; strings/keys are at most two per unit.
-  const parsed=createCompositionValue<T>('composition-response-model',retained.text.length*4+8,()=>JSON.parse(retained.text) as T);
-  if(!response.ok){parsed.owner.release();throw Error((parsed.value as any)?.error?.code??'CONTENT_UNAVAILABLE');}
-  return parsed;
- }finally{retained.lease.release();}
+  // Decode <=2n UTF-16 bytes plus parsed logical payload <=4n+8. The raw n
+  // bytes remain separately charged until this method's finally. Engine/parser
+  // object overhead remains an explicit central-ledger coverage gap.
+  const allowance=raw.value.byteLength*6+8;
+  owner=new CompositionPayload(allocationLedger.reserve({owner:'composition-response-model',kind:'control',cpuBytes:allowance,handles:1}),allowance);
+  if(signal.aborted||!owns())throw Error('COMPOSITION_READ_STALE');
+  let text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(raw.value);
+  const value=JSON.parse(text) as T;text='';
+  owner.resize(compositionPayloadBytes(value));
+  if(!response.ok)throw Error((value as {error?:{code?:string}})?.error?.code??'CONTENT_UNAVAILABLE');
+  const retained=owner;owner=undefined;return {value,owner:retained};
+ }finally{owner?.release();raw.owner.release();}
 }
-export function parseCompositionValue(raw:Uint8Array):OwnedCompositionValue<ParseResult>{
+export function parseCompositionValue(raw:Uint8Array,source?:{hash:string;byteLength:string}):OwnedCompositionValue<ParseResult>{
  // Retained parse values are distinct from decoded source/slices and the live
  // ancestor paths (depth <=16). These are allowances, not heap measurements.
  const size=Math.min(raw.byteLength,LIMITS.bytes),scratch=compositionAllowance('composition-parse-scratch',size*(4+2*LIMITS.depth)+4096);
- try{return createCompositionValue('composition-parse-model',size*4+4096,()=>parseCaption(raw));}finally{scratch.release();}
+ try{return createCompositionValue('composition-parse-model',size*4+4096,()=>{const result=parseCaption(raw);compositionObservations.parsed(raw.byteLength,result,source);return result;});}finally{scratch.release();}
 }
 export function encodeCompositionText(value:string){
  const owner=compositionAllowance('composition-encode',bytes(value));
@@ -64,15 +78,15 @@ export function serializeCompositionValue(c:Composition,layers:LayerValue[],bind
  const units=jsonPayloadUnits(c),scratch=compositionAllowance('composition-serialize-scratch',units*12+262144);
  // Projection primitives/keys have bounded count (256 elements, three fields);
  // caption strings are borrowed but conservatively remain charged here.
- try{return createCompositionValue('composition-projection',compositionPayloadBytes(c)*2+units*2+262144,()=>serialize(c,layers,bindings));}finally{scratch.release();}
+ try{return createCompositionValue('composition-projection',compositionPayloadBytes(c)*2+units*2+262144,()=>{const result=serialize(c,layers,bindings);compositionObservations.value('derived-snapshot',result.caption,'serialize');compositionObservations.value('issues',[],'serialize');return result;});}catch(error){if(error instanceof CompositionError)compositionObservations.value('issues',error.issues,'serialize');throw error;}finally{scratch.release();}
 }
 export function projectCompositionValue(...args:Parameters<typeof projectBounds>){return createCompositionValue('composition-box',4096,()=>projectBounds(...args));}
 export async function readCompositionBlob(file:Blob,limit:number){
  const length=Math.min(file.size,limit),owner=compositionAllowance('composition-raw-copy',length);
- try{return {value:new Uint8Array(await file.slice(0,length).arrayBuffer()),owner};}catch(error){owner.release();throw error;}
+ try{const value=new Uint8Array(await file.slice(0,length).arrayBuffer());compositionObservations.read('blob-read',value.byteLength,file.size);return {value,owner};}catch(error){owner.release();throw error;}
 }
 export {PromptReaderCleanupError as CompositionReadCleanupError};
-export async function readCompositionBytes(response:Response,limit:number,owns:()=>boolean,signal:AbortSignal,admitted?:AllocationLease){
+export async function readCompositionBytes(response:Response,limit:number,owns:()=>boolean,signal:AbortSignal,admitted?:AllocationLease,observeRaw=true){
  let completion:StreamReaderCompletion|undefined,reader:ReadableStreamDefaultReader<Uint8Array>|undefined,retainedReader:ReadableStreamDefaultReader<Uint8Array>|undefined,cancelled:Promise<void>|undefined;
  let lease:AllocationLease|undefined=admitted,complete=false,primary:unknown,cancelFailure:unknown,unlockFailure:unknown,cancelFailed=false,unlockFailed=false;
  const cancel=()=>cancelled??=Promise.resolve().then(async()=>{if(!reader&&response.body){lease?.resize({handles:2});reader=response.body.getReader();completion=new StreamReaderCompletion(reader);retainedReader=reader;}if(completion)await completion.cancel();else await response.body?.cancel();});
@@ -87,7 +101,7 @@ export async function readCompositionBytes(response:Response,limit:number,owns:(
   for(;;){if(signal.aborted||!owns())throw Error('COMPOSITION_READ_STALE');const item=await completion.read();if(signal.aborted||!owns())throw Error('COMPOSITION_READ_STALE');if(item.done)break;if(offset+item.value.byteLength>length)throw Error('COMPOSITION_CONTENT_SIZE');output.set(item.value,offset);offset+=item.value.byteLength;}
   if(offset!==length)throw Error('COMPOSITION_CONTENT_SIZE');
   reader.releaseLock();reader=undefined;complete=true;lease.resize({handles:1});
-  const owner=new CompositionPayload(lease,length);lease=undefined;return {value:output,owner};
+  const owner=new CompositionPayload(lease,length);lease=undefined;if(observeRaw)compositionObservations.read('stream-read',output.byteLength,length);return {value:output,owner};
  }catch(error){primary=error;throw error;}finally{
   signal.removeEventListener('abort',abort);
   if(!complete){try{await cancel();}catch(error){cancelFailed=true;cancelFailure=error;}if(reader)try{reader.releaseLock();reader=undefined;}catch(error){unlockFailed=true;unlockFailure=error;}}

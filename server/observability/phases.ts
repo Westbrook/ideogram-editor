@@ -1,3 +1,8 @@
+import {isMainThread} from 'node:worker_threads';
+import {diagnosticMemory} from '../../src/observability/diagnostic-memory.js';
+// A main-process store uses the central ledger; dedicated workers instead adopt
+// their parent's fixed grant before enabling handlers.
+if(isMainThread&&!diagnosticMemory.adopted)await import('../../src/observability/allocations.js');
 import {performance} from 'node:perf_hooks';
 import {PhaseRecorder} from '../../src/observability/phases.js';
 import {CommandAcceptancePhases,LocalQueuePhases,type CommandAcceptance} from './command-phases.js';
@@ -17,7 +22,7 @@ export function beginCommandAcceptance(method:unknown,bytes:unknown):CommandAcce
   // authority path and error. Never retain their body, error message, or bytes.
   try{
     if(!(bytes instanceof Uint8Array)||bytes.byteLength>65536)return commandAcceptances.begin(undefined,undefined,started);
-    const request=parseCommand(bytes);
-    return commandAcceptances.begin(request.command,hashBytes(canonical(request)),started);
+    const workspace=diagnosticMemory.reserve('diagnostic-command-parse',1048576);
+    try{const request=parseCommand(bytes);return commandAcceptances.begin(request.command,hashBytes(canonical(request)),started);}finally{workspace.release();}
   }catch{return commandAcceptances.begin(undefined,undefined,started);}
 }

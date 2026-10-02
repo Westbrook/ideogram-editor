@@ -107,10 +107,16 @@ jobs:
           docker image inspect "$(cat artifacts/qualification-ci/image-id.txt)" > artifacts/qualification-ci/image.json
       - name: Run gates without external networking
         shell: bash
+        env:
+          EVIDENCE_CAPACITY_BYTES: ${{ vars.QUALIFICATION_EVIDENCE_CAPACITY_BYTES }}
         run: |
           set -euo pipefail
+          [[ "$EVIDENCE_CAPACITY_BYTES" =~ ^[1-9][0-9]{0,14}$ ]]
+          .toolchain/bin/node --input-type=module -e 'import {writeFileSync} from "node:fs"; const capacityBytes=Number(process.env.EVIDENCE_CAPACITY_BYTES); if(!Number.isSafeInteger(capacityBytes)||capacityBytes<=0)throw Error("Explicit allocated evidence capacity required"); writeFileSync("artifacts/qualification-ci/evidence-allocation.json",JSON.stringify({kind:"evidence-volume-allocation-1",allocationId:"container-evidence",purpose:"qualification-evidence-only",capacityBytes,root:"/workspace/artifacts",issuedAt:new Date().toISOString(),owner:"Build"})+"\n",{flag:"wx",mode:0o444});'
           docker run --name "$CONTAINER_NAME" --network none \
             --cap-drop ALL --security-opt no-new-privileges --shm-size=1g \
+            --mount "type=bind,src=$PWD/artifacts/qualification-ci/evidence-allocation.json,dst=/evidence-allocation.json,readonly" \
+            --env IE_EVIDENCE_ALLOCATION=/evidence-allocation.json \
             "$(cat artifacts/qualification-ci/image-id.txt)" "$QUALIFICATION_BROWSER" "$QUALIFICATION_SCOPE" \
             2>&1 | tee artifacts/qualification-ci/run.log
       - name: Retain successful and failed observations

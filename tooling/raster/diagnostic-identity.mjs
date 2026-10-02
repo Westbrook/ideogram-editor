@@ -9,7 +9,7 @@ import { WEBP_OUTPUT } from '../../dist/local/server/raster/webp-output-platform
 
 const files = [
   'server/raster/engine.js', 'server/raster/worker.js', 'server/raster/worker-owner.js', 'server/raster/worker-protocol.js', 'server/raster/container.js',
-  'server/raster/active-compute.js', 'server/raster/failure.js', 'server/raster/webp-output.js', 'server/raster/webp-pixels.js',
+  'server/raster/active-compute.js', 'server/raster/resource-plan.js', 'server/raster/failure.js', 'server/raster/webp-output.js', 'server/raster/webp-pixels.js',
   'server/raster/webp-output-platform.js', 'server/raster/webp-output-darwin-arm64-identity.js', 'server/raster/webp-output-linux-arm64-identity.js', 'server/raster/webp-output-linux-x64-identity.js',
   'server/raster/bounded-webp.js', 'server/raster/webp-metadata.js', 'server/raster/webp-frame.js',
   'server/raster/webp-color.js', 'server/raster/webp.js', 'server/raster/linux-color.js',

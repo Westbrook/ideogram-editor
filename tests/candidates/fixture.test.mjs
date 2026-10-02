@@ -7,17 +7,46 @@ test('browser process fixture owns emulator scheduler and reports drained native
  assert.equal(view?.items[0]?.state,'prepared');const effects=await server.effects();assert.deepEqual(effects.errors,[]);assert.equal(effects.effects.filter(e=>e.method==='POST').length,1);await server.close();const closed=JSON.parse(await readFile(join(f.root,'candidate-fixture.json'),'utf8'));assert.equal(closed.closed,true);assert.deepEqual(closed.resources.objects,{reservedBytes:'0',activeTransfers:0});assert.equal(closed.resources.raster.activeWorkers,0);
 });
 
+
+async function retainRoutingStore(receipt,lifecycle,result){
+ const {realpath,lstat,readdir,cp,rm,access,writeFile}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{dirname,basename}=await import('node:path'),{createHash}=await import('node:crypto');
+ assert(lifecycle.exit,'Private evidence is retained only after the actual child exits');
+ const roots=lifecycle.messages.filter(message=>message?.type==='root');assert.equal(roots.length,1);assert.equal(result.root,roots[0].root);
+ const root=result.root,temp=await realpath(tmpdir());assert.equal(dirname(root),temp);assert(basename(root).startsWith('p23-queue-'));assert.equal(await realpath(root),root);
+ const rootStat=await lstat(root);assert(rootStat.isDirectory()&&!rootStat.isSymbolicLink());
+ async function inventory(directory){
+  const rows=[];async function walk(path,prefix=''){
+   for(const name of (await readdir(path)).sort()){
+    const full=join(path,name),key=prefix+name,stat=await lstat(full);assert(!stat.isSymbolicLink(),'Routing private evidence must not contain links');
+    if(stat.isDirectory())await walk(full,key+'/');else{assert(stat.isFile(),'Routing private evidence must contain only regular files/directories');const bytes=await readFile(full);rows.push({path:key,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});}
+   }
+  }await walk(directory);return rows;
+ }
+ const original=await inventory(root),retained=join(receipt,'private');
+ await cp(root,retained,{recursive:true,preserveTimestamps:true,errorOnExist:true,force:false,filter:async path=>{const stat=await lstat(path);assert(!stat.isSymbolicLink()&&(stat.isFile()||stat.isDirectory()),'Unexpected routing evidence entry');return true;}});
+ assert.deepEqual(await inventory(root),original,'Copying must preserve the actual routing store');assert.deepEqual(await inventory(retained),original,'Retain every private routing byte before cleanup');
+ const inventoryPath=join(receipt,'private-inventory.json');await writeFile(inventoryPath,JSON.stringify(original,null,2));assert.deepEqual(JSON.parse(await readFile(inventoryPath,'utf8')),original);
+ await rm(root,{recursive:true});await assert.rejects(access(root));
+ const retention={sourceRoot:root,retainedRoot:retained,inventory:'private-inventory.json',verified:true,removed:true,childExit:lifecycle.exit,writerClosed:result.writerClosed,closeError:result.closeError??null};
+ await writeFile(join(receipt,'retention.json'),JSON.stringify(retention,null,2));return retention;
+}
+
 async function routingCase(mode){
  const {mkdir,writeFile}=await import('node:fs/promises'),{randomUUID}=await import('node:crypto');
- const receipt=resolve('artifacts/p24-routing',mode+'-'+randomUUID());await mkdir(receipt,{recursive:true});const output=join(receipt,'result.json');
+ const receipt=resolve(process.env.CANDIDATE_EVIDENCE??'artifacts/p24-routing','routing-'+mode+'-'+randomUUID());await mkdir(receipt,{recursive:true});const output=join(receipt,'result.json');
  const child=fork(resolve('tests/candidates/routing-control.mjs'),[mode,output],{execArgv:['--import',resolve('tests/provider/no-egress.mjs')],env:{PATH:process.env.PATH,TMPDIR:process.env.TMPDIR},stdio:['ignore','pipe','pipe','ipc']});
  let stdout='',stderr='';const lifecycle={pid:child.pid,messages:[],exit:null};child.stdout.on('data',b=>stdout+=b);child.stderr.on('data',b=>stderr+=b);child.on('message',m=>lifecycle.messages.push(m));
  await new Promise((done,reject)=>{child.once('error',reject);child.once('exit',(code,signal)=>{lifecycle.exit={code,signal,at:new Date().toISOString()};done();});});
  await writeFile(join(receipt,'stdout.txt'),stdout);await writeFile(join(receipt,'stderr.txt'),stderr);await writeFile(join(receipt,'lifecycle.json'),JSON.stringify(lifecycle,null,2));
- return {receipt,lifecycle,result:JSON.parse(await readFile(output,'utf8'))};
+ const result=JSON.parse(await readFile(output,'utf8'));
+ // The child has exited, including the deliberately unsuccessful-close case.
+ // Retain its real private store before removing this invocation's temp root.
+ const retention=await retainRoutingStore(receipt,lifecycle,result);
+ return {receipt,lifecycle,result,retention};
 }
 test('actual scheduler retains Base Fast Instant with independent identities and successful owned closure',async t=>{
- const x=await routingCase('sequence');t.diagnostic(JSON.stringify({receipt:x.receipt,lifecycle:x.lifecycle,root:x.result.root}));
+ const x=await routingCase('sequence');t.diagnostic(JSON.stringify({receipt:x.receipt,lifecycle:x.lifecycle,root:x.result.root,retainedRoot:x.retention.retainedRoot}));
+ assert.equal(x.retention.verified,true);assert.equal(x.retention.removed,true);assert.equal(x.retention.writerClosed,true);assert.equal(x.retention.closeError,null);
  assert.deepEqual(x.result.jobs.map(j=>j.candidate?.items[0]?.state),['prepared','prepared','prepared'],JSON.stringify({jobs:x.result.jobs.map(j=>({endpoint:j.endpoint,state:j.queue?.attempts[0]?.state,count:j.queue?.attempts[0]?.count})),fixture:x.result.fixture,closeError:x.result.closeError}));
  assert.deepEqual(x.lifecycle.exit.code,0);assert.equal(x.lifecycle.exit.signal,null);assert.equal(x.result.writerClosed,true);assert.deepEqual(x.result.errors,[]);assert.deepEqual(x.result.fixture.errors,[]);
  assert.deepEqual(x.result.fixture.effects.filter(e=>e.method==='POST').map(e=>e.path),['/ideogram/v4','/ideogram/v4/fast','/ideogram/v4/instant']);
@@ -31,7 +60,8 @@ test('actual scheduler retains Base Fast Instant with independent identities and
 });
 
 test('actual mismatched fixture profile refuses before reservation and retains structured failure and unsuccessful close',async t=>{
- const x=await routingCase('mismatch');t.diagnostic(JSON.stringify({receipt:x.receipt,lifecycle:x.lifecycle,root:x.result.root}));
+ const x=await routingCase('mismatch');t.diagnostic(JSON.stringify({receipt:x.receipt,lifecycle:x.lifecycle,root:x.result.root,retainedRoot:x.retention.retainedRoot}));
+ assert.equal(x.retention.verified,true);assert.equal(x.retention.removed,true);assert.equal(x.retention.writerClosed,false);assert.equal(x.retention.closeError.code,'STORAGE_FAILURE');
  assert.equal(x.lifecycle.exit.code,1);assert.equal(x.lifecycle.exit.signal,null);assert.equal(x.result.writerClosed,false);assert.equal(x.result.closeError.code,'STORAGE_FAILURE');assert.deepEqual(x.result.errors,[]);
  assert.equal(x.result.jobs.length,2);const [base,fast]=x.result.jobs;assert.equal(base.candidate.items[0].state,'prepared');assert.equal(fast.endpoint,'ideogram/v4/fast');assert.equal(fast.queue.id,fast.jobId);assert.equal(fast.queue.attempts[0].id,fast.attemptId);assert.equal(fast.queue.attempts[0].state,'not-started');assert.equal(fast.queue.attempts[0].count,'none');assert.equal(fast.queue.attempts[0].hold,false);assert.equal(fast.queue.attempts[0].requestId,null);
  assert.equal(x.result.fixture.effects.length,4);assert.deepEqual(x.result.fixture.effects.filter(e=>e.method==='POST').map(e=>e.path),['/ideogram/v4']);assert.deepEqual(x.result.fixture.errors,['ProviderError: POLICY']);assert.equal(x.result.fixture.failures.length,1);

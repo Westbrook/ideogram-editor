@@ -2,7 +2,7 @@
 import { mkdtemp, readFile, realpath, writeFile, stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { setTimeout as pause } from 'node:timers/promises';
 import { openWriter } from '../../dist/local/server/storage/writer.js';
@@ -18,6 +18,17 @@ const auth = { clientId: 'jpeg-observe', sessionHash: 'b'.repeat(64), now: Date.
 const sources = diagnosticIdentity;
 const facts = { schemaVersion: 1, networkGuard, at: new Date().toISOString(), qualification: false, input, root, sourceHash: digest(await readFile(new URL(import.meta.url))), measuredSources: await sources(), commands: [], exports: [], rssLimit: limit, status: 'running', limits: 'One writer with one opaque WebP source and four sequential JPEG exports. Full-process OS maxRSS includes driver and all storage/raster workers. No forced GC; four125ms RSS observations after each export. This is a regression diagnostic, not PERF/H-C/W1/W2 qualification or proof for every image. No external effects.' };
 let w;
+async function retainObservation(observation, path) {
+  const started = performance.now();
+  path = resolve(path);
+  // This fixed product observation row is traversed only at its top level.
+  // Nested plans remain in the raw artifact; only primitive fields escape.
+  const scalars = Object.fromEntries(Object.entries(observation).filter(([, value]) => value === null || ['string', 'number', 'boolean'].includes(typeof value)));
+  const serialized = JSON.stringify(observation, null, 2) + '\n';
+  const sha256 = digest(serialized), byteLength = Buffer.byteLength(serialized);
+  await writeFile(path, serialized);
+  return { scalars, artifact: { path, sha256, byteLength, serializationAndWriteMs: performance.now() - started } };
+}
 async function command(body, raster = true) {
   const id = randomUUID(), value = { protocolVersion: 1, command: { schemaVersion: 1, commandId: id, clientId: auth.clientId, sessionId: 'jpeg-observe-provenance', correlationId: randomUUID(), causationId: null, transactionId: randomUUID(), documentId: null, expectedDocumentRevision: null, expectedEntityVersions: EMPTY_EXPECTED_VERSIONS, issuedAt: new Date().toISOString(), body } };
   const observed = { commandId: id, type: body.type, status: 'submitted' }, start = performance.now(); facts.commands.push(observed);
@@ -52,24 +63,36 @@ try {
     const beforeRSS = process.memoryUsage().rss, result = await command({ type: 'ExportRaster', assetId: source.id, options: { format: 'jpeg', quality: 0.9, matte: '#ffffff', resize: null } });
     const exported = result.payload.asset;
     if (exported.blob.mediaType !== 'image/jpeg' || exported.raster.width !== source.raster.width || exported.raster.height !== source.raster.height || exported.raster.pixels.hash !== source.raster.pixels.hash) throw Error('Opaque export raw identity or extent mismatch');
-    const diagnostics = await w.diagnostics(), observation = diagnostics.rasters.observations.find(o => o.commandId === result.commandId && o.plan);
-    if (!observation) throw Error('Missing exporter memory observation');
-    const settledRSS = []; for (let n = 0; n < 4; n++) { await pause(125); settledRSS.push(process.memoryUsage().rss); }
-    facts.exports.push({ iteration, commandId: result.commandId, beforeRSS, settledRSS, asset: exported, observation });
-    if (process.resourceUsage().maxRSS * 1024 > limit) throw Error('Whole-process RSS ceiling exceeded');
-    await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+    const diagnosticsRead = await w.readDiagnostics();
+    try {
+      const observation = diagnosticsRead.value.rasters.observations.find(o => o.commandId === result.commandId && o.plan);
+      if (!observation) throw Error('Missing exporter memory observation');
+      const settledRSS = []; for (let n = 0; n < 4; n++) { await pause(125); settledRSS.push(process.memoryUsage().rss); }
+      const retained = await retainObservation(observation, out + '.export-' + iteration + '.observation.json');
+      facts.exports.push({ iteration, commandId: result.commandId, beforeRSS, settledRSS, asset: exported,
+        observation: retained.scalars, observationArtifact: retained.artifact });
+      if (process.resourceUsage().maxRSS * 1024 > limit) throw Error('Whole-process RSS ceiling exceeded');
+      await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+    } finally { await diagnosticsRead.release(); }
   }
   facts.measuredSourcesAfter = await sources(); if (JSON.stringify(facts.measuredSources) !== JSON.stringify(facts.measuredSourcesAfter)) throw Error('Measured source changed');
   facts.status = 'passed';
 } catch (error) { facts.status = 'failed'; facts.error = String(error); process.exitCode = 1; }
 finally {
   facts.process = process.versions;
-  if (w) { facts.diagnostics = await w.diagnostics(); await w.close(); }
-  facts.networkGuardAfter=await finishDiagnosticNetwork(networkGuard);if(facts.networkGuardAfter.status!=='passed'){facts.status='failed';facts.error='Network guard verification failed';process.exitCode=1;}
-  facts.peakRSS = process.resourceUsage().maxRSS * 1024;
-  facts.measuredSourcesAfter = await sources();
-  if (JSON.stringify(facts.measuredSources) !== JSON.stringify(facts.measuredSourcesAfter)) { facts.status='failed'; facts.error='Measured source changed'; process.exitCode=1; }
-  if (facts.peakRSS > limit) { facts.status='failed'; facts.error='Whole-process RSS ceiling exceeded'; process.exitCode=1; }
-  await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+  let diagnosticsRead, writerClosed = false;
+  try {
+    if (w) { diagnosticsRead = await w.readDiagnostics(); facts.diagnostics = diagnosticsRead.value; await w.close(); writerClosed = true; }
+    facts.networkGuardAfter=await finishDiagnosticNetwork(networkGuard);if(facts.networkGuardAfter.status!=='passed'){facts.status='failed';facts.error='Network guard verification failed';process.exitCode=1;}
+    facts.peakRSS = process.resourceUsage().maxRSS * 1024;
+    facts.measuredSourcesAfter = await sources();
+    if (JSON.stringify(facts.measuredSources) !== JSON.stringify(facts.measuredSourcesAfter)) { facts.status='failed'; facts.error='Measured source changed'; process.exitCode=1; }
+    if (facts.peakRSS > limit) { facts.status='failed'; facts.error='Whole-process RSS ceiling exceeded'; process.exitCode=1; }
+    await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+  } finally {
+    delete facts.diagnostics;
+    try { await diagnosticsRead?.release(); }
+    finally { if (w && !writerClosed) await w.close(); }
+  }
   console.log(JSON.stringify({ status: facts.status, error: facts.error, exports: facts.exports.length, peakRSS: facts.peakRSS, root }));
 }

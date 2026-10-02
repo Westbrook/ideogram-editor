@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {queueCacheOwner} from './backend-wq-cache.mjs';
 import { randomUUID, createHash } from 'node:crypto';
 import { cp, mkdir, chmod, writeFile, realpath } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -101,6 +102,10 @@ export async function createProductFixture(context = {}) {
       try { directStore = new StoreDatabase(root, options.barrier ?? (() => {}), options); }
       catch (error) { directOwner.close(); directOwner = null; throw error; }
       return directStore;
+    },
+    async directIdentity(candidate) {
+      assert(candidate && candidate === directStore, 'WQ direct owner changed');
+      return queueCacheOwner(candidate, context.repo ?? process.cwd());
     },
     async closeDirect() {
       if (!directStore) return;

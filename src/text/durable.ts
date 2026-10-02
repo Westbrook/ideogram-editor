@@ -3,11 +3,11 @@ import { releasePrepared, textMemory, unownedFontBytes } from './memory';
 import type { TextRequest, PreparedText } from './contracts';
 import type { BlobRef } from '../protocol/store';
 import type { FontVersion, TextCandidate, TextSource } from '../protocol/text';
-import { canonical } from '../protocol/json';
-import { hashBytes } from './contracts';
-import profile from './profile.json';
+import { canonical, parseControlJSON } from '../protocol/json';
+import { hashBytes, readTextAssetResponse, retainTextAssetCleanup, retryTextAssetCleanup } from './contracts';
+import { id as profileId, engine } from './profile.json';
 import {verificationBudget} from '../protocol/text-budget';
-import profileRaw from './profile.json?raw';
+import profileURL from './profile.json?url&no-inline';
 
 export type TextStorage = {
   admit(id:string):Promise<void>;
@@ -15,6 +15,7 @@ export type TextStorage = {
   stage(blob:Blob, mediaType:string):Promise<BlobRef>;
 };
 let activePreparations=0;
+const manifestCleanup=new Set<unknown>();
 let realm:Promise<{id:string;serial:number;current:string;mirror:ReturnType<typeof textMemory.reserve>;loan?:ReturnType<typeof textMemory.reserve>}>|undefined;
 // Mirror the backend's remaining 384MiB in the EXISTING realm ledger. The
 // backend books this realm's 128MiB once, including idle engines, loader fonts,
@@ -29,17 +30,48 @@ async function admission(storage:TextStorage,bytes:number){
 // Explicit caller shutdown: the realm stays booked until all loaders, engines,
 // requests and retained outputs have released their existing ledger leases.
 export async function releaseTextRealm(storage:TextStorage){
+ for(const error of manifestCleanup)if(await retryTextAssetCleanup(error))manifestCleanup.delete(error);
+ if(manifestCleanup.size)throw new AggregateError([...manifestCleanup],'TEXT_PROFILE_CLEANUP');
  const current=realm&&await realm;if(!current)return;
  if(activePreparations||textMemory.snapshot.textBytes!==(current.loan?.bytes??0)||textMemory.snapshot.cpuBytes!==current.mirror.bytes+(current.loan?.bytes??0))throw Error('TEXT_REALM_STILL_OWNED');
  await storage.releaseAdmission(current.current);current.loan?.release();current.mirror.release();realm=undefined;
 }
 const identified=async<T extends object>(v:T)=>({...v,id:await hashBytes(new TextEncoder().encode(canonical(v)))});
-export async function describePrepared(request:TextRequest,p:PreparedText,fonts:FontVersion[],stage:TextStorage['stage']):Promise<TextCandidate>{
+// The exact manifest is data, not executable startup code. The trusted server
+// exposes this one asset only when its bytes equal its current profileBytes.
+// Keep the cold read, validation and staging inside the caller's full Apply span.
+async function stageProfileManifest(stage:TextStorage['stage'],signal?:AbortSignal){
+ if(signal?.aborted)throw Error('TEXT_STALE');
+ if(manifestCleanup.size)throw Error('TEXT_PROFILE_CLEANUP');
+ const url=new URL(profileURL,location.href);
+ // Vite's development asset URL retains this build-only directive. It is not
+ // a configurable endpoint; request only the fixed same-origin source path.
+ if(url.pathname==='/src/text/profile.json'&&url.search==='?no-inline')url.search='';
+ if(url.origin!==location.origin||url.username||url.password||url.search||url.hash||!(/^\/assets\/profile-[A-Za-z0-9_-]{8}\.json$/.test(url.pathname)||url.pathname==='/src/text/profile.json'))throw Error('TEXT_ASSET_ORIGIN');
+  const response=await fetch(url,{credentials:'same-origin',redirect:'error',signal});
+  const length=response.headers.get('content-length');
+  const expected=length!==null&&/^[1-9][0-9]{0,4}$/.test(length)&&Number(length)<=65536?Number(length):-1;
+  // A bad/missing length still enters the existing reader's cancel/unlock path.
+  const bytes=await readTextAssetResponse(response,expected,signal);
+  if(signal?.aborted)throw Error('TEXT_STALE');
+  // Match the existing issuer: seal-profile hashes insertion-ordered JSON of
+ // the complete manifest with id removed. Authenticate every metadata field
+ // without embedding a second full manifest in executable startup code.
+ const metadata=parseControlJSON(new Uint8Array(await bytes.arrayBuffer()));
+ if(metadata.id!==profileId)throw Error('TEXT_PROFILE_IDENTITY');
+ delete metadata.id;
+ if(await hashBytes(new TextEncoder().encode(JSON.stringify(metadata)))!==profileId)throw Error('TEXT_PROFILE_IDENTITY');
+  if(signal?.aborted)throw Error('TEXT_STALE');
+  return await stage(bytes,'application/json');
+}
+// Borrowing helper: the caller owns copy/staging workspace through its result.
+export async function describePrepared(request:TextRequest,p:PreparedText,fonts:FontVersion[],stage:TextStorage['stage'],signal?:AbortSignal):Promise<TextCandidate>{
+ if(manifestCleanup.size)throw Error('TEXT_PROFILE_CLEANUP');
  const put=async(blob:Blob,mediaType:string,hash?:string)=>{const r=await stage(blob,mediaType);if(r.byteLength!==String(blob.size)||r.mediaType!==mediaType||hash&&r.hash!==hash)throw Error('TEXT_STAGING_IDENTITY');return r;};
- if(canonical(request.token)!==canonical(p.token)||p.rendererProfile!==profile.id)throw Error('TEXT_STALE');
+ if(canonical(request.token)!==canonical(p.token)||p.rendererProfile!==profileId)throw Error('TEXT_STALE');
  const ordered=p.dependencies.map(d=>{const f=fonts.find(f=>f.bytes.hash===d.hash&&f.licenseRecord.hash===d.licenseHash);if(!f||f.parserProfile!==d.parserProfile||f.format!==d.format||f.fsType!==d.fsType)throw Error('FONT_IMPORT_REQUIRED');return f;});
  const textUtf8=await put(p.textUtf8,'text/plain',p.textHash);
- const manifest=await put(new Blob([profileRaw]),'application/json');
+ const manifest=await stageProfileManifest(put,signal);
  const text=await identified({schemaVersion:1 as const,textUtf8,style:request.style,frame:request.frame,layoutPolicy:'text-layout-1' as const,fonts:ordered});
  const layout=await put(p.layout,'application/json',p.layoutHash),pixels=await put(p.rgba,'application/x-ideogram-rgba8',p.rasterHash);
  const render=await identified({schemaVersion:1 as const,textVersion:text.id,rendererProfile:{schemaVersion:1 as const,id:p.rendererProfile,manifest},dependencyHash:p.dependencyHash,layout,pixels,width:p.width,height:p.height,overflow:p.overflow,resolvedFonts:ordered.map(f=>f.id)});
@@ -50,19 +82,21 @@ export async function describePrepared(request:TextRequest,p:PreparedText,fonts:
 // previously committed appearance are untouched. Storage callbacks must retain
 // durable command identities for retries, as with all other staging callers.
 export class DurableTextPreparation {
- #renderer=new TextRenderer();#generation=0;#closed=false;
+ #renderer=new TextRenderer();#generation=0;#closed=false;#manifestRead?:AbortController;
  constructor(private storage:TextStorage){}
- cancel(){this.#generation++;this.#renderer.cancel();}
+ cancel(){this.#generation++;this.#manifestRead?.abort();this.#renderer.cancel();}
  dispose(){this.#closed=true;this.cancel();this.#renderer.dispose();}
  async prepare(request:TextRequest,fonts:FontVersion[]){
-  if(this.#closed)throw Error('TEXT_DISPOSED');activePreparations++;try{const generation=++this.#generation,budget=verificationBudget(request.text,request.frame.width,request.frame.height,request.fonts.reduce((n,f)=>n+f.bytes.size,0),profile.engine.wasm.bytes),owner=await admission(this.storage,budget.bytes),id=owner.current;
+  if(this.#closed)throw Error('TEXT_DISPOSED');if(this.#manifestRead)throw Error('TEXT_REALM_BUSY');if(manifestCleanup.size)throw Error('TEXT_PROFILE_CLEANUP');
+  const manifestRead=new AbortController();this.#manifestRead=manifestRead;activePreparations++;try{const generation=++this.#generation,budget=verificationBudget(request.text,request.frame.width,request.frame.height,request.fonts.reduce((n,f)=>n+f.bytes.size,0),engine.wasm.bytes),owner=await admission(this.storage,budget.bytes),id=owner.current;
   if(generation!==this.#generation||this.#closed)throw Error('TEXT_STALE');
   let value:PreparedText|undefined=await this.#renderer.prepare(request);
   let copyLease:ReturnType<typeof textMemory.reserve>|undefined;
   try{
-   // Bounded upload/hash/JSON conversion scratch, with output still booked.
+   // The existing 3MiB copy/upload allowance also owns the <=64KiB manifest
+   // reader, parsed metadata and issuer-hash verification, through candidate handoff.
    copyLease=textMemory.reserve(3*1024**2);
-   const candidate=await describePrepared(request,value,fonts,async(blob,media)=>{if(generation!==this.#generation||this.#closed)throw Error('TEXT_STALE');return this.storage.stage(blob,media);});
+   const candidate=await describePrepared(request,value,fonts,async(blob,media)=>{if(generation!==this.#generation||this.#closed)throw Error('TEXT_STALE');return this.storage.stage(blob,media);},manifestRead.signal);
    if(generation!==this.#generation||this.#closed)throw Error('TEXT_STALE');
    // End private native ownership before borrowing this same realm's R35 capacity.
    this.#renderer.dispose();this.#renderer=new TextRenderer();
@@ -70,7 +104,8 @@ export class DurableTextPreparation {
    owner.loan=textMemory.reserve(budget.bytes+unownedFontBytes(request)+65536);
    const bytes=new Blob([canonical(candidate)],{type:'application/json'}),ref=await this.storage.stage(bytes,'application/json');
    if(generation!==this.#generation||this.#closed)throw Error('TEXT_STALE');return {candidate:ref,admissionId:id,dependencyHash:candidate.source.render.dependencyHash};
-  }finally{copyLease?.release();if(value)releasePrepared(value);}
-  }finally{activePreparations--;}
+  }catch(error){if(copyLease&&retainTextAssetCleanup(error,copyLease)){manifestCleanup.add(error);copyLease=undefined;}throw error;}
+  finally{copyLease?.release();if(value)releasePrepared(value);}
+  }finally{activePreparations--;if(this.#manifestRead===manifestRead)this.#manifestRead=undefined;}
  }
 }

@@ -12,6 +12,18 @@ export type AdapterDeletionRecord = { kind: 'preview' | 'deleted'; versionId: st
 export type AdapterDeletionDependency = { kind:'draft'|'review'|'job'|'document'|'history'|'checkpoint'|'provenance'|'unavailable';id:string;detail:string };
 export type AdapterDeletionPlan = { kind:'adapter-deletion-plan-1';id:string;versionId:string;adapterId:string;version:string;weights:BlobRef;owner:string;sessionId:string;dependencies:AdapterDeletionDependency[];dependencyCount:number;dependenciesTruncated:boolean;dependencyHash:string;canDelete:boolean;actualFreedBytes:'0';bytesRetained:true;token:string };
 export type AdapterQualification = 'unverified' | 'structurally-valid' | 'incompatible' | 'runtime-verified';
+/** A runtime observation concerns this entire immutable request combination. */
+export type AdapterRuntimeProfile = { id: string; version: number; evidenceDigest: string; endpoint: string };
+export type AdapterRuntimeScope = {
+  kind: 'adapter-runtime-scope-1'; endpoint: string; schemaHash: string; routeHash: string;
+  profile: AdapterRuntimeProfile;
+  adapters: { version: string; weightsHash: string; configHash: string | null; scale: number }[];
+};
+export type AdapterRuntimeEvidence = {
+  kind: 'adapter-runtime-evidence-1'; scope: AdapterRuntimeScope;
+  jobId: string; attemptId: string; requestId: string; candidateId: string;
+  outputAssetId: string; outputHash: string; observationHash: string;
+};
 export type AdapterVersion = {
   schemaVersion: 1; id: string; adapterId: string; version: Seq; name: string;
   weights: BlobRef; config: BlobRef | null;
@@ -27,8 +39,10 @@ export type AdapterVersion = {
 export type AdapterLibraryEntry = {
   versionId: string; adapterId: string; version: Seq; name: string; declaredFamily: string; declaredFormat: string;
   qualification: AdapterQualification; available: boolean; weights: BlobRef; config: BlobRef | null;
-  origin: 'import'; profileId: string | null; locallyEligible: boolean; runtimeVerified: false; reason: string;
+  origin: 'import'; profileId: string | null; locallyEligible: boolean; runtimeVerified: boolean; reason: string;
+  runtimeProfile: AdapterRuntimeProfile | null; runtimeEvidence: AdapterRuntimeEvidence[];
 };
+export type AdapterLibraryUpdates = { protocolVersion: 1; current: AdapterLibraryEntry; latest: AdapterLibraryEntry | null };
 export type AdapterLibraryFilters = { family?: string; format?: string; origin?: string; status?: string };
 export type AdapterLibraryPage = { protocolVersion: 1; items: AdapterLibraryEntry[]; nextAfter: string | null };
 const validId=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(v);
@@ -62,3 +76,30 @@ export function adapterDependencies(v:AdapterVersion):BlobRef[]{
 }
 
 export function adapterDeletionRecord(value:unknown):asserts value is AdapterDeletionRecord { const v=value as any;fields(v,['kind','versionId','planId','token']);require(['preview','deleted'].includes(v.kind)&&validId(v.versionId)&&validId(v.planId)&&hash(v.token)); }
+
+const runtimeEndpoints = ['ideogram/v4/lora', 'ideogram/v4/image-to-image/lora', 'ideogram/v4/inpaint/lora'];
+export function adapterRuntimeScope(value: unknown): value is AdapterRuntimeScope {
+  try {
+    const v=value as any; fields(v,['kind','endpoint','schemaHash','routeHash','profile','adapters']);
+    require(v.kind==='adapter-runtime-scope-1'&&runtimeEndpoints.includes(v.endpoint)&&hash(v.schemaHash)&&hash(v.routeHash));
+    fields(v.profile,['id','version','evidenceDigest','endpoint']);
+    require(validId(v.profile.id)&&Number.isSafeInteger(v.profile.version)&&v.profile.version>0&&/^[a-f0-9]{64}$/.test(v.profile.evidenceDigest)&&v.profile.endpoint===v.endpoint);
+    require(Array.isArray(v.adapters)&&v.adapters.length>=1&&v.adapters.length<=3);
+    const versions=new Set<string>();
+    for(const a of v.adapters){fields(a,['version','weightsHash','configHash','scale']);require(validId(a.version)&&!versions.has(a.version)&&hash(a.weightsHash)&&(a.configHash===null||hash(a.configHash))&&typeof a.scale==='number'&&Number.isFinite(a.scale)&&a.scale>=0&&a.scale<=4);versions.add(a.version);}
+    return true;
+  } catch { return false; }
+}
+export function adapterRuntimeEvidence(value: unknown): value is AdapterRuntimeEvidence {
+  try {
+    const v=value as any;fields(v,['kind','scope','jobId','attemptId','requestId','candidateId','outputAssetId','outputHash','observationHash']);
+    require(v.kind==='adapter-runtime-evidence-1'&&adapterRuntimeScope(v.scope)&&[v.jobId,v.attemptId,v.requestId,v.candidateId,v.outputAssetId].every(validId)&&hash(v.outputHash)&&hash(v.observationHash));
+    return true;
+  } catch { return false; }
+}
+export function matchingAdapterRuntimeEvidence(evidence: readonly AdapterRuntimeEvidence[] | undefined, scope: AdapterRuntimeScope): boolean {
+  if(!adapterRuntimeScope(scope)||!Array.isArray(evidence)||evidence.length>4)return false;
+  // One complete observation must match; evidence from separate combinations
+  // cannot be joined to imply that their union has run successfully.
+  return evidence.some(value=>adapterRuntimeEvidence(value)&&canonical(value.scope)===canonical(scope));
+}

@@ -1,0 +1,39 @@
+// Authored source cases. A separately captured/restored18 executable and actual
+// migration campaign remain necessary; synthetic descriptors below prove only
+// identity/receipt refusal arithmetic, never executable provenance.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFile,readdir,chmod} from 'node:fs/promises';
+import {join} from 'node:path';
+import {rootFor} from '../store/helpers.mjs';
+import {StoreDatabase} from '../../dist/local/server/storage/database.js';
+import {EDITOR_SCHEMA18_CAPABILITY_MANIFEST,EDITOR_SCHEMA18_CAPABILITY_HASH,EDITOR_SCHEMA18_CAPABILITY_SEAL,assertEditorSchema18Receipt} from '../../dist/local/server/storage/schema.js';
+import {COMPOSITION_TEXT_SCHEMA19_CAPABILITY_MANIFEST,COMPOSITION_TEXT_SCHEMA19_CAPABILITY_HASH,assertCompositionTextSchema19Ready,assertCompositionTextSchema19Receipt,assertCompositionTextMigrationReady,schema18PacketIdentity,compositionTextInstalledPacket} from '../../dist/local/server/storage/composition-text-schema.js';
+const receipt18=()=>({from:17,to:18,capability:'editor-contracts-18-v1',capabilityHash:EDITOR_SCHEMA18_CAPABILITY_HASH,capabilityManifest:structuredClone(EDITOR_SCHEMA18_CAPABILITY_MANIFEST)});
+const receipt19=()=>({from:18,to:19,capability:'composition-text-contracts-19-v1',capabilityHash:COMPOSITION_TEXT_SCHEMA19_CAPABILITY_HASH,capabilityManifest:structuredClone(COMPOSITION_TEXT_SCHEMA19_CAPABILITY_MANIFEST)});
+
+test('new19 capability extends exact18 identity without changing projection9 or sanitized recovery11',()=>{
+ assert.equal(EDITOR_SCHEMA18_CAPABILITY_SEAL,'sha256:c2eb7167875862e82da5f86dc52238001c09852a25c62d2f1bf9be9a2c3f0752');assertEditorSchema18Receipt(receipt18());
+ const r=receipt19();assertCompositionTextSchema19Receipt(r);assert.equal(r.capabilityManifest.previousCapabilityHash,EDITOR_SCHEMA18_CAPABILITY_HASH);assert.equal(r.capabilityManifest.storageVersion,19);assert.equal(r.capabilityManifest.projectionSchema,9);assert.equal(r.capabilityManifest.assetProjectionSchema,3);assert.equal(r.capabilityManifest.completePortableFormat,12);assert.equal(r.capabilityManifest.recoveryPortableFormat,11);assert.deepEqual(r.capabilityManifest.capabilities,['composition-text-export-v1']);
+ assert.throws(()=>assertCompositionTextSchema19Receipt(receipt18()),{code:'UNSUPPORTED_STORAGE'});assert.throws(()=>assertEditorSchema18Receipt(r),{code:'UNSUPPORTED_STORAGE'});
+});
+for(const change of [r=>r.from=17,r=>r.to=18,r=>r.capability='editor-contracts-18-v1',r=>r.capabilityHash=EDITOR_SCHEMA18_CAPABILITY_HASH,r=>r.capabilityManifest.previousCapabilityHash='sha256:'+'0'.repeat(64),r=>r.capabilityManifest.projectionSchema=10,r=>r.capabilityManifest.completePortableFormat=10,r=>r.capabilityManifest.recoveryPortableFormat=12,r=>r.capabilityManifest.capabilities.push('unknown')])test('19 receipt refuses semantic substitution '+change.toString(),()=>{const r=receipt19();change(r);assert.throws(()=>assertCompositionTextSchema19Receipt(r),{code:'UNSUPPORTED_STORAGE'});});
+test('new capability admits only its exact seal; prior18 seal does not authorize19',()=>{assert.throws(()=>assertCompositionTextSchema19Ready(null),{code:'UNSUPPORTED_STORAGE'});assert.throws(()=>assertCompositionTextSchema19Ready(EDITOR_SCHEMA18_CAPABILITY_SEAL),{code:'UNSUPPORTED_STORAGE'});assert.doesNotThrow(()=>assertCompositionTextSchema19Ready(COMPOSITION_TEXT_SCHEMA19_CAPABILITY_HASH));});
+const digest='sha256:'+'a'.repeat(64);
+const packet=()=>({kind:'schema18-executable-packet-1',storageVersion:18,packetId:'fixture18',capabilityHash:EDITOR_SCHEMA18_CAPABILITY_HASH,sourceArchive:{path:'/producer/source',hash:digest,byteLength:'12'},sourceManifest:{path:'/producer/source-manifest',hash:digest,byteLength:'12'},compiler:{name:'typescript',version:'fixture',identity:digest},toolchain:{node:'26.10.0',npm:'12.1.0',identity:digest},dependencies:{lockfileHash:digest,vendorManifestHash:digest,identity:digest},native:{profileHash:digest,artifactManifestHash:digest},platform:{os:'darwin',arch:'arm64',identity:digest},compiledClosures:[{name:'local',archive:{path:'/producer/local',hash:digest,byteLength:'12'},manifest:{path:'/producer/local-manifest',hash:digest,byteLength:'12'}}],verifiedFreshRestore:{receipt:{path:'/producer/receipt',hash:digest,byteLength:'12'},sourceArchiveHash:digest,compiledClosureHash:digest,result:'verified'}});
+test('18 executable identity permits exact sealed-file relocation and binds every content/semantic identity',()=>{
+ const p=packet(),relocated=structuredClone(p);const move=v=>{if(!v||typeof v!=='object')return;if(Object.keys(v).sort().join(',')==='byteLength,hash,path')v.path=v.path.replace('/producer/','/private/root/rollback/');else for(const child of Object.values(v))move(child);};move(relocated);assert.equal(schema18PacketIdentity(p),schema18PacketIdentity(relocated));
+ for(const change of [v=>v.storageVersion=17,v=>v.kind='schema17-executable-packet-1',v=>v.capabilityHash=digest,v=>v.platform.arch='x64',v=>v.sourceArchive.byteLength='13',v=>v.compiledClosures[0].archive.hash='sha256:'+'b'.repeat(64),v=>v.verifiedFreshRestore.result='unverified',v=>v.native.profileHash='sha256:'+'c'.repeat(64)]){const next=packet();change(next);assert.notEqual(schema18PacketIdentity(p),schema18PacketIdentity(next));}
+});
+test('missing authentic18 packet refuses every nonempty supported prior version; fresh0 and current19 do not need a migration',async t=>{
+ const root=await rootFor(t),before=await readdir(root);for(let version=1;version<=18;version++)assert.throws(()=>assertCompositionTextMigrationReady(version,root));for(const version of [0,19])assert.doesNotThrow(()=>assertCompositionTextMigrationReady(version,root));assert.deepEqual(await readdir(root),before);
+ assert.throws(()=>compositionTextInstalledPacket(root,{kind:'schema17-executable-pin-1',packetId:'old17',identityHash:digest,platform:{os:process.platform,arch:process.arch,identity:digest}}),{code:'UNSUPPORTED_STORAGE'});
+});
+test('existing18 lacking the genuine packet refuses without writable open, new files or epoch changes',async t=>{
+ const root=await rootFor(t),path=join(root,'metadata.sqlite'),db=new DatabaseSync(path);db.exec("CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY,receipt TEXT NOT NULL) STRICT;CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL) STRICT;INSERT INTO meta VALUES('writerEpoch','71');PRAGMA user_version=18");db.prepare('INSERT INTO schema_migrations VALUES(18,?)').run(JSON.stringify(receipt18()));db.close();await chmod(path,0o600);
+ const before=await readFile(path),names=await readdir(root);assert.throws(()=>new StoreDatabase(root,()=>{}));assert.deepEqual(await readFile(path),before);assert.deepEqual(await readdir(root),names);const saved=new DatabaseSync(path,{readOnly:true});try{assert.equal(saved.prepare('PRAGMA user_version').get().user_version,18);assert.equal(saved.prepare("SELECT value FROM meta WHERE key='writerEpoch'").get().value,'71');assert.equal(saved.prepare('SELECT count(*) n FROM schema_migrations').get().n,1);}finally{saved.close();}
+});
+test('future20 root refuses before mutation even with a valid retained19 receipt',async t=>{
+ const root=await rootFor(t),path=join(root,'metadata.sqlite'),db=new DatabaseSync(path);db.exec('CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY,receipt TEXT NOT NULL) STRICT;PRAGMA user_version=20');db.prepare('INSERT INTO schema_migrations VALUES(18,?)').run(JSON.stringify(receipt18()));db.prepare('INSERT INTO schema_migrations VALUES(19,?)').run(JSON.stringify(receipt19()));db.close();await chmod(path,0o600);const before=await readFile(path),names=await readdir(root);assert.throws(()=>new StoreDatabase(root,()=>{}),{code:'UNSUPPORTED_STORAGE'});assert.deepEqual(await readFile(path),before);assert.deepEqual(await readdir(root),names);
+});

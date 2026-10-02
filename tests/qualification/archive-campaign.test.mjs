@@ -18,6 +18,13 @@ async function workspace(t) {
   t.after(() => rm(path, {recursive: true, force: true}));
   return path;
 }
+async function assertRequiresArchiveOutput(run, options, work) {
+  const recipePath = join(work, 'unread-recipe.json');
+  for (const flags of [{}, {install: true}, {recipePath}, {install: true, recipePath}]) {
+    await assert.rejects(run({...options, ...flags}), /requires explicit output/);
+  }
+  assert.deepEqual(await readdir(work), []);
+}
 function recipe() {
   return {schema: 1, kind: 'archive-upgrade-recipe-1', frozenDirectory: '/sealed/source',
     sourceManifest: {path: 'source-manifest.json', sha256: fixedHash}, packagesManifest: {path: 'packages.json', sha256: fixedHash},
@@ -55,10 +62,11 @@ test('I2 inventory is exactly five cold and five warm complete runs with nested 
   assert.equal(summarizeArchiveCampaign(completeRuns()).outcome, 'PASS');
   assert.ok(plan.consumerCommands.findIndex(args => args[1] === 'verify:vendor') < plan.consumerCommands.findIndex(args => args[0] === 'ci'));
 });
-test('runtime bridge sample selection never expands one start into a complete campaign', async () => {
+test('runtime bridge sample selection never expands one start into a complete campaign', async t => {
   assert.deepEqual(validateArchiveSample({cache: 'warm', ordinal: 3, cacheStateDirectory: '/owned/private-state'}), {cache: 'warm', ordinal: 3, id: 'warm-3', cacheStateDirectory: '/owned/private-state'});
   for (const value of [{cache: 'normal', ordinal: 1, cacheStateDirectory: '/owned'}, {cache: 'cold', ordinal: 6, cacheStateDirectory: '/owned'}, {cache: 'cold', ordinal: 0, cacheStateDirectory: '/owned'}, {cache: 'cold', ordinal: 1, cacheStateDirectory: 'relative'}]) assert.throws(() => validateArchiveSample(value));
-  await assert.rejects(runArchiveSample({cache: 'cold', ordinal: 1, cacheStateDirectory: '/owned/private-state'}), /requires --install and --recipe/);
+  const work = await workspace(t);
+  await assertRequiresArchiveOutput(runArchiveSample, {cache: 'cold', ordinal: 1, cacheStateDirectory: join(work, 'uncreated-cache')}, work);
 });
 test('cache handoff requires a complete successful sample, exact commands, browser cases, archive quartet and timing bounds', () => {
   const commands = Array.from({length: 2 + producerCommands.length + archivePlan().consumerCommands.length + 1}, (_, index) => ({id: `command-${index}`, outcome: 'PASS', exitCode: 0, timedOut: false, interrupted: false}));
@@ -228,11 +236,13 @@ test('extraction never follows an existing destination link', async t => {
   const result = await execute({id: 'linked-output', command: ['python3', '-c', extractFrozenPython, manifest, archive, destination], cwd: work, env: {PATH: process.env.PATH}, directory: join(work, 'logs')});
   assert.notEqual(result.exitCode, 0); assert.deepEqual(await readdir(outside), []);
 });
-test('default CLI is inert and execution requires an explicit recipe and isolated-install opt-in', async t => {
+test('default CLI is inert and execution requires explicit output before install/recipe checks', async t => {
   const work = await workspace(t), script = resolve('tooling/qualification/developer-campaigns/archive.mjs');
   const result = spawnSync(process.execPath, [script], {cwd: work, encoding: 'utf8'});
   assert.equal(result.status, 0, result.stderr); assert.equal(JSON.parse(result.stdout).mode, 'plan'); assert.deepEqual(await readdir(work), []);
   const missing = spawnSync(process.execPath, [script, '--run'], {cwd: work, encoding: 'utf8'});
-  assert.equal(missing.status, 1); assert.match(missing.stderr, /requires --install and --recipe/); assert.deepEqual(await readdir(work), []);
-  await assert.rejects(runArchiveCampaign({install: true}), /requires --install and --recipe/);
+  assert.equal(missing.status, 1); assert.match(missing.stderr, /requires explicit output/); assert.deepEqual(await readdir(work), []);
+  const incompleteRecipe = spawnSync(process.execPath, [script, '--run', '--output', join(work, 'uncreated-output'), '--install', '--recipe'], {cwd: work, encoding: 'utf8'});
+  assert.equal(incompleteRecipe.status, 1); assert.match(incompleteRecipe.stderr, /Unknown or incomplete option: --recipe/); assert.deepEqual(await readdir(work), []);
+  await assertRequiresArchiveOutput(runArchiveCampaign, {}, work);
 });

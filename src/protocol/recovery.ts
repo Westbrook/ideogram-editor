@@ -10,7 +10,7 @@ export type EventBatch = { kind: 'inline'; transactionId: string; fromSeq: strin
 export type TransactionReference = { kind: 'transaction-ref'; transactionId: string; fromSeq: string; toSeq: string; eventCount: string; recovery: RecoveryContext; content: ProtocolContentRef };
 export type EventPage = { protocolVersion: 1; kind: 'batches'; recovery: RecoveryContext; nextCursor: string; more: boolean; batches: (EventBatch | TransactionReference)[] };
 export type StreamEnvelope =
-  | { protocolVersion: 1; kind: 'batch-part'; transactionId: string; fromSeq: string; toSeq: string; partIndex: number; partCount: number; events: DomainEvent[] }
+  | { protocolVersion: 1; kind: 'batch-part'; projectionSchema?: number; transactionId: string; fromSeq: string; toSeq: string; partIndex: number; partCount: number; events: DomainEvent[] }
   | { protocolVersion: 1; kind: 'transaction-ref'; reference: TransactionReference }
   | { protocolVersion: 1; kind: 'checkpoint'; highWater: string }
   | { protocolVersion: 1; kind: 'gap'; detail: CursorGap }

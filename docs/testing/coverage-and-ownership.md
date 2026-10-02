@@ -1,6 +1,18 @@
 # Validation ownership and duplicate-work decisions
 
-The executable file inventory is `npm run test:preflight`; aliases select the same owning records. The independent Node and Playwright reporters reconcile actual discovered/completed cases at execution. This review retains every product assertion. Similar examples at different boundaries are not evidence of duplication.
+Status: **reviewed source composition; managed execution unverified**. This successor starts from the exact document committed at `29e5bcf94214e2bae7b0d492b903065f189c5488`, read with `git show`. The donor's setup-consolidation observations originated in `/Users/westbrook/Documents/repos/ideogram-edit`; they are historical original-checkout observations, not executed results for `/Users/westbrook/.codex/worktrees/ideogram-integrated-validation/ideogram-edit`. The managed checkout had no copy of this document when it was staged. No tests, builds, generated plans, browser runs or producers ran for this reconciliation.
+
+The reviewed source composition is the finite workflow integration plus its schema-18, text-input and completion-pins02 successors. It excludes the original checkout's later uncommitted kind3 development cache, new selector flags and fast-file scheduling changes. Those require their own reviewed source adoption; this document does not import them.
+
+## Reviewed inventory and prerequisites
+
+The retained inventory has **23 registered Node groups and 55 browser spec files**. Two browser specs are deliberate failure harnesses executed through their Node parents; the ordinary full serial browser plan directly selects 53 distinct product spec paths in **135 Playwright invocations plus five fixture preparations, totaling 140 steps**. These are source-derived inventory counts, not executed case counts or a passing result. Preserve all 21 compatible editor files and every dedicated V45, candidate-comparison, document/command, display-image and adapter family. The runner's inventory and actual discovery/completion ledgers remain authoritative.
+
+Consumer, app and server typechecks run first, followed by inventory. `node:tooling` is build-free. `node:qualification` requires `build-server`; consequently `--groups tooling`, which selects both, is not wholly build-free. The text-input successor adds the existing `npm run verify:text` once between vendor and imports: `typecheck → preflight → vendor → text-inputs → imports → required builds/tests`, with selected tooling and other prerequisites retaining their dependency order. `--groups preflight` remains types and inventory only. Every app, server or consumer build selected by this shared-runner plan passes through `text-inputs`. Its reviewed closure includes 101 repository paths and three installed inputs; this is a source snapshot, not a replacement runtime allowlist or a newly produced text-profile seal.
+
+The development gate cache key remains `kind: 2`; text-input verification keeps the full source/environment/dependency identity and joins the prerequisite reuse whitelist. The separate immutable legacy compiler identity is `kind: 1`. Do not describe the later uncommitted kind3 development key as adopted, or confuse compiler caching with reuse of migration/browser outcomes.
+
+After coordinated source activation, `npm run validate -- plan --groups all --browsers all --serial-browser` describes the exact dependency graph without executing tests; `npm run test:preflight` checks ownership and prerequisites without importing test modules. These commands were not run for this document. The independent Node and Playwright reporters reconcile actual discovered/completed cases at execution. The reviewed joins preserve product assertions. Similar examples at different boundaries are not evidence of duplication.
 
 | Family / owning layer | Invariant and observable oracle | Why retain this boundary; disposition |
 | --- | --- | --- |
@@ -21,25 +33,53 @@ The executable file inventory is `npm run test:preflight`; aliases select the sa
 | Portable / archives and historical reader | Closure, retention, hostile input refusal and rollback; ZIP/table inventories, independent hashes and prior reader | Keep real archive and process boundaries; no cached mutable archive/database. |
 | Recovery / state, HTTP, browser | Atomic projection, metadata, stream recovery and ownership cleanup; state generations and real browser results | Synthetic failing harnesses are owned by Node parents that assert their failure and teardown. Ordinary recovery selects product consumer/metadata only. |
 | Shell/editor / complete browser workflows | Session/CSP, keyboard, layout, native editing and completed operations; DOM/pixels and independent completion monitoring | Keep native engine differences. Display-image and integration keep dedicated fixtures/configs. Batch only compatible editor files with isolated contexts and per-spec receipts. |
-| Text rendering / browser engines | Shaping/rendering/budgets, first-load requests and storage denial; explicit image/worker/request assertions | One observed initial navigation suffices per ordinary case. Retain explicit reloads, all engines and the independently owned stock-storage specimen. |
-| Qualification / tooling controls | Fail-closed inventory, seals, accounting, locks and orchestration; adversarial synthetic receipts and known failures | Build-free; run after types/preflight. Synthetic negative outcomes must be asserted, never counted as product failures or skipped. |
+| Text rendering / browser engines | Shaping/rendering/budgets, first-load requests and storage denial; explicit image/worker/request assertions | Preserve the existing navigation and reload observers, all engines and the independently owned stock-storage specimen. |
+| Qualification / harness controls | Fail-closed inventory, seals, accounting, locks and orchestration; adversarial synthetic receipts and known failures | `node:qualification` requires the current server build. Only the distinct `node:tooling` gate is build-free. Synthetic negative outcomes must be asserted, never counted as product failures or skipped. |
 | Campaigns / product integration | Required campaign command/result coverage; actual integration environment and exact case ledger | Preserve `IE_CAMPAIGN_PRODUCT_INTEGRATION=1`. These are not interchangeable with runner-unit controls. |
 | Vendor/imports/Python tooling | Frozen archives, public imports, safe review/archive lifecycles; independent manifest digests, boundary/refusal and fresh restore | Verify before install; retain restore tests for archive-tool changes. Review audit never authorizes deletion. |
 | P/Q3, native/manual/live / physical environment | Defined timing/resource/native/provider claims; prescribed independent cohorts and authorized observations | No development receipt substitutes for these. Retain fresh samples, timing exclusion, manual authorization and unresolved A-R01. |
 
-## Executions removed or consolidated
+## Setup consolidation and retained boundaries
 
-| Repeated work | Retained owner / proof of defect detection |
+The donor recorded the following consolidation decisions. The managed successors adopt only their reviewed joins; the retained owner and authored controls below are not evidence that the managed run has passed.
+
+| Repeated work | Retained owner / required proof of defect detection |
 | --- | --- |
 | Repeated server/app builds across maintained wrappers | One dependency gate per invocation; changed source/dependencies or output corruption invalidates reuse. Orchestration tests deliberately mutate these inputs. |
 | Redundant import checks inside development producers | The owning plan's imports prerequisite. Public standalone producers keep their own check. |
-| Five repeated text navigations and an unused page in stock-storage testing | Observers installed before the single initial navigation; all original request/render/admission assertions remain. The independent storage specimen owns its browser/context. |
+| Donor-recorded five repeated text navigations and an unused stock-storage page | Historical donor consolidation only. The reviewed managed browser-consumer packet preserves current renderer/stock-native logic and adopts its bounded fixture-path/configuration joins. Do not delete managed assertions or navigation on the strength of this donor description. |
 | Duplicate integration/display selection by generic editor configs | Dedicated configs own each file; inventory equality and discovered/completed accounting reject omissions. |
-| Up to 18 separate compatible editor invocations per engine | Opt-in single invocation retaining the same file/engine selection, per-spec output namespaces, test-scoped contexts and required persistent profiles. Serial fallback remains. |
-| Repeated archival compilation | Content-verified immutable archive/compiler output; each caller gets independent writable copies and seeds. Corruption/compiler-change controls force regeneration; migration assertions still execute. |
+| Donor had 18 separate compatible editor invocations per engine; the managed inventory has 21 | Reviewed opt-in batching retains all 21 files, per-spec output namespaces, fresh contexts and required persistent profiles. Three explicitly joined fixtures use the shared-browser helper for Chromium/Firefox; WebKit and custom persistent boundaries remain owned. Serial remains the default, and the next-run plan stays serial. No batch-equivalence or speedup result is claimed. |
+| Repeated archival compilation at reviewed callsites | Content-verified immutable archive/compiler output; each caller gets independent writable copies, seeds and databases. Corruption/compiler-change controls force regeneration and retain failed/corrupt evidence. The finite `legacy-ci-cold` reconciliation joins nine `compileLegacy` callsites while retaining the transaction-schema terminal schema-19 oracle, schema-18 installers and precompile dependency-provenance checks; its exact source identities and review are in `artifacts/validation-workflow-main-reconciliation-01/legacy-ci-cold/legacy-candidates.json` and the adjacent `peer-review-legacy.json`. Migration assertions still execute, and prepared migration/browser gate outcomes are never credited from this compile cache. |
 | Rechecking unrelated successful Node gates after a failure | Explicit resume only, with exact input key and retained successful log/counts; failed and pending gates execute. Source drift never publishes reusable evidence. |
 
-No malformed-input matrix, negative control, engine distinction, cold-start assertion, restart boundary or physical sample has been removed. The decision for overlapping product assertions is **keep**: there is no demonstrated equivalent retained oracle justifying removal. Case-level consolidation beyond these setup/navigation changes requires its own defect-detection evidence.
+No malformed-input matrix, negative control, engine distinction, cold-start assertion, restart boundary or physical sample has been removed. The decision for overlapping product assertions is **keep**: there is no demonstrated equivalent retained oracle justifying removal. Case-level consolidation beyond these reviewed setup changes requires its own defect-detection evidence.
+
+## Guards, genuine historical inputs and evidence
+
+The strict guards remain part of each owning test command and its child/worker propagation. `store`, `ui-state` and `editor-capability-preflight` use `tests/store/no-network.mjs`, which rejects and counts fetch, HTTP(S), sockets, DNS and datagrams including loopback. The session-family guard permits only literal IPv4 `127.0.0.1`, rejecting `localhost` and other destinations; provider retains its separate guard. Do not substitute a weaker guard to get a pass. These preloads are test guards, not an OS network sandbox. Registered campaign integration tests retain `IE_CAMPAIGN_PRODUCT_INTEGRATION=1`; they do not authorize a physical timing/resource campaign.
+
+Genuine schema-18 migration inputs are a separate prerequisite. Selected children receive the explicit absolute `IE_SCHEMA18_EXECUTABLE_PACKET` through the reviewed runner bridge. The test installer verifies and copies the qualified packet into each private root before the current writer/server opens it. Capture, independent fresh restore, product-pin binding and the current schema/profile seal must succeed first. A planned pathname, fixture edit, earlier installer result or compiler-cache hit is not genuine schema-18 qualification. The portable `prior-writer.mjs` join retains `compileLegacy` and defaults its installer hook off; the explicit historical reopens enable and await it before server startup.
+
+The schema-18 bridge marks exact migration-consuming gates as fresh, including on explicit resume. Ordinary unrelated gates retain their own resume rules. Browser and prepared-fixture gates execute again; compiled historical bytes alone cannot satisfy their outcomes. `--fresh` disables development prerequisite/build and legacy compilation reuse. One runner retains the checkout lock and fixed physical-host timing lock; no source mutation or overlapping exclusive timing campaign is permitted during a run.
+
+The retained next-run02 plan is a source-only prerequisite/coverage plan, not execution evidence. It requires the genuine historical packet, sealed current product/profile and coordinated source adoption before its portable, recovery, affected and serial-browser phases. It uses the current explicit allocation with fresh output leaves and stops on any effective FAIL or INCONCLUSIVE, including an unsuccessful storage audit behind raw test PASS. A passing phase would cover only its selected scope; a later coverage union must bind stable source/dependencies and verified audits. Old failures and INCONCLUSIVE audits remain unchanged.
+
+## Review provenance
+
+The following repository-relative records identify the reviewed successors; their manifests and reviews carry exact source identities and limitations:
+
+- `artifacts/validation-workflow-integration-01/manifest.json`, including core, registry, browser-consumer and batching reviews.
+- `artifacts/validation-workflow-schema18-bridge-01/manifest.json` and `independent-review.json`; `artifacts/validation-workflow-schema18-writer-join-01/manifest.json` and `peer-review.json`.
+- `artifacts/validation-workflow-text-inputs-01/manifest.json`, `README.txt` and `independent-review.json`.
+- `artifacts/validation-workflow-completion-pins-02/manifest.json` and `peer-review.json`; the companion [completion boundary record](completion-network-review.md) distinguishes historical and final source pins.
+- `artifacts/validation-workflow-next-run-02/manifest.json` and `README.txt`; `artifacts/validation-workflow-lineage-review-01/review.json` records committed-donor lineage and excluded uncommitted work.
+
+These records establish source review and planned ownership only. Managed typecheck/test/build/browser outcomes, emitted issuer checks and any native/manual/resource qualification remain separate evidence obligations. Development correctness receipts retain `qualification:false`; no A-R01 closure or ownership-registry approval is supplied here.
+
+## Historical committed-main retention review — b58fc53
+
+The following section is retained exactly from `b58fc53a98b1e873e17d49379fbd71ea686d4f26`. It adds conservative keep decisions to the managed ownership record. It does not replace the managed inventory, 21-file batching scope, original navigation/reload assertions, server prerequisite for `node:qualification`, text-input verification, genuine historical installers, guards or evidence-audit boundaries above. Earlier references to later uncommitted donor changes identify that earlier adoption cutoff; committed availability alone does not adopt those changes.
 
 ## Repeated-title audit
 
@@ -52,3 +92,5 @@ A source-wide scan of test definitions identified five repeated title expression
 | Actual controller saves rendered Scene during raw inspection | `tests/editor/composition-controller.test.mjs`, `tests/editor/composition-controller-history.mjs` | Current regression is compulsory; historical diagnostic explicitly imports the current harness and additionally runs actual archived controllers. It is not a second compulsory development suite. Keep its explicit diagnostic selection. |
 
 The accompanying static `case-review-index.json` links source definitions to these family decisions. It preserves dynamic title expressions rather than pretending to expand runtime parameters. Reporter identities remain authoritative for executions. Retention is conservative where a shared defect oracle has not been demonstrated; the scan does not justify deleting similarly named assertions.
+
+The linked [case-review-index.json](case-review-index.json) is the unchanged donor `validation-case-review-index-2` record: 362 files, 2,822 static definitions and 362 retain dispositions. Its paths and line numbers belong to the donor source snapshot, not a fresh inventory of the managed integration; it has no per-file source-byte identities and cannot replace reporter discovery or the authoritative registry. The unchanged [integration-verification.json](integration-verification.json) is donor development evidence with overlapping outcomes and `qualification:false`, not coverage credit for the managed tree. Original artifact references must be resolved in the donor evidence root and verified before reliance.

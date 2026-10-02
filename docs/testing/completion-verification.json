@@ -1,237 +1,510 @@
 {
-  "kind": "validation-completion-verification-1",
-  "recordedAt": "2026-10-01T00:37:02.336127+00:00",
-  "status": "implementation-verified-with-rollout-blockers",
-  "commitScope": "Validation edits only. Preceding product/dependency/qualification work remains outside the scoped commit. Results apply to the audited working tree, not a clean standalone validation commit.",
-  "logs": [
-    {
-      "path": "artifacts/validation-completion-20261001/validation-completion-helpers.log",
-      "bytes": 120362,
-      "sha256": "20b7ffbb0e4cba45907acaf6e0cdf0652581785df6bda00dfd108ca6f42888f9"
+  "schemaVersion": 2,
+  "kind": "validation-completion-record-reconciliation-2",
+  "status": "SOURCE_RECONCILED_RUNTIME_UNVERIFIED",
+  "qualification": false,
+  "currentIntegration": {
+    "status": "SOURCE_RECONCILED_RUNTIME_UNVERIFIED",
+    "managedCheckout": "/Users/westbrook/.codex/worktrees/ideogram-integrated-validation/ideogram-edit",
+    "qualification": false,
+    "resultsTransferredFromDonor": false,
+    "runtimePerformedForThisReconciliation": false,
+    "counts": {
+      "registeredNodeGroups": 23,
+      "browserSpecInventory": 55,
+      "directBrowserSpecFiles": 53,
+      "negativeHarnessSpecsOwnedByNodeParents": 2,
+      "serialBrowserSteps": 140,
+      "playwrightInvocations": 135,
+      "browserFixturePreparations": 5,
+      "basis": "Reviewed source inventory, not generated discovery or executed/passing cases."
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-draft-fix.log",
-      "bytes": 3050,
-      "sha256": "5eeda8d96dbd5bec6a035ddcf8c09ace15b742e36913397b0a64bfc4a3ff2d4f"
+    "authoritativeSources": {
+      "nodeGroups": "tooling/qualification/suite-prerequisites.mjs",
+      "browserInventory": "tooling/qualification/container/browser-plan.mjs",
+      "runner": "tooling/qualification/development.mjs",
+      "planCommand": "npm run validate -- plan --groups all --browsers all --serial-browser",
+      "planExecutedHere": false
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-finish-focused.log",
-      "bytes": 6701,
-      "sha256": "aaecf0766b83f1079fad99bbb5dcab3315fa1933a875cd01d3af100c039cad2e"
+    "prerequisites": {
+      "ordering": "typecheck -> preflight -> selected completion-source/storage-environment, node:tooling, python:reviews and python:archives controls -> vendor -> selected python:vendor -> text-inputs -> imports -> required raster/app/server builds -> ordinary Node -> Node-hosted browser -> Playwright",
+      "qualificationRequiresServerBuild": true,
+      "buildFreeToolingScope": "The auxiliary node:tooling gate is build-free. The --groups tooling alias also selects qualification and therefore retains its actual server-build prerequisite.",
+      "textInputs": {
+        "gate": "text-inputs",
+        "command": "npm run verify:text",
+        "after": "vendor",
+        "before": "imports",
+        "sourceClosure": {
+          "repositoryPaths": 101,
+          "installedInputs": 3,
+          "basis": "Reviewed current profile declaration closure, not a second runtime allowlist."
+        },
+        "requires": "Actual current text producer/profile seal before verification; stale recipe/profile/installed inputs fail before builds.",
+        "kind2Key": "Full source plus installed dependency identity; no narrow text-name filter."
+      }
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-final-cache-lock.log",
-      "bytes": 6613,
-      "sha256": "ff0635217b53a8cb9cb07065708cb464155ed2d8bc917ecdd437c6d41af292ed"
+    "networkGuards": {
+      "tests/store/no-network.mjs": [
+        "store",
+        "ui-state",
+        "editor-capability-preflight"
+      ],
+      "tests/provider/no-egress.mjs": [
+        "provider"
+      ],
+      "tests/session/no-egress.mjs": "Other registered Node groups; retain literal IPv4 loopback-only policy and child/worker propagation.",
+      "preserve": true
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-source-only-recovery.log",
-      "bytes": 1399,
-      "sha256": "5cbb8244096839b0f67783fd8829041497dc9726fade48976558f5c105badca5"
+    "cacheAndResume": {
+      "developmentGateInputKeyKind": 2,
+      "reviewedFinalCacheSource": {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-text-inputs-01/after/tooling/qualification/development-cache.mjs",
+        "bytes": 3173,
+        "sha256": "e26683fa58d979457e6a90f0e77f4565371a1266b8a4bf9e10e38c2a6a098ba3"
+      },
+      "prerequisites": "Reuse only a successful result with verified source, dependency, output and originating-audit identities. text-inputs is an additive whitelist member.",
+      "ordinaryTests": "Rerun unless explicitly resuming a source-stable audited receipt.",
+      "freshFixtures": "Browser and marked genuine migration fixture gates always rerun, including under --resume.",
+      "legacyCompilation": "The separate archive/dependency compilation cache retains its kind1 identity and immutable byte verification; compiled preparation reuse is not reuse of migration/browser outcomes.",
+      "freshFlag": "--fresh disables prerequisite/build and legacy compilation reuse.",
+      "excludedOriginalWorkingTreeChanges": "Original uncommitted kind3 cache, newer selectors and fast-file lane are not part of this committed-donor reconciliation."
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-legacy-integration.log",
-      "bytes": 1052,
-      "sha256": "2ae6900edf99ebe2f41fdeeb1cbbe90a06c4315885a0b34aa30a54b6fd0950e5"
+    "migrationPrerequisites": {
+      "environment": "IE_SCHEMA18_EXECUTABLE_PACKET",
+      "value": "Explicit canonical absolute path; no default or inferred packet.",
+      "propagation": "Reviewed bridge forwards the explicit value from parent/core to children.",
+      "admission": "Actual schema18 capture plus independent fresh restore and exact product pin must succeed first; installer verifies identity/platform, copies into each private root and invokes product verification.",
+      "creditFromThisReconciliation": false,
+      "callerFreshness": "18 bound migration test callers, 55 direct install sites, one shared prior-writer hook and two explicit legacyMigration reopens remain fresh under resume."
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-tooling-serial.log",
-      "bytes": 494,
-      "sha256": "b92d283b90c781d6f9dcf373ed4a67262e309a8fb4876b9e74a02f2994fb6f04"
+    "completionSource": {
+      "pins": 12,
+      "updatedReviewedPins": {
+        "src/state/editor-client.ts": "6719b5526a342fb1384a935de3e042c4b0676fdd98fc82bf8b37c77b212fe518",
+        "src/observability/allocations.ts": "273e3745edf95b948581b9e7bec197b3e6cba64b2ceb0033f8a3edb34a3b161b"
+      },
+      "sourceCheck": "node tooling/qualification/completion-issuers/index.mjs --check-source",
+      "preparation": "node tooling/qualification/completion-issuers/index.mjs --output <fresh-directory>",
+      "requires": "Current coordinated source and application build; preserve historical producer/manifest seals, exact emitted classifier checks and independent expected-map assertions.",
+      "registryApproval": false,
+      "emittedOrRuntimeOutcome": null
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-tooling-parallel.log",
-      "bytes": 493,
-      "sha256": "254dc340aec3319b435c8eb4fa1a6de38e2f5603edc6a60ec8d3611ca5f1a5be"
+    "executionPolicy": {
+      "workers": 1,
+      "serialBrowser": true,
+      "optionalPilots": "Two workers apply only to qualification; browser batching requires supported per-spec namespaces, fresh contexts and paired equivalence evidence before broader adoption. Native WebKit keeps fresh persistent contexts.",
+      "locks": "One checkout output owner plus fixed physical-host timing lock; no source changes during a run.",
+      "allocation": {
+        "manifestPath": "/Users/westbrook/.codex/worktrees/ideogram-integrated-validation/ideogram-edit/artifacts/evidence-allocation-current-host.json",
+        "root": "/Users/westbrook/.codex/worktrees/ideogram-integrated-validation/ideogram-edit/artifacts/evidence-current-01",
+        "capacityBytes": 34359738368,
+        "meaning": "Existing evidence accounting ceiling, not newly reserved capacity or a disk quota.",
+        "policy": "Use fresh distinct output leaves and retain unsuccessful receipts."
+      },
+      "stop": "Stop at first FAIL/INCONCLUSIVE effective result, missing/failed evidence audit, drift or failed preparation.",
+      "specialized": "Performance/resource, cold-install, native/manual and P/Q3 campaigns remain separate and fresh; no correctness work while an exclusive timing campaign owns the host."
     },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-editor-serial.log",
-      "bytes": 802,
-      "sha256": "82511ae5ff07df2e6e671fd19d1df0f8d5a34349e52aaa6962890fbed5e7eec3"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-editor-serial-fixed.log",
-      "bytes": 803,
-      "sha256": "791bc880051e636a589a20b0052d9dfdef32f9fd00fd071017bd1ff429a2c74f"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-editor-serial-current.log",
-      "bytes": 803,
-      "sha256": "77a4b6ccded9b53ef6c82ac22d8bd3c3c92c0b3bb999a79320222017ad7ad3c8"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-editor-native.log",
-      "bytes": 1528,
-      "sha256": "08e86417448e68ad15cb355c3eda16b162ce99217080d4f40a1c6a787227ab48"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-editor-rail.log",
-      "bytes": 1018,
-      "sha256": "4117d5c22d1f61d86013379502c88e1cfd279eb890e030151b82e70eb7fef0e1"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-authoring-batch.log",
-      "bytes": 108,
-      "sha256": "e65374f3aee6538c2e5e378a78d8f29983cf2ed99629becfd0e466eb9513aab9"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-feedback-measurements.log",
-      "bytes": 104,
-      "sha256": "855819da468b9d2309f5dbae1ce5da5f676789836c97d8095dade8fef5e0bfbb"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-legacy-common.log",
-      "bytes": 16902,
-      "sha256": "7472cc8bb5cc753935e0ee75aa22724c0b2a00a3d419210f7df6d311d625ce22"
-    },
-    {
-      "path": "artifacts/validation-completion-20261001/validation-legacy-portable-current.log",
-      "bytes": 6194,
-      "sha256": "a37c20b6a23889d2d767984e7e56507d04f10d59878d8a1d0c18eea7c3155813"
-    }
-  ],
-  "toolingPair": {
-    "kind": "serial-parallel-tooling-comparison-1",
-    "caseNamesEqual": true,
-    "cases": {
-      "tests": 530,
-      "suites": 0,
-      "pass": 530,
-      "fail": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "todo": 0
-    },
-    "runs": [
+    "pending": [
+      "Final coordinated source adoption and exact before/source identity checks.",
+      "Authentic schema18 capture/independent restore and exact product/schema19 profile seals.",
+      "Current-source completion check, text-input verification and current-build emitted issuer preparation.",
+      "Selected shared-runner Node and complete serial browser execution with valid evidence audits.",
+      "Required paired worker/batch/engine checks and separate specialized qualification; no historical donor result satisfies these."
+    ],
+    "sourceReferences": [
       {
-        "receipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-15-18.658Z-454d7517-026a-403e-8d7a-4c0cec183ebf/receipt.json",
-        "outcome": "PASS",
-        "elapsedMs": 127002.352916
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-integration-01/manifest.json",
+        "bytes": 41000,
+        "sha256": "c995818e93cad190cb69822f84e7ba8a9e149703547ce4802c31076ef5b1d568"
       },
       {
-        "receipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-17-41.483Z-68fd01ee-e4af-4e0a-a37a-b2fc08a7d34a/receipt.json",
-        "outcome": "PASS",
-        "elapsedMs": 92604.412
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-schema18-bridge-01/manifest.json",
+        "bytes": 19988,
+        "sha256": "5c73c5a4942544bc2d108aab53b8c30a898b101fe28f5fe790d663e93ea5d92a"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-schema18-writer-join-01/manifest.json",
+        "bytes": 4101,
+        "sha256": "986f2944de192367f2ec2a8c4600ea56952304a77454ca1157bda836e57b1625"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-text-inputs-01/manifest.json",
+        "bytes": 17389,
+        "sha256": "e7fa6a1d525aeeb964ec3b3b5ff32db74edf9f0258e6f6d9ca063ac663b49f9d"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-next-run-02/manifest.json",
+        "bytes": 1720,
+        "sha256": "d15aec2f32d13d07f8a6df2ca0bd798c7fe1071fced1273ce6960c477a9062b6"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-completion-pins-02/manifest.json",
+        "bytes": 12238,
+        "sha256": "2d437f763e9ccf622e5d89240ea55de188ca7e63029e9dee2ad7729f3209667b"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-integration-01/coverage-plan.json",
+        "bytes": 4008,
+        "sha256": "7696fdf85ea21b87028808cbd62a06d537d8dfb92ed71bb62d6acc84d4f26db0"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-schema18-bridge-01/after/tooling/qualification/suite-prerequisites.mjs",
+        "bytes": 1869,
+        "sha256": "763ded487d5de1309b76079751feeac943d74fde7b739a3892c16c7f0f00b7d5"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-text-inputs-01/after/tooling/qualification/development-cache.mjs",
+        "bytes": 3173,
+        "sha256": "e26683fa58d979457e6a90f0e77f4565371a1266b8a4bf9e10e38c2a6a098ba3"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-text-inputs-01/after/tooling/qualification/development-plan.mjs",
+        "bytes": 7024,
+        "sha256": "c3428a49a3b717ee4ce5c6d9b91a0bba317ded3486515052bb96fe83fc7e0170"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-next-run-02/plan.json",
+        "bytes": 12346,
+        "sha256": "b06942f99699e2293714d99d8a0817e313bfaa5fe46ede92d619bedcc0aa2a8c"
+      },
+      {
+        "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-integration-01/runtime/after/tooling/qualification/completion-issuers/index.mjs",
+        "bytes": 10222,
+        "sha256": "9d8bbd80bb8a94b13472548146da813e04e93ad9d713a1ae3983a27eecfc14f2"
       }
     ],
-    "limits": "One full pair, uncontrolled background host load; no statistical performance claim."
-  },
-  "linux": {
-    "log": "artifacts/validation-docker-completion/ci-source-only.log",
-    "image": "sha256:599d9e5368c3de3f82f2abd6a59dc4accac74a04a8fe46dd1b57dce6069212fc",
-    "helperTests": 531,
-    "wrapperTests": 3,
-    "failures": 0,
-    "skipped": 0,
-    "network": "none",
-    "serverBuildPresent": false,
-    "hostedActions": false
-  },
-  "legacy": {
-    "receipt": "artifacts/validation-measurements/legacy-1790814625586/receipt.json",
-    "statisticsMs": {
-      "fresh": {
-        "median": 1217.3577079999995,
-        "min": 1160.1820420000004,
-        "max": 1306.657792
-      },
-      "cached": {
-        "median": 679.1431659999998,
-        "min": 560.226334,
-        "max": 2762.527583
-      }
+    "nextRunRecipe": {
+      "path": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation-workflow-next-run-02/plan.json",
+      "status": "PLANNED_NOT_EXECUTED",
+      "phases": [
+        {
+          "phase": "portable",
+          "groups": "portable",
+          "browsers": "none"
+        },
+        {
+          "phase": "recovery",
+          "groups": "recovery,editor-capability-preflight",
+          "browsers": "none"
+        },
+        {
+          "phase": "affected",
+          "groups": "session,store,protocol,assets,raster,history,provider,request,queue,adapters,candidates,export,composition,text-state,ui-state,editor,text,qualification,campaigns,tooling",
+          "browsers": "none"
+        },
+        {
+          "phase": "browser",
+          "groups": "preflight",
+          "browsers": "all"
+        }
+      ],
+      "scope": "Retain the reviewed phase ladder and allocation recipe. Its earlier source-reference list is not the final source union: compose later reviewed source successors, including pins02, before execution."
     },
-    "actualMigrationTests": 7,
-    "outcomes": "PASS",
-    "additionalChecks": {
-      "textSchemaCases": 10,
-      "portableSchemaCases": 10,
-      "outcome": "PASS",
-      "priorFailure": "Six obsolete final-schema 13 assertions in portable test; changed to current schema 17. Intermediate 7/8 barriers, capacity refusals, exact rollback and SIGKILL checks unchanged.",
-      "commonHelpers": [
-        "tests/text-state/prior-writer.mjs",
-        "tests/portable/prior-writer.mjs"
+    "retainedManagedSummary": {
+      "provenance": "Frozen evidence facts relayed by the root coordinator; this document reconciliation did not reread the large receipts or private capture files and did not execute their commands.",
+      "appliesToFinalReconciledSource": false,
+      "build13": {
+        "outcome": "PASS",
+        "receiptBytes": 678175,
+        "receiptSha256": "fd9dcad4e8eb9bf7cd47d5b5993727de7df3dc7faeb2a835ea67300ce7c19975",
+        "durationsMs": {
+          "types": 8378,
+          "rasterInputs": 1993,
+          "app": 13758,
+          "server": 3826
+        },
+        "sourceSha256": "3c3aaa5f7c830d39ba6e6ee57c488369269cd38a919111b640cf6cf8a6bef9c5",
+        "receiptPath": "/Users/westbrook/.codex/worktrees/ideogram-integrated-validation/ideogram-edit/artifacts/evidence-current-01/runs/import-build-13/receipt.json"
+      },
+      "features18": {
+        "receiptPath": "/Users/westbrook/.codex/worktrees/ideogram-integrated-validation/ideogram-edit/artifacts/evidence-current-01/runs/features-18/receipt.json",
+        "receiptBytes": 692791,
+        "receiptSha256": "dfe5b5a71f23e549440b7cba0bbbc877d30495efc98deac73dfca3206b4eab7f",
+        "text": {
+          "outcome": "PASS",
+          "passed": 193
+        },
+        "uiState": {
+          "outcome": "PASS",
+          "passed": 51
+        },
+        "portable": {
+          "outcome": "FAIL",
+          "passed": 229,
+          "total": 231
+        },
+        "unrun": [
+          "recovery",
+          "editor-capability-preflight"
+        ],
+        "storageAudit": {
+          "outcome": "INCONCLUSIVE",
+          "gapMs": 8002.954
+        }
+      },
+      "schema18Capture03": {
+        "outcome": "FAILED",
+        "supervisionPath": "/private/tmp/ideogram-schema18-build13-observations-03/supervision.json",
+        "bytes": 4398,
+        "sha256": "be3b017885844da8667a488fce013f94c7662e9c27413a12984fcf7e2f896955",
+        "durationSeconds": 3.618,
+        "drainedChildren": 8,
+        "schema18Or19AuthorityEstablished": false
+      },
+      "conclusion": "Retain the failed and inconclusive evidence. No combined managed PASS, authentic schema18 authority or final schema19 qualification is supplied by these facts."
+    }
+  },
+  "historicalDonor": {
+    "origin": {
+      "committedRecord": {
+        "repository": "/Users/westbrook/Documents/repos/ideogram-edit",
+        "commit": "29e5bcf94214e2bae7b0d492b903065f189c5488",
+        "path": "docs/testing/completion-verification.json",
+        "bytes": 8825,
+        "sha256": "e978005c5452e37eb75dc9721c968ebf17dfcd2d0ad7b1f4cd7c19c0f7935918"
+      },
+      "executionOrigin": "Original checkout working tree described by the donor record; not proof of a clean donor commit or this managed integration.",
+      "recordedResults": "Historical reported results, failures, blockers, paths and limitations are preserved below. Evidence logs/receipts were not reopened, rerun or requalified during this source-only reconciliation.",
+      "pathBase": "/Users/westbrook/Documents/repos/ideogram-edit",
+      "managedBefore": "Absent at source-only comparison; no managed file was overwritten."
+    },
+    "record": {
+      "kind": "validation-completion-verification-1",
+      "recordedAt": "2026-10-01T00:37:02.336127+00:00",
+      "status": "implementation-verified-with-rollout-blockers",
+      "commitScope": "Validation edits only. Preceding product/dependency/qualification work remains outside the scoped commit. Results apply to the audited working tree, not a clean standalone validation commit.",
+      "logs": [
+        {
+          "path": "artifacts/validation-completion-20261001/validation-completion-helpers.log",
+          "bytes": 120362,
+          "sha256": "20b7ffbb0e4cba45907acaf6e0cdf0652581785df6bda00dfd108ca6f42888f9"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-draft-fix.log",
+          "bytes": 3050,
+          "sha256": "5eeda8d96dbd5bec6a035ddcf8c09ace15b742e36913397b0a64bfc4a3ff2d4f"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-finish-focused.log",
+          "bytes": 6701,
+          "sha256": "aaecf0766b83f1079fad99bbb5dcab3315fa1933a875cd01d3af100c039cad2e"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-final-cache-lock.log",
+          "bytes": 6613,
+          "sha256": "ff0635217b53a8cb9cb07065708cb464155ed2d8bc917ecdd437c6d41af292ed"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-source-only-recovery.log",
+          "bytes": 1399,
+          "sha256": "5cbb8244096839b0f67783fd8829041497dc9726fade48976558f5c105badca5"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-legacy-integration.log",
+          "bytes": 1052,
+          "sha256": "2ae6900edf99ebe2f41fdeeb1cbbe90a06c4315885a0b34aa30a54b6fd0950e5"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-tooling-serial.log",
+          "bytes": 494,
+          "sha256": "b92d283b90c781d6f9dcf373ed4a67262e309a8fb4876b9e74a02f2994fb6f04"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-tooling-parallel.log",
+          "bytes": 493,
+          "sha256": "254dc340aec3319b435c8eb4fa1a6de38e2f5603edc6a60ec8d3611ca5f1a5be"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-editor-serial.log",
+          "bytes": 802,
+          "sha256": "82511ae5ff07df2e6e671fd19d1df0f8d5a34349e52aaa6962890fbed5e7eec3"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-editor-serial-fixed.log",
+          "bytes": 803,
+          "sha256": "791bc880051e636a589a20b0052d9dfdef32f9fd00fd071017bd1ff429a2c74f"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-editor-serial-current.log",
+          "bytes": 803,
+          "sha256": "77a4b6ccded9b53ef6c82ac22d8bd3c3c92c0b3bb999a79320222017ad7ad3c8"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-editor-native.log",
+          "bytes": 1528,
+          "sha256": "08e86417448e68ad15cb355c3eda16b162ce99217080d4f40a1c6a787227ab48"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-editor-rail.log",
+          "bytes": 1018,
+          "sha256": "4117d5c22d1f61d86013379502c88e1cfd279eb890e030151b82e70eb7fef0e1"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-authoring-batch.log",
+          "bytes": 108,
+          "sha256": "e65374f3aee6538c2e5e378a78d8f29983cf2ed99629becfd0e466eb9513aab9"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-feedback-measurements.log",
+          "bytes": 104,
+          "sha256": "855819da468b9d2309f5dbae1ce5da5f676789836c97d8095dade8fef5e0bfbb"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-legacy-common.log",
+          "bytes": 16902,
+          "sha256": "7472cc8bb5cc753935e0ee75aa22724c0b2a00a3d419210f7df6d311d625ce22"
+        },
+        {
+          "path": "artifacts/validation-completion-20261001/validation-legacy-portable-current.log",
+          "bytes": 6194,
+          "sha256": "a37c20b6a23889d2d767984e7e56507d04f10d59878d8a1d0c18eea7c3155813"
+        }
+      ],
+      "toolingPair": {
+        "kind": "serial-parallel-tooling-comparison-1",
+        "caseNamesEqual": true,
+        "cases": {
+          "tests": 530,
+          "suites": 0,
+          "pass": 530,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runs": [
+          {
+            "receipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-15-18.658Z-454d7517-026a-403e-8d7a-4c0cec183ebf/receipt.json",
+            "outcome": "PASS",
+            "elapsedMs": 127002.352916
+          },
+          {
+            "receipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-17-41.483Z-68fd01ee-e4af-4e0a-a37a-b2fc08a7d34a/receipt.json",
+            "outcome": "PASS",
+            "elapsedMs": 92604.412
+          }
+        ],
+        "limits": "One full pair, uncontrolled background host load; no statistical performance claim."
+      },
+      "linux": {
+        "log": "artifacts/validation-docker-completion/ci-source-only.log",
+        "image": "sha256:599d9e5368c3de3f82f2abd6a59dc4accac74a04a8fe46dd1b57dce6069212fc",
+        "helperTests": 531,
+        "wrapperTests": 3,
+        "failures": 0,
+        "skipped": 0,
+        "network": "none",
+        "serverBuildPresent": false,
+        "hostedActions": false
+      },
+      "legacy": {
+        "receipt": "artifacts/validation-measurements/legacy-1790814625586/receipt.json",
+        "statisticsMs": {
+          "fresh": {
+            "median": 1217.3577079999995,
+            "min": 1160.1820420000004,
+            "max": 1306.657792
+          },
+          "cached": {
+            "median": 679.1431659999998,
+            "min": 560.226334,
+            "max": 2762.527583
+          }
+        },
+        "actualMigrationTests": 7,
+        "outcomes": "PASS",
+        "additionalChecks": {
+          "textSchemaCases": 10,
+          "portableSchemaCases": 10,
+          "outcome": "PASS",
+          "priorFailure": "Six obsolete final-schema 13 assertions in portable test; changed to current schema 17. Intermediate 7/8 barriers, capacity refusals, exact rollback and SIGKILL checks unchanged.",
+          "commonHelpers": [
+            "tests/text-state/prior-writer.mjs",
+            "tests/portable/prior-writer.mjs"
+          ]
+        },
+        "totalPassedMigrationAndStorageCases": 27
+      },
+      "feedback": {
+        "receipt": "artifacts/validation-measurements/feedback-1790814856876/receipt.json",
+        "statisticsMs": {
+          "preflight-fresh": {
+            "min": 14044.019084,
+            "median": 14607.285582999997,
+            "max": 16288.857499999998
+          },
+          "preflight-warm": {
+            "min": 4951.3187499999985,
+            "median": 5259.42625,
+            "max": 5599.480209000001
+          },
+          "tooling-1": {
+            "min": 2505.2930830000114,
+            "median": 2505.497292,
+            "max": 2700.560000000005
+          },
+          "tooling-2": {
+            "min": 2131.862791000007,
+            "median": 2145.2596660000054,
+            "max": 2220.9649590000045
+          }
+        }
+      },
+      "authoring": {
+        "batchReceipt": "artifacts/validation-measurements/editor-batch-1790814797017/receipt.json",
+        "serialReceipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-24-46.300Z-68f71227-6e0a-4b8f-b93c-cd29951f5201/receipt.json",
+        "cases": [
+          {
+            "id": "ffbac78a90ea7b98869d-0554612f4fd2752a182b",
+            "file": "authoring.spec.ts",
+            "title": "P1c3 retained attached mask bounds and reviewed baseline Cancel/Apply",
+            "project": "",
+            "status": "expected",
+            "attempts": 1
+          },
+          {
+            "id": "ffbac78a90ea7b98869d-78c7350a783856aea36e",
+            "file": "authoring.spec.ts",
+            "title": "P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls",
+            "project": "",
+            "status": "expected",
+            "attempts": 1
+          },
+          {
+            "id": "ffbac78a90ea7b98869d-d97ba598d61f779a44e9",
+            "file": "authoring.spec.ts",
+            "title": "P1c3 inherited layer operations and reviewed geometry remain usable through public controls",
+            "project": "",
+            "status": "expected",
+            "attempts": 1
+          }
+        ],
+        "equalCaseSetsAndOutcomes": true,
+        "serialMs": 63441.58229200001,
+        "batchMs": 54546.33025,
+        "scope": "Three-case Chromium authoring/process-reuse pilot only; no full editor/engine/order adoption."
+      },
+      "retainedRolloutBlockers": [
+        {
+          "area": "composition",
+          "reason": "Display-tile aborted requests lack exact cancellation ownership proof."
+        },
+        {
+          "area": "native-text",
+          "reason": "Oversized saved draft is empty after reload."
+        },
+        {
+          "area": "tool-rail",
+          "reason": "Keyboard interaction leaves aria-pressed false."
+        }
+      ],
+      "limits": [
+        "No removed product assertions or changed acceptance ceilings.",
+        "No timed representative real UI/server/storage edit cohort; invalidation tested with isolated controls.",
+        "No hosted Actions: no Git remote configured.",
+        "A-R01 and native/resource/manual qualification remain independent."
       ]
-    },
-    "totalPassedMigrationAndStorageCases": 27
-  },
-  "feedback": {
-    "receipt": "artifacts/validation-measurements/feedback-1790814856876/receipt.json",
-    "statisticsMs": {
-      "preflight-fresh": {
-        "min": 14044.019084,
-        "median": 14607.285582999997,
-        "max": 16288.857499999998
-      },
-      "preflight-warm": {
-        "min": 4951.3187499999985,
-        "median": 5259.42625,
-        "max": 5599.480209000001
-      },
-      "tooling-1": {
-        "min": 2505.2930830000114,
-        "median": 2505.497292,
-        "max": 2700.560000000005
-      },
-      "tooling-2": {
-        "min": 2131.862791000007,
-        "median": 2145.2596660000054,
-        "max": 2220.9649590000045
-      }
     }
-  },
-  "authoring": {
-    "batchReceipt": "artifacts/validation-measurements/editor-batch-1790814797017/receipt.json",
-    "serialReceipt": "/Users/westbrook/Documents/repos/ideogram-edit/artifacts/validation/2026-10-01T00-24-46.300Z-68f71227-6e0a-4b8f-b93c-cd29951f5201/receipt.json",
-    "cases": [
-      {
-        "id": "ffbac78a90ea7b98869d-0554612f4fd2752a182b",
-        "file": "authoring.spec.ts",
-        "title": "P1c3 retained attached mask bounds and reviewed baseline Cancel/Apply",
-        "project": "",
-        "status": "expected",
-        "attempts": 1
-      },
-      {
-        "id": "ffbac78a90ea7b98869d-78c7350a783856aea36e",
-        "file": "authoring.spec.ts",
-        "title": "P1c3 selection, exact mask review, draft undo, attachment, sample, transforms and responsive En Reve controls",
-        "project": "",
-        "status": "expected",
-        "attempts": 1
-      },
-      {
-        "id": "ffbac78a90ea7b98869d-d97ba598d61f779a44e9",
-        "file": "authoring.spec.ts",
-        "title": "P1c3 inherited layer operations and reviewed geometry remain usable through public controls",
-        "project": "",
-        "status": "expected",
-        "attempts": 1
-      }
-    ],
-    "equalCaseSetsAndOutcomes": true,
-    "serialMs": 63441.58229200001,
-    "batchMs": 54546.33025,
-    "scope": "Three-case Chromium authoring/process-reuse pilot only; no full editor/engine/order adoption."
-  },
-  "retainedRolloutBlockers": [
-    {
-      "area": "composition",
-      "reason": "Display-tile aborted requests lack exact cancellation ownership proof."
-    },
-    {
-      "area": "native-text",
-      "reason": "Oversized saved draft is empty after reload."
-    },
-    {
-      "area": "tool-rail",
-      "reason": "Keyboard interaction leaves aria-pressed false."
-    }
-  ],
-  "limits": [
-    "No removed product assertions or changed acceptance ceilings.",
-    "No timed representative real UI/server/storage edit cohort; invalidation tested with isolated controls.",
-    "No hosted Actions: no Git remote configured.",
-    "A-R01 and native/resource/manual qualification remain independent."
-  ]
+  }
 }

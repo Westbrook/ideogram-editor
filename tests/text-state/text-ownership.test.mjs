@@ -1,3 +1,4 @@
+import {allocationsURL,diagnosticMemoryURL,workerPhasesURL} from '../owned-preview-module.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -118,7 +119,7 @@ test('permanent cleanup owns the actual response and unlocked reader across garb
 });
 
 const memoryURL=data(`export const engineReservationBytes=100,engineResidentBytes=60;export const textMemory={check(){},reserve(bytes){const c=globalThis.__textOwnership;c.held+=bytes;let live=true;return {bytes,release(){if(live){live=false;c.held-=bytes;c.released.push(bytes);}}};}};export const planText=()=>({bytes:20,startup:10,raster:4,layout:100});export const unownedFontBytes=()=>0;export const retainPrepared=()=>{};export const releasePrepared=()=>{};`);
-const clientURL=await module('src/text/client.ts',{'./contracts':contractsURL,'./memory':memoryURL,'../observability/browser-worker-observations.js':data('export const retainWorkerPhases=()=>{};')});
+const clientURL=await module('src/text/client.ts',{'./contracts':contractsURL,'./memory':memoryURL,'../observability/browser-worker-observations.js':workerPhasesURL,'../observability/allocations.js':allocationsURL,'../observability/diagnostic-memory.js':diagnosticMemoryURL});
 // The constructor URL is the only browser-only syntax this native Worker stand-in
 // does not use; preserve the production constructor/handlers/termination logic.
 const clientCode=Buffer.from(clientURL.split(',')[1],'base64').toString().replaceAll('import.meta.url',JSON.stringify('http://127.0.0.1/renderer.js'));

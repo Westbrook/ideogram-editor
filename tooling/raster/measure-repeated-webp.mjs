@@ -1,7 +1,7 @@
 // Diagnostic receipt only: this finite same-writer run is not PERF qualification.
 import { mkdtemp, readFile, realpath, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { setTimeout as pause } from 'node:timers/promises';
 import { openWriter } from '../../dist/local/server/storage/writer.js';
@@ -26,6 +26,17 @@ const facts = {
 const auth = { clientId: 'webp-repeat', sessionHash: 'a'.repeat(64), now: Date.now(), expires: Date.now() + 43200000 };
 const envelope = body => ({ protocolVersion: 1, command: { schemaVersion: 1, commandId: randomUUID(), clientId: auth.clientId, sessionId: 'webp-repeat-provenance', correlationId: randomUUID(), causationId: null, transactionId: randomUUID(), documentId: null, expectedDocumentRevision: null, expectedEntityVersions: EMPTY_EXPECTED_VERSIONS, issuedAt: new Date().toISOString(), body } });
 let writer;
+async function retainObservation(observation, path) {
+  const started = performance.now();
+  path = resolve(path);
+  // This fixed product observation row is traversed only at its top level.
+  // Nested plans remain in the raw artifact; only primitive fields escape.
+  const scalars = Object.fromEntries(Object.entries(observation).filter(([, value]) => value === null || ['string', 'number', 'boolean'].includes(typeof value)));
+  const serialized = JSON.stringify(observation, null, 2) + '\n';
+  const sha256 = hash(serialized), byteLength = Buffer.byteLength(serialized);
+  await writeFile(path, serialized);
+  return { scalars, artifact: { path, sha256, byteLength, serializationAndWriteMs: performance.now() - started } };
+}
 async function command(body, raster = true) {
   const value = envelope(body), id = value.command.commandId, started = performance.now();
   const observation = { type: body.type, commandId: id, status: 'submitted' }; facts.commands.push(observation);
@@ -76,14 +87,19 @@ try {
     const approved = (await command({ type: 'ApproveRaster', assetId: preview.id, reviewId: review.reviewId, reviewHash: review.reviewHash })).event.payload.asset;
     const info = approved.raster, expected = whiteHash(declaration.width * declaration.height * 4);
     if (info.width !== declaration.width || info.height !== declaration.height || info.pixels.hash !== expected) throw Error('Independent raw white oracle mismatch');
-    const diagnostics = await writer.diagnostics(), decode = diagnostics.rasters.observations.find(o => o.commandId === prepared.commandId && o.nativeBudget !== undefined);
-    if (!decode || decode.nativeRemaining !== 0 || decode.nativeDenied !== 0 || decode.nativePeak > decode.nativeBudget) throw Error('Missing or invalid bounded native cleanup metrics');
-    iteration.settledRSS = [];
-    for (let sample = 0; sample < 4; sample++) { await pause(125); iteration.settledRSS.push(process.memoryUsage().rss); }
-    Object.assign(iteration, { originalAssetId: original.id, approvedAssetId: approved.id, prepareCommandId: prepared.commandId, pipeline: info.pipeline, pixels: info.pixels, expectedRawHash: expected, decode, peakRSS: process.resourceUsage().maxRSS * 1024 });
-    if (iteration.peakRSS > limit) throw Error('Whole-process RSS ceiling exceeded');
-    iteration.status = 'passed';
-    await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+    const diagnosticsRead = await writer.readDiagnostics();
+    try {
+      const decode = diagnosticsRead.value.rasters.observations.find(o => o.commandId === prepared.commandId && o.nativeBudget !== undefined);
+      if (!decode || decode.nativeRemaining !== 0 || decode.nativeDenied !== 0 || decode.nativePeak > decode.nativeBudget) throw Error('Missing or invalid bounded native cleanup metrics');
+      iteration.settledRSS = [];
+      for (let sample = 0; sample < 4; sample++) { await pause(125); iteration.settledRSS.push(process.memoryUsage().rss); }
+      const retained = await retainObservation(decode, out + '.cycle-' + cycle + '-' + codec + '.decode.json');
+      Object.assign(iteration, { originalAssetId: original.id, approvedAssetId: approved.id, prepareCommandId: prepared.commandId, pipeline: info.pipeline, pixels: info.pixels, expectedRawHash: expected,
+        decode: retained.scalars, decodeArtifact: retained.artifact, peakRSS: process.resourceUsage().maxRSS * 1024 });
+      if (iteration.peakRSS > limit) throw Error('Whole-process RSS ceiling exceeded');
+      iteration.status = 'passed';
+      await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+    } finally { await diagnosticsRead.release(); }
   }
   facts.measuredSourcesAfter = await measuredSources();
   if (JSON.stringify(facts.measuredSources) !== JSON.stringify(facts.measuredSourcesAfter)) throw Error('Measured source changed during run');
@@ -91,12 +107,19 @@ try {
 } catch (error) { facts.status = 'failed'; facts.error = String(error); process.exitCode = 1; }
 finally {
   facts.process = process.versions;
-  if (writer) { facts.diagnostics = await writer.diagnostics(); await writer.close(); }
-  facts.networkGuardAfter=await finishDiagnosticNetwork(networkGuard);if(facts.networkGuardAfter.status!=='passed'){facts.status='failed';facts.error='Network guard verification failed';process.exitCode=1;}
-  facts.peakRSS = process.resourceUsage().maxRSS * 1024;
-  facts.measuredSourcesAfter = await measuredSources();
-  if (JSON.stringify(facts.measuredSources) !== JSON.stringify(facts.measuredSourcesAfter)) { facts.status='failed'; facts.error='Measured source changed'; process.exitCode=1; }
-  if (facts.peakRSS > limit) { facts.status='failed'; facts.error='Whole-process RSS ceiling exceeded'; process.exitCode=1; }
-  await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+  let diagnosticsRead, writerClosed = false;
+  try {
+    if (writer) { diagnosticsRead = await writer.readDiagnostics(); facts.diagnostics = diagnosticsRead.value; await writer.close(); writerClosed = true; }
+    facts.networkGuardAfter=await finishDiagnosticNetwork(networkGuard);if(facts.networkGuardAfter.status!=='passed'){facts.status='failed';facts.error='Network guard verification failed';process.exitCode=1;}
+    facts.peakRSS = process.resourceUsage().maxRSS * 1024;
+    facts.measuredSourcesAfter = await measuredSources();
+    if (JSON.stringify(facts.measuredSources) !== JSON.stringify(facts.measuredSourcesAfter)) { facts.status='failed'; facts.error='Measured source changed'; process.exitCode=1; }
+    if (facts.peakRSS > limit) { facts.status='failed'; facts.error='Whole-process RSS ceiling exceeded'; process.exitCode=1; }
+    await writeFile(out, JSON.stringify(facts, null, 2) + '\n');
+  } finally {
+    delete facts.diagnostics;
+    try { await diagnosticsRead?.release(); }
+    finally { if (writer && !writerClosed) await writer.close(); }
+  }
   console.log(JSON.stringify({ status: facts.status, error: facts.error, completedIterations: facts.iterations.filter(i => i.status === 'passed').length, peakRSS: facts.peakRSS, root }));
 }

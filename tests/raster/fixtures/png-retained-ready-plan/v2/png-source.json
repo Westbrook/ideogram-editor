@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "kind": "png-import-source-v1",
+  "sourceHash": "sha256:89b46e2028d98fffc81c1129f169cfa5df0931ec7960e4f96cc9a67b32007016",
+  "producerSourceHash": "sha256:f7beb911eb486875ffbd9d7e9132c6c90bb4536e2d874932db7b5bda35c0d3ab",
+  "definition": {
+    "schemaVersion": 1,
+    "kind": "png-import-source-definition-v1",
+    "transport": "png-scanline-file-cp1-v1",
+    "mediaType": "image/png",
+    "pixelPipeline": "cp1-f64-triangle-area-v1",
+    "kernel": "triangle-area-source-axis-row-norm-v1",
+    "color": "fixed-srgb-p3-orientation-v1",
+    "files": [
+      {
+        "path": "server/raster/active-compute.ts",
+        "bytes": 6339,
+        "hash": "sha256:e7ddd380eea1d7d0d1957b18e78fe695697daabb41cccae91220727347218cc7"
+      },
+      {
+        "path": "server/raster/bounded-webp.ts",
+        "bytes": 5445,
+        "hash": "sha256:5c01e3d5af1732698c1e46a0373c76a3f48df0aaff5e93933c4d0c6e4b22dfcf"
+      },
+      {
+        "path": "server/raster/codec-platform.ts",
+        "bytes": 1201,
+        "hash": "sha256:d111879687cb3042a75a0d09d6a26a75ca2a5ba6260a9870e15538c0e7a7cc42"
+      },
+      {
+        "path": "server/raster/identities/linux-arm64-v1.ts",
+        "bytes": 29024,
+        "hash": "sha256:332f5b9bbf0303e8bf51e8fb80d94d92d07b3a380a74708bda47d89d0adbd83a"
+      },
+      {
+        "path": "server/raster/identities/linux-x64-v1.ts",
+        "bytes": 28970,
+        "hash": "sha256:1fbfa42737140036261b0e4f55d0321a2cc2306a073a2ea59e202b836eeb3ec2"
+      },
+      {
+        "path": "server/raster/identity.ts",
+        "bytes": 27973,
+        "hash": "sha256:1e06e04fcbf92d8a33ee342c5147c1783eda7aab66785e4f7c29984ce01c12be"
+      },
+      {
+        "path": "server/raster/import-file-transform.ts",
+        "bytes": 5337,
+        "hash": "sha256:4780e2fef34f1ec522393ba5da79f9c0048d7027003c5eee001f15e65907e3cf"
+      },
+      {
+        "path": "server/raster/linux-color-arm64-identity.ts",
+        "bytes": 665,
+        "hash": "sha256:2a7fdbae900631c8dac313d7447d7635c2774bbed76d228d6538f4138e1e7a09"
+      },
+      {
+        "path": "server/raster/linux-color-platform.ts",
+        "bytes": 529,
+        "hash": "sha256:2f4d0a2657e9d644a2d02df1465cb0600e9af5f7582bf0af9a4229c54f6b5a5a"
+      },
+      {
+        "path": "server/raster/linux-color-x64-identity.ts",
+        "bytes": 659,
+        "hash": "sha256:a8aae3abf09e597747f5412bf5a31e232b756884c93aaa13602098b4b5287a25"
+      },
+      {
+        "path": "server/raster/linux-color.ts",
+        "bytes": 1456,
+        "hash": "sha256:12bc085510251406b30127038a9f283403776b3e69d75c8627131c97c7fb7674"
+      },
+      {
+        "path": "server/raster/png-import.ts",
+        "bytes": 11299,
+        "hash": "sha256:c535c207e357c5de6923677177bb839294e9cee699f30f8eead0b9c1c553f9b3"
+      },
+      {
+        "path": "server/raster/png-input.ts",
+        "bytes": 9806,
+        "hash": "sha256:d9a1e6cafcbce0ebc61387ddbf4bc3d830f613a5e2c9d8bc9b6b702fe0d9a05f"
+      },
+      {
+        "path": "server/raster/png.ts",
+        "bytes": 3939,
+        "hash": "sha256:3c5e637f7d739b311e770f26185df3f6db70441bf8484be7a81d00097d49e930"
+      },
+      {
+        "path": "server/raster/webp-color.ts",
+        "bytes": 9575,
+        "hash": "sha256:56698070158ada485d372c70ff418db24a78e1f74de972e39243787d616ef8b9"
+      },
+      {
+        "path": "server/raster/webp-identity.ts",
+        "bytes": 688,
+        "hash": "sha256:3e5f6e655ce66bd0629be63fa02b68563f03550537f9076b7eb8087d2e816747"
+      },
+      {
+        "path": "server/raster/webp-linux-arm64-identity.ts",
+        "bytes": 723,
+        "hash": "sha256:09259e8652cd59ec543fcd6cdf664527e6af3f964558e23a3e51affa1e86aefd"
+      },
+      {
+        "path": "server/raster/webp-linux-x64-identity.ts",
+        "bytes": 715,
+        "hash": "sha256:8d35877981bdb236647a2d4e2b10081092e12028f3ddd22d269da6b599f1a2ad"
+      },
+      {
+        "path": "server/raster/webp-metadata.ts",
+        "bytes": 8147,
+        "hash": "sha256:0c91432223ef00008997c845dcbc4e1f753b4ede9c36862c3666de0246551576"
+      },
+      {
+        "path": "server/raster/webp-output-darwin-arm64-identity.ts",
+        "bytes": 877,
+        "hash": "sha256:1536a14835670ff58cfd01c26a45f4e1513d8670ea856fc14228bbaedaf186b9"
+      },
+      {
+        "path": "server/raster/webp-output-linux-arm64-identity.ts",
+        "bytes": 972,
+        "hash": "sha256:160247df20e104a549942e796d28d566d98fbc0900116ee7714e80728aa48637"
+      },
+      {
+        "path": "server/raster/webp-output-linux-x64-identity.ts",
+        "bytes": 966,
+        "hash": "sha256:a800f2a51705f63fb494b38c78ba318f5d9abcab4f9e2a49db552dc0dac9356d"
+      },
+      {
+        "path": "server/raster/webp-output-platform.ts",
+        "bytes": 810,
+        "hash": "sha256:343fd6ffc7da557b97d82dd04505e3ce96395fcf7642e4146e1fab4fce0550c0"
+      },
+      {
+        "path": "server/raster/webp-output.ts",
+        "bytes": 6678,
+        "hash": "sha256:1c1a3ff24f45fc0826410da49a784130187373e334dc1b0a07e5f86e3590ebff"
+      },
+      {
+        "path": "server/raster/webp-platform.ts",
+        "bytes": 771,
+        "hash": "sha256:c4205821a287f8e6df32dc7a4965f8801f61676009e489d6f3fc0b5c870f53df"
+      },
+      {
+        "path": "server/raster/webp.ts",
+        "bytes": 1108,
+        "hash": "sha256:740b4a87657c381567c36fedcad119611a3e2d6be603e41ea8ddf4d33bf40a57"
+      },
+      {
+        "path": "server/storage/errors.ts",
+        "bytes": 1141,
+        "hash": "sha256:fbd7014db90650b007f996dbcd7d3d7810b346b1136e28420f006851e8dae9dd"
+      },
+      {
+        "path": "server/storage/files.ts",
+        "bytes": 3556,
+        "hash": "sha256:f2728d58580f0b73a5150a61feb153972c462fdcfcdb903f1e76000568aedea6"
+      },
+      {
+        "path": "src/adapters/profile.ts",
+        "bytes": 5995,
+        "hash": "sha256:ccf144b64485a45f6188334947fbde9fa932e5bcb4ddb29a89b8de33ed13590f"
+      },
+      {
+        "path": "src/composition/core.ts",
+        "bytes": 23205,
+        "hash": "sha256:6fba62d8f28ecfad1469fbb4e9f29d9c64eb8e42a647452ea2abc0c155d2f5a5"
+      },
+      {
+        "path": "src/observability/diagnostic-memory.ts",
+        "bytes": 5818,
+        "hash": "sha256:d25f69b5d6d9d4d031bd55eaeeb912ad6ca5df84a05e8c33dba7a74d41292138"
+      },
+      {
+        "path": "src/observability/phases.ts",
+        "bytes": 10214,
+        "hash": "sha256:b50dcdadc22f9fbdbbbf6a19d9f453b60a5af94a3dfc17da9990503a81bb265b"
+      },
+      {
+        "path": "src/protocol/adapters.ts",
+        "bytes": 7885,
+        "hash": "sha256:3f4b7a4249206cea2c8e3f841caacf15099b17facf29a680f22a98fb21ec1a7f"
+      },
+      {
+        "path": "src/protocol/document-creation.ts",
+        "bytes": 2150,
+        "hash": "sha256:d281fd9fe57717bde67c4db75026972090c3b36ac16119682fc073b648b4c311"
+      },
+      {
+        "path": "src/protocol/export.ts",
+        "bytes": 1750,
+        "hash": "sha256:bea072e2d3a6ff5cdc0308da33daca529a40ba4ffcc285570543622e2c9a5b5f"
+      },
+      {
+        "path": "src/protocol/json.ts",
+        "bytes": 4337,
+        "hash": "sha256:2c7c9fd87dd2312bd144418a8ef6239e496c556c435c11eb326de5aa42f5b7c4"
+      },
+      {
+        "path": "src/protocol/portable.ts",
+        "bytes": 3488,
+        "hash": "sha256:8c725fc2a0ac65d43183b3623adb5d23de212a87d148da3abc293aab3cc2e4f0"
+      },
+      {
+        "path": "src/protocol/queue-events.ts",
+        "bytes": 305,
+        "hash": "sha256:cdc923af08d68ce5bd260a2128a92c91dfbb75f2e3dcd593bceee8e22108e545"
+      },
+      {
+        "path": "src/protocol/raster-import.ts",
+        "bytes": 8151,
+        "hash": "sha256:e6216dc80bbc31a66a559a1d13adfae6580a4f8899ad60332ac447787ac7c86d"
+      },
+      {
+        "path": "src/protocol/request-edits.ts",
+        "bytes": 1980,
+        "hash": "sha256:5eef93ccfc9f3ac930301ba13ca2779b5ce3b3f3e14e06901d28cd263fc9453f"
+      },
+      {
+        "path": "src/protocol/sha256.ts",
+        "bytes": 2672,
+        "hash": "sha256:6125bfb8366910293774bd3efb05edcbc8f37fddd3642d6c43a7921ed0e73684"
+      },
+      {
+        "path": "src/protocol/text.ts",
+        "bytes": 9336,
+        "hash": "sha256:aff4bee3074dfb3b03c9663be0b4d4a8cc33540e3e63762fc73fc59657bacadc"
+      },
+      {
+        "path": "src/protocol/v45-inputs.ts",
+        "bytes": 5738,
+        "hash": "sha256:e72fae2dbdaed62bf64588db0cbeda80e3971a805a5a10914ca8cddb6e6fa84b"
+      },
+      {
+        "path": "src/protocol/validate.ts",
+        "bytes": 32096,
+        "hash": "sha256:9263c3fbe393116b4354223481d467f22cf30c7a31e1a8138a703fdad9f67a53"
+      },
+      {
+        "path": "src/raster/core.ts",
+        "bytes": 8804,
+        "hash": "sha256:d8de114ca50149e77c02c5cb5fa5b17b38f2d56cc6933db85a19242c6cd168b3"
+      },
+      {
+        "path": "src/raster/mapping.ts",
+        "bytes": 1899,
+        "hash": "sha256:b642fac2ac9a0864bb1d4deaef4a31243c5ad1e21adc26aaeeab158c50f87156"
+      },
+      {
+        "path": "src/raster/mask.ts",
+        "bytes": 9339,
+        "hash": "sha256:7b1fa5636a925c7b6845002a2c862cf3a2c30efbc534cec66baba2f7f7d5e47c"
+      },
+      {
+        "path": "src/request/core.ts",
+        "bytes": 27212,
+        "hash": "sha256:1f87521f8c4d33fe740af7e3c19386bf8dbb4e9b8ce7ab42a2cfbdf2a4f93b6f"
+      },
+      {
+        "path": "src/request/raster-plan.ts",
+        "bytes": 25523,
+        "hash": "sha256:b64d75acd19a55cf3cf562c97deba99753ea3f64ed9725fa4092431a5b2654be"
+      },
+      {
+        "path": "src/request/text-treatment.ts",
+        "bytes": 35901,
+        "hash": "sha256:78086081412531faf084be6fe719e6235e2d4dc0e8e3042cadca9db2b7f3a024"
+      },
+      {
+        "path": "src/text/returned-description.ts",
+        "bytes": 8160,
+        "hash": "sha256:91bc43222ab686b874576d538c0fb4909d8aa4fda000a56c25421d9f8c1c2c08"
+      }
+    ]
+  }
+}

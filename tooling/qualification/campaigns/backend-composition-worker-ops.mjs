@@ -66,10 +66,22 @@ export async function ingest(store,payload,context){
 }
 export async function compositionState(store,payload,context){
  assert(typeof payload.documentId==='string');const state=store.histories.state(payload.documentId);
- const api=await product(context,'server/storage/composition.js'),graph=state.composition?api.readComposition(state.composition,ref=>store.objects.verify(ref,true)):null;
- const linked=new Set(Object.values(state.composition?.bindings??{}));
- // Compute through the real complete projection, then return only values used
- // by semantic links. Unlinked 1MiB text need not cross a 64KiB control mailbox.
- const layerValues=api.layerValues(state,ref=>store.objects.verify(ref,true),id=>store.assets.asset(id)).filter(layer=>linked.has(layer.id));
- const result={graph,layerValues};assert(Buffer.byteLength(JSON.stringify(result))<60*1024,'Bounded semantic-link result required');return result;
+ const [api,core]=await Promise.all([product(context,'server/storage/composition.js'),product(context,'src/composition/core.js')]);
+ let result;
+ // The graph read and copied bounded response are built while the real graph
+ // allowance is live; the existing mailbox owns the bounded returned DTO.
+ store.rasters.compositionMemory.compositions([state.composition],()=>{
+  const graph=state.composition?api.readComposition(state.composition,ref=>store.objects.verify(ref,true)):null,bindings=state.composition?.bindings??{},staleNativeLinks=[];
+  // LayerValues borrow decoded native text only during this synchronous check.
+  // Return copied facts, never the borrowed projection or native text array.
+  api.withLayerValues(state,ref=>store.objects.verify(ref,true),id=>store.assets.asset(id),store.rasters.compositionMemory,layers=>{
+   for(const element of graph?.elements??[])for(const field of ['text','desc','bounds']){
+    const binding=element[field];if(binding?.mode!=='layer')continue;
+    const layer=layers.find(value=>value.id===bindings[binding.layerId]);
+    if(field==='text'&&layer?.kind==='text'&&core.fieldStatus(binding,layers,bindings)==='stale'&&BigInt(layer.version)>BigInt(binding.lastReviewedLayerVersion))staleNativeLinks.push({elementId:element.id,field,binding:structuredClone(binding),layerId:layer.id,version:layer.version});
+   }
+  });
+  result={graph,staleNativeLinks};assert(Buffer.byteLength(JSON.stringify(result))<60*1024,'Bounded semantic-link result required');
+ });
+ return result;
 }

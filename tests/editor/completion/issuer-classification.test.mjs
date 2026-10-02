@@ -7,7 +7,8 @@ const entryPath='dist/app/assets/index-reviewed.js',mainPath='dist/app/assets/sh
 const entry='function preload(link){const options={credentials:"same-origin"};fetch(link.href,options);}';
 const main=`
 function sealed(url,signal){return fetch(url,{credentials:'same-origin',redirect:'error',signal});}
-function session(path,body,headers){return fetch('/api/v1/'+path,{method:body?'POST':'GET',headers,...(body?{body:JSON.stringify(body)}:{}),credentials:'same-origin',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(10000)});}
+function applyProfile(profileURL,profileSignal){return fetch(profileURL,{credentials:'same-origin',redirect:'error',signal:profileSignal});}
+function session(url,init){return fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'});}
 function transport(path,init,headers){return fetch(path,{...init,headers,credentials:'same-origin',cache:'no-store',redirect:'error'});}
 function recovery(path,init){return fetch(path,{...init,credentials:'same-origin',headers:{'X-App-Client':'LP-1',...init?.headers}});}
 const renderer=new Worker(new URL('/assets/worker-reviewed.js',''+import.meta.url),{type:'module',name:'ideogram-text-'+1});
@@ -32,8 +33,8 @@ const classify=f=>classifyIssuers(f.modules,f.options);
 
 test('reviewed issuer partitions cover every direct site and distinct XHR send',()=>{
  const value=classify(fixture());
- assert.equal(value.directBrowserNetworking.length,11);
- assert.deepEqual(value.classifiedNetworking.map(row=>row.kind).sort(),['modulepreload','session-json','application-transport','recovery-release','sealed-asset','sealed-asset','canvaskit-fetch','canvaskit-fetch'].sort());
+ assert.equal(value.directBrowserNetworking.length,12);
+ assert.deepEqual(value.classifiedNetworking.map(row=>row.kind).sort(),['modulepreload','session-json','application-transport','recovery-release','sealed-asset','sealed-asset','sealed-asset','canvaskit-fetch','canvaskit-fetch'].sort());
  assert.equal(value.workerFallbacks.length,5);
  assert.equal(new Set(value.workerFallbacks.map(row=>row.path+':'+row.at)).size,5);
  assert(value.workerFallbacks.every(row=>row.path===workerPath&&row.method==='GET'&&row.body===null&&row.keepalive===false));
@@ -49,11 +50,25 @@ test('direct and Vite-coerced import.meta.url forms bind the actual Worker URL',
  classify(fixture());classify(fixture(({edit})=>edit(mainPath,"''+import.meta.url",'import.meta.url')));
 });
 
+test('owned session adapter permits minified local names and preserves fixed policy after the init',()=>{
+ const f=fixture(({edit})=>edit(mainPath,"function session(url,init){return fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'});}","function session(u,i){return fetch(u,{...i,redirect:'error',credentials:'same-origin',cache:'no-store'});}"));
+ assert.equal(classify(f).classifiedNetworking.filter(row=>row.kind==='session-json').length,1);
+});
+
 test('computed known XHR method names retain owner pairing',()=>{
  classify(fixture(({sources})=>sources.set(workerPath,worker.replaceAll('.open(',"['open'](").replaceAll('.send(',"[`send`]("))));
 });
 
 const failures={
+ 'obsolete direct session setup':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch('/api/v1/'+path,{method:body?'POST':'GET',headers,...(body?{body:JSON.stringify(body)}:{}),credentials:'same-origin',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(10000)})"),
+ 'session spread overrides fixed policy':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(url,{credentials:'same-origin',cache:'no-store',redirect:'error',...init})"),
+ 'session init comes from unreviewed call':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(url,{...unknown(),credentials:'same-origin',cache:'no-store',redirect:'error'})"),
+ 'session adapter supplies an unreviewed URL expression':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(unknown(),{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})"),
+ 'session credentials include':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(url,{...init,credentials:'include',cache:'no-store',redirect:'error'})"),
+ 'session allows cached control response':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(url,{...init,credentials:'same-origin',cache:'default',redirect:'error'})"),
+ 'session follows redirects':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'follow'})"),
+ 'session drops cache policy':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(url,{...init,credentials:'same-origin',redirect:'error'})"),
+ 'session adapter replaces original composed signal':({edit})=>edit(mainPath,"fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error'})","fetch(url,{...init,credentials:'same-origin',cache:'no-store',redirect:'error',signal:other})"),
  'additional fetch':({sources})=>sources.set(mainPath,main+'fetch("/unknown",{});'),
  'fallback with a POST body':({edit})=>edit(workerPath,"fetch(url,{credentials:'same-origin'})","fetch(url,{credentials:'same-origin',method:'POST',body:'payload'})"),
  'fallback missing same-origin policy':({edit})=>edit(workerPath,"fetch(url,{credentials:'same-origin'})","fetch(url,{credentials:'omit'})"),
@@ -97,6 +112,34 @@ test('each sealed-asset realm is required rather than matching the total alone',
  assert.throws(()=>classify(f),/One sealed asset read in the worker/);
 });
 
+test('the Apply profile read remains a third bodyless sealed issuer in the main application',()=>{
+ const value=classify(fixture()),sealed=value.classifiedNetworking.filter(row=>row.kind==='sealed-asset');
+ assert.equal(sealed.length,3);assert.equal(sealed.filter(row=>row.path===mainPath).length,2);
+ assert(sealed.some(row=>row.path===mainPath&&row.source.includes('profileSignal')));
+ assert.equal(value.workerFallbacks.length,5,'No change to native loader fallbacks');
+});
+
+for(const [name,replacement]of Object.entries({
+ 'missing abort ownership':"fetch(profileURL,{credentials:'same-origin',redirect:'error'})",
+ 'redirect following':"fetch(profileURL,{credentials:'same-origin',redirect:'follow',signal:profileSignal})",
+ 'added request body':"fetch(profileURL,{credentials:'same-origin',redirect:'error',signal:profileSignal,body:payload})",
+ 'caller policy override':"fetch(profileURL,{credentials:'same-origin',redirect:'error',signal:profileSignal,...override})",
+}))test('Apply profile classification refuses '+name+' with the same direct-site count',()=>{
+ const f=fixture(({edit})=>edit(mainPath,"fetch(profileURL,{credentials:'same-origin',redirect:'error',signal:profileSignal})",replacement));
+ assert.throws(()=>classify(f),/Unclassified emitted fetch/);
+});
+
+test('additional matching profile fetch is still an unreviewed extra site',()=>{
+ const f=fixture(({sources})=>sources.set(mainPath,main+"fetch(profileURL,{credentials:'same-origin',redirect:'error',signal:profileSignal});"));
+ assert.throws(()=>classify(f),/Nine reviewed emitted fetch sites/);
+});
+
+test('profile read cannot move into preload while preserving total sealed counts',()=>{
+ const profile="function applyProfile(profileURL,profileSignal){return fetch(profileURL,{credentials:'same-origin',redirect:'error',signal:profileSignal});}";
+ const f=fixture(({sources})=>{assert(main.includes(profile));sources.set(mainPath,main.replace(profile,''));sources.set(entryPath,entry+profile);});
+ assert.throws(()=>classify(f),/Two sealed asset reads in the main application/);
+});
+
 test('ordinary body issuer cannot be relocated into the worker',()=>{
  const f=fixture(({sources})=>{const ordinary="function transport(path,init,headers){return fetch(path,{...init,headers,credentials:'same-origin',cache:'no-store',redirect:'error'});}";sources.set(mainPath,main.replace(ordinary,''));sources.set(workerPath,worker+ordinary);});
  assert.throws(()=>classify(f),/Body issuers confined/);
@@ -112,12 +155,24 @@ for(const api of ['Request','sendBeacon','importScripts','SharedWorker','WebSock
 
 test('reviewed network boundary hashes are fixed independently of candidates',()=>{
  assert(Object.isFrozen(NETWORK_BOUNDARIES));
- // Literal identities from the source review, never derived from the candidate.
  assert.deepEqual(NETWORK_BOUNDARIES,{
-  'src/observability/recovery-memory.ts':'52c4b1f97ae3ee5e3eec4e88ca0274174aaea1b54f611ec27a948393f052b492',
-  'src/state/recovery-client.ts':'43f23b5cfb96db02e99a624ba0fcbe45aef3c1c96bd3db69b18a78aec5eabef4',
-  'src/state/session-client.ts':'eed37b101c2f2c5ce9cf948058b918e5dc1995bcee310f0d3384c24884b80f9b',
+  'src/state/recovery-client.ts':'faf5498835f4de89d0bac8126c72f7e6900883ef0387f5f52753e865408314dd',
+  'src/state/session-client.ts':'7d134699839c9c260022e736260b8581931d07a8b44d5cac06882c3f702a386a',
   'src/text/contracts.ts':'96aa65d78cf834c14def464df88d3b94982193cfeabc8f70b1eaba3d86fae6ec',
+  'src/text/durable.ts':'6b426048f78f1a95d8a23c9b4e7724ce2774e7a0cc47bea8968b4258a2682d52',
   'src/text/engine.ts':'c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830',
+  'src/state/editor-client.ts':'a6724c187618d422bbf913946bba65fc1cbe3cae26458c66176e05f5fa5a26b9',
+ 'src/observability/adapter-upload-hook.ts':'756a93d71aff8092d41c9eefa8ddabbe5983acdcc2f5350e958b3b263db8ceb9',
+ 'src/observability/adapter-upload.ts':'77d8bc7603e9a7db0df09369078b02381bca012c92c30c7df1a3b014b198dbba',
+ 'src/ui/adapter-library.ts':'2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80',
+  'src/state/draft-persistence.ts':'6fce26e74b45da071e17331726e961a72b6f3006a63aaa47edb8089d91f65a5f',
+  'src/state/command-results.ts':'b771ee97323f8393f0eea83998af06e733bfd7349b902f63b4abf32a63ea9b4b',
+  'src/state/control-memory.ts':'80b1f564855ef58462d44a708fc211770ed73f481ba44f71db13fdef75716d75',
+  'src/observability/model-memory.ts':'79d5f368134a38dcc01abdf29d42bff9840c4f42d6e3f8aa3c83864d5e58f118',
+  'src/observability/prompt-memory.ts':'65d2bd5efb45197f2f4edecbcbde7b40f0fc65acb278fde42e02f57146eb30dc',
+  'src/observability/recovery-memory.ts':'52c4b1f97ae3ee5e3eec4e88ca0274174aaea1b54f611ec27a948393f052b492',
+  'src/observability/allocations.ts':'95ea4f1dd0e6cba1cce3950d48df473d78168a76cd5c2bc16d5e83c92ab16e9d',
+  'src/ui/storage-library.ts':'d545b60a0d2cc13707b9d42bd58480693bbf61b533a2269fad0e4ba964878216',
+  'src/ui/model-owner.ts':'b6e6daa3fc7ec66dc5f5e6a8f193d6d395028326f739a2802bb8e18232346524',
  });
 });

@@ -1,3 +1,4 @@
+import { diagnosticContext, diagnosticPhase, retainDiagnosticEvidence } from './diagnostic-evidence.mjs';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
@@ -64,25 +65,30 @@ export async function enqueue(f, body, phases) {
   const request = envelope(body);
   const receipt = await phase(phases, 'command.accept', () => f.writer.queueCommand(encode(request), auth()));
   assert.equal(receipt.status, 'accepted', JSON.stringify(receipt));
-  const diagnostics = await f.writer.diagnostics();
-  let acceptedAtMs = null;
-  const productAcceptance = (diagnostics.observations?.phases?.records ?? []).find(record => record.context?.commandId === request.command.commandId && record.phase === 'command.accept' && record.outcome === 'ok') ?? null;
-  for (const record of diagnostics.observations?.phases?.records ?? []) {
-    if (record.context.commandId !== request.command.commandId || !['command.validate', 'event.append'].includes(record.phase)) continue;
-    phases.push({ name: record.phase, startMs: record.startedMs, endMs: record.endedMs, durationMs: record.durationMs, outcome: record.outcome, clock: 'product-writer-monotonic', context: record.context });
-    if (record.phase === 'event.append' && record.outcome === 'ok') acceptedAtMs = record.endedMs;
-  }
+  let acceptedAtMs = null, productAcceptance = null, diagnosticEvidence;
+  const diagnosticRead = await f.writer.readDiagnostics();
+  try {
+    const diagnostics = diagnosticRead.value;
+    productAcceptance = diagnosticPhase((diagnostics.observations?.phases?.records ?? []).find(record => record.context?.commandId === request.command.commandId && record.phase === 'command.accept' && record.outcome === 'ok'));
+    for (const record of diagnostics.observations?.phases?.records ?? []) {
+      if (record.context.commandId !== request.command.commandId || !['command.validate', 'event.append'].includes(record.phase)) continue;
+      phases.push({ name: record.phase, startMs: record.startedMs, endMs: record.endedMs, durationMs: record.durationMs, outcome: record.outcome, clock: 'product-writer-monotonic', context: diagnosticContext(record.context) });
+      if (record.phase === 'event.append' && record.outcome === 'ok') acceptedAtMs = record.endedMs;
+    }
+    diagnosticEvidence = await retainDiagnosticEvidence(f.context.output, 'queue-accept', diagnostics);
+  } finally { diagnosticRead.release(); }
   const events = (await f.writer.events(String(BigInt(receipt.fromSeq) - 1n))).events;
   const id = events.find(event => event.commandId === request.command.commandId && event.type === 'JobQueued')?.payload.id;
   assert(id, 'Durable queue event required');
   let cursor = '', job;
   do { const page = await f.writer.queueView(cursor); job = page.jobs.find(item => item.id === id); cursor = page.nextCursor; } while (!job && cursor);
-  assert(job); return { job, request, receipt, acceptedAtMs, productAcceptance };
+  assert(job); return { job, request, receipt, acceptedAtMs, productAcceptance, diagnosticEvidence };
 }
 
 /** Actual loopback HTTP is used throughout. A dropped acknowledgement destroys
  * the socket after reading the complete POST, so the durable fence is exercised. */
 export async function startFixtureProvider(context, store, endpoint, options = {}) {
+  if (options.serveOnly === true) assert.equal(store, null, 'A persistent fixture server has no product-store owner');
   const { emulator, fixtureProfile } = await import(pathToFileURL(join(context.repo ?? process.cwd(), 'tests/provider/emulator.mjs')).href);
   const { QueueDispatcher } = await product(context, 'server/provider/dispatcher.js');
   const { ResultObserver } = await product(context, 'server/provider/observer.js');
@@ -180,16 +186,31 @@ export async function startFixtureProvider(context, store, endpoint, options = {
     };
     observer = new ResultObserver(store.candidates, provider, dispatcher, profile.id);
   }
-  bind(store);
+  if (options.serveOnly !== true) bind(store);
   return { origin, controls, effects, controlReads, requests, errors, image: { bytes: image.length, sha256: hash(image), exactEightMiB: image.length === 8 * 1024 * 1024 }, provider, profile,
     get dispatcher() { return dispatcher; }, get observer() { return observer; }, bind,
     async close() {
       if (closing) return; closing = true; stopped.abort(Error('Fixture provider closed'));
-      observer.close(); dispatcher.close();
+      observer?.close(); dispatcher?.close();
       const closed = new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
       for (const socket of sockets) socket.destroy(); await closed; await Promise.allSettled([...pending]); assert.deepEqual(errors, []);
     },
   };
+}
+
+/** Connect the actual product dispatcher/observer to a separately owned,
+ * persistent loopback fixture. No provider request or status is reconstructed
+ * from queue metadata when the backend process is replaced. */
+export async function connectFixtureProvider(context, store, endpoint, origin) {
+  assert.match(origin, /^http:\/\/127\.0\.0\.1:[1-9][0-9]{0,4}$/);
+  assert(Number(new URL(origin).port) <= 65535, 'Invalid persistent fixture port');
+  const { emulator, fixtureProfile } = await import(pathToFileURL(join(context.repo ?? process.cwd(), 'tests/provider/emulator.mjs')).href);
+  const { QueueDispatcher } = await product(context, 'server/provider/dispatcher.js');
+  const { ResultObserver } = await product(context, 'server/provider/observer.js');
+  const profile = fixtureProfile({ endpoint }), provider = emulator({ queueOrigin: origin, mediaOrigin: origin, profiles: [profile] });
+  const dispatcher = new QueueDispatcher(store.queue, provider, { queueOrigin: origin, profileId: profile.id });
+  const observer = new ResultObserver(store.candidates, provider, dispatcher, profile.id);
+  return { origin, profile, provider, dispatcher, observer, controls: {}, effects: [], async close() { observer.close(); dispatcher.close(); } };
 }
 
 async function observeStatus(store, fixture, job, status, phases) {
@@ -214,10 +235,10 @@ async function recover(store, job, phases) {
   });
 }
 
-function workloadMissing(context, cell) {
+export function workloadMissing(context, cell) {
   if (cell.workload !== 'WQ') return [];
   const observed = context.fixture?.observed;
-  return context.fixture?.seal && observed?.jobs >= 1000 && observed?.incompleteJobs >= 100 ? [] : ['WQ sealed full document, 1,000 metadata jobs and 100 incomplete-job reset identity are required for this workload'];
+  return context.fixture?.seal && observed?.queued >= 1000 && observed?.incompleteJobs >= 100 ? [] : ['WQ sealed full document, 1,000 metadata jobs and 100 incomplete-job reset identity are required for this workload'];
 }
 
 export async function runCell(context, cell) {
@@ -225,11 +246,13 @@ export async function runCell(context, cell) {
   const f = context.productFixture ?? await phase(phases, 'fresh-namespace-reset', () => createProductFixture(context));
   let fixture, store;
   try {
+    await context.wqCacheSession?.assertWriter();
     if (options.scenario === 'invalid') return await runInvalidFast(context, cell, f, phases, options);
     const prepared = await prepareQueue(f, phases, options);
-    if (f.queueWorker) return await runRetainedQueueCell(context, cell, f, phases, options, prepared, missing);
+    if (f.queueWorker && !['backend-restart','disk-full-admission'].includes(options.scenario)) return await runRetainedQueueCell(context, cell, f, phases, options, prepared, missing);
     if (options.scenario === 'disk-full-admission') {
       store = await f.direct({ quotaBytes: '1' });
+      await context.wqCacheSession?.prepareDirect(store, 'direct-before-rejection', phases);
       const draft = store.ui.read('request_session', auth()), before = store.queue.view().counts;
       let receipt;
       await phase(phases, 'capacity-admission', async () => {
@@ -242,7 +265,9 @@ export async function runCell(context, cell) {
       return result(cell, phases, { root: f.root, receipt, counts: before, quotaBytes: '1', fault: 'Product capacity admission; no simulated disk write' }, assertions, missing);
     }
     const queued = await enqueue(f, prepared.body, phases);
-    store = await f.direct(); fixture = await startFixtureProvider(context, store, queued.job.review.endpoint);
+    store = await f.direct();
+    await context.wqCacheSession?.prepareDirect(store, 'direct-before-dispatch', phases);
+    fixture = await startFixtureProvider(context, store, queued.job.review.endpoint);
     if (options.scenario === 'lost-acknowledgement') fixture.controls.dropAcknowledgement = true;
     let acknowledgement;
     const dispatchStart = performance.now();
@@ -272,8 +297,9 @@ export async function runCell(context, cell) {
         }
         case 'backend-restart': {
           fixture.observer.close(); fixture.dispatcher.close();
-          const oldEpoch = store.epoch;
+          const oldEpoch = store.epoch, priorStore = store;
           await phase(phases, 'backend-close-and-reopen', async () => { await f.closeDirect(); store = await f.direct(); fixture.bind(store); });
+          await context.wqCacheSession?.measuredRestart(priorStore, store, phases.at(-1));
           assert.notEqual(store.epoch, oldEpoch);
           const before = fixture.effects.length; await fixture.observer.tick(); assert.equal(fixture.effects.length, before);
           const reconnectStart = performance.now(); await recover(store, queued.job, phases); await observeStatus(store, fixture, queued.job, 'IN_PROGRESS', phases);
@@ -365,8 +391,10 @@ export async function runCell(context, cell) {
   } finally { await fixture?.close(); if (!context.productFixture) await f.close(); }
 }
 
-async function runInvalidFast(context, cell, f, phases, options) {
-  const { newDraft, resolve } = await product(context, 'src/request/core.js');
+export async function prepareFastInvalidInput(context, cell, f, phases = []) {
+  const options = identifyQueueCase(cell);
+  if (options.scenario !== 'invalid') return null;
+  const { newDraft } = await product(context, 'src/request/core.js');
   await createDocument(f);
   const promptText = 'Fast incompatible field remains durable';
   const prompt = await phase(phases, 'fixture-prompt-preservation', () => stageCaption(f, promptText));
@@ -403,7 +431,27 @@ async function runInvalidFast(context, cell, f, phases, options) {
   if (options.caseId === 'WF11') draft.fields.expansion = 'Large';
   if (options.caseId === 'WF12') { draft.fields.width = '1600'; draft.fields.height = '900'; }
   const retained = await phase(phases, 'fixture-draft-preservation', () => stageCaption(f, JSON.stringify(draft)));
-  const before = await f.writer.queueView(), retainedHash = hash(await f.writer.readMetadata(retained.blob));
+  const draftId = 'invalid_fast_' + randomUUID();
+  await phase(phases, 'fast-input.durable-unapplied-draft', async () => {
+    const saved = await ui(f, { type: 'SaveDraft', draft: { id: draftId, generation: '1', kind: 'request', documentId: f.documentId, targetLayerId: null, expectedDocumentRevision: await f.writer.documentRevision(f.documentId), assetId: retained.id, composing: false } });
+    assert.equal(saved.status, 'accepted', JSON.stringify(saved));
+  });
+  const original = await f.writer.uiRead('request_session', auth());
+  const retainedHash = hash(await f.writer.readMetadata(retained.blob));
+  assert.equal(retainedHash, retained.blob.hash, 'Prepared invalid draft must retain its original bytes');
+  return { kind: 'fast-durable-invalid-input-1', caseId: options.caseId, documentId: f.documentId, writer: f.writer,
+    draft, promptText, retained, retainedHash, draftId, original, expectedField };
+}
+
+async function runInvalidFast(context, cell, f, phases, options) {
+  const prepared = context.fastPreparedInput ?? await prepareFastInvalidInput(context, cell, f, phases);
+  assert(prepared?.kind === 'fast-durable-invalid-input-1' && prepared.caseId === options.caseId && prepared.documentId === f.documentId && prepared.writer === f.writer,
+    'Invalid Fast execution requires its exact prepared draft and actual writer');
+  const { draft, promptText, retained, retainedHash, draftId, original, expectedField } = prepared;
+  const { resolve } = await product(context, 'src/request/core.js');
+  assert.deepEqual(await f.writer.uiRead('request_session', auth()), original, 'Prepared invalid draft changed before validation');
+  assert.equal(hash(await f.writer.readMetadata(retained.blob)), retainedHash);
+  const before = await f.writer.queueView();
   let rejection;
   await phase(phases, 'command.validate', () => {
     try { resolve(draft, promptText); assert.fail('Fast incompatible request must be rejected'); }
@@ -416,21 +464,20 @@ async function runInvalidFast(context, cell, f, phases, options) {
   // Each incompatible field has its real dependency retained; the authoritative
   // UI boundary must preserve the exact saved, unapplied draft on rejection.
   if (['WF07', 'WF08', 'WF09', 'WF10', 'WF11', 'WF12'].includes(options.caseId)) {
-    const draftId = 'invalid_fast_' + randomUUID();
-    const saved = await ui(f, { type: 'SaveDraft', draft: { id: draftId, generation: '1', kind: 'request', documentId: f.documentId, targetLayerId: null, expectedDocumentRevision: await f.writer.documentRevision(f.documentId), assetId: retained.id, composing: false } });
-    assert.equal(saved.status, 'accepted', JSON.stringify(saved));
-    const original = await f.writer.uiRead('request_session', auth());
     const review = await phase(phases, 'authoritative-invalid-review', () => ui(f, { type: 'PrepareRequestReview', draftId, generation: '1' }));
     const unchanged = await f.writer.uiRead('request_session', auth());
     assert.equal(review.status, 'rejected'); assert.deepEqual(unchanged, original);
-    const record = state => ({ draftId, generation: '1', assetId: retained.id, blob: retained.blob, rawHash: retainedHash, state });
-    rejectedDraftProof = { kind: 'rejected-draft-preservation-1', receipt: review, before: record(original), after: record(unchanged) };
+    const afterHash = hash(await f.writer.readMetadata(retained.blob));
+    assert.equal(afterHash, retainedHash, 'Authoritative rejection changed authored bytes');
+    assert.deepEqual(await f.writer.queueView(), before, 'Authoritative rejection added queue work');
+    const record = (state, rawHash) => ({ draftId, generation: '1', assetId: retained.id, blob: retained.blob, rawHash, state });
+    rejectedDraftProof = { kind: 'rejected-draft-preservation-1', receipt: review, before: record(original, retainedHash), after: record(unchanged, afterHash) };
     missing.length = 0;
   }
   const { collectQueueMeasurements } = await import('./backend-queue-metrics.mjs');
   const measured = await collectQueueMeasurements({ writer: f.writer, scenario: 'invalid', phases,
     before: { requiredMeasurements: cell.requiredMeasurements?.map(rule => rule.name) ?? [], rejectedDraftProof } });
-  const out = result(cell, phases, { root: f.root, rejection, retainedDraft: retained.blob, providerEffects: 0, measurementGaps: measured.missing }, [{ name: 'Named Fast field rejected with exact authored bytes retained and no attempt', passed: true }], missing);
+  const out = result(cell, phases, { root: f.root, rejection, retainedDraft: retained.blob, providerEffects: null, providerEffectsObservation: 'Verified by the enclosing Fast input proof; no literal zero is authority', measurementGaps: measured.missing }, [{ name: 'Named Fast field rejected with exact authored bytes retained and no attempt', passed: true }], missing);
   out.measurements = measured.measurements; out.measurementDetails = measured.measurementDetails; out.evidence.push(...measured.evidence); return out;
 }
 
@@ -458,9 +505,13 @@ async function runRetainedQueueCell(context, cell, f, phases, options, prepared,
   const command = async body => {
     const request = envelope(body), receipt = await f.writer.queueCommand(encode(request), auth());
     assert.equal(receipt.status, 'accepted', JSON.stringify(receipt));
-    const trace = await f.writer.diagnostics();
-    const committed = (trace.observations?.phases?.records ?? []).filter(record => record.context?.commandId === request.command.commandId && record.phase === 'event.append' && record.outcome === 'ok').at(-1);
-    return { request, receipt, acceptedAtMs: committed?.endedMs ?? null };
+    const diagnosticRead = await f.writer.readDiagnostics();
+    try {
+      const committed = (diagnosticRead.value.observations?.phases?.records ?? []).filter(record => record.context?.commandId === request.command.commandId && record.phase === 'event.append' && record.outcome === 'ok').at(-1);
+      const acceptedAtMs = committed?.endedMs ?? null;
+      ownEvidence.push(await retainDiagnosticEvidence(f.context.output, 'queue-command', diagnosticRead.value));
+      return { request, receipt, acceptedAtMs };
+    } finally { diagnosticRead.release(); }
   };
   const observe = status => phase(phases, 'status-' + status.toLowerCase(), () => control.observeStatus(queued.job.id, queued.job.attempts[0].id, status));
   const waitDue = async () => { const view = await f.writer.candidateView(queued.job.id); await delay(Math.max(0, (view.observation?.nextPollAt ?? 0) - Date.now()), context.signal); };
@@ -567,7 +618,7 @@ async function runRetainedQueueCell(context, cell, f, phases, options, prepared,
     commandSha256: hash(encode(queued.request)), receipt: queued.receipt, repeatedReceipt: stored.receipt,
     eventBytes: ownedEvents.map(event => ({ sequence: event.seq, commandId: event.commandId, bytes: encode(event).length, sha256: hash(encode(event)) })),
     inlineDataUriCount: 0, approvedBodySha256: hash(Buffer.from(prepared.wire)), actualSubmit: submitted,
-    durableAppendEndedMs: queued.acceptedAtMs, productAcceptance: queued.productAcceptance, frozenReview: queued.job.review,
+    durableAppendEndedMs: queued.acceptedAtMs, productAcceptance: queued.productAcceptance, diagnosticEvidence: queued.diagnosticEvidence, frozenReview: queued.job.review,
     actualSubmitCount: effects().filter(effect => effect.method === 'POST').length };
   ownEvidence.push(wireProof);
   if (queued.productAcceptance && Number.isFinite(queued.acceptedAtMs)) {

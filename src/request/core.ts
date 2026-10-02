@@ -10,6 +10,8 @@ import type {ImageLayer} from '../protocol/history.js';
 import type {Document} from '../protocol/store.js';
 import type {BlobRef} from '../protocol/store.js';
 import type {ProjectionReview,CompositionRef} from '../composition/core.js';
+import {adapterRuntimeScope,matchingAdapterRuntimeEvidence} from '../protocol/adapters.js';
+import type {AdapterRuntimeEvidence,AdapterRuntimeProfile,AdapterRuntimeScope} from '../protocol/adapters.js';
 export const operations=['generate','instant','fast','transform','inpaint','generate-adapters','transform-adapters','inpaint-adapters'] as const;
 export type Operation=typeof operations[number];
 export const labels=['Generate image','Generate with Instant','Generate with Fast','Transform image','Edit masked region','Generate with adapters','Transform with adapters','Edit with adapters'];
@@ -105,7 +107,24 @@ export function refs(d:Draft):BlobRef[]{return [d.prompt.text,...(d.prompt.compo
 export function inactiveValue(d:Draft,k:keyof Draft['inactive']):unknown{return k in d.fields?d.fields[k as keyof Fields]:d[k as 'source'|'mask'|'adapters'];}
 export function resolveInactive(d:Draft,k:keyof Draft['inactive']){d.inactive[k]=hash(canonical({operation:d.operation,value:inactiveValue(d,k)}));}
 export function ignored(d:Draft,k:keyof Draft['inactive']){return d.inactive[k]===hash(canonical({operation:d.operation,value:inactiveValue(d,k)}));}
-export type Eligibility={adapters:ReadonlyMap<string,{hash:string;available:boolean;profile:'v4-safe-1';runtimeVerified?:boolean}>};
+export type EligibleAdapter={hash:string;available:boolean;profile:'v4-safe-1';runtimeVerified?:boolean;configHash?:string|null;runtimeProfile?:AdapterRuntimeProfile|null;runtimeEvidence?:readonly AdapterRuntimeEvidence[]};
+export type Eligibility={adapters:ReadonlyMap<string,EligibleAdapter>};
+/** The display summary never grants a request waiver. One complete observation
+ * must match the current trusted profile and the entire transmitted stack. */
+export function runtimeAdaptersVerified(operation:Operation,uses:readonly Adapter[],eligible:Eligibility):boolean{
+ try{
+  if(!operations.includes(operation)||!operation.endsWith('adapters')||!Array.isArray(uses)||uses.length<1||uses.length>3||new Set(uses.map(a=>a.version)).size!==uses.length)return false;
+  const entries=uses.map(a=>eligible.adapters.get(a.version));
+  if(entries.some((entry,i)=>!entry?.available||entry.hash!==uses[i]!.hash||entry.profile!=='v4-safe-1'||entry.configHash===undefined||!entry.runtimeProfile))return false;
+  const profile=entries[0]!.runtimeProfile!;
+  if(entries.some(entry=>canonical(entry!.runtimeProfile)!==canonical(profile)))return false;
+  const route=routes[operation];
+  if(profile.endpoint!==route.endpoint)return false;
+  const scope:AdapterRuntimeScope={kind:'adapter-runtime-scope-1',endpoint:route.endpoint,schemaHash:route.schemaHash,routeHash:hash(canonical(route)),profile,adapters:uses.map((a,i)=>({version:a.version,weightsHash:a.hash,configHash:entries[i]!.configHash!,scale:Number(a.scale)}))};
+  if(uses.some(a=>!a.scale.trim())||!adapterRuntimeScope(scope))return false;
+  return entries.some(entry=>matchingAdapterRuntimeEvidence(entry!.runtimeEvidence,scope));
+ }catch{return false;}
+}
 export function resolve(d:Draft,prompt:string,eligible:Eligibility={adapters:new Map()}):Request{
  draftShape(d);const errors:Issue[]=[],bad=(field:string,code:string,message:string)=>errors.push({field,code,message});
  const op=d.operation,f=d.fields,edit=op.startsWith('transform')||op.startsWith('inpaint'),masked=op.startsWith('inpaint'),lora=op.endsWith('adapters'),regular=op!=='instant'&&op!=='fast';
@@ -133,7 +152,7 @@ export function resolve(d:Draft,prompt:string,eligible:Eligibility={adapters:new
  }
  if(masked&&d.source&&d.mask){try{requireMaskAlignment(d.source,d.mask);const p=requireRequestMaskPlan(d.source,d.mask);if(size.kind==='preset'||size.kind==='custom'&&(size.width!==p.expectedOutput.width||size.height!==p.expectedOutput.height))bad('size','MASK_MAPPING_REVIEW_REQUIRED','The requested output differs from the approved mask mapping. Preview and approve its exact dimensions again.');}catch(e){if(e instanceof RequestError)errors.push(...e.issues);else throw e;}}
  if(masked){if(!d.mask)bad('mask','MASK_REQUIRED','Attach a source-bound edit mask.');else {if(!d.source||d.mask.sourceHash!==d.source.pixels.hash||d.mask.width!==d.source.width||d.mask.height!==d.source.height)bad('mask','MASK_ALIGNMENT','The mask must match this exact source and frame.');if(d.mask.empty)bad('mask','EMPTY_MASK','Nothing is selected to edit.');if(d.mask.full&&!d.mask.fullAcknowledged)bad('mask','FULL_MASK','Confirm that the entire source can change.');}}
- if(lora){if(d.adapters.length<1||d.adapters.length>3)bad('adapters','ADAPTER_COUNT','Attach 1–3 eligible versions.');const seen=new Set<string>();for(const a of d.adapters){const e=eligible.adapters.get(a.version);if(seen.has(a.version))bad('adapters','DUPLICATE_ADAPTER','Duplicate adapter versions are not allowed.');seen.add(a.version);if(!e?.available||e.hash!==a.hash||e.profile!=='v4-safe-1')bad('adapters','ADAPTER_UNAVAILABLE','This adapter version has no approved local eligibility.');else if(!e.runtimeVerified&&!a.runtimeAcknowledged)bad('adapters','ADAPTER_RUNTIME_ACK_REQUIRED','Acknowledge that this exact adapter version has not been verified by a provider run.');if(!a.scale.trim()||!Number.isFinite(Number(a.scale))||Number(a.scale)<0||Number(a.scale)>4)bad('adapters','SCALE','Each scale must be between 0 and 4.');}}
+ if(lora){if(d.adapters.length<1||d.adapters.length>3)bad('adapters','ADAPTER_COUNT','Attach 1–3 eligible versions.');const runtimeVerified=runtimeAdaptersVerified(op,d.adapters,eligible),seen=new Set<string>();for(const a of d.adapters){const e=eligible.adapters.get(a.version);if(seen.has(a.version))bad('adapters','DUPLICATE_ADAPTER','Duplicate adapter versions are not allowed.');seen.add(a.version);if(!e?.available||e.hash!==a.hash||e.profile!=='v4-safe-1')bad('adapters','ADAPTER_UNAVAILABLE','This adapter version has no approved local eligibility.');else if(!runtimeVerified&&!a.runtimeAcknowledged)bad('adapters','ADAPTER_RUNTIME_ACK_REQUIRED','Acknowledge runtime uncertainty for the attached adapter versions.');if(!a.scale.trim()||!Number.isFinite(Number(a.scale))||Number(a.scale)<0||Number(a.scale)>4)bad('adapters','SCALE','Each scale must be between 0 and 4.');}}
  if(errors.length)throw new RequestError(errors);
  const settings:any={prompt:structuredClone(d.prompt),syncMode:false,safetyChecker:true,seed:f.seed===''?{kind:'provider-random'}:{kind:'integer',decimal:f.seed},count:Number(f.count),format:f.format,expansion:f.expansion};if(op!=='instant')settings.speed=f.speed;if(regular)settings.acceleration=f.acceleration;
  return {kind:op,settings,size,...edit?{source:structuredClone(d.source!),strength:Number(f.strength)}:{},...masked?{mask:structuredClone(d.mask!)}:{},...lora?{adapters:structuredClone(d.adapters)}:{}} as Request;

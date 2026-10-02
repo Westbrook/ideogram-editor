@@ -2,6 +2,7 @@ import { lstat, readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { checkPath } from './private-root.js';
+import { profileBytes } from './text/validation.js';
 
 // A synchronous, hash-authorized prelude strips the fragment before the browser
 // discovers any shell script/style resources. The shell consumes and deletes
@@ -63,6 +64,15 @@ export async function loadStatic(directory?: string): Promise<Map<string, Static
         if (stat.isSymbolicLink() || (!stat.isDirectory() && !stat.isFile())) throw new Error('Unsafe browser build path.');
         if (stat.isDirectory()) { await visit(full, route); continue; }
         if (route === '/index.html') { html = await readFile(full, 'utf8'); continue; }
+        // The Apply-only text manifest is a Vite data asset. Admit only its
+        // exact current server-authorized bytes, never general JSON/config.
+        if (/^\/assets\/profile-[A-Za-z0-9_-]{8}\.json(?![\s\S])/.test(route)) {
+          if (stat.size !== profileBytes.length) throw new Error('Browser text profile asset differs from the current renderer profile.');
+          const bytes = await readFile(full);
+          if (!bytes.equals(profileBytes)) throw new Error('Browser text profile asset differs from the current renderer profile.');
+          files.set(route, { bytes, type: 'application/json; charset=utf-8' });
+          continue;
+        }
         const type = types[entry.name.split('.').at(-1)!];
         // Only the trusted browser build is public. No source maps, config,
         // hidden files, storage files, arbitrary HTML or uploaded SVG.

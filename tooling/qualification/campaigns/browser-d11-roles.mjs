@@ -1,5 +1,7 @@
 import { posix } from 'node:path';
 import { D11_ROLE_CONTEXT, verifyD11RegistrationContract } from './browser-d11-registration.mjs';
+import { deriveD11PrivateEventBoundaries } from './browser-d11-private-events.mjs';
+import { deriveD11WorkerActivation } from './browser-d11-worker-activation.mjs';
 
 const sorted = values => [...new Set(values)].sort();
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -36,11 +38,18 @@ function walk(root, visit) {
 // without executing code. Passing an import-bearing callback to a caller whose
 // invocation contract is not proved leaves that boundary ambiguous.
 function invocationBoundaries(ast) {
-  const owners = new WeakMap(), functions = new WeakMap(), classes = new WeakMap(), records = [], bindings = [], calls = [], escapes = [];
+  const owners = new WeakMap(), functions = new WeakMap(), classes = new WeakMap(), records = [], bindings = [], calls = [], reads = [], escapes = [];
   const record = parent => { const value = { parent, bindings: new Map(), invoked: new Set(), callbacks: new Set() }; records.push(value); return value; };
   const root = record(null);
+  const patternNames = pattern => !pattern ? [] : pattern.type === 'Identifier' ? [pattern.name]
+    : pattern.type === 'ObjectPattern' ? pattern.properties.flatMap(item => patternNames(item.type === 'RestElement' ? item.argument : item.value))
+    : pattern.type === 'ArrayPattern' ? pattern.elements.flatMap(patternNames)
+    : patternNames(pattern.type === 'AssignmentPattern' ? pattern.left : pattern.type === 'RestElement' ? pattern.argument : pattern.type === 'TSParameterProperty' ? pattern.parameter : null);
   walk(ast, (node, _deferred, parent) => {
-    const outer = parent ? owners.get(parent) : root;
+    // Computed member keys execute while defining the class, outside the
+    // callable/instance initializer represented by that member's body.
+    const computedKey = parent?.computed === true && parent.key === node && (parent.type === 'MethodDefinition' || field(parent));
+    const outer = computedKey ? functions.get(parent)?.parent ?? owners.get(parent) : parent ? owners.get(parent) : root;
     const klass = ['ClassDeclaration', 'ClassExpression'].includes(node.type) ? node : parent ? classes.get(parent) : null;
     classes.set(node, klass);
     if (boundaryScope(node)) { const current = record(outer); Object.assign(current, { klass, instanceField: field(node) }); functions.set(node, current); }
@@ -48,7 +57,15 @@ function invocationBoundaries(ast) {
     if (node.type === 'FunctionDeclaration' && node.id?.type === 'Identifier') bindings.push([outer, node.id.name, node]);
     if (node.type === 'FunctionExpression' && node.id?.type === 'Identifier') bindings.push([owner, node.id.name, node]);
     if (node.type === 'ClassDeclaration' && node.id?.type === 'Identifier') bindings.push([outer, node.id.name, node]);
-    if (node.type === 'VariableDeclarator' && node.id?.type === 'Identifier') bindings.push([owner, node.id.name, node.init]);
+    if (node.type === 'VariableDeclarator') {
+      if (node.id?.type === 'Identifier') bindings.push([owner, node.id.name, node.init]);
+      else {
+        // Destructured callable aliases require property/data-flow proof.
+        // Keep their callbacks uncertain and mask any same-named outer value.
+        for (const name of patternNames(node.id)) bindings.push([owner, name, null]);
+        escapes.push([owner, node.init], [owner, node.id]);
+      }
+    }
     if (node.type === 'AssignmentExpression' && node.left?.type === 'Identifier') bindings.push([owner, node.left.name, node.right]);
     if (node.type === 'AssignmentExpression' && node.left?.type === 'MemberExpression') escapes.push([owner, node.right]);
     if (node.type === 'ExportDefaultDeclaration') escapes.push([owner, node.declaration]);
@@ -57,8 +74,10 @@ function invocationBoundaries(ast) {
       else if (node.declaration) escapes.push([owner, node.declaration]);
       for (const specifier of node.specifiers ?? []) escapes.push([owner, specifier.local]);
     }
-    if (functions.has(node)) for (const parameter of node.params ?? []) if (parameter.type === 'Identifier') bindings.push([owner, parameter.name, null]);
+    if (functions.has(node)) for (const parameter of node.params ?? []) for (const name of patternNames(parameter)) bindings.push([owner, name, null]);
     if (node.type === 'CallExpression' || node.type === 'NewExpression') calls.push([owner, node, klass]);
+    if (node.type === 'TaggedTemplateExpression') calls.push([owner, { type: 'CallExpression', callee: node.tag, arguments: node.quasi.expressions }, klass]);
+    if (node.type === 'MemberExpression') reads.push([owner, node]);
   });
   for (const [owner, name, value] of bindings) { const values = owner.bindings.get(name) ?? []; values.push(value); owner.bindings.set(name, values); }
   const unwrap = node => {
@@ -77,16 +96,32 @@ function invocationBoundaries(ast) {
     if (node.type === 'LogicalExpression') return [...values(node.left, owner, next), ...values(node.right, owner, next)];
     return [node];
   }
-  function classMembers(klass, name, construct, owner, seen = new Set()) {
+  function classMembers(klass, name, construct, owner, seen = new Set(), kind = null) {
     if (seen.has(klass)) return [];
     const next = new Set(seen); next.add(klass);
     const local = (klass.body?.body ?? []).flatMap(member => {
       const key = member.computed ? literal(member.key) : member.key?.name ?? literal(member.key);
       if (construct && member.kind === 'constructor') return [functions.get(member.value)].filter(Boolean);
       if (construct && field(member) && member.static !== true) return [functions.get(member)].filter(Boolean);
-      return !construct && key === name ? [functions.get(member.value)].filter(Boolean) : [];
+      return !construct && key === name && (kind === null || member.kind === kind) ? [functions.get(member.value)].filter(Boolean) : [];
     });
-    const inherited = construct && klass.superClass ? values(klass.superClass, owner).filter(value => ['ClassDeclaration', 'ClassExpression'].includes(value.type)).flatMap(value => classMembers(value, name, true, owner, next)) : [];
+    // Resolve a superclass in the class definition's lexical scope, not in a
+    // potentially shadowed invocation scope. Keep the inherited union even for
+    // overridden members: this is a conservative whole-artifact upper bound.
+    const definitionOwner = owners.get(klass) ?? owner;
+    const bases = klass.superClass ? values(klass.superClass, definitionOwner) : [];
+    const known = bases.filter(value => ['ClassDeclaration', 'ClassExpression'].includes(value.type));
+    if (klass.superClass && (known.length !== bases.length || !known.length)) {
+      // An unreviewed base constructor/member may invoke subclass overrides.
+      // A local factory may also return an import-bearing class/callable. Keep
+      // those exact locally retained bodies uncertain instead of assuming that
+      // an unresolved superclass has no invocation effects.
+      for (const candidate of records) if (candidate.klass === klass) owner.callbacks.add(candidate);
+      for (const expression of bases) if (expression.type === 'CallExpression') for (const factory of targets(expression.callee, definitionOwner)) for (const candidate of records) {
+        for (let current = candidate.parent; current; current = current.parent) if (current === factory) { owner.callbacks.add(candidate); break; }
+      }
+    }
+    const inherited = known.flatMap(value => classMembers(value, name, construct, owner, next, kind));
     return [...local, ...inherited];
   }
   function targets(node, owner, construct = false) {
@@ -99,6 +134,7 @@ function invocationBoundaries(ast) {
       if (value.object?.type === 'ThisExpression' && owner.klass) return classMembers(owner.klass, name, false, owner);
       return values(value.object, owner).flatMap(object => {
         if (['ClassDeclaration', 'ClassExpression'].includes(object.type)) return classMembers(object, name, false, owner);
+        if (object.type === 'NewExpression') return values(object.callee, owner).filter(value => ['ClassDeclaration', 'ClassExpression'].includes(value.type)).flatMap(value => classMembers(value, name, false, owner));
         if (object.type !== 'ObjectExpression') return [];
         return object.properties.flatMap(property => {
         const key = property.computed ? literal(property.key) : property.key?.name ?? literal(property.key);
@@ -113,13 +149,32 @@ function invocationBoundaries(ast) {
       if (seen.has(value)) continue; const next = new Set(seen); next.add(value);
       if (functions.has(value) || ['ClassDeclaration', 'ClassExpression'].includes(value.type)) {
         walk(value, child => { if (functions.has(child)) result.add(functions.get(child)); });
-      } else if (value.type === 'ObjectExpression') {
+      } else if (value.type === 'ObjectExpression' || value.type === 'ObjectPattern') {
         for (const property of value.properties) for (const target of escapeTargets(property.value ?? property.argument, owner, next)) result.add(target);
-      } else if (value.type === 'ArrayExpression') {
+      } else if (value.type === 'ArrayExpression' || value.type === 'ArrayPattern') {
         for (const element of value.elements) for (const target of escapeTargets(element?.type === 'SpreadElement' ? element.argument : element, owner, next)) result.add(target);
+      } else if (value.type === 'AssignmentPattern') {
+        for (const target of escapeTargets(value.right, owner, next)) result.add(target);
       }
     }
     return result;
+  }
+  for (const [owner, member] of reads) {
+    const name = member.computed ? literal(member.property) : member.property?.name;
+    const receiver = member.object?.type === 'ThisExpression' && owner.klass ? [owner.klass] : values(member.object, owner);
+    for (const value of receiver) {
+      const objects = value.type === 'NewExpression' ? values(value.callee, owner) : [value];
+      for (const object of objects) {
+        if (['ClassDeclaration', 'ClassExpression'].includes(object.type)) {
+          for (const target of classMembers(object, name, false, owner, new Set(), 'get')) owner.invoked.add(target);
+          continue;
+        }
+        const members = object.type === 'ObjectExpression' ? object.properties : [];
+        for (const item of members) if (item.kind === 'get' && (item.computed ? literal(item.key) : item.key?.name ?? literal(item.key)) === name) {
+          for (const target of targets(item.value, owner)) owner.invoked.add(target);
+        }
+      }
+    }
   }
   for (const [owner, value] of escapes) for (const target of escapeTargets(value, owner)) owner.callbacks.add(target);
   for (const [owner, call, klass] of calls) {
@@ -263,7 +318,7 @@ export function deriveD11ApplicationStartup({ manifest, files, sourceTextByPath,
     const emitted = sorted(files.filter(file => file.kind === 'js' && [...file.sources ?? [], ...file.modules ?? []].includes(targetPath)).map(file => file.file));
     for (const entry of Object.values(manifest)) if (entry.src === targetPath && !emitted.includes(entry.file)) emitted.push(entry.file);
     roots.add(exact(emitted, 'Public startup panel source lacks one emitted binding'));
-    witnesses.push({ entry: bootstrap.path, shell: shellPath, editor: editorPath, tag, exportedMount: exported, openMethod: memberName(actionCall.callee), dispatchMethod: memberName(dispatch.callee), panelMethod: memberName(unwrap(panelCall.argument).callee), target: targetPath });
+    witnesses.push({ entry: bootstrap.path, shell: shellPath, className, editor: editorPath, tag, exportedMount: exported, openMethod: memberName(actionCall.callee), dispatchMethod: memberName(dispatch.callee), panelMethod: memberName(unwrap(panelCall.argument).callee), target: targetPath });
   } catch (error) { missing.push(error instanceof Error ? error.message : 'Public startup invocation proof is unavailable'); }
   return { startupFiles: sorted(roots), witnesses, complete: missing.length === 0, missing };
 }
@@ -302,9 +357,18 @@ function cssReferences(text) {
  * a pure build graph analysis, not proof that a browser fetched/evaluated code.
  * parser is the lock-verified Rolldown/Oxc {name, version, parseSync}; TypeScript
  * 7 has no standalone JS AST parser and is not impersonated here. */
-export function deriveD11Roles({ manifest, files, sourceTextByPath, outputTextByFile, parser, roleContext, registrationContract } = {}) {
+export function deriveD11Roles(input = {}) {
+  const { manifest, files, sourceTextByPath, outputTextByFile, parser, roleContext, registrationContract, lock, dependencyInputs, invocationContract } = input;
+  const retainedInvocation = Object.hasOwn(input, 'invocationContract');
+  // The reviewed invocation profile does not rely on syntactic deferral as a
+  // whole-program proof. Every startup-origin import/Worker site must either
+  // have a target-specific witness or receive a conservative disposition.
+  const fullSiteCensus = retainedInvocation && invocationContract !== null && invocationContract !== undefined;
   const missing = new Set(), startup = new Set(), engine = new Set(), ui = new Set(), features = [];
-  const finish = () => ({ startupFiles: sorted(startup), lazyFeatures: features.sort((a, b) => a.id.localeCompare(b.id)), textEngineFiles: sorted(engine), uiCssFontFiles: sorted(ui), complete: missing.size === 0, missing: sorted(missing) });
+  const excludedImports = [], excludedWorkers = [], startupUpperBounds = [];
+  let publicStartup = null;
+  const finish = () => ({ startupFiles: sorted(startup), lazyFeatures: features.sort((a, b) => a.id.localeCompare(b.id)), textEngineFiles: sorted(engine), uiCssFontFiles: sorted(ui),
+    ...(retainedInvocation ? { excludedImports, excludedWorkers, startupUpperBounds, startupProof: publicStartup?.complete ? publicStartup.witnesses : [] } : {}), complete: missing.size === 0, missing: sorted(missing) });
   if (!object(manifest) || !Array.isArray(files) || files.length > 20_000 || !object(sourceTextByPath) || !object(outputTextByFile)) { missing.add('D11 role inputs are absent or invalid'); return finish(); }
   if (parser?.name !== 'rolldown' || typeof parser.version !== 'string' || !parser.version || typeof parser.parseSync !== 'function') { missing.add('D11 lock-verified Rolldown AST parser is unavailable'); return finish(); }
   const byFile = new Map(), bySource = new Map(), edges = new Map(), eager = new Map(), dynamic = new Set(), workers = new Set(), wasmOwners = new Set(), ambiguousImports = [];
@@ -354,7 +418,7 @@ export function deriveD11Roles({ manifest, files, sourceTextByPath, outputTextBy
     if (!ast) return;
     try {
       const boundary = invocationBoundaries(ast);
-      walk(ast, node => {
+      walk(ast, (node, _deferred, parent) => {
       const dynamicImport = node.type === 'ImportExpression';
       const staticImport = ['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) && node.source && node.importKind !== 'type' && node.exportKind !== 'type';
       if (dynamicImport || staticImport) {
@@ -371,12 +435,17 @@ export function deriveD11Roles({ manifest, files, sourceTextByPath, outputTextBy
           if (staticImport) add(edges, output, target);
           else {
             dynamic.add(target);
-            if (boundary(node) === 'eager') add(eager, output, target);
-            else if (boundary(node) === 'ambiguous') ambiguousImports.push({ path, output, target });
+            const invocation = boundary(node);
+            if (invocation === 'eager') add(eager, output, target);
+            if (invocation === 'ambiguous' || fullSiteCensus) ambiguousImports.push({ path, output, target, start: node.start, end: node.end, source, kind: 'import', invocation });
           }
         }
       }
       if (!source && wasm && literal(node) !== null && reference(path, literal(node)) === wasm) wasmOwners.add(path);
+      if (!source && (node.type === 'Identifier' && ['Worker', 'SharedWorker'].includes(node.name) || node.type === 'MemberExpression' && ['Worker', 'SharedWorker'].includes(memberName(node)))) {
+        const directWorker = node.type === 'Identifier' && node.name === 'Worker' && parent?.type === 'NewExpression' && parent.callee === node;
+        if (!directWorker) missing.add('D11 Worker constructor reference lacks a reviewed invocation binding: ' + path);
+      }
       if (!source && node.type === 'NewExpression' && node.callee?.type === 'Identifier' && node.callee.name === 'Worker') {
         let target = node.arguments?.[0];
         if (target?.type === 'NewExpression' && target.callee?.type === 'Identifier' && target.callee.name === 'URL') target = target.arguments?.[0];
@@ -384,8 +453,9 @@ export function deriveD11Roles({ manifest, files, sourceTextByPath, outputTextBy
         if (file && byFile.get(file)?.kind === 'js') {
           workers.add(file);
           for (const output of outputs) {
-            if (boundary(node) === 'eager') add(eager, output, file);
-            else if (boundary(node) === 'ambiguous') ambiguousImports.push({ path, output, target: file });
+            const invocation = boundary(node);
+            if (invocation === 'eager') add(eager, output, file);
+            if (invocation === 'ambiguous' || fullSiteCensus) ambiguousImports.push({ path, output, target: file, start: node.start, end: node.end, source, kind: 'worker', invocation });
           }
         }
         else missing.add('D11 Worker URL has no exact emitted literal binding: ' + path);
@@ -413,8 +483,9 @@ export function deriveD11Roles({ manifest, files, sourceTextByPath, outputTextBy
   if (byFile.has('inline:bootstrap')) startup.add('inline:bootstrap');
   if (roleContext !== undefined || registrationContract !== undefined) {
     try {
-      verifyD11RegistrationContract(registrationContract, { lock: JSON.parse(own(sourceTextByPath, 'package-lock.json')) });
+      verifyD11RegistrationContract(registrationContract, { lock: lock ?? JSON.parse(own(sourceTextByPath, 'package-lock.json')) });
       const proof = deriveD11ApplicationStartup({ manifest, files, sourceTextByPath, parser, roleContext });
+      publicStartup = proof;
       if (!proof.complete) for (const reason of proof.missing) missing.add('D11 public startup proof: ' + reason);
       else for (const file of closure(proof.startupFiles)) startup.add(file);
     } catch { missing.add('D11 public startup registration contract could not be verified'); }
@@ -424,35 +495,88 @@ export function deriveD11Roles({ manifest, files, sourceTextByPath, outputTextBy
     if (candidates.length === 1) { for (const file of closure(candidates, false)) engine.add(file); engine.add(wasm); }
     else missing.add('D11 exact text WASM owner is not bound to one emitted Worker graph');
   } else if (wasm) missing.add('D11 exact text WASM URL has absent or ambiguous emitted AST owners');
-  for (const [id, entry] of Object.entries(manifest)) if (entry?.isDynamicEntry === true && !startup.has(entry.file)) {
-    if (!dynamic.has(entry.file)) { missing.add('D11 dynamic manifest entry lacks an AST import binding: ' + id); continue; }
-    const files = sorted([...closure([entry.file])].filter(file => !engine.has(file)));
-    if (files.length) features.push({ id, files });
-  }
-  const cssQueue = [...startup].filter(file => byFile.get(file)?.kind === 'css');
-  while (cssQueue.length) {
-    const file = cssQueue.pop(); if (ui.has(file)) continue; ui.add(file);
-    const text = own(outputTextByFile, file);
-    if (typeof text !== 'string') { missing.add('D11 verified startup CSS text is absent: ' + file); continue; }
-    const tokens = cssReferences(text);
-    if (!tokens.complete) missing.add('D11 startup CSS URL tokens are ambiguous: ' + file);
-    for (const specifier of tokens.values) {
-      if (specifier.startsWith('data:') || specifier.startsWith('#')) continue;
-      // CSS permits sibling URLs without a leading ./, unlike ESM imports.
-      const target = reference(file, /^(?:\.?\.?\/|\/)/.test(specifier) ? specifier : './' + specifier), asset = byFile.get(target);
-      if (!asset) { missing.add('D11 startup CSS URL has no verified asset: ' + file + ' -> ' + specifier); continue; }
-      if (asset.kind === 'css') { startup.add(target); cssQueue.push(target); }
-      if (asset.kind === 'font') {
-        startup.add(target);
-        if (asset.authoringFont === false) ui.add(target);
-        else if (asset.authoringFont !== true) missing.add('D11 startup font identity classification is absent: ' + target);
+  const startupBeforeUpperBounds = new Set(startup);
+  if (retainedInvocation) {
+    const proof = deriveD11PrivateEventBoundaries(input);
+    for (const reason of proof.missing) missing.add(reason);
+    for (const item of proof.excludedImports) {
+      // A plain render method name alone is not a framework root. Bind the
+      // event owner to the separately proved registered/created Open host.
+      if (!publicStartup?.complete || !publicStartup.witnesses.some(witness => witness.shell === item.source && witness.className === item.witness.className)) {
+        missing.add('D11 private event owner is not the verified public startup host: ' + item.source); continue;
+      }
+      excludedImports.push(item);
+    }
+    if (ambiguousImports.some(site => site.kind === 'worker' && startup.has(site.output))) {
+      const proof = deriveD11WorkerActivation(input);
+      for (const reason of proof.missing) missing.add(reason);
+      for (const item of proof.excludedWorkers) {
+        if (!engine.has(item.target)) { missing.add('D11 Worker witness is not bound to the exact text engine graph: ' + item.target); continue; }
+        excludedWorkers.push(item);
       }
     }
+  }
+  const excluded = site => site.kind === 'import' ? excludedImports.some(item => item.target === site.target && item.outputs.includes(site.output) && (site.source
+    ? item.source === site.path && item.start === site.start && item.end === site.end
+    : item.witness.emitted.some(value => value.output === site.path && value.start === site.start && value.end === site.end)))
+    : excludedWorkers.some(item => item.target === site.target && item.outputs.includes(site.output) && item.emittedSite.file === site.path && item.emittedSite.start === site.start && item.emittedSite.end === site.end);
+  const expandCss = (found, label, startupScope = false) => {
+    const queue = [...found].filter(file => byFile.get(file)?.kind === 'css'), visited = new Set();
+    while (queue.length) {
+      const file = queue.pop(); if (visited.has(file)) continue; visited.add(file);
+      if (startupScope) ui.add(file);
+      const text = own(outputTextByFile, file);
+      if (typeof text !== 'string') { missing.add('D11 verified ' + label + ' CSS text is absent: ' + file); continue; }
+      const tokens = cssReferences(text);
+      if (!tokens.complete) missing.add('D11 ' + label + ' CSS URL tokens are ambiguous: ' + file);
+      for (const specifier of tokens.values) {
+        if (specifier.startsWith('data:') || specifier.startsWith('#')) continue;
+        // CSS permits sibling URLs without a leading ./, unlike ESM imports.
+        const target = reference(file, /^(?:\.?\.?\/|\/)/.test(specifier) ? specifier : './' + specifier), asset = byFile.get(target);
+        if (!asset) { missing.add('D11 ' + label + ' CSS URL has no verified asset: ' + file + ' -> ' + specifier); continue; }
+        if (asset.kind === 'css') { found.add(target); queue.push(target); }
+        if (asset.kind === 'font') {
+          found.add(target);
+          if (asset.authoringFont === false) { if (startupScope) ui.add(target); }
+          else if (asset.authoringFont !== true) missing.add('D11 ' + label + ' font identity classification is absent: ' + target);
+        } else if (!startupScope) found.add(target);
+      }
+    }
+    return found;
+  };
+  // New retained profiles may charge unresolved ordinary JS conservatively.
+  // This is an explicit upper bound, never a claim that the code evaluated.
+  // Worker/engine activation cannot use this disposition: its lazy-delivery
+  // requirement still needs an actual invocation witness.
+  if (retainedInvocation) {
+    const charged = new Set(); let changed = true;
+    while (changed) {
+      changed = false;
+      for (const site of ambiguousImports) {
+        if (site.kind !== 'import' || !startup.has(site.output) || startup.has(site.target) || excluded(site)) continue;
+        const files = expandCss(closure([site.target]), 'startup upper bound');
+        if ([...files].some(file => engine.has(file))) continue;
+        for (const file of files) if (!startup.has(file)) { startup.add(file); changed = true; }
+        const identity = [site.path, site.start, site.end, site.output, site.target].join('\0');
+        if (!charged.has(identity)) { charged.add(identity); startupUpperBounds.push({ kind: 'd11-startup-upper-bound-1', source: site.source ? site.path : null, output: site.output,
+          start: site.start, end: site.end, target: site.target, files: sorted(files), reason: 'unresolved-invocation-conservatively-charged', ...(fullSiteCensus ? { invocation: site.invocation, policy: 'all-startup-origin-sites' } : {}) }); }
+      }
+    }
+    startupUpperBounds.sort((a,b) => a.output.localeCompare(b.output) || a.start-b.start || a.target.localeCompare(b.target));
+    excludedImports.sort((a,b) => a.source.localeCompare(b.source) || a.start-b.start);
+    excludedWorkers.sort((a,b) => a.source.localeCompare(b.source) || a.start-b.start);
+  }
+  expandCss(startup, 'startup', true);
+  for (const [id, entry] of Object.entries(manifest)) if (entry?.isDynamicEntry === true && !(retainedInvocation ? startupBeforeUpperBounds : startup).has(entry.file)) {
+    if (!dynamic.has(entry.file)) { missing.add('D11 dynamic manifest entry lacks an AST import binding: ' + id); continue; }
+    const closureFiles = sorted(expandCss(closure([entry.file]), 'lazy feature ' + id));
+    const files = closureFiles.filter(file => !engine.has(file));
+    if (files.length) features.push({ id, files, ...(retainedInvocation ? { closureFiles } : {}) });
   }
   for (const file of startup) {
     if (byFile.get(file)?.authoringFont === true) missing.add('D11 lazy-delivery invariant violated: authoring font is in startup: ' + file);
     if (engine.has(file)) missing.add('D11 lazy-delivery invariant violated: text engine is in startup: ' + file);
   }
-  for (const { path, output, target } of ambiguousImports) if (startup.has(output) && !startup.has(target)) missing.add('D11 dynamic import or Worker has an ambiguous invocation boundary: ' + path + ' -> ' + target);
+  for (const site of ambiguousImports) if (startup.has(site.output) && !startup.has(site.target) && !excluded(site)) missing.add('D11 dynamic import or Worker has an ambiguous invocation boundary: ' + site.path + ' -> ' + site.target);
   return finish();
 }

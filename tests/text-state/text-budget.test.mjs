@@ -7,7 +7,8 @@ async function module(path,replacements={}){let code=(await transformWithOxc(awa
 const budgetURL=await module('src/protocol/text-budget.ts'),contractsURL=await module('src/text/contracts.ts');
 const admissionURL=await module('src/text/admission.ts',{'./contracts':contractsURL});
 const profile=JSON.parse(await readFile('src/text/profile.json','utf8'));
-const memoryURL=await module('src/text/memory.ts',{'./admission':admissionURL,'./contracts':contractsURL,'./profile.json':data('export default '+JSON.stringify(profile)),'../protocol/text-budget':budgetURL});
+const diagnosticMemoryURL=await module('src/observability/diagnostic-memory.ts');
+const memoryURL=await module('src/text/memory.ts',{'./admission':admissionURL,'./contracts':contractsURL,'./profile.json':data('const profile='+JSON.stringify(profile)+';export default profile;export const engine=profile.engine;'),'../protocol/text-budget':budgetURL,'../observability/diagnostic-memory.js':diagnosticMemoryURL});
 const {verificationBudget,textWorkspaceBudget}=await import(budgetURL),{planText,textMemory,registerFontBacking,engineResidentBytes}=await import(memoryURL);
 const CAP=128*1024**2,WASM=4979358,FONTS=11445884;
 const maxLines=Array.from({length:256},(_,i)=>'A'.repeat(i===255?64:63)).join('\n');

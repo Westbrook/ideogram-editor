@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,writeFile,rm,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createCiPlan} from '../../tooling/qualification/ci/plan.mjs';
@@ -40,7 +40,7 @@ test('an outer PASS or approval flag cannot replace absolute child and pipeline 
   assert.throws(()=>validateBaselineDisposition(plan,{...disposition,boundaries:[]},result,boundaries,pipelineSamples),/reproduced/);
 });
 test('filesystem loader rejects altered externally pinned packet before trusting its contents',async()=>{
-  const directory=await mkdtemp(join(tmpdir(),'ci-baseline-packet-'));
+  const directory=await realpath(await mkdtemp(join(tmpdir(),'ci-baseline-packet-')));
   try{
     const path=join(directory,'packet.json');await writeFile(path,JSON.stringify({approved:true,automatedOutcome:'PASS'}));
     let invoked=false;

@@ -10,7 +10,7 @@ import {childFor,encode,command,rootFor} from '../store/helpers.mjs';
 const auth={clientId:'client_1',sessionHash:'c'.repeat(64),now:Date.now(),expires:Date.now()+1800000};
 const objectPath=(root,ref)=>join(root,'objects','sha256',ref.hash.slice(7,9),ref.hash.slice(7));
 const release=gate=>{Atomics.store(new Int32Array(gate),0,1);Atomics.notify(new Int32Array(gate),0);};
-async function done(w,id){for(let i=0;i<1500;i++){const x=await w.commandState(id);if(x.record)return x.record;await new Promise(r=>setTimeout(r,5));}throw Error('No terminal receipt '+JSON.stringify(await w.diagnostics()));}
+async function done(w,id){for(let i=0;i<1500;i++){const x=await w.commandState(id);if(x.record)return x.record;await new Promise(r=>setTimeout(r,5));}const diagnosticRead=await w.readDiagnostics();try{throw Error('No terminal receipt '+JSON.stringify(diagnosticRead.value));}finally{diagnosticRead.release();}}
 async function seed(t){const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));const a=await importRaster(f,'hidden-alpha.png');const imported=f.command({expectedDocumentRevision:'1',body:{type:'ImportAsset',assetId:a.asset.id,layerId:'picture',name:'Picture',draft:null}});assert.equal((await terminal(f,imported)).json.receipt.status,'accepted');const d=(await f.read('/api/v1/documents/document_1')).json.projection.value;await f.server.close();return {...f,...a,document:d};}
 for(const corruption of ['missing','changed','same-byte-replacement'])test('history rejects '+corruption+' authoritative dependency after proof, preserves old pixels and receipt',async t=>{
  const f=await seed(t),gate=new SharedArrayBuffer(4);let hit;const barrier=new Promise(r=>hit=r);const w=await openWriter({root:f.root},{phase:'history-after-proofs',gate,onBarrier:hit});t.after(()=>w.close());
@@ -26,7 +26,7 @@ test('missing hidden/deleted and historical pixels are explicit recovery, never 
  await unlink(objectPath(f.root,f.asset.raster.pixels));const next=await openWriter({root:f.root});t.after(()=>next.close());assert.equal((await next.health()).missingCount>0,true);assert.deepEqual(await next.document('document_1'),d);assert.equal((await next.imageState('document_1')).layers.length,0);
 });
 test('actual SQLite FULL at acceptance never publishes image revision and same durable identity retries after restart',async t=>{
- const f=await seed(t),setup=await childFor(t,f.root);const pages=(await setup.call('diagnostics')).settings.page_count;await setup.close();
+ const f=await seed(t),setup=await childFor(t,f.root);const pages=await setup.call('diagnosticScalar','settings.page_count');await setup.close();
  const full=await childFor(t,f.root,{maxPageCount:pages});assert.equal(full.startup.type,'ready');
  // The exact long checkpoint name is required user metadata, not truncated.
  const c=command(f.ref,{expectedDocumentRevision:'2',body:{type:'SaveCheckpoint',name:'Disk failure checkpoint '.repeat(1000)}});
@@ -48,7 +48,7 @@ test('frozen export and a separate UI intent retain independent revisions',async
  const exported=await done(w,c.command.commandId);assert.equal(exported.receipt.status,'accepted');assert.equal(exported.receipt.documentRevision,'2');assert.deepEqual(await w.document('document_1'),f.document);
 });
 test('UI checkpoint SQLite FULL leaves prior preferences and receipt absent, exact retry succeeds',async t=>{
- const f=await seed(t),setup=await childFor(t,f.root),pages=(await setup.call('diagnostics')).settings.page_count;await setup.close();
+ const f=await seed(t),setup=await childFor(t,f.root),pages=await setup.call('diagnosticScalar','settings.page_count');await setup.close();
  const full=await childFor(t,f.root,{maxPageCount:pages});const request={protocolVersion:1,requestId:'preferences_full',sessionId:'ui',expectedUISeq:'0',body:{type:'SetPreferences',preferences:{documentId:'document_1',tool:'select',viewport:{x:0,y:0,zoom:1},panels:{left:280,right:280,active:'layers'},selectedLayerIds:Array.from({length:100},(_,i)=>String(i).padStart(128,'x'))}}};
  await assert.rejects(full.call('uiPersist',encode(request),auth),{code:'STORAGE_FULL'});assert.equal((await full.call('uiRead','ui',auth)).uiSeq,'0');assert.deepEqual(await full.call('document','document_1'),f.document);await full.close();
  const w=await openWriter({root:f.root});t.after(()=>w.close());const result=await w.uiPersist(encode(request),auth);assert.equal(result.status,'accepted');assert.equal(result.uiSeq,'1');assert.deepEqual(await w.uiPersist(encode(request),auth),result);assert.equal((await w.uiRead('ui',auth)).reconciledLayerIds.length,100);

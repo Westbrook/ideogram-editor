@@ -101,7 +101,7 @@ function publicPage(options = {}) {
       async waitFor(value) { state.waits.push([kind, String(name), value.state]); },
       async click() {
         state.clicks.push(name instanceof RegExp ? 'Select sealed document' : name);
-        if (name instanceof RegExp) { assert.equal(scope, 'Open document'); assert(name.test(fixture.documentId + ' · 512 × 384')); state.view.selected = []; return; }
+        if (name instanceof RegExp) { assert.equal(scope, 'Open document'); assert(name.test('Untitled document · ' + fixture.documentId + ' · 512 × 384 · revision ' + state.document.revision));assert(!name.test('Contains ' + fixture.documentId + ' · foreign_document · 512 × 384 · revision ' + state.document.revision),'Authored title cannot impersonate the document identity'); state.view.selected = []; return; }
         if (name === 'Cancel mask draft') {
           assert(!state.maskHidden, 'A hidden mask panel must be revealed before cancellation');
           if (options.requireFreshMaskReceipt) assert(state.pendingResponse, 'Observe a new ClearDraft response before clicking Cancel');

@@ -2,7 +2,7 @@
 // relabeled after preparation: return the actual new identities and receipts so
 // the outer driver can retain them before capturing its reset/scoring baseline.
 import assert from 'node:assert/strict';
-import { isAbsolute } from 'node:path';
+import { basename, isAbsolute } from 'node:path';
 import { digest, fileIdentity, intervalWait, monotonic, PrerequisiteError } from './common.mjs';
 import { acceptedCommand, numeric, openDocument, publicRead } from './browser-driver.mjs';
 
@@ -86,12 +86,11 @@ async function bindReceipt(page, receipt, document) {
 async function prepareSource(page, fixture, signal) {
   const file = selectFastSetupImage(fixture), actual = await fileIdentity(file.path);
   if (actual.sha256 !== file.sha256 || actual.bytes !== file.bytes) issue('Fast setup PNG bytes changed after sealing');
+  const { confirmImageImports } = await import('../../../tests/editor/image-import-flow.ts');
   await click(page, 'Import image');
-  await page.locator('en-file-upload[label="Image file"] input').setInputFiles(file.path);
-  const dialog = page.getByRole('dialog', { name: 'Review image conversion', exact: true });
-  await dialog.waitFor({ state: 'visible' });
-  const receipt = await acceptedCommand(page, 'ImportAsset', () => dialog.getByRole('button', { name: 'Apply reviewed result', exact: true }).click(), signal);
-  await dialog.waitFor({ state: 'hidden' });
+  const dialog = page.getByRole('dialog', { name: 'Import image', exact: true });
+  await dialog.locator('en-file-upload input[type=file]').setInputFiles(file.path);
+  const receipt = await acceptedCommand(page, 'ImportAsset', () => confirmImageImports(page, { names: [basename(file.path)], destination: 'current' }), signal);
   const { document, image } = await readDocument(page, fixture);
   if (image.layers.length !== 1) issue('Fast source setup did not import one layer');
   const asset = await readAsset(page, image.layers[0].assetId);

@@ -1,14 +1,30 @@
 import assert from 'node:assert/strict';
 import {parseAst} from 'rolldown/parseAst';
 
-// Network boundary review: docs/testing/completion-network-review.md.
-// A boundary change requires a new source review, not an automatic rehash.
+// Independently reviewed final network and response-ownership boundaries.
+// Delegated request/body cleanup helpers are included with their direct issuers.
+// A boundary change requires a new source review, not a rehash.
 export const NETWORK_BOUNDARIES=Object.freeze({
- 'src/observability/recovery-memory.ts':'52c4b1f97ae3ee5e3eec4e88ca0274174aaea1b54f611ec27a948393f052b492',
- 'src/state/recovery-client.ts':'43f23b5cfb96db02e99a624ba0fcbe45aef3c1c96bd3db69b18a78aec5eabef4',
- 'src/state/session-client.ts':'eed37b101c2f2c5ce9cf948058b918e5dc1995bcee310f0d3384c24884b80f9b',
+ 'src/state/recovery-client.ts':'faf5498835f4de89d0bac8126c72f7e6900883ef0387f5f52753e865408314dd',
+ 'src/state/session-client.ts':'7d134699839c9c260022e736260b8581931d07a8b44d5cac06882c3f702a386a',
  'src/text/contracts.ts':'96aa65d78cf834c14def464df88d3b94982193cfeabc8f70b1eaba3d86fae6ec',
+ // Correction89: exact profile data read is bounded, same-origin and owned
+ // by the existing full Apply stage; its raw bytes stay server-authorized.
+ 'src/text/durable.ts':'6b426048f78f1a95d8a23c9b4e7724ce2774e7a0cc47bea8968b4258a2682d52',
  'src/text/engine.ts':'c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830',
+ 'src/state/editor-client.ts':'a6724c187618d422bbf913946bba65fc1cbe3cae26458c66176e05f5fa5a26b9',
+ 'src/observability/adapter-upload-hook.ts':'756a93d71aff8092d41c9eefa8ddabbe5983acdcc2f5350e958b3b263db8ceb9',
+ 'src/observability/adapter-upload.ts':'77d8bc7603e9a7db0df09369078b02381bca012c92c30c7df1a3b014b198dbba',
+ 'src/ui/adapter-library.ts':'2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80',
+ 'src/state/draft-persistence.ts':'6fce26e74b45da071e17331726e961a72b6f3006a63aaa47edb8089d91f65a5f',
+ 'src/state/command-results.ts':'b771ee97323f8393f0eea83998af06e733bfd7349b902f63b4abf32a63ea9b4b',
+ 'src/state/control-memory.ts':'80b1f564855ef58462d44a708fc211770ed73f481ba44f71db13fdef75716d75',
+ 'src/observability/model-memory.ts':'79d5f368134a38dcc01abdf29d42bff9840c4f42d6e3f8aa3c83864d5e58f118',
+ 'src/observability/prompt-memory.ts':'65d2bd5efb45197f2f4edecbcbde7b40f0fc65acb278fde42e02f57146eb30dc',
+ 'src/observability/recovery-memory.ts':'52c4b1f97ae3ee5e3eec4e88ca0274174aaea1b54f611ec27a948393f052b492',
+ 'src/observability/allocations.ts':'95ea4f1dd0e6cba1cce3950d48df473d78168a76cd5c2bc16d5e83c92ab16e9d',
+ 'src/ui/storage-library.ts':'d545b60a0d2cc13707b9d42bd58480693bbf61b533a2269fad0e4ba964878216',
+ 'src/ui/model-owner.ts':'b6e6daa3fc7ec66dc5f5e6a8f193d6d395028326f739a2802bb8e18232346524',
 });
 const literal=n=>n?.type==='Literal'?n.value:n?.type==='TemplateLiteral'&&n.expressions.length===0?n.quasis[0].value.cooked:undefined;
 const key=n=>n.computed?literal(n.key):n.key?.name??literal(n.key);
@@ -57,7 +73,7 @@ function xhrFallbacks(worker,read){
 export function classifyIssuers(modules,{read,workerPath,entryPath}){
  const emitted=modules.filter(m=>m.path.startsWith('dist/app/'));
  const direct=emitted.flatMap(m=>m.syntax.calls.filter(c=>['fetch','XMLHttpRequest','Request','sendBeacon','importScripts','SharedWorker','WebSocket','EventSource','WebTransport'].includes(c.name)).map(c=>({path:m.path,...c})));
- assert.equal(direct.filter(c=>c.callee==='fetch').length,8,'Eight reviewed emitted fetch sites');assert.equal(direct.filter(c=>c.callee==='XMLHttpRequest').length,3,'Three reviewed emitted XHR constructors');assert.equal(direct.length,11,'No unclassified direct networking API');
+ assert.equal(direct.filter(c=>c.callee==='fetch').length,9,'Nine reviewed emitted fetch sites');assert.equal(direct.filter(c=>c.callee==='XMLHttpRequest').length,3,'Three reviewed emitted XHR constructors');assert.equal(direct.length,12,'No unclassified direct networking API');
  const worker=emitted.find(m=>m.path===workerPath);assert(worker,'Explicit emitted native Worker entry');
  const classified=[];
  for(const row of direct.filter(c=>c.callee==='fetch')){
@@ -65,14 +81,17 @@ export function classifyIssuers(modules,{read,workerPath,entryPath}){
   if(row.path===entryPath&&init?.type==='Identifier')kind='modulepreload';
   else if(sameNames(init,['credentials'])&&literal(field(init,'credentials'))==='same-origin'&&row.path===workerPath)kind='canvaskit-fetch';
   else if(sameNames(init,['credentials','redirect','signal'])&&literal(field(init,'credentials'))==='same-origin'&&literal(field(init,'redirect'))==='error'&&field(init,'signal')?.type==='Identifier')kind='sealed-asset';
-  else if(sameNames(init,['method','headers','...','credentials','cache','redirect','signal'])&&literal(field(init,'credentials'))==='same-origin'&&literal(field(init,'cache'))==='no-store'&&literal(field(init,'redirect'))==='error'&&row.source.includes('AbortSignal.timeout('))kind='session-json';
+  // The reviewed session owner supplies method/headers/body and the original
+  // composed signal through readOwnedJSON. Its adapter spreads that init first,
+  // then fixes transport policy. The source pins bind that delegated ownership.
+  else if(call.arguments[0]?.type==='Identifier'&&sameNames(init,['...','credentials','cache','redirect'])&&properties(init)[0]?.type==='SpreadElement'&&properties(init)[0].argument?.type==='Identifier'&&literal(field(init,'credentials'))==='same-origin'&&literal(field(init,'cache'))==='no-store'&&literal(field(init,'redirect'))==='error')kind='session-json';
   else if(sameNames(init,['...','headers','credentials','cache','redirect'])&&literal(field(init,'credentials'))==='same-origin'&&literal(field(init,'cache'))==='no-store'&&literal(field(init,'redirect'))==='error'&&field(init,'headers')?.type==='Identifier')kind='application-transport';
   else if(sameNames(init,['...','credentials','headers'])&&literal(field(init,'credentials'))==='same-origin'&&literal(field(field(init,'headers'),'X-App-Client'))==='LP-1')kind='recovery-release';
   assert(kind,'Unclassified emitted fetch '+at(row));classified.push({...row,kind});
  }
- for(const [kind,count]of Object.entries({'modulepreload':1,'canvaskit-fetch':2,'sealed-asset':2,'session-json':1,'application-transport':1,'recovery-release':1}))assert.equal(classified.filter(c=>c.kind===kind).length,count,'Closed '+kind+' issuer count');
+ for(const [kind,count]of Object.entries({'modulepreload':1,'canvaskit-fetch':2,'sealed-asset':3,'session-json':1,'application-transport':1,'recovery-release':1}))assert.equal(classified.filter(c=>c.kind===kind).length,count,'Closed '+kind+' issuer count');
  assert.equal(classified.filter(c=>c.kind==='sealed-asset'&&c.path===workerPath).length,1,'One sealed asset read in the worker');
- assert.equal(classified.filter(c=>c.kind==='sealed-asset'&&c.path!==workerPath&&c.path!==entryPath).length,1,'One sealed asset read in the main application');
+ assert.equal(classified.filter(c=>c.kind==='sealed-asset'&&c.path!==workerPath&&c.path!==entryPath).length,2,'Two sealed asset reads in the main application');
  assert(classified.filter(c=>['session-json','application-transport','recovery-release'].includes(c.kind)).every(c=>c.path!==workerPath&&c.path!==entryPath),'Body issuers confined to the main application');
  const xhr=xhrFallbacks(worker,read);assert(direct.filter(c=>c.callee==='XMLHttpRequest').every(c=>c.path===workerPath),'XHR constructors confined to reviewed CanvasKit worker');
  const workers=emitted.flatMap(m=>m.syntax.calls.filter(c=>c.name==='Worker').map(c=>({path:m.path,...c})));assert.equal(workers.length,1,'One application Worker constructor');

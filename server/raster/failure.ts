@@ -9,5 +9,6 @@ export function rasterFailure(error:unknown):RasterFailure{
   }
   if(value?.code==='ENOSPC'||value?.code==='EDQUOT'||value?.code==='EIO')return{code:'RASTER_RESOURCES'};
   const message=error instanceof Error?error.message:'';
-  return{code:/^RASTER_[A-Z_]+$/.test(message)?message:'RASTER_DECODE'};
+  // Preserve this reviewed versioned reason without admitting arbitrary numeric codes.
+  return{code:message==='RASTER_V45_EDIT_MASK_HOMOGENEOUS'||/^RASTER_[A-Z_]+$/.test(message)?message:'RASTER_DECODE'};
 }

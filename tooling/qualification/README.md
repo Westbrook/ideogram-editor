@@ -39,7 +39,7 @@ Children receive an allowlisted environment without provider credentials,
 proxy variables or ambient `NODE_OPTIONS`. Test workers retain the Node
 `--import` behavior used by the existing standalone suites.
 
-Five Node-hosted composition/history/portable/text-state test files launch real
+Registered Node-hosted test files launch real
 Chromium; their exact paths appear in `browserPrerequisites`. Install the pinned
 Playwright Chromium before these gates. The text-state gate builds its browser
 fixture into the current receipt directory and seals all emitted files before

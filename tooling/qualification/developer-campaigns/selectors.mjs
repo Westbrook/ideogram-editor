@@ -1,6 +1,7 @@
 import {readFile, readdir} from 'node:fs/promises';
 import {join, relative, resolve} from 'node:path';
 import {sha256, json, safeRelative} from './common.mjs';
+import {nodeGuardForFile} from '../suite-prerequisites.mjs';
 
 export function caseIdentity(method, file, name, occurrence = 1) {
   if (!['U', 'L', 'B'].includes(method) || !Number.isSafeInteger(occurrence) || occurrence < 1 || !name) throw Error('Invalid stable case identity');
@@ -8,9 +9,11 @@ export function caseIdentity(method, file, name, occurrence = 1) {
 }
 const integrationDirectories = new Set(['session', 'store', 'protocol', 'assets', 'raster', 'history', 'queue', 'candidates', 'text-state', 'portable', 'recovery', 'export']);
 export const nativeNodeBrowserFiles = Object.freeze([
-  'tests/composition/retained-text.test.mjs', 'tests/history/mask-text-compatibility.test.mjs',
+  'tests/composition/retained-text.test.mjs', 'tests/editor/model-memory-browser.test.mjs',
+  'tests/history/mask-text-compatibility.test.mjs',
   'tests/portable/browser-recovery.test.mjs', 'tests/text-state/native.test.mjs',
   'tests/text-state/placement-text-compatibility.test.mjs',
+  'tests/browser/wa-observation.test.mjs',
 ]);
 const integrationNames = /(?:writer|transport|backend|flow|deletion|upload-owner|retention|compatibility|retained-text|initialization|network|process|host)/;
 export function nodeClassification(file) {
@@ -18,8 +21,9 @@ export function nodeClassification(file) {
   // Classification follows the real execution boundary. These Node-hosted
   // cases launch Chromium and belong after browser provisioning in full B.
   const method = nativeNodeBrowserFiles.includes(file) ? 'B' : integrationDirectories.has(directory) || integrationNames.test(parts.at(-1)) ? 'L' : 'U';
-  const guard = directory === 'store' ? 'tests/store/no-network.mjs' : directory === 'provider' ? 'tests/provider/no-egress.mjs' : 'tests/session/no-egress.mjs';
-  const contract = {request: 'route', provider: 'provider', queue: 'job', composition: 'composition', adapters: 'adapter', raster: 'raster', history: 'state', store: 'store', portable: 'copy', 'text-state': 'text', recovery: 'recovery', assets: 'assets', session: 'session', protocol: 'protocol', editor: 'controls', browser: 'controls', text: 'text', qualification: 'runner', campaigns: 'runner', export: 'raster'}[directory];
+  const group = file === 'tests/recovery/editor-capability-preflight.test.mjs' ? 'editor-capability-preflight' : directory;
+  const guard = nodeGuardForFile(group, file);
+  const contract = {request: 'route', provider: 'provider', queue: 'job', candidates: 'job', composition: 'composition', adapters: 'adapter', raster: 'raster', history: 'state', store: 'store', portable: 'copy', 'text-state': 'text', 'ui-state': 'controls', recovery: 'recovery', assets: 'assets', session: 'session', protocol: 'protocol', editor: 'controls', browser: 'controls', text: 'text', qualification: 'runner', campaigns: 'runner', export: 'raster'}[directory];
   if (!contract) throw Error(`Unmapped required test directory: ${file}`);
   return {method, guard, contracts: [`${method}-${contract}`]};
 }

@@ -1,4 +1,5 @@
 import {specReceipt} from './receipt-path.js';
+import {confirmImageImports} from './image-import-flow.js';
 import {test,expect} from '@playwright/test';
 import {mkdtemp,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -16,10 +17,11 @@ test('E1 real reviewed import, edit and undo',async({page,context})=>{
  try{
  await page.goto(server.issuePairingURL());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();
  await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');
- await expect(page.getByRole('dialog',{name:'Review image conversion'})).toBeVisible();
+ await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeVisible();
  await expect(page.getByText('No document open',{exact:true})).toBeVisible();
- await page.getByRole('button',{name:'Apply reviewed result',exact:true}).click();
+ await confirmImageImports(page,{names:['hidden-alpha.png'],destination:'new',close:false});
  await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
+ const importDialog=page.getByRole('dialog',{name:'Import image',exact:true});await expect(importDialog).toBeVisible();await page.locator('en-dialog#editor-dialog').getByRole('button',{name:'Open imported document',exact:true}).click();await expect(importDialog).toBeVisible();await page.locator('en-dialog#editor-dialog').getByRole('button',{name:'Cancel',exact:true}).click();await expect(importDialog).toBeHidden();
  await expect(page.locator('canvas')).not.toHaveAttribute('data-asset','');
  await page.getByRole('treeitem').first().click();
  await expect(page.getByRole('textbox',{name:'Layer name',exact:true})).toHaveValue('hidden-alpha.png');

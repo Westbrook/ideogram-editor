@@ -82,7 +82,7 @@ test('AX01 populated jobs/results, actual restart/adoption; AX09 pending, termin
   const completed=await dispatch(await enqueue('AX01 controlled completed request'));
   const completedStart=(await live.events()).length;phase(completed.attempts.at(-1)!.requestId!,'completed');await providerPhase(completed,'completed');
   await expect.poll(async()=>(await candidates(completed)).items[0]?.state,{timeout:30000}).toBe('prepared');
-  await expect(page.getByText('Output 1: prepared.',{exact:true})).toBeVisible();await terminal('completed',completedStart,/\bcompleted\b/i);await scan('prepared-result');
+  await expect(page.getByText('Output 1: prepared. Safety: safe.',{exact:true})).toBeVisible();await terminal('completed',completedStart,/\bcompleted\b/i);await scan('prepared-result');
   await click(page,'Inspect frozen source and candidate');await expect(page.getByRole('combobox',{name:'Candidate treatment',exact:true})).toHaveValue('full-candidate');
   await click(page,'Preview current-document placement');await expect(page.getByRole('heading',{name:'Current-document adoption review',exact:true})).toBeVisible();
   const adopt=page.getByRole('button',{name:'Adopt this reviewed candidate',exact:true});await expect(adopt).toBeEnabled();await scan('candidate-adoption-review');

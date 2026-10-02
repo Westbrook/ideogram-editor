@@ -12,6 +12,50 @@ const attemptId = (group, attempt) => `${group.cell.id}/${group.cache}/${attempt
 export const byteAuditConfiguration = configuration => ({ ...configuration, browser: { ...(configuration?.browser ?? {}), byteAudit: true } });
 export const jobExecutionPath = id => `job-execution-${safe(id)}.json`;
 
+/** Supplemental byte proofs are actions in the immutable audit schedule. They
+ * do not add a navigation, replace a startup receipt, or become timing samples. */
+export function byteAuditFeatureActions(cell) {
+  if (cell.operation !== 'navigation.ready' || !['W0', 'W1'].includes(cell.workload)) return [];
+  return ['export.startup-absence', ...(cell.workload === 'W1' ? ['export.first-use-ready'] : [])];
+}
+
+/** Structural join for the live summary. Retained qualification additionally
+ * replays both original raw envelopes and recomputes these supplemental proofs. */
+export function evaluateByteAuditFeatureActions(cell, attempt, cache) {
+  const actions = byteAuditFeatureActions(cell), result = attempt.result, startup = result?.d11;
+  const absence = result?.featureAbsence, positive = result?.featureAudits, missing = [];
+  if (!actions.length) return { status: absence || positive?.length ? 'INCONCLUSIVE' : 'PASS', missing: absence || positive?.length ? ['Undeclared feature byte audit action'] : [] };
+  const clean = value => value?.status === 'PASS' && value.timingSamplesReusable === false && value.supplemental === true &&
+    Array.isArray(value.missing) && !value.missing.length && Array.isArray(value.failures) && !value.failures.length;
+  const artifact = value => typeof value?.path === 'string' && sha(value.sha256) && /^[1-9][0-9]*$/.test(String(value.byteLength));
+  const absenceValid = clean(absence) && absence.kind === 'd11-feature-absence-1' && absence.observationId === attempt.id &&
+    absence.workload === cell.workload && absence.cache === cache && absence.buildSha256 === startup?.buildSha256 &&
+    sha(absence.fixtureSeal) && typeof absence.collectorSessionId === 'string' && absence.collectorSessionId.length > 0 &&
+    Number.isSafeInteger(absence.documentNavigationId) && absence.documentNavigationId > 0 &&
+    absence.boundary?.complete === true && typeof absence.boundary.featureId === 'string' && artifact(startup?.artifact);
+  if (!absenceValid) missing.push('Required startup Export absence proof does not match this exact attempt');
+  const count = cell.workload === 'W1' ? 1 : 0;
+  if (!Array.isArray(positive) || positive.length !== count) missing.push('Separate Export first-use count differs from the declared workload');
+  if (count === 1 && Array.isArray(positive) && positive.length === 1) {
+    const first = positive[0], proof = first?.evidence, audit = first?.d11;
+    const valid = first?.status === 'PASS' && first.timingSamplesReusable === false &&
+      isDeepStrictEqual(first.action, { kind: 'export', completed: true }) && clean(proof) &&
+      proof.kind === 'd11-feature-first-use-1' && proof.observationId === attempt.id + '/export-first-use' &&
+      proof.baselineObservationId === attempt.id && proof.baselineArtifactSha256 === startup?.artifact?.sha256 && proof.baselineStatus === 'PASS' &&
+      ['buildSha256', 'fixtureSeal', 'workload', 'cache', 'collectorSessionId', 'documentNavigationId'].every(key => proof[key] === absence?.[key]) &&
+      isDeepStrictEqual(proof.boundary, absence?.boundary) &&
+      isDeepStrictEqual(first.baselineReference, { artifactPath: startup?.artifact?.path, artifactSha256: startup?.artifact?.sha256 }) &&
+      audit?.kind === 'd11-byte-observation-1' && audit.scope === 'lazy-feature' && audit.cache === cache && audit.status === 'PASS' &&
+      audit.instrumentation === 'precise-coverage-byte-audit' && audit.timingSamplesReusable === false && audit.buildSha256 === startup?.buildSha256 &&
+      isDeepStrictEqual(audit.featureIds, [absence?.boundary?.featureId]) && artifact(audit.artifact) &&
+      audit.artifact.path !== startup?.artifact?.path && audit.artifact.sha256 !== startup?.artifact?.sha256 &&
+      Array.isArray(audit.missing) && !audit.missing.length && Array.isArray(audit.failures) && !audit.failures.length;
+    if (!valid) missing.push('Separate Export first-use proof does not bind its exact retained startup, session, navigation and artifact');
+  }
+  const failed = absence?.status === 'FAIL' || absence?.failures?.length || Array.isArray(positive) && positive.some(value => value?.status === 'FAIL' || value?.evidence?.status === 'FAIL' || value?.evidence?.failures?.length || value?.d11?.status === 'FAIL');
+  return { status: failed ? 'FAIL' : missing.length ? 'INCONCLUSIVE' : 'PASS', missing };
+}
+
 /** The audit overhead is declared before any timed work. Cold starts remain
  * independent processes; the complete warm prime/sample cohort owns one new
  * process. No audit measurement can be reused as a latency observation. */
@@ -21,7 +65,7 @@ export function declareByteAuditCohorts(jobs) {
     cellDigest: digest({ ...cell, jobId: job.id }), workload: cell.workload,
     browser: cell.parameters?.browser ?? 'chromium', cold: cell.cold, warm: cell.warm, primes: cell.primes,
     scope: cell.operation === 'navigation.ready' ? 'startup' : 'text-engine',
-    actionsPerStart: [cell.operation, ...(cell.operation === 'text.mixed-ready' ? ['text.active-layout'] : [])],
+    actionsPerStart: [cell.operation, ...(cell.operation === 'text.mixed-ready' ? ['text.active-layout'] : []), ...byteAuditFeatureActions(cell)],
     startupBootstrapPerProcess: cell.operation === 'text.mixed-ready' ? 1 : 0,
     measurementNames: rulesFor(cell).map(rule => rule.name),
     runAfter: 'all-scored-groups-in-same-job', separateProcesses: true, timingSamplesReusable: false,
@@ -36,6 +80,7 @@ export function byteAuditExecutionGroups(plan, scoredGroups, identity) {
     const cohort = declarations.find(value => value.cellId === group.cell.id);
     return { ...group, id: `byte-audit/${group.id}`, kind: 'perf-byte-audit-group-1',
       byteAudit: { cohortId: cohort.id, cellId: cohort.cellId, cellDigest: cohort.cellDigest,
+        actionsPerStart: [...cohort.actionsPerStart],
         sourceDigest: identity?.sourceDigest ?? null, buildDigest: identity?.buildDigest ?? null,
         toolsDigest: identity?.toolsDigest ?? null, timingSamplesReusable: false } };
   });
@@ -71,7 +116,8 @@ export async function runByteAuditSchedule(plan, scoredGroups, context, launch, 
     const record = { kind: 'perf-campaign-job-execution-1', jobId: job.id, clock: 'controller-monotonic',
       startMs, endMs, elapsedMs: endMs - startMs, targetMs: job.targetMs ?? null, ceilingMs: job.ceilingMs ?? null,
       combinedBudget: job.combinedBudget ?? null,
-      includes: ['fixture-selection', 'scored-processes', 'scored-cleanup', 'byte-audit-processes', 'byte-audit-cleanup'], stages };
+      includes: ['fixture-selection', 'scored-processes', 'scored-cleanup', 'byte-audit-processes', 'byte-audit-cleanup',
+        ...(job.cells.some(cell => rulesFor(cell).length && byteAuditFeatureActions(cell).length) ? ['declared-feature-boundary-actions', 'declared-feature-boundary-cleanup'] : [])], stages };
     jobExecutions.push(record);
     await retain(join(context.output, jobExecutionPath(job.id)), record);
     if (stopped) break;
@@ -104,8 +150,11 @@ export function evaluateByteAuditCohorts(plan, expectedScoredGroups, groups = []
       if (attempt.status === 'FAIL') failed = true;
       const audit = attempt.result?.d11;
       const action = attempt.result?.auditAction;
+      const featureActions = evaluateByteAuditFeatureActions(group.cell, attempt, group.cache);
+      if (featureActions.status === 'FAIL') failed = true;
+      missing.push(...featureActions.missing.map(reason => `${group.id}/${attempt.id}: ${reason}`));
       const actionComplete = group.cell.operation !== 'text.mixed-ready' || action?.operation === 'text.active-layout' && action.scope === 'explicit-unscored-text-engine-byte-initialization' && action.originalOperation === group.cell.operation && ['PASS', 'INCONCLUSIVE'].includes(String(action.outcome).toUpperCase());
-      const valid = actionComplete && attempt.status === 'PASS' && attempt.result?.timingSamplesReusable === false && audit?.kind === 'd11-byte-observation-1' && audit.timingSamplesReusable === false && audit.instrumentation === 'precise-coverage-byte-audit' && audit.scope === cohort.scope && audit.cache === group.cache && audit.status === 'PASS' && Array.isArray(audit.measurements) && isDeepStrictEqual(audit.measurements.map(value => value.name).sort(), [...cohort.measurementNames].sort()) && Array.isArray(audit.missing) && !audit.missing.length && Array.isArray(audit.failures) && !audit.failures.length && sha(audit.buildSha256) && typeof audit.artifact?.path === 'string' && sha(audit.artifact.sha256) && Number.isSafeInteger(Number(audit.artifact.byteLength)) && Number(audit.artifact.byteLength) > 0;
+      const valid = actionComplete && featureActions.status === 'PASS' && attempt.status === 'PASS' && attempt.result?.timingSamplesReusable === false && audit?.kind === 'd11-byte-observation-1' && audit.timingSamplesReusable === false && audit.instrumentation === 'precise-coverage-byte-audit' && audit.scope === cohort.scope && audit.cache === group.cache && audit.status === 'PASS' && Array.isArray(audit.measurements) && isDeepStrictEqual(audit.measurements.map(value => value.name).sort(), [...cohort.measurementNames].sort()) && Array.isArray(audit.missing) && !audit.missing.length && Array.isArray(audit.failures) && !audit.failures.length && sha(audit.buildSha256) && typeof audit.artifact?.path === 'string' && sha(audit.artifact.sha256) && Number.isSafeInteger(Number(audit.artifact.byteLength)) && Number(audit.artifact.byteLength) > 0;
       if (audit?.status === 'FAIL' || audit?.failures?.length) failed = true;
       if (!valid) missing.push(`Byte audit evidence incomplete: ${group.id}/${attempt.id}`);
       if (!attempt.prime) observations.push({ group, attempt, audit, valid });

@@ -1,4 +1,4 @@
-import {draftShape} from '../src/request/core.js';
+import {draftShape} from '../src/request/family.js';
 import type { Writer } from './storage/writer.js';
 import { ProtocolError } from './errors.js';
 import { textSource, textDraft } from '../src/protocol/text.js';
@@ -11,14 +11,14 @@ export async function readTextView(writer:Writer,id:string,target:string,revisio
     if(!document||document.revision!==revision)throw new ProtocolError('READ_CONTEXT_EXPIRED');
     const layer=(await writer.imageState(id)).layers.find(l=>l.id===target);
     if(!layer||layer.kind!=='text')throw new ProtocolError('NOT_FOUND');
-    const source=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await writer.readMetadata(layer.source)));textSource(source);
+    const source=await writer.consumeMetadata(layer.source,bytes=>JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));textSource(source);
     if(await writer.documentRevision(id)!==revision)throw new ProtocolError('READ_CONTEXT_EXPIRED');
     return {documentRevision:revision,layerVersion:layer.version,source};
   }
   const checkpoint=await writer.uiRead(id,auth),draft=checkpoint.drafts.find(d=>d.id===target&&d.kind===kind);
   if(!draft)throw new ProtocolError('NOT_FOUND');
   const asset=(await writer.assetProjection(draft.assetId)).asset;if(!asset)throw new ProtocolError('NOT_FOUND');
-  const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await writer.readMetadata(asset.blob)));if(kind==='request'){draftShape(value);}else textDraft(value);
+  const value=await writer.consumeMetadata(asset.blob,bytes=>JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));if(kind==='request'){draftShape(value);}else textDraft(value);
   const current=(await writer.uiRead(id,auth)).drafts.find(d=>d.id===target);
   if(current?.generation!==draft.generation||current.assetId!==draft.assetId)throw new ProtocolError('READ_CONTEXT_EXPIRED');
   return {draft,value,textUtf8:'prompt'in value?value.prompt.text:value.textUtf8};

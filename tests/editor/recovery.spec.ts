@@ -1,3 +1,4 @@
+import {confirmImageImports} from './image-import-flow.js';
 import {test,expect,type Page,type BrowserContext} from '@playwright/test';
 import {mkdtemp,realpath,readFile,writeFile,unlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -14,7 +15,7 @@ const click=(p:Page,n:string)=>p.getByRole('button',{name:n,exact:true}).click()
 async function setup(page:Page,context:BrowserContext){
  const dir=await mkdtemp(join(await realpath(tmpdir()),'ie-recovery-ui-')),root=join(dir,'private'),server=await serverProcess(root);let last:any,csrf='';
  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST'){last=JSON.parse(r.postData()!);csrf=r.headers()['x-app-csrf'];}});
- await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
+ await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await page.locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/hidden-alpha.png');await confirmImageImports(page,{names:['hidden-alpha.png'],destination:'new',close:false});await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeVisible();await page.locator('en-dialog#editor-dialog').getByRole('button',{name:'Open imported document',exact:true}).click();await expect(page.locator('canvas[data-asset]')).not.toHaveAttribute('data-asset','');await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeVisible();await page.locator('en-dialog#editor-dialog').getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeHidden();
  const cookie=(await context.cookies()).map(x=>x.name+'='+x.value).join(';');
  return {root,server,get last(){return last;},headers:()=>({Origin:server.origin,Cookie:cookie,'X-App-CSRF':csrf}),read:(path:string)=>call(server.origin,path,{headers:{Cookie:cookie,'Sec-Fetch-Site':'same-origin','X-App-Client':'LP-1'}})};
 }
@@ -82,10 +83,33 @@ test('autosave receipt completion keeps the native Apply target stable during a 
  });
  await page.getByRole('textbox',{name:'Layer name',exact:true}).fill('Stable native Apply');await page.getByRole('textbox',{name:'Layer name',exact:true}).blur();await hit;
  const apply=page.getByRole('button',{name:'Apply properties',exact:true});await apply.scrollIntoViewIfNeeded();await expect(apply).toBeEnabled();
- const node=await apply.elementHandle(),before=await apply.boundingBox();expect(before).toBeTruthy();await page.mouse.move(before!.x+before!.width/2,before!.y+before!.height/2);await page.mouse.down();pressed=true;
- release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByRole('contentinfo').filter({hasText:'Draft saved locally; not applied to the document'})).toBeVisible();
- const after=await apply.boundingBox();await page.mouse.up();pressed=false;
- expect(await node!.evaluate(n=>n.isConnected)).toBe(true);expect(after).toEqual(before);await expect(page.getByRole('treeitem',{name:'Image · Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
+ const node=await apply.elementHandle(),before=await apply.boundingBox();expect(node).toBeTruthy();expect(before).toBeTruthy();
+ // The public native button scales while pressed; that paint transition does not
+ // change layout. Compare exact host/native layout and the original hit target,
+ // without waiting for, disabling, or tolerating movement in the press animation.
+ const layout=()=>node!.evaluate(n=>{if(!(n instanceof HTMLButtonElement))throw Error('Expected original native Apply button');const root=n.getRootNode();if(!(root instanceof ShadowRoot)||root.host.localName!=='en-button')throw Error('Expected public en-button host');const r=root.host.getBoundingClientRect();return {host:{x:r.x,y:r.y,width:r.width,height:r.height},native:{x:n.offsetLeft,y:n.offsetTop,width:n.offsetWidth,height:n.offsetHeight}};});
+ const beforeLayout=await layout(),point={x:before!.x+before!.width/2,y:before!.y+before!.height/2};await page.mouse.move(point.x,point.y);await page.mouse.down();pressed=true;
+ release();await expect(page.locator('.operation-status .pending')).toHaveCount(0);await expect(page.getByRole('contentinfo').getByText('Accepted edits saved locally · Draft saved locally; not applied to the document',{exact:true})).toBeVisible();
+ expect(await layout()).toEqual(beforeLayout);expect(await apply.evaluate((n,original)=>n===original,node!)).toBe(true);
+ expect(await node!.evaluate((n,p)=>{
+  // Native controls can be hit through slotted light-DOM labels. Follow the
+  // composed hit ancestry, with the same root/retarget handling as Playwright's
+  // pinned hit test, rather than requiring ordinary DOM contains across slots.
+  const parent=(el:Element):Element|null=>el.parentElement??(el.parentNode instanceof ShadowRoot?el.parentNode.host:null);
+  const roots:(Document|ShadowRoot)[]=[];let root=n.getRootNode();
+  while(root instanceof Document||root instanceof ShadowRoot){roots.push(root);if(root instanceof Document)break;root=root.host.getRootNode();}
+  let hit:Element|undefined;
+  for(let index=roots.length-1;index>=0;index--){
+   const root=roots[index],elements=root.elementsFromPoint(p.x,p.y),single=root.elementFromPoint(p.x,p.y);
+   if(single&&elements[0]&&parent(single)===elements[0]&&getComputedStyle(single).display==='contents')elements.unshift(single);
+   if(elements[0]?.shadowRoot===root&&elements[1]===single)elements.shift();
+   hit=elements[0];if(!hit||(index>0&&hit!==(roots[index-1] as ShadowRoot).host))break;
+  }
+  while(hit&&hit!==n)hit=hit.assignedSlot??parent(hit)??undefined;
+  return {connected:n.isConnected,active:n.matches(':active'),hitTarget:hit===n};
+ },point)).toEqual({connected:true,active:true,hitTarget:true});
+ await page.mouse.up();pressed=false;
+ expect(await node!.evaluate(n=>n.isConnected)).toBe(true);await expect(page.getByRole('treeitem',{name:'Image · Stable native Apply · visible',exact:true})).toBeVisible();expect(edits).toHaveLength(1);expect((await f.read('/api/v1/commands/'+JSON.parse(edits[0]).command.commandId+'/original')).text).toBe(edits[0]);
  }finally{release();if(pressed)await page.mouse.up();await page.unrouteAll({behavior:'wait'});await f.server.close();}
 });
 
@@ -117,14 +141,31 @@ test('real snapshot gap recovery publishes the complete current document after o
 });
 
 test('new-port restart discovers owned pending commands with exact original bytes before same-ID receipt recovery',async({page,context})=>{
- const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>();let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;
+ const f=await setup(page,context),holds:any[]=[],originals=new Map<string,string>(),failures:unknown[]=[];let restarted:Awaited<ReturnType<typeof serverProcess>>|undefined;
  try{
  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});const rows=db.prepare('SELECT json FROM assets').all() as {json:string}[];db.close();const original=rows.map(x=>JSON.parse(x.json)).find(x=>x.qualification==='pending-decoder');expect(original).toBeTruthy();
  for(let i=0;i<2;i++){const stagingId=randomUUID();expect((await call(f.server.origin,'/api/v1/assets/staging',{method:'POST',body:{protocolVersion:1,stagingId,purpose:'caption',expectedBytes:'1',sha256:'sha256:'+createHash('sha256').update('x').digest('hex'),mediaType:'text/plain'},headers:f.headers()})).status).toBe(201);const h=exchange(f.server.origin,'/api/v1/assets/staging/'+stagingId,{method:'PUT',defer:true,headers:{...f.headers(),'Content-Type':'application/octet-stream','Content-Length':'1','Upload-Offset':'0'}});h.response.catch(()=>{});h.request.flushHeaders();holds.push(h);}
  await page.waitForTimeout(30);
  for(let i=0;i<40;i++){const c=command(f.last.command.expectedEntityVersions,{clientId:f.last.command.clientId,documentId:null,expectedDocumentRevision:null,body:{type:'PrepareRaster',assetId:original.id}}),wire=JSON.stringify(c,null,2);originals.set(c.command.commandId,wire);expect((await call(f.server.origin,'/api/v1/commands',{method:'POST',raw:Buffer.from(wire),headers:f.headers()})).status).toBe(202);}
- const old=f.server.origin;await f.server.kill();holds.forEach(h=>h.request.destroy());restarted=await serverProcess(f.root);expect(restarted.origin).not.toBe(old);const reads:Promise<void>[]=[];page.on('response',r=>{const match=new URL(r.url()).pathname.match(/commands\/([^/]+)\/original$/);if(match&&originals.has(match[1]))reads.push(r.text().then(text=>{expect(text).toBe(originals.get(match[1]));}));});await page.goto(await restarted.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Check and retry original',exact:true}).first()).toBeVisible();expect(reads.length).toBeGreaterThan(0);await Promise.all(reads);await page.getByRole('button',{name:'Check and retry original',exact:true}).first().click();await expect(page.getByText('PrepareRaster accepted and saved locally.',{exact:true})).toBeVisible();expect(Object.values(await restarted.effects()).every(x=>x===0)).toBe(true);
- }finally{holds.forEach(h=>h.request.destroy());await f.server.close();await restarted?.close();}
+ const old=f.server.origin;await f.server.kill();holds.forEach(h=>h.request.destroy());restarted=await serverProcess(f.root);expect(restarted.origin).not.toBe(old);
+ const reads:Promise<void>[]=[],readIds=new Set<string>();page.on('response',r=>{const match=new URL(r.url()).pathname.match(/commands\/([^/]+)\/original$/);if(match&&originals.has(match[1])){readIds.add(match[1]);const read=r.text().then(text=>{expect(text).toBe(originals.get(match[1]));});void read.catch(()=>{});reads.push(read);}});
+ await page.goto(await restarted.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();await expect.poll(()=>readIds.size).toBe(40);await Promise.all(reads);expect([...readIds].sort()).toEqual([...originals.keys()].sort());
+ const pending=page.getByRole('group',{name:'Pending operations',exact:true}),retry=pending.getByRole('button',{name:'Check and retry original',exact:true}),first=pending.getByRole('button',{name:'First pending page',exact:true}),previous=pending.getByRole('button',{name:'Previous pending page',exact:true}),next=pending.getByRole('button',{name:'Next pending page',exact:true});
+ const pageRows=async(count:number)=>{await expect(retry).toHaveCount(count);await expect(pending.getByRole('status')).toHaveText(count+' pending operations on this page. Original requests remain saved locally.');await expect(page.getByRole('region',{name:'Operation status',exact:true})).toHaveAttribute('aria-busy','false');};
+ await pageRows(32);await expect(first).toBeDisabled();await expect(previous).toBeDisabled();await expect(next).toBeEnabled();
+ await next.click();await pageRows(8);await expect(first).toBeEnabled();await expect(previous).toBeEnabled();await expect(next).toBeDisabled();
+ await previous.click();await pageRows(32);await expect(first).toBeDisabled();await expect(previous).toBeDisabled();
+ await next.click();await pageRows(8);await first.click();await pageRows(32);await next.click();await pageRows(8);
+ const retryId=[...originals.keys()].sort()[32],retryWires:string[]=[];page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')retryWires.push(r.postData()!);});
+ await retry.first().click();await expect(page.getByText('PrepareRaster accepted and saved locally.',{exact:true})).toBeVisible();expect(retryWires).toEqual([originals.get(retryId)]);expect(JSON.parse(retryWires[0]).command.commandId).toBe(retryId);await pageRows(7);await expect(next).toBeDisabled();await first.click();await pageRows(32);await next.click();await pageRows(7);expect(Object.values(await restarted.effects()).every(x=>x===0)).toBe(true);
+ }catch(error){failures.push(error);}finally{
+  for(const hold of holds)try{hold.request.destroy();}catch(error){failures.push(error);}
+  // kill() already owns the original process's one shutdown path. Attempt
+  // every still-open owner even when another owner's cleanup has failed.
+  for(const server of [f.server,restarted])try{if(server&&!server.shutdown)await server.close();}catch(error){failures.push(error);}
+ }
+ if(failures.length===1)throw failures[0];
+ if(failures.length)throw new AggregateError(failures,'Restart recovery and owned cleanup failed');
 });
 
 test('actual SQLite FULL pauses a browser command and exact original delivery succeeds after capacity returns',async({page})=>{
@@ -134,7 +175,7 @@ test('actual SQLite FULL pauses a browser command and exact original delivery su
  // Test-only disposable database fault: force an actual SQLite allocation above
  // the writer connection's 512-page limit during its real command transaction.
  const db=new DatabaseSync(join(root,'metadata.sqlite'));db.exec('CREATE TABLE browser_fault_fill(bytes BLOB); CREATE TRIGGER browser_fault_full BEFORE INSERT ON commands BEGIN INSERT INTO browser_fault_fill VALUES(zeroblob(8388608)); END;');db.close();
- page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')wires.push(r.postData()!);});await click(page,'New');await click(page,'Create');await expect(page.getByText(/Storage paused/)).toBeVisible();await expect(page.getByText('No document open',{exact:true})).toBeVisible();const read=new DatabaseSync(join(root,'metadata.sqlite'));expect(read.prepare('SELECT count(*) n FROM commands').get()!.n).toBe(0);expect(read.prepare('SELECT count(*) n FROM documents').get()!.n).toBe(0);read.exec('DROP TRIGGER browser_fault_full; DROP TABLE browser_fault_fill;');read.close();
+ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/v1/commands'&&r.method()==='POST')wires.push(r.postData()!);});await click(page,'New');await click(page,'Create');await expect(page.getByRole('dialog',{name:'New document',exact:true})).toBeVisible();await expect(page.locator('en-dialog#editor-dialog').getByRole('region',{name:'New document needs attention',exact:true})).toContainText(/Storage paused/);await expect(page.getByText('No document open',{exact:true})).toBeVisible();const read=new DatabaseSync(join(root,'metadata.sqlite'));expect(read.prepare('SELECT count(*) n FROM commands').get()!.n).toBe(0);expect(read.prepare('SELECT count(*) n FROM documents').get()!.n).toBe(0);read.exec('DROP TRIGGER browser_fault_full; DROP TABLE browser_fault_fill;');read.close();
  await click(page,'Cancel');
  for(const viewport of [{width:320,height:700},{width:720,height:500}]){
   await page.setViewportSize(viewport);const status=page.getByRole('region',{name:'Operation status',exact:true}),retry=page.getByRole('button',{name:'Check and retry original',exact:true});await status.focus();await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);await page.keyboard.press('Home');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBe(0);await page.keyboard.press('End');await expect.poll(()=>status.evaluate(n=>n.scrollTop)).toBeGreaterThan(0);
@@ -159,15 +200,24 @@ test('actual SQLite FULL pauses a browser command and exact original delivery su
  });expect(guards).toEqual({results:Array.from({length:8},()=>({prevented:false,unchanged:true})),vetoPreserved:true,accepted:true,propagated:true});
  await page.keyboard.press('Shift+Tab');expect(await status.evaluate(n=>n.contains(document.activeElement))).toBe(false);
  await status.focus();await page.keyboard.press('End');for(let n=0;n<5&&!await retry.evaluate(n=>(n.getRootNode() as Document|ShadowRoot).activeElement===n);n++)await page.keyboard.press('Tab');await expect(retry).toBeFocused();await expect(retry).toBeInViewport({ratio:1});
- await page.keyboard.press('Enter');await expect(page.getByText('NewDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
+ await page.keyboard.press('Enter');await expect(page.getByText('CreateDocument accepted and saved locally.',{exact:true})).toBeVisible();expect(wires.length).toBe(2);expect(wires[1]).toBe(wires[0]);expect(Object.values(await server.effects()).every(x=>x===0)).toBe(true);
  }finally{await server.close();}
 });
 
 test('late canvas bytes from another document cannot replace the reopened current raster',async({page,context})=>{
  const f=await setup(page,context);let release=()=>{};try{
- const first=await page.locator('canvas').getAttribute('data-asset');await click(page,'New');await page.getByRole('spinbutton',{name:'Width (px)',exact:true}).fill('2');await page.getByRole('spinbutton',{name:'Height (px)',exact:true}).fill('2');await click(page,'Create');await expect(page.locator('.document-name')).toContainText('2 × 2');await click(page,'Import image');await page.locator('en-file-upload[label="Image file"] input[type=file]').setInputFiles('tests/raster/fixtures/white.png');await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.locator('canvas')).not.toHaveAttribute('data-asset',first!);const second=await page.locator('canvas').getAttribute('data-asset');
+ const first=await page.locator('canvas').getAttribute('data-asset');await click(page,'New');await page.getByRole('spinbutton',{name:'Width (px)',exact:true}).fill('2');await page.getByRole('spinbutton',{name:'Height (px)',exact:true}).fill('2');await click(page,'Create');await expect(page.locator('.document-name')).toContainText('2 × 2');await click(page,'Import image');await expect(page.getByRole('dialog',{name:'Import image',exact:true})).toBeVisible();await page.locator('en-dialog#editor-dialog').locator('en-file-upload input[type=file]').setInputFiles('tests/raster/fixtures/white.png');await confirmImageImports(page,{names:['white.png'],destination:'current'});await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await expect(page.locator('canvas')).not.toHaveAttribute('data-asset',first!);const second=await page.locator('canvas').getAttribute('data-asset');
  const open=async(size:string)=>{await click(page,'Open');await page.getByRole('button',{name:new RegExp(' · '+size+' · revision')}).click();};await open('3 × 2');await expect(page.locator('canvas')).toHaveAttribute('data-asset',first!);
- let entered=()=>{};const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);await page.route('**/api/v1/assets/'+second+'/content',async route=>{const response=await route.fetch();entered();await gate;await route.fulfill({response});});await open('2 × 2');await hit;await open('3 × 2');await expect(page.locator('.document-name')).toContainText('3 × 2');release();await click(page,'100%');await expect(page.locator('canvas')).toHaveAttribute('data-asset',first!);await page.waitForTimeout(50);await click(page,'100%');await expect(page.locator('canvas')).toHaveAttribute('data-asset',first!);
+ // Bind the held canvas tile to the retained second raster, not its encoded original.
+ const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});let secondAsset:any;
+ try{const row=db.prepare('SELECT json FROM assets WHERE id=?').get(second!) as {json:string}|undefined;expect(row).toBeDefined();secondAsset=JSON.parse(row!.json);}finally{db.close();}
+ expect(secondAsset.id).toBe(second);expect(secondAsset.raster.width).toBe(2);expect(secondAsset.raster.height).toBe(2);expect(secondAsset.raster.pixelIdentity).toMatch(/^sha256:[a-f0-9]{64}$/);
+ const tileURL=f.server.origin+'/api/v1/assets/'+encodeURIComponent(second!)+'/display-tile?'+new URLSearchParams({identity:secondAsset.raster.pixelIdentity,basis:'pixels',lod:'0',x:'0',y:'0'});
+ let entered=()=>{};const hit=new Promise<void>(r=>entered=r),gate=new Promise<void>(r=>release=r);await page.route(url=>url.href===tileURL,async route=>{
+  const request=route.request();expect(request.method()).toBe('GET');expect(request.url()).toBe(tileURL);expect(request.frame()).toBe(page.mainFrame());
+  // Node-side delivery fault uses the original browser headers and paired Origin.
+  const response=await route.fetch({headers:{...request.headers(),Origin:f.server.origin}});expect(response.status()).toBe(200);expect(response.headers()['x-display-source']).toBe(secondAsset.raster.pixelIdentity);expect(response.headers()['x-display-basis']).toBe('pixels');expect(response.headers()['x-display-width']).toBe('2');expect(response.headers()['x-display-height']).toBe('2');expect(response.headers()['x-display-lod']).toBe('0');expect(response.headers()['content-type']).toBe('application/x-ideogram-rgba8');expect(response.headers()['content-length']).toBe('16');entered();await gate;await route.fulfill({response});
+ });await open('2 × 2');await hit;await open('3 × 2');await expect(page.locator('.document-name')).toContainText('3 × 2');release();await click(page,'100%');await expect(page.locator('canvas')).toHaveAttribute('data-asset',first!);await page.waitForTimeout(50);await click(page,'100%');await expect(page.locator('canvas')).toHaveAttribute('data-asset',first!);
  }finally{release();await f.server.close();}
 });
 

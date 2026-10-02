@@ -3,7 +3,7 @@ import type { Writer } from './storage/writer.js';
 import type { Session } from './sessions.js';
 import { ProtocolError } from './errors.js';
 import { isId } from './storage/canonical.js';
-import { sendJSON } from './protocol.js';
+import { observeProtocolStream, sendJSON, writeProtocolBytes } from './protocol.js';
 import type { AssetRoute } from './assets.js';
 export class PortableRoutes {
   private streams=0;
@@ -27,6 +27,7 @@ export class PortableRoutes {
   }
   private async content(req:IncomingMessage,res:ServerResponse,id:string,authenticate:()=>Session,assertRoot:()=>Promise<void>){
     if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
+    const releaseResponse=observeProtocolStream(res,'content-stream');
     let handle:string|undefined;
     try {
       authenticate();const verified=await this.writer.bundleVerify(id,this.auth(authenticate()));handle=verified.handle;authenticate();const ref=verified.bundle.blob;const total=BigInt(ref.byteLength);let start=0n;let end=total-1n;let status=200;const etag='"'+ref.hash+'"';
@@ -40,7 +41,7 @@ export class PortableRoutes {
       }
       res.writeHead(status,{'Content-Type':'application/x-ideogram-project','Content-Disposition':'attachment; filename="project.ideogram-project"','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",'X-Content-Type-Options':'nosniff','Cache-Control':'no-store',ETag:etag,'Accept-Ranges':'bytes','Content-Length':String(end-start+1n),...(status===206?{'Content-Range':`bytes ${start}-${end}/${total}`}:{})});
       if(req.method==='HEAD'){res.end();return;}
-      for(let at=start;at<=end;){await assertRoot();authenticate();const n=Number(end-at+1n>32768n?32768n:end-at+1n);const bytes=await this.writer.bundleContent(handle,String(at),n,this.auth(authenticate()));authenticate();if(res.destroyed)return;await new Promise<void>((resolve,reject)=>res.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}res.end();
-    }finally{if(handle)await this.writer.bundleRelease(handle);this.streams--;}
+      for(let at=start;at<=end;){await assertRoot();authenticate();const n=Number(end-at+1n>32768n?32768n:end-at+1n);const bytes=await this.writer.bundleContent(handle,String(at),n,this.auth(authenticate()));try{authenticate();if(res.destroyed)return;await writeProtocolBytes(res,bytes);}finally{this.writer.releaseResourceBytes(bytes);}at+=BigInt(n);}res.end();
+    }catch(error){releaseResponse();throw error;}finally{if(handle)await this.writer.bundleRelease(handle);this.streams--;}
   }
 }

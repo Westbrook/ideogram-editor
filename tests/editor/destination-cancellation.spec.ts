@@ -1,7 +1,7 @@
 import {specReceipt} from './receipt-path.js';
 import {test,expect} from '@playwright/test';
 import {createServer,type ServerResponse} from 'node:http';
-import {stripTypeScriptTypes} from 'node:module';
+import {transformSync} from 'rolldown/utils';
 import {createHash} from 'node:crypto';
 import {readFile,mkdtemp,realpath,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -13,7 +13,8 @@ import {recordDOMErrors} from './error-monitor.js';
 // exercised here. Picker selection is controlled; this is not OS-dialog proof.
 test('destination cancellation stops writes and retains the prior committed file',async({playwright,browserName})=>{
  const bytes=Buffer.from([0,255,10,13,127,128]),hash='sha256:'+createHash('sha256').update(bytes).digest('hex');
- const modules=new Map(await Promise.all(['state/destination','protocol/sha256','observability/allocations'].map(async name=>['/src/'+name+'.js',stripTypeScriptTypes(await readFile('src/'+name+'.ts','utf8'))] as const)));
+ const sources=await Promise.all(['state/destination','protocol/sha256','observability/allocations','observability/diagnostic-memory','observability/composition-observations'].map(async name=>({name,source:await readFile('src/'+name+'.ts','utf8')})));
+ const modules=new Map(sources.map(({name,source})=>{const transformed=transformSync(name+'.ts',source);if(transformed.errors.length)throw Error(transformed.errors.map(error=>error.message).join('; '));return ['/src/'+name+'.js',transformed.code];}));
  let pendingFetchStarted=false;const pendingFetchObservers:ServerResponse[]=[];
  const server=createServer((request,response)=>{
   const path=request.url??'/',source=modules.get(path);

@@ -8,6 +8,7 @@ import {setup,terminal,doc,edit,copy,preview,workspace,upload,binary} from '../p
 import {importRaster,operate} from '../raster/helpers.mjs';
 import {reopen} from '../text-state/prior-writer.mjs';
 import {cookieFrom} from '../protocol/helpers.mjs';
+import {unpack,records} from '../portable/archive-fixture.mjs';
 const state=async(f,id='document_1')=>(await f.read('/api/v1/documents/'+id+'/image')).json;
 const rgba=async(f,id)=>[...await sharp((await binary(f,'/api/v1/assets/'+id+'/content')).bytes).ensureAlpha().raw().toBuffer()];
 const objectPath=(root,ref)=>join(root,'objects','sha256',ref.hash.slice(7,9),ref.hash.slice(7));
@@ -19,6 +20,7 @@ async function seed(t,legacy=false,inverted=false){const f=await setup(t);await 
  const manifest=(await f.read('/api/v1/assets/'+mask.id+'/raster')).json;return {f,image,mask,manifest};}
 for(const legacy of [false,true])for(const inverted of [false,true])test(`retained-grid-v1 literal crop/resize/expansion, history and copies ${legacy?'legacy':'R16'} inverted=${inverted}`,async t=>{
  const {f,image,mask,manifest}=await seed(t,legacy,inverted),before=await doc(f),originals=new Map();
+ assert.equal(before.metadata,undefined,'This legacy NewDocument fixture does not require PF10 creation metadata.');
  for(const ref of [image.input.blob,mask.blob,mask.raster.manifest,...(legacy?[]:[manifest.plan.hard,manifest.plan.effective])])originals.set(ref.hash,await readFile(objectPath(f.root,ref)));
  // Literal expected contribution cells, including the legacy half-coverage pixel.
  const cells=inverted?(legacy?[Z,Z,[0,255,0,127],B,Z,K]:[Z,Z,G,B,Z,K]):(legacy?[Z,R,[0,255,0,128],Z,W,Z]:[Z,R,Z,Z,W,Z]);
@@ -30,7 +32,14 @@ for(const legacy of [false,true])for(const inverted of [false,true])test(`retain
  const shift=await edit(f,{type:'ResizeCanvas',width:4,height:3,offsetX:-1,offsetY:-1,draft:null});assert.deepEqual(await rgba(f,shift.document.image.compositeAssetId),[cells[1],cells[2],Z,Z,cells[4],cells[5],Z,Z,Z,Z,Z,Z].flat());
  await edit(f,{type:'ResizeCanvas',width:1,height:1,offsetX:0,offsetY:0,draft:null});const restored=await edit(f,{type:'ResizeCanvas',width:3,height:2,offsetX:1,offsetY:0,draft:null});assert.deepEqual(await rgba(f,restored.document.image.compositeAssetId),cells.flat());
  for(const [hash,bytes]of originals)assert.deepEqual(await readFile(objectPath(f.root,{hash})),bytes);
- let id='document_1';for(let n=0;n<2;n++){const saved=await copy(f,id),review=(await preview(f,saved.bytes)).review;assert.equal(review.formatVersion,n===0?7:9);assert.equal(review.editable,true,JSON.stringify(review));await workspace(f,{type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});id=review.documentId;const next=await state(f,id);assert.equal(next.layers[0].mask.offsetX,0);assert.equal(next.layers[0].mask.width,3);assert.deepEqual(await rgba(f,(await doc(f,id)).image.compositeAssetId),cells.flat());}
+ let id='document_1';for(let n=0;n<2;n++){const saved=await copy(f,id),entries=await unpack(f.root,saved.bytes),archive=JSON.parse(entries.get('manifest.json')),expectedFormat=n===0?7:9;
+  // The first copy has the legacy document shape. Reopening remaps raster
+  // identities and preserves original manifests, so the next copy requires PF9.
+  assert.equal(archive.formatVersion,expectedFormat);assert.equal(archive.documentSchema,expectedFormat);
+  const assets=records(entries).values.filter(r=>r.kind==='entity'&&r.entityType==='asset').map(r=>JSON.parse(entries.get('objects/'+r.payloadRef.hash.slice(7)))),retained=assets.filter(a=>a.retainedMetadata);
+  assert.equal(retained.length>0,n===1,'Only the reopened namespace requires retained raster metadata.');
+  for(const asset of retained){const prior=JSON.parse(entries.get('objects/'+asset.retainedMetadata.hash.slice(7)));assert.equal(prior.kind,'retained-raster-metadata-1');assert(entries.has('objects/'+prior.manifest.hash.slice(7)));}
+  const review=(await preview(f,saved.bytes)).review;assert.equal(review.formatVersion,expectedFormat);assert.equal(review.documentSchema,expectedFormat);assert.equal(review.editable,true,JSON.stringify(review));await workspace(f,{type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});id=review.documentId;const next=await state(f,id);assert.equal(next.layers[0].mask.offsetX,0);assert.equal(next.layers[0].mask.width,3);assert.deepEqual(await rgba(f,(await doc(f,id)).image.compositeAssetId),cells.flat());}
  const cookie=cookieFrom(f.paired);await f.server.close();const g=await reopen(t,f.root,cookie);assert.deepEqual(await rgba(g,(await doc(g,id)).image.compositeAssetId),cells.flat());
  t.diagnostic(JSON.stringify({oracle:'retained-grid-v1-literal-cells',legacy,inverted,originalMask:mask.id,retained: [...originals.keys()],copyNamespaces:2}));
 });
@@ -72,7 +81,7 @@ for(const target of ['caption','hard','mask-record','baseline-hard'])test('mask 
  await f.server.close();const gate=new SharedArrayBuffer(4);let hit;const barrier=new Promise(r=>hit=r),w=await openWriter({root:f.root},{phase:'history-after-proofs',gate,onBarrier:hit});t.after(()=>w.close());const auth={clientId:f.paired.json.clientId,sessionHash:'c'.repeat(64),now:Date.now(),expires:Date.now()+1800000};
  const c=f.command({expectedDocumentRevision:before.revision,body:{type:'SetLayerProperties',layerId:'picture',layerVersion:s.layers[0].version,properties:{mask:{assetId:mask.id,mapping:'document-r16-v1',inverted:false}},draft:saved.fence}});await w.historyCommand(encode(c),auth);await barrier;
  if(target==='mask-record'){const db=new DatabaseSync(join(f.root,'metadata.sqlite'));db.prepare('UPDATE assets SET json=? WHERE id=?').run(JSON.stringify({...mask,version:'2'}),mask.id);db.close();}else{const ref=target==='caption'?saved.caption.blob:target==='baseline-hard'?seeded.manifest.plan.hard:m.plan.hard,path=objectPath(f.root,ref),bytes=await readFile(path);await unlink(path);await writeFile(path,bytes,{mode:0o600});}
- Atomics.store(new Int32Array(gate),0,1);Atomics.notify(new Int32Array(gate),0);let result;for(let i=0;i<1500;i++){result=await w.commandState(c.command.commandId);if(result.record)break;await new Promise(r=>setTimeout(r,5));}assert.equal(result.record?.receipt.status,'rejected',JSON.stringify(await w.diagnostics()));assert.deepEqual(await w.document('document_1'),before);assert.deepEqual(await w.uiRead('retained-draft',auth),ui);
+ Atomics.store(new Int32Array(gate),0,1);Atomics.notify(new Int32Array(gate),0);let result;for(let i=0;i<1500;i++){result=await w.commandState(c.command.commandId);if(result.record)break;await new Promise(r=>setTimeout(r,5));}{const diagnosticRead=await w.readDiagnostics();try{assert.equal(result.record?.receipt.status,'rejected',JSON.stringify(diagnosticRead.value));}finally{diagnosticRead.release();}}assert.deepEqual(await w.document('document_1'),before);assert.deepEqual(await w.uiRead('retained-draft',auth),ui);
 });
 test('imported PNG draft applies after namespace binding and missing baseline save leaves prior raw draft',async t=>{
  const {f,image,mask,manifest}=await seed(t),s=await state(f),value={schema:'local-mask-1',layerVersion:s.layers[0].version,radius:'0',plan:{width:3,height:2,feather:0,operations:[{kind:'import',assetId:image.asset.id,x:0,y:0,width:3,height:2,inverted:false}]}},saved=await save(f,value);assert.equal(saved.result.json.status,'accepted');

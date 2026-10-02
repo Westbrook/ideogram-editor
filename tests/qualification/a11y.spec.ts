@@ -1,3 +1,4 @@
+import {confirmImageImports} from '../editor/image-import-flow.js';
 import {expect,type Locator,type Page} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -71,13 +72,13 @@ test('focused shell keyboard, reflow, reduced-motion and forced-colors evidence'
   await step('keyboard-skip-landmark',async()=>{
     const skip=page.getByRole('link',{name:'Go to Canvas',exact:true});
     await skip.focus();await expect(skip).toBeVisible();await page.keyboard.press('Enter');
-    await expect(page.getByRole('region',{name:'Canvas',exact:true})).toBeFocused();
+    await expect(page.getByRole('region',{name:'Canvas · image import drop target',exact:true})).toBeFocused();
     expect(new URL(page.url()).hash).toBe('#canvas');
   });
   await step('keyboard-roving-tools',async()=>{
     await pan.focus();await page.keyboard.press('ArrowDown');await expect(zoom).toBeFocused();
     await page.keyboard.press('Enter');await expect(zoom).toHaveAttribute('aria-pressed','true');
-    await page.getByRole('region',{name:'Canvas',exact:true}).focus();await page.keyboard.press('h');
+    await page.getByRole('region',{name:'Canvas · image import drop target',exact:true}).focus();await page.keyboard.press('h');
     await expect(pan).toHaveAttribute('aria-pressed','true');
   });
   await step('keyboard-native-prompt',async()=>{
@@ -103,7 +104,7 @@ test('focused shell keyboard, reflow, reduced-motion and forced-colors evidence'
     await help.focus();await page.keyboard.press('Enter');
     const dialog=page.getByRole('dialog',{name:'Editor help',exact:true});
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('Native fields keep their own undo and clipboard shortcuts.');
+    await expect(page.locator('#help-drawer')).toContainText('Native fields keep their own undo and clipboard shortcuts.');
     await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(help).toBeFocused();
   });
   await step('desktop-evidence',()=>capture('desktop-keyboard'));
@@ -154,7 +155,7 @@ test('focused shell keyboard, reflow, reduced-motion and forced-colors evidence'
     await page.emulateMedia({forcedColors:'active'});
     expect(await page.evaluate(()=>matchMedia('(forced-colors: active)').matches),'Browser must implement forced-colors emulation for this gate').toBe(true);
     await pan.focus();await page.keyboard.press('Enter');await expect(pan).toHaveAttribute('aria-pressed','true');
-    await page.getByRole('region',{name:'Canvas',exact:true}).focus();
+    await page.getByRole('region',{name:'Canvas · image import drop target',exact:true}).focus();
     const selected=await pan.evaluate(node=>{const s=getComputedStyle(node);return {outlineStyle:s.outlineStyle,outlineWidth:s.outlineWidth,outlineColor:s.outlineColor,background:s.backgroundColor,color:s.color};});
     expect(selected.outlineStyle).toBe('solid');expect(parseFloat(selected.outlineWidth)).toBeGreaterThanOrEqual(2);
     await page.getByRole('combobox',{name:'Appearance',exact:true}).focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');
@@ -179,7 +180,7 @@ test('AX02 numeric mask tools and RTL mapping complete without canvas dragging',
     await createDocument(page);
     await action(page,'Import image');
     await page.getByLabel('Image file',{exact:true}).setInputFiles('tests/raster/fixtures/hidden-alpha.png');
-    await action(page,'Apply reviewed result');
+    await confirmImageImports(page,{names:['hidden-alpha.png'],destination:'current'});
     await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();
     await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');
     await action(page,'Capture all visible layers');
@@ -339,7 +340,7 @@ test('AX08 raw retained content has complete keyboard paging and stable reading 
 });
 
 test('AX04 single-key preference persists while explicit keyboard commands remain usable',async({smoke:{page,step,record}})=>{
-  const help=page.getByRole('button',{name:'Help',exact:true}),canvas=page.getByRole('region',{name:'Canvas',exact:true});
+  const help=page.getByRole('button',{name:'Help',exact:true}),canvas=page.getByRole('region',{name:'Canvas · image import drop target',exact:true});
   const zoom=page.getByRole('button',{name:'Zoom',exact:true}),pan=page.getByRole('button',{name:'Pan',exact:true});
   await step('single-key-disable',async()=>{
     await activate(help);const setting=page.getByRole('switch',{name:'Enable single-key shortcuts',exact:true});

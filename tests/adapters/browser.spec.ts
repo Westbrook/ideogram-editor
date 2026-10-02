@@ -25,7 +25,13 @@ test('local adapter files are reviewed, versioned, searched and explicitly delet
  await file(library,'Adapter weights','local-original.safetensors',original);
  await file(library,'Optional adapter config','config.json',config);
  await file(library,'Optional adapter provenance','provenance.json',provenance);
- await field(library,'Adapter name','Browser local adapter');
+ const importSummary=library.locator('#adapter-validation-summary'),nameInput=library.getByRole('textbox',{name:'Adapter name',exact:true}),nameError='Adapter name must contain 1–120 characters, including a non-space character.';
+ await field(library,'Adapter name','');await click(library,'Review local adapter import');
+ await expect(nameInput).toHaveValue('');await expect(nameInput).toHaveAttribute('aria-invalid','true');await expect(library.locator('#adapter-name').getByText(nameError,{exact:true})).toBeVisible();await expect(importSummary).toBeFocused();
+ await expect(library.locator('en-card[aria-label="Adapter registration review"]')).toHaveCount(0);await expect(library.getByText(/^local-original\.safetensors · \d+ bytes · local file$/)).toBeVisible();
+ expect(commands.filter(command=>['FinalizeStaging','RegisterAdapterVersion'].includes(command.body.type)),'Invalid import must not transfer or register local originals').toHaveLength(0);
+ const nameLink=importSummary.getByRole('link',{name:nameError,exact:true});await nameLink.focus();await nameLink.press('Enter');await expect(nameInput).toBeFocused();
+ await field(library,'Adapter name','Browser local adapter');await expect(nameInput).not.toHaveAttribute('aria-invalid','true');await expect(importSummary).toHaveCount(0);
  await field(library,'Import provenance (text only)','Browser fixture. https://example.invalid/reference remains inert text.');
  await expect(library.getByRole('textbox',{name:'Declared model family',exact:true})).toHaveValue('ideogram-v4');
  await expect(library.getByRole('textbox',{name:'Declared naming format',exact:true})).toHaveValue('fal');
@@ -52,7 +58,10 @@ test('local adapter files are reviewed, versioned, searched and explicitly delet
  expect(second).toMatchObject({adapterId:first.adapterId,version:'2',weights:{hash:hash(replacement)},config:null,locallyEligible:false,runtimeVerified:false});
  expect(second.versionId).not.toBe(first.versionId);
  expect(await read<AdapterLibraryEntry>('/api/v1/adapters/'+first.versionId),'Version replacement must preserve the exact original metadata').toEqual(first);
- await field(library,'Search adapter names','does-not-match');await click(library,'Search local library');
+ const searchInput=library.getByRole('textbox',{name:'Search adapter names',exact:true}),searchError='Search adapter names must contain at most 120 characters. Your complete input is retained.';
+ await field(library,'Search adapter names','x'.repeat(121));await click(library,'Search local library');await expect(searchInput).toHaveValue('x'.repeat(121));await expect(searchInput).toHaveAttribute('aria-invalid','true');await expect(library.locator('#adapter-search').getByText(searchError,{exact:true})).toBeVisible();await expect(importSummary).toBeFocused();
+ const searchLink=importSummary.getByRole('link',{name:searchError,exact:true});await searchLink.focus();await searchLink.press('Enter');await expect(searchInput).toBeFocused();
+ await field(library,'Search adapter names','does-not-match');await expect(searchInput).not.toHaveAttribute('aria-invalid','true');await expect(importSummary).toHaveCount(0);await click(library,'Search local library');
  await expect(library.getByText('No matching stored adapters. Import a V4 adapter or adjust the filters.',{exact:true})).toBeVisible();await expect(cards).toHaveCount(0);
  await field(library,'Search adapter names','Browser local');await library.getByRole('combobox',{name:'Filter by validation status',exact:true}).selectOption('structurally-valid');await click(library,'Search local library');
  await expect(cards).toHaveCount(2);

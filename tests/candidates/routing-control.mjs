@@ -2,8 +2,6 @@ import {isMainThread} from 'node:worker_threads';
 import {fileURLToPath} from 'node:url';
 import {readFile,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
-import {fixture,prepare,enqueue} from '../queue/helpers.mjs';
-import {openWriter} from '../../dist/local/server/storage/writer.js';
 import {resolveInactive} from '../../dist/local/src/request/core.js';
 import {fixtureProfile} from '../provider/emulator.mjs';
 import {setup as observerSetup} from './observer-fixture.mjs';
@@ -14,6 +12,9 @@ const errorRecord=e=>({name:e.name,message:e.message,stack:e.stack,code:e.code})
 async function run(){
  const mode=process.argv[2],output=process.argv[3],record={mode,commands:[],jobs:[],declaredOriginalProfiles:['ideogram/v4','ideogram/v4/fast','ideogram/v4/instant'].map(endpoint=>fixtureProfile({endpoint})),writerClosed:false,errors:[]};let writer;
  try{
+  // This module is also a worker setup entry. Only its main-process runner may
+  // import the writer/central ledger; worker diagnostics are already adopted.
+  const [{fixture,prepare,enqueue},{openWriter}]=await Promise.all([import('../queue/helpers.mjs'),import('../../dist/local/server/storage/writer.js')]);
   const f=await fixture({name:'routing-'+mode,after:()=>{}},{width:512,height:512});record.root=f.root;process.send?.({type:'root',root:f.root});await f.close();
   writer=await openWriter({root:f.root},{setupModule:mode==='mismatch'?import.meta.url:new URL('./observer-fixture.mjs',import.meta.url).href});
   for(const [index,operation]of ['generate','fast','instant'].entries()){
@@ -32,9 +33,9 @@ async function run(){
  }catch(e){record.errors.push(errorRecord(e));}
  finally{
   if(writer)try{await writer.close();record.writerClosed=true;}catch(e){record.closeError=errorRecord(e);}
-  if(record.root)record.fixture=JSON.parse(await readFile(join(record.root,'candidate-fixture.json'),'utf8'));
+  if(record.root)try{record.fixture=JSON.parse(await readFile(join(record.root,'candidate-fixture.json'),'utf8'));}catch(e){record.errors.push(errorRecord(e));}
   await writeFile(output,JSON.stringify(record,null,2),{mode:0o600});
-  process.exitCode=record.writerClosed&&record.jobs.length===3&&record.jobs.every(j=>j.candidate?.items[0]?.state==='prepared')?0:1;
+  process.exitCode=record.errors.length===0&&record.writerClosed&&record.jobs.length===3&&record.jobs.every(j=>j.candidate?.items[0]?.state==='prepared')?0:1;
   process.disconnect?.();
  }
 }

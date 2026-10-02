@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {setup,terminal,upload,workspace,edit,doc,copy,preview,binary} from '../portable/helpers.mjs';
+import {setup,terminal,upload,workspace,edit,doc,copy,preview,binary,digest} from '../portable/helpers.mjs';
+import {reopen} from '../text-state/prior-writer.mjs';
+import {call,cookieFrom,pair,readHeaders} from '../session/helpers.mjs';
 import {importRaster} from '../raster/helpers.mjs';
 import {emptyComposition,emptyElement,linkField,serialize,detach} from '../../dist/local/src/composition/core.js';
 import {canonical} from '../../dist/local/src/protocol/json.js';
@@ -44,4 +46,84 @@ test('semantic versions cannot be recycled through undo or copies; specialized c
  const reused=structuredClone(detached);reused.id=first;await reject(reused);const d=await doc(f);await edit(f,{type:'Undo',historyHead:d.historyHead});await reject(detached);
  const bundle=await copy(f),r=(await preview(f,bundle.bytes)).review;assert.equal(r.editable,true);await workspace(f,{type:'ImportBundle',reviewId:r.reviewId,reviewHash:r.reviewHash});await reject(reused,'CommitCompositionVersion',{},r.documentId);
  const add=structuredClone((await view(f)).composition);add.id=randomUUID();add.elements[0].desc={mode:'literal',value:'Unrelated change'};add.elements.push(emptyElement('obj','new'));await reject(add,'AddSemanticElement');
+});
+
+test('a saved large Composition draft reopens exactly and retains owner, proof and commit-fence boundaries',async t=>{
+ const f=await setup(t);await terminal(f,f.command({}, {width:3,height:2}));
+ const sessionId='large_semantic',draftId='large_composition',initialDocument=await doc(f);
+ const composition=emptyComposition(3,2,randomUUID()),element=emptyElement('text','lettering');
+ element.text.value='Café / 東京 / e\u0301';composition.elements=[element];
+ for(let index=0;index<40;index++){const retained=emptyElement('obj','retained_'+index);retained.excluded=true;retained.desc.value='x'.repeat(2048);composition.elements.push(retained);}
+ const compositionBytes=canonical(composition);assert(Buffer.byteLength(compositionBytes)>65536&&Buffer.byteLength(compositionBytes)<=1048576);
+ const graphValue={composition,bindings:{},numbers:{width:'3',height:'2'},selected:element.id,rawText:'{unfinished original text}\n'+'x'.repeat(70000)+'\nCafé 東京 e\u0301'};
+ const graphBytes=canonical(graphValue);assert(Buffer.byteLength(graphBytes)>65536&&Buffer.byteLength(graphBytes)<8388608);
+ const graph=await ref(f,graphBytes),envelope={schemaVersion:1,kind:'composition-draft-1',graph,raw:[],bindings:{}};
+ assert.equal(graph.hash,digest(Buffer.from(graphBytes)));assert.equal(graph.byteLength,String(Buffer.byteLength(graphBytes)));
+ const stageEnvelope=async(client,value)=>{const staged=await upload(client,Buffer.from(canonical(value)),'caption','text/plain');return (await workspace(client,{type:'FinalizeStaging',stagingId:staged.stagingId,expectedSha256:staged.sha256})).event.payload.asset;};
+ const save=async(client,assetId,generation,revision)=>{
+  const checkpoint=(await client.read('/api/v1/ui/'+sessionId)).json;
+  return client.post('/api/v1/ui/'+sessionId,{protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:checkpoint.uiSeq,body:{type:'SaveDraft',draft:{id:draftId,generation,kind:'composition',documentId:initialDocument.id,targetLayerId:null,expectedDocumentRevision:revision,assetId,composing:false}}});
+ };
+ const draftPath=generation=>'/api/v1/ui/'+sessionId+'/composition?draftId='+draftId+'&generation='+generation;
+ const exactDraft=async(client,generation,expectedBytes,expectedAsset,status)=>{
+  const response=await client.read(draftPath(generation));assert.equal(response.status,200,response.text);
+  assert(Buffer.byteLength(response.text)>65536,'The public draft view must carry the complete large graph');
+  assert.equal(canonical(response.json.graph),expectedBytes);assert.equal(digest(Buffer.from(canonical(response.json.graph))),digest(Buffer.from(expectedBytes)));
+  assert.deepEqual(response.json.bindings,{});assert.equal(response.json.draft.id,draftId);assert.equal(response.json.draft.generation,generation);assert.equal(response.json.draft.assetId,expectedAsset);assert.equal(response.json.draft.status,status);
+  return response.json;
+ };
+ const exactAccepted=async(client,expected)=>{
+  const document=await doc(client),response=await client.read('/api/v1/documents/'+document.id+'/composition?revision='+document.revision);
+  assert.equal(response.status,200,response.text);assert(Buffer.byteLength(response.text)>65536,'The public accepted view must carry the complete large Composition');
+  assert.equal(response.json.revision,document.revision);assert.equal(canonical(response.json.composition),canonical(expected));
+  assert.equal(response.json.compositionRef.value.hash,digest(Buffer.from(canonical(expected))));assert.equal(response.json.compositionRef.value.byteLength,String(Buffer.byteLength(canonical(expected))));
+ };
+ const caption=await stageEnvelope(f,envelope),saved=await save(f,caption.id,'1',initialDocument.revision);
+ assert.equal(saved.status,200,saved.text);assert.equal(saved.json.status,'accepted',saved.text);
+ const first=await exactDraft(f,'1',graphBytes,caption.id,'saved-unapplied');assert.deepEqual(await doc(f),initialDocument);
+ const checkpoint=(await f.read('/api/v1/ui/'+sessionId)).json;
+
+ // A fresh local client may not read another client's retained draft.
+ const other=await pair(f.server);assert.equal(other.status,200);assert.notEqual(other.json.clientId,f.paired.json.clientId);
+ const denied=await call(f.server.origin,draftPath('1'),{headers:readHeaders(cookieFrom(other))});
+ assert.equal(denied.status,410,denied.text);assert.equal(denied.json.error.code,'READ_CONTEXT_EXPIRED');assert.equal(denied.text.includes('x'.repeat(128)),false);
+
+ await f.server.close();const reopened=await reopen(t,f.root,cookieFrom(f.paired));
+ assert.equal(reopened.paired.status,200);assert.equal(reopened.paired.json.clientId,f.paired.json.clientId);
+ assert.deepEqual((await reopened.read('/api/v1/ui/'+sessionId)).json,checkpoint);
+ assert.deepEqual(await exactDraft(reopened,'1',graphBytes,caption.id,'saved-unapplied'),first);
+ assert.deepEqual(await doc(reopened),initialDocument);
+
+ // Valid envelope shapes cannot replace a saved graph with missing or
+ // incorrectly sized content, even when the proposed generation is newer.
+ for(const changedGraph of [{...graph,hash:'sha256:'+'0'.repeat(64)},{...graph,byteLength:String(BigInt(graph.byteLength)+1n)}]){
+  const bad=await stageEnvelope(reopened,{...envelope,graph:changedGraph}),failure=await save(reopened,bad.id,'2',initialDocument.revision);
+  assert.equal(failure.status,503,failure.text);assert.equal(failure.json.error.code,'RECOVERY_UNAVAILABLE');
+  assert.deepEqual((await reopened.read('/api/v1/ui/'+sessionId)).json,checkpoint);
+  await exactDraft(reopened,'1',graphBytes,caption.id,'saved-unapplied');assert.deepEqual(await doc(reopened),initialDocument);
+ }
+ const fence={sessionId,draftId,generation:'1'};
+ const rejectedCommit=async(next,draft,reason,revision)=>{
+  const before=await doc(reopened),ui=(await reopened.read('/api/v1/ui/'+sessionId)).json,value=await ref(reopened,canonical(next));
+  const result=await terminal(reopened,reopened.command({documentId:before.id,expectedDocumentRevision:revision??before.revision,body:{type:'CommitCompositionVersion',composition:{id:next.id,value,bindings:{}},draft}}));
+  assert.equal(result.json.receipt.status,'rejected',result.text);assert.equal(result.json.receipt.code,'STALE_REVISION');assert.equal(result.json.rejectionDetails.kind,'inline');assert.equal(result.json.rejectionDetails.value.issues[0].code,reason);
+  assert.deepEqual(await doc(reopened),before);assert.deepEqual((await reopened.read('/api/v1/ui/'+sessionId)).json,ui);
+  return result;
+ };
+ const mismatch=structuredClone(composition);mismatch.id=randomUUID();mismatch.scene='Not the saved Composition';
+ await rejectedCommit(mismatch,fence,'COMPOSITION_DRAFT_CHANGED');await rejectedCommit(composition,{...fence,generation:'0'},'DRAFT_GENERATION_CHANGED');
+ await exactDraft(reopened,'1',graphBytes,caption.id,'saved-unapplied');
+ const applied=await commit(reopened,composition,{},initialDocument.id,'CommitCompositionVersion',fence);
+ assert.equal(applied.document.revision,String(BigInt(initialDocument.revision)+1n));await exactAccepted(reopened,composition);
+ await exactDraft(reopened,'1',graphBytes,caption.id,'applied');
+
+ const successor=structuredClone(graphValue);successor.composition.id=randomUUID();successor.composition.scene='Explicit successor';successor.rawText+='\nSuccessor bytes';
+ const nextBytes=canonical(successor),nextGraph=await ref(reopened,nextBytes),nextCaption=await stageEnvelope(reopened,{...envelope,graph:nextGraph});
+ const nextSaved=await save(reopened,nextCaption.id,'2',applied.document.revision);assert.equal(nextSaved.status,200,nextSaved.text);assert.equal(nextSaved.json.status,'accepted',nextSaved.text);
+ const staleView=await reopened.read(draftPath('1'));assert.equal(staleView.status,410,staleView.text);assert.equal(staleView.json.error.code,'READ_CONTEXT_EXPIRED');
+ await rejectedCommit(successor.composition,fence,'DRAFT_GENERATION_CHANGED');
+ await rejectedCommit(successor.composition,{...fence,generation:'2'},'REVISION_CHANGED',initialDocument.revision);
+ await exactDraft(reopened,'2',nextBytes,nextCaption.id,'saved-unapplied');
+ await commit(reopened,successor.composition,{},initialDocument.id,'CommitCompositionVersion',{...fence,generation:'2'});
+ await exactAccepted(reopened,successor.composition);await exactDraft(reopened,'2',nextBytes,nextCaption.id,'applied');
 });

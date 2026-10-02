@@ -25,19 +25,22 @@ export type FalAuthorizationManifest = Readonly<{
 }>;
 
 /** Backend memory / explicit writer channel only. Never publish or log this object. */
-export type ProviderRuntimeConfig = Readonly<{ mode: 'disabled' }> | Readonly<{
+export type ExecutableProviderRuntimeConfig = Readonly<{ mode: 'disabled' }> | Readonly<{
   mode: 'fal';
   manifest: FalAuthorizationManifest;
   manifestHash: string;
   key: string;
 }>;
 
+export type V45BlockedRuntimeConfig = Readonly<{mode:'fal-v45-blocked';requestedMode:'disabled'|'fal'}>;
+export type ProviderRuntimeConfig = ExecutableProviderRuntimeConfig | V45BlockedRuntimeConfig;
+
 export class ProviderConfigurationError extends Error {
   readonly code = 'PROVIDER_CONFIGURATION_INVALID';
   constructor() { super('Provider configuration is invalid.'); this.name = 'ProviderConfigurationError'; }
 }
 const invalid = (): never => { throw new ProviderConfigurationError(); };
-const disabled: ProviderRuntimeConfig = Object.freeze({ mode: 'disabled' });
+const disabled: ExecutableProviderRuntimeConfig = Object.freeze({ mode: 'disabled' });
 const APPROVAL_BYTES = 64 * 1024;
 const KEY_BYTES = 4 * 1024;
 
@@ -150,6 +153,7 @@ function manifest(value: unknown, now: number): FalAuthorizationManifest {
 export function validateProviderRuntimeConfiguration(value: unknown, now = Date.now()): ProviderRuntimeConfig {
   try {
     if (exactKeys(value, ['mode']) && value.mode === 'disabled') return disabled;
+    if (exactKeys(value, ['mode','requestedMode']) && value.mode === 'fal-v45-blocked' && (value.requestedMode === 'disabled' || value.requestedMode === 'fal')) return Object.freeze({mode:'fal-v45-blocked',requestedMode:value.requestedMode});
     if (!exactKeys(value, ['mode', 'manifest', 'manifestHash', 'key']) || value.mode !== 'fal' ||
         typeof value.key !== 'string' || value.key.length > KEY_BYTES || !/^[\x21-\x7e]+$/.test(value.key)) return invalid();
     const authorization = manifest(value.manifest, now);
@@ -163,8 +167,12 @@ export function validateProviderRuntimeConfiguration(value: unknown, now = Date.
 export function loadProviderConfiguration(environment: NodeJS.ProcessEnv, now = Date.now()): ProviderRuntimeConfig {
   try {
     const mode = environment.IDEOGRAM_PROVIDER_MODE ?? 'disabled';
+    const model = environment.IDEOGRAM_PROVIDER_MODEL ?? 'ideogram/v4';
+    if (!['disabled','fal'].includes(mode) || !['ideogram/v4','ideogram/v4.5'].includes(model)) return invalid();
+    // The model selector exposes a blocked capability without reading approval or secrets.
+    // Selecting the new endpoint is never authorization to change the safety policy.
+    if (model === 'ideogram/v4.5') return Object.freeze({mode:'fal-v45-blocked',requestedMode:mode as 'disabled'|'fal'});
     if (mode === 'disabled') return disabled;
-    if (mode !== 'fal') return invalid();
     // The deadline limits new submissions. Expired manifests retain exact
     // identity for explicitly authorized status/cancel/result recovery.
     const authorization = manifest(parseControlJSON(readPrivateFile(environment.IDEOGRAM_FAL_APPROVAL_FILE, APPROVAL_BYTES), APPROVAL_BYTES), now);

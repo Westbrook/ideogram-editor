@@ -1,3 +1,5 @@
+import {ownFixtureCommands} from '../owned-command-fixture.mjs';
+import {uiModelOwnerURL,ownFixtureJSON} from '../ui-model-module.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {transformWithOxc} from 'vite';
@@ -6,7 +8,7 @@ import {nothing} from 'lit';
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 const adapter=data((await transformWithOxc(await readFile('src/ui/adapters.ts','utf8'),'adapter.ts')).code);
 let code=(await transformWithOxc(await readFile('src/ui/deletion.ts','utf8'),'deletion.ts')).code;
-for(const [name,url] of Object.entries({'lit':import.meta.resolve('lit'),'./adapters.js':adapter}))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));
+for(const [name,url] of Object.entries({'lit':import.meta.resolve('lit'),'./adapters.js':adapter,'./model-owner.js':uiModelOwnerURL}))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));
 const {DocumentDeletion}=await import(data(code));
 
 // Inspect the real controller's Lit TemplateResult. Only the editor boundary and
@@ -33,7 +35,7 @@ export function fixture(){
  const commands=[],hold=deferred(),receipt={documentId:'deleted_doc',planId:'plan',accepted:true,status:'cleanup-pending',actualFreedBytes:'0',pendingBytes:'8',retainedBytes:'3',estimatedEligibleBytes:'8',generation:'root'},job={id:'job',version:'7',attempts:[{id:'attempt',state:'submission-uncertain',hold:true}]};
  let identity='client',updates=0;
  const editor={session:{identity:()=>identity},view:{document:null,busy:false},draftOwner:{drafts:new Map()},command:async body=>{commands.push(body);if(body.type==='CollectDocumentGarbage'){await hold.promise;receipt.status='cleanup-complete';receipt.actualFreedBytes='8';receipt.pendingBytes='0';}},json:async path=>path.startsWith('/api/v1/deletions?')?{items:[receipt],next:'next_receipt'}:{receipt,jobs:[job],next:'next_job'},copy:async()=>{}};
- const flow=new DocumentDeletion({requestUpdate(){updates++;}},editor);
+ const flow=new DocumentDeletion({requestUpdate(){updates++;}},ownFixtureCommands(ownFixtureJSON(editor)));
  const button=name=>{const b=rendered(flow).buttons.find(b=>b.name===name);assert.ok(b,'Rendered button '+name);return b;};
  const event=()=>{const host={isConnected:true};return {currentTarget:host,composedPath:()=>[host],defaultPrevented:false};};
  const click=(name,e=event())=>{const b=button(name);assert.equal(b.disabled,false,'Public action must be enabled: '+name);b.click(e);return e;};

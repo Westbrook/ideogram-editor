@@ -1,0 +1,48 @@
+D11 invocation archive cache
+
+The browser D11 collector and developer artifact audit accept one explicit
+environment setting. Before the prescribed owning campaign command, select an
+existing npm cache with an absolute canonical path:
+
+  export IE_D11_NPM_CACHE="/absolute/canonical/npm-cache"
+
+Use Node 26.10.0 and npm 12.1.0 as described in tooling/README.txt. Keep the
+campaign's existing fixture, allocation, physical-host, output and fresh-run
+requirements. This setting does not start a campaign or change its scope.
+
+Programmatic callers provide the same selection explicitly:
+
+  await loadD11Build({
+    repo: '/absolute/canonical/editor-checkout',
+    cacheDirectory: '/absolute/canonical/npm-cache',
+  });
+
+The reader uses the selected cache's _cacache/content-v2/sha512 content files.
+It checks archive integrity against the pinned lock, then verifies the reviewed
+members and finalized installed-member identities. Local En Reve archives are
+read from the repository's sealed vendor paths. It does not run npm, install,
+download, write cache files, infer a home-directory cache, or consult npm's cache
+configuration. An empty, relative or symlinked cache path is not a valid choice.
+
+To leave the optional invocation contract unavailable:
+
+  unset IE_D11_NPM_CACHE
+
+No configured cache, or an absent cache archive, retains a null invocation
+contract for new receipts. This cannot prove the private startup boundary;
+required unresolved role evidence remains incomplete. Malformed installed
+members, changed repository inputs and archive integrity failures are errors,
+not missing-cache fallbacks. Legacy receipts without dependencyInputs preserve
+their older shape and cannot supply this new invocation proof.
+
+The cache location does not replace retained archive/member evidence. Offline
+verification replays retained bytes without opening the current cache. A valid
+invocation contract alone is not complete D11 qualification or a savings claim.
+
+The invocation profile also requires the reviewed application source inventory,
+original index.html, exact served bootstrap body, and reviewed production Vite
+configuration and build-evidence plugin. Any changed or additional application
+input invalidates that finite profile until its source review and fixed identity
+are updated. Retaining the same package archives cannot authorize a different
+application or compilation path. Legacy and unavailable-contract branches never
+gain these application-specific exclusions.

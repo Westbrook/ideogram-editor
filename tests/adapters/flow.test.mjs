@@ -153,6 +153,16 @@ test('official retained V4 LoRA flows through immutable library, acknowledged re
     }
     assert.deepEqual(await writer.document('document_1'), raster.document);
   });
+  await t.test('successor discovery leaves already queued exact adapter versions and transport stages unchanged', async () => {
+    const beforeJobs = (await writer.queueView()).jobs, oldEntry = await writer.adapterView(versions[0].id);
+    const successor = await register(writer, original, { adapterId: versions[1].adapter.adapterId, previousVersionId: versions[1].id, name: 'Later library version after queue acceptance' });
+    const updates = await writer.adapterUpdates(versions[0].id);
+    assert.deepEqual(updates.current, oldEntry); assert.equal(updates.latest.versionId, successor.id); assert.equal(updates.latest.version, '3');
+    assert.equal((await writer.adapterUpdates(successor.id)).latest, null);
+    assert.deepEqual((await writer.queueView()).jobs, beforeJobs);
+    for (const version of versions) assert.deepEqual((await writer.assetProjection(version.id)).asset, version);
+    for (const job of beforeJobs) assert.equal(job.stagePlan.some(stage => stage.versionId === successor.id), false);
+  });
   await writer.close(); writer = await openWriter({ root });
   await t.test('restart preserves version identities, queue stages and accepted immutable requests', async () => {
     for (const version of versions) assert.deepEqual((await writer.assetProjection(version.id)).asset, version);
@@ -201,7 +211,27 @@ test('official retained V4 LoRA flows through immutable library, acknowledged re
     // Any accidental use of the old whole-object request reader fails this test.
     owned.db.queue.input = () => { throw Error('Whole-object upload reader must not be used'); };
     const dispatcher = new QueueDispatcher(owned.db.queue, provider, { profileId: 'local-fixture-v1', queueOrigin: origin, uploadURL: origin + '/upload', mediaOrigin: origin });
-    const result = await dispatcher.submit(jobs[2].id); assert.deepEqual(serverErrors, []); assert.equal(result.attempts[0].state, 'acknowledged');
+    // The generation route is deliberately third in the retained queue. Move it
+    // explicitly rather than bypassing the product's durable FIFO reservation.
+    const beforeOrder = owned.db.queue.view();
+    assert.deepEqual(beforeOrder.jobs.map(job => job.id), jobs.map(job => job.id));
+    assert.equal(await dispatcher.submit(jobs[2].id), null);
+    assert.equal(observed.length, 0); assert.equal(streams.length, 0); assert.deepEqual(owned.db.queue.view(), beforeOrder);
+    for (const neighborId of [jobs[1].id, jobs[0].id]) {
+      const current = owned.db.queue.view(), target = current.jobs.find(job => job.id === jobs[2].id), neighbor = current.jobs.find(job => job.id === neighborId);
+      assert(target); assert(neighbor);
+      const moved = await owned.db.queue.command(encode(envelope({ type: 'ReorderLocalQueue', jobId: target.id, expectedVersion: target.version,
+        neighborId: neighbor.id, expectedNeighborVersion: neighbor.version, expectedOrderVersion: current.orderVersion, direction: 'up' })), auth());
+      assert.equal(moved.status, 'accepted', JSON.stringify(moved));
+    }
+    const reordered = owned.db.queue.view();
+    assert.deepEqual(reordered.jobs.map(job => job.id), [jobs[2].id, jobs[0].id, jobs[1].id]); assert.deepEqual(reordered.counts, beforeOrder.counts);
+    for (const original of beforeOrder.jobs) {
+      const current = reordered.jobs.find(job => job.id === original.id); assert(current);
+      assert.deepEqual(current.review, original.review); assert.deepEqual(current.stagePlan, original.stagePlan); assert.deepEqual(current.attempts, original.attempts);
+      assert.equal(current.order.insertionOrdinal, original.order.insertionOrdinal);
+    }
+    const result = await dispatcher.submit(jobs[2].id); assert.deepEqual(serverErrors, []); assert(result, 'Explicitly reordered generation job must be reservable'); assert.equal(result.attempts[0].state, 'acknowledged');
     assert.equal(result.attempts[0].requestId, 'local_adapter_request'); assert.equal(streams.length, 3); assert.equal(observed.length, 4);
     assert.equal(await dispatcher.submit(jobs[2].id), null); assert.equal(observed.length, 4);
     assert.equal(owned.db.queue.view().counts.dispatched, 1); assert.equal(owned.db.queue.view().jobs.filter(j => j.attempts[0].state === 'not-started').length, 2);

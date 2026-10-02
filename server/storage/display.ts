@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { closeSync, constants, fstatSync, lstatSync, mkdtempSync, openSync, readSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { closeSync, constants, fstatSync, lstatSync, mkdtempSync, openSync, readSync, readdirSync, renameSync, rmSync, opendirSync, unlinkSync, rmdirSync } from 'node:fs';
 import type { BigIntStats } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import type { BlobRef } from '../../src/protocol/store.js';
 import type { Asset } from '../../src/protocol/assets.js';
 import { DISPLAY_PROFILE, DISPLAY_TILE_SIZE, displayDimensions, validDisplayRequest, type DisplayInfo, type DisplayRequest } from '../../src/protocol/display.js';
@@ -12,14 +12,15 @@ import type { Rasters } from './raster.js';
 import { canonical, hashBytes, isId, isSeq } from './canonical.js';
 import { assertComponents, assertPrivate, inspectTree, privateDirectory } from './files.js';
 import { StoreError } from './errors.js';
+import {adapterResources} from '../observability/adapter-resources.js';
 
 // Disk cache limits are independent of the browser's 64/128 MiB memory cache.
 export const DISPLAY_DISK_TARGET = 256 * 1024 * 1024;
 export const DISPLAY_DISK_HARD = 512 * 1024 * 1024;
 const CACHE_ENTRIES = 128, READ_BYTES = 32768;
 type SourceStamp = { ref: BlobRef; stamp: string };
-type Entry = { key: string; directory: string; path: string; ref: BlobRef; stamp: string; source: SourceStamp; width: number; height: number; pins: number };
-type Lease = { id: string; assetId: string; request: DisplayRequest; slot: string; canceled: boolean; acquired: boolean;
+type Entry = { key: string; directoryStamp: string; directory: string; path: string; ref: BlobRef; stamp: string; source: SourceStamp; width: number; height: number; pins: number };
+type Lease = { id: string; assetId: string; request: DisplayRequest; slot: string; canceled: boolean; acquired: boolean; releaseCoverage:()=>void;
   proofs: { ref: BlobRef; token: string }[]; entry?: Entry; fd?: number; source?: SourceStamp;
   raw?: BlobRef; rawWidth?: number; x?: number; y?: number; info?: DisplayInfo; pending?: Promise<DisplayInfo>; directory?: string; diskAllowance: number };
 const stamp = (s: BigIntStats) => [s.dev,s.ino,s.size,s.mtimeNs,s.ctimeNs].join(':');
@@ -32,6 +33,7 @@ export class Displays {
   private building = new Set<string>();
   private bytes = 0;
   private closing = false;
+  resourceOwnership(){return {leases:this.leases.size,building:this.building.size,cacheEntries:this.entries.size};}
   constructor(private objects: Objects, private assets: Assets, private rasters: Rasters, root: string, private checkRoot: () => void) {
     this.directory = join(root, 'display-cache'); privateDirectory(this.directory);
     // No disk-cache identity is trusted across a writer restart.
@@ -67,7 +69,7 @@ export class Displays {
     if (!isId(id) || !isId(assetId) || !validDisplayRequest(request) || this.leases.has(id)) return Promise.reject(new StoreError('MALFORMED_REQUEST'));
     if (this.closing) return Promise.reject(new StoreError('CLOSED'));
     if (this.leases.size >= 16) return Promise.reject(new StoreError('CAPACITY'));
-    const lease: Lease = { id, assetId, request, slot: 'display:' + id, canceled: false, acquired: false, proofs: [], diskAllowance: 0 };
+    const lease: Lease = { id, assetId, request, slot: 'display:' + id, canceled: false, acquired: false, proofs: [], diskAllowance: 0, releaseCoverage:adapterResources.uncovered('display-reader') };
     this.leases.set(id, lease);
     lease.pending = this.prepare(lease);
     return lease.pending;
@@ -162,7 +164,7 @@ export class Displays {
     // A duplicate cold request retries once the first builder publishes. Never
     // let two builders overwrite an indexed entry whose response still pins it.
     if (this.building.has(key)) throw new StoreError('QUEUE_FULL');
-    this.building.add(key);
+    const releaseCoverage=adapterResources.uncovered('display-build');this.building.add(key);
     try {
     // Reserve the maximum retained derivative before launching its worker. The
     // worker separately admits transient files under the existing R31 margin.
@@ -191,12 +193,12 @@ export class Displays {
     const path = join(directory, 'data'); renameSync(join(directory, outputDirectory, from.name), path);
     const fileStamp = await this.verifyFile(path, selected, lease);
     for (const name of ['decoded','rendered']) { const child = join(directory,name); try { inspectTree(child); rmSync(child,{recursive:true}); } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; } }
-    const entry: Entry = { key, directory, path, ref: selected, stamp: fileStamp, source: lease.source!, width: dimensions.width, height: dimensions.height, pins: 0 };
+    const entry: Entry = { key, directoryStamp: stamp(lstatSync(directory,{bigint:true})), directory, path, ref: selected, stamp: fileStamp, source: lease.source!, width: dimensions.width, height: dimensions.height, pins: 0 };
     this.check(lease); this.evict(0, DISPLAY_DISK_HARD);
     entry.pins = 1; lease.entry = entry;
     this.entries.set(key, entry); this.bytes += Number(selected.byteLength); lease.diskAllowance = 0; lease.directory = undefined; this.objects.unreserve(lease.slot);
     return entry;
-    } finally { this.building.delete(key); }
+    } finally { this.building.delete(key); releaseCoverage(); }
   }
   read(id: string, offset: string, length: number): Uint8Array {
     const lease = this.leases.get(id); if (!lease?.info) throw new StoreError('NOT_FOUND'); this.check(lease);
@@ -223,11 +225,56 @@ export class Displays {
     for (const proof of lease.proofs) this.objects.releaseProof(proof.token); lease.proofs = [];
     this.objects.unreserve(lease.slot); if (lease.acquired) { this.objects.release(lease.slot); lease.acquired = false; }
     this.leases.delete(lease.id);
+    lease.releaseCoverage();
   }
   async release(id: string) {
     const lease = this.leases.get(id); if (!lease) return;
     lease.canceled = true; await this.rasters.stopDisplayWork(lease.slot);
     await lease.pending?.catch(() => {}); this.cleanup(lease);
+  }
+  hasReaders(){return this.leases.size>0||this.building.size>0;}
+  storageInventory() {
+    this.checkRoot();if(this.closing)throw new StoreError('CLOSED');
+    let knownBytes=0n,clearableBytes=0n,pinnedEntries=0,clearableEntries=0;
+    for(const entry of this.entries.values()){
+      knownBytes+=BigInt(entry.ref.byteLength);
+      if(entry.pins)pinnedEntries++;
+      else if(!this.building.has(entry.key)){clearableEntries++;clearableBytes+=BigInt(entry.ref.byteLength);}
+    }
+    return {entries:this.entries.size,knownBytes:String(knownBytes),pinnedEntries,activeBuilds:this.building.size,clearableEntries,clearableBytes:String(clearableBytes),scope:'registered-display-derivatives' as const};
+  }
+  /** Only exact, unpinned entries published by this writer are eligible. The
+   * directory census is bounded to two names; unexpected members are retained. */
+  clearRegistered() {
+    this.checkRoot();if(this.closing)throw new StoreError('CLOSED');
+    assertComponents(this.directory);assertPrivate(this.directory,true);
+    const failures:{key:string;reason:'identity'|'unexpected-members'|'remove-failed'}[]=[];
+    let removedEntries=0,freed=0n,pinnedEntries=0,examinedEntries=0;const initialEntries=this.entries.size;
+    for(const [key,entry] of this.entries){
+      if(examinedEntries===128)break;examinedEntries++;
+      if(entry.pins){pinnedEntries++;continue;}if(this.building.has(key))continue;
+      let recordedFailure=false,fd:number|undefined,reason:'identity'|'unexpected-members'|'remove-failed'='identity';
+      try{
+        this.checkRoot();assertComponents(this.directory);assertPrivate(this.directory,true);
+        if(this.entries.get(key)!==entry||entry.path!==join(entry.directory,'data')||dirname(entry.directory)!==this.directory||!/^work-[A-Za-z0-9]+$/.test(basename(entry.directory)))throw new StoreError('ROOT_UNSAFE');
+        assertPrivate(entry.directory,true);
+        if(stamp(lstatSync(entry.directory,{bigint:true}))!==entry.directoryStamp)throw new StoreError('ROOT_UNSAFE');
+        const directory=opendirSync(entry.directory);let onlyData=false;
+        try{const first=directory.readSync(),second=directory.readSync();onlyData=first?.name==='data'&&first.isFile()&&!second;}finally{directory.closeSync();}
+        if(!onlyData){reason='unexpected-members';throw new StoreError('ROOT_UNSAFE');}
+        assertPrivate(entry.path,false);fd=openSync(entry.path,constants.O_RDONLY|constants.O_NOFOLLOW);
+        if(stamp(fstatSync(fd,{bigint:true}))!==entry.stamp||stamp(lstatSync(entry.path,{bigint:true}))!==entry.stamp||String(fstatSync(fd,{bigint:true}).size)!==entry.ref.byteLength||stamp(lstatSync(entry.directory,{bigint:true}))!==entry.directoryStamp)throw new StoreError('ROOT_UNSAFE');
+        this.checkRoot();reason='remove-failed';unlinkSync(entry.path);
+        // Once the known file is removed, report that actual logical removal
+        // even if the final empty-directory removal independently fails.
+        this.entries.delete(key);this.bytes-=Number(entry.ref.byteLength);removedEntries++;freed+=BigInt(entry.ref.byteLength);
+        const opened=fd;fd=undefined;closeSync(opened);rmdirSync(entry.directory);
+      }catch{failures.push({key:key.slice(7),reason});recordedFailure=true;}
+      finally{if(fd!==undefined){try{closeSync(fd);}catch{if(!recordedFailure)failures.push({key:key.slice(7),reason:'remove-failed'});}}}
+    }
+    this.checkRoot();
+    const unexaminedEntries=initialEntries-examinedEntries;
+    return {examinedEntries,unexaminedEntries,outcome:failures.length||unexaminedEntries?'partial' as const:'complete' as const,removedEntries,freedLogicalBytes:String(freed),pinnedEntries,activeBuilds:this.building.size,retainedEntries:this.entries.size,failures};
   }
   diagnostics() { return { entries: this.entries.size, bytes: this.bytes, targetBytes: DISPLAY_DISK_TARGET, hardBytes: DISPLAY_DISK_HARD, active: this.leases.size, profile: DISPLAY_PROFILE }; }
   async close() { this.closing = true; await Promise.all([...this.leases.keys()].map(id => this.release(id))); }

@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { prepareAdapterLibrary } from '../../tooling/qualification/campaigns/adapters.mjs';
 
 test('WA library setup creates 100 production registrations without inventing eligibility when the official fixture is absent', async t => {
-  const output = await mkdtemp(join(tmpdir(), 'wa-library-unit-')); t.after(() => rm(output, { recursive: true, force: true }));
+  const output = await realpath(await mkdtemp(join(tmpdir(), 'wa-library-unit-')));
+  let writer;
+  t.after(async () => { await writer?.close(); await rm(output, { recursive: true, force: true }); });
   const { openWriter } = await import('../../dist/local/server/storage/writer.js');
-  const root = join(output, 'private'); let writer = await openWriter({ root }); t.after(async () => writer.close()); await writer.protocolDefaults();
+  const root = join(output, 'private'); writer = await openWriter({ root }); await writer.protocolDefaults();
   const library = await prepareAdapterLibrary(writer, { weights: [], config: null }, { repo: resolve('.'), output, root, officialPath: join(output, 'absent-official-fixture') });
   assert.equal(library.entries.length, 100); assert.equal(library.eligibleEntries.length, 0); assert.equal(library.official, null);
   assert.equal(new Set(library.entries.map(value => value.versionId)).size, 100);

@@ -8,7 +8,8 @@ import { mkdir,mkdtemp,writeFile } from 'node:fs/promises';
 import { resolve,join } from 'node:path';
 import os from 'node:os';
 const output=resolve(process.argv[2]??'artifacts/p1b3-measure');await mkdir(output,{recursive:true});
-const samples=[];let peakRSS=0,peakHeap=0;const timer=setInterval(()=>{const m=process.memoryUsage();peakRSS=Math.max(peakRSS,m.rss);peakHeap=Math.max(peakHeap,m.heapUsed);},10);
+const samples=[],diagnosticReads=[];let peakRSS=0,peakHeap=0;const timer=setInterval(()=>{const m=process.memoryUsage();peakRSS=Math.max(peakRSS,m.rss);peakHeap=Math.max(peakHeap,m.heapUsed);},10);
+try {
 try {for(const size of [8*1048576,32*1048576]){
   const root=await mkdtemp(join(output,'root-'));const server=await startLocalServer({root});const paired=await pair(server);const bytes=Buffer.alloc(size);randomFillSync(bytes);for(let i=0;i<size;i++)bytes[i]=33+bytes[i]%90;
   const sha256='sha256:'+createHash('sha256').update(bytes).digest('hex');const stage={protocolVersion:1,stagingId:randomUUID(),purpose:'caption',expectedBytes:String(size),sha256,mediaType:'text/plain'};const began=performance.now();
@@ -19,7 +20,10 @@ try {for(const size of [8*1048576,32*1048576]){
   const pollMs=[];while(response.status===202){const start=performance.now();response=await call(server.origin,'/api/v1/commands/'+c.command.commandId,{headers:readHeaders(cookieFrom(paired))});pollMs.push(performance.now()-start);}
   if(response.json.receipt?.status!=='accepted')throw Error(response.text);const acceptedAt=performance.now();const events=await call(server.origin,'/api/v1/events?after=0',{headers:readHeaders(cookieFrom(paired))});const asset=events.json.batches[0].events[0].payload.asset;
   const downloadStart=performance.now();const downloaded=await call(server.origin,'/api/v1/assets/'+asset.id+'/content',{headers:readHeaders(cookieFrom(paired))});const downloadMs=performance.now()-downloadStart;if(downloaded.status!==200||createHash('sha256').update(downloaded.text).digest('hex')!==sha256.slice(7))throw Error('Download mismatch');
-  await server.close();const w=await openWriter({root});const diagnostics=await w.diagnostics();await w.close();
+  await server.close();const w=await openWriter({root});let diagnosticsRead;
+  try{diagnosticsRead=await w.readDiagnostics();diagnosticReads.push(diagnosticsRead);}finally{await w.close();}
+  const diagnostics=diagnosticsRead.value;
   samples.push({bytes:size,sha256,root,chunkReceiptMs:chunks,maxChunkReceiptMs:Math.max(...chunks),pendingReceiptMs,maxPollReceiptMs:Math.max(...pollMs),lastClientByteToObservedAcceptanceMs:acceptedAt-lastByteAt,uploadToObservedAcceptanceMs:acceptedAt-began,downloadVerifiedClientMs:downloadMs,diagnostics});
 }}finally{clearInterval(timer);}
 const result={at:new Date().toISOString(),runtime:process.version,platform:process.platform,arch:process.arch,os:os.release(),cpu:os.cpus()[0].model,qualification:false,fixture:'Random ASCII UTF-8 opaque captions; original bytes retained, no image qualification. Cold new private roots; one sample each.',measurement:'Real loopback HTTP. Last-byte clock starts on the last PUT client request finish event and includes its flush acknowledgement, finalize admission and complete final lookup. Polling overhead remains included. Download uses a fixture client that materializes its body; production server uses32KiB pieces. RSS includes fixtures/client/server and worker.',peakRSS,peakHeap,samples};await writeFile(join(output,'observations.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({peakRSS,peakHeap,samples:samples.map(({bytes,pendingReceiptMs,lastClientByteToObservedAcceptanceMs,uploadToObservedAcceptanceMs,downloadVerifiedClientMs,maxChunkReceiptMs})=>({bytes,pendingReceiptMs,lastClientByteToObservedAcceptanceMs,uploadToObservedAcceptanceMs,downloadVerifiedClientMs,maxChunkReceiptMs}))},null,2));
+}finally{for(const sample of samples)delete sample.diagnostics;for(const read of diagnosticReads.reverse())read.release();diagnosticReads.length=0;}

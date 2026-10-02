@@ -1,3 +1,4 @@
+import {createWarmOwner,captureWarmInputRefs,observeWarmInputs,warmInventory,warmDigest,warmCell,retainWarmProof} from './backend-warm-proof.mjs';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { openSync, readSync, closeSync } from 'node:fs';
@@ -98,23 +99,28 @@ export async function createCompositionFixture(context, cell) {
   try { await common.createDocument(f); baseline = await f.writer.imageState(f.documentId); baselineDocument = await f.writer.document(f.documentId); }
   catch (error) { await f.close(); throw error; }
   const initialWriter = f.writer, descriptor = f.compositionWorker.descriptor, underlyingClose = f.close.bind(f);
-  const state = f.compositionState = { id: identifier(cell), sample: {}, samples: 0, baseline, baselineHead: baselineDocument.historyHead, descriptor, lastCommand: null };
+  try {
+  const owner = createWarmOwner(f.writer,f.root,descriptor), inputRefs = await captureWarmInputRefs(f.writer,f.documentId);
+  const observe = async () => {const [document,image,queue] = await Promise.all([f.writer.document(f.documentId),f.writer.imageState(f.documentId),f.writer.queueView()]);return {imageHash:warmDigest(image),historyHead:document.historyHead,revision:document.revision,activeJobs:queue.counts.active,inputs:await observeWarmInputs(f.root,inputRefs,context.signal),inventory:warmInventory(f.root)};};
+  const initial = await observe(), entry=context.fixture?.corpus?.files?.find(value=>value.id===identifier(cell));
+  const input=entry?{sha256:String(entry.sha256).startsWith('sha256:')?entry.sha256:'sha256:'+entry.sha256,byteLength:String(entry.byteLength)}:null;
+  const state = f.compositionState = { id: identifier(cell), sample: {}, samples: 0, baseline, baselineHead: baselineDocument.historyHead, descriptor, lastCommand: null, owner, observe, initial, input, reset:null, previous:null };
   f.resetCell = async (next, sample = {}) => {
     assert.equal(identifier(next), state.id, 'A retained composition fixture owns one cell');
-    const phases = [], out = result(phases); state.sample = sample;
+    const phases = [], out = result(phases); state.sample = sample; const before=state.samples?await observe():null; let undo=null;
     assert.equal(f.writer, initialWriter, 'Warm reset retains the actual writer capability');
     assert.deepEqual(f.compositionWorker.descriptor, descriptor, 'Warm reset retains worker epoch and thread');
     if (state.samples) {
       const current = await f.writer.document(f.documentId);
       if (current.historyHead !== state.baselineHead) {
         const request = common.envelope({ type: 'Undo', historyHead: current.historyHead }, { documentId: f.documentId, expectedDocumentRevision: current.revision });
-        await timed(phases, 'composition.warm-reset-public-undo', () => common.finish(f.writer, request, 'historyCommand', context.signal));
+        const accepted=await timed(phases, 'composition.warm-reset-public-undo', () => common.finish(f.writer, request, 'historyCommand', context.signal)); undo={commandId:request.command.commandId,transactionId:request.command.transactionId,documentId:request.command.documentId,expectedDocumentRevision:request.command.expectedDocumentRevision,action:'Undo',previousHead:request.command.body.historyHead,receipt:accepted.receipt};
       }
       assert.deepEqual(await f.writer.imageState(f.documentId), baseline, 'Public Undo restores the exact seeded composition and native state');
       assert.equal((await f.writer.document(f.documentId)).historyHead, state.baselineHead);
     }
     out.observations = { root: f.root, sample, writerEpoch: descriptor.epoch, writerThreadId: descriptor.threadId, retainedWriter: true, baselineRestored: true, earlierSamples: state.samples, reset: state.samples ? 'Accepted public Undo; immutable earlier branches and journal retained' : 'Initial exact sealed namespace copy', operatingSystemPageCache: 'not purged or inferred' };
-    if (state.samples) out.qualification = { status: 'inconclusive', missing: ['Retained-writer composition reset preserves earlier global journal, queue and immutable branch history; this warm diagnostic cohort does not claim a fresh global inventory'] };
+    out.warmReset=state.reset={owner:owner(f.writer),baseline:initial,input,before,after:await observe(),undo};
     return out;
   };
   let closed = false;
@@ -133,6 +139,7 @@ export async function createCompositionFixture(context, cell) {
     } finally { await underlyingClose(); }
   };
   return f;
+  } catch(error) {await underlyingClose();throw error;}
 }
 async function ownInput(fixture, source, identity) {
   const directory = join(fixture.root, 'qualification-composition-inputs'); await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -331,7 +338,7 @@ async function rawCell(context, id) {
       assert.equal(bytes, expectedBytes); assert.equal(digest.digest('hex'), expected);
     });
     out.assertions.push({ name: 'exact decoded prompt registered and rooted in candidate transaction', passed: true }, { name: 'known image slot and escaped multibyte boundaries retained', passed: true }, { name: 'bounded full prompt hash and provenance survive writer restart', passed: true });
-    out.observations = { id, promptBytes: expectedBytes, promptHash: 'sha256:' + expected, envelopeBytes: source.receivedBytes, inspection: view.provenance.inspection, slots: 1, providerEffects: 0, localFixturePolicyOnly: true, seededAcknowledgement: true, seededTerminalStatus: workerReceipt?.seededTerminalStatus ?? null, sealedCorpus: specimen.sealed, setupPhases: setup };
+    out.observations = { id, promptBytes: expectedBytes, promptHash: 'sha256:' + expected, envelopeBytes: source.receivedBytes, corpusHash:'sha256:'+specimen.sha256.replace(/^sha256:/,''),corpusBytes:specimen.byteLength, inspection: view.provenance.inspection, slots: 1, providerEffects: 0, localFixturePolicyOnly: true, seededAcknowledgement: true, seededTerminalStatus: workerReceipt?.seededTerminalStatus ?? null, sealedCorpus: specimen.sealed, setupPhases: setup };
     out.evidence.push({ root: fixture.root, jobId: queued.job.id, attemptId, protectedRecordId: source.recordId, ownedRef: owned });
     if (!specimen.sealed) { out.status = 'inconclusive'; out.missing.push('presealed raw envelope corpus'); }
     return out;
@@ -341,8 +348,8 @@ async function rawCell(context, id) {
 async function partialCell(context) {
   const id = 'WJ24', phases = [], out = result(phases), specimen = await corpus(context, id);
   const common = await import('./backend-common.mjs');
-  const [{ TransportEvidenceStore }, { resolvePrivacy }, api, compositionStore, queueHarness, { readdir }] = await Promise.all([
-    product(context, 'server/provider/evidence.js'), product(context, 'server/provider/policy.js'), product(context, 'src/composition/core.js'), product(context, 'server/storage/composition.js'), import('./backend-queue.mjs'), import('node:fs/promises')]);
+  const [{ TransportEvidenceStore }, { resolvePrivacy }, api, workerOperations, queueHarness, { readdir }] = await Promise.all([
+    product(context, 'server/provider/evidence.js'), product(context, 'server/provider/policy.js'), product(context, 'src/composition/core.js'), import('./backend-composition-worker-ops.mjs'), import('./backend-queue.mjs'), import('node:fs/promises')]);
   const fixture = await useFixture(context, common), setup = [];
   try {
     await common.createDocument(fixture);
@@ -350,16 +357,9 @@ async function partialCell(context) {
     const before = await fixture.writer.imageState(fixture.documentId);
     const nativeBefore = before.layers.filter(layer => layer.kind === 'text');
     const store = fixture.compositionWorker ? null : await fixture.direct(), evidence = store?.queue.evidence, attemptId = queued.job.attempts[0].id, requestId = 'late_partial_fixture';
-    const storedComposition = fixture.compositionWorker ? await fixture.compositionWorker.execute({ action: 'composition-state', documentId: fixture.documentId }) : null;
-    const beforeGraph = storedComposition ? storedComposition.graph : before.composition ? compositionStore.readComposition(before.composition, ref => store.objects.verify(ref, true)) : null;
+    const storedComposition = fixture.compositionWorker ? await fixture.compositionWorker.execute({ action: 'composition-state', documentId: fixture.documentId }) : await workerOperations.compositionState(store, { documentId: fixture.documentId }, context);
+    const beforeGraph = storedComposition.graph, staleNativeLinks = storedComposition.staleNativeLinks;
     const bindings = structuredClone(before.composition?.bindings ?? {});
-    const layerValues = storedComposition ? storedComposition.layerValues : compositionStore.layerValues(before, ref => store.objects.verify(ref, true), assetId => store.assets.asset(assetId));
-    const staleNativeLinks = [];
-    for (const element of beforeGraph?.elements ?? []) for (const field of ['text', 'desc', 'bounds']) {
-      const binding = element[field]; if (binding?.mode !== 'layer') continue;
-      const layer = layerValues.find(value => value.id === bindings[binding.layerId]);
-      if (field === 'text' && layer?.kind === 'text' && api.fieldStatus(binding, layerValues, bindings) === 'stale' && BigInt(layer.version) > BigInt(binding.lastReviewedLayerVersion)) staleNativeLinks.push({ elementId: element.id, field, binding: structuredClone(binding), layerId: layer.id, version: layer.version });
-    }
     let source, prefix, view, workerReceipt = null;
     if (fixture.compositionWorker) {
       const cleared = await common.ui(fixture, { type: 'ClearDraft', draftId: prepared.draftId, generation: '1' }); assert.equal(cleared.status, 'accepted');
@@ -431,14 +431,17 @@ async function partialCell(context) {
         const semantic = value => { const { id, raw, review, ...rest } = value; return rest; };
         assert.deepEqual(semantic(actualGraph), semantic(beforeGraph)); assert.deepEqual(actualGraph.raw.slice(0, -1), beforeGraph.raw); assert.equal(actualGraph.review, null);
       }
-      for (const previous of staleNativeLinks) { const retainedBinding = actualGraph.elements.find(element => element.id === previous.elementId)[previous.field]; assert.deepEqual(retainedBinding, previous.binding); assert.equal(api.fieldStatus(retainedBinding, layerValues, after.composition.bindings), 'stale'); }
+      const observedComposition = fixture.compositionWorker ? await fixture.compositionWorker.execute({ action: 'composition-state', documentId: fixture.documentId }) : await workerOperations.compositionState(await fixture.direct(), { documentId: fixture.documentId }, context);
+      if (!fixture.compositionWorker) await fixture.reopen();
+      assert.deepEqual(observedComposition.staleNativeLinks, staleNativeLinks, 'Fresh admitted native projection preserves every stale-link fact');
+      for (const previous of staleNativeLinks) { const retainedBinding = actualGraph.elements.find(element => element.id === previous.elementId)[previous.field]; assert.deepEqual(retainedBinding, previous.binding); }
       const wanted = new Set([graphRef.hash, recoveryAsset.blob.hash, ...(beforeGraph?.raw ?? []).map(ref => ref.hash)]); let cursor = '';
       do { const page = await fixture.writer.historyClosure(fixture.documentId, cursor); for (const ref of page.items) wanted.delete(ref.hash); cursor = page.next; } while (cursor);
       assert.equal(wanted.size, 0, 'new recovery metadata and earlier raw records remain rooted after restart');
     });
     out.assertions.push({ name: 'late recovery preserves actual semantic fields, bindings, earlier raw records and native layers after restart', passed: true }, { name: 'exact protected arrived envelope and decoded prefix remain partial and hash-verified after reopen', passed: true });
     if (staleNativeLinks.length) out.assertions.push({ name: 'actual retained native text bindings remain stale against newer durable native versions', passed: true });
-    out.observations = { id, arrivedBytes: source.receivedBytes, decodedPrefixBytes: prefix.receivedBytes, complete: false, nativeLayersChecked: nativeBefore.length, actualStaleNativeLinksChecked: staleNativeLinks.length, existingCompositionPreserved: beforeGraph !== null, sealedCorpus: specimen.sealed, providerEffects: 0, seededAcknowledgement: true, seededTerminalStatus: workerReceipt?.seededTerminalStatus ?? null, actualCandidateProvenance: true, setupPhases: setup };
+    out.observations = { id, corpusHash:specimen.sha256,corpusBytes:specimen.byteLength, arrivedBytes: source.receivedBytes, decodedPrefixBytes: prefix.receivedBytes, complete: false, nativeLayersChecked: nativeBefore.length, actualStaleNativeLinksChecked: staleNativeLinks.length, existingCompositionPreserved: beforeGraph !== null, sealedCorpus: specimen.sealed, providerEffects: 0, seededAcknowledgement: true, seededTerminalStatus: workerReceipt?.seededTerminalStatus ?? null, actualCandidateProvenance: true, setupPhases: setup };
     out.evidence.push({ root: fixture.root, jobId: queued.job.id, attemptId, protectedRecordId: source.recordId, partialPromptRecordId: prefix.recordId, graphRef, recoveryRef: recoveryAsset.blob, commandId: command.command.commandId, receipt: accepted.receipt });
     if (!specimen.sealed) out.missing.push('presealed WJ24 partial envelope');
     if (!nativeBefore.length || !staleNativeLinks.length || !context.fixture?.observed?.nativeTextAdvancedBeforeLateProvenance) out.missing.push('sealed newer durable native text version predating the late partial provenance response');
@@ -461,5 +464,12 @@ export async function runCell(context, cell) {
   if (effects && Object.values(effects).some(value => value !== 0)) { out.status = 'fail'; out.assertions.push({ name: 'composition cells have zero guarded network effects', passed: false, effects }); }
   if (context.productFixture?.compositionState) { const state = context.productFixture.compositionState; ++state.samples; state.lastCommand = out.evidence.find(item => item.commandId)?.commandId ?? null; out.assertions = out.assertions.map(item => ({ ...item, name: item.name.replaceAll('after restart', 'in retained writer').replaceAll('after reopen', 'in retained writer').replaceAll('writer restart', 'retained writer readback') })); out.observations = { ...out.observations, retainedWriter: true, writer: context.productFixture.compositionWorker.descriptor, replayVerification: 'Scheduled on final fixture close outside measured samples; qualification-composition-final-replay.json records completion' }; }
   out.observations = { ...out.observations, providerEffects: effects ? Object.values(effects).reduce((sum, value) => sum + value, 0) : null, guardedNetworkEffects: effects, networkObservation: effects ? 'shared store no-network counters' : 'transport effect counts not observed by this module' };
+  if(context.productFixture?.compositionState && out.status==='pass'){
+    const fixture=context.productFixture,state=fixture.compositionState;
+    const packet={kind:'backend-warm-input-proof-1',family:'WJ',cell:warmCell(context.warmCell??cell),sample:{cache:state.sample.cache,ordinal:state.sample.ordinal??null,prime:state.sample.prime??null},serial:state.samples,previous:state.previous?warmDigest(state.previous):null,
+      owner:state.owner(fixture.writer),baseline:state.initial,input:state.input,before:state.reset.after,after:await state.observe(),
+      cache:{kind:'retained-writer-connection-and-module-loader-1',decodedResultCache:'not-used-by-selected-operation',derivedResultCache:'per-operation-or-not-used',operatingSystemPageCache:'unobserved'}};
+    out.warmInput=await retainWarmProof(context.output,packet,{cell:context.warmCell??cell,sample:state.sample,previous:state.previous,reset:state.reset,operation:out,fixture:context.fixture});state.previous=packet;
+  }
   return out;
 }

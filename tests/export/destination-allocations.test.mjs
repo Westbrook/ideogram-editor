@@ -1,3 +1,4 @@
+import {isolatedDiagnosticModules,allocationDeltaSnapshot} from '../owned-preview-module.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -8,14 +9,13 @@ import {transformWithOxc} from 'vite';
 // writable boundary is controlled to expose admission and drain timing.
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 const compile=async path=>(await transformWithOxc(await readFile(path,'utf8'),path)).code;
-const [source,allocationSource,shaSource]=await Promise.all([
- compile('src/state/destination.ts'),compile('src/observability/allocations.ts'),compile('src/protocol/sha256.ts'),
+const [source,shaSource]=await Promise.all([
+ compile('src/state/destination.ts'),compile('src/protocol/sha256.ts'),
 ]);
-let sequence=0;
 async function modules(){
- const allocationURL=data(allocationSource+'\n// Isolated native-boundary fixture '+(++sequence));
+ const {allocationsURL:allocationURL}=await isolatedDiagnosticModules();
  const destinationURL=data(source.replaceAll('../observability/allocations.js',allocationURL).replaceAll('../protocol/sha256.js',data(shaSource)));
- return {...await import(allocationURL),...await import(destinationURL)};
+ const ledger=await import(allocationURL);return {...ledger,...await import(destinationURL),snapshot:allocationDeltaSnapshot(ledger.allocationLedger)};
 }
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 const observed=promise=>promise.then(value=>({value}),error=>({error}));
@@ -26,62 +26,145 @@ function response({close=true,cancel=()=>{}}={}){
 }
 
 test('destination reserves copying before write and retains writer ownership through close',async()=>{
- const {writeDestination,allocationLedger}=await modules(),writeEntered=deferred(),writeRelease=deferred(),closeEntered=deferred(),closeRelease=deferred();
+ const {writeDestination,snapshot,allocationLedger}=await modules(),writeEntered=deferred(),writeRelease=deferred(),closeEntered=deferred(),closeRelease=deferred();
  const writes=[],sink={async write(bytes){writes.push(new Uint8Array(bytes));writeEntered.resolve();await writeRelease.promise;},async close(){closeEntered.resolve();await closeRelease.promise;},async abort(){assert.fail('successful stream must not abort');}};
  const work=writeDestination(download,async()=>response(),Promise.resolve({async createWritable(){return sink;}}));
- await writeEntered.promise;const duringWrite=allocationLedger.snapshot();assert.equal(duringWrite.cpuBytes,12);assert.equal(duringWrite.byKind.copy.cpuBytes,8);assert.equal(duringWrite.handles,5);
- writeRelease.resolve();await closeEntered.promise;const duringClose=allocationLedger.snapshot();assert.equal(duringClose.cpuBytes,0);assert.equal(duringClose.handles,1);
- closeRelease.resolve();assert.equal(await work,'confirmed');assert.deepEqual(writes,[payload]);assert.equal(allocationLedger.snapshot().activeRecords,0);
+ await writeEntered.promise;const duringWrite=snapshot();assert.equal(duringWrite.cpuBytes,12);assert.equal(duringWrite.byKind.copy.cpuBytes,8);assert.equal(duringWrite.handles,5);
+ writeRelease.resolve();await closeEntered.promise;const duringClose=snapshot();assert.equal(duringClose.cpuBytes,0);assert.equal(duringClose.handles,1);
+ closeRelease.resolve();assert.equal(await work,'confirmed');assert.deepEqual(writes,[payload]);assert.equal(snapshot().activeRecords,0);
 });
 
 test('destination refuses the explicit copy before native write and drains prior owners',async()=>{
- const {writeDestination,allocationLedger,ALLOCATION_LIMITS}=await modules();let writes=0,aborts=0,cancels=0;
- const pressure=allocationLedger.reserve({owner:'test-destination-pressure',kind:'control',cpuBytes:ALLOCATION_LIMITS.cpuBytes-ALLOCATION_LIMITS.textPartitionBytes-payload.length});
+ const {writeDestination,snapshot,allocationLedger,ALLOCATION_LIMITS}=await modules();let writes=0,aborts=0,cancels=0;
+ const pressure=allocationLedger.reserve({owner:'test-destination-pressure',kind:'control',cpuBytes:ALLOCATION_LIMITS.cpuBytes-ALLOCATION_LIMITS.textPartitionBytes-allocationLedger.snapshot().cpuBytes-payload.length});
  const sink={async write(){writes++;},async close(){assert.fail('refused allocation cannot commit');},async abort(){aborts++;}};
  try{await assert.rejects(writeDestination(download,async()=>response({close:false,cancel(){cancels++;}}),Promise.resolve({async createWritable(){return sink;}})),/ALLOCATION_BUDGET/);
-  assert.equal(writes,0);assert.equal(aborts,1);assert.equal(cancels,1);assert.equal(allocationLedger.snapshot().activeRecords,1);
+  assert.equal(writes,0);assert.equal(aborts,1);assert.equal(cancels,1);assert.equal(snapshot().activeRecords,1);
  }finally{pressure.release();}
- assert.equal(allocationLedger.snapshot().activeRecords,0);
+ assert.equal(snapshot().activeRecords,0);
 });
 
 test('a rejected write remains charged until native abort settles',async()=>{
- const {writeDestination,allocationLedger}=await modules(),abortEntered=deferred(),abortRelease=deferred();
+ const {writeDestination,snapshot,allocationLedger}=await modules(),abortEntered=deferred(),abortRelease=deferred();
  const sink={async write(){throw Error('NATIVE_WRITE_FAILED');},async close(){assert.fail('failed write cannot commit');},async abort(){abortEntered.resolve();await abortRelease.promise;}};
  const result=observed(writeDestination(download,async()=>response(),Promise.resolve({async createWritable(){return sink;}})));
- await abortEntered.promise;const waiting=allocationLedger.snapshot();assert.equal(waiting.cpuBytes,8);assert.equal(waiting.byKind.copy.handles,2);assert.equal(waiting.activeRecords,2);
- abortRelease.resolve();assert.match((await result).error?.message??'',/NATIVE_WRITE_FAILED/);assert.equal(allocationLedger.snapshot().activeRecords,0);
+ await abortEntered.promise;const waiting=snapshot();assert.equal(waiting.cpuBytes,8);assert.equal(waiting.byKind.copy.handles,2);assert.equal(waiting.activeRecords,2);
+ abortRelease.resolve();assert.match((await result).error?.message??'',/NATIVE_WRITE_FAILED/);assert.equal(snapshot().activeRecords,0);
 });
 
 test('uncertain native abort keeps the failed copy charged and marked unused',async()=>{
- const {writeDestination,allocationLedger}=await modules();
+ const {writeDestination,snapshot,allocationLedger}=await modules();
  const sink={async write(){throw Error('NATIVE_WRITE_FAILED');},async close(){assert.fail('failed write cannot commit');},async abort(){throw Error('NATIVE_ABORT_FAILED');}};
  await assert.rejects(writeDestination(download,async()=>response(),Promise.resolve({async createWritable(){return sink;}})),error=>error instanceof AggregateError&&error.errors.some(item=>item.message==='NATIVE_ABORT_FAILED'));
- const unresolved=allocationLedger.snapshot();assert.equal(unresolved.cpuBytes,8);assert.equal(unresolved.activeRecords,2);assert.equal(unresolved.unusedHandles,3);
+ const unresolved=snapshot();assert.equal(unresolved.cpuBytes,8);assert.equal(unresolved.activeRecords,2);assert.equal(unresolved.unusedHandles,3);
  // This fixture owns an isolated ledger. A failed native owner is deliberately
  // not reset or relabeled released merely to make the accounting return zero.
 });
 
 test('source cancellation failure preserves the error while the settled reader lock is released',async()=>{
- const {writeDestination,allocationLedger}=await modules(),controller=new AbortController(),reason=Error('USER_CANCEL'),cleanupFailure=Error('SOURCE_CANCEL_FAILED');
+ const {writeDestination,snapshot,allocationLedger}=await modules(),controller=new AbortController(),reason=Error('USER_CANCEL'),cleanupFailure=Error('SOURCE_CANCEL_FAILED');
  const sink={async write(){controller.abort(reason);},async close(){assert.fail('canceled stream cannot commit');},async abort(){}};
  await assert.rejects(writeDestination(download,async()=>response({close:false,cancel(){throw cleanupFailure;}}),Promise.resolve({async createWritable(){return sink;}}),controller.signal),error=>error instanceof AggregateError&&error.errors[0]===reason&&error.errors[1]===cleanupFailure);
- assert.equal(allocationLedger.snapshot().activeRecords,0);
+ assert.equal(snapshot().activeRecords,0);
 });
 
 test('response validation refusal cancels the body before a reader was acquired',async()=>{
- const {writeDestination,allocationLedger}=await modules();let cancels=0,aborts=0;
+ const {writeDestination,snapshot,allocationLedger}=await modules();let cancels=0,aborts=0;
  const sink={async write(){assert.fail('invalid response must not write');},async close(){assert.fail('invalid response must not commit');},async abort(){aborts++;}};
  const invalid=response({close:false,cancel(){cancels++;}});invalid.headers.set('etag','"incorrect"');
  await assert.rejects(writeDestination(download,async()=>invalid,Promise.resolve({async createWritable(){return sink;}})),/DOWNLOAD_UNAVAILABLE/);
- assert.equal(cancels,1);assert.equal(aborts,1);assert.equal(allocationLedger.snapshot().activeRecords,0);
+ assert.equal(cancels,1);assert.equal(aborts,1);assert.equal(snapshot().activeRecords,0);
 });
 
 test('reader handle refusal cancels the body and aborts the already admitted writer',async()=>{
- const {writeDestination,allocationLedger,ALLOCATION_LIMITS}=await modules();let cancels=0,aborts=0;
- const pressure=allocationLedger.reserve({owner:'test-reader-pressure',kind:'control',handles:ALLOCATION_LIMITS.handles-1});
+ const {writeDestination,snapshot,allocationLedger,ALLOCATION_LIMITS}=await modules();let cancels=0,aborts=0;
+ const pressure=allocationLedger.reserve({owner:'test-reader-pressure',kind:'control',handles:ALLOCATION_LIMITS.handles-allocationLedger.snapshot().handles-1});
  const sink={async write(){assert.fail('reader refusal must not write');},async close(){assert.fail('reader refusal must not commit');},async abort(){aborts++;}};
  try{await assert.rejects(writeDestination(download,async()=>response({close:false,cancel(){cancels++;}}),Promise.resolve({async createWritable(){return sink;}})),/ALLOCATION_BUDGET/);
-  assert.equal(cancels,1);assert.equal(aborts,1);assert.equal(allocationLedger.snapshot().activeRecords,1);
+  assert.equal(cancels,1);assert.equal(aborts,1);assert.equal(snapshot().activeRecords,1);
  }finally{pressure.release();}
- assert.equal(allocationLedger.snapshot().activeRecords,0);
+ assert.equal(snapshot().activeRecords,0);
+});
+
+
+function assertReleasedDestination(snapshot){
+ const after=snapshot();
+ assert.equal(after.cpuBytes,0);assert.equal(after.handles,0);
+ assert.equal(after.activeRecords,0);assert.equal(after.unusedHandles,0);
+}
+
+async function storedErrorDuringWrite(storedError){
+ const {writeDestination,snapshot}=await modules(),controller=new AbortController(),reason=Error('USER_CANCEL_DISTINCT_FROM_STORED_ERROR');
+ const writeEntered=deferred(),writeRelease=deferred(),abortEntered=deferred(),abortRelease=deferred();
+ const prior=Uint8Array.of(9,8,7),staged=[];let committed=new Uint8Array(prior),nativeController,cancels=0,aborts=0,closes=0;
+ const body=new ReadableStream({start(value){nativeController=value;value.enqueue(payload);},cancel(){cancels++;}});
+ const received=new Response(body,{headers:{etag:'"'+download.hash+'"','content-length':download.bytes}});
+ const sink={async write(bytes){staged.push(new Uint8Array(bytes));writeEntered.resolve();await writeRelease.promise;},
+  async close(){closes++;committed=new Uint8Array(staged[0]);},async abort(){aborts++;abortEntered.resolve();await abortRelease.promise;}};
+ const result=observed(writeDestination(download,async()=>received,Promise.resolve({async createWritable(){return sink;}}),controller.signal));
+ let outcome;
+ try{
+  await writeEntered.promise;
+  // Error the actual native body while its previously read bytes are in the
+  // writer. Fetch may store a different error before the user signal aborts.
+  nativeController.error(storedError);controller.abort(reason);await abortEntered.promise;
+  assert.notEqual(storedError,reason);assert.equal(received.body.locked,true);
+  const pending=snapshot();assert.equal(pending.cpuBytes,12);assert.equal(pending.byKind.copy.cpuBytes,8);assert.equal(pending.handles,5);
+  assert.deepEqual(committed,prior);assert.equal(closes,0);
+ }finally{
+  writeRelease.resolve();abortRelease.resolve();outcome=await result;
+ }
+ assert.equal(outcome.error,reason);assert.equal(outcome.error instanceof AggregateError,false);
+ assert.equal(cancels,0);assert.equal(aborts,1);assert.equal(closes,0);
+ assert.deepEqual(staged,[payload]);assert.deepEqual(committed,prior);
+ assert.equal(received.body.locked,false);assertReleasedDestination(snapshot);
+}
+
+test('stored native stream error during a held write preserves the distinct user abort reason',async()=>{
+ await storedErrorDuringWrite(Error('NATIVE_FETCH_STREAM_ERROR'));
+});
+
+test('stored native AbortError during a held write preserves the distinct user abort reason',async()=>{
+ await storedErrorDuringWrite(new DOMException('Native fetch aborted the body','AbortError'));
+});
+
+test('a native read rejection without a user signal preserves the original error and drains owners',async()=>{
+ const {writeDestination,snapshot}=await modules(),storedError=Error('NATIVE_READ_ERROR');
+ let nativeController,cancels=0,writes=0,aborts=0,closes=0;
+ const body=new ReadableStream({start(value){nativeController=value;value.enqueue(payload);},cancel(){cancels++;}});
+ const received=new Response(body,{headers:{etag:'"'+download.hash+'"','content-length':download.bytes}});
+ const sink={async write(bytes){writes++;assert.deepEqual(new Uint8Array(bytes),payload);nativeController.error(storedError);},async close(){closes++;},async abort(){aborts++;}};
+ const outcome=await observed(writeDestination(download,async()=>received,Promise.resolve({async createWritable(){return sink;}})));
+ assert.equal(outcome.error,storedError);assert.equal(outcome.error instanceof AggregateError,false);
+ assert.equal(writes,1);assert.equal(cancels,0);assert.equal(aborts,1);assert.equal(closes,0);
+ assert.equal(received.body.locked,false);assertReleasedDestination(snapshot);
+});
+
+async function genuineSourceCancellationFailure(sameReason){
+ const {writeDestination,snapshot}=await modules(),controller=new AbortController(),reason=Error('USER_CANCEL');
+ const cleanupFailure=sameReason?reason:new DOMException('Underlying source cancellation failed','AbortError');
+ const cancelEntered=deferred(),cancelRelease=deferred();let cancels=0,aborts=0,closes=0,writes=0;
+ const received=response({close:false,cancel(){cancels++;cancelEntered.resolve();return cancelRelease.promise;}});
+ const sink={async write(bytes){writes++;assert.deepEqual(new Uint8Array(bytes),payload);controller.abort(reason);},async close(){closes++;},async abort(){aborts++;}};
+ const result=observed(writeDestination(download,async()=>received,Promise.resolve({async createWritable(){return sink;}}),controller.signal));
+ let outcome;
+ try{
+  await cancelEntered.promise;assert.equal(controller.signal.aborted,true);assert.equal(received.body.locked,true);
+ }finally{
+  // A real underlying cancel promise rejects. The native reader's closed
+  // promise resolves on cancellation, so this is not a stored stream error.
+  cancelRelease.reject(cleanupFailure);outcome=await result;
+ }
+ assert.ok(outcome.error instanceof AggregateError);assert.equal(outcome.error.cause,reason);
+ assert.equal(outcome.error.errors.length,2);assert.equal(outcome.error.errors[0],reason);assert.equal(outcome.error.errors[1],cleanupFailure);
+ assert.equal(writes,1);assert.equal(cancels,1);assert.equal(aborts,1);assert.equal(closes,0);
+ assert.equal(received.body.locked,false);assertReleasedDestination(snapshot);
+}
+
+test('a genuine underlying cancel AbortError remains cleanup failure after user abort',async()=>{
+ await genuineSourceCancellationFailure(false);
+});
+
+test('a genuine underlying cancel rejection equal to the user reason remains cleanup failure',async()=>{
+ await genuineSourceCancellationFailure(true);
 });

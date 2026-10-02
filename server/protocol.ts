@@ -1,9 +1,12 @@
+import {CURRENT_PROJECTION_SCHEMA} from '../src/protocol/projection-schema.js';
 import {isQueueCommand} from '../src/protocol/queue.js';
 import {compositionView} from './composition-view.js';
+import {sendCompositionJSON,endCompositionResponse} from './composition-memory.js';
 import { readTextView } from './text-view.js';
 import { PortableRoutes } from './portable.js';
 import { isPortableCommand } from '../src/protocol/portable.js';
 import { isHistoryCommand } from '../src/protocol/history.js';
+import {StorageLibraryRoutes} from './storage-library.js';
 import { AssetRoutes } from './assets.js';
 import { AdapterRoutes } from './adapters.js';
 import { randomUUID } from 'node:crypto';
@@ -12,10 +15,11 @@ import { setTimeout as delay } from 'node:timers/promises';
 import type { RecoveryContext, SnapshotDescriptor, EventPage, ProtocolContentRef, CommandResult, StreamEnvelope } from '../src/protocol/recovery.js';
 import type { LocalErrorDetail } from '../src/protocol/session.js';
 import type { Writer } from './storage/writer.js';
+import { adapterResources } from './observability/adapter-resources.js';
 import type { StoredContent, StoredSnapshot } from './storage/recovery.js';
 import { StoreError } from './storage/errors.js';
 import { canonical, isId, isSeq, parseCommand, hashBytes } from './storage/canonical.js';
-import { readControlBytes, readSessionRequest, parseControlJSON } from './control-json.js';
+import { consumeControlBytes, readSessionRequest, parseControlJSON } from './control-json.js';
 import { ProtocolError } from './errors.js';
 import type { Session } from './sessions.js';
 
@@ -36,10 +40,45 @@ export function storeError(error: unknown, mutation = false): ProtocolError {
   }
   return new ProtocolError('SERVER_UNAVAILABLE', undefined, retry);
 }
+function responseEnded(response: ServerResponse) { return response.destroyed || response.closed || response.writableFinished; }
+function holdResponseResource(response: ServerResponse, release: () => void) {
+  let released = false;
+  const done = () => {
+    if (released) return;
+    released = true;
+    response.off('finish', done); response.off('close', done); response.off('error', done);
+    release();
+  };
+  if (responseEnded(response)) done();
+  else { response.once('finish', done); response.once('close', done); response.once('error', done); }
+  return done;
+}
+export function observeProtocolStream(response: ServerResponse, kind: 'content-stream' | 'sse-stream') {
+  return holdResponseResource(response, adapterResources.handle('protocol-http', kind));
+}
+/** A disconnected response must settle the consumer even if its write callback is lost. */
+export async function writeProtocolBytes(response: ServerResponse, bytes: Uint8Array) {
+  if (responseEnded(response)) return;
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    const done = (error?: unknown) => {
+      if (settled) return;
+      settled = true; response.off('close', closed); response.off('error', done);
+      if (error) reject(error); else resolve();
+    };
+    const closed = () => done(new Error('HTTP response closed'));
+    response.once('close', closed); response.once('error', done);
+    try { response.write(bytes, done); } catch (error) { done(error); }
+  });
+}
 export function sendJSON(response: ServerResponse, status: number, value: unknown) {
+  if (responseEnded(response)) return;
   const bytes = Buffer.from(canonical(value));
-  if (bytes.length > 65536) throw new ProtocolError('PAYLOAD_TOO_LARGE');
-  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': bytes.length }); response.end(bytes);
+  const done = holdResponseResource(response, adapterResources.buffer('protocol-response','json-bytes',bytes));
+  try {
+    if (bytes.length > 65536) throw new ProtocolError('PAYLOAD_TOO_LARGE');
+    response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': bytes.length }); response.end(bytes,done);
+  } catch(error) { done(); throw error; }
 }
 function sendCommandResult(response:ServerResponse,result:CommandResult) {
   if(result.kind==='pending')response.setHeader('Location',result.receiptUrl);
@@ -50,10 +89,11 @@ export class ProtocolRoutes {
   private content = new Map<string, Content>();
   private streams = 0;
   private inventories = new Map<string,{kind:string;clientId:string;sessionHash:string;epoch:string;expires:number;after:string;high:string;parent:string|null}>();
+  private storage: StorageLibraryRoutes;
   private assets: AssetRoutes;
   private adapters: AdapterRoutes;
   private portable: PortableRoutes;
-  constructor(private writer: Writer, private now: () => number) {this.assets=new AssetRoutes(writer,now);this.adapters=new AdapterRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
+  constructor(private writer: Writer, private now: () => number) {this.storage=new StorageLibraryRoutes(writer,now);this.assets=new AssetRoutes(writer,now);this.adapters=new AdapterRoutes(writer,now);this.portable=new PortableRoutes(writer,now);}
   match(path: string): { allow: string[]; kind: string; id?: string; query: string[] } | null {
     const comp=/^\/api\/v1\/(documents|ui)\/([^/]+)\/composition$/.exec(path);
     if(comp){if(!isId(comp[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:comp[1]==='documents'?'composition-view':'composition-draft-view',id:comp[2],query:['revision','draftId','generation','raw','offset','download']};}
@@ -68,12 +108,17 @@ export class ProtocolRoutes {
     const native=/^\/api\/v1\/(documents|ui)\/([^/]+)\/text$/.exec(path);
     if(native){if(!isId(native[2]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['GET'],kind:native[1]==='documents'?'text-view':'text-draft-view',id:native[2],query:native[1]==='documents'?['layerId','revision','content']:['draftId','generation','content']};}
     const text=/^\/api\/v1\/text-admission\/([^/]+)(\/release)?$/.exec(path);if(text){if(!isId(text[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:text[2]?'text-release':'text-admission',id:text[1],query:[]};}
+    const storage=this.storage.match(path);if(storage)return storage;
     const portable=this.portable.match(path);if(portable)return portable;
     const adapter=this.adapters.match(path);if(adapter)return adapter;
     const asset=this.assets.match(path);if(asset)return asset;
     if (path === PREFIX + 'commands') return { allow: ['POST'], kind: 'submit', query: [] };
     if(path===PREFIX+'ui')return {allow:['GET'],kind:'ui-inventory',query:['cursor']};
     if(path===PREFIX+'commands/pending')return {allow:['GET'],kind:'command-inventory',query:['cursor']};
+    const cancelCandidateReview=/^\/api\/v1\/commands\/([^/]+)\/cancel-candidate-review$/.exec(path);
+    if(cancelCandidateReview){if(!isId(cancelCandidateReview[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:'cancel-candidate-review',id:cancelCandidateReview[1],query:[]};}
+    const cancelImport=/^\/api\/v1\/commands\/([^/]+)\/cancel-raster-import$/.exec(path);
+    if(cancelImport){if(!isId(cancelImport[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:'cancel-raster-import',id:cancelImport[1],query:[]};}
     const cancelExport=/^\/api\/v1\/commands\/([^/]+)\/cancel-export$/.exec(path);
     if(cancelExport){if(!isId(cancelExport[1]))throw new ProtocolError('MALFORMED_REQUEST');return {allow:['POST'],kind:'cancel-export',id:cancelExport[1],query:[]};}
     const original=/^\/api\/v1\/commands\/([^/]+)\/original$/.exec(path);
@@ -147,7 +192,7 @@ export class ProtocolRoutes {
       if (inside) throw new ProtocolError('CURSOR_INSIDE_TRANSACTION', { kind: 'cursor', requestedAfter: after, transactionFrom: inside.fromSeq, transactionTo: inside.toSeq }, 'read-or-transfer');
       const expires = Math.min(this.now() + IDLE, session.expires);
       lease = { clientId: session.clientId, sessionHash: session.cookieHash, expires, absolute: session.expires, start: after, snapshot: captured.snapshot, released: false,
-        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: 8, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
+        context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch, projectionSchema: CURRENT_PROJECTION_SCHEMA, highWater: captured.highWater, expiresAt: new Date(expires).toISOString() } };
       if (BigInt(captured.highWater) - BigInt(captured.snapshot?.seq ?? '0') > 500n) throw new ProtocolError('RECOVERY_UNAVAILABLE', undefined, 'read-or-transfer');
       this.leases.set(lease.context.recoveryId, lease);
       if (captured.snapshot && BigInt(after) < BigInt(captured.snapshot.seq)) {
@@ -179,9 +224,12 @@ export class ProtocolRoutes {
     if (record.command.clientId !== session.clientId) throw new ProtocolError('OWNER_REQUIRED');
     const result: CommandResult = { protocolVersion: 1, kind: 'receipt', receipt: record.receipt };
     if (record.receipt.status === 'rejected') {
-      const bytes = await this.writer.readMetadata(record.receipt.details);
-      const detail = parseControlJSON(bytes) as LocalErrorDetail;
-      if (detail.kind !== 'fields' || canonical(detail) !== Buffer.from(bytes).toString() || hashBytes(bytes) !== record.receipt.details.hash) throw new ProtocolError('RECOVERY_UNAVAILABLE');
+      const detailRef=record.receipt.details;
+      const detail = await this.writer.consumeMetadata(detailRef,bytes=>{
+        const value=parseControlJSON(bytes) as LocalErrorDetail;
+        if(value.kind!=='fields'||canonical(value)!==Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength).toString()||hashBytes(bytes)!==detailRef.hash)throw new ProtocolError('RECOVERY_UNAVAILABLE');
+        return value;
+      });
       result.rejectionDetails = { kind: 'inline', value: detail };
       if (Buffer.byteLength(canonical(result)) > 65536) result.rejectionDetails = { kind: 'content-ref', content: await this.register(await this.writer.safeJSON('receipt', id), session) };
     }
@@ -200,7 +248,7 @@ export class ProtocolRoutes {
     const lease: Lease = { clientId: session.clientId, sessionHash: session.cookieHash,
       expires, absolute: session.expires, start, snapshot: null, released: false,
       context: { recoveryId: randomUUID(), writerEpoch: this.writer.epoch,
-        projectionSchema: 8, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
+        projectionSchema: CURRENT_PROJECTION_SCHEMA, highWater: receipt.toSeq, expiresAt: new Date(expires).toISOString() } };
     this.leases.set(lease.context.recoveryId, lease);
     try {
       const page = await this.page(start, lease.context.recoveryId, session);
@@ -218,7 +266,7 @@ export class ProtocolRoutes {
       if(route.kind==='candidate-history'){const view=await this.writer.candidateHistory(route.id!,new URL(request.url!,'http://local').searchParams.get('after')??'');authenticate();sendJSON(response,200,view);return;}
       if(route.kind==='candidates'){
         const attempt=params.get('attempt')??undefined,prompt=params.get('prompt');
-        if(prompt){if(!attempt||!['requested','submitted','returned'].includes(prompt))throw new StoreError('MALFORMED_REQUEST');const page=await this.writer.candidatePrompt(route.id!,attempt,prompt as 'requested'|'submitted'|'returned',params.get('offset')??'0');authenticate();sendJSON(response,200,{...page,bytes:Buffer.from(page.bytes).toString('base64')});}
+        if(prompt){if(!attempt||!['requested','submitted','returned','text-treatment'].includes(prompt))throw new StoreError('MALFORMED_REQUEST');const page=await this.writer.candidatePrompt(route.id!,attempt,prompt as 'requested'|'submitted'|'returned'|'text-treatment',params.get('offset')??'0');try{authenticate();sendJSON(response,200,{...page,bytes:Buffer.from(page.bytes.buffer,page.bytes.byteOffset,page.bytes.byteLength).toString('base64')});}finally{this.writer.releaseResourceBytes(page.bytes);}}
         else{const view=await this.writer.candidateView(route.id!,attempt,params.get('after')??'');authenticate();sendJSON(response,200,view);}
       }
       else if(route.kind==='deletions'){const view=await this.writer.deletionList(params.get('after')??'');authenticate();sendJSON(response,200,view);}
@@ -228,15 +276,17 @@ export class ProtocolRoutes {
       else if(route.kind==='composition-view'||route.kind==='composition-draft-view'){
         const draft=route.kind==='composition-draft-view',revision=params.get('revision')??'',draftId=params.get('draftId'),generation=params.get('generation');
         if(draft?(!draftId||!isId(draftId)||!generation||!isSeq(generation)):!isSeq(revision))throw new ProtocolError('MALFORMED_REQUEST');
-        const value=await compositionView(this.writer,id,revision,this.assets.auth(session),draft?draftId:null,generation);authenticate();
-        if(!params.has('raw'))sendJSON(response,200,value.data);
+        const value=await compositionView(this.writer,id,revision,this.assets.auth(session),draft?draftId:null,generation,()=>{if(response.destroyed)throw new StoreError('CLOSED');authenticate();});try{authenticate();
+        if(!params.has('raw'))await sendCompositionJSON(response,value.data,value.limit,value.read,async()=>{await assertRoot();authenticate();await value.check();authenticate();});
         else{const index=params.get('raw')!,offset=params.get('offset')??'0';if(!isSeq(index)||!isSeq(offset)||Number(index)>=value.raw.length)throw new ProtocolError('MALFORMED_REQUEST');const ref=value.raw[Number(index)];if(BigInt(offset)>BigInt(ref.byteLength))throw new ProtocolError('MALFORMED_REQUEST');const download=params.get('download')==='1';if(params.has('download')&&!download)throw new ProtocolError('MALFORMED_REQUEST');
           if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
-          let handle:string|undefined;try{handle=await this.writer.openTextContent(ref);authenticate();const remaining=BigInt(ref.byteLength)-BigInt(offset),length=download?remaining:remaining>32768n?32768n:remaining;
+          const releaseResponse=observeProtocolStream(response,'content-stream');
+          let handle:string|undefined;try{handle=await value.read.openContent(ref);await value.check();authenticate();const remaining=BigInt(ref.byteLength)-BigInt(offset),length=download?remaining:remaining>32768n?32768n:remaining;
             response.writeHead(200,{'Content-Type':'application/octet-stream','Content-Disposition':'attachment; filename="caption-original.bin"','Content-Length':String(length),ETag:'"'+ref.hash+'"','Cache-Control':'no-store','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff'});
-            for(let at=BigInt(offset);at<BigInt(offset)+length;){await assertRoot();authenticate();if(response.destroyed)return;const n=Number(BigInt(offset)+length-at>32768n?32768n:BigInt(offset)+length-at),bytes=await this.writer.content(handle,String(at),n);await new Promise<void>((resolve,reject)=>response.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}response.end();
-          }finally{this.streams--;if(handle)await this.writer.dropContent(handle);}
+            for(let at=BigInt(offset);at<BigInt(offset)+length;){await assertRoot();authenticate();if(response.destroyed)return;const n=Number(BigInt(offset)+length-at>32768n?32768n:BigInt(offset)+length-at),bytes=await this.writer.content(handle,String(at),n);try{await writeProtocolBytes(response,bytes);}finally{this.writer.releaseResourceBytes(bytes);}at+=BigInt(n);}await endCompositionResponse(response);
+          }catch(error){releaseResponse();throw error;}finally{this.streams--;if(handle)await value.read.dropContent(handle);}
         }
+        }finally{await value.read.release();}
       }
       else if(route.kind==='text-view'||route.kind==='text-draft-view'||route.kind==='request-draft-view'){
         const target=params.get(route.kind==='text-view'?'layerId':'draftId'),revision=route.kind==='text-view'?params.get('revision'):null;
@@ -249,20 +299,29 @@ export class ProtocolRoutes {
           if(value.draft&&params.get('generation')!==value.draft.generation)throw new ProtocolError('READ_CONTEXT_EXPIRED');
           const ref=value.source?value.source.text.textUtf8:value.textUtf8!;
           if(this.streams>=16)throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');this.streams++;
+          const releaseResponse=observeProtocolStream(response,'content-stream');
           let handle:string|undefined;
           try{handle=await this.writer.openTextContent(ref);authenticate();
             response.writeHead(200,{'Content-Type':'text/plain; charset=utf-8','Content-Length':ref.byteLength,ETag:'"'+ref.hash+'"','Cache-Control':'no-store','Content-Security-Policy':"sandbox; default-src 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff'});
-            for(let at=0n;at<BigInt(ref.byteLength);){await assertRoot();authenticate();if(response.destroyed)return;const n=Number(BigInt(ref.byteLength)-at>32768n?32768n:BigInt(ref.byteLength)-at),bytes=await this.writer.content(handle,String(at),n);authenticate();await new Promise<void>((resolve,reject)=>response.write(bytes,e=>e?reject(e):resolve()));at+=BigInt(n);}response.end();
-          }finally{if(handle)await this.writer.dropContent(handle);this.streams--;}
+            for(let at=0n;at<BigInt(ref.byteLength);){await assertRoot();authenticate();if(response.destroyed)return;const n=Number(BigInt(ref.byteLength)-at>32768n?32768n:BigInt(ref.byteLength)-at),bytes=await this.writer.content(handle,String(at),n);try{authenticate();await writeProtocolBytes(response,bytes);}finally{this.writer.releaseResourceBytes(bytes);}at+=BigInt(n);}response.end();
+          }catch(error){releaseResponse();throw error;}finally{if(handle)await this.writer.dropContent(handle);this.streams--;}
         }
       }
-      else if(route.kind==='text-admission'||route.kind==='text-release'){const value=parseControlJSON(await readControlBytes(request)) as any;if(value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const current=authenticate();sendJSON(response,200,await this.writer.textAdmission(id,this.assets.auth(current),route.kind==='text-release')??{released:true});}
+      else if(route.kind==='text-admission'||route.kind==='text-release'){const value=await consumeControlBytes(request,bytes=>parseControlJSON(bytes)) as any;if(value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();const current=authenticate();sendJSON(response,200,await this.writer.textAdmission(id,this.assets.auth(current),route.kind==='text-release')??{released:true});}
+      else if(route.kind==='cancel-candidate-review'){
+        const value=await consumeControlBytes(request,bytes=>parseControlJSON(bytes));if(value.protocolVersion!==1||value.commandId!==id||Object.keys(value).length!==2)throw new ProtocolError('MALFORMED_REQUEST');
+        await assertRoot();const result=await this.writer.cancelCandidateReview(id,this.assets.auth(authenticate()));authenticate();sendJSON(response,200,result);
+      }
+      else if(route.kind==='cancel-raster-import'){
+        const value=await consumeControlBytes(request,bytes=>parseControlJSON(bytes)) as any;if(!value||value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');
+        await assertRoot();const result=await this.writer.cancelRasterImport(id,this.assets.auth(authenticate()));authenticate();sendJSON(response,200,result);
+      }
       else if(route.kind==='cancel-export'){
-        const value=parseControlJSON(await readControlBytes(request)) as any;if(!value||value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');
+        const value=await consumeControlBytes(request,bytes=>parseControlJSON(bytes)) as any;if(!value||value.protocolVersion!==1||Object.keys(value).length!==1)throw new ProtocolError('MALFORMED_REQUEST');
         await assertRoot();const result=await this.writer.cancelExport(id,this.assets.auth(authenticate()));authenticate();sendJSON(response,200,result);
       }
       else if (route.kind === 'submit'||route.kind==='asset-finalize') {
-        const bytes = await readControlBytes(request); await assertRoot(); const current = authenticate();
+        const submitted=await consumeControlBytes(request,async bytes=>{await assertRoot(); const current = authenticate();
         const command = parseCommand(bytes).command;
         if (command.clientId !== current.clientId) throw new ProtocolError('OWNER_REQUIRED');
         // sessionId is original provenance, never an authentication credential.
@@ -274,10 +333,12 @@ export class ProtocolRoutes {
         else if(isQueueCommand(command.body.type))await this.writer.queueCommand(bytes,this.assets.auth(current));
         else if(isPortableCommand(command.body.type))await this.writer.portableCommand(bytes,this.assets.auth(current));
         else if('stagingId' in command.body)await this.writer.assetCommand(bytes,this.assets.auth(current));
-        else if(['PrepareMask','PrepareRequestMask','PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
+        else if(['InspectRasterOriginal','PrepareV45EditInputs','PrepareMask','PrepareRequestMask','PrepareRaster','ReviewRaster','ApproveRaster','ComposeRaster','ExportRaster'].includes(command.body.type))await this.writer.rasterCommand(bytes,this.assets.auth(current));
         else if(isHistoryCommand(command.body.type)&&(command.body.type!=='SaveCheckpoint'||(await this.writer.document(command.documentId!))?.image))await this.writer.historyCommand(bytes,this.assets.auth(current));
         else await this.writer.submit(bytes,this.writer.epoch);
-        authenticate();const result=await this.commandResult(command.commandId,current);sendCommandResult(response,result);
+        return {commandId:command.commandId,current};});
+        authenticate();const result=await this.commandResult(submitted.commandId,submitted.current);sendCommandResult(response,result);
+      } else if(route.kind.startsWith('storage-')){await this.storage.handle(request,response,route,params,authenticate,assertRoot);
       } else if(route.kind.startsWith('adapter-')){await this.adapters.handle(request,response,route,params,authenticate,assertRoot);
       } else if(['bundle','bundle-review','bundle-mapping','bundle-content','portable-inventory'].includes(route.kind)){await this.portable.handle(request,response,route,params,authenticate,assertRoot);
       } else if(route.kind==='image-previews'||route.kind==='image-edit-reviews'){
@@ -285,7 +346,7 @@ export class ProtocolRoutes {
       } else if(route.kind==='request-reviews'){const result=await this.writer.requestReviews(id,this.assets.auth(session));authenticate();sendJSON(response,200,{items:result});
       } else if(route.kind==='ui'){
         let result;
-        if(request.method==='POST'){const bytes=await readControlBytes(request);const value=parseControlJSON(bytes) as any;if(value?.sessionId!==id)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();result=await this.writer.uiPersist(bytes,this.assets.auth(authenticate()));}
+        if(request.method==='POST'){result=await consumeControlBytes(request,async bytes=>{const value=parseControlJSON(bytes) as any;if(value?.sessionId!==id)throw new ProtocolError('MALFORMED_REQUEST');await assertRoot();return this.writer.uiPersist(bytes,this.assets.auth(authenticate()));});}
         else result=await this.writer.uiRead(id,this.assets.auth(session));
         authenticate();sendJSON(response,200,result);
       } else if(route.kind.startsWith('document-')){
@@ -306,7 +367,7 @@ export class ProtocolRoutes {
       } else if(route.kind==='command-original') {
         const original=await this.writer.originalCommand(id,session.clientId);authenticate();
         if(original===null)sendCommandResult(response,{protocolVersion:1,kind:'unknown',commandId:id});
-        else {const bytes=Buffer.from(original);if(bytes.length>65536)throw new ProtocolError('PAYLOAD_TOO_LARGE');response.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Content-Length':bytes.length});response.end(bytes);}
+        else {if(responseEnded(response))return;const bytes=Buffer.from(original),done=holdResponseResource(response,adapterResources.buffer('protocol-response','command-bytes',bytes));try{if(bytes.length>65536)throw new ProtocolError('PAYLOAD_TOO_LARGE');response.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Content-Length':bytes.length});response.end(bytes,done);}catch(error){done();throw error;}}
       } else if (route.kind === 'command-result') {
         const result = await this.commandEvents(id, session); authenticate();
         if (result.kind === 'batches') sendJSON(response, 200, result);
@@ -353,6 +414,8 @@ export class ProtocolRoutes {
     } catch (error) { throw storeError(error, request.method === 'POST'); }
   }
   private async readContent(request: IncomingMessage, response: ServerResponse, id: string, recoveryId: string | null, authenticate: () => Session, assertRoot: () => Promise<void>) {
+    const releaseResponse=observeProtocolStream(response,'content-stream');
+    try {
     const item = this.content.get(id); if (!item) { if (recoveryId) this.lease(recoveryId,authenticate()); throw new ProtocolError('NOT_FOUND'); }
     const check = () => {
       const session = authenticate();
@@ -379,27 +442,33 @@ export class ProtocolRoutes {
     for (let at = start; at <= end;) {
       await assertRoot(); check();
       const n = Number(end - at + 1n > 32768n ? 32768n : end - at + 1n);
-      const bytes = await this.writer.content(item.stored.handle,String(at),n); check();
-      if (response.destroyed) return;
-      await new Promise<void>((resolve,reject) => response.write(bytes, error => error ? reject(error) : resolve())); at += BigInt(n);
+      const bytes = await this.writer.content(item.stored.handle,String(at),n);
+      try{check();if(response.destroyed)return;await writeProtocolBytes(response,bytes);}
+      finally{this.writer.releaseResourceBytes(bytes);}at+=BigInt(n);
       item.expires = Math.min(this.now()+IDLE,item.absolute); if (lease) this.touch(lease);
     }
     response.end();
+    } catch(error) { releaseResponse(); throw error; }
   }
   private async stream(request: IncomingMessage, response: ServerResponse, after: string, authenticate: () => Session, assertRoot: () => Promise<void>) {
     if (!isSeq(after)) throw new ProtocolError('MALFORMED_REQUEST');
     if (this.streams >= 16) throw new ProtocolError('LOCAL_BUSY',undefined,'read-or-transfer');
     let page = await this.page(after,null,authenticate()); authenticate();
-    this.streams++; response.writeHead(200,{ 'Content-Type':'text/event-stream; charset=utf-8' }); request.setTimeout(0); response.flushHeaders();
+    const releaseResponse=observeProtocolStream(response,'sse-stream');
+    this.streams++;
+    try { response.writeHead(200,{ 'Content-Type':'text/event-stream; charset=utf-8' }); request.setTimeout(0); response.flushHeaders(); }
+    catch(error) { this.streams--; releaseResponse(); throw error; }
     const send = async (body: StreamEnvelope, id?: string) => {
       const text = canonical(body); if (Buffer.byteLength(text) > 65536) throw new ProtocolError('PAYLOAD_TOO_LARGE');
-      await new Promise<void>((resolve,reject) => response.write((id ? `id: ${id}\n` : '') + `data: ${text}\n\n`,e=>e?reject(e):resolve()));
+      if(responseEnded(response))return;
+      const bytes=Buffer.from((id ? `id: ${id}\n` : '') + `data: ${text}\n\n`),release=holdResponseResource(response,adapterResources.buffer('protocol-response','sse-bytes',bytes));
+      try{await writeProtocolBytes(response,bytes);}finally{release();}
     };
     try {
       while (!response.destroyed) {
         for (const batch of page.batches) {
           authenticate();
-          if (batch.kind === 'inline') await send({ protocolVersion:1,kind:'batch-part',transactionId:batch.transactionId,fromSeq:batch.fromSeq,toSeq:batch.toSeq,partIndex:0,partCount:1,events:batch.events }, batch.toSeq);
+          if (batch.kind === 'inline') await send({ protocolVersion:1,kind:'batch-part',projectionSchema:CURRENT_PROJECTION_SCHEMA,transactionId:batch.transactionId,fromSeq:batch.fromSeq,toSeq:batch.toSeq,partIndex:0,partCount:1,events:batch.events }, batch.toSeq);
           else await send({ protocolVersion:1,kind:'transaction-ref',reference:batch },batch.toSeq);
           after = batch.toSeq;
         }

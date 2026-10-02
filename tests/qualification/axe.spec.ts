@@ -1,3 +1,4 @@
+import {confirmImageImports} from '../editor/image-import-flow.js';
 import {expect,type Page} from '@playwright/test';
 import {test,out} from '../browser/spectrum-fixture.js';
 import {axeEvidence} from './axe.js';
@@ -58,8 +59,11 @@ test('AX01 pinned whole-document scans of public editor states',async({smoke:{pa
   await page.getByRole('radio',{name:'Plain prompt',exact:true}).check();
 
   await click(page,'Import image');await page.getByLabel('Image file',{exact:true}).setInputFiles('tests/raster/fixtures/hidden-alpha.png');
-  await expect(page.getByRole('dialog',{name:'Review image conversion',exact:true})).toBeVisible();await scan('image-conversion-review');
-  await click(page,'Apply reviewed result');await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();
+  const importDialog=page.getByRole('dialog',{name:'Import image',exact:true});await expect(importDialog).toBeVisible();
+  const importContent=page.locator('#editor-dialog');
+  await expect(importContent.getByRole('img',{name:'Conversion preview: hidden-alpha.png',exact:true})).toBeVisible();
+  const importChoice=importContent.getByRole('switch',{name:'Import hidden-alpha.png',exact:true});await expect(importChoice).toBeEnabled();await expect(importChoice).not.toBeChecked();await scan('image-conversion-review');
+  await confirmImageImports(page,{names:['hidden-alpha.png'],destination:'current'});await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();
   await step('open-layer-mask-review',async()=>{
     await click(page,'Select');await number(page,'Selection X','1');await number(page,'Selection Y','0');await number(page,'Selection width','1');await number(page,'Selection height','2');
     await click(page,'Apply selection');await click(page,'Use selection as mask');await number(page,'Feather radius (document px)','0');await click(page,'Preview mask');
@@ -78,7 +82,7 @@ test('AX01 pinned whole-document scans of public editor states',async({smoke:{pa
     await click(page,'Review current request document');await click(page,'Review exact request');await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();
   },20_000);
   await scan('masked-request-review');await click(page,'Close request review');
-  await click(page,'Save copy');await expect(page.getByRole('dialog',{name:'Full-history portable copy',exact:true})).toBeVisible();await scan('portable-copy-dialog');await page.keyboard.press('Escape');
+  await click(page,'Save copy');await expect(page.getByRole('dialog',{name:'Save project copy',exact:true})).toBeVisible();await scan('portable-copy-dialog');await page.keyboard.press('Escape');
   await page.getByRole('tab',{name:'Jobs',exact:true}).click();await expect(page.getByRole('tab',{name:'Jobs',exact:true})).toHaveAttribute('aria-selected','true');await scan('empty-jobs');
   await page.getByRole('tab',{name:'Results',exact:true}).click();await expect(page.getByRole('tab',{name:'Results',exact:true})).toHaveAttribute('aria-selected','true');await scan('empty-results');
   await prompt.focus();await page.setViewportSize({width:320,height:900});await expect(prompt).toBeVisible();await scan('request-320css');

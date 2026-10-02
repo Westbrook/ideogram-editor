@@ -9,6 +9,19 @@ test('Density changes real geometry, preserves focus and draft selection, and su
   const draft = 'Density keeps this unapplied draft: 日本語 שלום\nsecond line';
   await step('comfortable-default', () => expect(density).toHaveValue('comfortable'));
   await step('full-theme-default', () => expect(root).toHaveAttribute('data-en-theme', 'spectrum-inspired-comfortable'));
+  await step('document-for-draft', async () => {
+    await page.getByRole('button', {name: 'New', exact: true}).click();
+    const dialog = page.getByRole('dialog', {name: 'New document', exact: true});
+    await expect(dialog).toBeVisible();
+    // Slotted form controls belong to the public host, outside its native dialog.
+    const controls = page.locator('en-dialog#editor-dialog');
+    for (const [name, value] of [['Width (px)', '128'], ['Height (px)', '96']]) {
+      const field = controls.getByRole('spinbutton', {name, exact: true});
+      await field.fill(value); await field.press('Tab');
+    }
+    await controls.getByRole('button', {name: 'Create', exact: true}).click();
+    await expect(dialog).toBeHidden(); await expect(prompt).toBeEditable();
+  });
   await step('draft', () => prompt.fill(draft));
   await step('draft-selection', () => prompt.evaluate(node => (node as HTMLTextAreaElement).setSelectionRange(2, 11, 'backward')));
   const originalPrompt = await prompt.elementHandle();

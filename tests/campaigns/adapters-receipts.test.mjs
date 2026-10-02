@@ -101,14 +101,14 @@ test('unobserved adapter semantics and release duration remain inconclusive whil
   assert.equal(result.phases, phases); assert.equal(result.childPhases, childPhases);
   assert.equal(adapterLifecycleResult({ phases, childPhases, assertions: { selectionRestored: false } }).status, 'fail');
   assert.equal(adapterLifecycleResult({ phases: [{ ...phases[0], outcome: 'failed' }], childPhases, assertions: observedAssertions(), releaseMs: 1 }).status, 'fail');
-  assert.equal(adapterLifecycleResult({ phases, childPhases, selectedEntries: entries, weightsIdentity: ref('a').hash, configIdentity: ref('b').hash, assertions: observedAssertions(), releaseMs: 0 }).status, 'pass');
+  assert.equal(adapterLifecycleResult({ phases, childPhases, selectedEntries: [entries[0]], observations: { importedBinding: entries[0] }, weightsIdentity: ref('a').hash, configIdentity: ref('b').hash, assertions: observedAssertions(), releaseMs: 0 }).status, 'pass');
   assert.equal(adapterLifecycleResult({ phases, childPhases, assertions: observedAssertions(), releaseMs: 1, missing: ['Full fixture closure remains unobserved.'] }).status, 'inconclusive');
   assert.throws(() => adapterLifecycleResult({ phases, childPhases, assertions: { selectionRestored: 'assumed' } }), /observed true\/false or unknown null/);
 });
 
 test('adapter lifecycle cannot pass with missing or invalid parent clocks, fixed identities, selection, or release evidence', async () => {
   const complete = { phases: await observedPhases(), childPhases: [], selectedEntries: [selected()],
-    weightsIdentity: ref('a').hash, configIdentity: ref('b').hash, assertions: observedAssertions(), releaseMs: 1 };
+    observations: { importedBinding: selected() }, weightsIdentity: ref('a').hash, configIdentity: ref('b').hash, assertions: observedAssertions(), releaseMs: 1 };
   assert.equal(adapterLifecycleResult(complete).status, 'pass');
   for (const mutate of [
     input => { input.phases = []; },
@@ -120,7 +120,6 @@ test('adapter lifecycle cannot pass with missing or invalid parent clocks, fixed
     input => { input.phases[1].startMs = input.phases[0].endMs - 1; },
     input => { input.phases[0].endMs = input.phases[0].startMs - 1; },
     input => { input.selectedEntries = []; },
-    input => { input.selectedEntries = [1, 2, 3, 4].map(value => selected('version-' + value, String(value))); },
     input => { input.weightsIdentity = null; },
     input => { input.configIdentity = hash('b'); },
     input => { input.releaseMs = null; },
@@ -132,6 +131,8 @@ test('adapter lifecycle cannot pass with missing or invalid parent clocks, fixed
     const result = adapterLifecycleResult(input);
     assert.equal(result.status, 'inconclusive'); assert(result.missing.length > 0);
   }
+  const crossed = structuredClone(complete); crossed.selectedEntries = [1, 2, 3, 4].map(value => selected('version-' + value, String(value)));
+  assert.equal(adapterLifecycleResult(crossed).status, 'fail', 'An overlarge selection of known different versions also contradicts the single imported binding');
 });
 
 function binding(job = 'AC1') {

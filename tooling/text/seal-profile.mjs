@@ -19,7 +19,29 @@ profile.sourceRecipe=[];
 // Retain the last stable-frame streamed renderer before the ownership change.
 const ownershipPriorPath='src/text/retained-profiles/4fd6f6a1.json',ownershipPriorBytes=await readFile(ownershipPriorPath);
 profile.sourceRecipe.push({path:ownershipPriorPath,bytes:ownershipPriorBytes.length,sha256:sha(ownershipPriorBytes)});
-for(const path of ['tooling/text/source-closure.json','tooling/text/configure-source.py','tooling/text/canvaskit-source.patch','tooling/text/rebuild.py','tooling/text/MEMORY.txt','server/static.ts','server/http.ts','server/storage/text.ts','server/text/font.ts','server/text/worker.ts','server/text/supervisor.ts','server/text/validation.ts','server/text/render-worker.mjs','tests/text-state/verifier.vite.config.ts','tooling/text/verifier.vite.config.ts','src/protocol/text-budget.ts','src/observability/phases.ts','src/observability/browser-worker-observations.ts','src/text/retained-profiles/b89503d3.json','src/protocol/text.ts','src/text/retained-profiles/c19791ae.json','src/text/retained-profiles/6e8a481e.json','src/text/retained-profiles/d047f5be.json','src/text/retained-profiles/304528c9.json','src/text/retained-profiles/ff24a513.json','src/text/retained-profiles/f5e8bd34.json','src/text/retained-profiles/7a4dbc6c.json']){
+// Preserve the exact renderer manifest used before the integrated source reseal.
+// Core and verification keep its normalized frame bytes and streaming budget.
+const integrationPriorPath='src/text/retained-profiles/68efa85f.json',integrationPriorBytes=await readFile(integrationPriorPath);
+profile.sourceRecipe.push({path:integrationPriorPath,bytes:integrationPriorBytes.length,sha256:sha(integrationPriorBytes)});
+// Preserve the streamed renderer before the combined CPU observer source change.
+const combinedCPUPriorPath='src/text/retained-profiles/6d77f925.json',combinedCPUPriorBytes=await readFile(combinedCPUPriorPath);
+profile.sourceRecipe.push({path:combinedCPUPriorPath,bytes:combinedCPUPriorBytes.length,sha256:sha(combinedCPUPriorBytes)});
+// Preserve the stable streamed renderer before complete adapter ownership hooks.
+const adapterOwnershipPriorPath='src/text/retained-profiles/c6ca02c2.json',adapterOwnershipPriorBytes=await readFile(adapterOwnershipPriorPath);
+profile.sourceRecipe.push({path:adapterOwnershipPriorPath,bytes:adapterOwnershipPriorBytes.length,sha256:sha(adapterOwnershipPriorBytes)});
+// Preserve the stable streamed renderer before local JSON response framing changes.
+const httpFramingPriorPath='src/text/retained-profiles/1c399d52.json',httpFramingPriorBytes=await readFile(httpFramingPriorPath);
+profile.sourceRecipe.push({path:httpFramingPriorPath,bytes:httpFramingPriorBytes.length,sha256:sha(httpFramingPriorBytes)});
+// Preserve the stable streamed renderer before deferring exact manifest loading.
+const deferredManifestPriorPath='src/text/retained-profiles/e648eede.json',deferredManifestPriorBytes=await readFile(deferredManifestPriorPath);
+profile.sourceRecipe.push({path:deferredManifestPriorPath,bytes:deferredManifestPriorBytes.length,sha256:sha(deferredManifestPriorBytes)});
+// Preserve the stable streamed renderer before selecting startup profile fields.
+const startupProfilePriorPath='src/text/retained-profiles/891a4688.json',startupProfilePriorBytes=await readFile(startupProfilePriorPath);
+profile.sourceRecipe.push({path:startupProfilePriorPath,bytes:startupProfilePriorBytes.length,sha256:sha(startupProfilePriorBytes)});
+// Retain the exact profile before eager reservation-source binding and R35 observation.
+const textResourcesPriorPath='src/text/retained-profiles/b96236b0.json',textResourcesPriorBytes=await readFile(textResourcesPriorPath);
+profile.sourceRecipe.push({path:textResourcesPriorPath,bytes:textResourcesPriorBytes.length,sha256:sha(textResourcesPriorBytes)});
+for(const path of ['src/observability/diagnostic-memory.ts','tooling/text/source-closure.json','tooling/text/configure-source.py','tooling/text/canvaskit-source.patch','tooling/text/rebuild.py','tooling/text/MEMORY.txt','server/static.ts','server/http.ts','server/storage/text.ts','server/text/font.ts','server/text/worker.ts','server/text/supervisor.ts','server/observability/adapter-resources.ts','server/text/validation.ts','server/text/render-worker.mjs','tests/text-state/verifier.vite.config.ts','tooling/text/verifier.vite.config.ts','src/protocol/text-budget.ts','src/observability/phases.ts','src/observability/browser-worker-observations.ts','src/text/retained-profiles/b89503d3.json','src/protocol/text.ts','src/text/retained-profiles/c19791ae.json','src/text/retained-profiles/6e8a481e.json','src/text/retained-profiles/d047f5be.json','src/text/retained-profiles/304528c9.json','src/text/retained-profiles/ff24a513.json','src/text/retained-profiles/f5e8bd34.json','src/text/retained-profiles/7a4dbc6c.json']){
   const b=await readFile(path);profile.sourceRecipe.push({path,bytes:b.length,sha256:sha(b)});
 }
 profile.notices=[];

@@ -1,3 +1,4 @@
+import {CURRENT_PROJECTION_SCHEMA,supportsProjectionSchema,projectionEntity} from '../../src/protocol/projection-schema.js';
 import { createHash, randomUUID } from 'node:crypto';
 import {serverPhases} from '../observability/phases.js';
 import type {PhaseSpan,PhaseContext} from '../../src/observability/phases.js';
@@ -12,14 +13,18 @@ import { dirname } from 'node:path';
 import { IO_CHUNK } from './objects.js';
 import type { Barrier } from './objects.js';
 import { namespaceDigest } from './portable.js';
+import {adapterResources} from '../observability/adapter-resources.js';
 
 export type StoredContent = { handle: string; blob: BlobRef; encoding: 'lp1-json' | 'lp1-events-jsonl' | 'lp1-snapshot-jsonl' | 'lp1-namespace-jsonl'; recordCount: string };
 export type StoredSnapshot = { id: string; seq: string; content: Omit<StoredContent, 'handle'> };
 const order = 'ORDER BY length(seq),seq';
 export class RecoveryStore {
+  resourceOwnership(){return {readers:this.handles.size,maintenance:!!this.maintenance,maintenanceReaders:this.maintenanceReaders};}
   private handles = new Map<string, BlobRef>();
+  private readerCoverage = new Map<string, ()=>void>();
   private verified: { snapshot: StoredSnapshot | null; stamp: string; dataVersion: unknown } | undefined;
   private maintenance: Promise<void> | undefined;
+  private maintenanceReaders=0;
   snapshotBuildMs = 0;
   snapshotSliceMaxMs = 0;
   snapshotActivationMs = 0;
@@ -37,7 +42,7 @@ export class RecoveryStore {
   }
   private *snapshotRows(id: string, seq: string, db = this.db): Generator<Buffer> {
     const count = db.prepare('SELECT (SELECT count(*) FROM assets)+(SELECT count(*) FROM documents)+(SELECT count(*) FROM history)+(SELECT count(*) FROM checkpoints) AS n').get()!.n;
-    yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: 8, entityCount: String(count) }) + '\n');
+    yield Buffer.from(canonical({ kind: 'header', snapshotId: id, snapshotSeq: seq, projectionSchema: CURRENT_PROJECTION_SCHEMA, entityCount: String(count) }) + '\n');
     for (const entity of this.entities(db)) {
       // Current narrow projections are individually bounded by the event budget.
       // The wire remains part-based so consumers do not depend on that bound.
@@ -55,6 +60,7 @@ export class RecoveryStore {
     }
   }
   private storeRows(rows: () => Iterable<Buffer>, encoding: StoredContent['encoding']): Omit<StoredContent, 'handle'> {
+    const releaseCoverage=adapterResources.uncovered('recovery-content-build');try{
     let length = 0n; let count = 0n;
     for (const bytes of rows()) { length += BigInt(bytes.length); count++; }
     const id = this.objects.begin(String(length), encoding === 'lp1-json' ? 'application/json' : 'application/x-ndjson');
@@ -62,6 +68,7 @@ export class RecoveryStore {
       for (const bytes of rows()) this.objects.chunk(id, bytes);
       return { blob: this.objects.finish(id), encoding, recordCount: String(count) };
     } finally { this.objects.abort(id); }
+    }finally{releaseCoverage();}
   }
   private projectionHash(): string {
     const hash = createHash('sha256'); for (const e of this.entities()) hash.update(canonical({ type: e.type, id: e.id, version: e.version, text: e.text }) + '\n');
@@ -75,15 +82,18 @@ export class RecoveryStore {
   maintain(): void {
     if (this.maintenance || BigInt(this.highWater())-BigInt(this.latest(true)?.seq??'0')<250n) return;
     const phase=serverPhases.start('document.snapshot');
+    const releaseCoverage=adapterResources.uncovered('recovery-maintenance');
     let read: DatabaseSync | undefined;
+    const observedClosed=()=>{if(read){read=undefined;this.maintenanceReaders--;}};
+    const closeRead=()=>{if(read){read.close();observedClosed();}releaseCoverage();};
     try {
       this.check();assertPrivate(this.path,false);
       // Pin B before yielding. Only this worker writes; this connection retains
       // an immutable WAL read view while later commands update the live writer.
-      read=new DatabaseSync(this.path,{readOnly:true,allowExtension:false,timeout:250});
+      read=new DatabaseSync(this.path,{readOnly:true,allowExtension:false,timeout:250});this.maintenanceReaders++;
       read.exec('PRAGMA trusted_schema=OFF; BEGIN');
       const seq=String(read.prepare("SELECT value FROM meta WHERE key='highWater'").get()!.value);
-      const steps=this.buildSnapshot(read,seq,phase);
+      const steps=this.buildSnapshot(read,seq,phase,observedClosed);
       const started=performance.now();this.snapshotSliceMaxMs=0;
       this.maintenance=new Promise<void>(resolve=>{
         const run=()=>{
@@ -91,19 +101,19 @@ export class RecoveryStore {
           try {
             this.check();
             let count=0;
-            do {if(steps.next().done){this.snapshotBuildMs=performance.now()-started;this.snapshotFailure=false;this.maintenance=undefined;resolve();return;}}
+            do {if(steps.next().done){this.snapshotBuildMs=performance.now()-started;this.snapshotFailure=false;this.maintenance=undefined;closeRead();resolve();return;}}
             while(++count<32&&performance.now()-start<2);
             setImmediate(run);
-          } catch {phase.end('error');try {steps.return(undefined);} catch {} try {read?.close();} catch {} this.snapshotFailure=true;this.maintenance=undefined;resolve();}
+          } catch {phase.end('error');try {steps.return(undefined);} catch {} try {closeRead();} catch {} this.snapshotFailure=true;this.maintenance=undefined;resolve();}
           finally {this.snapshotSliceMaxMs=Math.max(this.snapshotSliceMaxMs,performance.now()-start);}
         };
         setImmediate(run);
       });
-    } catch {phase.end('error');try {read?.close();} catch {} this.snapshotFailure=true;}
+    } catch {phase.end('error');try {closeRead();} catch {} this.snapshotFailure=true;}
   }
   async settle(start = false) {if(start)this.maintain();await this.maintenance;}
   needsSnapshot() {return BigInt(this.highWater())-BigInt(this.latest(true)?.seq??'0')>=500n;}
-  private *buildSnapshot(read: DatabaseSync, seq: string,phase:PhaseSpan): Generator<void> {
+  private *buildSnapshot(read: DatabaseSync, seq: string,phase:PhaseSpan,observedClosed:()=>void): Generator<void> {
     const id=randomUUID();let stage: string|undefined,completed:PhaseContext|undefined;
     try {
       let length=0n;let count=0n;
@@ -135,7 +145,7 @@ export class RecoveryStore {
       } catch (e) { if (this.db.isTransaction) this.db.exec('ROLLBACK'); throw e; }
       this.remember(snapshot);
       completed={snapshotId:id,workspaceSeq:seq,assetHash:content.blob.hash,bytes:Number(content.blob.byteLength),boundary:'authority-durable'};
-    } finally {if(stage)this.objects.abort(stage);read.close();if(completed)phase.end('ok',completed);}
+    } finally {if(stage)this.objects.abort(stage);read.close();observedClosed();if(completed)phase.end('ok',completed);}
   }
   private stamp(item: StoredSnapshot | null): string {
     if (!item) return '';
@@ -163,6 +173,7 @@ export class RecoveryStore {
     this.remember(null); return null;
   }
   private *lines(ref: BlobRef): Generator<Record<string, any>> {
+    const releaseCoverage=adapterResources.uncovered('recovery-snapshot-lines');try{
     let pending = Buffer.alloc(0); let offset = 0n;
     while (offset < BigInt(ref.byteLength)) {
       const n = Number(BigInt(ref.byteLength) - offset > 32768n ? 32768n : BigInt(ref.byteLength) - offset);
@@ -177,16 +188,18 @@ export class RecoveryStore {
       if (pending.length > 16384) throw new StoreError('CORRUPT_STORE');
     }
     if (pending.length) throw new StoreError('CORRUPT_STORE');
+    }finally{releaseCoverage();}
   }
   validateSnapshot(item: StoredSnapshot, apply?: (type: string, id: string, text: string) => void) {
+    const releaseCoverage=adapterResources.uncovered('recovery-snapshot-validation');try{
     if (!isId(item.id) || !isSeq(item.seq) || item.content.encoding !== 'lp1-snapshot-jsonl' || item.content.blob.mediaType !== 'application/x-ndjson' || !isSeq(item.content.recordCount)) throw new StoreError('CORRUPT_STORE');
     if (this.rootsHash(item.id) !== this.db.prepare('SELECT roots_hash FROM snapshots WHERE id=?').get(item.id)?.roots_hash) throw new StoreError('CORRUPT_STORE');
     const projectionHash = createHash('sha256');
-    let rows = 0n; let entities = 0n; let expected = ''; let key = ''; let previousKey = ''; let part = 0; let parts = 0; let text = ''; let version = '';
+    let projectionSchema=0; let rows = 0n; let entities = 0n; let expected = ''; let key = ''; let previousKey = ''; let part = 0; let parts = 0; let text = ''; let version = '';
     for (const row of this.lines(item.content.blob)) {
       if (rows++ === 0n) {
-        if (row.kind !== 'header' || row.snapshotId !== item.id || row.snapshotSeq !== item.seq || ![2,3,4,5,6,7,8].includes(row.projectionSchema) || !isSeq(row.entityCount)) throw new StoreError('CORRUPT_STORE');
-        expected = row.entityCount; continue;
+        if (row.kind !== 'header' || row.snapshotId !== item.id || row.snapshotSeq !== item.seq || !supportsProjectionSchema(row.projectionSchema) || !isSeq(row.entityCount)) throw new StoreError('CORRUPT_STORE');
+        projectionSchema=row.projectionSchema; expected = row.entityCount; continue;
       }
       if (row.kind !== 'projection-part' || !['asset','document','history','checkpoint'].includes(row.entityType) || !isId(row.entityId) || !isSeq(row.entityVersion) ||
           !Number.isSafeInteger(row.partCount) || row.partCount < 1 || !Number.isSafeInteger(row.partIndex)) throw new StoreError('CORRUPT_STORE');
@@ -201,13 +214,14 @@ export class RecoveryStore {
         const value = JSON.parse(text);
         if (canonical(value) !== text || value.id !== row.entityId) throw new StoreError('CORRUPT_STORE');
         const actualVersion = row.entityType==='asset'?value.version:row.entityType === 'document' ? value.revision : row.entityType === 'checkpoint' ? value.documentRevision : (value.kind==='image-edit'?value.revision:value.forward?.after?.revision);
-        try { validateEntity(row.entityType,value); } catch { throw new StoreError('CORRUPT_STORE'); }
+        try { projectionEntity(projectionSchema,row.entityType,value); } catch { throw new StoreError('CORRUPT_STORE'); }
         projectionHash.update(canonical({ type: row.entityType, id: row.entityId, version, text }) + '\n');
         if (version !== actualVersion) throw new StoreError('CORRUPT_STORE');
         apply?.(row.entityType, row.entityId, text); entities++; previousKey = key; text = ''; part = 0;
       }
     }
     if (part || String(entities) !== expected || String(rows) !== item.content.recordCount || projectionHash.digest('hex') !== this.db.prepare('SELECT projection_hash FROM snapshots WHERE id=?').get(item.id)?.projection_hash) throw new StoreError('CORRUPT_STORE');
+    }finally{releaseCoverage();}
   }
   restore(item: StoredSnapshot) {
     // Caller owns rollback transaction. Insert documents first to honor FKs.
@@ -264,7 +278,7 @@ export class RecoveryStore {
     const count=this.db.prepare("SELECT count(*) n FROM portable_rows WHERE namespace=? AND kind IN ('asset','checkpoint','document','history')").get(namespace)!.n;
     const db=this.db;
     const rows=function*(){
-      yield Buffer.from(canonical({kind:'header',namespaceId:namespace,namespaceHash:event.payload.namespaceHash,eventId,workspaceSeq:event.workspaceSeq,projectionSchema:8,entityCount:String(count)})+'\n');
+      yield Buffer.from(canonical({kind:'header',namespaceId:namespace,namespaceHash:event.payload.namespaceHash,eventId,workspaceSeq:event.workspaceSeq,projectionSchema:CURRENT_PROJECTION_SCHEMA,entityCount:String(count)})+'\n');
       // These are the shared domain projection families. Client-owned UI and
       // inert provider provenance retain their separate access/ownership paths.
       for(const row of db.prepare("SELECT kind,id,json FROM portable_rows WHERE namespace=? AND kind IN ('asset','checkpoint','document','history') ORDER BY kind,id").iterate(namespace)){
@@ -278,6 +292,7 @@ export class RecoveryStore {
   }
   safeJSON(kind: 'document' | 'receipt', id: string): StoredContent {
     if (!isId(id)) throw new StoreError('MALFORMED_REQUEST');
+    const releaseCoverage=adapterResources.uncovered('recovery-safe-json');try{
     let bytes: Uint8Array;
     if (kind === 'document') {
       const row = this.db.prepare('SELECT json FROM documents WHERE id=?').get(id);
@@ -293,6 +308,7 @@ export class RecoveryStore {
           canonical(detail) !== Buffer.from(bytes).toString()) throw new StoreError('CORRUPT_STORE');
     } else throw new StoreError('MALFORMED_REQUEST');
     return this.issue({blob:this.objects.putMetadata(bytes),encoding:'lp1-json',recordCount:'1'});
+    }finally{releaseCoverage();}
   }
   documentProjection(id:string) {
     if(!isId(id))throw new StoreError('MALFORMED_REQUEST');this.check();
@@ -303,7 +319,7 @@ export class RecoveryStore {
     const text=String(row.json);let value;
     try{value=JSON.parse(text);validateEntity('document',value);if(value.id!==id||canonical(value)!==text)throw Error();}
     catch{throw new StoreError('CORRUPT_STORE');}
-    const common={protocolVersion:1 as const,entityVersion:value.revision as string,projectionSchema:8,highWater:this.highWater()};
+    const common={protocolVersion:1 as const,entityVersion:value.revision as string,projectionSchema:CURRENT_PROJECTION_SCHEMA,highWater:this.highWater()};
     const inline={...common,projection:{kind:'inline' as const,value}};
     if(Buffer.byteLength(canonical(inline))<=65536)return inline;
     const length=String(Buffer.byteLength(text));
@@ -316,27 +332,30 @@ export class RecoveryStore {
     if(this.handles.size>=128)throw new StoreError('QUEUE_FULL');
     // Typed projection content uses ordinary reserved, chunked, atomically
     // installed objects. Generic putMetadata retains its existing64KiB guard.
-    const stage=this.objects.begin(length,'application/json');
+    const releaseCoverage=adapterResources.uncovered('recovery-document-projection');let stage:string|undefined;
     try{
+      stage=this.objects.begin(length,'application/json');
       const bytes=Buffer.from(text);
       for(let at=0;at<bytes.length;at+=IO_CHUNK)this.objects.chunk(stage,bytes.subarray(at,at+IO_CHUNK));
       return {...common,projection:{kind:'stored' as const,content:this.issue({blob:this.objects.finish(stage),encoding:'lp1-json',recordCount:'1'})}};
-    }finally{this.objects.abort(stage);}
+    }finally{try{if(stage)this.objects.abort(stage);}finally{releaseCoverage();}}
   }
   issue(content: Omit<StoredContent, 'handle'>): StoredContent {
     return { ...content, handle:this.openContent(content.blob) };
   }
   openContent(ref:BlobRef):string {
     if (this.handles.size >= 128) throw new StoreError('QUEUE_FULL');
-    this.objects.verify(ref);
-    const handle = randomUUID(); this.handles.set(handle, ref); return handle;
+    const releaseCoverage=adapterResources.uncovered('recovery-reader');
+    try{this.objects.verify(ref);
+    const handle = randomUUID(); this.handles.set(handle, ref); this.readerCoverage.set(handle,releaseCoverage); return handle;
+    }catch(error){releaseCoverage();throw error;}
   }
   verifyContent(handle: string) { const ref = this.handles.get(handle); if (!ref) throw new StoreError('MISSING_OBJECT'); this.objects.verify(ref); }
   content(handle: string, offset: string, length: number) {
     const ref = this.handles.get(handle); if (!ref) throw new StoreError('MISSING_OBJECT');
     return this.objects.readRange(ref, offset, length);
   }
-  drop(handle: string) { this.handles.delete(handle); }
+  drop(handle: string) { this.handles.delete(handle); this.readerCoverage.get(handle)?.();this.readerCoverage.delete(handle); }
   releasedOwner(id: string) { return this.db.prepare('SELECT client_id FROM read_releases WHERE id=?').get(id)?.client_id ?? null; }
   release(id: string, clientId: string, epoch: string) {
     this.db.prepare('INSERT OR IGNORE INTO read_releases VALUES (?,?,?)').run(id,clientId,epoch);

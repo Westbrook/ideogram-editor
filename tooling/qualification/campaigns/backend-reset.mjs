@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { auth, encode, envelope, phase } from './backend-common.mjs';
+import { readFastStorageSummary } from './backend-fast-warm-proof.mjs';
 
 const unsettled = new Set(['not-started', 'dispatching', 'acknowledged', 'submission-uncertain']);
 const failure = (message, code = 'FIXTURE_REQUIRED') => Object.assign(Error(message), { code });
@@ -191,6 +192,7 @@ export async function resetWarmProductFixture(f, context, cell, sample = {}) {
   assert.equal(sample.cache, 'warm', 'Retained-writer reset is only a warm cohort operation');
   assert.equal(typeof f.setDocumentId, 'function', 'Fixture must allow selecting its new document identity');
   const writer = f.writer, epoch = writer.epoch, root = f.root, phases = [];
+  const fast = cell.handler === 'backend' && cell.operation === 'fast.workflow' && cell.workload === 'WF';
   const workload = cell.workload === 'WF' ? 'W0' : cell.workload;
   if (!['W0', 'WQ'].includes(workload)) throw failure('Retained-writer reset currently requires W0/WF or WQ; other workloads need a bridge-owned active/native seed');
   if (workload === 'WQ' && typeof f.queueWorker?.setSnapshotBoundary !== 'function') throw failure('The retained writer must expose its fixture-only recovery scheduling controller before a WQ reset');
@@ -198,8 +200,15 @@ export async function resetWarmProductFixture(f, context, cell, sample = {}) {
   const { planProductFixture, buildProductFixture } = await import('./fixture-product.mjs');
   planProductFixture({ workload, corpus });
   const before = await phase(phases, 'warm-reset.capture-before', () => writer.capture());
+  const beforeStorage = fast ? await phase(phases, 'warm-reset.logical-storage-before', () => readFastStorageSummary(writer, { highWater: before.highWater })) : null;
   const disposal = await disposeWarmDocument(f, context, phases);
-  if (f.queueWorker) await phase(phases, 'warm-reset.clear-settled-loopback-fixture', () => f.queueWorker.resetFixture());
+  let providerReset = null;
+  if (f.queueWorker) providerReset = await phase(phases, 'warm-reset.clear-settled-loopback-fixture', async () => {
+    const before = fast ? await f.queueWorker.snapshot() : null;
+    const receipt = await f.queueWorker.resetFixture();
+    const after = fast ? await f.queueWorker.snapshot() : null;
+    return { before, receipt, after };
+  });
   const retainedJobs = await jobs(writer, context.signal), currentSession = (await writer.queueView('')).session, sessionReceipts = [];
   assert(retainedJobs.every(job => job.attempts.every(attempt => !attempt.hold)), 'A warm reseed cannot overlap another document active hold');
   assert(currentSession?.id && Object.hasOwn(currentSession, 'cap'), 'Warm reseed must retain the real prior spend-session configuration');
@@ -226,12 +235,15 @@ export async function resetWarmProductFixture(f, context, cell, sample = {}) {
   assert.equal(rebuilt.preparation?.retainedWriter, true, 'Reseed must explicitly attest it did not own or restart the writer');
   assert(rebuilt.criteria.every(row => row.met), 'Actual reseeded workload must satisfy every per-sample criterion');
   const after = await phase(phases, 'warm-reset.capture-after-reseed', () => writer.capture());
+  const afterStorage = fast ? await phase(phases, 'warm-reset.logical-storage-after', () => readFastStorageSummary(writer, { highWater: after.highWater })) : null;
   const missing = ['Same-writer reset retains earlier global event and queue history; this is an accumulated-workspace diagnostic cohort, not the canonical fresh global inventory'];
   const value = { cellId: cell.id ?? cell.operation, status: 'pass', phases, assertions: [{ name: 'Real public cancellation, reconciliation, deletion, collection, and full reseed retain one LocalWriter', passed: true }],
     observations: { root, previousDocumentId: disposal.documentId, documentId, sample, writerEpoch: epoch,
       writerWorkerRestarted: false, directSQLWrites: false, oldRootOverwritten: false, operatingSystemPageCache: 'not purged or inferred',
       globalHighWater: { before: before.highWater, afterDisposal: baseline.highWater, afterReseed: after.highWater },
-      disposal, spendSessionReset: sessionReceipts, rebuilt }, evidence: [], missing: [], qualification: { status: 'inconclusive', missing } };
-  f.context.fixture = { ...context.fixture, ...rebuilt, corpus, resetQualification: value.qualification };
+      disposal, spendSessionReset: sessionReceipts, rebuilt, ...(fast ? { providerReset, logicalStorage: { before: beforeStorage, after: afterStorage } } : {}) }, evidence: [], missing: [], qualification: { status: 'inconclusive', missing } };
+  // A WF corpus seal identifies immutable selected inputs, not its mutable reseed.
+  f.context.fixture = fast ? { ...context.fixture, corpus, warmReseed: rebuilt, resetQualification: value.qualification }
+    : { ...context.fixture, ...rebuilt, corpus, resetQualification: value.qualification };
   return value;
 }

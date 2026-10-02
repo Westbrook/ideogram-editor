@@ -76,3 +76,56 @@ for(const stage of ['font','guard','issuer','listeners'])test('actual setup acqu
  let c;const seen=[];await assert.rejects(()=>acquireOwnedSetup([['context',async()=>({}),async()=>{seen.push('context');}],['server',()=>ownServerProcess(c=childStub('normal'),{completion:true,timeout:5}),async s=>{seen.push('server');await s.close({cleanupOnly:true});}],[stage,async()=>{throw Error(stage);}]]),/setup/);assert.deepEqual(seen,['server','context']);assert.equal(c.exitCode,0);
 });
 test('setup preserves primary and independent later cleanup failures',async()=>{let caught;try{await acquireOwnedSetup([['one',async()=>1,async()=>{throw Error('cleanup one');}],['two',async()=>2,async()=>{throw Error('cleanup two');}],['reject',async()=>{throw Error('setup original');}]]);}catch(e){caught=e;}assert.equal(caught.primary.message,'setup original');assert.deepEqual(caught.cleanup.map(x=>x.error.message),['cleanup two','cleanup one']);});
+
+
+// Exercise the real launch selection and environment construction. Only fork
+// is replaced; readiness and cleanup use the actual owned-process helper.
+import {readFileSync as readLaunchSource} from 'node:fs';
+import {stripTypeScriptTypes as stripLaunchTypes} from 'node:module';
+import {loadApplicationIdentity} from './application-identity.mjs';
+import {loadHostIssuers} from './host-final-issuers.mjs';
+const launchData=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
+const forkURL=launchData('export const calls=[];let child;export const useChild=value=>{child=value;};export const fork=(...args)=>{calls.push(args);return child;};');
+const launchFork=await import(forkURL);
+const launchSource=stripLaunchTypes(readLaunchSource(new URL('../process.ts',import.meta.url),'utf8'),{mode:'strip'});
+assert.equal(launchSource.split("'node:child_process'").length,2);assert.equal(launchSource.split("'./completion/owned-process.mjs'").length,2);
+const launchModule=await import(launchData(launchSource.replace("'node:child_process'",JSON.stringify(forkURL)).replace("'./completion/owned-process.mjs'",JSON.stringify(new URL('./owned-process.mjs',import.meta.url).href))));
+async function launchWithEnvironment(values,ledger){
+ const names=['PATH','TMPDIR','COMPLETION_APPLICATION_IDENTITY','COMPLETION_ISSUER_MANIFEST','UNRELATED_PROVIDER_SECRET','NODE_OPTIONS'];
+ const before=new Map(names.map(name=>[name,{present:Object.hasOwn(process.env,name),value:process.env[name]}]));let owner;
+ try{
+  for(const name of names)delete process.env[name];Object.assign(process.env,{PATH:'/fixture/toolchain',TMPDIR:'/fixture/tmp',UNRELATED_PROVIDER_SECRET:'test-only-not-a-credential',NODE_OPTIONS:'--trace-warnings'},values);
+  const c=childStub('normal');launchFork.useChild(c);launchFork.calls.length=0;
+  owner=await launchModule.serverProcess('/fixture/root',23,ledger);
+  assert.equal(owner.pid,c.pid);assert.equal(owner.origin,'http://127.0.0.1:34567');assert.equal(launchFork.calls.length,1);
+  const call=launchFork.calls[0],closing=owner;owner=undefined;await closing.close({cleanupOnly:true});assert.equal(c.exitCode,0);return call;
+ }finally{
+  try{if(owner)await owner.close({cleanupOnly:true});}finally{for(const [name,old]of before)if(old.present)process.env[name]=old.value;else delete process.env[name];}
+ }
+}
+test('completion child receives only the two explicit current receipt paths with all launch guards intact',async()=>{
+ const paths={COMPLETION_APPLICATION_IDENTITY:'/fixture/run/application-identity.json',COMPLETION_ISSUER_MANIFEST:'/fixture/run/host-final-issuers.json'};
+ const [file,args,options]=await launchWithEnvironment(paths,'/fixture/run/ledger.jsonl');
+ assert(file.endsWith('/tests/editor/process-completion-fixture.mjs'));
+ assert.deepEqual(args,['/fixture/root',new URL('../../../dist/app',import.meta.url).pathname,'23','/fixture/run/ledger.jsonl']);
+ assert.deepEqual(options.env,{PATH:'/fixture/toolchain',TMPDIR:'/fixture/tmp',...paths});
+ assert.deepEqual(options.execArgv,['--import',new URL('../../protocol/no-effects.mjs',import.meta.url).pathname]);assert.deepEqual(options.stdio,['ignore','ignore','pipe','ipc']);
+});
+test('ordinary child keeps its original environment even when completion receipts are present',async()=>{
+ const [file,args,options]=await launchWithEnvironment({COMPLETION_APPLICATION_IDENTITY:'/fixture/run/application-identity.json',COMPLETION_ISSUER_MANIFEST:'/fixture/run/host-final-issuers.json'});
+ assert(file.endsWith('/tests/editor/process-fixture.mjs'));assert.deepEqual(args,['/fixture/root',new URL('../../../dist/app',import.meta.url).pathname,'23','']);
+ assert.deepEqual(options.env,{PATH:'/fixture/toolchain',TMPDIR:'/fixture/tmp'});assert.deepEqual(options.execArgv,['--import',new URL('../../protocol/no-effects.mjs',import.meta.url).pathname]);assert.deepEqual(options.stdio,['ignore','ignore','pipe','ipc']);
+ const [, , completion]=await launchWithEnvironment({},'/fixture/run/ledger.jsonl');assert.deepEqual(completion.env,{PATH:'/fixture/toolchain',TMPDIR:'/fixture/tmp'});
+});
+test('invalid explicit completion paths reach strict loaders without omission or fallback',async()=>{
+ for(const value of ['', 'relative-receipt.json']){
+  const [, , options]=await launchWithEnvironment({COMPLETION_APPLICATION_IDENTITY:value,COMPLETION_ISSUER_MANIFEST:value},'/fixture/run/ledger.jsonl');
+  assert.equal(options.env.COMPLETION_APPLICATION_IDENTITY,value);assert.equal(options.env.COMPLETION_ISSUER_MANIFEST,value);
+  let reads=0;const read=()=>{reads++;throw Error('No file should be selected');};
+  assert.throws(()=>loadApplicationIdentity({env:options.env,read}),/explicit absolute file path/);assert.throws(()=>loadHostIssuers({env:options.env,read}),/absolute completion issuer manifest/);assert.equal(reads,0);
+ }
+ const paths={COMPLETION_APPLICATION_IDENTITY:'/fixture/missing-identity.json',COMPLETION_ISSUER_MANIFEST:'/fixture/missing-issuers.json'},[, , options]=await launchWithEnvironment(paths,'/fixture/run/ledger.jsonl'),selected=[];
+ const missing=path=>{selected.push(path);throw Error('Explicit receipt missing');};
+ assert.throws(()=>loadApplicationIdentity({env:options.env,read:missing}),/Explicit receipt missing/);assert.throws(()=>loadHostIssuers({env:options.env,read:missing}),/Explicit receipt missing/);
+ assert.deepEqual(selected,Object.values(paths));
+});

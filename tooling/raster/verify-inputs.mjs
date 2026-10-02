@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
 import {currentRasterCodecProfile,verifyCurrentRasterCodecSeals} from './platform-seals.mjs';
+import {verifyImportInventory} from './import-seals/verify.mjs';
 const hash=b=>'sha256:'+createHash('sha256').update(b).digest('hex');
 const {codecs,codecId}=currentRasterCodecProfile();
 assert.equal(process.versions.node,codecs.node);assert.equal(process.versions.zlib,codecs.zlib);assert.equal(process.platform,codecs.platform);assert.equal(process.arch,codecs.arch);assert.deepEqual(sharp.versions,codecs.versions);
@@ -12,4 +13,5 @@ for(const f of JSON.parse(readFileSync('tests/raster/fixtures/manifest.json')).f
 for(const f of JSON.parse(readFileSync('tests/raster/fixtures/resource-inputs.json')).fixtures){const b=readFileSync(f.file);assert.equal(b.length,f.bytes,f.file);assert.equal(hash(b),'sha256:'+f.sha256,f.file);}
 assert.equal(hash(JSON.stringify(codecs)),codecId);
 const seals=verifyCurrentRasterCodecSeals();
-console.log(JSON.stringify({status:'passed',codecIdentity:codecId,codecFiles:codecs.files.length,...seals,fixtureManifests:['manifest.json','resource-inputs.json'],node:process.versions.node}));
+const imports=verifyImportInventory(process.cwd());
+console.log(JSON.stringify({status:'passed',codecIdentity:codecId,codecFiles:codecs.files.length,...seals,imports,fixtureManifests:['manifest.json','resource-inputs.json'],node:process.versions.node}));

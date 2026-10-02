@@ -17,7 +17,7 @@ export type UIRequest = {
   body: { type: 'SetPreferences'; preferences: Preferences }
     | { type: 'SaveDraft'; draft: Omit<Draft,'status'|'maskBindings'|'compositionBindings'> }
     | { type: 'ClearDraft'; draftId: string; generation: string }
-    | { type: 'PrepareRequestReview'; draftId:string; generation:string }
+    | { type: 'PrepareRequestReview'; draftId:string; generation:string; textTreatment?:import('../request/text-treatment.js').TextTreatmentReviewIntent }
     | { type: 'AcceptRequestReview'; reviewId:string; token:string }
     | { type: 'FocusRequested'; target: 'canvas' | 'inspector' | 'history'; generation: string };
 };

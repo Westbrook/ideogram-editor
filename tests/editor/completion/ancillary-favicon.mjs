@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,readdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {normalizedHeaders} from './host-final-headers.mjs';
+import {validRestoredReadPath} from './restored-route.mjs';
 
 const digest=b=>createHash('sha256').update(b).digest('hex');
 const CORE_SHA='549070af3acabb3efcc4f55bfe6210f9f7c2fcf633cf7eaa59bfe60719969171';
@@ -38,13 +39,18 @@ function nodeResponse(rows,request){
    if(row.name==='writeHead'){
     assert(!writeSeen&&stack.length===0,'Ancillary unique outer writeHead');writeSeen=true;
     assert.equal(row.statusBefore,200);assert.equal(row.args.length,2);assert.equal(row.args[0],404);
-    writeHeaders=normalizedHeaders(row.args[1]);assert.deepEqual(writeHeaders,{'content-type':'application/json; charset=utf-8'},'Ancillary original writeHead headers');
+    writeHeaders=normalizedHeaders(row.args[1]);
+    // Retain historical chunked metadata and the current explicitly framed JSON
+    // path as distinct exact declarations. Neither establishes body consumption.
+    const length=writeHeaders['content-length'];
+    if(length!==undefined)assert(/^[1-9][0-9]*$/.test(length)&&Number.isSafeInteger(Number(length)),'Ancillary declared content length');
+    assert.deepEqual(writeHeaders,{'content-type':'application/json; charset=utf-8',...(length===undefined?{}:{'content-length':length})},'Ancillary original writeHead headers');
     stack.push({name:row.name,nested:false});
    }else{
     assert.equal(row.name,'setHeader','Ancillary fixed header API');assert.equal(row.args.length,2);
     const next=normalizedHeaders({[row.args[0]]:row.args[1]}),nested=stack.length>0;
     assert(!Object.keys(next).some(k=>k in declared),'Ancillary repeated declared header');
-    if(nested){assert.equal(stack.length,1);assert.equal(stack[0].name,'writeHead');assert.deepEqual(next,writeHeaders,'Ancillary nested declaration');assert.equal(row.statusBefore,404);}
+    if(nested){assert.equal(stack.length,1);assert.equal(stack[0].name,'writeHead');const key=Object.keys(next)[0];assert(Object.hasOwn(writeHeaders,key),'Ancillary nested header name');assert.equal(next[key],writeHeaders[key],'Ancillary nested declaration');assert.equal(row.statusBefore,404);}
     else {assert(!writeSeen);assert.equal(row.statusBefore,200);}
     Object.assign(declared,next);stack.push({name:row.name,nested});
    }
@@ -61,7 +67,7 @@ function nodeResponse(rows,request){
  assert(finish.headersSent&&close.destroyed,'Ancillary original Node finish/close');
  assert.equal(declared['content-type'],'application/json; charset=utf-8');
  for(const [k,v]of Object.entries({'cache-control':'no-store','referrer-policy':'no-referrer','x-content-type-options':'nosniff','cross-origin-resource-policy':'same-origin','x-frame-options':'DENY','connection':'close'}))assert.equal(declared[k],v,'Ancillary security '+k);
- assert.equal(declared['content-length'],undefined);assert.equal(declared['transfer-encoding'],undefined);
+ assert.equal(declared['content-length'],writeHeaders['content-length'],'Ancillary effective content length');assert.equal(declared['transfer-encoding'],undefined,'Ancillary no declared transfer encoding');
  return declared;
 }
 
@@ -70,7 +76,7 @@ function canceledFavicon(x,a,w,starts,related){
  const {origin,epoch,owner,frame,serverOwner,source}=a,url=origin+'/favicon.ico';
  assert(w&&w.kind==='ORIGINAL-RESTORED-ROUTE-WINDOW','Canceled ancillary original route window required');
  assert.equal(w.mode,'RESTORED-NON-NATIVE','Canceled ancillary restored mode only');assert.equal(w.fixture,'restored-reads');assert.equal(w.epochIndex,2,'Canceled ancillary second epoch only');assert.equal(w.epoch,epoch);assert.deepEqual(w.owner,owner,'Canceled ancillary route owner');assert.deepEqual(w.serverOwner,serverOwner,'Canceled ancillary route server');
- assert(/^\/api\/v1\/assets\/[^/]+\/content$/.test(w.path));assert.equal(w.pattern,'**'+w.path);
+ assert(validRestoredReadPath(w.path),'Exact restored image path');assert.equal(w.pattern,'**'+w.path);
  const receipts=[w.registration,w.begin,w.removing,w.removed],kinds=['route-registration-completed','restoration-window-start','route-removal-start','route-removal-completed'];
  for(let i=0;i<receipts.length;i++){const r=receipts[i];assert(r&&r.kind===kinds[i],'Canceled ancillary route receipt kind');assert(Number.isSafeInteger(r.sequence)&&r.sequence>0&&(!i||r.sequence>receipts[i-1].sequence),'Canceled ancillary route receipt order');assert.equal(r.epochIndex,i===0?1:2);if(i!==1){assert.equal(r.registration,0);assert.equal(r.pattern,w.pattern);assert.equal(r.path,w.path);}else for(const k of ['origin','pid','instance'])assert.equal(r[k],serverOwner[k]);}
  assert.equal(related.length,0,'Canceled ancillary no retained server witness');assert(!x.server.some(r=>{try{return new URL(r.url??r.path??'/',origin).pathname==='/favicon.ico'||r.path==='/favicon.ico';}catch{return false;}}),'Canceled ancillary no foreign server witness');
@@ -120,9 +126,14 @@ export function accountFavicon(x,admission,{previous,cancellation}={}){
   assert.equal(resExtra.params.statusCode,404);assert.equal(rsp.status,404);assert.equal(rsp.statusText,'Not Found');assert.equal(rsp.mimeType,'application/json');assert.equal(rsp.charset,'utf-8');assert.equal(response.params.hasExtraInfo,true);
   for(const k of ['fromDiskCache','fromServiceWorker','fromPrefetchCache'])assert.equal(rsp[k],false,'Ancillary substituted response '+k);
   same(rsp.headers,wire,'regular response versus ExtraInfo');for(const [k,v]of Object.entries(outgoing))assert.equal(wire[k],v,'Ancillary outgoing header '+k);
-  const automatic=Object.fromEntries(Object.entries(wire).filter(([k])=>!(k in outgoing)));assert.deepEqual(Object.keys(automatic).sort(),['date','transfer-encoding']);assert.equal(automatic['transfer-encoding'],'chunked');assert(Number.isFinite(Date.parse(automatic.date)),'Ancillary wire date');
+  const automatic=Object.fromEntries(Object.entries(wire).filter(([k])=>!(k in outgoing))),declaredLength=outgoing['content-length'];
+  assert.deepEqual(Object.keys(automatic).sort(),declaredLength===undefined?['date','transfer-encoding']:['date'],'Ancillary automatic wire headers');
+  if(declaredLength===undefined)assert.equal(automatic['transfer-encoding'],'chunked');
+  else assert.equal(wire['transfer-encoding'],undefined,'Ancillary no mixed transfer framing');
+  assert(Number.isFinite(Date.parse(automatic.date)),'Ancillary wire date');
   const lines=resExtra.params.headersText?.split('\r\n');assert(lines&&lines[0]==='HTTP/1.1 404 Not Found'&&lines.at(-1)===''&&lines.at(-2)==='','Ancillary raw response headers');const raw=[];for(const line of lines.slice(1,-2)){const at=line.indexOf(':');assert(at>0);raw.push(line.slice(0,at),line.slice(at+1).trim());}same(rawHeaders(raw),wire,'raw response ExtraInfo');
   const data=rows.filter(n=>n.name==='Network.dataReceived');assert(data.length>0);for(const n of data)for(const k of ['dataLength','encodedDataLength'])assert(Number.isSafeInteger(n.params[k])&&n.params[k]>=0,'Ancillary data counter');assert(Number.isSafeInteger(terminal.params.encodedDataLength)&&terminal.params.encodedDataLength>0,'Ancillary terminal counter');assert(terminal.sequence>response.sequence&&data.every(n=>n.sequence<terminal.sequence),'Ancillary terminal order');
+  if(declaredLength!==undefined)assert.equal(data.reduce((n,r)=>n+r.params.dataLength,0),Number(declaredLength),'Ancillary declared length versus original data counters');
   const csp=outgoing['content-security-policy'];for(const clause of ["default-src 'self'",'connect-src '+origin,"worker-src 'self'","object-src 'none'","frame-ancestors 'none'","base-uri 'none'","form-action 'none'"])assert(csp?.split(';').map(s=>s.trim()).includes(clause),'Ancillary CSP '+clause);
   records.push({kind:'BROWSER-FAVICON-METADATA',epoch,owner,frame,serverOwner,source,serverId:request.id,protocolId:id,url,status:404,pwExposure:false,bodyObserved:false,bodyHash:null,regularRefererHint:hint??null,automaticWireHeaders:automatic,counters:{data:data.reduce((n,r)=>n+r.params.dataLength,0),encodedData:data.reduce((n,r)=>n+r.params.encodedDataLength,0),terminalEncoded:terminal.params.encodedDataLength},serverRows:structuredClone(serverRows),protocolRows:structuredClone(rows),...flags()});
   for(const row of serverRows)removedServer.add(row);for(const row of rows)removedNetwork.add(row);

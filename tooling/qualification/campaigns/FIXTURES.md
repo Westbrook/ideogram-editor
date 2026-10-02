@@ -35,10 +35,19 @@ into a manifest is not enough. There is no metadata-only compatibility fallback.
 
 The final `fixture.json` records the concrete observed product counts, source
 corpus file identities, and every stopped-root file. `verifyFixtureManifest`
-rehashes those bytes and rejects incomplete preparation or a changed root. Each
-measured sample must use an isolated copy of that sealed root; opening/mutating
-the source root invalidates its seal. Failed preparation leaves its output and
-an incomplete receipt available for inspection.
+rehashes those bytes and rejects incomplete preparation or a changed root. Cold
+samples use an isolated copy of that sealed root; the source root is never
+opened for mutation. WJ/WC warm cohorts retain their actual writer connection
+and module owner through the exact declared primes and scored operations. WJ
+public Undo restores the operation's image/native state and history head while
+its revision and immutable history advance; the original input closure is
+fully rehashed. WC revalidates the full sealed source and compares every output's
+ordered entity/event/object closure with the original archive. Import cleanup
+must finish before the next input. The sealed per-attempt proof records exact
+global count/byte growth separately; that growth is not a fresh-root claim or a
+subtraction from WQ's fixed inventory. WQ and repeated fault cells retain their
+existing holds unless their own complete workload/reset proof exists. Failed
+preparation leaves its output and an incomplete receipt available for inspection.
 
 ## Qualification fonts
 

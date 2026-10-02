@@ -29,7 +29,7 @@ const facts = {
   networkCounterScope: 'The required no-network preload shares all eight effect counters between this driver and the storage worker. Raster child workers inherit the guard but their separate counters are not aggregated into this receipt.',
   scope: 'Exactly one PrepareRaster for one generated fixture; no retries, conversion approval, quality fallback, resize, composition or export. Accepted pixels are verified against the fixture oracle where defined. Resource-refused is a retained original command, not a supported decode or successful pixel result. This is not P3, PERF, complete R19, platform, repeated-writer or lifecycle qualification.',
 };
-let writer, original, preparedCommand, fixture, input, fixtureReceiptSeal, sourceSeal, deadline, oracle, oracleReceiptSeal, networkGuardSnapshot;
+let writer, original, preparedCommand, fixture, input, fixtureReceiptSeal, sourceSeal, deadline, oracle, oracleReceiptSeal, networkGuardSnapshot, outcomeDiagnosticsRead, finalDiagnosticsRead;
 function checkDeadline() { if (deadline !== undefined && performance.now() >= deadline) throw Error('Diagnostic exceeded its 120 second work deadline'); }
 async function checkpoint() {
   const bytes = Buffer.from(JSON.stringify(facts, null, 2) + '\n');
@@ -129,8 +129,11 @@ async function decodeObservation(commandId) {
   // Poll read-only diagnostics, without retrying or resubmitting the command.
   const until = Math.min(deadline, performance.now() + 2000);
   while (true) {
-    const diagnostics = await writer.diagnostics(), found = diagnostics.rasters.observations.find(item => item.commandId === commandId && item.nativeBudget !== undefined);
-    if (found) return { observation: found, diagnostics };
+    const read = await writer.readDiagnostics();let retained=false;
+    try {
+      const found = read.value.rasters.observations.find(item => item.commandId === commandId && item.nativeBudget !== undefined);
+      if (found) { retained=true;return { observation: found, read }; }
+    } finally { if (!retained) read.release(); }
     assert(performance.now() < until, 'Accepted decode has no bounded native metrics'); await pause(10);
   }
 }
@@ -205,7 +208,8 @@ try {
   const result = await command({ type: 'PrepareRaster', assetId: original.id }, true);
   facts.outcome = result.outcome === 'resource-refused' ? 'resource-pending-unclassified' : result.outcome;
   if (result.outcome === 'resource-refused') {
-    const diagnostics = await writer.diagnostics(), failures = diagnostics.rasters.observations.filter(item => item.commandId === result.commandId && item.phase === 'failure');
+    outcomeDiagnosticsRead = await writer.readDiagnostics();
+    const failures = outcomeDiagnosticsRead.value.rasters.observations.filter(item => item.commandId === result.commandId && item.phase === 'failure');
     // The writer also pauses unexpected failures. Require the explicit capacity
     // code; the pending phase alone cannot establish a resource refusal.
     assert(failures.some(item => item.code === 'CAPACITY'), 'Waiting command has no explicit capacity failure');
@@ -224,7 +228,7 @@ try {
     assert.equal(actual.alphaHash, fixture.oracle.expectedDecodedAlphaHash, 'Independent alpha oracle mismatch');
     if (fixture.oracle.rgbaExact) assert.equal(actual.hash, fixture.oracle.expectedDecodedRgbaHash, 'Independent lossless RGBA oracle mismatch');
     if (oracle) { assert.equal(actual.hash, oracle.decoded.rgbaHash, 'Stored RGBA differs from the sealed Sharp reference'); assert.equal(actual.alphaHash, oracle.decoded.alphaHash, 'Stored alpha differs from the sealed Sharp reference'); }
-    const { observation } = await decodeObservation(result.commandId);
+    const observed = await decodeObservation(result.commandId);outcomeDiagnosticsRead = observed.read;const observation = observed.observation;
     for (const key of ['nativeBudget', 'nativePeak', 'nativeRemaining', 'nativeDenied']) assert(Number.isSafeInteger(observation[key]) && observation[key] >= 0, 'Invalid native metric ' + key);
     assert(observation.nativeBudget > 0 && observation.nativeBudget <= 128 * 1024 * 1024); assert(observation.nativePeak <= observation.nativeBudget);
     assert.equal(observation.nativeRemaining, 0); assert.equal(observation.nativeDenied, 0);
@@ -235,13 +239,14 @@ try {
   facts.status = 'completed';
 } catch (error) { failure('diagnostic', error); }
 finally {
+ try {
   if (writer && original) await recordAttempt('original-retention', async () => { facts.originalAfter = await proveOriginal(); });
   if (writer && preparedCommand) await recordAttempt('original-command-retention', async () => {
     const serialized = await writer.originalCommand(preparedCommand.commandId, auth.clientId);
     assert.equal(serialized, JSON.stringify(preparedCommand.request)); facts.originalCommandAfter = { commandId: preparedCommand.commandId, hash: digest(serialized), state: await writer.commandState(preparedCommand.commandId) };
     if (facts.outcome === 'resource-refused') { assert.equal(facts.originalCommandAfter.state.record, null); assert.equal(facts.originalCommandAfter.state.pending?.phase, 'waiting-for-resources'); }
   });
-  if (writer) { await recordAttempt('diagnostics', async () => { facts.diagnostics = await writer.diagnostics(); }); await recordAttempt('writer-close', async () => { await writer.close(); facts.writerClosed = true; }); }
+  if (writer) { await recordAttempt('diagnostics', async () => { finalDiagnosticsRead = await writer.readDiagnostics(); facts.diagnostics = finalDiagnosticsRead.value; }); await recordAttempt('writer-close', async () => { await writer.close(); facts.writerClosed = true; }); }
   await recordAttempt('network-guard', async () => {
     facts.networkGuardAfter = await finishDiagnosticNetwork(networkGuardSnapshot);
     assert.equal(facts.networkGuardAfter.status, 'passed', 'Diagnostic network guard or effect counters failed');
@@ -256,6 +261,12 @@ finally {
   facts.rss = { status: facts.peakRSS <= limit ? 'passed' : 'failed', limitBytes: limit, maxRSSBytes: facts.peakRSS, includesWriterClose: facts.writerClosed === true };
   if (facts.peakRSS > limit) failure('whole-process-rss', Error('Whole-process RSS ceiling exceeded'));
   facts.process = { versions: process.versions, platform: process.platform, arch: process.arch }; facts.finishedAt = new Date().toISOString();
-  try { await checkpoint(); } finally { await receiptFile.close(); }
+  await checkpoint();
+ } finally {
+  // Exactly one outcome read and one final read may be retained. Their graphs
+  // stay admitted through every checkpoint and the final receipt write.
+  delete facts.diagnostics;if (facts.decoded) delete facts.decoded.observation;if (facts.refusal) delete facts.refusal.failures;
+  try { outcomeDiagnosticsRead?.release(); } finally { try { finalDiagnosticsRead?.release(); } finally { await receiptFile.close(); } }
+ }
   console.log(JSON.stringify({ status: facts.status, outcome: facts.outcome, errors: facts.errors, peakRSS: facts.peakRSS, rss: facts.rss.status, root: facts.root, receipt: output, qualification: false }));
 }

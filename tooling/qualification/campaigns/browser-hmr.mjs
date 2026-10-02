@@ -8,6 +8,7 @@ import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {createBrowserTrace} from './browser-trace.mjs';
 import {bracketTraceAction} from './browser-presentation.mjs';
+import {prepareHmrWindowServer, hmrWindowServerCeilingObserved} from './windowserver-hmr.mjs';
 import {openDocument, publicRead, ready} from './browser-driver.mjs';
 import {exclusiveJSON, fileIdentity, intervalWait, monotonic, PrerequisiteError, sanitize} from './common.mjs';
 import {browserCacheIdentity} from '../developer-campaigns/verify-browsers.mjs';
@@ -219,7 +220,7 @@ export async function createBrowserHmrCampaign(context = {}) {
   const repo = resolve(context.repo ?? process.cwd()), output = resolve(context.output ?? join(repo, 'artifacts/hmr-' + randomUUID()));
   const signal = context.signal, configuration = context.configuration ?? {}, browserOptions = configuration.browser ?? {};
   await mkdir(output, {recursive: true, mode: 0o700});
-  let source, server, browserServer, browser, browserContext, page, shell, canvas, root, runtime, preparedCell, prepared = false, closed = false, failed = false, serial = 0, active;
+  let source, server, browserServer, browser, browserContext, page, shell, canvas, root, runtime, preparedCell, prepared = false, closed = false, failed = false, serial = 0, active, nativePresentation;
   let mainFrameNavigations = 0;
   const errors = [], external = [], firstUpdate = [];
   function assertCell(cell) {
@@ -252,37 +253,47 @@ export async function createBrowserHmrCampaign(context = {}) {
   async function transaction(sample, first = false) {
     const index = ++serial, before = await witness(), startMs = monotonic(), errorStart = errors.length, externalStart = external.length;
     const tracer = createBrowserTrace(page, {artifactDirectory: output, artifactName: 'hmr-trace-' + index + '.json'});
-    await tracer.start(); let observed, failure, traced;
+    await tracer.start(); let observed, failure, traced, nativeCapture, nativeObservation;
     try {
+      if (nativePresentation) nativeCapture = await nativePresentation.begin('hmr-' + index);
       await page.evaluate(id => performance.mark('ie.perf.v1:intent:' + id), index);
       const clockedSource = {...source, async save(signal) {
         const clockPage = {evaluate: (...args) => abortable(() => page.evaluate(...args), signal)};
-        const {value, bracket} = await bracketTraceAction({page: clockPage, id: index, run: () => source.save(signal)});
+        const {value, bracket} = await bracketTraceAction({page: clockPage, id: index, run: () => nativeCapture ? nativeCapture.save(() => source.save(signal)) : source.save(signal)});
         return {...value, presentationBracket: bracket};
       }};
       observed = await withHmrEdit(clockedSource, async saved => {
         await wordmark('Editor updated'); const domObservedMs = monotonic();
         await page.evaluate(id => performance.mark('ie.perf.v1:complete:' + id), index);
         const after = await witness();
+        // Native pixels must be observed before withHmrEdit restores the edit.
+        // Instrument loss stays separate from the product preservation witness.
+        if (nativeCapture) await nativeCapture.observeUpdated(saved);
         return {savedMs: saved.savedMs, domObservedMs, ...hotUpdateWitness(before, after), before, after};
       }, signal);
       await wordmark('Editor');
       const restored = await witness();
       hotUpdateWitness(before, restored, {restored: true});
+      observed.value.restoredAfter = restored;
       if (errors.length !== errorStart || external.length !== externalStart) throw Error('HMR attempted external traffic or raised a browser error');
       signal?.throwIfAborted();
     } catch (error) { failure = error; failed = true; observed ??= error.hmr; if (error.hmrWitness) observed = {...observed, value: {...observed?.value, ...error.hmrWitness}}; }
-    finally { traced = await tracer.stop({presentation: {requests: observed?.saved?.presentationBracket ? [{id: index, start: {kind: 'bracketed-save', bracket: observed.saved.presentationBracket}}] : [], runtime}}); }
+    finally {
+      try { if (nativeCapture) nativeObservation = await nativeCapture.finish(); }
+      finally { traced = await tracer.stop({presentation: {requests: observed?.saved?.presentationBracket ? [{id: index, start: {kind: 'bracketed-save', bracket: observed.saved.presentationBracket}}] : [], runtime}}); }
+    }
     const endMs = monotonic();
-    const result = {status: failure ? 'FAIL' : 'INCONCLUSIVE', operation: 'developer.hot-update', phases: [{name: 'developer.hot-update-transaction', startMs, endMs, durationMs: endMs - startMs, clock: 'runner-monotonic', scope: 'actual fixed edit, diagnostic DOM observation, preservation verification and source restoration; not D05 presentation latency'}],
+    const boundedPresentation = !failure && !runtime.headless && hmrWindowServerCeilingObserved(nativeObservation);
+    const operationalStatus = failure ? 'FAIL' : boundedPresentation ? 'PASS' : 'INCONCLUSIVE';
+    const result = {status: operationalStatus, operation: 'developer.hot-update', phases: [{name: 'developer.hot-update-transaction', startMs, endMs, durationMs: endMs - startMs, clock: 'runner-monotonic', scope: 'actual fixed edit, diagnostic DOM observation, preservation verification and source restoration; not D05 presentation latency'}],
       observations: {kind: 'actual-vite-hmr-1', id: 'hmr-' + index, cache: sample.cache, ordinal: sample.ordinal, prime: Boolean(sample.prime), firstUpdate: first, scored: !first && !sample.prime,
-        ...observed?.value, saved: observed?.saved, restoration: observed?.restoration, presentedMs: null, outcome: failure ? 'FAIL' : 'INCONCLUSIVE',
+        ...observed?.value, saved: observed?.saved, restoration: observed?.restoration, windowServerPresentation: nativeObservation ?? null, presentedMs: null, outcome: operationalStatus,
         trace: {kind: 'browser-metadata-trace', ...traced.artifact, attributionComplete: false}, failure: failure ? {name: failure.name, message: String(failure.message).slice(0, 2048)} : null},
       assertions: failure ? [{id: 'real-hmr-preserves-document-without-reload', passed: false}] : [{id: 'real-hmr-preserves-document-without-reload', passed: true}],
-      missing: [missingPresentation, ...(runtime.headless ? ['Headless browser cannot establish the H display environment'] : [])], evidence: {source: source.identity, runtime, trace: traced, firstUpdate: firstUpdate[0] ?? null}, qualification: false};
+      missing: [...(boundedPresentation ? [] : [missingPresentation]), ...(runtime.headless ? ['Headless browser cannot establish the H display environment'] : [])], evidence: {source: source.identity, runtime, trace: traced, firstUpdate: firstUpdate[0] ?? null}, qualification: false};
     result.hotEdit = {id: 'hmr-' + index, savedMs: observed?.saved?.savedMs ?? null, presentedMs: null,
       documentPreserved: observed?.value?.documentPreserved ?? null, reload: observed?.value?.reload ?? null,
-      trace: result.observations.trace, outcome: failure ? 'unexpected' : 'expected'};
+      trace: result.observations.trace, windowServerPresentation: nativeObservation ?? null, outcome: failure ? 'unexpected' : 'expected'};
     const receiptPath = join(output, 'hmr-update-' + index + '.json'); await exclusiveJSON(receiptPath, sanitize(result));
     result.evidence.receipt = {path: receiptPath, ...await fileIdentity(receiptPath)};
     signal?.throwIfAborted(); return result;
@@ -340,6 +351,8 @@ export async function createBrowserHmrCampaign(context = {}) {
       }
       runtime = {kind: 'vite-development-server-1', viteVersion: development.viteVersion, sourceRoot: repo, viteCacheDirectory: development.cacheDirectory, engine: name, version: browser.version(), revision: pin.revision, executable: playwright[name].executablePath(), executableIdentity, browserCache: {path: cache.path, sha256: 'sha256:' + cacheBefore.sha256}, backendPid: child.pid, browserPid: browserServer.process().pid, headless, viewport: {width: 1440, height: 900}, deviceScaleFactor: 2, fixtureSeal: fixture.seal, root};
       await exclusiveJSON(join(output, 'hmr-runtime.json'), runtime);
+      try { nativePresentation = await prepareHmrWindowServer({configuration, runtime, sourceIdentity: source.identity, output, signal}); }
+      catch (error) { throw new PrerequisiteError('Native HMR inputs are unavailable: ' + String(error.message).slice(0, 1024)); }
       prepared = true; preparedCell = cell;
       const first = await transaction({cache: 'first-update', ordinal: 1, prime: true}, true); firstUpdate.push(first.evidence.receipt);
       if (first.status === 'FAIL') throw Error('First actual Vite HMR update failed');

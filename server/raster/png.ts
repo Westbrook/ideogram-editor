@@ -9,12 +9,13 @@ export function chunk(type: string, data: Uint8Array): Buffer {
 }
 // Deterministic filter0, zlib level6, one64KiB IDAT per deflate output piece.
 // Stream row-major canonical bytes without a second full image allocation.
-export async function encodePNG(raw: string, output: string, width: number, height: number, check: () => void): Promise<void> {
+export async function encodePNG(raw: string, output: string, width: number, height: number, check: () => void, created?: (fd:number)=>void): Promise<void> {
   if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1)throw Error('RASTER_LENGTH');
   check();
   const target = createWriteStream(output, { flags: 'wx', mode: 0o600, highWaterMark: 65536 });
   let targetError:Error|undefined;
   target.on('error',error=>{targetError=error;});
+  target.once('open',fd=>{try{created?.(fd);}catch(error){target.destroy(error as Error);}});
   // Closing, not the earlier error event, is the boundary at which a caller may
   // safely remove an owned intermediate. Pending open/writev callbacks can
   // otherwise outlive cancellation and access a directory already removed.

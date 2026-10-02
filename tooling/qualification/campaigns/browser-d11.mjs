@@ -5,6 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { loadD11Build } from './browser-d11-build.mjs';
+import { deriveD11FeatureBoundary, analyzeD11FeatureAbsence, analyzeD11FeatureFirstUse } from './browser-d11-feature-boundary.mjs';
 
 const HASH = /^sha256:[a-f0-9]{64}$/;
 const MAX_RECORDS = 20000, MAX_BODY = 32 * 1048576, MAX_SOURCE = 16 * 1048576;
@@ -178,17 +179,30 @@ export function analyzeD11Observation(observation, build) {
  * pinned Playwright protocol; unsupported engines return missing evidence. */
 export async function createBrowserD11Collector({ context, page, repo, output, origin, fixture, engine = 'chromium', cachePolicy = {} }) {
   if (!isAbsolute(output ?? '') || new URL(origin).origin !== origin) throw Error('D11 needs an absolute evidence directory and exact origin');
-  const build = await loadD11Build({ repo }), fontAssets = d11FontAssets(fixture), identify = url => identifyD11Resource(url, { origin, build, fontAssets });
+  const build = await loadD11Build({ repo, cacheDirectory: process.env.IE_D11_NPM_CACHE }), fontAssets = d11FontAssets(fixture), identify = url => identifyD11Resource(url, { origin, build, fontAssets });
   await context.addInitScript(observeRealm);
   const lanes = new Map(), requests = new Map(), pending = new Set(), missing = new Set(), seenFiles = new Set();
+  const collectorSessionId = randomUUID();
   let session, active, ordinal = 0, laneSerial = 0, closed = false, profiling = false, baselineComplete = false, totalRecords = 0;
+  let documentNavigationId = 0, baseline = null;
   const remember = reason => missing.add(reason);
   const track = work => { const promise = Promise.resolve(work); pending.add(promise); promise.catch(() => {}).finally(() => pending.delete(promise)); return promise; };
   const bump = () => { if (++totalRecords > MAX_RECORDS) { remember('D11 record limit reached'); return false; } return true; };
   const headers = (object = {}) => Object.fromEntries(Object.entries(object).map(([key, value]) => [key.toLowerCase(), value]));
+  const inventoryStamp = () => JSON.stringify({ documentNavigationId, lanes: [...lanes.values()].map(lane => [lane.id, lane.detached === true, [...lane.scripts.keys()]]),
+    requests: [...requests.values()].map(row => [row.owner, row.requestId, row.complete, row.failed === true, row.decodedBytes]), pending: pending.size });
+  function resolveFeatureBoundary() {
+    const ids = unique((build.roles?.excludedImports ?? []).filter(row => row.reason === 'verified-private-event-boundary' &&
+      row.witness?.kind === 'd11-private-event-import-1').map(row => row.witness.featureSource));
+    if (ids.length !== 1) return { complete: false, missing: ['Exactly one source-proved private-event feature is required for this supplemental action'] };
+    return deriveD11FeatureBoundary(build, ids[0]);
+  }
   function wire(lane) {
     lane.on('Page.frameNavigated', value => {
-      if (lane.id === 'page' && active && !value.frame?.parentId) active.startedBeforeNavigation = true;
+      if (lane.id === 'page' && !value.frame?.parentId) {
+        documentNavigationId++;
+        if (active) active.startedBeforeNavigation = true;
+      }
     });
     lane.on('Debugger.scriptParsed', value => {
       if (!bump()) return; let identity = identify(value.url);
@@ -202,10 +216,25 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
     lane.on('Network.requestWillBeSent', value => {
       if (!bump()) return;
       const identity = identify(value.request?.url);
-      if (!identity || value.request.method !== 'GET') return;
+      if (value.request?.method !== 'GET') return;
+      if (!identity) {
+        let knownPath = false;
+        try {
+          const url = new URL(value.request.url);
+          knownPath = url.origin === origin && (url.pathname === '/' || build.files.some(file => '/' + file.file === url.pathname));
+        } catch { /* Invalid URLs cannot establish a budgeted resource identity. */ }
+        // A pending or failed request may never deliver a response or script.
+        // Do not silently omit an unmapped executable or known artifact GET.
+        if (knownPath || ['Script', 'Stylesheet', 'Font'].includes(value.type)) remember('Unmapped budgeted resource request started');
+        return;
+      }
       const id = lane.id + ':' + value.requestId;
       if (requests.has(id)) remember('Redirected budgeted resource cannot be silently reassigned');
-      requests.set(id, { id, requestId: value.requestId, lane, owner: lane.id, ...identity, ordinal, complete: false, decodedBytes: 0 });
+      const resourceType = typeof value.type === 'string' && /^[A-Za-z]{1,32}$/.test(value.type) ? value.type : 'Unknown';
+      const initiatorType = typeof value.initiator?.type === 'string' && /^[A-Za-z]{1,32}$/.test(value.initiator.type) ? value.initiator.type : 'unknown';
+      if (resourceType === 'Unknown' || initiatorType === 'unknown') remember('Budgeted request type or initiator metadata is unavailable');
+      requests.set(id, { id, requestId: value.requestId, lane, owner: lane.id, ...identity, ordinal, complete: false, decodedBytes: 0,
+        method: 'GET', resourceType, initiatorType });
     });
     lane.on('Network.responseReceived', value => {
       const row = requests.get(lane.id + ':' + value.requestId), identity = identify(value.response?.url);
@@ -263,9 +292,11 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
       track(configure(child, true).catch(() => remember('Worker byte instrumentation failed')));
     });
     try {
-      await lane.send('Network.enable', { maxTotalBufferSize: 128 * 1048576, maxResourceBufferSize: MAX_BODY });
+      await lane.send('Network.enable', { maxTotalBufferSize: 128 * 1048576, maxResourceBufferSize: MAX_BODY }); lane.networkEnabled = true;
       await lane.send('Debugger.enable'); await lane.send('Profiler.enable');
-      await lane.send('Profiler.startPreciseCoverage', { callCount: true, detailed: false, allowTriggeredUpdates: false });
+      await lane.send('Profiler.startPreciseCoverage', { callCount: true, detailed: false, allowTriggeredUpdates: false }); lane.preciseCoverageEnabled = true;
+      // Workers are attached while paused, before any application execution.
+      if (waiting) lane.openingCoverageOrdinal = ordinal;
       await lane.send('Runtime.enable'); await lane.send('Runtime.evaluate', { expression: OBSERVE, returnByValue: true });
       if (lane.id === 'page') await lane.send('Page.enable');
       await lane.send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: true, flatten: false });
@@ -279,16 +310,50 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
     try { await configure(lane); profiling = true; }
     catch (error) { await releaseInstrumentation(); throw error; }
   }
-  async function begin({ id, cache, scope = 'startup', featureId, byteAudit = false } = {}) {
+  async function begin({ id, cache, scope = 'startup', featureId, byteAudit = false, workload, featureBoundary } = {}) {
     if (closed || active) throw Error('D11 byte audit is already active or closed');
     if (byteAudit !== true) throw Error('D11 precise coverage requires explicit byteAudit:true and cannot share scored latency');
     if (!['cold', 'warm'].includes(cache) || !['startup', 'text-engine', 'lazy-feature'].includes(scope) || typeof id !== 'string' || !/^[A-Za-z0-9:._/-]{1,256}$/.test(id)) throw Error('Invalid byte audit identity/scope/cache');
     if (scope === 'lazy-feature' && !build.dynamicFeatures.some(row => row.id === featureId)) throw Error('Unknown exact lazy feature');
+    if (featureBoundary !== undefined) {
+      const resolved = resolveFeatureBoundary();
+      if (!resolved.complete || !['W0', 'W1'].includes(workload) || featureBoundary.featureId !== resolved.featureId ||
+          !['startup-absence', 'first-use'].includes(featureBoundary.phase) ||
+          (featureBoundary.phase === 'startup-absence' ? scope !== 'startup' : scope !== 'lazy-feature' || workload !== 'W1' || featureId !== resolved.featureId)) {
+        throw Error('Supplemental feature audit needs an exact source-proved feature and declared workload/scope');
+      }
+    }
+    if (scope === 'startup') {
+      // Warm visits keep HTTP cache, but each new document has its own module
+      // evaluation state. Only this visit's startup feeds its first-use proof.
+      seenFiles.clear(); baselineComplete = false; baseline = null;
+    }
+    // A startup artifact is retained before the separate public action. Keep
+    // uncertainty from that intervening interval; resetting counters must not
+    // convert an earlier preload, execution or unsupported target into absence.
+    const openingGap = featureBoundary?.phase === 'first-use' ? {
+      baselineArtifactSha256: baseline?.artifact.sha256 ?? null,
+      inventoryUnchanged: baseline !== null && baseline.closingInventoryStamp === inventoryStamp(),
+      priorMissing: [...missing], evaluatedExclusiveFiles: [], complete: false,
+    } : null;
+    const exclusive = new Set(openingGap ? resolveFeatureBoundary().exclusiveFiles ?? [] : []);
     missing.clear(); requests.clear();
+    if (openingGap) {
+      for (const reason of openingGap.priorMissing) remember(reason);
+      if (!openingGap.inventoryUnchanged) remember('Application inventory changed between retained startup and first-use instrumentation');
+    }
     for (const [id, lane] of lanes) if (lane.detached) lanes.delete(id);
     ordinal++; totalRecords = 0;
     const startedBeforeNavigation = ['about:blank', ''].includes(page.url());
-    active = { id, cache, scope, featureId, ordinal, startedBeforeNavigation, baselineComplete, instrumentation: 'precise-coverage-byte-audit', timingSamplesReusable: false, cachePolicy };
+    active = { id, cache, scope, featureId, ordinal, startedBeforeNavigation, baselineComplete, instrumentation: 'precise-coverage-byte-audit', timingSamplesReusable: false, cachePolicy,
+      collectorSessionId, ...(openingGap ? { openingGap } : {}), ...(featureBoundary ? { workload, featureBoundary: { featureId: featureBoundary.featureId, phase: featureBoundary.phase },
+        ...(featureBoundary.phase === 'first-use' && baseline ? { baselineReference: {
+          observationId: baseline.observation.id, artifactSha256: baseline.artifact.sha256,
+          buildSha256: baseline.observation.buildSha256, fixtureSeal: baseline.observation.fixtureSeal,
+          workload: baseline.observation.workload, cache: baseline.observation.cache,
+          collectorSessionId, documentNavigationId: baseline.observation.documentNavigationId,
+        } } : {}) } : {}) };
+    const beforeOpening = openingGap ? inventoryStamp() : null;
     if (engine !== 'chromium') remember('Actual evaluated-module coverage unavailable in this browser engine');
     else try { await start(); } catch { remember('Could not start complete Chromium byte coverage'); }
     await Promise.allSettled([...pending]);
@@ -298,8 +363,31 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
         // realm, while a new navigation resets its independent time origin.
         const previous = (await lane.send('Runtime.evaluate', { expression: READ_REALM, returnByValue: true })).result?.value;
         lane.timingBaseline = previous ? { timeOrigin: previous.timeOrigin, rows: previous.rows.length } : null;
-        await lane.send('Profiler.takePreciseCoverage');
+        const opening = await lane.send('Profiler.takePreciseCoverage'); lane.openingCoverageOrdinal = ordinal;
+        if (openingGap) for (const script of opening.result ?? []) {
+          const identity = lane.scripts.get(script.scriptId);
+          if (identity && exclusive.has(identity.file) && script.functions?.some(fn => fn.ranges?.some(range => range.count > 0))) {
+            openingGap.evaluatedExclusiveFiles.push(identity.file);
+            seenFiles.add(lane.id + ':' + identity.file);
+          }
+        }
       } catch { remember('Could not establish the beginning of the byte-audit interval'); }
+    }
+    if (openingGap) {
+      if (inventoryStamp() !== beforeOpening) {
+        openingGap.inventoryUnchanged = false;
+        remember('Application inventory changed while first-use instrumentation opened');
+      }
+      openingGap.evaluatedExclusiveFiles = unique(openingGap.evaluatedExclusiveFiles).sort();
+      if (openingGap.evaluatedExclusiveFiles.length) remember('Feature-exclusive code executed between retained startup and the public first-use interval');
+      openingGap.complete = openingGap.inventoryUnchanged && !openingGap.priorMissing.length && !openingGap.evaluatedExclusiveFiles.length && !missing.size &&
+        lanes.size > 0 && [...lanes.values()].every(lane => !lane.detached && lane.openingCoverageOrdinal === ordinal);
+      // The source-bound driver finishes locator eligibility before begin(),
+      // then immediately dispatches its public click when this call resolves.
+      // This is an unscored action-interval boundary, not a physical timestamp.
+      active.actionStart = { kind: 'export', boundary: 'before-public-click-dispatch', observationId: id,
+        baselineArtifactSha256: baseline?.artifact.sha256 ?? null, collectorSessionId, documentNavigationId,
+        complete: openingGap.complete };
     }
     return { kind: 'd11-byte-audit-start-1', id, cache, scope, instrumentation: active.instrumentation, timingSamplesReusable: false };
   }
@@ -330,16 +418,17 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
       if (lane.id === 'page' && realm?.browserProfile) Object.assign(browserProfile, realm.browserProfile);
     } catch { remember('Could not complete an executing realm byte snapshot'); }
   }
-  async function snapshot() {
+  async function snapshot({ publicAction } = {}) {
     if (!active) throw Error('D11 byte audit has not begun');
+    if (publicAction !== undefined && (active.featureBoundary?.phase !== 'first-use' || publicAction.kind !== 'export' || publicAction.completed !== true)) {
+      throw Error('A public Export-ready witness belongs only to its separate first-use audit');
+    }
     for (let round = 0; pending.size && round < 8; round++) await Promise.allSettled([...pending]);
     if (pending.size) remember('Worker instrumentation did not settle before byte snapshot');
-    const stamp = () => JSON.stringify({ lanes: [...lanes.values()].map(lane => [lane.id, lane.detached === true, [...lane.scripts.keys()]]),
-      requests: [...requests.values()].map(row => [row.owner, row.requestId, row.complete, row.failed === true, row.decodedBytes]), pending: pending.size });
-    const beforeSnapshot = stamp();
+    const beforeSnapshot = inventoryStamp();
     const evaluated = [], timings = [], fonts = { observed: false }, browserProfile = { observed: false };
     for (const lane of lanes.values()) await collectLane(lane, evaluated, timings, fonts, browserProfile);
-    const resources = [], timingOffsets = new Map();
+    const resources = [], resourceRequests = [], timingOffsets = new Map();
     for (const row of requests.values()) {
       if (row.ordinal !== ordinal) continue;
       // Exact font availability HEAD probes share the same URL but have no
@@ -359,6 +448,10 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
         if (!verified) remember('Delivered resource bytes differ from their immutable identity');
         if (gzipBytes === undefined) gzipBytes = gzipSync(bytes).length;
       } catch { remember('Exact resource response bytes unavailable'); }
+      resourceRequests.push({ resourceIndex: resources.length, owner: row.owner, ...(row.file ? { file: row.file } : {}), sha256: row.sha256,
+        rawBytes: row.rawBytes, method: row.method, resourceType: row.resourceType, initiatorType: row.initiatorType,
+        complete: row.complete === true, failed: row.failed === true, status: row.status ?? null,
+        fromDiskCache: row.fromDiskCache === true, servedFromCache: row.servedFromCache === true, fromServiceWorker: row.fromServiceWorker === true });
       resources.push({ id: row.id, file: row.file, owner: row.owner, kind: row.kind, role: row.role, sha256: row.sha256,
         rawBytes: row.rawBytes, gzipBytes, verified, networkTransferBytes: row.networkTransferBytes,
         status: row.status, cacheControl: row.cacheControl, contentEncoding: row.contentEncoding,
@@ -370,23 +463,42 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
     for (const lane of lanes.values()) if (!lane.detached) {
       try {
         const late = await lane.send('Profiler.takePreciseCoverage');
+        lane.closingCoverageOrdinal = ordinal;
         for (const script of late.result ?? []) {
           const identity = lane.scripts.get(script.scriptId);
           if (identity && script.functions?.some(fn => fn.ranges?.some(range => range.count > 0)) && !evaluated.some(row => row.owner === lane.id && row.file === identity.file)) remember('An additional module executed during byte snapshot');
         }
       } catch { remember('Could not verify the closing execution boundary'); }
     }
-    if (stamp() !== beforeSnapshot) remember('Execution or resource inventory changed during byte snapshot');
-    const observation = { ...active, buildSha256: build.sha256, authoringFontIdentities: Object.values(fontAssets), fixtureSeal: fixture?.seal?.sha256 ?? null, evaluated, resources, fonts, browserProfile, missing: [...missing],
-      collection: { complete: !missing.size && engine === 'chromium' && lanes.size > 0, realms: [...lanes.keys()], recordLimit: MAX_RECORDS } };
+    const closingInventoryStamp = inventoryStamp(), closingStable = closingInventoryStamp === beforeSnapshot;
+    if (!closingStable) remember('Execution or resource inventory changed during byte snapshot');
+    const observation = { ...active, buildSha256: build.sha256, authoringFontIdentities: Object.values(fontAssets), fixtureSeal: fixture?.seal?.sha256 ?? null,
+      documentNavigationId, evaluated, resources, resourceRequests, fonts, browserProfile, missing: [...missing],
+      ...(publicAction ? { publicAction: { kind: 'export', completed: true } } : {}),
+      collection: { complete: !missing.size && engine === 'chromium' && lanes.size > 0, realms: [...lanes.keys()], recordLimit: MAX_RECORDS,
+        requestMethod: 'cdp-network-get-v1', evaluationMethod: 'cdp-precise-coverage-v1', closingStable,
+        realmStates: [...lanes.values()].map(lane => ({ owner: lane.id, networkEnabled: lane.networkEnabled === true,
+          preciseCoverageEnabled: lane.preciseCoverageEnabled === true, openingCoverageReset: lane.openingCoverageOrdinal === ordinal,
+          closingCoverageRead: lane.closingCoverageOrdinal === ordinal, detached: lane.detached === true })) } };
     const result = analyzeD11Observation(observation, build);
     const path = join(output, 'd11-byte-audit-' + randomUUID() + '.json'), bytes = Buffer.from(JSON.stringify({ observation, result, build }, null, 2) + '\n');
     await writeFile(path, bytes, { flag: 'wx', mode: 0o600 });
     const artifact = { path, sha256: hash(bytes), byteLength: String(bytes.length) };
+    const featureProof = active.featureBoundary?.phase === 'startup-absence'
+      ? analyzeD11FeatureAbsence(observation, build, active.featureBoundary.featureId)
+      : active.featureBoundary?.phase === 'first-use'
+        ? analyzeD11FeatureFirstUse(observation, build, { featureId: active.featureBoundary.featureId, baseline }) : undefined;
     for (const row of evaluated) seenFiles.add(row.owner + ':' + row.file);
-    if (active.scope === 'startup') baselineComplete = result.missing.length === 0;
+    if (active.scope === 'startup') {
+      baselineComplete = result.status === 'PASS';
+      // Identity survives a failed/incomplete startup too. Keeping its artifact
+      // permits honest paired replay; baselineComplete and the supplemental
+      // reducer independently prevent that attempt from qualifying.
+      baseline = { observation, artifact, closingInventoryStamp };
+    }
     active = null;
-    return { ...result, artifact, evaluatedModuleCount: evaluated.length, resourceCount: resources.length };
+    return { ...result, artifact, evaluatedModuleCount: evaluated.length, resourceCount: resources.length,
+      ...(featureProof ? { featureBoundary: featureProof } : {}) };
   }
   async function releaseInstrumentation() {
     // Stop every enabled facility independently: a Target-domain failure must
@@ -401,7 +513,8 @@ export async function createBrowserD11Collector({ context, page, repo, output, o
   }
   async function close() {
     if (closed) return; closed = true;
+    baseline = null;
     await releaseInstrumentation();
   }
-  return { begin, snapshot, close, buildIdentity: build.sha256, instrumentation: 'precise-coverage-byte-audit', timingSamplesReusable: false };
+  return { begin, snapshot, close, resolveFeatureBoundary, buildIdentity: build.sha256, instrumentation: 'precise-coverage-byte-audit', timingSamplesReusable: false };
 }

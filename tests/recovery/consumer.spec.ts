@@ -95,6 +95,74 @@ test('browser rejects partial and gapped SSE batches, ignores duplicate delivery
   const complete='id: 2\ndata: '+JSON.stringify({...part,partCount:1})+'\n\n';expect(await run(complete+complete)).toBe('done');expect((await state(page)).view.cursor).toBe('2');expect((await state(page)).document.revision).toBe('2');
 });
 
+// Exercise the real consumer and native IndexedDB. Only the named failure
+// boundary is injected; publication, reducer writes and cleanup still delegate.
+for(const scenario of [
+  {kind:'inline',fault:'published'},
+  {kind:'transaction-ref',fault:'published'},
+  {kind:'inline',fault:'stage'},
+  {kind:'inline',fault:'publish'},
+  {kind:'inline',fault:'publish-and-stage'},
+] as const)test(`browser SSE ${scenario.kind} publication ownership survives ${scenario.fault} failure`,async({page})=>{
+  if(scenario.kind==='transaction-ref')await largeTransaction(root);
+  else{const w=await openWriter({root});const ref=await w.putObject([expectedBytes],refFor(expectedBytes),w.epoch);await w.submit(encode(command(ref)),w.epoch);await w.submit(encode(checkpoint(ref,'1')),w.epoch);await w.close();}
+  await start(page);await page.evaluate(()=>(window as any).harness.seedFirst());const before=await state(page);
+  const offered=await page.evaluate(async kind=>{
+    const h=(window as any).harness,response=await(await h.transport('/api/v1/events?after=1')).json(),batch=response.batches[0];
+    if(batch.kind!==kind)throw Error('Unexpected transaction fixture');
+    const events=kind==='inline'?batch.events:(await(await h.transport(batch.content.url)).text()).trimEnd().split('\n').map((line:string)=>JSON.parse(line));
+    const envelope=kind==='transaction-ref'?{protocolVersion:1,kind,reference:batch}:{protocolVersion:1,kind:'batch-part',projectionSchema:response.recovery.projectionSchema,transactionId:batch.transactionId,fromSeq:batch.fromSeq,toSeq:batch.toSeq,partIndex:0,partCount:1,events};
+    return {body:'id: '+batch.toSeq+'\ndata: '+JSON.stringify(envelope)+'\n\n',cursor:batch.toSeq,last:events.at(-1)};
+  },scenario.kind);
+  await page.route('**/api/v1/events/stream?**',route=>route.fulfill({status:200,contentType:'text/event-stream',body:offered.body}));
+  const result=await page.evaluate(async({fault,last})=>{
+    const h=(window as any).harness,cache=h.cache;
+    const original={published:cache.published,publish:cache.publish,clone:cache.clone,put:cache.put,discard:cache.discard};
+    const stages=new Set<string>(),discardAttempts:string[]=[];let generation='',committed=false,failure='';
+    const faults={published:0,publish:0,stage:0};
+    cache.clone=async(from:string,to:string)=>{generation=to;return original.clone.call(cache,from,to);};
+    cache.put=async(g:string,type:string,id:string,value:unknown)=>{if(type==='staged')stages.add(g);return original.put.call(cache,g,type,id,value);};
+    cache.publish=async(next:unknown,expected:unknown)=>{
+      if(fault==='publish'||fault==='publish-and-stage'){faults.publish++;throw Error('Injected publication failure');}
+      await original.publish.call(cache,next,expected);committed=true;
+    };
+    cache.published=async()=>{if(committed&&fault==='published'&&faults.published===0){faults.published++;throw Error('Injected published read failure');}return original.published.call(cache);};
+    cache.discard=async(g:string)=>{
+      discardAttempts.push(g);
+      if(stages.has(g)&&fault==='stage'&&committed&&faults.stage===0){faults.stage++;throw Error('Injected stage cleanup failure');}
+      await original.discard.call(cache,g);
+      // A cleanup rejection must not skip another owned generation even when
+      // the first deletion completed before its error was reported.
+      if(stages.has(g)&&fault==='publish-and-stage'&&faults.stage===0){faults.stage++;throw Error('Injected stage cleanup failure');}
+    };
+    try{await h.client.consumeStream();}catch(error){failure=String(error);}finally{Object.assign(cache,original);}
+    const view=await cache.published(),document=await cache.read('document','document_1');
+    const counts:Record<string,Record<string,number>>={};
+    for(const g of [generation,...stages]){counts[g]={};for(const type of ['document','history','checkpoint','event','staged']){counts[g][type]=0;for await(const _ of cache.rows(g,type))counts[g][type]++;}}
+    return {failure,faults,generation,committed,stages:[...stages],discardAttempts,counts,view,document,
+      checkpoint:await cache.read('checkpoint',last.payload.checkpoint.id),history:document?await cache.read('history',document.historyHead):undefined,
+      marker:await cache.value(view.generation,'event',last.eventId),reconnect:await h.client.reconnectURL(),ownership:h.client.ownership};
+  },{fault:scenario.fault,last:offered.last});
+  await page.unroute('**/api/v1/events/stream?**');
+  const published=scenario.fault==='published'||scenario.fault==='stage';
+  expect(result.failure).toContain(scenario.fault==='published'?'Injected published read failure':scenario.fault==='publish'?'Injected publication failure':'Injected stage cleanup failure');
+  expect(result.committed).toBe(published);expect(result.generation).toBeTruthy();expect(result.stages).toHaveLength(1);
+  expect(result.faults).toEqual({published:scenario.fault==='published'?1:0,publish:published?0:1,stage:scenario.fault==='stage'||scenario.fault==='publish-and-stage'?1:0});
+  expect(result.ownership).toEqual({active:false,cleanupFailed:false});
+  for(const stage of result.stages)expect(result.counts[stage]).toEqual({document:0,history:0,checkpoint:0,event:0,staged:0});
+  if(published){
+    expect(result.view).toEqual({...before.view,generation:result.generation,cursor:offered.cursor});
+    expect(result.document).toEqual({...before.document,revision:offered.cursor,checkpoint:offered.last.payload.checkpoint.id});
+    expect(result.checkpoint).toEqual(offered.last.payload.checkpoint);expect(result.history.id).toBe(before.document.historyHead);expect(result.marker).toBe(offered.cursor);
+    expect(result.discardAttempts).not.toContain(result.generation);expect(result.reconnect).toBe('/api/v1/events/stream?after='+offered.cursor);
+    if(scenario.fault==='stage')expect(result.discardAttempts.filter((g:string)=>g===result.stages[0])).toHaveLength(2);
+  }else{
+    expect({view:result.view,document:result.document}).toEqual(before);expect(result.checkpoint).toBeUndefined();expect(result.marker).toBeUndefined();
+    expect(result.counts[result.generation]).toEqual({document:0,history:0,checkpoint:0,event:0,staged:0});
+    expect(result.discardAttempts).toContain(result.generation);expect(result.reconnect).toBe('/api/v1/events/stream?after=1');
+  }
+});
+
 test('browser revoked recovery context and mid-download expiry preserve the previous published projection',async({page})=>{
   await snapshotFixture();await start(page);const before=await state(page);
   await page.route('**/api/v1/protocol-content/**',async route=>{now+=31*60*1000;await route.continue();});

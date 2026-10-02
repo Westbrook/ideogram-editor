@@ -13,9 +13,8 @@ for (const phase of ['before-object-write', 'before-object-flush', 'after-object
     await writer.assertNoEffects(); await writer.kill(); await pending;
     const next = await childFor(t, root); assert.equal(next.epoch, '2');
     assert.equal((await next.call('events')).highWater, '0'); assert.equal(await next.call('document', 'document_1'), null);
-    const inventory = (await next.call('diagnostics')).inventory;
-    if (['after-object-rename', 'after-object-directory-sync'].includes(phase)) assert.equal(inventory.orphanCount, '1');
-    else assert.equal(inventory.stagingCount, '1');
+    if (['after-object-rename', 'after-object-directory-sync'].includes(phase)) assert.equal(await next.call('diagnosticScalar', 'inventory.orphanCount'), '1');
+    else assert.equal(await next.call('diagnosticScalar', 'inventory.stagingCount'), '1');
     const ref = await putExpected(next); const result = await next.call('submit', encode(command(ref)));
     assert.equal(result.status, 'accepted'); assert.equal(result.fromSeq, '1');
     await next.assertNoEffects(); await next.close();
@@ -47,7 +46,7 @@ for (const phase of ['before-event-insert', 'before-commit', 'after-commit']) {
 test('real SQLite SQLITE_FULL rolls back acceptance and rejection receipts, then exact retry succeeds after capacity returns', async t => {
   const root = await rootFor(t); const setup = await childFor(t, root); const ref = await putExpected(setup);
   await setup.call('submit', encode(command(ref))); const before = await setup.call('document', 'document_1');
-  const pageCount = (await setup.call('diagnostics')).settings.page_count; await setup.close();
+  const pageCount = await setup.call('diagnosticScalar', 'settings.page_count'); await setup.close();
   const full = await childFor(t, root, { maxPageCount: pageCount });
   const large = checkpoint(ref, '1', 'Retained checkpoint '.repeat(400));
   await assert.rejects(full.call('submit', encode(large)), { code: 'STORAGE_FULL' });
@@ -73,7 +72,7 @@ test('real filesystem permission failure during rename leaves no accepted refere
   assert.equal((await writer.wait('failure')).failure.code, 'EACCES');
   await chmod(join(root, 'staging'), 0o700);
   assert.equal((await writer.call('events')).highWater, '0');
-  assert.equal((await writer.call('diagnostics')).inventory.orphanCount, '0');
+  assert.equal(await writer.call('diagnosticScalar', 'inventory.orphanCount'), '0');
   await writer.close(); const retry = await childFor(t, root);
   assert.deepEqual(await putExpected(retry), refFor(expectedBytes)); await retry.close();
 });

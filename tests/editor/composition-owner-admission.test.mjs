@@ -4,31 +4,46 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {transformWithOxc} from 'vite';
+import {isolatedDiagnosticModules} from '../owned-preview-module.mjs';
 const sourceRoot=process.env.COMPOSITION_STAGED_ROOT??'.',controllerRoot=process.env.COMPOSITION_CORRECTION_ROOT??sourceRoot;
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 async function source(path,imports={}){let code=(await transformWithOxc(await readFile(path,'utf8'),path)).code;for(const [specifier,url]of Object.entries(imports))code=code.replaceAll(JSON.stringify(specifier),JSON.stringify(url)).replaceAll("'"+specifier+"'",JSON.stringify(url));return data(code);}
-const allocationURL=data((await transformWithOxc(await readFile('src/observability/allocations.ts','utf8'),'allocations.ts')).code+'\n// owner-transition fixture ledger\n');
+const {allocationsURL:allocationURL,compositionObservationsURL:observationURL}=await isolatedDiagnosticModules();
 const promptURL=await source(sourceRoot+'/src/observability/prompt-memory.ts',{'./allocations.js':allocationURL});
+const modelURL=await source('src/observability/model-memory.ts',{'./allocations.js':allocationURL,'./prompt-memory.js':promptURL}),{cloneOwnedModel}=await import(modelURL);
+const controlURL=await source(sourceRoot+'/src/state/control-memory.ts',{'../observability/allocations.js':allocationURL});
+const draftURL=await source(sourceRoot+'/src/state/draft-values.ts',{'../observability/allocations.js':allocationURL,'../observability/prompt-memory.js':promptURL,'../observability/model-memory.js':modelURL,'./control-memory.js':controlURL}),{DraftRegistrations}=await import(draftURL);
+const lifetimeURL=await source(controllerRoot+'/src/ui/composition-lifetime.ts');
 const coreURL=await source(sourceRoot+'/src/composition/core.ts');
-const memoryURL=await source(sourceRoot+'/src/composition/memory.ts',{'../observability/allocations.js':allocationURL,'../observability/prompt-memory.js':promptURL,'./core.js':coreURL});
+const compositionViewURL=await source(sourceRoot+'/src/composition/view.ts');
+const memoryURL=await source(sourceRoot+'/src/composition/memory.ts',{'../observability/allocations.js':allocationURL,'../observability/prompt-memory.js':promptURL,'../observability/composition-observations.js':observationURL,'./view.js':compositionViewURL,'./core.js':coreURL});
 const jsonURL=await source('src/protocol/json.ts'),adapterURL=await source('src/ui/adapters.ts');
-const lit=data('export const nothing=null;export function html(strings,...values){return {strings,values};}');
+const lit=data('export const nothing=null,noChange=Symbol.for("fixture.noChange");export function html(strings,...values){return {strings,values};}');
 const color=data('export function parseColor(){throw Error("unused color path")}export function exportSRGB(){throw Error("unused color path")}');
 const destination=data('export function chooseDestination(){throw Error("unused destination")}export function writeDestination(){throw Error("unused destination")}');
 const phases=data('export const browserPhases={recorder:{start(){return {end(){}};}}};');
-const uiURL=await source(controllerRoot+'/src/ui/composition.ts',{'lit':lit,'@en-reve/elements/color-picker.js':color,'../state/destination.js':destination,'../observability/browser.js':phases,'./adapters.js':adapterURL,'../protocol/json.js':jsonURL,'../composition/core.js':coreURL,'../composition/memory.js':memoryURL,'../observability/prompt-memory.js':promptURL});
+const uiURL=await source(controllerRoot+'/src/ui/composition.ts',{'lit':lit,'@en-reve/elements/color-picker.js':color,'../request/core.js':pathToFileURL(resolve('dist/local/src/request/core.js')).href,'../observability/composition-observations.js':observationURL,'../state/destination.js':destination,'../observability/browser.js':phases,'./adapters.js':adapterURL,'./composition-lifetime.js':lifetimeURL,'../protocol/json.js':jsonURL,'../composition/core.js':coreURL,'../composition/memory.js':memoryURL,'../observability/prompt-memory.js':promptURL});
 const {CompositionEditing}=await import(uiURL),{emptyComposition}=await import(coreURL),{compositionPayloadBytes}=await import(memoryURL),{allocationLedger,ALLOCATION_LIMITS}=await import(allocationURL);
 const flush=async()=>{for(let n=0;n<64;n++)await Promise.resolve();};
 function field(template,id){if(!template||typeof template!=='object')return null;if(template.strings?.[0].includes('<en-textarea id=')&&template.values[0]===id)return template;for(const value of Array.isArray(template)?template:template.values??[]){const found=field(value,id);if(found)return found;}return null;}
 function event(value){const target={value,isConnected:true};return {currentTarget:target,composedPath:()=>[target],detail:{isComposing:false},defaultPrevented:false,preventDefault(){this.defaultPrevented=true;}};}
 function fixture(){
+ const registrations=new DraftRegistrations();
  const document={id:'old-document',revision:'1',width:360,height:200},value=emptyComposition(360,200,'old-composition');value.scene='Old owner scene';
  let payload={composition:value,layers:[],bindings:{},revision:'1'},rendered,instance,reads=0;const saved=[];
- const editor={sessionId:'old-session',draftOwner:{drafts:new Map()},view:{ready:true,document},ui:{drafts:[]},session:{identity:()=> 'client',async transport(){reads++;const text=JSON.stringify(payload);return new Response(text,{headers:{'content-length':String(new TextEncoder().encode(text).byteLength)}});}},changeDraft(id,kind,text,target,composing,revision){saved.push({id,kind,graph:JSON.parse(text),documentId:editor.view.document.id,revision});}};
+ const editor={sessionId:'old-session',draftOwner:{drafts:new Map(),refuseChange:(id,doc)=>registrations.refuse(id,doc)},registerDraft(id,doc){this.draftOwner.refuseChange=(id,doc)=>registrations.refuse(id,doc);return registrations.register(id,doc);},view:{ready:true,document},ui:{drafts:[]},session:{identity:()=> 'client',async transport(){reads++;const text=JSON.stringify(payload);return new Response(text,{headers:{'content-length':String(new TextEncoder().encode(text).byteLength)}});}},changeDraft(id,kind,text,target,composing,revision){saved.push({id,kind,graph:JSON.parse(text),documentId:editor.view.document.id,revision});registrations.delete(id);}};
+ // Empty UI is a fixed fixture literal. Published saved checkpoints use the
+ // actual model owner, including pins that survive replacement during restore.
+ let checkpoint,ui=editor.ui;
+ Object.defineProperty(editor,'ui',{get:()=>ui,set(value){const next=value&&!(Object.keys(value).length===1&&Array.isArray(value.drafts)&&value.drafts.length===0)?cloneOwnedModel('composition-fixture-checkpoint',value):undefined;const old=checkpoint;checkpoint=next;ui=next?next.value:value;old?.release();}});
+ editor.pinUI=()=>checkpoint?checkpoint.pin():()=>{};
+ const releaseCheckpoint=()=>{checkpoint?.release();checkpoint=undefined;ui=undefined;};
  const host={requestUpdate(){this.updateComplete=Promise.resolve().then(()=>{rendered=instance.request();});},updateComplete:Promise.resolve(),querySelector(){return null;}};
  instance=new CompositionEditing(host,editor,()=>{},()=>{},async()=>{},()=>{});
- return {instance,editor,saved,scene:()=>field(rendered,'composition-scene'),freshScene:()=>field(instance.request(),'composition-scene'),setPayload(value){payload=value;},reads:()=>reads,async initial(){await instance.sync();await flush();assert(this.scene());}};
+ return {instance,editor,saved,async close(){try{await instance.dispose();}finally{releaseCheckpoint();registrations.dispose();assert.equal(registrations.inspect().editableBorrowers,0,'Controller failed to drain draft registrations');await registrations.drain();}},scene:()=>field(rendered,'composition-scene'),freshScene:()=>field(instance.request(),'composition-scene'),setPayload(value){payload=value;},reads:()=>reads,async initial(){await instance.sync();await flush();assert(this.scene());}};
 }
 for(const transition of ['document','session','draft-owner'])for(const stage of ['clone','bindings'])test(`${transition} transition remains atomic when ${stage} admission refuses after parsing`,async()=>{
  const before=allocationLedger.snapshot(),f=fixture();let pressure,completion,settle;const nativeClone=globalThis.structuredClone;
@@ -43,7 +58,7 @@ for(const transition of ['document','session','draft-owner'])for(const stage of 
   completion=f.instance.sync();void completion.catch(()=>{});await flush();
   // The native response was consumed and the real parsed model is retained;
   // the controller is stopped at its real field-settlement boundary.
-  assert.equal(f.reads(),2);assert.equal(allocationLedger.snapshot().promptBytes,retained.promptBytes+compositionPayloadBytes(incoming));assert.equal(f.instance.key,key);
+  assert.equal(f.reads(),2);assert.equal(allocationLedger.snapshot().promptBytes,retained.promptBytes+compositionPayloadBytes({id:f.editor.view.document.id,revision:f.editor.view.document.revision,width:f.editor.view.document.width,height:f.editor.view.document.height}));assert.equal(allocationLedger.snapshot().byKind.control.cpuBytes,retained.byKind.control.cpuBytes+compositionPayloadBytes(incoming));assert.equal(f.instance.key,key);
   const allowance=stage==='clone'?0:compositionPayloadBytes(next);
   pressure=allocationLedger.reserve({owner:'composition-owner-transition-pressure',kind:'prompt',cpuBytes:ALLOCATION_LIMITS.promptBytes-allocationLedger.snapshot().promptBytes-allowance});
   let clones=0;globalThis.structuredClone=(...args)=>{clones++;return nativeClone(...args);};settle();await assert.rejects(completion,/PROMPT_MEMORY_BUDGET/);globalThis.structuredClone=nativeClone;
@@ -55,6 +70,6 @@ for(const transition of ['document','session','draft-owner'])for(const stage of 
   await f.instance.sync();await flush();assert.equal(f.reads(),3);assert.notEqual(f.instance.c,c);assert.equal(f.instance.c.scene,'Successor scene');assert.equal(f.instance.ownsModel(),true);assert.equal(f.saved.length,0);
   oldScene(event('Old callback after successor install'));await flush();assert.equal(f.saved.length,0);assert.equal(f.instance.c.scene,'Successor scene');
   f.scene().values.at(-1)(event('Successor edit'));await flush();assert.equal(f.saved.length,1);assert.equal(f.saved[0].graph.composition.scene,'Successor edit');assert.equal(f.saved[0].documentId,f.editor.view.document.id);
- }finally{globalThis.structuredClone=nativeClone;pressure?.release();settle?.();await completion?.catch(()=>{});await f.instance.dispose();}
+ }finally{globalThis.structuredClone=nativeClone;pressure?.release();settle?.();await completion?.catch(()=>{});await f.close();}
  const after=allocationLedger.snapshot();assert.equal(after.cpuBytes,before.cpuBytes);assert.equal(after.promptBytes,before.promptBytes);assert.equal(after.activeRecords,before.activeRecords);assert.equal(after.handles,before.handles);
 });

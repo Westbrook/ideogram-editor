@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { createHash } from 'node:crypto';
-import { normalizeBrowserOrigins, inspectBrowserProxyRequest, browserProxyLaunchOptions, inspectUndoProxyCommand, createCachePreservingEgress } from '../../tooling/qualification/campaigns/browser-network.mjs';
+import { normalizeBrowserOrigins, inspectBrowserProxyRequest, browserProxyLaunchOptions, inspectUndoProxyCommand, classifyBrowserRequestPath, createCachePreservingEgress } from '../../tooling/qualification/campaigns/browser-network.mjs';
 
 const origins = () => normalizeBrowserOrigins(['http://127.0.0.1:4100', 'http://127.0.0.1:4200']);
 const request = (patch = {}) => ({ method: 'GET', url: 'http://127.0.0.1:4100/assets/app.js?v=1', headers: { host: '127.0.0.1:4100' }, ...patch });
@@ -124,6 +124,47 @@ test('refusal evidence contains only a fixed reason and never credential or path
   const result = inspectBrowserProxyRequest(request({ url: 'http://name:private-secret@127.0.0.1:4100/private-path?token=private-token' }), origins());
   assert.deepEqual(result, { allowed: false, reason: 'absolute-literal-http-url-required' });
   assert.equal(JSON.stringify(result).includes('private-'), false);
+});
+
+test('request classification distinguishes adapter metadata from asset payload and staging routes using literal IDs', () => {
+  const cases = [
+    ['/', 'document-root', null], ['/api/v1/adapters', 'adapter-list', null],
+    ['/api/v1/adapters/owned_version', 'adapter-view', 'owned_version'],
+    ['/api/v1/adapters/owned_version/updates', 'adapter-updates', 'owned_version'],
+    ['/api/v1/adapters/deletion-reviews/owned_review', 'adapter-deletion-review', 'owned_review'],
+    ['/api/v1/assets/owned_asset', 'asset-view', 'owned_asset'],
+    ['/api/v1/assets/owned_asset/content', 'asset-content', 'owned_asset'],
+    ['/api/v1/assets/owned_asset/display', 'asset-display', 'owned_asset'],
+    ['/api/v1/assets/owned_asset/display-tile', 'asset-display-tile', 'owned_asset'],
+    ['/api/v1/assets/staging', 'asset-staging-create', null],
+    ['/api/v1/assets/staging/recovery', 'asset-staging-recovery', null],
+    ['/api/v1/assets/staging/owned_upload', 'asset-staging', 'owned_upload'],
+    ['/api/v1/assets/staging/owned_upload/finalize', 'asset-staging-finalize', 'owned_upload'],
+    ['/api/v1/commands', 'command-submit', null],
+    ['/api/v1/commands/pending', 'command-inventory', null],
+    ['/api/v1/commands/owned_command/result', 'command-result', 'owned_command'],
+    ['/api/v1/commands/owned_command/original', 'command-original', 'owned_command'],
+    ['/api/v1/ui/owned_document/request', 'ui-request', 'owned_document'],
+    ['/api/v1/events', 'events', null], ['/api/v1/events/stream', 'events-stream', null],
+    ['/api/v1/recovery/owned_lease/release', 'recovery-release', 'owned_lease'],
+    ['/api/v1/namespace-events/owned_namespace', 'namespace-events', 'owned_namespace'],
+    ['/api/v1/protocol-content/owned_content', 'protocol-content', 'owned_content'],
+    ['/api/v1/snapshots/owned_snapshot', 'snapshot', 'owned_snapshot'],
+    ['/api/v1/session/renew', 'session-renew', null],
+  ];
+  for (const [pathname, route, id] of cases) assert.deepEqual(classifyBrowserRequestPath(pathname), { route, id });
+  assert.deepEqual(classifyBrowserRequestPath('/.well-known/ideogram-campaign-proxy/' + 'a'.repeat(64)), { route: 'proxy-challenge', id: null });
+  assert.deepEqual(classifyBrowserRequestPath('/api/v1/adapters/' + 'a'.repeat(128)), { route: 'adapter-view', id: 'a'.repeat(128) });
+});
+
+test('request classification refuses ambiguous or encoded identities and never returns unknown private paths', () => {
+  for (const pathname of [
+    null, undefined, {}, 123, '', '/private-path', '/api/v1/adapters/', '/api/v1/adapters/owned_version/',
+    '/api/v1/adapters/owned%5Fversion', '/api/v1/adapters/owned%2Fversion', '/api/v1/adapters/owned.version',
+    '/api/v1/adapters/../private-path', '/api/v1/adapters/owned_version?private-token=secret',
+    '/api/v1/adapters/owned_version#private-token', '/api/v1/adapters/' + 'a'.repeat(129),
+    '/api/v1/adapters/owned_version\n', '/api/v1/documents/owned_document/events', '/' + 'a'.repeat(16384),
+  ]) assert.deepEqual(classifyBrowserRequestPath(pathname), { route: 'unknown', id: null });
 });
 
 test('Chromium launch explicitly proxies loopback and configures QUIC and WebRTC UDP policy flags', () => {
@@ -313,6 +354,16 @@ function challengePage(guard, options = {}) {
 }
 
 const digest = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
+
+async function terminalObservation(guard, id) {
+  const deadline = Date.now() + 2000;
+  for (;;) {
+    const value = guard.snapshotObservation(id);
+    if (value.after.activeRequestCount === 0) return value;
+    assert(Date.now() < deadline, 'Actual loopback requests must reach their terminal events');
+    await new Promise(resolve => setImmediate(resolve));
+  }
+}
 
 for (const engine of ['chromium', 'firefox', 'webkit']) test(engine + ' proxy challenge contract requires its own observed nonce and restores a blank page', { timeout: 10000 }, async t => {
   const fixture = await loopbackTransport(t, undefined, { engine });
@@ -505,4 +556,202 @@ test('loopback Undo fence rejects changed targets and duplicate Undo before forw
   }), { code: 'CAMPAIGN_PREREQUISITE' });
   assert.equal((await duplicate).status, 403); assert.equal(fixture.received.length, 1);
   assert.deepEqual(fixture.received[0].bytes, undoBytes()); assert.equal(fixture.guard.evidence().counts.blocked, 4);
+});
+
+test('observation retains real GET and PUT outcomes without changing bytes or exposing URL, header or body secrets', { timeout: 10000 }, async t => {
+  const body = Buffer.from('private-request-body\0\xff'), replyBody = Buffer.from('private-response-body\0\xfe');
+  const fixture = await loopbackTransport(t, (_entry, response) => {
+    response.writeHead(202, { 'content-type': 'application/octet-stream', 'cache-control': 'public, max-age=3600', etag: '"private-response-etag"' });
+    response.end(replyBody);
+  });
+  const proof = await fixture.guard.verifyBrowserRoute(challengePage(fixture.guard).page);
+  const initial = fixture.guard.beginObservation('owned-adapter-cycle');
+  assert.equal(initial.kind, 'browser-proxy-observation-1'); assert.equal(initial.id, 'owned-adapter-cycle'); assert.equal(initial.ended, false);
+  assert.equal(initial.requestLimit, 4096); assert.equal(initial.recordingComplete, true); assert.equal(initial.terminalComplete, true);
+  assert.deepEqual(initial.requests, []); assert.equal(initial.before.activeRequestCount, 0); assert.deepEqual(initial.before.activeRequests, []);
+  assert.equal(initial.before.routeVerification.verified, true); assert.deepEqual(initial.before.routeChallenge, proof);
+  assert.equal(initial.before.pid, process.pid); assert(Number.isFinite(initial.before.startedMs));
+  assert.equal(typeof initial.before.proxyInstanceId, 'string'); assert(initial.before.proxyInstanceId.length > 0);
+  assert.deepEqual(initial.before.allowedOrigins, [fixture.origin]); assert.equal(initial.before.proxyOrigin, fixture.guard.origin);
+  const targets = [fixture.origin + '/api/v1/adapters/owned_version?private-query=one', fixture.origin + '/api/v1/assets/staging/owned_upload?private-query=two'];
+  for (const [index, method] of ['GET', 'PUT'].entries()) {
+    const reply = await proxyRequest(fixture.guard, targets[index], { method, ...(method === 'PUT' ? { body } : {}), headers: { ...(method === 'PUT' ? { 'Upload-Offset': '1048576' } : {}), 'x-private-request': 'private-header-value', cookie: 'private-cookie-value' } });
+    assert.equal(reply.status, 202); assert.deepEqual(reply.bytes, replyBody);
+    assert.equal(reply.headers['cache-control'], 'public, max-age=3600'); assert.equal(reply.headers.etag, '"private-response-etag"');
+  }
+  await terminalObservation(fixture.guard, initial.id);
+  const result = fixture.guard.endObservation(initial.id);
+  assert.equal(result.ended, true); assert.equal(result.recordingComplete, true); assert.equal(result.terminalComplete, true);
+  assert.equal(result.droppedRequests, 0); assert.equal(result.observerErrors, 0); assert.equal(result.requests.length, 2);
+  assert.deepEqual(result.before, initial.before); assert.equal(result.after.proxyInstanceId, initial.before.proxyInstanceId);
+  assert.equal(result.after.originGeneration, initial.before.originGeneration); assert.equal(result.after.closed, false);
+  assert.equal(result.after.activeRequestCount, 0); assert.deepEqual(result.after.activeRequests, []);
+  assert.equal(new Set(result.requests.map(entry => entry.requestId)).size, 2);
+  for (const [index, entry] of result.requests.entries()) {
+    assert.deepEqual(Object.keys(entry).sort(), ['blocked', 'carriedIn', 'forwardedMs', 'id', 'method', 'originIndex', 'receivedMs', 'requestBytes', 'requestId', 'response', 'route', 'terminal', 'uploadOffset', 'urlComplete', 'urlSha256']);
+    assert.equal(entry.method, ['GET', 'PUT'][index]); assert.equal(entry.urlSha256, digest(targets[index])); assert.equal(entry.urlComplete, true);
+    assert.equal(entry.originIndex, 0); assert.equal(entry.route, ['adapter-view', 'asset-staging'][index]); assert.equal(entry.id, ['owned_version', 'owned_upload'][index]); assert.equal(entry.carriedIn, false);
+    assert.equal(entry.requestBytes, index === 0 ? null : body.length); assert.equal(entry.uploadOffset, index === 0 ? null : '1048576');
+    assert(Number.isFinite(entry.receivedMs)); assert(Number.isFinite(entry.forwardedMs)); assert(entry.forwardedMs >= entry.receivedMs);
+    assert.equal(entry.blocked, null); assert.equal(entry.response.status, 202); assert(Number.isFinite(entry.response.observedMs));
+    assert.equal(entry.terminal.outcome, 'finished'); assert(entry.terminal.observedMs >= entry.receivedMs);
+  }
+  assert.deepEqual(fixture.received.map(entry => entry.method), ['GET', 'PUT']);
+  assert.deepEqual(fixture.received[0].bytes, Buffer.alloc(0)); assert.deepEqual(fixture.received[1].bytes, body);
+  assert.equal(fixture.received[1].path, '/api/v1/assets/staging/owned_upload?private-query=two');
+  assert.equal(fixture.received[0].headers['content-length'], undefined); assert.equal(fixture.received[0].headers['upload-offset'], undefined);
+  assert.equal(fixture.received[1].headers['content-length'], String(body.length)); assert.equal(fixture.received[1].headers['upload-offset'], '1048576');
+  assert.equal(fixture.received[1].headers['x-private-request'], 'private-header-value'); assert.equal(fixture.received[1].headers.cookie, 'private-cookie-value');
+  const serialized = JSON.stringify(result);
+  for (const secret of ['private-query', 'private-request-body', 'private-response-body', 'private-response-etag', 'private-header-value', 'private-cookie-value', '/api/v1/adapters/']) assert.equal(serialized.includes(secret), false);
+});
+
+test('observation retains only one canonical numeric upload offset from actual loopback headers', { timeout: 10000 }, async t => {
+  const fixture = await loopbackTransport(t), body = Buffer.from('private-upload-body');
+  const offsets = ['private-upload-secret', '0007', '-1', '+1', '1e3', '1'.repeat(21), ['1048576', 'private-upload-secret'], ['1048576', '1048576'], '0', '9'.repeat(20)];
+  fixture.guard.beginObservation('upload-header-retention');
+  for (const value of offsets) {
+    const reply = await proxyRequest(fixture.guard, fixture.origin + '/api/v1/assets/staging/owned_upload', { method: 'PUT', body, headers: { 'Upload-Offset': value } });
+    assert.equal(reply.status, 200);
+  }
+  await terminalObservation(fixture.guard, 'upload-header-retention');
+  const result = fixture.guard.endObservation('upload-header-retention');
+  assert.equal(result.recordingComplete, true); assert.equal(result.terminalComplete, true); assert.equal(result.requests.length, offsets.length);
+  assert.deepEqual(result.requests.map(entry => entry.uploadOffset), [null, null, null, null, null, null, null, null, '0', '9'.repeat(20)]);
+  for (const entry of result.requests) {
+    assert.equal(entry.requestBytes, body.length); assert.equal(entry.route, 'asset-staging'); assert.equal(entry.id, 'owned_upload');
+    assert.equal(entry.response.status, 200); assert.equal(entry.terminal.outcome, 'finished');
+  }
+  assert.equal(fixture.received.length, offsets.length);
+  for (const [index, entry] of fixture.received.entries()) {
+    assert.deepEqual(entry.bytes, body);
+    assert.equal(entry.headers['upload-offset'], Array.isArray(offsets[index]) ? offsets[index].join(', ') : offsets[index]);
+  }
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes('private-upload-secret'), false); assert.equal(serialized.includes('private-upload-body'), false);
+});
+
+test('observation retains real denied HTTP and CONNECT status and terminal evidence without opening upstream requests', { timeout: 10000 }, async t => {
+  const fixture = await loopbackTransport(t);
+  fixture.guard.beginObservation('denied-transports');
+  const target = 'http://foreign.invalid/private-external-path?private-token=secret';
+  assert.equal((await proxyRequest(fixture.guard, target)).status, 403);
+  assert.equal(await proxyConnect(fixture.guard, 'foreign.invalid:443'), 403);
+  await terminalObservation(fixture.guard, 'denied-transports');
+  const result = fixture.guard.endObservation('denied-transports');
+  assert.equal(result.recordingComplete, true); assert.equal(result.terminalComplete, true); assert.equal(result.requests.length, 2);
+  assert.deepEqual(fixture.received, []); assert.equal(fixture.blocked.length, 2);
+  assert.deepEqual(result.requests.map(entry => entry.method), ['GET', 'CONNECT']);
+  assert.deepEqual(result.requests.map(entry => entry.blocked.reason), ['absolute-literal-http-url-required', 'connect-tunnel-denied']);
+  assert.deepEqual(result.requests.map(entry => entry.response.status), [403, 403]);
+  assert.deepEqual(result.requests.map(entry => entry.forwardedMs), [null, null]);
+  assert.deepEqual(result.requests.map(entry => entry.terminal.outcome), ['finished', 'socket-closed']);
+  assert.equal(result.requests[0].urlSha256, digest(target)); assert.equal(result.requests[1].urlSha256, digest('foreign.invalid:443'));
+  for (const entry of result.requests) {
+    assert.equal(entry.originIndex, -1); assert.equal(entry.route, 'unknown'); assert.equal(entry.id, null); assert.equal(entry.carriedIn, false); assert(Number.isFinite(entry.blocked.observedMs));
+    assert(Number.isFinite(entry.response.observedMs)); assert(Number.isFinite(entry.terminal.observedMs));
+  }
+  const serialized = JSON.stringify(result);
+  for (const secret of ['foreign.invalid', 'private-external-path', 'private-token', 'secret']) assert.equal(serialized.includes(secret), false);
+});
+
+test('observation snapshots are detached and require the exact single live window identity', { timeout: 10000 }, async t => {
+  const fixture = await loopbackTransport(t);
+  const proof = await fixture.guard.verifyBrowserRoute(challengePage(fixture.guard).page);
+  for (const id of ['', 'private/window', 'private window', 'private-window\n', 'x'.repeat(129), null, undefined, 123, true, ['window']]) assert.throws(() => fixture.guard.beginObservation(id), { code: 'CAMPAIGN_PREREQUISITE' });
+  assert.throws(() => fixture.guard.snapshotObservation('no-open-window'), { code: 'CAMPAIGN_PREREQUISITE' });
+  assert.throws(() => fixture.guard.endObservation('no-open-window'), { code: 'CAMPAIGN_PREREQUISITE' });
+  const first = fixture.guard.beginObservation('window-first');
+  assert.throws(() => fixture.guard.beginObservation('window-overlap'), { code: 'CAMPAIGN_PREREQUISITE' });
+  assert.throws(() => fixture.guard.snapshotObservation('window-other'), { code: 'CAMPAIGN_PREREQUISITE' });
+  assert.throws(() => fixture.guard.endObservation('window-other'), { code: 'CAMPAIGN_PREREQUISITE' });
+  first.before.allowedOrigins.push('http://127.0.0.1:1'); first.after.allowedOrigins.length = 0;
+  first.before.routeVerification.verified = false; first.after.routeChallenge.requestHash = 'changed';
+  first.requests.push({ requestId: 'invented' });
+  assert.equal((await proxyRequest(fixture.guard, fixture.origin + '/api/v1/adapters/owned_version')).status, 200);
+  const second = await terminalObservation(fixture.guard, 'window-first');
+  assert.deepEqual(second.before.allowedOrigins, [fixture.origin]); assert.deepEqual(second.after.allowedOrigins, [fixture.origin]);
+  assert.equal(second.before.routeVerification.verified, true); assert.deepEqual(second.after.routeChallenge, proof);
+  assert.equal(second.requests.length, 1); assert.equal(second.requests[0].response.status, 200);
+  second.requests[0].response.status = 599; second.requests[0].terminal.outcome = 'invented'; second.requests[0].id = 'invented';
+  second.after.routeVerification.completed = 999; second.before.routeChallenge.responseHash = 'changed';
+  const ended = fixture.guard.endObservation('window-first');
+  assert.equal(ended.requests[0].response.status, 200); assert.equal(ended.requests[0].terminal.outcome, 'finished'); assert.equal(ended.requests[0].id, 'owned_version');
+  assert.equal(ended.after.routeVerification.completed, 1); assert.deepEqual(ended.before.routeChallenge, proof);
+  const next = fixture.guard.beginObservation('window-next');
+  assert.equal(next.windowOrdinal, ended.windowOrdinal + 1); assert.deepEqual(next.requests, []); assert.equal(next.before.activeRequestCount, 0);
+  fixture.guard.endObservation('window-next');
+  assert.equal(ended.requests.length, 1, 'A later observation must not change an already returned snapshot');
+});
+
+test('a finite observation carries a real in-flight response and reports its unfinished terminal state', { timeout: 10000 }, async t => {
+  let announce, finish;
+  const streaming = new Promise(resolve => { announce = resolve; });
+  const fixture = await loopbackTransport(t, (_entry, response) => {
+    response.writeHead(200, { 'content-type': 'text/plain' }); response.write('first-');
+    finish = () => response.end('last'); announce();
+  });
+  const target = fixture.origin + '/api/v1/adapters/owned_version';
+  const pending = proxyRequest(fixture.guard, target); pending.catch(() => {});
+  await streaming;
+  const opened = fixture.guard.beginObservation('carry-in');
+  assert.equal(opened.before.activeRequestCount, 1); assert.equal(opened.before.activeRequests.length, 1);
+  assert.equal(opened.requests.length, 1); assert.equal(opened.requests[0].carriedIn, true); assert.equal(opened.requests[0].urlSha256, digest(target));
+  assert.equal(opened.requests[0].terminal, null); assert.equal(opened.terminalComplete, false);
+  const ended = fixture.guard.endObservation('carry-in');
+  assert.equal(ended.ended, true); assert.equal(ended.recordingComplete, true); assert.equal(ended.terminalComplete, false);
+  assert.equal(ended.after.activeRequestCount, 1); assert.equal(ended.requests[0].terminal, null);
+  const following = fixture.guard.beginObservation('carry-through');
+  assert.equal(following.requests[0].requestId, ended.requests[0].requestId); assert.equal(following.requests[0].carriedIn, true);
+  finish(); const reply = await pending;
+  assert.equal(reply.status, 200); assert.equal(reply.bytes.toString('utf8'), 'first-last');
+  await terminalObservation(fixture.guard, 'carry-through');
+  const completed = fixture.guard.endObservation('carry-through');
+  assert.equal(completed.recordingComplete, true); assert.equal(completed.terminalComplete, true);
+  assert.equal(completed.requests[0].terminal.outcome, 'finished'); assert.equal(completed.requests[0].carriedIn, true);
+  assert.equal(ended.requests[0].terminal, null); assert.equal(ended.after.activeRequestCount, 1, 'Ending the window must retain its unfinished boundary rather than mutate later');
+});
+
+test('observation remains independent of the 256-row diagnostics and fails complete recording at request 4097', { timeout: 60000 }, async t => {
+  const fixture = await loopbackTransport(t);
+  fixture.guard.beginObservation('bounded-real-requests');
+  const target = fixture.origin + '/api/v1/adapters/owned_version';
+  for (let index = 0; index < 4097; index++) {
+    assert.equal((await proxyRequest(fixture.guard, target)).status, 200);
+    if (index === 256) {
+      const partial = fixture.guard.snapshotObservation('bounded-real-requests');
+      assert.equal(partial.requests.length, 257); assert.equal(partial.droppedRequests, 0); assert.equal(partial.recordingComplete, true);
+      assert.equal(fixture.guard.evidence().events.length, 256); assert(fixture.guard.evidence().droppedEntries > 0);
+    }
+    if (index === 4095) {
+      const full = fixture.guard.snapshotObservation('bounded-real-requests');
+      assert.equal(full.requests.length, 4096); assert.equal(full.droppedRequests, 0); assert.equal(full.recordingComplete, true);
+    }
+  }
+  await terminalObservation(fixture.guard, 'bounded-real-requests');
+  const result = fixture.guard.endObservation('bounded-real-requests');
+  assert.equal(fixture.received.length, 4097); assert.equal(result.requestLimit, 4096); assert.equal(result.requests.length, 4096);
+  assert.equal(result.droppedRequests, 1); assert.equal(result.observerErrors, 0); assert.equal(result.recordingComplete, false); assert.equal(result.terminalComplete, false);
+  assert.equal(result.after.activeRequestCount, 0); assert.equal(new Set(result.requests.map(entry => entry.requestId)).size, 4096);
+  assert(result.requests.every(entry => entry.response.status === 200 && entry.terminal.outcome === 'finished'));
+});
+
+test('observation preserves origin generation and route proof invalidation across replacement and closure', { timeout: 10000 }, async t => {
+  const fixture = await loopbackTransport(t), replacement = await loopbackTransport(t);
+  await fixture.guard.verifyBrowserRoute(challengePage(fixture.guard).page);
+  const opened = fixture.guard.beginObservation('origin-replacement');
+  assert.equal(opened.before.routeVerification.verified, true); assert.equal(opened.before.closed, false);
+  fixture.guard.replaceOwnedOrigin(fixture.origin, replacement.origin);
+  assert.equal((await proxyRequest(fixture.guard, replacement.origin + '/api/v1/adapters/owned_version')).status, 200);
+  await terminalObservation(fixture.guard, 'origin-replacement');
+  const replaced = fixture.guard.endObservation('origin-replacement');
+  assert.equal(replaced.after.proxyInstanceId, replaced.before.proxyInstanceId); assert.equal(replaced.after.originGeneration, replaced.before.originGeneration + 1);
+  assert.deepEqual(replaced.before.allowedOrigins, [fixture.origin]); assert.deepEqual(replaced.after.allowedOrigins, [replacement.origin]);
+  assert.equal(replaced.after.routeVerification.verified, false); assert.equal(replaced.after.routeChallenge, null); assert.equal(replaced.routeBindingStable, false); assert.equal(replaced.requests.length, 1);
+  assert.deepEqual(fixture.received, []); assert.equal(replacement.received.length, 1);
+  fixture.guard.beginObservation('proxy-closure');
+  await fixture.close();
+  const closed = fixture.guard.endObservation('proxy-closure');
+  assert.equal(closed.before.closed, false); assert.equal(closed.after.closed, true); assert.equal(closed.after.activeRequestCount, 0); assert.equal(closed.routeBindingStable, false);
+  assert.throws(() => fixture.guard.beginObservation('after-close'), { code: 'CAMPAIGN_PREREQUISITE' });
 });

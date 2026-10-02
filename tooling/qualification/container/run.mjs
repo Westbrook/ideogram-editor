@@ -1,3 +1,4 @@
+import { startEvidenceMonitor, retainEvidenceAudit } from '../evidence-volume.mjs';
 import { createHash } from 'node:crypto';
 import { chmod, mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { arch, platform, release } from 'node:os';
@@ -7,15 +8,11 @@ import { createGateLog } from './gate-log.mjs';
 import { createBrowserPlan } from './browser-plan.mjs';
 import { retainBrowserEvidence } from './browser-evidence.mjs';
 import { verifyInstalledInputs } from './inputs.mjs';
-import { functionalGates, selectGates } from '../manifest.mjs';
+import { parseContainerSelection, selectContainerNodePlan } from './selection.mjs';
 import { executionEnvironment } from '../core.mjs';
 import { executeGate } from '../run.mjs';
 
-const selection = process.argv[2] ?? 'chromium';
-const scope = process.argv[3] ?? 'features';
-if (process.argv.length > 4 || !['chromium', 'firefox', 'webkit', 'all'].includes(selection) || !['base', 'features'].includes(scope)) {
-  throw Error('Usage: node tooling/qualification/container/run.mjs [chromium|firefox|webkit|all] [base|features]');
-}
+const { selection, scope, browserOnly } = parseContainerSelection(process.argv.slice(2));
 const root = resolve('.');
 const toolchain = JSON.parse(await readFile('tooling/toolchain.json', 'utf8'));
 if (process.versions.node !== toolchain.node) throw Error(`Use Node ${toolchain.node}`);
@@ -23,13 +20,14 @@ await mkdir('artifacts/qualification-container', { recursive: true });
 const output = await mkdtemp(resolve('artifacts/qualification-container/run-'));
 const browserPlan = createBrowserPlan({ selection, scope, output });
 const browsers = browserPlan.requiredBrowsers;
-const nodePlan = selectGates(functionalGates(root), scope === 'features' ? 'all' : 'base');
+const nodePlan = selectContainerNodePlan(root, { scope, browserOnly });
+let evidenceMonitor = null;
 const receipt = {
   schema: 1, status: 'running', startedAt: new Date().toISOString(), output,
   environment: { node: process.versions.node, platform: platform(), arch: arch(), kernel: release(),
     baseImage: process.env.QUALIFICATION_BASE_IMAGE ?? null,
     sourceRevision: process.env.QUALIFICATION_SOURCE_REVISION ?? 'working-tree',
-    browsers, selectedBrowserScope: selection, functionalScope: scope },
+    browsers, selectedBrowserScope: selection, functionalScope: scope, nodeScope: browserOnly ? 'prerequisites-only' : scope },
   scope: 'Container functional gates only. Not C/H bare-metal performance, physical display, assistive technology, resource, release, or paid-provider qualification.',
   commands: [], browserPlan, functionalPlan: nodePlan, functionalGates: [],
 };
@@ -51,6 +49,7 @@ function recordInterruption() {
 // NODE_OPTIONS settings. Test scripts retain their checked-in no-egress preloads.
 const env = {
   PATH: `${join(root, '.toolchain/bin')}:${process.env.PATH}`, HOME: process.env.HOME, TMPDIR: '/tmp', CI: '1', LANG: 'C.UTF-8',
+  ...(process.env.IE_EVIDENCE_ALLOCATION ? { IE_EVIDENCE_ALLOCATION: process.env.IE_EVIDENCE_ALLOCATION } : {}),
   PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH ?? '/opt/playwright',
   npm_config_cache: '/tmp/ideogram-qualification-npm-cache',
   npm_config_userconfig: '/tmp/ideogram-qualification-empty-npmrc',
@@ -103,6 +102,8 @@ async function sourceManifest() {
   return JSON.stringify(files, null, 2) + '\n';
 }
 try {
+  evidenceMonitor = await startEvidenceMonitor({ output, campaignId: 'container-' + Date.now(), onAlarm: alarm => console.error(JSON.stringify({ evidenceStorageAlarm: alarm })) });
+  receipt.evidenceStorage = evidenceMonitor.reference;
   const inputs = await verifyInstalledInputs();
   receipt.inputPacket = { manifestSha256: inputs.manifestSha256, commits: inputs.manifest.history.requirements.length, fixtures: inputs.manifest.fixtures.length, installed: inputs.installed, qualification: false };
   // This describes actual admitted source bytes, including uncommitted changes.
@@ -130,6 +131,7 @@ try {
     kind: 'same-invocation-prerequisites-1', sourceManifestSha256: receipt.sourceManifestSha256,
     gates: ['typecheck', 'vendor', 'imports', 'raster-inputs', 'build-app', 'build-server'],
     gateReceipt: 'receipt.json#functionalGates', reusedAcross: nodePlan.filter(gate => gate.id.startsWith('node:')).map(gate => gate.id),
+    reusedAcrossBrowserSteps: browserPlan.steps.filter(step => step.browser).map(step => step.id),
     limit: 'Fresh app/server commands in this invocation only; no external or historical dependency evidence reused.',
   };
   const playwright = await import('@playwright/test');
@@ -194,7 +196,10 @@ try {
   // A signal delivered during the final asynchronous write still gets a durable
   // interrupted outcome before the caller-owned handlers are removed.
   if (recordInterruption()) await save();
-  console.log(`Retained container qualification: ${output}`);
-  process.off('SIGINT', onInterrupt);
-  process.off('SIGTERM', onTerminate);
+  try {
+    if (evidenceMonitor) { const audit = await evidenceMonitor.finish({ receiptPath: join(output, 'receipt.json'), outcome: receipt.status }); await retainEvidenceAudit(evidenceMonitor.reference, output); console.log(JSON.stringify({ evidenceStorage: { status: audit.status } })); if (audit.status !== 'PASS' && process.exitCode !== 1) process.exitCode = audit.status === 'FAIL' ? 1 : 2; }
+    console.log(`Retained container qualification: ${output}`);
+  } finally {
+    process.off('SIGINT', onInterrupt); process.off('SIGTERM', onTerminate);
+  }
 }

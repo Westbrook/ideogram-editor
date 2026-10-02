@@ -175,6 +175,9 @@ function measurementRequirements(budgets, workload, parameters, kind, host, oper
       ? operation === 'navigation.ready' && ['W0', 'W1'].includes(workload) && rule.scope === 'startup' || operation === 'text.mixed-ready' && rule.scope === 'text-engine'
       : host === 'C' && rule.scope === 'artifact-build' &&
         (operation === 'developer.command' && parameters.command === 'production-build' || operation === 'developer.command-group');
+    // Backend-only WA imports and lifecycle cycles own CPU/storage resources.
+    // Browser/GPU/cache/texture measurements remain mandatory on the independent H cells.
+    if (rule.budgetId === 'R18' && host === 'C' && workload === 'WA' && ['adapter.import', 'adapter.lifecycle'].includes(operation)) return rule.name === 'R18CpuAllocationBytes';
     if (rule.name === 'R25RejectedDraftLossCount') return operation === 'queue.fault' && parameters.scenario === 'disk-full-admission' ||
       operation === 'fast.workflow' && /^WF(?:0[7-9]|1[0-2])$/.test(parameters.caseId ?? '');
     // These observations belong to different specimens in the fixed inventory:

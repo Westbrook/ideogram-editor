@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { monotonic, intervalWait } from './common.mjs';
 import { acceptedCommand } from './browser-driver.mjs';
+import { nextPresentationTarget, inspectTextPresentationWitness } from './text-presentation-observation.mjs';
+import {textInputDescriptor, installTextInputObserver, runTextInputStep} from './browser-text-input.mjs';
 
 export const supportedTextOperations = Object.freeze(['text.font-set', 'text.mixed-ready', 'text.active-layout', 'text.apply', 'text.recovery', 'text.interaction', 'text.native-ime']);
 export const TEXT_INTERACTION_COUNTS = Object.freeze({ 'insert-delete': 40, preedit: 20, 'composition-end': 10, caret: 10, 'semantic-selection': 10, 'text-format': 10, presentation: 6 });
@@ -78,7 +80,40 @@ export function summarizeNativeWitness(witness, workload) {
 }
 
 async function readState(page) {
-  return input(page).evaluate(node => ({ connected: node.isConnected, start: node.selectionStart, end: node.selectionEnd, direction: node.selectionDirection, units: node.value.length, presentation: document.querySelector('#native-text-editor')?.getAttribute('data-presentation'), session: document.querySelector('#native-text-editor')?.getAttribute('data-session'), revision: document.querySelector('#native-text-editor')?.getAttribute('data-revision'), focused: document.activeElement === node }));
+  return input(page).evaluate(node => {
+    const editor = document.querySelector('#native-text-editor'), attribute = name => editor?.getAttribute(name) ?? null;
+    const counter = name => { const raw = attribute('data-presentation-' + name); return typeof raw === 'string' && /^(0|[1-9][0-9]*)$/.test(raw) && Number.isSafeInteger(Number(raw)) ? Number(raw) : null; };
+    return { connected: node.isConnected, start: node.selectionStart, end: node.selectionEnd, direction: node.selectionDirection, units: node.value.length,
+      presentation: attribute('data-presentation'), session: attribute('data-session'), revision: attribute('data-revision'), textVersion: /^(0|[1-9][0-9]*)$/.test(attribute('data-text-version') ?? '') ? Number(attribute('data-text-version')) : null, focused: document.activeElement === node,
+      switch: { pending: attribute('data-presentation-pending'), request: counter('request'), requestEpoch: counter('request-epoch'), requestGeneration: counter('request-generation'), requestTextVersion: counter('request-text-version'),
+        settled: counter('settled'), rejected: counter('rejected'), rejectedEpoch: counter('rejected-epoch'), rejectedGeneration: counter('rejected-generation'),
+        rejectedCurrentEpoch: counter('rejected-current-epoch'), rejectedCurrentGeneration: counter('rejected-current-generation'), rejectedTextVersion: counter('rejected-text-version'), rejectedCurrentTextVersion: counter('rejected-current-text-version'), rejectedGuards: counter('rejected-guards'), rejectedBoundary: attribute('data-presentation-rejected-boundary'), reason: attribute('data-presentation-reason'), superseded: counter('superseded') } };
+  });
+}
+
+// Public state binds the independent semantic oracle. Its hashes and clocks
+// are never substituted for native captured pixels or a display timestamp.
+async function readTextActionState(page) {
+  return page.evaluate(async () => {
+    const node = document.querySelector('#native-text-content'), editor = document.querySelector('#native-text-editor');
+    if (!node) throw Error('TEXT_PUBLIC_STATE_UNAVAILABLE');
+    const attribute = name => editor?.getAttribute(name) ?? null;
+    const counter = name => {const value = attribute('data-presentation-' + name); return /^(0|[1-9][0-9]*)$/.test(value ?? '') && Number.isSafeInteger(Number(value)) ? Number(value) : null;};
+    const field = (tag, label) => document.querySelector(tag + '[label="' + label + '"]')?.value ?? null;
+    const text = new TextEncoder().encode(node.value), state = {
+      clock: 'browser-performance', timeOrigin: performance.timeOrigin, observedMs: performance.now(), visibility: document.visibilityState,
+      native: {connected: node.isConnected, start: node.selectionStart, end: node.selectionEnd, direction: node.selectionDirection, units: node.value.length,
+        presentation: attribute('data-presentation'), session: attribute('data-session'), revision: attribute('data-revision'), textVersion: /^(0|[1-9][0-9]*)$/.test(attribute('data-text-version') ?? '') ? Number(attribute('data-text-version')) : null, focused: document.activeElement === node,
+        switch: {pending: attribute('data-presentation-pending'), request: counter('request'), requestEpoch: counter('request-epoch'), requestGeneration: counter('request-generation'), requestTextVersion: counter('request-text-version'),
+          settled: counter('settled'), rejected: counter('rejected'), rejectedEpoch: counter('rejected-epoch'), rejectedGeneration: counter('rejected-generation'),
+          rejectedCurrentEpoch: counter('rejected-current-epoch'), rejectedCurrentGeneration: counter('rejected-current-generation'), rejectedTextVersion: counter('rejected-text-version'), rejectedCurrentTextVersion: counter('rejected-current-text-version'), rejectedGuards: counter('rejected-guards'), rejectedBoundary: attribute('data-presentation-rejected-boundary'), reason: attribute('data-presentation-reason'), superseded: counter('superseded')}},
+      semanticSelection: document.querySelector('#semantic-tree')?.selectedKeys?.[0] ?? null,
+      format: {fontChoice: field('en-select', 'Font choice'), lineHeight: field('en-number-field', 'Line height multiplier'),
+        frameWidth: field('en-number-field', 'Text frame width (document px)'), frameHeight: field('en-number-field', 'Text frame height (document px)')}
+    };
+    state.contentSha256 = [...new Uint8Array(await crypto.subtle.digest('SHA-256', text))].map(value => value.toString(16).padStart(2, '0')).join('');
+    return state;
+  });
 }
 async function number(page, label, value) { const field = page.getByRole('spinbutton', { name: label, exact: true }); await field.fill(String(value)); await field.press('Tab'); }
 async function openDraft(page, text) {
@@ -165,100 +200,153 @@ async function previewIdentity(page) {
     return { width: node.width, height: node.height, bytes: rgba.byteLength, sha256: 'sha256:' + [...new Uint8Array(digest)].map(n => n.toString(16).padStart(2, '0')).join('') };
   });
 }
-async function installNativeObserver(page) {
+async function installNativeObserver(page, bounded = false) {
   const handle = await input(page).elementHandle(); check(handle, 'NATIVE_TEXT_NODE_MISSING');
-  await handle.evaluate(node => {
+  await handle.evaluate((node, bounded) => {
     const parent = node.parentNode, events = [];
-    const state = { node, parent, events, disconnected: false, observer: null, listeners: [] };
+    const state = { node, parent, events, disconnected: false, overflow: false, observer: null, listeners: [] };
     for (const type of ['input', 'compositionstart', 'compositionupdate', 'compositionend', 'select', 'focus', 'blur']) {
-      const listener = event => events.push({ type, atMs: performance.now(), trusted: event.isTrusted, composing: Boolean(event.isComposing), start: node.selectionStart, end: node.selectionEnd, direction: node.selectionDirection, units: node.value.length });
+      const listener = event => {if (bounded && events.length >= 8192) {state.overflow = true; return;} events.push({ type, atMs: performance.now(), trusted: event.isTrusted, composing: Boolean(event.isComposing), start: node.selectionStart, end: node.selectionEnd, direction: node.selectionDirection, units: node.value.length });};
       node.addEventListener(type, listener); state.listeners.push([type, listener]);
     }
     state.observer = new MutationObserver(() => { if (!node.isConnected || node.parentNode !== parent) state.disconnected = true; });
     state.observer.observe(document, { subtree: true, childList: true });
     Object.defineProperty(node, '__campaignNativeObserver', { value: state, configurable: true });
-  });
-  return { async read() { return handle.evaluate(node => { const s = node.__campaignNativeObserver; return { events: s.events, disconnected: s.disconnected, sameConnectedParent: node.isConnected && node.parentNode === s.parent, sameNode: document.querySelector('#native-text-content') === node }; }); }, async close() { try { await handle.evaluate(node => { const s = node.__campaignNativeObserver; s.observer.disconnect(); for (const [type, listener] of s.listeners) node.removeEventListener(type, listener); delete node.__campaignNativeObserver; }); } finally { await handle.dispose(); } } };
+  }, bounded);
+  return { async read() { return handle.evaluate(node => { const s = node.__campaignNativeObserver; return { events: s.events, overflow: s.overflow, disconnected: s.disconnected, sameConnectedParent: node.isConnected && node.parentNode === s.parent, sameNode: document.querySelector('#native-text-content') === node }; }); }, async close() { try { await handle.evaluate(node => { const s = node.__campaignNativeObserver; s.observer.disconnect(); for (const [type, listener] of s.listeners) node.removeEventListener(type, listener); delete node.__campaignNativeObserver; }); } finally { await handle.dispose(); } } };
 }
 
-async function runInteraction(page, text, signal, record, observations, missing) {
+async function runInteraction(page, text, signal, record, observations, missing, services = {}) {
   await openDraft(page, text); await configureFonts(page, text, signal); await input(page).fill(text.corpus.text);
   const mode = page.getByRole('radio', { name: 'Composition', exact: true }); await mode.check();
   await page.locator('#semantic-tree').getByRole('treeitem').first().waitFor({ state: 'visible' });
   const semanticIds = await page.locator('#semantic-tree').evaluate(host => host.items.map(item => item.key));
   check(text.semanticItemIds.every(id => semanticIds.includes(id)), 'SEEDED_SEMANTIC_IDENTITIES_CHANGED');
   await input(page).focus();
-  const observer = await installNativeObserver(page), plan = buildTextInteractionPlan(), start = monotonic();
-  let composition, pendingPresentation, initialSession = (await readState(page)).session;
+  const initialState = await readState(page);
+  if (!['request', 'requestEpoch', 'requestGeneration', 'requestTextVersion', 'settled', 'rejected', 'superseded'].every(key => Number.isSafeInteger(initialState.switch?.[key]) && initialState.switch[key] >= 0) || !Number.isSafeInteger(initialState.textVersion) || initialState.textVersion < 0 || !['', 'anchored', 'inspector'].includes(initialState.switch.pending)) throw Object.assign(Error('Exact native presentation request observer is unavailable in the subject product'), { prerequisite: true });
+  const selected = typeof services.textInputHook === 'function', sessionId = services.textInputSessionId;
+  const observer = await installNativeObserver(page, selected), plan = buildTextInteractionPlan();
+  let inputObserver;
+  if (selected) {
+    observations.textInputSessionId = sessionId;
+    observations.textFixture = structuredClone(services.textAttempt?.textFixture ?? null);
+    observations.semanticItemIds = structuredClone(semanticIds);
+    observations.sealedSemanticItemIds = structuredClone(text.semanticItemIds);
+    try {inputObserver = await installTextInputObserver(page, {sessionId});} catch {missing.push('text-passive-input-observer-unavailable');}
+    try {observations.nativeSessionStart = await services.textSessionStart?.({sessionId});} catch {missing.push('text-native-session-start-unavailable');}
+  }
+  const start = monotonic();
+  let composition, pendingPresentation, initialSession = initialState.session;
   observations.syntheticComposition = true; observations.plannedCounts = TEXT_INTERACTION_COUNTS;
-  observations.textPresentation = { sameConnectedNode: null, forwardRangePreserved: null, backwardRangePreserved: null, collapsedRangePreserved: null, latestDeferredOnlyAfterNativeEnd: null, cancelDropsDeferred: null, staleSessionGenerationVersionRejected: null };
+  observations.textPresentation = { sameConnectedNode: null, forwardRangePreserved: null, backwardRangePreserved: null, collapsedRangePreserved: null, latestDeferredOnlyAfterNativeEnd: null, cancelDropsDeferred: null, staleDeferredRequestRejected: null, deferredRequestRejection: null };
+  const presentationWitness = observations.presentationWitness = { kind: 'text-presentation-observation-1', requests: [], latest: null, cancellation: null };
   try {
     for (const action of plan) {
       abort(signal); await intervalWait(Math.max(0, start + action.scheduledMs - monotonic()), signal);
       if (monotonic() - start >= 60000) throw Object.assign(Error('ITEXT_60_SECOND_BUDGET_EXCEEDED'), { code: 'ITEXT_60_SECOND_BUDGET_EXCEEDED' });
-      await record(action.id, action.kind, async () => {
+      await record(action.id, action.kind, async recorded => {
         const field = input(page);
-        if (action.kind === 'insert-delete') { await field.focus(); if (action.mode === 'insert') await page.keyboard.insertText(text.corpus.fragments[action.fragment]); else await field.press('Backspace'); }
+        const nativeInput = selected ? (recorded.nativeInput = {before: null, after: null, dispatches: []}) : null;
+        if (selected) {recorded.scheduledAtMs = start + action.scheduledMs; recorded.inputLatenessMs = Math.max(0, recorded.inputMs - recorded.scheduledAtMs);}
+        const snapshot = async () => {try {return await readTextActionState(page);} catch {missing.push('text-public-action-state-unavailable'); return null;}};
+        if (selected) nativeInput.before = await snapshot();
+        const step = async (stepId, target, dispatch) => {
+          if (!selected) return dispatch();
+          const descriptor = textInputDescriptor({sessionId, actionId: action.id, stepId});
+          return (await runTextInputStep({observer: inputObserver, target, descriptor,
+            dispatch: () => {abort(signal); return dispatch();}, hook: services.textInputHook,
+            retain: receipt => nativeInput.dispatches.push(receipt)})).value;
+        };
+        const button = name => page.getByRole('button', {name, exact: true});
+        try {
+        if (action.kind === 'insert-delete') { await step('focus', field, () => field.focus()); if (action.mode === 'insert') await step('edit', field, () => page.keyboard.insertText(text.corpus.fragments[action.fragment])); else await step('edit', field, () => field.press('Backspace')); }
         else if (action.kind === 'caret') {
-          await field.focus();
-          if (action.range) await field.evaluate((node, direction) => node.setSelectionRange(direction === 'none' ? 1 : 0, direction === 'none' ? 1 : Math.min(4, node.value.length), direction), action.range);
-          else await field.press(action.key);
+          await step('focus', field, () => field.focus());
+          if (action.range) await step('caret', field, () => field.evaluate((node, direction) => node.setSelectionRange(direction === 'none' ? 1 : 0, direction === 'none' ? 1 : Math.min(4, node.value.length), direction), action.range));
+          else await step('caret', field, () => field.press(action.key));
         } else if (action.kind === 'semantic-selection') {
           const items = page.locator('#semantic-tree').getByRole('treeitem');
           check(await items.count() >= 2, 'SEEDED_SEMANTIC_ITEMS_MISSING');
-          await items.nth(action.index).click();
+          await step('activate', items.nth(action.index), () => items.nth(action.index).click());
         } else if (action.kind === 'text-format') {
           const actions = [
-            async () => { await page.getByRole('combobox', { name: 'Font choice', exact: true }).selectOption('NotoSans'); await click(page, 'Use selected font'); await page.getByText(/Exact font order: NotoSans\./).waitFor({ state: 'visible' }); },
-            async () => { await page.getByRole('combobox', { name: 'Font choice', exact: true }).selectOption('NotoSansArabic'); await click(page, 'Use selected font'); await page.getByText(/Exact font order: NotoSansArabic\./).waitFor({ state: 'visible' }); },
-            () => number(page, 'Line height multiplier', 1.3), () => number(page, 'Line height multiplier', 1.2),
-            () => number(page, 'Text frame width (document px)', 350), () => number(page, 'Text frame width (document px)', 360),
-            () => number(page, 'Text frame height (document px)', 170), () => number(page, 'Text frame height (document px)', 180),
-            () => page.getByRole('button', { name: 'Adjust semantic bounds with arrow keys', exact: true }).press('ArrowRight'),
-            () => page.getByRole('button', { name: 'Adjust semantic bounds with arrow keys', exact: true }).press('ArrowLeft'),
+            async () => { const control = page.getByRole('combobox', {name: 'Font choice', exact: true}); await step('select-font', control, () => control.selectOption('NotoSans')); await step('apply-font', button('Use selected font'), () => click(page, 'Use selected font')); await page.getByText(/Exact font order: NotoSans\./).waitFor({ state: 'visible' }); },
+            async () => { const control = page.getByRole('combobox', {name: 'Font choice', exact: true}); await step('select-font', control, () => control.selectOption('NotoSansArabic')); await step('apply-font', button('Use selected font'), () => click(page, 'Use selected font')); await page.getByText(/Exact font order: NotoSansArabic\./).waitFor({ state: 'visible' }); },
+            () => formatNumber('Line height multiplier', 1.3), () => formatNumber('Line height multiplier', 1.2),
+            () => formatNumber('Text frame width (document px)', 350), () => formatNumber('Text frame width (document px)', 360),
+            () => formatNumber('Text frame height (document px)', 170), () => formatNumber('Text frame height (document px)', 180),
+            () => step('adjust-bounds', button('Adjust semantic bounds with arrow keys'), () => button('Adjust semantic bounds with arrow keys').press('ArrowRight')),
+            () => step('adjust-bounds', button('Adjust semantic bounds with arrow keys'), () => button('Adjust semantic bounds with arrow keys').press('ArrowLeft')),
           ]; await actions[action.index]();
+          async function formatNumber(label, value) {const control = page.getByRole('spinbutton', {name: label, exact: true}); await step('fill-format', control, () => control.fill(String(value))); await step('commit-format', control, () => control.press('Tab'));}
         } else if (action.kind === 'preedit') {
-          await field.focus();
-          if (action.step === 0) { composition = { before: await field.inputValue(), range: await readState(page) }; await field.dispatchEvent('compositionstart'); }
+          await step('focus', field, () => field.focus());
+          if (action.step === 0) { composition = { before: await field.inputValue(), range: await readState(page) }; await step('composition-start', field, () => field.dispatchEvent('compositionstart')); }
           const fragment = text.corpus.fragments[(action.sequence * 2 + action.step) % text.corpus.fragments.length];
-          await field.evaluate((node, value) => { node.value = value; node.setSelectionRange(value.length, value.length); }, composition.before + fragment);
-          await field.dispatchEvent('compositionupdate', { data: fragment });
-          await field.dispatchEvent('input', { inputType: 'insertCompositionText', data: fragment, isComposing: true });
+          await step('set-preedit', field, () => field.evaluate((node, value) => { node.value = value; node.setSelectionRange(value.length, value.length); }, composition.before + fragment));
+          await step('composition-update', field, () => field.dispatchEvent('compositionupdate', { data: fragment }));
+          await step('composition-input', field, () => field.dispatchEvent('input', { inputType: 'insertCompositionText', data: fragment, isComposing: true }));
         } else if (action.kind === 'composition-end') {
-          const beforeCancel = action.cancelSession ? await readState(page) : null;
-          if (action.cancelSession) await click(page, 'Cancel text edit');
-          if (action.mode === 'cancel') await field.evaluate((node, value) => { node.value = value; node.setSelectionRange(value.length, value.length); }, composition.before);
-          await field.dispatchEvent('compositionend', { data: action.mode === 'cancel' ? '' : text.corpus.fragments[(action.sequence * 2 + 1) % text.corpus.fragments.length] });
-          await field.dispatchEvent('input', { inputType: 'insertCompositionText', isComposing: false });
-          if (action.cancelSession) { await region(page).waitFor({ state: 'hidden' }); check((await readState(page)).presentation === beforeCancel.presentation, 'CANCEL_APPLIED_DEFERRED_SWITCH'); observations.pendingSwitchDroppedByCancel = true; observations.textPresentation.cancelDropsDeferred = true; }
-          else if (pendingPresentation) { await page.waitForFunction(target => document.querySelector('#native-text-editor')?.getAttribute('data-presentation') === target, pendingPresentation); pendingPresentation = undefined; }
+          const beforeEnd = await readState(page);
+          const beforeCancel = action.cancelSession ? beforeEnd : null;
+          if (action.cancelSession) await step('cancel-session', button('Cancel text edit'), () => click(page, 'Cancel text edit'));
+          if (action.mode === 'cancel') await step('restore-value', field, () => field.evaluate((node, value) => { node.value = value; node.setSelectionRange(value.length, value.length); }, composition.before));
+          await step('composition-end', field, () => field.dispatchEvent('compositionend', { data: action.mode === 'cancel' ? '' : text.corpus.fragments[(action.sequence * 2 + 1) % text.corpus.fragments.length] }));
+          await step('composition-input', field, () => field.dispatchEvent('input', { inputType: 'insertCompositionText', isComposing: false }));
+          if (action.cancelSession) {
+            await region(page).waitFor({ state: 'hidden' }); const afterCancel = await readState(page);
+            presentationWitness.cancellation = { beforeCancel, afterCancel };
+            check(afterCancel.presentation === beforeCancel.presentation, 'CANCEL_APPLIED_DEFERRED_SWITCH');
+            observations.pendingSwitchDroppedByCancel = true; pendingPresentation = undefined;
+          } else if (pendingPresentation) {
+            await page.waitForFunction(({ target, request }) => { const editor = document.querySelector('#native-text-editor'); return editor?.getAttribute('data-presentation') === target && editor.getAttribute('data-presentation-settled') === String(request) && editor.getAttribute('data-presentation-pending') === ''; }, pendingPresentation);
+            presentationWitness.latest = { beforeEnd, afterEnd: await readState(page) }; pendingPresentation = undefined;
+          }
         } else if (action.kind === 'presentation') {
-          const before = await readState(page), target = before.presentation === 'anchored' ? 'inspector' : 'anchored';
-          await click(page, before.presentation === 'anchored' ? 'Continue in inspector' : 'Return to card');
+          const before = await readState(page), target = nextPresentationTarget(before);
+          const name = target === 'inspector' ? 'Continue in inspector' : 'Return to card';
+          await step('switch', button(name), () => click(page, name));
           if (action.mode === 'immediate') {
             await page.waitForFunction(expected => document.querySelector('#native-text-editor')?.getAttribute('data-presentation') === expected, target);
             const after = await readState(page); check(after.session === initialSession && after.start === before.start && after.end === before.end && after.direction === before.direction, 'PRESENTATION_RANGE_OR_SESSION_CHANGED');
             observations.textPresentation[({ forward: 'forwardRangePreserved', backward: 'backwardRangePreserved', none: 'collapsedRangePreserved' })[action.range]] = true;
+            presentationWitness.requests.push({ actionId: action.id, mode: action.mode, target, before, after });
           } else {
             await waitText(page, 'Switch after composition'); const after = await readState(page);
-            check(after.presentation === before.presentation && after.session === before.session && after.revision === before.revision, 'COMPOSING_PRESENTATION_CHANGED_EARLY'); pendingPresentation = target;
+            check(after.presentation === before.presentation && after.session === before.session && after.revision === before.revision, 'COMPOSING_PRESENTATION_CHANGED_EARLY'); pendingPresentation = { target, request: after.switch.request };
+            presentationWitness.requests.push({ actionId: action.id, mode: action.mode, target, before, after });
           }
         }
-      }, { scheduledMs: action.scheduledMs, nativeSource: action.kind === 'preedit' || action.kind === 'composition-end' ? 'synthetic-app-handling' : 'playwright-native-input' });
+        } finally {if (selected) nativeInput.after = await snapshot();}
+      }, { scheduledMs: action.scheduledMs, nativeSource: selected ? 'explicit-per-substep-delivery' : action.kind === 'preedit' || action.kind === 'composition-end' ? 'synthetic-app-handling' : 'playwright-native-input' });
     }
     const completedAt = monotonic() - start; check(completedAt <= 60000, 'ITEXT_60_SECOND_BUDGET_EXCEEDED');
     await intervalWait(Math.max(0, 60000 - completedAt), signal);
     const captureStoppedMs = monotonic(), endMs = start + 60000;
-    observations.segment = { startMs: start, endMs, requestedMs: 60000, captureStoppedMs,
+    observations.segment = { startMs: start, endMs, requestedMs: 60000, captureStoppedMs, ...(selected ? {clock: 'runner-monotonic'} : {}),
       actualMs: captureStoppedMs - start, completedActionsAtMs: completedAt, actions: 106, reservedFeedbackMs: 600,
       boundary: 'Declared observation window; actual capture stop and late event timestamps remain separate evidence' };
+    if (selected) try {observations.nativeSessionEnd = await services.textSessionEnd?.({sessionId, segment: observations.segment, actions: observations.actions});}
+    catch {missing.push('text-native-session-end-unavailable');}
     observations.native = await observer.read();
     observations.textPresentation.sameConnectedNode = observations.native.sameNode && observations.native.sameConnectedParent && !observations.native.disconnected;
     check(observations.textPresentation.sameConnectedNode, 'NATIVE_TEXT_NODE_REPLACED');
     observations.counts = Object.fromEntries(Object.keys(TEXT_INTERACTION_COUNTS).map(kind => [kind, observations.actions.filter(a => a.kind === kind && a.outcome === 'completed').length]));
     check(Object.keys(TEXT_INTERACTION_COUNTS).every(kind => observations.counts[kind] === TEXT_INTERACTION_COUNTS[kind]), 'ITEXT_ACTUAL_COUNTS');
-    missing.push('distinct-target latest deferred presentation discrimination: current public toggle repeats the same target during composition', 'stale session/generation/version rejection witness without an additional mutation or presentation request');
-  } finally { observations.native ??= await observer.read().catch(() => ({ unavailable: true })); await observer.close(); }
+    const presentation = inspectTextPresentationWitness(presentationWitness);
+    observations.textPresentation.latestDeferredOnlyAfterNativeEnd = presentation.latestDeferredOnlyAfterNativeEnd;
+    observations.textPresentation.cancelDropsDeferred = presentation.cancelDropsDeferred;
+    observations.textPresentation.staleDeferredRequestRejected = presentation.staleDeferredRequestRejected;
+    observations.textPresentation.deferredRequestRejection = presentation.deferredRequestRejection;
+    observations.textPresentation.observationBoundary = presentation.boundary;
+    missing.push(...presentation.missing, ...(presentation.deferredRequestRejection?.unobservedGuards ?? []).map(guard => 'Fixed IText specimen did not independently observe ' + guard + ' rejection'));
+    check(presentation.failures.length === 0, 'ITEXT_PRESENTATION_TOKEN_OR_RANGE_VIOLATION');
+  } finally {
+    observations.native ??= await observer.read().catch(() => ({ unavailable: true }));
+    await inputObserver?.close().catch(() => missing.push('text-passive-observer-close-unavailable'));
+    if (selected) await observer.close().catch(() => missing.push('text-native-node-observer-close-unavailable')); else await observer.close();
+  }
 }
 
 export function selectedRecovery(text, cell) {
@@ -324,12 +412,12 @@ async function runRecovery(page, text, cell, signal, record, observations, missi
 /** Uses a supplied real Playwright Page, never launches a browser or edits
  * product state through private controllers. Durations end at observed app
  * completion; the outer driver must correlate actual compositor presentation. */
-export async function runTextBrowserCell({ page, cell, fixture, signal, context, repo }) {
+export async function runTextBrowserCell({ page, cell, fixture, signal, context, repo, services = {} }) {
   const operation = typeof cell === 'string' ? cell : cell.operation, workload = cell.workload ?? fixture?.workload ?? 'WXn';
   check(supportedTextOperations.includes(operation), 'UNSUPPORTED_TEXT_OPERATION');
   const phases = [], assertions = [], missing = [], observations = { actions: [], operation, timingBasis: 'real-monotonic-wall-time', inputTimingBoundary: 'runner invocation before Playwright dispatch; browser native event timestamps remain a separate clock', presentationEvidence: 'outer-driver-required' };
   const result = () => ({ status: missing.length ? 'INCONCLUSIVE' : 'PASS', phases, observations, assertions, missing: [...new Set(missing)] });
-  if (operation === 'text.native-ime') {
+  if (operation === 'text.native-ime' && typeof services.nativeIme !== 'function') {
     const witness = summarizeNativeWitness(fixture?.text?.nativeWitness, workload); observations.nativeWitness = witness.observation;
     missing.push(...witness.missing);
     // Imported witness metadata is insufficient to manufacture an observed run.
@@ -340,11 +428,12 @@ export async function runTextBrowserCell({ page, cell, fixture, signal, context,
   const text = fixture.text;
   observations.corpus = { sha256: text.corpus.sha256, bytes: bytes(text.corpus.text), fragments: text.corpus.fragments.length, manifestHash: text.manifestHash };
   observations.fonts = text.fonts.map(({ id, sha256, bytes }) => ({ idHash: hash(id), sha256, bytes }));
+  const observed = (kind, work) => services.ordinaryText ? services.ordinaryText.step(kind, work) : work();
   const record = async (id, kind, work, metadata = {}) => {
     abort(signal); const action = { id, kind, inputMs: monotonic(), presentedMs: null, meaningful: true, outcome: 'running', ...metadata }; observations.actions.push(action);
     const phase = { name: id, startMs: action.inputMs, endMs: null, durationMs: null, outcome: 'running' }; phases.push(phase);
-    try { await work(); action.outcome = phase.outcome = 'completed'; }
-    catch (error) { action.outcome = phase.outcome = 'failed'; action.errorCode = typeof error.code === 'string' ? error.code : 'TEXT_BROWSER_ACTION_FAILED'; throw error; }
+    try { await work(action); action.outcome = phase.outcome = 'completed'; }
+    catch (error) { action.outcome = phase.outcome = 'failed'; action.errorCode = typeof error?.code === 'string' ? error.code : 'TEXT_BROWSER_ACTION_FAILED'; throw error; }
     finally { action.readyMs = phase.endMs = monotonic(); action.durationMs = phase.durationMs = phase.endMs - phase.startMs; }
   };
   try {
@@ -362,21 +451,26 @@ export async function runTextBrowserCell({ page, cell, fixture, signal, context,
         check(actual.byteLength === font.bytes && hash(actual) === font.sha256 && hash(license) === font.licenseSha256, 'LOCAL_FONT_FIXTURE_MISMATCH');
       }
     }
-    if (operation === 'text.interaction') await runInteraction(page, text, signal, record, observations, missing);
+    if (operation === 'text.native-ime') {
+      await openDraft(page, text); await configureFonts(page, text, signal);
+      const native = await services.nativeIme(); observations.nativeIme = native.observation;
+      missing.push(...native.missing);
+      if (native.status === 'FAIL') return {...result(), status: 'FAIL', failures: native.failures};
+    } else if (operation === 'text.interaction') await runInteraction(page, text, signal, record, observations, missing, services);
     else if (operation === 'text.recovery') await runRecovery(page, text, cell, signal, record, observations, missing);
     else if (operation === 'text.mixed-ready') {
-      await record('mixed-navigation-ready', 'mixed-ready', async () => { await page.reload(); await waitText(page, 'Local recovery complete. Accepted edits are saved locally.'); await page.locator('canvas[aria-label="Document raster preview"]').waitFor({ state: 'visible' }); });
+      await record('mixed-navigation-ready', 'mixed-ready', () => observed('navigation', async () => { await page.reload(); await waitText(page, 'Local recovery complete. Accepted edits are saved locally.'); await page.locator('canvas[aria-label="Document raster preview"]').waitFor({ state: 'visible' }); }));
       observations.nativeLayerCount = await page.locator('#layer-tree').getByRole('treeitem').count();
       if (!Number.isSafeInteger(text.expectedLayerCount) || observations.nativeLayerCount !== text.expectedLayerCount) missing.push('exact mixed fixture layer count');
       observations.retainedText = await verifyRetainedText(page, text);
       missing.push('navigation-scoped all-text layout completion witness; retained layers alone do not prove fresh mixed readiness');
     } else {
       if (operation === 'text.font-set') {
-        await record('exact-font-set-registration', 'font-set', async () => { await openDraft(page, text); await input(page).fill(text.corpus.text); await configureFonts(page, text, signal); await preview(page); });
+        await record('exact-font-set-registration', 'font-set', async () => { await openDraft(page, text); await input(page).fill(text.corpus.text); await configureFonts(page, text, signal); await observed('preview', () => preview(page)); });
       } else {
         await openDraft(page, text); await configureFonts(page, text, signal);
-        if (operation === 'text.active-layout') await record('active-text-layout', 'active-layout', async () => { await input(page).fill(text.corpus.text); await preview(page); });
-        else { await input(page).fill(text.corpus.text); await preview(page); await record('durable-text-apply', 'apply', async () => { observations.receipt = await acceptedCommand(page, text.activeLayerId ? 'CommitTextEdit' : 'CreateTextLayer', () => click(page, 'Apply text'), signal); await region(page).waitFor({ state: 'hidden' }); }); }
+        if (operation === 'text.active-layout') await record('active-text-layout', 'active-layout', async () => { await input(page).fill(text.corpus.text); await observed('preview', () => preview(page)); });
+        else { await input(page).fill(text.corpus.text); await preview(page); await record('durable-text-apply', 'apply', () => observed('apply', async () => { observations.receipt = await acceptedCommand(page, text.activeLayerId ? 'CommitTextEdit' : 'CreateTextLayer', () => click(page, 'Apply text'), signal); await region(page).waitFor({ state: 'hidden' }); })); }
       }
       if (operation !== 'text.apply') {
         observations.preview = await previewIdentity(page);
@@ -387,7 +481,7 @@ export async function runTextBrowserCell({ page, cell, fixture, signal, context,
     assertions.push({ id: 'real-product-controls', passed: true }, { id: 'receipt-content-privacy', passed: true });
     return result();
   } catch (error) {
-    if (error.prerequisite) { missing.push(error.message); return result(); }
+    if (error?.prerequisite) { missing.push(error.message); return result(); }
     return { ...result(), status: 'FAIL', error: { name: error?.name ?? 'Error', code: typeof error?.code === 'string' ? error.code : 'TEXT_BROWSER_ACTION_FAILED' } };
   }
 }

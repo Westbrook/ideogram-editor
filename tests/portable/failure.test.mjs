@@ -31,9 +31,9 @@ for(const recovery of ['same-authority-retry','restart-expired-review'])test('ac
   const sessionId='session_'+i;assert.equal((await f.post('/api/v1/ui/'+sessionId,{protocolVersion:1,requestId:randomUUID(),sessionId,expectedUISeq:'0',body:{type:'SetPreferences',preferences:{documentId:'document_1',tool:'select',viewport:{x:0,y:0,zoom:1},panels:{left:280,right:280,active:'layers'},selectedLayerIds:[]}}})).json.status,'accepted');
  }
  const saved=await copy(f),s=await upload(f,saved.bytes),a={clientId:f.paired.json.clientId,sessionHash:'b'.repeat(64),now:Date.now(),expires:Date.now()+1800000};await f.server.close();
- let w=await openWriter({root:f.root});await w.rememberClient(a.sessionHash,a.clientId,a.expires);const pages=(await w.diagnostics()).settings.page_count;await w.close();
+ let w=await openWriter({root:f.root});await w.rememberClient(a.sessionHash,a.clientId,a.expires);let pages;{const diagnosticRead=await w.readDiagnostics();try{pages=diagnosticRead.value.settings.page_count;}finally{diagnosticRead.release();}}await w.close();
  const limit=pages+512,full=await childFor(t,f.root,{maxPageCount:limit,phase:'portable-import-after-proofs'}),adapter={portableCommand:(...args)=>full.call('portableCommand',...args),commandState:(...args)=>full.call('commandState',...args)};
- assert.equal((await full.call('diagnostics')).settings.max_page_count,limit);
+ assert.equal(await full.call('diagnosticScalar','settings.max_page_count'),limit);
  const c=body=>command(EMPTY_EXPECTED_VERSIONS,{clientId:a.clientId,documentId:null,expectedDocumentRevision:null,body});
  const reviewReceipt=await wait(adapter,c({type:'PreviewBundleImport',stagingId:s.stagingId,expectedSha256:s.sha256}),a);assert.equal(reviewReceipt?.status,'accepted');
  const e=(await full.call('events',String(BigInt(reviewReceipt.fromSeq)-1n))).events[0],review=await full.call('bundleReview',e.payload.reviewId,a),accepted=c({type:'ImportBundle',reviewId:review.reviewId,reviewHash:review.reviewHash});
@@ -49,7 +49,7 @@ for(const recovery of ['same-authority-retry','restart-expired-review'])test('ac
  let fillerRows=0,nativeCode;try{for(;;){fill.prepare('INSERT INTO portable_fault_filler(bytes) VALUES (zeroblob(4096))').run();fillerRows++;}}catch(e){nativeCode=e.errcode;assert.equal(nativeCode,13);}finally{fill.close();}
  await full.call('release');let waiting;
  for(let n=0;n<2000;n++){waiting=await full.call('portableInventory','',a);if(waiting.items.find(x=>x.commandId===accepted.command.commandId)?.reason||await full.call('lookup',accepted.command.commandId))break;await pause();}
- assert.equal(waiting.items.find(x=>x.commandId===accepted.command.commandId)?.reason,'STORAGE_FULL',JSON.stringify({waiting,terminal:await full.call('lookup',accepted.command.commandId),diagnostics:await full.call('diagnostics')}));assert.equal(await full.call('lookup',accepted.command.commandId),null);assert.equal(await full.call('document',review.documentId),null);
+ assert.equal(waiting.items.find(x=>x.commandId===accepted.command.commandId)?.reason,'STORAGE_FULL',JSON.stringify({waiting,terminal:await full.call('lookup',accepted.command.commandId),diagnostics:await full.call('diagnosticJSON','all')}));assert.equal(await full.call('lookup',accepted.command.commandId),null);assert.equal(await full.call('document',review.documentId),null);
  const db=new DatabaseSync(join(f.root,'metadata.sqlite'),{readOnly:true});assert.equal(db.prepare('SELECT count(*) n FROM portable_namespaces').get().n,0);assert.equal(db.prepare('SELECT count(*) n FROM portable_rows').get().n,0);
  const pendingAfter=db.prepare('SELECT * FROM portable_preparations WHERE id=?').get(accepted.command.commandId);for(const key of ['id','hash','original','canonical','operation_id','frozen','confirmed_at'])assert.equal(pendingAfter[key],pendingBefore[key],key);
  assert.equal(waiting.items.find(x=>x.commandId===accepted.command.commandId).operationId,pendingBefore.operation_id);assert.equal(waiting.items.find(x=>x.commandId===accepted.command.commandId).phase,'waiting-for-resources');
@@ -59,7 +59,7 @@ for(const recovery of ['same-authority-retry','restart-expired-review'])test('ac
  const restore=new DatabaseSync(join(f.root,'metadata.sqlite'));restore.exec('DROP TABLE portable_fault_filler');const restoredFreePages=restore.prepare('PRAGMA freelist_count').get().freelist_count;assert(restoredFreePages>128);restore.close();
  let acceptedReceipt,acceptedCommand=accepted,freshReview=review;
  if(recovery==='same-authority-retry'){
-  acceptedReceipt=await wait(adapter,accepted,a);assert.equal(acceptedReceipt?.status,'accepted',JSON.stringify({waiting:await full.call('portableInventory','',a),diagnostics:await full.call('diagnostics')}));assert.deepEqual(await wait(adapter,accepted,a),acceptedReceipt);await full.assertNoEffects();await full.close();
+  acceptedReceipt=await wait(adapter,accepted,a);assert.equal(acceptedReceipt?.status,'accepted',JSON.stringify({waiting:await full.call('portableInventory','',a),diagnostics:await full.call('diagnosticJSON','all')}));assert.deepEqual(await wait(adapter,accepted,a),acceptedReceipt);await full.assertNoEffects();await full.close();
   w=await openWriter({root:f.root});t.after(()=>w.close());assert.deepEqual(await wait(w,accepted,a),acceptedReceipt);assert(await w.document(review.documentId));
  }else{
   w=await openWriter({root:f.root});t.after(()=>w.close());const retry=await wait(w,accepted,a);assert.equal(retry.status,'rejected');assert.equal(await w.document(review.documentId),null);assert.deepEqual(await wait(w,accepted,a),retry);

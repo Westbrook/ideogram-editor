@@ -134,6 +134,54 @@ test('lazy closures exclude the separate engine graph and omit engine-only featu
   assert(result.textEngineFiles.includes('assets/runtime.js'));
 });
 
+test('new receipts retain the complete closure and subtract only independently budgeted engine files', () => {
+  const f = specimen(); f.invocationContract = null;
+  f.outputTextByFile['assets/panels.js'] += "import './runtime.js';";
+  const result = deriveD11Roles(f);
+  assert.equal(result.complete, true);
+  const feature = result.lazyFeatures.find(value => value.id === 'src/ui/panels.ts');
+  assert.deepEqual(feature.closureFiles, ['assets/panels.js','assets/runtime.js','assets/shared.js']);
+  assert.deepEqual(feature.files, feature.closureFiles.filter(file => !result.textEngineFiles.includes(file)));
+  assert.deepEqual(result.excludedImports, []); assert.deepEqual(result.excludedWorkers, []);
+});
+
+test('ordinary uncertain imports may be startup upper bounds without losing their feature budget rows', () => {
+  const f = specimen(); f.invocationContract = null;
+  f.sourceTextByPath['src/ui/shell.ts'] = "export class Shell { panels() { return import('./panels.js'); } }";
+  const result = deriveD11Roles(f);
+  assert.equal(result.complete, true); assert(result.startupFiles.includes('assets/panels.js'));
+  assert(result.lazyFeatures.some(value => value.id === 'src/ui/panels.ts'));
+  assert.equal(result.startupUpperBounds.length, 1);
+  assert.equal(result.startupUpperBounds[0].reason, 'unresolved-invocation-conservatively-charged');
+  assert.equal(result.startupUpperBounds[0].source, 'src/ui/shell.ts');
+  assert.deepEqual(result.startupUpperBounds[0].files, ['assets/panels.js','assets/shared.js']);
+});
+
+test('ordinary upper bounds cannot silently promote an engine closure or clear unrelated missing input', () => {
+  const f = specimen(); f.invocationContract = null;
+  f.sourceTextByPath['src/ui/shell.ts'] = "export class Shell { panels() { return import('./panels.js'); } }";
+  f.outputTextByFile['assets/panels.js'] += "import './runtime.js';";
+  const result = deriveD11Roles(f);
+  assert.equal(result.complete, false); assert(!result.startupFiles.includes('assets/panels.js'));
+  assert.match(result.missing.join(' '), /ambiguous invocation boundary/);
+  assert.deepEqual(result.startupUpperBounds, []);
+  const missing = specimen(); missing.invocationContract = null; delete missing.outputTextByFile['assets/shared.js'];
+  assert.match(deriveD11Roles(missing).missing.join(' '), /verified AST text is absent/);
+});
+
+test('nonnull invocation profiles charge all startup-origin import sites without inferring whole-program deferral', () => {
+  const f = specimen(); f.invocationContract = {};
+  // This incomplete provenance cannot grant any exclusion. Charging ordinary
+  // bytes requires no callback authority; the separate Worker stays missing.
+  f.sourceTextByPath['src/ui/shell.ts'] = "function make(){return {go(){return import('./panels.js')}}}make().go();";
+  f.outputTextByFile['assets/shell.js'] = "import './shared.js';function make(){return {go(){return import('./panels.js')}}}make().go();function text(){return new Worker(new URL('/assets/native.js',import.meta.url));}";
+  const result = deriveD11Roles(f);
+  assert(result.startupFiles.includes('assets/panels.js'));
+  assert(result.lazyFeatures.some(value=>value.id==='src/ui/panels.ts'));
+  assert(result.startupUpperBounds.some(value=>value.target==='assets/panels.js'&&value.policy==='all-startup-origin-sites'));
+  assert.equal(result.complete,false); assert.deepEqual(result.excludedWorkers,[]);
+});
+
 test('startup engine overlap is retained and explicitly violates lazy delivery', () => {
   for (const statement of ["import './runtime.js';", "new Worker(new URL('/assets/native.js', import.meta.url));"]) {
     const f = specimen(); f.outputTextByFile['assets/main.js'] += statement;
@@ -168,6 +216,114 @@ test('callbacks with unproved invocation contracts cannot claim a lazy startup b
     const result = deriveD11Roles(f);
     assert.equal(result.complete, false, main);
     assert.match(result.missing.join(' '), /ambiguous invocation boundary/, main);
+  }
+});
+
+test('tagged callbacks and destructured callable aliases cannot silently look deferred', () => {
+  for (const main of [
+    "const go=()=>import('./shell.js'); const tag=(strings,callback)=>callback(); tag`${go}`;",
+    "const {go}={go:()=>import('./shell.js')}; go();",
+    "const [go]=[()=>import('./shell.js')]; go();",
+    "const {go=()=>import('./shell.js')}={}; go();",
+  ]) {
+    const f = specimen(); f.sourceTextByPath['src/main.ts'] = 'export const main = 1;'; f.outputTextByFile['assets/main.js'] = main;
+    const result = deriveD11Roles(f);
+    assert.equal(result.complete, false, main);
+    assert.match(result.missing.join(' '), /ambiguous invocation boundary/, main);
+  }
+});
+
+test('constructed receivers, getter reads and computed class keys run in their owning boundary', () => {
+  for (const main of [
+    "class Boot { go(){return import('./shell.js')} } new Boot().go();",
+    "class Boot { go(){return import('./shell.js')} } const boot=new Boot(); boot.go();",
+    "const boot={get loaded(){return import('./shell.js')}}; boot.loaded;",
+    "class Boot { get loaded(){return import('./shell.js')} } new Boot().loaded;",
+    "class Boot { [await import('./shell.js')](){} }",
+    "class Boot { [await import('./shell.js')]=1; }",
+  ]) {
+    const f = specimen(); f.sourceTextByPath['src/main.ts'] = 'export const main = 1;'; f.outputTextByFile['assets/main.js'] = main;
+    const result = deriveD11Roles(f);
+    assert.equal(result.complete, true, main + ': ' + result.missing.join('; '));
+    assert(result.startupFiles.includes('assets/shell.js'), main);
+  }
+});
+
+test('local inherited methods and getters retain their defining scope and startup closure', () => {
+  for (const main of [
+    "class Base { go(){return import('./shell.js')} } class Boot extends Base {} new Boot().go();",
+    "class Base { go(){return import('./shell.js')} } class Middle extends Base {} class Boot extends Middle {} const boot=new Boot(); boot.go();",
+    "class Base { get loaded(){return import('./shell.js')} } class Boot extends Base {} new Boot().loaded;",
+    "class Base { static get loaded(){return import('./shell.js')} } class Boot extends Base {} Boot.loaded;",
+    "class Base { go(){return import('./shell.js')} } class Boot extends Base {} function start(){const Base=class {go(){}};new Boot().go();} start();",
+  ]) {
+    const f = specimen(); f.sourceTextByPath['src/main.ts'] = 'export const main = 1;'; f.outputTextByFile['assets/main.js'] = main;
+    const result = deriveD11Roles(f);
+    assert.equal(result.complete, true, main + ': ' + result.missing.join('; '));
+    assert(result.startupFiles.includes('assets/shell.js'), main);
+  }
+});
+
+test('unresolved bases retain uncertainty for local overrides and factory-returned classes', () => {
+  for (const main of [
+    "class Boot extends unknownBase { go(){return import('./shell.js')} } new Boot();",
+    "function choose(){return class {go(){return import('./shell.js')}}} class Boot extends choose() {} new Boot().go();",
+    "function choose(){return class {get loaded(){return import('./shell.js')}}} const Parent=choose(); class Boot extends Parent {} new Boot().loaded;",
+  ]) {
+    const f = specimen(); f.sourceTextByPath['src/main.ts'] = 'export const main = 1;'; f.outputTextByFile['assets/main.js'] = main;
+    const result = deriveD11Roles(f);
+    assert.equal(result.complete, false, main);
+    assert.match(result.missing.join(' '), /ambiguous invocation boundary/, main);
+  }
+});
+
+test('worker aliases cannot borrow a separate deferred worker graph to appear lazy', () => {
+  for (const main of [
+    "const W=Worker; new W(new URL('/assets/native.js',import.meta.url)); await import('./shell.js');",
+    "new globalThis.Worker(new URL('/assets/native.js',import.meta.url)); await import('./shell.js');",
+    "new SharedWorker(new URL('/assets/native.js',import.meta.url)); await import('./shell.js');",
+  ]) {
+    const f = specimen(); f.sourceTextByPath['src/main.ts'] = 'export const main = 1;'; f.outputTextByFile['assets/main.js'] = main;
+    const result = deriveD11Roles(f);
+    assert(result.textEngineFiles.includes('assets/native.wasm'), 'The independent literal Worker graph must still bind the engine');
+    assert.equal(result.complete, false, main);
+    assert.match(result.missing.join(' '), /Worker constructor reference lacks a reviewed invocation binding/, main);
+  }
+});
+
+function lazyCssSpecimen() {
+  const f = specimen();
+  f.manifest['src/ui/panels.ts'].css = ['assets/feature.css'];
+  for (const [file, kind] of [['assets/feature.css', 'css'], ['assets/feature-nested.css', 'css'], ['assets/ui-copy.woff2', 'font'], ['assets/feature.png', 'other']]) {
+    f.files.push({ file, kind, sources: [], modules: [], authoringFont: false });
+  }
+  // Equal content identities at separate emitted paths remain two artifacts.
+  for (const file of f.files.filter(row => ['assets/ui.woff2', 'assets/ui-copy.woff2'].includes(row.file))) Object.assign(file, { sha256: 'sha256:' + 'b'.repeat(64), rawBytes: 5 });
+  f.outputTextByFile['assets/feature.css'] = '@import "./feature-nested.css"; .feature{background:url("./feature.png")}';
+  f.outputTextByFile['assets/feature-nested.css'] = '@import "./feature.css"; @font-face{font-family:shared;src:url("./ui.woff2")} @font-face{font-family:copy;src:url("./ui-copy.woff2")}';
+  return f;
+}
+
+test('lazy feature CSS follows nested imports and assets while retaining shared and duplicate paths', () => {
+  const result = deriveD11Roles(lazyCssSpecimen());
+  assert.equal(result.complete, true, result.missing.join('; '));
+  assert.deepEqual(result.lazyFeatures.find(feature => feature.id === 'src/ui/panels.ts').files,
+    ['assets/feature-nested.css', 'assets/feature.css', 'assets/feature.png', 'assets/panels.js', 'assets/shared.js', 'assets/ui-copy.woff2', 'assets/ui.woff2']);
+  assert(result.startupFiles.includes('assets/ui.woff2'));
+  assert(!result.startupFiles.includes('assets/feature.css'));
+  assert(!result.uiCssFontFiles.includes('assets/ui-copy.woff2'));
+});
+
+test('missing or ambiguous lazy CSS dependencies leave the full role proof incomplete', () => {
+  for (const mutate of [
+    f => { delete f.outputTextByFile['assets/feature-nested.css']; },
+    f => { f.outputTextByFile['assets/feature-nested.css'] = '@import "./missing.css";'; },
+    f => { f.outputTextByFile['assets/feature-nested.css'] = '@font-face{src:url("./missing.woff2")}'; },
+    f => { f.outputTextByFile['assets/feature-nested.css'] = '@import "./unterminated.css'; },
+  ]) {
+    const f = lazyCssSpecimen(); mutate(f); const result = deriveD11Roles(f);
+    assert.equal(result.complete, false);
+    assert.match(result.missing.join(' '), /lazy feature.*CSS/);
   }
 });
 
@@ -221,7 +377,7 @@ test('the declared document-ready public Open trace positively adds the panel im
   const f = publicStartupSpecimen(), before = JSON.stringify(f), proof = deriveD11ApplicationStartup(f);
   assert.deepEqual(proof.missing, []); assert.equal(proof.complete, true);
   assert.deepEqual(proof.startupFiles, ['assets/panels.js']);
-  assert.deepEqual(proof.witnesses, [{ entry: 'src/main.ts', shell: 'src/ui/shell.ts', editor: 'src/state/editor-client.ts', tag: 'ie-shell', exportedMount: 'mount', openMethod: 'showPanel', dispatchMethod: 'run', panelMethod: 'panels', target: 'src/ui/panels.ts' }]);
+  assert.deepEqual(proof.witnesses, [{ entry: 'src/main.ts', shell: 'src/ui/shell.ts', className: 'EditorShell', editor: 'src/state/editor-client.ts', tag: 'ie-shell', exportedMount: 'mount', openMethod: 'showPanel', dispatchMethod: 'run', panelMethod: 'panels', target: 'src/ui/panels.ts' }]);
   assert.equal(JSON.stringify(f), before);
 });
 

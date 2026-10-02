@@ -22,10 +22,25 @@ jobs:
           echo "$GITHUB_WORKSPACE/.toolchain/bin" >> "$GITHUB_PATH"
       - name: Install exact dependencies
         run: npm ci
-      - name: Types, inventory, import rules and build-free runner checks
+      - name: Allocate private evidence for supplemental correctness
+        env:
+          EVIDENCE_CAPACITY_BYTES: ${{ vars.QUALIFICATION_EVIDENCE_CAPACITY_BYTES }}
         run: |
-          npm run validate -- run --groups tooling --workers 1 --fresh
-          npm run verify:imports
+          node --input-type=module <<'NODE'
+          import {mkdirSync,chmodSync,realpathSync,writeFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const capacityBytes=Number(process.env.EVIDENCE_CAPACITY_BYTES);
+          if(!Number.isSafeInteger(capacityBytes)||capacityBytes<=0)throw Error('Explicit allocated evidence capacity required');
+          mkdirSync('artifacts/validation',{recursive:true,mode:0o700});
+          chmodSync('artifacts/validation',0o700);
+          const root=realpathSync('artifacts/validation'),allocation=join(root,'evidence-allocation.json');
+          writeFileSync(allocation,JSON.stringify({kind:'evidence-volume-allocation-1',allocationId:'fast-validation',purpose:'qualification-evidence-only',capacityBytes,root,issuedAt:new Date().toISOString(),owner:'Build'})+'\n',{flag:'wx',mode:0o600});
+          writeFileSync(process.env.GITHUB_ENV,'IE_EVIDENCE_ALLOCATION='+allocation+'\nIE_VALIDATION_OUTPUT='+join(root,'run')+'\n',{flag:'a'});
+          NODE
+      - name: Types, inventory, inputs, server and runner checks
+        run: |
+          node tooling/qualification/evidence-lifecycle.mjs root --allocation "$IE_EVIDENCE_ALLOCATION"
+          npm run validate -- run --groups tooling --browsers none --workers 1 --fresh --output "$IE_VALIDATION_OUTPUT"
       - name: Retain failure and success receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -33,6 +48,6 @@ jobs:
           name: fast-validation-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/validation
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 90
 # Fast feedback is supplemental. The trusted physical P pair and affected Q3,
 # native/manual and capability obligations in qualification.yml remain required.

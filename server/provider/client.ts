@@ -23,8 +23,8 @@ export type ProviderBoundary = ReturnType<typeof providerBoundary>;
 export function providerBoundary(config: {
   mode:'production'|'fixture'; queueOrigin:string; mediaOrigins:readonly string[]; uploadOrigin?:string; allowResultResponseSuffix?:boolean;
   profiles:readonly PrivacyProfile[]; credential:CredentialProvider; connection:ConnectionPolicy;
-}) {
-  const profiles=structuredClone(config.profiles), wire=createWireTransport(config.connection);
+},wire=createWireTransport(config.connection)) {
+  const profiles=structuredClone(config.profiles);
   const policy=(attempt:ProviderAttempt)=>{
     const p=profiles.find(p=>p.id===attempt.profileId);
     if(!p||p.mode!==config.mode)refuse('POLICY');
@@ -41,7 +41,7 @@ export function providerBoundary(config: {
       sink.bindPolicy(resolved.applied);request?.evidence.bindPolicy(resolved.applied);
       const requestedHeaders={'X-Fal-No-Retry':'1','x-app-fal-disable-fallback':'true',...resolved.headers};
       const body=request?captureRequest(request,'application/json',requestedHeaders):undefined;
-      return wire({url,method:action==='submit'?'POST':action==='cancel'?'PUT':'GET',body,sink,signal,requestEvidence:request?.evidence,
+      return wire({role:action,url,method:action==='submit'?'POST':action==='cancel'?'PUT':'GET',body,sink,signal,requestEvidence:request?.evidence,
         headers:()=>{const key=config.credential.queueKey();if(!key||/[\r\n]/.test(key))refuse('POLICY');
           return {Authorization:'Key '+key,'Content-Type':'application/json',...requestedHeaders};}});
       }catch(error){try{request?.evidence.finish(false);}finally{sink.finish(false);}throw error;}
@@ -50,7 +50,7 @@ export function providerBoundary(config: {
       try {
       const url=exactURL(raw);
       if(!config.mediaOrigins.includes(url.origin))refuse('POLICY');
-      return wire({url,method:'GET',headers:()=>({}),sink,...options});
+      return wire({role:'media',url,method:'GET',headers:()=>({}),sink,expectedHash:options.expectedHash,expectedBytes:options.expectedBytes,resume:options.resume,signal:options.signal});
       }catch(error){sink.finish(false);throw error;}
     },
     upload(raw:string,attempt:ProviderAttempt,request:CapturedRequest,sink:TransferSink,signal?:AbortSignal){
@@ -61,7 +61,7 @@ export function providerBoundary(config: {
       if(config.mode!=='fixture'||!config.uploadOrigin||url.origin!==config.uploadOrigin||url.pathname!=='/upload'||url.search)refuse('POLICY');
       sink.bindPolicy(resolved.applied);request.evidence.bindPolicy(resolved.applied);
       const body=captureRequest(request,'application/octet-stream');
-      return wire({url,method:'POST',body,sink,signal,requestEvidence:request.evidence,headers:()=>{
+      return wire({role:'upload',url,method:'POST',body,sink,signal,requestEvidence:request.evidence,headers:()=>{
         const key=config.credential.queueKey();if(!key||/[\r\n]/.test(key))refuse('POLICY');
         return {'Content-Type':'application/octet-stream',Authorization:'Key '+key,...resolved.headers};}});
       }catch(error){try{request.evidence.finish(false);}finally{sink.finish(false);}throw error;}

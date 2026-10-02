@@ -1,5 +1,10 @@
+import {diagnosticMemory} from '../../src/observability/diagnostic-memory.js';
+import {runDerivedRaster,type DerivedRasterJob} from './derive-original.js';
+import {prepareNativeDerived} from './import-producers.js';
 import {sanitizePhaseContext,type PhaseContext,type PhaseName,type PhaseRecorder,type PhaseSpan} from '../../src/observability/phases.js';
-import {ActiveCompute,ACTIVE_COMPUTE_RESERVATION_BYTES,type ActiveComputeSnapshot,type RasterWorkerSnapshot} from './active-compute.js';
+import {ActiveCompute,ACTIVE_COMPUTE_RESERVATION_BYTES} from './active-compute.js';
+import {nonDecodeResourcePlan,retainedTextResourcePlan,compositionResourcePlan,type ResourcePlan} from './resource-plan.js';
+export type {ResourcePlan} from './resource-plan.js';
 import {maskGrid,retainedMask,r16Mask} from '../../src/raster/mapping.js';
 import { authoredCoverage, featherRows, validateMaskPlan, type MaskPlan } from '../../src/raster/mask.js';
 import { providerMaskRow, providerSourceRow, preserveMappedRequestRow, requestRasterGrid, requireRequestCoverage, validateRequestRasterPlan, type RequestRasterPlan, type RequestOutputMapping } from '../../src/request/raster-plan.js';
@@ -28,9 +33,11 @@ import { extent, contribution, fold, finish, maskCoverage, footprint, linear, sr
 import { PIPELINE, RASTER_CODEC_ID, findRasterProfile, isKnownRasterEncoder } from './profile-registry.js';
 import type { Pixels, Rect } from '../../src/raster/core.js';
 import type { BlobRef } from '../../src/protocol/store.js';
+import { documentCreationBackground } from '../../src/protocol/document-creation.js';
 import type { RasterLayer, RasterManifest, RasterInfo } from '../../src/protocol/raster.js';
 import { canonical } from '../../src/protocol/json.js';
 import { assertComponents, assertPrivate, sameFile } from '../storage/files.js';
+import {runEncodedRaster,type EncodedRasterJob,type EncodedRebuildEvidence} from './encoded-input.js';
 
 const MiB = 1024 * 1024;
 export const hash = (bytes: Uint8Array | string) => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
@@ -38,18 +45,19 @@ export { PIPELINE, RASTER_CODEC_ID } from './profile-registry.js';
 export type InputRaster = { id: string; info: RasterInfo; path: string; coveragePath?:string;hardPath?:string };
 /** Only portable validation writes temporary outputs with retained identities. */
 export type RasterReplayIdentity = { pipeline: string; encoder?: string };
-export type RasterJob = { directory: string; telemetry?:PhaseContext } & (
+export type RasterJob = (DerivedRasterJob&{telemetry?:PhaseContext}) | EncodedRasterJob | { directory: string; telemetry?:PhaseContext } & (
+  | { type:'solid-background'; width:number; height:number; color:readonly [number,number,number,255] }
   | { type:'mask'; plan:MaskPlan; inputs:readonly InputRaster[]; dependencies:readonly BlobRef[];request?:{source:InputRaster;clip:Rect|null} }
   | { type:'request-mask'; input:InputRaster; plan:RequestRasterPlan; dependencies:readonly BlobRef[] }
-  | { type:'request-source'; input:InputRaster; plan:RequestRasterPlan; dependencies:readonly BlobRef[] }
+  | { type:'v45-edit-mask'; input:InputRaster;source:BlobRef;sourceAssetId:string;sourcePixels:BlobRef;plan:RequestRasterPlan;dependencies:readonly BlobRef[];replay?:RasterReplayIdentity }
+  | { type:'request-source'; input:InputRaster; plan:RequestRasterPlan; dependencies:readonly BlobRef[];replay?:RasterReplayIdentity }
   | { type:'preserve-request'; source:InputRaster;candidate:InputRaster;mask:InputRaster;plan:RequestRasterPlan;outputMapping?:RequestOutputMapping;dependencies:readonly BlobRef[] }
   | { type:'text'; path:string; width:number;height:number; source:BlobRef;dependencies:readonly BlobRef[] }
   | { type: 'decode'; path: string; mediaType: string; original: BlobRef; sourceAssetId: string }
   | { type: 'compose'; width: number; height: number; layers: readonly RasterLayer[]; inputs: readonly InputRaster[]; dependencies: readonly BlobRef[];requestSource?:RequestSourceCapture; replay?: RasterReplayIdentity }
   | { type: 'export'; input: InputRaster; dependencies: readonly BlobRef[]; options?: RasterExportOptions; encoderTransport?:JPEGTransport; replay?: RasterReplayIdentity }
 );
-export type ResourcePlan = { width: number; height: number; rawBytes: number; allocations: Record<string, number>; cpuBytes: number; diskBytes: number };
-export type RasterResult = { files: readonly { name: string; ref: BlobRef }[]; png: BlobRef; info: RasterInfo; manifest: RasterManifest; plan: ResourcePlan; metrics: Record<string, number>; activeCompute:ActiveComputeSnapshot; telemetry?:RasterWorkerSnapshot };
+export type RasterResult = { files: readonly { name: string; ref: BlobRef }[]; png: BlobRef; info: RasterInfo; manifest: RasterManifest; plan: ResourcePlan; metrics: Record<string, number>;encodedRebuild?:EncodedRebuildEvidence };
 export function verifyCodecs(): void {
   if (process.versions.node !== CODECS.node || process.versions.zlib !== CODECS.zlib || process.platform !== CODECS.platform || process.arch !== CODECS.arch || canonical(sharp.versions) !== canonical(CODECS.versions)) throw new Error('RASTER_CODEC_UNQUALIFIED');
   const require = createRequire(import.meta.url);
@@ -61,9 +69,9 @@ export function verifyCodecs(): void {
   verifyWebPOutput();
 }
 export function resourcePlan(width: number, height: number, decode = false, metadataBytes = 0, format = 'png', encodedBytes = 0): ResourcePlan {
+  if(!decode)return nonDecodeResourcePlan(width,height,metadataBytes);
   extent(width, height); const rawBytes = width * height * 4;
-  const allocations = decode ? { nativeDecoderAndColor: format==='webp-bounded'?Math.max(BOUNDED_WEBP_NATIVE_BYTES,BOUNDED_WEBP_COLOR_BYTES):rawBytes * (format==='webp'?5:2) + 32 * MiB, nativeStackAndIO:format==='webp-bounded'?256*1024:0, encodedInput:format==='webp'?4*encodedBytes+MiB:0, rawOutput: rawBytes, orientationRowsAndTiles: 2 * MiB, metadataAndProfileCopies: metadataBytes * 4 + 4 * MiB, pngAndHashIO: 4 * MiB, workerHeapAndRuntime: 80 * MiB, concurrentBackendHeadroom: 16 * MiB } :
-    { nativeDecoderAndColor: 0, nativeStackAndIO:0, encodedInput:0, rawOutput: 0, orientationRowsAndTiles: 8 * MiB, metadataAndProfileCopies: 4 * MiB, pngAndHashIO: 4 * MiB, workerHeapAndRuntime: 80 * MiB, concurrentBackendHeadroom: 16 * MiB };
+  const allocations = { nativeDecoderAndColor: format==='webp-bounded'?Math.max(BOUNDED_WEBP_NATIVE_BYTES,BOUNDED_WEBP_COLOR_BYTES):rawBytes * (format==='webp'?5:2) + 32 * MiB, nativeStackAndIO:format==='webp-bounded'?256*1024:0, encodedInput:format==='webp'?4*encodedBytes+MiB:0, rawOutput: rawBytes, orientationRowsAndTiles: 2 * MiB, metadataAndProfileCopies: metadataBytes * 4 + 4 * MiB, pngAndHashIO: 4 * MiB, workerHeapAndRuntime: 80 * MiB, concurrentBackendHeadroom: 16 * MiB };
   // Every task shares the existing backend512MiB ceiling. This is a conservative
   // allocation plan, correlated with whole-process RSS by the supervising worker.
   const reserved={...allocations,activeKernelTelemetry:ACTIVE_COMPUTE_RESERVATION_BYTES};
@@ -97,7 +105,8 @@ class FileCoverage {
 function writeAll(fd: number, bytes: Uint8Array, position: number) { for(let at=0;at<bytes.length;){const n=writeSync(fd,bytes,at,bytes.length-at,position+at);if(!n)throw new Error('RASTER_WRITE');at+=n;} }
 function writeTile(fd: number, width: number, rect: Rect, bytes: Uint8Array) { for(let y=0;y<rect.height;y++)writeAll(fd,bytes.subarray(y*rect.width*4,(y+1)*rect.width*4),((rect.y+y)*width+rect.x)*4); }
 export function fileRef(path: string, mediaType: string, check:()=>void): BlobRef {
-  const fd=inputFD(path);try{const h=createHash('sha256'),b=Buffer.alloc(MiB);let n,total=0;while((n=readSync(fd,b))){check();h.update(b.subarray(0,n));total+=n;}return {hash:'sha256:'+h.digest('hex'),byteLength:String(total),mediaType};}finally{closeSync(fd);}
+  // Hash through EOF even if the opened file grows; an empty file still gets a nonzero read buffer.
+  const fd=inputFD(path);try{const h=createHash('sha256'),b=Buffer.alloc(Math.max(1,Math.min(fstatSync(fd).size,MiB)));let n,total=0;while((n=readSync(fd,b))){check();h.update(b.subarray(0,n));total+=n;}return {hash:'sha256:'+h.digest('hex'),byteLength:String(total),mediaType};}finally{closeSync(fd);}
 }
 async function tiles(path: string, width: number, height: number, check:()=>void) {
   const fd=inputFD(path), result=[],tile=Buffer.alloc(Math.min(512,width)*Math.min(512,height)*4);try{for(let y=0;y<height;y+=512)for(let x=0;x<width;x+=512){check();const w=Math.min(512,width-x),h=Math.min(512,height-y),b=tile.subarray(0,w*h*4);for(let j=0;j<h;j++)if(readSync(fd,b,j*w*4,w*4,((y+j)*width+x)*4)!==w*4)throw new Error('RASTER_LENGTH');result.push({x,y,width:w,height:h,hash:hash(b)});await new Promise<void>(r=>setImmediate(r));}return result;}finally{closeSync(fd);}
@@ -110,18 +119,35 @@ function orient(x:number,y:number,w:number,h:number,o:number):[number,number] {
 function workerMemory(prefix:'workerStart'|'workerBeforeEncode'|'workerAfterEncode'):Record<string,number>{
   const memory=process.memoryUsage();return {[prefix+'RSS']:memory.rss,[prefix+'HeapTotal']:memory.heapTotal,[prefix+'HeapUsed']:memory.heapUsed,[prefix+'External']:memory.external,[prefix+'ArrayBuffers']:memory.arrayBuffers};
 }
-export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promise<void>, check:()=>void,recorder?:PhaseRecorder,active=new ActiveCompute({context:job.telemetry})): Promise<RasterResult> {
-  const traceContext=sanitizePhaseContext(job.telemetry??{}),activePhases:PhaseSpan[]=[];
+export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promise<void>, check:()=>void,recorder?:PhaseRecorder,active?:ActiveCompute): Promise<RasterResult> {
+  const owned=!active;active??=new ActiveCompute({context:job.telemetry});
+  try{return await runRasterOwned(job,admit,check,recorder,active);}finally{if(owned)active.dispose();}
+}
+async function runRasterOwned(job:RasterJob,admit:(plan:ResourcePlan)=>Promise<void>,check:()=>void,recorder:PhaseRecorder|undefined,active:ActiveCompute):Promise<RasterResult>{
+  if(job.type==='derive-original'){verifyCodecs();return runDerivedRaster(job,admit,check,prepareNativeDerived,active,recorder);}
+  if(job.type==='encoded-preserve'||job.type==='encoded-compose')return runEncodedRaster(job,admit,check,recorder,active);
+  const contextLease=diagnosticMemory.reserve('diagnostic-engine-context',65536);
+  try{const traceContext=sanitizePhaseContext(job.telemetry??{}),activePhases:PhaseSpan[]=[];
   const phase=(name:PhaseName,details:PhaseContext={})=>{const span=recorder?.start(name,{...traceContext,...sanitizePhaseContext(details)});if(span)activePhases.push(span);return span;};
   try{
   const started=performance.now(),memoryMetrics=workerMemory('workerStart');verifyCodecs();sharp.cache(false);sharp.concurrency(1);
   const replay='replay' in job?job.replay:undefined,retainedProfile=replay?findRasterProfile(replay.pipeline):undefined;
-  if(replay&&(!retainedProfile||job.type!=='compose'&&job.type!=='export'||job.type==='compose'&&replay.encoder!==undefined||replay.encoder!==undefined&&!isKnownRasterEncoder(replay.encoder)))throw Error('RASTER_PROFILE');
+  if(replay&&(!retainedProfile||!['compose','export','request-source','v45-edit-mask'].includes(job.type)||job.type!=='export'&&replay.encoder!==undefined||replay.encoder!==undefined&&!isKnownRasterEncoder(replay.encoder)))throw Error('RASTER_PROFILE');
   const outputPipeline=retainedProfile?.pipeline??PIPELINE;
   const raw=join(job.directory,'pixels.rgba'),png=join(job.directory,'output.png');
   let width:number,height:number,plan:ResourcePlan,conversion:RasterInfo['conversion']=null,sourceAssetIds:string[],dependencies:readonly BlobRef[],description:unknown;
   let decodeMs=0,computeMs=0;let nativeMetrics:Record<string,number>={};const extra:{name:string;ref:BlobRef}[]=[];
-  if(job.type==='mask'){
+  if(job.type==='solid-background'){
+    documentCreationBackground({kind:'solid',color:job.color});({width,height}=job);plan=resourcePlan(width,height);
+    plan.allocations.solidBackgroundRow=width*4;plan.cpuBytes=Object.values(plan.allocations).reduce((a,b)=>a+b,0);await admit(plan);
+    // One admitted scanline owns the fill. The document-sized raster remains on
+    // private disk; neither the worker nor the browser allocates a full grid.
+    const row=Buffer.alloc(width*4),fd=openSync(raw,'wx',0o600);
+    try{for(let x=0;x<width;x++)for(let c=0;c<4;c++)row[x*4+c]=job.color[c];
+      for(let y=0;y<height;y++){check();writeAll(fd,row,y*row.length);if(y%32===0)await new Promise<void>(resolve=>setImmediate(resolve));}fsyncSync(fd);
+    }finally{closeSync(fd);}
+    sourceAssetIds=[];dependencies=[];description={kind:'solid-background-v1',color:[...job.color]};
+  }else if(job.type==='mask'){
     validateMaskPlan(job.plan);({width,height}=job.plan);plan=resourcePlan(width,height);
     plan.allocations.importedMaskRows=job.inputs.reduce((sum,input)=>sum+input.info.width*(Math.min(32,input.info.height)*4+(input.hardPath?Math.min(128,input.info.height)*2:0)),0);
     plan.allocations.maskRows=width*(Math.ceil(job.plan.feather)*2+3)*8+width*16;
@@ -154,12 +180,17 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
     const hardRef=fileRef(hardPath,'application/x-ideogram-r16le',check),effectiveRef=fileRef(effectivePath,'application/x-ideogram-r16le',check);
     extra.push({name:'hard.r16',ref:hardRef},{name:'effective.r16',ref:effectiveRef});dependencies=[...job.dependencies,hardRef,effectiveRef];
     description={kind:job.request?'authored-request-mask-v1':job.plan.schemaVersion===2?'authored-mask-v2':'authored-mask-v1',authoring:job.plan,hard:hardRef,effective:effectiveRef,statistics:{hardPixels,effectivePixels,support:effectivePixels?{x:left,y:top,width:right-left,height:bottom-top}:null},...(job.request?{sourceAssetId:job.request.source.id,source:job.request.source.info.manifest,sourcePixels:job.request.source.info.pixels,clip:job.request.clip,lostEffectivePixels}:{})};
-  }else if(job.type==='request-mask'){
+  }else if(job.type==='request-mask'||job.type==='v45-edit-mask'){
     validateRequestRasterPlan(job.plan);({width,height}=requestRasterGrid(job.plan));const input=job.input;if(input.info.role!=='mask'||!input.coveragePath||input.info.width!==job.plan.document.width||input.info.height!==job.plan.document.height)throw Error('RASTER_MASK_MAPPING');
     plan=resourcePlan(width,height);plan.allocations.coverageRows=input.info.width*Math.min(128,input.info.height)*2;plan.allocations.outputRow=width*4;plan.cpuBytes=Object.values(plan.allocations).reduce((a,b)=>a+b,0);await admit(plan);
-    dependencies=job.dependencies;sourceAssetIds=[input.id];description={kind:'request-mask-binary-v1',source:input.info.manifest,requestPlan:job.plan};
-    const source=new FileCoverage(input.info.width,input.info.height,input.coveragePath),fd=openSync(raw,'wx',0o600);
-    try{requireRequestCoverage(job.plan,{width:source.width,height:source.height,get:(x,y)=>{if(x===0)check();return source.get(x,y);}});for(let y=0;y<height;y++){check();const row=providerMaskRow(job.plan,source,y);writeAll(fd,row,y*row.length);if(y%32===0)await new Promise<void>(r=>setImmediate(r));}fsyncSync(fd);}finally{source.close();closeSync(fd);}
+    dependencies=job.dependencies;sourceAssetIds=job.type==='v45-edit-mask'?[job.sourceAssetId,input.id]:[input.id];description={kind:'request-mask-binary-v1',source:input.info.manifest,requestPlan:job.plan};
+    if(job.type==='v45-edit-mask'&&(job.sourcePixels.mediaType!=='application/x-ideogram-rgba8'||job.sourcePixels.byteLength!==String(width*height*4)))throw Error('RASTER_SOURCE_MAPPING');
+    const source=new FileCoverage(input.info.width,input.info.height,input.coveragePath),fd=openSync(raw,'wx',0o600);let editPixels=0,keepPixels=0;
+    try{try{requireRequestCoverage(job.plan,{width:source.width,height:source.height,get:(x,y)=>{if(x===0)check();return source.get(x,y);}});}catch(error){if(job.type==='v45-edit-mask'&&error instanceof Error&&error.message==='EMPTY_MASK')throw Error('RASTER_V45_EDIT_MASK_HOMOGENEOUS');throw error;}for(let y=0;y<height;y++){check();const row=providerMaskRow(job.plan,source,y);
+      if(job.type==='v45-edit-mask')for(let x=0;x<width;x++){const at=x*4,value=row[at];if((value!==0&&value!==255)||row[at+1]!==value||row[at+2]!==value||row[at+3]!==255)throw Error('RASTER_V45_EDIT_MASK_BINARY');if(value===255)editPixels++;else keepPixels++;row[at]=row[at+1]=row[at+2]=255-value;}
+      writeAll(fd,row,y*row.length);if(y%32===0)await new Promise<void>(r=>setImmediate(r));
+    }if(job.type==='v45-edit-mask'&&(!editPixels||!keepPixels))throw Error('RASTER_V45_EDIT_MASK_HOMOGENEOUS');fsyncSync(fd);}finally{source.close();closeSync(fd);}
+    if(job.type==='v45-edit-mask')description={kind:'v45-edit-mask-v1',endpoint:'ideogram/v4.5/edit',source:job.source,mask:input.info.manifest,sourcePixels:job.sourcePixels,requestPlan:job.plan,polarity:'black-edit',statistics:{editPixels,keepPixels}};
   }else if(job.type==='request-source'){
     validateRequestRasterPlan(job.plan);({width,height}=requestRasterGrid(job.plan));const input=job.input;if(input.info.role==='mask'||input.info.width!==job.plan.document.width||input.info.height!==job.plan.document.height||canonical(input.info.pixels)!==canonical(job.plan.sourcePixels))throw Error('RASTER_SOURCE_MAPPING');
     plan=resourcePlan(width,height);plan.allocations.sourceRows=input.info.width*Math.min(32,input.info.height)*4;plan.allocations.outputRow=width*4;plan.cpuBytes=Object.values(plan.allocations).reduce((a,b)=>a+b,0);await admit(plan);
@@ -176,8 +207,8 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
     try{requireRequestCoverage(job.plan,coverage,job.outputMapping,check);for(let y=0;y<height;y++){check();if(readSync(source,sourceRow,0,sourceRow.length,y*sourceRow.length)!==sourceRow.length)throw Error('RASTER_LENGTH');const row=active.run('preserve',()=>preserveMappedRequestRow(job.plan,sourceRow,candidate,coverage,y,job.outputMapping));writeAll(fd,row,y*row.length);if(y%32===0)await new Promise<void>(r=>setImmediate(r));}fsyncSync(fd);}finally{closeSync(source);candidate.close();coverage.close();closeSync(fd);}
     preservePhase?.end('ok',{boundary:'observed'});
   }else if(job.type==='text'){
-    ({width,height}=job);plan=resourcePlan(width,height);await admit(plan);dependencies=job.dependencies;sourceAssetIds=[];description={kind:'retained-text',source:job.source};
-    const source=inputFD(job.path),target=openSync(raw,constants.O_CREAT|constants.O_EXCL|constants.O_RDWR|constants.O_NOFOLLOW,0o600);try{const b=Buffer.alloc(MiB);let at=0,n;while((n=readSync(source,b))){check();for(let i=0;i<n;i+=4)if(b[i+3]===0&&(b[i]||b[i+1]||b[i+2]))throw new Error('TEXT_TRANSPARENT_RGB');writeAll(target,b.subarray(0,n),at);at+=n;}if(at!==width*height*4)throw new Error('TEXT_PIXEL_LENGTH');fsyncSync(target);}finally{closeSync(source);closeSync(target);}
+    ({width,height}=job);plan=retainedTextResourcePlan(width,height);await admit(plan);dependencies=job.dependencies;sourceAssetIds=[];description={kind:'retained-text',source:job.source};
+    const source=inputFD(job.path),target=openSync(raw,constants.O_CREAT|constants.O_EXCL|constants.O_RDWR|constants.O_NOFOLLOW,0o600);try{const b=Buffer.alloc(Math.min(width*height*4,MiB));let at=0,n;while((n=readSync(source,b))){check();for(let i=0;i<n;i+=4)if(b[i+3]===0&&(b[i]||b[i+1]||b[i+2]))throw new Error('TEXT_TRANSPARENT_RGB');writeAll(target,b.subarray(0,n),at);at+=n;}if(at!==width*height*4)throw new Error('TEXT_PIXEL_LENGTH');fsyncSync(target);}finally{closeSync(source);closeSync(target);}
   }else if(job.type==='decode'){
     const container=await inspectContainer(job.path,job.mediaType,check);check();
     let direct=job.mediaType==='image/webp'?await openWebPFileDecoder():null;
@@ -234,17 +265,9 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
     sourceAssetIds=[job.sourceAssetId];dependencies=[job.original,...extra.map(f=>f.ref)];description={kind:'decoded-native',sourceAssetId:job.sourceAssetId,conversion,codec:RASTER_CODEC_ID,...(direct?{decodeTransport:'webp-file-v1',decoderBuild:BOUNDED_WEBP.hash,outputBuild:WEBP_OUTPUT.hash}:{})};
     }finally{color?.close();direct?.close();}
   }else if(job.type==='compose'){
-    ({width,height}=job);plan=resourcePlan(width,height);
-    if(job.layers.length>100)throw new Error('RASTER_LAYERS');
+    ({width,height}=job);plan=compositionResourcePlan(width,height,job.layers,job.inputs,!!job.requestSource);
     const passthrough=(layer:RasterLayer)=>{const input=job.inputs.find(i=>i.id===layer.assetId);return input&&input.info.width===width&&input.info.height===height&&layer.opacity===1&&layer.mask===null&&layer.transform.every((n,i)=>n===[1,0,0,1,0,0][i])?input:undefined;};
-    plan.allocations.retainedInputRows=Math.max(0,...job.layers.map(l=>{const source=job.inputs.find(i=>i.id===l.assetId),mask=job.inputs.find(i=>i.id===l.mask?.assetId);return (source?source.info.width*Math.min(32,source.info.height)*4:0)+(mask?mask.info.width*Math.min(mask.info.role==='mask'?128:32,mask.info.height)*(mask.info.role==='mask'?2:4):0);}));
-    if(job.requestSource){
-      // Only captured K versions are durable. Their row-major files are written
-      // tile by tile; exact native and singleton contributions share raw bytes.
-      plan.allocations.contributionMetadata=(job.layers.length+1)*65536;
-      plan.diskBytes+=plan.rawBytes*(job.layers.length===1?0:job.layers.filter(l=>!passthrough(l)).length)+(job.layers.length+1)*65536;
-    }
-    plan.cpuBytes=Object.values(plan.allocations).reduce((a,b)=>a+b,0);await admit(plan);dependencies=job.dependencies;sourceAssetIds=job.inputs.map(i=>i.id);
+    await admit(plan);dependencies=job.dependencies;sourceAssetIds=job.inputs.map(i=>i.id);
     const maskMapping=(layer:RasterLayer)=>layer.mask&&retainedMask(layer.mask)?'explicit-retained-domain-zero-v1':'document-luminance-alpha-v1';
     const contributionSchema=(layer:RasterLayer):1|2|3=>layer.mask&&retainedMask(layer.mask)?3:layer.mask?.mapping==='document-r16-v1'?2:1;
     const compositionDescription={kind:job.requestSource?'request-source-capture-v1':'cp1-composition',...(job.requestSource?{capture:job.requestSource}:{}),layers:job.layers,maskMapping:job.layers.some(l=>l.mask&&retainedMask(l.mask))?'explicit-retained-domain-zero-v1':'document-luminance-alpha-v1',precision:'binary64',kernel:'triangle-area-source-axis-row-norm-v1',edge:'transparent-zero-no-renormalization',footprints:job.layers.map(l=>footprint({x:0,y:0,width,height},l.transform))};
@@ -339,6 +362,7 @@ export async function runRaster(job: RasterJob, admit:(plan:ResourcePlan)=>Promi
   const manifestRef=fileRef(manifestPath,'application/json',check),encodeStart=performance.now(),encodePhase=phase('raster.encode',{width,height});Object.assign(memoryMetrics,workerMemory('workerBeforeEncode'));if(jpeg)await encodeJPEG(raw,output,width,height,job.options!.quality!,check,job.encoderTransport);else await encodePNG(raw,output,width,height,check);const encodeMs=performance.now()-encodeStart;Object.assign(memoryMetrics,workerMemory('workerAfterEncode'));encodePhase?.end('ok',{boundary:'observed'});
   const pngRef=fileRef(output,jpeg?'image/jpeg':'image/png',check);
   const info:RasterInfo={schemaVersion:job.type==='mask'?(job.plan.schemaVersion===2?3:2):1,pipeline,width,height,manifest:manifestRef,pixels,pixelIdentity,role:job.type==='mask'?'mask':job.type==='decode'?'native':job.type==='export'?'export':'composite',sourceAssetIds,conversion};
-  return {files:[{name:'pixels.rgba',ref:pixels},{name:'manifest.json',ref:manifestRef},{name:jpeg?'output.jpeg':'output.png',ref:pngRef},...extra],png:pngRef,info,manifest,plan,activeCompute:active.finish(),metrics:{elapsedMs:performance.now()-started,decodeMs,computeMs,encodeMs,rss:process.memoryUsage().rss,maxRSS:process.resourceUsage().maxRSS*1024,...nativeMetrics,...memoryMetrics}};
+  active.finish();return {files:[{name:'pixels.rgba',ref:pixels},{name:'manifest.json',ref:manifestRef},{name:jpeg?'output.jpeg':'output.png',ref:pngRef},...extra],png:pngRef,info,manifest,plan,metrics:{elapsedMs:performance.now()-started,decodeMs,computeMs,encodeMs,rss:process.memoryUsage().rss,maxRSS:process.resourceUsage().maxRSS*1024,...nativeMetrics,...memoryMetrics}};
   }catch(error){active.finish('failed');for(const span of activePhases)span.end('error');throw error;}
+  }finally{contextLease.release();}
 }

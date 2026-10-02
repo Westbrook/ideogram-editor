@@ -17,12 +17,20 @@ test.afterEach(async () => { await server?.close(); await rm(root, { recursive: 
 test('journal scans keep exact pending originals without collecting terminal history', async ({ page }) => {
   const result = await page.evaluate(async () => {
     const { BrowserJournal, allocationLedger } = (window as any).harness;
-    const journal = await BrowserJournal.open('metadata-' + crypto.randomUUID()), before = allocationLedger.snapshot();
-    // A real IDB transaction seeds long historical delivery storage efficiently.
-    const db = journal.db as IDBDatabase, tx = db.transaction('entries', 'readwrite'), store = tx.objectStore('entries');
-    for (let n = 0; n < 2000; n++) store.put({ wire: 'terminal-' + n, result: { kind: 'receipt' } }, 'command:' + String(n).padStart(5, '0'));
+    const owner = 'metadata-' + crypto.randomUUID(), journal = await BrowserJournal.open(owner), before = allocationLedger.snapshot();
+    // Fixture seeding uses a separate public native connection; the wrapper's
+    // private owner is not exposed. This setup drains before the observed scan.
+    const db = await new Promise<IDBDatabase>((resolve,reject)=>{const request=indexedDB.open('ie-delivery-'+owner,1);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
     const pending = { wire: '{"original":"exact whitespace preserved"}', request: { command: { commandId: 'pending' } }, result: { kind: 'pending' } };
-    store.put(pending, 'command:pending'); await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onabort = () => reject(tx.error); });
+    try {
+      const tx=db.transaction('entries','readwrite'),store=tx.objectStore('entries');
+      const completed=new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onabort=()=>reject(tx.error??Error('Fixture transaction aborted'));});
+      try {
+        for(let n=0;n<2000;n++)store.put({wire:'terminal-'+n,result:{kind:'receipt'}},'command:'+String(n).padStart(5,'0'));
+        store.put(pending,'command:pending');
+      } catch(error) { try{tx.abort();}catch{} await completed.catch(()=>{});throw error; }
+      await completed;
+    } finally { db.close(); }
     const getAll = IDBObjectStore.prototype.getAll; IDBObjectStore.prototype.getAll = function () { throw Error('Bulk history materialization forbidden'); };
     const retained: unknown[] = []; let visited = 0, peak = 0;
     try { await journal.scan('command:', (value: any) => { visited++; peak = Math.max(peak, allocationLedger.snapshot().cpuBytes - before.cpuBytes); if (value.result?.kind !== 'receipt') retained.push(value); }); }

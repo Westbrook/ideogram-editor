@@ -8,6 +8,7 @@ import sharp from 'sharp';
 import {emulator,fixtureProfile,SENTINEL_KEY,SENTINEL_COOKIE} from '../provider/emulator.mjs';
 import {QueueDispatcher} from '../../dist/local/server/provider/dispatcher.js';
 import {ResultObserver} from '../../dist/local/server/provider/observer.js';
+import {captureOwnedDiagnostics,installFailureDiagnostics} from './returned-description-observer-fixture.mjs';
 
 export const RETURNED_PROMPT='Returned exact Café 東京 🦋\nhttps://authored.invalid/?token=literal\n'.repeat(1200);
 export const returnedPrompt=prompt=>RETURNED_PROMPT+'\nExact submitted prompt:\n'+prompt;
@@ -47,10 +48,23 @@ export async function setup(store){
     pending=(async()=>{for(const job of store.queue.view().jobs)if(job.review.endpoint===endpoint&&job.attempts.at(-1).state==='not-started')await dispatcher.submit(job.id);await observer.tick();})()
       .catch(error=>{errors.push(String(error));closing=true;clearInterval(timer);write(false);}).finally(()=>{pending=undefined;});
   },100);
-  write(false);
+  write(false);const stopDiagnostics=installFailureDiagnostics(store);
+  // Candidates intentionally retain a generic public failure warning. Observe
+  // the real raster rejection here, then rethrow the exact exception unchanged.
+  const prepareDocument=store.rasters.prepareDocument;
+  store.rasters.prepareDocument=async function(...args){
+    try{return await prepareDocument.apply(this,args);}catch(error){
+      if(args[0]?.type==='PrepareCandidate')try{
+        const value={kind:'candidate-copy-raster-failure-1',commandId:args[1],slot:args[2],error:{name:String(error?.name??'Unknown').slice(0,80),code:typeof error?.code==='string'?error.code.slice(0,80):null,reason:typeof error?.reason==='string'?error.reason.slice(0,160):null},snapshot:JSON.parse(captureOwnedDiagnostics(store,args[1]))};
+        const bytes=Buffer.from(JSON.stringify(value));assert(bytes.length<=270336);
+        const path=join(store.root,'candidate-copy-raster-failure.json');writeFileSync(path+'.tmp',bytes,{mode:0o600});renameSync(path+'.tmp',path);
+      }catch{}
+      throw error;
+    }
+  };
   return async()=>{
-    closing=true;clearInterval(timer);observer.close();await pending;
+    stopDiagnostics();closing=true;clearInterval(timer);observer.close();await pending;store.rasters.prepareDocument=prepareDocument;
     const ended=new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));for(const socket of sockets)socket.destroy();await ended;
-    write(true);assert.deepEqual(errors,[]);assert.equal(store.objects.reservationInventory().activeTransfers,0);assert.equal(store.rasters.diagnostics().activeWorkers,0);
+    write(true);assert.deepEqual(errors,[]);assert.equal(store.objects.reservationInventory().activeTransfers,0);{const rasterRead=store.rasters.readDiagnostics();try{assert.equal(rasterRead.value.activeWorkers,0);}finally{rasterRead.release();}}
   };
 }

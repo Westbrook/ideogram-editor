@@ -338,6 +338,6 @@ test('matching sealed active-layer fonts cannot establish complete document-wide
     const output = extractBrowserMeasurements(value);
     assert.deepEqual(output.measurements, []);
     assert.deepEqual(output.unavailable.map(({ name, budgetId, unit }) => ({ name, budgetId, unit })), fontRules);
-    assert(output.unavailable.every(row => /current.document|document.wide|face.*union/i.test(row.reason)));
+    assert.deepEqual(output.unavailable.map(row => row.reason), fontRules.map(() => 'Current owned ordinary-text observation proof unavailable'));
   }
 });

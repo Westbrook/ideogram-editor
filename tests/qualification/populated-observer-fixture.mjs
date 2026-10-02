@@ -42,10 +42,11 @@ export async function setup(store){
   save({closed:false});
   return async()=>{
     closing=true;clearInterval(timer);observer.close();dispatcher.close();await pending;
-    const resources={objects:store.objects.reservationInventory(),raster:store.rasters.diagnostics(),text:{reservedCPU:store.texts.reservedCPU,externalBytes:store.texts.externalBytes()}};
+    const rasterRead=store.rasters.readDiagnostics();try{const resources={objects:store.objects.reservationInventory(),raster:rasterRead.value,text:{reservedCPU:store.texts.reservedCPU,externalBytes:store.texts.externalBytes()}};
     save({closed:true,resources});
     assert.deepEqual(errors,[]);assert.deepEqual(egressAttempts(),[]);
     assert.equal(resources.objects.activeTransfers,0);assert.equal(resources.objects.reservedBytes,'0');
     assert.equal(resources.raster.activeWorkers,0);assert.equal(resources.raster.reservedCPU,0);
+    }finally{rasterRead.release();}
   };
 }

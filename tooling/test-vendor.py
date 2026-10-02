@@ -5,6 +5,7 @@ import base64
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -89,14 +90,16 @@ class VendorBoundary(unittest.TestCase):
                 with self.subTest(name=name, kind=kind):
                     path, saved = self.root / name, self.root / ('owned-' + name)
                     path.rename(saved)
-                    if kind == 'symlink':
-                        path.symlink_to(saved)
-                    else:
-                        path.hardlink_to(saved)
-                    with self.assertRaisesRegex(SystemExit, 'Unsafe consumer (link|file)'):
-                        vendor.verify(self.root)
-                    path.unlink()
-                    saved.rename(path)
+                    try:
+                        if kind == 'symlink':
+                            path.symlink_to(saved)
+                        else:
+                            os.link(saved, path)
+                        with self.assertRaisesRegex(SystemExit, 'Unsafe consumer (link|file)'):
+                            vendor.verify(self.root)
+                    finally:
+                        path.unlink(missing_ok=True)
+                        saved.rename(path)
 
     def test_consumer_directory_is_rejected(self):
         path = self.root / 'package-lock.json'
