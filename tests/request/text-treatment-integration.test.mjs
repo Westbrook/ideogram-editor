@@ -96,7 +96,7 @@ async function loaded(tree){const images=rendered(tree()).images;assert(images.l
 function ownJSON(editor,read){const transport=async(path,init)=>{const value=await read(path,init),bytes=Buffer.from(JSON.stringify(value));return new Response(bytes,{headers:{'content-length':String(bytes.length),'content-type':'application/json'}});};editor.ownedJSON=(path,owner,init,owns,maxBytes,kind='control')=>readOwnedJSON(transport,path,{owner,init,owns,maxBytes,kind});}
 
 async function requestFixture(t,{native=true,semantic=false,sourceIds=null,mask=null}={}){
- const before=resources(),urlStart=display.created.length,releasedStart=display.released.length,reads=[],saved=[],reviews=[],commands=[],opened=[],errors=[],manifests=new Map(),responseOwners=[];let instance,serial=0,readOverride=null,saveOverride=null,uiPins=0;
+ const before=resources(),urlStart=display.created.length,releasedStart=display.released.length,reads=[],saved=[],reviews=[],commands=[],opened=[],errors=[],manifests=new Map(),responseOwners=[];let instance,serial=0,readOverride=null,saveOverride=null,reviewOverride=null,uiPins=0;
  // Persistence is a fixture seam; registrations still belong to the exact
  // draft owner and stay live through every Entry and native-input borrower.
  const registrations=new Map();
@@ -114,7 +114,7 @@ async function requestFixture(t,{native=true,semantic=false,sourceIds=null,mask=
   changeDraft(id,kind,wire,target,composing,revision){saved.push({id,kind,wire,target,composing,revision});const generation=String(saved.length);editor.draftOwner.drafts.set(id,{generation,savedGeneration:null});if(saveOverride)saveOverride();},
   async flushDrafts(){for(const draft of editor.draftOwner.drafts.values())draft.savedGeneration=draft.generation;},
   requestReview(){assert.fail('Request reviews must return an owned receipt');},
-  async ownedRequestReview(body){reviews.push(structuredClone(body));return ownResponse({review:{kind:body.textTreatment?'request-review-text-1':'request-review-1',id:'review',token:hash('token'),request:{kind:'generate'},prompt:ref('prompt','text/plain'),estimate:{unknown:[]}}},'request-review');},
+  async ownedRequestReview(body){reviews.push(structuredClone(body));const value={review:{kind:body.textTreatment?'request-review-text-1':'request-review-1',id:'review',token:hash('token'),request:{kind:'generate'},prompt:ref('prompt','text/plain'),estimate:{unknown:[]}}};return ownResponse(reviewOverride?reviewOverride(body,value):value,'request-review');},
   command(){assert.fail('Request source capture must use scoped command events');},
   async withCommandEvents(body,consume,target){commands.push({body:structuredClone(body),target:structuredClone(target)});assert.equal(body.type,'PrepareRequestSource');const ids=body.scope==='visible-document'?layers.filter(l=>l.visible).map(l=>l.id):body.layerIds,model=ownResponse([{type:'AssetRegistered',payload:{asset:capture('capture-'+(++serial),body.scope,ids).asset}}],'command-events');try{return await consume(model.value);}finally{model.release();}},
  };
@@ -126,7 +126,7 @@ async function requestFixture(t,{native=true,semantic=false,sourceIds=null,mask=
  instance.mutateEntry('Exact local prompt',next=>{next.text='Exact local prompt';if(sourceIds){next.draft.operation='inpaint';next.draft.source=capture('original',sourceIds.length===1?'single-layer':'selected-layers',sourceIds).source;next.draft.mask=mask;}});
  const helper=()=>instance.textTreatment,tree=()=>helper().render();tree();await flush();
  t.after(async()=>{display.fail(null);display.pending(null);await instance.dispose();await flush();assert.equal(registrations.size,0,'Every owner-scoped draft registration released');assert.equal(uiPins,0,'Restoration releases its checkpoint pin');uiModel.release();assert(responseOwners.every(row=>row.released),'All fixture response owners release');assert.deepEqual(resources(),before);assert.deepEqual(display.released.slice(releasedStart).sort(),display.created.slice(urlStart).sort());});
- return {instance,editor,host,saved,reviews,commands,opened,errors,reads,composition,manifests,capture,helper,tree,setRead:fn=>readOverride=fn,setSave:fn=>saveOverride=fn};
+ return {instance,editor,host,saved,reviews,commands,opened,errors,reads,composition,manifests,capture,helper,tree,setRead:fn=>readOverride=fn,setSave:fn=>saveOverride=fn,setReview:fn=>reviewOverride=fn};
 }
 async function overlay(f){await choose(f.tree,'text-treatment-kind','native-overlay');await choose(f.tree,'text-treatment-retain-native','',true);}
 async function confirmTreatment(f){await click(f.tree,'text-treatment-prepare');await loaded(f.tree);await click(f.tree,'text-treatment-confirm');assert.deepEqual(f.errors,[]);assert(f.helper().intent());}
@@ -408,4 +408,68 @@ for(const tinyPages of [false,true])test('returned-caption controller '+(tinyPag
  const controller=new ReturnedDescriptionEditing(host,editor,()=>assert.fail('Inspection cannot open a native draft')),target={jobId:'job',attemptId:'attempt',documentId:'document',documentRevision:'7',returnedPrompt:ref(wire,'text/plain')};
  try{if(tinyPages){await assert.rejects(controller.inspect(target,()=>true),/page count/);assert.equal(controller.current,undefined);assert.deepEqual(calls,[0,1,2,3,4,5,6,7,8]);}else{await controller.inspect(target,()=>true);assert.equal(controller.current.value.value.state,'available');assert.equal(calls.length,9);assert.equal(calls[1],32767);assert.equal(calls.at(-1),262143);}}
  finally{await controller.releaseDocument();await flush();assert.deepEqual(resources(),before);}
+});
+
+
+async function prepareTreatmentRequest(f){
+ // Keep the existing owned response seam; only these tests need an acceptance
+ // receipt and the frozen text-plan identity rendered by the actual Request UI.
+ f.setReview((body,value)=>body.type==='AcceptRequestReview'?{acceptedReview:'review',requestId:'accepted-request'}:{...value,review:{...value.review,textTreatment:{planHash:hash('text-plan')}}});
+ await overlay(f);await confirmTreatment(f);await click(()=>f.instance.render(),'prepare-request');assert.deepEqual(f.errors,[]);assert(f.instance.review);assert.equal(f.instance.accepted,false);
+}
+
+test('same-revision document confirmation preserves the actual prepared and accepted request and text treatment without saving',async t=>{
+ const f=await requestFixture(t);await prepareTreatmentRequest(f);
+ const request=()=>f.instance.render(),entry=f.instance.entry(),draft=entry.draft,generation=entry.generation,treatment=f.helper().review,intent=f.helper().intent(),review=f.instance.review,requestIntent=f.instance.intent,wire=canonical(draft),text=entry.text,savedDraft=f.editor.draftOwner.drafts.get(entry.id);
+ for(const accepted of [false,true]){
+  if(accepted){await click(request,'accept-request');assert.equal(f.instance.accepted,true);assert.equal(f.instance.acceptanceId,'accepted-request');}
+  const saved=f.saved.length,reviews=f.reviews.length,commands=f.commands.length,acceptanceId=f.instance.acceptanceId;
+  await click(request,'request-document');
+  assert.equal(f.instance.entry(),entry);assert.equal(f.instance.entry().draft,draft);assert.equal(entry.generation,generation);assert.equal(f.instance.intent,requestIntent);assert.equal(f.helper().review,treatment);assert.equal(f.helper().intent(),intent);assert.equal(f.instance.review,review);assert.equal(f.instance.accepted,accepted);assert.equal(f.instance.acceptanceId,acceptanceId);
+  assert.equal(f.saved.length,saved);assert.equal(f.editor.draftOwner.drafts.get(entry.id),savedDraft);assert.equal(f.reviews.length,reviews);assert.equal(f.commands.length,commands);assert.equal(entry.text,text);assert.equal(canonical(draft),wire);assert.equal(f.instance.message,'Request document revision confirmed.');assert.deepEqual(f.errors,[]);
+ }
+ assert.deepEqual(f.reviews.map(row=>row.type),['PrepareRequestReview','AcceptRequestReview']);
+});
+
+test('a changed document revision still replaces the Entry and invalidates prepared request and text treatment approval',async t=>{
+ const f=await requestFixture(t);await prepareTreatmentRequest(f);const request=()=>f.instance.render();await click(request,'accept-request');assert.equal(f.instance.accepted,true);
+ const entry=f.instance.entry(),draft=entry.draft,generation=entry.generation,intent=f.instance.intent,saved=f.saved.length,reviews=f.reviews.length,text=entry.text;
+ f.editor.view.document.revision='8';assert.equal(f.helper().intent(),undefined,'The actual document revision already makes the old treatment stale');
+ await click(request,'request-document');const next=f.instance.entry();
+ assert.notEqual(next,entry);assert.notEqual(next.draft,draft);assert.equal(next.revision,'8');assert.equal(next.generation,generation+1);assert.equal(f.instance.intent,intent+1);assert.equal(f.saved.length,saved+1);assert.equal(f.saved.at(-1).revision,'8');assert.equal(next.text,text);assert.equal(f.instance.review,null);assert.equal(f.instance.accepted,false);assert.equal(f.helper().intent(),undefined);assert.equal(f.reviews.length,reviews);assert.equal(f.instance.message,'Request document revision confirmed.');
+ await assert.rejects(f.instance.prepare(),/Prepare and confirm native and semantic/);assert.equal(f.saved.length,saved+1);assert.equal(f.reviews.length,reviews);assert.deepEqual(f.errors,[]);
+});
+
+for(const boundary of ['prompt refusal','stale owner','stale document','request release','entry release','disposed','late veto','IME'])test('same-revision document confirmation retains the '+boundary+' guard',async t=>{
+ const f=await requestFixture(t),request=()=>f.instance.render(),template=request(),button=rendered(template).controls.find(row=>row.id==='request-document');assert(button);assert.equal(button.disabled,false);
+ const entry=f.instance.entry(),draft=entry.draft,generation=entry.generation,saved=f.saved.length,message=f.instance.message,owner=f.editor.draftOwner,document=f.editor.view.document,input=f.instance.promptInput,e=event();
+ try{
+  if(boundary==='prompt refusal')input.refused=true;
+  if(boundary==='stale owner')f.editor.draftOwner={drafts:new Map()};
+  if(boundary==='stale document')f.editor.view.document={...document,id:'another-document'};
+  if(boundary==='request release')f.instance.requestReleasing=true;
+  if(boundary==='entry release')f.instance.entryReleasing=true;
+  if(boundary==='disposed')f.instance.disposed=true;
+  if(boundary==='IME')f.instance.composing=true;
+  button.click(e);if(boundary==='late veto')e.defaultPrevented=true;await turn();
+  assert.equal(f.instance.entry(),entry);assert.equal(entry.draft,draft);assert.equal(entry.generation,generation);assert.equal(f.saved.length,saved);assert.equal(f.instance.message,message);assert.deepEqual(f.reviews,[]);assert.deepEqual(f.commands,[]);assert.equal(f.instance.inspectMemory().entryTasks,0);assert.equal(f.instance.inspectMemory().entryHolds,0);
+  if(boundary==='prompt refusal'){assert.equal(input.refused,true);assert.equal(f.errors.length,1);assert.match(f.errors[0].message,/full input remains/);}else assert.deepEqual(f.errors,[]);
+ }finally{input.refused=false;f.editor.draftOwner=owner;f.editor.view.document=document;f.instance.requestReleasing=false;f.instance.entryReleasing=false;f.instance.disposed=false;f.instance.composing=false;await turn();}
+});
+
+for(const changed of [false,true])test('held actual text-treatment preparation '+(changed?'stays stale after a changed-revision confirmation':'survives same-revision document confirmation'),async t=>{
+ const f=await requestFixture(t);await prepareTreatmentRequest(f);const request=()=>f.instance.render();await click(request,'accept-request');assert.equal(f.instance.accepted,true);
+ const helper=f.helper(),entry=f.instance.entry(),draft=entry.draft,generation=entry.generation,review=f.instance.review,intent=helper.intent(),saved=f.saved.length,reviews=f.reviews.length,gate=deferred();let entered=false,pending;
+ f.setRead(async path=>{const id=/\/assets\/([^/]+)\/raster$/.exec(path)?.[1];assert(id&&f.manifests.has(id),'Held preparation reads its actual captured source manifest');entered=true;await gate.promise;return f.manifests.get(id);});
+ try{
+  await click(f.tree,'text-treatment-prepare');pending=helper.task;assert(entered,'The actual preparation reached its manifest read before document confirmation');assert(pending);assert.equal(helper.busy,true);
+  if(changed)f.editor.view.document.revision='8';
+  await click(request,'request-document');
+  if(changed){assert.notEqual(f.instance.entry(),entry);assert.notEqual(f.instance.entry().draft,draft);assert.equal(f.instance.entry().revision,'8');assert.equal(f.instance.entry().generation,generation+1);assert.equal(f.saved.length,saved+1);assert.equal(f.instance.review,null);assert.equal(f.instance.accepted,false);assert.equal(helper.intent(),undefined);}
+  else{assert.equal(f.instance.entry(),entry);assert.equal(entry.draft,draft);assert.equal(entry.generation,generation);assert.equal(f.saved.length,saved);assert.equal(f.instance.review,review);assert.equal(f.instance.accepted,true);assert.equal(helper.intent(),intent);}
+  gate.resolve();await pending;await helper.drain();
+  if(changed){assert.equal(helper.review,null);assert.equal(helper.intent(),undefined);assert.equal(rendered(f.tree()).controls.some(row=>row.id==='text-treatment-confirm'),false);await assert.rejects(f.instance.prepare(),/Prepare and confirm native and semantic/);assert.equal(f.saved.length,saved+1);}
+  else{assert(helper.review);assert.equal(helper.review.draft,draft);assert.equal(helper.review.current(),true);await loaded(f.tree);await click(f.tree,'text-treatment-confirm');assert(helper.intent());assert.equal(f.instance.entry(),entry);assert.equal(entry.generation,generation);assert.equal(f.saved.length,saved);assert.equal(f.instance.review,review);assert.equal(f.instance.accepted,true);}
+  assert.equal(f.reviews.length,reviews);assert.deepEqual(f.errors,[]);
+ }finally{gate.resolve();await Promise.allSettled(pending?[pending]:[]);try{await helper.drain();}finally{f.setRead(null);await turn();}}
 });

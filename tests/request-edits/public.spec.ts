@@ -167,6 +167,7 @@ test('E3 keyboard mask and native overlay survive safe adoption history and stal
     effects=await server.effects();expect(effects.effects).toEqual([]);
     await keyboard(button(page,'request-mapping-preview'));
     await keyboard(button(page,'request-mask-confirm'));
+    await expect(page.locator('#request-mask-status')).toContainText('Request mask plan confirmed.');
     await keyboard(button(page,'request-document'));
     await reviewTextSource();
     await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();
@@ -557,6 +558,7 @@ test(nativeDeferredAdoptionTitle,async({page,context,browserName})=>{
     effects=await server.effects();expect(effects.effects).toEqual([]);
     await keyboard(button(page,'request-mapping-preview'));
     await keyboard(button(page,'request-mask-confirm'));
+    await expect(page.locator('#request-mask-status')).toContainText('Request mask plan confirmed.');
     await keyboard(button(page,'request-document'));
     await reviewTextSource();
     await keyboard(button(page,'prepare-request'));await expect(page.locator('#request-review')).toBeFocused();
