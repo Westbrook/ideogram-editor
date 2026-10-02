@@ -152,3 +152,80 @@ test('the actual native text source distinguishes selected File data from an own
   const source=await readFile(new URL('../../src/ui/native-text.ts',import.meta.url),'utf8');
   assert.doesNotThrow(()=>assertD11EventCorpus({sourceTextByPath:{'src/ui/native-text.ts':source},parser}));
 });
+
+
+let retainedEventCorpus;
+async function actualEventCorpus() {
+  retainedEventCorpus ??= (async()=>{
+    const {readFile}=await import('node:fs/promises');
+    const {createHash}=await import('node:crypto');
+    const {D11_APPLICATION_SOURCE_PATHS}=await import('../../tooling/qualification/campaigns/browser-d11-application-profile.mjs');
+    const sourceTextByPath={};
+    for(const path of D11_APPLICATION_SOURCE_PATHS){
+      const bytes=await readFile(new URL('../../'+path,import.meta.url));
+      assert(bytes.length<=16*1048576);const text=bytes.toString('utf8');assert(Buffer.from(text).equals(bytes));sourceTextByPath[path]=text;
+    }
+    const staticSource=await readFile(new URL('../../server/static.ts',import.meta.url),'utf8');
+    const matches=[...staticSource.matchAll(/export const BOOTSTRAP_PRELUDE = `([^`]+)`;/g)];
+    assert.equal(matches.length,1);assert(!matches[0][1].includes('${'));
+    const sourceInputs=Object.entries(sourceTextByPath).map(([path,text])=>({path,rawBytes:Buffer.byteLength(text),sha256:'sha256:'+createHash('sha256').update(text).digest('hex')}));
+    return {sourceTextByPath,sourceInputs,bootstrapText:matches[0][1]};
+  })();
+  return structuredClone(await retainedEventCorpus);
+}
+
+test('the entire actual reviewed application corpus passes the strict event census only with its exact data effect',async()=>{
+  const value=await actualEventCorpus();
+  const {verifyD11ApplicationProfile}=await import('../../tooling/qualification/campaigns/browser-d11-application-profile.mjs');
+  const profile=verifyD11ApplicationProfile(value);
+  assert.equal(profile.eventDataEffects.sites.length,1);assert.equal(profile.eventDataEffects.sites[0].calls.length,4);
+  assert.throws(()=>assertD11EventCorpus({sourceTextByPath:value.sourceTextByPath,parser}),/computed data-call effects lack the reviewed corpus contract/);
+  const census=assertD11EventCorpus({sourceTextByPath:value.sourceTextByPath,parser,applicationSourceProfile:profile});
+  assert(census instanceof Map);assert(census.has('src/ui/request.ts'));assert(census.has('src/ui/native-text.ts'));
+  assert.equal(census.size,Object.keys(value.sourceTextByPath).filter(path=>path.startsWith('src/')&&/\.[cm]?[jt]sx?$/.test(path)&&!/\.d\.[cm]?ts$/.test(path)).length);
+});
+
+test('candidate method syntax remains a provisional obligation and cannot supply final invocation authority',()=>{
+  const f=fixture();f.sourceTextByPath['src/data.ts']="const operation=values[index];operation.endsWith('-v45');";
+  const structural=deriveD11PrivateEventSourceProof(f);
+  assert.equal(structural.complete,true);assert.equal(structural.conditionalEventDataEffects.length,1);
+  assert.equal(structural.conditionalEventDataEffects[0].requirement,'reviewed-primitive-string-method');
+  assert.throws(()=>assertD11EventCorpus({sourceTextByPath:f.sourceTextByPath,parser}),/computed data-call effects lack/);
+  const {requirement,...site}=structural.conditionalEventDataEffects[0];
+  const forged={kind:'verified-d11-application-profile-1',profile:'reviewed-d11-startup-corpus-1',inputs:[{path:site.source,sha256:site.sourceSha256}],eventDataEffects:{kind:'reviewed-d11-event-data-calls-1',sites:[{...site,effect:'request-operation-literal-string-method'}]}};
+  for(const extra of [{applicationSourceProfile:forged},{applicationSourceProfile:forged,invocationContract:{applicationSourceProfile:forged}}]){
+    const result=deriveD11PrivateEventBoundaries({...f,...extra});assert.equal(result.complete,false);assert.deepEqual(result.excludedImports,[]);
+  }
+});
+
+test('strict computed data effect matching rejects missing, additional and altered read or call obligations',async()=>{
+  const value=await actualEventCorpus();
+  const {verifyD11ApplicationProfile}=await import('../../tooling/qualification/campaigns/browser-d11-application-profile.mjs');
+  const original=verifyD11ApplicationProfile(value),sourceTextByPath={'src/ui/request.ts':value.sourceTextByPath['src/ui/request.ts']};
+  for(const change of [
+    p=>{delete p.eventDataEffects;},p=>{p.eventDataEffects.kind='other';},p=>{p.eventDataEffects.sites=[];},
+    p=>{p.eventDataEffects.sites.push(structuredClone(p.eventDataEffects.sites[0]));},
+    p=>{p.eventDataEffects.sites[0].effect='any-named-method';},p=>{p.eventDataEffects.sites[0].start++;},
+    p=>{p.eventDataEffects.sites[0].expressionSha256='sha256:'+'0'.repeat(64);},
+    p=>{p.eventDataEffects.sites[0].declaration.end++;},p=>{p.eventDataEffects.sites[0].declaration.expressionSha256='sha256:'+'0'.repeat(64);},
+    p=>{p.eventDataEffects.sites[0].calls.pop();},p=>{p.eventDataEffects.sites[0].calls.push(structuredClone(p.eventDataEffects.sites[0].calls[0]));},
+    p=>{p.eventDataEffects.sites[0].calls[0].start++;},p=>{p.eventDataEffects.sites[0].calls[0].expressionSha256='sha256:'+'0'.repeat(64);},
+    p=>{p.eventDataEffects.sites[0].calls[0].argument='other';},p=>{p.inputs=p.inputs.filter(input=>input.path!=='src/ui/request.ts');},
+  ]){
+    const profile=structuredClone(original);change(profile);
+    assert.throws(()=>assertD11EventCorpus({sourceTextByPath,parser,applicationSourceProfile:profile}),/computed data-call/);
+  }
+  assert.throws(()=>assertD11EventCorpus({sourceTextByPath:{'src/ui/request.ts':sourceTextByPath['src/ui/request.ts']+'\n'},parser,applicationSourceProfile:original}),/computed data-call source is not reviewed/);
+  assert.throws(()=>assertD11EventCorpus({sourceTextByPath:{'src/empty.ts':'export const empty=1;'},parser,applicationSourceProfile:original}),/computed data-call effects differ/);
+});
+
+test('computed callees and unreviewed receiver methods remain refused before any primitive effect join',()=>{
+  for(const source of [
+    'host[key]();','new host[key]();','const operation=values[index];operation();','const operation=values[index];new operation();',
+    'const operation=values[index];operation.call(null);','const operation=values[index];operation.apply(null,[]);','const operation=values[index];operation.bind(null);',
+    "const operation=values[index];operation.startsWith('-v45');","const operation=values[index];operation.endsWith(argument);",
+    "const operation=values[index];operation.endsWith('-v45',position);","const operation=values[index];operation?.endsWith('-v45');",
+    "let operation=values[index];operation.endsWith('-v45');",
+  ])assert.throws(()=>assertD11EventCorpus({sourceTextByPath:{'src/data.ts':source},parser}),/computed callable has no bounded nonactivation key/,source);
+});
+

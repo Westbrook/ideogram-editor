@@ -710,7 +710,7 @@ export function deriveD11WorkerActivation(args = {}) {
     if (invocation.effects?.applicationSourceProfile !== 'reviewed-d11-startup-corpus-1' || invocation.applicationSourceProfile?.profile !== 'reviewed-d11-startup-corpus-1') fail('application ownership census is not bound to the reviewed current corpus');
     const memberAssignmentEffects = assertD11MemberAssignmentEffects(proof.witness.conditionalMemberEffects, invocation.applicationSourceProfile);
     const domDataEffects = assertD11DOMDataEffects(proof.witness.conditionalDOMEffects, invocation.applicationSourceProfile, invocation.effects);
-    assertD11EventCorpus({ sourceTextByPath: args.sourceTextByPath, parser, requiredAbsentGlobals: invocation.requiredAbsentGlobals });
+    assertD11EventCorpus({ sourceTextByPath: args.sourceTextByPath, parser, requiredAbsentGlobals: invocation.requiredAbsentGlobals, applicationSourceProfile: invocation.applicationSourceProfile });
     for (const file of files.filter(file => file.kind === 'js')) constructorCensus(parse(file.file === 'inline:bootstrap' ? 'bootstrap.js' : file.file, outputTextByFile?.[file.file], parser));
     const importers = files.filter(file => file.kind === 'js' && [...file.sources ?? [], ...file.modules ?? []].includes(proof.source));
     const importer = exact(importers, 'source Worker has absent or ambiguous emitted importer');

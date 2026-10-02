@@ -241,6 +241,34 @@ function reviewedDOMDataEffects(verifiedSources) {
   })) };
 }
 
+// The reviewed family module copies eight literal strings from request/core
+// and appends three literal strings. Its copied array has no mutation or
+// escaping consumer in this exact corpus. Native labels.indexOf supplies an
+// array position or -1; the immediate falsy guard returns before undefined can
+// reach these four literal-suffix calls on the selected string. This is one
+// reviewed source effect, not permission for arbitrary numeric reads, functions
+// named endsWith, or type-asserted strings. The event proof still has to match
+// the computed read, declaration, and every same-binding invocation below.
+function reviewedEventDataEffects(verifiedSources) {
+  const source = 'src/ui/request.ts', text = verifiedSources.get(source);
+  const expression = 'operations[labels.indexOf(label)]', declarationExpression = 'op=' + expression;
+  const callExpression = "op.endsWith('-v45')";
+  const unique = expression => {
+    const start = text.indexOf(expression);
+    if (start < 0 || text.indexOf(expression, start + 1) !== -1) fail('reviewed event data expression is absent or ambiguous');
+    return { start, end: start + expression.length, expressionSha256: identity(source, expression).sha256 };
+  };
+  const read = unique(expression), declaration = unique(declarationExpression), calls = [];
+  for (let start = text.indexOf(callExpression); start !== -1; start = text.indexOf(callExpression, start + callExpression.length)) {
+    calls.push({ start, end: start + callExpression.length, expressionSha256: identity(source, callExpression).sha256, method: 'endsWith', argument: '-v45' });
+  }
+  if (calls.length !== 4 || declaration.start + 3 !== read.start || declaration.end !== read.end) fail('reviewed event data invocation inventory differs');
+  return { kind: 'reviewed-d11-event-data-calls-1', sites: [{ source, ...read,
+    sourceSha256: identity(source, text).sha256, declaration, calls,
+    effect: 'request-operation-literal-string-method',
+  }] };
+}
+
 /** Verify one finite current-source review. Caller-computed hashes or a receipt
  * are necessary join evidence, never authority for an alternative corpus.
  * The bootstrap body comes from the independently derived emitted prelude;
@@ -266,7 +294,7 @@ export function verifyD11ApplicationProfile({ sourceTextByPath, sourceInputs, bo
     verifiedSources.set(expected.path, text);
   }
   if (typeof bootstrapText !== 'string' || Buffer.byteLength(bootstrapText) !== bootstrap.rawBytes || !isDeepStrictEqual(identity(bootstrap.path, bootstrapText), bootstrap)) fail('reviewed inline bootstrap differs');
-  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }], memberAssignmentEffects: reviewedMemberAssignmentEffects(verifiedSources), domDataEffects: reviewedDOMDataEffects(verifiedSources) };
+  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }], memberAssignmentEffects: reviewedMemberAssignmentEffects(verifiedSources), domDataEffects: reviewedDOMDataEffects(verifiedSources), eventDataEffects: reviewedEventDataEffects(verifiedSources) };
 }
 
 export const verifyD11ApplicationSourceProfile = verifyD11ApplicationProfile;

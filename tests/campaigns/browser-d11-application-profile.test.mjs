@@ -263,3 +263,90 @@ test('spoofed tree query registration template or property cannot acquire data-r
     assert.throws(()=>verifyD11ApplicationProfile(value),/reviewed application source differs/);
   }
 });
+
+// This is the only computed data alias with same-binding receiver calls in the
+// root's complete current-source census. These tests verify retained source
+// effects only; they do not execute the application or mint feature admission.
+test('verified profile binds the one request operation lookup and all four exact string calls', async () => {
+  const value = await specimen(), before = structuredClone(value), profile = verifyD11ApplicationProfile(value);
+  const source = 'src/ui/request.ts', text = value.sourceTextByPath[source];
+  const expression = 'operations[labels.indexOf(label)]', declarationExpression = 'op=' + expression;
+  const callExpression = "op.endsWith('-v45')";
+  assert.equal(text.indexOf(expression), 46739);
+  assert.equal(text.indexOf(expression, 46740), -1);
+  assert.equal(text.indexOf(declarationExpression), 46736);
+  const calls = [46831, 47249, 47274, 47864].map(start => {
+    assert.equal(text.slice(start, start + callExpression.length), callExpression);
+    return { start, end: start + callExpression.length, expressionSha256: identity(source, callExpression).sha256, method: 'endsWith', argument: '-v45' };
+  });
+  assert.equal(text.split(callExpression).length - 1, calls.length);
+  const expected = { kind: 'reviewed-d11-event-data-calls-1', sites: [{
+    source, start: 46739, end: 46772, expressionSha256: identity(source, expression).sha256,
+    sourceSha256: identity(source, text).sha256,
+    declaration: { start: 46736, end: 46772, expressionSha256: identity(source, declarationExpression).sha256 },
+    calls, effect: 'request-operation-literal-string-method',
+  }] };
+  assert.deepEqual(profile.eventDataEffects, expected);
+  for (const path of [source, 'src/request/core.ts', 'src/request/family.ts']) {
+    assert.deepEqual(profile.inputs.find(row => row.path === path), identity(path, value.sourceTextByPath[path]));
+  }
+  assert.deepEqual(value, before);
+  profile.eventDataEffects.sites[0].declaration.start++;
+  profile.eventDataEffects.sites[0].calls[0].method = 'call';
+  profile.eventDataEffects.sites.push({ ...profile.eventDataEffects.sites[0] });
+  assert.deepEqual(verifyD11ApplicationProfile(value).eventDataEffects, expected, 'returned mutable metadata cannot change the fixed review');
+});
+
+test('changed request data producers imports guard and receiver calls cannot self-authorize new event effects', async () => {
+  const authentic = await specimen(), eventDataEffects = verifyD11ApplicationProfile(authentic).eventDataEffects;
+  const request = 'src/ui/request.ts';
+  for (const [source, before, after] of [
+    ['src/request/core.ts', "operations=['generate','instant'", "operations=[globalThis.unreviewedCallback,'instant'"],
+    ['src/request/family.ts', "operations=[...v4.operations,'generate-v45'", "operations=[...v4.operations,globalThis.unreviewedCallback"],
+    ['src/request/family.ts', "labels=[...v4.labels,'Generate with Ideogram v4.5'", "labels=[...v4.labels,globalThis.unreviewedLabel"],
+    [request, "from '../request/family.js';", "from './unreviewed-family.js';"],
+    [request, 'operations[labels.indexOf(label)]', 'operations[label]'],
+    [request, 'if(!op||op===this.op)return;', 'if(op===this.op)return;'],
+    [request, "op.endsWith('-v45')", "op.call('-v45')"],
+    [request, "op.endsWith('-v45')", "op.endsWith(unreviewedSuffix)"],
+    [request, "op.endsWith('-v45')", "op.endsWith('-v45');op()"],
+  ]) {
+    const value = structuredClone(authentic); assert(value.sourceTextByPath[source].includes(before));
+    value.sourceTextByPath[source] = value.sourceTextByPath[source].replace(before, after);
+    value.sourceInputs[value.sourceInputs.findIndex(row => row.path === source)] = identity(source, value.sourceTextByPath[source]);
+    value.eventDataEffects = structuredClone(eventDataEffects);
+    assert.throws(() => verifyD11ApplicationProfile(value), /reviewed application source differs/);
+  }
+});
+
+test('later data mutation native-method replacement and extra callback consumers cannot inherit the reviewed string effect', async () => {
+  const authentic = await specimen();
+  for (const [source, addition] of [
+    ['src/request/core.ts', '\noperations[0]=globalThis.unreviewedCallback;\n'],
+    ['src/request/family.ts', '\noperations.push(globalThis.unreviewedCallback);\n'],
+    ['src/ui/request.ts', '\nString.prototype.endsWith=function(){globalThis.unreviewedCallback();return true;};\n'],
+    ['src/ui/request.ts', '\nfunction unreviewed(callbacks,key){const op=callbacks[key];op.endsWith("-v45");}\n'],
+  ]) {
+    const value = structuredClone(authentic); value.sourceTextByPath[source] += addition;
+    value.sourceInputs[value.sourceInputs.findIndex(row => row.path === source)] = identity(source, value.sourceTextByPath[source]);
+    value.eventDataEffects = verifyD11ApplicationProfile(authentic).eventDataEffects;
+    assert.throws(() => verifyD11ApplicationProfile(value), /reviewed application source differs/);
+  }
+});
+
+test('event data effects are unavailable before complete source receipt and bootstrap verification and ignore caller claims', async () => {
+  const authentic = await specimen(), expected = verifyD11ApplicationProfile(authentic);
+  for (const mutate of [
+    value => { delete value.sourceTextByPath['src/request/core.ts']; },
+    value => { value.sourceInputs = value.sourceInputs.filter(row => row.path !== 'src/request/family.ts'); },
+    value => { value.sourceInputs.find(row => row.path === 'src/ui/request.ts').rawBytes++; },
+    value => { delete value.bootstrapText; },
+    value => { value.bootstrapText += '\n/* unreviewed execution */'; },
+  ]) {
+    const value = structuredClone(authentic); mutate(value); value.eventDataEffects = expected.eventDataEffects;
+    assert.throws(() => verifyD11ApplicationProfile(value));
+  }
+  for (const eventDataEffects of [null, { kind: 'reviewed-d11-event-data-calls-1', sites: [] }, { kind: 'caller-allowlist', sites: [{ method: 'endsWith' }] }]) {
+    assert.deepEqual(verifyD11ApplicationProfile({ ...authentic, eventDataEffects }), expected);
+  }
+});

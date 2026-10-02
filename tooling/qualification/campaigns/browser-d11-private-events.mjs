@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { posix } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { D11_ROLE_CONTEXT } from './browser-d11-registration.mjs';
@@ -176,11 +177,40 @@ function eventAliasBindings(context) {
   };
 }
 
+// This describes candidate syntax only. A method name does not establish a
+// primitive receiver; the full reviewed application effect must discharge it.
+function conditionalEventDataCall(context, node, declaration, calls) {
+  if (!declaration || context.parents.get(declaration)?.kind !== 'const' || !calls.length || calls.length > 4096) return null;
+  if (calls.some(call => call.type !== 'CallExpression' || call.optional || call.callee?.type !== 'MemberExpression' || call.callee.computed || call.callee.optional || member(call.callee) !== 'endsWith' || call.arguments.length !== 1 || literal(call.arguments[0]) === null)) return null;
+  const hash = text => 'sha256:' + createHash('sha256').update(text).digest('hex');
+  const identity = item => ({ ...span(item), expressionSha256: hash(context.text.slice(item.start, item.end)) });
+  return { source: context.path, ...identity(node), sourceSha256: hash(context.text),
+    declaration: identity(declaration), calls: calls.map(call => ({ ...identity(call), method: 'endsWith', argument: literal(call.arguments[0]) })).sort((a,b) => a.start-b.start || a.end-b.end),
+    requirement: 'reviewed-primitive-string-method' };
+}
+
+function assertEventDataEffects(conditional, applicationSourceProfile) {
+  if (!conditional.length && applicationSourceProfile === undefined) return;
+  const reviewed = applicationSourceProfile?.eventDataEffects;
+  if (applicationSourceProfile?.kind !== 'verified-d11-application-profile-1' || applicationSourceProfile.profile !== 'reviewed-d11-startup-corpus-1' || !Array.isArray(applicationSourceProfile.inputs) ||
+      reviewed?.kind !== 'reviewed-d11-event-data-calls-1' || !isDeepStrictEqual(Object.keys(reviewed).sort(), ['kind','sites']) || !Array.isArray(reviewed.sites) || reviewed.sites.length > 4096) fail('computed data-call effects lack the reviewed corpus contract');
+  const sites = conditional.map(row => {
+    const inputs = applicationSourceProfile.inputs.filter(input => input.path === row.source);
+    if (inputs.length !== 1 || inputs[0].sha256 !== row.sourceSha256) fail('computed data-call source is not reviewed');
+    const { requirement, ...identity } = row;
+    if (requirement !== 'reviewed-primitive-string-method') fail('computed data-call obligation differs');
+    return { ...identity, effect: 'request-operation-literal-string-method' };
+  });
+  const ordered = rows => [...rows].sort((a,b) => a.source.localeCompare(b.source) || a.start-b.start || a.end-b.end);
+  if (!isDeepStrictEqual(ordered(sites), ordered(reviewed.sites))) fail('computed data-call effects differ from the reviewed complete inventory');
+}
+
 // This is a source census, not a claim that unknown application code or arbitrary
 // injected code cannot synthesize events. The fixed workload starts with a fresh
 // document and the retained, sealed script corpus. Unknown activation in that
 // corpus prevents this particular proof; it is never silently treated as inert.
-export function assertD11EventCorpus({ sourceTextByPath, parser, requiredAbsentGlobals = [], corpus: supplied } = {}) {
+function inspectD11EventCorpus({ sourceTextByPath, parser, requiredAbsentGlobals = [], corpus: supplied } = {}) {
+  const conditionalEventDataEffects = [];
   const corpus = supplied ?? parseCorpus(sourceTextByPath, parser);
   const activation = new Set(['click', 'dblclick', 'keydown', 'keyup', 'keypress', 'pointerdown', 'pointerup', 'mousedown', 'mouseup']);
   for (const context of corpus.values()) {
@@ -202,16 +232,22 @@ export function assertD11EventCorpus({ sourceTextByPath, parser, requiredAbsentG
     if (node.computed && name === null) {
       // Computed data reads remain data. A type annotation is erased and cannot
       // establish the runtime key of a computed invocation or callable alias.
-      const immediateCall = parent?.type === 'CallExpression' && parent.callee === node;
+      const immediateCall = ['CallExpression','NewExpression'].includes(parent?.type) && parent.callee === node;
       const declaration = parent?.type === 'VariableDeclarator' && parent.init === node && parent.id?.type === 'Identifier' ? parent : null;
-      const invokedAlias = declaration && context.nodes.some(item => {
+      const aliasCalls = declaration ? context.nodes.filter(item => {
         if (!['CallExpression','NewExpression'].includes(item.type)) return false;
         const reference = item.callee?.type === 'Identifier' ? item.callee : item.callee?.type === 'MemberExpression' && item.callee.object?.type === 'Identifier' ? item.callee.object : null;
         if (reference?.name !== declaration.id.name) return false;
         resolveAlias ??= eventAliasBindings(context);
         return resolveAlias(reference) === resolveAlias(declaration.id);
-      });
-      if (immediateCall || invokedAlias) fail('computed callable has no bounded nonactivation key: ' + context.path);
+      }) : [];
+      if (immediateCall) fail('computed callable has no bounded nonactivation key: ' + context.path);
+      if (aliasCalls.length) {
+        const obligation = conditionalEventDataCall(context, node, declaration, aliasCalls);
+        if (!obligation) fail('computed callable has no bounded nonactivation key: ' + context.path);
+        if (conditionalEventDataEffects.length >= 4096) fail('computed data-call obligation bound exceeded');
+        conditionalEventDataEffects.push(obligation);
+      }
     }
     if (['_$litType$', '_$committedValue', 'handleEvent'].includes(name)) fail('application accesses framework callback representation: ' + context.path);
     if (!['click', 'dispatchEvent'].includes(name)) continue;
@@ -233,7 +269,15 @@ export function assertD11EventCorpus({ sourceTextByPath, parser, requiredAbsentG
     }
     }
   }
-  return corpus;
+  return { corpus, conditionalEventDataEffects };
+}
+
+// Final consumers pass only the profile freshly produced by invocation replay.
+// This assertion never treats a provisional syntax obligation as discharged.
+export function assertD11EventCorpus(input = {}) {
+  const result = inspectD11EventCorpus(input);
+  assertEventDataEffects(result.conditionalEventDataEffects, input.applicationSourceProfile);
+  return result.corpus;
 }
 
 function eventBinding(context, arrow) {
@@ -437,7 +481,7 @@ function commandBoundary(context, klass, arrow, corpus) {
  * not itself be consumed as a roles exemption. Exported for focused specimens;
  * deriveD11PrivateEventBoundaries verifies the retained dependency contract. */
 export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextByPath, outputTextByFile, parser, roleContext, requiredAbsentGlobals = [] } = {}) {
-  const excludedImports = [], missing = [];
+  const excludedImports = [], missing = []; let conditionalEventDataEffects = [];
   try {
     const corpus = parseCorpus(sourceTextByPath, parser), candidates = [];
     for (const context of corpus.values()) for (const node of context.nodes) if (node.type === 'ImportExpression') {
@@ -446,7 +490,7 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
     }
     if (!candidates.length) return { excludedImports, complete: true, missing };
     if (!isDeepStrictEqual(roleContext, D11_ROLE_CONTEXT)) fail('fixed W0/W1 Open context is absent');
-    assertD11EventCorpus({ corpus, requiredAbsentGlobals });
+    ({ conditionalEventDataEffects } = inspectD11EventCorpus({ corpus, requiredAbsentGlobals }));
     for (const { context, node, method, klass } of candidates) {
       if (klass.superClass?.type !== 'Identifier' || !imported(context, klass.superClass.name, 'lit', 'LitElement')) fail('private event owner is not the reviewed LitElement subclass');
       assertStableBinding(context, klass.id?.name);
@@ -487,7 +531,7 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
       excludedImports.push({ source: context.path, ...span(node), target, outputs, reason: 'verified-private-event-boundary', witness: { kind: 'd11-private-event-import-1', offsetUnits: 'utf16-code-unit', featureSource, className: klass.id.name, privateMethod: method.key.name, calls: witnesses.sort((a, b) => a.start - b.start), emitted } });
     }
   } catch (error) { missing.push(error instanceof Error ? error.message : 'D11 private event proof is unavailable'); }
-  return { excludedImports: missing.length ? [] : excludedImports, complete: missing.length === 0, missing };
+  return { excludedImports: missing.length ? [] : excludedImports, complete: missing.length === 0, missing, ...(conditionalEventDataEffects.length ? { conditionalEventDataEffects } : {}) };
 }
 
 export function deriveD11PrivateEventBoundaries(input = {}) {
@@ -497,7 +541,7 @@ export function deriveD11PrivateEventBoundaries(input = {}) {
     if (!input.invocationContract) fail('retained invocation contract is absent for a private target');
     const verified = verifyD11InvocationContract(input.invocationContract, { lock: input.lock, dependencyInputs: input.dependencyInputs, emittedModules: sorted((input.files ?? []).flatMap(file => file.modules ?? [])), compilation: input.compilation, sourceTextByPath: input.sourceTextByPath, sourceInputs: input.sourceInputs, outputTextByFile: input.outputTextByFile });
     if (verified.effects?.repeatRender !== 'eager-key-and-item-render-with-child-part-commit' || verified.effects?.supportedCompilation !== 'reviewed-vite-app-config-and-build-evidence' || verified.effects?.applicationSourceProfile !== 'reviewed-d11-startup-corpus-1') fail('reviewed template, compilation, or application source effects are absent');
-    assertD11EventCorpus({ sourceTextByPath: input.sourceTextByPath, parser: input.parser, requiredAbsentGlobals: verified.requiredAbsentGlobals });
-    return { ...structural, excludedImports: structural.excludedImports.map(item => ({ ...item, witness: { ...item.witness, invocationProfile: verified.profile, applicationSourceProfile: verified.effects.applicationSourceProfile } })) };
+    assertD11EventCorpus({ sourceTextByPath: input.sourceTextByPath, parser: input.parser, requiredAbsentGlobals: verified.requiredAbsentGlobals, applicationSourceProfile: verified.applicationSourceProfile });
+    return { ...structural, excludedImports: structural.excludedImports.map(item => ({ ...item, witness: { ...item.witness, invocationProfile: verified.profile, applicationSourceProfile: verified.effects.applicationSourceProfile, eventDataEffects: verified.applicationSourceProfile.eventDataEffects } })) };
   } catch (error) { return { excludedImports: [], complete: false, missing: [error instanceof Error ? error.message : 'D11 private dependency contract is unavailable'] }; }
 }
