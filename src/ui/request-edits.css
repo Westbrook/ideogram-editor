@@ -9,4 +9,6 @@
 .request-domain { fill: none; stroke: #dc3cad; stroke-width: 2px; vector-effect: non-scaling-stroke; }
 .request-safe-interior { fill: none; stroke: #fff; stroke-dasharray: 4 3; stroke-width: 2px; vector-effect: non-scaling-stroke; }
 .request-mapping-review, .request-candidate-review en-card { display: grid; gap: 0.65rem; }
+/* Nested request cards share the outer card gutter so review content keeps its available width. */
+.typed-request en-card en-card::part(base) { padding-inline: 0; }
 @media (max-width: 500px) { .request-edit-fields { grid-template-columns: 1fr; } }

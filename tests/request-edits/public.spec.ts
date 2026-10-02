@@ -392,12 +392,47 @@ test(maskReReviewTitle,async({page,context,browserName})=>{
     const firstResults=await resultImages();expect(firstResults.map(image=>image.alt)).toEqual(['Current document before adoption','Prepared full-grid replacement','Document after proposed placement']);expect(firstResults.every(image=>image.complete&&image.width===512&&image.height===512)).toBe(true);
     // Reuse the same inspected candidate and mask branch. Only real browser
     // events are observed; no load is dispatched and no src is rewritten here.
-    await keyboard(button(page,'request-candidate-new-document-'+candidate.id));await expect(placement.getByRole('heading',{name:'New-document adoption review',exact:true})).toBeVisible();
+    const visibility:unknown[]=[];evidence.placementVisibility=visibility;
+    const snapshotVisibility=(phase:string)=>step(state,'placement-visibility-'+phase,async()=>{visibility.push(await page.evaluate(({id,phase})=>{
+      const placements=window.document.querySelectorAll('#'+CSS.escape(id)),placement=placements[0],headings=placement?.querySelectorAll('h4');let stringsTruncated=0,chainsTruncated=0;
+      const bounded=(value:string|null)=>{if(value!==null&&value.length>160)stringsTruncated++;return value?.slice(0,160)??null;};
+      const identity=(element:Element|null)=>element?{tag:element.tagName,id:bounded(element.id),slot:bounded(element.getAttribute('slot'))}:null;
+      const box=(rect:DOMRect)=>({x:rect.x,y:rect.y,width:rect.width,height:rect.height});
+      const chain=(start:Element)=>{const rows:unknown[]=[],seen=new Set<Element>();let element:Element|null=start;
+        while(element&&rows.length<24&&!seen.has(element)){seen.add(element);const style=getComputedStyle(element),root=element.getRootNode(),slot:HTMLSlotElement|null=element.assignedSlot,rects=element.getClientRects();
+          rows.push({identity:identity(element),connected:element.isConnected,hidden:element.hasAttribute('hidden'),inert:element.hasAttribute('inert'),ariaHidden:bounded(element.getAttribute('aria-hidden')),assignedSlot:identity(slot),shadowHost:root instanceof ShadowRoot?identity(root.host):null,checkVisibility:typeof element.checkVisibility==='function'?element.checkVisibility():null,rect:box(element.getBoundingClientRect()),clientRectCount:rects.length,clientRects:Array.from({length:Math.min(rects.length,4)},(_,index)=>box(rects[index])),style:{display:style.display,visibility:style.visibility,opacity:style.opacity,contentVisibility:style.contentVisibility,overflowX:style.overflowX,overflowY:style.overflowY,position:style.position,contain:style.contain,width:style.width,height:style.height,minWidth:style.minWidth,minHeight:style.minHeight,fontSize:style.fontSize,lineHeight:style.lineHeight}});
+          element=slot??element.parentElement??(root instanceof ShadowRoot?root.host:null);
+        }
+        const cycle=element!==null&&seen.has(element);if(element&&!cycle)chainsTruncated++;return {rows,truncated:element!==null&&!cycle,cycle};
+      };
+      const headingRows=Array.from({length:Math.min(headings?.length??0,4)},(_,index)=>{const heading=headings![index];return {text:bounded(heading.textContent),exactName:heading.textContent?.trim()==='New-document adoption review',ancestors:chain(heading)};});
+      return {phase,atMs:performance.now(),viewport:{width:innerWidth,height:innerHeight,scrollX,scrollY},placementCount:placements.length,placement:placement?chain(placement):null,headingCount:headings?.length??0,headings:headingRows,headingsTruncated:(headings?.length??0)>4,stringsTruncated,chainsTruncated};
+    },{id:'request-candidate-placement-'+candidate.id,phase}));});
+    await keyboard(button(page,'request-candidate-new-document-'+candidate.id));
+    await snapshotVisibility('before');
+    try{await expect(placement.getByRole('heading',{name:'New-document adoption review',exact:true})).toBeVisible();}finally{await snapshotVisibility('after');}
     await expect.poll(async()=>{const images=await resultImages();return images.length===3&&images.every((image,index)=>image.src!==firstResults[index].src&&image.complete&&image.width===512&&image.height===512);}).toBe(true);
     await expect(button(page,'request-candidate-adopt-'+candidate.id)).toBeEnabled();
     await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
     expect(await mask.evaluate((image,witness)=>image===witness.image,maskLoads)).toBe(true);await expect(mask).toHaveAttribute('src',first.src);
     const second=await maskLoads.evaluate(witness=>({src:witness.image?.currentSrc,loads:witness.loads,allTrusted:witness.allTrusted,connected:witness.image?.isConnected,complete:witness.image?.complete,width:witness.image?.naturalWidth,height:witness.image?.naturalHeight}));expect(second).toEqual({src:first.src,loads:first.loads,allTrusted:true,connected:true,complete:true,width:512,height:512});
+    const secondResults=await resultImages(),retainedMask=maskLoads,originalViewport=page.viewportSize();if(!originalViewport)throw Error('The placement layout fixture requires its configured viewport.');
+    const heading=placement.getByRole('heading',{name:'New-document adoption review',exact:true}),adopt=button(page,'request-candidate-adopt-'+candidate.id);
+    const retainedPlacement=async()=>{expect(await resultImages()).toEqual(secondResults);expect(await mask.evaluate((image,witness)=>image===witness.image,retainedMask)).toBe(true);await expect(mask).toHaveAttribute('src',first.src);expect(await retainedMask.evaluate(witness=>({src:witness.image?.currentSrc,loads:witness.loads,allTrusted:witness.allTrusted,connected:witness.image?.isConnected,complete:witness.image?.complete,width:witness.image?.naturalWidth,height:witness.image?.naturalHeight}))).toEqual(second);};
+    try{
+      for(const width of [1440,390,320]){
+        await page.setViewportSize({width,height:originalViewport.height});
+        if(width<1440){const requestLink=page.getByRole('link',{name:'Go to Request',exact:true});await requestLink.focus();await expect(requestLink).toBeFocused();await requestLink.press('Enter');await expect(page.locator('#request')).toBeFocused();}
+        await expect(page.locator('#request')).toBeVisible();await expect(heading).toBeVisible();await heading.scrollIntoViewIfNeeded();await expect(adopt).toBeVisible();await expect(adopt).toBeEnabled();await adopt.scrollIntoViewIfNeeded();await adopt.focus();await expect(adopt).toBeFocused();
+        const geometry=await placement.evaluate(element=>{const measure=(node:Element)=>{const box=node.getBoundingClientRect();return {left:box.left,right:box.right,width:box.width,clientWidth:node.clientWidth,scrollWidth:node.scrollWidth};};return {viewport:innerWidth,panel:measure(element.closest('#request')!),request:measure(element.closest('.typed-request')!),queue:measure(element.closest('#durable-queue')!),review:measure(element),heading:measure(element.querySelector('h4')!),images:[...element.querySelectorAll('img')].map(measure)};}),control=await adopt.evaluate(element=>{const box=element.getBoundingClientRect();return {left:box.left,right:box.right,width:box.width};});
+        expect(geometry.images).toHaveLength(secondResults.length+1);expect(geometry.panel.left).toBeGreaterThanOrEqual(-1);expect(geometry.panel.right).toBeLessThanOrEqual(geometry.viewport+1);
+        for(const container of [geometry.panel,geometry.request,geometry.queue,geometry.review]){expect(container.width).toBeGreaterThan(0);expect(container.scrollWidth).toBeLessThanOrEqual(container.clientWidth+1);}
+        for(const box of [geometry.request,geometry.queue,geometry.review,geometry.heading,control,...geometry.images]){expect(box.width).toBeGreaterThan(0);expect(box.left).toBeGreaterThanOrEqual(Math.max(0,geometry.panel.left)-1);expect(box.right).toBeLessThanOrEqual(Math.min(geometry.viewport,geometry.panel.right)+1);}
+        for(const box of [geometry.heading,control,...geometry.images]){expect(box.left).toBeGreaterThanOrEqual(geometry.review.left-1);expect(box.right).toBeLessThanOrEqual(geometry.review.right+1);}
+        await retainedPlacement();
+      }
+    }finally{await step(state,'placement-viewport-restore',()=>page.setViewportSize(originalViewport));}
+    await expect(heading).toBeVisible();await expect(adopt).toBeEnabled();await retainedPlacement();
     expect(commands.filter(command=>command.body.type==='PrepareCandidateAdoption').map(command=>({placement:command.body.placement,actualOutput:command.body.actualOutput}))).toEqual([{placement:'current-document',actualOutput:{width:256,height:256,clipMask:false}},{placement:'new-document',actualOutput:{width:256,height:256,clipMask:false}}]);expect(commands.filter(command=>command.body.type==='AdoptCandidate')).toEqual([]);expect(commands.filter(command=>command.body.type==='QueueInference')).toHaveLength(1);
     expect((await read('/api/v1/documents/'+documentId)).projection.value).toEqual(originalDocument);expect((await read('/api/v1/jobs/'+job.id+'/candidates?attempt='+job.attempts[0].id)).request.raster.plan).toEqual(acceptedPlan);
     effects=await server.effects();expect(effects.errors).toEqual([]);expect(effects.egressAttempts).toEqual([]);expect(effects.submissions).toHaveLength(1);expect(effects.uploads).toHaveLength(2);expect(effects.result).toMatchObject({width:256,height:256});
