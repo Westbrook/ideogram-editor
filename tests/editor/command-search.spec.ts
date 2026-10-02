@@ -85,9 +85,8 @@ async function glyphContrastEvidence(page:Page,state:string){
 }
 
 test('Command search exposes actual availability and keyboard routes to New and Help',async({local},info)=>{
-  const {page,commands,record}=local,dialog=await openSearch(page),query=searchContent(page).getByRole('textbox',{name:'Search commands',exact:true});
-  const evidence=await axeEvidence(page,info,local.output,['command-search-populated','command-search-unavailable','new-document-solid-fields','new-document-name-validation'],['Automated public-control and whole-document scan evidence only; native AT, native IME and incomplete axe findings require separate manual adjudication.']);const scan=async(state:string)=>{
-    let scanFailed=false,scanFailure:unknown;try{await evidence.scan(state);}catch(error){scanFailed=true;scanFailure=error;}
+  const {page,commands,record}=local;
+  const captureGlyphs=async(state:string,scanFailed=false,scanFailure?:unknown)=>{
     let captureSaved=false;
     try{
       const capture=await glyphContrastEvidence(page,state),raw=JSON.stringify(capture),bytes=Buffer.byteLength(raw);
@@ -102,6 +101,13 @@ test('Command search exposes actual availability and keyboard routes to New and 
       if(failures.length>1)throw new AggregateError(failures,'Axe scan and glyph evidence capture failed');throw error;
     }
     if(scanFailed)throw scanFailure;
+  };
+  // Capture the same four controls before any modal opens; unknown stays unknown.
+  await captureGlyphs('rest-before-search');
+  const dialog=await openSearch(page),query=searchContent(page).getByRole('textbox',{name:'Search commands',exact:true});
+  const evidence=await axeEvidence(page,info,local.output,['command-search-populated','command-search-unavailable','new-document-solid-fields','new-document-name-validation'],['Automated public-control and whole-document scan evidence only; native AT, native IME and incomplete axe findings require separate manual adjudication.']);const scan=async(state:string)=>{
+    let scanFailed=false,scanFailure:unknown;try{await evidence.scan(state);}catch(error){scanFailed=true;scanFailure=error;}
+    await captureGlyphs(state,scanFailed,scanFailure);
   };await scan('command-search-populated');
   await query.fill('export image');await page.keyboard.press('ArrowDown');const unavailable=searchContent(page).getByRole('button',{name:'Export image',exact:true});await expect(unavailable).toBeFocused();await expect(unavailable).toHaveAttribute('aria-disabled','true');await expect(searchContent(page).getByText('Open or create a document first.',{exact:true})).toBeVisible();await scan('command-search-unavailable');
   await page.keyboard.press('Enter');await expect(dialog).toBeVisible();expect(commands).toEqual([]);await page.keyboard.press('ArrowUp');await expect(query).toBeFocused();

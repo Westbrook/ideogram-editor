@@ -111,7 +111,7 @@ class Element extends EventTarget {
 }
 const controllers=new Set(),libraries=new Set();
 test.afterEach(async()=>{for(const controller of controllers){await controller.releaseDocument();await controller.dispose();}controllers.clear();for(const library of libraries)await library.releaseDocument();libraries.clear();assert.equal(globalThis.__nativeTextLifecycle?.viewPins??0,0);const retained=globalThis.__nativeTextLifecycle?.expectedUnresolvedBytes??0;assert.equal(globalThis.__nativeTextLifecycle?.held??0,retained);assert.deepEqual(allocations(),{cpuBytes:retained,gpuBytes:0,previewCacheBytes:0,handles:0,activeRecords:0});allocationLedger.observeTextReservations(()=>0);delete globalThis.__nativeTextLifecycle;});
-function fixture({native=true,actualChangeDraft=false}={}){
+function fixture({native=true,actualChangeDraft=false,renderUpdate}={}){
  const document=new Element();document.ownerDocument=document;document.defaultView={AbortController,CustomEvent};document.createElement=()=>new Element(document);
  globalThis.document=document;globalThis.location=new URL('http://127.0.0.1:47001/');globalThis.innerWidth=1000;globalThis.innerHeight=800;
  globalThis.requestAnimationFrame=callback=>setTimeout(callback,0);globalThis.cancelAnimationFrame=handle=>clearTimeout(handle);globalThis.ImageData=class {constructor(pixels,width,height){Object.assign(this,{pixels,width,height});}};
@@ -141,7 +141,7 @@ function fixture({native=true,actualChangeDraft=false}={}){
  };
  const host=new Element(document),canvas=new Element(document),inspector=new Element(document);canvas.width=0;canvas.height=0;host.controllers=[];host.updateComplete=Promise.resolve();host.addController=controller=>{host.controllers.push(controller);controller.hostConnected?.();};host.querySelector=selector=>selector==='#native-text-preview'?canvas:selector==='#inspector'?inspector:null;
  let controller,rendered;
- host.requestUpdate=()=>{host.updateComplete=Promise.resolve().then(()=>{if(controller)rendered=controller.render();for(const bridge of host.controllers)bridge.hostUpdated?.();});};
+ host.requestUpdate=()=>{const commit=()=>{if(controller)rendered=controller.render();for(const bridge of host.controllers)bridge.hostUpdated?.();};host.updateComplete=renderUpdate?renderUpdate(commit):Promise.resolve().then(commit);};
  if(native){controller=new NativeTextEditing(host,editor,()=>{},point=>point);controllers.add(controller);host.requestUpdate();}
  const click=label=>{const callback=button(rendered,label);assert(callback,'Rendered button '+label);callback(event());};
  const field=(part,value)=>{const view=find(rendered,part);assert(view,'Rendered field '+part);const callback=view.values.find(value=>typeof value==='function');assert(callback,'Field callback '+part);const input=event({isConnected:true,...value});callback(input);return input.currentTarget;};
@@ -543,8 +543,8 @@ async function togglePresentation(f){const button=presentationButton(f.template(
 test('composition keeps one textarea and settles only the latest opposite pending presentation',async()=>{
  const f=fixture();await f.begin();const textarea=f.controller.control;await f.input('composing text',true);assert.equal(f.controller.presentation,'anchored');
  assert.equal(await togglePresentation(f),'Continue in inspector');const first={...f.controller.pendingSwitch},firstOwner=f.controller.pendingSwitchOwner;assert(firstOwner);assert.equal(first.target,'inspector');assert.equal(first.textRevision,f.controller.textRevision);assert.equal(f.controller.switchRequestTextVersion,first.textRevision);assert.equal(f.controller.presentation,'anchored');assert.equal(f.controller.switchSettled,0);
- assert.equal(await togglePresentation(f),'Return to card');const latest={...f.controller.pendingSwitch},latestOwner=f.controller.pendingSwitchOwner;assert(latestOwner);assert.notEqual(latestOwner,firstOwner);assert.throws(()=>firstOwner.pin(),/NATIVE_CONTROL_RELEASED/);assert.equal(latest.target,'anchored');assert.equal(latest.sequence,first.sequence+1);assert.equal(f.controller.switchSuperseded,first.sequence);assert.equal(f.controller.switchRejected,first.sequence);assert.equal(f.controller.switchRejectedGuards,0);assert.equal(f.controller.switchReason,'superseded');assert.equal(f.controller.presentation,'anchored');assert.equal(f.controller.switchSettled,0);
- f.controller.control.dispatchEvent(new Event('compositionend'));await f.input('composing text');assert.equal(f.controller.composing,false);assert.equal(f.controller.pendingSwitch,undefined);assert.equal(f.controller.pendingSwitchOwner,undefined);assert.throws(()=>latestOwner.pin(),/NATIVE_CONTROL_RELEASED/);assert.equal(f.controller.switchRequestSequence,latest.sequence);assert.equal(f.controller.switchSettled,latest.sequence);assert.equal(f.controller.presentation,'anchored');assert.equal(f.controller.control,textarea);
+ assert.equal(await togglePresentation(f),'Return to card');const latest={...f.controller.pendingSwitch},latestOwner=f.controller.pendingSwitchOwner;assert(latestOwner);assert.notEqual(latestOwner,firstOwner);assert.throws(()=>{const release=firstOwner.pin();release();},/NATIVE_CONTROL_RELEASED/);assert.equal(latest.target,'anchored');assert.equal(latest.sequence,first.sequence+1);assert.equal(f.controller.switchSuperseded,first.sequence);assert.equal(f.controller.switchRejected,first.sequence);assert.equal(f.controller.switchRejectedGuards,0);assert.equal(f.controller.switchReason,'superseded');assert.equal(f.controller.presentation,'anchored');assert.equal(f.controller.switchSettled,0);
+ f.controller.control.dispatchEvent(new Event('compositionend'));await f.input('composing text');await until(()=>f.controller.lifecycle.pendingOperations===0,'completed pending presentation');assert.equal(f.controller.composing,false);assert.equal(f.controller.pendingSwitch,undefined);assert.equal(f.controller.pendingSwitchOwner,undefined);assert.throws(()=>{const release=latestOwner.pin();release();},/NATIVE_CONTROL_RELEASED/);assert.equal(f.controller.switchRequestSequence,latest.sequence);assert.equal(f.controller.switchSettled,latest.sequence);assert.equal(f.controller.presentation,'anchored');assert.equal(f.controller.control,textarea);
 });
 
 test('a real native composing mutation rejects the exact deferred generation without moving presentation',async()=>{
@@ -622,9 +622,9 @@ test('native composition restarting inside held Cancel dispatch preserves the sa
   await f.input('first preedit');await settle();assert.equal(f.controller.pendingSwitch,token);assert.equal(f.controller.pendingSwitchOwner,owner);assert.equal(f.controller.pendingSwitchCancelled,true);assert.equal(f.controller.cancelDispatchEpoch,token.epoch);assert.equal(f.controller.switchRequestSequence,token.sequence);assert.equal(f.controller.switchRejected,0);assert.equal(f.controller.switchSettled,0);assert.equal(f.controller.epoch,token.epoch);assert.equal(f.clears.length,0);
   f.controller.control.dispatchEvent(new Event('compositionstart'));await f.input('restarted preedit',true);assert.equal(f.controller.composing,true);assert.equal(f.controller.pendingSwitch,token);assert.equal(f.controller.pendingSwitchOwner,owner);assert.equal(f.controller.epoch,token.epoch);assert.equal(f.controller.revision,token.revision+1);assert.equal(f.controller.textRevision,token.textRevision+1);
   dispatch.resolve();await until(()=>f.controller.work===0&&f.controller.cancelDispatchEpoch===undefined,'Cancel re-deferred at restarted composition');assert.equal(f.controller.active,true);assert.equal(f.controller.pendingAction,'cancel');assert.equal(f.controller.cancelIntentEpoch,token.epoch);assert.equal(f.controller.pendingSwitchCancelled,true);assert.equal(f.controller.pendingSwitch,token);assert.equal(f.controller.pendingSwitchOwner,owner);assert.equal(f.controller.switchRejected,0);assert.equal(f.controller.switchSettled,0);assert.equal(f.clears.length,0);
-  const focus=new Element(f.document);focus.focus();await togglePresentation(f);f.click('Apply text');await settle();assert.equal(f.controller.pendingAction,'cancel');assert.equal(f.controller.switchRequestSequence,token.sequence);assert.equal(f.controller.presentation,'anchored');assert.equal(f.document.activeElement,focus);assert.deepEqual(f.editor.view.document,accepted);
-  f.controller.control.dispatchEvent(new Event('compositionend'));await f.input('restarted preedit');await until(()=>!f.controller.active&&f.controller.cancelIntentEpoch===undefined,'one Cancel after the next native end');assert.equal(entered,2);assert.equal(f.controller.switchRejected,token.sequence);assert.equal(f.controller.switchReason,'cancelled');assert.equal(f.controller.switchRejectedBoundary,'cancel-native-end');assert.equal(f.controller.switchRejectedGuards,7);assert.equal(f.controller.pendingSwitchOwner,undefined);assert.throws(()=>owner.pin(),/NATIVE_CONTROL_RELEASED/);assert.equal(f.controller.switchRequestSequence,token.sequence);assert.equal(f.controller.switchSettled,0);assert.equal(f.clears.length,1);assert.equal(f.context.preparations.length,0);assert.deepEqual(f.editor.view.document,accepted);
- }finally{dispatch.resolve();f.editor.run=original;}
+  const focus=new Element(f.document);focus.focus();f.document.dispatchEvent(new Event('focusin'));await togglePresentation(f);f.click('Apply text');await settle();assert.equal(f.controller.pendingAction,'cancel');assert.equal(f.controller.switchRequestSequence,token.sequence);assert.equal(f.controller.presentation,'anchored');assert.equal(f.document.activeElement,focus);assert.deepEqual(f.editor.view.document,accepted);
+  f.controller.control.dispatchEvent(new Event('compositionend'));await f.input('restarted preedit');await until(()=>!f.controller.active&&f.controller.cancelIntentEpoch===undefined,'one Cancel after the next native end');assert.equal(entered,2);assert.equal(f.controller.switchRejected,token.sequence);assert.equal(f.controller.switchReason,'cancelled');assert.equal(f.controller.switchRejectedBoundary,'cancel-native-end');assert.equal(f.controller.switchRejectedGuards,7);assert.equal(f.controller.pendingSwitchOwner,undefined);assert.throws(()=>owner.pin(),/NATIVE_CONTROL_RELEASED/);assert.equal(f.controller.switchRequestSequence,token.sequence);assert.equal(f.controller.switchSettled,0);assert.equal(f.clears.length,1);assert.equal(f.context.preparations.length,0);assert.equal(f.document.activeElement,focus,'Re-dispatched Cancel retains the original focus intent');assert.equal(f.controller.cancelFocusEpoch,undefined);assert.deepEqual(f.editor.view.document,accepted);
+ }finally{dispatch.resolve();f.editor.run=original;await Promise.allSettled([...f.controller.pending]);}
  await f.controller.releaseDocument();released(f.controller);assert.equal(f.controller.lifecycle.controlMemory.actions,0);
 });
 
@@ -838,4 +838,94 @@ test('saved draft above the separate 16 MiB read ceiling refuses before transpor
  f.editor.session.transport=async()=>{reads++;throw Error('Rejected saved draft must not fetch');};
  await assert.rejects(f.controller.readText('/draft?generation=8',{byteLength:String(16*1024**2+1),hash:hash('unread saved draft'),mediaType:'text/plain'},'draft'),error=>error instanceof Error&&error.message==='TEXT_BYTES');
  assert.equal(reads,0);assert.equal(f.context.held,0);assert.deepEqual(allocations(),before);assert.equal(f.controller.lifecycle.controlMemory.models,models);assert.deepEqual(f.changes,[]);assert.deepEqual(f.commands,[]);
+});
+
+
+// Opt-in DOM/dispatcher seam: actual NativeTextEditing actions still own the
+// session, draft, render pins and cleanup. This models EditorClient.run's busy
+// admission/finally and EnButton's disabled native focus delegation, not paint.
+function retirementFocusFixture(){
+ const shell=deferred(),buttonUpdate=deferred(),updates=[],runs=[],attempts=[],transitions=[],labels=[];let f,armed=false,external=false,shellHeld=false,buttonHeld=false,componentRevision=0,focused=0,inspectorFocused=0;
+ const opener=new Element(),nativeButton=new Element();opener.disabled=false;nativeButton.disabled=false;opener.updateComplete=Promise.resolve();opener.shadowRoot={activeElement:null};
+ const retain=promise=>{updates.push(promise);void promise.catch(()=>{});return promise;};
+ f=fixture({actualChangeDraft:true,renderUpdate:commit=>{
+  if(!f)return Promise.resolve().then(commit);
+  const busy=f.editor.view.busy,hold=armed&&!f.controller.active&&(!busy||external);
+  return retain(Promise.resolve().then(async()=>{
+   if(hold){shellHeld=true;await shell.promise;}commit();opener.disabled=f.editor.view.busy;const revision=++componentRevision;
+   opener.updateComplete=retain(Promise.resolve().then(async()=>{if(hold&&!opener.disabled){buttonHeld=true;await buttonUpdate.promise;}if(revision===componentRevision)nativeButton.disabled=opener.disabled;}));
+  }));
+ }});
+ opener.ownerDocument=f.document;nativeButton.ownerDocument=f.document;
+ nativeButton.focus=()=>{if(nativeButton.disabled||!nativeButton.isConnected)return;focused++;f.document.activeElement=opener;opener.shadowRoot.activeElement=nativeButton;f.document.dispatchEvent(new Event('focusin'));};
+ opener.focus=()=>{attempts.push({busy:f.editor.view.busy,hostDisabled:opener.disabled,nativeDisabled:nativeButton.disabled});nativeButton.focus();};
+ const inspector=f.host.querySelector('#inspector');inspector.focus=()=>{inspectorFocused++;f.document.activeElement=inspector;f.document.dispatchEvent(new Event('focusin'));};
+ f.editor.run=(label,work)=>{const task=(async()=>{
+  if(f.editor.view.busy)return;labels.push(label);f.editor.view.busy=true;transitions.push(true);f.host.requestUpdate();
+  try{await f.host.updateComplete;await work();}catch(error){f.errors.push(error);}finally{f.editor.view.busy=false;transitions.push(false);f.host.requestUpdate();}
+ })();runs.push(task);void task.catch(()=>{});return task;};
+ return {f,opener,nativeButton,inspector,attempts,transitions,labels,
+  get shellHeld(){return shellHeld;},get buttonHeld(){return buttonHeld;},get focused(){return focused;},get inspectorFocused(){return inspectorFocused;},
+  async begin(){await f.controller.begin(opener);await until(()=>f.controller.lifecycle.pendingOperations===0,'native focus fixture opened');await f.input('Exact focus return draft');},
+  async preview(){f.context.prepare=async(_request,_fonts,storage)=>{const candidate=await storage.stage(new Blob([JSON.stringify({source:{render:{pixels:{hash:hash('raster-preview')}}}})]),'application/json');return {candidate,admissionId:'admission',dependencyHash:hash('dependencies')};};const command=f.editor.command;f.editor.command=async body=>{if(body.type!=='CreateTextLayer')return command.call(f.editor,body);f.commands.push(body);f.editor.view.document={...f.editor.view.document,revision:'2'};return [{type:'ImageEdited',commandId:'focus-command',correlationId:'focus-correlation',transactionId:'focus-transaction',resultingDocumentRevision:'2'}];};f.click('Preview text');await until(()=>f.controller.lifecycle.previewBytes===4&&f.controller.lifecycle.pendingOperations===0,'focus return Apply preview');},
+  arm(independent=false){armed=true;external=independent;attempts.length=0;transitions.length=0;labels.length=0;},
+  escape(){const e=new Event('keydown',{cancelable:true});Object.defineProperty(e,'key',{value:'Escape'});f.controller.control.dispatchEvent(e);assert.equal(e.defaultPrevented,true);},
+  async busy(value){f.editor.view.busy=value;f.host.requestUpdate();await f.host.updateComplete;await opener.updateComplete;},
+  openShell(){shell.resolve();},openButton(){buttonUpdate.resolve();},
+  async drain(){armed=false;shell.resolve();buttonUpdate.resolve();await Promise.allSettled([...runs,...f.controller.pending]);await Promise.allSettled(updates);await f.controller.memory.drain();},
+ };
+}
+
+for(const action of ['Escape','Cancel button','Apply'])test(action+' returns focus only after dispatcher, shell and native button enablement',async()=>{
+ const h=retirementFocusFixture(),f=h.f;
+ try{
+  await h.begin();if(action==='Apply')await h.preview();const draftId=f.controller.session.draftId;h.arm();if(action==='Escape')h.escape();else f.click(action==='Apply'?'Apply text':'Cancel text edit');
+  await until(()=>h.shellHeld&&!f.editor.view.busy,'retired action waiting for idle shell');assert.equal(f.controller.active,false);assert.deepEqual(h.labels,[action==='Apply'?'Apply text':'Cancel text edit']);assert.deepEqual(h.transitions,[true,false]);assert.equal(h.nativeButton.disabled,true);assert.deepEqual(h.attempts,[]);assert.equal(h.focused,0);
+  if(action==='Apply'){assert.equal(f.commands.filter(row=>row.type==='CreateTextLayer').length,1);assert.equal(f.editor.view.document.revision,'2');assert.equal(f.controller.message,'Text applied and saved locally.');}else{assert.deepEqual(f.clears,[draftId]);assert.equal(f.drafts.has(draftId),false);assert.equal(f.commands.filter(row=>row.type!=='ImportFont').length,0);}
+  h.openShell();await until(()=>h.buttonHeld,'retired action waiting for native button');assert.equal(h.opener.disabled,false);assert.equal(h.nativeButton.disabled,true);assert.deepEqual(h.attempts,[]);assert.equal(h.focused,0);
+  h.openButton();await until(()=>f.controller.lifecycle.pendingOperations===0,'retired focus action drained');assert.deepEqual(h.attempts,[{busy:false,hostDisabled:false,nativeDisabled:false}]);assert.equal(h.focused,1);assert.equal(f.document.activeElement,h.opener);assert.equal(h.opener.shadowRoot.activeElement,h.nativeButton);assert.equal(h.inspectorFocused,0);assert.equal(f.controller.lifecycle.controlMemory.actions,0);assert.equal(f.context.held,0);assert.deepEqual(f.errors,[]);
+ }finally{await h.drain();}
+});
+
+for(const boundary of ['shell','native button'])for(const cause of ['release','dispose','new session','user focus','session owner','draft owner','document revision','successor busy'])test('retired focus yields to '+cause+' during '+boundary+' update',async()=>{
+ const h=retirementFocusFixture(),f=h.f;let closing,beginning;
+ try{
+  await h.begin();h.arm();h.escape();await until(()=>h.shellHeld&&!f.editor.view.busy,'Cancel waiting for shell');if(boundary==='native button'){h.openShell();await until(()=>h.buttonHeld,'Cancel waiting for native button');}
+  assert.equal(f.controller.active,false);assert.deepEqual(h.attempts,[]);const next=new Element(f.document);
+  if(cause==='release'||cause==='dispose'){closing=cause==='release'?f.controller.releaseDocument():f.controller.dispose();void closing.catch(()=>{});}
+  else if(cause==='new session'){beginning=f.controller.begin(next);void beginning.catch(()=>{});await until(()=>f.controller.active,'successor native session');}
+  else if(cause==='user focus'){next.focus();f.document.dispatchEvent(new Event('focusin'));}
+  else if(cause==='session owner')f.editor.sessionId='successor-session';
+  else if(cause==='draft owner')f.editor.draftOwner={...f.editor.draftOwner,drafts:new Map()};
+  else if(cause==='document revision')f.editor.view.document={...f.editor.view.document,revision:'2'};
+  else await h.busy(true);
+  h.openShell();h.openButton();await Promise.all([closing,beginning]);await until(()=>f.controller.lifecycle.pendingOperations===0,'superseded focus action drained');assert.deepEqual(h.attempts,[]);assert.equal(h.focused,0);assert.equal(h.inspectorFocused,0);assert.equal(f.clears.length,1);assert.equal(f.commands.filter(row=>row.type!=='ImportFont').length,0);assert.deepEqual(f.errors,[]);
+  if(cause==='new session'){assert.equal(f.controller.active,true);assert.equal(f.controller.opener,next);}if(cause==='user focus')assert.equal(f.document.activeElement,next);if(cause==='successor busy')assert.equal(f.editor.view.busy,true);
+ }finally{h.openShell();h.openButton();await Promise.allSettled([closing,beginning]);await h.drain();}
+});
+
+for(const changed of ['id','revision'])test('Cancel cannot restore focus into a document '+changed+' replaced during cleanup',async()=>{
+ const h=retirementFocusFixture(),f=h.f,cleanup=deferred();let entered=false;
+ try{
+  await h.begin();f.context.releaseRealm=()=>{entered=true;return cleanup.promise;};h.arm();h.escape();await until(()=>entered,'Cancel cleanup before retirement');assert.equal(f.controller.active,true);assert.equal(f.editor.view.busy,true);assert.deepEqual(h.attempts,[]);
+  f.editor.view.document={...f.editor.view.document,[changed]:changed==='id'?'document-b':'2'};cleanup.resolve();h.openShell();h.openButton();await until(()=>f.controller.lifecycle.pendingOperations===0,'changed document Cancel drained');assert.equal(f.controller.active,false);assert.equal(f.clears.length,1);assert.equal(h.focused,0);assert.equal(h.inspectorFocused,0);assert.deepEqual(h.attempts,[]);assert.deepEqual(f.errors,[]);
+ }finally{cleanup.resolve();await h.drain();f.context.releaseRealm=undefined;}
+});
+
+test('independent Cancel returns to inspector after its local render without clearing external busy',async()=>{
+ const h=retirementFocusFixture(),f=h.f;
+ try{
+  await h.begin();const draftId=f.controller.session.draftId;await h.busy(true);h.arm(true);h.escape();await until(()=>h.shellHeld,'independent Cancel shell commit');assert.equal(f.controller.active,false);assert.equal(f.editor.view.busy,true);assert.deepEqual(h.labels,[]);assert.deepEqual(h.transitions,[]);assert.deepEqual(f.clears,[draftId]);assert.equal(f.drafts.has(draftId),false);assert.equal(h.inspectorFocused,0);assert.deepEqual(h.attempts,[]);
+  h.openShell();await until(()=>f.controller.lifecycle.pendingOperations===0,'independent Cancel drained while external action remains busy');assert.equal(f.editor.view.busy,true);assert.equal(h.nativeButton.disabled,true);assert.equal(h.inspectorFocused,1);assert.equal(f.document.activeElement,h.inspector);assert.deepEqual(h.attempts,[]);assert.equal(h.focused,0);assert.equal(f.controller.lifecycle.controlMemory.actions,0);assert.equal(f.context.held,0);assert.deepEqual(f.errors,[]);
+ }finally{await h.drain();}
+});
+
+
+test('composing Cancel preserves later deliberate focus through its first native end',async()=>{
+ const h=retirementFocusFixture(),f=h.f;
+ try{
+  await h.begin();await f.input('pending composition Cancel',true);const draftId=f.controller.session.draftId;h.arm();f.click('Cancel text edit');await settle();assert.equal(f.controller.active,true);assert.equal(f.controller.pendingAction,'cancel');assert.equal(f.clears.length,0);
+  const next=new Element(f.document);next.focus();f.document.dispatchEvent(new Event('focusin'));f.controller.control.dispatchEvent(new Event('compositionend'));await f.input('pending composition Cancel');await until(()=>h.shellHeld&&!f.editor.view.busy,'composition Cancel retired after native end');assert.equal(f.controller.active,false);h.openShell();h.openButton();await until(()=>f.controller.lifecycle.pendingOperations===0,'composition Cancel focus work drained');
+  assert.deepEqual(f.clears,[draftId]);assert.equal(f.controller.cancelIntentEpoch,undefined);assert.equal(f.controller.cancelFocusEpoch,undefined);assert.equal(f.controller.cancelDispatchEpoch,undefined);assert.equal(f.document.activeElement,next);assert.deepEqual(h.attempts,[]);assert.equal(h.focused,0);assert.equal(h.inspectorFocused,0);assert.equal(f.commands.filter(row=>row.type!=='ImportFont').length,0);assert.deepEqual(f.errors,[]);
+ }finally{await h.drain();}
 });

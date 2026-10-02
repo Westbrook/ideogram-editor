@@ -32,6 +32,7 @@ class AdmittedEditingBridge extends EditingController {
   override hostDisconnected(){if(this.paused())this.finishAdmitted();super.hostDisconnected();}
   reset(reconnect:boolean){this.finishAdmitted();super.hostDisconnected();if(reconnect)super.hostConnected();}
 }
+type TextFocusReturn={epoch:number;documentId:string|undefined;documentRevision:string|undefined};
 type Presentation='anchored'|'inspector';
 type PresentationRequest={sequence:number;target:Presentation;epoch:number;revision:number;textRevision:number;documentRevision:string;layerVersion:string};
 type PresentationIdentity=Pick<PresentationRequest,'sequence'|'epoch'|'revision'|'textRevision'>;
@@ -46,7 +47,7 @@ export class NativeTextEditing {
   readonly control=document.createElement('textarea');
   private model=createDraftModel();private bridge:AdmittedEditingBridge;private adapter=new ControlAdapter();
   private session?:Session;private epoch=0;private revision=0;private textRevision=0;private focusEpoch=0;private presentationEpoch=0;private presentation:Presentation='anchored';
-  private pendingSwitch?:PresentationRequest;private pendingSwitchOwner?:OwnedModel<PresentationRequest>;private pendingSwitchCancelled=false;private cancelIntentEpoch?:number;private cancelDispatchEpoch?:number;private pendingAction?:'apply'|'cancel';private timer?:ReturnType<typeof setTimeout>;
+  private pendingSwitch?:PresentationRequest;private pendingSwitchOwner?:OwnedModel<PresentationRequest>;private pendingSwitchCancelled=false;private cancelIntentEpoch?:number;private cancelFocusEpoch?:number;private cancelDispatchEpoch?:number;private pendingAction?:'apply'|'cancel';private timer?:ReturnType<typeof setTimeout>;
   private pendingActionTime?:number;private inputPhase?:{span:PhaseSpan;epoch:number};
   private sessionDraftOwners=new WeakMap<Session,EditorClient['draftOwner']>();
   private sessionOwners=new WeakMap<Session,OwnedModel<Session>>();
@@ -108,7 +109,7 @@ export class NativeTextEditing {
   private captureNative(event:Event){
     const s=this.session;if(!s||!this.available()){
       event.stopImmediatePropagation();
-      if(event.type==='compositionend'&&this.cancelIntentEpoch!==undefined){this.rejectPendingSwitch('cancelled','cancel-unavailable');this.pendingAction=undefined;this.pendingActionTime=undefined;this.cancelIntentEpoch=undefined;}
+      if(event.type==='compositionend'&&this.cancelIntentEpoch!==undefined){this.rejectPendingSwitch('cancelled','cancel-unavailable');this.pendingAction=undefined;this.pendingActionTime=undefined;this.cancelIntentEpoch=undefined;this.cancelFocusEpoch=undefined;}
       this.nativeComposing=false;this.model.endComposition('');this.model.setValue('');this.control.value='';return;
     }
     if(event.type==='compositionstart')this.nativeComposing=true;if(event.type==='compositionend')this.nativeComposing=false;if(event.type==='input')this.nativeComposing=(event as InputEvent).isComposing===true;
@@ -180,7 +181,7 @@ export class NativeTextEditing {
     this.closing=true;this.actionLifetime++;this.nativeRefused=false;this.nativeComposing=false;this.compositionUnits=0;this.inputCandidate?.release();this.inputCandidate=undefined;for(const [timer,release]of this.actionTimers){clearTimeout(timer);release();}this.actionTimers.clear();this.epoch++;this.revision++;this.focusEpoch++;this.presentationEpoch++;
     clearTimeout(this.timer);this.timer=undefined;this.adapter.invalidate();this.reads.abort();this.library.invalidate();
     this.inputPhase?.span.end('cancelled');this.inputPhase=undefined;this.pendingActionTime=undefined;
-    this.retireSession();this.pendingSwitch=undefined;this.pendingAction=undefined;this.cancelIntentEpoch=undefined;this.cancelDispatchEpoch=undefined;this.opener=undefined;this.restoring='';this.restoringEpoch=0;
+    this.retireSession();this.pendingSwitch=undefined;this.pendingAction=undefined;this.cancelIntentEpoch=undefined;this.cancelFocusEpoch=undefined;this.cancelDispatchEpoch=undefined;this.opener=undefined;this.restoring='';this.restoringEpoch=0;
     this.model.endComposition('');this.model.setValue('');this.bridge.sync();this.control.value='';this.nativeLease?.release();this.nativeLease=undefined;this.control.setSelectionRange(0,0);this.control.scrollTop=0;this.control.scrollLeft=0;
     this.files=[];this.licenses=[];for(const file of this.fileOwners.values())this.memory.retire(file);this.fileOwners.clear();this.embeddingReviewed=false;if(this.formOwner)this.memory.retire(this.formOwner);this.formOwner=undefined;this.form={error:'',message:'',fontId:fontChoices[0].id,fontStatus:'Exact font selected'};this.capacityError=false;
     this.preparedHash='';this.presentation='anchored';this.clearPreview();
@@ -239,7 +240,7 @@ export class NativeTextEditing {
   private settle(){
     clearTimeout(this.timer);const epoch=this.epoch;
     this.timer=setTimeout(()=>{if(epoch!==this.epoch||this.composing||!this.session)return;
-      try{this.save(false);}catch(error){if(this.pendingSwitchCancelled)this.rejectPendingSwitch('cancelled','cancel-save-refused');this.capacityError=true;this.editor.fail(error);this.changed();return;}if(this.stale){this.rejectPendingSwitch(this.editor.sessionId!==this.session?.id?'stale-session':'stale-version');this.pendingAction=undefined;this.pendingActionTime=undefined;if(this.cancelDispatchEpoch===undefined)this.cancelIntentEpoch=undefined;this.changed();return;}
+      try{this.save(false);}catch(error){if(this.pendingSwitchCancelled)this.rejectPendingSwitch('cancelled','cancel-save-refused');this.capacityError=true;this.editor.fail(error);this.changed();return;}if(this.stale){this.rejectPendingSwitch(this.editor.sessionId!==this.session?.id?'stale-session':'stale-version');this.pendingAction=undefined;this.pendingActionTime=undefined;if(this.cancelDispatchEpoch===undefined){this.cancelIntentEpoch=undefined;this.cancelFocusEpoch=undefined;}this.changed();return;}
       const action=this.pendingAction,intentTime=this.pendingActionTime;this.pendingAction=undefined;this.pendingActionTime=undefined;
       if(action==='cancel'){this.runCancel();return;}
       if(this.pendingSwitchCancelled){if(this.cancelDispatchEpoch!==undefined)return;this.rejectPendingSwitch('cancelled','cancel-not-retired');this.changed();return;}
@@ -249,17 +250,17 @@ export class NativeTextEditing {
       this.changed();
     },0);
   }
-  private runCancel(){
+  private runCancel(focus=this.focusEpoch){
     if(this.cancelDispatchEpoch!==undefined)return;
-    const intent=this.cancelIntentEpoch??this.epoch,sequence=this.pendingSwitch?.sequence;this.cancelIntentEpoch=intent;this.cancelDispatchEpoch=intent;
-    void this.run('Cancel text edit',()=>this.cancel()).finally(()=>{
+    const intent=this.cancelIntentEpoch??this.epoch,sequence=this.pendingSwitch?.sequence;this.cancelIntentEpoch=intent;this.cancelFocusEpoch??=focus;this.cancelDispatchEpoch=intent;
+    void this.run('Cancel text edit',()=>this.cancel(),this.cancelFocusEpoch).finally(()=>{
       // The intent fence also covers the dispatcher's async tick and cleanup.
       // Never clear a successor session's independently queued Cancel.
       if(this.cancelDispatchEpoch!==intent)return;this.cancelDispatchEpoch=undefined;if(this.cancelIntentEpoch!==intent)return;
       // Native composition may restart while the dispatcher awaits its tick.
       // cancel() then re-defers the SAME intent until that actual native end.
       if(this.epoch===intent&&this.composing&&this.pendingAction==='cancel')return;
-      this.cancelIntentEpoch=undefined;
+      this.cancelIntentEpoch=undefined;this.cancelFocusEpoch=undefined;
       if(sequence!==undefined&&this.pendingSwitch?.sequence===sequence&&this.pendingSwitchCancelled)this.rejectPendingSwitch('cancelled','cancel-not-retired');
       this.changed();
     }).catch(()=>{});
@@ -269,7 +270,7 @@ export class NativeTextEditing {
     if(event.key==='Escape'){event.preventDefault();this.runCancel();}
     else if(event.key==='Enter'&&(event.metaKey||event.ctrlKey)){event.preventDefault();void this.run('Apply text',()=>this.apply(this.eventTime(event)));}
   }
-  private run(label:string,work:()=>Promise<void>){const session=this.session;if(!this.available()||!session)return Promise.resolve();return this.track(()=>this.withSession(session,()=>this.runAction(label,work))).catch(error=>{if(this.available()){this.error=nativeDiagnostic(error);this.editor.fail(error);this.changed();}});}
+  private run(label:string,work:()=>Promise<void|TextFocusReturn>,focus=this.focusEpoch){const session=this.session;if(!this.available()||!session)return Promise.resolve();return this.track(()=>this.withSession(session,()=>this.runAction(label,work,focus))).catch(error=>{if(this.available()){this.error=nativeDiagnostic(error);this.editor.fail(error);this.changed();}});}
   private diagnostic(error:unknown,name=this.session?.name){
     if(!(error instanceof TextFailure))return nativeDiagnostic(error);
     if(typeof error.code!=='string'||error.code.length>128)return 'Text operation returned an unsupported diagnostic. Full text is retained.';
@@ -279,22 +280,31 @@ export class NativeTextEditing {
     if(!Array.isArray(points)||points.length>256||!points.every(point=>Number.isInteger(point)&&point>=0&&point<=0x10ffff))return 'Missing glyphs in selected fonts. Full text and accepted appearance are retained.';
     let workspace:AllocationLease|undefined;try{workspace=this.memory.workspace('diagnostic',8192);return 'Missing glyphs in selected fonts: '+points.map(point=>'U+'+point.toString(16).toUpperCase()).join(', ')+'. Full text and accepted appearance are retained.';}catch{return 'Missing glyphs in selected fonts. Full text and accepted appearance are retained.';}finally{workspace?.release();}
   }
-  private async runAction(label:string,work:()=>Promise<void>){
-    const signal=this.reads.signal,name=this.session?.name;
+  private async runAction(label:string,work:()=>Promise<void|TextFocusReturn>,focus=this.focusEpoch){
+    const signal=this.reads.signal,name=this.session?.name,opener=this.opener,sessionId=this.editor.sessionId,draftOwner=this.editor.draftOwner,lifetime=this.actionLifetime,documentId=this.editor.view.document?.id,documentRevision=this.editor.view.document?.revision;
     const independentCancel=label==='Cancel text edit'&&this.editor.view.busy;
     if(this.work||(this.editor.view.busy&&!independentCancel))return;this.work++;this.changed();
-    const perform=async()=>{try{await work();}catch(error){if(signal.aborted||!this.available())return;this.error=this.diagnostic(error,name);this.fontLoadFailed=error instanceof TextFailure&&error.code==='TEXT_ASSET_LOAD';if(this.fontLoadFailed)this.editor.patch({uiPending:this.editor.draftOwner?.pendingRequests()??[],error:this.error,message:'Action needs attention.'});else throw error;}finally{this.work--;this.changed();}};
+    const focusResult:{value?:TextFocusReturn}={};
+    const perform=async()=>{try{const result=await work();if(result)focusResult.value=result;}catch(error){if(signal.aborted||!this.available())return;this.error=this.diagnostic(error,name);this.fontLoadFailed=error instanceof TextFailure&&error.code==='TEXT_ASSET_LOAD';if(this.fontLoadFailed)this.editor.patch({uiPending:this.editor.draftOwner?.pendingRequests()??[],error:this.error,message:'Action needs attention.'});else throw error;}finally{this.work--;this.changed();}};
     // Cancelling this draft must not clear another action's busy state.
     if(independentCancel){try{await perform();}catch(error){this.editor.fail(error);}}
     else await this.editor.run(label,perform);
+    const retired=focusResult.value;if(!retired)return;
+    // The dispatcher must release busy before the host and public control commit
+    // their enabled state. Later user intent or a successor owner wins focus.
+    const current=()=>retired.documentId===documentId&&(label!=='Cancel text edit'||retired.documentRevision===documentRevision)&&this.available()&&this.host.isConnected&&!signal.aborted&&!this.session&&this.epoch===retired.epoch&&this.actionLifetime===lifetime&&this.focusEpoch===focus&&this.editor.sessionId===sessionId&&this.editor.draftOwner===draftOwner&&this.editor.view.ready&&this.editor.view.document?.id===retired.documentId&&this.editor.view.document?.revision===retired.documentRevision&&(independentCancel||!this.editor.view.busy);
+    if(!current())return;await this.host.updateComplete;if(!current())return;
+    const target=!this.editor.view.busy&&opener?.isConnected?opener:this.host.querySelector<HTMLElement>('#inspector');if(!target?.isConnected)return;
+    const updated=(target as HTMLElement&{updateComplete?:Promise<unknown>}).updateComplete;if(updated)await updated;
+    if(current()&&target.isConnected&&(target!==opener||!this.editor.view.busy))target.focus();
   }
-  private action(e:Event,label:string,work:()=>Promise<void>,epoch=this.epoch){this.deferredAction(e,()=>{
+  private action(e:Event,label:string,work:()=>Promise<void|TextFocusReturn>,epoch=this.epoch){const focus=this.focusEpoch;this.deferredAction(e,()=>{
     if(!this.session||this.epoch!==epoch||!this.available())return;
     if(this.composing&&(label==='Apply text'||label==='Cancel text edit')){
       if(label==='Apply text'&&this.cancelIntentEpoch!==undefined)return;
-      this.pendingAction=label==='Apply text'?'apply':'cancel';if(label==='Cancel text edit'){this.cancelIntentEpoch??=this.epoch;if(this.pendingSwitch)this.pendingSwitchCancelled=true;}
+      this.pendingAction=label==='Apply text'?'apply':'cancel';if(label==='Cancel text edit'){this.cancelIntentEpoch??=this.epoch;this.cancelFocusEpoch??=focus;if(this.pendingSwitch)this.pendingSwitchCancelled=true;}
       this.pendingActionTime=this.eventTime(e);this.message=label+' after composition';this.changed();return;}
-    if(label==='Cancel text edit')this.runCancel();else if(this.cancelIntentEpoch===undefined)void this.run(label,work);
+    if(label==='Cancel text edit')this.runCancel(focus);else if(this.cancelIntentEpoch===undefined)void this.run(label,work,focus);
   });}
   private sameDraftOwner(s:Session){return this.editor.sessionId===s.id&&this.sessionDraftOwners.get(s)===this.editor.draftOwner;}
   private assertDraftOwner(s:Session){if(!this.sameDraftOwner(s))throw Error('Text draft owner changed. Full text remains available to copy; no successor draft was changed.');}
@@ -349,7 +359,7 @@ export class NativeTextEditing {
   }
   sync(){if(!this.available())return Promise.resolve();const signal=this.reads.signal;return this.track(()=>this.restoreSession().catch(error=>{if(!signal.aborted)throw error;}));}
   private async restoreSession(){
-    if(this.session){if(this.stale){this.rejectPendingSwitch(this.editor.sessionId!==this.session?.id?'stale-session':'stale-version');this.pendingAction=undefined;this.pendingActionTime=undefined;if(this.cancelDispatchEpoch===undefined)this.cancelIntentEpoch=undefined;this.renderer?.cancel();this.preparation?.cancel();}return;}
+    if(this.session){if(this.stale){this.rejectPendingSwitch(this.editor.sessionId!==this.session?.id?'stale-session':'stale-version');this.pendingAction=undefined;this.pendingActionTime=undefined;if(this.cancelDispatchEpoch===undefined){this.cancelIntentEpoch=undefined;this.cancelFocusEpoch=undefined;}this.renderer?.cancel();this.preparation?.cancel();}return;}
     const sessionId=this.editor.sessionId,draftOwner=this.editor.draftOwner,key=sessionId+':'+(this.editor.view.document?.id??'');if(!this.editor.view.ready||key===this.restoring)return;
     // Draft rows are not view-model identities. Copy their needed scalars in the
     // same synchronous snapshot; never keep a checkpoint row across a read.
@@ -495,12 +505,12 @@ export class NativeTextEditing {
       const common={layerId:s.layerId,candidate:result.candidate,draft:{sessionId:s.id,draftId:s.draftId,generation:saved.generation},admissionId:result.admissionId};
       let description:ReturnType<typeof makeReturnedDescriptionReview>|undefined;
       if(s.description){const lease=textMemory.reserve(s.text.length*4+65536);try{const bytes=new TextEncoder().encode(s.text),{kind,...selection}=s.description;const hash=await hashBytes(bytes),input={...selection,id:crypto.randomUUID(),documentId:s.document.id,documentRevision:s.document.revision,literal:{hash,byteLength:String(bytes.length),mediaType:'text/plain'},frame:s.frame,placement:s.placement!,style:s.style,fonts:s.fonts},allowance=measureControl(input,65536).logicalBytes*3+65536;descriptionOwner=this.memory.create('returned-review',allowance,()=>makeReturnedDescriptionReview(input));description=descriptionOwner.value;this.assert(s,epoch,revision);}finally{lease.release();}}
-      await this.editor.withCommandEvents(s.original?{type:replacement?'ReplaceTextFont':'CommitTextEdit',...common,layerVersion:s.layerVersion,reviewedDependencyHash:result.dependencyHash}:description?{type:'CreateTextFromReturnedDescription',...common,name:s.name,placement:s.placement!,description}:{type:'CreateTextLayer',...common,name:s.name,placement:s.placement},events=>{
+      return await this.editor.withCommandEvents(s.original?{type:replacement?'ReplaceTextFont':'CommitTextEdit',...common,layerVersion:s.layerVersion,reviewedDependencyHash:result.dependencyHash}:description?{type:'CreateTextFromReturnedDescription',...common,name:s.name,placement:s.placement!,description}:{type:'CreateTextLayer',...common,name:s.name,placement:s.placement},events=>{
       const accepted=events.find(e=>e.type==='ImageEdited');
       // The receipt and local projection have arrived. Correct-pixel presentation
       // is a separate external trace, so this parent remains censored.
       layout.end('incomplete',{boundary:'authority-durable',generation:request.token.generation,evidenceHash:result.dependencyHash,...(accepted?{commandId:accepted.commandId,correlationId:accepted.correlationId,transactionId:accepted.transactionId,resultingRevision:accepted.resultingDocumentRevision??undefined}:{})});
-      if(this.session===s&&this.revision===revision){this.retireSession();this.epoch++;this.preview=undefined;this.message='Text applied and saved locally.';this.editor.select([s.layerId]);this.returnFocus();}
+      if(this.session===s&&this.revision===revision){this.retireSession();this.epoch++;this.preview=undefined;this.message='Text applied and saved locally.';this.editor.select([s.layerId]);return this.returnFocus();}
       else if(this.available()&&this.epoch===epoch)this.message='The reviewed version was saved; newer typing remains an unapplied draft.';
       },s.document);
     }finally{try{await this.cleanupRender(false);this.changed();}finally{descriptionOwner?.release();descriptionOwner=undefined;requestOwner?.release();requestOwner=undefined;}
@@ -513,7 +523,7 @@ export class NativeTextEditing {
   private releaseStageOwners(){for(const result of this.stageOwners)result.release();this.stageOwners.clear();}
   private async cleanupRender(releaseRealm=true){this.renderer?.dispose();this.renderer=undefined;this.preparation?.dispose();this.preparation=undefined;this.library.clear();this.releaseStageOwners();if(releaseRealm&&!this.previewLease&&!this.closing)await releaseTextRealm(this.storage);}
   private async cancel(){
-    if(this.composing){this.pendingAction='cancel';this.cancelIntentEpoch??=this.epoch;if(this.pendingSwitch)this.pendingSwitchCancelled=true;this.message='Cancel text edit after composition';this.changed();return;}
+    if(this.composing){this.pendingAction='cancel';this.cancelIntentEpoch??=this.epoch;this.cancelFocusEpoch??=this.focusEpoch;if(this.pendingSwitch)this.pendingSwitchCancelled=true;this.message='Cancel text edit after composition';this.changed();return;}
     const s=this.session;if(!s)return;this.assertDraftOwner(s);const epoch=++this.epoch;this.pendingAction=undefined;
     // Explicit Cancel owns this still-pending intent through native end. It can
     // never present after Cancel is queued; native input must not retire it
@@ -521,9 +531,9 @@ export class NativeTextEditing {
     this.rejectPendingSwitch('cancelled',this.pendingSwitchCancelled?'cancel-native-end':'cancel');this.clearPreview();await this.cleanupRender();
     if(!this.available()||this.session!==s||this.epoch!==epoch)return;await this.flushCurrent(s);if(!this.available()||this.session!==s||this.epoch!==epoch)return;this.assertDraftOwner(s);if(this.editor.draftOwner?.drafts.has(s.draftId))await this.editor.clearDraft(s.draftId);this.assertDraftOwner(s);
     if(!this.available()||this.session!==s||this.epoch!==epoch)return;
-    if(this.session===s)this.retireSession();this.error='';this.message='Text draft cancelled. Accepted appearance is unchanged.';this.returnFocus();this.changed();
+    if(this.session===s)this.retireSession();this.error='';this.message='Text draft cancelled. Accepted appearance is unchanged.';this.changed();return this.returnFocus();
   }
-  private returnFocus(){if(this.opener?.isConnected)this.opener.focus();else this.host.querySelector<HTMLElement>('#inspector')?.focus();}
+  private returnFocus():TextFocusReturn{return {epoch:this.epoch,documentId:this.editor.view.document?.id,documentRevision:this.editor.view.document?.revision};}
   overlay(ctx:CanvasRenderingContext2D){const s=this.session;if(!s)return;const layer=this.editor.view.image?.layers.find(l=>l.id===s.layerId);ctx.save();if(layer)ctx.transform(...layer.layerToDocument);else if(s.placement)ctx.translate(s.placement.x,s.placement.y);ctx.strokeStyle='#9866cc';ctx.setLineDash([4,3]);ctx.lineWidth=1;ctx.strokeRect(0,0,s.frame.width,s.frame.height);ctx.restore();}
   dispose(){this.disposed=true;this.abort.abort();return this.releaseDocument();}
   render(){
