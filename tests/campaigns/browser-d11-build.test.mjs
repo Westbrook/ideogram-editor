@@ -11,6 +11,8 @@ import { deriveD11StaticDocument, loadD11Build } from '../../tooling/qualificati
 import { D11_ROLE_CONTEXT, prepareD11RegistrationContract } from '../../tooling/qualification/campaigns/browser-d11-registration.mjs';
 import { D11_INVOCATION_DEPENDENCY_PATHS } from '../../tooling/qualification/campaigns/browser-d11-invocation-contract.mjs';
 import { measureD11StartupBuildBound } from '../../tooling/qualification/campaigns/browser-d11-startup-bound.mjs';
+import { parseSync } from 'rolldown/utils';
+import { deriveD11WorkerActivation, resolveD11EmittedWorkerTarget } from '../../tooling/qualification/campaigns/browser-d11-worker-activation.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const required = ['index.html', 'vite.app.config.ts', 'tsconfig.json', 'tsconfig.app.json', 'package.json', 'package-lock.json', '.progress-report/project.json', 'tooling/build-evidence.ts', 'vendor/text/manifest.json'];
@@ -271,4 +273,42 @@ test('D11 product integration verifies actual finalized invocation provenance an
   const bound = measureD11StartupBuildBound(result);
   assert.equal(bound.status, 'PASS', JSON.stringify({ missing: bound.missing, failures: bound.failures,
     artifactBuildBudgets: bound.artifactBuildBudgets, artifactBuildViolations: bound.artifactBuildViolations }));
+});
+
+// Actual-output Worker authority belongs here with the application-build
+// prerequisite, rather than in the build-free Worker source/grammar suite.
+test('actual finalized Vite Worker URL traverses the unchanged source and invocation authority', {
+  skip: process.env.IE_CAMPAIGN_PRODUCT_INTEGRATION !== '1' && 'Requires selected IE_CAMPAIGN_PRODUCT_INTEGRATION=1.',
+}, async () => {
+  const cacheDirectory = process.env.IE_D11_NPM_CACHE;
+  assert.equal(typeof cacheDirectory, 'string', 'Selected product integration requires explicit IE_D11_NPM_CACHE.');
+  assert(cacheDirectory.length > 0, 'Selected product integration requires a nonempty IE_D11_NPM_CACHE.');
+  const repo = await realpath(new URL('../../', import.meta.url));
+  const parser = { name: 'rolldown', version: createRequire(import.meta.url)('rolldown/package.json').version, parseSync };
+  const build = await loadD11Build({ repo, cacheDirectory });
+  assert(build.roleInputs.invocationContract, 'Finalized output must retain its authentic invocation contract.');
+  const input = { ...build.roleInputs, parser, files: build.files, roleContext: build.roleContext,
+    lock: JSON.parse(build.retainedInputs.lock), dependencyInputs: build.dependencyInputs,
+    compilation: build.compilation, sourceInputs: build.sourceInputs };
+  const result = deriveD11WorkerActivation(input);
+  assert.equal(result.complete, true, result.missing.join('; '));
+  assert.equal(result.excludedWorkers.length, 1);
+  const proof = result.excludedWorkers[0];
+  assert.equal(proof.source, 'src/text/client.ts');
+  assert.equal(proof.witness.applicationSourceProfile.profile, 'reviewed-d11-startup-corpus-1');
+  const importer = proof.emittedSite.file, output = build.roleInputs.outputTextByFile[importer];
+  const expression = output.slice(proof.emittedSite.start, proof.emittedSite.end);
+  const parsed = parseSync('emitted-worker.js', expression + ';', { lang: 'js', sourceType: 'module' });
+  assert.equal(parsed.errors?.length ?? 0, 0);
+  assert.equal(parsed.program.body.length, 1);
+  assert.equal(parsed.program.body[0].type, 'ExpressionStatement');
+  const worker = parsed.program.body[0].expression;
+  assert.equal(worker.type, 'NewExpression'); assert.equal(worker.callee.name, 'Worker');
+  assert.equal(resolveD11EmittedWorkerTarget({ url: worker.arguments[0], importer, files: build.files }), proof.target);
+  assert.equal(build.files.filter(file => file.file === proof.target && file.kind === 'js').length, 1);
+  const missingTarget = deriveD11WorkerActivation({ ...input, files: build.files.filter(file => file.file !== proof.target) });
+  assert.equal(missingTarget.complete, false); assert.deepEqual(missingTarget.excludedWorkers, []);
+  assert.match(missingTarget.missing.join('; '), /emitted Worker target is absent or ambiguous/);
+  const missingAuthority = deriveD11WorkerActivation({ ...input, invocationContract: undefined });
+  assert.equal(missingAuthority.complete, false); assert.deepEqual(missingAuthority.excludedWorkers, []);
 });

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { parseSync } from 'rolldown/utils';
 import { createRequire } from 'node:module';
 import { D11_ROLE_CONTEXT } from '../../tooling/qualification/campaigns/browser-d11-registration.mjs';
-import { deriveD11NativePreparationClosure, deriveD11WorkerActivation } from '../../tooling/qualification/campaigns/browser-d11-worker-activation.mjs';
+import { deriveD11NativePreparationClosure, deriveD11WorkerActivation, resolveD11EmittedWorkerTarget } from '../../tooling/qualification/campaigns/browser-d11-worker-activation.mjs';
 
 const require = createRequire(import.meta.url);
 const parser = { name: 'rolldown', version: require('rolldown/package.json').version, parseSync };
@@ -402,5 +402,66 @@ test('DOM property-name and type-assertion lookalikes keep their ownership refus
     assert.equal(proof.complete,false,text);
     const directCall=text==='const host=document.querySelector("en-tree");host.selectedKeys[0]();'||text==='const host=document.querySelector("en-tree");(host as EnTree).selectedKeys[key]();';
     assert.equal(proof.missing.join('; '),directCall?'D11 Worker activation: computed callable alias is unresolved':'D11 Worker activation: computed DOM/controller ownership is unresolved',text);
+  }
+});
+
+// Grammar-only tests parse source data. This resolver cannot mint a Worker
+// exclusion; the build suite owns the selected-product final verifier case
+// and its finalized application-build prerequisite.
+const emittedURL = expression => {
+  const parsed = parseSync('emitted-worker.js', expression + ';', { lang: 'js', sourceType: 'module' });
+  assert.equal(parsed.errors?.length ?? 0, 0);
+  assert.equal(parsed.program.body.length, 1);
+  assert.equal(parsed.program.body[0].type, 'ExpressionStatement');
+  return parsed.program.body[0].expression;
+};
+const emittedFiles = [{ file: 'assets/worker.js', kind: 'js' }, { file: 'assets/nested/worker.js', kind: 'js' }];
+const emittedTarget = expression => resolveD11EmittedWorkerTarget({ url: emittedURL(expression), importer: 'assets/shell.js', files: emittedFiles });
+
+test('emitted Worker URL grammar accepts only static strings and the exact Vite importer base', () => {
+  for (const path of ["'/assets/worker.js'", '`/assets/worker.js`', "'./worker.js'", '`./worker.js`']) {
+    for (const base of ['import.meta.url', "'' + import.meta.url", '`` + import.meta.url']) {
+      assert.equal(emittedTarget(`new URL(${path}, ${base})`), 'assets/worker.js');
+    }
+  }
+  assert.equal(emittedTarget("new URL('./nested/worker.js', import.meta.url)"), 'assets/nested/worker.js');
+  assert.equal(emittedTarget('new URL(`/assets/worker.js`,``+import.meta.url)'), 'assets/worker.js', 'actual Vite/minifier form maps from the app root');
+});
+
+test('emitted Worker URL grammar rejects dynamic templates coercions alternate bases and calls', () => {
+  for (const expression of [
+    'new URL(`/assets/${name}.js`, import.meta.url)',
+    "new URL('/assets/worker.js', `${base}`)",
+    "new URL('/assets/worker.js', 'prefix' + import.meta.url)",
+    "new URL('/assets/worker.js', `prefix` + import.meta.url)",
+    "new URL('/assets/worker.js', import.meta.url + '')",
+    "new URL('/assets/worker.js', '' - import.meta.url)",
+    "new URL('/assets/worker.js', '' + import.meta['url'])",
+    "new URL('/assets/worker.js', '' + location.href)",
+    "new URL('/assets/worker.js', String(import.meta.url))",
+    "new URL('/assets/worker.js', (touch(), import.meta.url))",
+    "new URL('/assets/worker.js', (touch(), '') + import.meta.url)",
+    "new URL('/assets/worker.js', '' + '' + import.meta.url)",
+    "new URL('/assets/worker.js', import.meta.url, touch())",
+    "new URL('/assets/worker.js')",
+    "URL('/assets/worker.js', import.meta.url)",
+    "new CustomURL('/assets/worker.js', import.meta.url)",
+    "new URL(tag`/assets/worker.js`, import.meta.url)",
+    "new URL('/assets/' + name, import.meta.url)",
+  ]) assert.throws(() => emittedTarget(expression), /D11 Worker activation/, expression);
+});
+
+test('emitted Worker mapping rejects remote encoded dot-segment and ambiguous inventory targets', () => {
+  for (const path of ['https://example.test/worker.js', '//example.test/worker.js', 'data:text/javascript,0', 'blob:opaque',
+    '../worker.js', '/assets/../worker.js', '/assets/./worker.js', '/assets//worker.js', '/assets/%77orker.js',
+    '/assets/worker.js?x', '/assets/worker.js#x', '/assets/worker.js\n', '/assets\\worker.js', '', '/', './', 'assets/worker.js']) {
+    assert.throws(() => emittedTarget(`new URL(${JSON.stringify(path)}, import.meta.url)`), /D11 Worker activation/, path);
+  }
+  const url = emittedURL("new URL('/assets/worker.js', import.meta.url)");
+  for (const files of [[], [{ file: 'assets/worker.js', kind: 'css' }], [...emittedFiles, { ...emittedFiles[0] }], [...emittedFiles, { file: 'assets/worker.js', kind: 'css' }]]) {
+    assert.throws(() => resolveD11EmittedWorkerTarget({ url, importer: 'assets/shell.js', files }), /target is absent or ambiguous/);
+  }
+  for (const importer of ['', '/assets/shell.js', '../shell.js', 'assets/./shell.js', 'assets//shell.js', 'assets/shell.js?x']) {
+    assert.throws(() => resolveD11EmittedWorkerTarget({ url, importer, files: emittedFiles }), /importer or inventory is not canonical/);
   }
 });

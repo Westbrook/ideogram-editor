@@ -378,7 +378,7 @@ function proveTemplateConsumer(context, template, klass, corpus) {
       continue;
     }
     let value = node, parent = source.parents.get(value);
-    while (parent && ['ChainExpression', 'TSNonNullExpression', 'TSAsExpression', 'ConditionalExpression', 'LogicalExpression'].includes(parent.type)) { value = parent; parent = source.parents.get(value); }
+    while (parent && (['ChainExpression', 'TSNonNullExpression', 'TSAsExpression', 'ConditionalExpression', 'LogicalExpression'].includes(parent.type) || parent.type === 'ParenthesizedExpression' && parent.expression === value)) { value = parent; parent = source.parents.get(value); }
     if (parent?.type === 'AwaitExpression') { value = parent; parent = source.parents.get(value); }
     if (parent?.type === 'ExpressionStatement') continue;
     if (parent?.type !== 'TemplateLiteral' || !parent.expressions.includes(value)) fail('render result has an unproved callback consumer: ' + source.path);

@@ -694,6 +694,35 @@ export function assertD11DOMDataEffects(conditional, applicationSourceProfile, i
   return sites;
 }
 
+// Vite's Worker transform uses new URL(path, '' + import.meta.url), and the
+// pinned minifier may spell either static string as a template without slots.
+// Keep this grammar separate from the stricter application-source URL check.
+function emittedString(node) {
+  const value = unwrap(node);
+  if (['Literal', 'StringLiteral'].includes(value?.type)) return typeof value.value === 'string' ? value.value : null;
+  if (value?.type === 'TemplateLiteral' && value.expressions.length === 0 && value.quasis.length === 1 && typeof value.quasis[0].value.cooked === 'string') return value.quasis[0].value.cooked;
+  return null;
+}
+const emittedMember = value => typeof value === 'string' && value.split('/').every(part => part !== '.' && part !== '..' && /^[A-Za-z0-9._-]+$/.test(part));
+
+/** Resolve a parsed emitted URL to one recorded JavaScript artifact. This pure
+ * grammar check grants no source, invocation, or Worker exclusion authority. */
+export function resolveD11EmittedWorkerTarget({ url, importer, files } = {}) {
+  url = unwrap(url);
+  if (!emittedMember(importer) || !Array.isArray(files)) fail('emitted Worker importer or inventory is not canonical');
+  const base = unwrap(url?.arguments?.[1]);
+  const moduleBase = moduleURL(base) || base?.type === 'BinaryExpression' && base.operator === '+' && emittedString(base.left) === '' && moduleURL(base.right);
+  if (url?.type !== 'NewExpression' || !id(url.callee, 'URL') || url.arguments.length !== 2 || !moduleBase) fail('emitted Worker URL does not have the reviewed importer-module base');
+  const specifier = emittedString(url.arguments[0]);
+  if (typeof specifier !== 'string' || !specifier.startsWith('/') && !specifier.startsWith('./')) fail('emitted Worker URL is not local');
+  const member = specifier.slice(specifier.startsWith('/') ? 1 : 2);
+  if (!emittedMember(member)) fail('emitted Worker URL is not canonical');
+  const target = specifier.startsWith('/') ? member : posix.join(posix.dirname(importer), member);
+  const matches = files.filter(file => file?.file === target);
+  if (matches.length !== 1 || matches[0].kind !== 'js') fail('emitted Worker target is absent or ambiguous');
+  return target;
+}
+
 /** Exclude only the proved emitted Worker constructor site from startup
  * activation. No emitted file, class, engine dependency, or budget is removed. */
 export function deriveD11WorkerActivation(args = {}) {
@@ -719,12 +748,7 @@ export function deriveD11WorkerActivation(args = {}) {
     let emittedOwner = output.parent(emitted);
     while (emittedOwner && emittedOwner.type !== 'MethodDefinition') emittedOwner = output.parent(emittedOwner);
     if (!emittedOwner || emittedOwner.static || emittedOwner.kind !== 'method' || emittedOwner.computed || emittedOwner.key?.type !== 'PrivateIdentifier') fail('emitted Worker is not inside the bound private activation method');
-    const url = unwrap(emitted.arguments[0]);
-    if (url?.type !== 'NewExpression' || !id(url.callee, 'URL') || typeof literal(url.arguments[0]) !== 'string' || url.arguments.length !== 2 || !moduleURL(url.arguments[1])) fail('emitted Worker URL is not literal and relative to the importer module');
-    const specifier = literal(url.arguments[0]);
-    if (/[\\?#\x00-\x20]/.test(specifier) || !specifier.startsWith('/') && !specifier.startsWith('./') && !specifier.startsWith('../')) fail('emitted Worker URL is not local');
-    const target = posix.normalize(specifier.startsWith('/') ? specifier.slice(1) : posix.join(posix.dirname(importer.file), specifier));
-    if (target.startsWith('../') || !files.some(file => file.file === target && file.kind === 'js')) fail('emitted Worker target is absent');
+    const target = resolveD11EmittedWorkerTarget({ url: emitted.arguments[0], importer: importer.file, files });
     excludedWorkers.push({ source: proof.source, start: proof.start, end: proof.end, target, outputs: [importer.file],
       emittedSite: { file: importer.file, start: emitted.start, end: emitted.end }, reason: 'native-preview-state-gate',
       witness: { ...proof.witness, memberAssignmentEffects, domDataEffects, invocationProfile: invocation.profile, applicationSourceProfile: invocation.applicationSourceProfile, roleContext: args.roleContext } });

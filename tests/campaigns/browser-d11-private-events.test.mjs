@@ -229,3 +229,67 @@ test('computed callees and unreviewed receiver methods remain refused before any
   ])assert.throws(()=>assertD11EventCorpus({sourceTextByPath:{'src/data.ts':source},parser}),/computed callable has no bounded nonactivation key/,source);
 });
 
+
+
+test('parenthesized render values preserve the reviewed Lit sink and still require final invocation authority',()=>{
+  const parsed=parser.parseSync('src/parentheses.ts','const value=(host.render());',{lang:'ts',sourceType:'module'});
+  assert.deepEqual(parsed.errors,[]);
+  const wrapper=parsed.program.body[0].declarations[0].init;
+  assert.equal(wrapper.type,'ParenthesizedExpression');assert.equal(wrapper.expression.type,'CallExpression');
+  for(const expression of [
+    '(this.commands.render())',
+    '((this.commands.render()))',
+    "this.panel==='export'?(this.commands?this.commands.render():html`<p>Loading</p>`):null",
+    "this.panel==='storage'?(this.commands?.render()??null):null",
+    '(this.ready&&(this.commands.render()))',
+    '(this.commands.render() as unknown)',
+  ]){
+    const f=mutate('src/ui/shell.ts','${this.commands.render()}','${'+expression+'}');
+    const structural=deriveD11PrivateEventSourceProof(f);
+    assert.equal(structural.complete,true,JSON.stringify({expression,missing:structural.missing}));
+    assert.equal(structural.excludedImports.length,1);
+    const final=deriveD11PrivateEventBoundaries({...f,invocationContract:null});
+    assert.equal(final.complete,false);assert.deepEqual(final.excludedImports,[]);
+    assert.deepEqual(final.missing,['D11 private event proof: retained invocation contract is absent for a private target']);
+  }
+});
+
+test('transparent parentheses do not admit render-result extraction or unknown consumers',()=>{
+  for(const expression of [
+    '(this.commands.render()).values',
+    'unknown((this.commands.render()))',
+    '[(this.commands.render())]',
+    '({result:(this.commands.render())})',
+    '(stored=this.commands.render())',
+    '((this.commands.render()),null)',
+    'unknown`${(this.commands.render())}`',
+    '(()=>this.commands.render())()',
+    '(this.commands.render()).then(consume)',
+  ]){
+    const result=rejected(mutate('src/ui/shell.ts','${this.commands.render()}','${'+expression+'}'));
+    assert.match(result.missing.join(' '),/render result (?:has an unproved callback consumer|reaches an unreviewed template tag)/,expression);
+  }
+  const f=fixture();f.sourceTextByPath['src/activation.ts']='(host.render.bind(host)()).values[0]();';rejected(f);
+});
+
+test('all actual application render consumers reach the complete private structural source proof',async()=>{
+  const value=await actualEventCorpus();
+  const {verifyD11ApplicationProfile}=await import('../../tooling/qualification/campaigns/browser-d11-application-profile.mjs');
+  const profile=verifyD11ApplicationProfile(value);
+  assert.equal(profile.inputs.length,Object.keys(value.sourceTextByPath).length+1);
+  // Only the output mapping is synthetic here. The complete actual source
+  // corpus exercises every render sink and both real Export event paths;
+  // finalized-build integration separately authenticates emitted bytes.
+  const source='src/ui/shell.ts',feature='src/ui/export.ts',target='assets/feature.js';
+  const proof=deriveD11PrivateEventSourceProof({
+    ...value,parser,roleContext:structuredClone(D11_ROLE_CONTEXT),
+    manifest:{[feature]:{src:feature,file:target,isDynamicEntry:true}},
+    files:[{file:'assets/shell.js',kind:'js',sources:[source],modules:[source]},{file:target,kind:'js',sources:[feature],modules:[feature]}],
+    outputTextByFile:{'assets/shell.js':"class Shell{#load(){return import('./feature.js')}}",[target]:'export const feature=1;'},
+  });
+  assert.equal(proof.complete,true,JSON.stringify(proof.missing));assert.deepEqual(proof.missing,[]);
+  assert.equal(proof.excludedImports.length,1);
+  assert.equal(proof.excludedImports[0].source,source);assert.equal(proof.excludedImports[0].witness.featureSource,feature);
+  assert.deepEqual(proof.excludedImports[0].witness.calls.map(call=>call.kind).sort(),['lit-event','private-command-event']);
+  assert.equal(proof.conditionalEventDataEffects.length,profile.eventDataEffects.sites.length);
+});
