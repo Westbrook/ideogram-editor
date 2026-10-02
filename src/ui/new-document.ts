@@ -77,7 +77,12 @@ export class NewDocumentControls{
         if(!this.owns(epoch,identity,session))return;
         try{await this.editor.create(Number(draft.width),Number(draft.height),{name:draft.name.trim(),background});}
         catch(error){
-          if(this.owns(epoch,identity,session)){const message=error instanceof Error?error.message:'Document creation failed.';this.problems(()=>[{target:'new-document-create',message:message.slice(0,512)+' Your dialog draft is retained.'}]);this.focusSummary(priorInteraction);}
+          if(this.owns(epoch,identity,session)){
+            const raw=error instanceof Error?error.message:'Document creation failed.',message=raw.slice(0,512);
+            const storage=raw.length<=512&&!/STALE|CHANGED|CONFLICT/.test(message)&&/STORAGE_FULL|waiting-for-resources|CAPACITY/.test(message);
+            const explanation=storage?'Storage paused. Original bytes and command identities are retained. Free resources, then retry the same operation.':message;
+            this.problems(()=>[{target:'new-document-create',message:explanation+' Your dialog draft is retained.'}]);this.focusSummary(priorInteraction);
+          }
           throw error;
         }
         if(this.owns(epoch,identity,session))this.close();

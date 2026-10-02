@@ -119,3 +119,42 @@ test('dialog action admission is capped and final borrowed release controls the 
  const host=new Host(),memory=new DialogOwnership(host,'j1-actions'),model=memory.create(64,()=>({value:1})),releases=[];
  try{for(let i=0;i<8;i++)releases.push(memory.action([model],{i}));assert.throws(()=>memory.action([model],{}),/DIALOG_ACTION_LIMIT/);await memory.retire(model);assert.equal(memory.lifecycle.models,1);for(const release of releases)release();await memory.drain();assert.equal(memory.lifecycle.models,0);}finally{for(const release of releases)release();model.release();await memory.drain();}
 });
+
+
+test('New Create explains storage refusals while retaining its exact draft and unresolved original',async()=>{
+ for(const code of ['waiting-for-resources','STORAGE_FULL','CAPACITY']){
+  const f=fixture('new'),failure=Error(code),original={request:{command:{commandId:'retained-create-'+code,body:{type:'CreateDocument'}}}};await f.open();
+  for(const [id,value,attribute]of [['new-name','Retain 東京','@en-input='],['new-width','3','@en-input='],['new-height','2','@en-input='],['new-background','solid','@en-change='],['new-background-color','#1153C9','@en-input=']]){handler(f.template(),'id="'+id+'"',attribute)(event(value));await flush();}
+  const draft=f.controller.draft,document=f.editor.view.document;assert.deepEqual(draft,{name:'Retain 東京',width:'3',height:'2',background:'solid',color:'#1153C9'});
+  Object.defineProperty(f.editor.view,'error',{get(){throw Error('Stale global diagnostic must not be sampled');}});
+  f.setCreate(async(...args)=>{f.created.push(args);f.editor.view.pending=[original];f.editor.view.pendingCreate=true;throw failure;});
+  handler(f.controller.createButton(),'id="new-document-create"')(event());await until(()=>f.errors.includes(failure)&&f.controller.lifecycle.pending===0);await tick();
+  const message='Storage paused. Original bytes and command identities are retained. Free resources, then retry the same operation. Your dialog draft is retained.';
+  assert.deepEqual(f.controller.issues,[{target:'new-document-create',message}]);assert(f.controller.fields().values.includes(f.controller.issues),'The actual validation summary receives the retained issue');
+  assert.equal(f.controller.draft,draft);assert.equal(f.controller.opened,true);assert.equal(f.editor.view.document,document);assert.equal(f.editor.view.pending[0],original);assert.equal(f.editor.view.pendingCreate,true);assert.equal(f.host.focuses,1);assert.deepEqual(f.errors,[failure]);
+  assert.deepEqual(f.created,[[3,2,{name:'Retain 東京',background:{kind:'solid',color:[17,83,201,255]}}]]);assert.equal(f.controller.submitting,false);assert.equal(f.controller.lifecycle.actions,0);
+  const blocked=f.controller.createButton();assert.equal(blocked.values[0],true);assert.equal(blocked.values[1],'new-document-pending new-document-submit-error');handler(blocked,'id="new-document-create"')(event());await tick();assert.equal(f.created.length,1);assert.equal(f.controller.draft,draft);
+ }
+});
+test('New Create keeps unknown and conflicting errors visible within the existing diagnostic bound',async()=>{
+ for(const [failure,expected]of [[Error('UNKNOWN_CREATION_FAILURE'),'UNKNOWN_CREATION_FAILURE'],[Error('CONFLICT CAPACITY'),'CONFLICT CAPACITY'],[Error('CAPACITY '+ 'x'.repeat(1024)),('CAPACITY '+ 'x'.repeat(1024)).slice(0,512)],[Error('x'.repeat(512)+' waiting-for-resources'),'x'.repeat(512)],[null,'Document creation failed.']]){
+  const f=fixture('new');await f.open();const draft=f.controller.draft;f.setCreate(async()=>{throw failure;});handler(f.controller.createButton(),'id="new-document-create"')(event());await until(()=>f.errors.includes(failure)&&f.controller.lifecycle.pending===0);await tick();
+  assert.deepEqual(f.controller.issues,[{target:'new-document-create',message:expected+' Your dialog draft is retained.'}]);assert.equal(f.controller.draft,draft);assert.equal(f.controller.opened,true);assert.equal(f.host.focuses,1);assert.deepEqual(f.errors,[failure]);assert.equal(f.controller.lifecycle.actions,0);
+ }
+});
+test('late New Create storage failures cannot publish into a successor or disposed dialog',async()=>{
+ for(const change of ['reopened','identity','session','disposed']){
+  const f=fixture('new'),entered=deferred(),gate=deferred(),failure=Error('waiting-for-resources');let disposal;
+  await f.open();f.setCreate(async()=>{entered.resolve();await gate.promise;});handler(f.controller.createButton(),'id="new-document-create"')(event());
+  try{
+   await until(()=>entered.settled);await entered.promise;
+   if(change==='reopened'){f.controller.cancel();await f.open();}
+   if(change==='identity')f.editor.session.identity=()=> 'successor-identity';
+   if(change==='session')f.editor.sessionId='successor-session';
+   if(change==='disposed')disposal=f.controller.dispose();
+   const draft=f.controller.draft,focuses=f.host.focuses;gate.reject(failure);await until(()=>f.controller.lifecycle.pending===0);await disposal;await tick();
+   assert.equal(f.controller.draft,draft);assert.deepEqual(f.controller.issues,[]);assert.equal(f.host.focuses,focuses);assert.deepEqual(f.errors,[failure]);assert.equal(f.controller.lifecycle.actions,0);assert.equal(f.controller.opened,change!=='disposed');
+   if(change==='disposed')assert.equal(f.controller.lifecycle.models,0);
+  }finally{gate.resolve();await disposal;}
+ }
+});
