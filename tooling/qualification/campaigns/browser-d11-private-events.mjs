@@ -14,6 +14,15 @@ const unwrap = node => {
   return node;
 };
 const literal = node => ['Literal', 'StringLiteral'].includes(node?.type) && typeof node.value === 'string' ? node.value : null;
+// The pinned minifier can emit a static import specifier as a template with
+// no substitutions. Decode only that emitted grammar; source imports retain
+// the literal-only reader and all final compilation/invocation requirements.
+function emittedImportLiteral(node) {
+  const value = literal(node);
+  if (value !== null) return value;
+  if (node?.type === 'TemplateLiteral' && node.expressions.length === 0 && node.quasis.length === 1 && typeof node.quasis[0].value.cooked === 'string') return node.quasis[0].value.cooked;
+  return null;
+}
 const key = node => node?.computed ? literal(node.key) : node?.key?.name ?? literal(node?.key);
 const member = node => node?.type === 'MemberExpression' ? node.computed ? literal(node.property) : node.property?.name : null;
 const privateMember = node => node?.type === 'MemberExpression' && !node.computed && node.object?.type === 'ThisExpression' && node.property?.type === 'PrivateIdentifier';
@@ -521,7 +530,7 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
         const result = parser.parseSync(file.file, text, { lang: 'js', sourceType: 'module' });
         if (result.errors?.length || result.program?.type !== 'Program') fail('emitted JS cannot be parsed');
         for (const reference of tree(result.program).nodes.filter(item => item.type === 'ImportExpression')) {
-          const specifier = literal(reference.source);
+          const specifier = emittedImportLiteral(reference.source);
           if (!specifier) fail('computed emitted import prevents target census');
           const resolved = posix.normalize(specifier.startsWith('/') ? specifier.slice(1) : posix.join(posix.dirname(file.file), specifier));
           if (resolved === target) emitted.push({ output: file.file, ...span(reference) });

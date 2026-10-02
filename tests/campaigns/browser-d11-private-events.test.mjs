@@ -293,3 +293,51 @@ test('all actual application render consumers reach the complete private structu
   assert.deepEqual(proof.excludedImports[0].witness.calls.map(call=>call.kind).sort(),['lit-event','private-command-event']);
   assert.equal(proof.conditionalEventDataEffects.length,profile.eventDataEffects.sites.length);
 });
+
+
+test('emitted static import templates bind the same private target without granting invocation authority',()=>{
+  const escaped='import(`./featur\\u0065.js`)';
+  assert(escaped.includes(String.fromCharCode(92)+'u0065'));
+  for(const expression of ["import('./feature.js')",'import(`./feature.js`)',escaped]){
+    const f=fixture(),output='class Shell{#load(){return '+expression+'}}';
+    f.outputTextByFile['assets/shell.js']=output;
+    const proof=deriveD11PrivateEventSourceProof(f);
+    assert.equal(proof.complete,true,JSON.stringify({expression,missing:proof.missing}));
+    assert.equal(proof.excludedImports.length,1);
+    assert.equal(proof.excludedImports[0].target,'assets/feature.js');
+    assert.deepEqual(proof.excludedImports[0].witness.emitted,[{output:'assets/shell.js',start:output.indexOf(expression),end:output.indexOf(expression)+expression.length}]);
+    const final=deriveD11PrivateEventBoundaries({...f,invocationContract:null});
+    assert.equal(final.complete,false);assert.deepEqual(final.excludedImports,[]);
+    assert.deepEqual(final.missing,['D11 private event proof: retained invocation contract is absent for a private target']);
+  }
+});
+
+test('the emitted target census includes every file and refuses any computed import',()=>{
+  const f=fixture();f.outputTextByFile['assets/shell.js']='class Shell{#load(){return import(`./feature.js`)}}';
+  for(const [file,output] of [['assets/entry.js','import(`./shell.js`);'],['assets/other.js','class Font{import(a,b,c){return a;}}const load=()=>import(`./unrelated.js`);'],['assets/unrelated.js','export const unrelated=1;']]){
+    f.files.push({file,kind:'js',sources:[],modules:[]});f.outputTextByFile[file]=output;
+  }
+  assert.equal(deriveD11PrivateEventSourceProof(f).complete,true);
+  for(const expression of [
+    'import(`./${name}.js`)','import(`./${"feature"}.js`)','import(name)',
+    'import("./"+name+".js")','import(tag`./feature.js`)','import(``)',
+  ]){
+    const g=structuredClone({...f,parser:undefined});g.parser=parser;g.outputTextByFile['assets/other.js']=expression+';';
+    const proof=rejected(g);
+    assert.deepEqual(proof.missing,['D11 private event proof: computed emitted import prevents target census'],expression);
+  }
+});
+
+test('emitted template support preserves strict source grammar and exact target ownership',()=>{
+  const sourceTemplate=mutate('src/ui/shell.ts',"import('./feature.js')",'import(`./feature.js`)');
+  assert.deepEqual(rejected(sourceTemplate).missing,['D11 private event proof: import is not an exact local source']);
+  for(const expression of ['import(`./other.js`)','import(`./feature.js?query`)','import(`./feature.js#fragment`)']){
+    const f=fixture();f.outputTextByFile['assets/shell.js']='class Shell{#load(){return '+expression+'}}';
+    assert.deepEqual(rejected(f).missing,['D11 private event proof: private target has no unique emitted import-site binding']);
+  }
+  const duplicate=fixture();duplicate.outputTextByFile['assets/shell.js']+=';import(`./feature.js`);';
+  assert.deepEqual(rejected(duplicate).missing,['D11 private event proof: private target has no unique emitted import-site binding']);
+  const otherOwner=fixture();otherOwner.outputTextByFile['assets/shell.js']='export const shell=1;';
+  otherOwner.files.push({file:'assets/other.js',kind:'js',sources:[],modules:[]});otherOwner.outputTextByFile['assets/other.js']='import(`./feature.js`);';
+  assert.deepEqual(rejected(otherOwner).missing,['D11 private event proof: private target has no unique emitted import-site binding']);
+});
