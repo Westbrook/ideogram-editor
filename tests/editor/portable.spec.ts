@@ -1,6 +1,7 @@
 import {specReceipt} from './receipt-path.js';
 import {confirmImageImports} from './image-import-flow.js';
 import {prepareNativePNG} from './export-workflow.js';
+import {publicReadRequest} from '../request/persistence-witness.js';
 import {test as base,expect,type Page} from '@playwright/test';
 import {mkdtemp,realpath,readFile,writeFile,rm,mkdir,copyFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -60,9 +61,25 @@ test('E1 browser copy, actual process restart/new port, reviewed reopen and exac
  server=await serverProcess(root);expect(server.pid).not.toBe(oldPid);expect(server.origin).not.toBe(oldOrigin);await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
  expect(await page.evaluate(async()=> (await indexedDB.databases()).filter(d=>d.name?.startsWith('ie-delivery-')).length)).toBe(1);
  await click(page,'Open');await page.getByRole('button',{name:/^Restore ui_/}).click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
- await click(page,'Open');await page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath);
- await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();await click(page,'Apply reviewed result');await accepted(page,'ImportBundle');
- await prepareNativePNG(page);const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
+ await click(page,'Open');
+ // Observe this upload's public review before applying it; identical names and
+ // pixels cannot distinguish the imported document from the restored original.
+ const [reviewResponse]=await Promise.all([page.waitForResponse(response=>response.request().method()==='GET'&&new URL(response.url()).origin===server.origin&&/^\/api\/v1\/bundle-reviews\/[A-Za-z0-9_-]{1,128}$/.test(new URL(response.url()).pathname)),page.locator('en-file-upload').filter({has:page.getByText('Open portable project',{exact:true})}).locator('input[type=file]').setInputFiles(bundlePath)]);
+ expect(reviewResponse.status()).toBe(200);const reviewed=await reviewResponse.json();expect(reviewed.protocolVersion).toBe(1);expect(reviewed.reviewId).toMatch(/^[A-Za-z0-9_-]{1,128}$/);expect(new URL(reviewResponse.url()).pathname).toBe('/api/v1/bundle-reviews/'+reviewed.reviewId);expect(reviewed.reviewHash).toMatch(/^sha256:[a-f0-9]{64}$/);expect(reviewed.targetClientId).toMatch(/^[A-Za-z0-9_-]{1,128}$/);expect(reviewed.documentId).toMatch(/^[A-Za-z0-9_-]{1,128}$/);expect(reviewed.editable).toBe(true);
+ const sourceDocuments=entities.filter((entity:any)=>entity.kind==='document');expect(sourceDocuments).toHaveLength(1);expect(reviewed.documentId).not.toBe(sourceDocuments[0].value.id);
+ await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeVisible();
+ const [importRequest]=await Promise.all([page.waitForRequest(request=>request.method()==='POST'&&request.url()===server.origin+'/api/v1/commands'&&request.postDataJSON()?.command?.body?.type==='ImportBundle'),click(page,'Apply reviewed result')]);
+ const submittedImport=importRequest.postDataJSON();expect(submittedImport.protocolVersion).toBe(1);const importCommand=submittedImport.command;expect(importCommand.schemaVersion).toBe(1);expect(importCommand.commandId).toMatch(/^[A-Za-z0-9_-]{1,128}$/);expect(importCommand.transactionId).toMatch(/^[A-Za-z0-9_-]{1,128}$/);expect(importCommand.sessionId).toMatch(/^[A-Za-z0-9_-]{1,128}$/);expect(importCommand.clientId).toBe(reviewed.targetClientId);expect(importCommand.body).toEqual({type:'ImportBundle',reviewId:reviewed.reviewId,reviewHash:reviewed.reviewHash});
+ // applyReview opens the mapped document after acceptance and replaces the
+ // transient ImportBundle message. Wait for that whole public action to finish.
+ await expect(page.getByRole('dialog',{name:'Review portable project'})).toBeHidden();const operation=page.getByRole('region',{name:'Operation status',exact:true});await expect(operation.getByText('Local document opened.',{exact:true})).toBeVisible();await expect(operation).toHaveAttribute('aria-busy','false');
+ // POST may initially return pending. After completion, one exact public receipt
+ // lookup proves durability without creating another recovery reader or action.
+ const importResult=await page.evaluate(async spec=>{const response=await fetch(spec.path,spec.init);if(!response.ok)throw Error('Import receipt read '+response.status);return response.json();},publicReadRequest('/api/v1/commands/'+importCommand.commandId));
+ expect(importResult.protocolVersion).toBe(1);expect(importResult.kind).toBe('receipt');const importReceipt=importResult.receipt;expect(importReceipt.status).toBe('accepted');expect(importReceipt.commandId).toBe(importCommand.commandId);expect(importReceipt.transactionId).toBe(importCommand.transactionId);expect(importReceipt.fromSeq).toMatch(/^[1-9][0-9]{0,127}$/);expect(importReceipt.toSeq).toMatch(/^[1-9][0-9]{0,127}$/);expect(BigInt(importReceipt.toSeq)>=BigInt(importReceipt.fromSeq)).toBe(true);
+ const [exportRequest]=await Promise.all([page.waitForRequest(request=>request.method()==='POST'&&request.url()===server.origin+'/api/v1/commands'&&request.postDataJSON()?.command?.body?.type==='ExportDocument'),prepareNativePNG(page)]);
+ const submittedExport=exportRequest.postDataJSON();expect(submittedExport.protocolVersion).toBe(1);const exportCommand=submittedExport.command;expect(exportCommand.schemaVersion).toBe(1);expect(exportCommand.documentId).toBe(reviewed.documentId);expect(exportCommand.clientId).toBe(importCommand.clientId);expect(exportCommand.sessionId).toBe(importCommand.sessionId);
+ const pngPath=join(directory,'image.png');await download(page,pngPath);expect(await sharp(pngPath).ensureAlpha().raw().toBuffer()).toEqual(originalPixels);
  disrupting=true;retiredOrigins.add(server.origin);await server.kill();server=await serverProcess(root);await e1Storage.admit(page,server.origin);await page.goto(await server.pair());await expect(page.getByText('Local recovery complete. Accepted edits are saved locally.',{exact:true})).toBeVisible();disrupting=false;
  await click(page,'Open');const mapped=page.getByRole('button',{name:/^Restore p_/});await expect(mapped).not.toHaveCount(0);
  await mapped.click();await expect(page.getByRole('textbox',{name:'Prompt',exact:true})).toHaveValue('日本語 🌿 retained unapplied prompt');
