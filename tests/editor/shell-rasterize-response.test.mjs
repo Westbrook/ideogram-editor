@@ -35,7 +35,7 @@ function fixture(options={}){
 }
 
 test('actual raster review scopes response and independently owns the accepted render identity',async()=>{
- const f=fixture();try{await f.start();const review=f.shell.rasterizeOwner;assert.equal(review.value.render,renderId);assert.equal(review.value.layer.name,'Editable name');assert.notEqual(review.value.document,f.fields.value.document);assert.notEqual(review.value.layer,f.fields.value.layer);released(f.responseOwner);f.fields.value.layer.name='Later local field';assert.equal(review.value.layer.name,'Editable name');assert.equal(f.shown,1);alive(review);}finally{await f.cleanup();}
+ const f=fixture();try{await f.start();const review=f.shell.rasterizeOwner;assert.equal(review.value.renderId,renderId);assert.equal(review.value.layer.name,'Editable name');assert.notEqual(review.value.document,f.fields.value.document);assert.notEqual(review.value.layer,f.fields.value.layer);released(f.responseOwner);f.fields.value.layer.name='Later local field';assert.equal(review.value.layer.name,'Editable name');assert.equal(f.shown,1);alive(review);}finally{await f.cleanup();}
 });
 test('adopted review lives through actual render retirement after the panel closes',async()=>{
  const f=fixture();try{await f.start();const model=f.shell.rasterizeOwner;f.renders.begin([model]);f.renders.commit();f.shell.closePanel();assert.equal(f.shell.rasterizeReview,null);alive(model);f.renders.begin([]);alive(model);f.renders.commit();released(model);}finally{await f.cleanup();}
@@ -58,7 +58,7 @@ test('failed host commit keeps an admitted review until actual render roots can 
 });
 
 test('oversized layer metadata refuses before cloning and preserves the previous review',async t=>{
- const f=fixture();try{await f.start();const prior=f.shell.rasterizeOwner,fields=cloneOwnedModel('fixture-large-inspector',{...f.fields.value,layer:{...f.fields.value.layer,name:'x'.repeat(33*1024)}});f.shell.setFields(fields);let reviewClones=0;const clone=structuredClone;t.mock.method(globalThis,'structuredClone',(value,...options)=>{if(value&&typeof value==='object'&&'render'in value&&'document'in value&&'layer'in value)reviewClones++;return clone(value,...options);});
+ const f=fixture();try{await f.start();const prior=f.shell.rasterizeOwner,fields=cloneOwnedModel('fixture-large-inspector',{...f.fields.value,layer:{...f.fields.value.layer,name:'x'.repeat(33*1024)}});f.shell.setFields(fields);let reviewClones=0;const clone=structuredClone;t.mock.method(globalThis,'structuredClone',(value,...options)=>{if(value&&typeof value==='object'&&'renderId'in value&&'document'in value&&'layer'in value)reviewClones++;return clone(value,...options);});
  await assert.rejects(f.start(),/review metadata is too large/);assert.equal(reviewClones,0,'The actual oversized review is rejected before native structuredClone');assert.equal(f.shell.rasterizeOwner,prior);alive(prior);released(f.responseOwner);
  }finally{await f.cleanup();}
 });
@@ -69,8 +69,8 @@ for(const [label,id] of [
  ['wrong algorithm','sha512:'+'a'.repeat(64)],['trailing whitespace',renderId+' '],
 ])test('invalid raster review hash '+label+' preserves the prior admitted review',async()=>{
  const options={},f=fixture(options);try{
-  await f.start();const prior=f.shell.rasterizeOwner;assert.equal(prior.value.render,renderId);assert.equal(f.shown,1);
+  await f.start();const prior=f.shell.rasterizeOwner;assert.equal(prior.value.renderId,renderId);assert.equal(f.shown,1);
   options.response={source:{render:{id}}};await assert.rejects(f.start(),/Text render is unavailable/);
-  assert.equal(f.shell.rasterizeOwner,prior);assert.equal(prior.value.render,renderId);assert.equal(f.shown,1);alive(prior);released(f.responseOwner);
+  assert.equal(f.shell.rasterizeOwner,prior);assert.equal(prior.value.renderId,renderId);assert.equal(f.shown,1);alive(prior);released(f.responseOwner);
  }finally{await f.cleanup();}
 });

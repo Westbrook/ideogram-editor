@@ -184,7 +184,7 @@ src/ui/request-v45.ts 6428 242a196022be95eb18486fd22411aeee42f6ac494dbbccb6d449f
 src/ui/request.ts 139630 d7ed7f07293887795832a5502199603d7002af514e7c6ae2df20885e6101679d
 src/ui/returned-description.ts 10819 db3549347e0f9d719005a22dd89d020808f2a5d9659befe89e4be54f01961392
 src/ui/shell-wordmark.ts 346 0dfcfe84e68da30bf6a0d66bb4159ef197ae718638989f7716009c66ad1b8aad
-src/ui/shell.ts 138883 f3561289beb48cbe13ed0a57aa2fe4e93d2de9b3bbc68d8adf5a92a2c8014c85
+src/ui/shell.ts 143021 38cc90f8d3ebe1c8c33574d6d45161c716bb315db9bb646a69878f141571291e
 src/ui/storage-library.ts 26895 d545b60a0d2cc13707b9d42bd58480693bbf61b533a2269fad0e4ba964878216
 src/ui/text-library.ts 8785 e8906796f9508e7de560754ed9e44a17cd11009ca13c1b7e3850d053248dcf50
 src/ui/text-treatment.ts 35667 d43659f80639eadf89a4acebc4285d15cc095f8b5011b4fb5fdc03e88f86b7d3
@@ -272,6 +272,41 @@ function reviewedEventDataEffects(verifiedSources) {
   }] };
 }
 
+// Exact receiver review for the current sealed corpus. Authoring and NativeText
+// select helpers construct templates; EditorClient.select changes layer selection;
+// NativeText.control is its directly created native textarea. ImageImport.select
+// belongs to the concrete review controller, including the private shell loader's
+// returned controller. None is the public EnFileUpload.select event handler.
+// Full corpus verification precedes this finite table; a name/type annotation or
+// caller-provided source hash alone cannot grant the nonactivation effect.
+const fileSelectionCalls = [
+  ["src/ui/authoring.ts", "this.select", "this.select('Selection shape','shape',['rectangle','ellipse','polygon'],v=>{this.shape=v as typeof this.shape;})"],
+  ["src/ui/authoring.ts", "this.select", "this.select('Selection combination','combine',['replace','add','subtract','intersect'],v=>{this.combine=v as Combine;})"],
+  ["src/ui/authoring.ts", "this.select", "this.select('Brush action','brush',['add','subtract'],v=>this.brush=v as typeof this.brush)"],
+  ["src/ui/authoring.ts", "this.select", "this.select('Mask preview view','previewMode',Object.keys(p.views),v=>{this.previewMode=v;})"],
+  ["src/ui/authoring.ts", "this.select", "this.select('Sample source','sampleScope',['merged','active'],v=>{this.sampleScope=v;this.sampleGeneration++;})"],
+  ["src/ui/image-import.ts", "this.select", "this.select(files)"],
+  ["src/ui/native-text.ts", "this.editor.select", "this.editor.select([review.parts[0].layerId])"],
+  ["src/ui/native-text.ts", "this.editor.select", "this.editor.select([s.layerId])"],
+  ["src/ui/native-text.ts", "this.control.select", "this.control.select()"],
+  ["src/ui/native-text.ts", "this.select", "this.select('Text alignment',s.style.align,['left','center','right','start','end'],(s,v)=>s.style={...s.style,align:v as TextStyle['align']})"],
+  ["src/ui/native-text.ts", "this.select", "this.select('Text direction',s.style.direction,['auto','ltr','rtl'],(s,v)=>s.style={...s.style,direction:v as TextStyle['direction']})"],
+  ["src/ui/shell.ts", "editor.select", "editor.select([id])"],
+  ["src/ui/shell.ts", "controls.select", "controls.select(files)"],
+  ["src/ui/shell.ts", "editor.select", "editor.select(ids)"],
+];
+function reviewedFileSelectionEffects(verifiedSources) {
+  const sites = fileSelectionCalls.map(([source, expression, callExpression]) => {
+    const text = verifiedSources.get(source), start = text.indexOf(callExpression);
+    if (start < 0 || text.indexOf(callExpression, start + 1) !== -1 || !callExpression.startsWith(expression + '(')) fail('reviewed file-selection call is absent or ambiguous');
+    return { source, start, end: start + expression.length,
+      sourceSha256: identity(source, text).sha256, expressionSha256: identity(source, expression).sha256,
+      call: { start, end: start + callExpression.length, expressionSha256: identity(source, callExpression).sha256 }, effect: 'non-file-upload-selection' };
+  });
+  sites.sort((left, right) => left.source.localeCompare(right.source) || left.start - right.start);
+  return { kind: 'reviewed-d11-file-selection-calls-1', sites };
+}
+
 /** Verify one finite current-source review. Caller-computed hashes or a receipt
  * are necessary join evidence, never authority for an alternative corpus.
  * The bootstrap body comes from the independently derived emitted prelude;
@@ -297,7 +332,7 @@ export function verifyD11ApplicationProfile({ sourceTextByPath, sourceInputs, bo
     verifiedSources.set(expected.path, text);
   }
   if (typeof bootstrapText !== 'string' || Buffer.byteLength(bootstrapText) !== bootstrap.rawBytes || !isDeepStrictEqual(identity(bootstrap.path, bootstrapText), bootstrap)) fail('reviewed inline bootstrap differs');
-  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }], memberAssignmentEffects: reviewedMemberAssignmentEffects(verifiedSources), domDataEffects: reviewedDOMDataEffects(verifiedSources), eventDataEffects: reviewedEventDataEffects(verifiedSources) };
+  return { kind: 'verified-d11-application-profile-1', profile: 'reviewed-d11-startup-corpus-1', inputs: [...reviewedRows.map(row => ({ ...row })), { ...bootstrap }], memberAssignmentEffects: reviewedMemberAssignmentEffects(verifiedSources), domDataEffects: reviewedDOMDataEffects(verifiedSources), eventDataEffects: reviewedEventDataEffects(verifiedSources), fileSelectionEffects: reviewedFileSelectionEffects(verifiedSources) };
 }
 
 export const verifyD11ApplicationSourceProfile = verifyD11ApplicationProfile;

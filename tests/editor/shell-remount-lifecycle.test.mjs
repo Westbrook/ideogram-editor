@@ -472,3 +472,16 @@ test('mount rejects a swallowed custom-element metadata admission failure withou
   assert.deepEqual(f.starts,[]);assert.deepEqual(f.calls,['editor.mount']);assert.equal(committed,false);
  }finally{await f.cleanup();}
 });
+
+
+test('cold Import stays unconstructed through actual shell disconnect and resume',{timeout:5000},async()=>{
+ const f=await fixture(),shell=f.makeShell();shell.imageImport=undefined;
+ try{
+  f.attach(shell);await shell.startConnection('initial');await f.idle();assert.equal(shell.imageImport,undefined);assert.deepEqual(f.starts,['initial']);
+  f.detach(shell);const retired=f.module.lifetime().retirement;assert.ok(retired);await retired;await f.idle();
+  assert.equal(shell.imageImport,undefined);assert.equal(shell.lifecycle.signal.aborted,true);assert.equal(f.calls.includes(shell.fixtureId+'.image-import'),false);
+  for(const name of [shell.fixtureId+'.request',shell.fixtureId+'.text','editor.dispose','connection.dispose'])assert.ok(f.calls.includes(name),name);
+  f.attach(shell);await f.idle();assert.equal(shell.imageImport,undefined);assert.equal(shell.connectionRestoring,false);assert.deepEqual(f.starts,['initial',undefined]);assert.deepEqual(f.failures,[]);
+  assert.equal(f.calls.filter(name=>name==='connection.dispose').length,1);assert.equal(f.calls.some(name=>name.includes('construct.image-import')),false);
+ }finally{await f.cleanup();}
+});

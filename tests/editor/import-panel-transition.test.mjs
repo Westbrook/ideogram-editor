@@ -24,7 +24,7 @@ let importCode=(await transformWithOxc(await readFile('src/ui/image-import.ts','
 for(const [name,url]of Object.entries(imports))importCode=importCode.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));
 const {ImageImportControls}=await import(data(importCode));
 const compiled=(await transformWithOxc(await readFile(root+'/src/ui/shell.ts','utf8'),'shell.ts')).code;
-const shellClass=compiled.slice(compiled.indexOf('class EditorShell'),compiled.lastIndexOf('scope.register('));
+const shellClass=compiled.slice(compiled.indexOf('class EditorShell'),compiled.lastIndexOf('scope.register(')).replaceAll('#importHandoff','importHandoff').replaceAll('#loadImageImport','loadImageImport').replaceAll('#dialogs','dialogs');
 const shellModule=await import(data(`import {allocationLedger} from ${JSON.stringify(allocationsURL)};
 class LitElement{};const scope={creationScope:{}},nothing=null;let editor,connection;
 function html(strings,...values){return {strings:[...strings],values};}
@@ -48,7 +48,7 @@ function fixture({panel='import'}={}){
  // Native modality is a boundary here; events are really dispatched through
  // EventTarget and the actual ControlAdapter's deferred/veto-aware settlement.
  const dialog=new EventTarget();Object.assign(dialog,{open:true,isConnected:true,show(){shows++;this.open=true;},focus(){}});
- Object.assign(shell,{panel,copyPanelEpoch:0,recoveryCopyAcknowledgement:null,adapter:new ControlAdapter(),panels:async()=>{},requestUpdate(){updates++;},querySelector(){return dialog;},exportFlow:{begin(){calls.push('export.begin');},cancel(){}},newDocumentFlow:{begin(){calls.push('new.begin');},cancel(){}}});
+ Object.assign(shell,{panel,isConnected:true,connectionAdmitted:true,connectionGeneration:0,lifecycle:new AbortController(),copyPanelEpoch:0,recoveryCopyAcknowledgement:null,adapter:new ControlAdapter(),panels:async()=>{},requestUpdate(){updates++;},querySelector(){return dialog;},exportFlow:{begin(){calls.push('export.begin');},cancel(){}},newDocumentFlow:{begin(){calls.push('new.begin');},cancel(){}}});
  Object.defineProperty(shell,'updateComplete',{get:()=>commit});
  const imageImport=new ImageImportControls(shell,editor);shell.imageImport=imageImport;
  const lease=allocationLedger.reserve({owner:'import-panel-fixture-row',kind:'control',cpuBytes:131072,handles:2});
@@ -152,13 +152,18 @@ test('a vetoed native dismissal does not begin Import retirement',async()=>{
  try{f.dismiss();await flush();assert.equal(f.releases,0);assert.equal(f.dialog.open,true);assert.equal(f.shell.panel,'import');assert.equal(f.imageImport.inspect().items,1);}finally{f.dialog.removeEventListener('en-change',veto);unbind();await f.cleanup();}
 });
 
-test('a queued native close event cannot dismiss a newer handoff identity',async()=>{
- const f=fixture(),unbind=f.bindDismissal();let claimed=0;
+test('a held already-admitted native close cannot dismiss a newer handoff identity',async()=>{
+ const f=fixture(),unbind=f.bindDismissal(),panels=f.gate(),settled=f.shell.adapter.settled,readPanels=f.shell.panels;let claimed=0,accepted,handoff;
+ f.shell.panels=()=>panels.promise;
+ // The real adapter owns dispatch/veto/read admission. Hold only its accepted
+ // callback and false value to test the captured panel epoch, not microtask count.
+ f.shell.adapter.settled=function(event,read,accept){return settled.call(this,event,read,value=>{accepted={accept,value};});};
  try{
-  // The handoff has already crossed its async panels boundary when the
-  // settled event callback runs; both continuations are real microtasks.
-  const handoff=f.shell.importHandoff([{name:'later.png'}],async()=>{claimed++;});f.dismiss();await handoff;await flush();assert.equal(claimed,1);assert.equal(f.shell.panel,'import');assert.equal(f.releases,0);assert.equal(f.imageImport.inspect().items,1);assert.equal(f.dialog.open,true);
- }finally{unbind();await f.cleanup();}
+  const oldEpoch=f.shell.copyPanelEpoch;handoff=f.shell.importHandoff([{name:'later.png'}],async()=>{claimed++;});f.dismiss();await flush();
+  assert.ok(accepted);assert.equal(accepted.value,false);assert.equal(f.shell.copyPanelEpoch,oldEpoch);assert.equal(claimed,0);
+  panels.resolve();await handoff;assert.notEqual(f.shell.copyPanelEpoch,oldEpoch);accepted.accept(accepted.value);accepted=undefined;
+  await flush();assert.equal(claimed,1);assert.equal(f.shell.panel,'import');assert.equal(f.releases,0);assert.equal(f.imageImport.inspect().items,1);assert.equal(f.dialog.open,true);
+ }finally{panels.resolve();f.shell.panels=readPanels;f.shell.adapter.settled=settled;accepted=undefined;unbind();await Promise.allSettled([handoff]);await f.cleanup();}
 });
 
 test('late failed Cancel cannot reopen or dismiss a newer panel owner',async()=>{

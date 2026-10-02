@@ -19,7 +19,7 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 export const D11_COMPILATION_INPUT_PATHS = Object.freeze(['.progress-report/project.json', 'tooling/build-evidence.ts', 'vite.app.config.ts']);
 const REVIEWED_COMPILATION = [
   { path: 'vite.app.config.ts', rawBytes: 459, sha256: 'sha256:1254165ea4fb9b0cc2a83552b3f87c9132d45225e38959f11ce99f6130e89c4a' },
-  { path: 'tooling/build-evidence.ts', rawBytes: 15812, sha256: 'sha256:a8cfa6fbcb440fa699a2be2899e5b44676ce646af7e67e609c4bc15ed8518f01' },
+  { path: 'tooling/build-evidence.ts', rawBytes: 16426, sha256: 'sha256:7652412f0fea29ab93c8e3b69722ee81f0a0af98db0fa96e59aabb02c5a78c59' },
 ];
 
 // These are reviewed production members, not package-name exemptions. Runtime
@@ -66,6 +66,13 @@ const PACKAGES = [
       ['dist/button/index.js', 74, '9d864437ebca5b8a407c78e1a3180c8122bd647d7a32ee63e1286a9750bfa975'],
       ['dist/button/element.js', 8818, '13032a5ac7a8c27e95f5b334acfebf74e15d57e9388a94f0b5f8165c77625f22'],
       ['dist/button/template.js', 1093, '62222041a4c66d91175f39b86b1304f724373671bf4a99061db6458ef4cffa48'],
+      ['dist/definitions/file-upload.js', 422, '3c63c700de391465ad9fd99f3d72ab68b8893eabc42c473048c5efcbae0c57a8'],
+      ['dist/file-upload.js', 94, 'b9c14d22fe295ebcf7f816545c73a70ad70638e829330391fff42f8c2a43bdce'],
+      ['dist/file-upload/index.js', 78, 'ab7ab69b8d50a066a41e4d6726a576305635507b447af63e06bae363647cf71f'],
+      ['dist/file-upload/element.js', 16858, '367e7d49aaaa45f409188dbd206133ddace69c5783e391584c8218bdb670b39a'],
+      ['dist/file-upload/template.js', 2069, 'b89225be43b2fff9beaf8b7c38c74fe23b6bff504dc54a4711d5158d4a3bb00c'],
+      ['dist/file-upload/drop-controller.js', 4422, '54ac4969f0b064c36ab63919831b56833441c8ae97c3ef62ce5bad1da7cf98a8'],
+      ['dist/forms-private/validation-feedback.js', 1260, '5110ef04fac2e949768d9edf063369d00e32a288a9c487d1c1cbe6f05f224af0'],
       ['dist/internal/en-element.js', 6691, 'fd3e011a019b31f46965191be3241e84435929c89842e53b238fef20136cc472'],
       ['dist/internal/focus-participant.js', 2458, '1dd4bc6cb676ed29017e96716f6276405ba600526dc894838b2ba20ab1b4bce5'],
       ['dist/internal/element-registry.js', 922, '2366b0126eabc41f8226e7b09af76c8fef2aeb6be25ba2d41c8d88519c304dab'],
@@ -81,6 +88,8 @@ const PACKAGES = [
       ['dist/interactions/scroll-into-view.js', 11992, 'e3f204cf6b403f0c418730435f1942ce9bac7873478e9e476a5624d4016b3fd9'],
       ['dist/interactions/editing-controller.js', 5194, 'a82457b0e8ced258808675721c29f475734373c5b2672204fa59ac5a50736fee'],
       ['dist/interactions/events.js', 4279, 'eb0569335d5266defd088066c9315366a16bc081aa0ee4b7bbd1dee2b91bf422'],
+      ['dist/interactions/form-controller.js', 2526, '0a34c27866fe964fd4fb588548fecfb7f604ac8606bdea15a7cbc4a11ceb9a79'],
+      ['dist/interactions/file-selection.js', 1360, '1fc1780c9feb20749908d657b6c70c321122825d0a3164216c881f7ae3d75708'],
       ['dist/interactions/static-styles.js', 6120, 'daa549156db3e728263cdb86ae1d73210831a1146ff617caac57547b306209aa'],
     ] },
   { name: 'signal-polyfill', version: '0.2.2', integrity: 'sha512-p63Y4Er5/eMQ9RHg0M0Y64NlsQKpiu6MDdhBXpyywRuWiPywhJTpKJ1iB5K2hJEbFZ0BnDS7ZkJ+0AfTuL37Rg==', members: [
@@ -161,7 +170,7 @@ function dependencies(values) {
 }
 
 // Rolldown can omit these two declaration-only forwarding modules. Their exact
-// archived and installed bytes still participate in the 44-member capture. This
+// archived and installed bytes still participate in the exact member capture. This
 // fixed binding chain is checked only after authentication; it is not a generic
 // exemption for an index file or a missing emitted module.
 function verifiedTreeForwarding(authenticatedText, emitted) {
@@ -206,6 +215,33 @@ function verifiedButtonForwarding(authenticatedText, emitted) {
     'button pure forwarding member');
   if (!emitted.has(definition) || !emitted.has(leaf)) throw Error('D11 invocation button definition or implementation leaf was not in the compiled module graph');
   return { kind: 'verified-d11-button-forwarding-1', exportName: 'EnButton', definition, leaf,
+    links: links.map(({ sourceMap, ...link }) => ({ ...link, emitted: emitted.has(link.path) })) };
+}
+
+// FileUpload forwards native change/drop and explicit removal through propose.
+// Its reviewed constructor, files setter, form reset/restore, update callbacks
+// and adoption of pre-upgrade native files never dispatch en-change. This is
+// own-lifecycle silence, not an isTrusted or user-authorization assertion.
+// The source proof must still exclude synthetic events and direct calls.
+function verifiedFileUploadForwarding(authenticatedText, emitted) {
+  const root = 'node_modules/@en-reve/elements/dist/', definition = root + 'definitions/file-upload.js', leaf = root + 'file-upload/element.js';
+  equal(authenticatedText.get(definition), [
+    "import { EnFileUpload } from '../file-upload.js';",
+    "import { buttonDefinition } from './button.js';",
+    "import { iconDefinition } from './icon.js';",
+    '/** Registration metadata only; importing this module does not define elements. */',
+    'export const fileUploadDefinition = {', "    tagName: 'en-file-upload',", '    elementClass: EnFileUpload,',
+    '    dependencies: [buttonDefinition, iconDefinition],', '};', '//# sourceMappingURL=file-upload.js.map',
+  ].join('\n'), 'file-upload definition forwarding binding');
+  const links = [
+    { path: root + 'file-upload.js', specifier: './file-upload/index.js', target: root + 'file-upload/index.js', sourceMap: 'file-upload.js.map' },
+    { path: root + 'file-upload/index.js', specifier: './element.js', target: leaf, sourceMap: 'index.js.map' },
+  ];
+  for (const link of links) equal(authenticatedText.get(link.path),
+    "export { EnFileUpload } from '" + link.specifier + "';\n//# sourceMappingURL=" + link.sourceMap,
+    'file-upload pure forwarding member');
+  if (!emitted.has(definition) || !emitted.has(leaf)) throw Error('D11 invocation file-upload definition or implementation leaf was not in the compiled module graph');
+  return { kind: 'verified-d11-file-upload-forwarding-1', exportName: 'EnFileUpload', definition, leaf,
     links: links.map(({ sourceMap, ...link }) => ({ ...link, emitted: emitted.has(link.path) })) };
 }
 
@@ -258,15 +294,17 @@ export function verifyD11InvocationContract(contract, { lock, dependencyInputs, 
   }
   const treeForwarding = verifiedTreeForwarding(authenticatedText, emitted);
   const buttonForwarding = verifiedButtonForwarding(authenticatedText, emitted);
-  const omittedForwarders = new Set([...treeForwarding.links, ...buttonForwarding.links].filter(link => !link.emitted).map(link => link.path));
+  const fileUploadForwarding = verifiedFileUploadForwarding(authenticatedText, emitted);
+  const omittedForwarders = new Set([...treeForwarding.links, ...buttonForwarding.links, ...fileUploadForwarding.links].filter(link => !link.emitted).map(link => link.path));
   for (const item of PACKAGES) for (const member of item.members) if (!member.installedPath.endsWith('/package.json') && !emitted.has(member.installedPath) && !omittedForwarders.has(member.installedPath)) throw Error('D11 invocation reviewed runtime member was not in the compiled module graph: ' + member.installedPath);
   return { kind: 'verified-d11-invocation-contract-1', profile: PROFILE,
     effects: { plainArrowEventBinding: 'stored-until-dispatch', eventInvocation: 'EventPart.handleEvent', nativeButtonStartupClick: 'not-dispatched-by-reviewed-own-lifecycle',
+      nativeFileUploadStartupChange: 'not-dispatched-by-reviewed-own-lifecycle',
       repeatRender: 'eager-key-and-item-render-with-child-part-commit', nativeEditingBridgeStartup: 'no-preview-or-apply-dispatch',
       supportedCompilation: 'reviewed-vite-app-config-and-build-evidence', applicationSourceProfile: 'reviewed-d11-startup-corpus-1',
       treeSelectedKeys: 'immutable-string-array-from-reviewed-value-model' },
     requiredAbsentGlobals: ['reactiveElementPolyfillSupport', 'litElementHydrateSupport', 'litElementPolyfillSupport', 'litHtmlPolyfillSupport'],
-    inputs, localArchiveInputs, compilationInputs: compiled.inputs, applicationSourceProfile, treeForwarding, buttonForwarding };
+    inputs, localArchiveInputs, compilationInputs: compiled.inputs, applicationSourceProfile, treeForwarding, buttonForwarding, fileUploadForwarding };
 }
 
 /** Preparation performs bounded reads only. Registry archive acquisition is

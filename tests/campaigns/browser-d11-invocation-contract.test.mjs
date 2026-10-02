@@ -112,8 +112,8 @@ test('invocation contract rejects malformed or nonexact top-level fields before 
     { ...shell(), kind: 'other' }, { ...shell(), profile: 'unreviewed-profile' }]) {
     assert.throws(() => verifyD11InvocationContract(value), Error);
   }
-  assert.equal(D11_INVOCATION_DEPENDENCY_PATHS.length, 44);
-  assert.equal(new Set(D11_INVOCATION_DEPENDENCY_PATHS).size, 44);
+  assert.equal(D11_INVOCATION_DEPENDENCY_PATHS.length, 53);
+  assert.equal(new Set(D11_INVOCATION_DEPENDENCY_PATHS).size, 53);
   assert(Object.isFrozen(D11_INVOCATION_DEPENDENCY_PATHS));
 });
 
@@ -141,6 +141,7 @@ test('authentic reviewed archives bind all installed members and emitted product
   assert(result.localArchiveInputs.every(row => row.path.startsWith('vendor/en-reve/') && row.path.endsWith('.tgz')));
   assert.deepEqual(result.effects, { plainArrowEventBinding: 'stored-until-dispatch', eventInvocation: 'EventPart.handleEvent',
     nativeButtonStartupClick: 'not-dispatched-by-reviewed-own-lifecycle',
+    nativeFileUploadStartupChange: 'not-dispatched-by-reviewed-own-lifecycle',
     repeatRender: 'eager-key-and-item-render-with-child-part-commit', nativeEditingBridgeStartup: 'no-preview-or-apply-dispatch',
     supportedCompilation: 'reviewed-vite-app-config-and-build-evidence', applicationSourceProfile: 'reviewed-d11-startup-corpus-1',
     treeSelectedKeys: 'immutable-string-array-from-reviewed-value-model' });
@@ -438,7 +439,7 @@ test('only the authenticated two-link EnTree reexport chain may be absent from e
       { path: root + 'tree.js', specifier: './tree/index.js', target: root + 'tree/index.js', emitted: false },
       { path: root + 'tree/index.js', specifier: './element.js', target: root + 'tree/element.js', emitted: false },
     ] });
-  assert.equal(result.inputs.length, 44);
+  assert.equal(result.inputs.length, 53);
   for (const path of forwarders) assert(result.inputs.some(input => input.path === path));
   for (const path of [root + 'definitions/tree.js', root + 'tree/element.js', root + 'tree/data-controller.js']) {
     const missing = structuredClone(value); missing.emittedModules = missing.emittedModules.filter(member => member !== path);
@@ -470,7 +471,7 @@ test('authenticated button forwarding and tree forwarding compose when all four 
       { path: root + 'button.js', specifier: './button/index.js', target: root + 'button/index.js', emitted: false },
       { path: root + 'button/index.js', specifier: './element.js', target: root + 'button/element.js', emitted: false },
     ] });
-  assert.equal(result.inputs.length, 44);
+  assert.equal(result.inputs.length, 53);
   for (const path of omitted) assert(result.inputs.some(input => input.path === path), 'omitted forwarding input retained: ' + path);
   assert(result.treeForwarding.links.every(link => link.emitted === false));
   assert.equal(result.effects.nativeButtonStartupClick, 'not-dispatched-by-reviewed-own-lifecycle');
@@ -512,4 +513,119 @@ test('button forwarding requires every authenticated link and mandatory emitted 
   }
   const invented = structuredClone(value); invented.contract.buttonForwarding = { links: forwarders };
   assert.throws(() => verify(invented), /contract fields/, 'caller-provided forwarding authority is refused');
+});
+
+
+// This closure authenticates lifecycle silence, not a trusted-input requirement.
+// Application synthetic event/direct-call rejection belongs to the private proof.
+const fileUploadMembers = [
+  'node_modules/@en-reve/elements/dist/definitions/file-upload.js',
+  'node_modules/@en-reve/elements/dist/file-upload.js',
+  'node_modules/@en-reve/elements/dist/file-upload/index.js',
+  'node_modules/@en-reve/elements/dist/file-upload/element.js',
+  'node_modules/@en-reve/elements/dist/file-upload/template.js',
+  'node_modules/@en-reve/elements/dist/file-upload/drop-controller.js',
+  'node_modules/@en-reve/elements/dist/forms-private/validation-feedback.js',
+  'node_modules/@en-reve/primitives/dist/interactions/form-controller.js',
+  'node_modules/@en-reve/primitives/dist/interactions/file-selection.js',
+];
+
+test('FileUpload startup effect requires every exact installed member and emitted runtime implementation', async t => {
+  const original = await authentic(t); if (!original) return;
+  const forwarders = new Set(['node_modules/@en-reve/elements/dist/file-upload.js', 'node_modules/@en-reve/elements/dist/file-upload/index.js']);
+  assert.equal(fileUploadMembers.length, 9);
+  for (const path of fileUploadMembers) {
+    assert(D11_INVOCATION_DEPENDENCY_PATHS.includes(path), path);
+    const missing = structuredClone(original);
+    missing.dependencyInputs = missing.dependencyInputs.filter(input => input.path !== path);
+    assert.throws(() => verify(missing), /dependency input inventory/, 'missing installed authority: ' + path);
+    const changed = structuredClone(original);
+    changed.dependencyInputs.find(input => input.path === path).sha256 = sha('unreviewed file selection implementation');
+    assert.throws(() => verify(changed), /compiled dependency member/, 'changed installed authority: ' + path);
+    if (!forwarders.has(path)) {
+      const notCompiled = structuredClone(original);
+      notCompiled.emittedModules = notCompiled.emittedModules.filter(member => member !== path);
+      assert.throws(() => verify(notCompiled), /compiled module graph/, 'missing emitted implementation: ' + path);
+    }
+  }
+  assert.equal(verify(original).effects.nativeFileUploadStartupChange, 'not-dispatched-by-reviewed-own-lifecycle');
+});
+
+test('only authenticated FileUpload barrels may be omitted alongside the existing tree and button forwarders', async t => {
+  const value = await authentic(t); if (!value) return;
+  const root = 'node_modules/@en-reve/elements/dist/';
+  const fileUpload = [root + 'file-upload.js', root + 'file-upload/index.js'];
+  const omitted = [...fileUpload, root + 'button.js', root + 'button/index.js', root + 'tree.js', root + 'tree/index.js'];
+  value.emittedModules = value.emittedModules.filter(path => !omitted.includes(path));
+  const result = verify(value);
+  assert.deepEqual(result.fileUploadForwarding, { kind: 'verified-d11-file-upload-forwarding-1', exportName: 'EnFileUpload',
+    definition: root + 'definitions/file-upload.js', leaf: root + 'file-upload/element.js', links: [
+      { path: root + 'file-upload.js', specifier: './file-upload/index.js', target: root + 'file-upload/index.js', emitted: false },
+      { path: root + 'file-upload/index.js', specifier: './element.js', target: root + 'file-upload/element.js', emitted: false },
+    ] });
+  assert.equal(result.inputs.length, 53);
+  for (const path of omitted) assert(result.inputs.some(input => input.path === path), 'omitted forwarding input retained: ' + path);
+  assert(result.treeForwarding.links.every(link => link.emitted === false));
+  assert(result.buttonForwarding.links.every(link => link.emitted === false));
+  assert.equal(result.effects.nativeFileUploadStartupChange, 'not-dispatched-by-reviewed-own-lifecycle');
+  for (const path of fileUpload) {
+    const partlyEmitted = structuredClone(value); partlyEmitted.emittedModules.push(path);
+    assert.deepEqual(verify(partlyEmitted).fileUploadForwarding.links.map(link => link.emitted), fileUpload.map(member => member === path));
+  }
+});
+
+test('FileUpload forwarding redirects and caller-supplied lifecycle effects cannot replace archive authority', async t => {
+  const original = await authentic(t); if (!original) return;
+  const root = 'node_modules/@en-reve/elements/dist/';
+  for (const [path, replacement] of [
+    [root + 'file-upload.js', "export { OtherUpload as EnFileUpload } from './unreviewed.js';"],
+    [root + 'file-upload/index.js', "export { EnFileUpload } from './element.js'; globalThis.sideEffect = true;"],
+    [root + 'definitions/file-upload.js', "export const fileUploadDefinition = { tagName: 'en-file-upload', elementClass: OtherUpload };"]
+  ]) {
+    const changed = structuredClone(original);
+    const member = changed.contract.packages.flatMap(packed => packed.members).find(input => input.installedPath === path);
+    member.text = replacement; const bytes = Buffer.from(member.text); member.rawBytes = bytes.length; member.sha256 = sha(bytes);
+    Object.assign(changed.dependencyInputs.find(input => input.path === path), identity(path, bytes));
+    assert.throws(() => verify(changed), /member provenance/, 'caller-resealed redirect stays unauthorized: ' + path);
+  }
+  for (const effects of [{}, { nativeFileUploadStartupChange: 'not-dispatched-by-reviewed-own-lifecycle' }, { nativeFileUploadStartupChange: 'trusted-user-only' }]) {
+    const invented = structuredClone(original); invented.contract.effects = effects;
+    assert.throws(() => verify(invented), /contract fields/, 'missing or forged caller effects cannot supply authority');
+  }
+  const invented = structuredClone(original); invented.contract.fileUploadForwarding = { links: [root + 'file-upload.js', root + 'file-upload/index.js'] };
+  assert.throws(() => verify(invented), /contract fields/, 'caller-provided forwarding authority is refused');
+});
+
+test('resealed FileUpload startup, restoration and native forwarding mutations cannot borrow lifecycle silence', async t => {
+  const original = await authentic(t); if (!original) return;
+  const root = 'node_modules/@en-reve/elements/dist/';
+  for (const [label, path, before, after] of [
+    ['constructor selection', root + 'file-upload/element.js', 'constructor() {\n        super();', "constructor() {\n        super(); this.dispatchEvent(new CustomEvent('en-change'));"],
+    ['first update selection', root + 'file-upload/element.js', 'firstUpdated() {', "firstUpdated() { this.propose([], 'select');"],
+    ['restored selection', root + 'file-upload/element.js', 'restoreFiles(state) {', "restoreFiles(state) { this.propose([], 'select');"],
+    ['silent author write', root + 'file-upload/element.js', 'set files(value) {', "set files(value) { this.dispatchEvent(new CustomEvent('en-change'));"],
+    ['update selection', root + 'file-upload/element.js', 'updated(_changes) {', "updated(_changes) { this.propose([], 'select');"],
+    ['drop association activation', root + 'file-upload/drop-controller.js', 'hostConnected() {', "hostConnected() { this.options.handle(new Event('drop'));"],
+    ['native event forwarding', root + 'file-upload/template.js', '@change=${view.select}', '@input=${view.select}'],
+  ]) {
+    const changed = structuredClone(original);
+    const member = changed.contract.packages.flatMap(packed => packed.members).find(input => input.installedPath === path);
+    assert.equal(member.text.split(before).length, 2, 'one exact reviewed mutation target: ' + label);
+    member.text = member.text.replace(before, after);
+    const bytes = Buffer.from(member.text); member.rawBytes = bytes.length; member.sha256 = sha(bytes);
+    Object.assign(changed.dependencyInputs.find(input => input.path === path), identity(path, bytes));
+    assert.throws(() => verify(changed), /member provenance/, 'altered lifecycle remains unauthorized: ' + label);
+  }
+});
+
+test('FileUpload preparation refuses a changed installed implementation before returning its effect', async t => {
+  const value = await authentic(t); if (!value) return;
+  const changedPath = 'node_modules/@en-reve/elements/dist/file-upload/element.js';
+  const read = async (path, maximum) => {
+    const retained = value.repoBytes[path]; assert(retained, 'unretained fixture read: ' + path);
+    const bytes = path === changedPath ? Buffer.from("export class EnFileUpload { connectedCallback() { this.dispatchEvent(new Event('en-change')); } }") : Buffer.from(retained);
+    assert(bytes.length <= maximum); return { bytes };
+  };
+  const readArchive = async ({ name }) => Buffer.from(value.contract.packages.find(packed => packed.name === name).archive.data, 'base64');
+  await assert.rejects(prepareD11InvocationContract({ ...value, read, readArchive }), /installed member differs/);
 });

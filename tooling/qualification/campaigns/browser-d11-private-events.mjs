@@ -214,14 +214,33 @@ function assertEventDataEffects(conditional, applicationSourceProfile) {
   if (!isDeepStrictEqual(ordered(sites), ordered(reviewed.sites))) fail('computed data-call effects differ from the reviewed complete inventory');
 }
 
+// A .select spelling is not receiver authority: FileUpload exposes an active
+// select method too. Only the complete, freshly verified application inventory
+// may discharge each exact receiver and enclosing call, including its arguments.
+export function assertD11FileSelectionEffects(conditional, applicationSourceProfile) {
+  if (!conditional.length && applicationSourceProfile === undefined) return;
+  const reviewed = applicationSourceProfile?.fileSelectionEffects;
+  if (applicationSourceProfile?.kind !== 'verified-d11-application-profile-1' || applicationSourceProfile.profile !== 'reviewed-d11-startup-corpus-1' || !Array.isArray(applicationSourceProfile.inputs) ||
+      reviewed?.kind !== 'reviewed-d11-file-selection-calls-1' || !isDeepStrictEqual(Object.keys(reviewed).sort(), ['kind','sites']) || !Array.isArray(reviewed.sites) || reviewed.sites.length > 4096) fail('file-selection effects lack the reviewed corpus contract');
+  const sites = conditional.map(row => {
+    const inputs = applicationSourceProfile.inputs.filter(input => input.path === row.source);
+    if (inputs.length !== 1 || inputs[0].sha256 !== row.sourceSha256) fail('file-selection source is not reviewed');
+    const { requirement, ...identity } = row;
+    if (requirement !== 'reviewed-non-upload-select-call') fail('file-selection obligation differs');
+    return { ...identity, effect: 'non-file-upload-selection' };
+  });
+  const ordered = rows => [...rows].sort((a,b) => a.source.localeCompare(b.source) || a.start-b.start || a.end-b.end);
+  if (!isDeepStrictEqual(ordered(sites), ordered(reviewed.sites))) fail('file-selection effects differ from the reviewed complete inventory');
+}
+
 // This is a source census, not a claim that unknown application code or arbitrary
 // injected code cannot synthesize events. The fixed workload starts with a fresh
 // document and the retained, sealed script corpus. Unknown activation in that
 // corpus prevents this particular proof; it is never silently treated as inert.
 function inspectD11EventCorpus({ sourceTextByPath, parser, requiredAbsentGlobals = [], corpus: supplied } = {}) {
-  const conditionalEventDataEffects = [];
+  const conditionalEventDataEffects = [], conditionalFileSelectionEffects = [];
   const corpus = supplied ?? parseCorpus(sourceTextByPath, parser);
-  const activation = new Set(['click', 'dblclick', 'keydown', 'keyup', 'keypress', 'pointerdown', 'pointerup', 'mousedown', 'mouseup']);
+  const activation = new Set(['click', 'dblclick', 'keydown', 'keyup', 'keypress', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'paste', 'drop', 'change', 'en-change']);
   for (const context of corpus.values()) {
     let resolveAlias;
     for (const node of context.nodes) {
@@ -232,9 +251,17 @@ function inspectD11EventCorpus({ sourceTextByPath, parser, requiredAbsentGlobals
     if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.object?.name === 'Object' && ['defineProperty','defineProperties','assign'].includes(member(node.callee)) && ['Object','Array','Reflect'].includes(node.arguments[0]?.name)) fail('native inspection operation is replaced: ' + context.path);
     if ((node.type === 'Identifier' || node.type === 'Literal') && requiredAbsentGlobals.includes(node.name ?? node.value)) fail('optional framework hook appears in sealed application source: ' + context.path);
     if (node.type === 'Identifier' && ['eval', 'Function'].includes(node.name) && !['TSTypeReference','TSQualifiedName'].includes(context.parents.get(node)?.type)) fail('dynamic evaluation prevents callback census: ' + context.path);
-    if (node.type === 'Property' && context.parents.get(node)?.type === 'ObjectPattern' && (node.computed || ['render','click','dispatchEvent','eval','Function'].includes(key(node)))) fail('callback or activation destructuring prevents the source census: ' + context.path);
+    if (node.type === 'Property' && context.parents.get(node)?.type === 'ObjectPattern' && (node.computed || ['render','click','dispatchEvent','eval','Function','select','propose','removeFile','onDrop'].includes(key(node)))) fail('callback or activation destructuring prevents the source census: ' + context.path);
     if (node.type !== 'MemberExpression') continue;
     const name = member(node), parent = context.parents.get(node);
+    if (['propose','removeFile','onDrop'].includes(name)) fail('file-upload activation member prevents the source census: ' + context.path);
+    if (name === 'select') {
+      if (node.computed || node.optional || parent?.type !== 'CallExpression' || parent.callee !== node || parent.optional) fail('file-selection method is computed, extracted, or overwritten: ' + context.path);
+      if (conditionalFileSelectionEffects.length >= 4096) fail('file-selection obligation bound exceeded');
+      const hash = text => 'sha256:' + createHash('sha256').update(text).digest('hex');
+      const identity = item => ({ ...span(item), expressionSha256: hash(context.text.slice(item.start, item.end)) });
+      conditionalFileSelectionEffects.push({ source: context.path, ...identity(node), sourceSha256: hash(context.text), call: identity(parent), requirement: 'reviewed-non-upload-select-call' });
+    }
     if (['eval','Function'].includes(name) || ['Reflect'].includes(node.object?.name) && ['get','apply','construct'].includes(name)) fail('dynamic evaluation or reflection prevents callback census: ' + context.path);
     if (name === 'prototype' && node.object?.name !== 'Object' || name === 'setPrototypeOf' || name === '__proto__') fail('prototype access can replace a reviewed callback consumer: ' + context.path);
     if (['render','click','dispatchEvent','handleEvent'].includes(name) && (parent?.type === 'AssignmentExpression' && parent.left === node || parent?.type === 'UpdateExpression' || parent?.type === 'UnaryExpression' && parent.operator === 'delete')) fail('callback consumer is overwritten: ' + context.path);
@@ -278,7 +305,7 @@ function inspectD11EventCorpus({ sourceTextByPath, parser, requiredAbsentGlobals
     }
     }
   }
-  return { corpus, conditionalEventDataEffects };
+  return { corpus, conditionalEventDataEffects, conditionalFileSelectionEffects };
 }
 
 // Final consumers pass only the profile freshly produced by invocation replay.
@@ -286,18 +313,21 @@ function inspectD11EventCorpus({ sourceTextByPath, parser, requiredAbsentGlobals
 export function assertD11EventCorpus(input = {}) {
   const result = inspectD11EventCorpus(input);
   assertEventDataEffects(result.conditionalEventDataEffects, input.applicationSourceProfile);
+  assertD11FileSelectionEffects(result.conditionalFileSelectionEffects, input.applicationSourceProfile);
   return result.corpus;
 }
 
-function eventBinding(context, arrow) {
+function eventBinding(context, arrow, fileEvents = false) {
   const quasi = context.parents.get(arrow), tagged = context.parents.get(quasi);
   if (arrow?.type !== 'ArrowFunctionExpression' || quasi?.type !== 'TemplateLiteral' || tagged?.type !== 'TaggedTemplateExpression' || tagged.quasi !== quasi || tagged.tag?.type !== 'Identifier' || !imported(context, tagged.tag.name, 'lit', 'html')) return null;
   const index = quasi.expressions.indexOf(arrow); if (index < 0) return null;
   let prefix = '';
   for (let at = 0; at <= index; at++) prefix += quasi.quasis[at].value.cooked + (at < index ? '${value}' : '');
   const opening = prefix.slice(prefix.lastIndexOf('<'));
-  const match = /^<([a-z][a-z0-9-]*)\b[^<>]*\s@(click|keydown)=$/.exec(opening);
+  const match = /^<([a-z][a-z0-9-]*)\b[^<>]*\s@(click|keydown|paste|drop|en-change)=$/.exec(opening);
   if (!match || match[2] === 'click' && match[1] !== 'en-button') return null;
+  if (['paste', 'drop', 'en-change'].includes(match[2]) && (!fileEvents ||
+    (match[2] === 'en-change' ? match[1] !== 'en-file-upload' : match[1] !== 'section'))) return null;
   if (!/^(?:\s|>)/.test(quasi.quasis[index + 1].value.cooked)) return null;
   // A public-action label is optional evidence, never a template sink bypass.
   // Only plain literal button text with no accessible-name override is named.
@@ -339,14 +369,27 @@ function scalarArgumentConsumer(context, call, argument, corpus) {
   return true;
 }
 
-function proveTemplateConsumer(context, template, klass, corpus) {
+function proveTemplateConsumer(context, template, klass, corpus, active = new Set(), budget = { remaining: 4096 }) {
   let value = template;
   for (;;) {
+    if (--budget.remaining < 0) fail('private template consumer exceeds its work bound');
     const parent = context.parents.get(value);
+    if (parent?.type === 'ConditionalExpression' && [parent.consequent, parent.alternate].includes(value)) { value = parent; continue; }
+    if (parent?.type === 'ArrowFunctionExpression' && parent.body === value) {
+      const call = context.parents.get(parent);
+      if (call?.type !== 'CallExpression' || call.arguments.at(-1) !== parent || call.callee?.type !== 'Identifier' || !imported(context, call.callee.name, 'lit/directives/repeat.js', 'repeat')) fail('template expression escapes a reviewed repeat consumer');
+      value = call; continue;
+    }
     if (parent?.type === 'ReturnStatement' && parent.argument === value) {
       const owner = methodOwner(context, parent);
       const nearestFunction = ancestor(parent, context.parents, functionNode);
       if (owner && nearestFunction === owner.value && key(owner) === 'render' && contains(klass, owner, context.parents)) break;
+      if (owner?.key?.type === 'PrivateIdentifier' && nearestFunction === owner.value && contains(klass, owner, context.parents)) {
+        if (owner.static || owner.kind !== 'method' || active.has(owner) || active.size >= 32) fail('private template consumer is static, noncalling, recursive, or exceeds its bound');
+        const next = new Set(active); next.add(owner);
+        for (const call of privateCalls(context, klass, owner.key.name)) proveTemplateConsumer(context, call, klass, corpus, next, budget);
+        break;
+      }
       // A repeat item renderer returns a TemplateResult, never calls its event
       // functions. Its exact imported directive is separately contract-bound.
       const arrow = ancestor(parent, context.parents, functionNode);
@@ -364,21 +407,34 @@ function proveTemplateConsumer(context, template, klass, corpus) {
   // A zero-argument render() result must flow into a Lit template or be ignored.
   // This catches direct .values extraction, destructuring, callback-array reads,
   // and passing a returned template to an unproved helper before readiness.
+  const forwarded = (source, node) => {
+    let value = node, parent = source.parents.get(value);
+    while (parent && (['ChainExpression','TSAsExpression','TSNonNullExpression','TSTypeAssertion','ParenthesizedExpression'].includes(parent.type) && parent.expression === value || parent.type === 'AwaitExpression' && parent.argument === value ||
+      parent.type === 'ConditionalExpression' && [parent.consequent,parent.alternate].includes(value) || parent.type === 'LogicalExpression' || parent.type === 'SequenceExpression' && parent.expressions.at(-1) === value)) {
+      value = parent; parent = source.parents.get(value);
+    }
+    return { value, parent };
+  };
   for (const source of corpus.values()) for (const node of source.nodes) {
     if (node.type === 'MemberExpression' && member(node) === 'render') {
-      const parent = source.parents.get(node);
+      const { value, parent } = forwarded(source, node);
+      if (parent?.type === 'Property' && parent.value === value || parent?.type === 'PropertyDefinition' && parent.value === value || parent?.type === 'ArrayExpression' || parent?.type === 'AssignmentExpression' && parent.right === value || parent?.type === 'ReturnStatement' || parent?.type === 'TemplateLiteral') fail('render method escapes in an aggregate, assignment, or return: ' + source.path);
       if (parent?.type === 'MemberExpression' && ['bind','call','apply'].includes(member(parent))) fail('render method escapes through indirect invocation: ' + source.path);
-      if (parent?.type === 'CallExpression' && parent.arguments.includes(node)) fail('render method is passed to an unknown consumer: ' + source.path);
-      if (parent?.type === 'VariableDeclarator' && parent.init === node && parent.id?.type === 'Identifier') {
+      if (value !== node && ['CallExpression','NewExpression'].includes(parent?.type) && parent.callee === value) fail('render method has an indirect callable wrapper: ' + source.path);
+      if (['CallExpression','NewExpression'].includes(parent?.type) && parent.arguments.includes(value)) fail('render method is passed to an unknown consumer: ' + source.path);
+      if (parent?.type === 'VariableDeclarator' && parent.init === value && parent.id?.type === 'Identifier') {
         const name = parent.id.name;
         const owner = ancestor(parent, source.parents, functionNode) ?? source.program;
         const names = new Set([name]); let changed = true;
-        while (changed) { changed = false; for (const item of source.nodes) if (item.type === 'VariableDeclarator' && item.id?.type === 'Identifier' && item.init?.type === 'Identifier' && names.has(item.init.name) && contains(owner,item,source.parents) && !names.has(item.id.name)) { names.add(item.id.name); changed = true; } }
+        while (changed) { changed = false; for (const item of source.nodes) if (item.type === 'Identifier' && names.has(item.name) && contains(owner,item,source.parents)) {
+          const { value: initial, parent: declaration } = forwarded(source, item);
+          if (declaration?.type === 'VariableDeclarator' && declaration.init === initial && declaration.id?.type === 'Identifier' && !names.has(declaration.id.name)) { names.add(declaration.id.name); changed = true; }
+        } }
         for (const item of source.nodes.filter(item => item.type === 'Identifier' && names.has(item.name) && contains(owner,item,source.parents))) {
-          const use = source.parents.get(item);
-          if (use?.type === 'CallExpression' && use.callee === item || use?.type === 'MemberExpression' && use.object === item && ['bind','call','apply'].includes(member(use))) fail('render method is extracted as a callable: ' + source.path);
-          if (use?.type === 'CallExpression' && use.arguments.includes(item) && !scalarArgumentConsumer(source,use,item,corpus)) fail('render alias reaches an unknown caller: ' + source.path);
-          if (use?.type === 'ReturnStatement' || use?.type === 'Property' && use.value === item || use?.type === 'ArrayExpression') fail('render alias escapes in an aggregate: ' + source.path);
+          const { value: argument, parent: use } = forwarded(source, item);
+          if (['CallExpression','NewExpression'].includes(use?.type) && use.callee === argument || use?.type === 'MemberExpression' && use.object === argument && ['bind','call','apply'].includes(member(use))) fail('render method is extracted as a callable: ' + source.path);
+          if (['CallExpression','NewExpression'].includes(use?.type) && use.arguments.includes(argument) && !scalarArgumentConsumer(source,use,argument,corpus)) fail('render alias reaches an unknown caller: ' + source.path);
+          if (use?.type === 'ReturnStatement' || use?.type === 'Property' && use.value === argument || use?.type === 'PropertyDefinition' && use.value === argument || use?.type === 'ArrayExpression' || use?.type === 'AssignmentExpression' && use.right === argument || use?.type === 'TemplateLiteral') fail('render alias escapes in an aggregate or assignment: ' + source.path);
         }
       }
     }
@@ -503,11 +559,73 @@ function commandBoundary(context, klass, arrow, corpus) {
     ...(identity ? { identity } : {}) };
 }
 
+// A chained boundary has no public/source-name exemption. Every reference to
+// each runtime-private method is enumerated, and every route must terminate in
+// a reviewed event or the existing private command-table consumer. A callback
+// created inside an event-owned method is cold before that method is invoked;
+// this establishes nonactivation, not a claim that its creating click loads it.
+function privateEventGraph(context, klass, method, corpus) {
+  const calls = new Map(), edges = new Map(), complete = new Set(), dependencyEffects = new Set();
+  let work = 0;
+  const step = () => { if (++work > 4096) fail('private event graph exceeds its work bound'); };
+  const retain = witness => calls.set(witness.kind + ':' + witness.start + ':' + witness.end, witness);
+  const visit = (target, active = new Set()) => {
+    step();
+    if (target.static || target.kind !== 'method' || target.key?.type !== 'PrivateIdentifier' || active.has(target) || active.size >= 32) fail('private event graph has a static, recursive, or unproved owner');
+    if (complete.has(target)) return;
+    const next = new Set(active); next.add(target);
+    for (const call of privateCalls(context, klass, target.key.name)) {
+      step(); let closed = false;
+      for (let at = call; at; at = context.parents.get(at)) {
+        step();
+        if (at.type === 'ArrowFunctionExpression') {
+          const event = eventBinding(context, at, true);
+          if (event) {
+            const parameter = at.params[0];
+            if (['paste', 'drop', 'en-change'].includes(event.event)) {
+              if (at.params.length !== 1 || parameter?.type !== 'Identifier') fail('file event has an unproved parameter binding');
+              if (event.event !== 'en-change' && (at.body !== call || call.arguments.length !== 1 || call.arguments[0]?.type !== 'Identifier' || call.arguments[0].name !== parameter.name)) fail('native file event is not direct event forwarding');
+              if (event.event === 'en-change') dependencyEffects.add('nativeFileUploadStartupChange');
+            } else {
+              const argument = call.arguments[0];
+              const noArguments = at.params.length === 0 && call.arguments.length === 0;
+              const eventArgument = event.event === 'click' && event.element === 'en-button' && at.params.length === 1 && call.arguments.length === 1 && parameter?.type === 'Identifier' && argument?.type === 'Identifier' && parameter.name === argument.name;
+              if (at.body !== call || !noArguments && !eventArgument) fail('private graph click is not direct literal-button forwarding');
+            }
+            proveTemplateConsumer(context, event.template, klass, corpus);
+            retain({ source: context.path, ...span(call), kind: 'lit-event', events: [event.event], element: event.element });
+            closed = true; break;
+          }
+          const property = context.parents.get(at);
+          if (property?.type === 'Property' && property.value === at && key(property) === 'run') {
+            if (at.body !== call || at.params.length || call.arguments.length) fail('private graph command is not a plain zero-argument arrow');
+            const command = commandBoundary(context, klass, at, corpus);
+            retain({ source: context.path, ...span(call), kind: 'private-command-event', events: command.events, command });
+            closed = true; break;
+          }
+        }
+        if (at.type === 'MethodDefinition') {
+          if (at.key?.type !== 'PrivateIdentifier') fail('private event graph reaches a public or lifecycle method');
+          edges.set(call.start + ':' + call.end, { source: context.path, ...span(call), caller: at.key.name, callee: target.key.name });
+          visit(at, next); closed = true; break;
+        }
+        if (at.type === 'PropertyDefinition' || at.type === 'StaticBlock') fail('private event graph reaches an initializer');
+      }
+      if (!closed) fail('private event graph has no sealed event root');
+    }
+    complete.add(target);
+  };
+  visit(method);
+  const witnesses = [...calls.values()].sort((a,b) => a.start-b.start || a.end-b.end);
+  if (!edges.size || !witnesses.some(item => item.kind === 'lit-event') || !witnesses.some(item => item.kind === 'private-command-event')) fail('private event graph lacks its independent event and command roots');
+  return { witnesses, activationGraph: { kind: 'd11-runtime-private-event-graph-1', methods: [...complete].map(item => item.key.name).sort(), edges: [...edges.values()].sort((a,b) => a.start-b.start || a.end-b.end) }, dependencyEffects: sorted([...dependencyEffects]) };
+}
+
 /** Structural source proof only. It supplies no dependency authority and must
  * not itself be consumed as a roles exemption. Exported for focused specimens;
  * deriveD11PrivateEventBoundaries verifies the retained dependency contract. */
 export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextByPath, outputTextByFile, parser, roleContext, requiredAbsentGlobals = [] } = {}) {
-  const excludedImports = [], missing = []; let conditionalEventDataEffects = [];
+  const excludedImports = [], missing = []; let conditionalEventDataEffects = [], conditionalFileSelectionEffects = [];
   try {
     const corpus = parseCorpus(sourceTextByPath, parser), candidates = [];
     for (const context of corpus.values()) for (const node of context.nodes) if (node.type === 'ImportExpression') {
@@ -516,13 +634,16 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
     }
     if (!candidates.length) return { excludedImports, complete: true, missing };
     if (!isDeepStrictEqual(roleContext, D11_ROLE_CONTEXT)) fail('fixed W0/W1 Open context is absent');
-    ({ conditionalEventDataEffects } = inspectD11EventCorpus({ corpus, requiredAbsentGlobals }));
+    ({ conditionalEventDataEffects, conditionalFileSelectionEffects } = inspectD11EventCorpus({ corpus, requiredAbsentGlobals }));
     for (const { context, node, method, klass } of candidates) {
       if (klass.superClass?.type !== 'Identifier' || !imported(context, klass.superClass.name, 'lit', 'LitElement')) fail('private event owner is not the reviewed LitElement subclass');
       assertStableBinding(context, klass.id?.name);
       const calls = privateCalls(context, klass, method.key.name);
-      if (calls.length !== 2) fail('private load boundary must have exactly two accounted callers');
-      const witnesses = []; let buttonAction = null, commandAction = null;
+      const chained = calls.some(call => context.parents.get(call)?.type !== 'ArrowFunctionExpression' || context.parents.get(call).body !== call);
+      const graph = chained ? privateEventGraph(context, klass, method, corpus) : null;
+      if (!graph && calls.length !== 2) fail('private load boundary must have exactly two accounted callers');
+      const witnesses = graph?.witnesses ?? []; let buttonAction = null, commandAction = null;
+      if (!graph) {
       for (const call of calls) {
         const arrow = context.parents.get(call);
         if (arrow?.type !== 'ArrowFunctionExpression' || arrow.body !== call) fail('private feature caller is not a direct expression arrow');
@@ -542,6 +663,7 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
         }
       }
       if (witnesses.filter(item => item.kind === 'lit-event').length !== 1 || witnesses.filter(item => item.kind === 'private-command-event').length !== 1) fail('private callers do not close both independent event paths');
+      }
       const featureSource = resolveSource(context.path, literal(node.source), corpus);
       const targets = sorted(Object.values(manifest ?? {}).filter(entry => entry?.src === featureSource && entry.isDynamicEntry === true).map(entry => entry.file));
       const target = one(targets, 'private feature has no unique dynamic manifest entry');
@@ -565,10 +687,10 @@ export function deriveD11PrivateEventSourceProof({ manifest, files, sourceTextBy
         }
       }
       if (emitted.length !== 1 || !outputs.includes(emitted[0].output)) fail('private target has no unique emitted import-site binding');
-      excludedImports.push({ source: context.path, ...span(node), target, outputs, reason: 'verified-private-event-boundary', witness: { kind: 'd11-private-event-import-1', offsetUnits: 'utf16-code-unit', featureSource, className: klass.id.name, privateMethod: method.key.name, calls: witnesses.sort((a, b) => a.start - b.start), emitted, ...(buttonAction && commandAction ? { publicAction: { ...commandAction, ...buttonAction } } : {}) } });
+      excludedImports.push({ source: context.path, ...span(node), target, outputs, reason: 'verified-private-event-boundary', witness: { kind: 'd11-private-event-import-1', offsetUnits: 'utf16-code-unit', featureSource, className: klass.id.name, privateMethod: method.key.name, calls: witnesses.sort((a, b) => a.start - b.start), emitted, ...(graph ? { activationGraph: graph.activationGraph, dependencyEffects: graph.dependencyEffects } : {}), ...(buttonAction && commandAction ? { publicAction: { ...commandAction, ...buttonAction } } : {}) } });
     }
   } catch (error) { missing.push(error instanceof Error ? error.message : 'D11 private event proof is unavailable'); }
-  return { excludedImports: missing.length ? [] : excludedImports, complete: missing.length === 0, missing, ...(conditionalEventDataEffects.length ? { conditionalEventDataEffects } : {}) };
+  return { excludedImports: missing.length ? [] : excludedImports, complete: missing.length === 0, missing, ...(conditionalEventDataEffects.length ? { conditionalEventDataEffects } : {}), ...(conditionalFileSelectionEffects.length ? { conditionalFileSelectionEffects } : {}) };
 }
 
 export function deriveD11PrivateEventBoundaries(input = {}) {
@@ -578,7 +700,8 @@ export function deriveD11PrivateEventBoundaries(input = {}) {
     if (!input.invocationContract) fail('retained invocation contract is absent for a private target');
     const verified = verifyD11InvocationContract(input.invocationContract, { lock: input.lock, dependencyInputs: input.dependencyInputs, emittedModules: sorted((input.files ?? []).flatMap(file => file.modules ?? [])), compilation: input.compilation, sourceTextByPath: input.sourceTextByPath, sourceInputs: input.sourceInputs, outputTextByFile: input.outputTextByFile });
     if (verified.effects?.repeatRender !== 'eager-key-and-item-render-with-child-part-commit' || verified.effects?.supportedCompilation !== 'reviewed-vite-app-config-and-build-evidence' || verified.effects?.applicationSourceProfile !== 'reviewed-d11-startup-corpus-1') fail('reviewed template, compilation, or application source effects are absent');
+    if (structural.excludedImports.some(item => item.witness.dependencyEffects?.includes('nativeFileUploadStartupChange')) && verified.effects?.nativeFileUploadStartupChange !== 'not-dispatched-by-reviewed-own-lifecycle') fail('reviewed file-upload lifecycle effect is absent');
     assertD11EventCorpus({ sourceTextByPath: input.sourceTextByPath, parser: input.parser, requiredAbsentGlobals: verified.requiredAbsentGlobals, applicationSourceProfile: verified.applicationSourceProfile });
-    return { ...structural, excludedImports: structural.excludedImports.map(item => ({ ...item, witness: { ...item.witness, invocationProfile: verified.profile, applicationSourceProfile: verified.effects.applicationSourceProfile, eventDataEffects: verified.applicationSourceProfile.eventDataEffects } })) };
+    return { ...structural, excludedImports: structural.excludedImports.map(item => ({ ...item, witness: { ...item.witness, invocationProfile: verified.profile, applicationSourceProfile: verified.effects.applicationSourceProfile, eventDataEffects: verified.applicationSourceProfile.eventDataEffects, fileSelectionEffects: verified.applicationSourceProfile.fileSelectionEffects } })) };
   } catch (error) { return { excludedImports: [], complete: false, missing: [error instanceof Error ? error.message : 'D11 private dependency contract is unavailable'] }; }
 }

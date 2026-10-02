@@ -353,10 +353,20 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
   const shared = expectedFeature.filter(file => file !== featureEntry);
   assert(shared.every(file => build.roles.startupFiles.includes(file)), 'Shared startup dependencies must remain charged to the feature.');
   assert(!build.roles.startupFiles.includes(featureEntry));
-  assert.equal(shared.reduce((sum, file) => sum + byFile.get(file).gzipBytes, 0), 59_428);
+  // Recompress the exact named files independently of the role reducer. Their
+  // identities and membership stay strict as compiled product bytes evolve.
+  const independentGzip = new Map();
+  for (const file of expectedFeature) {
+    const bytes = await readFile(join(repo, 'dist/app', file)), recorded = byFile.get(file);
+    assert.equal(bytes.length, recorded.rawBytes, file);
+    assert.equal('sha256:' + hash(bytes), recorded.sha256, file);
+    independentGzip.set(file, gzipSync(bytes).length);
+  }
+  const expectedSharedGzip = shared.reduce((sum, file) => sum + independentGzip.get(file), 0);
+  assert.equal(shared.reduce((sum, file) => sum + byFile.get(file).gzipBytes, 0), expectedSharedGzip);
   // Independently traverse the finalized manifest. These fixed source roots
   // are the reviewed main/shell/Open path plus the conservatively charged
-  // adapter observer; the two private user-action features are not roots.
+  // adapter observer; the three proved private action features are not roots.
   // Worker/font asset URLs are separately proved and budgeted, not JS imports.
   const staticFiles = roots => {
     const found = new Set(), visited = new Set(), pending = [...roots];
@@ -370,18 +380,27 @@ test('actual compiled feature graph retains shared costs, rejects unproved refin
   };
   const startupExpected = [...staticFiles(['index.html', 'src/ui/shell.ts', 'src/ui/editor-panels.ts', 'src/observability/adapter-upload.ts']), 'inline:bootstrap'].sort();
   assert.deepEqual(build.roles.startupFiles, startupExpected);
-  const storageEntry = named('storage-library');
-  assert.deepEqual(build.roles.excludedImports.map(item => item.target).sort(), [featureEntry, storageEntry].sort());
+  const storageEntry = named('storage-library'), importEntry = named('image-import');
+  assert.deepEqual(build.roles.excludedImports.map(item => item.target).sort(), [featureEntry, storageEntry, importEntry].sort());
   assert(build.roles.startupUpperBounds.some(item => item.target === named('adapter-upload')));
   assert(!build.roles.startupUpperBounds.some(item => item.target === storageEntry));
   assert.deepEqual(build.roles.lazyFeatures.find(row => row.id === 'src/ui/storage-library.ts').files, staticFiles(['src/ui/storage-library.ts']));
+  assert(!build.roles.startupFiles.includes(importEntry));
+  assert(!build.roles.startupUpperBounds.some(item => item.target === importEntry));
+  const imageImport = build.roles.lazyFeatures.find(row => row.id === 'src/ui/image-import.ts');
+  assert.deepEqual(imageImport.files, staticFiles(['src/ui/image-import.ts']));
+  assert.deepEqual(imageImport.closureFiles, imageImport.files);
+  const importWitness = build.roles.excludedImports.find(item => item.target === importEntry).witness;
+  assert.equal(importWitness.activationGraph.kind, 'd11-runtime-private-event-graph-1');
+  assert.deepEqual(importWitness.dependencyEffects, ['nativeFileUploadStartupChange']);
+  assert.equal(Object.hasOwn(importWitness, 'publicAction'), false, 'Multiple import routes cannot claim one universal first-use action.');
   const gzipTotal = files => files.reduce((sum, file) => sum + byFile.get(file).gzipBytes, 0);
   const expectedStartupGzip = gzipTotal(startupExpected.filter(file => byFile.get(file).kind === 'js'));
   const expectedFeatureWithShellGzip = gzipTotal(staticFiles(['src/ui/export.ts', 'src/ui/shell.ts']));
   assert(expectedFeatureWithShellGzip > 307_200, 'The emitted-edge control must still exercise the unchanged feature ceiling.');
   const audit = observeD11Build(build);
   assert.equal(audit.status, 'PASS', JSON.stringify({ missing: audit.missing, budgets: audit.budgets, violations: audit.violations }));
-  assert.equal(audit.features.find(row => row.id === feature.id).gzipBytes, 67_157);
+  assert.equal(audit.features.find(row => row.id === feature.id).gzipBytes, expectedSharedGzip + independentGzip.get(featureEntry));
   assert.equal(audit.measurements.find(row => row.name === 'D11BuildStartupJsGzipBytes').value, expectedStartupGzip);
 
   const canonical = value => JSON.stringify(value && typeof value === 'object'

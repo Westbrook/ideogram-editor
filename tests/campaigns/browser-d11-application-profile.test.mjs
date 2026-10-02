@@ -9,6 +9,7 @@ import { parseSync } from 'rolldown/utils';
 import { D11_ROLE_CONTEXT } from '../../tooling/qualification/campaigns/browser-d11-registration.mjs';
 import { assertD11MemberAssignmentEffects, assertD11DOMDataEffects, deriveD11NativePreparationClosure, deriveD11WorkerActivation } from '../../tooling/qualification/campaigns/browser-d11-worker-activation.mjs';
 import { D11_APPLICATION_SOURCE_PATHS, verifyD11ApplicationProfile } from '../../tooling/qualification/campaigns/browser-d11-application-profile.mjs';
+import { assertD11EventCorpus } from '../../tooling/qualification/campaigns/browser-d11-private-events.mjs';
 
 const require = createRequire(import.meta.url);
 const parser = { name: 'rolldown', version: require('rolldown/package.json').version, parseSync };
@@ -91,8 +92,8 @@ const expectedAssignments = [
   ['src/ui/composition.ts', 43965, '[es[i],es[j]]=[es[j],es[i]]'],
   ['src/ui/composition.ts', 55237, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
   ['src/ui/request-v45-edit.ts', 12316, '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],
-  ['src/ui/shell.ts', 83857, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
-  ['src/ui/shell.ts', 83915, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
+  ['src/ui/shell.ts', 87723, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
+  ['src/ui/shell.ts', 87781, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],
 ];
 let retainedClosure;
 async function provisional() {
@@ -220,7 +221,7 @@ const treeEffect={treeSelectedKeys:'immutable-string-array-from-reviewed-value-m
 test('verified application profile binds both exact tree observations and requires their producer effect',async()=>{
   const value=await specimen(),profile=verifyD11ApplicationProfile(value),proof=await provisional();
   const source='src/ui/shell.ts',expression='(tree as EnTree).selectedKeys[0]';
-  const expected=[73605,74278].map(start=>({source,start,end:start+expression.length,
+  const expected=[77471,78144].map(start=>({source,start,end:start+expression.length,
     sourceSha256:identity(source,value.sourceTextByPath[source]).sha256,expressionSha256:identity(source,expression).sha256,effect:'en-tree-selected-keys-zero-read'}));
   assert.deepEqual(profile.domDataEffects,{kind:'reviewed-d11-dom-data-reads-1',sites:expected});
   assert.deepEqual(assertD11DOMDataEffects(proof.witness.conditionalDOMEffects,profile,treeEffect),expected);
@@ -348,5 +349,56 @@ test('event data effects are unavailable before complete source receipt and boot
   }
   for (const eventDataEffects of [null, { kind: 'reviewed-d11-event-data-calls-1', sites: [] }, { kind: 'caller-allowlist', sites: [{ method: 'endsWith' }] }]) {
     assert.deepEqual(verifyD11ApplicationProfile({ ...authentic, eventDataEffects }), expected);
+  }
+});
+
+// These independent literal positions and complete calls preserve the finite
+// receiver review. They never infer authority from a method named select.
+const expectedFileSelections = [
+  ["src/ui/authoring.ts", 55970, "this.select", "this.select('Selection shape','shape',['rectangle','ellipse','polygon'],v=>{this.shape=v as typeof this.shape;})"],
+  ["src/ui/authoring.ts", 56092, "this.select", "this.select('Selection combination','combine',['replace','add','subtract','intersect'],v=>{this.combine=v as Combine;})"],
+  ["src/ui/authoring.ts", 57651, "this.select", "this.select('Brush action','brush',['add','subtract'],v=>this.brush=v as typeof this.brush)"],
+  ["src/ui/authoring.ts", 61758, "this.select", "this.select('Mask preview view','previewMode',Object.keys(p.views),v=>{this.previewMode=v;})"],
+  ["src/ui/authoring.ts", 62702, "this.select", "this.select('Sample source','sampleScope',['merged','active'],v=>{this.sampleScope=v;this.sampleGeneration++;})"],
+  ["src/ui/image-import.ts", 11899, "this.select", "this.select(files)"],
+  ["src/ui/native-text.ts", 81986, "this.editor.select", "this.editor.select([review.parts[0].layerId])"],
+  ["src/ui/native-text.ts", 86688, "this.editor.select", "this.editor.select([s.layerId])"],
+  ["src/ui/native-text.ts", 98022, "this.control.select", "this.control.select()"],
+  ["src/ui/native-text.ts", 102683, "this.select", "this.select('Text alignment',s.style.align,['left','center','right','start','end'],(s,v)=>s.style={...s.style,align:v as TextStyle['align']})"],
+  ["src/ui/native-text.ts", 102827, "this.select", "this.select('Text direction',s.style.direction,['auto','ltr','rtl'],(s,v)=>s.style={...s.style,direction:v as TextStyle['direction']})"],
+  ["src/ui/shell.ts", 11998, "editor.select", "editor.select([id])"],
+  ["src/ui/shell.ts", 73071, "controls.select", "controls.select(files)"],
+  ["src/ui/shell.ts", 90766, "editor.select", "editor.select(ids)"],
+];
+test('exact current selection receivers close every FileUpload activation obligation', async () => {
+  const value = await specimen(), profile = verifyD11ApplicationProfile(value);
+  const sites = expectedFileSelections.map(([source, start, expression, callExpression]) => {
+    const text = value.sourceTextByPath[source];
+    assert.equal(text.slice(start, start + callExpression.length), callExpression);
+    assert.equal(text.indexOf(callExpression), start);assert.equal(text.indexOf(callExpression, start + 1), -1);
+    return {source,start,end:start+expression.length,sourceSha256:identity(source,text).sha256,expressionSha256:identity(source,expression).sha256,
+      call:{start,end:start+callExpression.length,expressionSha256:identity(source,callExpression).sha256},effect:'non-file-upload-selection'};
+  });
+  assert.equal(sites.length,14);assert.deepEqual(profile.fileSelectionEffects,{kind:'reviewed-d11-file-selection-calls-1',sites});
+  assert.doesNotThrow(()=>assertD11EventCorpus({...value,parser,applicationSourceProfile:profile}));
+  for(const mutate of [
+    x=>{delete x.fileSelectionEffects;},x=>{x.fileSelectionEffects.sites.pop();},x=>{x.fileSelectionEffects.sites.push({...x.fileSelectionEffects.sites[0]});},
+    x=>{x.fileSelectionEffects.sites[0].effect='any-select-is-safe';},x=>{x.fileSelectionEffects.sites[0].start++;},
+    x=>{x.fileSelectionEffects.sites[0].call.end++;},x=>{x.fileSelectionEffects.sites[0].call.expressionSha256='sha256:'+'0'.repeat(64);},
+    x=>{x.fileSelectionEffects.sites[0].sourceSha256='sha256:'+'0'.repeat(64);},x=>{x.inputs=x.inputs.filter(row=>row.path!=='src/ui/shell.ts');},
+  ]) {const changed=structuredClone(profile);mutate(changed);assert.throws(()=>assertD11EventCorpus({...value,parser,applicationSourceProfile:changed}));}
+});
+test('rebound selection receiver or loader callback cannot mint a current selection effect', async () => {
+  const baseline=await specimen(),profile=verifyD11ApplicationProfile(baseline);
+  for(const [source,before,after] of [
+    ['src/ui/native-text.ts','this.editor.select([s.layerId])','this.control.select([s.layerId])'],
+    ['src/ui/shell.ts','new loaded.ImageImportControls(this,editor)',"this.querySelector('en-file-upload')"],
+    ['src/ui/shell.ts','controls=>controls.select(files)',"controls=>this.querySelector('en-file-upload').select(files)"],
+  ]) {
+    const value=structuredClone(baseline);assert.equal(value.sourceTextByPath[source].split(before).length,2);
+    value.sourceTextByPath[source]=value.sourceTextByPath[source].replace(before,after);
+    value.sourceInputs=value.sourceInputs.map(row=>row.path===source?identity(source,value.sourceTextByPath[source]):row);
+    assert.throws(()=>verifyD11ApplicationProfile(value),/reviewed application source differs/);
+    assert.throws(()=>assertD11EventCorpus({...value,parser,applicationSourceProfile:profile}));
   }
 });

@@ -15,10 +15,12 @@ const {allocationLedger,ALLOCATION_LIMITS}=await import(allocationsURL),{cloneOw
 // initializers; only editor/session and DOM boundary operations are controlled.
 // The methods under test, restoredInspector and all model leases are real.
 const compiled=(await transformWithOxc(await readFile(root+'/src/ui/shell.ts','utf8'),'shell.ts')).code;
-const shellClass=compiled.slice(compiled.indexOf('class EditorShell'),compiled.lastIndexOf('scope.register('));
+const shellClass=compiled.slice(compiled.indexOf('class EditorShell'),compiled.lastIndexOf('scope.register(')).replaceAll('#dialogs','dialogs').replaceAll('#resumeImage','resumeImage');
 const shellModule=await import(data(`import {restoredInspector} from ${JSON.stringify(inspectorURL)};
 class LitElement{};const nothing=null,scope={creationScope:{}};let editor,connection,clear=()=>{};
 function html(strings,...values){return {strings:[...strings],values};}
+// Project real keys and templates for callback tests; this is not keyed DOM reconciliation.
+function repeat(items,key,template){return Array.from(items,(item,index)=>{key(item,index);return template(item,index);});}
 function renderInto(_value,root){clear(root);}
 export function bind(client,session={}){editor=client;connection=session;}
 export function setClear(work){clear=work;}

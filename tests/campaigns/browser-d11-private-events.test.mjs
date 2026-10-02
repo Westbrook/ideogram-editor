@@ -48,8 +48,106 @@ test('private source witness closes direct event and privately stored command pa
   assert.deepEqual(item.witness.calls.map(call=>call.kind).sort(),['lit-event','private-command-event']);
   assert.deepEqual(item.witness.calls.find(call=>call.kind==='private-command-event').events,['click','keydown']);
 });
+function chainedFixture() {
+  const value=fixture();
+  value.sourceTextByPath['src/ui/shell.ts']=[
+    "import { LitElement, html } from 'lit'; import { repeat } from 'lit/directives/repeat.js';",
+    "import { Commands } from './commands.js';",
+    'class Shell extends LitElement {',
+    'commands = new Commands(()=>this.#rows());',
+    "#load(){return import('./feature.js');}",
+    '#show(){return this.#load();}',
+    '#handoff(){return this.#load();}',
+    '#file(event){if(event.detail)this.#resume(event);else this.#handoff();}',
+    '#resume(event){return this.#handoff();}',
+    '#paste(event){return this.#handoff();}',
+    '#drop(event){return this.#handoff();}',
+    '#storage(){storeForLater(()=>this.#show());}',
+    "#rows(){return [{id:'feature',label:'Feature',run:()=>this.#show()},{id:'storage',label:'Storage',run:()=>this.#storage()}];}",
+    '#dialogs(){return html`${true?html`${repeat([{id:"retained"}],item=>item.id,item=>html`<en-file-upload @en-change=${event=>{if(event)this.#file(event)}}></en-file-upload>`)}`:null}`;}',
+    'render(){return html`<en-button @click=${()=>this.#show()}>Feature</en-button><en-button @click=${()=>this.#storage()}>Storage</en-button><section @paste=${event=>this.#paste(event)} @drop=${event=>this.#drop(event)}></section>${this.#dialogs()}${this.commands.render()}`;}',
+    '}',
+  ].join('\n');
+  return value;
+}
+const mutateChain = (before,after) => {const value=chainedFixture();assert.equal(value.sourceTextByPath['src/ui/shell.ts'].split(before).length,2,'Unique chain mutation anchor changed');value.sourceTextByPath['src/ui/shell.ts']=value.sourceTextByPath['src/ui/shell.ts'].replace(before,after);return value;};
+
+test('runtime-private import graphs close explicit file events and cold stored handoffs without claiming one public action',()=>{
+  const proof=deriveD11PrivateEventSourceProof(chainedFixture());assert.equal(proof.complete,true,proof.missing.join('; '));
+  assert.equal(proof.excludedImports.length,1);const witness=proof.excludedImports[0].witness;
+  assert.equal(witness.activationGraph.kind,'d11-runtime-private-event-graph-1');
+  assert.deepEqual(witness.activationGraph.methods,['drop','file','handoff','load','paste','resume','show','storage']);
+  assert.deepEqual([...new Set(witness.calls.flatMap(call=>call.events))].sort(),['click','drop','en-change','keydown','paste']);
+  assert.deepEqual(witness.dependencyEffects,['nativeFileUploadStartupChange']);
+  assert.equal(witness.activationGraph.edges.length,8);
+  assert.equal(Object.hasOwn(witness,'publicAction'),false,'Creating a stored callback is not evidence that its creating click activates the feature');
+  const result=deriveD11PrivateEventBoundaries(chainedFixture());assert.equal(result.complete,false);assert.deepEqual(result.excludedImports,[]);assert.match(result.missing.join('; '),/retained invocation contract is absent/);
+});
+
+test('private import graphs reject eager public lifecycle escaped and recursive routes',()=>{
+  for(const [before,after] of [
+    ['commands = new Commands(()=>this.#rows());','commands = new Commands(()=>this.#rows()); eager=this.#show();'],
+    ['commands = new Commands(()=>this.#rows());','commands = new Commands(()=>this.#rows()); eager=()=>this.#show();'],
+    ['commands = new Commands(()=>this.#rows());','commands = new Commands(()=>this.#rows()); constructor(){super();this.#show();}'],
+    ['commands = new Commands(()=>this.#rows());','commands = new Commands(()=>this.#rows()); connectedCallback(){this.#handoff();}'],
+    ['commands = new Commands(()=>this.#rows());','commands = new Commands(()=>this.#rows()); restore(){this.#resume({});}'],
+    ['#show(){return this.#load();}','#show(){const leaked=this.#load;return leaked();}'],
+    ['#show(){return this.#load();}','#show(){this.#show();return this.#load();}'],
+    ['#show(){return this.#load();}','#show(){return other.#load();}'],
+    ['#show(){return this.#load();}','show(){return this.#load();} #show(){return this.show();}'],
+    ['#storage(){storeForLater(()=>this.#show());}','storage(){storeForLater(()=>this.#show());} #storage(){this.storage();}'],
+  ]) rejected(mutateChain(before,after));
+});
+
+test('file event graph leaves require exact stored event sinks and reject synthetic activation',()=>{
+  for(const [before,after] of [
+    ['@paste=${event=>this.#paste(event)}','@focus=${event=>this.#paste(event)}'],
+    ['<section @paste=','<div @paste='],
+    ['@drop=${event=>this.#drop(event)}','@drop=${event=>this.#drop(other)}'],
+    ['@drop=${event=>this.#drop(event)}','@drop=${event=>this.#drop(event.target)}'],
+    ['@drop=${event=>this.#drop(event)}','@drop=${()=>this.#drop(event)}'],
+    ['<en-file-upload @en-change=','<en-textarea @en-change='],
+    ['@en-change=${event=>{if(event)this.#file(event)}}','@change=${event=>{if(event)this.#file(event)}}'],
+    ['@en-change=${event=>{if(event)this.#file(event)}}','@en-change=${({event})=>{if(event)this.#file(event)}}'],
+    ['run:()=>this.#show()','run:event=>this.#show(event)'],
+  ]) rejected(mutateChain(before,after));
+  for(const type of ['paste','drop','change','en-change']){
+    const value=chainedFixture();value.sourceTextByPath['src/synthetic-activation.ts']=`host.dispatchEvent(new CustomEvent('${type}'));`;rejected(value);
+  }
+});
+
+test('private file-control templates cannot escape through maps helper results or unknown tags',()=>{
+  for(const [before,after] of [
+    ['${this.#dialogs()}','${unknown(this.#dialogs())}'],
+    ['${this.#dialogs()}','${this.#dialogs().values[0]()}'],
+    ['${this.#dialogs()}','${(()=>this.#dialogs())()}'],
+    ['item=>html`<en-file-upload','item=>unknownTag`<en-file-upload'],
+    ['repeat([{id:"retained"}],item=>item.id,item=>html','[{id:"retained"}].map(item=>html'],
+    ['#dialogs(){return html','get #dialogs(){return html'],
+  ]) rejected(mutateChain(before,after));
+  const value=chainedFixture();value.sourceTextByPath['src/ui/shell.ts']=value.sourceTextByPath['src/ui/shell.ts'].replaceAll('#dialogs','dialogs');rejected(value);
+  for(const source of ['const holder={get:host.render};holder.get.call(host).values[0]();','let get;get=host.render;get.call(host).values[0]();','const get=host.render;let activate;activate=get;activate.call(host).values[0]();','const holder=[host.render];holder[0].call(host).values[0]();','function leaked(){return host.render;}leaked().call(host).values[0]();']){
+    const fixture=chainedFixture();fixture.sourceTextByPath['src/render-escape.ts']=source;rejected(fixture);
+  }
+  for(const expression of ['(host.render as any)','host.render!','condition?host.render:fallback','host.render||fallback','(0,host.render)']){
+    const fixture=chainedFixture();fixture.sourceTextByPath['src/render-escape.ts']='const get='+expression+';get.call(host).values[0]();';rejected(fixture);
+  }
+  for(const source of ['const get=host.render;const activate=(get as any);activate.call(host).values[0]();','const holder={get:(host.render as any)};holder.get.call(host).values[0]();','const get=host.render;let activate;activate=(get as any);activate.call(host).values[0]();','(host.render as any)().values[0]();']){
+    const fixture=chainedFixture();fixture.sourceTextByPath['src/render-escape.ts']=source;rejected(fixture);
+  }
+});
+
 test('source structure alone never grants dependency authority',()=>{
   const proof=deriveD11PrivateEventBoundaries({...fixture(),invocationContract:null});assert.equal(proof.complete,false);assert.match(proof.missing.join(' '),/invocation contract/);
+});
+test('private template helper graphs retain a total work bound as well as a cycle bound',()=>{
+  const value=chainedFixture();
+  const helpers=Array.from({length:13},(_,index)=>{
+    const previous=index?'template'+(index-1):'dialogs';
+    return '#template'+index+'(){return html`${this.#'+previous+'()}${this.#'+previous+'()}`;}';
+  }).join('\n');
+  value.sourceTextByPath['src/ui/shell.ts']=value.sourceTextByPath['src/ui/shell.ts'].replace('${this.#dialogs()}','${this.#template12()}').replace('render(){',helpers+'\nrender(){');
+  const proof=rejected(value);assert.match(proof.missing.join('; '),/private template consumer exceeds its work bound/);
 });
 test('legacy corpus without a private import requires no optional contract',()=>{
   const f=fixture();f.sourceTextByPath['src/ui/shell.ts']='export const shell=1;';
@@ -148,9 +246,11 @@ test('computed alias binding identity preserves calls, captures and unknown-scop
 });
 
 test('the actual native text source distinguishes selected File data from an owner callback parameter',async()=>{
-  const {readFile}=await import('node:fs/promises');
-  const source=await readFile(new URL('../../src/ui/native-text.ts',import.meta.url),'utf8');
-  assert.doesNotThrow(()=>assertD11EventCorpus({sourceTextByPath:{'src/ui/native-text.ts':source},parser}));
+  const value=await actualEventCorpus();
+  const {verifyD11ApplicationProfile}=await import('../../tooling/qualification/campaigns/browser-d11-application-profile.mjs');
+  const profile=verifyD11ApplicationProfile(value);
+  assert(profile.fileSelectionEffects.sites.some(site=>site.source==='src/ui/native-text.ts'));
+  assert.doesNotThrow(()=>assertD11EventCorpus({sourceTextByPath:value.sourceTextByPath,parser,applicationSourceProfile:profile}));
 });
 
 
@@ -179,6 +279,7 @@ test('the entire actual reviewed application corpus passes the strict event cens
   const {verifyD11ApplicationProfile}=await import('../../tooling/qualification/campaigns/browser-d11-application-profile.mjs');
   const profile=verifyD11ApplicationProfile(value);
   assert.equal(profile.eventDataEffects.sites.length,1);assert.equal(profile.eventDataEffects.sites[0].calls.length,4);
+  assert.equal(profile.fileSelectionEffects.kind,'reviewed-d11-file-selection-calls-1');assert.equal(profile.fileSelectionEffects.sites.length,14);
   assert.throws(()=>assertD11EventCorpus({sourceTextByPath:value.sourceTextByPath,parser}),/computed data-call effects lack the reviewed corpus contract/);
   const census=assertD11EventCorpus({sourceTextByPath:value.sourceTextByPath,parser,applicationSourceProfile:profile});
   assert(census instanceof Map);assert(census.has('src/ui/request.ts'));assert(census.has('src/ui/native-text.ts'));
@@ -196,6 +297,60 @@ test('candidate method syntax remains a provisional obligation and cannot supply
   for(const extra of [{applicationSourceProfile:forged},{applicationSourceProfile:forged,invocationContract:{applicationSourceProfile:forged}}]){
     const result=deriveD11PrivateEventBoundaries({...f,...extra});assert.equal(result.complete,false);assert.deepEqual(result.excludedImports,[]);
   }
+});
+
+test('file selection spelling produces only an exact provisional call obligation and no dependency authority',()=>{
+  const value=chainedFixture();value.sourceTextByPath['src/selection.ts']='const control=getUpload();control.select(files);';
+  const proof=deriveD11PrivateEventSourceProof(value);assert.equal(proof.complete,true,proof.missing.join('; '));
+  assert.equal(proof.conditionalFileSelectionEffects.length,1);
+  const {requirement,...site}=proof.conditionalFileSelectionEffects[0];
+  assert.equal(requirement,'reviewed-non-upload-select-call');assert.equal(site.source,'src/selection.ts');
+  assert.equal(value.sourceTextByPath[site.source].slice(site.start,site.end),'control.select');
+  assert.equal(value.sourceTextByPath[site.source].slice(site.call.start,site.call.end),'control.select(files)');
+  assert.throws(()=>assertD11EventCorpus({sourceTextByPath:value.sourceTextByPath,parser}),/file-selection effects lack/);
+  const forged={kind:'verified-d11-application-profile-1',profile:'reviewed-d11-startup-corpus-1',inputs:[{path:site.source,sha256:site.sourceSha256}],eventDataEffects:{kind:'reviewed-d11-event-data-calls-1',sites:[]},fileSelectionEffects:{kind:'reviewed-d11-file-selection-calls-1',sites:[{...site,effect:'non-file-upload-selection'}]}};
+  for(const extra of [{applicationSourceProfile:forged},{applicationSourceProfile:forged,invocationContract:{applicationSourceProfile:forged}}]){
+    const result=deriveD11PrivateEventBoundaries({...value,...extra});assert.equal(result.complete,false);assert.deepEqual(result.excludedImports,[]);
+  }
+});
+
+test('file-upload activation methods and selection aliases cannot escape the exact call census',()=>{
+  for(const source of [
+    'upload.propose(files);','upload.removeFile(file);','upload.onDrop(event);','const activate=upload.propose;',
+    "upload['propose'](files);",'const {propose:activate}=upload;activate(files);','const {removeFile}=upload;','const {onDrop}=upload;',
+    'const select=upload.select;select(files);','upload.select.bind(upload)(files);','upload.select.call(upload,files);','upload.select.apply(upload,[files]);',
+    "upload['select'](files);",'upload?.select(files);','upload.select?.(files);','const {select:activate}=upload;activate(files);',
+    'upload.select=other;','delete upload.select;',"const name='select';upload[name](files);", "const name='select';const activate=upload[name];activate(files);",
+  ]){
+    const value=chainedFixture();value.sourceTextByPath['src/file-activation.ts']=source;rejected(value);
+  }
+});
+
+test('file selection effects join exact receivers arguments source hashes and the complete reviewed inventory',async()=>{
+  const value=await actualEventCorpus();
+  const {verifyD11ApplicationProfile}=await import('../../tooling/qualification/campaigns/browser-d11-application-profile.mjs');
+  const original=verifyD11ApplicationProfile(value);
+  for(const mutate of [
+    profile=>{delete profile.fileSelectionEffects;},profile=>{profile.fileSelectionEffects.kind='other';},profile=>{profile.fileSelectionEffects.sites=[];},
+    profile=>{profile.fileSelectionEffects.sites.push(structuredClone(profile.fileSelectionEffects.sites[0]));},
+    profile=>{profile.fileSelectionEffects.sites[0].effect='any-select';},profile=>{profile.fileSelectionEffects.sites[0].start++;},
+    profile=>{profile.fileSelectionEffects.sites[0].expressionSha256='sha256:'+'0'.repeat(64);},
+    profile=>{profile.fileSelectionEffects.sites[0].call.end++;},profile=>{profile.fileSelectionEffects.sites[0].call.expressionSha256='sha256:'+'0'.repeat(64);},
+    profile=>{profile.inputs=profile.inputs.filter(input=>input.path!==profile.fileSelectionEffects.sites[0].source);},
+  ]){
+    const profile=structuredClone(original);mutate(profile);
+    assert.throws(()=>assertD11EventCorpus({sourceTextByPath:value.sourceTextByPath,parser,applicationSourceProfile:profile}),/file-selection/);
+  }
+  const selected=original.fileSelectionEffects.sites.find(site=>site.source==='src/ui/image-import.ts');assert(selected);
+  const source=value.sourceTextByPath[selected.source];
+  for(const replacement of ['upload.select',source.slice(selected.start,selected.end)]){
+    const sourceTextByPath={...value.sourceTextByPath,[selected.source]:source.slice(0,selected.start)+replacement+source.slice(selected.end)+(replacement==='upload.select'?'':'\n')};
+    assert.throws(()=>assertD11EventCorpus({sourceTextByPath,parser,applicationSourceProfile:original}),/file-selection source is not reviewed/);
+  }
+  const changedCall={...value.sourceTextByPath,[selected.source]:source.slice(0,selected.call.start)+source.slice(selected.call.start,selected.call.end-1)+',()=>upload.select(files))'+source.slice(selected.call.end)};
+  assert.throws(()=>assertD11EventCorpus({sourceTextByPath:changedCall,parser,applicationSourceProfile:original}),/file-selection source is not reviewed/);
+  const extra={...value.sourceTextByPath,'src/extra-selection.ts':'upload.select(files);'};
+  assert.throws(()=>assertD11EventCorpus({sourceTextByPath:extra,parser,applicationSourceProfile:original}),/file-selection source is not reviewed/);
 });
 
 test('strict computed data effect matching rejects missing, additional and altered read or call obligations',async()=>{
@@ -278,28 +433,35 @@ test('all actual application render consumers reach the complete private structu
   const profile=verifyD11ApplicationProfile(value);
   assert.equal(profile.inputs.length,Object.keys(value.sourceTextByPath).length+1);
   // Only the output mapping is synthetic here. The complete actual source
-  // corpus exercises every render sink and both real Export/Storage roots;
+  // corpus exercises every render sink and the real Export/Storage/ImageImport roots;
   // finalized-build integration separately authenticates emitted bytes.
-  const source='src/ui/shell.ts',features=[['src/ui/export.ts','assets/export.js'],['src/ui/storage-library.ts','assets/storage.js']];
+  const source='src/ui/shell.ts',features=[['src/ui/export.ts','assets/export.js'],['src/ui/storage-library.ts','assets/storage.js'],['src/ui/image-import.ts','assets/image-import.js']];
   const proof=deriveD11PrivateEventSourceProof({
     ...value,parser,roleContext:structuredClone(D11_ROLE_CONTEXT),
     manifest:Object.fromEntries(features.map(([src,file])=>[src,{src,file,isDynamicEntry:true}])),
     files:[{file:'assets/shell.js',kind:'js',sources:[source],modules:[source]},...features.map(([src,file])=>({file,kind:'js',sources:[src],modules:[src]}))],
-    outputTextByFile:{'assets/shell.js':"class Shell{#loadExport(){return import('./export.js')}#loadStorage(){return import('./storage.js')}}",...Object.fromEntries(features.map(([,file])=>[file,'export const feature=1;']))},
+    outputTextByFile:{'assets/shell.js':"class Shell{#loadExport(){return import('./export.js')}#loadStorage(){return import('./storage.js')}#loadImageImport(){return import('./image-import.js')}}",...Object.fromEntries(features.map(([,file])=>[file,'export const feature=1;']))},
   });
   assert.equal(proof.complete,true,JSON.stringify(proof.missing));assert.deepEqual(proof.missing,[]);
-  assert.equal(proof.excludedImports.length,2);
+  assert.equal(proof.excludedImports.length,3);
   assert.deepEqual(proof.excludedImports.map(row=>row.witness.featureSource).sort(),features.map(([src])=>src).sort());
   for(const row of proof.excludedImports){
     assert.equal(row.source,source);
-    assert.deepEqual(row.witness.calls.map(call=>call.kind).sort(),['lit-event','private-command-event']);
+    if(row.witness.featureSource!=='src/ui/image-import.ts')assert.deepEqual(row.witness.calls.map(call=>call.kind).sort(),['lit-event','private-command-event']);
   }
+  const imageImport=proof.excludedImports.find(row=>row.witness.featureSource==='src/ui/image-import.ts').witness;
+  assert.equal(imageImport.activationGraph.kind,'d11-runtime-private-event-graph-1');
+  assert.deepEqual(imageImport.activationGraph.methods,['drop','file','importHandoff','loadImageImport','openImportFiles','paste','resumeImage','showImport','showStorage']);
+  assert.deepEqual([...new Set(imageImport.calls.flatMap(call=>call.events))].sort(),['click','drop','en-change','keydown','paste']);
+  assert.deepEqual(imageImport.dependencyEffects,['nativeFileUploadStartupChange']);
+  assert.equal(Object.hasOwn(imageImport,'publicAction'),false);
   const storage=proof.excludedImports.find(row=>row.witness.featureSource==='src/ui/storage-library.ts').witness;
   assert.deepEqual(storage.calls.find(call=>call.kind==='lit-event').eventArgument,{parameter:'event',argument:'event'});
   assert.deepEqual(storage.publicAction,{commandId:'storage-library',commandLabel:'Storage library',event:'click',element:'en-button',buttonText:'Storage library'});
   assert.deepEqual(proof.excludedImports.find(row=>row.witness.featureSource==='src/ui/export.ts').witness.publicAction,
     {commandId:'export-image',commandLabel:'Export image',event:'click',element:'en-button',buttonText:'Export image'});
   assert.equal(proof.conditionalEventDataEffects.length,profile.eventDataEffects.sites.length);
+  assert.equal(proof.conditionalFileSelectionEffects.length,profile.fileSelectionEffects.sites.length);
 });
 
 

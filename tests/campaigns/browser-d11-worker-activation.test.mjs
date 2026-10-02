@@ -487,7 +487,7 @@ test('DOM numeric observations retain exact obligations without erasing receiver
   assert.equal(baseline.complete,true,baseline.missing.join('; '));
   assert.equal(baseline.witness.conditionalDOMEffects.kind,'d11-conditional-dom-data-reads-1');
   assert.deepEqual(baseline.witness.conditionalDOMEffects.sites.map(row=>[row.source,row.start,row.end]),[
-    ['src/ui/shell.ts',73605,73637],['src/ui/shell.ts',74278,74310],
+    ['src/ui/shell.ts',77471,77503],['src/ui/shell.ts',78144,78176],
   ]);
   for (const text of [
     'const host=document.querySelector("en-tree");host.selectedKeys[0]===key;',
