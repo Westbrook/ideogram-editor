@@ -25,7 +25,12 @@ async function promptSource(page:Page,name:'Composition'|'Plain prompt'){const r
 test('AX01 pinned whole-document scans of public editor states',async({smoke:{page,step,record}},info)=>{
   const evidence=await axeEvidence(page,info,out,planned,limitations);
   await record({phase:'AX01-scope',planned,limitations});
-  const scan=(state:typeof planned[number])=>step('axe-'+state,()=>evidence.scan(state),20_000);
+  const exposedPanStates:readonly string[]=['typed-request','request-conflict','immutable-request-review','adapter-library','native-text-draft','native-text-glyph-error','local-font-relink-controls','composition-validation','layer-mask-review','masked-request-review'];
+  const scan=async(state:typeof planned[number])=>{
+    await step('axe-'+state,()=>evidence.scan(state),20_000);
+    if(exposedPanStates.includes(state))await step('contrast-'+state+'-exposed-pan',()=>evidence.captureExposed(state,'pan'),20_000);
+    if(state==='native-text-draft')await step('contrast-'+state+'-exposed-text-size',()=>evidence.captureExposed(state,'text-size'),20_000);
+  };
   const appearance=page.getByRole('combobox',{name:'Appearance',exact:true});
   await appearance.selectOption('light');await expect(page.locator('html')).toHaveAttribute('data-en-appearance','light');await scan('shell-light');
   await appearance.selectOption('dark');await expect(page.locator('html')).toHaveAttribute('data-en-appearance','dark');await scan('shell-dark');
@@ -87,7 +92,7 @@ test('AX01 pinned whole-document scans of public editor states',async({smoke:{pa
     await click(page,'Review current request document');await expect(page.locator('.typed-request').getByText('Request document revision confirmed.',{exact:true})).toBeVisible();await click(page,'Review exact request');await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();
   },20_000);
   await scan('masked-request-review');await click(page,'Close request review');
-  await click(page,'Save copy');await expect(page.getByRole('dialog',{name:'Save project copy',exact:true})).toBeVisible();await scan('portable-copy-dialog');await page.keyboard.press('Escape');
+  await click(page,'Save copy');await expect(page.getByRole('dialog',{name:'Save project copy',exact:true})).toBeVisible();await scan('portable-copy-dialog');await page.keyboard.press('Escape');await expect(page.getByRole('dialog',{name:'Save project copy',exact:true})).toBeHidden();await evidence.captureExposed('portable-copy-dialog','activity');
   await page.getByRole('tab',{name:'Jobs',exact:true}).click();await expect(page.getByRole('tab',{name:'Jobs',exact:true})).toHaveAttribute('aria-selected','true');await scan('empty-jobs');
   await page.getByRole('tab',{name:'Results',exact:true}).click();await expect(page.getByRole('tab',{name:'Results',exact:true})).toHaveAttribute('aria-selected','true');await scan('empty-results');
   await prompt.focus();await page.setViewportSize({width:320,height:900});await expect(prompt).toBeVisible();await scan('request-320css');

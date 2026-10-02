@@ -18,6 +18,14 @@ const id = (node, name) => unwrap(node)?.type === 'Identifier' && unwrap(node).n
 const key = node => node?.computed ? literal(node.key ?? node.property) : (node?.key ?? node?.property)?.type === 'PrivateIdentifier'
   ? '#' + (node.key ?? node.property).name : (node?.key ?? node?.property)?.name ?? literal(node?.key ?? node?.property);
 const self = (node, name) => unwrap(node)?.type === 'MemberExpression' && unwrap(unwrap(node).object)?.type === 'ThisExpression' && key(unwrap(node)) === name;
+const memberPath = (node, root, ...members) => {
+  for (const name of members.reverse()) {
+    node = unwrap(node);
+    if (node?.type !== 'MemberExpression' || node.computed || key(node) !== name) return false;
+    node = node.object;
+  }
+  return root === 'this' ? unwrap(node)?.type === 'ThisExpression' : id(node, root);
+};
 const moduleURL = node => unwrap(node)?.type === 'MemberExpression' && !unwrap(node).computed && key(unwrap(node)) === 'url' && unwrap(unwrap(node).object)?.type === 'MetaProperty' && id(unwrap(unwrap(node).object).meta, 'import') && id(unwrap(unwrap(node).object).property, 'meta');
 const inside = (node, root) => node.start >= root.start && node.end <= root.end;
 const typeOnly = node => /^TS/.test(node?.type ?? '') && !wrappers.has(node.type) && node.type !== 'TSParameterProperty';
@@ -101,7 +109,7 @@ function directCalls(parsed, memberName) {
   });
 }
 
-function eventBinding(parsed, owner, call, label, actionName) {
+function eventBinding(parsed, owner, call, label, actionName, visibleLabel = label) {
   const templates = parsed.nodes.filter(node => node.type === 'TaggedTemplateExpression' && inside(node, owner) && id(node.tag, 'html'));
   const matches = [];
   for (const template of templates) for (const [index, expression] of template.quasi.expressions.entries()) {
@@ -109,7 +117,19 @@ function eventBinding(parsed, owner, call, label, actionName) {
     let prefix = '';
     for (let at = 0; at <= index; at++) prefix += template.quasi.quasis[at].value.raw + (at < index ? '${value}' : '');
     const after = template.quasi.quasis[index + 1].value.raw;
-    if (!/<en-button\b[^<>]*\s@click=$/.test(prefix.slice(prefix.lastIndexOf('<en-button'))) || !after.startsWith('>' + label + '</en-button>')) fail('activation is not the exact plain button event value');
+    const opening = prefix.slice(prefix.lastIndexOf('<en-button'));
+    let exactLabel = typeof visibleLabel === 'string' && after.startsWith('>' + visibleLabel + '</en-button>');
+    if (visibleLabel === null && label === 'Confirm split part') {
+      // This one button has two reviewed labels, selected only by the current
+      // part index. No arbitrary label expression or forwarding is admitted.
+      const choice = template.quasi.expressions[index + 1], test = choice?.test;
+      exactLabel = /\bid="native-text-split-confirm"(?:\s|$)/.test(opening) && after === '>' &&
+        template.quasi.quasis[index + 2]?.value.raw.startsWith('</en-button>') &&
+        choice?.type === 'ConditionalExpression' && test?.type === 'BinaryExpression' && test.operator === '<' &&
+        test.left?.type === 'BinaryExpression' && test.left.operator === '+' && memberPath(test.left.left, 'split', 'index') && literal(test.left.right) === 1 &&
+        memberPath(test.right, 'split', 'parts', 'length') && literal(choice.consequent) === 'Confirm this part and preview next' && literal(choice.alternate) === 'Confirm this part';
+    }
+    if (!/<en-button\b[^<>]*\s@click=$/.test(opening) || !exactLabel) fail('activation is not the exact plain button event value');
     const dispatch = unwrap(expression.body);
     if (dispatch?.type !== 'CallExpression' || !self(dispatch.callee, actionName) || literal(dispatch.arguments[1]) !== label || dispatch.arguments[2]?.type !== 'ArrowFunctionExpression' || unwrap(dispatch.arguments[2].body) !== call) fail('activation event forwarding differs');
     let value = template;
@@ -477,7 +497,7 @@ function opaqueOwnerCensus(source) {
     sourceSha256: hash(source.text), assignmentSha256: hash(source.text.slice(node.start, node.end)), requirement: 'reviewed-data-only-array-reordering' })), domReads: conditionalDOMReads };
 }
 
-function ownReceiver(parsed, owner, name, creation, activatingMethod) {
+function ownReceiver(parsed, owner, name, creation, activatingMethods) {
   const field = owner.members.get(name);
   if (!field || field.type !== 'PropertyDefinition' || field.value) fail('activation receiver is not initially absent: ' + name);
   const activations = [];
@@ -486,7 +506,7 @@ function ownReceiver(parsed, owner, name, creation, activatingMethod) {
     const parent = parsed.parent(node);
     if (parent?.type === 'AssignmentExpression' && parent.left === node && parent.operator === '=') {
       if (id(parent.right, 'undefined')) continue;
-      if (parent.right?.type === 'NewExpression' && id(parent.right.callee, creation) && key(owner.owner(parent)) === activatingMethod) continue;
+      if (parent.right?.type === 'NewExpression' && id(parent.right.callee, creation) && activatingMethods.includes(key(owner.owner(parent)))) continue;
       fail('activation receiver has an alternate assignment: ' + name);
     }
     if (parent?.type === 'ConditionalExpression' && parent.test === node && name === 'preparation') continue;
@@ -495,11 +515,49 @@ function ownReceiver(parsed, owner, name, creation, activatingMethod) {
     const call = parsed.parent(parent);
     if (call?.type !== 'CallExpression' || unwrap(call.callee) !== parent || !['prepare', 'cancel', 'dispose'].includes(key(parent))) fail('activation receiver operation is unknown: ' + name);
     if (key(parent) === 'prepare') {
-      if (key(owner.owner(call)) !== activatingMethod) fail('activation receiver prepares from another entry: ' + name);
+      if (!activatingMethods.includes(key(owner.owner(call)))) fail('activation receiver prepares from another entry: ' + name);
       activations.push(call);
     }
   }
-  return exact(activations, 'activation receiver prepare binding differs: ' + name);
+  return new Map(activatingMethods.map(method => [method, exact(activations.filter(call => key(owner.owner(call)) === method), 'activation receiver prepare binding differs: ' + name + '.' + method)]));
+}
+
+// Source position alone does not prove dominance through a deferred function.
+// Every admitted preparation stays in ordinary statement/try blocks after its
+// direct synchronous guard, never in a hoisted function or callback.
+function guardedPreparation(parsed, node, block, guard) {
+  if (!inside(node, block) || node.start <= guard.end) return false;
+  for (let at = node; at !== block; at = parsed.parent(at)) {
+    if (!at || /Function/.test(at.type) || ['MethodDefinition', 'PropertyDefinition'].includes(at.type)) return false;
+  }
+  return true;
+}
+
+function currentPreviewGuard(node) {
+  const condition = node?.test;
+  return node?.type === 'IfStatement' && condition?.type === 'LogicalExpression' && condition.operator === '||' &&
+    condition.left?.type === 'UnaryExpression' && condition.left.operator === '!' && self(condition.left.argument, 'preview') &&
+    condition.right?.type === 'BinaryExpression' && condition.right.operator === '!==' && memberPath(condition.right.left, 'this', 'preview', 'revision') && self(condition.right.right, 'revision') &&
+    node.consequent?.type === 'ThrowStatement' && !node.alternate;
+}
+
+function splitPreviewGuard(parsed, method) {
+  const statements = method.value.body.body;
+  const binding = name => exact(statements.filter(node => node.type === 'VariableDeclaration' && node.kind === 'const').flatMap(node => node.declarations).filter(node => id(node.id, name)), 'split preview binding differs: ' + name);
+  const preview = binding('preview'), revision = binding('revision'), owner = binding('owner'), snapshot = preview.init;
+  if (!self(owner.init, 'splitOwner') || !self(revision.init, 'revision') || snapshot?.type !== 'ConditionalExpression' || !self(snapshot.test, 'preview') || !id(snapshot.alternate, 'undefined') || snapshot.consequent?.type !== 'ObjectExpression' || snapshot.consequent.properties.length !== 3 ||
+    !snapshot.consequent.properties.every((property, index) => property.type === 'Property' && !property.computed && property.kind === 'init' && key(property) === ['revision', 'hash', 'dependencyHash'][index] && memberPath(property.value, 'this', 'preview', key(property)))) fail('split preview snapshot is not the current owned preview');
+  const disjunction = node => node?.type === 'LogicalExpression' && node.operator === '||' ? [...disjunction(node.left), ...disjunction(node.right)] : [node];
+  const missing = (node, name) => node?.type === 'UnaryExpression' && node.operator === '!' && id(node.argument, name);
+  const stale = (node, ...path) => node?.type === 'BinaryExpression' && node.operator === '!==' && memberPath(node.left, ...path) && id(node.right, 'revision');
+  const guard = exact(statements.filter(node => {
+    if (node.type !== 'IfStatement' || node.alternate) return false;
+    const terms = disjunction(node.test);
+    return terms.length === 4 && missing(terms[0], 'part') && missing(terms[1], 'preview') && stale(terms[2], 'preview', 'revision') && stale(terms[3], 'owner', 'value', 'revision');
+  }), 'split confirmation does not reject a missing or stale preview');
+  const rejected = guard.consequent;
+  if (preview.end >= guard.start || revision.end >= guard.start || owner.end >= guard.start || rejected?.type !== 'BlockStatement' || rejected.body.length !== 2 || rejected.body[0].type !== 'ExpressionStatement' || rejected.body[0].expression.type !== 'CallExpression' || !id(rejected.body[0].expression.callee, 'release') || rejected.body[0].expression.arguments.length || rejected.body[1].type !== 'ThrowStatement') fail('split preview refusal is not synchronous');
+  return guard;
 }
 
 function controllerOwnership(parsed, construction) {
@@ -510,16 +568,17 @@ function controllerOwnership(parsed, construction) {
   if (!isDeepStrictEqual(factoryCalls.map(call => key(owner.owner(call))).sort(), ['restoreRetiredControllers', 'textEditing'])) fail('native controller factory caller census differs');
   if (directCalls(parsed.get(PATHS.native), 'render').length) fail('native template has an unreviewed local consumer');
   const methods = new Set(['beginFromReturnedDescription', 'dispose', 'releaseDocument', 'sync', 'overlay', 'begin', 'render']);
+  const previewEntries = ['preparePreview', 'beginSplit', 'previewSplitPart', 'confirmSplitPart'];
   for (const [path, source] of parsed) for (const node of source.nodes) {
     if (node.type === 'Property' && source.parent(node)?.type === 'ObjectPattern') {
       if (node.computed) fail('computed owner destructuring prevents a closed activation census');
       if (key(node) === 'textEditing' && !(path === PATHS.shell && key(owner.owner(node)) === 'disconnectedCallback' && id(node.value, 'textEditing'))) fail('native controller is extracted by an external object pattern');
-      if (['preparePreview', 'createNativeTextEditing', 'renderer', 'preparation'].includes(key(node))) fail('native activation capability is extracted by an object pattern');
+      if ([...previewEntries, 'createNativeTextEditing', 'renderer', 'preparation'].includes(key(node))) fail('native activation capability is extracted by an object pattern');
     }
     if ((node.type === 'CallExpression' || node.type === 'NewExpression') && unwrap(node.callee)?.type === 'MemberExpression' && unwrap(node.callee).computed) fail('computed callable prevents a closed activation census');
     if (node.type === 'AssignmentExpression' && unwrap(node.left)?.type === 'MemberExpression' && ['preview', 'renderer', 'preparation'].includes(key(unwrap(node.left))) && unwrap(unwrap(node.left).object)?.type !== 'ThisExpression') fail('native state can be written through an external receiver');
     if (node.type !== 'MemberExpression') continue;
-    if (key(node) === 'preparePreview' && path !== PATHS.native || ['createNativeTextEditing', 'textEditing'].includes(key(node)) && path !== PATHS.shell) fail('native controller is accessed from an unreviewed owner');
+    if (previewEntries.includes(key(node)) && (path !== PATHS.native || !self(node, key(node))) || ['createNativeTextEditing', 'textEditing'].includes(key(node)) && path !== PATHS.shell) fail('native controller is accessed from an unreviewed owner');
     if (path !== PATHS.shell || !self(node, 'textEditing')) continue;
     if (node.computed) fail('native controller ownership is computed');
     const parent = source.parent(node), method = key(owner.owner(node));
@@ -584,6 +643,7 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     htmlBinding(native); htmlBinding(parsed.get(PATHS.shell));
     const n = klass(native, 'NativeTextEditing'), c = klass(client, 'TextRenderer'), d = klass(durable, 'DurableTextPreparation');
     const render = n.method('render'), preview = n.method('preparePreview'), apply = n.method('apply');
+    const splitPreview = n.method('previewSplitPart'), splitConfirm = n.method('confirmSplitPart');
     for (const [source, owner] of [[native, n], [client, c], [durable, d]]) for (const node of source.nodes) {
       if (!inside(node, owner.node)) continue;
       if (node.type === 'ThisExpression') {
@@ -597,8 +657,23 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     const fileCalls = directCalls(native, 'filesChanged');
     if (fileCalls.length !== 2 || !isDeepStrictEqual(fileCalls.map(call => literal(call.arguments[1])).sort(), ['files', 'licenses']) || fileCalls.some(call => !inside(call, render))) fail('computed file-key writes are not bound to the two literal event keys');
     const previewCalls = directCalls(native, 'preparePreview');
-    const previewCall = exact(previewCalls, 'Preview has an alternate public or lifecycle caller');
+    if (!isDeepStrictEqual(previewCalls.map(call => key(n.owner(call))).sort(), ['previewSplitPart', 'render'])) fail('Preview has an alternate public or lifecycle caller');
+    const previewCall = exact(previewCalls.filter(call => inside(call, render)), 'Preview event is absent');
+    if (previewCall.arguments.length) fail('ordinary Preview event supplies an alternate part');
     const event = eventBinding(native, render, previewCall, 'Preview text', 'action');
+    const splitPreviewCall = exact(previewCalls.filter(call => inside(call, splitPreview)), 'split Preview call is absent');
+    const awaited = call => native.parent(call)?.type === 'AwaitExpression' && native.parent(native.parent(call))?.type === 'ExpressionStatement';
+    if (!awaited(splitPreviewCall) || splitPreviewCall.arguments.length !== 1 || !id(splitPreviewCall.arguments[0], 'part')) fail('split Preview does not await its exact part');
+    const splitCalls = directCalls(native, 'previewSplitPart');
+    if (!isDeepStrictEqual(splitCalls.map(call => key(n.owner(call))).sort(), ['beginSplit', 'confirmSplitPart', 'render']) || splitCalls.some(call => call.arguments.length || !inside(call, render) && !awaited(call))) fail('split Preview has an alternate public or lifecycle caller');
+    const splitEvents = [
+      ...[['beginSplit', 'Review split into layers', 'Review split into layers'], ['confirmSplitPart', 'Confirm split part', null]].map(([name, label, visible]) => {
+        const call = exact(directCalls(native, name), 'split activation has an alternate public or lifecycle caller: ' + name);
+        if (!inside(call, render) || call.arguments.length) fail('split activation is not an exact render action: ' + name);
+        return eventBinding(native, render, call, label, 'action', visible);
+      }),
+      eventBinding(native, render, exact(splitCalls.filter(call => inside(call, render)), 'split Preview event is absent'), 'Preview split part', 'action', 'Preview this part again'),
+    ];
     const applyCalls = directCalls(native, 'apply');
     if (!isDeepStrictEqual(applyCalls.map(call => key(n.owner(call))).sort(), ['key', 'render', 'settle'])) fail('Apply caller census differs');
     eventBinding(native, render, exact(applyCalls.filter(call => inside(call, render)), 'Apply event is absent'), 'Apply text', 'action');
@@ -608,19 +683,17 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     const initializations = previewWrites.filter(node => !id(node.right, 'undefined'));
     if (initializations.length !== 1 || initializations[0].operator !== '=' || initializations[0].right.type !== 'ObjectExpression' || !inside(initializations[0], preview)) fail('native preview has an alternate initialization');
     const preparationTry = exact(apply.value.body.body.filter(node => node.type === 'TryStatement'), 'Apply preparation region differs');
-    const guard = preparationTry.block.body[0], condition = guard?.test;
-    if (guard?.type !== 'IfStatement' || condition?.type !== 'LogicalExpression' || condition.operator !== '||' ||
-      condition.left?.type !== 'UnaryExpression' || condition.left.operator !== '!' || !self(condition.left.argument, 'preview') ||
-      condition.right?.type !== 'BinaryExpression' || condition.right.operator !== '!==' || key(condition.right.left) !== 'revision' || !self(condition.right.left.object, 'preview') || !self(condition.right.right, 'revision') ||
-      guard.consequent?.type !== 'ThrowStatement') fail('Apply does not synchronously reject a missing or stale preview');
-    const rendererCall = ownReceiver(native, n, 'renderer', 'TextRenderer', 'preparePreview');
-    const durableCall = ownReceiver(native, n, 'preparation', 'DurableTextPreparation', 'apply');
-    if (!inside(durableCall, preparationTry.block) || durableCall.start <= guard.end || initializations[0].start <= rendererCall.end) fail('cold preview/Apply dominance differs');
+    const guard = exact(preparationTry.block.body.filter(currentPreviewGuard), 'Apply does not synchronously reject a missing or stale preview');
+    const splitGuard = splitPreviewGuard(native, splitConfirm);
+    const rendererCall = ownReceiver(native, n, 'renderer', 'TextRenderer', ['preparePreview']).get('preparePreview');
+    const durableCalls = ownReceiver(native, n, 'preparation', 'DurableTextPreparation', ['apply', 'confirmSplitPart']);
+    if (!guardedPreparation(native, durableCalls.get('apply'), preparationTry.block, guard) || !guardedPreparation(native, durableCalls.get('confirmSplitPart'), splitConfirm.value.body, splitGuard) || initializations[0].start <= rendererCall.end) fail('cold preview/Apply dominance differs');
     const rendererNews = bindingCensus(parsed, sourceTextByPath, PATHS.client, 'TextRenderer', [PATHS.native, PATHS.durable]);
     const durableNews = bindingCensus(parsed, sourceTextByPath, PATHS.durable, 'DurableTextPreparation', [PATHS.native]);
     const nativeNews = bindingCensus(parsed, sourceTextByPath, PATHS.native, 'NativeTextEditing', [PATHS.shell]);
     if (rendererNews.length !== 3 || rendererNews.some(({ path, node }) => path === PATHS.native ? !inside(node, preview) : path !== PATHS.durable || !['#renderer', 'prepare'].includes(key(d.owner(node))))) fail('renderer construction census differs');
-    if (durableNews.length !== 1 || durableNews[0].path !== PATHS.native || !inside(durableNews[0].node, preparationTry.block) || durableNews[0].node.start <= guard.end) fail('durable construction escapes the preview gate');
+    if (durableNews.length !== 2 || !isDeepStrictEqual(durableNews.map(({ path, node }) => path === PATHS.native ? key(n.owner(node)) : null).sort(), ['apply', 'confirmSplitPart']) || durableNews.some(({ node }) => !(
+      key(n.owner(node)) === 'apply' ? guardedPreparation(native, node, preparationTry.block, guard) : guardedPreparation(native, node, splitConfirm.value.body, splitGuard)))) fail('durable construction escapes the preview gate');
     if (nativeNews.length !== 1 || nativeNews[0].path !== PATHS.shell) fail('native controller construction census differs');
     controllerOwnership(parsed, nativeNews[0].node);
     const durablePrepares = durable.nodes.filter(node => node.type === 'CallExpression' && key(node.callee) === 'prepare' && self(node.callee.object, '#renderer'));
@@ -644,10 +717,11 @@ export function deriveD11NativePreparationClosure({ sourceTextByPath, parser } =
     if (engineBinding?.type !== 'VariableDeclarator' || engineBinding.init !== engineCall || engineDeclaration?.type !== 'VariableDeclaration' || workerModule.parent(engineDeclaration) !== workerModule.root) fail('worker engine entry is not eager module evaluation');
     const sourceInputs = [...parsed.keys()].sort().map(path => ({ path, rawBytes: Buffer.byteLength(sourceTextByPath[path]), sha256: hash(sourceTextByPath[path]) }));
     return finish({ source: PATHS.client, start: worker.start, end: worker.end, workerSource: PATHS.worker,
-      witness: { kind: 'd11-native-preview-state-gate-1', sourceInputs, event, conditionalMemberEffects, conditionalDOMEffects,
+      witness: { kind: 'd11-native-preview-state-gate-1', sourceInputs, event, splitEvents, conditionalMemberEffects, conditionalDOMEffects,
         startup: ['constructor and instance fields', 'sync and restoreSession for any retained draft data', 'render and overlay', 'Open document', 'Save checkpoint'],
-        coldState: 'preview absent; only the exact Preview click path initializes it',
+        coldState: 'preview absent; only the exact Preview and reviewed split click paths initialize it',
         applyGate: { source: PATHS.native, start: guard.start, end: guard.end },
+        splitApplyGate: { source: PATHS.native, start: splitGuard.start, end: splitGuard.end },
         activation: 'prepare -> Promise executor -> queueMicrotask -> #start -> module Worker; scheduling is eager once prepare is called',
         engine: 'worker evaluation starts createTextEngine before message dispatch; the full emitted engine/WASM graph remains independently accounted' } });
   } catch (error) { missing.push(error.message); return finish({}); }

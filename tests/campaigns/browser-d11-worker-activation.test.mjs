@@ -50,6 +50,128 @@ test('native Worker activation follows the actual cold preview state gate', asyn
   assert.deepEqual(deriveD11NativePreparationClosure(value), proof);
 });
 
+// Split review is a finite set of public clicks. Its internal awaited edges
+// cannot admit a lifecycle entry or an unowned preparation capability.
+const splitMethods = ['beginSplit', 'previewSplitPart', 'confirmSplitPart'];
+const splitPreviewSnapshot = 'preview=this.preview?{revision:this.preview.revision,hash:this.preview.hash,dependencyHash:this.preview.dependencyHash}:undefined';
+const splitPreviewGuard = "if(!part||!preview||preview.revision!==revision||owner.value.revision!==revision){release();throw Error('Preview this current split part first.');}";
+
+test('split Worker activation records only the three exact public clicks and current preview gate', async () => {
+  const value = await specimen(), source = value.sourceTextByPath[nativePath];
+  const proof = deriveD11NativePreparationClosure(value);
+  assert.equal(proof.complete, true, proof.missing.join('; '));
+  const methodsByLabel = new Map([
+    ['Review split into layers', 'beginSplit'], ['Preview split part', 'previewSplitPart'], ['Confirm split part', 'confirmSplitPart'],
+  ]);
+  assert.deepEqual(proof.witness.splitEvents.map(({ label, event }) => [label, event]).sort(),
+    [...methodsByLabel.keys()].map(label => [label, 'click']).sort());
+  for (const event of proof.witness.splitEvents) {
+    assert.match(source.slice(event.start, event.end), new RegExp('this\\.' + methodsByLabel.get(event.label) + '\\(\\)'));
+  }
+  const gate = proof.witness.splitApplyGate;
+  assert.equal(gate.source, nativePath);
+  assert.equal(source.slice(gate.start, gate.end), splitPreviewGuard);
+  assert.equal(Object.hasOwn(proof, 'excludedWorkers'), false, 'source closure grants no archive-bound exclusion');
+});
+
+test('split activation helpers reject startup lifecycle render and alternate internal callers', async () => {
+  for (const method of splitMethods) for (const [before, after] of [
+    ['this.memory=new NativeControlMemory(host);', `this.${method}();this.memory=new NativeControlMemory(host);`],
+    ['sync(){if(!this.available())', `sync(){this.${method}();if(!this.available())`],
+    ['private async restoreSession(){', `private async restoreSession(){this.${method}();`],
+    ['render(){', `render(){this.${method}();`],
+    ['private async cancelSplit(){', `private async cancelSplit(){await this.${method}();`],
+  ]) {
+    const value = await specimen(); replace(value, nativePath, before, after);
+    const proof = deriveD11NativePreparationClosure(value);
+    assert.equal(proof.complete, false, method + ': ' + before);
+  }
+});
+
+test('split activation helpers cannot be computed extracted or invoked through external owners', async () => {
+  for (const method of splitMethods) {
+    for (const after of [`()=>this["${method}"]()`, `()=>{const activate=this.${method};return activate();}`]) {
+      const value = await specimen(); replace(value, nativePath, `()=>this.${method}()`, after);
+      assert.equal(deriveD11NativePreparationClosure(value).complete, false, after);
+    }
+    for (const text of [
+      `unknownNativeOwner.${method}();`,
+      `const activate=unknownNativeOwner.${method};activate.call(unknownNativeOwner);`,
+      `const {${method}:activate}=unknownNativeOwner;activate.call(unknownNativeOwner);`,
+    ]) {
+      const value = await specimen(); value.sourceTextByPath['src/external-split-owner.ts'] = text;
+      assert.equal(deriveD11NativePreparationClosure(value).complete, false, text);
+    }
+  }
+});
+
+test('split click bindings retain the exact button event action and visible labels', async () => {
+  for (const [before, after] of [
+    ["@click=${(e:Event)=>this.action(e,'Review split into layers'", "@en-change=${(e:Event)=>this.action(e,'Review split into layers'"],
+    ['<en-button id="native-text-split-review"', '<en-alert id="native-text-split-review"'],
+    ["this.action(e,'Preview split part',()=>this.previewSplitPart()", "this.action(e,'Another action',()=>this.previewSplitPart()"],
+    ['>Preview this part again</en-button>', '>Prepare automatically</en-button>'],
+    ["this.action(e,'Confirm split part',()=>this.confirmSplitPart()", "this.deferredAction(e,'Confirm split part',()=>this.confirmSplitPart()"],
+    ["split.index+1<split.parts.length?'Confirm this part and preview next':'Confirm this part'", "split.index+1<split.parts.length?'Confirm this part and preview next':'Prepare automatically'"],
+    ["split.index+1<split.parts.length?'Confirm this part and preview next':'Confirm this part'", "unknownLabel()"],
+    ["${part?html`<p>Layer ${split.index+1}", "${part?unknownTag`<p>Layer ${split.index+1}"],
+  ]) {
+    const value = await specimen(); replace(value, nativePath, before, after);
+    assert.equal(deriveD11NativePreparationClosure(value).complete, false, after);
+  }
+});
+
+test('split preview forwarding remains awaited and has no extra preparation edge', async () => {
+  for (const [before, after] of [
+    ['await this.previewSplitPart();\n  }', 'this.previewSplitPart();\n  }'],
+    ['await this.preparePreview(part);', 'this.preparePreview(part);'],
+    ['parts.length)await this.previewSplitPart();else', 'parts.length)this.previewSplitPart();else'],
+    ['private async cancelSplit(){', 'private async cancelSplit(){await this.preparePreview();'],
+  ]) {
+    const value = await specimen(); replace(value, nativePath, before, after);
+    assert.equal(deriveD11NativePreparationClosure(value).complete, false, after);
+  }
+});
+
+test('split confirmation cannot forge its preview snapshot or weaken the synchronous current guard', async () => {
+  for (const [before, after] of [
+    [splitPreviewSnapshot, "preview={revision,hash:'forged',dependencyHash:'forged'}"],
+    [splitPreviewSnapshot, splitPreviewSnapshot.replace('revision:this.preview.revision', 'revision:this.revision')],
+    [splitPreviewSnapshot, splitPreviewSnapshot.replace('preview=this.preview?', 'preview=otherPreview?')],
+    [splitPreviewGuard, splitPreviewGuard.replace('!part||', '')],
+    [splitPreviewGuard, splitPreviewGuard.replace('!preview||', '')],
+    [splitPreviewGuard, splitPreviewGuard.replace('preview.revision!==revision||', '')],
+    [splitPreviewGuard, splitPreviewGuard.replace('||owner.value.revision!==revision', '')],
+    [splitPreviewGuard, splitPreviewGuard.replace('throw Error', 'void Error')],
+    [splitPreviewGuard, 'if(false){' + splitPreviewGuard + '}'],
+  ]) {
+    const value = await specimen(); replace(value, nativePath, before, after);
+    assert.equal(deriveD11NativePreparationClosure(value).complete, false, after);
+  }
+});
+
+test('split and ordinary durable preparation cannot move ahead of their preview gates', async () => {
+  const construction = 'this.preparation=new DurableTextPreparation(this.storage);';
+  const splitPrepare = 'const result=await this.preparation.prepare(requestOwner.value,s.fonts);';
+  for (const operation of ['construction', 'prepare']) {
+    const value = await specimen();
+    replace(value, nativePath, 'requestOwner=await this.request(part);' + construction, 'requestOwner=await this.request(part);');
+    if (operation === 'construction') {
+      replace(value, nativePath, splitPreviewGuard, construction + splitPreviewGuard);
+    } else {
+      replace(value, nativePath, splitPrepare, 'const result=prepared;');
+      replace(value, nativePath, splitPreviewGuard, construction + 'const prepared=await this.preparation.prepare({} as TextRequest,s.fonts);' + splitPreviewGuard);
+    }
+    assert.equal(deriveD11NativePreparationClosure(value).complete, false, operation);
+  }
+  const value = await specimen();
+  const ordinaryGuard = "if(!this.preview||this.preview.revision!==this.revision)throw Error('Preview the current text and font layout before Apply.');";
+  const ordinaryPrepare = 'const result=await this.preparation.prepare(request,s.fonts);';
+  replace(value, nativePath, ordinaryGuard, '');
+  replace(value, nativePath, ordinaryPrepare, ordinaryPrepare + ordinaryGuard);
+  assert.equal(deriveD11NativePreparationClosure(value).complete, false, 'ordinary Apply gate follows preparation');
+});
+
 test('constructor, sync, restoreSession, and render cannot gain a Preview caller', async () => {
   for (const [before, after] of [
     ['this.memory=new NativeControlMemory(host);', 'this.preparePreview();this.memory=new NativeControlMemory(host);'],

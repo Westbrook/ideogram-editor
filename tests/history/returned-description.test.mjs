@@ -13,7 +13,7 @@ import {rootFor,command,pair,call,cookieFrom,readHeaders,mutationHeaders} from '
 import {terminal,importRaster} from '../raster/helpers.mjs';
 import {upload,copy,preview} from '../portable/helpers.mjs';
 import {unpack} from '../portable/archive-fixture.mjs';
-import {startLocalServer} from '../../dist/local/server/http.js';
+import {providerChild} from './candidate-copy-process-helpers.mjs';
 import {EMPTY_EXPECTED_VERSIONS} from '../../dist/local/src/protocol/store.js';
 import {newDraft} from '../../dist/local/src/request/core.js';
 import {canonical} from '../../dist/local/server/storage/canonical.js';
@@ -62,8 +62,10 @@ async function ui(f,body){
  assert.equal(response.json.status,'accepted',response.text);return {request,value:response.json};
 }
 async function fixture(t){
- // Close the writer and its provider before rootFor removes diagnostic files.
- let server;t.after(()=>server?.close());const root=await rootFor(t);server=await startLocalServer({root},{writer:{setupModule:new URL('./returned-description-observer-fixture.mjs',import.meta.url).href}});
+ // Keep fixture rendering/oracle bytes outside backend RSS admission, and
+ // close the owned writer/provider process before rootFor removes diagnostics.
+ let close;t.after(()=>close?.());const root=await rootFor(t);
+ const server=await providerChild(root,owned=>{close=owned;},new URL('./returned-description-process-fixture.mjs',import.meta.url));
  const paired=await pair(server);assert.equal(paired.status,200,paired.text);
  const f={root,server,paired,generation:0,
   read:path=>call(server.origin,path,{headers:readHeaders(cookieFrom(paired))}),

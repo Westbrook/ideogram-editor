@@ -22,7 +22,7 @@ test('AX01 populated jobs/results, actual restart/adoption; AX09 pending, termin
   const evidence=await axeEvidence(page,info,populatedOutput,planned,limitations);
   let live=await liveRegions(page);const announcements:unknown[]=[];
   const prompt=page.getByRole('textbox',{name:'Prompt',exact:true});
-  const scan=(name:typeof planned[number])=>evidence.scan(name);
+  const scan=async(name:typeof planned[number])=>{await evidence.scan(name);await evidence.captureExposed(name,'pan');};
   const queue=()=>read<QueueView>('/api/v1/queue');
   const current=async(id:string)=>{const job=(await queue()).jobs.find(job=>job.id===id);if(!job)throw Error('Missing public queue job');return job;};
   const candidates=(job:QueueJob)=>read<CandidateView>('/api/v1/jobs/'+job.id+'/candidates?attempt='+job.attempts.at(-1)!.id);

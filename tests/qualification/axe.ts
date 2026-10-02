@@ -14,8 +14,10 @@ const sources=[
 
 // Supplemental rendered evidence only: no contrast verdict, rule override or UI action.
 // The DOM read and viewport screenshot are sequential observations, not an atomic frame.
-async function contrastEvidence(page:Page,info:TestInfo,directory:string,state:string,results:AxeResults,resultSha256:string){
-  const targets=results.incomplete.flatMap((rule,ruleIndex)=>rule.id==='color-contrast'?rule.nodes.map((node,nodeIndex)=>({ruleIndex,nodeIndex,target:node.target as unknown})):[]);
+type ContrastExposure={kind:'public-scroll-exposure-1';sourceState:string;targetPaths:string[][];actions:string[];newAxeScan:false};
+async function contrastEvidence(page:Page,info:TestInfo,directory:string,state:string,results:Pick<AxeResults,'incomplete'>,resultSha256:string,exposure?:ContrastExposure){
+  const originalTargets=results.incomplete.flatMap((rule,ruleIndex)=>rule.id==='color-contrast'?rule.nodes.map((node,nodeIndex)=>({ruleIndex,nodeIndex,target:node.target as unknown})):[]);
+  const targets=exposure?exposure.targetPaths.map(path=>{const target=[path];return originalTargets.find(row=>JSON.stringify(row.target)===JSON.stringify(target))??{ruleIndex:null,nodeIndex:null,target,targetOrigin:'explicit-public-control'};}):originalTargets;
   if(!targets.length)return;
   const maximumBytes=4*1024*1024,maximumTargets=128;
   const capturePath=join(directory,state+'.contrast.json'),screenshotPath=join(directory,state+'.contrast.png');
@@ -110,7 +112,7 @@ async function contrastEvidence(page:Page,info:TestInfo,directory:string,state:s
   type Context={timeOrigin?:number;viewport?:Record<string,number>;focus?:unknown};
   const beforeImage=(capture as {after?:Context}).after,afterImage=afterScreenshot as Context;
   const contextChanges=beforeImage?.viewport&&afterImage.viewport?{navigation:beforeImage.timeOrigin!==afterImage.timeOrigin,viewport:['width','height','scrollX','scrollY','devicePixelRatio'].some(key=>beforeImage.viewport![key]!==afterImage.viewport![key]),focus:JSON.stringify(beforeImage.focus)!==JSON.stringify(afterImage.focus)}:null;
-  const record={kind:'axe-rendered-contrast-evidence-1',state,resultSha256,capture,screenshot,afterScreenshot,contextChanges,
+  const record={kind:'axe-rendered-contrast-evidence-1',state,resultSha256,...(exposure?{exposure}:{}),capture,screenshot,afterScreenshot,contextChanges,
     limits:{maximumBytes,maximumTargets},disposition:'Supplemental sequential rendered evidence only. No contrast pass, visibility proof or incomplete adjudication is inferred. Clipping rectangles and pointer hit tests do not model every painted pixel. Hit samples cover only the first nonempty text range or target box. Native value text, pseudo-only ink, external SVG/use and paint servers are not fully measured; complex/occluded/unsupported cases remain unknown.'};
   let raw=JSON.stringify(record);
   if(Buffer.byteLength(raw)>maximumBytes)raw=JSON.stringify({...record,capture:{status:'unknown',reason:'capture-byte-cap',expectedTargets:targets.length,targets:targets.slice(0,maximumTargets).map(t=>({ruleIndex:t.ruleIndex,nodeIndex:t.nodeIndex})),omittedTargets:Math.max(0,targets.length-maximumTargets)}},null,2);
@@ -136,11 +138,12 @@ export async function axeEvidence(page:Page,info:TestInfo,output:string,planned:
   await page.evaluate(axe.source);
   type State={state:string;violations:number;incomplete:number;passes:number;inapplicable:number;resultSha256:string;manualAdjudication:'required'|'no-incomplete-results';};
   const states:State[]=[],incomplete:{state:string;results:AxeResults['incomplete']}[]=[];
+  const supplementalCaptures:{state:string;sourceState:string;control:string;targetPaths:string[][]}[]=[];
   let completed=false;
   const save=async()=>{
     await writeFile(join(directory,'incomplete-review.json'),JSON.stringify({status:incomplete.length?'manual-adjudication-required':'no-incomplete-results',adjudications:[],states:incomplete},null,2));
     await writeFile(join(directory,'coverage.json'),JSON.stringify({
-      identity,planned,states,notScanned:planned.filter(state=>!states.some(s=>s.state===state)),
+      identity,planned,states,supplementalCaptures,notScanned:planned.filter(state=>!states.some(s=>s.state===state)),
       executionCompleted:completed,automatedViolations:states.reduce((n,s)=>n+s.violations,0),
       manualAdjudicationRequired:incomplete.length>0,limitations,
       ax01Complete:false,
@@ -165,6 +168,21 @@ export async function axeEvidence(page:Page,info:TestInfo,output:string,planned:
       await save();
       await contrastEvidence(page,info,directory,state,results,states[states.length-1]!.resultSha256);
       expect.soft(results.violations.map(rule=>({id:rule.id,impact:rule.impact,help:rule.help,helpUrl:rule.helpUrl,nodes:rule.nodes.map(node=>({target:node.target,failureSummary:node.failureSummary}))})),state+': zero unresolved applicable WCAG A/AA violations').toEqual([]);
+    },
+    // Fresh public scroll states only; the referenced scan/result remains unchanged.
+    // These captures do not add scan credit or adjudicate the original incomplete nodes.
+    async captureExposed(sourceState:string,control:'pan'|'text-size'|'activity'){
+      const source=states.find(row=>row.state===sourceState);if(!source)throw Error('Exposure requires its completed original axe scan');
+      const state=sourceState+'-exposed-'+control;if(!/^[a-z0-9-]{1,96}$/.test(state)||supplementalCaptures.some(row=>row.state===state))throw Error('Invalid or duplicate supplemental contrast state');
+      const minus='.en-number-decrement.en-number-step[part="decrement"] > span[aria-hidden="true"]';
+      const hosts=control==='pan'?['#pan-y','#pan-x']:control==='text-size'?['en-number-field[label="Text size (document px)"]']:['en-accordion-item[label="Activity"]'];
+      const targetPaths=hosts.map(host=>[host,control==='activity'?'span[part="indicator"][aria-hidden="true"]':minus]);
+      // Scroll public hosts, never step/edit fields, focus another control or toggle Activity.
+      // Multiple targets are measured together; partial/unsupported paint remains unknown.
+      for(const host of hosts){const target=page.locator(host);await expect(target).toHaveCount(1);const scrollTarget=control==='activity'?target.getByRole('button',{name:'Activity',exact:true}):target;await scrollTarget.scrollIntoViewIfNeeded();}
+      await contrastEvidence(page,info,directory,state,{incomplete:incomplete.find(row=>row.state===sourceState)?.results??[]},source.resultSha256,
+        {kind:'public-scroll-exposure-1',sourceState,targetPaths,actions:hosts.map(host=>'scrollIntoViewIfNeeded '+host+(control==='activity'?' button[name=Activity]':'')),newAxeScan:false});
+      supplementalCaptures.push({state,sourceState,control,targetPaths});await save();
     },
     async finish(){completed=true;await save();expect(states.map(s=>s.state)).toEqual([...planned]);},
   };
