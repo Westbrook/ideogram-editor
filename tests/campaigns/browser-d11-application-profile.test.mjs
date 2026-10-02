@@ -88,8 +88,8 @@ test('missing or changed source receipts and bootstrap bodies provide no profile
 const expectedAssignments = [
   ['src/ui/adapter-library.ts', 54112, '[next[index-1],next[index]]=[next[index]!,next[index-1]!]'],
   ['src/ui/adapter-library.ts', 54385, '[next[index+1],next[index]]=[next[index]!,next[index+1]!]'],
-  ['src/ui/composition.ts', 43202, '[es[i],es[j]]=[es[j],es[i]]'],
-  ['src/ui/composition.ts', 54474, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
+  ['src/ui/composition.ts', 43965, '[es[i],es[j]]=[es[j],es[i]]'],
+  ['src/ui/composition.ts', 55237, '[a[i-1],a[i]]=[a[i],a[i-1]]'],
   ['src/ui/request-v45-edit.ts', 12316, '[next.references[index],next.references[target]]=[next.references[target],next.references[index]]'],
   ['src/ui/shell.ts', 83857, '[ids[i],ids[i+1]]=[ids[i+1],ids[i]]'],
   ['src/ui/shell.ts', 83915, '[ids[i],ids[i-1]]=[ids[i-1],ids[i]]'],

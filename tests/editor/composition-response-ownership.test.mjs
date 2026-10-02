@@ -135,6 +135,34 @@ test('approved Composition retains an independent prompt reference after both st
  assert.equal(f.controller.c.review.prompt.hash,'sha256:'+'1'.repeat(64));assert.notEqual(f.controller.c.review.prompt,f.stages[0].value);assert.equal(f.commands[0].body.type,'ApprovePromptProjection');
 });
 
+test('Composition approval drains its saved draft before staging the exact reviewed prompt',async t=>{
+ const f=fixture(t),entered=deferred(),gate=deferred();await f.initial();f.controller.preview();const exact=f.controller.exact,draft=f.controller.c;let flushes=0;const stagedText=[],stage=f.editor.ownedStageTextBlob;
+ f.editor.flushDrafts=async()=>{if(++flushes===1){entered.resolve();await gate.promise;}};
+ f.editor.ownedStageTextBlob=async(...args)=>{stagedText.push(await args[0].text());return stage(...args);};
+ const approving=f.controller.approve();try{await boundary(approving,entered);assert.equal(f.stages.length,0);assert.equal(f.commands.length,0);assert.equal(draft.review,null);
+  gate.resolve();await approving;assert.equal(stagedText[0],exact);assert.deepEqual(f.stages.map(row=>row.mediaType),['text/plain','application/json']);assert.equal(f.commands.length,1);assert.equal(f.commands[0].body.type,'ApprovePromptProjection');assert.equal(f.controller.c.review.prompt.hash,'sha256:'+'1'.repeat(64));assert(f.stages.every(row=>!row.active));assert.equal(f.controller.lifecycle.pendingOperations,0);
+ }finally{gate.resolve();await approving.catch(()=>{});}
+});
+
+for(const change of ['generation','owner','owner-unsaved','session','connection','identity','document','revision','document-epoch'])test('Composition approval refuses '+change+' changes while its draft flush is held',async t=>{
+ const f=fixture(t),entered=deferred(),gate=deferred();await f.initial();f.controller.preview();const draft=f.controller.c,id=draft.id;let flushes=0;
+ f.editor.flushDrafts=async()=>{flushes++;entered.resolve();await gate.promise;};
+ const approving=f.controller.approve();try{await boundary(approving,entered);assert.equal(f.stages.length,0);assert.equal(f.commands.length,0);
+  if(change==='generation')f.controller.touch();else if(change==='owner')f.editor.draftOwner={...f.editor.draftOwner,drafts:new Map()};else if(change==='owner-unsaved')f.editor.draftOwner={...f.editor.draftOwner,drafts:new Map([[f.controller.draftId,{generation:'2',savedGeneration:'1'}]])};else if(change==='session')f.editor.sessionId='replacement-session';else if(change==='connection')f.editor.session={...f.editor.session};else if(change==='identity')f.editor.session.identity=()=> 'replacement-client';else if(change==='document')f.editor.view.document={...f.editor.view.document,id:'replacement-document'};else if(change==='revision')f.editor.view.document={...f.editor.view.document,revision:'2'};else f.editor.documentEpoch=1;
+  gate.resolve();await assert.rejects(approving,/Projection changed while saving/);assert.equal(flushes,1,'Stale approval cannot flush a replacement owner');assert.equal(f.stages.length,0);assert.equal(f.commands.length,0);assert.equal(draft.review,null);if(change!=='generation')assert.equal(draft.id,id);assert.equal(f.controller.lifecycle.pendingOperations,0);
+ }finally{gate.resolve();await approving.catch(()=>{});}
+});
+
+test('Composition approval preserves a draft-flush failure without staging a prompt',async t=>{
+ const f=fixture(t),failure=Error('draft persistence failed');await f.initial();f.controller.preview();const draft=f.controller.c;
+ f.editor.flushDrafts=async()=>{throw failure;};await assert.rejects(f.controller.approve(),error=>error===failure);assert.equal(f.stages.length,0);assert.equal(f.commands.length,0);assert.equal(draft.review,null);assert.equal(f.controller.lifecycle.pendingOperations,0);
+});
+
+test('Composition approval releases a staged prompt when its owner changes before preparation settles',async t=>{
+ const f=fixture(t);await f.initial();f.controller.preview();const draft=f.controller.c;f.setStageHook(()=>{f.editor.draftOwner={...f.editor.draftOwner,drafts:new Map(f.editor.draftOwner.drafts)};});
+ await assert.rejects(f.controller.approve(),/Projection changed during preparation/);assert.equal(f.stages.length,1);assert.equal(f.stages[0].active,false);assert.equal(f.commands.length,0);assert.equal(draft.review,null);
+});
+
 test('prompt-reference admission refusal ends its response without mutating the Composition review',async t=>{
  const f=fixture(t);await f.initial();f.controller.preview();const draft=f.controller.c,id=draft.id;let pressure;
  f.setStageHook(()=>{pressure=allocationLedger.reserve({owner:'composition-response-pressure',kind:'prompt',cpuBytes:ALLOCATION_LIMITS.promptBytes-allocationLedger.snapshot().promptBytes});});

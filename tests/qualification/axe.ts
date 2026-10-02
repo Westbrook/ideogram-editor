@@ -112,7 +112,7 @@ async function contrastEvidence(page:Page,info:TestInfo,directory:string,state:s
   const contextChanges=beforeImage?.viewport&&afterImage.viewport?{navigation:beforeImage.timeOrigin!==afterImage.timeOrigin,viewport:['width','height','scrollX','scrollY','devicePixelRatio'].some(key=>beforeImage.viewport![key]!==afterImage.viewport![key]),focus:JSON.stringify(beforeImage.focus)!==JSON.stringify(afterImage.focus)}:null;
   const record={kind:'axe-rendered-contrast-evidence-1',state,resultSha256,capture,screenshot,afterScreenshot,contextChanges,
     limits:{maximumBytes,maximumTargets},disposition:'Supplemental sequential rendered evidence only. No contrast pass, visibility proof or incomplete adjudication is inferred. Clipping rectangles and pointer hit tests do not model every painted pixel. Hit samples cover only the first nonempty text range or target box. Native value text, pseudo-only ink, external SVG/use and paint servers are not fully measured; complex/occluded/unsupported cases remain unknown.'};
-  let raw=JSON.stringify(record,null,2);
+  let raw=JSON.stringify(record);
   if(Buffer.byteLength(raw)>maximumBytes)raw=JSON.stringify({...record,capture:{status:'unknown',reason:'capture-byte-cap',expectedTargets:targets.length,targets:targets.slice(0,maximumTargets).map(t=>({ruleIndex:t.ruleIndex,nodeIndex:t.nodeIndex})),omittedTargets:Math.max(0,targets.length-maximumTargets)}},null,2);
   await writeFile(capturePath,raw);await info.attach('contrast-'+state,{path:capturePath,contentType:'application/json'});
 }
