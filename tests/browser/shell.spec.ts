@@ -4,12 +4,56 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createServer } from 'node:http';
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { constants } from 'node:fs';
 import type { startLocalServer as ServerFactory } from '../../server/http.js';
 import type { launch as Launcher } from '../../tooling/launcher.js';
-import { loadD11Build } from '../../tooling/qualification/campaigns/browser-d11-build.mjs';
-import { measureD11StartupBuildBound } from '../../tooling/qualification/campaigns/browser-d11-startup-bound.mjs';
+import type { measureD11StartupBuildBound } from '../../tooling/qualification/campaigns/browser-d11-startup-bound.mjs';
+
+// Keep the offline AST/build census out of this process: the live local server's
+// unchanged admission limits sample this process's RSS throughout later cases.
+// Only the original final bound crosses the child boundary; no inventory or AST
+// is returned, and the exact source/artifact/dependency verification still runs.
+const startupAnalyses = new WeakMap<import('@playwright/test').Page, { close: () => Promise<void> }>();
+async function isolatedStartupBuildBound(page: import('@playwright/test').Page): Promise<ReturnType<typeof measureD11StartupBuildBound>> {
+  if (startupAnalyses.has(page)) throw Error('D11 analysis already owns this page');
+  const repo = resolve('.'), input = JSON.stringify({ repo, cacheDirectory: process.env.IE_D11_NPM_CACHE });
+  const source = [
+    `import { loadD11Build } from ${JSON.stringify(pathToFileURL(resolve('tooling/qualification/campaigns/browser-d11-build.mjs')).href)};`,
+    `import { measureD11StartupBuildBound } from ${JSON.stringify(pathToFileURL(resolve('tooling/qualification/campaigns/browser-d11-startup-bound.mjs')).href)};`,
+    'const inventory = await loadD11Build(JSON.parse(process.argv[1]));',
+    'const bound = measureD11StartupBuildBound(inventory);',
+    'const effects = globalThis.__storeNetworkCounters.read();',
+    "if (Object.keys(effects).length !== 8 || Object.values(effects).some(value => value !== 0)) throw Error('D11 analysis attempted a network effect');",
+    'process.stdout.write(JSON.stringify(bound));',
+  ].join('\n');
+  let resolveResult!: (value: string) => void, rejectResult!: (error: Error) => void;
+  const result = new Promise<string>((resolve, reject) => { resolveResult = resolve; rejectResult = reject; });
+  // A timeout or buffer overflow kills this exact owned PID. Teardown below also
+  // handles a Playwright interruption before the normal result await completes.
+  const child = execFile(process.execPath, ['--import', resolve('tests/store/no-network.mjs'), '--input-type=module', '--eval', source, input],
+    { cwd: repo, encoding: 'utf8', timeout: 20_000, maxBuffer: 1024 * 1024, killSignal: 'SIGKILL' },
+    (error, stdout) => { if (error) rejectResult(error); else resolveResult(stdout); });
+  void result.catch(() => {});
+  let exited = false, cleanup: Promise<void> | undefined;
+  const closed = new Promise<void>(resolve => child.once('close', () => { exited = true; resolve(); }));
+  const owner = { close: (): Promise<void> => cleanup ??= (async () => {
+    if (!exited && child.pid !== undefined && child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try { await Promise.race([closed, new Promise<never>((_resolve, reject) => { timer = setTimeout(() => reject(Error('D11 analysis child exit deadline')), 2000); })]); }
+    finally { clearTimeout(timer); }
+  })() };
+  startupAnalyses.set(page, owner);
+  try {
+    const bound = JSON.parse(await result);
+    if (!bound || typeof bound !== 'object' || Array.isArray(bound) || bound.kind !== 'd11-startup-build-upper-bound-1' || bound.qualification !== false) throw Error('D11 analysis returned an invalid bound');
+    return bound;
+  } finally {
+    await owner.close();
+    if (startupAnalyses.get(page) === owner) startupAnalyses.delete(page);
+  }
+}
 
 // Exercise the same compiled server/worker entry points used by npm start.
 // Playwright's source transform does not provide a worker-thread module loader.
@@ -225,6 +269,7 @@ test.beforeEach(async ({ page }, info) => {
   page.on('requestfailed', request => { const path = diagnosticAsset(request.url()); if (path) add({ kind: 'asset-failed', path, failure: diagnosticText(request.failure()?.errorText ?? '') }); });
 });
 test.afterEach(async ({ page }, info) => {
+  await startupAnalyses.get(page)?.close();
   const commandProof = commandProofDiagnostics.get(page);
   if (commandProof) { await commandProof.close(); await info.attach('shell-command-proof-diagnostics', { body: JSON.stringify(commandProof.evidence, null, 2), contentType: 'application/json' }); }
   if (info.status === info.expectedStatus) return;
@@ -359,8 +404,7 @@ test('B01 launcher, native bootstrap ordering, strict cookie, reload and startup
     // artifact startup upper bound for D11's fixed W0/W1 context. This B01 visit
     // remains a bootstrap/security check, not the real W0/W1 evaluation audit.
     await info.attach('D11-all-reachable-build-diagnostic', { body: JSON.stringify({ scope: 'Conservative all-reachable build diagnostic including dynamic descendants', observations: build.observations.D11 }, null, 2), contentType: 'application/json' });
-    const inventory = await loadD11Build({ repo: resolve('.'), cacheDirectory: process.env.IE_D11_NPM_CACHE });
-    const startupBound = measureD11StartupBuildBound(inventory);
+    const startupBound = await isolatedStartupBuildBound(page);
     await info.attach('D11-static-startup-build-upper-bound', { body: JSON.stringify(startupBound, null, 2), contentType: 'application/json' });
     expect(startupBound.status, JSON.stringify({ missing: startupBound.missing, failures: startupBound.failures, budgets: startupBound.artifactBuildBudgets, violations: startupBound.artifactBuildViolations })).toBe('PASS');
     expect(startupBound.bounds?.jsRawBytes).toBeLessThan(1.5 * 1024 * 1024);
@@ -561,12 +605,56 @@ test('B07 trusted report flag, navigation fragment, unflagged absence and offlin
 });
 
 
-test('B08 lost renewal response is read back without retry; restarted server requires pairing', async ({page, local}) => {
-  await paired(page, local.server); await newRequestDocument(page);
+test('B08 lost renewal response is read back without retry; restarted server requires pairing', async ({page, local}, info) => {
+  // Passive evidence: fixed endpoint classes, status/native codes and bounded
+  // process RSS samples. No URL, query, header, body, token or private path is
+  // retained; this observer adds or retries no request and changes no limit.
+  type Phase = 'initial' | 'reload' | 'renewal' | 'readback' | 'restart' | 'repaired';
+  let phase:Phase='initial', restartedOrigin:string|null=null, apiResponses=0, otherFailures=0, dropped=0;
+  let composition507=0, repairedCompositionReads=0, repairedCompositionVisible=false;
+  const counts=new Map<string,{phase:Phase;server:'original'|'restarted';endpoint:string;method:string;status:number;count:number}>();
+  const samples:{kind:'http'|'writer';phase:Phase;code:string;sqliteCode:number|null;rssBytes:number}[]=[];
+  const sample=(kind:'http'|'writer',code:string,sqliteCode:number|null=null)=>{
+    if(samples.length>=24||samples.filter(row=>row.kind===kind&&row.phase===phase).length>=2){dropped++;return;}
+    samples.push({kind,phase,code,sqliteCode,rssBytes:process.memoryUsage().rss});
+  };
+  const classify=(path:string)=>{
+    const fixed:Record<string,string>={
+      '/api/v1/session':'session','/api/v1/session/bootstrap':'bootstrap','/api/v1/session/renew':'renewal',
+      '/api/v1/capabilities':'capabilities','/api/v1/events':'events','/api/v1/events/stream':'event-stream',
+      '/api/v1/ui':'ui-inventory','/api/v1/commands/pending':'pending-inventory','/api/v1/assets/staging/recovery':'staging-inventory',
+    };
+    if(Object.hasOwn(fixed,path))return fixed[path];
+    if(/^\/api\/v1\/ui\/[^/]+\/request-reviews$/.test(path))return 'request-reviews';
+    if(/^\/api\/v1\/ui\/[^/]+$/.test(path))return 'ui-checkpoint';
+    if(/^\/api\/v1\/(?:documents|ui)\/[^/]+\/composition$/.test(path))return 'composition';
+    if(/^\/api\/v1\/documents\/[^/]+\/(?:image|history|checkpoints|save-status)$/.test(path))return 'document-model';
+    if(/^\/api\/v1\/documents\/[^/]+$/.test(path))return 'document';
+    if(/^\/api\/v1\/recovery\/[^/]+\/release$/.test(path))return 'recovery-release';
+    if(/^\/api\/v1\/(?:snapshots|protocol-content|namespace-events)\/[^/]+$/.test(path))return 'recovery-content';
+    return 'other-api';
+  };
+  const observe=(response:import('@playwright/test').Response)=>{
+    const url=new URL(response.url());
+    if(url.origin!==local.server.origin&&url.origin!==restartedOrigin||!url.pathname.startsWith('/api/v1/'))return;
+    apiResponses++;const status=response.status(),endpoint=classify(url.pathname);
+    // This scalar covers every phase even if the bounded diagnostic rows fill.
+    if(endpoint==='composition'&&status===507)composition507++;
+    if(status<400)return;
+    const server=url.origin===restartedOrigin?'restarted':'original';
+    if(endpoint==='other-api')otherFailures++;
+    const rawMethod=response.request().method(),method=['GET','POST','HEAD'].includes(rawMethod)?rawMethod:'other';
+    const key=[phase,server,endpoint,method,status].join(':'),prior=counts.get(key);
+    if(prior)prior.count++;else if(counts.size<48)counts.set(key,{phase,server,endpoint,method,status,count:1});else dropped++;
+    if(status===507)sample('http','HTTP_507');
+  };
+  page.on('response',observe);
+  try {
+  await paired(page, local.server); const documentId=await newRequestDocument(page);
   const prompt = page.getByRole('textbox', {name:'Prompt',exact:true});
   await prompt.fill('Preserved after a lost response'); await prompt.press('Tab');
   await expect(page.locator('footer')).toContainText('Draft saved locally');
-  await page.reload();
+  phase='reload';await page.reload();
   await expect(prompt).toHaveValue('Preserved after a lost response');
   let renewals = 0;
   await page.route('**/api/v1/session/renew', async route => {
@@ -576,19 +664,47 @@ test('B08 lost renewal response is read back without retry; restarted server req
     await route.abort('connectionreset');
   });
   await page.getByRole('button', {name:'Connected locally',exact:true}).click();
-  await page.getByRole('button', {name:'Renew connection',exact:true}).click();
+  phase='renewal';await page.getByRole('button', {name:'Renew connection',exact:true}).click();
   await expect(page.getByRole('button', {name:'Server offline',exact:true})).toBeVisible();
-  await page.getByRole('button', {name:'Check connection',exact:true}).first().click();
+  phase='readback';await page.getByRole('button', {name:'Check connection',exact:true}).first().click();
   await expect(page.getByRole('button', {name:/^(Connected locally|Pairing needed)$/})).toBeVisible();
   expect(renewals).toBe(1);
   await expect(page.getByRole('textbox', {name:'Prompt',exact:true})).toHaveValue('Preserved after a lost response');
   await local.server.close();
-  const next = await startLocalServer({root:local.server.root,staticDirectory:resolve('dist/app')});
+  phase='restart';
+  const next = await startLocalServer({root:local.server.root,staticDirectory:resolve('dist/app')},{writer:{onFailure:failure=>{
+    const code=['CAPACITY','STORAGE_FULL','ENOSPC','EDQUOT'].includes(failure.code??'')?failure.code!:'OTHER';
+    const sqliteCode=Number.isSafeInteger(failure.sqliteCode)&&failure.sqliteCode!>=0&&failure.sqliteCode!<=255?failure.sqliteCode!:null;
+    sample('writer',code,sqliteCode);
+  }}});restartedOrigin=next.origin;
   try {
     await page.goto(next.origin);
     await expect(page.getByRole('button', {name:'Pairing needed',exact:true})).toBeVisible();
-    await paired(page,next);
+    // Fresh pairing autoopens this root's sole retained document. Observe its
+    // actual model response before pairing, then require the owned public UI.
+    phase='repaired';
+    const [compositionResponse]=await Promise.all([
+      page.waitForResponse(response=>{
+        const url=new URL(response.url());
+        return phase==='repaired'&&url.origin===next.origin&&url.pathname==='/api/v1/documents/'+documentId+'/composition'&&response.request().method()==='GET';
+      }),
+      paired(page,next),
+    ]);
+    expect(compositionResponse.status()).toBe(200);
+    expect(await compositionResponse.finished()).toBeNull();repairedCompositionReads++;
+    const composition=page.getByRole('radio',{name:'Composition',exact:true});
+    await composition.focus();await composition.press('Space');
+    const scene=page.getByRole('textbox',{name:'Scene',exact:true});
+    await expect(scene).toBeVisible();await expect(scene).toBeEnabled();repairedCompositionVisible=true;
+    expect(repairedCompositionReads).toBeGreaterThan(0);
   } finally { await next.close(); }
+  expect(composition507,'Valid recovery must not encounter Composition capacity refusal').toBe(0);
+  } finally {
+    page.off('response',observe);
+    await info.attach('B08-recovery-capacity-diagnostic',{body:JSON.stringify({kind:'shell-recovery-capacity-diagnostic-1',qualification:false,
+      apiResponses,otherFailures,dropped,composition507,repairedCompositionReads,repairedCompositionVisible,
+      counts:[...counts.values()],samples,finalPhase:phase},null,2),contentType:'application/json'});
+  }
 });
 
 

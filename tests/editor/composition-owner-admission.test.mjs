@@ -67,6 +67,8 @@ for(const transition of ['document','session','draft-owner'])for(const stage of 
   // Both the previous rendered callback and a newly rendered old-model callback
   // must remain unable to save into the successor after refusal.
   oldScene(event('Retained callback contamination'));f.freshScene().values.at(-1)(event('Fresh callback contamination'));await flush();assert.equal(f.saved.length,0);assert.equal(c.scene,'Old owner scene');
+  await f.instance.sync();await flush();assert.equal(f.reads(),2,'Freed capacity does not retry the failed automatic owner');
+  f.editor.view.ready=false;await f.instance.sync();f.editor.view.ready=true;
   await f.instance.sync();await flush();assert.equal(f.reads(),3);assert.notEqual(f.instance.c,c);assert.equal(f.instance.c.scene,'Successor scene');assert.equal(f.instance.ownsModel(),true);assert.equal(f.saved.length,0);
   oldScene(event('Old callback after successor install'));await flush();assert.equal(f.saved.length,0);assert.equal(f.instance.c.scene,'Successor scene');
   f.scene().values.at(-1)(event('Successor edit'));await flush();assert.equal(f.saved.length,1);assert.equal(f.saved[0].graph.composition.scene,'Successor edit');assert.equal(f.saved[0].documentId,f.editor.view.document.id);

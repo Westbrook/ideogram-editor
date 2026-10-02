@@ -526,3 +526,103 @@ test('typed Composition JSON does not masquerade as raw-caption read evidence',a
  const afterRaw=compositionObservations.readSnapshot();try{const rows=afterRaw.value.records.filter(row=>row.sequence>cursor&&row.kind==='raw-read');assert.equal(rows.length,1);assert.equal(rows[0].operation,'stream-read');assert.equal(rows[0].receivedBytes,2);assert.equal(rows[0].sourceBytes,2);}finally{afterRaw.release();}
  assert.deepEqual(totals(),zero);
 });
+
+
+// Automatic synchronization uses the real controller and owned response reader.
+// Repeated calls below stand for unrelated shell updates; no timer or error
+// publisher is replaced in production. The original rejection is still visible.
+const refusedCompositionResponse=()=>{
+ const text=JSON.stringify({error:{code:'STORAGE_FULL'}});
+ return new Response(text,{status:507,headers:{'content-length':String(Buffer.byteLength(text))}});
+};
+const recoverComposition=f=>{f.editor.view.ready=false;return f.controller.sync().then(()=>{f.editor.view.ready=true;return f.controller.sync();});};
+
+test('one Composition 507 remains visible without automatic read or rejection amplification',async t=>{
+ const f=fixture(t),errors=[],gate=deferred(),entered=deferred();f.setRead(async()=>{entered.resolve();return gate.promise;});
+ const synchronize=()=>f.controller.sync().catch(error=>{errors.push(error.message);});
+ const original=synchronize();await boundary(original,entered);const pending=totals();
+ await Promise.all(Array.from({length:16},()=>synchronize()));assert.equal(f.reads.length,1);assert.deepEqual(errors,[]);assert.deepEqual(totals(),pending);
+ gate.resolve(refusedCompositionResponse());await original;f.setRead(async()=>refusedCompositionResponse());assert.deepEqual(errors,['STORAGE_FULL']);assert.equal(f.reads.length,1);assert.equal(f.controller.c,null);const retained=totals();
+ for(let i=0;i<32;i++){f.editor.view.message='Unrelated status '+i;f.host.requestUpdate();await synchronize();}
+ assert.equal(f.reads.length,1);assert.deepEqual(errors,['STORAGE_FULL']);assert.deepEqual(totals(),retained);assert.equal(f.controller.lifecycle.pendingOperations,0);
+ await assert.rejects(recoverComposition(f),/STORAGE_FULL/);assert.equal(f.reads.length,2);
+ await f.controller.sync();assert.equal(f.reads.length,2,'A failed explicit recovery is latched again');
+ f.setRead(async()=>f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await recoverComposition(f);
+ assert.equal(f.reads.length,3);assert.equal(f.controller.base.id,'document');assert.equal(f.controller.ownsModel(),true);
+ await f.controller.sync();assert.equal(f.reads.length,3,'Successful current synchronization remains deduplicated');
+});
+
+test('Composition snapshot admission failure is suppressed before another reservation or transport',async t=>{
+ const f=fixture(t),pressure=allocationLedger.reserve({owner:'composition-auto-sync-pressure',kind:'prompt',cpuBytes:ALLOCATION_LIMITS.promptBytes-allocationLedger.snapshot().promptBytes});
+ try{await assert.rejects(f.controller.sync(),/PROMPT_MEMORY_BUDGET/);const retained=totals();await f.controller.sync();assert.equal(f.reads.length,0);assert.deepEqual(totals(),retained);}finally{pressure.release();}
+ await f.controller.sync();assert.equal(f.reads.length,0,'Free capacity alone is not an implicit retry');
+ await recoverComposition(f);assert.equal(f.reads.length,1);assert.equal(f.controller.base.id,'document');
+});
+
+test('every Composition recovery authority change admits one new automatic attempt',async t=>{
+ for(const boundary of ['connection','identity','draft-owner','session','document','revision','document-epoch']){
+  const f=fixture(t);f.editor.documentEpoch=1;f.setRead(async()=>refusedCompositionResponse());await assert.rejects(f.controller.sync(),/STORAGE_FULL/);
+  if(boundary==='connection')f.editor.session={...f.editor.session};
+  if(boundary==='identity')f.editor.session.identity=()=> 'next-client';
+  if(boundary==='draft-owner')f.editor.draftOwner={drafts:new Map()};
+  if(boundary==='session')f.editor.sessionId='next-session';
+  if(boundary==='document')f.editor.view.document={...f.editor.view.document,id:'next-document'};
+  if(boundary==='revision')f.editor.view.document={...f.editor.view.document,revision:'2'};
+  if(boundary==='document-epoch')f.editor.documentEpoch++;
+  await assert.rejects(f.controller.sync(),/STORAGE_FULL/,boundary);await f.controller.sync();assert.equal(f.reads.length,2,boundary);
+ }
+});
+
+test('pending Composition synchronization deduplicates updates and a stale rejection cannot fence its successor',async t=>{
+ const f=fixture(t),gate=deferred(),entered=deferred();f.editor.documentEpoch=1;
+ f.setRead(async()=>{entered.resolve();return gate.promise;});const prior=f.controller.sync();void prior.catch(()=>{});
+ try{
+  await boundary(prior,entered);await Promise.all(Array.from({length:16},()=>f.controller.sync()));assert.equal(f.reads.length,1);
+  f.editor.view.document={...f.editor.view.document,id:'successor-document'};f.editor.documentEpoch++;
+  f.setRead(async()=>f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await f.controller.sync();assert.equal(f.reads.length,2);const successor=f.controller.c;
+  gate.reject(Error('old refused read'));await prior;await f.controller.sync();
+  assert.equal(f.controller.c,successor);assert.equal(f.controller.base.id,'successor-document');assert.equal(f.controller.syncFailure,null);assert.equal(f.reads.length,2);
+ }finally{gate.resolve(f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await prior.catch(()=>{});}
+});
+
+test('a recovery readiness transition supersedes an in-flight same-owner Composition read',async t=>{
+ const f=fixture(t),gate=deferred(),entered=deferred();f.setRead(async()=>{entered.resolve();return gate.promise;});const prior=f.controller.sync();void prior.catch(()=>{});
+ try{
+  await boundary(prior,entered);f.editor.view.ready=false;await f.controller.sync();f.editor.view.ready=true;
+  f.setRead(async()=>f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await f.controller.sync();assert.equal(f.reads.length,2);const successor=f.controller.c;
+  gate.reject(Error('superseded recovery read'));await prior;await f.controller.sync();assert.equal(f.controller.c,successor);assert.equal(f.controller.syncFailure,null);assert.equal(f.reads.length,2);
+ }finally{gate.resolve(f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await prior.catch(()=>{});}
+});
+
+test('failed saved Composition restoration retries the exact unchanged interim model after recovery or revision change',async t=>{
+ for(const change of ['recovery','revision']){
+  const f=restoringFixture(t),initial=f.controller.sync();void initial.catch(()=>{});
+  try{
+   await boundary(initial,f.entered);const interim=f.controller.c;assert(interim);f.gate.reject(Error('saved Composition read failed'));await assert.rejects(initial,/saved Composition read failed/);
+   await f.controller.sync();assert.equal(f.reads.length,2);assert.equal(f.controller.c,interim);
+   f.setRead(async path=>path.startsWith('/api/v1/ui/')?f.response():f.jsonResponse({composition:null,layers:[],bindings:{},revision:f.editor.view.document.revision}));
+   if(change==='recovery')await recoverComposition(f);else{f.editor.view.document={...f.editor.view.document,revision:'2'};await f.controller.sync();}
+   assert.equal(f.reads.length,4,change);assert.equal(f.controller.c.scene,'Saved checkpoint scene');assert.equal(f.controller.draftId,'saved-draft');assert.equal(f.controller.base.revision,'1','Restored draft retains its saved revision for explicit review');assert.equal(f.controller.restoreRetry,null);
+  }finally{f.gate.resolve(f.response());await initial.catch(()=>{});}
+ }
+});
+
+test('a failed saved Composition read never overwrites later edits to the interim draft',async t=>{
+ const f=restoringFixture(t),initial=f.controller.sync();void initial.catch(()=>{});
+ try{
+  await boundary(initial,f.entered);f.gate.reject(Error('saved Composition read failed'));await assert.rejects(initial,/saved Composition read failed/);
+  const interim=f.controller.c;interim.scene='Typed after failed restore';f.controller.touch();assert.equal(f.controller.dirty,true);
+  f.setRead(async()=>{throw Error('Must retain the edited interim draft');});await recoverComposition(f);
+  assert.equal(f.reads.length,2);assert.equal(f.controller.c,interim);assert.equal(f.controller.c.scene,'Typed after failed restore');assert.equal(f.controller.dirty,true);assert.equal(f.controller.restoreRetry,null);
+ }finally{f.gate.resolve(f.response());await initial.catch(()=>{});}
+});
+
+test('Composition release drains a pending automatic read and does not retain its failure latch',async t=>{
+ const f=fixture(t),gate=deferred(),entered=deferred();f.setRead(async()=>{entered.resolve();return gate.promise;});const initial=f.controller.sync();void initial.catch(()=>{});let closing;
+ try{
+  await boundary(initial,entered);let closed=false;closing=f.controller.releaseDocument().then(()=>{closed=true;});await flush();assert.equal(closed,false);
+  gate.reject(Error('released read'));await initial;await closing;assert.equal(f.controller.syncFailure,null);assert.equal(f.controller.restoreRetry,null);assert.equal(f.controller.c,null);
+  f.setRead(async()=>f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await f.controller.sync();assert.equal(f.reads.length,2,'A new document lifecycle can recover');
+  await f.controller.dispose();await f.controller.sync();assert.equal(f.reads.length,2,'Disposed controllers never retry');
+ }finally{gate.resolve(f.jsonResponse({composition:null,layers:[],bindings:{},revision:'1'}));await initial.catch(()=>{});await closing;}
+});

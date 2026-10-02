@@ -3,10 +3,10 @@ import {RequestEditing,allocationsURL,createOwnedModel,modelPayloadBytes,readOwn
 const ownedControllers=new Set(),fixtureCleanups=new Set();test.afterEach(async()=>{try{await Promise.all([...ownedControllers].map(controller=>controller.dispose()));}finally{ownedControllers.clear();for(const cleanup of fixtureCleanups)cleanup();fixtureCleanups.clear();}});const flush=async()=>{for(let i=0;i<100;i++)await Promise.resolve();};const tick=()=>new Promise(r=>setTimeout(r,5));
 function find(t,part){if(!t||typeof t!=='object')return; if(t.strings){const i=t.strings.findIndex(s=>s.includes(part));if(i>=0)return {strings:t.strings.slice(i),values:t.values.slice(i)};}for(const v of Array.isArray(t)?t:t.values??[]){const f=find(v,part);if(f)return f;}}
 function event(value='',host={value,isConnected:true}){host.value=value;return {currentTarget:host,composedPath:()=>[host],defaultPrevented:false};}
-function fixture(contextualOperationChanged){
+function fixture(contextualOperationChanged,checkpointDrafts=[]){
  let instance,rendered,identity='client',native={value:'',isConnected:false,updateComplete:Promise.resolve()};const saved=[],reviews=[],responses=new Set(),draftRegistrations=new Map();
  const own=(value,owner='request-controller-fixture',kind='control')=>{const model=createOwnedModel(owner,modelPayloadBytes(value),()=>structuredClone(value),kind);responses.add(model);return model;};
- const ui=own({drafts:[]},'request-controller-ui');
+ const ui=own({drafts:checkpointDrafts},'request-controller-ui');
  // Existing tests replace the raw methods below as transport callbacks. The
  // controller sees only independently admitted owned responses and scoped events.
  const editor={documentEpoch:1,view:{ready:true,document:{id:'doc',revision:'1'}},sessionId:'session',session:{identity:()=>identity},draftOwner:{drafts:new Map(),refused:new Map(),refuseChange(id,documentId){const row=draftRegistrations.get(this)?.get(id);assert(row&&row.count>0&&row.documentId===documentId,'Refusal requires the current registered draft identity');this.refused.set(id,documentId);},get hasRefusedChanges(){return this.refused.size>0;}},ui:ui.value,
@@ -304,4 +304,139 @@ test('contextual masked adapter action preserves actual source and mask refs att
  assert.equal(f.instance.operation,'Edit with adapters');assert.notEqual(selected.id,prior.id);assert.deepEqual(selected.draft.source,prior.draft.source);assert.deepEqual(selected.draft.mask,prior.draft.mask);assert.deepEqual(selected.draft.requestMaskDraft,prior.draft.requestMaskDraft);assert.deepEqual(selected.draft.conversion,prior.draft.conversion);assert.deepEqual(selected.draft.adapters,[],'Choosing the route does not fabricate an eligible adapter');
  assert.deepEqual([...f.instance.entries.values()].find(entry=>entry.id===prior.id),prior);assert.deepEqual(commands,[]);assert.deepEqual(f.reviews,[]);
  f.instance.operationChanged('Edit masked region');await flush();assert.deepEqual(f.instance.entry(),prior);
+});
+
+// These turns mirror the shell's repeated sync after unrelated view/render
+// updates. The controller, owned reads and restoration work remain real.
+async function restoreRenderTurns(f,count){
+ for(let index=0;index<count;index++){
+  f.editor.view={...f.editor.view,document:{...f.editor.view.document},message:'Unrelated view update '+index};
+  f.host.requestUpdate();await f.host.updateComplete;await f.instance.sync();
+ }
+ await flush();
+}
+async function restoreAuthorityChange(f,boundary){
+ if(boundary==='owner')f.editor.draftOwner={drafts:new Map()};
+ else if(boundary==='session')f.editor.sessionId='replacement-session';
+ else if(boundary==='identity')f.identity('replacement-client');
+ else if(boundary==='connection')f.editor.session={...f.editor.session};
+ else if(boundary==='document')f.editor.view.document={id:'replacement-document',revision:'1'};
+ else if(boundary==='revision')f.editor.view.document={...f.editor.view.document,revision:'2'};
+ else if(boundary==='documentEpoch')f.editor.documentEpoch++;
+ else if(boundary==='ready'){f.editor.view.ready=false;await f.instance.sync();f.editor.view.ready=true;}
+ else if(boundary==='Open')await f.instance.releaseDocument();
+ else assert.fail('Unknown restoration boundary');
+}
+function assertRestoreWorkDrained(f){
+ const memory=f.instance.inspectMemory();
+ for(const key of ['entryTasks','entryHolds','entryReads','promptReads','retiredEntries'])assert.equal(memory[key],0,key);
+ assert.equal(memory.navigation.controls.reads,0);assert.equal(memory.navigation.controls.pending,0);
+}
+
+test('failed initial request history restore reports once across concurrent and repeated render syncs',{timeout:5000},async()=>{
+ const f=fixture(),failure=Error('STORAGE_FULL'),failures=[];let reads=0,rejectRead,pins=0,releases=0,registrations=0;
+ const heldRead=new Promise((_resolve,reject)=>rejectRead=reject);
+ const pin=f.editor.pinUI.bind(f.editor),register=f.editor.registerDraft.bind(f.editor);
+ f.editor.pinUI=()=>{pins++;const release=pin();return ()=>{releases++;release();};};
+ f.editor.registerDraft=(...args)=>{registrations++;return register(...args);};
+ f.editor.json=path=>{assert.equal(path,'/api/v1/ui/session/request-reviews');reads++;return heldRead;};
+ const report=error=>{failures.push(error);f.editor.view={...f.editor.view,error:error.message};f.host.requestUpdate();};
+ const pending=[f.instance.sync().catch(report)];
+ try{await flush();pending.push(...Array.from({length:16},()=>f.instance.sync().catch(report)));await flush();
+ assert.equal(reads,1);rejectRead(failure);await Promise.all(pending);await flush();
+ assert.deepEqual(failures,[failure]);assert.equal(pins,1);assert.equal(releases,1);assert.equal(registrations,0);
+ await restoreRenderTurns(f,32);
+ assert.equal(reads,1);assert.deepEqual(failures,[failure]);assert.equal(pins,1);assert.equal(releases,1);assert.equal(registrations,0);
+ assert.equal(f.instance.inspectMemory().entries,0);assert.equal(f.saved.length,0);assertRestoreWorkDrained(f);
+ }finally{rejectRead(Error('fixture cleanup'));await Promise.allSettled(pending);}
+});
+
+for(const boundary of ['owner','session','identity','connection','document','revision','documentEpoch','ready','Open'])test('failed initial request restore retries after an actual '+boundary+' transition',async()=>{
+ const f=fixture(),failure=Error('STORAGE_FULL');let reads=0,failed=true;
+ f.editor.json=async path=>{assert(path.endsWith('/request-reviews'));reads++;if(failed)throw failure;return {items:[]};};
+ await assert.rejects(f.instance.sync(),error=>error===failure);await restoreRenderTurns(f,20);assert.equal(reads,1);
+ failed=false;await restoreRenderTurns(f,10);assert.equal(reads,1,'Transport recovery alone does not authorize another render retry');
+ await restoreAuthorityChange(f,boundary);await f.instance.sync();await flush();
+ assert.equal(reads,2);assert.equal(f.instance.owner,f.editor.draftOwner);assert.equal(f.instance.documentId,f.editor.view.document.id);
+ assert.equal(f.instance.entry().revision,f.editor.view.document.revision);assert.equal(f.instance.inspectMemory().entries,1);
+ await restoreRenderTurns(f,10);assert.equal(reads,2);assertRestoreWorkDrained(f);
+});
+
+test('a permitted request restore retry can fail once again and recover on a later explicit Open',async()=>{
+ const f=fixture(),failures=[Error('STORAGE_FULL'),Error('LOCAL_SERVER_UNAVAILABLE')];let reads=0;
+ f.editor.json=async()=>{const failure=failures[reads++];if(failure)throw failure;return {items:[]};};
+ await assert.rejects(f.instance.sync(),error=>error===failures[0]);await restoreRenderTurns(f,20);assert.equal(reads,1);
+ await restoreAuthorityChange(f,'ready');await assert.rejects(f.instance.sync(),error=>error===failures[1]);
+ await restoreRenderTurns(f,10);assert.equal(reads,2);assert.equal(f.instance.inspectMemory().entries,0);
+ await restoreAuthorityChange(f,'Open');await f.instance.sync();await flush();assert.equal(reads,3);assert.equal(f.instance.inspectMemory().entries,1);assertRestoreWorkDrained(f);
+});
+
+test('a transient ready=false observation permits retry before queued sync work resumes',async()=>{
+ const f=fixture(),failure=Error('STORAGE_FULL');let reads=0;
+ f.editor.json=async()=>{if(++reads===1)throw failure;return {items:[]};};
+ await assert.rejects(f.instance.sync(),error=>error===failure);
+ f.editor.view.ready=false;const reconnect=f.instance.sync();f.editor.view.ready=true;
+ await reconnect;await flush();assert.equal(reads,2);assert.equal(f.instance.inspectMemory().entries,1);
+ await restoreRenderTurns(f,10);assert.equal(reads,2);assertRestoreWorkDrained(f);
+});
+
+for(const boundary of ['owner','session','identity','connection','document','revision','documentEpoch','ready'])test('late initial request failure cannot fence the restored '+boundary+' successor',{timeout:5000},async()=>{
+ const f=fixture();let reads=0,rejectOld;
+ f.editor.json=async()=>{if(++reads===1)return new Promise((_resolve,reject)=>rejectOld=reject);return {items:[]};};
+ const pending=f.instance.sync();
+ try{await flush();assert.equal(typeof rejectOld,'function');
+ await restoreAuthorityChange(f,boundary);await f.instance.sync();await flush();const successor=f.instance.entry();assert(successor);assert.equal(reads,2);
+ rejectOld(Error('old STORAGE_FULL'));await pending;await restoreRenderTurns(f,10);
+ assert.equal(reads,2);assert.equal(f.instance.entry(),successor);assert.equal(f.instance.owner,f.editor.draftOwner);assertRestoreWorkDrained(f);
+ }finally{rejectOld?.(Error('fixture cleanup'));await pending.catch(()=>{});}
+});
+
+for(const boundary of ['releaseDocument','dispose'])test('request '+boundary+' drains a pending failed restore and prevents its publication',{timeout:5000},async()=>{
+ const f=fixture();let reads=0,rejectRead,closed=false,closing;
+ f.editor.json=async()=>{reads++;return new Promise((_resolve,reject)=>rejectRead=reject);};
+ const pending=f.instance.sync();
+ try{await flush();assert.equal(typeof rejectRead,'function');
+ closing=f.instance[boundary]().then(()=>{closed=true;});await flush();assert.equal(closed,false);
+ await f.instance.sync();assert.equal(reads,1);rejectRead(Error('old STORAGE_FULL'));await pending;await closing;await flush();
+ assert.equal(closed,true);assert.equal(f.instance.inspectMemory().entries,0);assertRestoreWorkDrained(f);
+ f.editor.json=async()=>{reads++;return {items:[]};};await f.instance.sync();await flush();
+ assert.equal(reads,boundary==='dispose'?1:2);assert.equal(f.instance.inspectMemory().entries,boundary==='dispose'?0:1);
+ }finally{rejectRead?.(Error('fixture cleanup'));await pending.catch(()=>{});await closing?.catch(()=>{});}
+});
+
+test('initial request admission failure stays bounded after capacity returns until reconnect',async()=>{
+ const {allocationLedger,ALLOCATION_LIMITS}=await import(allocationsURL),f=fixture();let reads=0,pins=0;
+ const pin=f.editor.pinUI.bind(f.editor);f.editor.pinUI=()=>{pins++;return pin();};f.editor.json=async()=>{reads++;return {items:[]};};
+ const pressure=allocationLedger.reserve({owner:'request-restore-pressure',kind:'prompt',cpuBytes:ALLOCATION_LIMITS.promptBytes-allocationLedger.snapshot().promptBytes});
+ try{await assert.rejects(f.instance.sync(),/PROMPT_MEMORY_BUDGET/);await restoreRenderTurns(f,10);assert.equal(pins,1);assert.equal(reads,0);}finally{pressure.release();}
+ await restoreRenderTurns(f,10);assert.equal(pins,1);assert.equal(reads,0);assert.equal(f.instance.inspectMemory().entries,0);assertRestoreWorkDrained(f);
+ await restoreAuthorityChange(f,'ready');await f.instance.sync();await flush();assert.equal(pins,2);assert.equal(reads,1);assert.equal(f.instance.inspectMemory().entries,1);
+});
+
+test('loaded request synchronization remains live after a downstream edit synchronization failure',async()=>{
+ const f=fixture(),failure=Error('edit synchronization failed');let reads=0,syncs=0,previews=0;
+ f.editor.json=async()=>{reads++;return {items:[]};};
+ const sync=f.instance.requestEdits.sync.bind(f.instance.requestEdits),preview=f.instance.preview.bind(f.instance);
+ f.instance.requestEdits.sync=async()=>{await sync();if(++syncs===1)throw failure;};
+ f.instance.preview=async()=>{previews++;return preview();};
+ await assert.rejects(f.instance.sync(),error=>error===failure);const entry=f.instance.entry();assert(entry);
+ await f.instance.sync();await flush();assert.equal(reads,1);assert.equal(syncs,2);assert.equal(previews,1);assert.equal(f.instance.entry(),entry);assertRestoreWorkDrained(f);
+});
+
+test('initial saved request cleanup refusal is retained until document release retries the actual reader',{timeout:5000},async()=>{
+ const donor=fixture();await donor.initial();const draft=structuredClone(donor.instance.entry().draft);
+ const f=fixture(undefined,[{kind:'request',id:'saved-request',documentId:'doc',generation:'1',expectedDocumentRevision:'1'}]);
+ let metadataReads=0,promptReads=0,historyReads=0,refuse=true,locked=true,cancels=0;
+ const reader={async read(){return {done:true};},async cancel(){cancels++;},releaseLock(){if(refuse)throw Error('native unlock refused');locked=false;}};
+ f.editor.json=async path=>{if(path.endsWith('/request-reviews')){historyReads++;return {items:[]};}assert(path.includes('draftId=saved-request'));metadataReads++;return {value:draft};};
+ f.editor.session.transport=async path=>{assert(path.endsWith('&content=1'));promptReads++;return {ok:true,headers:new Headers({'content-length':'0'}),body:{getReader:()=>reader}};};
+ try{
+ await assert.rejects(f.instance.sync(),/PROMPT_READER_CLEANUP_FAILED/);await flush();
+ assert.equal(locked,true);assert.equal(cancels,1);assert.equal(f.instance.inspectMemory().entryCleanup,1);assert.equal(f.instance.inspectMemory().entries,0);
+ await restoreRenderTurns(f,10);assert.deepEqual([metadataReads,promptReads,historyReads],[1,1,0]);
+ await assert.rejects(f.instance.releaseDocument(),/REQUEST_RELEASE_INCOMPLETE/);await flush();assert.equal(locked,true);assert.equal(f.instance.inspectMemory().entryCleanup,1);
+ refuse=false;await f.instance.releaseDocument();await flush();assert.equal(locked,false);assert.equal(f.instance.inspectMemory().entryCleanup,0);assertRestoreWorkDrained(f);
+ f.editor.session.transport=async()=>{promptReads++;return new Response('',{headers:{'content-length':'0'}});};
+ await f.instance.sync();await flush();assert.equal(f.instance.entry().id,'saved-request');assert.deepEqual([metadataReads,promptReads,historyReads],[2,2,1]);assertRestoreWorkDrained(f);
+ }finally{refuse=false;await f.instance.releaseDocument();}
 });

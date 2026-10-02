@@ -37,6 +37,7 @@ import {createOwnedModel,modelPayloadBytes,type OwnedModel} from '../observabili
 import {PromptReaderCleanupError} from '../observability/prompt-memory.js';
 import {createRequestEntry,ownRequestEntry,changeRequestEntry,serializeRequestEntry,REQUEST_ENTRY_COUNT,REQUEST_ENTRY_BYTES,type RequestEntry as Entry} from './request-entry-memory.js';
 import {canonical} from '../protocol/json.js';
+type EntryRestoreAuthority={owner:EditorClient['draftOwner'];session:EditorClient['session'];identity:string|null;sessionId:string;documentId:string;revision:string;documentEpoch:number};
 const promptRef=(text:string)=>{const lease=reservePromptPayload('request-prompt-hash',text.length*3+4096,4);try{return {hash:hash(text),byteLength:String(bytes(text)),mediaType:'text/plain'};}finally{lease.release();}};
 export class RequestEditing{
  private promptInput:RequestPromptInput|null=null;private promptRetired=new Set<RequestPromptInput>();private promptNative:(HTMLElement&{value:string})|null=null;private savingPrompt=false;private promptUnavailable=false;
@@ -55,7 +56,7 @@ export class RequestEditing{
  private historical:{review:Pick<RequestReview,'id'|'token'|'endpoint'|'documentId'>;accepted:boolean}[]=[];private _review:RequestReview|null=null;private reviewJSON='';private accepted=false;private _message='';private _issues:Issue[]=[];private issueItems:{target:string;message:string}[]=[];private busy=false;private previewKey='';private previewURL='';private _adapterVersion='';private _adapterHash='';private _adapterScale='1';
  private textTreatment:TextTreatmentEditing;private returnedDescription:ReturnedDescriptionEditing;private treatmentSemantics:OwnedModel<TextTreatmentSemantics>|null=null;private treatmentSemanticKey='';
  private adapterLibrary:AdapterLibraryEditing;private requestEdits:RequestEdits;private v45Edits:V45EditInputsEditing;private compositionText:CompositionTextEditing;
- private entryModels=new Map<Entry,OwnedModel<Entry>>();private entryTasks=new Set<Promise<unknown>>();private entryReads=new Set<AbortController>();private entryCleanup=new Set<PromptReaderCleanupError>();private preferredQueuedDraftId:string|null=null;private entryLoading=0;private entryLoadingTarget:{owner:unknown;documentId:string}|null=null;private entryReleasing=false;private entryHolds=new Set<Promise<void>>();private entryRetired=new Set<OwnedModel<Entry>>();
+ private entryModels=new Map<Entry,OwnedModel<Entry>>();private entryTasks=new Set<Promise<unknown>>();private entryReads=new Set<AbortController>();private entryCleanup=new Set<PromptReaderCleanupError>();private preferredQueuedDraftId:string|null=null;private entryLoading=0;private entryLoadingTarget:EntryRestoreAuthority|null=null;private entryRestoreFailure:EntryRestoreAuthority|null=null;private entryReleasing=false;private entryHolds=new Set<Promise<void>>();private entryRetired=new Set<OwnedModel<Entry>>();
  private navigation:RequestNavigationMemory;private navigationRelease?:Promise<void>;private disposed=false;private requestReleasing=false;private requestRelease?:Promise<void>;
  private promptReads=new Map<AbortController,Promise<Awaited<ReturnType<typeof readRetainedPrompt>>>>();
  private readPromptBody(path:string,expected:number|undefined,owns:()=>boolean){
@@ -119,7 +120,7 @@ export class RequestEditing{
  private cancelPreviewReads(){this.sourcePreviewRead?.abort();this.sourcePreviewRead=null;this.candidatePreviewRead?.abort();this.candidatePreviewRead=null;}
  private releaseRequest(){
   if(this.requestRelease)return this.requestRelease;
-  this.queueEditLifetime++;this.preferredQueuedOwner=undefined;this.queueEditReview=null;this.requestReleasing=true;this.entryReleasing=true;this.cancelEntryReads();this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();
+  this.queueEditLifetime++;this.preferredQueuedOwner=undefined;this.queueEditReview=null;this.entryRestoreFailure=null;this.requestReleasing=true;this.entryReleasing=true;this.cancelEntryReads();this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();
   const pending:Promise<unknown>[]=[],errors:unknown[]=[];
   const start=(release:()=>unknown)=>{try{pending.push(Promise.resolve(release()));}catch(error){errors.push(error);}};
   this.cancelPromptReads();this.cancelPreviewReads();
@@ -206,15 +207,24 @@ export class RequestEditing{
   const next=changeRequestEntry(retained??prior,mode,value=>{if(!retained){value.id=crypto.randomUUID();value.generation=0;}value.generation++;if(!(retained&&value.draft.kind==='request-draft-v45-1'&&value.draft.prompt.projection))value.draft.prompt={mode,text:promptRef(value.text),projection:null,composition:null};});
   this.committedEntry(next,key);this.v45Edits.dispose();this.mode=mode;this.changed();
  }
- sync(){if(this.disposed||this.requestReleasing||this.entryReleasing)return Promise.resolve();return this.entryWork(()=>this.syncEntries());}
+ private entryRestoreCurrent(target:EntryRestoreAuthority){return this.editor.view.ready&&target.owner===this.editor.draftOwner&&target.session===this.editor.session&&target.identity===this.editor.session.identity()&&target.sessionId===this.editor.sessionId&&target.documentId===this.editor.view.document?.id&&target.revision===this.editor.view.document?.revision&&target.documentEpoch===this.editor.documentEpoch;}
+ sync(){if(this.disposed||this.requestReleasing||this.entryReleasing)return Promise.resolve();
+  // A render is not retry authority. Reconnect/Open or a changed public owner
+  // clears a failed restore; observe ready=false before queued work can resume.
+  if(this.entryRestoreFailure&&!this.entryRestoreCurrent(this.entryRestoreFailure))this.entryRestoreFailure=null;
+  if(this.entryLoadingTarget&&!this.entryRestoreCurrent(this.entryLoadingTarget)){this.cancelEntryReads();this.cancelPromptReads();this.entryLoadingTarget=null;this.loading=false;}
+  return this.entryWork(()=>this.syncEntries());
+ }
  private async syncEntries(){if(this.loaded)this.assertPromptSaved();this.syncAnnouncements();const documentId=this.editor.view.document?.id,revision=this.editor.view.document?.revision,owner=this.editor.draftOwner;if(!documentId||!revision||!owner||!this.editor.view.ready)return;
   if(this.preferredQueuedDraftId&&this.preferredQueuedOwner!==owner){this.preferredQueuedDraftId=null;this.preferredQueuedOwner=undefined;}
   if(this.owner!==owner||this.documentId!==documentId)this.queueEditReview=null;
   if(this.owner===owner&&this.documentId===documentId&&this.loaded){void this.preview();await this.requestEdits.sync();return;}
-  if(this.entryLoadingTarget?.owner===owner&&this.entryLoadingTarget.documentId===documentId)return;
-  this.cancelEntryReads();this.cancelPromptReads();this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();const serial=this.entryLoading,epoch=this.epoch;this.entryLoadingTarget={owner,documentId:documentId};this.loading=true;
-  const session=this.editor.session,identity=session.identity(),sessionId=this.editor.sessionId,owns=()=>!this.disposed&&!this.requestReleasing&&!this.entryReleasing&&serial===this.entryLoading&&session===this.editor.session&&identity===session.identity()&&sessionId===this.editor.sessionId&&epoch===this.epoch&&owner===this.editor.draftOwner&&documentId===this.editor.view.document?.id;
-  let history:Awaited<ReturnType<RequestEditing['readHistorical']>>|undefined,status:OwnedModel<string>|undefined,releaseUI:(()=>void)|undefined;const prepared=new Map<string,OwnedModel<Entry>>(),put=(model:OwnedModel<Entry>)=>{const draft=model.value.draft;if(!operations.includes(draft.operation)||!['plain','raw','composition'].includes(draft.prompt.mode)||draft.kind==='request-draft-v45-1'&&String(draft.prompt.mode)==='composition'){model.release();throw Error('Saved request draft has an unsupported operation or prompt mode.');}const key=this.key(draft.operation,draft.prompt.mode);if(!prepared.has(key)&&prepared.size>=REQUEST_ENTRY_COUNT){model.release();throw Error('Too many retained request drafts.');}const prior=prepared.get(key);if(prior?.value.id===this.preferredQueuedDraftId){model.release();return;}prior?.release();prepared.set(key,model);};
+  if(this.entryRestoreFailure&&this.entryRestoreCurrent(this.entryRestoreFailure))return;
+  if(this.entryLoadingTarget&&this.entryRestoreCurrent(this.entryLoadingTarget))return;
+  const session=this.editor.session,identity=session.identity(),sessionId=this.editor.sessionId,target:EntryRestoreAuthority={owner,session,identity,sessionId,documentId,revision,documentEpoch:this.editor.documentEpoch};
+  this.entryRestoreFailure=null;this.cancelEntryReads();this.cancelPromptReads();this.epoch++;this.intent++;this.adapter.invalidate();this.capDraftAdapter.invalidate();const serial=this.entryLoading,epoch=this.epoch;this.entryLoadingTarget=target;this.loading=true;
+  const owns=()=>!this.disposed&&!this.requestReleasing&&!this.entryReleasing&&serial===this.entryLoading&&epoch===this.epoch&&this.entryRestoreCurrent(target);
+  let published=false,history:Awaited<ReturnType<RequestEditing['readHistorical']>>|undefined,status:OwnedModel<string>|undefined,releaseUI:(()=>void)|undefined;const prepared=new Map<string,OwnedModel<Entry>>(),put=(model:OwnedModel<Entry>)=>{const draft=model.value.draft;if(!operations.includes(draft.operation)||!['plain','raw','composition'].includes(draft.prompt.mode)||draft.kind==='request-draft-v45-1'&&String(draft.prompt.mode)==='composition'){model.release();throw Error('Saved request draft has an unsupported operation or prompt mode.');}const key=this.key(draft.operation,draft.prompt.mode);if(!prepared.has(key)&&prepared.size>=REQUEST_ENTRY_COUNT){model.release();throw Error('Too many retained request drafts.');}const prior=prepared.get(key);if(prior?.value.id===this.preferredQueuedDraftId){model.release();return;}prior?.release();prepared.set(key,model);};
   try{
    releaseUI=this.editor.pinUI();const checkpoint=this.editor.ui;
    for(const saved of checkpoint?.drafts??[]){if(saved.kind!=='request'||saved.documentId!==documentId)continue;if(!owns())return;
@@ -235,10 +245,10 @@ export class RequestEditing{
    const recovered=prepared.size>1||prepared.get(this.key())?.value.text;status=this.navigation.controls.model(recovered?'Recovered saved request drafts. Prepare a fresh review before acceptance.':'Request drafts autosave locally. Review acceptance makes no provider call.',32768);
    for(const [key,model]of prepared)prepared.set(key,this.registerEntry(model));
    this.navigation.controls.replace('historical',history);this.historical=history.value.items.filter(item=>item.review.documentId===documentId);history=undefined;this.navigation.controls.replace('message',status);this._message=status.value;status=undefined;
-   this.v45Edits.dispose();this.cancelPreviewReads();this.clearEntries();for(const [key,model]of prepared)this.retainEntry(key,model,true);prepared.clear();this.owner=owner;this.documentId=documentId;if(preferred){this.op=preferred.draft.operation;this.mode=preferred.draft.prompt.mode;this.preferredQueuedDraftId=null;this.preferredQueuedOwner=undefined;}this.loaded=true;this.composing=false;this.busy=false;
+   this.v45Edits.dispose();this.cancelPreviewReads();this.clearEntries();for(const [key,model]of prepared)this.retainEntry(key,model,true);prepared.clear();this.owner=owner;this.documentId=documentId;if(preferred){this.op=preferred.draft.operation;this.mode=preferred.draft.prompt.mode;this.preferredQueuedDraftId=null;this.preferredQueuedOwner=undefined;}this.loaded=true;published=true;this.composing=false;this.busy=false;
    this.resetQueuePage();this.queue=null;this.clearCandidateViews();this.candidateHistory=null;this.clearPromptPage();if(this.candidateImage)revokeDisplayPreviewURL(this.candidateImage.url);this.candidateImage=null;this.cap='';this.capPending=false;this.capDraft=null;this.capChangeBlocked=false;this.riskReview=null;this.sessionReview=false;this.queueAction=null;this.queueBusy=false;this.acceptanceId='';this.review=null;this.accepted=false;
    this.changed();await this.requestEdits.sync();
-  }catch(error){this.rememberEntryCleanup(error);if(owns()||error instanceof PromptReaderCleanupError)throw error;}finally{releaseUI?.();history?.release();status?.release();for(const model of prepared.values())model.release();if(serial===this.entryLoading){this.loading=false;this.entryLoadingTarget=null;}}
+  }catch(error){this.rememberEntryCleanup(error);if(owns()){if(!published)this.entryRestoreFailure=target;throw error;}if(error instanceof PromptReaderCleanupError)throw error;}finally{releaseUI?.();history?.release();status?.release();for(const model of prepared.values())model.release();if(serial===this.entryLoading){this.loading=false;this.entryLoadingTarget=null;}}
  }
  private assertPromptSaved(){if(this.promptInput?.refused)throw Error(REQUEST_PROMPT_REFUSAL);}
  private promptLimit(entry:Entry){return Math.max(entry.text.length,Math.floor((REQUEST_ENTRY_BYTES-modelPayloadBytes(entry)+entry.text.length*2-256)/2));}
