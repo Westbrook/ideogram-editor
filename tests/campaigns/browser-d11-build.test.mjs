@@ -9,6 +9,8 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { deriveD11StaticDocument, loadD11Build } from '../../tooling/qualification/campaigns/browser-d11-build.mjs';
 import { D11_ROLE_CONTEXT, prepareD11RegistrationContract } from '../../tooling/qualification/campaigns/browser-d11-registration.mjs';
+import { D11_INVOCATION_DEPENDENCY_PATHS } from '../../tooling/qualification/campaigns/browser-d11-invocation-contract.mjs';
+import { measureD11StartupBuildBound } from '../../tooling/qualification/campaigns/browser-d11-startup-bound.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const required = ['index.html', 'vite.app.config.ts', 'tsconfig.json', 'tsconfig.app.json', 'package.json', 'package-lock.json', '.progress-report/project.json', 'tooling/build-evidence.ts', 'vendor/text/manifest.json'];
@@ -245,4 +247,28 @@ test('D11 derives bootstrap and served HTML offline without evaluating retained 
 test('D11 rejects an unqualified finalized build toolchain', async t => {
   const f = await fixture(t); f.evidence.toolchain.node = 'other'; await f.saveEvidence();
   await assert.rejects(loadD11Build({ repo: f.repo }), /finalized build must record pinned/);
+});
+
+
+// This selected product integration reads the real finalized output graph. It
+// intentionally does not replace it with the all-members synthetic specimen.
+test('D11 product integration verifies actual finalized invocation provenance and the static B01 bound', {
+  skip: process.env.IE_CAMPAIGN_PRODUCT_INTEGRATION !== '1' && 'Requires selected IE_CAMPAIGN_PRODUCT_INTEGRATION=1.',
+}, async () => {
+  const cacheDirectory = process.env.IE_D11_NPM_CACHE;
+  assert.equal(typeof cacheDirectory, 'string', 'Selected product integration requires explicit IE_D11_NPM_CACHE, as B01 does.');
+  assert(cacheDirectory.length > 0, 'Selected product integration requires a nonempty IE_D11_NPM_CACHE.');
+  const repo = await realpath(new URL('../../', import.meta.url));
+  const result = await loadD11Build({ repo, cacheDirectory });
+  assert.equal(result.kind, 'perf-d11-build-1');
+  // loadD11Build prepares and verifies this contract against the actual emitted
+  // modules before returning. Missing cache evidence must not turn into a skip.
+  assert(result.roleInputs.invocationContract, 'Actual finalized output must retain its verified invocation contract.');
+  assert.equal(result.roleInputs.invocationContract.kind, 'perf-d11-invocation-contract-1');
+  assert.deepEqual(result.dependencyInputs.map(input => input.path).sort(), [...D11_INVOCATION_DEPENDENCY_PATHS]);
+  // This is B01's unchanged static bound, not fetched/evaluated startup evidence
+  // or a completed performance qualification.
+  const bound = measureD11StartupBuildBound(result);
+  assert.equal(bound.status, 'PASS', JSON.stringify({ missing: bound.missing, failures: bound.failures,
+    artifactBuildBudgets: bound.artifactBuildBudgets, artifactBuildViolations: bound.artifactBuildViolations }));
 });

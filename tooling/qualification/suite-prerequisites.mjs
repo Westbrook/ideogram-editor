@@ -2,6 +2,11 @@
 export function requiredSuiteEnvironment(files) {
   return files.some(file => file.startsWith('tests/campaigns/')) ? {IE_CAMPAIGN_PRODUCT_INTEGRATION: '1'} : {};
 }
+// These exact ordinary Node files consume the current finalized application
+// output. Development selectors must retain its build after focused filtering.
+const applicationBuildFiles = new Set(['tests/campaigns/browser-d11-build.test.mjs']);
+export const requiresApplicationBuild = files => files.some(file => applicationBuildFiles.has(file));
+
 // These Node files eagerly load the current application identity and, where
 // applicable, its issuer manifest. Other completion tests are self-contained.
 const completionIdentityFiles = new Set([

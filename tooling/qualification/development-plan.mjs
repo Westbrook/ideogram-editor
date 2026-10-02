@@ -1,5 +1,5 @@
 import {functionalGates} from './manifest.mjs';
-import {nodeGroups, expandNodeGateSelection, completionPrerequisitesFor, requiredSuiteEnvironment, freshFixtureFiles, fastNodeFiles, buildFreeFastNodeFiles} from './suite-prerequisites.mjs';
+import {nodeGroups, expandNodeGateSelection, completionPrerequisitesFor, requiresApplicationBuild, requiredSuiteEnvironment, freshFixtureFiles, fastNodeFiles, buildFreeFastNodeFiles} from './suite-prerequisites.mjs';
 import {nativeNodeBrowserFiles} from './developer-campaigns/selectors.mjs';
 import {createBrowserPlan} from './container/browser-plan.mjs';
 
@@ -42,7 +42,7 @@ export function developmentPlan(root,{groups='base',browsers='none',output,worke
       delete result.browserPrerequisites;delete result.fixtureBuild;delete result.freshFixtureFiles;delete result.completionPrerequisites;
       const completion=completionPrerequisitesFor(files);if(completion)result.completionPrerequisites=completion;
       const freshFiles=freshFixtureFiles(files);if(freshFiles.length)result.freshFixtureFiles=freshFiles;
-      if(id==='node:session'||suffix===':browser'||result.completionPrerequisites)result.dependencies.push('build-app');
+      if(id==='node:session'||suffix===':browser'||result.completionPrerequisites||requiresApplicationBuild(files))result.dependencies.push('build-app');
       if(result.dependencies.includes('build-server')&&['node:raster','node:history','node:portable','node:export'].includes(id))result.dependencies.push('raster-inputs');
       if(suffix===':browser'){result.browserPrerequisites={engines:['chromium'],files};if(files.includes('tests/text-state/native.test.mjs'))result.fixtureBuild=gate.fixtureBuild;}
       return result;

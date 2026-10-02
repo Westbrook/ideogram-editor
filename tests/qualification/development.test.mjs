@@ -696,3 +696,66 @@ test('strict campaign launch identity cannot resume a same-file PASS obtained wi
  assert.equal(actual.mode,'executed');assert.equal(actual.key,currentKey);assert.deepEqual(actual.observation.command,strict.command);
  assert.deepEqual(readFileSync(first.receiptPath),originalBytes,'The valid strict receipt remains unchanged');
 });
+
+// Discovery-only fixtures have no dist tree and never import a product test.
+function d11ApplicationSelectionFixture(t){
+ const f=fixture(t),file='tests/campaigns/browser-d11-build.test.mjs',unrelated='tests/campaigns/fixture.test.mjs';
+ const sameBasename='tests/campaigns/nested/browser-d11-build.test.mjs';
+ mkdirSync(join(f.cwd,'tests/campaigns/nested'));
+ for(const path of [file,sameBasename])writeFileSync(join(f.cwd,path),'// Discovery fixture only.\n');
+ assert.equal(existsSync(join(f.cwd,'dist')),false);
+ return {...f,file,unrelated,sameBasename};
+}
+
+test('actual D11 build consumer requires one app build after focused selection on a clean checkout',t=>{
+ const f=d11ApplicationSelectionFixture(t);
+ for(const options of [
+  {groups:'campaigns',nodeFiles:f.file},
+  {groups:'campaigns',nodeFiles:[f.file,f.unrelated].join(',')},
+  {groups:'campaigns'},
+  {groups:'helpers'},
+  {groups:'all'},
+ ]){
+  const plan=developmentPlan(f.cwd,{...options,browsers:'none'}),ids=plan.gates.map(gate=>gate.id);
+  const gate=plan.gates.find(gate=>gate.id==='node:campaigns');
+  assert.ok(gate.files.includes(f.file));
+  assert.deepEqual(gate.requiredEnvironment,{IE_CAMPAIGN_PRODUCT_INTEGRATION:'1'});
+  assert.ok(gate.dependencies.includes('build-app'));
+  for(const id of ['build-server','build-app']){
+   assert.equal(ids.filter(value=>value===id).length,1);
+   assert.ok(ids.indexOf('imports')<ids.indexOf(id));
+   assert.ok(ids.indexOf(id)<ids.indexOf(gate.id));
+  }
+  assert.equal(plan.browserPlan,null);
+  assert.equal(gate.completionPrerequisites,undefined,'Reading finalized output does not require issuer preparation');
+  assert.equal(gate.guard,'tests/session/no-egress.mjs');
+  assert.ok(gate.command.includes('--test-concurrency=1'));
+  if(options.nodeFiles)assert.deepEqual(gate.files,[...options.nodeFiles.split(',')].sort());
+ }
+ assert.equal(existsSync(join(f.cwd,'dist')),false,'Planning does not create or trust output');
+});
+
+test('focused unrelated and same-basename campaign files do not inherit D11 app preparation',t=>{
+ const f=d11ApplicationSelectionFixture(t);
+ for(const file of [f.unrelated,f.sameBasename]){
+  const plan=developmentPlan(f.cwd,{groups:'campaigns',nodeFiles:file,browsers:'none'});
+  const gate=plan.gates.find(gate=>gate.id==='node:campaigns');
+  assert.deepEqual(gate.files,[file]);
+  assert.equal(gate.dependencies.includes('build-app'),false);
+  assert.equal(plan.gates.some(gate=>gate.id==='build-app'),false);
+  assert.deepEqual(gate.requiredEnvironment,{IE_CAMPAIGN_PRODUCT_INTEGRATION:'1'});
+ }
+});
+
+test('a failed required app build stops the selected D11 product integration before dispatch',async t=>{
+ const f=d11ApplicationSelectionFixture(t),calls=[];
+ const result=await executeDevelopment({...f,options:{groups:'campaigns',nodeFiles:f.file,browsers:'none',workers:1,fresh:true},
+  gateExecutor:executor(calls,'build-app')});
+ assert.equal(result.outcome,'FAIL');
+ assert.equal(calls.filter(id=>id==='build-app').length,1);
+ assert.ok(calls.includes('build-server'));
+ assert.equal(calls.includes('node:campaigns'),false);
+ assert.ok(result.pending.includes('node:campaigns'));
+ assert.equal(result.plan.gates.find(gate=>gate.id==='node:campaigns').files[0],f.file);
+ assert.equal(existsSync(join(f.cwd,'dist')),false,'The synthetic failure does not fabricate a finalized application');
+});

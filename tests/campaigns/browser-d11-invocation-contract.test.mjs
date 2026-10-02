@@ -457,3 +457,59 @@ test('only the authenticated two-link EnTree reexport chain may be absent from e
   const invented = structuredClone(value); invented.contract.forwarders = forwarders;
   assert.throws(() => verify(invented), /contract fields/, 'caller forwarding labels have no authority');
 });
+
+test('authenticated button forwarding and tree forwarding compose when all four barrels are omitted', async t => {
+  const value = await authentic(t); if (!value) return;
+  const root = 'node_modules/@en-reve/elements/dist/';
+  const button = [root + 'button.js', root + 'button/index.js'];
+  const omitted = [...button, root + 'tree.js', root + 'tree/index.js'];
+  value.emittedModules = value.emittedModules.filter(path => !omitted.includes(path));
+  const result = verify(value);
+  assert.deepEqual(result.buttonForwarding, { kind: 'verified-d11-button-forwarding-1', exportName: 'EnButton',
+    definition: root + 'definitions/button.js', leaf: root + 'button/element.js', links: [
+      { path: root + 'button.js', specifier: './button/index.js', target: root + 'button/index.js', emitted: false },
+      { path: root + 'button/index.js', specifier: './element.js', target: root + 'button/element.js', emitted: false },
+    ] });
+  assert.equal(result.inputs.length, 44);
+  for (const path of omitted) assert(result.inputs.some(input => input.path === path), 'omitted forwarding input retained: ' + path);
+  assert(result.treeForwarding.links.every(link => link.emitted === false));
+  assert.equal(result.effects.nativeButtonStartupClick, 'not-dispatched-by-reviewed-own-lifecycle');
+  assert.equal(result.effects.treeSelectedKeys, 'immutable-string-array-from-reviewed-value-model');
+  for (const path of button) {
+    const partlyEmitted = structuredClone(value); partlyEmitted.emittedModules.push(path);
+    const proof = verify(partlyEmitted);
+    assert.deepEqual(proof.buttonForwarding.links.map(link => link.emitted), button.map(member => member === path));
+  }
+});
+
+test('button forwarding requires every authenticated link and mandatory emitted implementation', async t => {
+  const value = await authentic(t); if (!value) return;
+  const root = 'node_modules/@en-reve/elements/dist/';
+  const forwarders = [root + 'button.js', root + 'button/index.js'];
+  value.emittedModules = value.emittedModules.filter(path => !forwarders.includes(path));
+  for (const path of [root + 'definitions/button.js', root + 'button/element.js', root + 'button/template.js',
+    'node_modules/lit-html/lit-html.js']) {
+    const missing = structuredClone(value); missing.emittedModules = missing.emittedModules.filter(member => member !== path);
+    assert.throws(() => verify(missing), /compiled module graph/, 'unproved runtime omission remains refused: ' + path);
+  }
+  for (const path of [root + 'definitions/button.js', ...forwarders, root + 'button/element.js']) {
+    const missing = structuredClone(value); missing.dependencyInputs = missing.dependencyInputs.filter(input => input.path !== path);
+    assert.throws(() => verify(missing), /dependency input inventory/, 'every chain input remains mandatory: ' + path);
+    const changed = structuredClone(value);
+    changed.dependencyInputs.find(input => input.path === path).sha256 = sha('unreviewed implementation');
+    assert.throws(() => verify(changed), /compiled dependency member/, 'installed bytes cannot borrow archived forwarding: ' + path);
+  }
+  for (const [path, text] of [
+    [root + 'button.js', "export { UnreviewedButton as EnButton } from './unreviewed.js';"],
+    [root + 'button/index.js', "export { EnButton } from './element.js'; globalThis.sideEffect = true;"],
+    [root + 'definitions/button.js', "export const buttonDefinition = { tagName: 'en-button', elementClass: OtherButton };"],
+  ]) {
+    const changed = structuredClone(value);
+    const member = changed.contract.packages.flatMap(packed => packed.members).find(input => input.installedPath === path);
+    member.text = text; const bytes = Buffer.from(text); member.rawBytes = bytes.length; member.sha256 = sha(bytes);
+    Object.assign(changed.dependencyInputs.find(input => input.path === path), identity(path, bytes));
+    assert.throws(() => verify(changed), /member provenance/, 'caller-resealed forwarding semantics stay unauthorized: ' + path);
+  }
+  const invented = structuredClone(value); invented.contract.buttonForwarding = { links: forwarders };
+  assert.throws(() => verify(invented), /contract fields/, 'caller-provided forwarding authority is refused');
+});

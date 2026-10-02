@@ -186,6 +186,29 @@ function verifiedTreeForwarding(authenticatedText, emitted) {
     links: links.map(({ sourceMap, ...link }) => ({ ...link, emitted: emitted.has(link.path) })) };
 }
 
+// Button public entrypoints are also pure named reexports in the pinned
+// package. Authenticate this exact chain after all member/archive checks; this
+// does not authorize omission of another barrel or of the emitted implementation.
+function verifiedButtonForwarding(authenticatedText, emitted) {
+  const root = 'node_modules/@en-reve/elements/dist/', definition = root + 'definitions/button.js', leaf = root + 'button/element.js';
+  equal(authenticatedText.get(definition), [
+    "import { EnButton } from '../button.js';",
+    '/** Registration metadata only; importing this module does not define elements. */',
+    'export const buttonDefinition = {', "    tagName: 'en-button',", '    elementClass: EnButton,',
+    '};', '//# sourceMappingURL=button.js.map',
+  ].join('\n'), 'button definition forwarding binding');
+  const links = [
+    { path: root + 'button.js', specifier: './button/index.js', target: root + 'button/index.js', sourceMap: 'button.js.map' },
+    { path: root + 'button/index.js', specifier: './element.js', target: leaf, sourceMap: 'index.js.map' },
+  ];
+  for (const link of links) equal(authenticatedText.get(link.path),
+    "export { EnButton } from '" + link.specifier + "';\n//# sourceMappingURL=" + link.sourceMap,
+    'button pure forwarding member');
+  if (!emitted.has(definition) || !emitted.has(leaf)) throw Error('D11 invocation button definition or implementation leaf was not in the compiled module graph');
+  return { kind: 'verified-d11-button-forwarding-1', exportName: 'EnButton', definition, leaf,
+    links: links.map(({ sourceMap, ...link }) => ({ ...link, emitted: emitted.has(link.path) })) };
+}
+
 /** Pure archive/member and build-input verification. This returns narrowly
  * reviewed effects; it never certifies a class, a callback escape, absence of
  * synthetic events, or absence of the optional framework hooks. Those remain
@@ -234,7 +257,8 @@ export function verifyD11InvocationContract(contract, { lock, dependencyInputs, 
     }
   }
   const treeForwarding = verifiedTreeForwarding(authenticatedText, emitted);
-  const omittedForwarders = new Set(treeForwarding.links.filter(link => !link.emitted).map(link => link.path));
+  const buttonForwarding = verifiedButtonForwarding(authenticatedText, emitted);
+  const omittedForwarders = new Set([...treeForwarding.links, ...buttonForwarding.links].filter(link => !link.emitted).map(link => link.path));
   for (const item of PACKAGES) for (const member of item.members) if (!member.installedPath.endsWith('/package.json') && !emitted.has(member.installedPath) && !omittedForwarders.has(member.installedPath)) throw Error('D11 invocation reviewed runtime member was not in the compiled module graph: ' + member.installedPath);
   return { kind: 'verified-d11-invocation-contract-1', profile: PROFILE,
     effects: { plainArrowEventBinding: 'stored-until-dispatch', eventInvocation: 'EventPart.handleEvent', nativeButtonStartupClick: 'not-dispatched-by-reviewed-own-lifecycle',
@@ -242,7 +266,7 @@ export function verifyD11InvocationContract(contract, { lock, dependencyInputs, 
       supportedCompilation: 'reviewed-vite-app-config-and-build-evidence', applicationSourceProfile: 'reviewed-d11-startup-corpus-1',
       treeSelectedKeys: 'immutable-string-array-from-reviewed-value-model' },
     requiredAbsentGlobals: ['reactiveElementPolyfillSupport', 'litElementHydrateSupport', 'litElementPolyfillSupport', 'litHtmlPolyfillSupport'],
-    inputs, localArchiveInputs, compilationInputs: compiled.inputs, applicationSourceProfile, treeForwarding };
+    inputs, localArchiveInputs, compilationInputs: compiled.inputs, applicationSourceProfile, treeForwarding, buttonForwarding };
 }
 
 /** Preparation performs bounded reads only. Registry archive acquisition is
