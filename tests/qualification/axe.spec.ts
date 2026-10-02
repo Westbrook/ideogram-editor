@@ -20,6 +20,7 @@ const limitations=[
 ];
 const click=(page:Page,name:string)=>page.getByRole('button',{name,exact:true}).click();
 async function number(page:Page,name:string,value:string){const field=page.getByRole('spinbutton',{name,exact:true});await field.fill(value);await field.press('Tab');}
+async function promptSource(page:Page,name:'Composition'|'Plain prompt'){const radio=page.getByRole('radio',{name,exact:true});await expect(radio).toBeEnabled();await radio.focus();await expect(radio).toBeFocused();await page.keyboard.press('Space');await expect(radio).toBeChecked();}
 
 test('AX01 pinned whole-document scans of public editor states',async({smoke:{page,step,record}},info)=>{
   const evidence=await axeEvidence(page,info,out,planned,limitations);
@@ -51,19 +52,23 @@ test('AX01 pinned whole-document scans of public editor states',async({smoke:{pa
   await click(page,'Local font import and exact relink');await expect(page.getByRole('button',{name:'Relink exact font',exact:true})).toBeVisible();await scan('local-font-relink-controls');await click(page,'Cancel text edit');await expect(text).toBeHidden();
 
   await step('open-composition-validation',async()=>{
-    await page.getByRole('radio',{name:'Composition',exact:true}).check();await expect(page.getByRole('textbox',{name:'Scene',exact:true})).toBeVisible();
+    await promptSource(page,'Composition');await expect(page.getByRole('textbox',{name:'Scene',exact:true})).toBeVisible();
     await click(page,'Add object');await click(page,'Add literal bounds');await number(page,'Width in document pixels','0');await click(page,'Preview request draft');
-    await expect(page.locator('#composition-errors')).toBeVisible();
+    const errors=page.locator('#composition-errors').locator('section[part="base"]');
+    await expect(errors).toBeVisible();
+    const heading=errors.locator('h2[part="heading"]'),issue=errors.locator('a[part="link"]');
+    await expect(heading).toBeVisible();await expect(heading).toHaveText('Composition needs attention');
+    await expect(issue).toBeVisible();await expect(issue).toHaveText('INVALID_GEOMETRY: INVALID_GEOMETRY');
   });
   await scan('composition-validation');
-  await page.getByRole('radio',{name:'Plain prompt',exact:true}).check();
+  await promptSource(page,'Plain prompt');
 
   await click(page,'Import image');await page.getByLabel('Image file',{exact:true}).setInputFiles('tests/raster/fixtures/hidden-alpha.png');
   const importDialog=page.getByRole('dialog',{name:'Import image',exact:true});await expect(importDialog).toBeVisible();
   const importContent=page.locator('#editor-dialog');
   await expect(importContent.getByRole('img',{name:'Conversion preview: hidden-alpha.png',exact:true})).toBeVisible();
   const importChoice=importContent.getByRole('switch',{name:'Import hidden-alpha.png',exact:true});await expect(importChoice).toBeEnabled();await expect(importChoice).not.toBeChecked();await scan('image-conversion-review');
-  await confirmImageImports(page,{names:['hidden-alpha.png'],destination:'current'});await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();await page.getByRole('treeitem').first().click();
+  await confirmImageImports(page,{names:['hidden-alpha.png'],destination:'current'});await expect(page.getByText('ImportAsset accepted and saved locally.',{exact:true})).toBeVisible();const layers=page.getByRole('tab',{name:'Layers',exact:true});await layers.click();await expect(layers).toHaveAttribute('aria-selected','true');await page.locator('#layer-tree').getByRole('treeitem',{name:'Image · hidden-alpha.png · visible',exact:true}).click();
   await step('open-layer-mask-review',async()=>{
     await click(page,'Select');await number(page,'Selection X','1');await number(page,'Selection Y','0');await number(page,'Selection width','1');await number(page,'Selection height','2');
     await click(page,'Apply selection');await click(page,'Use selection as mask');await number(page,'Feather radius (document px)','0');await click(page,'Preview mask');
@@ -72,14 +77,14 @@ test('AX01 pinned whole-document scans of public editor states',async({smoke:{pa
   await scan('layer-mask-review');await click(page,'Apply layer mask');await expect(page.getByText('SetLayerProperties accepted and saved locally.',{exact:true})).toBeVisible();
   await step('open-masked-request-review',async()=>{
     await page.getByRole('combobox',{name:'Operation',exact:true}).selectOption('Edit masked region');await prompt.fill('Review the retained edit region.');
-    await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');
+    await page.getByRole('combobox',{name:'Request size',exact:true}).selectOption('auto');await click(page,'Use operation strength default');await expect(page.getByRole('spinbutton',{name:'Transformation strength',exact:true})).toHaveValue('1');
     await click(page,'Capture all visible layers');
     await expect(page.getByRole('region',{name:'Request source and separate edit mask',exact:true})).toHaveAttribute('aria-busy','false');
     for(const [name,value] of [['Mask X','1'],['Mask Y','0'],['Mask width','1'],['Mask height','2'],['Feather radius in document pixels','0']])await number(page,name!,value!);
     await click(page,'Build request mask shape');await click(page,'Preview request crop and mapping');
     await click(page,'Approve this source, mask and mapping');
     await expect(page.locator('#request-mask-status')).toContainText('Request mask plan confirmed.');
-    await click(page,'Review current request document');await click(page,'Review exact request');await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();
+    await click(page,'Review current request document');await expect(page.locator('.typed-request').getByText('Request document revision confirmed.',{exact:true})).toBeVisible();await click(page,'Review exact request');await expect(page.getByRole('heading',{name:'Immutable request review',exact:true})).toBeVisible();
   },20_000);
   await scan('masked-request-review');await click(page,'Close request review');
   await click(page,'Save copy');await expect(page.getByRole('dialog',{name:'Save project copy',exact:true})).toBeVisible();await scan('portable-copy-dialog');await page.keyboard.press('Escape');
