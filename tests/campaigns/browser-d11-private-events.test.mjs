@@ -108,3 +108,47 @@ test('fresh bounded download anchor and explicit nonactivation notification rema
 test('unknown viewport boundary does not inherit private-event proof',()=>{
   const f=fixture();f.roleContext.viewport.width=900;rejected(f);
 });
+
+
+test('computed data aliases do not inherit calls through distinct lexical bindings',()=>{
+  const sources=[
+    'class Editing { filesChanged(files){const file=files[0];return file;} withSession(owners){return Array.from(owners,file=>file.pin());} }',
+    'const invoke=host[key];function action(invoke){invoke();}',
+    'const invoke=host[key];{const invoke=()=>{};invoke();}',
+    'const invoke=host[key];function action(){invoke();{var invoke=()=>{};}}',
+    'const invoke=host[key];try{throw null;}catch(invoke){invoke();}',
+    'const invoke=host[key];function action({invoke}){invoke();}',
+    'const invoke=host[key];function action([invoke]){invoke();}',
+    'const invoke=host[key];function action(...invoke){invoke.call(null);}',
+    'const invoke=host[key];for(let invoke of callbacks){invoke();}',
+    'const invoke=host[key];switch(0){case 0:let invoke=()=>{};invoke();}',
+    'const invoke=host[key];const action=function invoke(){invoke();};',
+  ];
+  for(const source of sources)assert.doesNotThrow(()=>assertD11EventCorpus({sourceTextByPath:{'src/lexical.ts':source},parser}),source);
+});
+
+test('computed alias binding identity preserves calls, captures and unknown-scope refusals',()=>{
+  const sources=[
+    'const invoke=host[key];invoke();',
+    'const invoke=host[key];new invoke();',
+    'const invoke=host[key];invoke.method();',
+    'const invoke=host[key];invoke.call(null);',
+    'const invoke=host[key];invoke.apply(null,[]);',
+    'const invoke=host[key];invoke.bind(null);',
+    'const invoke=host[key];function nested(){invoke();}',
+    'const invoke=host[key];const nested=()=>()=>invoke.method();',
+    'function action(){var invoke=host[key];{var invoke;}invoke();}',
+    'function action(){if(condition){var invoke=host[key];}function nested(){invoke();}}',
+    'const invoke=host[key];function action(value=invoke()){var invoke;}',
+    'const invoke=host[key];function action({value=invoke()}={}){var invoke;}',
+    'const invoke=host[key];switch(invoke()){case 0:let invoke;}',
+    'function action(){const invoke=host[key];}invoke();',
+  ];
+  for(const source of sources)assert.throws(()=>assertD11EventCorpus({sourceTextByPath:{'src/lexical.ts':source},parser}),/computed (?:callable has no bounded nonactivation key|alias reference has no binding)/,source);
+});
+
+test('the actual native text source distinguishes selected File data from an owner callback parameter',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const source=await readFile(new URL('../../src/ui/native-text.ts',import.meta.url),'utf8');
+  assert.doesNotThrow(()=>assertD11EventCorpus({sourceTextByPath:{'src/ui/native-text.ts':source},parser}));
+});

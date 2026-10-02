@@ -104,6 +104,78 @@ function privateCalls(context, klass, name) {
   return calls;
 }
 
+// Resolve only the identity of a computed-read alias. The values of parameters,
+// properties and type annotations supply no nonactivation authority here.
+function eventAliasBindings(context) {
+  const scopeTypes = new Set(['Program', 'FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression', 'BlockStatement', 'StaticBlock', 'CatchClause', 'ForStatement', 'ForInStatement', 'ForOfStatement', 'SwitchStatement', 'ClassDeclaration', 'ClassExpression']);
+  const scopes = new Map(); let remaining = 2_000_000;
+  const step = () => { if (--remaining < 0) fail('computed alias binding work bound exceeded: ' + context.path); };
+  const parent = node => {
+    const owner = context.parents.get(node);
+    // The switch discriminant executes outside the case-block lexical scope.
+    return owner?.type === 'SwitchStatement' && owner.discriminant === node ? context.parents.get(owner) : owner;
+  };
+  const scope = node => {
+    const pending = []; let at = node;
+    while (at && !scopes.has(at)) { step(); pending.push(at); at = parent(at); }
+    let value = at ? scopes.get(at) : null;
+    while (pending.length) {
+      const item = pending.pop(), owner = context.parents.get(item);
+      if (scopeTypes.has(item.type)) value = { node: item, parent: value, names: new Map(), variable: item.type === 'Program' || item.type === 'StaticBlock' || item.type === 'BlockStatement' && functionNode(owner) && owner.body === item };
+      scopes.set(item, value);
+    }
+    return value;
+  };
+  const identifiers = pattern => {
+    const found = [], pending = [pattern];
+    while (pending.length) {
+      step(); const node = unwrap(pending.pop()); if (!node) continue;
+      if (node.type === 'Identifier') found.push(node);
+      else if (node.type === 'ObjectPattern') for (const property of node.properties) {
+        if (property.type === 'RestElement') pending.push(property.argument);
+        else if (property.type === 'Property') pending.push(property.value);
+        else fail('computed alias binding pattern is unresolved: ' + context.path);
+      }
+      else if (node.type === 'ArrayPattern') pending.push(...node.elements);
+      else if (node.type === 'AssignmentPattern') pending.push(node.left);
+      else if (node.type === 'RestElement') pending.push(node.argument);
+      else if (node.type === 'TSParameterProperty') pending.push(node.parameter);
+      else fail('computed alias binding pattern is unresolved: ' + context.path);
+    }
+    return found;
+  };
+  const variableScope = value => { while (value && !value.variable) { step(); value = value.parent; } return value; };
+  const bind = (value, pattern, kind) => {
+    for (const name of identifiers(pattern)) {
+      step(); if (!value) fail('computed alias declaration has no lexical scope: ' + context.path);
+      let binding = value.names.get(name.name);
+      if (binding && !(value.variable && [kind, ...binding.kinds].every(item => ['var', 'function'].includes(item)))) fail('computed alias binding is ambiguous: ' + context.path);
+      if (!binding) { binding = { kinds: new Set() }; value.names.set(name.name, binding); }
+      binding.kinds.add(kind);
+    }
+  };
+  for (const node of context.nodes) {
+    step();
+    if (node.type === 'VariableDeclarator') {
+      const declaration = context.parents.get(node);
+      if (declaration?.type !== 'VariableDeclaration') fail('computed alias declaration kind is unresolved: ' + context.path);
+      bind(declaration.kind === 'var' ? variableScope(scope(node)) : scope(node), node.id, declaration.kind);
+    } else if (node.type === 'FunctionDeclaration') bind(scope(context.parents.get(node)), node.id, 'function');
+    else if (node.type === 'FunctionExpression' && node.id) bind(scope(node), node.id, 'function-name');
+    else if (node.type === 'ClassDeclaration') bind(scope(context.parents.get(node)), node.id, 'class');
+    else if (node.type === 'ClassExpression' && node.id) bind(scope(node), node.id, 'class-name');
+    else if (['ImportSpecifier', 'ImportDefaultSpecifier', 'ImportNamespaceSpecifier'].includes(node.type)) bind(scope(node), node.local, 'import');
+    else if (node.type === 'CatchClause') bind(scope(node), node.param, 'catch');
+    // Parameter initializers cannot see declarations hoisted into the body.
+    if (functionNode(node)) for (const parameter of node.params) bind(scope(node), parameter, 'parameter');
+  }
+  return node => {
+    node = unwrap(node); if (node?.type !== 'Identifier') fail('computed alias reference is unresolved: ' + context.path);
+    for (let value = scope(node); value; value = value.parent) { step(); if (value.names.has(node.name)) return value.names.get(node.name); }
+    fail('computed alias reference has no binding: ' + context.path);
+  };
+}
+
 // This is a source census, not a claim that unknown application code or arbitrary
 // injected code cannot synthesize events. The fixed workload starts with a fresh
 // document and the retained, sealed script corpus. Unknown activation in that
@@ -111,7 +183,9 @@ function privateCalls(context, klass, name) {
 export function assertD11EventCorpus({ sourceTextByPath, parser, requiredAbsentGlobals = [], corpus: supplied } = {}) {
   const corpus = supplied ?? parseCorpus(sourceTextByPath, parser);
   const activation = new Set(['click', 'dblclick', 'keydown', 'keyup', 'keypress', 'pointerdown', 'pointerup', 'mousedown', 'mouseup']);
-  for (const context of corpus.values()) for (const node of context.nodes) {
+  for (const context of corpus.values()) {
+    let resolveAlias;
+    for (const node of context.nodes) {
     if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression') {
       let target = node.left ?? node.argument; while (target?.type === 'MemberExpression') target = target.object;
       if (target?.type === 'Identifier' && ['Object','Array','Reflect'].includes(target.name)) fail('native inspection operation is overwritten: ' + context.path);
@@ -130,7 +204,13 @@ export function assertD11EventCorpus({ sourceTextByPath, parser, requiredAbsentG
       // establish the runtime key of a computed invocation or callable alias.
       const immediateCall = parent?.type === 'CallExpression' && parent.callee === node;
       const declaration = parent?.type === 'VariableDeclarator' && parent.init === node && parent.id?.type === 'Identifier' ? parent : null;
-      const invokedAlias = declaration && context.nodes.some(item => ['CallExpression','NewExpression'].includes(item.type) && (item.callee?.name === declaration.id.name || item.callee?.type === 'MemberExpression' && item.callee.object?.name === declaration.id.name));
+      const invokedAlias = declaration && context.nodes.some(item => {
+        if (!['CallExpression','NewExpression'].includes(item.type)) return false;
+        const reference = item.callee?.type === 'Identifier' ? item.callee : item.callee?.type === 'MemberExpression' && item.callee.object?.type === 'Identifier' ? item.callee.object : null;
+        if (reference?.name !== declaration.id.name) return false;
+        resolveAlias ??= eventAliasBindings(context);
+        return resolveAlias(reference) === resolveAlias(declaration.id);
+      });
       if (immediateCall || invokedAlias) fail('computed callable has no bounded nonactivation key: ' + context.path);
     }
     if (['_$litType$', '_$committedValue', 'handleEvent'].includes(name)) fail('application accesses framework callback representation: ' + context.path);
@@ -150,6 +230,7 @@ export function assertD11EventCorpus({ sourceTextByPath, parser, requiredAbsentG
       const owner = context.parents.get(use);
       if (owner === declaration && owner.id === use) continue;
       if (owner?.type !== 'MemberExpression' || owner.object !== use || !['href', 'download', 'click'].includes(member(owner))) fail('download anchor escapes its bounded use: ' + context.path);
+    }
     }
   }
   return corpus;
