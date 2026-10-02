@@ -572,7 +572,7 @@ export class EditorClient {
     const receivedAt=performance.now();acceptance.end('ok',{boundary:'authority-durable'});
     const [events]=await Promise.all([this.events(receipt),(async()=>{do{await this.sync();}while(BigInt((await this.cache!.published()).cursor)<BigInt(receipt.toSeq));})()]);
     if(adoptionId){const adopted=events.find(e=>e.type==='ImageEdited'||e.type==='DocumentCreated');if(adopted&&(adopted.type==='ImageEdited'||adopted.type==='DocumentCreated')){const d=adopted.payload.document;if(d.image?.compositeAssetId)browserPhases.adoptionDurable(id,{documentId:d.id,revision:d.revision,assetId:d.image.compositeAssetId},receivedAt);}}
-    await this.draftOwner?.restore();this.ui=this.draftOwner?.checkpoint??undefined;this.startStream(this.lifecycle);
+    await this.draftOwner?.restoreForCommand();this.ui=this.draftOwner?.checkpoint??undefined;this.startStream(this.lifecycle);
     this.recordNavigationCheckpoint(delivery.request.command,receipt);
     this.patch({message:delivery.label+' accepted and saved locally.',recovery:'',drafts:this.draftStatus()});return events;
     }catch(error){acceptance.end('error');if(adoptionId)browserPhases.adoptionFailed(adoptionId);throw error;}
@@ -596,7 +596,7 @@ export class EditorClient {
       const errors=outcomes.filter((result):result is PromiseRejectedResult=>result.status==='rejected').map(result=>result.reason);if(errors.length)throw new AggregateError(errors,'COMMAND_RESULT_PROOF_FAILED');
       scope.check(signal);
       if(adoptionId){const adopted=events!.value.find(event=>event.type==='ImageEdited'||event.type==='DocumentCreated');if(adopted&&(adopted.type==='ImageEdited'||adopted.type==='DocumentCreated')){const d=adopted.payload.document;if(d.image?.compositeAssetId)browserPhases.adoptionDurable(id,{documentId:d.id,revision:d.revision,assetId:d.image.compositeAssetId},receivedAt);}}
-      scope.check(signal);const draftOwner=this.draftOwner;await draftOwner?.restore();scope.check(signal);if(draftOwner!==this.draftOwner)throw Error('UI_OWNER_CHANGED');this.ui=draftOwner?.checkpoint??undefined;this.startStream(this.lifecycle);this.recordNavigationCheckpoint(command,receipt);this.patch({message:delivery.label+' accepted and saved locally.',recovery:'',drafts:this.draftStatus()});returned=true;return events!;
+      scope.check(signal);const draftOwner=this.draftOwner;await draftOwner?.restoreForCommand();scope.check(signal);if(draftOwner!==this.draftOwner)throw Error('UI_OWNER_CHANGED');this.ui=draftOwner?.checkpoint??undefined;this.startStream(this.lifecycle);this.recordNavigationCheckpoint(command,receipt);this.patch({message:delivery.label+' accepted and saved locally.',recovery:'',drafts:this.draftStatus()});returned=true;return events!;
     }catch(error){acceptance.end('error');if(adoptionId)browserPhases.adoptionFailed(adoptionId);throw error;}finally{value?.release();if(!returned)events?.release();}
   }
   async ownedRetry(id:string):Promise<OwnedModel<DomainEvent[]>>{

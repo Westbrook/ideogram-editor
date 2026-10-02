@@ -7,6 +7,8 @@ import {resolve} from 'node:path';
 import {transformWithOxc} from 'vite';
 import {Signal} from 'signal-polyfill';
 import {allocationsURL as allocationURL} from '../owned-preview-module.mjs';
+import {isolatedDiagnosticModules} from '../owned-preview-module.mjs';
+import {draftStateDependencies} from '../draft-state-module.mjs';
 const root=process.env.STATE_CONTROL_ROOT??'.',resultsRoot=process.env.CLIENT_CONTROL_ROOT??'.';
 const data=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
 async function source(path,imports={}){let code=(await transformWithOxc(await readFile(path,'utf8'),path)).code;for(const [name,url]of Object.entries(imports))code=code.replaceAll(JSON.stringify(name),JSON.stringify(url)).replaceAll("'"+name+"'",JSON.stringify(url));return data(code);}
@@ -155,4 +157,127 @@ test('failed paired publication retains previous and prospective capability root
   const priorCalls=calls;await assert.rejects(client.resume(),error=>error===publishFailure);assert.equal(calls,priorCalls);assert.equal(client.ownership.sessionModels,2);
   client.state.set=originalSet;await client.dispose();assert.equal(client.state.value.get().capabilities,null);assert.equal(client.ownership.sessionModels,0);assert.deepEqual(totals(),baseline);
  }finally{client.state.set=originalSet;oldPin?.();newPin?.();try{await client.dispose();}finally{globalThis.fetch=originalFetch;}}
+});
+
+
+function heldCheckpoint(text=JSON.stringify(checkpoint())){
+ const entered=deferred(),bytes=new TextEncoder().encode(text);let controller,finished=false;
+ const body=new ReadableStream({start(value){controller=value;},pull(){entered.resolve();},cancel(){finished=true;}},{highWaterMark:0});
+ return {body,entered:entered.promise,response:()=>new Response(body,{headers:{'content-type':'application/json','content-length':String(bytes.length)}}),complete(){if(!finished){finished=true;controller.enqueue(bytes);controller.close();}},fail(error){if(!finished){finished=true;controller.error(error);}}};
+}
+const enteredCheckpoint=(read,task)=>Promise.race([read.entered,task.then(()=>{throw Error('Checkpoint restore completed before native body read');})]);
+const staleCheckpoint=error=>error instanceof DOMException&&error.name==='AbortError'||error instanceof Error&&error.message==='PROMPT_READ_STALE';
+
+test('concurrent command checkpoint restores validate their own held bodies and return only the latest published root',{timeout:10000},async()=>{
+ const baseline=totals(),old=heldCheckpoint(JSON.stringify(checkpoint('1'))),fresh=heldCheckpoint(JSON.stringify(checkpoint('2')));let calls=0,first,second,finished=false;
+ const owner=new DraftPersistence('session',async()=>{calls++;return (calls===1?old:fresh).response();},()=> 'csrf');owner.checkpoint=checkpoint('0');
+ try{
+  first=owner.restoreForCommand();void first.then(()=>{finished=true;},()=>{finished=true;});await enteredCheckpoint(old,first);
+  second=owner.restoreForCommand();void second.catch(()=>{});await enteredCheckpoint(fresh,second);
+  assert.equal(old.body.locked,true);assert.equal(fresh.body.locked,true);old.complete();await flush();
+  assert.equal(old.body.locked,false,'The superseded command drains its own native reader before joining');assert.equal(finished,false);assert.equal(owner.checkpoint.uiSeq,'0');
+  fresh.complete();const latest=await second;assert.equal(await first,latest);assert.equal(latest,owner.checkpoint);assert.equal(latest.uiSeq,'2');assert.equal(calls,2);assert.equal(owner.ownership.controlReads,0);assert.equal(fresh.body.locked,false);
+ }finally{old.complete();fresh.complete();await Promise.allSettled([first,second].filter(Boolean));await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+test('a command checkpoint waiter follows newer ordinary restores without accepting the superseded restore failure',{timeout:10000},async()=>{
+ const baseline=totals(),own=heldCheckpoint(JSON.stringify(checkpoint('1'))),middle=heldCheckpoint(JSON.stringify(checkpoint('2'))),latest=heldCheckpoint(JSON.stringify(checkpoint('3'))),bodies=[own,middle,latest];let calls=0,command,earlier,current,finished=false;
+ const owner=new DraftPersistence('session',async()=>bodies[calls++].response(),()=> 'csrf');owner.checkpoint=checkpoint('0');
+ try{
+  command=owner.restoreForCommand();void command.then(()=>{finished=true;},()=>{finished=true;});await enteredCheckpoint(own,command);
+  earlier=owner.restore();void earlier.catch(()=>{});await enteredCheckpoint(middle,earlier);own.complete();await flush();assert.equal(finished,false);assert.equal(own.body.locked,false);
+  current=owner.restore();void current.catch(()=>{});await enteredCheckpoint(latest,current);middle.complete();await assert.rejects(earlier,staleCheckpoint);await flush();
+  assert.equal(finished,false);assert.equal(owner.checkpoint.uiSeq,'0');latest.complete();const checkpoint=await current;assert.equal(await command,checkpoint);assert.equal(checkpoint,owner.checkpoint);assert.equal(checkpoint.uiSeq,'3');assert.equal(calls,3);assert.equal(owner.ownership.controlReads,0);assert(bodies.every(row=>!row.body.locked));
+ }finally{for(const row of bodies)row.complete();await Promise.allSettled([command,earlier,current].filter(Boolean));await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+test('a command checkpoint waiter propagates the current successor failure instead of accepting an older root',{timeout:10000},async()=>{
+ const baseline=totals(),own=heldCheckpoint(JSON.stringify(checkpoint('1'))),bad=heldCheckpoint('{');let calls=0,command,successor,failure,finished=false;
+ const owner=new DraftPersistence('session',async()=> (++calls===1?own:bad).response(),()=> 'csrf');owner.checkpoint=checkpoint('0');
+ try{
+  command=owner.restoreForCommand();void command.then(()=>{finished=true;},()=>{finished=true;});await enteredCheckpoint(own,command);successor=owner.restore();void successor.catch(()=>{});await enteredCheckpoint(bad,successor);
+  own.complete();await flush();assert.equal(finished,false);assert.equal(own.body.locked,false);bad.complete();
+  await assert.rejects(successor,error=>{failure=error;return error instanceof SyntaxError;});await assert.rejects(command,error=>error===failure);assert.equal(owner.checkpoint.uiSeq,'0');assert.equal(calls,2);assert.equal(owner.ownership.controlReads,0);assert.equal(bad.body.locked,false);
+ }finally{own.complete();bad.complete();await Promise.allSettled([command,successor].filter(Boolean));await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+for(const boundary of ['document release','owner disposal','reader release'])test('a command checkpoint waiter refuses '+boundary+' while its current successor is still reading',{timeout:10000},async()=>{
+ const baseline=totals(),own=heldCheckpoint(JSON.stringify(checkpoint('1'))),fresh=heldCheckpoint(JSON.stringify(checkpoint('2')));let calls=0,command,successor,closing,finished=false;
+ const owner=new DraftPersistence('session',async()=> (++calls===1?own:fresh).response(),()=> 'csrf');owner.checkpoint=checkpoint('0');
+ try{
+  command=owner.restoreForCommand();void command.then(()=>{finished=true;},()=>{finished=true;});await enteredCheckpoint(own,command);successor=owner.restore();void successor.catch(()=>{});await enteredCheckpoint(fresh,successor);own.complete();await flush();assert.equal(finished,false);assert.equal(own.body.locked,false);
+  if(boundary==='document release')owner.releaseDocument('document');else{closing=boundary==='owner disposal'?owner.dispose():owner.release();void closing.catch(()=>{});}
+  fresh.complete();await assert.rejects(command,staleCheckpoint);await assert.rejects(successor,staleCheckpoint);await closing;
+  assert.equal(owner.checkpoint?.uiSeq,boundary==='owner disposal'?undefined:'0');assert.equal(owner.ownership.controlReads,0);assert.equal(fresh.body.locked,false);
+ }finally{own.complete();fresh.complete();await Promise.allSettled([command,successor,closing].filter(Boolean));await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+for(const kind of ['JSON','checkpoint shape','checkpoint sequence'])test('a newer successful checkpoint cannot waive the command read own '+kind+' failure',{timeout:10000},async()=>{
+ const baseline=totals(),text=kind==='JSON'?'{':JSON.stringify(kind==='checkpoint shape'?{...checkpoint('1'),sessionId:'other'}:{...checkpoint('1'),uiSeq:'invalid'}),own=heldCheckpoint(text);let calls=0,command;
+ const owner=new DraftPersistence('session',async()=> ++calls===1?own.response():response(checkpoint('2')),()=> 'csrf');
+ try{
+  command=owner.restoreForCommand();void command.catch(()=>{});await enteredCheckpoint(own,command);const current=await owner.restore();assert.equal(current.uiSeq,'2');own.complete();
+  await assert.rejects(command,error=>kind==='JSON'?error instanceof SyntaxError:error instanceof Error&&error.message===(kind==='checkpoint shape'?'UI_CHECKPOINT_UNAVAILABLE':'UI_CHECKPOINT_SEQUENCE'));
+  assert.equal(owner.checkpoint,current);assert.equal(calls,2);assert.equal(own.body.locked,false);assert.equal(owner.ownership.controlReads,0);
+ }finally{own.complete();await Promise.allSettled(command?[command]:[]);await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+test('a newer successful checkpoint cannot waive the command read own transport failure',{timeout:10000},async()=>{
+ const baseline=totals(),entered=deferred(),gate=deferred(),failure=Error('command checkpoint transport failed');let calls=0,command;
+ const owner=new DraftPersistence('session',async()=>{if(++calls===1){entered.resolve();return gate.promise;}return response(checkpoint('2'));},()=> 'csrf');
+ try{command=owner.restoreForCommand();void command.catch(()=>{});await Promise.race([entered.promise,command.then(()=>{throw Error('Command restore completed before its held boundary');})]);const current=await owner.restore();gate.reject(failure);await assert.rejects(command,error=>error===failure);assert.equal(owner.checkpoint,current);assert.equal(current.uiSeq,'2');assert.equal(calls,2);assert.equal(owner.ownership.controlReads,0);}
+ finally{gate.reject(failure);await Promise.allSettled(command?[command]:[]);await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+test('a command checkpoint native body error remains its own failure after a newer successful publication',{timeout:10000},async()=>{
+ const baseline=totals(),own=heldCheckpoint(),failure=Error('native command checkpoint body failed');let calls=0,command;
+ const owner=new DraftPersistence('session',async()=> ++calls===1?own.response():response(checkpoint('2')),()=> 'csrf');
+ try{command=owner.restoreForCommand();void command.catch(()=>{});await enteredCheckpoint(own,command);const current=await owner.restore();own.fail(failure);await assert.rejects(command,error=>error===failure);assert.equal(owner.checkpoint,current);assert.equal(current.uiSeq,'2');assert.equal(own.body.locked,false);assert.equal(owner.ownership.controlCleanupFailures,0);}
+ finally{own.complete();await Promise.allSettled(command?[command]:[]);await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+test('a newer successful checkpoint cannot waive native command reader unlock failure and its retained owner',{timeout:10000},async()=>{
+ const baseline=totals(),own=heldCheckpoint(),native=own.body.getReader.bind(own.body);let calls=0,command,refuse=true,failure;
+ own.body.getReader=()=>{const reader=native();return {get closed(){return reader.closed;},read:()=>reader.read(),cancel:()=>reader.cancel(),releaseLock(){if(refuse)throw Error('command checkpoint unlock refused');reader.releaseLock();}};};
+ const owner=new DraftPersistence('session',async()=> ++calls===1?own.response():response(checkpoint('2')),()=> 'csrf');
+ try{
+  command=owner.restoreForCommand();void command.catch(()=>{});await enteredCheckpoint(own,command);const current=await owner.restore();own.complete();
+  await assert.rejects(command,error=>{failure=error;return error instanceof AggregateError&&error.message==='PROMPT_READER_CLEANUP_FAILED';});assert.equal(owner.checkpoint,current);assert.equal(current.uiSeq,'2');assert.equal(failure.cancellationFailed,false);assert.equal(failure.resource.response.body,own.body);assert.equal(own.body.locked,true);assert.equal(owner.ownership.controlCleanupFailures,1);assert(totals().handles>baseline.handles);
+  await assert.rejects(owner.release(),/COMMAND_RESULT_CLEANUP_INCOMPLETE/);assert.equal(own.body.locked,true);refuse=false;await owner.release();assert.equal(own.body.locked,false);assert.equal(owner.ownership.controlCleanupFailures,0);
+ }finally{refuse=false;own.complete();await Promise.allSettled(command?[command]:[]);await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
+});
+
+test('a newer successful checkpoint cannot waive a genuine native cancellation failure in the command own reader',{timeout:10000},async()=>{
+ // Rejected native cancellation remains charged by contract. Reuse the
+ // existing isolated real diagnostic graph rather than resetting cleanup state.
+ const graph=await isolatedDiagnosticModules(),dependencies=await draftStateDependencies(graph.allocationsURL,{root,commandsRoot:resultsRoot}),{DraftPersistence:Owner}=await import(dependencies.draftURL),{allocationLedger:ledger}=await import(graph.allocationsURL),prompt=await import(dependencies.promptURL),baseline=ledger.snapshot(),entered=deferred(),cause=Error('native command checkpoint cancellation failed');let calls=0,cancels=0,controller,closed=false,command,failure;
+ const body=new ReadableStream({start(value){controller=value;},pull(){entered.resolve();},cancel(){closed=true;cancels++;throw cause;}},{highWaterMark:0}),ownResponse=new Response(body,{headers:{'content-length':'1'}}),owner=new Owner('session',async()=> ++calls===1?ownResponse:response(checkpoint('2')),()=> 'csrf');
+ try{
+  command=owner.restoreForCommand();void command.catch(()=>{});await Promise.race([entered.promise,command.then(()=>{throw Error('Command restore completed before its held boundary');})]);const current=await owner.restore();controller.enqueue(new Uint8Array([123,125]));
+  await assert.rejects(command,error=>{failure=error;return error instanceof prompt.PromptReaderCleanupError;});assert.equal(owner.checkpoint,current);assert.equal(current.uiSeq,'2');assert.equal(failure.cancellationFailed,true);assert(failure.errors.includes(cause));assert.equal(failure.resource.response,ownResponse);assert(failure.resource.retainedReader);assert(failure.resource.lease);assert.equal(body.locked,false);assert.equal(cancels,1);assert.equal(owner.ownership.controlCleanupFailures,1);
+  await assert.rejects(owner.dispose(),/COMMAND_RESULT_CLEANUP_INCOMPLETE/);assert.equal(owner.checkpoint,null);assert.equal(owner.ownership.controlReads,0);assert.deepEqual(prompt.promptReaderCleanupFailures(),[failure]);assert.equal(ledger.snapshot().activeRecords,baseline.activeRecords+1);assert.equal(ledger.snapshot().unusedHandles,baseline.unusedHandles+2);await assert.rejects(failure.retry(),error=>error===failure);assert.equal(cancels,1);
+ }finally{if(!closed){closed=true;controller.close();}await Promise.allSettled(command?[command]:[]);const result=await Promise.allSettled([owner.dispose()]);assert.equal(result[0].status,'rejected');assert.equal(result[0].reason.message,'COMMAND_RESULT_CLEANUP_INCOMPLETE');}
+});
+
+
+test('a command checkpoint join propagates latest read-limit admission failure before the successor callback starts',{timeout:10000},async()=>{
+ const baseline=totals(),bodies=Array.from({length:8},(_,index)=>heldCheckpoint(JSON.stringify(checkpoint(String(index+1))))),pending=[];let calls=0,command,rejected,failure;
+ const owner=new DraftPersistence('session',async()=>bodies[calls++].response(),()=> 'csrf');owner.checkpoint=checkpoint('0');
+ try{
+  command=owner.restoreForCommand();void command.catch(()=>{});await enteredCheckpoint(bodies[0],command);
+  for(let index=1;index<bodies.length;index++){const task=owner.restore();void task.catch(()=>{});pending.push(task);await enteredCheckpoint(bodies[index],task);}
+  assert.equal(owner.ownership.controlReads,8);rejected=owner.restore();void rejected.catch(()=>{});
+  await assert.rejects(rejected,error=>{failure=error;return error instanceof Error&&error.message==='COMMAND_RESULT_READ_LIMIT';});assert.equal(calls,8,'The refused successor never enters its transport');
+  bodies[0].complete();await assert.rejects(command,error=>error===failure);assert.equal(bodies[0].body.locked,false);assert.equal(owner.checkpoint.uiSeq,'0');
+  for(const body of bodies.slice(1))body.complete();const outcomes=await Promise.allSettled(pending);assert(outcomes.every(result=>result.status==='rejected'&&staleCheckpoint(result.reason)));assert.equal(owner.ownership.controlReads,0);assert(bodies.every(row=>!row.body.locked));
+ }finally{for(const body of bodies)body.complete();await Promise.allSettled([command,rejected,...pending].filter(Boolean));await owner.dispose();}
+ assert.deepEqual(totals(),baseline);
 });

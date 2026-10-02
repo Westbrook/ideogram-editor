@@ -12,11 +12,11 @@ export const NETWORK_BOUNDARIES=Object.freeze({
  // by the existing full Apply stage; its raw bytes stay server-authorized.
  'src/text/durable.ts':'6b426048f78f1a95d8a23c9b4e7724ce2774e7a0cc47bea8968b4258a2682d52',
  'src/text/engine.ts':'c86d782ccb92de17fb4a01376e16989b13114156abcd6418a011af43efb5c830',
- 'src/state/editor-client.ts':'a6724c187618d422bbf913946bba65fc1cbe3cae26458c66176e05f5fa5a26b9',
+ 'src/state/editor-client.ts':'98572c624d268912aa82dae2e3e84daf40797dba828b9b03301bfbc306cca162',
  'src/observability/adapter-upload-hook.ts':'756a93d71aff8092d41c9eefa8ddabbe5983acdcc2f5350e958b3b263db8ceb9',
  'src/observability/adapter-upload.ts':'77d8bc7603e9a7db0df09369078b02381bca012c92c30c7df1a3b014b198dbba',
  'src/ui/adapter-library.ts':'2d74226de4868f840641a453d874cead9a35e432b23471d6b3d7e282ee595d80',
- 'src/state/draft-persistence.ts':'6fce26e74b45da071e17331726e961a72b6f3006a63aaa47edb8089d91f65a5f',
+ 'src/state/draft-persistence.ts':'677621bcddf8c2edebd9ba703552db3d3e41062a38e22e050dd7c0fd09060bdd',
  'src/state/command-results.ts':'b771ee97323f8393f0eea83998af06e733bfd7349b902f63b4abf32a63ea9b4b',
  'src/state/control-memory.ts':'80b1f564855ef58462d44a708fc211770ed73f481ba44f71db13fdef75716d75',
  'src/observability/model-memory.ts':'79d5f368134a38dcc01abdf29d42bff9840c4f42d6e3f8aa3c83864d5e58f118',

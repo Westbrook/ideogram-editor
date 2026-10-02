@@ -21,6 +21,7 @@ class RequestValues extends Map<string,SavedDelivery>{
   adopt(source:RequestValues){this.validateAdoption(source);for(const [id,value]of source){if(!this.has(id)){super.set(id,value);this.leases.set(id,source.leases.get(id)!);source.leases.delete(id);}source.delete(id);}}
 }
 type Transport = (path:string,init?:RequestInit)=>Promise<Response>;
+type RestoreCompletion={done:Promise<void>;published:boolean;failure?:{error:unknown}};
 // The editor adapter owns native controls. This owner only records current draft
 // generations and durable local receipts; it never writes DOM/focus or a document.
 export class DraftPersistence {
@@ -33,7 +34,7 @@ export class DraftPersistence {
   readonly drafts=new DraftValues(this.registrations);
   private checkpointModel?:OwnedModel<UICheckpoint>;
   private checkpointModels=new WeakMap<UICheckpoint,OwnedModel<UICheckpoint>>();
-  private reads=new CommandControlReads();private saves=new Set<Promise<unknown>>();private restoreSerial=0;private drain?:Promise<void>;
+  private reads=new CommandControlReads();private saves=new Set<Promise<unknown>>();private restoreSerial=0;private latestRestore?:RestoreCompletion;private drain?:Promise<void>;
   get checkpoint(){return this.checkpointModel?.value??null;}
   set checkpoint(value:UICheckpoint|null){
     if(value===this.checkpoint)return;
@@ -53,17 +54,49 @@ export class DraftPersistence {
   release(){return this.reads.release();}
   constructor(readonly sessionId:string,private transport:Transport,private csrf:()=>string,private journal?:DeliveryJournal){}
   registerDraft(id:string,documentId:string){if(this.disposed)throw Error('DRAFT_OWNER_DISPOSED');return this.registrations.register(id,documentId);}
-  async restore(){
+  async restore(){return this.restoreCheckpoint(false);}
+  // Accepted commands need a current published checkpoint, even when another
+  // completion supersedes their read. Ordinary restoration keeps latest-wins
+  // cancellation; command reads still validate and release their own response.
+  async restoreForCommand(){return this.restoreCheckpoint(true);}
+  private restoreCheckpoint(command:boolean){
     if(this.disposed)throw Error('DRAFT_OWNER_DISPOSED');
     const lifetime=this.lifetime,readLifetime=this.readLifetime,serial=++this.restoreSerial;
-    return this.reads.run(async signal=>{
-      const current=()=>!signal.aborted&&!this.disposed&&lifetime===this.lifetime&&readLifetime===this.readLifetime&&serial===this.restoreSerial;
-      const model=await readOwnedJSON<UICheckpoint>(this.transport,'/api/v1/ui/'+this.sessionId,{owner:'draft-checkpoint-response',maxBytes:65536,init:{signal},owns:current}),restored=new RequestValues();
-      try{if(!current())return;const checkpoint=model.value;if(!checkpoint||checkpoint.sessionId!==this.sessionId||!Array.isArray(checkpoint.drafts)||!checkpoint.preferences)throw Error('UI_CHECKPOINT_UNAVAILABLE');
-        await this.journal?.scan<SavedDelivery>('ui-request:'+this.sessionId+':',item=>{if(!current())return false;if(!item.done&&!this.requests.has(item.request.requestId))restored.set(item.request.requestId,item);});
-        if(!current())return;this.requests.validateAdoption(restored);this.checkpoint=checkpoint;this.requests.adopt(restored);return this.checkpoint!;
-      }finally{restored.clear();model.release();}
-    });
+    let finish!:()=>void,settled=false;
+    const record:RestoreCompletion={done:new Promise<void>(resolve=>{finish=()=>{settled=true;resolve();};}),published:false};
+    this.latestRestore=record;
+    let task:Promise<UICheckpoint|undefined>;
+    try{task=this.reads.run(async signal=>{
+      const live=()=>!signal.aborted&&!this.disposed&&lifetime===this.lifetime&&readLifetime===this.readLifetime;
+      const current=()=>live()&&serial===this.restoreSerial;
+      const check=()=>{if(!live())throw new DOMException('Draft checkpoint owner changed.','AbortError');};
+      try{
+        const model=await readOwnedJSON<UICheckpoint>(this.transport,'/api/v1/ui/'+this.sessionId,{owner:'draft-checkpoint-response',maxBytes:65536,init:{signal},owns:command?live:current}),restored=new RequestValues();
+        try{
+          if(command)check();else if(!current())return;
+          const checkpoint=model.value;if(!checkpoint||checkpoint.sessionId!==this.sessionId||!Array.isArray(checkpoint.drafts)||!checkpoint.preferences)throw Error('UI_CHECKPOINT_UNAVAILABLE');
+          if(command){measureControl(checkpoint,65536);if(typeof checkpoint.uiSeq!=='string'||checkpoint.uiSeq.length>128||!/^(0|[1-9][0-9]*)$/.test(checkpoint.uiSeq))throw Error('UI_CHECKPOINT_SEQUENCE');}
+          if(current()){
+            await this.journal?.scan<SavedDelivery>('ui-request:'+this.sessionId+':',item=>{if(!current())return false;if(!item.done&&!this.requests.has(item.request.requestId))restored.set(item.request.requestId,item);});
+            if(current()){this.requests.validateAdoption(restored);this.checkpoint=checkpoint;this.requests.adopt(restored);record.published=true;}
+          }
+        }finally{restored.clear();model.release();}
+      }catch(error){record.failure={error};throw error;}finally{finish();}
+      if(!command)return record.published?this.checkpoint!:undefined;
+      // The record settles after its own reader/model cleanup, before joining
+      // a successor. Thus even concurrent command waiters cannot form a cycle.
+      for(;;){
+        check();const latest=this.latestRestore;if(!latest)throw Error('UI_CHECKPOINT_UNAVAILABLE');
+        await latest.done;check();if(latest!==this.latestRestore)continue;
+        if(latest.failure)throw latest.failure.error;
+        if(!latest.published||!this.checkpoint)throw Error('UI_CHECKPOINT_UNAVAILABLE');
+        return this.checkpoint;
+      }
+    });}catch(error){record.failure={error};finish();throw error;}
+    // Admission can reject before the callback runs. Keep that outcome handled
+    // and visible to a joining command without replacing the original failure.
+    void task.catch(error=>{if(!settled){record.failure={error};finish();}});
+    return task;
   }
   // The editor chooses its bounded text reader/viewer before loading a draft.
   // No transcript replay eagerly materializes all caption assets in memory.
@@ -209,5 +242,5 @@ export class DraftPersistence {
     }catch(error){if(this.owns(pending.draftId,pending.generation,lifetime)){const draft=this.drafts.get(pending.draftId)!;draft.pending=false;draft.error='Draft receipt unknown; retry the original delivery';}throw error;}
   }
   invalidate(){this.drafts.invalidate();this.lifetime++;}
-  dispose(){if(!this.disposed){this.disposed=true;this.lifetime++;this.readLifetime++;this.restoreSerial++;this.drafts.clear();this.refused.clear();this.registrations.dispose();this.requests.clear();this.checkpoint=null;}return this.drain??=(async()=>{const reads=this.reads.release();void reads.catch(()=>{});await Promise.allSettled([...this.saves]);await this.registrations.drain();await reads;})().finally(()=>{this.drain=undefined;});}
+  dispose(){if(!this.disposed){this.disposed=true;this.lifetime++;this.readLifetime++;this.restoreSerial++;this.latestRestore=undefined;this.drafts.clear();this.refused.clear();this.registrations.dispose();this.requests.clear();this.checkpoint=null;}return this.drain??=(async()=>{const reads=this.reads.release();void reads.catch(()=>{});await Promise.allSettled([...this.saves]);await this.registrations.drain();await reads;})().finally(()=>{this.drain=undefined;});}
 }

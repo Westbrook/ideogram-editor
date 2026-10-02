@@ -9,6 +9,7 @@ import {resolve} from 'node:path';
 import {transformWithOxc} from 'vite';
 import {allocationsURL,promptMemoryURL} from '../owned-preview-module.mjs';
 import {viewModelDependencies} from '../view-model-module.mjs';
+import {draftStateDependencies} from '../draft-state-module.mjs';
 
 const root=process.env.NAVIGATION_CLIENT_SOURCE_ROOT??'.';
 const data=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
@@ -18,6 +19,8 @@ async function moduleURL(path,imports={}){
  return data(code);
 }
 const {viewURL,memoryURL,controlURL}=await viewModelDependencies(allocationsURL,{promptURL:promptMemoryURL});
+const {draftURL}=await draftStateDependencies(allocationsURL,{root,memoryURL,controlURL,promptURL:promptMemoryURL});
+const {DraftPersistence}=await import(draftURL);
 const jsonURL=await moduleURL('src/protocol/json.ts'),shaURL=await moduleURL('src/protocol/sha256.ts');
 const validatorURL=pathToFileURL(resolve('dist/local/src/protocol/validate.js')).href;
 const commandsURL=await moduleURL('src/state/command-results.ts',{'../observability/allocations.js':allocationsURL,'../observability/model-memory.js':memoryURL,'../observability/prompt-memory.js':promptMemoryURL,'./control-memory.js':controlURL,'../protocol/json.js':jsonURL,'../protocol/sha256.js':shaURL,'../protocol/validate.js':validatorURL});
@@ -96,6 +99,7 @@ async function fixture(t){
  t.after(close);
  return {client,document,image,load,cache,journal,calls,boundary,gate,track,close,makeOwner,
   states:()=>calls.filter(row=>row.type==='state'),authority:kind=>calls.filter(row=>row.type==='authority'&&(!kind||row.input.kind===kind)),
+  installDraftOwner(transport){const owner=new DraftPersistence('ui_fixture',transport,()=> 'csrf');owner.checkpoint=client.draftOwner.checkpoint;owners.push(owner);client.draftOwner=owner;client.ui=owner.checkpoint;return owner;},
   setIdentity(value){identity=value;},setCursor(value){cursor=value;},setTransport(value){transport=value;}};
 }
 
@@ -177,7 +181,7 @@ for(const kind of ['draftOwner','sessionIdentity','lifecycle'])test('connect can
  assert.equal(f.client.view.ready,false);assert.equal(f.authority('recovered').length,0);assert.equal(f.client.view.message,'Recovering complete local transactions…');
 });
 
-function checkpointIO(f,{rejected=false,changeReceipt}={}){
+function checkpointIO(f,{rejected=false,changeReceipt,restoreDrafts=true}={}){
  const receiptGate=f.gate(),eventsGate=f.gate(),projectionGate=f.gate(),draftGate=f.gate(),paths=[];
  let submitted,receipt,event,projectionStarted=false,eventsStarted=false,draftStarted=false;
  const recovery={recoveryId:'recovery_1',writerEpoch:'1',projectionSchema:19,highWater:'41',expiresAt:'2099-01-01T00:00:00.000Z'};
@@ -199,7 +203,7 @@ function checkpointIO(f,{rejected=false,changeReceipt}={}){
   throw Error('Unexpected checkpoint path '+path);
  });
  f.client.sync=async()=>{projectionStarted=true;await projectionGate.promise;f.setCursor('41');f.client.patch({document:{...f.document,revision:'5'},cursor:'41'});};
- f.client.draftOwner.restore=async()=>{draftStarted=true;await draftGate.promise;};
+ if(restoreDrafts)f.client.draftOwner.restore=f.client.draftOwner.restoreForCommand=async()=>{draftStarted=true;await draftGate.promise;};
  return {receiptGate,eventsGate,projectionGate,draftGate,paths,get submitted(){return submitted;},get receipt(){return receipt;},get event(){return event;},get projectionStarted(){return projectionStarted;},get eventsStarted(){return eventsStarted;},get draftStarted(){return draftStarted;}};
 }
 
@@ -234,4 +238,60 @@ for(const mismatch of ['commandId','transactionId','documentId','revision','sess
 for(const field of ['commandId','transactionId'])test('actual owned checkpoint delivery refuses a foreign '+field+' receipt before event recovery',async t=>{
  const f=await fixture(t),io=checkpointIO(f,{changeReceipt:receipt=>{receipt[field]='foreign_identity';}}),task=f.track(f.client.ownedCommand({type:'SaveCheckpoint',name:'Original'}));io.receiptGate.resolve();
  await assert.rejects(task,/RECEIPT_UNKNOWN/);assert.equal(io.eventsStarted,false);assert.equal(f.authority('checkpoint').length,0);assert.notEqual(f.client.view.message,'SaveCheckpoint accepted and saved locally.');
+});
+
+
+function heldCheckpointBody(f,checkpoint){
+ const entered=f.gate(),resume=f.gate(),unlocked=f.gate(),bytes=new TextEncoder().encode(JSON.stringify(checkpoint));let reads=0,cancels=0,unlocks=0;
+ const body=new ReadableStream({async pull(controller){entered.resolve();await resume.promise;controller.enqueue(bytes);controller.close();}},{highWaterMark:0}),native=body.getReader.bind(body);
+ body.getReader=()=>{const reader=native();return {get closed(){return reader.closed;},read(){reads++;return reader.read();},cancel(){cancels++;return reader.cancel();},releaseLock(){reader.releaseLock();unlocks++;unlocked.resolve();}};};
+ return {entered,resume,unlocked,body,response:new Response(body,{headers:{'content-type':'application/json','content-length':String(bytes.byteLength)}}),get reads(){return reads;},get cancels(){return cancels;},get unlocks(){return unlocks;}};
+}
+
+for(const method of ['command','ownedCommand'])test(method+' accepted checkpoint joins the newest real draft restore after its own response drains',async t=>{
+ const f=await fixture(t),checkpoint=uiSeq=>({sessionId:'ui_fixture',uiSeq,preferences:{documentId:f.document.id,selectedLayerIds:['layer_1']},drafts:[]});
+ const own=heldCheckpointBody(f,checkpoint('1')),newest=heldCheckpointBody(f,checkpoint('2')),draftCalls=[];
+ const owner=f.installDraftOwner(async(path,init)=>{draftCalls.push(path);assert.equal(path,'/api/v1/ui/ui_fixture');assert.equal(init?.method,undefined);const read=[own,newest][draftCalls.length-1];assert(read,'Unexpected extra checkpoint read');return read.response;});
+ const prior=owner.checkpoint,io=checkpointIO(f,{restoreDrafts:false});let task,latest,result,settled=false;
+ try{
+  task=f.track(f.client[method]({type:'SaveCheckpoint',name:'Original accepted checkpoint'}));void task.then(()=>{settled=true;},()=>{settled=true;});
+  io.receiptGate.resolve();io.eventsGate.resolve();io.projectionGate.resolve();await Promise.race([own.entered.promise,task.then(()=>{throw Error('Command completed before checkpoint read');})]);
+  assert.equal(io.eventsStarted,true);assert.equal(io.projectionStarted,true);assert.equal(own.body.locked,true);assert.equal(f.authority('checkpoint').length,0);
+  latest=f.track(owner.restore());await Promise.race([newest.entered.promise,latest.then(()=>{throw Error('Latest restore completed before checkpoint read');})]);assert.equal(newest.body.locked,true);
+  own.resume.resolve();await Promise.race([own.unlocked.promise,task.then(()=>{throw Error('Command completed before checkpoint unlock');})]);await turn();
+  assert.equal(own.reads,2);assert.equal(own.cancels,0);assert.equal(own.unlocks,1);assert.equal(own.body.locked,false);
+  assert.equal(settled,false);assert.equal(owner.checkpoint,prior);assert.equal(f.client.ui,prior);assert.equal(f.authority('checkpoint').length,0);assert.notEqual(f.client.view.message,'SaveCheckpoint accepted and saved locally.');
+  newest.resume.resolve();await latest;result=await task;
+  const events=method==='ownedCommand'?result.value:result;assert.deepEqual(events,[io.event]);assert.equal(events[0].payload.checkpoint.name,'Original accepted checkpoint');
+  assert.equal(events[0].commandId,io.submitted.commandId);assert.equal(events[0].transactionId,io.submitted.transactionId);
+  assert.equal(owner.checkpoint.uiSeq,'2');assert.equal(f.client.ui,owner.checkpoint);assert.notEqual(owner.checkpoint,prior);
+  assert.equal(f.authority('checkpoint').length,1);assert.equal(f.authority('checkpoint')[0].input.commandId,io.submitted.commandId);assert.equal(f.client.view.message,'SaveCheckpoint accepted and saved locally.');
+  assert.equal(io.paths.filter(path=>path==='/api/v1/commands').length,1);assert.equal(draftCalls.length,2);assert.deepEqual(f.journal.rows.get('command:'+io.submitted.commandId).result.receipt,io.receipt);
+  assert.equal(newest.reads,2);assert.equal(newest.cancels,0);assert.equal(newest.unlocks,1);assert.equal(newest.body.locked,false);
+  assert.equal(owner.ownership.controlReads,0);assert.equal(owner.ownership.controlCleanupFailures,0);assert.deepEqual(owner.pendingRequests(),[]);
+ }finally{
+  io.receiptGate.resolve();io.eventsGate.resolve();io.projectionGate.resolve();io.draftGate.resolve();own.resume.resolve();newest.resume.resolve();
+  await Promise.allSettled([task,latest].filter(Boolean));if(method==='ownedCommand')result?.release();await f.close();
+ }
+});
+
+test('owned accepted checkpoint refuses a failed newest real restore after its own valid response drains',async t=>{
+ const f=await fixture(t),checkpoint={sessionId:'ui_fixture',uiSeq:'1',preferences:{documentId:f.document.id,selectedLayerIds:[]},drafts:[]};
+ const own=heldCheckpointBody(f,checkpoint),newest=heldCheckpointBody(f,{...checkpoint,sessionId:'foreign_session',uiSeq:'2'}),draftCalls=[];
+ const owner=f.installDraftOwner(async(path,init)=>{draftCalls.push(path);assert.equal(path,'/api/v1/ui/ui_fixture');assert.equal(init?.method,undefined);const read=[own,newest][draftCalls.length-1];assert(read,'Unexpected extra checkpoint read');return read.response;});
+ const prior=owner.checkpoint,io=checkpointIO(f,{restoreDrafts:false});let task,latest,settled=false;
+ try{
+  task=f.track(f.client.ownedCommand({type:'SaveCheckpoint',name:'Accepted before restore failure'}));void task.then(()=>{settled=true;},()=>{settled=true;});
+  io.receiptGate.resolve();io.eventsGate.resolve();io.projectionGate.resolve();await Promise.race([own.entered.promise,task.then(()=>{throw Error('Command completed before checkpoint read');})]);
+  latest=f.track(owner.restore());await Promise.race([newest.entered.promise,latest.then(()=>{throw Error('Latest restore completed before checkpoint read');})]);own.resume.resolve();await Promise.race([own.unlocked.promise,task.then(()=>{throw Error('Command completed before checkpoint unlock');})]);await turn();
+  assert.equal(own.reads,2);assert.equal(own.cancels,0);assert.equal(own.unlocks,1);assert.equal(own.body.locked,false);assert.equal(settled,false);assert.equal(f.authority('checkpoint').length,0);
+  newest.resume.resolve();const [commandResult,restoreResult]=await Promise.allSettled([task,latest]);
+  assert.equal(restoreResult.status,'rejected');assert.match(restoreResult.reason.message,/UI_CHECKPOINT_UNAVAILABLE/);assert.equal(commandResult.status,'rejected');assert.equal(commandResult.reason,restoreResult.reason);
+  assert.equal(owner.checkpoint,prior);assert.equal(f.client.ui,prior);assert.equal(f.authority('checkpoint').length,0);assert.equal(f.states().some(row=>row.input.message==='SaveCheckpoint accepted and saved locally.'),false);
+  assert.equal(io.paths.filter(path=>path==='/api/v1/commands').length,1);assert.equal(draftCalls.length,2);assert.deepEqual(f.journal.rows.get('command:'+io.submitted.commandId).result.receipt,io.receipt);
+  assert.equal(newest.reads,2);assert.equal(newest.cancels,0);assert.equal(newest.unlocks,1);assert.equal(newest.body.locked,false);assert.equal(owner.ownership.controlReads,0);assert.equal(owner.ownership.controlCleanupFailures,0);
+ }finally{
+  io.receiptGate.resolve();io.eventsGate.resolve();io.projectionGate.resolve();io.draftGate.resolve();own.resume.resolve();newest.resume.resolve();
+  await Promise.allSettled([task,latest].filter(Boolean));await f.close();
+ }
 });
