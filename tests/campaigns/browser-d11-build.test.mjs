@@ -8,11 +8,15 @@ import { gzipSync } from 'node:zlib';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { deriveD11StaticDocument, loadD11Build } from '../../tooling/qualification/campaigns/browser-d11-build.mjs';
-import { D11_ROLE_CONTEXT, prepareD11RegistrationContract } from '../../tooling/qualification/campaigns/browser-d11-registration.mjs';
-import { D11_INVOCATION_DEPENDENCY_PATHS } from '../../tooling/qualification/campaigns/browser-d11-invocation-contract.mjs';
+import { D11_ROLE_CONTEXT, prepareD11RegistrationContract, verifyD11RegistrationContract } from '../../tooling/qualification/campaigns/browser-d11-registration.mjs';
+import { D11_INVOCATION_DEPENDENCY_PATHS, verifyD11InvocationContract } from '../../tooling/qualification/campaigns/browser-d11-invocation-contract.mjs';
 import { measureD11StartupBuildBound } from '../../tooling/qualification/campaigns/browser-d11-startup-bound.mjs';
 import { parseSync } from 'rolldown/utils';
 import { deriveD11WorkerActivation, resolveD11EmittedWorkerTarget } from '../../tooling/qualification/campaigns/browser-d11-worker-activation.mjs';
+
+import { deriveD11Roles } from '../../tooling/qualification/campaigns/browser-d11-roles.mjs';
+import { verifyD11RetainedBuild } from '../../tooling/qualification/campaigns/browser-d11-verification.mjs';
+import { observeD11Build } from '../../tooling/qualification/developer-campaigns/commands.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const required = ['index.html', 'vite.app.config.ts', 'tsconfig.json', 'tsconfig.app.json', 'package.json', 'package-lock.json', '.progress-report/project.json', 'tooling/build-evidence.ts', 'vendor/text/manifest.json'];
@@ -311,4 +315,117 @@ test('actual finalized Vite Worker URL traverses the unchanged source and invoca
   assert.match(missingTarget.missing.join('; '), /emitted Worker target is absent or ambiguous/);
   const missingAuthority = deriveD11WorkerActivation({ ...input, invocationContract: undefined });
   assert.equal(missingAuthority.complete, false); assert.deepEqual(missingAuthority.excludedWorkers, []);
+});
+
+test('actual compiled feature graph retains shared costs, rejects unproved refinement, and replays from independent file identities', {
+  skip: process.env.IE_CAMPAIGN_PRODUCT_INTEGRATION !== '1' && 'Requires selected IE_CAMPAIGN_PRODUCT_INTEGRATION=1.',
+}, async () => {
+  const cacheDirectory = process.env.IE_D11_NPM_CACHE;
+  assert.equal(typeof cacheDirectory, 'string', 'Selected product integration requires explicit IE_D11_NPM_CACHE.');
+  assert(cacheDirectory.length > 0, 'Selected product integration requires a nonempty IE_D11_NPM_CACHE.');
+  const repo = await realpath(new URL('../../', import.meta.url));
+  const build = await loadD11Build({ repo, cacheDirectory });
+  const manifest = JSON.parse(build.retainedInputs.manifest), lock = JSON.parse(build.retainedInputs.lock);
+  const parser = { name: 'rolldown', version: createRequire(import.meta.url)('rolldown/package.json').version, parseSync };
+  const input = { ...build.roleInputs, manifest, parser, files: build.files, roleContext: build.roleContext,
+    lock, dependencyInputs: build.dependencyInputs, compilation: build.compilation, sourceInputs: build.sourceInputs };
+  const byFile = new Map(build.files.map(file => [file.file, file]));
+  const named = name => {
+    const entries = Object.values(manifest).filter(entry => entry.name === name);
+    assert.equal(entries.length, 1, 'Actual emitted fixture entry changed: ' + name);
+    return entries[0].file;
+  };
+  const browser = named('browser'), shell = named('shell'), featureEntry = named('export');
+  const graph = build.roles.staticImportGraph;
+  assert.equal(build.roles.complete, true, build.roles.missing.join('; '));
+  assert.equal(graph?.kind, 'd11-emitted-static-graph-1');
+  assert.equal(graph.policy, 'verified-compiled-chunk-dependencies');
+  assert(!graph.edges.some(edge => edge.output === browser && edge.target === shell));
+  const omitted = graph.omittedSourceAttributions.filter(edge => edge.source === 'src/protocol/validate.ts' && edge.output === browser && edge.target === shell);
+  assert.equal(omitted.length, 1);
+  const source = input.sourceTextByPath[omitted[0].source];
+  assert.equal(omitted[0].sourceSha256, 'sha256:' + hash(source));
+  assert.equal(omitted[0].expressionSha256, 'sha256:' + hash(source.slice(omitted[0].start, omitted[0].end)));
+  const feature = build.roles.lazyFeatures.find(row => row.id === 'src/ui/export.ts');
+  const expectedFeature = ['export', 'browser', 'model-memory', 'lit', 'adapter-upload-hook', 'preload-helper', 'adapters'].map(named).sort();
+  assert.deepEqual(feature.files, expectedFeature);
+  assert.deepEqual(feature.closureFiles, expectedFeature);
+  const shared = expectedFeature.filter(file => file !== featureEntry);
+  assert(shared.every(file => build.roles.startupFiles.includes(file)), 'Shared startup dependencies must remain charged to the feature.');
+  assert(!build.roles.startupFiles.includes(featureEntry));
+  assert.equal(shared.reduce((sum, file) => sum + byFile.get(file).gzipBytes, 0), 59_428);
+  const audit = observeD11Build(build);
+  assert.equal(audit.status, 'PASS', JSON.stringify({ missing: audit.missing, budgets: audit.budgets, violations: audit.violations }));
+  assert.equal(audit.features.find(row => row.id === feature.id).gzipBytes, 67_157);
+  assert.equal(audit.measurements.find(row => row.name === 'D11BuildStartupJsGzipBytes').value, 439_719);
+
+  const canonical = value => JSON.stringify(value && typeof value === 'object'
+    ? Array.isArray(value) ? value.map(item => JSON.parse(canonical(item)))
+      : Object.fromEntries(Object.keys(value).sort().map(key => [key, JSON.parse(canonical(value[key]))])) : value);
+  const seal = value => { const { sha256: _old, ...body } = value; return { ...body, sha256: 'sha256:' + hash(canonical(body)) }; };
+  const changedOutput = text => {
+    const bytes = Buffer.from(text), gzipBytes = gzipSync(bytes).length;
+    return { ...input, outputTextByFile: { ...input.outputTextByFile, [browser]: text },
+      files: build.files.map(file => file.file === browser ? { ...file, rawBytes: bytes.length,
+        sha256: 'sha256:' + hash(bytes), gzipBytes, computedGzipBytes: gzipBytes } : file) };
+  };
+  // This is a synthetic role-analysis control, not a finalized build or an
+  // authenticated receipt. Reintroducing a real emitted dependency must count
+  // its full closure; a fresh canonical reducer seal does not authenticate it.
+  const reintroduced = changedOutput(`import ${JSON.stringify('./' + shell.slice(shell.lastIndexOf('/') + 1))};\n` + input.outputTextByFile[browser]);
+  const mutantRoles = deriveD11Roles(reintroduced);
+  assert.equal(mutantRoles.complete, true, mutantRoles.missing.join('; '));
+  assert(mutantRoles.staticImportGraph.edges.some(edge => edge.output === browser && edge.target === shell));
+  assert(!mutantRoles.staticImportGraph.omittedSourceAttributions.some(edge => edge.output === browser && edge.target === shell));
+  assert.deepEqual(mutantRoles.startupFiles, build.roles.startupFiles, 'The dependency was already startup-owned.');
+  const delta = reintroduced.files.find(file => file.file === browser).gzipBytes - byFile.get(browser).gzipBytes;
+  const mutantAudit = observeD11Build(seal({ ...build, files: reintroduced.files, roles: mutantRoles,
+    roleInputs: { ...build.roleInputs, outputTextByFile: reintroduced.outputTextByFile } }));
+  assert.equal(mutantAudit.status, 'FAIL');
+  assert.equal(mutantAudit.features.find(row => row.id === feature.id).gzipBytes, 431_492 + delta);
+  assert.equal(mutantAudit.measurements.find(row => row.name === 'D11BuildStartupJsGzipBytes').value, 439_719 + delta);
+  assert.equal(mutantAudit.budgets.find(row => row.name === 'D11BuildLazyFeatureGzipBytes').ceiling, 307_200);
+  assert.equal(mutantAudit.budgets.find(row => row.name === 'D11BuildLazyFeatureGzipBytes').outcome, 'FAIL');
+
+  // Every control below must lose graph-refinement authority. No source name,
+  // source attribution, or caller-authored graph substitutes for the contract.
+  for (const [label, change] of [
+    ['null invocation', () => ({ ...input, invocationContract: null })],
+    ['forged invocation', () => ({ ...input, invocationContract: { ...input.invocationContract, profile: 'unreviewed' } })],
+    ['changed compiler', () => ({ ...input, compilation: { ...input.compilation, configFile: 'other.config.ts' } })],
+    ['changed corpus', () => ({ ...input, sourceTextByPath: { ...input.sourceTextByPath, 'src/main.ts': input.sourceTextByPath['src/main.ts'] + '\n' } })],
+    ['missing output', () => { const outputTextByFile = { ...input.outputTextByFile }; delete outputTextByFile[browser]; return { ...input, outputTextByFile }; }],
+    ['stale output identity', () => ({ ...input, outputTextByFile: { ...input.outputTextByFile, [browser]: input.outputTextByFile[browser] + '\n' } })],
+    ['unknown static target', () => changedOutput('import "./unrecorded.js";\n' + input.outputTextByFile[browser])],
+    ['malformed emitted import', () => changedOutput('import ;\n' + input.outputTextByFile[browser])],
+  ]) {
+    const refused = deriveD11Roles(change());
+    assert.equal(refused.complete, false, label);
+    assert.equal(Object.hasOwn(refused, 'staticImportGraph'), false, label);
+    assert(refused.missing.length > 0, label);
+  }
+
+  // Independently read actual files to form a test-local outer identity map.
+  // These rows are neither copied hashes from the packet nor a campaign receipt.
+  const registration = verifyD11RegistrationContract(input.registrationContract, { lock });
+  const invocation = verifyD11InvocationContract(input.invocationContract, { ...input,
+    emittedModules: [...new Set(build.files.flatMap(file => file.modules))] });
+  const sourcePaths = new Set([...build.sourceInputs.map(row => row.path),
+    ...Object.values(build.inputs).filter(row => !row.path.startsWith('dist/')).map(row => row.path),
+    ...registration.inputs.map(row => row.path), ...invocation.localArchiveInputs.map(row => row.path)]);
+  const buildPaths = new Set([...Object.values(build.inputs).filter(row => row.path.startsWith('dist/')).map(row => row.path),
+    ...build.files.filter(row => row.file !== 'inline:bootstrap').map(row => 'dist/app/' + row.file)]);
+  const independentRows = async (paths, prefix) => {
+    const rows = [];
+    for (const path of [...paths].sort()) { const bytes = await readFile(join(repo, path)); rows.push({ path, bytes: bytes.length, sha256: prefix + hash(bytes) }); }
+    return rows;
+  };
+  const identities = { sourceFiles: await independentRows(sourcePaths, ''), buildFiles: await independentRows(buildPaths, 'sha256:') };
+  const serialized = JSON.stringify(build), retained = JSON.parse(serialized);
+  assert.deepEqual(verifyD11RetainedBuild(retained, identities), build);
+  assert.equal(JSON.stringify(retained), serialized, 'Replay must not mutate the retained packet.');
+  assert.deepEqual(verifyD11RetainedBuild(JSON.parse(serialized), identities), retained, 'Complete retained replay must be deterministic.');
+  const forged = JSON.parse(serialized);
+  forged.roles.staticImportGraph.omittedSourceAttributions[0].expressionSha256 = 'sha256:' + '0'.repeat(64);
+  assert.throws(() => verifyD11RetainedBuild(seal(forged), identities), /D11 roles differ from retained source and output bytes/);
 });

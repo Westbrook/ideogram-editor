@@ -1,4 +1,6 @@
 import { posix } from 'node:path';
+import { createHash } from 'node:crypto';
+import { verifyD11InvocationContract } from './browser-d11-invocation-contract.mjs';
 import { D11_ROLE_CONTEXT, verifyD11RegistrationContract } from './browser-d11-registration.mjs';
 import { deriveD11PrivateEventBoundaries } from './browser-d11-private-events.mjs';
 import { deriveD11WorkerActivation } from './browser-d11-worker-activation.mjs';
@@ -366,12 +368,14 @@ export function deriveD11Roles(input = {}) {
   const fullSiteCensus = retainedInvocation && invocationContract !== null && invocationContract !== undefined;
   const missing = new Set(), startup = new Set(), engine = new Set(), ui = new Set(), features = [];
   const excludedImports = [], excludedWorkers = [], startupUpperBounds = [];
-  let publicStartup = null;
+  let publicStartup = null, staticImportGraph = null;
   const finish = () => ({ startupFiles: sorted(startup), lazyFeatures: features.sort((a, b) => a.id.localeCompare(b.id)), textEngineFiles: sorted(engine), uiCssFontFiles: sorted(ui),
-    ...(retainedInvocation ? { excludedImports, excludedWorkers, startupUpperBounds, startupProof: publicStartup?.complete ? publicStartup.witnesses : [] } : {}), complete: missing.size === 0, missing: sorted(missing) });
+    ...(retainedInvocation ? { excludedImports, excludedWorkers, startupUpperBounds, startupProof: publicStartup?.complete ? publicStartup.witnesses : [] } : {}), ...(staticImportGraph ? { staticImportGraph } : {}), complete: missing.size === 0, missing: sorted(missing) });
   if (!object(manifest) || !Array.isArray(files) || files.length > 20_000 || !object(sourceTextByPath) || !object(outputTextByFile)) { missing.add('D11 role inputs are absent or invalid'); return finish(); }
   if (parser?.name !== 'rolldown' || typeof parser.version !== 'string' || !parser.version || typeof parser.parseSync !== 'function') { missing.add('D11 lock-verified Rolldown AST parser is unavailable'); return finish(); }
   const byFile = new Map(), bySource = new Map(), edges = new Map(), eager = new Map(), dynamic = new Set(), workers = new Set(), wasmOwners = new Set(), ambiguousImports = [];
+  const sourceStaticImports = [], emittedStaticImports = [], emittedStaticMissing = new Set();
+  const digest = value => 'sha256:' + createHash('sha256').update(value).digest('hex');
   const add = (map, key, value) => { const values = map.get(key) ?? new Set(); values.add(value); map.set(key, values); };
   for (const file of files) {
     if (!object(file) || typeof file.file !== 'string' || byFile.has(file.file)) { missing.add('D11 role file inventory is invalid or duplicated'); continue; }
@@ -423,16 +427,29 @@ export function deriveD11Roles(input = {}) {
       const staticImport = ['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) && node.source && node.importKind !== 'type' && node.exportKind !== 'type';
       if (dynamicImport || staticImport) {
         const specifier = literal(node.source);
-        if (specifier === null) { if (dynamicImport) missing.add('D11 computed dynamic import is ambiguous: ' + path); return; }
+        if (typeof specifier !== 'string') {
+          if (dynamicImport) missing.add('D11 computed dynamic import is ambiguous: ' + path);
+          else if (!source) emittedStaticMissing.add('D11 emitted static import is not a literal: ' + path);
+          return;
+        }
         const targets = source ? resolveSource(path, specifier) : [reference(path, specifier)].filter(file => byFile.get(file)?.kind === 'js');
         if (targets.length > 1) { missing.add('D11 source import maps to multiple emitted chunks: ' + path + ' -> ' + specifier); return; }
         if (!targets.length) {
           if (dynamicImport) missing.add('D11 dynamic import has no verified emitted target: ' + path + ' -> ' + specifier);
-          else if (!source && reference(path, specifier)) missing.add('D11 emitted static import is absent: ' + path + ' -> ' + specifier);
+          else if (!source) {
+            emittedStaticMissing.add('D11 emitted static import is unresolved: ' + path + ' -> ' + specifier);
+            if (reference(path, specifier)) missing.add('D11 emitted static import is absent: ' + path + ' -> ' + specifier);
+          }
           return;
         }
         for (const target of targets) for (const output of outputs) {
-          if (staticImport) add(edges, output, target);
+          if (staticImport) {
+            const item = { source: path, start: node.start, end: node.end, output, target };
+            const rows = source ? sourceStaticImports : emittedStaticImports;
+            if (rows.length >= 20_000) throw Error('static import census bound exceeded');
+            if (source) rows.push(item);
+            else { add(edges, output, target); rows.push({ ...item, specifier }); }
+          }
           else {
             dynamic.add(target);
             const invocation = boundary(node);
@@ -472,6 +489,49 @@ export function deriveD11Roles(input = {}) {
     if (text === undefined && !source.startsWith('src/')) continue;
     examine(source, parse(source, text, true), [...outputs].filter(file => byFile.get(file)?.kind === 'js'), true);
   }
+  // Source modules can be split/tree-shaken into different chunks: attribution
+  // does not establish a static edge between all chunks named by those sources.
+  // Only a freshly authenticated compiler/corpus plus a complete emitted census
+  // permits the final chunk graph to supersede those conservative source edges.
+  // Source invocation/startup/dynamic/Worker analysis above remains unchanged.
+  if (fullSiteCensus) {
+    for (const reason of emittedStaticMissing) missing.add(reason);
+    try {
+      const invocation = verifyD11InvocationContract(invocationContract, { lock, dependencyInputs,
+        emittedModules: sorted(files.flatMap(file => file.modules ?? [])), compilation: input.compilation,
+        sourceTextByPath, sourceInputs: input.sourceInputs, outputTextByFile });
+      if (invocation.effects.supportedCompilation !== 'reviewed-vite-app-config-and-build-evidence'
+        || invocation.effects.applicationSourceProfile !== 'reviewed-d11-startup-corpus-1') throw Error('unsupported compiled graph authority');
+      const outputs = files.filter(file => ['js', 'css'].includes(file.kind)).sort((a,b) => a.file.localeCompare(b.file));
+      if (JSON.stringify(Object.keys(outputTextByFile).sort()) !== JSON.stringify(outputs.map(file => file.file).sort())) throw Error('output text inventory differs');
+      const identities = outputs.map(file => {
+        const text = own(outputTextByFile, file.file);
+        if (typeof text !== 'string' || Buffer.byteLength(text) > 64 * 1048576) throw Error('output text is absent or oversized: ' + file.file);
+        const bytes = Buffer.from(text);
+        if (text.startsWith('\uFEFF') || bytes.toString('utf8') !== text || bytes.length !== file.rawBytes || digest(bytes) !== file.sha256) throw Error('output identity differs: ' + file.file);
+        return { file: file.file, rawBytes: file.rawBytes, sha256: file.sha256, modules: sorted(file.modules ?? []), sources: sorted(file.sources ?? []) };
+      });
+      if (missing.size === 0) {
+        const omittedSourceAttributions = sourceStaticImports.filter(item => item.output !== item.target && !edges.get(item.output)?.has(item.target)).map(item => {
+          const text = own(sourceTextByPath, item.source);
+          if (!Number.isSafeInteger(item.start) || !Number.isSafeInteger(item.end) || item.start < 0 || item.end <= item.start || item.end > text.length) throw Error('source attribution span differs');
+          return { ...item, sourceSha256: digest(text), expressionSha256: digest(text.slice(item.start, item.end)) };
+        }).sort((a,b) => a.source.localeCompare(b.source) || a.start-b.start || a.output.localeCompare(b.output) || a.target.localeCompare(b.target));
+        const graphEdges = [];
+        for (const [output, targets] of edges) for (const target of targets) {
+          if (graphEdges.length >= 20_000) throw Error('static graph edge bound exceeded');
+          graphEdges.push({ output, target });
+        }
+        staticImportGraph = { kind: 'd11-emitted-static-graph-1', policy: 'verified-compiled-chunk-dependencies',
+          authority: { invocationProfile: invocation.profile, applicationProfileSha256: digest(JSON.stringify(invocation.applicationSourceProfile)), compilationInputs: invocation.compilationInputs },
+          manifestSha256: digest(JSON.stringify(manifest)), outputs: identities,
+          edges: graphEdges.sort((a,b) => a.output.localeCompare(b.output) || a.target.localeCompare(b.target)),
+          emittedStaticImports: emittedStaticImports.sort((a,b) => a.output.localeCompare(b.output) || a.start-b.start || a.target.localeCompare(b.target)), omittedSourceAttributions };
+      }
+    } catch (error) { missing.add('D11 emitted static graph authority is unavailable: ' + error.message); }
+  }
+  // Failed, absent and legacy authority retains the existing source upper bound.
+  if (!staticImportGraph) for (const item of sourceStaticImports) add(edges, item.output, item.target);
   const closure = (roots, includeEager = true) => {
     const found = new Set(), pending = [...roots];
     while (pending.length) { const file = pending.pop(); if (found.has(file)) continue; found.add(file); pending.push(...edges.get(file) ?? []); if (includeEager) pending.push(...eager.get(file) ?? []); }

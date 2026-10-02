@@ -421,3 +421,48 @@ test('a positive application trace cannot bypass the independent registration co
   assert.match(result.missing.join(' '), /registration contract could not be verified/);
   assert(!result.startupFiles.includes('assets/panels.js'));
 });
+
+// Attribution alone remains an upper bound unless the real compiler/corpus and
+// all emitted bytes authenticate. Tiny specimens cannot grant that authority.
+test('source-only static attributions remain conservative without authentic compiled graph authority', () => {
+  for (const contract of ['legacy', null, {}]) {
+    const f = specimen();
+    f.sourceTextByPath['src/ui/panels.ts'] = "import './shell.js'; export const panels = [];";
+    if (contract !== 'legacy') f.invocationContract = contract;
+    // Caller-created graph/effect summaries must not activate the refined path.
+    f.staticImportGraph = { kind: 'd11-emitted-static-graph-1', omittedSourceAttributions: [] };
+    const result = deriveD11Roles(f);
+    assert.equal(Object.hasOwn(result, 'staticImportGraph'), false);
+    const feature = result.lazyFeatures.find(value => value.id === 'src/ui/panels.ts');
+    assert(feature.files.includes('assets/shell.js'));
+    assert(feature.files.includes('assets/shared.js'));
+    if (contract === 'legacy' || contract === null) assert.equal(result.complete, true, result.missing.join('; '));
+    else assert.equal(result.complete, false);
+    if (contract && typeof contract === 'object') assert.match(result.missing.join('; '), /emitted static graph authority is unavailable/);
+  }
+});
+
+test('unresolved emitted static imports and reexports cannot be a complete authenticated census', () => {
+  for (const statement of ["import 'external-package';", "export * from 'https://example.invalid/external.js';", "import './missing.js';", "export { value } from './missing.js';"]) {
+    const f = specimen(); f.invocationContract = {};
+    f.outputTextByFile['assets/panels.js'] += '\n' + statement;
+    const result = deriveD11Roles(f);
+    assert.equal(result.complete, false, statement);
+    assert.equal(Object.hasOwn(result, 'staticImportGraph'), false, statement);
+    assert.match(result.missing.join('; '), /emitted static import is unresolved/, statement);
+  }
+});
+
+test('manifest and emitted static edges each retain complete shared feature dependencies', () => {
+  for (const origin of ['manifest', 'emitted', 'both']) {
+    const f = specimen();
+    if (origin !== 'emitted') f.manifest['src/ui/panels.ts'].imports.push('src/ui/shell.ts');
+    if (origin !== 'manifest') f.outputTextByFile['assets/panels.js'] += "\nexport * from './shell.js';";
+    const result = deriveD11Roles(f);
+    assert.equal(result.complete, true, result.missing.join('; '));
+    const feature = result.lazyFeatures.find(value => value.id === 'src/ui/panels.ts');
+    assert(feature.files.includes('assets/shell.js'), origin);
+    assert(feature.files.includes('assets/shared.js'), origin);
+    assert.equal(feature.files.filter(file => file === 'assets/shared.js').length, 1, origin);
+  }
+});
